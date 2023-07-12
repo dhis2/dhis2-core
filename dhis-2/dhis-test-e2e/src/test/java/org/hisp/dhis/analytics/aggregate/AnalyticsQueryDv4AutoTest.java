@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2023, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.analytics.aggregate;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -17,9 +44,7 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-/**
- * Groups e2e tests for "/analytics" aggregate endpoint.
- */
+/** Groups e2e tests for "/analytics" aggregate endpoint. */
 public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
 
   private RestApiActions actions;
@@ -31,38 +56,43 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
 
   @Test
   public void queryAnc3CoverageByDistrictsLast4Quarters() throws JSONException {
-// Given
-    QueryParamsBuilder params = new QueryParamsBuilder().add("filter=dx:sB79w2hiLp8")
-        .add("skipData=false")
-        .add("includeNumDen=false")
-        .add("displayProperty=NAME")
-        .add("skipMeta=false")
-        .add(
-            "dimension=ou:TEQlaapDQoK;Vth0fbpFcsO;bL4ooGhyHRQ;jmIPBj66vD6;qhqAxPSTUXp;LEVEL-wjP19dkFeIk,pe:LAST_4_QUARTERS")
-        .add("relativePeriodDate=2022-01-01");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=dx:sB79w2hiLp8")
+            .add("skipData=false")
+            .add("includeNumDen=false")
+            .add("displayProperty=NAME")
+            .add("skipMeta=false")
+            .add(
+                "dimension=ou:TEQlaapDQoK;Vth0fbpFcsO;bL4ooGhyHRQ;jmIPBj66vD6;qhqAxPSTUXp;LEVEL-wjP19dkFeIk,pe:LAST_4_QUARTERS")
+            .add("relativePeriodDate=2022-01-01");
 
-// When
+    // When
     ApiResponse response = actions.get(params);
 
-// Then
-    response.validate().statusCode(200)
+    // Then
+    response
+        .validate()
+        .statusCode(200)
         .body("headers", hasSize(equalTo(3)))
         .body("rows", hasSize(equalTo(20)))
         .body("height", equalTo(20))
         .body("width", equalTo(3))
         .body("headerWidth", equalTo(3));
 
-// Assert metaData.
-    String expectedMetaData = "{\"items\":{\"sB79w2hiLp8\":{\"name\":\"ANC 3 Coverage\"},\"TEQlaapDQoK\":{\"name\":\"Port Loko\"},\"Vth0fbpFcsO\":{\"name\":\"Kono\"},\"ou\":{\"name\":\"Organisation unit\"},\"bL4ooGhyHRQ\":{\"name\":\"Pujehun\"},\"wjP19dkFeIk\":{\"uid\":\"wjP19dkFeIk\",\"name\":\"District\"},\"2021Q4\":{\"name\":\"October - December 2021\"},\"2021Q2\":{\"name\":\"April - June 2021\"},\"2021Q3\":{\"name\":\"July - September 2021\"},\"2021Q1\":{\"name\":\"January - March 2021\"},\"dx\":{\"name\":\"Data\"},\"pe\":{\"name\":\"Period\"},\"LAST_4_QUARTERS\":{\"name\":\"Last 4 quarters\"},\"qhqAxPSTUXp\":{\"name\":\"Koinadugu\"},\"jmIPBj66vD6\":{\"name\":\"Moyamba\"}},\"dimensions\":{\"dx\":[\"sB79w2hiLp8\"],\"pe\":[\"2021Q1\",\"2021Q2\",\"2021Q3\",\"2021Q4\"],\"ou\":[\"qhqAxPSTUXp\",\"Vth0fbpFcsO\",\"jmIPBj66vD6\",\"TEQlaapDQoK\",\"bL4ooGhyHRQ\"],\"co\":[]}}";
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"sB79w2hiLp8\":{\"name\":\"ANC 3 Coverage\"},\"TEQlaapDQoK\":{\"name\":\"Port Loko\"},\"Vth0fbpFcsO\":{\"name\":\"Kono\"},\"ou\":{\"name\":\"Organisation unit\"},\"bL4ooGhyHRQ\":{\"name\":\"Pujehun\"},\"wjP19dkFeIk\":{\"uid\":\"wjP19dkFeIk\",\"name\":\"District\"},\"2021Q4\":{\"name\":\"October - December 2021\"},\"2021Q2\":{\"name\":\"April - June 2021\"},\"2021Q3\":{\"name\":\"July - September 2021\"},\"2021Q1\":{\"name\":\"January - March 2021\"},\"dx\":{\"name\":\"Data\"},\"pe\":{\"name\":\"Period\"},\"LAST_4_QUARTERS\":{\"name\":\"Last 4 quarters\"},\"qhqAxPSTUXp\":{\"name\":\"Koinadugu\"},\"jmIPBj66vD6\":{\"name\":\"Moyamba\"}},\"dimensions\":{\"dx\":[\"sB79w2hiLp8\"],\"pe\":[\"2021Q1\",\"2021Q2\",\"2021Q3\",\"2021Q4\"],\"ou\":[\"qhqAxPSTUXp\",\"Vth0fbpFcsO\",\"jmIPBj66vD6\",\"TEQlaapDQoK\",\"bL4ooGhyHRQ\"],\"co\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
-// Assert headers.
+    // Assert headers.
     validateHeader(response, 0, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "pe", "Period", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
-// Assert rows.
+    // Assert rows.
     validateRow(response, List.of("qhqAxPSTUXp", "2021Q1", "42.0"));
     validateRow(response, List.of("qhqAxPSTUXp", "2021Q2", "44.2"));
     validateRow(response, List.of("qhqAxPSTUXp", "2021Q3", "51.7"));
@@ -87,74 +117,84 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
 
   @Test
   public void queryAnc3CoverageThisYeargauge() throws JSONException {
-// Given
-    QueryParamsBuilder params = new QueryParamsBuilder().add("filter=pe:THIS_YEAR")
-        .add("skipData=false")
-        .add("includeNumDen=false")
-        .add("displayProperty=NAME")
-        .add("skipMeta=false")
-        .add("dimension=dx:sB79w2hiLp8")
-        .add("relativePeriodDate=2022-01-01");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=pe:THIS_YEAR")
+            .add("skipData=false")
+            .add("includeNumDen=false")
+            .add("displayProperty=NAME")
+            .add("skipMeta=false")
+            .add("dimension=dx:sB79w2hiLp8")
+            .add("relativePeriodDate=2022-01-01");
 
-// When
+    // When
     ApiResponse response = actions.get(params);
 
-// Then
-    response.validate().statusCode(200)
+    // Then
+    response
+        .validate()
+        .statusCode(200)
         .body("headers", hasSize(equalTo(2)))
         .body("rows", hasSize(equalTo(1)))
         .body("height", equalTo(1))
         .body("width", equalTo(2))
         .body("headerWidth", equalTo(2));
 
-// Assert metaData.
-    String expectedMetaData = "{\"items\":{\"sB79w2hiLp8\":{\"name\":\"ANC 3 Coverage\"},\"dx\":{\"name\":\"Data\"},\"pe\":{\"name\":\"Period\"},\"THIS_YEAR\":{\"name\":\"This year\"},\"2022\":{\"name\":\"2022\"}},\"dimensions\":{\"dx\":[\"sB79w2hiLp8\"],\"pe\":[\"2022\"],\"co\":[]}}";
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"sB79w2hiLp8\":{\"name\":\"ANC 3 Coverage\"},\"dx\":{\"name\":\"Data\"},\"pe\":{\"name\":\"Period\"},\"THIS_YEAR\":{\"name\":\"This year\"},\"2022\":{\"name\":\"2022\"}},\"dimensions\":{\"dx\":[\"sB79w2hiLp8\"],\"pe\":[\"2022\"],\"co\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
-// Assert headers.
+    // Assert headers.
     validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
-// Assert rows.
+    // Assert rows.
     validateRow(response, List.of("sB79w2hiLp8", "65.8"));
   }
 
   @Test
   public void queryAnc3rdVisitsByFacilityTypeLast12Months100StackedColumns() throws JSONException {
-// Given
-    QueryParamsBuilder params = new QueryParamsBuilder().add("filter=ou:ImspTQPwCqd,dx:Jtf34kNZhzP")
-        .add("skipData=false")
-        .add("includeNumDen=false")
-        .add("displayProperty=NAME")
-        .add("skipMeta=false")
-        .add(
-            "dimension=J5jldMd8OHv:uYxK4wmcPqA;EYbopBOJWsW;RXL3lPSK8oG;CXw2yu5fodb,pe:LAST_12_MONTHS")
-        .add("relativePeriodDate=2022-01-01");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:ImspTQPwCqd,dx:Jtf34kNZhzP")
+            .add("skipData=false")
+            .add("includeNumDen=false")
+            .add("displayProperty=NAME")
+            .add("skipMeta=false")
+            .add(
+                "dimension=J5jldMd8OHv:uYxK4wmcPqA;EYbopBOJWsW;RXL3lPSK8oG;CXw2yu5fodb,pe:LAST_12_MONTHS")
+            .add("relativePeriodDate=2022-01-01");
 
-// When
+    // When
     ApiResponse response = actions.get(params);
 
-// Then
-    response.validate().statusCode(200)
+    // Then
+    response
+        .validate()
+        .statusCode(200)
         .body("headers", hasSize(equalTo(3)))
         .body("rows", hasSize(equalTo(48)))
         .body("height", equalTo(48))
         .body("width", equalTo(3))
         .body("headerWidth", equalTo(3));
 
-// Assert metaData.
-    String expectedMetaData = "{\"items\":{\"J5jldMd8OHv\":{\"name\":\"Facility Type\"},\"202109\":{\"name\":\"September 2021\"},\"202107\":{\"name\":\"July 2021\"},\"202108\":{\"name\":\"August 2021\"},\"202105\":{\"name\":\"May 2021\"},\"uYxK4wmcPqA\":{\"name\":\"CHP\"},\"202106\":{\"name\":\"June 2021\"},\"202103\":{\"name\":\"March 2021\"},\"202104\":{\"name\":\"April 2021\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202112\":{\"name\":\"December 2021\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202110\":{\"name\":\"October 2021\"},\"202111\":{\"name\":\"November 2021\"},\"dx\":{\"name\":\"Data\"},\"pq2XI5kz2BY\":{\"name\":\"Fixed\"},\"Jtf34kNZhzP\":{\"name\":\"ANC 3rd visit\"},\"PT59n8BQbqM\":{\"name\":\"Outreach\"},\"RXL3lPSK8oG\":{\"name\":\"Clinic\"},\"ou\":{\"name\":\"Organisation unit\"},\"CXw2yu5fodb\":{\"name\":\"CHC\"},\"202101\":{\"name\":\"January 2021\"},\"202102\":{\"name\":\"February 2021\"},\"pe\":{\"name\":\"Period\"},\"EYbopBOJWsW\":{\"name\":\"MCHP\"}},\"dimensions\":{\"dx\":[\"Jtf34kNZhzP\"],\"pe\":[\"202101\",\"202102\",\"202103\",\"202104\",\"202105\",\"202106\",\"202107\",\"202108\",\"202109\",\"202110\",\"202111\",\"202112\"],\"J5jldMd8OHv\":[\"uYxK4wmcPqA\",\"EYbopBOJWsW\",\"RXL3lPSK8oG\",\"CXw2yu5fodb\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[\"pq2XI5kz2BY\",\"PT59n8BQbqM\"]}}";
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"J5jldMd8OHv\":{\"name\":\"Facility Type\"},\"202109\":{\"name\":\"September 2021\"},\"202107\":{\"name\":\"July 2021\"},\"202108\":{\"name\":\"August 2021\"},\"202105\":{\"name\":\"May 2021\"},\"uYxK4wmcPqA\":{\"name\":\"CHP\"},\"202106\":{\"name\":\"June 2021\"},\"202103\":{\"name\":\"March 2021\"},\"202104\":{\"name\":\"April 2021\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202112\":{\"name\":\"December 2021\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202110\":{\"name\":\"October 2021\"},\"202111\":{\"name\":\"November 2021\"},\"dx\":{\"name\":\"Data\"},\"pq2XI5kz2BY\":{\"name\":\"Fixed\"},\"Jtf34kNZhzP\":{\"name\":\"ANC 3rd visit\"},\"PT59n8BQbqM\":{\"name\":\"Outreach\"},\"RXL3lPSK8oG\":{\"name\":\"Clinic\"},\"ou\":{\"name\":\"Organisation unit\"},\"CXw2yu5fodb\":{\"name\":\"CHC\"},\"202101\":{\"name\":\"January 2021\"},\"202102\":{\"name\":\"February 2021\"},\"pe\":{\"name\":\"Period\"},\"EYbopBOJWsW\":{\"name\":\"MCHP\"}},\"dimensions\":{\"dx\":[\"Jtf34kNZhzP\"],\"pe\":[\"202101\",\"202102\",\"202103\",\"202104\",\"202105\",\"202106\",\"202107\",\"202108\",\"202109\",\"202110\",\"202111\",\"202112\"],\"J5jldMd8OHv\":[\"uYxK4wmcPqA\",\"EYbopBOJWsW\",\"RXL3lPSK8oG\",\"CXw2yu5fodb\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[\"pq2XI5kz2BY\",\"PT59n8BQbqM\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
-// Assert headers.
-    validateHeader(response, 0, "J5jldMd8OHv", "Facility Type", "TEXT", "java.lang.String", false,
-        true);
+    // Assert headers.
+    validateHeader(
+        response, 0, "J5jldMd8OHv", "Facility Type", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "pe", "Period", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
-// Assert rows.
+    // Assert rows.
     validateRow(response, List.of("RXL3lPSK8oG", "202102", "472"));
     validateRow(response, List.of("RXL3lPSK8oG", "202101", "549"));
     validateRow(response, List.of("RXL3lPSK8oG", "202104", "440"));
@@ -207,1460 +247,4523 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
 
   @Test
   public void queryAncAtFacilitiesInBoThisMonthWithHiddenEmptyColumns() throws JSONException {
-// Given
-    QueryParamsBuilder params = new QueryParamsBuilder().add("skipData=false")
-        .add("includeNumDen=true")
-        .add("displayProperty=NAME")
-        .add("skipMeta=false")
-        .add(
-            "dimension=ou:zFDYIgyGmXG;BGGmAwx33dj;YmmeuGbqOwR;YuQRtpLP10I;LEVEL-m9lBJogzE95,pe:THIS_MONTH,dx:fbfJHSPpUQD;cYeuwXTCPkU;Jtf34kNZhzP;hfdmMSPBgLG;bqK6eSIwo3h;yTHydhurQQU;V37YqbqpEhV;SA7WeFZnUci")
-        .add("relativePeriodDate=2022-01-01");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("skipData=false")
+            .add("includeNumDen=true")
+            .add("displayProperty=NAME")
+            .add("skipMeta=false")
+            .add(
+                "dimension=ou:zFDYIgyGmXG;BGGmAwx33dj;YmmeuGbqOwR;YuQRtpLP10I;LEVEL-m9lBJogzE95,pe:THIS_MONTH,dx:fbfJHSPpUQD;cYeuwXTCPkU;Jtf34kNZhzP;hfdmMSPBgLG;bqK6eSIwo3h;yTHydhurQQU;V37YqbqpEhV;SA7WeFZnUci")
+            .add("relativePeriodDate=2022-01-01");
 
-// When
+    // When
     ApiResponse response = actions.get(params);
 
-// Then
-    response.validate().statusCode(200)
+    // Then
+    response
+        .validate()
+        .statusCode(200)
         .body("headers", hasSize(equalTo(9)))
         .body("rows", hasSize(equalTo(114)))
         .body("height", equalTo(114))
         .body("width", equalTo(9))
         .body("headerWidth", equalTo(9));
 
-// Assert metaData.
-    String expectedMetaData = "{\"items\":{\"p9ZtyC3LQ9f\":{\"name\":\"Niagorehun CHP\"},\"lvxIJAb2QJo\":{\"name\":\"Sembehun Mamagewor MCHP\"},\"AXZq6q7Dr6E\":{\"name\":\"Buma MCHP\"},\"cJkZLwhL8RP\":{\"name\":\"Kasse MCHP\"},\"m9lBJogzE95\":{\"uid\":\"m9lBJogzE95\",\"name\":\"Facility\"},\"xt08cuqf1ys\":{\"name\":\"Mokoba MCHP\"},\"SA7WeFZnUci\":{\"name\":\"IPT 2nd dose given by TBA\"},\"THIS_MONTH\":{\"name\":\"This month\"},\"jGYT5U5qJP6\":{\"name\":\"Gbaiima CHC\"},\"zFDYIgyGmXG\":{\"uid\":\"zFDYIgyGmXG\",\"code\":\"OU_542\",\"name\":\"Bargbo\"},\"hfdmMSPBgLG\":{\"name\":\"ANC 4th or more visits\"},\"dx\":{\"name\":\"Data\"},\"KvE0PYQzXMM\":{\"name\":\"Mano Yorgbo MCHP\"},\"pq2XI5kz2BY\":{\"name\":\"Fixed\"},\"vELbGdEphPd\":{\"name\":\"Jimmi CHC\"},\"Tht0fnjagHi\":{\"name\":\"Serabu Hospital Mission\"},\"Jtf34kNZhzP\":{\"name\":\"ANC 3rd visit\"},\"PT59n8BQbqM\":{\"name\":\"Outreach\"},\"ctMepV9p92I\":{\"name\":\"Gbangbalia MCHP\"},\"prNiMdHuaaU\":{\"name\":\"Serabu (Bumpe Ngao) UFC\"},\"kEkU53NrFmy\":{\"name\":\"Taninahun (BN) CHP\"},\"DiszpKrYNg8\":{\"name\":\"Ngelehun CHC\"},\"E497Rk80ivZ\":{\"name\":\"Bumpe CHC\"},\"YmmeuGbqOwR\":{\"uid\":\"YmmeuGbqOwR\",\"code\":\"OU_544\",\"name\":\"Gbo\"},\"yTHydhurQQU\":{\"name\":\"IPT 1st dose given by TBA\"},\"fA43H8Ds0Ja\":{\"name\":\"Momajo MCHP\"},\"ou\":{\"name\":\"Organisation unit\"},\"fbfJHSPpUQD\":{\"name\":\"ANC 1st visit\"},\"YuQRtpLP10I\":{\"uid\":\"YuQRtpLP10I\",\"code\":\"OU_539\",\"name\":\"Badjia\"},\"EJoI3HArJ2W\":{\"name\":\"Bum Kaku MCHP\"},\"CTOMXJg41hz\":{\"name\":\"Kaniya MCHP\"},\"wwM3YPvBKu2\":{\"name\":\"Ngolahun CHC\"},\"RTixJpRqS4C\":{\"name\":\"Kpetema CHP\"},\"g8upMTyEZGZ\":{\"name\":\"Njandama MCHP\"},\"202201\":{\"name\":\"January 2022\"},\"BGGmAwx33dj\":{\"uid\":\"BGGmAwx33dj\",\"code\":\"OU_543\",\"name\":\"Bumpe Ngao\"},\"pe\":{\"name\":\"Period\"},\"cYeuwXTCPkU\":{\"name\":\"ANC 2nd visit\"},\"bqK6eSIwo3h\":{\"name\":\"IPT 1st dose given at PHU\"},\"am6EFqHGKeU\":{\"name\":\"Mokpende MCHP\"},\"V37YqbqpEhV\":{\"name\":\"IPT 2nd dose given at PHU\"},\"tZxqVn3xNrA\":{\"name\":\"Wallehun MCHP\"},\"EFTcruJcNmZ\":{\"name\":\"Yengema CHP\"}},\"dimensions\":{\"dx\":[\"fbfJHSPpUQD\",\"cYeuwXTCPkU\",\"Jtf34kNZhzP\",\"hfdmMSPBgLG\",\"bqK6eSIwo3h\",\"yTHydhurQQU\",\"V37YqbqpEhV\",\"SA7WeFZnUci\"],\"pe\":[\"202201\"],\"ou\":[\"EJoI3HArJ2W\",\"AXZq6q7Dr6E\",\"E497Rk80ivZ\",\"jGYT5U5qJP6\",\"ctMepV9p92I\",\"vELbGdEphPd\",\"CTOMXJg41hz\",\"cJkZLwhL8RP\",\"RTixJpRqS4C\",\"KvE0PYQzXMM\",\"xt08cuqf1ys\",\"am6EFqHGKeU\",\"fA43H8Ds0Ja\",\"DiszpKrYNg8\",\"wwM3YPvBKu2\",\"p9ZtyC3LQ9f\",\"g8upMTyEZGZ\",\"lvxIJAb2QJo\",\"prNiMdHuaaU\",\"Tht0fnjagHi\",\"kEkU53NrFmy\",\"tZxqVn3xNrA\",\"EFTcruJcNmZ\"],\"co\":[\"pq2XI5kz2BY\",\"PT59n8BQbqM\"]}}";
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"p9ZtyC3LQ9f\":{\"name\":\"Niagorehun CHP\"},\"lvxIJAb2QJo\":{\"name\":\"Sembehun Mamagewor MCHP\"},\"AXZq6q7Dr6E\":{\"name\":\"Buma MCHP\"},\"cJkZLwhL8RP\":{\"name\":\"Kasse MCHP\"},\"m9lBJogzE95\":{\"uid\":\"m9lBJogzE95\",\"name\":\"Facility\"},\"xt08cuqf1ys\":{\"name\":\"Mokoba MCHP\"},\"SA7WeFZnUci\":{\"name\":\"IPT 2nd dose given by TBA\"},\"THIS_MONTH\":{\"name\":\"This month\"},\"jGYT5U5qJP6\":{\"name\":\"Gbaiima CHC\"},\"zFDYIgyGmXG\":{\"uid\":\"zFDYIgyGmXG\",\"code\":\"OU_542\",\"name\":\"Bargbo\"},\"hfdmMSPBgLG\":{\"name\":\"ANC 4th or more visits\"},\"dx\":{\"name\":\"Data\"},\"KvE0PYQzXMM\":{\"name\":\"Mano Yorgbo MCHP\"},\"pq2XI5kz2BY\":{\"name\":\"Fixed\"},\"vELbGdEphPd\":{\"name\":\"Jimmi CHC\"},\"Tht0fnjagHi\":{\"name\":\"Serabu Hospital Mission\"},\"Jtf34kNZhzP\":{\"name\":\"ANC 3rd visit\"},\"PT59n8BQbqM\":{\"name\":\"Outreach\"},\"ctMepV9p92I\":{\"name\":\"Gbangbalia MCHP\"},\"prNiMdHuaaU\":{\"name\":\"Serabu (Bumpe Ngao) UFC\"},\"kEkU53NrFmy\":{\"name\":\"Taninahun (BN) CHP\"},\"DiszpKrYNg8\":{\"name\":\"Ngelehun CHC\"},\"E497Rk80ivZ\":{\"name\":\"Bumpe CHC\"},\"YmmeuGbqOwR\":{\"uid\":\"YmmeuGbqOwR\",\"code\":\"OU_544\",\"name\":\"Gbo\"},\"yTHydhurQQU\":{\"name\":\"IPT 1st dose given by TBA\"},\"fA43H8Ds0Ja\":{\"name\":\"Momajo MCHP\"},\"ou\":{\"name\":\"Organisation unit\"},\"fbfJHSPpUQD\":{\"name\":\"ANC 1st visit\"},\"YuQRtpLP10I\":{\"uid\":\"YuQRtpLP10I\",\"code\":\"OU_539\",\"name\":\"Badjia\"},\"EJoI3HArJ2W\":{\"name\":\"Bum Kaku MCHP\"},\"CTOMXJg41hz\":{\"name\":\"Kaniya MCHP\"},\"wwM3YPvBKu2\":{\"name\":\"Ngolahun CHC\"},\"RTixJpRqS4C\":{\"name\":\"Kpetema CHP\"},\"g8upMTyEZGZ\":{\"name\":\"Njandama MCHP\"},\"202201\":{\"name\":\"January 2022\"},\"BGGmAwx33dj\":{\"uid\":\"BGGmAwx33dj\",\"code\":\"OU_543\",\"name\":\"Bumpe Ngao\"},\"pe\":{\"name\":\"Period\"},\"cYeuwXTCPkU\":{\"name\":\"ANC 2nd visit\"},\"bqK6eSIwo3h\":{\"name\":\"IPT 1st dose given at PHU\"},\"am6EFqHGKeU\":{\"name\":\"Mokpende MCHP\"},\"V37YqbqpEhV\":{\"name\":\"IPT 2nd dose given at PHU\"},\"tZxqVn3xNrA\":{\"name\":\"Wallehun MCHP\"},\"EFTcruJcNmZ\":{\"name\":\"Yengema CHP\"}},\"dimensions\":{\"dx\":[\"fbfJHSPpUQD\",\"cYeuwXTCPkU\",\"Jtf34kNZhzP\",\"hfdmMSPBgLG\",\"bqK6eSIwo3h\",\"yTHydhurQQU\",\"V37YqbqpEhV\",\"SA7WeFZnUci\"],\"pe\":[\"202201\"],\"ou\":[\"EJoI3HArJ2W\",\"AXZq6q7Dr6E\",\"E497Rk80ivZ\",\"jGYT5U5qJP6\",\"ctMepV9p92I\",\"vELbGdEphPd\",\"CTOMXJg41hz\",\"cJkZLwhL8RP\",\"RTixJpRqS4C\",\"KvE0PYQzXMM\",\"xt08cuqf1ys\",\"am6EFqHGKeU\",\"fA43H8Ds0Ja\",\"DiszpKrYNg8\",\"wwM3YPvBKu2\",\"p9ZtyC3LQ9f\",\"g8upMTyEZGZ\",\"lvxIJAb2QJo\",\"prNiMdHuaaU\",\"Tht0fnjagHi\",\"kEkU53NrFmy\",\"tZxqVn3xNrA\",\"EFTcruJcNmZ\"],\"co\":[\"pq2XI5kz2BY\",\"PT59n8BQbqM\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
-// Assert headers.
+    // Assert headers.
     validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 2, "pe", "Period", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 3, "value", "Value", "NUMBER", "java.lang.Double", false, false);
-    validateHeader(response, 4, "numerator", "Numerator", "NUMBER", "java.lang.Double", false,
-        false);
-    validateHeader(response, 5, "denominator", "Denominator", "NUMBER", "java.lang.Double", false,
-        false);
+    validateHeader(
+        response, 4, "numerator", "Numerator", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(
+        response, 5, "denominator", "Denominator", "NUMBER", "java.lang.Double", false, false);
     validateHeader(response, 6, "factor", "Factor", "NUMBER", "java.lang.Double", false, false);
-    validateHeader(response, 7, "multiplier", "Multiplier", "NUMBER", "java.lang.Double", false,
-        false);
+    validateHeader(
+        response, 7, "multiplier", "Multiplier", "NUMBER", "java.lang.Double", false, false);
     validateHeader(response, 8, "divisor", "Divisor", "NUMBER", "java.lang.Double", false, false);
 
-// Assert rows.
-    validateRow(response,
-        List.of("Jtf34kNZhzP", "am6EFqHGKeU", "202201", "28", "", "", "", "", ""));
-    validateRow(response,
-        List.of("bqK6eSIwo3h", "DiszpKrYNg8", "202201", "57", "", "", "", "", ""));
-    validateRow(response,
-        List.of("fbfJHSPpUQD", "prNiMdHuaaU", "202201", "30", "", "", "", "", ""));
-    validateRow(response,
-        List.of("cYeuwXTCPkU", "prNiMdHuaaU", "202201", "32", "", "", "", "", ""));
+    // Assert rows.
+    validateRow(
+        response, List.of("Jtf34kNZhzP", "am6EFqHGKeU", "202201", "28", "", "", "", "", ""));
+    validateRow(
+        response, List.of("bqK6eSIwo3h", "DiszpKrYNg8", "202201", "57", "", "", "", "", ""));
+    validateRow(
+        response, List.of("fbfJHSPpUQD", "prNiMdHuaaU", "202201", "30", "", "", "", "", ""));
+    validateRow(
+        response, List.of("cYeuwXTCPkU", "prNiMdHuaaU", "202201", "32", "", "", "", "", ""));
     validateRow(response, List.of("bqK6eSIwo3h", "xt08cuqf1ys", "202201", "9", "", "", "", "", ""));
-    validateRow(response,
-        List.of("fbfJHSPpUQD", "vELbGdEphPd", "202201", "160", "", "", "", "", ""));
+    validateRow(
+        response, List.of("fbfJHSPpUQD", "vELbGdEphPd", "202201", "160", "", "", "", "", ""));
     validateRow(response, List.of("hfdmMSPBgLG", "prNiMdHuaaU", "202201", "1", "", "", "", "", ""));
-    validateRow(response,
-        List.of("cYeuwXTCPkU", "am6EFqHGKeU", "202201", "20", "", "", "", "", ""));
+    validateRow(
+        response, List.of("cYeuwXTCPkU", "am6EFqHGKeU", "202201", "20", "", "", "", "", ""));
     validateRow(response, List.of("yTHydhurQQU", "RTixJpRqS4C", "202201", "7", "", "", "", "", ""));
-    validateRow(response,
-        List.of("Jtf34kNZhzP", "prNiMdHuaaU", "202201", "15", "", "", "", "", ""));
-    validateRow(response,
-        List.of("bqK6eSIwo3h", "kEkU53NrFmy", "202201", "32", "", "", "", "", ""));
-    validateRow(response,
-        List.of("V37YqbqpEhV", "prNiMdHuaaU", "202201", "20", "", "", "", "", ""));
+    validateRow(
+        response, List.of("Jtf34kNZhzP", "prNiMdHuaaU", "202201", "15", "", "", "", "", ""));
+    validateRow(
+        response, List.of("bqK6eSIwo3h", "kEkU53NrFmy", "202201", "32", "", "", "", "", ""));
+    validateRow(
+        response, List.of("V37YqbqpEhV", "prNiMdHuaaU", "202201", "20", "", "", "", "", ""));
     validateRow(response, List.of("fbfJHSPpUQD", "ctMepV9p92I", "202201", "5", "", "", "", "", ""));
-    validateRow(response,
-        List.of("V37YqbqpEhV", "jGYT5U5qJP6", "202201", "12", "", "", "", "", ""));
+    validateRow(
+        response, List.of("V37YqbqpEhV", "jGYT5U5qJP6", "202201", "12", "", "", "", "", ""));
     validateRow(response, List.of("hfdmMSPBgLG", "vELbGdEphPd", "202201", "3", "", "", "", "", ""));
     validateRow(response, List.of("yTHydhurQQU", "ctMepV9p92I", "202201", "9", "", "", "", "", ""));
     validateRow(response, List.of("Jtf34kNZhzP", "jGYT5U5qJP6", "202201", "9", "", "", "", "", ""));
-    validateRow(response,
-        List.of("Jtf34kNZhzP", "vELbGdEphPd", "202201", "39", "", "", "", "", ""));
+    validateRow(
+        response, List.of("Jtf34kNZhzP", "vELbGdEphPd", "202201", "39", "", "", "", "", ""));
     validateRow(response, List.of("Jtf34kNZhzP", "xt08cuqf1ys", "202201", "3", "", "", "", "", ""));
     validateRow(response, List.of("V37YqbqpEhV", "vELbGdEphPd", "202201", "4", "", "", "", "", ""));
-    validateRow(response,
-        List.of("bqK6eSIwo3h", "EFTcruJcNmZ", "202201", "10", "", "", "", "", ""));
+    validateRow(
+        response, List.of("bqK6eSIwo3h", "EFTcruJcNmZ", "202201", "10", "", "", "", "", ""));
     validateRow(response, List.of("bqK6eSIwo3h", "EJoI3HArJ2W", "202201", "6", "", "", "", "", ""));
     validateRow(response, List.of("V37YqbqpEhV", "xt08cuqf1ys", "202201", "5", "", "", "", "", ""));
     validateRow(response, List.of("SA7WeFZnUci", "EJoI3HArJ2W", "202201", "3", "", "", "", "", ""));
     validateRow(response, List.of("cYeuwXTCPkU", "g8upMTyEZGZ", "202201", "6", "", "", "", "", ""));
-    validateRow(response,
-        List.of("cYeuwXTCPkU", "jGYT5U5qJP6", "202201", "20", "", "", "", "", ""));
+    validateRow(
+        response, List.of("cYeuwXTCPkU", "jGYT5U5qJP6", "202201", "20", "", "", "", "", ""));
     validateRow(response, List.of("hfdmMSPBgLG", "ctMepV9p92I", "202201", "3", "", "", "", "", ""));
     validateRow(response, List.of("V37YqbqpEhV", "EJoI3HArJ2W", "202201", "1", "", "", "", "", ""));
-    validateRow(response,
-        List.of("cYeuwXTCPkU", "xt08cuqf1ys", "202201", "20", "", "", "", "", ""));
-    validateRow(response,
-        List.of("bqK6eSIwo3h", "E497Rk80ivZ", "202201", "32", "", "", "", "", ""));
-    validateRow(response,
-        List.of("bqK6eSIwo3h", "am6EFqHGKeU", "202201", "35", "", "", "", "", ""));
+    validateRow(
+        response, List.of("cYeuwXTCPkU", "xt08cuqf1ys", "202201", "20", "", "", "", "", ""));
+    validateRow(
+        response, List.of("bqK6eSIwo3h", "E497Rk80ivZ", "202201", "32", "", "", "", "", ""));
+    validateRow(
+        response, List.of("bqK6eSIwo3h", "am6EFqHGKeU", "202201", "35", "", "", "", "", ""));
     validateRow(response, List.of("bqK6eSIwo3h", "p9ZtyC3LQ9f", "202201", "7", "", "", "", "", ""));
-    validateRow(response,
-        List.of("V37YqbqpEhV", "DiszpKrYNg8", "202201", "57", "", "", "", "", ""));
-    validateRow(response,
-        List.of("Jtf34kNZhzP", "EFTcruJcNmZ", "202201", "16", "", "", "", "", ""));
+    validateRow(
+        response, List.of("V37YqbqpEhV", "DiszpKrYNg8", "202201", "57", "", "", "", "", ""));
+    validateRow(
+        response, List.of("Jtf34kNZhzP", "EFTcruJcNmZ", "202201", "16", "", "", "", "", ""));
     validateRow(response, List.of("fbfJHSPpUQD", "fA43H8Ds0Ja", "202201", "6", "", "", "", "", ""));
     validateRow(response, List.of("Jtf34kNZhzP", "ctMepV9p92I", "202201", "3", "", "", "", "", ""));
     validateRow(response, List.of("yTHydhurQQU", "CTOMXJg41hz", "202201", "4", "", "", "", "", ""));
-    validateRow(response,
-        List.of("Jtf34kNZhzP", "fA43H8Ds0Ja", "202201", "39", "", "", "", "", ""));
-    validateRow(response,
-        List.of("hfdmMSPBgLG", "fA43H8Ds0Ja", "202201", "13", "", "", "", "", ""));
+    validateRow(
+        response, List.of("Jtf34kNZhzP", "fA43H8Ds0Ja", "202201", "39", "", "", "", "", ""));
+    validateRow(
+        response, List.of("hfdmMSPBgLG", "fA43H8Ds0Ja", "202201", "13", "", "", "", "", ""));
     validateRow(response, List.of("Jtf34kNZhzP", "g8upMTyEZGZ", "202201", "3", "", "", "", "", ""));
-    validateRow(response,
-        List.of("cYeuwXTCPkU", "KvE0PYQzXMM", "202201", "13", "", "", "", "", ""));
-    validateRow(response,
-        List.of("bqK6eSIwo3h", "KvE0PYQzXMM", "202201", "13", "", "", "", "", ""));
-    validateRow(response,
-        List.of("yTHydhurQQU", "DiszpKrYNg8", "202201", "57", "", "", "", "", ""));
-    validateRow(response,
-        List.of("V37YqbqpEhV", "cJkZLwhL8RP", "202201", "22", "", "", "", "", ""));
-    validateRow(response,
-        List.of("fbfJHSPpUQD", "DiszpKrYNg8", "202201", "13", "", "", "", "", ""));
-    validateRow(response,
-        List.of("cYeuwXTCPkU", "vELbGdEphPd", "202201", "79", "", "", "", "", ""));
+    validateRow(
+        response, List.of("cYeuwXTCPkU", "KvE0PYQzXMM", "202201", "13", "", "", "", "", ""));
+    validateRow(
+        response, List.of("bqK6eSIwo3h", "KvE0PYQzXMM", "202201", "13", "", "", "", "", ""));
+    validateRow(
+        response, List.of("yTHydhurQQU", "DiszpKrYNg8", "202201", "57", "", "", "", "", ""));
+    validateRow(
+        response, List.of("V37YqbqpEhV", "cJkZLwhL8RP", "202201", "22", "", "", "", "", ""));
+    validateRow(
+        response, List.of("fbfJHSPpUQD", "DiszpKrYNg8", "202201", "13", "", "", "", "", ""));
+    validateRow(
+        response, List.of("cYeuwXTCPkU", "vELbGdEphPd", "202201", "79", "", "", "", "", ""));
     validateRow(response, List.of("hfdmMSPBgLG", "KvE0PYQzXMM", "202201", "4", "", "", "", "", ""));
-    validateRow(response,
-        List.of("cYeuwXTCPkU", "E497Rk80ivZ", "202201", "35", "", "", "", "", ""));
+    validateRow(
+        response, List.of("cYeuwXTCPkU", "E497Rk80ivZ", "202201", "35", "", "", "", "", ""));
     validateRow(response, List.of("Jtf34kNZhzP", "KvE0PYQzXMM", "202201", "7", "", "", "", "", ""));
-    validateRow(response,
-        List.of("bqK6eSIwo3h", "jGYT5U5qJP6", "202201", "69", "", "", "", "", ""));
+    validateRow(
+        response, List.of("bqK6eSIwo3h", "jGYT5U5qJP6", "202201", "69", "", "", "", "", ""));
     validateRow(response, List.of("bqK6eSIwo3h", "g8upMTyEZGZ", "202201", "7", "", "", "", "", ""));
     validateRow(response, List.of("hfdmMSPBgLG", "am6EFqHGKeU", "202201", "8", "", "", "", "", ""));
     validateRow(response, List.of("SA7WeFZnUci", "RTixJpRqS4C", "202201", "5", "", "", "", "", ""));
     validateRow(response, List.of("fbfJHSPpUQD", "cJkZLwhL8RP", "202201", "7", "", "", "", "", ""));
-    validateRow(response,
-        List.of("yTHydhurQQU", "cJkZLwhL8RP", "202201", "15", "", "", "", "", ""));
-    validateRow(response,
-        List.of("fbfJHSPpUQD", "RTixJpRqS4C", "202201", "18", "", "", "", "", ""));
-    validateRow(response,
-        List.of("hfdmMSPBgLG", "EFTcruJcNmZ", "202201", "23", "", "", "", "", ""));
-    validateRow(response,
-        List.of("SA7WeFZnUci", "DiszpKrYNg8", "202201", "46", "", "", "", "", ""));
+    validateRow(
+        response, List.of("yTHydhurQQU", "cJkZLwhL8RP", "202201", "15", "", "", "", "", ""));
+    validateRow(
+        response, List.of("fbfJHSPpUQD", "RTixJpRqS4C", "202201", "18", "", "", "", "", ""));
+    validateRow(
+        response, List.of("hfdmMSPBgLG", "EFTcruJcNmZ", "202201", "23", "", "", "", "", ""));
+    validateRow(
+        response, List.of("SA7WeFZnUci", "DiszpKrYNg8", "202201", "46", "", "", "", "", ""));
     validateRow(response, List.of("V37YqbqpEhV", "kEkU53NrFmy", "202201", "7", "", "", "", "", ""));
     validateRow(response, List.of("SA7WeFZnUci", "CTOMXJg41hz", "202201", "7", "", "", "", "", ""));
     validateRow(response, List.of("Jtf34kNZhzP", "p9ZtyC3LQ9f", "202201", "7", "", "", "", "", ""));
-    validateRow(response,
-        List.of("fbfJHSPpUQD", "CTOMXJg41hz", "202201", "20", "", "", "", "", ""));
-    validateRow(response,
-        List.of("cYeuwXTCPkU", "CTOMXJg41hz", "202201", "25", "", "", "", "", ""));
-    validateRow(response,
-        List.of("V37YqbqpEhV", "RTixJpRqS4C", "202201", "12", "", "", "", "", ""));
+    validateRow(
+        response, List.of("fbfJHSPpUQD", "CTOMXJg41hz", "202201", "20", "", "", "", "", ""));
+    validateRow(
+        response, List.of("cYeuwXTCPkU", "CTOMXJg41hz", "202201", "25", "", "", "", "", ""));
+    validateRow(
+        response, List.of("V37YqbqpEhV", "RTixJpRqS4C", "202201", "12", "", "", "", "", ""));
     validateRow(response, List.of("Jtf34kNZhzP", "E497Rk80ivZ", "202201", "5", "", "", "", "", ""));
     validateRow(response, List.of("hfdmMSPBgLG", "p9ZtyC3LQ9f", "202201", "1", "", "", "", "", ""));
-    validateRow(response,
-        List.of("hfdmMSPBgLG", "CTOMXJg41hz", "202201", "29", "", "", "", "", ""));
-    validateRow(response,
-        List.of("Jtf34kNZhzP", "RTixJpRqS4C", "202201", "13", "", "", "", "", ""));
-    validateRow(response,
-        List.of("cYeuwXTCPkU", "p9ZtyC3LQ9f", "202201", "18", "", "", "", "", ""));
+    validateRow(
+        response, List.of("hfdmMSPBgLG", "CTOMXJg41hz", "202201", "29", "", "", "", "", ""));
+    validateRow(
+        response, List.of("Jtf34kNZhzP", "RTixJpRqS4C", "202201", "13", "", "", "", "", ""));
+    validateRow(
+        response, List.of("cYeuwXTCPkU", "p9ZtyC3LQ9f", "202201", "18", "", "", "", "", ""));
     validateRow(response, List.of("V37YqbqpEhV", "E497Rk80ivZ", "202201", "1", "", "", "", "", ""));
-    validateRow(response,
-        List.of("bqK6eSIwo3h", "ctMepV9p92I", "202201", "24", "", "", "", "", ""));
-    validateRow(response,
-        List.of("Jtf34kNZhzP", "CTOMXJg41hz", "202201", "27", "", "", "", "", ""));
-    validateRow(response,
-        List.of("bqK6eSIwo3h", "vELbGdEphPd", "202201", "40", "", "", "", "", ""));
-    validateRow(response,
-        List.of("fbfJHSPpUQD", "kEkU53NrFmy", "202201", "32", "", "", "", "", ""));
-    validateRow(response,
-        List.of("V37YqbqpEhV", "CTOMXJg41hz", "202201", "18", "", "", "", "", ""));
+    validateRow(
+        response, List.of("bqK6eSIwo3h", "ctMepV9p92I", "202201", "24", "", "", "", "", ""));
+    validateRow(
+        response, List.of("Jtf34kNZhzP", "CTOMXJg41hz", "202201", "27", "", "", "", "", ""));
+    validateRow(
+        response, List.of("bqK6eSIwo3h", "vELbGdEphPd", "202201", "40", "", "", "", "", ""));
+    validateRow(
+        response, List.of("fbfJHSPpUQD", "kEkU53NrFmy", "202201", "32", "", "", "", "", ""));
+    validateRow(
+        response, List.of("V37YqbqpEhV", "CTOMXJg41hz", "202201", "18", "", "", "", "", ""));
     validateRow(response, List.of("cYeuwXTCPkU", "kEkU53NrFmy", "202201", "7", "", "", "", "", ""));
-    validateRow(response,
-        List.of("bqK6eSIwo3h", "prNiMdHuaaU", "202201", "37", "", "", "", "", ""));
-    validateRow(response,
-        List.of("fbfJHSPpUQD", "EFTcruJcNmZ", "202201", "10", "", "", "", "", ""));
-    validateRow(response,
-        List.of("fbfJHSPpUQD", "p9ZtyC3LQ9f", "202201", "24", "", "", "", "", ""));
+    validateRow(
+        response, List.of("bqK6eSIwo3h", "prNiMdHuaaU", "202201", "37", "", "", "", "", ""));
+    validateRow(
+        response, List.of("fbfJHSPpUQD", "EFTcruJcNmZ", "202201", "10", "", "", "", "", ""));
+    validateRow(
+        response, List.of("fbfJHSPpUQD", "p9ZtyC3LQ9f", "202201", "24", "", "", "", "", ""));
     validateRow(response, List.of("yTHydhurQQU", "EJoI3HArJ2W", "202201", "4", "", "", "", "", ""));
-    validateRow(response,
-        List.of("V37YqbqpEhV", "ctMepV9p92I", "202201", "15", "", "", "", "", ""));
-    validateRow(response,
-        List.of("bqK6eSIwo3h", "fA43H8Ds0Ja", "202201", "72", "", "", "", "", ""));
-    validateRow(response,
-        List.of("yTHydhurQQU", "xt08cuqf1ys", "202201", "12", "", "", "", "", ""));
-    validateRow(response,
-        List.of("hfdmMSPBgLG", "RTixJpRqS4C", "202201", "14", "", "", "", "", ""));
+    validateRow(
+        response, List.of("V37YqbqpEhV", "ctMepV9p92I", "202201", "15", "", "", "", "", ""));
+    validateRow(
+        response, List.of("bqK6eSIwo3h", "fA43H8Ds0Ja", "202201", "72", "", "", "", "", ""));
+    validateRow(
+        response, List.of("yTHydhurQQU", "xt08cuqf1ys", "202201", "12", "", "", "", "", ""));
+    validateRow(
+        response, List.of("hfdmMSPBgLG", "RTixJpRqS4C", "202201", "14", "", "", "", "", ""));
     validateRow(response, List.of("hfdmMSPBgLG", "DiszpKrYNg8", "202201", "1", "", "", "", "", ""));
     validateRow(response, List.of("fbfJHSPpUQD", "EJoI3HArJ2W", "202201", "6", "", "", "", "", ""));
-    validateRow(response,
-        List.of("cYeuwXTCPkU", "EFTcruJcNmZ", "202201", "18", "", "", "", "", ""));
-    validateRow(response,
-        List.of("cYeuwXTCPkU", "EJoI3HArJ2W", "202201", "11", "", "", "", "", ""));
+    validateRow(
+        response, List.of("cYeuwXTCPkU", "EFTcruJcNmZ", "202201", "18", "", "", "", "", ""));
+    validateRow(
+        response, List.of("cYeuwXTCPkU", "EJoI3HArJ2W", "202201", "11", "", "", "", "", ""));
     validateRow(response, List.of("hfdmMSPBgLG", "xt08cuqf1ys", "202201", "1", "", "", "", "", ""));
     validateRow(response, List.of("cYeuwXTCPkU", "ctMepV9p92I", "202201", "8", "", "", "", "", ""));
-    validateRow(response,
-        List.of("Jtf34kNZhzP", "DiszpKrYNg8", "202201", "48", "", "", "", "", ""));
+    validateRow(
+        response, List.of("Jtf34kNZhzP", "DiszpKrYNg8", "202201", "48", "", "", "", "", ""));
     validateRow(response, List.of("bqK6eSIwo3h", "RTixJpRqS4C", "202201", "8", "", "", "", "", ""));
-    validateRow(response,
-        List.of("cYeuwXTCPkU", "fA43H8Ds0Ja", "202201", "18", "", "", "", "", ""));
-    validateRow(response,
-        List.of("cYeuwXTCPkU", "cJkZLwhL8RP", "202201", "14", "", "", "", "", ""));
+    validateRow(
+        response, List.of("cYeuwXTCPkU", "fA43H8Ds0Ja", "202201", "18", "", "", "", "", ""));
+    validateRow(
+        response, List.of("cYeuwXTCPkU", "cJkZLwhL8RP", "202201", "14", "", "", "", "", ""));
     validateRow(response, List.of("Jtf34kNZhzP", "EJoI3HArJ2W", "202201", "1", "", "", "", "", ""));
-    validateRow(response,
-        List.of("V37YqbqpEhV", "EFTcruJcNmZ", "202201", "18", "", "", "", "", ""));
+    validateRow(
+        response, List.of("V37YqbqpEhV", "EFTcruJcNmZ", "202201", "18", "", "", "", "", ""));
     validateRow(response, List.of("hfdmMSPBgLG", "cJkZLwhL8RP", "202201", "9", "", "", "", "", ""));
-    validateRow(response,
-        List.of("fbfJHSPpUQD", "am6EFqHGKeU", "202201", "35", "", "", "", "", ""));
-    validateRow(response,
-        List.of("fbfJHSPpUQD", "xt08cuqf1ys", "202201", "15", "", "", "", "", ""));
-    validateRow(response,
-        List.of("fbfJHSPpUQD", "KvE0PYQzXMM", "202201", "10", "", "", "", "", ""));
+    validateRow(
+        response, List.of("fbfJHSPpUQD", "am6EFqHGKeU", "202201", "35", "", "", "", "", ""));
+    validateRow(
+        response, List.of("fbfJHSPpUQD", "xt08cuqf1ys", "202201", "15", "", "", "", "", ""));
+    validateRow(
+        response, List.of("fbfJHSPpUQD", "KvE0PYQzXMM", "202201", "10", "", "", "", "", ""));
     validateRow(response, List.of("Jtf34kNZhzP", "cJkZLwhL8RP", "202201", "6", "", "", "", "", ""));
     validateRow(response, List.of("Jtf34kNZhzP", "kEkU53NrFmy", "202201", "7", "", "", "", "", ""));
     validateRow(response, List.of("SA7WeFZnUci", "xt08cuqf1ys", "202201", "3", "", "", "", "", ""));
     validateRow(response, List.of("V37YqbqpEhV", "g8upMTyEZGZ", "202201", "3", "", "", "", "", ""));
     validateRow(response, List.of("bqK6eSIwo3h", "cJkZLwhL8RP", "202201", "7", "", "", "", "", ""));
-    validateRow(response,
-        List.of("fbfJHSPpUQD", "E497Rk80ivZ", "202201", "50", "", "", "", "", ""));
-    validateRow(response,
-        List.of("fbfJHSPpUQD", "jGYT5U5qJP6", "202201", "23", "", "", "", "", ""));
-    validateRow(response,
-        List.of("cYeuwXTCPkU", "DiszpKrYNg8", "202201", "36", "", "", "", "", ""));
-    validateRow(response,
-        List.of("V37YqbqpEhV", "KvE0PYQzXMM", "202201", "12", "", "", "", "", ""));
+    validateRow(
+        response, List.of("fbfJHSPpUQD", "E497Rk80ivZ", "202201", "50", "", "", "", "", ""));
+    validateRow(
+        response, List.of("fbfJHSPpUQD", "jGYT5U5qJP6", "202201", "23", "", "", "", "", ""));
+    validateRow(
+        response, List.of("cYeuwXTCPkU", "DiszpKrYNg8", "202201", "36", "", "", "", "", ""));
+    validateRow(
+        response, List.of("V37YqbqpEhV", "KvE0PYQzXMM", "202201", "12", "", "", "", "", ""));
     validateRow(response, List.of("fbfJHSPpUQD", "g8upMTyEZGZ", "202201", "7", "", "", "", "", ""));
-    validateRow(response,
-        List.of("V37YqbqpEhV", "p9ZtyC3LQ9f", "202201", "12", "", "", "", "", ""));
-    validateRow(response,
-        List.of("cYeuwXTCPkU", "RTixJpRqS4C", "202201", "30", "", "", "", "", ""));
-    validateRow(response,
-        List.of("bqK6eSIwo3h", "CTOMXJg41hz", "202201", "13", "", "", "", "", ""));
-    validateRow(response,
-        List.of("V37YqbqpEhV", "am6EFqHGKeU", "202201", "20", "", "", "", "", ""));
+    validateRow(
+        response, List.of("V37YqbqpEhV", "p9ZtyC3LQ9f", "202201", "12", "", "", "", "", ""));
+    validateRow(
+        response, List.of("cYeuwXTCPkU", "RTixJpRqS4C", "202201", "30", "", "", "", "", ""));
+    validateRow(
+        response, List.of("bqK6eSIwo3h", "CTOMXJg41hz", "202201", "13", "", "", "", "", ""));
+    validateRow(
+        response, List.of("V37YqbqpEhV", "am6EFqHGKeU", "202201", "20", "", "", "", "", ""));
   }
 
   @Test
   public void queryAncByAreaLast12Months() throws JSONException {
-// Given
-    QueryParamsBuilder params = new QueryParamsBuilder().add("filter=ou:ImspTQPwCqd")
-        .add("skipData=false")
-        .add("includeNumDen=true")
-        .add("displayProperty=NAME")
-        .add("skipMeta=false")
-        .add(
-            "dimension=dx:Uvn6LCg7dVU;ReUHfIn0pTQ;OdiHJayrsKo;Lzg9LtG1xg3;sB79w2hiLp8;AUqdhY4mpvp;dwEq7wi6nXV;c8fABiNpT0B,pe:LAST_12_MONTHS,uIuxlbV1vRT:J40PpdN4Wkk;b0EsAxm8Nge;jqBqIXoXpfy;nlX2VoouN63")
-        .add("relativePeriodDate=2022-01-01");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:ImspTQPwCqd")
+            .add("skipData=false")
+            .add("includeNumDen=true")
+            .add("displayProperty=NAME")
+            .add("skipMeta=false")
+            .add(
+                "dimension=dx:Uvn6LCg7dVU;ReUHfIn0pTQ;OdiHJayrsKo;Lzg9LtG1xg3;sB79w2hiLp8;AUqdhY4mpvp;dwEq7wi6nXV;c8fABiNpT0B,pe:LAST_12_MONTHS,uIuxlbV1vRT:J40PpdN4Wkk;b0EsAxm8Nge;jqBqIXoXpfy;nlX2VoouN63")
+            .add("relativePeriodDate=2022-01-01");
 
-// When
+    // When
     ApiResponse response = actions.get(params);
 
-// Then
-    response.validate().statusCode(200)
+    // Then
+    response
+        .validate()
+        .statusCode(200)
         .body("headers", hasSize(equalTo(9)))
         .body("rows", hasSize(equalTo(384)))
         .body("height", equalTo(384))
         .body("width", equalTo(9))
         .body("headerWidth", equalTo(9));
 
-// Assert metaData.
-    String expectedMetaData = "{\"items\":{\"nlX2VoouN63\":{\"name\":\"Eastern Area\"},\"sB79w2hiLp8\":{\"name\":\"ANC 3 Coverage\"},\"OdiHJayrsKo\":{\"name\":\"ANC 2 Coverage\"},\"202109\":{\"name\":\"September 2021\"},\"202107\":{\"name\":\"July 2021\"},\"202108\":{\"name\":\"August 2021\"},\"AUqdhY4mpvp\":{\"name\":\"ANC => 4 Coverage\"},\"202105\":{\"name\":\"May 2021\"},\"202106\":{\"name\":\"June 2021\"},\"Lzg9LtG1xg3\":{\"name\":\"ANC visits per clinical professional\"},\"202103\":{\"name\":\"March 2021\"},\"202104\":{\"name\":\"April 2021\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202112\":{\"name\":\"December 2021\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202110\":{\"name\":\"October 2021\"},\"202111\":{\"name\":\"November 2021\"},\"c8fABiNpT0B\":{\"name\":\"ANC IPT 2 Coverage\"},\"dx\":{\"name\":\"Data\"},\"Uvn6LCg7dVU\":{\"name\":\"ANC 1 Coverage\"},\"ou\":{\"name\":\"Organisation unit\"},\"jqBqIXoXpfy\":{\"name\":\"Southern Area\"},\"uIuxlbV1vRT\":{\"name\":\"Area\"},\"J40PpdN4Wkk\":{\"name\":\"Northern Area\"},\"202101\":{\"name\":\"January 2021\"},\"202102\":{\"name\":\"February 2021\"},\"b0EsAxm8Nge\":{\"name\":\"Western Area\"},\"pe\":{\"name\":\"Period\"},\"ReUHfIn0pTQ\":{\"name\":\"ANC 1-3 Dropout Rate\"},\"dwEq7wi6nXV\":{\"name\":\"ANC IPT 1 Coverage\"}},\"dimensions\":{\"dx\":[\"Uvn6LCg7dVU\",\"ReUHfIn0pTQ\",\"OdiHJayrsKo\",\"Lzg9LtG1xg3\",\"sB79w2hiLp8\",\"AUqdhY4mpvp\",\"dwEq7wi6nXV\",\"c8fABiNpT0B\"],\"pe\":[\"202101\",\"202102\",\"202103\",\"202104\",\"202105\",\"202106\",\"202107\",\"202108\",\"202109\",\"202110\",\"202111\",\"202112\"],\"ou\":[\"ImspTQPwCqd\"],\"uIuxlbV1vRT\":[\"J40PpdN4Wkk\",\"b0EsAxm8Nge\",\"jqBqIXoXpfy\",\"nlX2VoouN63\"],\"co\":[]}}";
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"nlX2VoouN63\":{\"name\":\"Eastern Area\"},\"sB79w2hiLp8\":{\"name\":\"ANC 3 Coverage\"},\"OdiHJayrsKo\":{\"name\":\"ANC 2 Coverage\"},\"202109\":{\"name\":\"September 2021\"},\"202107\":{\"name\":\"July 2021\"},\"202108\":{\"name\":\"August 2021\"},\"AUqdhY4mpvp\":{\"name\":\"ANC => 4 Coverage\"},\"202105\":{\"name\":\"May 2021\"},\"202106\":{\"name\":\"June 2021\"},\"Lzg9LtG1xg3\":{\"name\":\"ANC visits per clinical professional\"},\"202103\":{\"name\":\"March 2021\"},\"202104\":{\"name\":\"April 2021\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202112\":{\"name\":\"December 2021\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202110\":{\"name\":\"October 2021\"},\"202111\":{\"name\":\"November 2021\"},\"c8fABiNpT0B\":{\"name\":\"ANC IPT 2 Coverage\"},\"dx\":{\"name\":\"Data\"},\"Uvn6LCg7dVU\":{\"name\":\"ANC 1 Coverage\"},\"ou\":{\"name\":\"Organisation unit\"},\"jqBqIXoXpfy\":{\"name\":\"Southern Area\"},\"uIuxlbV1vRT\":{\"name\":\"Area\"},\"J40PpdN4Wkk\":{\"name\":\"Northern Area\"},\"202101\":{\"name\":\"January 2021\"},\"202102\":{\"name\":\"February 2021\"},\"b0EsAxm8Nge\":{\"name\":\"Western Area\"},\"pe\":{\"name\":\"Period\"},\"ReUHfIn0pTQ\":{\"name\":\"ANC 1-3 Dropout Rate\"},\"dwEq7wi6nXV\":{\"name\":\"ANC IPT 1 Coverage\"}},\"dimensions\":{\"dx\":[\"Uvn6LCg7dVU\",\"ReUHfIn0pTQ\",\"OdiHJayrsKo\",\"Lzg9LtG1xg3\",\"sB79w2hiLp8\",\"AUqdhY4mpvp\",\"dwEq7wi6nXV\",\"c8fABiNpT0B\"],\"pe\":[\"202101\",\"202102\",\"202103\",\"202104\",\"202105\",\"202106\",\"202107\",\"202108\",\"202109\",\"202110\",\"202111\",\"202112\"],\"ou\":[\"ImspTQPwCqd\"],\"uIuxlbV1vRT\":[\"J40PpdN4Wkk\",\"b0EsAxm8Nge\",\"jqBqIXoXpfy\",\"nlX2VoouN63\"],\"co\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
-// Assert headers.
+    // Assert headers.
     validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "pe", "Period", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 2, "uIuxlbV1vRT", "Area", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 3, "value", "Value", "NUMBER", "java.lang.Double", false, false);
-    validateHeader(response, 4, "numerator", "Numerator", "NUMBER", "java.lang.Double", false,
-        false);
-    validateHeader(response, 5, "denominator", "Denominator", "NUMBER", "java.lang.Double", false,
-        false);
+    validateHeader(
+        response, 4, "numerator", "Numerator", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(
+        response, 5, "denominator", "Denominator", "NUMBER", "java.lang.Double", false, false);
     validateHeader(response, 6, "factor", "Factor", "NUMBER", "java.lang.Double", false, false);
-    validateHeader(response, 7, "multiplier", "Multiplier", "NUMBER", "java.lang.Double", false,
-        false);
+    validateHeader(
+        response, 7, "multiplier", "Multiplier", "NUMBER", "java.lang.Double", false, false);
     validateHeader(response, 8, "divisor", "Divisor", "NUMBER", "java.lang.Double", false, false);
 
-// Assert rows.
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202101", "J40PpdN4Wkk", "76.9", "4473.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202101", "b0EsAxm8Nge", "100.7", "6538.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202101", "jqBqIXoXpfy", "123.8", "4596.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202101", "nlX2VoouN63", "96.7", "2463.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202102", "J40PpdN4Wkk", "90.4", "4750.0", "68500.0", "1303.6",
-            "36500", "28"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202102", "b0EsAxm8Nge", "96.7", "5671.0", "76477.0", "1303.6",
-            "36500", "28"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202102", "jqBqIXoXpfy", "132.3", "4435.0", "43695.0", "1303.6",
-            "36500", "28"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202102", "nlX2VoouN63", "93.7", "2157.0", "30002.0", "1303.6",
-            "36500", "28"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202103", "J40PpdN4Wkk", "82.7", "4814.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202103", "b0EsAxm8Nge", "121.0", "7862.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202103", "jqBqIXoXpfy", "122.8", "4557.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202103", "nlX2VoouN63", "100.9", "2570.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202104", "J40PpdN4Wkk", "81.9", "4611.0", "68500.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202104", "b0EsAxm8Nge", "92.2", "5793.0", "76477.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202104", "jqBqIXoXpfy", "116.2", "4172.0", "43695.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202104", "nlX2VoouN63", "90.1", "2222.0", "30002.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202105", "J40PpdN4Wkk", "111.3", "6474.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202105", "b0EsAxm8Nge", "179.5", "11662.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202105", "jqBqIXoXpfy", "146.8", "5448.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202105", "nlX2VoouN63", "112.4", "2864.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202106", "J40PpdN4Wkk", "95.4", "5369.0", "68500.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202106", "b0EsAxm8Nge", "138.9", "8731.0", "76477.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202106", "jqBqIXoXpfy", "137.4", "4934.0", "43695.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202106", "nlX2VoouN63", "110.0", "2713.0", "30002.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202107", "J40PpdN4Wkk", "84.6", "4919.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202107", "b0EsAxm8Nge", "116.9", "7590.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202107", "jqBqIXoXpfy", "144.7", "5370.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202107", "nlX2VoouN63", "102.9", "2623.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202108", "J40PpdN4Wkk", "93.8", "5456.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202108", "b0EsAxm8Nge", "115.4", "7494.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202108", "jqBqIXoXpfy", "129.7", "4812.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202108", "nlX2VoouN63", "94.1", "2397.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202109", "J40PpdN4Wkk", "97.8", "5507.0", "68500.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202109", "b0EsAxm8Nge", "114.2", "7177.0", "76477.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202109", "jqBqIXoXpfy", "149.3", "5362.0", "43695.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202109", "nlX2VoouN63", "90.4", "2228.0", "30002.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202110", "J40PpdN4Wkk", "61.1", "3555.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202110", "b0EsAxm8Nge", "109.3", "7101.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202110", "jqBqIXoXpfy", "110.4", "4096.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202110", "nlX2VoouN63", "44.7", "1138.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202111", "J40PpdN4Wkk", "60.9", "3429.0", "68500.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202111", "b0EsAxm8Nge", "118.0", "7420.0", "76477.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202111", "jqBqIXoXpfy", "154.8", "5559.0", "43695.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202111", "nlX2VoouN63", "51.7", "1274.0", "30002.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202112", "J40PpdN4Wkk", "76.4", "4447.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202112", "b0EsAxm8Nge", "79.6", "5173.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202112", "jqBqIXoXpfy", "88.8", "3296.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Uvn6LCg7dVU", "202112", "nlX2VoouN63", "45.4", "1158.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202101", "J40PpdN4Wkk", "50.4", "2256.0", "4473.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202101", "b0EsAxm8Nge", "47.0", "3070.0", "6538.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202101", "jqBqIXoXpfy", "37.4", "1718.0", "4596.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202101", "nlX2VoouN63", "31.7", "781.0", "2463.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202102", "J40PpdN4Wkk", "41.0", "1947.0", "4750.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202102", "b0EsAxm8Nge", "39.5", "2240.0", "5671.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202102", "jqBqIXoXpfy", "40.8", "1810.0", "4435.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202102", "nlX2VoouN63", "27.0", "582.0", "2157.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202103", "J40PpdN4Wkk", "40.6", "1953.0", "4814.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202103", "b0EsAxm8Nge", "46.0", "3618.0", "7862.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202103", "jqBqIXoXpfy", "33.2", "1515.0", "4557.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202103", "nlX2VoouN63", "21.2", "546.0", "2570.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202104", "J40PpdN4Wkk", "34.4", "1587.0", "4611.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202104", "b0EsAxm8Nge", "45.6", "2640.0", "5793.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202104", "jqBqIXoXpfy", "31.1", "1299.0", "4172.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202104", "nlX2VoouN63", "27.6", "613.0", "2222.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202105", "J40PpdN4Wkk", "49.9", "3231.0", "6474.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202105", "b0EsAxm8Nge", "57.5", "6707.0", "11662.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202105", "jqBqIXoXpfy", "40.3", "2196.0", "5448.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202105", "nlX2VoouN63", "30.2", "864.0", "2864.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202106", "J40PpdN4Wkk", "42.3", "2270.0", "5369.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202106", "b0EsAxm8Nge", "43.1", "3759.0", "8731.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202106", "jqBqIXoXpfy", "33.3", "1641.0", "4934.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202106", "nlX2VoouN63", "23.4", "636.0", "2713.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202107", "J40PpdN4Wkk", "40.6", "1996.0", "4919.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202107", "b0EsAxm8Nge", "38.3", "2906.0", "7590.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202107", "jqBqIXoXpfy", "35.0", "1882.0", "5370.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202107", "nlX2VoouN63", "26.4", "692.0", "2623.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202108", "J40PpdN4Wkk", "41.3", "2254.0", "5456.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202108", "b0EsAxm8Nge", "39.8", "2985.0", "7494.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202108", "jqBqIXoXpfy", "33.8", "1625.0", "4812.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202108", "nlX2VoouN63", "19.9", "478.0", "2397.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202109", "J40PpdN4Wkk", "41.5", "2283.0", "5507.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202109", "b0EsAxm8Nge", "33.6", "2413.0", "7177.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202109", "jqBqIXoXpfy", "34.3", "1841.0", "5362.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202109", "nlX2VoouN63", "15.6", "347.0", "2228.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202110", "J40PpdN4Wkk", "42.1", "1496.0", "3555.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202110", "b0EsAxm8Nge", "43.2", "3070.0", "7101.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202110", "jqBqIXoXpfy", "32.1", "1314.0", "4096.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202110", "nlX2VoouN63", "4.7", "53.0", "1138.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202111", "J40PpdN4Wkk", "50.9", "1744.0", "3429.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202111", "b0EsAxm8Nge", "37.3", "2768.0", "7420.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202111", "jqBqIXoXpfy", "1.5", "82.0", "5559.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202111", "nlX2VoouN63", "2.3", "29.0", "1274.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202112", "J40PpdN4Wkk", "43.7", "1942.0", "4447.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202112", "b0EsAxm8Nge", "43.7", "2259.0", "5173.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202112", "jqBqIXoXpfy", "27.9", "919.0", "3296.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("ReUHfIn0pTQ", "202112", "nlX2VoouN63", "13.4", "155.0", "1158.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202101", "J40PpdN4Wkk", "60.8", "3539.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202101", "b0EsAxm8Nge", "81.3", "5281.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202101", "jqBqIXoXpfy", "105.5", "3917.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202101", "nlX2VoouN63", "87.4", "2228.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202102", "J40PpdN4Wkk", "83.0", "4361.0", "68500.0", "1303.6",
-            "36500", "28"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202102", "b0EsAxm8Nge", "93.0", "5455.0", "76477.0", "1303.6",
-            "36500", "28"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202102", "jqBqIXoXpfy", "130.9", "4389.0", "43695.0", "1303.6",
-            "36500", "28"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202102", "nlX2VoouN63", "86.9", "2001.0", "30002.0", "1303.6",
-            "36500", "28"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202103", "J40PpdN4Wkk", "73.9", "4302.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202103", "b0EsAxm8Nge", "97.0", "6300.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202103", "jqBqIXoXpfy", "115.2", "4276.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202103", "nlX2VoouN63", "94.3", "2402.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202104", "J40PpdN4Wkk", "76.7", "4317.0", "68500.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202104", "b0EsAxm8Nge", "89.9", "5652.0", "76477.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202104", "jqBqIXoXpfy", "117.7", "4226.0", "43695.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202104", "nlX2VoouN63", "78.1", "1926.0", "30002.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202105", "J40PpdN4Wkk", "84.4", "4910.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202105", "b0EsAxm8Nge", "124.5", "8084.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202105", "jqBqIXoXpfy", "134.9", "5005.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202105", "nlX2VoouN63", "100.6", "2563.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202106", "J40PpdN4Wkk", "81.2", "4570.0", "68500.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202106", "b0EsAxm8Nge", "127.0", "7982.0", "76477.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202106", "jqBqIXoXpfy", "158.7", "5701.0", "43695.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202106", "nlX2VoouN63", "110.6", "2727.0", "30002.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202107", "J40PpdN4Wkk", "74.1", "4312.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202107", "b0EsAxm8Nge", "108.4", "7039.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202107", "jqBqIXoXpfy", "134.6", "4994.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202107", "nlX2VoouN63", "95.0", "2421.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202108", "J40PpdN4Wkk", "77.3", "4496.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202108", "b0EsAxm8Nge", "96.8", "6289.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202108", "jqBqIXoXpfy", "135.2", "5018.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202108", "nlX2VoouN63", "93.8", "2391.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202109", "J40PpdN4Wkk", "78.7", "4429.0", "68500.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202109", "b0EsAxm8Nge", "108.0", "6791.0", "76477.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202109", "jqBqIXoXpfy", "133.8", "4807.0", "43695.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202109", "nlX2VoouN63", "89.9", "2217.0", "30002.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202110", "J40PpdN4Wkk", "50.9", "2960.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202110", "b0EsAxm8Nge", "90.6", "5882.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202110", "jqBqIXoXpfy", "89.5", "3323.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202110", "nlX2VoouN63", "50.3", "1282.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202111", "J40PpdN4Wkk", "48.3", "2720.0", "68500.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202111", "b0EsAxm8Nge", "124.8", "7847.0", "76477.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202111", "jqBqIXoXpfy", "143.8", "5163.0", "43695.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202111", "nlX2VoouN63", "56.1", "1384.0", "30002.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202112", "J40PpdN4Wkk", "70.6", "4106.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202112", "b0EsAxm8Nge", "62.5", "4058.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202112", "jqBqIXoXpfy", "84.9", "3150.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("OdiHJayrsKo", "202112", "nlX2VoouN63", "46.6", "1187.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202101", "J40PpdN4Wkk", "20.7", "11184.0", "539.4", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202101", "b0EsAxm8Nge", "29.8", "16916.0", "567.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202101", "jqBqIXoXpfy", "207.0", "12837.0", "62.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202101", "nlX2VoouN63", "31.4", "7157.0", "228.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202102", "J40PpdN4Wkk", "24.7", "13324.0", "539.4", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202102", "b0EsAxm8Nge", "29.4", "16665.0", "567.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202102", "jqBqIXoXpfy", "210.7", "13063.0", "62.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202102", "nlX2VoouN63", "28.7", "6542.0", "228.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202103", "J40PpdN4Wkk", "25.0", "13480.0", "539.4", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202103", "b0EsAxm8Nge", "36.9", "20940.0", "567.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202103", "jqBqIXoXpfy", "239.9", "14875.0", "62.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202103", "nlX2VoouN63", "35.7", "8143.0", "228.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202104", "J40PpdN4Wkk", "24.7", "13324.0", "539.4", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202104", "b0EsAxm8Nge", "29.5", "16739.0", "567.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202104", "jqBqIXoXpfy", "214.9", "13321.0", "62.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202104", "nlX2VoouN63", "29.3", "6669.0", "228.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202105", "J40PpdN4Wkk", "30.3", "16324.0", "539.4", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202105", "b0EsAxm8Nge", "48.9", "27723.0", "567.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202105", "jqBqIXoXpfy", "256.5", "15901.0", "62.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202105", "nlX2VoouN63", "38.5", "8777.0", "228.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202106", "J40PpdN4Wkk", "27.1", "14611.0", "539.4", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202106", "b0EsAxm8Nge", "43.3", "24567.0", "567.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202106", "jqBqIXoXpfy", "261.6", "16217.0", "62.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202106", "nlX2VoouN63", "38.8", "8851.0", "228.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202107", "J40PpdN4Wkk", "29.7", "13560.0", "456.3", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202107", "b0EsAxm8Nge", "4426.2", "22131.0", "5.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202107", "jqBqIXoXpfy", "56.0", "16173.0", "288.6", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202107", "nlX2VoouN63", "23.1", "8204.0", "354.7", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202108", "J40PpdN4Wkk", "32.2", "14684.0", "456.3", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202108", "b0EsAxm8Nge", "4235.4", "21177.0", "5.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202108", "jqBqIXoXpfy", "52.6", "15194.0", "288.6", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202108", "nlX2VoouN63", "22.5", "7971.0", "354.7", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202109", "J40PpdN4Wkk", "33.8", "15427.0", "456.3", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202109", "b0EsAxm8Nge", "4437.2", "22186.0", "5.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202109", "jqBqIXoXpfy", "55.2", "15941.0", "288.6", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202109", "nlX2VoouN63", "21.2", "7523.0", "354.7", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202110", "J40PpdN4Wkk", "20.8", "9495.0", "456.3", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202110", "b0EsAxm8Nge", "4024.2", "20121.0", "5.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202110", "jqBqIXoXpfy", "43.0", "12421.0", "288.6", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202110", "nlX2VoouN63", "11.8", "4201.0", "354.7", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202111", "J40PpdN4Wkk", "19.3", "8797.0", "456.3", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202111", "b0EsAxm8Nge", "4706.2", "23531.0", "5.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202111", "jqBqIXoXpfy", "65.2", "18825.0", "288.6", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202111", "nlX2VoouN63", "13.0", "4626.0", "354.7", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202112", "J40PpdN4Wkk", "26.6", "12122.0", "456.3", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202112", "b0EsAxm8Nge", "2873.4", "14367.0", "5.0", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202112", "jqBqIXoXpfy", "37.8", "10908.0", "288.6", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("Lzg9LtG1xg3", "202112", "nlX2VoouN63", "11.4", "4036.0", "354.7", "1.0", "1",
-            "1"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202101", "J40PpdN4Wkk", "38.1", "2217.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202101", "b0EsAxm8Nge", "53.4", "3468.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202101", "jqBqIXoXpfy", "77.6", "2878.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202101", "nlX2VoouN63", "66.0", "1682.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202102", "J40PpdN4Wkk", "53.3", "2803.0", "68500.0", "1303.6",
-            "36500", "28"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202102", "b0EsAxm8Nge", "58.5", "3431.0", "76477.0", "1303.6",
-            "36500", "28"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202102", "jqBqIXoXpfy", "78.3", "2625.0", "43695.0", "1303.6",
-            "36500", "28"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202102", "nlX2VoouN63", "68.4", "1575.0", "30002.0", "1303.6",
-            "36500", "28"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202103", "J40PpdN4Wkk", "49.2", "2861.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202103", "b0EsAxm8Nge", "65.3", "4244.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202103", "jqBqIXoXpfy", "82.0", "3042.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202103", "nlX2VoouN63", "79.4", "2024.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202104", "J40PpdN4Wkk", "53.7", "3024.0", "68500.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202104", "b0EsAxm8Nge", "50.2", "3153.0", "76477.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202104", "jqBqIXoXpfy", "80.0", "2873.0", "43695.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202104", "nlX2VoouN63", "65.2", "1609.0", "30002.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202105", "J40PpdN4Wkk", "55.7", "3243.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202105", "b0EsAxm8Nge", "76.3", "4955.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202105", "jqBqIXoXpfy", "87.6", "3252.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202105", "nlX2VoouN63", "78.5", "2000.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202106", "J40PpdN4Wkk", "55.0", "3099.0", "68500.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202106", "b0EsAxm8Nge", "79.1", "4972.0", "76477.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202106", "jqBqIXoXpfy", "91.7", "3293.0", "43695.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202106", "nlX2VoouN63", "84.2", "2077.0", "30002.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202107", "J40PpdN4Wkk", "50.2", "2923.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202107", "b0EsAxm8Nge", "72.1", "4684.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202107", "jqBqIXoXpfy", "94.0", "3488.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202107", "nlX2VoouN63", "75.8", "1931.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202108", "J40PpdN4Wkk", "55.0", "3202.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202108", "b0EsAxm8Nge", "69.4", "4509.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202108", "jqBqIXoXpfy", "85.9", "3187.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202108", "nlX2VoouN63", "75.3", "1919.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202109", "J40PpdN4Wkk", "57.3", "3224.0", "68500.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202109", "b0EsAxm8Nge", "75.8", "4764.0", "76477.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202109", "jqBqIXoXpfy", "98.0", "3521.0", "43695.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202109", "nlX2VoouN63", "76.3", "1881.0", "30002.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202110", "J40PpdN4Wkk", "35.4", "2059.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202110", "b0EsAxm8Nge", "62.1", "4031.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202110", "jqBqIXoXpfy", "75.0", "2782.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202110", "nlX2VoouN63", "42.6", "1085.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202111", "J40PpdN4Wkk", "29.9", "1685.0", "68500.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202111", "b0EsAxm8Nge", "74.0", "4652.0", "76477.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202111", "jqBqIXoXpfy", "152.5", "5477.0", "43695.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202111", "nlX2VoouN63", "50.5", "1245.0", "30002.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202112", "J40PpdN4Wkk", "43.1", "2505.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202112", "b0EsAxm8Nge", "44.9", "2914.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202112", "jqBqIXoXpfy", "64.1", "2377.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("sB79w2hiLp8", "202112", "nlX2VoouN63", "39.4", "1003.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202101", "J40PpdN4Wkk", "16.4", "955.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202101", "b0EsAxm8Nge", "25.1", "1629.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202101", "jqBqIXoXpfy", "39.0", "1446.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202101", "nlX2VoouN63", "30.8", "784.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202102", "J40PpdN4Wkk", "26.8", "1410.0", "68500.0", "1303.6",
-            "36500", "28"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202102", "b0EsAxm8Nge", "35.9", "2108.0", "76477.0", "1303.6",
-            "36500", "28"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202102", "jqBqIXoXpfy", "48.2", "1614.0", "43695.0", "1303.6",
-            "36500", "28"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202102", "nlX2VoouN63", "35.2", "809.0", "30002.0", "1303.6",
-            "36500", "28"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202103", "J40PpdN4Wkk", "25.8", "1503.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202103", "b0EsAxm8Nge", "39.0", "2534.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202103", "jqBqIXoXpfy", "80.8", "3000.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202103", "nlX2VoouN63", "45.0", "1147.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202104", "J40PpdN4Wkk", "24.4", "1372.0", "68500.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202104", "b0EsAxm8Nge", "34.1", "2141.0", "76477.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202104", "jqBqIXoXpfy", "57.1", "2050.0", "43695.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202104", "nlX2VoouN63", "37.0", "912.0", "30002.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202105", "J40PpdN4Wkk", "29.2", "1697.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202105", "b0EsAxm8Nge", "46.5", "3022.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202105", "jqBqIXoXpfy", "59.2", "2196.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202105", "nlX2VoouN63", "53.0", "1350.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202106", "J40PpdN4Wkk", "27.9", "1573.0", "68500.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202106", "b0EsAxm8Nge", "45.8", "2882.0", "76477.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202106", "jqBqIXoXpfy", "63.7", "2289.0", "43695.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202106", "nlX2VoouN63", "54.1", "1334.0", "30002.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202107", "J40PpdN4Wkk", "24.2", "1406.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202107", "b0EsAxm8Nge", "43.4", "2818.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202107", "jqBqIXoXpfy", "62.5", "2321.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202107", "nlX2VoouN63", "48.2", "1229.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202108", "J40PpdN4Wkk", "26.3", "1530.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202108", "b0EsAxm8Nge", "44.4", "2885.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202108", "jqBqIXoXpfy", "58.7", "2177.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202108", "nlX2VoouN63", "49.6", "1264.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202109", "J40PpdN4Wkk", "40.3", "2267.0", "68500.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202109", "b0EsAxm8Nge", "54.9", "3454.0", "76477.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202109", "jqBqIXoXpfy", "62.7", "2251.0", "43695.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202109", "nlX2VoouN63", "48.5", "1197.0", "30002.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202110", "J40PpdN4Wkk", "15.8", "921.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202110", "b0EsAxm8Nge", "47.8", "3107.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202110", "jqBqIXoXpfy", "59.8", "2220.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202110", "nlX2VoouN63", "27.3", "696.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202111", "J40PpdN4Wkk", "17.1", "963.0", "68500.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202111", "b0EsAxm8Nge", "57.5", "3612.0", "76477.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202111", "jqBqIXoXpfy", "73.1", "2626.0", "43695.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202111", "nlX2VoouN63", "29.3", "723.0", "30002.0", "1216.7",
-            "36500", "30"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202112", "J40PpdN4Wkk", "18.3", "1064.0", "68500.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202112", "b0EsAxm8Nge", "34.2", "2222.0", "76477.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202112", "jqBqIXoXpfy", "56.2", "2085.0", "43695.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("AUqdhY4mpvp", "202112", "nlX2VoouN63", "27.0", "688.0", "30002.0", "1177.4",
-            "36500", "31"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202101", "J40PpdN4Wkk", "110.7", "4950.0", "4473.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202101", "b0EsAxm8Nge", "110.7", "7235.0", "6538.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202101", "jqBqIXoXpfy", "112.2", "5157.0", "4596.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202101", "nlX2VoouN63", "99.4", "2447.0", "2463.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202102", "J40PpdN4Wkk", "111.5", "5297.0", "4750.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202102", "b0EsAxm8Nge", "126.3", "7163.0", "5671.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202102", "jqBqIXoXpfy", "98.7", "4376.0", "4435.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202102", "nlX2VoouN63", "100.5", "2167.0", "2157.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202103", "J40PpdN4Wkk", "102.4", "4930.0", "4814.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202103", "b0EsAxm8Nge", "115.6", "9086.0", "7862.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202103", "jqBqIXoXpfy", "97.5", "4445.0", "4557.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202103", "nlX2VoouN63", "100.7", "2588.0", "2570.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202104", "J40PpdN4Wkk", "104.3", "4810.0", "4611.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202104", "b0EsAxm8Nge", "114.2", "6618.0", "5793.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202104", "jqBqIXoXpfy", "109.3", "4560.0", "4172.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202104", "nlX2VoouN63", "93.3", "2074.0", "2222.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202105", "J40PpdN4Wkk", "114.5", "7410.0", "6474.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202105", "b0EsAxm8Nge", "147.5", "17199.0", "11662.0", "100.0",
-            "100", "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202105", "jqBqIXoXpfy", "108.9", "5933.0", "5448.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202105", "nlX2VoouN63", "117.0", "3350.0", "2864.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202106", "J40PpdN4Wkk", "94.1", "5054.0", "5369.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202106", "b0EsAxm8Nge", "114.8", "10019.0", "8731.0", "100.0",
-            "100", "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202106", "jqBqIXoXpfy", "103.5", "5108.0", "4934.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202106", "nlX2VoouN63", "108.0", "2931.0", "2713.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202107", "J40PpdN4Wkk", "89.6", "4405.0", "4919.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202107", "b0EsAxm8Nge", "182.9", "13884.0", "7590.0", "100.0",
-            "100", "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202107", "jqBqIXoXpfy", "101.4", "5444.0", "5370.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202107", "nlX2VoouN63", "105.6", "2769.0", "2623.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202108", "J40PpdN4Wkk", "76.9", "4198.0", "5456.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202108", "b0EsAxm8Nge", "127.7", "9569.0", "7494.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202108", "jqBqIXoXpfy", "85.1", "4094.0", "4812.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202108", "nlX2VoouN63", "117.0", "2805.0", "2397.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202109", "J40PpdN4Wkk", "111.6", "6145.0", "5507.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202109", "b0EsAxm8Nge", "125.9", "9037.0", "7177.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202109", "jqBqIXoXpfy", "105.9", "5676.0", "5362.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202109", "nlX2VoouN63", "111.3", "2480.0", "2228.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202110", "J40PpdN4Wkk", "123.7", "4399.0", "3555.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202110", "b0EsAxm8Nge", "123.2", "8745.0", "7101.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202110", "jqBqIXoXpfy", "120.6", "4938.0", "4096.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202110", "nlX2VoouN63", "155.6", "1771.0", "1138.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202111", "J40PpdN4Wkk", "113.4", "3888.0", "3429.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202111", "b0EsAxm8Nge", "136.1", "10099.0", "7420.0", "100.0",
-            "100", "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202111", "jqBqIXoXpfy", "110.4", "6139.0", "5559.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202111", "nlX2VoouN63", "118.9", "1515.0", "1274.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202112", "J40PpdN4Wkk", "108.5", "4826.0", "4447.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202112", "b0EsAxm8Nge", "127.5", "6595.0", "5173.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202112", "jqBqIXoXpfy", "125.8", "4146.0", "3296.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("dwEq7wi6nXV", "202112", "nlX2VoouN63", "118.9", "1377.0", "1158.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202101", "J40PpdN4Wkk", "119.8", "4240.0", "3539.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202101", "b0EsAxm8Nge", "107.8", "5691.0", "5281.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202101", "jqBqIXoXpfy", "136.3", "5339.0", "3917.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202101", "nlX2VoouN63", "86.8", "1935.0", "2228.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202102", "J40PpdN4Wkk", "90.1", "3928.0", "4361.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202102", "b0EsAxm8Nge", "207.8", "11336.0", "5455.0", "100.0",
-            "100", "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202102", "jqBqIXoXpfy", "77.8", "3415.0", "4389.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202102", "nlX2VoouN63", "91.7", "1835.0", "2001.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202103", "J40PpdN4Wkk", "87.4", "3762.0", "4302.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202103", "b0EsAxm8Nge", "130.0", "8189.0", "6300.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202103", "jqBqIXoXpfy", "90.4", "3866.0", "4276.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202103", "nlX2VoouN63", "78.5", "1885.0", "2402.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202104", "J40PpdN4Wkk", "77.0", "3324.0", "4317.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202104", "b0EsAxm8Nge", "97.9", "5531.0", "5652.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202104", "jqBqIXoXpfy", "81.7", "3451.0", "4226.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202104", "nlX2VoouN63", "86.2", "1660.0", "1926.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202105", "J40PpdN4Wkk", "96.2", "4725.0", "4910.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202105", "b0EsAxm8Nge", "114.9", "9285.0", "8084.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202105", "jqBqIXoXpfy", "75.0", "3754.0", "5005.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202105", "nlX2VoouN63", "86.9", "2227.0", "2563.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202106", "J40PpdN4Wkk", "84.9", "3881.0", "4570.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202106", "b0EsAxm8Nge", "87.7", "7002.0", "7982.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202106", "jqBqIXoXpfy", "74.0", "4216.0", "5701.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202106", "nlX2VoouN63", "74.8", "2039.0", "2727.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202107", "J40PpdN4Wkk", "70.3", "3030.0", "4312.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202107", "b0EsAxm8Nge", "89.4", "6293.0", "7039.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202107", "jqBqIXoXpfy", "83.3", "4162.0", "4994.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202107", "nlX2VoouN63", "101.2", "2451.0", "2421.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202108", "J40PpdN4Wkk", "68.0", "3056.0", "4496.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202108", "b0EsAxm8Nge", "166.3", "10461.0", "6289.0", "100.0",
-            "100", "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202108", "jqBqIXoXpfy", "66.7", "3349.0", "5018.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202108", "nlX2VoouN63", "95.8", "2290.0", "2391.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202109", "J40PpdN4Wkk", "99.7", "4416.0", "4429.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202109", "b0EsAxm8Nge", "108.6", "7375.0", "6791.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202109", "jqBqIXoXpfy", "86.7", "4168.0", "4807.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202109", "nlX2VoouN63", "89.2", "1978.0", "2217.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202110", "J40PpdN4Wkk", "85.5", "2530.0", "2960.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202110", "b0EsAxm8Nge", "135.8", "7990.0", "5882.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202110", "jqBqIXoXpfy", "104.5", "3471.0", "3323.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202110", "nlX2VoouN63", "103.5", "1327.0", "1282.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202111", "J40PpdN4Wkk", "100.0", "2719.0", "2720.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202111", "b0EsAxm8Nge", "88.4", "6937.0", "7847.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202111", "jqBqIXoXpfy", "89.5", "4621.0", "5163.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202111", "nlX2VoouN63", "109.7", "1518.0", "1384.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202112", "J40PpdN4Wkk", "76.8", "3154.0", "4106.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202112", "b0EsAxm8Nge", "150.8", "6118.0", "4058.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202112", "jqBqIXoXpfy", "114.0", "3591.0", "3150.0", "100.0", "100",
-            "1"));
-    validateRow(response,
-        List.of("c8fABiNpT0B", "202112", "nlX2VoouN63", "99.0", "1175.0", "1187.0", "100.0", "100",
+    // Assert rows.
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202101",
+            "J40PpdN4Wkk",
+            "76.9",
+            "4473.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202101",
+            "b0EsAxm8Nge",
+            "100.7",
+            "6538.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202101",
+            "jqBqIXoXpfy",
+            "123.8",
+            "4596.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202101",
+            "nlX2VoouN63",
+            "96.7",
+            "2463.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202102",
+            "J40PpdN4Wkk",
+            "90.4",
+            "4750.0",
+            "68500.0",
+            "1303.6",
+            "36500",
+            "28"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202102",
+            "b0EsAxm8Nge",
+            "96.7",
+            "5671.0",
+            "76477.0",
+            "1303.6",
+            "36500",
+            "28"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202102",
+            "jqBqIXoXpfy",
+            "132.3",
+            "4435.0",
+            "43695.0",
+            "1303.6",
+            "36500",
+            "28"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202102",
+            "nlX2VoouN63",
+            "93.7",
+            "2157.0",
+            "30002.0",
+            "1303.6",
+            "36500",
+            "28"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202103",
+            "J40PpdN4Wkk",
+            "82.7",
+            "4814.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202103",
+            "b0EsAxm8Nge",
+            "121.0",
+            "7862.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202103",
+            "jqBqIXoXpfy",
+            "122.8",
+            "4557.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202103",
+            "nlX2VoouN63",
+            "100.9",
+            "2570.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202104",
+            "J40PpdN4Wkk",
+            "81.9",
+            "4611.0",
+            "68500.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202104",
+            "b0EsAxm8Nge",
+            "92.2",
+            "5793.0",
+            "76477.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202104",
+            "jqBqIXoXpfy",
+            "116.2",
+            "4172.0",
+            "43695.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202104",
+            "nlX2VoouN63",
+            "90.1",
+            "2222.0",
+            "30002.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202105",
+            "J40PpdN4Wkk",
+            "111.3",
+            "6474.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202105",
+            "b0EsAxm8Nge",
+            "179.5",
+            "11662.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202105",
+            "jqBqIXoXpfy",
+            "146.8",
+            "5448.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202105",
+            "nlX2VoouN63",
+            "112.4",
+            "2864.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202106",
+            "J40PpdN4Wkk",
+            "95.4",
+            "5369.0",
+            "68500.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202106",
+            "b0EsAxm8Nge",
+            "138.9",
+            "8731.0",
+            "76477.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202106",
+            "jqBqIXoXpfy",
+            "137.4",
+            "4934.0",
+            "43695.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202106",
+            "nlX2VoouN63",
+            "110.0",
+            "2713.0",
+            "30002.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202107",
+            "J40PpdN4Wkk",
+            "84.6",
+            "4919.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202107",
+            "b0EsAxm8Nge",
+            "116.9",
+            "7590.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202107",
+            "jqBqIXoXpfy",
+            "144.7",
+            "5370.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202107",
+            "nlX2VoouN63",
+            "102.9",
+            "2623.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202108",
+            "J40PpdN4Wkk",
+            "93.8",
+            "5456.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202108",
+            "b0EsAxm8Nge",
+            "115.4",
+            "7494.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202108",
+            "jqBqIXoXpfy",
+            "129.7",
+            "4812.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202108",
+            "nlX2VoouN63",
+            "94.1",
+            "2397.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202109",
+            "J40PpdN4Wkk",
+            "97.8",
+            "5507.0",
+            "68500.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202109",
+            "b0EsAxm8Nge",
+            "114.2",
+            "7177.0",
+            "76477.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202109",
+            "jqBqIXoXpfy",
+            "149.3",
+            "5362.0",
+            "43695.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202109",
+            "nlX2VoouN63",
+            "90.4",
+            "2228.0",
+            "30002.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202110",
+            "J40PpdN4Wkk",
+            "61.1",
+            "3555.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202110",
+            "b0EsAxm8Nge",
+            "109.3",
+            "7101.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202110",
+            "jqBqIXoXpfy",
+            "110.4",
+            "4096.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202110",
+            "nlX2VoouN63",
+            "44.7",
+            "1138.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202111",
+            "J40PpdN4Wkk",
+            "60.9",
+            "3429.0",
+            "68500.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202111",
+            "b0EsAxm8Nge",
+            "118.0",
+            "7420.0",
+            "76477.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202111",
+            "jqBqIXoXpfy",
+            "154.8",
+            "5559.0",
+            "43695.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202111",
+            "nlX2VoouN63",
+            "51.7",
+            "1274.0",
+            "30002.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202112",
+            "J40PpdN4Wkk",
+            "76.4",
+            "4447.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202112",
+            "b0EsAxm8Nge",
+            "79.6",
+            "5173.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202112",
+            "jqBqIXoXpfy",
+            "88.8",
+            "3296.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Uvn6LCg7dVU",
+            "202112",
+            "nlX2VoouN63",
+            "45.4",
+            "1158.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202101",
+            "J40PpdN4Wkk",
+            "50.4",
+            "2256.0",
+            "4473.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202101",
+            "b0EsAxm8Nge",
+            "47.0",
+            "3070.0",
+            "6538.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202101",
+            "jqBqIXoXpfy",
+            "37.4",
+            "1718.0",
+            "4596.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202101",
+            "nlX2VoouN63",
+            "31.7",
+            "781.0",
+            "2463.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202102",
+            "J40PpdN4Wkk",
+            "41.0",
+            "1947.0",
+            "4750.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202102",
+            "b0EsAxm8Nge",
+            "39.5",
+            "2240.0",
+            "5671.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202102",
+            "jqBqIXoXpfy",
+            "40.8",
+            "1810.0",
+            "4435.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202102",
+            "nlX2VoouN63",
+            "27.0",
+            "582.0",
+            "2157.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202103",
+            "J40PpdN4Wkk",
+            "40.6",
+            "1953.0",
+            "4814.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202103",
+            "b0EsAxm8Nge",
+            "46.0",
+            "3618.0",
+            "7862.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202103",
+            "jqBqIXoXpfy",
+            "33.2",
+            "1515.0",
+            "4557.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202103",
+            "nlX2VoouN63",
+            "21.2",
+            "546.0",
+            "2570.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202104",
+            "J40PpdN4Wkk",
+            "34.4",
+            "1587.0",
+            "4611.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202104",
+            "b0EsAxm8Nge",
+            "45.6",
+            "2640.0",
+            "5793.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202104",
+            "jqBqIXoXpfy",
+            "31.1",
+            "1299.0",
+            "4172.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202104",
+            "nlX2VoouN63",
+            "27.6",
+            "613.0",
+            "2222.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202105",
+            "J40PpdN4Wkk",
+            "49.9",
+            "3231.0",
+            "6474.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202105",
+            "b0EsAxm8Nge",
+            "57.5",
+            "6707.0",
+            "11662.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202105",
+            "jqBqIXoXpfy",
+            "40.3",
+            "2196.0",
+            "5448.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202105",
+            "nlX2VoouN63",
+            "30.2",
+            "864.0",
+            "2864.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202106",
+            "J40PpdN4Wkk",
+            "42.3",
+            "2270.0",
+            "5369.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202106",
+            "b0EsAxm8Nge",
+            "43.1",
+            "3759.0",
+            "8731.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202106",
+            "jqBqIXoXpfy",
+            "33.3",
+            "1641.0",
+            "4934.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202106",
+            "nlX2VoouN63",
+            "23.4",
+            "636.0",
+            "2713.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202107",
+            "J40PpdN4Wkk",
+            "40.6",
+            "1996.0",
+            "4919.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202107",
+            "b0EsAxm8Nge",
+            "38.3",
+            "2906.0",
+            "7590.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202107",
+            "jqBqIXoXpfy",
+            "35.0",
+            "1882.0",
+            "5370.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202107",
+            "nlX2VoouN63",
+            "26.4",
+            "692.0",
+            "2623.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202108",
+            "J40PpdN4Wkk",
+            "41.3",
+            "2254.0",
+            "5456.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202108",
+            "b0EsAxm8Nge",
+            "39.8",
+            "2985.0",
+            "7494.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202108",
+            "jqBqIXoXpfy",
+            "33.8",
+            "1625.0",
+            "4812.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202108",
+            "nlX2VoouN63",
+            "19.9",
+            "478.0",
+            "2397.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202109",
+            "J40PpdN4Wkk",
+            "41.5",
+            "2283.0",
+            "5507.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202109",
+            "b0EsAxm8Nge",
+            "33.6",
+            "2413.0",
+            "7177.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202109",
+            "jqBqIXoXpfy",
+            "34.3",
+            "1841.0",
+            "5362.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202109",
+            "nlX2VoouN63",
+            "15.6",
+            "347.0",
+            "2228.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202110",
+            "J40PpdN4Wkk",
+            "42.1",
+            "1496.0",
+            "3555.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202110",
+            "b0EsAxm8Nge",
+            "43.2",
+            "3070.0",
+            "7101.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202110",
+            "jqBqIXoXpfy",
+            "32.1",
+            "1314.0",
+            "4096.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ", "202110", "nlX2VoouN63", "4.7", "53.0", "1138.0", "100.0", "100", "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202111",
+            "J40PpdN4Wkk",
+            "50.9",
+            "1744.0",
+            "3429.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202111",
+            "b0EsAxm8Nge",
+            "37.3",
+            "2768.0",
+            "7420.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ", "202111", "jqBqIXoXpfy", "1.5", "82.0", "5559.0", "100.0", "100", "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ", "202111", "nlX2VoouN63", "2.3", "29.0", "1274.0", "100.0", "100", "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202112",
+            "J40PpdN4Wkk",
+            "43.7",
+            "1942.0",
+            "4447.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202112",
+            "b0EsAxm8Nge",
+            "43.7",
+            "2259.0",
+            "5173.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202112",
+            "jqBqIXoXpfy",
+            "27.9",
+            "919.0",
+            "3296.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "ReUHfIn0pTQ",
+            "202112",
+            "nlX2VoouN63",
+            "13.4",
+            "155.0",
+            "1158.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202101",
+            "J40PpdN4Wkk",
+            "60.8",
+            "3539.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202101",
+            "b0EsAxm8Nge",
+            "81.3",
+            "5281.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202101",
+            "jqBqIXoXpfy",
+            "105.5",
+            "3917.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202101",
+            "nlX2VoouN63",
+            "87.4",
+            "2228.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202102",
+            "J40PpdN4Wkk",
+            "83.0",
+            "4361.0",
+            "68500.0",
+            "1303.6",
+            "36500",
+            "28"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202102",
+            "b0EsAxm8Nge",
+            "93.0",
+            "5455.0",
+            "76477.0",
+            "1303.6",
+            "36500",
+            "28"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202102",
+            "jqBqIXoXpfy",
+            "130.9",
+            "4389.0",
+            "43695.0",
+            "1303.6",
+            "36500",
+            "28"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202102",
+            "nlX2VoouN63",
+            "86.9",
+            "2001.0",
+            "30002.0",
+            "1303.6",
+            "36500",
+            "28"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202103",
+            "J40PpdN4Wkk",
+            "73.9",
+            "4302.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202103",
+            "b0EsAxm8Nge",
+            "97.0",
+            "6300.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202103",
+            "jqBqIXoXpfy",
+            "115.2",
+            "4276.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202103",
+            "nlX2VoouN63",
+            "94.3",
+            "2402.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202104",
+            "J40PpdN4Wkk",
+            "76.7",
+            "4317.0",
+            "68500.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202104",
+            "b0EsAxm8Nge",
+            "89.9",
+            "5652.0",
+            "76477.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202104",
+            "jqBqIXoXpfy",
+            "117.7",
+            "4226.0",
+            "43695.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202104",
+            "nlX2VoouN63",
+            "78.1",
+            "1926.0",
+            "30002.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202105",
+            "J40PpdN4Wkk",
+            "84.4",
+            "4910.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202105",
+            "b0EsAxm8Nge",
+            "124.5",
+            "8084.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202105",
+            "jqBqIXoXpfy",
+            "134.9",
+            "5005.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202105",
+            "nlX2VoouN63",
+            "100.6",
+            "2563.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202106",
+            "J40PpdN4Wkk",
+            "81.2",
+            "4570.0",
+            "68500.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202106",
+            "b0EsAxm8Nge",
+            "127.0",
+            "7982.0",
+            "76477.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202106",
+            "jqBqIXoXpfy",
+            "158.7",
+            "5701.0",
+            "43695.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202106",
+            "nlX2VoouN63",
+            "110.6",
+            "2727.0",
+            "30002.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202107",
+            "J40PpdN4Wkk",
+            "74.1",
+            "4312.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202107",
+            "b0EsAxm8Nge",
+            "108.4",
+            "7039.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202107",
+            "jqBqIXoXpfy",
+            "134.6",
+            "4994.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202107",
+            "nlX2VoouN63",
+            "95.0",
+            "2421.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202108",
+            "J40PpdN4Wkk",
+            "77.3",
+            "4496.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202108",
+            "b0EsAxm8Nge",
+            "96.8",
+            "6289.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202108",
+            "jqBqIXoXpfy",
+            "135.2",
+            "5018.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202108",
+            "nlX2VoouN63",
+            "93.8",
+            "2391.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202109",
+            "J40PpdN4Wkk",
+            "78.7",
+            "4429.0",
+            "68500.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202109",
+            "b0EsAxm8Nge",
+            "108.0",
+            "6791.0",
+            "76477.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202109",
+            "jqBqIXoXpfy",
+            "133.8",
+            "4807.0",
+            "43695.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202109",
+            "nlX2VoouN63",
+            "89.9",
+            "2217.0",
+            "30002.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202110",
+            "J40PpdN4Wkk",
+            "50.9",
+            "2960.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202110",
+            "b0EsAxm8Nge",
+            "90.6",
+            "5882.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202110",
+            "jqBqIXoXpfy",
+            "89.5",
+            "3323.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202110",
+            "nlX2VoouN63",
+            "50.3",
+            "1282.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202111",
+            "J40PpdN4Wkk",
+            "48.3",
+            "2720.0",
+            "68500.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202111",
+            "b0EsAxm8Nge",
+            "124.8",
+            "7847.0",
+            "76477.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202111",
+            "jqBqIXoXpfy",
+            "143.8",
+            "5163.0",
+            "43695.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202111",
+            "nlX2VoouN63",
+            "56.1",
+            "1384.0",
+            "30002.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202112",
+            "J40PpdN4Wkk",
+            "70.6",
+            "4106.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202112",
+            "b0EsAxm8Nge",
+            "62.5",
+            "4058.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202112",
+            "jqBqIXoXpfy",
+            "84.9",
+            "3150.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "OdiHJayrsKo",
+            "202112",
+            "nlX2VoouN63",
+            "46.6",
+            "1187.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202101", "J40PpdN4Wkk", "20.7", "11184.0", "539.4", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202101", "b0EsAxm8Nge", "29.8", "16916.0", "567.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202101", "jqBqIXoXpfy", "207.0", "12837.0", "62.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202101", "nlX2VoouN63", "31.4", "7157.0", "228.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202102", "J40PpdN4Wkk", "24.7", "13324.0", "539.4", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202102", "b0EsAxm8Nge", "29.4", "16665.0", "567.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202102", "jqBqIXoXpfy", "210.7", "13063.0", "62.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202102", "nlX2VoouN63", "28.7", "6542.0", "228.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202103", "J40PpdN4Wkk", "25.0", "13480.0", "539.4", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202103", "b0EsAxm8Nge", "36.9", "20940.0", "567.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202103", "jqBqIXoXpfy", "239.9", "14875.0", "62.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202103", "nlX2VoouN63", "35.7", "8143.0", "228.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202104", "J40PpdN4Wkk", "24.7", "13324.0", "539.4", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202104", "b0EsAxm8Nge", "29.5", "16739.0", "567.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202104", "jqBqIXoXpfy", "214.9", "13321.0", "62.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202104", "nlX2VoouN63", "29.3", "6669.0", "228.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202105", "J40PpdN4Wkk", "30.3", "16324.0", "539.4", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202105", "b0EsAxm8Nge", "48.9", "27723.0", "567.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202105", "jqBqIXoXpfy", "256.5", "15901.0", "62.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202105", "nlX2VoouN63", "38.5", "8777.0", "228.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202106", "J40PpdN4Wkk", "27.1", "14611.0", "539.4", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202106", "b0EsAxm8Nge", "43.3", "24567.0", "567.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202106", "jqBqIXoXpfy", "261.6", "16217.0", "62.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202106", "nlX2VoouN63", "38.8", "8851.0", "228.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202107", "J40PpdN4Wkk", "29.7", "13560.0", "456.3", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202107", "b0EsAxm8Nge", "4426.2", "22131.0", "5.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202107", "jqBqIXoXpfy", "56.0", "16173.0", "288.6", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202107", "nlX2VoouN63", "23.1", "8204.0", "354.7", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202108", "J40PpdN4Wkk", "32.2", "14684.0", "456.3", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202108", "b0EsAxm8Nge", "4235.4", "21177.0", "5.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202108", "jqBqIXoXpfy", "52.6", "15194.0", "288.6", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202108", "nlX2VoouN63", "22.5", "7971.0", "354.7", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202109", "J40PpdN4Wkk", "33.8", "15427.0", "456.3", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202109", "b0EsAxm8Nge", "4437.2", "22186.0", "5.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202109", "jqBqIXoXpfy", "55.2", "15941.0", "288.6", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202109", "nlX2VoouN63", "21.2", "7523.0", "354.7", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202110", "J40PpdN4Wkk", "20.8", "9495.0", "456.3", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202110", "b0EsAxm8Nge", "4024.2", "20121.0", "5.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202110", "jqBqIXoXpfy", "43.0", "12421.0", "288.6", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202110", "nlX2VoouN63", "11.8", "4201.0", "354.7", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202111", "J40PpdN4Wkk", "19.3", "8797.0", "456.3", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202111", "b0EsAxm8Nge", "4706.2", "23531.0", "5.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202111", "jqBqIXoXpfy", "65.2", "18825.0", "288.6", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202111", "nlX2VoouN63", "13.0", "4626.0", "354.7", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202112", "J40PpdN4Wkk", "26.6", "12122.0", "456.3", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202112", "b0EsAxm8Nge", "2873.4", "14367.0", "5.0", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202112", "jqBqIXoXpfy", "37.8", "10908.0", "288.6", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "Lzg9LtG1xg3", "202112", "nlX2VoouN63", "11.4", "4036.0", "354.7", "1.0", "1", "1"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202101",
+            "J40PpdN4Wkk",
+            "38.1",
+            "2217.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202101",
+            "b0EsAxm8Nge",
+            "53.4",
+            "3468.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202101",
+            "jqBqIXoXpfy",
+            "77.6",
+            "2878.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202101",
+            "nlX2VoouN63",
+            "66.0",
+            "1682.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202102",
+            "J40PpdN4Wkk",
+            "53.3",
+            "2803.0",
+            "68500.0",
+            "1303.6",
+            "36500",
+            "28"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202102",
+            "b0EsAxm8Nge",
+            "58.5",
+            "3431.0",
+            "76477.0",
+            "1303.6",
+            "36500",
+            "28"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202102",
+            "jqBqIXoXpfy",
+            "78.3",
+            "2625.0",
+            "43695.0",
+            "1303.6",
+            "36500",
+            "28"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202102",
+            "nlX2VoouN63",
+            "68.4",
+            "1575.0",
+            "30002.0",
+            "1303.6",
+            "36500",
+            "28"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202103",
+            "J40PpdN4Wkk",
+            "49.2",
+            "2861.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202103",
+            "b0EsAxm8Nge",
+            "65.3",
+            "4244.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202103",
+            "jqBqIXoXpfy",
+            "82.0",
+            "3042.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202103",
+            "nlX2VoouN63",
+            "79.4",
+            "2024.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202104",
+            "J40PpdN4Wkk",
+            "53.7",
+            "3024.0",
+            "68500.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202104",
+            "b0EsAxm8Nge",
+            "50.2",
+            "3153.0",
+            "76477.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202104",
+            "jqBqIXoXpfy",
+            "80.0",
+            "2873.0",
+            "43695.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202104",
+            "nlX2VoouN63",
+            "65.2",
+            "1609.0",
+            "30002.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202105",
+            "J40PpdN4Wkk",
+            "55.7",
+            "3243.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202105",
+            "b0EsAxm8Nge",
+            "76.3",
+            "4955.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202105",
+            "jqBqIXoXpfy",
+            "87.6",
+            "3252.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202105",
+            "nlX2VoouN63",
+            "78.5",
+            "2000.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202106",
+            "J40PpdN4Wkk",
+            "55.0",
+            "3099.0",
+            "68500.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202106",
+            "b0EsAxm8Nge",
+            "79.1",
+            "4972.0",
+            "76477.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202106",
+            "jqBqIXoXpfy",
+            "91.7",
+            "3293.0",
+            "43695.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202106",
+            "nlX2VoouN63",
+            "84.2",
+            "2077.0",
+            "30002.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202107",
+            "J40PpdN4Wkk",
+            "50.2",
+            "2923.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202107",
+            "b0EsAxm8Nge",
+            "72.1",
+            "4684.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202107",
+            "jqBqIXoXpfy",
+            "94.0",
+            "3488.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202107",
+            "nlX2VoouN63",
+            "75.8",
+            "1931.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202108",
+            "J40PpdN4Wkk",
+            "55.0",
+            "3202.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202108",
+            "b0EsAxm8Nge",
+            "69.4",
+            "4509.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202108",
+            "jqBqIXoXpfy",
+            "85.9",
+            "3187.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202108",
+            "nlX2VoouN63",
+            "75.3",
+            "1919.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202109",
+            "J40PpdN4Wkk",
+            "57.3",
+            "3224.0",
+            "68500.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202109",
+            "b0EsAxm8Nge",
+            "75.8",
+            "4764.0",
+            "76477.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202109",
+            "jqBqIXoXpfy",
+            "98.0",
+            "3521.0",
+            "43695.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202109",
+            "nlX2VoouN63",
+            "76.3",
+            "1881.0",
+            "30002.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202110",
+            "J40PpdN4Wkk",
+            "35.4",
+            "2059.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202110",
+            "b0EsAxm8Nge",
+            "62.1",
+            "4031.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202110",
+            "jqBqIXoXpfy",
+            "75.0",
+            "2782.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202110",
+            "nlX2VoouN63",
+            "42.6",
+            "1085.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202111",
+            "J40PpdN4Wkk",
+            "29.9",
+            "1685.0",
+            "68500.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202111",
+            "b0EsAxm8Nge",
+            "74.0",
+            "4652.0",
+            "76477.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202111",
+            "jqBqIXoXpfy",
+            "152.5",
+            "5477.0",
+            "43695.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202111",
+            "nlX2VoouN63",
+            "50.5",
+            "1245.0",
+            "30002.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202112",
+            "J40PpdN4Wkk",
+            "43.1",
+            "2505.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202112",
+            "b0EsAxm8Nge",
+            "44.9",
+            "2914.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202112",
+            "jqBqIXoXpfy",
+            "64.1",
+            "2377.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "sB79w2hiLp8",
+            "202112",
+            "nlX2VoouN63",
+            "39.4",
+            "1003.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202101",
+            "J40PpdN4Wkk",
+            "16.4",
+            "955.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202101",
+            "b0EsAxm8Nge",
+            "25.1",
+            "1629.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202101",
+            "jqBqIXoXpfy",
+            "39.0",
+            "1446.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202101",
+            "nlX2VoouN63",
+            "30.8",
+            "784.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202102",
+            "J40PpdN4Wkk",
+            "26.8",
+            "1410.0",
+            "68500.0",
+            "1303.6",
+            "36500",
+            "28"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202102",
+            "b0EsAxm8Nge",
+            "35.9",
+            "2108.0",
+            "76477.0",
+            "1303.6",
+            "36500",
+            "28"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202102",
+            "jqBqIXoXpfy",
+            "48.2",
+            "1614.0",
+            "43695.0",
+            "1303.6",
+            "36500",
+            "28"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202102",
+            "nlX2VoouN63",
+            "35.2",
+            "809.0",
+            "30002.0",
+            "1303.6",
+            "36500",
+            "28"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202103",
+            "J40PpdN4Wkk",
+            "25.8",
+            "1503.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202103",
+            "b0EsAxm8Nge",
+            "39.0",
+            "2534.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202103",
+            "jqBqIXoXpfy",
+            "80.8",
+            "3000.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202103",
+            "nlX2VoouN63",
+            "45.0",
+            "1147.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202104",
+            "J40PpdN4Wkk",
+            "24.4",
+            "1372.0",
+            "68500.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202104",
+            "b0EsAxm8Nge",
+            "34.1",
+            "2141.0",
+            "76477.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202104",
+            "jqBqIXoXpfy",
+            "57.1",
+            "2050.0",
+            "43695.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202104",
+            "nlX2VoouN63",
+            "37.0",
+            "912.0",
+            "30002.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202105",
+            "J40PpdN4Wkk",
+            "29.2",
+            "1697.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202105",
+            "b0EsAxm8Nge",
+            "46.5",
+            "3022.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202105",
+            "jqBqIXoXpfy",
+            "59.2",
+            "2196.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202105",
+            "nlX2VoouN63",
+            "53.0",
+            "1350.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202106",
+            "J40PpdN4Wkk",
+            "27.9",
+            "1573.0",
+            "68500.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202106",
+            "b0EsAxm8Nge",
+            "45.8",
+            "2882.0",
+            "76477.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202106",
+            "jqBqIXoXpfy",
+            "63.7",
+            "2289.0",
+            "43695.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202106",
+            "nlX2VoouN63",
+            "54.1",
+            "1334.0",
+            "30002.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202107",
+            "J40PpdN4Wkk",
+            "24.2",
+            "1406.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202107",
+            "b0EsAxm8Nge",
+            "43.4",
+            "2818.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202107",
+            "jqBqIXoXpfy",
+            "62.5",
+            "2321.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202107",
+            "nlX2VoouN63",
+            "48.2",
+            "1229.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202108",
+            "J40PpdN4Wkk",
+            "26.3",
+            "1530.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202108",
+            "b0EsAxm8Nge",
+            "44.4",
+            "2885.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202108",
+            "jqBqIXoXpfy",
+            "58.7",
+            "2177.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202108",
+            "nlX2VoouN63",
+            "49.6",
+            "1264.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202109",
+            "J40PpdN4Wkk",
+            "40.3",
+            "2267.0",
+            "68500.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202109",
+            "b0EsAxm8Nge",
+            "54.9",
+            "3454.0",
+            "76477.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202109",
+            "jqBqIXoXpfy",
+            "62.7",
+            "2251.0",
+            "43695.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202109",
+            "nlX2VoouN63",
+            "48.5",
+            "1197.0",
+            "30002.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202110",
+            "J40PpdN4Wkk",
+            "15.8",
+            "921.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202110",
+            "b0EsAxm8Nge",
+            "47.8",
+            "3107.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202110",
+            "jqBqIXoXpfy",
+            "59.8",
+            "2220.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202110",
+            "nlX2VoouN63",
+            "27.3",
+            "696.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202111",
+            "J40PpdN4Wkk",
+            "17.1",
+            "963.0",
+            "68500.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202111",
+            "b0EsAxm8Nge",
+            "57.5",
+            "3612.0",
+            "76477.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202111",
+            "jqBqIXoXpfy",
+            "73.1",
+            "2626.0",
+            "43695.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202111",
+            "nlX2VoouN63",
+            "29.3",
+            "723.0",
+            "30002.0",
+            "1216.7",
+            "36500",
+            "30"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202112",
+            "J40PpdN4Wkk",
+            "18.3",
+            "1064.0",
+            "68500.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202112",
+            "b0EsAxm8Nge",
+            "34.2",
+            "2222.0",
+            "76477.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202112",
+            "jqBqIXoXpfy",
+            "56.2",
+            "2085.0",
+            "43695.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "AUqdhY4mpvp",
+            "202112",
+            "nlX2VoouN63",
+            "27.0",
+            "688.0",
+            "30002.0",
+            "1177.4",
+            "36500",
+            "31"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202101",
+            "J40PpdN4Wkk",
+            "110.7",
+            "4950.0",
+            "4473.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202101",
+            "b0EsAxm8Nge",
+            "110.7",
+            "7235.0",
+            "6538.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202101",
+            "jqBqIXoXpfy",
+            "112.2",
+            "5157.0",
+            "4596.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202101",
+            "nlX2VoouN63",
+            "99.4",
+            "2447.0",
+            "2463.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202102",
+            "J40PpdN4Wkk",
+            "111.5",
+            "5297.0",
+            "4750.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202102",
+            "b0EsAxm8Nge",
+            "126.3",
+            "7163.0",
+            "5671.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202102",
+            "jqBqIXoXpfy",
+            "98.7",
+            "4376.0",
+            "4435.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202102",
+            "nlX2VoouN63",
+            "100.5",
+            "2167.0",
+            "2157.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202103",
+            "J40PpdN4Wkk",
+            "102.4",
+            "4930.0",
+            "4814.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202103",
+            "b0EsAxm8Nge",
+            "115.6",
+            "9086.0",
+            "7862.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202103",
+            "jqBqIXoXpfy",
+            "97.5",
+            "4445.0",
+            "4557.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202103",
+            "nlX2VoouN63",
+            "100.7",
+            "2588.0",
+            "2570.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202104",
+            "J40PpdN4Wkk",
+            "104.3",
+            "4810.0",
+            "4611.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202104",
+            "b0EsAxm8Nge",
+            "114.2",
+            "6618.0",
+            "5793.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202104",
+            "jqBqIXoXpfy",
+            "109.3",
+            "4560.0",
+            "4172.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202104",
+            "nlX2VoouN63",
+            "93.3",
+            "2074.0",
+            "2222.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202105",
+            "J40PpdN4Wkk",
+            "114.5",
+            "7410.0",
+            "6474.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202105",
+            "b0EsAxm8Nge",
+            "147.5",
+            "17199.0",
+            "11662.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202105",
+            "jqBqIXoXpfy",
+            "108.9",
+            "5933.0",
+            "5448.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202105",
+            "nlX2VoouN63",
+            "117.0",
+            "3350.0",
+            "2864.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202106",
+            "J40PpdN4Wkk",
+            "94.1",
+            "5054.0",
+            "5369.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202106",
+            "b0EsAxm8Nge",
+            "114.8",
+            "10019.0",
+            "8731.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202106",
+            "jqBqIXoXpfy",
+            "103.5",
+            "5108.0",
+            "4934.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202106",
+            "nlX2VoouN63",
+            "108.0",
+            "2931.0",
+            "2713.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202107",
+            "J40PpdN4Wkk",
+            "89.6",
+            "4405.0",
+            "4919.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202107",
+            "b0EsAxm8Nge",
+            "182.9",
+            "13884.0",
+            "7590.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202107",
+            "jqBqIXoXpfy",
+            "101.4",
+            "5444.0",
+            "5370.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202107",
+            "nlX2VoouN63",
+            "105.6",
+            "2769.0",
+            "2623.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202108",
+            "J40PpdN4Wkk",
+            "76.9",
+            "4198.0",
+            "5456.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202108",
+            "b0EsAxm8Nge",
+            "127.7",
+            "9569.0",
+            "7494.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202108",
+            "jqBqIXoXpfy",
+            "85.1",
+            "4094.0",
+            "4812.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202108",
+            "nlX2VoouN63",
+            "117.0",
+            "2805.0",
+            "2397.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202109",
+            "J40PpdN4Wkk",
+            "111.6",
+            "6145.0",
+            "5507.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202109",
+            "b0EsAxm8Nge",
+            "125.9",
+            "9037.0",
+            "7177.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202109",
+            "jqBqIXoXpfy",
+            "105.9",
+            "5676.0",
+            "5362.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202109",
+            "nlX2VoouN63",
+            "111.3",
+            "2480.0",
+            "2228.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202110",
+            "J40PpdN4Wkk",
+            "123.7",
+            "4399.0",
+            "3555.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202110",
+            "b0EsAxm8Nge",
+            "123.2",
+            "8745.0",
+            "7101.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202110",
+            "jqBqIXoXpfy",
+            "120.6",
+            "4938.0",
+            "4096.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202110",
+            "nlX2VoouN63",
+            "155.6",
+            "1771.0",
+            "1138.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202111",
+            "J40PpdN4Wkk",
+            "113.4",
+            "3888.0",
+            "3429.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202111",
+            "b0EsAxm8Nge",
+            "136.1",
+            "10099.0",
+            "7420.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202111",
+            "jqBqIXoXpfy",
+            "110.4",
+            "6139.0",
+            "5559.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202111",
+            "nlX2VoouN63",
+            "118.9",
+            "1515.0",
+            "1274.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202112",
+            "J40PpdN4Wkk",
+            "108.5",
+            "4826.0",
+            "4447.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202112",
+            "b0EsAxm8Nge",
+            "127.5",
+            "6595.0",
+            "5173.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202112",
+            "jqBqIXoXpfy",
+            "125.8",
+            "4146.0",
+            "3296.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "dwEq7wi6nXV",
+            "202112",
+            "nlX2VoouN63",
+            "118.9",
+            "1377.0",
+            "1158.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202101",
+            "J40PpdN4Wkk",
+            "119.8",
+            "4240.0",
+            "3539.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202101",
+            "b0EsAxm8Nge",
+            "107.8",
+            "5691.0",
+            "5281.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202101",
+            "jqBqIXoXpfy",
+            "136.3",
+            "5339.0",
+            "3917.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202101",
+            "nlX2VoouN63",
+            "86.8",
+            "1935.0",
+            "2228.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202102",
+            "J40PpdN4Wkk",
+            "90.1",
+            "3928.0",
+            "4361.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202102",
+            "b0EsAxm8Nge",
+            "207.8",
+            "11336.0",
+            "5455.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202102",
+            "jqBqIXoXpfy",
+            "77.8",
+            "3415.0",
+            "4389.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202102",
+            "nlX2VoouN63",
+            "91.7",
+            "1835.0",
+            "2001.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202103",
+            "J40PpdN4Wkk",
+            "87.4",
+            "3762.0",
+            "4302.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202103",
+            "b0EsAxm8Nge",
+            "130.0",
+            "8189.0",
+            "6300.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202103",
+            "jqBqIXoXpfy",
+            "90.4",
+            "3866.0",
+            "4276.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202103",
+            "nlX2VoouN63",
+            "78.5",
+            "1885.0",
+            "2402.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202104",
+            "J40PpdN4Wkk",
+            "77.0",
+            "3324.0",
+            "4317.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202104",
+            "b0EsAxm8Nge",
+            "97.9",
+            "5531.0",
+            "5652.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202104",
+            "jqBqIXoXpfy",
+            "81.7",
+            "3451.0",
+            "4226.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202104",
+            "nlX2VoouN63",
+            "86.2",
+            "1660.0",
+            "1926.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202105",
+            "J40PpdN4Wkk",
+            "96.2",
+            "4725.0",
+            "4910.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202105",
+            "b0EsAxm8Nge",
+            "114.9",
+            "9285.0",
+            "8084.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202105",
+            "jqBqIXoXpfy",
+            "75.0",
+            "3754.0",
+            "5005.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202105",
+            "nlX2VoouN63",
+            "86.9",
+            "2227.0",
+            "2563.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202106",
+            "J40PpdN4Wkk",
+            "84.9",
+            "3881.0",
+            "4570.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202106",
+            "b0EsAxm8Nge",
+            "87.7",
+            "7002.0",
+            "7982.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202106",
+            "jqBqIXoXpfy",
+            "74.0",
+            "4216.0",
+            "5701.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202106",
+            "nlX2VoouN63",
+            "74.8",
+            "2039.0",
+            "2727.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202107",
+            "J40PpdN4Wkk",
+            "70.3",
+            "3030.0",
+            "4312.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202107",
+            "b0EsAxm8Nge",
+            "89.4",
+            "6293.0",
+            "7039.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202107",
+            "jqBqIXoXpfy",
+            "83.3",
+            "4162.0",
+            "4994.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202107",
+            "nlX2VoouN63",
+            "101.2",
+            "2451.0",
+            "2421.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202108",
+            "J40PpdN4Wkk",
+            "68.0",
+            "3056.0",
+            "4496.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202108",
+            "b0EsAxm8Nge",
+            "166.3",
+            "10461.0",
+            "6289.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202108",
+            "jqBqIXoXpfy",
+            "66.7",
+            "3349.0",
+            "5018.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202108",
+            "nlX2VoouN63",
+            "95.8",
+            "2290.0",
+            "2391.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202109",
+            "J40PpdN4Wkk",
+            "99.7",
+            "4416.0",
+            "4429.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202109",
+            "b0EsAxm8Nge",
+            "108.6",
+            "7375.0",
+            "6791.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202109",
+            "jqBqIXoXpfy",
+            "86.7",
+            "4168.0",
+            "4807.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202109",
+            "nlX2VoouN63",
+            "89.2",
+            "1978.0",
+            "2217.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202110",
+            "J40PpdN4Wkk",
+            "85.5",
+            "2530.0",
+            "2960.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202110",
+            "b0EsAxm8Nge",
+            "135.8",
+            "7990.0",
+            "5882.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202110",
+            "jqBqIXoXpfy",
+            "104.5",
+            "3471.0",
+            "3323.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202110",
+            "nlX2VoouN63",
+            "103.5",
+            "1327.0",
+            "1282.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202111",
+            "J40PpdN4Wkk",
+            "100.0",
+            "2719.0",
+            "2720.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202111",
+            "b0EsAxm8Nge",
+            "88.4",
+            "6937.0",
+            "7847.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202111",
+            "jqBqIXoXpfy",
+            "89.5",
+            "4621.0",
+            "5163.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202111",
+            "nlX2VoouN63",
+            "109.7",
+            "1518.0",
+            "1384.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202112",
+            "J40PpdN4Wkk",
+            "76.8",
+            "3154.0",
+            "4106.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202112",
+            "b0EsAxm8Nge",
+            "150.8",
+            "6118.0",
+            "4058.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202112",
+            "jqBqIXoXpfy",
+            "114.0",
+            "3591.0",
+            "3150.0",
+            "100.0",
+            "100",
+            "1"));
+    validateRow(
+        response,
+        List.of(
+            "c8fABiNpT0B",
+            "202112",
+            "nlX2VoouN63",
+            "99.0",
+            "1175.0",
+            "1187.0",
+            "100.0",
+            "100",
             "1"));
   }
 
   @Test
   public void queryAncByAreaThisYear() throws JSONException {
-// Given
-    QueryParamsBuilder params = new QueryParamsBuilder().add("filter=ou:ImspTQPwCqd,pe:THIS_YEAR")
-        .add("skipData=false")
-        .add("includeNumDen=false")
-        .add("displayProperty=NAME")
-        .add("skipMeta=false")
-        .add(
-            "dimension=dx:Uvn6LCg7dVU;OdiHJayrsKo;sB79w2hiLp8,uIuxlbV1vRT:J40PpdN4Wkk;b0EsAxm8Nge;jqBqIXoXpfy;nlX2VoouN63")
-        .add("relativePeriodDate=2022-01-01");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:ImspTQPwCqd,pe:THIS_YEAR")
+            .add("skipData=false")
+            .add("includeNumDen=false")
+            .add("displayProperty=NAME")
+            .add("skipMeta=false")
+            .add(
+                "dimension=dx:Uvn6LCg7dVU;OdiHJayrsKo;sB79w2hiLp8,uIuxlbV1vRT:J40PpdN4Wkk;b0EsAxm8Nge;jqBqIXoXpfy;nlX2VoouN63")
+            .add("relativePeriodDate=2022-01-01");
 
-// When
+    // When
     ApiResponse response = actions.get(params);
 
-// Then
-    response.validate().statusCode(200)
+    // Then
+    response
+        .validate()
+        .statusCode(200)
         .body("headers", hasSize(equalTo(3)))
         .body("rows", hasSize(equalTo(12)))
         .body("height", equalTo(12))
         .body("width", equalTo(3))
         .body("headerWidth", equalTo(3));
 
-// Assert metaData.
-    String expectedMetaData = "{\"items\":{\"nlX2VoouN63\":{\"name\":\"Eastern Area\"},\"sB79w2hiLp8\":{\"name\":\"ANC 3 Coverage\"},\"ou\":{\"name\":\"Organisation unit\"},\"OdiHJayrsKo\":{\"name\":\"ANC 2 Coverage\"},\"jqBqIXoXpfy\":{\"name\":\"Southern Area\"},\"THIS_YEAR\":{\"name\":\"This year\"},\"2022\":{\"name\":\"2022\"},\"uIuxlbV1vRT\":{\"name\":\"Area\"},\"J40PpdN4Wkk\":{\"name\":\"Northern Area\"},\"b0EsAxm8Nge\":{\"name\":\"Western Area\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"dx\":{\"name\":\"Data\"},\"pe\":{\"name\":\"Period\"},\"Uvn6LCg7dVU\":{\"name\":\"ANC 1 Coverage\"}},\"dimensions\":{\"dx\":[\"Uvn6LCg7dVU\",\"OdiHJayrsKo\",\"sB79w2hiLp8\"],\"pe\":[\"2022\"],\"ou\":[\"ImspTQPwCqd\"],\"uIuxlbV1vRT\":[\"J40PpdN4Wkk\",\"b0EsAxm8Nge\",\"jqBqIXoXpfy\",\"nlX2VoouN63\"],\"co\":[]}}";
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"nlX2VoouN63\":{\"name\":\"Eastern Area\"},\"sB79w2hiLp8\":{\"name\":\"ANC 3 Coverage\"},\"ou\":{\"name\":\"Organisation unit\"},\"OdiHJayrsKo\":{\"name\":\"ANC 2 Coverage\"},\"jqBqIXoXpfy\":{\"name\":\"Southern Area\"},\"THIS_YEAR\":{\"name\":\"This year\"},\"2022\":{\"name\":\"2022\"},\"uIuxlbV1vRT\":{\"name\":\"Area\"},\"J40PpdN4Wkk\":{\"name\":\"Northern Area\"},\"b0EsAxm8Nge\":{\"name\":\"Western Area\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"dx\":{\"name\":\"Data\"},\"pe\":{\"name\":\"Period\"},\"Uvn6LCg7dVU\":{\"name\":\"ANC 1 Coverage\"}},\"dimensions\":{\"dx\":[\"Uvn6LCg7dVU\",\"OdiHJayrsKo\",\"sB79w2hiLp8\"],\"pe\":[\"2022\"],\"ou\":[\"ImspTQPwCqd\"],\"uIuxlbV1vRT\":[\"J40PpdN4Wkk\",\"b0EsAxm8Nge\",\"jqBqIXoXpfy\",\"nlX2VoouN63\"],\"co\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
-// Assert headers.
+    // Assert headers.
     validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "uIuxlbV1vRT", "Area", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
-// Assert rows.
+    // Assert rows.
     validateRow(response, List.of("Uvn6LCg7dVU", "J40PpdN4Wkk", "82.8"));
     validateRow(response, List.of("Uvn6LCg7dVU", "b0EsAxm8Nge", "113.1"));
     validateRow(response, List.of("Uvn6LCg7dVU", "jqBqIXoXpfy", "126.2"));
