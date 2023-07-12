@@ -36,13 +36,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A helper to build jackson {@link ObjectNode} and {@link ArrayNode}s from java collections and
@@ -50,6 +50,7 @@ import java.util.stream.Stream;
  *
  * @author Jan Bernitt
  */
+@Slf4j
 public final class JsonBuilder {
   public enum Preference {
     SKIP_NULL_MEMBERS,
@@ -136,41 +137,73 @@ public final class JsonBuilder {
 
   public ObjectNode toObject(List<String> fields, Collection<?> values) {
     ObjectNode obj = jackson.createObjectNode();
-    Map<String, ObjectNode> memberObjectsByName = new HashMap<>();
     Iterator<?> iter = values.iterator();
     for (String field : fields) {
       Object value = iter.hasNext() ? iter.next() : null;
-      addMember(obj, field, value, memberObjectsByName);
+      addMember(obj, field, value);
     }
     return obj;
   }
 
-  private void addMember(
-      ObjectNode obj, String name, Object value, Map<String, ObjectNode> memberObjectsByName) {
+  private void addMember(ObjectNode obj, String name, Object value) {
     if (!skipValue(value)) {
-      JsonNode node = toJsonNode(value);
       if (name.contains(".")) {
-        String member = name.substring(0, name.indexOf('.'));
-        ObjectNode memberNode =
-            memberObjectsByName.computeIfAbsent(member, key -> jackson.createObjectNode());
-        obj.set(member, memberNode);
-        memberNode.set(name.substring(name.indexOf('.') + 1), node);
-      } else {
-        if (memberObjectsByName.containsKey(name) && node.isObject()) {
-          ObjectNode memberNode = memberObjectsByName.get(name);
-          memberNode.setAll((ObjectNode) node);
+        String parentName = name.substring(0, name.indexOf('.'));
+        String childName = name.substring(name.indexOf('.') + 1);
+        JsonNode parent = obj.get(parentName);
+        if (parent == null)
+          parent =
+              value instanceof Object[] ? jackson.createArrayNode() : jackson.createObjectNode();
+        obj.set(parentName, parent);
+        if (parent instanceof ArrayNode arr) {
+          if (value instanceof Object[] values) {
+            for (int i = 0; i < values.length; i++) {
+              JsonNode child = arr.get(i);
+              if (child == null) {
+                child = jackson.createObjectNode();
+                arr.add(child);
+              }
+              if (child instanceof ObjectNode e) {
+                addMemberToObject(e, childName, toJsonNode(values[i]));
+              } else if (child instanceof ArrayNode e) {
+                e.add(toJsonNode(values[i]));
+              } else {
+                arr.set(i, toJsonNode(values[i])); // override
+              }
+            }
+          } else {
+            arr.add(toJsonNode(value));
+          }
+        } else if (parent instanceof ObjectNode p) {
+          p.set(childName, toJsonNode(value));
         } else {
-          obj.set(name, node);
+          addMemberToObject(obj, name, toJsonNode(value));
         }
+      } else {
+        addMemberToObject(obj, name, toJsonNode(value));
       }
+    }
+  }
+
+  private static void addMemberToObject(ObjectNode obj, String name, JsonNode node) {
+    JsonNode memberNode = obj.get(name);
+    if (memberNode != null) {
+      if (node.isObject() && memberNode.isObject()) {
+        ((ObjectNode) memberNode).setAll((ObjectNode) node);
+      } else {
+        log.warn(
+            "Cannot join properties of same name: %s, %s"
+                .formatted(memberNode.toPrettyString(), node.toPrettyString()));
+      }
+    } else {
+      obj.set(name, node);
     }
   }
 
   public ObjectNode toObject(Map<String, ?> members) {
     ObjectNode obj = jackson.createObjectNode();
-    Map<String, ObjectNode> memberObjectsByName = new HashMap<>();
     for (Entry<String, ?> member : members.entrySet()) {
-      addMember(obj, member.getKey(), member.getValue(), memberObjectsByName);
+      addMember(obj, member.getKey(), member.getValue());
     }
     return obj;
   }

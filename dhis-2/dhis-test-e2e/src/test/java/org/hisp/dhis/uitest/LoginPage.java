@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,41 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.helpers.config;
+package org.hisp.dhis.uitest;
 
-/**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- */
-@org.aeonbits.owner.Config.LoadPolicy(org.aeonbits.owner.Config.LoadType.MERGE)
-@Config.Sources({"system:properties", "system:env", "classpath:config.properties"})
-public interface Config extends org.aeonbits.owner.Config {
-  @Key("instance.url")
-  String baseUrl();
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.PageFactory;
 
-  @Key("user.super.password")
-  String superUserPassword();
+public class LoginPage {
 
-  @Key("user.super.username")
-  String superUserUsername();
+  @FindBy(css = "input[id$='username']")
+  public WebElement inputUsername;
 
-  @Key("user.default.username")
-  String defaultUserUsername();
+  @FindBy(css = "input[class='button']")
+  public WebElement inputSubmit;
 
-  @Key("user.default.password")
-  String defaultUSerPassword();
+  @FindBy(css = "input[id$='password']")
+  public WebElement inputPassword;
 
-  @Key("user.admin.username")
-  String adminUserUsername();
-
-  @Key("user.admin.password")
-  String adminUserPassword();
-
-  @Key("test.cleanup")
-  Boolean shouldCleanUp();
-
-  @Key("test.track_called_endpoints")
-  Boolean shouldTrackEndpoints();
-
-  @Key("selenium.url")
-  String seleniumUrl();
+  public LoginPage(WebDriver driver) {
+    PageFactory.initElements(driver, this);
+  }
 }
