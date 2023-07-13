@@ -998,16 +998,12 @@ public class AnalyticsUtils {
             .orElse("");
 
     if (StringUtils.isNotBlank(sqlState)) {
-      throw new QueryRuntimeException(getErrorCodeFromSqlState(sqlState), sqlState);
+      if (sqlState.equals("42P01")) {
+        throw new QueryRuntimeException(ErrorCode.E7144, sqlState);
+      }
+      throw new QueryRuntimeException(ErrorCode.E7143, sqlState);
     }
     throw new QueryRuntimeException(ErrorCode.E7143);
-  }
-
-  private static ErrorCode getErrorCodeFromSqlState(String sqlState) {
-    if (sqlState.equals("42P01")) {
-      return ErrorCode.E7144;
-    }
-    return ErrorCode.E7143;
   }
 
   /**
