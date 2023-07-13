@@ -120,7 +120,7 @@ public class CrudControllerAdvice {
     DataAccessResourceFailureException.class
   };
 
-  public static final String GENERIC_ERROR_MESSAGE =
+  private static final String GENERIC_ERROR_MESSAGE =
       "An unexpected error has occured. Please contact your system administrator";
 
   private final List<Class<?>> enumClasses;
