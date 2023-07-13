@@ -223,7 +223,6 @@ public class SchedulerStart extends AbstractStartupRoutine {
               SystemJob.LEADER_ELECTION.type,
               format(SystemJob.LEADER_ELECTION.cron, leaderElectionTime),
               null);
-      leaderElectionJobConfiguration.setLeaderOnlyJob(false);
       leaderElectionJobConfiguration.setUid(SystemJob.LEADER_ELECTION.uid);
       addAndScheduleJob(leaderElectionJobConfiguration);
     } else {
@@ -241,7 +240,6 @@ public class SchedulerStart extends AbstractStartupRoutine {
       JobConfiguration configuration = new JobConfiguration(job.name, job.type, job.cron, null);
       if (init != null) init.accept(configuration);
       configuration.setUid(job.uid);
-      configuration.setLeaderOnlyJob(true);
       addAndScheduleJob(configuration);
     }
   }

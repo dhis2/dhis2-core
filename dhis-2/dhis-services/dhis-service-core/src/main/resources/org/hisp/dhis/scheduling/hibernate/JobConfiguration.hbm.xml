@@ -50,10 +50,6 @@
 
         <property name="enabled" not-null="true" type="boolean" />
 
-        <property name="leaderOnlyJob" not-null="true" type="boolean">
-            <column name="leaderonlyjob" default="false" />
-        </property>
-
         <property name="jobParameters" column="jsonbjobparameters" type="jbJobParameters" />
     </class>
 </hibernate-mapping>
