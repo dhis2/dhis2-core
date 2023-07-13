@@ -111,6 +111,7 @@ public class RedisLeaderManager implements LeaderManager {
           format("Schedule leader renewal for nodeId:%s at: %s", nodeUuid, calendar.getTime()));
       JobConfiguration leaderRenewalJobConfiguration =
           new JobConfiguration(CLUSTER_LEADER_RENEWAL, JobType.LEADER_RENEWAL, null, true);
+      leaderRenewalJobConfiguration.setLeaderOnlyJob(true);
       progress.runStage(
           () ->
               schedulingManager.scheduleWithStartTime(
