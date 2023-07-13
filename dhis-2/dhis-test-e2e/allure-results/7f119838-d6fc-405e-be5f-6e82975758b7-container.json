@@ -1,1 +1,0 @@
-{"uuid":"7f119838-d6fc-405e-be5f-6e82975758b7","name":"EventAggregateTest","children":["b2233c3e-97f3-4f3f-8f5d-9ff16ca29214"],"befores":[{"name":"beforeAll","status":"passed","stage":"finished","steps":[],"attachments":[],"parameters":[],"start":1689256474696,"stop":1689256474842}],"afters":[],"start":1689256474695,"stop":1689256475048}
