@@ -58,7 +58,7 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
           + "tec.creator, tec.created "
           + "from trackedentitycomment tec join programinstancecomments pic "
           + "on tec.trackedentitycommentid = pic.trackedentitycommentid "
-          + "join enrollment pi on pic.programinstanceid = pi.programinstanceid "
+          + "join enrollment pi on pic.programinstanceid = pi.enrollmentid "
           + "where pic.programinstanceid in (:ids)";
 
   private static final String FILTER_OUT_DELETED_ENROLLMENTS = "pi.deleted=false";

@@ -162,7 +162,7 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    * <p>Resulting SQL query:
    *
    * <pre>{@code
-   * select programinstanceid, programid, trackedentityinstanceid
+   * select enrollmentid, programid, trackedentityinstanceid
    *     from enrollment
    *     where (programid = 726 and trackedentityinstanceid = 19 and status = 'ACTIVE')
    *        or (programid = 726 and trackedentityinstanceid = 18 and status = 'ACTIVE')

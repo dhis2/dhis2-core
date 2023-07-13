@@ -8,7 +8,7 @@
 
     <cache usage="read-write" />
 
-    <id name="id" column="programinstanceid">
+    <id name="id" column="enrollmentid">
       <generator class="sequence">
         <param name="sequence_name">programinstance_sequence</param>
       </generator>

@@ -83,15 +83,15 @@ public class EnrollmentRepeatableStageCheck implements Checker {
 
   private boolean hasProgramStageInstance(
       JdbcTemplate jdbcTemplate,
-      long programInstanceId,
+      long enrollmentid,
       long programStageId,
       long trackedEntityInstanceId) {
     final String sql =
         "select exists( "
             + "select * "
             + "from event psi "
-            + "  join enrollment pi on psi.programinstanceid = pi.programinstanceid "
-            + "where pi.programinstanceid = ? "
+            + "  join enrollment pi on psi.programinstanceid = pi.enrollmentid "
+            + "where pi.enrollmentid = ? "
             + "  and psi.programstageid = ? "
             + "  and psi.deleted = false "
             + "  and pi.trackedentityinstanceid = ? "
@@ -99,6 +99,6 @@ public class EnrollmentRepeatableStageCheck implements Checker {
             + ")";
 
     return jdbcTemplate.queryForObject(
-        sql, Boolean.class, programInstanceId, programStageId, trackedEntityInstanceId);
+        sql, Boolean.class, enrollmentid, programStageId, trackedEntityInstanceId);
   }
 }

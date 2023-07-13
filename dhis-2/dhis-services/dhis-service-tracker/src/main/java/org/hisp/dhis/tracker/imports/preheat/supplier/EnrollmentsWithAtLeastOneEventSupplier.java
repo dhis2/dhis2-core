@@ -55,9 +55,9 @@ public class EnrollmentsWithAtLeastOneEventSupplier extends JdbcAbstractPreheatS
           + " from enrollment "
           + "where exists( select eventid "
           + "from event "
-          + "where enrollment.programinstanceid = event.programinstanceid "
+          + "where enrollment.enrollmentid = event.programinstanceid "
           + "and enrollment.deleted = false) "
-          + "and programinstanceid in (:ids)";
+          + "and enrollmentid in (:ids)";
 
   protected EnrollmentsWithAtLeastOneEventSupplier(JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);

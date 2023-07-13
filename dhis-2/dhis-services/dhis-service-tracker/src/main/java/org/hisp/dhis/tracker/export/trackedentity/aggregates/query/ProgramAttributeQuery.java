@@ -48,7 +48,7 @@ public class ProgramAttributeQuery {
   public static final Map<COLUMNS, TableColumn> columnMap =
       ImmutableMap.<COLUMNS, TableColumn>builder()
           .put(COLUMNS.PI_UID, new TableColumn("pi", "uid", "pi_uid"))
-          .put(COLUMNS.PI_ID, new TableColumn("pi", "programinstanceid", "id"))
+          .put(COLUMNS.PI_ID, new TableColumn("pi", "enrollmentid", "id"))
           .put(COLUMNS.CREATED, new TableColumn("teav", "created"))
           .put(COLUMNS.UPDATED, new TableColumn("teav", "lastupdated"))
           .put(COLUMNS.STOREDBY, new TableColumn("teav", "storedby"))
@@ -67,7 +67,7 @@ public class ProgramAttributeQuery {
         + "join trackedentityattribute t on t.trackedentityattributeid = pa.trackedentityattributeid "
         + "join trackedentityinstance tei on tei.trackedentityinstanceid = teav.trackedentityinstanceid "
         + "join enrollment pi on pi.programid = pa.programid and pi.trackedentityinstanceid = tei.trackedentityinstanceid "
-        + "where pi.programinstanceid IN (:ids)";
+        + "where pi.enrollmentid IN (:ids)";
   }
 
   private static String getSelect() {

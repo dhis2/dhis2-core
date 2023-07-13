@@ -67,7 +67,7 @@ public class EnrollmentQuery {
       ImmutableMap.<COLUMNS, QueryElement>builder()
           .put(COLUMNS.TEI_UID, new TableColumn("tei", "uid", "tei_uid"))
           .put(COLUMNS.GEOMETRY, new Function("ST_AsBinary", "pi", "geometry", "geometry"))
-          .put(COLUMNS.ID, new TableColumn("pi", "programinstanceid"))
+          .put(COLUMNS.ID, new TableColumn("pi", "enrollmentid"))
           .put(COLUMNS.UID, new TableColumn("pi", "uid"))
           .put(COLUMNS.CREATED, new TableColumn("pi", "created"))
           .put(COLUMNS.CREATEDCLIENT, new TableColumn("pi", "createdatclient"))

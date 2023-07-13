@@ -163,7 +163,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
 
   @Override
   public int deleteSoftDeletedEnrollments() {
-    String enrollmentSelect = "(select programinstanceid from enrollment where deleted is true)";
+    String enrollmentSelect = "(select pi.enrollmentid from enrollment where deleted is true)";
 
     List<String> deletedEnrollments =
         getDeletionEntities("select uid from enrollment where deleted is true");
@@ -227,7 +227,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
         "(select trackedentityinstanceid from trackedentityinstance where deleted is true)";
 
     String enrollmentSelect =
-        "(select programinstanceid from enrollment where trackedentityinstanceid in "
+        "(select pi.enrollmentid from enrollment where trackedentityinstanceid in "
             + teiSelect
             + " )";
 

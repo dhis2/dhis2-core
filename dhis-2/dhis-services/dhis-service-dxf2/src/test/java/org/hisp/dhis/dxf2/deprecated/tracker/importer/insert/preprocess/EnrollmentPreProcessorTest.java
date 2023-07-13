@@ -153,7 +153,7 @@ class EnrollmentPreProcessorTest extends BasePreProcessTest {
     // simulate one record returned from query
     //
     when(mockResultSet.next()).thenReturn(true).thenReturn(false);
-    when(mockResultSet.getLong("programinstanceid")).thenReturn(enrollment.getId());
+    when(mockResultSet.getLong("enrollmentid")).thenReturn(enrollment.getId());
     when(mockResultSet.getString("uid")).thenReturn(enrollment.getUid());
     // Mock jdbc call
     mockResultSetExtractor(mockResultSet);
@@ -168,7 +168,7 @@ class EnrollmentPreProcessorTest extends BasePreProcessTest {
     assertThat(
         sql.getValue(),
         is(
-            "select pi.programinstanceid, pi.programid, pi.uid from enrollment pi where pi.programid = ? and pi.status = ?"));
+            "select pi.enrollmentid, pi.programid, pi.uid from enrollment pi where pi.programid = ? and pi.status = ?"));
   }
 
   @Test
@@ -193,7 +193,7 @@ class EnrollmentPreProcessorTest extends BasePreProcessTest {
     // simulate 2 records returned from query
     //
     when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
-    when(mockResultSet.getLong("programinstanceid"))
+    when(mockResultSet.getLong("enrollmentid"))
         .thenReturn(enrollment1.getId(), enrollment2.getId());
     when(mockResultSet.getString("uid")).thenReturn(enrollment1.getUid(), enrollment2.getUid());
     // Mock jdbc call
@@ -205,7 +205,7 @@ class EnrollmentPreProcessorTest extends BasePreProcessTest {
     assertThat(
         sql.getValue(),
         is(
-            "select pi.programinstanceid, pi.programid, pi.uid from enrollment pi where pi.programid = ? and pi.status = ?"));
+            "select pi.enrollmentid, pi.programid, pi.uid from enrollment pi where pi.programid = ? and pi.status = ?"));
   }
 
   public void mockResultSetExtractor(ResultSet resultSetMock) {

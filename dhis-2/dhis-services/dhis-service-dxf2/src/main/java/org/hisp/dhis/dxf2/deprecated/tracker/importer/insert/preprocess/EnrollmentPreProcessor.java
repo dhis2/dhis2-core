@@ -96,7 +96,7 @@ public class EnrollmentPreProcessor implements Processor {
   private List<Enrollment> getProgramInstances(
       JdbcTemplate jdbcTemplate, Program program, ProgramStatus status) {
     final String sql =
-        "select pi.programinstanceid, pi.programid, pi.uid "
+        "select pi.enrollmentid, pi.programid, pi.uid "
             + "from enrollment pi "
             + "where pi.programid = ? and pi.status = ?";
 
@@ -108,7 +108,7 @@ public class EnrollmentPreProcessor implements Processor {
 
           while (rs.next()) {
             Enrollment pi = new Enrollment();
-            pi.setId(rs.getLong("programinstanceid"));
+            pi.setId(rs.getLong("enrollmentid"));
             pi.setUid(rs.getString("uid"));
             pi.setProgram(program);
             results.add(pi);

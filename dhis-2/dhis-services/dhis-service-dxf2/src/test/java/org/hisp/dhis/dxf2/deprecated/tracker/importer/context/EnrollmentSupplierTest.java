@@ -74,7 +74,7 @@ class EnrollmentSupplierTest extends AbstractSupplierTest<Enrollment> {
   @Test
   void verifySupplier() throws SQLException {
     // mock resultset data
-    when(mockResultSet.getLong("programinstanceid")).thenReturn(100L);
+    when(mockResultSet.getLong("enrollmentid")).thenReturn(100L);
     when(mockResultSet.getString("uid")).thenReturn("abcded");
     when(mockResultSet.getString("tei_uid")).thenReturn("efghil");
     when(mockResultSet.getString("tei_ou_uid")).thenReturn("ouabcde");

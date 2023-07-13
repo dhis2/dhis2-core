@@ -1083,7 +1083,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
       events.append(whereHlp.whereAnd()).append("PSI.deleted IS FALSE");
     }
 
-    events.append(") PSI ON PSI.programinstanceid = PI.programinstanceid ");
+    events.append(") PSI ON PSI.programinstanceid = PI.enrollmentid ");
 
     return events.toString();
   }
