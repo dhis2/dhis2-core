@@ -53,6 +53,7 @@ class JobConfigurationTest {
     jobConfiguration.setJobStatus(JobStatus.COMPLETED);
     jobConfiguration.setJobParameters(jobParameters);
     jobConfiguration.setEnabled(true);
+    jobConfiguration.setLeaderOnlyJob(true);
     jobConfiguration.setCronExpression("0 0 6 * * ?");
   }
 
@@ -63,6 +64,7 @@ class JobConfigurationTest {
     jc.setJobStatus(JobStatus.COMPLETED);
     jc.setJobParameters(jobParameters);
     jc.setEnabled(true);
+    jc.setLeaderOnlyJob(false);
     assertFalse(jobConfiguration.hasNonConfigurableJobChanges(jc));
   }
 
@@ -73,6 +75,7 @@ class JobConfigurationTest {
     jc.setJobStatus(JobStatus.COMPLETED);
     jc.setJobParameters(jobParameters);
     jc.setEnabled(true);
+    jc.setLeaderOnlyJob(true);
     jc.setCronExpression("0 0 12 * * ?");
     assertFalse(jobConfiguration.hasNonConfigurableJobChanges(jc));
   }
@@ -84,6 +87,7 @@ class JobConfigurationTest {
     jc.setJobStatus(JobStatus.COMPLETED);
     jc.setJobParameters(jobParameters);
     jc.setEnabled(false);
+    jc.setLeaderOnlyJob(true);
     assertTrue(jobConfiguration.hasNonConfigurableJobChanges(jc));
   }
 
@@ -94,6 +98,7 @@ class JobConfigurationTest {
     jc.setJobStatus(JobStatus.COMPLETED);
     jc.setJobParameters(jobParameters);
     jc.setEnabled(true);
+    jc.setLeaderOnlyJob(true);
     assertTrue(jobConfiguration.hasNonConfigurableJobChanges(jc));
   }
 
@@ -104,6 +109,7 @@ class JobConfigurationTest {
     jc.setJobStatus(JobStatus.STOPPED);
     jc.setJobParameters(jobParameters);
     jc.setEnabled(true);
+    jc.setLeaderOnlyJob(true);
     assertTrue(jobConfiguration.hasNonConfigurableJobChanges(jc));
   }
 
@@ -114,6 +120,7 @@ class JobConfigurationTest {
     jc.setJobStatus(JobStatus.COMPLETED);
     jc.setJobParameters(new MockJobParameters());
     jc.setEnabled(true);
+    jc.setLeaderOnlyJob(true);
     assertTrue(jobConfiguration.hasNonConfigurableJobChanges(jc));
   }
 }
