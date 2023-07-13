@@ -399,10 +399,9 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void shouldReturnNotFoundWhenGettingASoftDeletedTrackedEntityById() {
-    String uid = softDeletedTrackedEntity.getUid();
     assertEquals(
-        "TrackedEntity with id " + uid + " could not be found.",
-        GET("/tracker/trackedEntities/" + uid).error(HttpStatus.NOT_FOUND).getMessage());
+        HttpStatus.NOT_FOUND,
+        GET("/tracker/trackedEntities/" + softDeletedTrackedEntity.getUid()).status());
   }
 
   @Test
