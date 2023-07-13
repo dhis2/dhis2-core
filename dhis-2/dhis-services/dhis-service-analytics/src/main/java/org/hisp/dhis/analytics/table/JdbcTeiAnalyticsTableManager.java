@@ -401,7 +401,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
             " and exists ( select 1 from enrollment pi"
                 + " where pi.trackedentityinstanceid = tei.trackedentityinstanceid"
                 + " and exists ( select 1 from event psi"
-                + " where psi.programinstanceid = pi.enrollmentid"
+                + " where psi.enrollmentid = pi.enrollmentid"
                 + " and psi.status in ("
                 + join(",", EXPORTABLE_EVENT_STATUSES)
                 + ")"

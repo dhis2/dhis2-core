@@ -87,7 +87,7 @@ public class RelationshipTypeJoinGenerator {
       case PROGRAM_STAGE_INSTANCE:
         return sql + "event psi on psi.eventid = ri2.eventid";
       case PROGRAM_INSTANCE:
-        return sql + "enrollment pi on pi.enrollmentid = ri2.programinstanceid";
+        return sql + "enrollment pi on pi.enrollmentid = ri2.enrollmentid";
       default:
         throw new IllegalQueryException(
             new ErrorMessage(ErrorCode.E7227, relationshipEntity.name()));
@@ -119,7 +119,7 @@ public class RelationshipTypeJoinGenerator {
     return " "
         + alias
         + ".pi in (select pi.uid from enrollment pi"
-        + " LEFT JOIN relationshipitem ri on pi.enrollmentid = ri.programinstanceid ";
+        + " LEFT JOIN relationshipitem ri on pi.enrollmentid = ri.enrollmentid ";
   }
 
   private static String getEvent(String alias) {
