@@ -1,0 +1,1 @@
+{"uuid":"2feeddb9-7b50-4984-a325-f806a0d4cfae","name":"EventsAggregate7AutoTest","children":["bdef3110-48c1-4e48-b8d7-288d79b65388"],"befores":[{"name":"beforeAll","status":"passed","stage":"finished","steps":[],"attachments":[],"parameters":[],"start":1689256472885,"stop":1689256473028}],"afters":[],"start":1689256472884,"stop":1689256474694}
