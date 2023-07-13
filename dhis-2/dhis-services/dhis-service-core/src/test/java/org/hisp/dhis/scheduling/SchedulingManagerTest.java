@@ -107,6 +107,9 @@ class SchedulingManagerTest {
     when(cacheProvider.createRunningJobsInfoCache()).thenReturn(new TestCache<>());
     when(cacheProvider.createCompletedJobsInfoCache()).thenReturn(new TestCache<>());
 
+    LeaderManager leaderManager = mock(LeaderManager.class);
+    when(leaderManager.isLeader()).thenReturn(true);
+
     schedulingManager =
         new DefaultSchedulingManager(
             new DefaultJobService(applicationContext),
@@ -114,7 +117,7 @@ class SchedulingManagerTest {
             mock(MessageService.class),
             mock(Notifier.class),
             mock(EventHookPublisher.class),
-            mock(LeaderManager.class),
+            leaderManager,
             taskScheduler,
             mock(AsyncTaskExecutor.class),
             cacheProvider);
