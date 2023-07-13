@@ -48,17 +48,25 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 class TrackedEntityFieldsParamMapper {
-  private final FieldFilterService fieldFilterService;
-
   private static final String FIELD_PROGRAM_OWNERS = "programOwners";
 
   private static final String FIELD_ENROLLMENTS = "enrollments";
 
-  public TrackedEntityParams map(List<FieldPath> fields) {
-    return map(fields, false);
+  private final FieldFilterService fieldFilterService;
+
+  private static TrackedEntityParams initUsingAllOrNoFields(Map<String, FieldPath> roots) {
+    TrackedEntityParams params = TrackedEntityParams.FALSE;
+
+    if (roots.containsKey(FieldPreset.ALL)) {
+      FieldPath p = roots.get(FieldPreset.ALL);
+      if (p.isRoot() && !p.isExclude()) {
+        params = TrackedEntityParams.TRUE;
+      }
+    }
+    return params;
   }
 
-  public TrackedEntityParams map(List<FieldPath> fields, boolean includeDeleted) {
+  public TrackedEntityParams map(List<FieldPath> fields) {
     Map<String, FieldPath> roots = rootFields(fields);
 
     TrackedEntityParams params = initUsingAllOrNoFields(roots);
@@ -71,7 +79,6 @@ class TrackedEntityFieldsParamMapper {
     params =
         params.withIncludeAttributes(
             fieldFilterService.filterIncludes(TrackedEntity.class, fields, FIELD_ATTRIBUTES));
-    params = params.withIncludeDeleted(includeDeleted);
 
     EventParams eventParams =
         new EventParams(
@@ -93,18 +100,6 @@ class TrackedEntityFieldsParamMapper {
             fieldFilterService.filterIncludes(TrackedEntity.class, fields, FIELD_ENROLLMENTS),
             enrollmentParams);
     params = params.withTeiEnrollmentParams(teiEnrollmentParams);
-    return params;
-  }
-
-  private static TrackedEntityParams initUsingAllOrNoFields(Map<String, FieldPath> roots) {
-    TrackedEntityParams params = TrackedEntityParams.FALSE;
-
-    if (roots.containsKey(FieldPreset.ALL)) {
-      FieldPath p = roots.get(FieldPreset.ALL);
-      if (p.isRoot() && !p.isExclude()) {
-        params = TrackedEntityParams.TRUE;
-      }
-    }
     return params;
   }
 }
