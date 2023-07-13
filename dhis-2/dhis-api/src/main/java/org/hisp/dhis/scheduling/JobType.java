@@ -168,6 +168,14 @@ public enum JobType {
     this.relativeApiElements = relativeApiElements;
   }
 
+  /**
+   * @return when true, this job type should run on all nodes, if false it should only run on the
+   *     current leader node.
+   */
+  public boolean isRunOnAllNodes() {
+    return this == LEADER_ELECTION;
+  }
+
   public boolean isUsingNotifications() {
     return this == RESOURCE_TABLE || this == ANALYTICS_TABLE || this == CONTINUOUS_ANALYTICS_TABLE;
   }
