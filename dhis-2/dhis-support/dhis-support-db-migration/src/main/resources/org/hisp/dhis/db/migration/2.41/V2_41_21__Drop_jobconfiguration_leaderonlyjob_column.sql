@@ -1,1 +1,0 @@
-alter table jobconfiguration drop column if exists leaderonlyjob;
