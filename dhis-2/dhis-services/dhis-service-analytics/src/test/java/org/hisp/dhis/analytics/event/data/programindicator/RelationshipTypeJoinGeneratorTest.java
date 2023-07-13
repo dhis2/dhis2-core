@@ -57,7 +57,7 @@ class RelationshipTypeJoinGeneratorTest {
 
   private static final String PI_JOIN_START =
       ALIAS
-          + ".pi in (select pi.uid from programinstance pi LEFT JOIN relationshipitem ri on pi.programinstanceid = ri.programinstanceid ";
+          + ".pi in (select pi.uid from enrollment pi LEFT JOIN relationshipitem ri on pi.programinstanceid = ri.programinstanceid ";
 
   private static final String PSI_JOIN_START =
       ALIAS
@@ -67,7 +67,7 @@ class RelationshipTypeJoinGeneratorTest {
       "LEFT JOIN trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid";
 
   private static final String PI_RELTO_JOIN =
-      "LEFT JOIN programinstance pi on pi.programinstanceid = ri2.programinstanceid";
+      "LEFT JOIN enrollment pi on pi.programinstanceid = ri2.programinstanceid";
 
   private static final String PSI_RELTO_JOIN = "LEFT JOIN event psi on psi.eventid = ri2.eventid";
 

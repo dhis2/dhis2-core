@@ -265,7 +265,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                     new AnalyticsTableColumn(
                         quote(program.getUid()),
                         BOOLEAN,
-                        " exists(select 1 from programinstance pi_0"
+                        " exists(select 1 from enrollment pi_0"
                             + " where pi_0.trackedentityinstanceid = tei.trackedentityinstanceid"
                             + " and pi_0.programid = "
                             + program.getId()
@@ -398,7 +398,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     sql.append(" where tei.trackedentitytypeid = " + trackedEntityType.getId())
         .append(" and tei.lastupdated < '" + getLongDateString(params.getStartTime()) + "'")
         .append(
-            " and exists ( select 1 from programinstance pi"
+            " and exists ( select 1 from enrollment pi"
                 + " where pi.trackedentityinstanceid = tei.trackedentityinstanceid"
                 + " and exists ( select 1 from event psi"
                 + " where psi.programinstanceid = pi.programinstanceid"

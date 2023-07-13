@@ -567,7 +567,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
             + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
             + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-            + "LEFT JOIN programinstance pi on pi.programinstanceid = ri2.programinstanceid WHERE rty.relationshiptypeid "
+            + "LEFT JOIN enrollment pi on pi.programinstanceid = ri2.programinstanceid WHERE rty.relationshiptypeid "
             + "= "
             + relationshipTypeA.getId()
             + " AND pi.uid = ax.pi ))"

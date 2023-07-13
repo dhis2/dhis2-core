@@ -238,7 +238,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
     }
 
     removeLastComma(sql)
-        .append(" from programinstance pi")
+        .append(" from enrollment pi")
         .append(
             " inner join trackedentityinstance tei "
                 + "on pi.trackedentityinstanceid = tei.trackedentityinstanceid")
