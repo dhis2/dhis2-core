@@ -83,6 +83,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest {
+
   private static final String TEA_UID = "TvjwTPToKHO";
 
   private static final String EVENT_OCCURRED_AT = "2023-03-23T12:23:00.000";
@@ -110,6 +111,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   private TrackedEntityAttribute tea;
 
   private TrackedEntityAttribute tea2;
+
+  private TrackedEntity softDeletedTrackedEntity;
 
   @BeforeEach
   void setUp() {
@@ -163,6 +166,10 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
     trackedEntityType.setTrackedEntityTypeAttributes(List.of(trackedEntityTypeAttribute));
     manager.save(trackedEntityType, false);
+
+    softDeletedTrackedEntity = createTrackedEntity(orgUnit);
+    softDeletedTrackedEntity.setDeleted(true);
+    manager.save(softDeletedTrackedEntity, false);
   }
 
   @Test
@@ -388,6 +395,14 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     assertEquals(
         "TrackedEntity with id Hq3Kc6HK4OZ could not be found.",
         GET("/tracker/trackedEntities/Hq3Kc6HK4OZ").error(HttpStatus.NOT_FOUND).getMessage());
+  }
+
+  @Test
+  void shouldReturnNotFoundWhenGettingASoftDeletedTrackedEntityById() {
+    String uid = softDeletedTrackedEntity.getUid();
+    assertEquals(
+        "TrackedEntity with id " + uid + " could not be found.",
+        GET("/tracker/trackedEntities/" + uid).error(HttpStatus.NOT_FOUND).getMessage());
   }
 
   @Test

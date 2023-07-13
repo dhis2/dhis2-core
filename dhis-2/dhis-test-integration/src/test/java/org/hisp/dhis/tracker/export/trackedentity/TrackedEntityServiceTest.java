@@ -154,6 +154,13 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private Relationship relationshipC;
 
+  private static List<String> uids(
+      Collection<? extends BaseIdentifiableObject> identifiableObjects) {
+    return identifiableObjects.stream()
+        .map(BaseIdentifiableObject::getUid)
+        .collect(Collectors.toList());
+  }
+
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
@@ -1013,12 +1020,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     assertAll(
         () -> assertEquals(trackedEntityA.getUid(), actual.getFrom().getTrackedEntity().getUid()),
         () -> assertEquals(eventA.getUid(), actual.getTo().getEvent().getUid()));
-  }
-
-  private List<String> uids(Collection<? extends BaseIdentifiableObject> trackedEntities) {
-    return trackedEntities.stream()
-        .map(BaseIdentifiableObject::getUid)
-        .collect(Collectors.toList());
   }
 
   private Set<String> attributeNames(final Collection<TrackedEntityAttributeValue> attributes) {
