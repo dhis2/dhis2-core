@@ -259,6 +259,10 @@ public final class QueryUtils {
         {
           return "= " + QueryUtils.parseValue(value);
         }
+      case "ieq":
+        {
+          return " ilike '" + value + "'";
+        }
       case "!eq":
       case "ne":
       case "neq":

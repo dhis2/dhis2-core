@@ -31,12 +31,16 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.web.WebClientUtils.objectReference;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.List;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.webapi.json.domain.JsonOrganisationUnit;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -71,6 +75,16 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
         GET("/organisationUnits/{id}/children", ou1).content(), "L1", "L21", "L22");
     assertListOfOrganisationUnits(
         GET("/organisationUnits/{id}/children", ou21).content(), "L21", "L31");
+  }
+
+  @Test
+  void testGetOrgUnitWithIeqFilter() {
+    JsonWebMessage jsonWebMessage =
+        GET("/organisationUnits?filter=name:ieq:l0").content().as(JsonWebMessage.class);
+    JsonList<JsonOrganisationUnit> organisationUnits =
+        jsonWebMessage.getList("organisationUnits", JsonOrganisationUnit.class);
+    assertFalse(organisationUnits.isEmpty());
+    assertEquals("L0", organisationUnits.get(0).getDisplayName());
   }
 
   @Test

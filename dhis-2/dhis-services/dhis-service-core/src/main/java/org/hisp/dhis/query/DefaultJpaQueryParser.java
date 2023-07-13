@@ -118,6 +118,10 @@ public class DefaultJpaQueryParser implements QueryParser {
         {
           return Restrictions.eq(path, parseValue(valueType, arg));
         }
+      case "ieq":
+        {
+          return Restrictions.ilike(path, parseValue(valueType, arg), MatchMode.EXACT);
+        }
       case "!eq":
       case "neq":
       case "ne":
