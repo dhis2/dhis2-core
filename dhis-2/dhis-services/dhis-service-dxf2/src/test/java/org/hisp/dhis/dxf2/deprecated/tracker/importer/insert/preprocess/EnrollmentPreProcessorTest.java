@@ -168,7 +168,7 @@ class EnrollmentPreProcessorTest extends BasePreProcessTest {
     assertThat(
         sql.getValue(),
         is(
-            "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?"));
+            "select pi.programinstanceid, pi.programid, pi.uid from enrollment pi where pi.programid = ? and pi.status = ?"));
   }
 
   @Test
@@ -205,7 +205,7 @@ class EnrollmentPreProcessorTest extends BasePreProcessTest {
     assertThat(
         sql.getValue(),
         is(
-            "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?"));
+            "select pi.programinstanceid, pi.programid, pi.uid from enrollment pi where pi.programid = ? and pi.status = ?"));
   }
 
   public void mockResultSetExtractor(ResultSet resultSetMock) {
