@@ -200,7 +200,7 @@ class QueryServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void getIlikeQueryMatchMIXcase() {
+  void getIlikeQueryMatchMixCase() {
     Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
     query.add(Restrictions.ilike("name", "DAtAEleMEntA", MatchMode.EXACT));
     List<? extends IdentifiableObject> objects = queryService.query(query);
