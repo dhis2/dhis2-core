@@ -55,6 +55,7 @@ import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 public final class QueryUtils {
 
   private static final String UNABLE_TO_PARSE = "Unable to parse `";
+
   private QueryUtils() {
     throw new UnsupportedOperationException("util");
   }
@@ -147,7 +148,7 @@ public final class QueryUtils {
     }
 
     throw new QueryParserException(
-            UNABLE_TO_PARSE + value + "` to `" + klass.getSimpleName() + "`.");
+        UNABLE_TO_PARSE + value + "` to `" + klass.getSimpleName() + "`.");
   }
 
   /**
@@ -159,14 +160,14 @@ public final class QueryUtils {
   @SuppressWarnings({"unchecked", "rawtypes"})
   public static <T> T getEnumValue(Class<?> klass, String value) {
     Optional<? extends Enum<?>> enumValue =
-            Enums.getIfPresent((Class<? extends Enum>) klass, value).toJavaUtil();
+        Enums.getIfPresent((Class<? extends Enum>) klass, value).toJavaUtil();
 
     if (enumValue.isPresent()) {
       return (T) enumValue.get();
     }
     Object[] possibleValues = klass.getEnumConstants();
     throw new QueryParserException(
-            UNABLE_TO_PARSE
+        UNABLE_TO_PARSE
             + value
             + "` as `"
             + klass
