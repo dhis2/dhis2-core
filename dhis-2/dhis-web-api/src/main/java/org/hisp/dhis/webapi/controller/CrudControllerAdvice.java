@@ -43,7 +43,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.PersistenceException;
@@ -77,7 +76,6 @@ import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.common.UIDParamEditor;
-import org.hisp.dhis.webapi.controller.errorhandling.analytics.AnalyticsExceptionService;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
@@ -86,7 +84,6 @@ import org.hisp.dhis.webapi.controller.tracker.imports.IdSchemeParamEditor;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
 import org.springframework.beans.TypeMismatchException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -128,8 +125,6 @@ public class CrudControllerAdvice {
 
   private final List<Class<?>> enumClasses;
 
-  @Autowired private AnalyticsExceptionService analyticsExceptionService;
-
   public CrudControllerAdvice() {
     this.enumClasses =
         new ClassGraph()
@@ -153,10 +148,18 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler
   @ResponseBody
-  public WebMessage badSqlGrammarException(BadSqlGrammarException ex) {
-    return Optional.ofNullable(analyticsExceptionService)
-        .map(handler -> handler.handle(ex))
-        .orElse(defaultExceptionHandler(ex));
+  public WebMessage queryRuntimeException(QueryRuntimeException ex) {
+    WebMessage message = new WebMessage();
+    String sqlState = ex.getSqlState();
+    message.setHttpStatus(HttpStatus.CONFLICT);
+    message.setStatus(Status.ERROR);
+    message.setErrorCode(ex.getErrorCode());
+    message.setMessage(ex.getErrorCode().getMessage());
+    if (StringUtils.isNotBlank(sqlState)) {
+      message.setDevMessage("SqlState: " + sqlState);
+      message.setMessage(message.getMessage() + " (SqlState: " + sqlState + ")");
+    }
+    return message;
   }
 
   @ExceptionHandler(org.hisp.dhis.feedback.BadRequestException.class)
@@ -315,12 +318,6 @@ public class CrudControllerAdvice {
   @ExceptionHandler(Dhis2ClientException.class)
   @ResponseBody
   public WebMessage dhis2ClientException(Dhis2ClientException ex) {
-    return conflict(ex.getMessage(), ex.getErrorCode());
-  }
-
-  @ExceptionHandler(QueryRuntimeException.class)
-  @ResponseBody
-  public WebMessage queryRuntimeExceptionHandler(QueryRuntimeException ex) {
     return conflict(ex.getMessage(), ex.getErrorCode());
   }
 
