@@ -380,7 +380,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String sql =
         "select psi.eventid "
             + "from event psi "
-            + "inner join enrollment pi on psi.programinstanceid=pi.programinstanceid "
+            + "inner join enrollment pi on psi.programinstanceid=pi.enrollmentid "
             + "where pi.programid = "
             + program.getId()
             + " "
@@ -407,7 +407,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               + "where ax.psi in ("
               + "select psi.uid "
               + "from event psi "
-              + "inner join enrollment pi on psi.programinstanceid=pi.programinstanceid "
+              + "inner join enrollment pi on psi.programinstanceid=pi.enrollmentid "
               + "where pi.programid = "
               + table.getProgram().getId()
               + " "
@@ -462,7 +462,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     String fromClause =
         "from event psi "
-            + "inner join enrollment pi on psi.programinstanceid=pi.programinstanceid "
+            + "inner join enrollment pi on psi.programinstanceid=pi.enrollmentid "
             + "inner join programstage ps on psi.programstageid=ps.programstageid "
             + "inner join program pr on pi.programid=pr.programid and pi.deleted is false "
             + "inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid "
@@ -801,7 +801,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + getDateLinkedToStatus()
             + ") as supportedyear "
             + "from event psi "
-            + "inner join enrollment pi on psi.programinstanceid = pi.programinstanceid "
+            + "inner join enrollment pi on psi.programinstanceid = pi.enrollmentid "
             + "where psi.lastupdated <= '"
             + getLongDateString(params.getStartTime())
             + "' "

@@ -674,7 +674,7 @@ class JdbcEventAnalyticsTableManagerTest {
             "select temp.supportedyear from (select distinct extract(year from "
                 + getDateLinkedToStatus()
                 + ") as supportedyear "
-                + "from event psi inner join enrollment pi on psi.programinstanceid = pi.programinstanceid "
+                + "from event psi inner join enrollment pi on psi.programinstanceid = pi.enrollmentid "
                 + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and ("
                 + getDateLinkedToStatus()
                 + ") is not null "
@@ -855,7 +855,7 @@ class JdbcEventAnalyticsTableManagerTest {
             "select temp.supportedyear from (select distinct extract(year from "
                 + getDateLinkedToStatus()
                 + ") as supportedyear "
-                + "from event psi inner join enrollment pi on psi.programinstanceid = pi.programinstanceid "
+                + "from event psi inner join enrollment pi on psi.programinstanceid = pi.enrollmentid "
                 + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and ("
                 + getDateLinkedToStatus()
                 + ") is not null "
@@ -913,7 +913,7 @@ class JdbcEventAnalyticsTableManagerTest {
             + getDateLinkedToStatus()
             + ") as supportedyear "
             + "from event psi inner join "
-            + "enrollment pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '"
+            + "enrollment pi on psi.programinstanceid = pi.enrollmentid where psi.lastupdated <= '"
             + "2019-08-01T00:00:00' and pi.programid = "
             + program.getId()
             + " and ("

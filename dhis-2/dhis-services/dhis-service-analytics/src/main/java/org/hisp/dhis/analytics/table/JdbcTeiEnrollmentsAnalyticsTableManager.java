@@ -253,7 +253,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
             " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
         .append(
             " where exists ( select 1 from event psi where psi.deleted is false"
-                + " and psi.programinstanceid = pi.programinstanceid"
+                + " and psi.programinstanceid = pi.enrollmentid"
                 + " and psi.status in ("
                 + join(",", EXPORTABLE_EVENT_STATUSES)
                 + "))")
