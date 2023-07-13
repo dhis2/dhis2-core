@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.export.relationship;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -57,6 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class DefaultRelationshipService implements RelationshipService {
+
   private final CurrentUserService currentUserService;
 
   private final TrackerAccessManager trackerAccessManager;
@@ -116,7 +116,7 @@ public class DefaultRelationshipService implements RelationshipService {
             .stream()
             .filter(
                 r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
-            .collect(Collectors.toList());
+            .toList();
     return map(relationships);
   }
 
@@ -129,7 +129,7 @@ public class DefaultRelationshipService implements RelationshipService {
         relationshipStore.getByEnrollment(enrollment, pagingAndSortingCriteriaAdapter).stream()
             .filter(
                 r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
-            .collect(Collectors.toList());
+            .toList();
     return map(relationships);
   }
 
@@ -141,7 +141,7 @@ public class DefaultRelationshipService implements RelationshipService {
         relationshipStore.getByEvent(event, pagingAndSortingCriteriaAdapter).stream()
             .filter(
                 r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
-            .collect(Collectors.toList());
+            .toList();
     return map(relationships);
   }
 
@@ -185,7 +185,9 @@ public class DefaultRelationshipService implements RelationshipService {
     if (item.getTrackedEntity() != null) {
       result.setTrackedEntity(
           trackedEntityService.getTrackedEntity(
-              item.getTrackedEntity(), TrackedEntityParams.TRUE.withIncludeRelationships(false)));
+              item.getTrackedEntity(),
+              TrackedEntityParams.TRUE.withIncludeRelationships(false),
+              false));
     } else if (item.getEnrollment() != null) {
       result.setEnrollment(
           enrollmentService.getEnrollment(
