@@ -62,6 +62,8 @@ public class RedisLeaderManager implements LeaderManager {
 
   private SchedulingManager schedulingManager;
 
+  private boolean isLeader = false;
+
   private final StringRedisTemplate redisTemplate;
 
   public RedisLeaderManager(
@@ -102,6 +104,9 @@ public class RedisLeaderManager implements LeaderManager {
               .opsForValue()
               .setIfAbsent(NODE_ID_KEY, nodeId, timeToLiveSeconds, TimeUnit.SECONDS);
         });
+
+    isLeader = isLeaderAtStart();
+
     if (isLeader()) {
       renewLeader(progress);
 
@@ -120,6 +125,10 @@ public class RedisLeaderManager implements LeaderManager {
 
   @Override
   public boolean isLeader() {
+    return isLeader;
+  }
+
+  public boolean isLeaderAtStart() {
     String leaderId = getLeaderNodeUuidFromRedis();
     return nodeUuid.equals(leaderId);
   }
