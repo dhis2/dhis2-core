@@ -31,7 +31,7 @@
     <property name="lastSynchronized" column="lastsynchronized" type="timestamp" not-null="false" />
 
     <many-to-one name="enrollment" class="org.hisp.dhis.program.Enrollment"
-                 column="programinstanceid" not-null="true" foreign-key="fk_programstageinstance_programinstanceid"
+                 column="enrollmentid" not-null="true" foreign-key="fk_programstageinstance_programinstanceid"
                  index="programstageinstance_programinstanceid" />
 
     <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"

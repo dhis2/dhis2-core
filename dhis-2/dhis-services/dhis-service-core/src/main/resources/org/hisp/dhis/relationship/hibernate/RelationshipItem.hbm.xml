@@ -22,7 +22,7 @@
                      foreign-key="fk_relationshipitem_trackedentityinstanceid"/>
 
         <many-to-one name="enrollment" class="org.hisp.dhis.program.Enrollment"
-                     column="programinstanceid"
+                     column="enrollmentid"
                      foreign-key="fk_relationshipitem_programinstanceid"/>
 
         <many-to-one name="event" class="org.hisp.dhis.program.Event"

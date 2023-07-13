@@ -90,7 +90,7 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, E
     }
 
     final String sql =
-        "select psi.programinstanceid, psi.programstageid, psi.eventid, "
+        "select psi.enrollmentid, psi.programstageid, psi.eventid, "
             + "psi.uid, psi.status, psi.deleted, psi.eventdatavalues, psi.duedate, psi.executiondate, "
             + "psi.completeddate, psi.attributeoptioncomboid, psi.geometry, "
             + "ou.organisationunitid, ou.uid, ou.code, ou.name, psi.attributeoptioncomboid,  c.uid as coc_uid  "

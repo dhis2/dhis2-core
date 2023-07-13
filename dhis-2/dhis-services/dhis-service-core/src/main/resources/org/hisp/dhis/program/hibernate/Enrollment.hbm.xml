@@ -60,24 +60,24 @@
       column="programid" not-null="true" foreign-key="fk_programinstance_programid" lazy="false" />
 
     <set name="events" order-by="executionDate,duedate" inverse="true">
-      <key column="programinstanceid"/>
+      <key column="enrollmentid"/>
       <one-to-many class="org.hisp.dhis.program.Event"/>
     </set>
 
     <set name="relationshipItems" inverse="true">
-      <key column="programinstanceid" />
+      <key column="enrollmentid" />
       <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
     </set>
 
-    <list name="messageConversations" table="programinstance_messageconversation">
-      <key column="programinstanceid" />
+    <list name="messageConversations" table="enrollment_messageconversation">
+      <key column="enrollmentid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.message.MessageConversation"
         column="messageconversationid" />
     </list>
 
-    <list name="comments" table="programinstancecomments" cascade="all-delete-orphan">
-      <key column="programinstanceid" foreign-key="fk_programinstancecomments_programinstanceid" />
+    <list name="comments" table="enrollmentcomments" cascade="all-delete-orphan">
+      <key column="enrollmentid" foreign-key="fk_programinstancecomments_programinstanceid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" column="trackedentitycommentid"
         unique="true" foreign-key="fk_programinstancecomments_trackedentitycommentid" />

@@ -107,7 +107,7 @@ public class EventQuery {
   public static String getQuery() {
     return getSelect()
         + "from event psi "
-        + "join enrollment pi on psi.programinstanceid = pi.enrollmentid "
+        + "join enrollment pi on psi.enrollmentid = pi.enrollmentid "
         + "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid "
         + "join program p on pi.programid = p.programid "
         + "join programstage ps on psi.programstageid = ps.programstageid "

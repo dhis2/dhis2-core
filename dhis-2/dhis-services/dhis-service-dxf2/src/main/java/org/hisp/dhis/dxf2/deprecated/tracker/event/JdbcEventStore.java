@@ -248,7 +248,7 @@ public class JdbcEventStore implements EventStore {
   private static final List<String> INSERT_COLUMNS =
       List.of(
           EventQuery.COLUMNS.ID.getColumnName(), // nextval
-          "programinstanceid", // 1
+          "enrollmentid", // 1
           "programstageid", // 2
           EventQuery.COLUMNS.DUE_DATE.getColumnName(), // 3
           EventQuery.COLUMNS.EXECUTION_DATE.getColumnName(), // 4
@@ -275,7 +275,7 @@ public class JdbcEventStore implements EventStore {
 
   private static final List<String> UPDATE_COLUMNS =
       List.of(
-          "programInstanceId", // 1
+          "enrollmentid", // 1
           "programstageid", // 2
           EventQuery.COLUMNS.DUE_DATE.getColumnName(), // 3
           EventQuery.COLUMNS.EXECUTION_DATE.getColumnName(), // 4
@@ -1078,7 +1078,7 @@ public class JdbcEventStore implements EventStore {
       StringBuilder dataElementAndFiltersSql) {
     StringBuilder fromBuilder =
         new StringBuilder(" from event psi ")
-            .append("inner join enrollment pi on pi.enrollmentid=psi.programinstanceid ")
+            .append("inner join enrollment pi on pi.enrollmentid=psi.enrollmentid ")
             .append("inner join program p on p.programid=pi.programid ")
             .append("inner join programstage ps on ps.programstageid=psi.programstageid ");
 
@@ -1468,7 +1468,7 @@ public class JdbcEventStore implements EventStore {
         new StringBuilder()
             .append(
                 " from event psi "
-                    + "inner join enrollment pi on pi.enrollmentid = psi.programinstanceid "
+                    + "inner join enrollment pi on pi.enrollmentid = psi.enrollmentid "
                     + "inner join program p on p.programid = pi.programid "
                     + "inner join programstage ps on ps.programstageid = psi.programstageid "
                     + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
@@ -1968,7 +1968,7 @@ public class JdbcEventStore implements EventStore {
   private MapSqlParameterSource getSqlParametersForUpdate(org.hisp.dhis.program.Event event)
       throws SQLException, JsonProcessingException {
     return new MapSqlParameterSource()
-        .addValue("programInstanceId", event.getEnrollment().getId())
+        .addValue("enrollmentid", event.getEnrollment().getId())
         .addValue("programstageid", event.getProgramStage().getId())
         .addValue(
             EventQuery.COLUMNS.DUE_DATE.getColumnName(),

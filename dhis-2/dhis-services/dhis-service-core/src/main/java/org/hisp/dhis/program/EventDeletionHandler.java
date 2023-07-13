@@ -66,7 +66,7 @@ public class EventDeletionHandler extends IdObjectDeletionHandler<Event> {
   private DeletionVeto allowDeleteProgram(Program program) {
     return vetoIfExists(
         VETO,
-        "select 1 from event psi join enrollment pi on pi.enrollmentid=psi.programinstanceid where pi.programid = :id limit 1",
+        "select 1 from event psi join enrollment pi on pi.enrollmentid=psi.enrollmentid where pi.programid = :id limit 1",
         Map.of("id", program.getId()));
   }
 

@@ -986,7 +986,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     StringBuilder events = new StringBuilder();
     SqlHelper whereHlp = new SqlHelper(true);
 
-    events.append("INNER JOIN (").append("SELECT PSI.programinstanceid ").append("FROM event PSI ");
+    events.append("INNER JOIN (").append("SELECT PSI.enrollmentid ").append("FROM event PSI ");
 
     if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
       events
@@ -1083,7 +1083,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
       events.append(whereHlp.whereAnd()).append("PSI.deleted IS FALSE");
     }
 
-    events.append(") PSI ON PSI.programinstanceid = PI.enrollmentid ");
+    events.append(") PSI ON PSI.enrollmentid = PI.enrollmentid ");
 
     return events.toString();
   }
