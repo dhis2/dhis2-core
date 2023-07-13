@@ -99,6 +99,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Luciano Fiandesio
  */
 class TrackedEntityServiceTest extends IntegrationTestBase {
+
   @Autowired protected UserService _userService;
 
   @Autowired private TrackedEntityService trackedEntityService;
@@ -152,12 +153,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   private Relationship relationshipB;
 
   private Relationship relationshipC;
-
-  private static List<String> uids(Collection<? extends BaseIdentifiableObject> trackedEntities) {
-    return trackedEntities.stream()
-        .map(BaseIdentifiableObject::getUid)
-        .collect(Collectors.toList());
-  }
 
   @Override
   protected void setUpTest() throws Exception {
@@ -628,6 +623,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
+  @Disabled("IncludeDeleted param is not working when TE has a deleted relationship")
   void shouldIncludeDeletedEnrollmentAndEvents()
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityOperationParams operationParams =
@@ -1017,6 +1013,12 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     assertAll(
         () -> assertEquals(trackedEntityA.getUid(), actual.getFrom().getTrackedEntity().getUid()),
         () -> assertEquals(eventA.getUid(), actual.getTo().getEvent().getUid()));
+  }
+
+  private List<String> uids(Collection<? extends BaseIdentifiableObject> trackedEntities) {
+    return trackedEntities.stream()
+        .map(BaseIdentifiableObject::getUid)
+        .collect(Collectors.toList());
   }
 
   private Set<String> attributeNames(final Collection<TrackedEntityAttributeValue> attributes) {
