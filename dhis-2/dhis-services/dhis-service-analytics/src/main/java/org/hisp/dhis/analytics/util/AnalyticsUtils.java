@@ -43,14 +43,12 @@ import static org.springframework.util.Assert.isTrue;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -78,7 +76,6 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.NameableObjectUtils;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.RegexUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -102,7 +99,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
-import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.util.Assert;
 
 /**
@@ -982,28 +978,6 @@ public class AnalyticsUtils {
    */
   public static void throwIllegalQueryEx(ErrorCode errorCode, Object... args) {
     throw new IllegalQueryException(new ErrorMessage(errorCode, args));
-  }
-
-  /**
-   * Throws an {@link QueryRuntimeException} based on the given {@link BadSqlGrammarException}.
-   *
-   * @param ex the {@link BadSqlGrammarException}.
-   */
-  public static void throwQueryRuntimeException(BadSqlGrammarException ex) {
-
-    String sqlState =
-        Optional.of(ex)
-            .map(BadSqlGrammarException::getSQLException)
-            .map(SQLException::getSQLState)
-            .orElse("");
-
-    if (StringUtils.isNotBlank(sqlState)) {
-      if (sqlState.equals("42P01")) {
-        throw new QueryRuntimeException(ErrorCode.E7144, sqlState);
-      }
-      throw new QueryRuntimeException(ErrorCode.E7143, sqlState);
-    }
-    throw new QueryRuntimeException(ErrorCode.E7143);
   }
 
   /**

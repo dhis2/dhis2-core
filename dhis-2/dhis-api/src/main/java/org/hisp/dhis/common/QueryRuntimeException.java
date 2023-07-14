@@ -27,20 +27,10 @@
  */
 package org.hisp.dhis.common;
 
-import lombok.Getter;
 import org.hisp.dhis.feedback.ErrorCode;
 
 public class QueryRuntimeException extends ErrorCodeException {
-
-  @Getter private final String sqlState;
-
   public QueryRuntimeException(ErrorCode errorCode) {
     super(errorCode);
-    this.sqlState = null;
-  }
-
-  public QueryRuntimeException(ErrorCode errorCode, String sqlState) {
-    super(errorCode);
-    this.sqlState = sqlState;
   }
 }

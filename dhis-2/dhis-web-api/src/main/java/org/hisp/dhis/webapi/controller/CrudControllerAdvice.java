@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.PersistenceException;
@@ -66,6 +67,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
@@ -148,18 +150,11 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler
   @ResponseBody
-  public WebMessage queryRuntimeException(QueryRuntimeException ex) {
-    WebMessage message = new WebMessage();
-    String sqlState = ex.getSqlState();
-    message.setHttpStatus(HttpStatus.CONFLICT);
-    message.setStatus(Status.ERROR);
-    message.setErrorCode(ex.getErrorCode());
-    message.setMessage(ex.getErrorCode().getMessage());
-    if (StringUtils.isNotBlank(sqlState)) {
-      message.setDevMessage("SqlState: " + sqlState);
-      message.setMessage(message.getMessage() + " (SqlState: " + sqlState + ")");
-    }
-    return message;
+  public WebMessage badSqlGrammarException(BadSqlGrammarException ex) {
+    return Optional.of(ex)
+        .map(BadSqlGrammarException::getSQLException)
+        .map(WebMessageUtils::createWebMessage)
+        .orElse(defaultExceptionHandler(ex));
   }
 
   @ExceptionHandler(org.hisp.dhis.feedback.BadRequestException.class)
@@ -318,6 +313,12 @@ public class CrudControllerAdvice {
   @ExceptionHandler(Dhis2ClientException.class)
   @ResponseBody
   public WebMessage dhis2ClientException(Dhis2ClientException ex) {
+    return conflict(ex.getMessage(), ex.getErrorCode());
+  }
+
+  @ExceptionHandler(QueryRuntimeException.class)
+  @ResponseBody
+  public WebMessage queryRuntimeExceptionHandler(QueryRuntimeException ex) {
     return conflict(ex.getMessage(), ex.getErrorCode());
   }
 

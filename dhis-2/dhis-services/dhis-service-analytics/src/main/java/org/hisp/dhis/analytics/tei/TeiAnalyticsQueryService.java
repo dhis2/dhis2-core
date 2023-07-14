@@ -47,7 +47,6 @@ import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreator;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreatorService;
-import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -106,7 +105,7 @@ public class TeiAnalyticsQueryService {
       }
     } catch (BadSqlGrammarException ex) {
       log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
-      AnalyticsUtils.throwQueryRuntimeException(ex);
+      throw ex;
     } catch (DataAccessResourceFailureException ex) {
       log.warn(E7131.getMessage(), ex);
       throw new QueryRuntimeException(E7131);
@@ -146,7 +145,7 @@ public class TeiAnalyticsQueryService {
       grid.addPerformanceMetrics(executionPlanStore.getExecutionPlans(explainId));
     } catch (BadSqlGrammarException ex) {
       log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
-      AnalyticsUtils.throwQueryRuntimeException(ex);
+      throw ex;
     } catch (DataAccessResourceFailureException ex) {
       log.warn(E7131.getMessage(), ex);
       throw new QueryRuntimeException(E7131);

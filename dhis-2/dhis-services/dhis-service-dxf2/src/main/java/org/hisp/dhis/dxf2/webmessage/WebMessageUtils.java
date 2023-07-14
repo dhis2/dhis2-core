@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.dxf2.webmessage;
 
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -247,4 +250,28 @@ public final class WebMessageUtils {
   }
 
   private WebMessageUtils() {}
+
+  public static WebMessage createWebMessage(SQLException ex) {
+    WebMessage message = new WebMessage();
+    String sqlState = ex.getSQLState();
+    message.setHttpStatus(HttpStatus.CONFLICT);
+    message.setStatus(Status.ERROR);
+    ErrorCode errorCode = getErrorCode(ex);
+    message.setErrorCode(errorCode);
+    message.setMessage(errorCode.getMessage());
+    if (StringUtils.isNotBlank(sqlState)) {
+      message.setDevMessage("SqlState: " + sqlState);
+      message.setMessage(message.getMessage() + " (SqlState: " + sqlState + ")");
+    }
+    return message;
+  }
+
+  public static ErrorCode getErrorCode(SQLException ex) {
+    String sqlState = Optional.of(ex).map(SQLException::getSQLState).orElse("");
+
+    if (StringUtils.isNotBlank(sqlState) && (sqlState.equals("42P01"))) {
+      return ErrorCode.E7144;
+    }
+    return ErrorCode.E7143;
+  }
 }
