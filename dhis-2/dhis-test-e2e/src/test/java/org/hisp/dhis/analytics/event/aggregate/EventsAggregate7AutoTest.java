@@ -420,4 +420,147 @@ public class EventsAggregate7AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("ACT6x1", "g3bcPGD5Q5i", "ImspTQPwCqd", "202212", "1"));
     validateRow(response, List.of("ACT6x1", "RkbOhHwiOgW", "ImspTQPwCqd", "202212", "1"));
   }
+
+  @Test
+  public void queryEnrollmentoutput1() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("stage=ZzYYXq4fJie")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("outputType=ENROLLMENT")
+            .add("dimension=ou:ImspTQPwCqd,pe:LAST_12_MONTHS")
+            .add("relativePeriodDate=2023-07-14");
+
+    // When
+    ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(3)))
+        .body("rows", hasSize(equalTo(7)))
+        .body("height", equalTo(7))
+        .body("width", equalTo(3))
+        .body("headerWidth", equalTo(3));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"202208\":{\"name\":\"August 2022\"},\"202209\":{\"name\":\"September 2022\"},\"202305\":{\"name\":\"May 2023\"},\"202207\":{\"name\":\"July 2022\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"202302\":{\"name\":\"February 2023\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202211\":{\"name\":\"November 2022\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202212\":{\"name\":\"December 2022\"},\"202210\":{\"name\":\"October 2022\"},\"pe\":{\"name\":\"Period\"}},\"dimensions\":{\"pe\":[\"202207\",\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(response, 0, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 1, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // Assert rows.
+    validateRow(response, List.of("ImspTQPwCqd", "202207", "619"));
+    validateRow(response, List.of("ImspTQPwCqd", "202208", "690"));
+    validateRow(response, List.of("ImspTQPwCqd", "202209", "669"));
+    validateRow(response, List.of("ImspTQPwCqd", "202210", "686"));
+    validateRow(response, List.of("ImspTQPwCqd", "202211", "633"));
+    validateRow(response, List.of("ImspTQPwCqd", "202212", "710"));
+    validateRow(response, List.of("ImspTQPwCqd", "202301", "19"));
+  }
+
+  @Test
+  public void queryEnrollmentoutput2() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ZzYYXq4fJie.w75KJ2mc4zz:LIKE:a,ZzYYXq4fJie.lZGmxYbs97q")
+            .add("stage=ZzYYXq4fJie")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("outputType=ENROLLMENT")
+            .add("dimension=ou:ImspTQPwCqd,pe:LAST_12_MONTHS")
+            .add("relativePeriodDate=2023-07-14");
+
+    // When
+    ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(3)))
+        .body("rows", hasSize(equalTo(7)))
+        .body("height", equalTo(7))
+        .body("width", equalTo(3))
+        .body("headerWidth", equalTo(3));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"lZGmxYbs97q\":{\"name\":\"Unique ID\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"w75KJ2mc4zz\":{\"name\":\"First name\"},\"202208\":{\"name\":\"August 2022\"},\"202209\":{\"name\":\"September 2022\"},\"202305\":{\"name\":\"May 2023\"},\"202207\":{\"name\":\"July 2022\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"202302\":{\"name\":\"February 2023\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202211\":{\"name\":\"November 2022\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202212\":{\"name\":\"December 2022\"},\"202210\":{\"name\":\"October 2022\"},\"pe\":{\"name\":\"Period\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"pe\":[\"202207\",\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\"],\"ou\":[\"ImspTQPwCqd\"],\"w75KJ2mc4zz\":[\"like a\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(response, 0, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 1, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // Assert rows.
+    validateRow(response, List.of("ImspTQPwCqd", "202207", "358"));
+    validateRow(response, List.of("ImspTQPwCqd", "202208", "394"));
+    validateRow(response, List.of("ImspTQPwCqd", "202209", "371"));
+    validateRow(response, List.of("ImspTQPwCqd", "202210", "404"));
+    validateRow(response, List.of("ImspTQPwCqd", "202211", "368"));
+    validateRow(response, List.of("ImspTQPwCqd", "202212", "385"));
+    validateRow(response, List.of("ImspTQPwCqd", "202301", "14"));
+  }
+
+  @Test
+  public void queryEnrollmentoutput3() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=uvMKOn1oWvd.zgnTlAH4ZOk")
+            .add("stage=uvMKOn1oWvd")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("outputType=ENROLLMENT")
+            .add("dimension=ou:ImspTQPwCqd,pe:2019;2020;2021;LAST_5_YEARS,uvMKOn1oWvd.fADIatyOu2g")
+            .add("relativePeriodDate=2021-01-01");
+
+    // When
+    ApiResponse response = actions.aggregate().get("M3xtLkYBlKI", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(4)))
+        .body("rows", hasSize(equalTo(1)))
+        .body("height", equalTo(1))
+        .body("width", equalTo(4))
+        .body("headerWidth", equalTo(4));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"fADIatyOu2g\":{\"name\":\"LLIN coverage (%)\"},\"ou\":{\"name\":\"Organisation unit\"},\"2021\":{\"name\":\"2021\"},\"2020\":{\"name\":\"2020\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"zgnTlAH4ZOk\":{\"name\":\"Follow-up vector control action details\"},\"2019\":{\"name\":\"2019\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"2018\":{\"name\":\"2018\"},\"2017\":{\"name\":\"2017\"},\"2016\":{\"name\":\"2016\"},\"pe\":{\"name\":\"Period\"},\"uvMKOn1oWvd\":{\"name\":\"Foci response\"},\"M3xtLkYBlKI\":{\"name\":\"Malaria focus investigation\"}},\"dimensions\":{\"uvMKOn1oWvd.fADIatyOu2g\":[],\"pe\":[\"2016\",\"2017\",\"2018\",\"2019\",\"2020\",\"2021\"],\"ou\":[\"ImspTQPwCqd\"],\"zgnTlAH4ZOk\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(
+        response,
+        0,
+        "fADIatyOu2g",
+        "LLIN coverage (%)",
+        "PERCENTAGE",
+        "java.lang.Double",
+        false,
+        true);
+    validateHeader(response, 1, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 2, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 3, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // Assert rows.
+    validateRow(response, List.of("", "2021", "ImspTQPwCqd", "4"));
+  }
 }
