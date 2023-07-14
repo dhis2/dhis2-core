@@ -204,7 +204,10 @@ class TrackedEntitiesExportController {
     TrackedEntity trackedEntity =
         TRACKED_ENTITY_MAPPER.from(
             trackedEntityService.getTrackedEntity(
-                uid.getValue(), program == null ? null : program.getValue(), trackedEntityParams));
+                uid.getValue(),
+                program == null ? null : program.getValue(),
+                trackedEntityParams,
+                false));
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(trackedEntity, fields));
   }
@@ -222,7 +225,7 @@ class TrackedEntitiesExportController {
 
     TrackedEntity trackedEntity =
         TRACKED_ENTITY_MAPPER.from(
-            trackedEntityService.getTrackedEntity(uid, program, trackedEntityParams));
+            trackedEntityService.getTrackedEntity(uid, program, trackedEntityParams, false));
 
     OutputStream outputStream = response.getOutputStream();
     response.setContentType(CONTENT_TYPE_CSV);

@@ -48,8 +48,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 class TrackedEntityFieldsParamMapper {
-
   private static final String FIELD_PROGRAM_OWNERS = "programOwners";
+
   private static final String FIELD_ENROLLMENTS = "enrollments";
 
   private final FieldFilterService fieldFilterService;
@@ -67,10 +67,6 @@ class TrackedEntityFieldsParamMapper {
   }
 
   public TrackedEntityParams map(List<FieldPath> fields) {
-    return map(fields, false);
-  }
-
-  public TrackedEntityParams map(List<FieldPath> fields, boolean includeDeleted) {
     Map<String, FieldPath> roots = rootFields(fields);
 
     TrackedEntityParams params = initUsingAllOrNoFields(roots);
@@ -83,7 +79,6 @@ class TrackedEntityFieldsParamMapper {
     params =
         params.withIncludeAttributes(
             fieldFilterService.filterIncludes(TrackedEntity.class, fields, FIELD_ATTRIBUTES));
-    params = params.withIncludeDeleted(includeDeleted);
 
     EventParams eventParams =
         new EventParams(
