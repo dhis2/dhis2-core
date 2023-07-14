@@ -39,9 +39,3 @@ services:
       - ./config/redis/redis.conf:/usr/local/etc/redis.conf
     ports:
       - "6379"
-
-  selenium:
-    image: 'selenium/standalone-chrome:latest'
-    ports:
-      - '4444'
-      - '7900'

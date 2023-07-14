@@ -1,7 +1,0 @@
-version: "3.8"
-
-services:
-  test:
-    environment:
-      DHIS2_E2E_TEST_ARGS: "--activate-profiles uitests"
-      DHIS2_E2E_TEST_USER_ARGS: "-Duser.admin.username=admin -Duser.admin.password=district"
