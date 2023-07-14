@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN" packages="com.epam.ta.reportportal.log4j">
   <properties>
-    <property name="pattern">"%d [%t] %-5level %logger{36} - %msg%n</property>
+    <property name="pattern">"%d [%t] %-5level %logger{36} - %m%n%throwable</property>
   </properties>
   <Appenders>
     <Console name="ConsoleAppender" target="SYSTEM_OUT">
@@ -9,6 +9,8 @@
     </Console>
   </Appenders>
   <Loggers>
+    <Logger name="org.seleniumhq.selenium" level="OFF" additivity="true"/>
+    <Logger name="io.qameta.allure" level="OFF" additivity="true"/>
     <Root level="INFO">
       <AppenderRef ref="ConsoleAppender"/>
     </Root>
