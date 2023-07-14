@@ -49,6 +49,7 @@ import org.hisp.dhis.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.webapi.json.domain.JsonProgram;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -201,6 +202,40 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     assertEquals(
         "VoZMWi7rBgf",
         GET("/programs/{id}", "VoZMWi7rBgj").content().getString("programStages[0].id").string());
+  }
+
+  @Test
+  void testGetWithIeqFilter() {
+    POST(
+            "/metadata/",
+            "{'programs':[{'name':'Test Program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION', 'version':'5'}]}")
+        .content(HttpStatus.OK);
+
+    assertEquals(
+        "Test Program",
+        GET("/metadata?programs=true&filter=name:ieq:test program")
+            .content()
+            .getList("programs", JsonProgram.class)
+            .get(0)
+            .getName());
+  }
+
+  @Test
+  void testGetWithIeqFilterNonString() {
+    POST(
+            "/metadata/",
+            "{'programs':[{'name':'Test Program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION', 'version':'5'}]}")
+        .content(HttpStatus.OK);
+
+    JsonWebMessage response =
+        GET("/metadata?programs=true&filter=version:ieq:5")
+            .content(HttpStatus.Series.CLIENT_ERROR)
+            .as(JsonWebMessage.class);
+
+    assertEquals(
+        "Value `5` of type `Integer` is not supported by this operator.", response.getMessage());
+    assertEquals(409, response.getHttpStatusCode());
+    assertEquals("Conflict", response.getHttpStatus());
   }
 
   @Test

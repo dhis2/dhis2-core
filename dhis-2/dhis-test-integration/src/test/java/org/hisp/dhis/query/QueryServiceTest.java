@@ -182,6 +182,87 @@ class QueryServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
+  void getIlikeQueryMatchAllLowercase() {
+    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    query.add(Restrictions.ilike("name", "dataelementa", MatchMode.EXACT));
+    List<? extends IdentifiableObject> objects = queryService.query(query);
+    assertEquals(1, objects.size());
+    assertEquals("DataElementA", objects.get(0).getName());
+  }
+
+  @Test
+  void getIlikeQueryMatchAllUppercase() {
+    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    query.add(Restrictions.ilike("name", "DATAELEMENTA", MatchMode.EXACT));
+    List<? extends IdentifiableObject> objects = queryService.query(query);
+    assertEquals(1, objects.size());
+    assertEquals("DataElementA", objects.get(0).getName());
+  }
+
+  @Test
+  void getIlikeQueryMatchMixCase() {
+    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    query.add(Restrictions.ilike("name", "DAtAEleMEntA", MatchMode.EXACT));
+    List<? extends IdentifiableObject> objects = queryService.query(query);
+    assertEquals(1, objects.size());
+    assertEquals("DataElementA", objects.get(0).getName());
+  }
+
+  @Test
+  void getIlikeQueryNoMatchExtraCharAtEnd() {
+    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    query.add(Restrictions.ilike("name", "dataelementaa", MatchMode.EXACT));
+    List<? extends IdentifiableObject> objects = queryService.query(query);
+    assertEquals(0, objects.size());
+  }
+
+  @Test
+  void getIlikeQueryNoMatchExtraCharAtStart() {
+    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    query.add(Restrictions.ilike("name", "ddataelementa", MatchMode.EXACT));
+    List<? extends IdentifiableObject> objects = queryService.query(query);
+    assertEquals(0, objects.size());
+  }
+
+  @Test
+  void getIeqQueryUrlMatch() throws QueryParserException {
+    Query query =
+        queryService.getQueryFromUrl(
+            DataElement.class,
+            Lists.newArrayList("name:ieq:dataelementa"),
+            Lists.newArrayList(),
+            new Pagination());
+    List<? extends IdentifiableObject> objects = queryService.query(query);
+    assertEquals(1, objects.size());
+    assertEquals("DataElementA", objects.get(0).getName());
+  }
+
+  @Test
+  void getIeqQueryUrlMatchMixedCase() throws QueryParserException {
+    Query query =
+        queryService.getQueryFromUrl(
+            DataElement.class,
+            Lists.newArrayList("name:ieq:dAtAeLeMeNta"),
+            Lists.newArrayList(),
+            new Pagination());
+    List<? extends IdentifiableObject> objects = queryService.query(query);
+    assertEquals(1, objects.size());
+    assertEquals("DataElementA", objects.get(0).getName());
+  }
+
+  @Test
+  void getIeqQueryUrlNoMatchExtraCharAtStart() throws QueryParserException {
+    Query query =
+        queryService.getQueryFromUrl(
+            DataElement.class,
+            Lists.newArrayList("name:ieq:ddataelementa"),
+            Lists.newArrayList(),
+            new Pagination());
+    List<? extends IdentifiableObject> objects = queryService.query(query);
+    assertEquals(0, objects.size());
+  }
+
+  @Test
   void getNeQuery() {
     Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
     query.add(Restrictions.ne("id", "deabcdefghA"));
