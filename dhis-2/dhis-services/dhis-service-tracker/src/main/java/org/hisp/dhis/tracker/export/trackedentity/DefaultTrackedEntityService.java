@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import java.util.Collections;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
+import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
+
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -43,6 +47,8 @@ import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -66,7 +72,9 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventParams;
+import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.event.EventStore;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -78,6 +86,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService")
 @RequiredArgsConstructor
 public class DefaultTrackedEntityService implements TrackedEntityService {
+
   private final org.hisp.dhis.trackedentity.TrackedEntityService teiService;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
@@ -283,13 +292,13 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
-  public List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
+  public TrackedEntities getTrackedEntities(TrackedEntityOperationParams operationParams)
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityQueryParams queryParams = mapper.map(operationParams);
     final List<Long> ids = teiService.getTrackedEntityIds(queryParams, false, false);
 
     if (ids.isEmpty()) {
-      return Collections.emptyList();
+      return TrackedEntities.EMPTY;
     }
 
     List<TrackedEntity> trackedEntities =
@@ -303,7 +312,21 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
     addSearchAudit(trackedEntities, queryParams.getUser());
 
-    return trackedEntities;
+    if (operationParams.isSkipPaging()) {
+      return TrackedEntities.withoutPagination(trackedEntities);
+    }
+
+    Pager pager;
+
+    if (operationParams.isTotalPages()) {
+      int count = teiService.getTrackedEntityCount(queryParams, true, true);
+      pager =
+          new Pager(queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault());
+    } else {
+      pager = handleLastPageFlag(operationParams, trackedEntities);
+    }
+
+    return TrackedEntities.of(trackedEntities, pager);
   }
 
   /**
@@ -417,13 +440,35 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     }
   }
 
-  @Override
-  public int getTrackedEntityCount(
-      TrackedEntityOperationParams operationParams,
-      boolean skipAccessValidation,
-      boolean skipSearchScopeValidation)
-      throws ForbiddenException, BadRequestException {
-    return teiService.getTrackedEntityCount(
-        mapper.map(operationParams), skipAccessValidation, skipSearchScopeValidation);
+  /**
+   * This method will apply the logic related to the parameter 'totalPages=false'. This works in
+   * conjunction with the method: {@link EventStore#getEvents(EventSearchParams,
+   * Map<String,Set<String>>)}
+   *
+   * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
+   * allow us to evaluate if we are in the last page or not. And this is what his method does,
+   * returning the respective Pager object.
+   *
+   * @param params the request params
+   * @param trackedEntityList the reference to the list of Tracked Entities
+   * @return the populated SlimPager instance
+   */
+  private Pager handleLastPageFlag(
+      TrackedEntityOperationParams params, List<TrackedEntity> trackedEntityList) {
+    Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
+    Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
+    boolean isLastPage = false;
+
+    if (isNotEmpty(trackedEntityList)) {
+      isLastPage = trackedEntityList.size() <= originalPageSize;
+      if (!isLastPage) {
+        // Get the same number of elements of the pageSize, forcing
+        // the removal of the last additional element added at querying
+        // time.
+        trackedEntityList.retainAll(trackedEntityList.subList(0, originalPageSize));
+      }
+    }
+
+    return new SlimPager(originalPage, originalPageSize, isLastPage);
   }
 }

@@ -27,31 +27,23 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
+import java.util.List;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 
-public interface TrackedEntityService {
+@RequiredArgsConstructor(staticName = "of")
+@Getter
+@EqualsAndHashCode
+public class TrackedEntities {
 
-  TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException;
+  public static final TrackedEntities EMPTY = new TrackedEntities(List.of(), null);
+  private final List<TrackedEntity> trackedEntityList;
+  private final Pager pager;
 
-  TrackedEntity getTrackedEntity(
-      TrackedEntity trackedEntity, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException;
-
-  TrackedEntity getTrackedEntity(
-      String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException;
-
-  /**
-   * Fetches {@see TrackedEntity}s based on the specified parameters.
-   *
-   * @param operationParams a {@see TrackedEntityOperationParams} instance with the operation
-   *     parameters
-   * @return {@see TrackedEntity}s
-   */
-  TrackedEntities getTrackedEntities(TrackedEntityOperationParams operationParams)
-      throws ForbiddenException, NotFoundException, BadRequestException;
+  public static TrackedEntities withoutPagination(List<TrackedEntity> trackedEntityList) {
+    return new TrackedEntities(trackedEntityList, null);
+  }
 }
