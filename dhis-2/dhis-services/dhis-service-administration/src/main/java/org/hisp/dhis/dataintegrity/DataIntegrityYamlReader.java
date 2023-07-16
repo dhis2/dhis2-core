@@ -115,6 +115,7 @@ class DataIntegrityYamlReader
 
                 adder.accept( DataIntegrityCheck.builder()
                     .name( trim( e.name ) )
+                    .displayName( trim( e.name ) )
                     .description( trim( e.description ) )
                     .introduction( trim( e.introduction ) )
                     .recommendation( trim( e.recommendation ) )
