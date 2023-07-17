@@ -86,7 +86,7 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
           + " as "
           + TEI_UID_COLUMN_ALIAS
           + " from programinstance pi "
-          + " join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid "
+          + " join trackedentity tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid "
           + " join program pr on pr.programid = pi.programid "
           + " where pi.deleted = false "
           + " and tei.uid in (:teuids)"

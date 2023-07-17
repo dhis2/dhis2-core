@@ -800,7 +800,7 @@ public class JdbcEventStore implements EventStore {
 
     fromBuilder
         .append(
-            "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid ")
+            "left join trackedentity tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid ")
         .append(
             "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ")
         .append("left join userinfo au on (psi.assigneduserid=au.userinfoid) ");

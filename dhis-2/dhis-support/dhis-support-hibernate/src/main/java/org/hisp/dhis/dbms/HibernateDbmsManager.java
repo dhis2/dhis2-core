@@ -252,7 +252,7 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("trackedentityattributevalueaudit");
     emptyTable("trackedentitytypeattribute");
     emptyTable("trackedentityattribute");
-    emptyTable("trackedentityinstance");
+    emptyTable("trackedentity");
     emptyTable("trackedentitytype");
 
     emptyTable("minmaxdataelement");

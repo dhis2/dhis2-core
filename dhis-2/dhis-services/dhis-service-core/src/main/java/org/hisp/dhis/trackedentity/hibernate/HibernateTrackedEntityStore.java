@@ -499,7 +499,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
         new StringBuilder()
             .append("(")
             .append(getFromSubQuerySelect(params))
-            .append(" FROM trackedentityinstance TEI ")
+            .append(" FROM trackedentity TEI ")
 
             // INNER JOIN on constraints
             .append(getFromSubQueryJoinAttributeConditions(params))
@@ -1323,7 +1323,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     Query<?> query =
         getSession()
             .createNativeQuery(
-                "select count(*) from trackedentityinstance where uid=:uid and deleted is false");
+                "select count(*) from trackedentity where uid=:uid and deleted is false");
     query.setParameter("uid", uid);
     int count = ((Number) query.getSingleResult()).intValue();
 
@@ -1333,7 +1333,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   @Override
   public boolean existsIncludingDeleted(String uid) {
     Query<?> query =
-        getSession().createNativeQuery("select count(*) from trackedentityinstance where uid=:uid");
+        getSession().createNativeQuery("select count(*) from trackedentity where uid=:uid");
     query.setParameter("uid", uid);
     int count = ((Number) query.getSingleResult()).intValue();
 

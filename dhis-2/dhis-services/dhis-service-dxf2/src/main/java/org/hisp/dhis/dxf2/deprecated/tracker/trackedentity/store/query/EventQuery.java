@@ -112,7 +112,7 @@ public class EventQuery {
     return getSelect()
         + "from event psi "
         + "join programinstance pi on psi.programinstanceid = pi.programinstanceid "
-        + "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid "
+        + "join trackedentity tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid "
         + "join program p on pi.programid = p.programid "
         + "join programstage ps on psi.programstageid = ps.programstageid "
         + "join organisationunit o on psi.organisationunitid = o.organisationunitid "

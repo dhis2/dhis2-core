@@ -307,8 +307,8 @@ public class JdbcEventStore implements EventStore {
    * when Postgres tries to update the same TEI.
    */
   private static final String UPDATE_TEI_SQL =
-      "SELECT * FROM trackedentityinstance WHERE uid IN (:teiUids) FOR UPDATE SKIP LOCKED;"
-          + "UPDATE trackedentityinstance SET lastupdated = :lastUpdated, lastupdatedby = :lastUpdatedBy WHERE uid IN (:teiUids)";
+      "SELECT * FROM trackedentity WHERE uid IN (:teiUids) FOR UPDATE SKIP LOCKED;"
+          + "UPDATE trackedentity SET lastupdated = :lastUpdated, lastupdatedby = :lastUpdatedBy WHERE uid IN (:teiUids)";
 
   static {
     INSERT_EVENT_SQL =
@@ -1097,7 +1097,7 @@ public class JdbcEventStore implements EventStore {
 
     fromBuilder
         .append(
-            "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid ")
+            "left join trackedentity tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid ")
         .append(
             "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ")
         .append("left join userinfo au on (psi.assigneduserid=au.userinfoid) ");

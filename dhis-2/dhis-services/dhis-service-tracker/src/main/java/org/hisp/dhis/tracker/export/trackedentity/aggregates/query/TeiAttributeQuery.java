@@ -67,7 +67,7 @@ public class TeiAttributeQuery {
     return getSelect()
         + "from trackedentityattributevalue teav "
         + "join trackedentityattribute t on teav.trackedentityattributeid = t.trackedentityattributeid "
-        + "join trackedentityinstance tei on teav.trackedentityinstanceid = tei.trackedentityinstanceid "
+        + "join trackedentity tei on teav.trackedentityinstanceid = tei.trackedentityinstanceid "
         + "where teav.trackedentityinstanceid in (:ids)";
   }
 

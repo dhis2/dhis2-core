@@ -96,7 +96,7 @@ public class EnrollmentQuery {
     return getSelect()
         + "from programinstance pi "
         + "join program p on pi.programid = p.programid "
-        + "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid "
+        + "join trackedentity tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid "
         + "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid "
         + "join organisationunit o on tei.organisationunitid = o.organisationunitid "
         + "where pi.trackedentityinstanceid in (:ids) ";

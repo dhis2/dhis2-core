@@ -52,7 +52,7 @@ abstract class AbstractStore {
   private static final String GET_RELATIONSHIP_BY_RELATIONSHIP_ID =
       "select "
           + "r.uid as rel_uid, r.created, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi, "
-          + "coalesce((select 'tei|' || tei.uid from trackedentityinstance tei "
+          + "coalesce((select 'tei|' || tei.uid from trackedentity tei "
           + "join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
           + "where ri.relationshipitemid = r.to_relationshipitemid) , (select 'pi|' || pi.uid "
           + "from programinstance pi "
@@ -61,7 +61,7 @@ abstract class AbstractStore {
           + "from event psi "
           + "join relationshipitem ri on psi.eventid = ri.eventid "
           + "where ri.relationshipitemid = r.to_relationshipitemid)) to_uid, "
-          + "coalesce((select 'tei|' || tei.uid from trackedentityinstance tei "
+          + "coalesce((select 'tei|' || tei.uid from trackedentity tei "
           + "join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
           + "where ri.relationshipitemid = r.from_relationshipitemid) , (select 'pi|' || pi.uid "
           + "from programinstance pi "

@@ -224,8 +224,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
 
   @Override
   public int deleteSoftDeletedTrackedEntities() {
-    String teiSelect =
-        "(select trackedentityinstanceid from trackedentityinstance where deleted is true)";
+    String teiSelect = "(select trackedentityinstanceid from trackedentity where deleted is true)";
 
     String enrollmentSelect =
         "(select programinstanceid from programinstance where trackedentityinstanceid in "
@@ -233,7 +232,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
             + " )";
 
     List<String> deletedTeiUids =
-        getDeletionEntities("select uid from trackedentityinstance where deleted is true");
+        getDeletionEntities("select uid from trackedentity where deleted is true");
     if (deletedTeiUids.isEmpty()) {
       return 0;
     }
@@ -308,7 +307,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from programownershiphistory where trackedentityinstanceid in " + teiSelect,
           "delete from programinstance where trackedentityinstanceid in " + teiSelect,
           // finally delete the TEIs
-          "delete from trackedentityinstance where deleted is true"
+          "delete from trackedentity where deleted is true"
         };
 
     int result = jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];

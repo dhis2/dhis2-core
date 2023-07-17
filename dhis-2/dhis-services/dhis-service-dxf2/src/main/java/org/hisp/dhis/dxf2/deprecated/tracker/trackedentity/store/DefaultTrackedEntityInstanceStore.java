@@ -69,7 +69,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore
           + "from trackedentityprogramowner teop "
           + "join program p on teop.programid = p.programid "
           + "join organisationunit o on teop.organisationunitid = o.organisationunitid "
-          + "join trackedentityinstance tei on teop.trackedentityinstanceid = tei.trackedentityinstanceid "
+          + "join trackedentity tei on teop.trackedentityinstanceid = tei.trackedentityinstanceid "
           + "where teop.trackedentityinstanceid in (:ids)";
 
   private static final String GET_OWNERSHIP_DATA_FOR_TEIS_FOR_ALL_PROGRAM =
@@ -77,7 +77,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore
           + "FROM trackedentityprogramowner TPO "
           + "LEFT JOIN program P on P.programid = TPO.programid "
           + "LEFT JOIN organisationunit OU on OU.organisationunitid = TPO.organisationunitid "
-          + "LEFT JOIN trackedentityinstance TEI on TEI.trackedentityinstanceid = tpo.trackedentityinstanceid "
+          + "LEFT JOIN trackedentity TEI on TEI.trackedentityinstanceid = tpo.trackedentityinstanceid "
           + "WHERE TPO.trackedentityinstanceid in (:ids) "
           + "AND p.programid in (SELECT programid FROM program) "
           + "GROUP BY tei.uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, ou.path, p.accesslevel,p.uid "
@@ -89,7 +89,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore
           + "FROM trackedentityprogramowner TPO "
           + "LEFT JOIN program P on P.programid = TPO.programid "
           + "LEFT JOIN organisationunit OU on OU.organisationunitid = TPO.organisationunitid "
-          + "LEFT JOIN trackedentityinstance TEI on TEI.trackedentityinstanceid = tpo.trackedentityinstanceid "
+          + "LEFT JOIN trackedentity TEI on TEI.trackedentityinstanceid = tpo.trackedentityinstanceid "
           + "WHERE TPO.trackedentityinstanceid in (:ids) "
           + "AND p.uid = :programUid "
           + "GROUP BY tei.uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, ou.path, p.accesslevel,p.uid "
@@ -197,7 +197,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore
     List<TrackedEntityOuInfo> instances = new ArrayList<>();
 
     String sql =
-        "select tei.trackedentityinstanceid teiid, tei.uid teiuid, tei.organisationunitid teiorgunit from trackedentityinstance tei where tei.uid in (:uids)";
+        "select tei.trackedentityinstanceid teiid, tei.uid teiuid, tei.organisationunitid teiorgunit from trackedentity tei where tei.uid in (:uids)";
 
     for (List<String> partition : uidPartitions) {
       MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -224,7 +224,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore
         """
               select te.uid teuid, p.uid programuid, ou.uid orgunituid
                 from trackedentityprogramowner tepo
-                join trackedentityinstance te on tepo.trackedentityinstanceid = te.trackedentityinstanceid
+                join trackedentity te on tepo.trackedentityinstanceid = te.trackedentityinstanceid
                 join program p on tepo.programid = p.programid
                 join organisationunit ou on te.organisationunitid = ou.organisationunitid
                 where tepo.trackedentityinstanceid in (:teiIds) and tepo.programid = :programId

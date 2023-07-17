@@ -61,6 +61,6 @@
       column="trackedentitytypeid" foreign-key="fk_trackedentityinstance_trackedentitytypeid" lazy="false" />
   </class>
 
-  <sql-query name="updateTeisLastUpdated">update trackedentityinstance set lastUpdated = :lastUpdated WHERE uid in :trackedEntities</sql-query>
+  <sql-query name="updateTeisLastUpdated">update trackedentity set lastUpdated = :lastUpdated WHERE uid in :trackedEntities</sql-query>
 
 </hibernate-mapping>

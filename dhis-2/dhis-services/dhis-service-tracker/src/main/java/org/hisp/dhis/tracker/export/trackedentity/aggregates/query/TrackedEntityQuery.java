@@ -76,7 +76,7 @@ public class TrackedEntityQuery {
 
   public static String getQuery() {
     return getSelect()
-        + "FROM trackedentityinstance tei "
+        + "FROM trackedentity tei "
         + "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid "
         + "join organisationunit o on tei.organisationunitid = o.organisationunitid "
         + "where tei.trackedentityinstanceid in (:ids)";

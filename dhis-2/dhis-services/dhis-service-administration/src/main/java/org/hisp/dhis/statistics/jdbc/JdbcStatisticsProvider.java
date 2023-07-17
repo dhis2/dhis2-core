@@ -75,7 +75,7 @@ public class JdbcStatisticsProvider implements StatisticsProvider {
 
     map.put(Objects.DATAVALUE, approximateCount("datavalue"));
 
-    Long trackedEntities = approximateCount("trackedentityinstance");
+    Long trackedEntities = approximateCount("trackedentity");
     map.put(Objects.TRACKEDENTITY, trackedEntities);
     map.put(Objects.TRACKEDENTITYINSTANCE, trackedEntities);
     Long enrollments = approximateCount("programinstance");

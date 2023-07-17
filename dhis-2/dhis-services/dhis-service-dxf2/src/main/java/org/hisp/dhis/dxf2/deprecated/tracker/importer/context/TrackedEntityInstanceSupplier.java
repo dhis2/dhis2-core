@@ -114,7 +114,7 @@ public class TrackedEntityInstanceSupplier
       Set<String> teiUids, Multimap<String, String> teiToEvent) {
     final String sql =
         "select tei.trackedentityinstanceid, tei.uid, tei.code "
-            + "from trackedentityinstance tei where tei.uid in (:ids)";
+            + "from trackedentity tei where tei.uid in (:ids)";
 
     MapSqlParameterSource parameters = new MapSqlParameterSource();
     parameters.addValue("ids", teiUids);

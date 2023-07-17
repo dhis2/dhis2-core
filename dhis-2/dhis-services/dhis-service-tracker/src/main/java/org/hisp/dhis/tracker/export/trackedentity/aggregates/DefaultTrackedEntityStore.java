@@ -64,7 +64,7 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
           + "from trackedentityprogramowner teop "
           + "join program p on teop.programid = p.programid "
           + "join organisationunit o on teop.organisationunitid = o.organisationunitid "
-          + "join trackedentityinstance tei on teop.trackedentityinstanceid = tei.trackedentityinstanceid "
+          + "join trackedentity tei on teop.trackedentityinstanceid = tei.trackedentityinstanceid "
           + "where teop.trackedentityinstanceid in (:ids)";
 
   private static final String GET_OWNERSHIP_DATA_FOR_TEIS_FOR_ALL_PROGRAM =
@@ -72,7 +72,7 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
           + "FROM trackedentityprogramowner TPO "
           + "LEFT JOIN program P on P.programid = TPO.programid "
           + "LEFT JOIN organisationunit OU on OU.organisationunitid = TPO.organisationunitid "
-          + "LEFT JOIN trackedentityinstance TEI on TEI.trackedentityinstanceid = tpo.trackedentityinstanceid "
+          + "LEFT JOIN trackedentity TEI on TEI.trackedentityinstanceid = tpo.trackedentityinstanceid "
           + "WHERE TPO.trackedentityinstanceid in (:ids) "
           + "AND p.programid in (SELECT programid FROM program) "
           + "GROUP BY tei.uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, ou.path, p.accesslevel,p.uid "
@@ -84,7 +84,7 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
           + "FROM trackedentityprogramowner TPO "
           + "LEFT JOIN program P on P.programid = TPO.programid "
           + "LEFT JOIN organisationunit OU on OU.organisationunitid = TPO.organisationunitid "
-          + "LEFT JOIN trackedentityinstance TEI on TEI.trackedentityinstanceid = tpo.trackedentityinstanceid "
+          + "LEFT JOIN trackedentity TEI on TEI.trackedentityinstanceid = tpo.trackedentityinstanceid "
           + "WHERE TPO.trackedentityinstanceid in (:ids) "
           + "AND p.uid = :programUid "
           + "GROUP BY tei.uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, ou.path, p.accesslevel,p.uid "

@@ -65,7 +65,7 @@ public class ProgramAttributeQuery {
         + "from trackedentityattributevalue teav "
         + "join program_attributes pa on teav.trackedentityattributeid  = pa.trackedentityattributeid "
         + "join trackedentityattribute t on t.trackedentityattributeid = pa.trackedentityattributeid "
-        + "join trackedentityinstance tei on tei.trackedentityinstanceid = teav.trackedentityinstanceid "
+        + "join trackedentity tei on tei.trackedentityinstanceid = teav.trackedentityinstanceid "
         + "join programinstance pi on pi.programid = pa.programid and pi.trackedentityinstanceid = tei.trackedentityinstanceid "
         + "where pi.programinstanceid IN (:ids)";
   }
