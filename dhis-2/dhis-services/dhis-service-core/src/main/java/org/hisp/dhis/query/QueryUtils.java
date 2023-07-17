@@ -28,7 +28,6 @@
 package org.hisp.dhis.query;
 
 import com.google.common.base.Enums;
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,7 +37,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.persistence.TypedQuery;
@@ -54,6 +53,9 @@ import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public final class QueryUtils {
+
+  private static final String UNABLE_TO_PARSE = "Unable to parse `";
+
   private QueryUtils() {
     throw new UnsupportedOperationException("util");
   }
@@ -78,28 +80,28 @@ public final class QueryUtils {
       try {
         return (T) Integer.valueOf(value);
       } catch (Exception ex) {
-        throw new QueryParserException("Unable to parse `" + value + "` as `Integer`.");
+        throw new QueryParserException(UNABLE_TO_PARSE + value + "` as `Integer`.");
       }
     }
     if (Boolean.class.isAssignableFrom(klass)) {
       try {
         return (T) Boolean.valueOf(value);
       } catch (Exception ex) {
-        throw new QueryParserException("Unable to parse `" + value + "` as `Boolean`.");
+        throw new QueryParserException(UNABLE_TO_PARSE + value + "` as `Boolean`.");
       }
     }
     if (Float.class.isAssignableFrom(klass)) {
       try {
         return (T) Float.valueOf(value);
       } catch (Exception ex) {
-        throw new QueryParserException("Unable to parse `" + value + "` as `Float`.");
+        throw new QueryParserException(UNABLE_TO_PARSE + value + "` as `Float`.");
       }
     }
     if (Double.class.isAssignableFrom(klass)) {
       try {
         return (T) Double.valueOf(value);
       } catch (Exception ex) {
-        throw new QueryParserException("Unable to parse `" + value + "` as `Double`.");
+        throw new QueryParserException(UNABLE_TO_PARSE + value + "` as `Double`.");
       }
     }
     if (Date.class.isAssignableFrom(klass)) {
@@ -107,7 +109,7 @@ public final class QueryUtils {
         Date date = DateUtils.parseDate(value);
         return (T) date;
       } catch (Exception ex) {
-        throw new QueryParserException("Unable to parse `" + value + "` as `Date`.");
+        throw new QueryParserException(UNABLE_TO_PARSE + value + "` as `Date`.");
       }
     }
     if (Enum.class.isAssignableFrom(klass)) {
@@ -146,7 +148,7 @@ public final class QueryUtils {
     }
 
     throw new QueryParserException(
-        "Unable to parse `" + value + "` to `" + klass.getSimpleName() + "`.");
+        UNABLE_TO_PARSE + value + "` to `" + klass.getSimpleName() + "`.");
   }
 
   /**
@@ -158,14 +160,14 @@ public final class QueryUtils {
   @SuppressWarnings({"unchecked", "rawtypes"})
   public static <T> T getEnumValue(Class<?> klass, String value) {
     Optional<? extends Enum<?>> enumValue =
-        Enums.getIfPresent((Class<? extends Enum>) klass, value);
+        Enums.getIfPresent((Class<? extends Enum>) klass, value).toJavaUtil();
 
     if (enumValue.isPresent()) {
       return (T) enumValue.get();
     }
     Object[] possibleValues = klass.getEnumConstants();
     throw new QueryParserException(
-        "Unable to parse `"
+        UNABLE_TO_PARSE
             + value
             + "` as `"
             + klass
@@ -177,7 +179,7 @@ public final class QueryUtils {
     if (value == null || StringUtils.isEmpty(value)) {
       return null;
     }
-    if (NumberUtils.isNumber(value)) {
+    if (NumberUtils.isCreatable(value)) {
       return value;
     }
     return "'" + value + "'";
@@ -254,104 +256,32 @@ public final class QueryUtils {
       throw new QueryParserException("Filter Operator is null");
     }
 
-    switch (operator) {
-      case "eq":
-        {
-          return "= " + QueryUtils.parseValue(value);
-        }
-      case "!eq":
-      case "ne":
-      case "neq":
-        {
-          return "!= " + QueryUtils.parseValue(value);
-        }
-      case "gt":
-        {
-          return "> " + QueryUtils.parseValue(value);
-        }
-      case "lt":
-        {
-          return "< " + QueryUtils.parseValue(value);
-        }
-      case "gte":
-      case "ge":
-        {
-          return ">= " + QueryUtils.parseValue(value);
-        }
-      case "lte":
-      case "le":
-        {
-          return "<= " + QueryUtils.parseValue(value);
-        }
-      case "like":
-        {
-          return "like '%" + value + "%'";
-        }
-      case "!like":
-        {
-          return "not like '%" + value + "%'";
-        }
-      case "^like":
-        {
-          return " like '" + value + "%'";
-        }
-      case "!^like":
-        {
-          return " not like '" + value + "%'";
-        }
-      case "$like":
-        {
-          return " like '%" + value + "'";
-        }
-      case "!$like":
-        {
-          return " not like '%" + value + "'";
-        }
-      case "ilike":
-        {
-          return " ilike '%" + value + "%'";
-        }
-      case "!ilike":
-        {
-          return " not ilike '%" + value + "%'";
-        }
-      case "^ilike":
-        {
-          return " ilike '" + value + "%'";
-        }
-      case "!^ilike":
-        {
-          return " not ilike '" + value + "%'";
-        }
-      case "$ilike":
-        {
-          return " ilike '%" + value + "'";
-        }
-      case "!$ilike":
-        {
-          return " not ilike '%" + value + "'";
-        }
-      case "in":
-        {
-          return "in " + QueryUtils.convertCollectionValue(value);
-        }
-      case "!in":
-        {
-          return " not in " + QueryUtils.convertCollectionValue(value);
-        }
-      case "null":
-        {
-          return "is null";
-        }
-      case "!null":
-        {
-          return "is not null";
-        }
-      default:
-        {
-          throw new QueryParserException("`" + operator + "` is not a valid operator.");
-        }
-    }
+    return switch (operator) {
+      case "eq" -> "= " + QueryUtils.parseValue(value);
+      case "ieq" -> " ilike '" + value + "'";
+      case "!eq", "ne", "neq" -> "!= " + QueryUtils.parseValue(value);
+      case "gt" -> "> " + QueryUtils.parseValue(value);
+      case "lt" -> "< " + QueryUtils.parseValue(value);
+      case "gte", "ge" -> ">= " + QueryUtils.parseValue(value);
+      case "lte", "le" -> "<= " + QueryUtils.parseValue(value);
+      case "like" -> "like '%" + value + "%'";
+      case "!like" -> "not like '%" + value + "%'";
+      case "^like" -> " like '" + value + "%'";
+      case "!^like" -> " not like '" + value + "%'";
+      case "$like" -> " like '%" + value + "'";
+      case "!$like" -> " not like '%" + value + "'";
+      case "ilike" -> " ilike '%" + value + "%'";
+      case "!ilike" -> " not ilike '%" + value + "%'";
+      case "^ilike" -> " ilike '" + value + "%'";
+      case "!^ilike" -> " not ilike '" + value + "%'";
+      case "$ilike" -> " ilike '%" + value + "'";
+      case "!$ilike" -> " not ilike '%" + value + "'";
+      case "in" -> "in " + QueryUtils.convertCollectionValue(value);
+      case "!in" -> " not in " + QueryUtils.convertCollectionValue(value);
+      case "null" -> "is null";
+      case "!null" -> "is not null";
+      default -> throw new QueryParserException("`" + operator + "` is not a valid operator.");
+    };
   }
 
   /**
@@ -372,7 +302,7 @@ public final class QueryUtils {
         .filter(orderCriteria -> isValid(orderCriteria, schema))
         .distinct()
         .map(OrderCriteria::toOrderParam)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private static boolean isValid(OrderCriteria orderCriteria, Schema schema) {

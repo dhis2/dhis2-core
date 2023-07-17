@@ -45,14 +45,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
  */
 abstract class AbstractStore {
   protected static final int PARITITION_SIZE = 20000;
-
-  protected final NamedParameterJdbcTemplate jdbcTemplate;
-
   private static final String GET_RELATIONSHIP_ID_BY_ENTITY_ID_SQL =
       "select ri.%s as id, r.relationshipid "
           + "FROM relationshipitem ri left join relationship r on ri.relationshipid = r.relationshipid "
           + "where ri.%s in (:ids)";
-
   private static final String GET_RELATIONSHIP_BY_RELATIONSHIP_ID =
       "select "
           + "r.uid as rel_uid, r.created, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi, "
@@ -76,6 +72,7 @@ abstract class AbstractStore {
           + "where ri.relationshipitemid = r.from_relationshipitemid)) from_uid "
           + "from relationship r join relationshiptype rst on r.relationshiptypeid = rst.relationshiptypeid "
           + "where r.relationshipid in (:ids)";
+  protected final NamedParameterJdbcTemplate jdbcTemplate;
 
   protected AbstractStore(JdbcTemplate jdbcTemplate) {
     this.jdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
@@ -107,7 +104,7 @@ abstract class AbstractStore {
                 getRelationshipEntityColumn(),
                 getRelationshipEntityColumn()));
 
-    if (!ctx.getParams().isIncludeDeleted()) {
+    if (!ctx.getQueryParams().isIncludeDeleted()) {
       getRelationshipsHavingIdSQL.append(" AND r.deleted is false");
     }
     // Get all the relationship ids that have at least one relationship item

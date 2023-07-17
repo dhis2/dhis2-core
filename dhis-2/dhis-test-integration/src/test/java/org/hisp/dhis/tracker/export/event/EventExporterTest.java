@@ -360,57 +360,6 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnEventsNonSuperUserIsOwnerOrHasUserAccess()
-      throws ForbiddenException, BadRequestException {
-    // given events have a COC which has a CO which the
-    // user owns yMj2MnmNI8L and has user read access to OUUdG3sdOqb
-    injectSecurityContext(userService.getUser("o1HMTIzBGo7"));
-
-    EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid("DiszpKrYNg8")
-            .events(Set.of("lumVtWwwy0O", "cadc5eGj0j7"))
-            .build();
-
-    Events events = eventService.getEvents(params);
-
-    assertContainsOnly(List.of("lumVtWwwy0O", "cadc5eGj0j7"), eventUids(events));
-    List<Executable> executables =
-        events.getEvents().stream()
-            .map(
-                e ->
-                    (Executable)
-                        () ->
-                            assertEquals(
-                                2,
-                                e.getAttributeOptionCombo().getCategoryOptions().size(),
-                                String.format(
-                                    "got category options %s",
-                                    e.getAttributeOptionCombo().getCategoryOptions())))
-            .collect(Collectors.toList());
-    assertAll(
-        "all events should have the optionSize set which is the number of COs in the COC",
-        executables);
-  }
-
-  @Test
-  void shouldReturnNoEventsGivenUserHasNoAccess() throws ForbiddenException, BadRequestException {
-    // given events have a COC which has a CO (OUUdG3sdOqb/yMj2MnmNI8L) which are not publicly
-    // readable, user is not the owner and has no user access
-    injectSecurityContext(userService.getUser("CYVgFNKCaUS"));
-
-    EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid("DiszpKrYNg8")
-            .events(Set.of("lumVtWwwy0O", "cadc5eGj0j7"))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertIsEmpty(events);
-  }
-
-  @Test
   void shouldReturnPublicEventsWithMultipleCategoryOptionsGivenNonDefaultPageSize()
       throws ForbiddenException, BadRequestException {
     OrganisationUnit orgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");

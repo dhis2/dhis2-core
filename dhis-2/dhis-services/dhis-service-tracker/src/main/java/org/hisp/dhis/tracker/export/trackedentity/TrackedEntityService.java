@@ -34,13 +34,15 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 
 public interface TrackedEntityService {
-  TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params)
+  TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
-  TrackedEntity getTrackedEntity(TrackedEntity trackedEntity, TrackedEntityParams params)
+  TrackedEntity getTrackedEntity(
+      TrackedEntity trackedEntity, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
-  TrackedEntity getTrackedEntity(String uid, String programIdentifier, TrackedEntityParams params)
+  TrackedEntity getTrackedEntity(
+      String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
   /**
