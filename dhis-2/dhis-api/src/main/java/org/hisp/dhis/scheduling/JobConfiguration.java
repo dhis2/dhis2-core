@@ -39,6 +39,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.time.Clock;
 import java.util.Date;
 import javax.annotation.Nonnull;
+import lombok.ToString;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.SecondaryMetadataObject;
@@ -75,6 +76,7 @@ import org.springframework.scheduling.support.SimpleTriggerContext;
  *
  * @author Henning Håkonsen
  */
+@ToString
 @JacksonXmlRootElement(localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0)
 public class JobConfiguration extends BaseIdentifiableObject implements SecondaryMetadataObject {
   // -------------------------------------------------------------------------
@@ -126,8 +128,6 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
    * security context for the execution scope)
    */
   private String executedBy;
-
-  private boolean leaderOnlyJob = false;
 
   private String queueName;
 
@@ -235,48 +235,6 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
 
   public boolean hasCronExpression() {
     return cronExpression != null && !cronExpression.isEmpty();
-  }
-
-  @Override
-  public String toString() {
-    return "JobConfiguration{"
-        + "uid='"
-        + uid
-        + '\''
-        + ", name='"
-        + name
-        + '\''
-        + ", jobType="
-        + jobType
-        + ", cronExpression='"
-        + cronExpression
-        + '\''
-        + ", delay='"
-        + delay
-        + '\''
-        + ", jobParameters="
-        + jobParameters
-        + ", enabled="
-        + enabled
-        + ", inMemoryJob="
-        + inMemoryJob
-        + ", lastRuntimeExecution='"
-        + lastRuntimeExecution
-        + '\''
-        + ", executedBy='"
-        + executedBy
-        + '\''
-        + ", leaderOnlyJob="
-        + leaderOnlyJob
-        + ", jobStatus="
-        + jobStatus
-        + ", nextExecutionTime="
-        + nextExecutionTime
-        + ", lastExecutedStatus="
-        + lastExecutedStatus
-        + ", lastExecuted="
-        + lastExecuted
-        + '}';
   }
 
   // -------------------------------------------------------------------------
@@ -394,6 +352,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   @JacksonXmlProperty
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   public Date getNextExecutionTime() {
+    //TODO this must work for any scheduling type (all job configurations)
     return nextExecutionTimeAfter(Clock.systemDefaultZone());
   }
 
@@ -447,6 +406,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
     return !jobType.isRunOnAllNodes();
   }
 
+  //TODO get rid of this
   public boolean isInMemoryJob() {
     return inMemoryJob;
   }

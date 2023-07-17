@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.scheduling;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.OpenApi;
@@ -51,6 +52,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -71,6 +73,11 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
       JobConfigurationService jobConfigurationService, SchedulingManager schedulingManager) {
     this.jobConfigurationService = jobConfigurationService;
     this.schedulingManager = schedulingManager;
+  }
+
+  @GetMapping(params = "dueInSeconds")
+  public List<JobConfiguration> getDueJobConfigurations(@RequestParam int dueInSeconds) {
+    return jobConfigurationService.getDueJobConfigurations(dueInSeconds);
   }
 
   @GetMapping(

@@ -37,9 +37,12 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,11 +54,11 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.schema.Property;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.scheduling.support.SimpleTriggerContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,8 +69,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("jobConfigurationService")
 public class DefaultJobConfigurationService implements JobConfigurationService {
-  @Qualifier("org.hisp.dhis.scheduling.JobConfigurationStore")
-  private final IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
+
+  private final JobConfigurationStore jobConfigurationStore;
 
   @Override
   @Transactional
@@ -128,6 +131,34 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     return jobConfigurationStore.getAll().stream()
         .filter(config -> config.getJobType() == type)
         .collect(toUnmodifiableList());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds) {
+    long windowMillis = dueInNextSeconds * 1000L;
+    Clock time = Clock.systemDefaultZone();
+    Set<String> due = new HashSet<>();
+    long nowMillis = new Date().getTime();
+    for (JobConfigurationTrigger trigger : jobConfigurationStore.getAllTriggers()) {
+      if (trigger.getCronExpression() != null) {
+        Date next =
+            new CronTrigger(trigger.getCronExpression())
+                .nextExecutionTime(new SimpleTriggerContext(time));
+        if (next != null && nowMillis + windowMillis > next.getTime())
+          due.add(trigger.getUid());
+      } else if (trigger.getDelay() != null) {
+        if (trigger.getLastExecuted() == null) {
+         due.add(trigger.getUid());
+        } else {
+          long executeTime = trigger.getLastExecuted().getTime() + (trigger.getDelay() * 1000L);
+          if (executeTime > nowMillis && executeTime < nowMillis + windowMillis) {
+            due.add(trigger.getUid());
+          }
+        }
+      }
+    }
+    return due.isEmpty() ? List.of() : jobConfigurationStore.getByUid(due);
   }
 
   @Override

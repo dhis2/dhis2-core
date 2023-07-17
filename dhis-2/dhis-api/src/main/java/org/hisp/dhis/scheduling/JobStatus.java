@@ -34,12 +34,23 @@ package org.hisp.dhis.scheduling;
  * @author Henning Håkonsen
  */
 public enum JobStatus {
+
+  /*
+  Current job status
+   */
   RUNNING("running"),
-  COMPLETED("done"),
-  STOPPED("stopped"),
   SCHEDULED("scheduled"),
   DISABLED("disabled"),
+
+  /*
+   * Outcomes for last executed status
+   */
+  COMPLETED("done"),
+  STOPPED("stopped"),
   FAILED("failed"),
+  /**
+   * Only when it has not run before yet
+   */
   NOT_STARTED("not_started");
 
   private final String key;

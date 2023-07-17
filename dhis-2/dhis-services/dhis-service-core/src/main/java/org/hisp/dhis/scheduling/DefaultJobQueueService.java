@@ -55,7 +55,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class DefaultJobQueueService implements JobQueueService {
-  private final IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
+
+  private final JobConfigurationStore jobConfigurationStore;
 
   @Override
   @Transactional(readOnly = true)

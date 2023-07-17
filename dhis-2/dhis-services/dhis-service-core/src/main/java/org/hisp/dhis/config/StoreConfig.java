@@ -169,18 +169,6 @@ public class StoreConfig {
         true);
   }
 
-  @Bean("org.hisp.dhis.scheduling.JobConfigurationStore")
-  public HibernateIdentifiableObjectStore<JobConfiguration> jobConfigurationStore() {
-    return new HibernateIdentifiableObjectStore<>(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        JobConfiguration.class,
-        currentUserService,
-        aclService,
-        true);
-  }
-
   @Bean("org.hisp.dhis.option.OptionSetStore")
   public HibernateIdentifiableObjectStore<OptionSet> optionSetStore() {
     return new HibernateIdentifiableObjectStore<>(

@@ -101,6 +101,13 @@ public interface JobConfigurationService {
   List<JobConfiguration> getJobConfigurations(JobType type);
 
   /**
+   * Get all job configurations that should start within the next n seconds.
+   * @param dueInNextSeconds number of seconds from now the job should start
+   * @return only jobs that should start soon within the given number of seconds
+   */
+  List<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds);
+
+  /**
    * Get a map of parameter classes with appropriate properties This can be used for a frontend app
    * or for other appropriate applications which needs information about the jobs in the system.
    *
