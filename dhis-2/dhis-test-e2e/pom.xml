@@ -20,7 +20,7 @@
     <jackson.version>2.15.2</jackson.version>
     <guava.version>32.1.1-jre</guava.version>
     <json-tree.version>0.9.0</json-tree.version>
-    <epam-reportportal.version>5.1.7</epam-reportportal.version>
+    <epam-reportportal.version>5.1.8</epam-reportportal.version>
     <javafaker.version>1.0.2</javafaker.version>
     <opencsv.version>4.5</opencsv.version>
     <owner.version>1.0.12</owner.version>
