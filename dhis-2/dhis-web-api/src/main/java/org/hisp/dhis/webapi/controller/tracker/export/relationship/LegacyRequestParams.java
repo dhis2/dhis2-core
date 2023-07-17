@@ -31,19 +31,17 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 @NoArgsConstructor
 @EqualsAndHashCode(exclude = {"identifier", "identifierName", "identifierClass"})
 class LegacyRequestParams extends PagingAndSortingCriteriaAdapter {
 
-  @Setter private UID trackedEntity;
+  @Setter private String trackedEntity;
 
-  @Setter private UID enrollment;
+  @Setter private String enrollment;
 
-  @Setter private UID event;
+  @Setter private String event;
 
   private String identifier;
 
@@ -52,23 +50,23 @@ class LegacyRequestParams extends PagingAndSortingCriteriaAdapter {
   private Class<?> identifierClass;
 
   @OpenApi.Ignore
-  public String getIdentifierParam() throws BadRequestException {
+  public String getIdentifierParam() {
     if (this.identifier != null) {
       return this.identifier;
     }
 
     if (this.trackedEntity != null) {
-      this.identifier = this.trackedEntity.getValue();
+      this.identifier = this.trackedEntity;
       this.identifierName = "trackedEntity";
       this.identifierClass = org.hisp.dhis.trackedentity.TrackedEntity.class;
     }
     if (this.enrollment != null) {
-      this.identifier = this.enrollment.getValue();
+      this.identifier = this.enrollment;
       this.identifierName = "enrollment";
       this.identifierClass = org.hisp.dhis.program.Enrollment.class;
     }
     if (this.event != null) {
-      this.identifier = this.event.getValue();
+      this.identifier = this.event;
       this.identifierName = "event";
       this.identifierClass = org.hisp.dhis.program.Event.class;
     }
@@ -77,7 +75,7 @@ class LegacyRequestParams extends PagingAndSortingCriteriaAdapter {
   }
 
   @OpenApi.Ignore
-  public String getIdentifierName() throws BadRequestException {
+  public String getIdentifierName() {
     if (this.identifierName == null) {
       this.getIdentifierParam();
     }
@@ -85,7 +83,7 @@ class LegacyRequestParams extends PagingAndSortingCriteriaAdapter {
   }
 
   @OpenApi.Ignore
-  public Class<?> getIdentifierClass() throws BadRequestException {
+  public Class<?> getIdentifierClass() {
     if (this.identifierClass == null) {
       this.getIdentifierParam();
     }

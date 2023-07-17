@@ -156,7 +156,7 @@ class RelationshipsExportController {
       throws NotFoundException, BadRequestException, ForbiddenException {
 
     RelationshipOperationParams operationParams = mapper.map(requestParams);
-    LegacyRequestParams legacyRequestParams = map(requestParams);
+    LegacyRequestParams legacyRequestParams = map(operationParams);
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Relationship> relationships =
         tryGetRelationshipFrom(
@@ -192,7 +192,7 @@ class RelationshipsExportController {
   }
 
   // Temporary map method between new and legacy params
-  private LegacyRequestParams map(RequestParams requestParams) {
+  private LegacyRequestParams map(RelationshipOperationParams requestParams) {
     LegacyRequestParams legacyRequestParams = new LegacyRequestParams();
     legacyRequestParams.setTrackedEntity(requestParams.getTrackedEntity());
     legacyRequestParams.setEnrollment(requestParams.getEnrollment());

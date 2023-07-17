@@ -70,6 +70,10 @@ class RelationshipRequestParamsMapper {
     }
 
     return RelationshipOperationParams.builder()
+        .trackedEntity(trackedEntity == null ? null : trackedEntity.getValue())
+        .enrollment(
+            requestParams.getEnrollment() == null ? null : requestParams.getEnrollment().getValue())
+        .event(requestParams.getEvent() == null ? null : requestParams.getEvent().getValue())
         .page(requestParams.getPage())
         .pageSize(requestParams.getPageSize())
         .totalPages(requestParams.isTotalPages())

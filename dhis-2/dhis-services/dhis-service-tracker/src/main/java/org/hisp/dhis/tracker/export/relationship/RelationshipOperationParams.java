@@ -49,6 +49,12 @@ public class RelationshipOperationParams {
 
   private boolean skipPaging;
 
+  private String trackedEntity;
+
+  private String enrollment;
+
+  private String event;
+
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
