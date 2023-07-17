@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
@@ -100,11 +100,9 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
       @RequestParam(required = false) Integer pageSize)
       throws BadRequestException, ConflictException {
     UID enrollmentUid =
-        validateDeprecatedUidParameter(
-            "programInstance", programInstance, "enrollment", enrollment);
+        validateDeprecatedParameter("programInstance", programInstance, "enrollment", enrollment);
     UID eventUid =
-        validateDeprecatedUidParameter(
-            "programStageInstance", programStageInstance, "event", event);
+        validateDeprecatedParameter("programStageInstance", programStageInstance, "event", event);
 
     if (enrollmentUid == null && eventUid == null) {
       throw new ConflictException("Enrollment or Event must be specified.");
@@ -137,11 +135,9 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
       @RequestParam(required = false) Integer pageSize)
       throws BadRequestException {
     UID enrollmentUid =
-        validateDeprecatedUidParameter(
-            "programInstance", programInstance, "enrollment", enrollment);
+        validateDeprecatedParameter("programInstance", programInstance, "enrollment", enrollment);
     UID eventUid =
-        validateDeprecatedUidParameter(
-            "programStageInstance", programStageInstance, "event", event);
+        validateDeprecatedParameter("programStageInstance", programStageInstance, "event", event);
 
     ProgramMessageQueryParams params =
         programMessageService.getFromUrl(

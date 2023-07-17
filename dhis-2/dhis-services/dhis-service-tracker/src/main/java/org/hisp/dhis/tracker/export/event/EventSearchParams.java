@@ -112,7 +112,7 @@ public class EventSearchParams {
 
   private List<OrganisationUnit> accessibleOrgUnits = new ArrayList<>();
 
-  private OrganisationUnitSelectionMode orgUnitSelectionMode;
+  private OrganisationUnitSelectionMode orgUnitMode;
 
   private TrackedEntity trackedEntity;
 
@@ -330,13 +330,12 @@ public class EventSearchParams {
     return this;
   }
 
-  public OrganisationUnitSelectionMode getOrgUnitSelectionMode() {
-    return orgUnitSelectionMode;
+  public OrganisationUnitSelectionMode getOrgUnitMode() {
+    return orgUnitMode;
   }
 
-  public EventSearchParams setOrgUnitSelectionMode(
-      OrganisationUnitSelectionMode orgUnitSelectionMode) {
-    this.orgUnitSelectionMode = orgUnitSelectionMode;
+  public EventSearchParams setOrgUnitMode(OrganisationUnitSelectionMode orgUnitMode) {
+    this.orgUnitMode = orgUnitMode;
     return this;
   }
 
@@ -691,12 +690,12 @@ public class EventSearchParams {
   }
 
   public boolean isOrganisationUnitMode(OrganisationUnitSelectionMode mode) {
-    return orgUnitSelectionMode != null && orgUnitSelectionMode.equals(mode);
+    return orgUnitMode != null && orgUnitMode.equals(mode);
   }
 
   public boolean isPathOrganisationUnitMode() {
-    return orgUnitSelectionMode != null
-        && (orgUnitSelectionMode.equals(OrganisationUnitSelectionMode.DESCENDANTS)
-            || orgUnitSelectionMode.equals(OrganisationUnitSelectionMode.CHILDREN));
+    return orgUnitMode != null
+        && (orgUnitMode.equals(OrganisationUnitSelectionMode.DESCENDANTS)
+            || orgUnitMode.equals(OrganisationUnitSelectionMode.CHILDREN));
   }
 }

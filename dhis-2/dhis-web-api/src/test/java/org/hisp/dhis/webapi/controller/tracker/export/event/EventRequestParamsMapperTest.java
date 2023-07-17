@@ -43,6 +43,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -107,7 +108,7 @@ class EventRequestParamsMapperTest {
 
   private Program program;
 
-  private OrganisationUnit ou;
+  private OrganisationUnit orgUnit;
 
   @BeforeEach
   public void setUp() {
@@ -124,9 +125,9 @@ class EventRequestParamsMapperTest {
     when(programStageService.getProgramStage("PlZSBEN7iZd")).thenReturn(programStage);
     when(aclService.canDataRead(user, programStage)).thenReturn(true);
 
-    ou = new OrganisationUnit();
-    when(organisationUnitService.getOrganisationUnit(any())).thenReturn(ou);
-    when(organisationUnitService.isInUserHierarchy(ou)).thenReturn(true);
+    orgUnit = new OrganisationUnit();
+    when(organisationUnitService.getOrganisationUnit(any())).thenReturn(orgUnit);
+    when(organisationUnitService.isInUserHierarchy(orgUnit)).thenReturn(true);
 
     TrackedEntity trackedEntity = new TrackedEntity();
     when(entityInstanceService.getTrackedEntity("qnR1RK4cTIZ")).thenReturn(trackedEntity);
@@ -168,13 +169,45 @@ class EventRequestParamsMapperTest {
   }
 
   @Test
-  void shouldReturnOrgUnitWhenCorrectOrgUnitMapped() throws BadRequestException {
+  void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnit(UID.of(ou.getUid()));
+    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
 
     EventOperationParams params = mapper.map(requestParams);
 
-    assertEquals(ou.getUid(), params.getOrgUnitUid());
+    assertEquals(OrganisationUnitSelectionMode.SELECTED, params.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeGivenOuModeParam() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    assertEquals(OrganisationUnitSelectionMode.SELECTED, params.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldThrowIfDeprecatedAndNewOrgUnitModeParameterIsSet() {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
+    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
+
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertStartsWith("Only one parameter of 'ouMode' and 'orgUnitMode'", exception.getMessage());
+  }
+
+  @Test
+  void shouldReturnOrgUnitWhenCorrectOrgUnitMapped() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    assertEquals(orgUnit.getUid(), params.getOrgUnitUid());
   }
 
   @Test
