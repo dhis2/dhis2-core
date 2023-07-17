@@ -937,7 +937,7 @@ public class JdbcEventStore implements EventStore {
           .append(teaValueCol)
           .append(" ON ")
           .append(teaValueCol + ".trackedentityinstanceid")
-          .append(" = TEI.trackedentityinstanceid ")
+          .append(" = TEI.trackedentityid ")
           .append(" INNER JOIN trackedentityattribute ")
           .append(teaCol)
           .append(" ON ")
@@ -1046,7 +1046,7 @@ public class JdbcEventStore implements EventStore {
             "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, pi.enrollmentdate as pi_enrollmentdate, pi.incidentdate as pi_incidentdate, ")
         .append("p.type as p_type, ps.uid as ps_uid, ou.name as ou_name, ")
         .append(
-            "tei.trackedentityinstanceid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive ")
+            "tei.trackedentityid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive ")
         .append(
             getFromWhereClause(
                 params,
@@ -1096,8 +1096,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     fromBuilder
-        .append(
-            "left join trackedentity tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid ")
+        .append("left join trackedentity tei on tei.trackedentityid=pi.trackedentityinstanceid ")
         .append(
             "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ")
         .append("left join userinfo au on (psi.assigneduserid=au.userinfoid) ");

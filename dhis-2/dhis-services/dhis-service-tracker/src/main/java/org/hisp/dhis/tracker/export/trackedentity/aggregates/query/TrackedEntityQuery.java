@@ -68,7 +68,7 @@ public class TrackedEntityQuery {
           .put(COLUMNS.ORGUNIT_UID, new TableColumn("o", "uid", "ou_uid"))
           .put(
               COLUMNS.TRACKEDENTITYINSTANCEID,
-              new TableColumn("tei", "trackedentityinstanceid", "trackedentityinstanceid"))
+              new TableColumn("tei", "trackedentityid", "trackedentityid"))
           .put(
               COLUMNS.POTENTIALDUPLICATE,
               new TableColumn("tei", "potentialduplicate", "potentialduplicate"))
@@ -79,7 +79,7 @@ public class TrackedEntityQuery {
         + "FROM trackedentity tei "
         + "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid "
         + "join organisationunit o on tei.organisationunitid = o.organisationunitid "
-        + "where tei.trackedentityinstanceid in (:ids)";
+        + "where tei.trackedentityid in (:ids)";
   }
 
   private static String getSelect() {

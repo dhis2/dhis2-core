@@ -971,8 +971,8 @@ public class TrackedEntityQueryParams {
   public enum OrderColumn {
     TRACKEDENTITY("trackedEntity", "uid", MAIN_QUERY_ALIAS),
     // Ordering by id is the same as ordering by created date
-    CREATED(CREATED_ID, "trackedentityinstanceid", MAIN_QUERY_ALIAS),
-    CREATED_AT("createdAt", "trackedentityinstanceid", MAIN_QUERY_ALIAS),
+    CREATED(CREATED_ID, "trackedentityid", MAIN_QUERY_ALIAS),
+    CREATED_AT("createdAt", "trackedentityid", MAIN_QUERY_ALIAS),
     CREATED_AT_CLIENT("createdAtClient", "createdAtClient", MAIN_QUERY_ALIAS),
     UPDATED_AT("updatedAt", "lastUpdated", MAIN_QUERY_ALIAS),
     UPDATED_AT_CLIENT("updatedAtClient", "lastUpdatedAtClient", MAIN_QUERY_ALIAS),

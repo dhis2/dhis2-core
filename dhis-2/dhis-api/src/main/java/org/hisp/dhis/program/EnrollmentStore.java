@@ -162,11 +162,11 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    * <p>Resulting SQL query:
    *
    * <pre>{@code
-   * select programinstanceid, programid, trackedentityinstanceid
+   * select programinstanceid, programid, trackedentityid
    *     from programinstance
-   *     where (programid = 726 and trackedentityinstanceid = 19 and status = 'ACTIVE')
-   *        or (programid = 726 and trackedentityinstanceid = 18 and status = 'ACTIVE')
-   *        or (programid = 726 and trackedentityinstanceid = 17 and status = 'ACTIVE')
+   *     where (programid = 726 and trackedentityid = 19 and status = 'ACTIVE')
+   *        or (programid = 726 and trackedentityid = 18 and status = 'ACTIVE')
+   *        or (programid = 726 and trackedentityid = 17 and status = 'ACTIVE')
    * }</pre>
    *
    * @param programTeiPair a List of Pair, where the left side is a {@see Program} and the right

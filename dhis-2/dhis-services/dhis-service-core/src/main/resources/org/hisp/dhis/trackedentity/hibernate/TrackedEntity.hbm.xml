@@ -7,7 +7,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.trackedentity.TrackedEntity" table="trackedentity">
 
-    <id name="id" column="trackedentityinstanceid">
+    <id name="id" column="trackedentityid">
       <generator class="sequence">
         <param name="sequence_name">trackedentityinstance_sequence</param>
       </generator>
