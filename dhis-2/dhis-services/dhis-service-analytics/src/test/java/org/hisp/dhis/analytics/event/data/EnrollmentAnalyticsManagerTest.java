@@ -514,12 +514,12 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + ") FROM analytics_event_"
             + programA.getUid().toLowerCase()
             + " as subax WHERE  "
-            + "subax.tei in (select tei.uid from trackedentityinstance tei "
+            + "subax.tei in (select tei.uid from trackedentity tei "
             + "LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  "
             + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
             + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
             + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-            + "LEFT JOIN trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid "
+            + "LEFT JOIN trackedentity tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid "
             + "WHERE rty.relationshiptypeid = "
             + relationshipTypeA.getId()
             + " AND tei.uid = ax.tei )) as \""
@@ -563,7 +563,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + ") FROM analytics_event_"
             + programA.getUid().toLowerCase()
             + " as subax WHERE "
-            + " subax.tei in (select tei.uid from trackedentityinstance tei LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  "
+            + " subax.tei in (select tei.uid from trackedentity tei LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  "
             + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
             + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
             + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
@@ -638,12 +638,12 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + ") FROM analytics_event_"
             + programB.getUid().toLowerCase()
             + " as subax WHERE  "
-            + "subax.tei in (select tei.uid from trackedentityinstance tei "
+            + "subax.tei in (select tei.uid from trackedentity tei "
             + "LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  "
             + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
             + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
             + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-            + "LEFT JOIN trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid "
+            + "LEFT JOIN trackedentity tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid "
             + "WHERE rty.relationshiptypeid = "
             + relationshipTypeA.getId()
             + " AND tei.uid = ax.tei )) as \""

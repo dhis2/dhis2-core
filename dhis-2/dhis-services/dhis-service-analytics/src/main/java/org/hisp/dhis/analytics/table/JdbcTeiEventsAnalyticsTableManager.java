@@ -207,7 +207,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
                 " (select distinct extract(year from "
                     + getDateLinkedToStatus()
                     + ") as supportedyear ")
-            .append(" from trackedentityinstance tei ")
+            .append(" from trackedentity tei ")
             .append(
                 " inner join trackedentitytype tet on tet.trackedentitytypeid = tei.trackedentitytypeid ")
             .append(
@@ -336,7 +336,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
             " inner join programinstance pi on pi.programinstanceid = psi.programinstanceid"
                 + " and pi.deleted is false")
         .append(
-            " inner join trackedentityinstance tei on tei.trackedentityinstanceid = pi.trackedentityinstanceid"
+            " inner join trackedentity tei on tei.trackedentityinstanceid = pi.trackedentityinstanceid"
                 + " and tei.deleted is false"
                 + " and tei.trackedentitytypeid = "
                 + partition.getMasterTable().getTrackedEntityType().getId()

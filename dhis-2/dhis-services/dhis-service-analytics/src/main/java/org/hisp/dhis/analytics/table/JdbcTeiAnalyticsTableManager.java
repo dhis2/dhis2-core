@@ -374,7 +374,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     TrackedEntityType trackedEntityType = partition.getMasterTable().getTrackedEntityType();
 
     removeLastComma(sql)
-        .append(" from trackedentityinstance tei")
+        .append(" from trackedentity tei")
         .append(" left join organisationunit ou on tei.organisationunitid = ou.organisationunitid")
         .append(
             " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid");
