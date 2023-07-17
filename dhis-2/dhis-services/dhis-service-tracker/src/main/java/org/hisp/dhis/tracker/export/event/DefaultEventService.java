@@ -65,6 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class DefaultEventService implements EventService {
+
   private final CurrentUserService currentUserService;
 
   private final EventStore eventStore;
@@ -175,11 +176,8 @@ public class DefaultEventService implements EventService {
       operationParams.setDefaultPaging();
     }
 
-    Events events = new Events();
-
     if (operationParams.isSkipPaging()) {
-      events.setEvents(eventStore.getEvents(searchParams, emptyMap()));
-      return events;
+      return Events.withoutPagination(eventStore.getEvents(searchParams, emptyMap()));
     }
 
     Pager pager;
@@ -196,16 +194,13 @@ public class DefaultEventService implements EventService {
       pager = handleLastPageFlag(operationParams, eventList);
     }
 
-    events.setPager(pager);
-    events.setEvents(eventList);
-
-    return events;
+    return Events.of(eventList, pager);
   }
 
   /**
    * This method will apply the logic related to the parameter 'totalPages=false'. This works in
-   * conjunction with the method: {@link
-   * EventStore#getEvents(EventSearchParams,Map<String,Set<String>>)}
+   * conjunction with the method: {@link EventStore#getEvents(EventSearchParams,
+   * Map<String,Set<String>>)}
    *
    * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
    * allow us to evaluate if we are in the last page or not. And this is what his method does,

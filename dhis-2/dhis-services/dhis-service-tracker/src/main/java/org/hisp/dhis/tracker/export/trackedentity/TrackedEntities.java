@@ -40,10 +40,10 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 public class TrackedEntities {
 
   public static final TrackedEntities EMPTY = new TrackedEntities(List.of(), null);
-  private final List<TrackedEntity> trackedEntityList;
+  private final List<TrackedEntity> trackedEntities;
   private final Pager pager;
 
-  public static TrackedEntities withoutPagination(List<TrackedEntity> trackedEntityList) {
-    return new TrackedEntities(trackedEntityList, null);
+  public static TrackedEntities withoutPagination(List<TrackedEntity> trackedEntities) {
+    return new TrackedEntities(trackedEntities, null);
   }
 }

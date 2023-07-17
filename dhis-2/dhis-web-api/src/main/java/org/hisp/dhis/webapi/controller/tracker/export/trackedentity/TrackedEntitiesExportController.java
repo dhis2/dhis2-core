@@ -130,7 +130,7 @@ class TrackedEntitiesExportController {
 
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(
-            TRACKED_ENTITY_MAPPER.fromCollection(trackedEntities.getTrackedEntityList()),
+            TRACKED_ENTITY_MAPPER.fromCollection(trackedEntities.getTrackedEntities()),
             requestParams.getFields());
     return pagingWrapper.withInstances(objectNodes);
   }
@@ -154,7 +154,7 @@ class TrackedEntitiesExportController {
 
     List<TrackedEntity> trackedEntities =
         TRACKED_ENTITY_MAPPER.fromCollection(
-            trackedEntityService.getTrackedEntities(operationParams).getTrackedEntityList());
+            trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities());
 
     OutputStream outputStream = response.getOutputStream();
 
