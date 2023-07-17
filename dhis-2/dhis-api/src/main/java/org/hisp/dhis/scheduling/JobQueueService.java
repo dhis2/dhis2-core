@@ -29,6 +29,8 @@ package org.hisp.dhis.scheduling;
 
 import java.util.List;
 import java.util.Set;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 
@@ -50,7 +52,7 @@ public interface JobQueueService {
    * @return all jobs that are part of the queue in execution order
    * @throws NotFoundException when no such queue exists
    */
-  List<JobConfiguration> getQueue(String name) throws NotFoundException;
+  List<JobConfiguration> getQueue(@Nonnull String name) throws NotFoundException;
 
   /**
    * Create a new queue sequence.
@@ -59,17 +61,23 @@ public interface JobQueueService {
    * @param cronExpression trigger CRON expression to start the queue sequence
    * @param sequence UIDs of the {@link JobConfiguration}s to run
    */
-  void createQueue(String name, String cronExpression, List<String> sequence)
+  void createQueue(
+      @Nonnull String name, @Nonnull String cronExpression, @Nonnull List<String> sequence)
       throws NotFoundException, ConflictException;
 
   /**
    * Update a queue sequence.
    *
    * @param name name of the queue
+   * @param newName potentially a new name for the queue, can be null or the same as name
    * @param newCronExpression trigger CRON expression to start the queue sequence
    * @param newSequence UIDs of the {@link JobConfiguration}s to run
    */
-  void updateQueue(String name, String newCronExpression, List<String> newSequence)
+  void updateQueue(
+      @Nonnull String name,
+      @CheckForNull String newName,
+      @Nonnull String newCronExpression,
+      @Nonnull List<String> newSequence)
       throws NotFoundException, ConflictException;
 
   /**
@@ -83,5 +91,5 @@ public interface JobQueueService {
    *
    * @param name name of the queue
    */
-  void deleteQueue(String name) throws NotFoundException;
+  void deleteQueue(@Nonnull String name) throws NotFoundException;
 }

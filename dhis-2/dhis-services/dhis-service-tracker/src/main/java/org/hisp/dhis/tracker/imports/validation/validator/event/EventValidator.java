@@ -47,7 +47,6 @@ public class EventValidator implements Validator<TrackerBundle> {
   public EventValidator(
       SecurityOwnershipValidator securityOwnershipValidator,
       CategoryOptValidator categoryOptValidator) {
-    // @formatter:off
     validator =
         all(
             each(
@@ -68,7 +67,6 @@ public class EventValidator implements Validator<TrackerBundle> {
                         new DataValuesValidator(),
                         new AssignedUserValidator()))),
             field(TrackerBundle::getEvents, new RepeatedEventsValidator()));
-    // @formatter:on
   }
 
   @Override

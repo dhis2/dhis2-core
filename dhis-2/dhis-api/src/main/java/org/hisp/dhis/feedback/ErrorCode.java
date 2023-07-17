@@ -463,7 +463,7 @@ public enum ErrorCode {
   E7234("Query filter: `{0}` not valid for query item value type: `{1}`"),
   E7235("Either programId or programStageId must be specified"),
   E7236("Program stage '{0}' is not associated to program '{0}'"),
-  E7237("Sorting must have a dimension and a direction"),
+  E7237("Sorting must have a valid dimension and a direction"),
   E7238("Sorting dimension ‘{0}’ is not a column"),
 
   /* TEI analytics */
