@@ -110,8 +110,6 @@ public class EventSearchParams {
 
   private Boolean followUp;
 
-  private OrganisationUnit orgUnit;
-
   private List<OrganisationUnit> accessibleOrgUnits = new ArrayList<>();
 
   private OrganisationUnitSelectionMode orgUnitSelectionMode;
