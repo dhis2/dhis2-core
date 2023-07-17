@@ -44,7 +44,11 @@ import org.apache.commons.math3.stat.descriptive.rank.Percentile.EstimationType;
  *
  * @author Jim Grace
  */
-public abstract class VectorPercentileBase extends VectorFunction {
+public abstract class VectorPercentileBase extends VectorFunction<Double> {
+  public VectorPercentileBase() {
+    super(Double.class);
+  }
+
   private final Percentile percentile = new Percentile().withEstimationType(getEstimationType());
 
   @Override

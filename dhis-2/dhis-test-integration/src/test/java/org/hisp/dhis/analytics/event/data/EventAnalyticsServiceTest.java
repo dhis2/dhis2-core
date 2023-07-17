@@ -37,6 +37,7 @@ import static java.util.stream.IntStream.range;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
+import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.FIRST;
 import static org.hisp.dhis.analytics.AggregationType.FIRST_AVERAGE_ORG_UNIT;
 import static org.hisp.dhis.analytics.AggregationType.LAST;
@@ -48,6 +49,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.common.ValueType.INTEGER;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
+import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeByName;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.hisp.dhis.program.AnalyticsType.EVENT;
@@ -211,6 +213,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
   private DataElement deA;
 
+  private DataElement deB;
+
   private DataElement deU;
 
   private TrackedEntityAttribute atU;
@@ -328,8 +332,12 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     deA.setUid("deInteger0A");
     dataElementService.addDataElement(deA);
 
+    deB = createDataElement('B', TEXT, NONE);
+    deB.setUid("deText0000B");
+    dataElementService.addDataElement(deB);
+
     deU = createDataElement('U', ORGANISATION_UNIT, NONE);
-    deU.setUid("deOrgUnitU");
+    deU.setUid("deOrgUnit0U");
     dataElementService.addDataElement(deU);
 
     // Program Stages
@@ -342,6 +350,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     ProgramStage psB = createProgramStage('B', 0);
     psB.setUid("progrStageB");
     psB.addDataElement(deA, 1);
+    psB.addDataElement(deB, 2);
     idObjectManager.save(psB);
 
     // Programs
@@ -437,56 +446,64 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     eventB1.setDueDate(jan15);
     eventB1.setExecutionDate(jan15);
     eventB1.setUid("event0000B1");
-    eventB1.setEventDataValues(Set.of(new EventDataValue(deA.getUid(), "10")));
+    eventB1.setEventDataValues(
+        Set.of(new EventDataValue(deA.getUid(), "10"), new EventDataValue(deB.getUid(), "A")));
     eventB1.setAttributeOptionCombo(cocDefault);
 
     Event eventB2 = createEvent(psB, piB, ouI);
     eventB2.setDueDate(jan20);
     eventB2.setExecutionDate(jan20);
     eventB2.setUid("event0000B2");
-    eventB2.setEventDataValues(Set.of(new EventDataValue(deA.getUid(), "20")));
+    eventB2.setEventDataValues(
+        Set.of(new EventDataValue(deA.getUid(), "20"), new EventDataValue(deB.getUid(), "B")));
     eventB2.setAttributeOptionCombo(cocDefault);
 
     Event eventB3 = createEvent(psB, piB, ouJ);
     eventB3.setDueDate(jan15);
     eventB3.setExecutionDate(jan15);
     eventB3.setUid("event0000B3");
-    eventB3.setEventDataValues(Set.of(new EventDataValue(deA.getUid(), "30")));
+    eventB3.setEventDataValues(
+        Set.of(new EventDataValue(deA.getUid(), "30"), new EventDataValue(deB.getUid(), "C")));
     eventB3.setAttributeOptionCombo(cocDefault);
 
     Event eventB4 = createEvent(psB, piB, ouJ);
     eventB4.setDueDate(jan20);
     eventB4.setExecutionDate(jan20);
     eventB4.setUid("event0000B4");
-    eventB4.setEventDataValues(Set.of(new EventDataValue(deA.getUid(), "40")));
+    eventB4.setEventDataValues(
+        Set.of(new EventDataValue(deA.getUid(), "40"), new EventDataValue(deB.getUid(), "D")));
     eventB4.setAttributeOptionCombo(cocDefault);
 
     Event eventB5 = createEvent(psB, piB, ouI);
     eventB5.setDueDate(feb15);
     eventB5.setExecutionDate(feb15);
     eventB5.setUid("event0000B5");
-    eventB5.setEventDataValues(Set.of(new EventDataValue(deA.getUid(), "50")));
+    eventB5.setEventDataValues(
+        Set.of(new EventDataValue(deA.getUid(), "50"), new EventDataValue(deB.getUid(), "E")));
     eventB5.setAttributeOptionCombo(cocDefault);
 
     Event eventB6 = createEvent(psB, piB, ouI);
     eventB6.setDueDate(feb15Noon);
     eventB6.setExecutionDate(feb15Noon);
     eventB6.setUid("event0000B6");
-    eventB6.setEventDataValues(Set.of(new EventDataValue(deA.getUid(), "60")));
+    eventB6.setEventDataValues(
+        Set.of(new EventDataValue(deA.getUid(), "60"), new EventDataValue(deB.getUid(), "F")));
     eventB6.setAttributeOptionCombo(cocDefault);
 
     Event eventB7 = createEvent(psB, piB, ouJ);
     eventB7.setDueDate(feb15);
     eventB7.setExecutionDate(feb15);
     eventB7.setUid("event0000B7");
-    eventB7.setEventDataValues(Set.of(new EventDataValue(deA.getUid(), "70")));
+    eventB7.setEventDataValues(
+        Set.of(new EventDataValue(deA.getUid(), "70"), new EventDataValue(deB.getUid(), "G")));
     eventB7.setAttributeOptionCombo(cocDefault);
 
     Event eventB8 = createEvent(psB, piB, ouJ);
     eventB8.setDueDate(feb15Noon);
     eventB8.setExecutionDate(feb15Noon);
     eventB8.setUid("event0000B8");
-    eventB8.setEventDataValues(Set.of(new EventDataValue(deA.getUid(), "80")));
+    eventB8.setEventDataValues(
+        Set.of(new EventDataValue(deA.getUid(), "80"), new EventDataValue(deB.getUid(), "H")));
     eventB8.setAttributeOptionCombo(cocDefault);
 
     saveEvents(
@@ -751,7 +768,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     assertGridContains(
         // Headers
-        List.of("eventdate", "ou", "deOrgUnitU"),
+        List.of("eventdate", "ou", "deOrgUnit0U"),
         // Grid
         List.of(
             List.of("2017-01-15 00:00:00.0", "ouabcdefghD", "OrganisationUnitL"),
@@ -769,7 +786,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     assertGridContains(
         // Headers
-        List.of("eventdate", "ou", "deOrgUnitU"),
+        List.of("eventdate", "ou", "deOrgUnit0U"),
         // Grid
         List.of(
             List.of("2017-01-15 00:00:00.0", "ouabcdefghE", "OrganisationUnitL"),
@@ -789,7 +806,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     // there is no monthly aggregation.
     assertGridContains(
         // Headers
-        List.of("eventdate", "ou", "deOrgUnitU"),
+        List.of("eventdate", "ou", "deOrgUnit0U"),
         // Grid
         List.of(
             List.of("2017-01-15 00:00:00.0", "ouabcdefghE", "OrganisationUnitL"),
@@ -809,7 +826,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     // there is no monthly aggregation.
     assertGridContains(
         // Headers
-        List.of("eventdate", "ou", "deOrgUnitU"),
+        List.of("eventdate", "ou", "deOrgUnit0U"),
         // Grid
         List.of(
             List.of("2017-01-15 00:00:00.0", "ouabcdefghH", "OrganisationUnitL"),
@@ -826,7 +843,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     assertGridContains(
         // Headers
-        List.of("eventdate", "ou", "deOrgUnitU"),
+        List.of("eventdate", "ou", "deOrgUnit0U"),
         // Grid
         List.of(
             List.of("2017-01-15 00:00:00.0", "ouabcdefghI", "OrganisationUnitL"),
@@ -844,7 +861,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     assertGridContains(
         // Headers
-        List.of("eventdate", "ou", "deOrgUnitU"),
+        List.of("eventdate", "ou", "deOrgUnit0U"),
         // Grid
         List.of(
             List.of("2017-01-15 00:00:00.0", "ouabcdefghL", "OrganisationUnitL"),
@@ -1194,6 +1211,40 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         getTestAggregatedGrid(AVERAGE));
   }
 
+  @Test
+  void testEventProgramIndicatorCustomCountIntegers() {
+    assertGridContains(
+        // Headers
+        List.of("pe", "ou", "value"),
+        // Grid
+        List.of(
+            List.of("201701", "ouabcdefghI", "2.0"), // count(10,20)
+            List.of("201701", "ouabcdefghJ", "2.0"), // count(30,40)
+            List.of("201701", "ouabcdefghA", "4.0"), // count(10,20,30,40)
+            List.of("201702", "ouabcdefghI", "2.0"), // count(50,60)
+            List.of("201702", "ouabcdefghJ", "2.0"), // count(70,80)
+            List.of("201702", "ouabcdefghA", "4.0") // count(50,60,70,80)
+            ),
+        getTestAggregatedGrid("count(#{progrStageB.deInteger0A})", CUSTOM));
+  }
+
+  @Test
+  void testEventProgramIndicatorCustomCountOrgUnits() {
+    assertGridContains(
+        // Headers
+        List.of("pe", "ou", "value"),
+        // Grid
+        List.of(
+            List.of("201701", "ouabcdefghI", "2.0"), // count("A","B")
+            List.of("201701", "ouabcdefghJ", "2.0"), // count("C","D")
+            List.of("201701", "ouabcdefghA", "4.0"), // count("A","B","C","D")
+            List.of("201702", "ouabcdefghI", "2.0"), // count("E","F")
+            List.of("201702", "ouabcdefghJ", "2.0"), // count("G","H")
+            List.of("201702", "ouabcdefghA", "4.0") // count("E","F","G","H")
+            ),
+        getTestAggregatedGrid("count(#{progrStageB.deText0000B})", CUSTOM));
+  }
+
   // -------------------------------------------------------------------------
   // Supportive test methods
   // -------------------------------------------------------------------------
@@ -1240,8 +1291,12 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
   /** Gets a grid to test aggregation types */
   private Grid getTestAggregatedGrid(AggregationType aggregationType) {
-    ProgramIndicator pi =
-        createProgramIndicatorB(EVENT, "#{progrStageB.deInteger0A}", null, aggregationType);
+    return getTestAggregatedGrid("#{progrStageB.deInteger0A}", aggregationType);
+  }
+
+  /** Gets a grid to test aggregation types with a custom expression */
+  private Grid getTestAggregatedGrid(String expression, AggregationType aggregationType) {
+    ProgramIndicator pi = createProgramIndicatorB(EVENT, expression, null, aggregationType);
 
     EventQueryParams params =
         getBaseEventQueryParamsBuilder()
@@ -1296,8 +1351,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
    *   <li>has rows with expected values in those columns
    * </ol>
    *
-   * Note that the headers and the expected values do not have to include every column in the grid.
-   * They need only include those columns needed for the test.
+   * <p>Note that the headers and the expected values do not have to include every column in the
+   * grid. They need only include those columns needed for the test.
    *
    * <p>The grid rows may be found in any order. The expected and actual rows are converted to text
    * strings and sorted.
