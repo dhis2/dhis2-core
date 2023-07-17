@@ -5,7 +5,7 @@
   [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
   >
 <hibernate-mapping>
-  <class name="org.hisp.dhis.trackedentity.TrackedEntity" table="trackedentityinstance">
+  <class name="org.hisp.dhis.trackedentity.TrackedEntity" table="trackedentity">
 
     <id name="id" column="trackedentityinstanceid">
       <generator class="sequence">
