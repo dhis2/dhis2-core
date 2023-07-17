@@ -39,6 +39,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -68,7 +70,7 @@ public class DefaultJobQueueService implements JobQueueService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<JobConfiguration> getQueue(String name) throws NotFoundException {
+  public List<JobConfiguration> getQueue(@Nonnull String name) throws NotFoundException {
     List<JobConfiguration> sequence =
         jobConfigurationStore.getAll().stream()
             .filter(config -> name.equals(config.getQueueName()))
@@ -82,7 +84,8 @@ public class DefaultJobQueueService implements JobQueueService {
 
   @Override
   @Transactional
-  public void createQueue(String name, String cronExpression, List<String> sequence)
+  public void createQueue(
+      @Nonnull String name, @Nonnull String cronExpression, @Nonnull List<String> sequence)
       throws NotFoundException, ConflictException {
     if (!getQueueJobsByQueueName(name).isEmpty()) {
       throw new ConflictException(ErrorCode.E7021, name);
@@ -95,8 +98,17 @@ public class DefaultJobQueueService implements JobQueueService {
 
   @Override
   @Transactional
-  public void updateQueue(String name, String newCronExpression, List<String> newSequence)
+  public void updateQueue(
+      @Nonnull String name,
+      @CheckForNull String newName,
+      @Nonnull String newCronExpression,
+      @Nonnull List<String> newSequence)
       throws NotFoundException, ConflictException {
+    if (newName != null && !newName.isEmpty() && !newName.equals(name)) {
+      deleteQueue(name);
+      createQueue(newName, newCronExpression, newSequence);
+      return;
+    }
     Map<String, JobConfiguration> oldQueueJobs = getQueueJobsByQueueName(name);
     if (oldQueueJobs.isEmpty()) {
       throw new NotFoundException(ErrorCode.E7020, name);
@@ -113,7 +125,7 @@ public class DefaultJobQueueService implements JobQueueService {
 
   @Override
   @Transactional
-  public void deleteQueue(String name) throws NotFoundException {
+  public void deleteQueue(@Nonnull String name) throws NotFoundException {
     Collection<JobConfiguration> jobs = getQueueJobsByQueueName(name).values();
     if (jobs.isEmpty()) {
       throw new NotFoundException(ErrorCode.E7020, name);
