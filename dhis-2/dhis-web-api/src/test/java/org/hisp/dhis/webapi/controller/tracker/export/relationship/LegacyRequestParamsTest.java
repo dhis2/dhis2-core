@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.webapi.common.UID;
 import org.junit.jupiter.api.Test;
 
 class LegacyRequestParamsTest {
@@ -40,7 +39,7 @@ class LegacyRequestParamsTest {
   @Test
   void getIdentifierParamIfTrackedEntityIsSet() {
     LegacyRequestParams legacyRequestParams = new LegacyRequestParams();
-    legacyRequestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
+    legacyRequestParams.setTrackedEntity("Hq3Kc6HK4OZ");
 
     assertEquals("Hq3Kc6HK4OZ", legacyRequestParams.getIdentifierParam());
     assertEquals(
@@ -50,7 +49,7 @@ class LegacyRequestParamsTest {
   @Test
   void getIdentifierNameIfTrackedEntityIsSet() {
     LegacyRequestParams legacyRequestParams = new LegacyRequestParams();
-    legacyRequestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
+    legacyRequestParams.setTrackedEntity("Hq3Kc6HK4OZ");
 
     assertEquals("trackedEntity", legacyRequestParams.getIdentifierName());
   }
@@ -58,7 +57,7 @@ class LegacyRequestParamsTest {
   @Test
   void getIdentifierClassIfTrackedEntityIsSet() {
     LegacyRequestParams legacyRequestParams = new LegacyRequestParams();
-    legacyRequestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
+    legacyRequestParams.setTrackedEntity("Hq3Kc6HK4OZ");
 
     assertEquals(TrackedEntity.class, legacyRequestParams.getIdentifierClass());
   }
@@ -66,7 +65,7 @@ class LegacyRequestParamsTest {
   @Test
   void getIdentifierParamIfEnrollmentIsSet() {
     LegacyRequestParams legacyRequestParams = new LegacyRequestParams();
-    legacyRequestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
+    legacyRequestParams.setEnrollment("Hq3Kc6HK4OZ");
 
     assertEquals("Hq3Kc6HK4OZ", legacyRequestParams.getIdentifierParam());
   }
@@ -74,7 +73,7 @@ class LegacyRequestParamsTest {
   @Test
   void getIdentifierNameIfEnrollmentIsSet() {
     LegacyRequestParams legacyRequestParams = new LegacyRequestParams();
-    legacyRequestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
+    legacyRequestParams.setEnrollment("Hq3Kc6HK4OZ");
 
     assertEquals("enrollment", legacyRequestParams.getIdentifierName());
   }
@@ -82,7 +81,7 @@ class LegacyRequestParamsTest {
   @Test
   void getIdentifierClassIfEnrollmentIsSet() {
     LegacyRequestParams legacyRequestParams = new LegacyRequestParams();
-    legacyRequestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
+    legacyRequestParams.setEnrollment("Hq3Kc6HK4OZ");
 
     assertEquals(Enrollment.class, legacyRequestParams.getIdentifierClass());
   }
@@ -90,7 +89,7 @@ class LegacyRequestParamsTest {
   @Test
   void getIdentifierParamIfEventIsSet() {
     LegacyRequestParams legacyRequestParams = new LegacyRequestParams();
-    legacyRequestParams.setEvent(UID.of("Hq3Kc6HK4OZ"));
+    legacyRequestParams.setEvent("Hq3Kc6HK4OZ");
 
     assertEquals("Hq3Kc6HK4OZ", legacyRequestParams.getIdentifierParam());
   }
@@ -99,7 +98,7 @@ class LegacyRequestParamsTest {
   void getIdentifierNameIfEventIsSet() {
 
     LegacyRequestParams legacyRequestParams = new LegacyRequestParams();
-    legacyRequestParams.setEvent(UID.of("Hq3Kc6HK4OZ"));
+    legacyRequestParams.setEvent("Hq3Kc6HK4OZ");
 
     assertEquals("event", legacyRequestParams.getIdentifierName());
   }
@@ -107,7 +106,7 @@ class LegacyRequestParamsTest {
   @Test
   void getIdentifierClassIfEventIsSet() {
     LegacyRequestParams legacyRequestParams = new LegacyRequestParams();
-    legacyRequestParams.setEvent(UID.of("Hq3Kc6HK4OZ"));
+    legacyRequestParams.setEvent("Hq3Kc6HK4OZ");
 
     assertEquals(Event.class, legacyRequestParams.getIdentifierClass());
   }
