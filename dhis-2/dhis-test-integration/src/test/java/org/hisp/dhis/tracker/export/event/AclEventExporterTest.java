@@ -33,6 +33,8 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -42,10 +44,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -57,6 +60,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class AclEventExporterTest extends TrackerTest {
@@ -139,7 +143,7 @@ class AclEventExporterTest extends TrackerTest {
         events.isEmpty(),
         "Expected to find events when no program specified, ou mode descendants and org units in search scope");
     assertContainsOnly(
-        events.stream().map(e -> e.getOrganisationUnit().getUid()).toList(),
+        events.stream().map(e -> e.getOrganisationUnit().getUid()).collect(Collectors.toSet()),
         List.of("uoNW0E3xXUy", "h4w96yEMlzO", "tSsGrtfRzjY"));
   }
 
@@ -185,7 +189,7 @@ class AclEventExporterTest extends TrackerTest {
         events.isEmpty(),
         "Expected to find events when no program specified, ou mode children and org units in search scope");
     assertContainsOnly(
-        events.stream().map(e -> e.getOrganisationUnit().getUid()).toList(),
+        events.stream().map(e -> e.getOrganisationUnit().getUid()).collect(Collectors.toSet()),
         List.of("uoNW0E3xXUy", "h4w96yEMlzO"));
   }
 
@@ -413,25 +417,71 @@ class AclEventExporterTest extends TrackerTest {
                     + " instead"));
   }
 
-  private void assertContainsOnly(List<String> actualOrgUnits, List<String> expectedOrgUnits) {
-    List<String> missing = CollectionUtils.difference(expectedOrgUnits, actualOrgUnits);
-    List<String> extra = CollectionUtils.difference(actualOrgUnits, expectedOrgUnits);
+  @Test
+  void shouldReturnEventsNonSuperUserIsOwnerOrHasUserAccess()
+      throws ForbiddenException, BadRequestException {
+    // given events have a COC which has a CO which the
+    // user owns yMj2MnmNI8L and has user read access to OUUdG3sdOqb
+    injectSecurityContext(userService.getUser("o1HMTIzBGo7"));
 
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .orgUnitUid("DiszpKrYNg8")
+            .events(Set.of("lumVtWwwy0O", "cadc5eGj0j7"))
+            .build();
+
+    Events events = eventService.getEvents(params);
+
+    assertContainsOnly(List.of("lumVtWwwy0O", "cadc5eGj0j7"), eventUids(events));
+    List<Executable> executables =
+        events.getEvents().stream()
+            .map(
+                e ->
+                    (Executable)
+                        () ->
+                            assertEquals(
+                                2,
+                                e.getAttributeOptionCombo().getCategoryOptions().size(),
+                                String.format(
+                                    "got category options %s",
+                                    e.getAttributeOptionCombo().getCategoryOptions())))
+            .collect(Collectors.toList());
     assertAll(
-        "assertContainsAllOrgUnits found mismatch",
-        () ->
-            assertTrue(
-                missing.isEmpty(),
-                () -> String.format("Expected %s to be in %s", missing, actualOrgUnits)),
-        () ->
-            assertTrue(
-                extra.isEmpty(),
-                () -> String.format("Expected %s NOT to be in %s", extra, actualOrgUnits)));
+        "all events should have the optionSize set which is the number of COs in the COC",
+        executables);
+  }
+
+  @Test
+  void shouldReturnNoEventsGivenUserHasNoAccess() throws ForbiddenException, BadRequestException {
+    // given events have a COC which has a CO (OUUdG3sdOqb/yMj2MnmNI8L) which are not publicly
+    // readable, user is not the owner and has no user access
+    injectSecurityContext(userService.getUser("CYVgFNKCaUS"));
+
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .orgUnitUid("DiszpKrYNg8")
+            .events(Set.of("lumVtWwwy0O", "cadc5eGj0j7"))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertIsEmpty(events);
   }
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
     T t = manager.get(type, uid);
     assertNotNull(t, () -> String.format("metadata with uid '%s' should have been created", uid));
     return t;
+  }
+
+  private static List<String> eventUids(Events events) {
+    return events.getEvents().stream().map(Event::getUid).collect(Collectors.toList());
+  }
+
+  private List<String> getEvents(EventOperationParams params)
+      throws ForbiddenException, BadRequestException {
+    return eventService.getEvents(params).getEvents().stream()
+        .map(Event::getUid)
+        .collect(Collectors.toList());
   }
 }
