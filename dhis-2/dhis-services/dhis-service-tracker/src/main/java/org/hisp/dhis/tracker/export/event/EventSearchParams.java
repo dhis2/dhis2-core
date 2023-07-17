@@ -323,15 +323,6 @@ public class EventSearchParams {
     return this;
   }
 
-  public OrganisationUnit getOrgUnit() {
-    return orgUnit;
-  }
-
-  public EventSearchParams setOrgUnit(OrganisationUnit orgUnit) {
-    this.orgUnit = orgUnit;
-    return this;
-  }
-
   public List<OrganisationUnit> getAccessibleOrgUnits() {
     return accessibleOrgUnits;
   }

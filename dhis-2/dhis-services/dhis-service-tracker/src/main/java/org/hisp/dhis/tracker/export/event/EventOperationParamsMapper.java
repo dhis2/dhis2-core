@@ -118,9 +118,11 @@ public class EventOperationParamsMapper {
     Program program = validateProgram(operationParams.getProgramUid());
     ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid());
     OrganisationUnit requestedOrgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid());
+
+    OrganisationUnitSelectionMode orgUnitMode =
+        getOrgUnitMode(requestedOrgUnit, operationParams.getOrgUnitSelectionMode());
     List<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            requestedOrgUnit, operationParams.getOrgUnitSelectionMode(), program, user);
+        validateAccessibleOrgUnits(user, requestedOrgUnit, orgUnitMode, program);
     validateUser(user, program, programStage);
     TrackedEntity trackedEntity = validateTrackedEntity(operationParams.getTrackedEntityUid());
 
@@ -162,13 +164,11 @@ public class EventOperationParamsMapper {
     return searchParams
         .setProgram(program)
         .setProgramStage(programStage)
-        .setOrgUnit(requestedOrgUnit)
         .setAccessibleOrgUnits(accessibleOrgUnits)
         .setTrackedEntity(trackedEntity)
         .setProgramStatus(operationParams.getProgramStatus())
         .setFollowUp(operationParams.getFollowUp())
-        .setOrgUnitSelectionMode(
-            getOrgUnitMode(requestedOrgUnit, operationParams.getOrgUnitSelectionMode()))
+        .setOrgUnitSelectionMode(orgUnitMode)
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(
                 operationParams.getAssignedUserMode(), user, operationParams.getAssignedUsers()))
@@ -202,27 +202,6 @@ public class EventOperationParamsMapper {
         .setEvents(operationParams.getEvents())
         .setEnrollments(operationParams.getEnrollments())
         .setIncludeDeleted(operationParams.isIncludeDeleted());
-  }
-
-  private List<OrganisationUnit> validateAccessibleOrgUnits(
-      OrganisationUnit orgUnit,
-      OrganisationUnitSelectionMode orgUnitMode,
-      Program program,
-      User user)
-      throws ForbiddenException {
-    List<OrganisationUnit> accessibleOrgUnits =
-        getUserAccessibleOrgUnits(
-            program,
-            user,
-            orgUnit,
-            orgUnitMode,
-            organisationUnitService::getOrganisationUnitWithChildren);
-
-    if (orgUnit != null && accessibleOrgUnits.isEmpty()) {
-      throw new ForbiddenException("User does not have access to orgUnit: " + orgUnit.getUid());
-    }
-
-    return accessibleOrgUnits;
   }
 
   private Program validateProgram(String programUid) throws BadRequestException {
@@ -265,6 +244,27 @@ public class EventOperationParamsMapper {
     return orgUnit;
   }
 
+  private List<OrganisationUnit> validateAccessibleOrgUnits(
+      User user,
+      OrganisationUnit orgUnit,
+      OrganisationUnitSelectionMode orgUnitMode,
+      Program program)
+      throws ForbiddenException {
+    List<OrganisationUnit> accessibleOrgUnits =
+        getUserAccessibleOrgUnits(
+            user,
+            orgUnit,
+            orgUnitMode,
+            program,
+            organisationUnitService::getOrganisationUnitWithChildren);
+
+    if (orgUnit != null && accessibleOrgUnits.isEmpty()) {
+      throw new ForbiddenException("User does not have access to orgUnit: " + orgUnit.getUid());
+    }
+
+    return accessibleOrgUnits;
+  }
+
   private void validateUser(User user, Program program, ProgramStage programStage)
       throws ForbiddenException {
     if (user.isSuper()) {
@@ -282,36 +282,28 @@ public class EventOperationParamsMapper {
   /**
    * Returns a list of all the org units the user has access to
    *
-   * @param program the program the user wants to access to
    * @param user the user to check the access of
    * @param orgUnit parent org unit to get descendants/children of
    * @param orgUnitDescendants function to retrieve org units, in case ou mode is descendants
+   * @param program the program the user wants to access to
    * @return a list containing the user accessible organisation units
    */
   private List<OrganisationUnit> getUserAccessibleOrgUnits(
-      Program program,
       User user,
       OrganisationUnit orgUnit,
       OrganisationUnitSelectionMode orgUnitMode,
+      Program program,
       Function<String, List<OrganisationUnit>> orgUnitDescendants) {
-
-    if (orgUnitMode == null && orgUnit != null) {
-      return getSelectedOrgUnits(user, program, orgUnit);
-    }
-
-    if (orgUnitMode == null) {
-      return getAccessibleOrgUnits(user, program);
-    }
 
     return switch (orgUnitMode) {
       case DESCENDANTS -> orgUnit != null
-          ? getAccessibleDescendants(orgUnitDescendants.apply(orgUnit.getUid()), program, user)
+          ? getAccessibleDescendants(user, program, orgUnitDescendants.apply(orgUnit.getUid()))
           : Collections.emptyList();
       case CHILDREN -> orgUnit != null
           ? getAccessibleDescendants(
-              Stream.concat(Stream.of(orgUnit), orgUnit.getChildren().stream()).toList(),
+              user,
               program,
-              user)
+              Stream.concat(Stream.of(orgUnit), orgUnit.getChildren().stream()).toList())
           : Collections.emptyList();
       case CAPTURE -> user.getOrganisationUnits().stream().toList();
       case ACCESSIBLE -> getAccessibleOrgUnits(user, program);
@@ -338,19 +330,19 @@ public class EventOperationParamsMapper {
    * there's a match, it means the user org unit is at the same level or above the supplied org
    * unit.
    *
-   * @param availableOrgUnits the org units to check if the user has access to
-   * @param program the program the user wants to access to
    * @param user the user to check the access of
+   * @param program the program the user wants to access to
+   * @param orgUnits the org units to check if the user has access to
    * @return a list with the org units the user has access to
    */
   private List<OrganisationUnit> getAccessibleDescendants(
-      List<OrganisationUnit> availableOrgUnits, Program program, User user) {
-    if (availableOrgUnits.isEmpty()) {
+      User user, Program program, List<OrganisationUnit> orgUnits) {
+    if (orgUnits.isEmpty()) {
       return Collections.emptyList();
     }
 
     if (isProgramAccessRestricted(program)) {
-      return availableOrgUnits.stream()
+      return orgUnits.stream()
           .filter(
               availableOrgUnit ->
                   user.getOrganisationUnits().stream()
@@ -359,7 +351,7 @@ public class EventOperationParamsMapper {
                               availableOrgUnit.getPath().contains(captureScopeOrgUnit.getPath())))
           .toList();
     } else {
-      return availableOrgUnits.stream()
+      return orgUnits.stream()
           .filter(
               availableOrgUnit ->
                   user.getTeiSearchOrganisationUnits().stream()
