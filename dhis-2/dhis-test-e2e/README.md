@@ -152,3 +152,6 @@ For convenience, every REST endpoint should be represented by object of type Res
  
  > private RestApiActions optionSetActions = new RestApiActions("/optionSets");
 
+### Connecting to Selenium Grid (for debugging)
+
+http://selenium:7900/?autoconnect=1&resize=scale&password=secret

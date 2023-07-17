@@ -54,7 +54,6 @@ public class AssignedUserSupplier extends AbstractSupplier<Map<String, User>> {
 
   @Override
   public Map<String, User> get(ImportOptions importOptions, List<Event> events) {
-    // @formatter:off
     // Collect all the "assigned user" uids to pass as SQL query argument
     Set<String> userUids =
         events.stream()
@@ -67,7 +66,6 @@ public class AssignedUserSupplier extends AbstractSupplier<Map<String, User>> {
     for (Event event : events) {
       userToEvent.put(event.getAssignedUser(), event.getUid());
     }
-    // @formatter:on
 
     if (!userUids.isEmpty()) {
       final String sql = "select userinfoid, uid, code from userinfo " + "where uid in (:ids)";

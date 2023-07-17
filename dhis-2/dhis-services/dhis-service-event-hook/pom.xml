@@ -1,5 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -11,9 +11,11 @@
   <artifactId>dhis-service-event-hook</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Event Hooks</name>
-  <description>
-    Service for event hooks to respond to system events.
-  </description>
+  <description>Service for event hooks to respond to system events.</description>
+
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
     <!-- DHIS 2 -->
@@ -104,8 +106,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

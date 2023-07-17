@@ -175,6 +175,7 @@ class QueryUtilsTest {
   void testParseFilterOperator() {
     assertEquals("= 5", QueryUtils.parseFilterOperator("eq", "5"));
     assertEquals("= 'ABC'", QueryUtils.parseFilterOperator("eq", "ABC"));
+    assertEquals(" ilike 'abc'", QueryUtils.parseFilterOperator("ieq", "abc"));
     assertEquals("like '%abc%'", QueryUtils.parseFilterOperator("like", "abc"));
     assertEquals(" like '%abc'", QueryUtils.parseFilterOperator("$like", "abc"));
     assertEquals("in ('a','b','c')", QueryUtils.parseFilterOperator("in", "[a,b,c]"));
