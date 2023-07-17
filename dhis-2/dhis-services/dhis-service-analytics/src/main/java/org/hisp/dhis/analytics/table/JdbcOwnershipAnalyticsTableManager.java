@@ -255,7 +255,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
                 + SPACE
                 + "and p.organisationunitid is not null)"
                 + ") a "
-                + "inner join trackedentity tei on a.trackedentityinstanceid = tei.trackedentityinstanceid "
+                + "inner join trackedentity tei on a.trackedentityinstanceid = tei.trackedentityid "
                 + "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid "
                 + "left join _orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
                 + "left join _organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "

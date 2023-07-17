@@ -241,7 +241,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         .append(" from programinstance pi")
         .append(
             " inner join trackedentity tei "
-                + "on pi.trackedentityinstanceid = tei.trackedentityinstanceid")
+                + "on pi.trackedentityinstanceid = tei.trackedentityid")
         .append(" and tei.deleted is false ")
         .append(
             " and tei.trackedentitytypeid = "

@@ -466,7 +466,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + "inner join programstage ps on psi.programstageid=ps.programstageid "
             + "inner join program pr on pi.programid=pr.programid and pi.deleted is false "
             + "inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid "
-            + "left join trackedentity tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid "
+            + "left join trackedentity tei on pi.trackedentityinstanceid=tei.trackedentityid "
             + "and tei.deleted is false "
             + "left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid "
             + "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid "

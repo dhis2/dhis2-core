@@ -288,7 +288,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             + "where o.trackedentityinstanceid = p.trackedentityinstanceid "
             + "and p.programid=0 and p.organisationunitid is not null)"
             + ") a "
-            + "inner join trackedentity tei on a.trackedentityinstanceid = tei.trackedentityinstanceid "
+            + "inner join trackedentity tei on a.trackedentityinstanceid = tei.trackedentityid "
             + "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid "
             + "left join _orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
             + "left join _organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "

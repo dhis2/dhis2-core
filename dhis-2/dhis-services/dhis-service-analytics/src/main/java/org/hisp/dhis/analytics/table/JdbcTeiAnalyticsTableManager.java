@@ -266,7 +266,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                         quote(program.getUid()),
                         BOOLEAN,
                         " exists(select 1 from programinstance pi_0"
-                            + " where pi_0.trackedentityinstanceid = tei.trackedentityinstanceid"
+                            + " where pi_0.trackedentityinstanceid = tei.trackedentityid"
                             + " and pi_0.programid = "
                             + program.getId()
                             + ")")));
@@ -389,7 +389,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                         + "\""
                         + " on \""
                         + tea.getUid()
-                        + "\".trackedentityinstanceid = tei.trackedentityinstanceid"
+                        + "\".trackedentityinstanceid = tei.trackedentityid"
                         + " and \""
                         + tea.getUid()
                         + "\".trackedentityattributeid = "
@@ -399,7 +399,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         .append(" and tei.lastupdated < '" + getLongDateString(params.getStartTime()) + "'")
         .append(
             " and exists ( select 1 from programinstance pi"
-                + " where pi.trackedentityinstanceid = tei.trackedentityinstanceid"
+                + " where pi.trackedentityinstanceid = tei.trackedentityid"
                 + " and exists ( select 1 from event psi"
                 + " where psi.programinstanceid = pi.programinstanceid"
                 + " and psi.status in ("

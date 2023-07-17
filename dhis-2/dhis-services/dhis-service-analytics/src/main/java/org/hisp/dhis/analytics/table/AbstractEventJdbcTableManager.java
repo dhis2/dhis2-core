@@ -201,7 +201,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           "(select "
               + select
               + " "
-              + "from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid "
+              + "from trackedentityattributevalue where trackedentityid=pi.trackedentityinstanceid "
               + "and trackedentityattributeid="
               + attribute.getId()
               + dataClause
