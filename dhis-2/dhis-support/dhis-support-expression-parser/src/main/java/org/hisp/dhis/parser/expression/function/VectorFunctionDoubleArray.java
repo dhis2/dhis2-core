@@ -36,7 +36,7 @@ import org.apache.commons.lang3.ArrayUtils;
  * @author Jim Grace
  */
 public abstract class VectorFunctionDoubleArray extends VectorFunction<Double> {
-  public VectorFunctionDoubleArray() {
+  protected VectorFunctionDoubleArray() {
     super(Double.class);
   }
 
