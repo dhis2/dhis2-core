@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 import io.restassured.http.ContentType;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.helpers.extensions.AnalyticsSetupExtension;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
@@ -65,7 +64,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
  */
 @TestInstance(PER_CLASS)
 @ExtendWith(ConfigurationExtension.class)
-@ExtendWith(AnalyticsSetupExtension.class)
+// @ExtendWith( AnalyticsSetupExtension.class )
 @Timeout(value = AnalyticsApiTest.DEFAULT_LIMIT_EXECUTION_TIME, unit = MINUTES)
 @Tag("analytics")
 public abstract class AnalyticsApiTest {

@@ -83,6 +83,7 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
                         dimensionIdentifier.getDimension().getUid(),
                         fromValueType(dimensionIdentifier.getDimension().getValueType())),
                     dimensionIdentifier.toString()))
+        .map(Field::asVirtual)
         .forEach(builder::selectField);
 
     acceptedDimensions.stream()

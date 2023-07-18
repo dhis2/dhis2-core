@@ -35,7 +35,9 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifie
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.With;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 
@@ -55,6 +57,16 @@ public class Field extends BaseRenderable {
 
   private final Boolean quotingNeeded;
 
+  // a flag to indicate whether the field will be used in the headers
+  @With @Getter private final boolean usedInHeaders;
+
+  // virtual fields won't be added to the select clause
+  @With @Getter private final boolean virtual;
+
+  public Field asVirtual() {
+    return withVirtual(true);
+  }
+
   /**
    * Static constructor for a field which double quote "name" when rendered.
    *
@@ -65,6 +77,15 @@ public class Field extends BaseRenderable {
    */
   public static Field of(String tableAlias, Renderable name, String fieldAlias) {
     return of(tableAlias, name, fieldAlias, DimensionIdentifier.EMPTY, true);
+  }
+
+  private static Field of(
+      String tableAlias,
+      Renderable name,
+      String alias,
+      DimensionIdentifier<DimensionParam> dimensionIdentifier,
+      boolean quotingNeeded) {
+    return of(tableAlias, name, alias, dimensionIdentifier, quotingNeeded, true, false);
   }
 
   public static Field ofDimensionIdentifier(

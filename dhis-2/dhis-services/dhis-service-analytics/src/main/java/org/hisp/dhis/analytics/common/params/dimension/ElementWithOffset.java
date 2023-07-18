@@ -50,6 +50,10 @@ public class ElementWithOffset<T extends UidObject> {
 
   private final Integer offset;
 
+  public Integer getOffsetWithDefault() {
+    return hasOffset() ? offset : 0;
+  }
+
   public boolean hasOffset() {
     return Objects.nonNull(offset);
   }

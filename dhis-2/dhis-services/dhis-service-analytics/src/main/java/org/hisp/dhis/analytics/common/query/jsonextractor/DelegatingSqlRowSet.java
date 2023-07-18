@@ -25,29 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query.context.sql;
+package org.hisp.dhis.analytics.common.query.jsonextractor;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.SqlQuery;
+import lombok.experimental.Delegate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 /**
- * Class to create a {@link SqlQuery} from a {@link RenderableSqlQuery}. It uses the {@link
- * QueryContext} to get the parameter placeholders. Supports both select and count queries. A select
- * query can be converted to a count query by calling {@link #createForCount()}.
+ * This class is a simple SqlRowSet wrapper that delegates all calls to the wrapped SqlRowSet. It is
+ * used to simplify the implementation of the {@link AggregatedJsonExtractingSqlRowSet} class.
  */
-@RequiredArgsConstructor(staticName = "of")
-public class SqlQueryCreator {
-  @Getter private final QueryContext queryContext;
-
-  @Getter private final RenderableSqlQuery renderableSqlQuery;
-
-  public SqlQuery createForSelect() {
-    return new SqlQuery(renderableSqlQuery.render(), queryContext.getParametersPlaceHolder());
-  }
-
-  public SqlQuery createForCount() {
-    return new SqlQuery(
-        renderableSqlQuery.forCount().render(), queryContext.getParametersPlaceHolder());
-  }
+@RequiredArgsConstructor
+class DelegatingSqlRowSet implements SqlRowSet {
+  @Delegate private final SqlRowSet sqlRowSet;
 }

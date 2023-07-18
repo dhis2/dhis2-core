@@ -47,6 +47,7 @@ import static org.mockito.Mockito.when;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -60,6 +61,7 @@ import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.processing.HeaderParamsHandler;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.common.query.jsonextractor.AggregatedJsonExtractingSqlRowSet;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -135,7 +137,9 @@ class GridAdaptorTest extends DhisConvenienceTest {
     when(currentUserService.getCurrentUser()).thenReturn(user);
 
     SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet(resultSet);
-    SqlQueryResult mockSqlResult = new SqlQueryResult(sqlRowSet);
+    SqlQueryResult mockSqlResult =
+        new SqlQueryResult(
+            new AggregatedJsonExtractingSqlRowSet(sqlRowSet, Collections.emptyList()));
     long anyCount = 0;
 
     // When
@@ -173,7 +177,9 @@ class GridAdaptorTest extends DhisConvenienceTest {
     when(currentUserService.getCurrentUser()).thenReturn(user);
 
     SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet(resultSet);
-    SqlQueryResult mockSqlResult = new SqlQueryResult(sqlRowSet);
+    SqlQueryResult mockSqlResult =
+        new SqlQueryResult(
+            new AggregatedJsonExtractingSqlRowSet(sqlRowSet, Collections.emptyList()));
     long anyCount = 0;
 
     // When

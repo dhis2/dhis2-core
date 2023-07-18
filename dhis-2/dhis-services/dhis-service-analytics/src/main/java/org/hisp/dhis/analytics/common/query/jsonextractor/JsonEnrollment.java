@@ -25,29 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query.context.sql;
+package org.hisp.dhis.analytics.common.query.jsonextractor;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.SqlQuery;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Map;
+import lombok.Data;
 
-/**
- * Class to create a {@link SqlQuery} from a {@link RenderableSqlQuery}. It uses the {@link
- * QueryContext} to get the parameter placeholders. Supports both select and count queries. A select
- * query can be converted to a count query by calling {@link #createForCount()}.
- */
-@RequiredArgsConstructor(staticName = "of")
-public class SqlQueryCreator {
-  @Getter private final QueryContext queryContext;
+@Data
+class JsonEnrollment {
+  private String programUid;
 
-  @Getter private final RenderableSqlQuery renderableSqlQuery;
+  private String programInstanceUid;
 
-  public SqlQuery createForSelect() {
-    return new SqlQuery(renderableSqlQuery.render(), queryContext.getParametersPlaceHolder());
-  }
+  private Date enrollmentDate;
 
-  public SqlQuery createForCount() {
-    return new SqlQuery(
-        renderableSqlQuery.forCount().render(), queryContext.getParametersPlaceHolder());
+  private Date incidentDate;
+
+  private Date endDate;
+
+  private String orgUnitName;
+
+  private String orgUnitCode;
+
+  private String orgUnitNameHierarchy;
+
+  private Collection<JsonEvent> events;
+
+  @Data
+  static class JsonEvent {
+    private String programStageUid;
+
+    private String programStageInstanceUid;
+
+    private Date executionDate;
+
+    private Date dueDate;
+
+    private String orgUnitName;
+
+    private String orgUnitCode;
+
+    private String orgUnitNameHierarchy;
+
+    private Map<String, Object> eventDataValues;
   }
 }

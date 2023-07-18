@@ -96,12 +96,12 @@ public class TeiAnalyticsQueryService {
     long rowsCount = 0;
 
     try {
-      result = Optional.of(queryExecutor.find(queryCreator.createForSelect()));
+      result = Optional.of(queryExecutor.find(queryCreator));
 
       AnalyticsPagingParams pagingParams = queryParams.getCommonParams().getPagingParams();
 
       if (pagingParams.showTotalPages()) {
-        rowsCount = queryExecutor.count(queryCreator.createForCount());
+        rowsCount = queryExecutor.count(queryCreator);
       }
     } catch (BadSqlGrammarException ex) {
       log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);

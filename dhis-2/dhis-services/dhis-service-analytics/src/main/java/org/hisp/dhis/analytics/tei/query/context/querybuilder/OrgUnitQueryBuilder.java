@@ -85,6 +85,7 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder {
                     getPrefix(dimensionIdentifier),
                     () -> dimensionIdentifier.getDimension().getUid(),
                     dimensionIdentifier.toString()))
+        .map(Field::asVirtual)
         .forEach(builder::selectField);
 
     acceptedDimensions.stream()

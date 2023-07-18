@@ -137,7 +137,11 @@ public class RenderableSqlQuery implements Renderable {
   }
 
   private String select() {
-    return getIfPresentOrElse(SELECT, () -> Select.of(selectFields).render());
+    return getIfPresentOrElse(SELECT, () -> Select.of(nonVirtualSelectFields()).render());
+  }
+
+  private List<Field> nonVirtualSelectFields() {
+    return selectFields.stream().filter(f -> !f.isVirtual()).collect(Collectors.toList());
   }
 
   private String getIfPresentOrElse(String key, Supplier<String> supplier) {

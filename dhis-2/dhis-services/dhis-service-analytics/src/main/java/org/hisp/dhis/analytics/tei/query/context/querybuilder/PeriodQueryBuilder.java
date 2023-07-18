@@ -80,15 +80,17 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
     Stream.concat(
             acceptedDimensions.stream(),
             acceptedSortingParams.stream().map(AnalyticsSortingParams::getOrderBy))
-        .map(
-            dimensionIdentifier -> {
-              String field = getTimeField(dimensionIdentifier);
+        .filter(DimensionIdentifier::isTeiDimension)
+        .map(PeriodQueryBuilder::asField)
+        .forEach(builder::selectField);
 
-              String prefix = getPrefix(dimensionIdentifier, false);
-
-              return Field.ofUnquoted(
-                  doubleQuote(prefix), () -> field, prefix + DIMENSION_SEPARATOR + field);
-            })
+    Stream.concat(
+            acceptedDimensions.stream(),
+            acceptedSortingParams.stream().map(AnalyticsSortingParams::getOrderBy))
+        .filter(dimensionIdentifier -> !dimensionIdentifier.isTeiDimension())
+        .map(PeriodQueryBuilder::asField)
+        // non TEI periods are virtual fields, since those will be extracted from JSON
+        .map(Field::asVirtual)
         .forEach(builder::selectField);
 
     acceptedDimensions.stream()
@@ -110,6 +112,14 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
         });
 
     return builder.build();
+  }
+
+  private static Field asField(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    String field = getTimeField(dimensionIdentifier);
+
+    String prefix = getPrefix(dimensionIdentifier, false);
+
+    return Field.ofUnquoted(doubleQuote(prefix), () -> field, prefix + DIMENSION_SEPARATOR + field);
   }
 
   private static String getTimeField(DimensionIdentifier<DimensionParam> dimensionIdentifier) {

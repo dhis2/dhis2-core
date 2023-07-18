@@ -29,8 +29,15 @@ package org.hisp.dhis.analytics.common;
 
 import static org.springframework.util.Assert.notNull;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.query.jsonextractor.AggregatedJsonExtractingSqlRowSet;
+import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -54,27 +61,49 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
    * @throws IllegalArgumentException if the query argument is null.
    */
   @Override
-  public SqlQueryResult find(SqlQuery query) {
-    notNull(query, "The 'query' must not be null");
+  public SqlQueryResult find(SqlQueryCreator queryCreator) {
+    notNull(queryCreator, "The 'query' must not be null");
+
+    SqlQuery forSelect = queryCreator.createForSelect();
 
     SqlRowSet rowSet =
         namedParameterJdbcTemplate.queryForRowSet(
-            query.getStatement(), new MapSqlParameterSource().addValues(query.getParams()));
+            forSelect.getStatement(), new MapSqlParameterSource().addValues(forSelect.getParams()));
 
-    return new SqlQueryResult(rowSet);
+    List<DimensionIdentifier<DimensionParam>> allDimensionIdentifiers =
+        Stream.concat(
+                queryCreator
+                    .getQueryContext()
+                    .getTeiQueryParams()
+                    .getCommonParams()
+                    .getDimensionIdentifiers()
+                    .stream(),
+                queryCreator
+                    .getQueryContext()
+                    .getTeiQueryParams()
+                    .getCommonParams()
+                    .getOrderParams()
+                    .stream()
+                    .map(AnalyticsSortingParams::getOrderBy))
+            .toList();
+
+    return new SqlQueryResult(
+        new AggregatedJsonExtractingSqlRowSet(rowSet, allDimensionIdentifiers));
   }
 
   /**
    * @throws IllegalArgumentException if the query argument is null.
    */
   @Override
-  public long count(SqlQuery query) {
-    notNull(query, "The 'query' must not be null");
+  public long count(SqlQueryCreator queryCreator) {
+    notNull(queryCreator, "The 'query' must not be null");
+
+    SqlQuery forCount = queryCreator.createForCount();
 
     return Optional.ofNullable(
             namedParameterJdbcTemplate.queryForObject(
-                query.getStatement(),
-                new MapSqlParameterSource().addValues(query.getParams()),
+                forCount.getStatement(),
+                new MapSqlParameterSource().addValues(forCount.getParams()),
                 Long.class))
         .orElse(0L);
   }

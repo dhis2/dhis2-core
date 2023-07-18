@@ -25,29 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query.context.sql;
+package org.hisp.dhis.analytics.common.query.jsonextractor;
 
+import java.util.Arrays;
+import java.util.function.Function;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.SqlQuery;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 
-/**
- * Class to create a {@link SqlQuery} from a {@link RenderableSqlQuery}. It uses the {@link
- * QueryContext} to get the parameter placeholders. Supports both select and count queries. A select
- * query can be converted to a count query by calling {@link #createForCount()}.
- */
-@RequiredArgsConstructor(staticName = "of")
-public class SqlQueryCreator {
-  @Getter private final QueryContext queryContext;
+@RequiredArgsConstructor
+enum EventExtractor {
+  EXECUTION_DATE(
+      DimensionParam.StaticDimension.EXECUTIONDATE, JsonEnrollment.JsonEvent::getExecutionDate),
+  OUNAME(DimensionParam.StaticDimension.OUNAME, JsonEnrollment.JsonEvent::getOrgUnitName),
+  OUCODE(DimensionParam.StaticDimension.OUCODE, JsonEnrollment.JsonEvent::getOrgUnitCode),
+  OUNAMEHIERARCHY(
+      DimensionParam.StaticDimension.OUNAMEHIERARCHY,
+      JsonEnrollment.JsonEvent::getOrgUnitNameHierarchy);
 
-  @Getter private final RenderableSqlQuery renderableSqlQuery;
+  private final DimensionParam.StaticDimension dimension;
 
-  public SqlQuery createForSelect() {
-    return new SqlQuery(renderableSqlQuery.render(), queryContext.getParametersPlaceHolder());
-  }
+  @Getter private final Function<JsonEnrollment.JsonEvent, Object> extractor;
 
-  public SqlQuery createForCount() {
-    return new SqlQuery(
-        renderableSqlQuery.forCount().render(), queryContext.getParametersPlaceHolder());
+  static EventExtractor byDimension(DimensionParam.StaticDimension dimension) {
+    return Arrays.stream(values())
+        .filter(eventExtractor -> eventExtractor.dimension.equals(dimension))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "No event extractor is defined for static dimension " + dimension));
   }
 }

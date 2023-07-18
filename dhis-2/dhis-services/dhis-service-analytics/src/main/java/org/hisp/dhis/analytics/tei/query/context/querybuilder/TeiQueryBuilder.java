@@ -31,8 +31,10 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifie
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.hasRestrictions;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import lombok.Getter;
@@ -58,6 +60,34 @@ import org.springframework.stereotype.Service;
 @Service
 @org.springframework.core.annotation.Order(1)
 public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
+  private static final String JSON_AGGREGATION_QUERY =
+      """
+        (select json_agg(json_build_object('programUid', pr.uid,
+                                              'programInstanceUid', en.programinstanceuid,
+                                              'enrollmentDate', en.enrollmentdate,
+                                              'incidentDate', en.incidentdate,
+                                              'endDate', en.enddate,
+                                              'orgUnitName', en.ouname,
+                                              'orgUnitCode', en.oucode,
+                                              'orgUnitNameHierarchy', en.ounamehierarchy,
+                                              'events',
+                                              (select json_agg(json_build_object('programStageUid', ps.uid,
+                                                                                 'programStageInstanceUid', ev.programstageuid,
+                                                                                 'executionDate', ev.executiondate,
+                                                                                 'dueDate', ev.duedate,
+                                                                                 'orgUnitName', ev.ouname,
+                                                                                 'orgUnitCode', ev.oucode,
+                                                                                 'orgUnitNameHierarchy', ev.ounamehierarchy,
+                                                                                 'eventDataValues', ev.eventdatavalues))
+                                               from analytics_tei_events_%s ev,
+                                                    programstage ps
+                                               where ev.programinstanceuid = en.programinstanceuid
+                                                 and ps.uid = ev.programstageuid)))
+            from analytics_tei_enrollments_%s en,
+                 program pr
+            where en.trackedentityinstanceuid = t_1.trackedentityinstanceuid
+              and pr.uid = en.programuid)""";
+
   @Override
   public boolean alwaysRun() {
     return true;
@@ -79,12 +109,21 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
 
   @Override
   protected Stream<Field> getSelect(QueryContext queryContext) {
-    return Stream.concat(
-        // Static fields column.
-        TeiFields.getStaticFields(),
+    String aggregationQuery =
+        JSON_AGGREGATION_QUERY.formatted(
+            queryContext.getTetTableSuffix(), queryContext.getTetTableSuffix());
 
-        // Tei/Program attributes.
-        TeiFields.getDimensionFields(queryContext.getTeiQueryParams()));
+    Field aggregatedEnrollments =
+        Field.ofUnquoted(EMPTY, () -> aggregationQuery, "enrollments").withUsedInHeaders(false);
+
+    return Stream.of(
+            // Static fields column.
+            TeiFields.getStaticFields(),
+            // Tei/Program attributes.
+            TeiFields.getDimensionFields(queryContext.getTeiQueryParams()),
+            // Enrollments
+            Stream.of(aggregatedEnrollments))
+        .flatMap(Function.identity());
   }
 
   @Override
