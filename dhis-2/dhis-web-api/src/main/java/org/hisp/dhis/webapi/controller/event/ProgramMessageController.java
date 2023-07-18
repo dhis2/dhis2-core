@@ -51,11 +51,16 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
+import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -85,19 +90,20 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
   // -------------------------------------------------------------------------
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
+  @OpenApi.Response(status = OpenApi.Response.Status.OK, value = OpenApiExport.ListResponse.class)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public List<ProgramMessage> getProgramMessages(
       @RequestParam(required = false) Set<String> ou,
       @Deprecated(since = "2.41") @RequestParam(required = false) UID programInstance,
-      @RequestParam(required = false) UID enrollment,
+      @OpenApi.Param({UID.class, Enrollment.class}) @RequestParam(required = false) UID enrollment,
       @Deprecated(since = "2.41") @RequestParam(required = false) UID programStageInstance,
-      @RequestParam(required = false) UID event,
-      @RequestParam(required = false) ProgramMessageStatus messageStatus,
-      @RequestParam(required = false) Date afterDate,
-      @RequestParam(required = false) Date beforeDate,
-      @RequestParam(required = false) Integer page,
-      @RequestParam(required = false) Integer pageSize)
+      @OpenApi.Param({UID.class, Event.class}) @RequestParam(required = false) UID event,
+      @OpenApi.Param(value = String.class) @RequestParam(required = false) ProgramMessageStatus messageStatus,
+      @OpenApi.Param(value = Date.class) @RequestParam(required = false) Date afterDate,
+      @OpenApi.Param(value = Date.class) @RequestParam(required = false) Date beforeDate,
+      @OpenApi.Param(value = Integer.class) @RequestParam(required = false) Integer page,
+      @OpenApi.Param(value = Integer.class) @RequestParam(required = false) Integer pageSize)
       throws BadRequestException, ConflictException {
     UID enrollmentUid =
         validateDeprecatedParameter("programInstance", programInstance, "enrollment", enrollment);
@@ -123,16 +129,17 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
   }
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
+  @OpenApi.Response(status = OpenApi.Response.Status.OK, value = OpenApiExport.ListResponse.class)
   @GetMapping(value = "/scheduled/sent", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public List<ProgramMessage> getScheduledSentMessage(
       @Deprecated(since = "2.41") @RequestParam(required = false) UID programInstance,
-      @RequestParam(required = false) UID enrollment,
+      @OpenApi.Param({UID.class, Enrollment.class}) @RequestParam(required = false) UID enrollment,
       @Deprecated(since = "2.41") @RequestParam(required = false) UID programStageInstance,
-      @RequestParam(required = false) UID event,
-      @RequestParam(required = false) Date afterDate,
-      @RequestParam(required = false) Integer page,
-      @RequestParam(required = false) Integer pageSize)
+      @OpenApi.Param({UID.class, Event.class}) @RequestParam(required = false) UID event,
+      @OpenApi.Param(value = Date.class) @RequestParam(required = false) Date afterDate,
+      @OpenApi.Param(value = Integer.class) @RequestParam(required = false) Integer page,
+      @OpenApi.Param(value = Integer.class) @RequestParam(required = false) Integer pageSize)
       throws BadRequestException {
     UID enrollmentUid =
         validateDeprecatedParameter("programInstance", programInstance, "enrollment", enrollment);
