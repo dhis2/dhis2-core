@@ -203,8 +203,7 @@ public class SqlViewController extends AbstractCrudController<SqlView> {
     return grid;
   }
 
-  private Grid querySQLView(
-      Set<String> criteria, Set<String> vars, SqlView sqlView) {
+  private Grid querySQLView(Set<String> criteria, Set<String> vars, SqlView sqlView) {
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
@@ -214,7 +213,7 @@ public class SqlViewController extends AbstractCrudController<SqlView> {
         : sqlViewService.getSqlViewGridReadOnly(
             sqlView, getCriteria(criteria), getCriteria(vars), filters, fields);
   }
-  
+
   // -------------------------------------------------------------------------
   // Post
   // -------------------------------------------------------------------------
