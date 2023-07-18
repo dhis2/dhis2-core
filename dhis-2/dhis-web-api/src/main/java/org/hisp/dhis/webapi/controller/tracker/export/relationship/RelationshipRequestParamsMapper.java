@@ -52,10 +52,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 class RelationshipRequestParamsMapper {
 
-  private static boolean hasMoreThanOneParamNotNull(UID trackedEntity, UID enrollment, UID event) {
-    return Stream.of(trackedEntity, enrollment, event).filter(Objects::nonNull).count() > 1;
-  }
-
   public RelationshipOperationParams map(RequestParams requestParams) throws BadRequestException {
     UID trackedEntity =
         validateDeprecatedParameter(
@@ -67,7 +63,7 @@ class RelationshipRequestParamsMapper {
           "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.");
     }
 
-    if (hasMoreThanOneParamNotNull(
+    if (hasMoreThanOneNotNull(
         trackedEntity, requestParams.getEnrollment(), requestParams.getEvent())) {
       throw new BadRequestException(
           "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.");
@@ -96,5 +92,9 @@ class RelationshipRequestParamsMapper {
       return EVENT;
     }
     return null;
+  }
+
+  private boolean hasMoreThanOneNotNull(Object... values) {
+    return Stream.of(values).filter(Objects::nonNull).count() > 1;
   }
 }
