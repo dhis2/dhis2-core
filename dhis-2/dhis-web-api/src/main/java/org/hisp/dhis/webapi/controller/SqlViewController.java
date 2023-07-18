@@ -38,10 +38,13 @@ import java.util.List;
 import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridResponse;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -70,12 +73,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping(value = SqlViewSchemaDescriptor.API_ENDPOINT)
 @RequiredArgsConstructor
+@Slf4j
 public class SqlViewController extends AbstractCrudController<SqlView> {
   private final SqlViewService sqlViewService;
 
   private final JobConfigurationService jobConfigurationService;
 
   private final ContextUtils contextUtils;
+
+  private final DhisConfigurationProvider config;
 
   // -------------------------------------------------------------------------
   // Get
@@ -197,14 +203,18 @@ public class SqlViewController extends AbstractCrudController<SqlView> {
     return grid;
   }
 
-  private Grid querySQLView(Set<String> criteria, Set<String> vars, SqlView sqlView) {
+  private Grid querySQLView(
+      Set<String> criteria, Set<String> vars, SqlView sqlView) {
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
-    return sqlViewService.getSqlViewGrid(
-        sqlView, getCriteria(criteria), getCriteria(vars), filters, fields);
+    return config.isEnabled(ConfigurationKey.SYSTEM_SQL_VIEW_WRITE_ENABLED)
+        ? sqlViewService.getSqlViewGridWritesAllowed(
+            sqlView, getCriteria(criteria), getCriteria(vars), filters, fields)
+        : sqlViewService.getSqlViewGridReadOnly(
+            sqlView, getCriteria(criteria), getCriteria(vars), filters, fields);
   }
-
+  
   // -------------------------------------------------------------------------
   // Post
   // -------------------------------------------------------------------------
