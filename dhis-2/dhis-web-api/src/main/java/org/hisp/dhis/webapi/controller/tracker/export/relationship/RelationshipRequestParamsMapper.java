@@ -61,7 +61,7 @@ class RelationshipRequestParamsMapper {
         validateDeprecatedParameter(
             "tei", requestParams.getTei(), "trackedEntity", requestParams.getTrackedEntity());
 
-    if (ObjectUtils.allNotNull(
+    if (ObjectUtils.allNull(
         trackedEntity, requestParams.getEnrollment(), requestParams.getEvent())) {
       throw new BadRequestException(
           "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.");
