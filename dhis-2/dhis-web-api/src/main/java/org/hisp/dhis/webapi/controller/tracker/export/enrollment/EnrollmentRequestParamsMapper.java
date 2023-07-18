@@ -29,10 +29,12 @@ package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.webapi.common.UID;
@@ -53,6 +55,10 @@ class EnrollmentRequestParamsMapper {
         validateDeprecatedUidsParameter(
             "orgUnit", requestParams.getOrgUnit(), "orgUnits", requestParams.getOrgUnits());
 
+    OrganisationUnitSelectionMode orgUnitMode =
+        validateDeprecatedParameter(
+            "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
+
     return EnrollmentOperationParams.builder()
         .programUid(
             requestParams.getProgram() != null ? requestParams.getProgram().getValue() : null)
@@ -71,7 +77,7 @@ class EnrollmentRequestParamsMapper {
                 ? requestParams.getTrackedEntity().getValue()
                 : null)
         .orgUnitUids(UID.toValueSet(orgUnits))
-        .orgUnitMode(requestParams.getOuMode())
+        .orgUnitMode(orgUnitMode)
         .page(requestParams.getPage())
         .pageSize(requestParams.getPageSize())
         .totalPages(requestParams.isTotalPages())

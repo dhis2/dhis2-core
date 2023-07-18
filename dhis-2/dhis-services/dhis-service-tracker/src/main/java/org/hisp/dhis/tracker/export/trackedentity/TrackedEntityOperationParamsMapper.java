@@ -96,7 +96,7 @@ class TrackedEntityOperationParamsMapper {
             user,
             operationParams.getOrganisationUnits(),
             program,
-            operationParams.getOrganisationUnitMode());
+            operationParams.getOrgUnitMode());
 
     QueryFilter queryFilter = operationParams.getQuery();
 
@@ -129,8 +129,8 @@ class TrackedEntityOperationParamsMapper {
         .setProgramIncidentStartDate(operationParams.getProgramIncidentStartDate())
         .setProgramIncidentEndDate(operationParams.getProgramIncidentEndDate())
         .setTrackedEntityType(trackedEntityType)
-        .addOrganisationUnits(orgUnits)
-        .setOrganisationUnitMode(operationParams.getOrganisationUnitMode())
+        .addOrgUnits(orgUnits)
+        .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setEventStatus(operationParams.getEventStatus())
         .setEventStartDate(operationParams.getEventStartDate())
         .setEventEndDate(operationParams.getEventEndDate())

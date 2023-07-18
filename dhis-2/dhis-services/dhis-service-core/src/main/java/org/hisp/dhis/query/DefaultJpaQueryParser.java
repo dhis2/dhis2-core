@@ -65,7 +65,7 @@ public class DefaultJpaQueryParser implements QueryParser {
     for (String filter : filters) {
       String[] split = filter.split(":");
 
-      if (!(split.length >= 2)) {
+      if (split.length < 2) {
         throw new QueryParserException("Invalid filter => " + filter);
       }
 
@@ -113,142 +113,65 @@ public class DefaultJpaQueryParser implements QueryParser {
       Property property, Class<?> valueType, String path, String operator, Object arg)
       throws QueryParserException {
 
-    switch (operator) {
-      case "eq":
-        {
-          return Restrictions.eq(path, parseValue(valueType, arg));
-        }
-      case "!eq":
-      case "neq":
-      case "ne":
-        {
-          return Restrictions.ne(path, parseValue(valueType, arg));
-        }
-      case "gt":
-        {
-          return Restrictions.gt(path, parseValue(valueType, arg));
-        }
-      case "lt":
-        {
-          return Restrictions.lt(path, parseValue(valueType, arg));
-        }
-      case "gte":
-      case "ge":
-        {
-          return Restrictions.ge(path, parseValue(valueType, arg));
-        }
-      case "lte":
-      case "le":
-        {
-          return Restrictions.le(path, parseValue(valueType, arg));
-        }
-      case "like":
-        {
-          return Restrictions.like(path, parseValue(valueType, arg), MatchMode.ANYWHERE);
-        }
-      case "!like":
-        {
-          return Restrictions.notLike(path, parseValue(valueType, arg), MatchMode.ANYWHERE);
-        }
-      case "$like":
-        {
-          return Restrictions.like(path, parseValue(valueType, arg), MatchMode.START);
-        }
-      case "!$like":
-        {
-          return Restrictions.notLike(path, parseValue(valueType, arg), MatchMode.START);
-        }
-      case "like$":
-        {
-          return Restrictions.like(path, parseValue(valueType, arg), MatchMode.END);
-        }
-      case "!like$":
-        {
-          return Restrictions.notLike(path, parseValue(valueType, arg), MatchMode.END);
-        }
-      case "ilike":
-        {
-          return Restrictions.ilike(path, parseValue(valueType, arg), MatchMode.ANYWHERE);
-        }
-      case "!ilike":
-        {
-          return Restrictions.notIlike(path, parseValue(valueType, arg), MatchMode.ANYWHERE);
-        }
-      case "startsWith":
-      case "$ilike":
-        {
-          return Restrictions.ilike(path, parseValue(valueType, arg), MatchMode.START);
-        }
-      case "!$ilike":
-        {
-          return Restrictions.notIlike(path, parseValue(valueType, arg), MatchMode.START);
-        }
-      case "token":
-        {
-          return Restrictions.token(path, parseValue(valueType, arg), MatchMode.START);
-        }
-      case "!token":
-        {
-          return Restrictions.notToken(path, parseValue(valueType, arg), MatchMode.START);
-        }
-      case "endsWith":
-      case "ilike$":
-        {
-          return Restrictions.ilike(path, parseValue(valueType, arg), MatchMode.END);
-        }
-      case "!ilike$":
-        {
-          return Restrictions.notIlike(path, parseValue(valueType, arg), MatchMode.END);
-        }
-      case "in":
-        {
-          Collection values = null;
+    return switch (operator) {
+      case "eq" -> Restrictions.eq(path, parseValue(valueType, arg));
+      case "ieq" -> Restrictions.ilike(path, parseValue(valueType, arg), MatchMode.EXACT);
+      case "!eq", "neq", "ne" -> Restrictions.ne(path, parseValue(valueType, arg));
+      case "gt" -> Restrictions.gt(path, parseValue(valueType, arg));
+      case "lt" -> Restrictions.lt(path, parseValue(valueType, arg));
+      case "gte", "ge" -> Restrictions.ge(path, parseValue(valueType, arg));
+      case "lte", "le" -> Restrictions.le(path, parseValue(valueType, arg));
+      case "like" -> Restrictions.like(path, parseValue(valueType, arg), MatchMode.ANYWHERE);
+      case "!like" -> Restrictions.notLike(path, parseValue(valueType, arg), MatchMode.ANYWHERE);
+      case "$like" -> Restrictions.like(path, parseValue(valueType, arg), MatchMode.START);
+      case "!$like" -> Restrictions.notLike(path, parseValue(valueType, arg), MatchMode.START);
+      case "like$" -> Restrictions.like(path, parseValue(valueType, arg), MatchMode.END);
+      case "!like$" -> Restrictions.notLike(path, parseValue(valueType, arg), MatchMode.END);
+      case "ilike" -> Restrictions.ilike(path, parseValue(valueType, arg), MatchMode.ANYWHERE);
+      case "!ilike" -> Restrictions.notIlike(path, parseValue(valueType, arg), MatchMode.ANYWHERE);
+      case "startsWith", "$ilike" -> Restrictions.ilike(
+          path, parseValue(valueType, arg), MatchMode.START);
+      case "!$ilike" -> Restrictions.notIlike(path, parseValue(valueType, arg), MatchMode.START);
+      case "token" -> Restrictions.token(path, parseValue(valueType, arg), MatchMode.START);
+      case "!token" -> Restrictions.notToken(path, parseValue(valueType, arg), MatchMode.START);
+      case "endsWith", "ilike$" -> Restrictions.ilike(
+          path, parseValue(valueType, arg), MatchMode.END);
+      case "!ilike$" -> Restrictions.notIlike(path, parseValue(valueType, arg), MatchMode.END);
+      case "in" -> {
+        Collection values = null;
 
-          if (property.isCollection()) {
-            values = parseValue(Collection.class, property.getItemKlass(), arg);
-          } else {
-            values = parseValue(Collection.class, valueType, arg);
-          }
+        if (property.isCollection()) {
+          values = parseValue(Collection.class, property.getItemKlass(), arg);
+        } else {
+          values = parseValue(Collection.class, valueType, arg);
+        }
 
-          if (values == null || values.isEmpty()) {
-            throw new QueryParserException("Invalid argument `" + arg + "` for in operator.");
-          }
+        if (values == null || values.isEmpty()) {
+          throw new QueryParserException("Invalid argument `" + arg + "` for in operator.");
+        }
 
-          return Restrictions.in(path, values);
-        }
-      case "!in":
-        {
-          Collection values = null;
+        yield Restrictions.in(path, values);
+      }
+      case "!in" -> {
+        Collection values = null;
 
-          if (property.isCollection()) {
-            values = parseValue(Collection.class, property.getItemKlass(), arg);
-          } else {
-            values = parseValue(Collection.class, valueType, arg);
-          }
+        if (property.isCollection()) {
+          values = parseValue(Collection.class, property.getItemKlass(), arg);
+        } else {
+          values = parseValue(Collection.class, valueType, arg);
+        }
 
-          if (values == null || values.isEmpty()) {
-            throw new QueryParserException("Invalid argument `" + arg + "` for in operator.");
-          }
+        if (values == null || values.isEmpty()) {
+          throw new QueryParserException("Invalid argument `" + arg + "` for in operator.");
+        }
 
-          return Restrictions.notIn(path, values);
-        }
-      case "null":
-        {
-          return Restrictions.isNull(path);
-        }
-      case "!null":
-        {
-          return Restrictions.isNotNull(path);
-        }
-      case "empty":
-        {
-          return Restrictions.isEmpty(path);
-        }
-      default:
-        {
-          throw new QueryParserException("`" + operator + "` is not a valid operator.");
-        }
-    }
+        yield Restrictions.notIn(path, values);
+      }
+      case "null" -> Restrictions.isNull(path);
+      case "!null" -> Restrictions.isNotNull(path);
+      case "empty" -> Restrictions.isEmpty(path);
+      default -> throw new QueryParserException("`" + operator + "` is not a valid operator.");
+    };
   }
 
   @Override

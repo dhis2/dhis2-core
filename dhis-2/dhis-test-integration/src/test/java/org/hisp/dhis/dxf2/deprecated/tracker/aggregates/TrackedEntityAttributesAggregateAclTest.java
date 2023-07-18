@@ -63,7 +63,7 @@ class TrackedEntityAttributesAggregateAclTest extends TrackerTest {
           this.persistTrackedEntity();
         });
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setIncludeAllAttributes(true);
     TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
@@ -97,7 +97,7 @@ class TrackedEntityAttributesAggregateAclTest extends TrackerTest {
     final TrackedEntityType trackedEntityType =
         trackedEntityTypeService.getTrackedEntityType(tetUid);
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityType);
     queryParams.setIncludeAllAttributes(true);
     TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;

@@ -145,8 +145,8 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
     systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, 3);
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setProgram(program);
-    params.setOrganisationUnits(Set.of(orgUnitA));
-    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
+    params.setOrgUnits(Set.of(orgUnitA));
+    params.setOrgUnitMode(OrganisationUnitSelectionMode.ALL);
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
@@ -162,8 +162,8 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setProgram(program);
-    params.setOrganisationUnits(Set.of(orgUnitA));
-    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
+    params.setOrgUnits(Set.of(orgUnitA));
+    params.setOrgUnitMode(OrganisationUnitSelectionMode.ALL);
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
@@ -176,8 +176,8 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
   void testDefaultMaxTeiLimit() {
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setProgram(program);
-    params.setOrganisationUnits(Set.of(orgUnitA));
-    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
+    params.setOrgUnits(Set.of(orgUnitA));
+    params.setOrgUnitMode(OrganisationUnitSelectionMode.ALL);
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
@@ -192,8 +192,8 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setProgram(program);
-    params.setOrganisationUnits(Set.of(orgUnitA));
-    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
+    params.setOrgUnits(Set.of(orgUnitA));
+    params.setOrgUnitMode(OrganisationUnitSelectionMode.ALL);
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 

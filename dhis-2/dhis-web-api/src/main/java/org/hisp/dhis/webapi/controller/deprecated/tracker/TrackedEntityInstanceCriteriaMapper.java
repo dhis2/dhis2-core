@@ -148,11 +148,11 @@ public class TrackedEntityInstanceCriteriaMapper {
             "User does not have access to organisation unit: " + orgUnit);
       }
 
-      params.getOrganisationUnits().add(organisationUnit);
+      params.getOrgUnits().add(organisationUnit);
     }
 
     if (criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null) {
-      params.getOrganisationUnits().addAll(user.getOrganisationUnits());
+      params.getOrgUnits().addAll(user.getOrganisationUnits());
     }
 
     List<OrderParam> orderParams = toOrderParams(criteria.getOrder());
@@ -173,7 +173,7 @@ public class TrackedEntityInstanceCriteriaMapper {
         .setProgramIncidentStartDate(criteria.getProgramIncidentStartDate())
         .setProgramIncidentEndDate(criteria.getProgramIncidentEndDate())
         .setTrackedEntityType(validateTrackedEntityType(criteria))
-        .setOrganisationUnitMode(criteria.getOuMode())
+        .setOrgUnitMode(criteria.getOuMode())
         .setEventStatus(criteria.getEventStatus())
         .setEventStartDate(criteria.getEventStartDate())
         .setEventEndDate(criteria.getEventEndDate())
