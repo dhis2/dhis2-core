@@ -36,14 +36,11 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 @EqualsAndHashCode(exclude = {"identifier", "identifierName", "identifierClass"})
 class LegacyRequestParams extends PagingAndSortingCriteriaAdapter {
 
-  @Setter
-  private String trackedEntity;
+  @Setter private String trackedEntity;
 
-  @Setter
-  private String enrollment;
+  @Setter private String enrollment;
 
-  @Setter
-  private String event;
+  @Setter private String event;
 
   private String identifier;
 

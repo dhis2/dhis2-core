@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -47,7 +47,7 @@ class RelationshipRequestParamsMapper {
 
   public RelationshipOperationParams map(RequestParams requestParams) throws BadRequestException {
     UID trackedEntity =
-        validateDeprecatedUidParameter(
+        validateDeprecatedParameter(
             "tei", requestParams.getTei(), "trackedEntity", requestParams.getTrackedEntity());
 
     int count = 0;

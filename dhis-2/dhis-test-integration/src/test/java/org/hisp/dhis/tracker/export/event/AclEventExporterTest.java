@@ -109,7 +109,7 @@ class AclEventExporterTest extends TrackerTest {
         EventOperationParams.builder()
             .programUid("pcxIanBWlSY")
             .orgUnitUid(orgUnit.getUid())
-            .orgUnitSelectionMode(DESCENDANTS)
+            .orgUnitMode(DESCENDANTS)
             .build();
 
     List<Event> events = eventService.getEvents(params).getEvents();
@@ -134,7 +134,7 @@ class AclEventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .orgUnitSelectionMode(DESCENDANTS)
+            .orgUnitMode(DESCENDANTS)
             .build();
 
     List<Event> events = eventService.getEvents(params).getEvents();
@@ -155,7 +155,7 @@ class AclEventExporterTest extends TrackerTest {
         EventOperationParams.builder()
             .programUid("pcxIanBWlSY")
             .orgUnitUid(orgUnit.getUid())
-            .orgUnitSelectionMode(CHILDREN)
+            .orgUnitMode(CHILDREN)
             .build();
 
     List<Event> events = eventService.getEvents(params).getEvents();
@@ -178,10 +178,7 @@ class AclEventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .orgUnitSelectionMode(CHILDREN)
-            .build();
+        EventOperationParams.builder().orgUnitUid(orgUnit.getUid()).orgUnitMode(CHILDREN).build();
 
     List<Event> events = eventService.getEvents(params).getEvents();
 
@@ -200,7 +197,7 @@ class AclEventExporterTest extends TrackerTest {
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid("DiszpKrYNg8")
-            .orgUnitSelectionMode(DESCENDANTS)
+            .orgUnitMode(DESCENDANTS)
             .build();
 
     ForbiddenException exception =
@@ -215,7 +212,7 @@ class AclEventExporterTest extends TrackerTest {
         EventOperationParams.builder()
             .programUid("pcxIanBWlSY")
             .orgUnitUid("DiszpKrYNg8")
-            .orgUnitSelectionMode(DESCENDANTS)
+            .orgUnitMode(DESCENDANTS)
             .build();
 
     ForbiddenException exception =
@@ -231,7 +228,7 @@ class AclEventExporterTest extends TrackerTest {
         EventOperationParams.builder()
             .programUid("pcxIanBWlSY")
             .orgUnitUid("uoNW0E3xXUy")
-            .orgUnitSelectionMode(SELECTED)
+            .orgUnitMode(SELECTED)
             .build();
 
     List<Event> events = eventService.getEvents(params).getEvents();
@@ -254,10 +251,7 @@ class AclEventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .orgUnitSelectionMode(SELECTED)
-            .build();
+        EventOperationParams.builder().orgUnitUid(orgUnit.getUid()).orgUnitMode(SELECTED).build();
 
     List<Event> events = eventService.getEvents(params).getEvents();
 
@@ -283,7 +277,7 @@ class AclEventExporterTest extends TrackerTest {
         EventOperationParams.builder()
             .programUid("shPjYNifvMK")
             .orgUnitUid(orgUnit.getUid())
-            .orgUnitSelectionMode(SELECTED)
+            .orgUnitMode(SELECTED)
             .build();
 
     List<Event> events = eventService.getEvents(params).getEvents();
@@ -299,7 +293,7 @@ class AclEventExporterTest extends TrackerTest {
         EventOperationParams.builder()
             .programUid("pcxIanBWlSY")
             .orgUnitUid("uoNW0E3xXUy")
-            .orgUnitSelectionMode(ACCESSIBLE)
+            .orgUnitMode(ACCESSIBLE)
             .build();
 
     List<Event> events = eventService.getEvents(params).getEvents();
@@ -321,10 +315,7 @@ class AclEventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder()
-            .programUid(program.getUid())
-            .orgUnitSelectionMode(ACCESSIBLE)
-            .build();
+        EventOperationParams.builder().programUid(program.getUid()).orgUnitMode(ACCESSIBLE).build();
 
     List<Event> events = eventService.getEvents(params).getEvents();
 
@@ -348,7 +339,7 @@ class AclEventExporterTest extends TrackerTest {
         EventOperationParams.builder()
             .programUid("pcxIanBWlSY")
             .orgUnitUid("uoNW0E3xXUy")
-            .orgUnitSelectionMode(CAPTURE)
+            .orgUnitMode(CAPTURE)
             .build();
 
     List<Event> events = eventService.getEvents(params).getEvents();

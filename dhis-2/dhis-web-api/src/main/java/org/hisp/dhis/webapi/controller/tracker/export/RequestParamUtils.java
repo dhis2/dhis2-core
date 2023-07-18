@@ -81,11 +81,11 @@ public class RequestParamUtils {
    * @param deprecatedParam value of deprecated request parameter
    * @param newParamName new request parameter replacing deprecated request parameter
    * @param newParam value of the request parameter
-   * @return value of the one request parameter that is non-empty
-   * @throws BadRequestException when both deprecated and new request parameter are non-empty
+   * @return value of the one request parameter that is non-null
+   * @throws BadRequestException when both deprecated and new request parameter are non-null
    */
-  public static UID validateDeprecatedUidParameter(
-      String deprecatedParamName, UID deprecatedParam, String newParamName, UID newParam)
+  public static <T> T validateDeprecatedParameter(
+      String deprecatedParamName, T deprecatedParam, String newParamName, T newParam)
       throws BadRequestException {
     if (newParam != null && deprecatedParam != null) {
       throw new BadRequestException(
@@ -106,15 +106,14 @@ public class RequestParamUtils {
    * @param newParamName new request parameter replacing deprecated request parameter
    * @param newParam value of the request parameter
    * @return value of the one request parameter that is non-empty
-   * @throws BadRequestException when both deprecated and new request parameter are non-empty
-   * @throws BadRequestException when both deprecated and new request parameter are empty
+   * @throws BadRequestException when both deprecated and new request parameter are non-null
+   * @throws BadRequestException when both deprecated and new request parameter are null
    */
   public static UID validateMandatoryDeprecatedUidParameter(
       String deprecatedParamName, UID deprecatedParam, String newParamName, UID newParam)
       throws BadRequestException {
     UID uid =
-        validateDeprecatedUidParameter(
-            deprecatedParamName, deprecatedParam, newParamName, newParam);
+        validateDeprecatedParameter(deprecatedParamName, deprecatedParam, newParamName, newParam);
 
     if (uid == null) {
       throw new BadRequestException(
