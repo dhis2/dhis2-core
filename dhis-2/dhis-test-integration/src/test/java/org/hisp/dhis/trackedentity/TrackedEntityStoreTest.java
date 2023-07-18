@@ -295,7 +295,7 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest {
     params =
         new TrackedEntityQueryParams()
             .addOrganisationUnit(ouB)
-            .setOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED);
+            .setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
     teis = teiStore.getTrackedEntities(params);
     assertEquals(2, teis.size());
     assertTrue(teis.contains(teiB));
@@ -304,7 +304,7 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest {
     params =
         new TrackedEntityQueryParams()
             .addOrganisationUnit(ouB)
-            .setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+            .setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     teis = teiStore.getTrackedEntities(params);
     assertEquals(5, teis.size());
     assertTrue(teis.contains(teiB));
@@ -492,7 +492,7 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest {
     enrollmentService.enrollTrackedEntity(teiA, prA, new Date(), new Date(), ouA);
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setTrackedEntityType(trackedEntityTypeA);
-    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
+    params.setOrgUnitMode(OrganisationUnitSelectionMode.ALL);
     QueryItem queryItem = new QueryItem(atC);
     queryItem.setValueType(atC.getValueType());
     params.setAttributes(Collections.singletonList(queryItem));

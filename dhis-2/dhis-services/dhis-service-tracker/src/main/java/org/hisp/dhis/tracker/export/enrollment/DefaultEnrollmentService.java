@@ -66,6 +66,7 @@ import org.springframework.stereotype.Service;
 @Service("org.hisp.dhis.tracker.export.enrollment.EnrollmentService")
 public class DefaultEnrollmentService
     implements org.hisp.dhis.tracker.export.enrollment.EnrollmentService {
+
   private final EnrollmentService enrollmentService;
 
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
@@ -188,29 +189,28 @@ public class DefaultEnrollmentService
   @Override
   public Enrollments getEnrollments(EnrollmentOperationParams params)
       throws ForbiddenException, BadRequestException {
-    Enrollments enrollments = new Enrollments();
-
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
     List<Enrollment> enrollmentList =
-        new ArrayList<>(enrollmentService.getEnrollments(queryParams));
-    if (!params.isSkipPaging()) {
-      Pager pager;
+        getEnrollments(
+            new ArrayList<>(enrollmentService.getEnrollments(queryParams)),
+            params.getEnrollmentParams(),
+            params.isIncludeDeleted());
 
-      if (params.isTotalPages()) {
-        int count = enrollmentService.countEnrollments(queryParams);
-        pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
-      } else {
-        pager = handleLastPageFlag(queryParams, enrollmentList);
-      }
-
-      enrollments.setPager(pager);
+    if (params.isSkipPaging()) {
+      return Enrollments.withoutPagination(enrollmentList);
     }
 
-    enrollments.setEnrollments(
-        getEnrollments(enrollmentList, params.getEnrollmentParams(), params.isIncludeDeleted()));
+    Pager pager;
 
-    return enrollments;
+    if (params.isTotalPages()) {
+      int count = enrollmentService.countEnrollments(queryParams);
+      pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
+    } else {
+      pager = handleLastPageFlag(queryParams, enrollmentList);
+    }
+
+    return Enrollments.of(enrollmentList, pager);
   }
 
   /**

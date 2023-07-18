@@ -36,6 +36,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.query.operators.EqualOperator;
+import org.hisp.dhis.query.operators.LikeOperator;
 import org.hisp.dhis.query.operators.NullOperator;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
@@ -92,6 +93,21 @@ class QueryParserTest extends IntegrationTestBase {
     assertEquals("id", restriction.getPath());
     assertEquals("2", restriction.getOperator().getArgs().get(0));
     assertTrue(restriction.getOperator() instanceof EqualOperator);
+  }
+
+  @Test
+  void ieqOperator() throws QueryParserException {
+    Query query =
+        queryParser.parse(DataElement.class, Arrays.asList("name:ieq:Test1", "name:ieq:test2"));
+    assertEquals(2, query.getCriterions().size());
+    Restriction restriction = (Restriction) query.getCriterions().get(0);
+    assertEquals("name", restriction.getPath());
+    assertEquals("Test1", restriction.getOperator().getArgs().get(0));
+    assertTrue(restriction.getOperator() instanceof LikeOperator<?>);
+    restriction = (Restriction) query.getCriterions().get(1);
+    assertEquals("name", restriction.getPath());
+    assertEquals("test2", restriction.getOperator().getArgs().get(0));
+    assertTrue(restriction.getOperator() instanceof LikeOperator<?>);
   }
 
   @Test

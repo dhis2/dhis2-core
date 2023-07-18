@@ -25,25 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.parser.expression.function;
+package org.hisp.dhis.tracker.export.relationship;
 
-import java.util.Arrays;
-import java.util.List;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
-/**
- * Vector function: median
- *
- * @author Jim Grace
- */
-public class VectorMedian extends VectorFunction<Double> {
-  public VectorMedian() {
-    super(Double.class);
+@Getter
+@Builder(toBuilder = true)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class RelationshipOperationParams {
+
+  public static final int DEFAULT_PAGE = 1;
+
+  public static final int DEFAULT_PAGE_SIZE = 50;
+
+  private Integer page;
+
+  private Integer pageSize;
+
+  private boolean totalPages;
+
+  private boolean skipPaging;
+
+  private String trackedEntity;
+
+  private String enrollment;
+
+  private String event;
+
+  public boolean isPaging() {
+    return page != null || pageSize != null;
   }
 
-  private static VectorPercentileCont percentileContinuous = new VectorPercentileCont();
+  public int getPageWithDefault() {
+    return page != null && page > 0 ? page : DEFAULT_PAGE;
+  }
 
-  @Override
-  public Object aggregate(List<Double> values, List<Double> args) {
-    return percentileContinuous.aggregate(values, Arrays.asList(.5));
+  public int getPageSizeWithDefault() {
+    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
+  }
+
+  public void setDefaultPaging() {
+    this.page = DEFAULT_PAGE;
+    this.pageSize = DEFAULT_PAGE_SIZE;
+    this.skipPaging = false;
   }
 }
