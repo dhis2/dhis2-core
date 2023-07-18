@@ -30,18 +30,20 @@ package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 @NoArgsConstructor
 @EqualsAndHashCode(exclude = {"identifier", "identifierName", "identifierClass"})
 class LegacyRequestParams extends PagingAndSortingCriteriaAdapter {
 
-  @Setter private String trackedEntity;
+  @Setter
+  private String trackedEntity;
 
-  @Setter private String enrollment;
+  @Setter
+  private String enrollment;
 
-  @Setter private String event;
+  @Setter
+  private String event;
 
   private String identifier;
 
@@ -49,7 +51,6 @@ class LegacyRequestParams extends PagingAndSortingCriteriaAdapter {
 
   private Class<?> identifierClass;
 
-  @OpenApi.Ignore
   public String getIdentifierParam() {
     if (this.identifier != null) {
       return this.identifier;
@@ -74,7 +75,6 @@ class LegacyRequestParams extends PagingAndSortingCriteriaAdapter {
     return this.identifier;
   }
 
-  @OpenApi.Ignore
   public String getIdentifierName() {
     if (this.identifierName == null) {
       this.getIdentifierParam();
@@ -82,7 +82,6 @@ class LegacyRequestParams extends PagingAndSortingCriteriaAdapter {
     return this.identifierName;
   }
 
-  @OpenApi.Ignore
   public Class<?> getIdentifierClass() {
     if (this.identifierClass == null) {
       this.getIdentifierParam();

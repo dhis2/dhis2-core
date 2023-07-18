@@ -55,10 +55,6 @@ public class RelationshipOperationParams {
 
   private String event;
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
   public boolean isPaging() {
     return page != null || pageSize != null;
   }
@@ -71,7 +67,6 @@ public class RelationshipOperationParams {
     return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
   }
 
-  /** Sets paging properties to default values. */
   public void setDefaultPaging() {
     this.page = DEFAULT_PAGE;
     this.pageSize = DEFAULT_PAGE_SIZE;
