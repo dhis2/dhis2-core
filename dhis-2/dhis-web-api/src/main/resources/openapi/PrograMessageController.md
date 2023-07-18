@@ -16,10 +16,6 @@ Get programMessages matching given query criteria.
 
 ## Common for all endpoints
 
-### `*.parameter.EventRequestParams.program`
+### `*.parameter.Enrollment`
 
-### `*.parameter.EventRequestParams.programStage`
-
-### `*.parameter.EventRequestParams.programStatus`
-
-### `*.parameter.EventRequestParams.followUp`
+### `*.parameter.Event`
