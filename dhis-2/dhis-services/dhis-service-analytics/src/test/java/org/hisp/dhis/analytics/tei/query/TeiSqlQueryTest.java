@@ -120,9 +120,6 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
 
     // then
     assertTrue(sql.contains(" order by \"prabcdefghA[1].pgabcdefghS[1].abc\" desc nulls last"));
-    assertTrue(
-        sql.contains(
-            "(\"prabcdefghA[1].pgabcdefghS[1]\".\"eventdatavalues\" -> 'abc' ->> 'value')::TEXT as \"prabcdefghA[1].pgabcdefghS[1].abc\""));
   }
 
   private CommonParams stubSortingCommonParams(

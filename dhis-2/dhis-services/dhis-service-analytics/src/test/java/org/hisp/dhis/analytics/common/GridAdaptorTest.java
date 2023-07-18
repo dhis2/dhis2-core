@@ -122,7 +122,7 @@ class GridAdaptorTest extends DhisConvenienceTest {
     RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
     metaData.setColumnCount(2);
     metaData.setColumnName(1, "anyFakeCol-1");
-    metaData.setColumnName(2, "anyFakeCol-2");
+    metaData.setColumnName(2, "oucode");
 
     TeiQueryParams teiQueryParams =
         TeiQueryParams.builder()
