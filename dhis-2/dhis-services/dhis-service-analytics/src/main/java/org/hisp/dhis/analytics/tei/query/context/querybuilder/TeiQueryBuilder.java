@@ -63,7 +63,7 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
   private static final String JSON_AGGREGATION_QUERY =
       """
         (select json_agg(json_build_object('programUid', pr.uid,
-                                              'programInstanceUid', en.programinstanceuid,
+                                              'enrollmentUid', en.programinstanceuid,
                                               'enrollmentDate', en.enrollmentdate,
                                               'incidentDate', en.incidentdate,
                                               'endDate', en.enddate,
@@ -71,8 +71,8 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
                                               'orgUnitCode', en.oucode,
                                               'orgUnitNameHierarchy', en.ounamehierarchy,
                                               'events',
-                                              (select json_agg(json_build_object('programStageUid', ps.uid,
-                                                                                 'programStageInstanceUid', ev.programstageuid,
+                                              (select json_agg(json_build_object('enrollmentUid', ps.uid,
+                                                                                 'eventUid', ev.programstageuid,
                                                                                  'executionDate', ev.executiondate,
                                                                                  'dueDate', ev.duedate,
                                                                                  'orgUnitName', ev.ouname,
@@ -80,8 +80,8 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
                                                                                  'orgUnitNameHierarchy', ev.ounamehierarchy,
                                                                                  'eventDataValues', ev.eventdatavalues))
                                                from analytics_tei_events_%s ev,
-                                                    programstage ps
-                                               where ev.programinstanceuid = en.programinstanceuid
+                                                    enrollment ps
+                                               where ev.enrollmentuid = en.enrollmentuid
                                                  and ps.uid = ev.programstageuid)))
             from analytics_tei_enrollments_%s en,
                  program pr

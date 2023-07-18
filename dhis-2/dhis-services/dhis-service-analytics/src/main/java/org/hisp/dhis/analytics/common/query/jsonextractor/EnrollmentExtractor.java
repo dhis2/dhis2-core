@@ -33,6 +33,9 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 
+/**
+ * This enum represents a mapping between static dimensions and their corresponding getter method
+ */
 @RequiredArgsConstructor
 enum EnrollmentExtractor {
   ENROLLMENTDATE(DimensionParam.StaticDimension.ENROLLMENTDATE, JsonEnrollment::getEnrollmentDate),

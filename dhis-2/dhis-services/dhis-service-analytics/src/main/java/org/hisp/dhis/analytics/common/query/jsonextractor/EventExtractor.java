@@ -33,6 +33,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 
+/**
+ * This enum maps static dimensions to functions that extract the corresponding values from an
+ * JsonEvent
+ */
 @RequiredArgsConstructor
 enum EventExtractor {
   EXECUTION_DATE(

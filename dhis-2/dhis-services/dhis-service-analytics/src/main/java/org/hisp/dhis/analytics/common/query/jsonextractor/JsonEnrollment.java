@@ -36,7 +36,7 @@ import lombok.Data;
 class JsonEnrollment {
   private String programUid;
 
-  private String programInstanceUid;
+  private String enrollmentUid;
 
   private Date enrollmentDate;
 
@@ -54,9 +54,9 @@ class JsonEnrollment {
 
   @Data
   static class JsonEvent {
-    private String programStageUid;
+    private String enrollmentUid;
 
-    private String programStageInstanceUid;
+    private String eventUid;
 
     private Date executionDate;
 

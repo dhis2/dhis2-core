@@ -57,10 +57,10 @@ public class Field extends BaseRenderable {
 
   private final Boolean quotingNeeded;
 
-  // a flag to indicate whether the field will be used in the headers
+  /** a flag to indicate whether the field will be used in the headers */
   @With @Getter private final boolean usedInHeaders;
 
-  // virtual fields won't be added to the select clause
+  /** virtual fields won't be added to the select clause */
   @With @Getter private final boolean virtual;
 
   public Field asVirtual() {

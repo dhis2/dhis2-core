@@ -33,9 +33,9 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 /**
  * This class is a simple SqlRowSet wrapper that delegates all calls to the wrapped SqlRowSet. It is
- * used to simplify the implementation of the {@link AggregatedJsonExtractingSqlRowSet} class.
+ * used to simplify the implementation of the {@link SqlRowSetJsonExtractorDelegator} class.
  */
 @RequiredArgsConstructor
-class DelegatingSqlRowSet implements SqlRowSet {
+class SqlRowSetDelegator implements SqlRowSet {
   @Delegate private final SqlRowSet sqlRowSet;
 }

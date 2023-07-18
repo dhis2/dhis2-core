@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.common;
 
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.query.jsonextractor.AggregatedJsonExtractingSqlRowSet;
+import org.hisp.dhis.analytics.common.query.jsonextractor.SqlRowSetJsonExtractorDelegator;
 import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
 /**
@@ -38,12 +38,12 @@ import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
  */
 @RequiredArgsConstructor
 public class SqlQueryResult
-    implements QueryResult<AggregatedJsonExtractingSqlRowSet, SqlRowSetMetaData> {
+    implements QueryResult<SqlRowSetJsonExtractorDelegator, SqlRowSetMetaData> {
   /** Represents the query result. */
-  @Nonnull private final AggregatedJsonExtractingSqlRowSet result;
+  @Nonnull private final SqlRowSetJsonExtractorDelegator result;
 
   @Override
-  public AggregatedJsonExtractingSqlRowSet result() {
+  public SqlRowSetJsonExtractorDelegator result() {
     return result;
   }
 

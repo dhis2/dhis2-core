@@ -36,7 +36,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.query.jsonextractor.AggregatedJsonExtractingSqlRowSet;
+import org.hisp.dhis.analytics.common.query.jsonextractor.SqlRowSetJsonExtractorDelegator;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -87,8 +87,7 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
                     .map(AnalyticsSortingParams::getOrderBy))
             .toList();
 
-    return new SqlQueryResult(
-        new AggregatedJsonExtractingSqlRowSet(rowSet, allDimensionIdentifiers));
+    return new SqlQueryResult(new SqlRowSetJsonExtractorDelegator(rowSet, allDimensionIdentifiers));
   }
 
   /**

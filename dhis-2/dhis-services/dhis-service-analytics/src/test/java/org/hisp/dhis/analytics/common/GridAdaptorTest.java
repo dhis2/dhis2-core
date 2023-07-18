@@ -61,7 +61,7 @@ import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.processing.HeaderParamsHandler;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.common.query.jsonextractor.AggregatedJsonExtractingSqlRowSet;
+import org.hisp.dhis.analytics.common.query.jsonextractor.SqlRowSetJsonExtractorDelegator;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -138,8 +138,7 @@ class GridAdaptorTest extends DhisConvenienceTest {
 
     SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet(resultSet);
     SqlQueryResult mockSqlResult =
-        new SqlQueryResult(
-            new AggregatedJsonExtractingSqlRowSet(sqlRowSet, Collections.emptyList()));
+        new SqlQueryResult(new SqlRowSetJsonExtractorDelegator(sqlRowSet, Collections.emptyList()));
     long anyCount = 0;
 
     // When
@@ -178,8 +177,7 @@ class GridAdaptorTest extends DhisConvenienceTest {
 
     SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet(resultSet);
     SqlQueryResult mockSqlResult =
-        new SqlQueryResult(
-            new AggregatedJsonExtractingSqlRowSet(sqlRowSet, Collections.emptyList()));
+        new SqlQueryResult(new SqlRowSetJsonExtractorDelegator(sqlRowSet, Collections.emptyList()));
     long anyCount = 0;
 
     // When

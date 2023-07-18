@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.common.query.jsonextractor;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsFirst;
+import static org.hisp.dhis.feedback.ErrorCode.E7250;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -53,7 +54,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  * A {@link SqlRowSet} implementation that extracts values from a JSON string column in the wrapped
  * {@link SqlRowSet} and returns them as if they were columns in the row set.
  */
-public class AggregatedJsonExtractingSqlRowSet extends DelegatingSqlRowSet {
+public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -67,7 +68,7 @@ public class AggregatedJsonExtractingSqlRowSet extends DelegatingSqlRowSet {
 
   private final List<String> existingColumnsInRowSet;
 
-  public AggregatedJsonExtractingSqlRowSet(
+  public SqlRowSetJsonExtractorDelegator(
       SqlRowSet sqlRowSet, List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers) {
     super(sqlRowSet);
     this.dimIdByKey = new HashMap<>();
@@ -95,57 +96,67 @@ public class AggregatedJsonExtractingSqlRowSet extends DelegatingSqlRowSet {
     DimensionIdentifier<DimensionParam> dimensionIdentifier = dimIdByKey.get(columnLabel);
 
     if (dimensionIdentifier.isEnrollmentDimension()) {
-      return enrollments.stream()
-          // gets only enrollments whose program is the same as specified in the dimension
-          .filter(
-              jsonEnrollment ->
-                  jsonEnrollment
-                      .getProgramUid()
-                      .equals(dimensionIdentifier.getProgram().getElement().getUid()))
-          // sorts enrollments by enrollment date, descending
-          .sorted(ENR_ENROLLMENT_DATE_COMPARATOR)
-          // skips the number of enrollments specified in the dimension (offset)
-          .skip(dimensionIdentifier.getProgram().getOffsetWithDefault())
-          .findFirst()
-          // extracts the value of the dimension from the enrollment
-          .map(
-              jsonEnrollment ->
-                  getEnrollmentExtractor(dimensionIdentifier.getDimension()).apply(jsonEnrollment))
-          .orElse(null);
+      return getObjectForEnrollments(enrollments, dimensionIdentifier);
     }
 
     if (dimensionIdentifier.isEventDimension()) {
-      return enrollments.stream()
-          // gets only enrollments whose program is the same as specified in the dimension
-          .filter(
-              jsonEnrollment ->
-                  jsonEnrollment
-                      .getProgramUid()
-                      .equals(dimensionIdentifier.getProgram().getElement().getUid()))
-          // sorts enrollments by enrollment date, descending
-          .sorted(ENR_ENROLLMENT_DATE_COMPARATOR)
-          // skips the number of enrollments specified in the dimension (offset)
-          .skip(dimensionIdentifier.getProgram().getOffsetWithDefault())
-          .findFirst()
-          .map(JsonEnrollment::getEvents)
-          .stream()
-          .flatMap(Collection::stream)
-          // gets only events whose program stage is the same as specified in the dimension
-          .filter(
-              jsonEvent ->
-                  jsonEvent
-                      .getProgramStageUid()
-                      .equals(dimensionIdentifier.getProgramStage().getElement().getUid()))
-          // sorts events by execution date, descending
-          .sorted(EVT_EXECUTION_DATE_COMPARATOR)
-          // skips the number of events specified in the dimension (offset)
-          .skip(dimensionIdentifier.getProgramStage().getOffsetWithDefault())
-          .findFirst()
-          // extracts the value of the dimension from the event
-          .map(jsonEvent -> getEventExtractor(dimensionIdentifier.getDimension()).apply(jsonEvent))
-          .orElse(null);
+      return getObjectForEvents(enrollments, dimensionIdentifier);
     }
-    throw new IllegalStateException("Unknown dimension identifier " + dimensionIdentifier);
+    throw new IllegalQueryException(E7250, dimensionIdentifier);
+  }
+
+  private Object getObjectForEvents(
+      List<JsonEnrollment> enrollments, DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return enrollments.stream()
+        // gets only enrollments whose program is the same as specified in the dimension
+        .filter(
+            jsonEnrollment ->
+                jsonEnrollment
+                    .getProgramUid()
+                    .equals(dimensionIdentifier.getProgram().getElement().getUid()))
+        // sorts enrollments by enrollment date, descending
+        .sorted(ENR_ENROLLMENT_DATE_COMPARATOR)
+        // skips the number of enrollments specified in the dimension (offset)
+        .skip(dimensionIdentifier.getProgram().getOffsetWithDefault())
+        .findFirst()
+        .map(JsonEnrollment::getEvents)
+        .stream()
+        .flatMap(Collection::stream)
+        // gets only events whose program stage is the same as specified in the dimension
+        .filter(
+            jsonEvent ->
+                jsonEvent
+                    .getEnrollmentUid()
+                    .equals(dimensionIdentifier.getProgramStage().getElement().getUid()))
+        // sorts events by execution date, descending
+        .sorted(EVT_EXECUTION_DATE_COMPARATOR)
+        // skips the number of events specified in the dimension (offset)
+        .skip(dimensionIdentifier.getProgramStage().getOffsetWithDefault())
+        .findFirst()
+        // extracts the value of the dimension from the event
+        .map(jsonEvent -> getEventExtractor(dimensionIdentifier.getDimension()).apply(jsonEvent))
+        .orElse(null);
+  }
+
+  private Object getObjectForEnrollments(
+      List<JsonEnrollment> enrollments, DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return enrollments.stream()
+        // gets only enrollments whose program is the same as specified in the dimension
+        .filter(
+            jsonEnrollment ->
+                jsonEnrollment
+                    .getProgramUid()
+                    .equals(dimensionIdentifier.getProgram().getElement().getUid()))
+        // sorts enrollments by enrollment date, descending
+        .sorted(ENR_ENROLLMENT_DATE_COMPARATOR)
+        // skips the number of enrollments specified in the dimension (offset)
+        .skip(dimensionIdentifier.getProgram().getOffsetWithDefault())
+        .findFirst()
+        // extracts the value of the dimension from the enrollment
+        .map(
+            jsonEnrollment ->
+                getEnrollmentExtractor(dimensionIdentifier.getDimension()).apply(jsonEnrollment))
+        .orElse(null);
   }
 
   /**
@@ -181,6 +192,6 @@ public class AggregatedJsonExtractingSqlRowSet extends DelegatingSqlRowSet {
     if (dimension.isStaticDimension()) {
       return EnrollmentExtractor.byDimension(dimension.getStaticDimension()).getExtractor();
     }
-    throw new IllegalQueryException("Unsupported enrollment dimension " + dimension);
+    throw new IllegalQueryException(E7250, dimension.toString());
   }
 }
