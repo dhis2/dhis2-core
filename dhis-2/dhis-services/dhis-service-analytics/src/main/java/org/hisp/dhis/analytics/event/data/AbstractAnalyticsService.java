@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.event.data;
 
 import static java.util.Collections.emptyList;
 import static java.util.Optional.empty;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.joinWith;
@@ -143,6 +145,11 @@ public abstract class AbstractAnalyticsService {
               true));
     }
 
+    final DisplayProperty displayProperty = params.getDisplayProperty();
+    Map<String, Long> repeatedNames =
+        params.getItems().stream()
+            .collect(groupingBy(s -> s.getItem().getDisplayProperty(displayProperty), counting()));
+
     for (QueryItem item : params.getItems()) {
       /**
        * If the request contains an item of value type ORGANISATION_UNIT and the item UID is linked
@@ -155,14 +162,15 @@ public abstract class AbstractAnalyticsService {
         grid.addHeader(
             new GridHeader(
                 item.getItem().getUid(),
-                item.getItem().getDisplayProperty(params.getDisplayProperty()),
+                item.getItem().getDisplayProperty(displayProperty),
                 COORDINATE,
                 false,
                 true,
                 item.getOptionSet(),
                 item.getLegendSet()));
       } else if (item.hasNonDefaultRepeatableProgramStageOffset()) {
-        String column = item.getItem().getDisplayProperty(params.getDisplayProperty());
+        String column = item.getItem().getDisplayProperty(displayProperty);
+        String displayColumn = item.getColumnName(displayProperty, repeatedNames.get(column) > 1);
 
         RepeatableStageParams repeatableStageParams = item.getRepeatableStageParams();
 
@@ -172,6 +180,7 @@ public abstract class AbstractAnalyticsService {
             new GridHeader(
                 name,
                 column,
+                displayColumn,
                 repeatableStageParams.simpleStageValueExpected()
                     ? item.getValueType()
                     : ValueType.REFERENCE,
@@ -183,13 +192,14 @@ public abstract class AbstractAnalyticsService {
                 item.getRepeatableStageParams()));
       } else {
         String uid = getItemUid(item);
-
-        String column = item.getItem().getDisplayProperty(params.getDisplayProperty());
+        String column = item.getItem().getDisplayProperty(displayProperty);
+        String displayColumn = item.getColumnName(displayProperty, repeatedNames.get(column) > 1);
 
         grid.addHeader(
             new GridHeader(
                 uid,
                 column,
+                displayColumn,
                 item.getValueType(),
                 false,
                 true,
