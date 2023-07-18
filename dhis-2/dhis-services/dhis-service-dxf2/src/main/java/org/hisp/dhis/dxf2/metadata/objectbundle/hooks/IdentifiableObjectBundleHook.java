@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -108,7 +109,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
     return schema.getPersistedProperties().values().stream()
         .filter(
             p ->
-                p.isCollection()
+                p.getKlass().isAssignableFrom(List.class)
                     && SortableObject.class.isAssignableFrom(p.getItemKlass())
                     && schemaService
                         .getDynamicSchema(p.getItemKlass())
