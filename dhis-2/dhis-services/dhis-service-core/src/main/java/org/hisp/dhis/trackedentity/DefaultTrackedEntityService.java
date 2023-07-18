@@ -838,10 +838,10 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
 
     if (params.isOrganisationUnitMode(SELECTED)) {
-      searchOrgUnits = params.getOrganisationUnits();
+      searchOrgUnits = params.getOrgUnits();
     } else if (params.isOrganisationUnitMode(CHILDREN)
         || params.isOrganisationUnitMode(DESCENDANTS)) {
-      for (OrganisationUnit ou : params.getOrganisationUnits()) {
+      for (OrganisationUnit ou : params.getOrgUnits()) {
         searchOrgUnits.addAll(ou.getChildren());
       }
     } else if (params.isOrganisationUnitMode(ALL)) {

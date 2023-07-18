@@ -28,8 +28,6 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static java.util.Map.entry;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
@@ -1022,7 +1020,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String getOrgUnitSql(EventSearchParams params, String ouTable) {
-    return switch (params.getOrgUnitSelectionMode()) {
+    return switch (params.getOrgUnitMode()) {
       case SELECTED -> getSelectedOrgUnitPath(params.getAccessibleOrgUnits(), ouTable);
       case CHILDREN -> getChildrenOrgUnitsPath(params.getAccessibleOrgUnits(), ouTable);
       case ALL -> null;

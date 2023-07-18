@@ -108,7 +108,7 @@ public class TrackedEntityQueryParams {
    * Organisation units for which instances in the response were registered at. Is related to the
    * specified OrganisationUnitMode.
    */
-  private Set<OrganisationUnit> organisationUnits = new HashSet<>();
+  private Set<OrganisationUnit> orgUnits = new HashSet<>();
 
   /** Program for which instances in the response must be enrolled in. */
   private Program program;
@@ -149,8 +149,7 @@ public class TrackedEntityQueryParams {
   private List<TrackedEntityType> trackedEntityTypes = Lists.newArrayList();
 
   /** Selection mode for the specified organisation units, default is DESCENDANTS. */
-  private OrganisationUnitSelectionMode organisationUnitMode =
-      OrganisationUnitSelectionMode.DESCENDANTS;
+  private OrganisationUnitSelectionMode orgUnitMode = OrganisationUnitSelectionMode.DESCENDANTS;
 
   private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
@@ -245,7 +244,7 @@ public class TrackedEntityQueryParams {
 
   /** Adds an organisation unit to the parameters. */
   public TrackedEntityQueryParams addOrganisationUnit(OrganisationUnit unit) {
-    this.organisationUnits.add(unit);
+    this.orgUnits.add(unit);
     return this;
   }
 
@@ -288,20 +287,20 @@ public class TrackedEntityQueryParams {
    */
   public void handleOrganisationUnits() {
     if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
-      setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+      setOrgUnits(user.getTeiSearchOrganisationUnitsWithFallback());
+      setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     } else if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.CAPTURE)) {
-      setOrganisationUnits(user.getOrganisationUnits());
-      setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+      setOrgUnits(user.getOrganisationUnits());
+      setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     } else if (isOrganisationUnitMode(CHILDREN)) {
-      Set<OrganisationUnit> orgUnits = new HashSet<>(getOrganisationUnits());
+      Set<OrganisationUnit> orgUnits = new HashSet<>(getOrgUnits());
 
-      for (OrganisationUnit organisationUnit : getOrganisationUnits()) {
+      for (OrganisationUnit organisationUnit : getOrgUnits()) {
         orgUnits.addAll(organisationUnit.getChildren());
       }
 
-      setOrganisationUnits(orgUnits);
-      setOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED);
+      setOrgUnits(orgUnits);
+      setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
     }
   }
 
@@ -414,7 +413,7 @@ public class TrackedEntityQueryParams {
 
   /** Indicates whether this parameters specifies any organisation units. */
   public boolean hasOrganisationUnits() {
-    return organisationUnits != null && !organisationUnits.isEmpty();
+    return orgUnits != null && !orgUnits.isEmpty();
   }
 
   /** Indicates whether this parameters specifies a program. */
@@ -477,7 +476,7 @@ public class TrackedEntityQueryParams {
 
   /** Indicates whether this parameters is of the given organisation unit mode. */
   public boolean isOrganisationUnitMode(OrganisationUnitSelectionMode mode) {
-    return organisationUnitMode != null && organisationUnitMode.equals(mode);
+    return orgUnitMode != null && orgUnitMode.equals(mode);
   }
 
   /** Indicates whether this parameters specifies a programStage. */
@@ -573,7 +572,7 @@ public class TrackedEntityQueryParams {
         .add("query", query)
         .add("attributes", attributes)
         .add("filters", filters)
-        .add("organisationUnits", organisationUnits)
+        .add("orgUnits", orgUnits)
         .add("program", program)
         .add("programStatus", programStatus)
         .add("followUp", followUp)
@@ -585,7 +584,7 @@ public class TrackedEntityQueryParams {
         .add("programIncidentStartDate", programIncidentStartDate)
         .add("programIncidentEndDate", programIncidentEndDate)
         .add("trackedEntityType", trackedEntityType)
-        .add("organisationUnitMode", organisationUnitMode)
+        .add("orgUnitMode", orgUnitMode)
         .add("assignedUserQueryParam", assignedUserQueryParam)
         .add("eventStatus", eventStatus)
         .add("eventStartDate", eventStartDate)
@@ -637,17 +636,17 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public Set<OrganisationUnit> getOrganisationUnits() {
-    return organisationUnits;
+  public Set<OrganisationUnit> getOrgUnits() {
+    return orgUnits;
   }
 
-  public TrackedEntityQueryParams addOrganisationUnits(Set<OrganisationUnit> organisationUnits) {
-    this.organisationUnits.addAll(organisationUnits);
+  public TrackedEntityQueryParams addOrgUnits(Set<OrganisationUnit> orgUnits) {
+    this.orgUnits.addAll(orgUnits);
     return this;
   }
 
-  public TrackedEntityQueryParams setOrganisationUnits(Set<OrganisationUnit> organisationUnits) {
-    this.organisationUnits = organisationUnits;
+  public TrackedEntityQueryParams setOrgUnits(Set<OrganisationUnit> orgUnits) {
+    this.orgUnits = orgUnits;
     return this;
   }
 
@@ -772,13 +771,12 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public OrganisationUnitSelectionMode getOrganisationUnitMode() {
-    return organisationUnitMode;
+  public OrganisationUnitSelectionMode getOrgUnitMode() {
+    return orgUnitMode;
   }
 
-  public TrackedEntityQueryParams setOrganisationUnitMode(
-      OrganisationUnitSelectionMode organisationUnitMode) {
-    this.organisationUnitMode = organisationUnitMode;
+  public TrackedEntityQueryParams setOrgUnitMode(OrganisationUnitSelectionMode orgUnitMode) {
+    this.orgUnitMode = orgUnitMode;
     return this;
   }
 
@@ -971,15 +969,19 @@ public class TrackedEntityQueryParams {
   @Getter
   @AllArgsConstructor
   public enum OrderColumn {
-    TRACKEDENTITY("trackedEntity", "uid", MAIN_QUERY_ALIAS),
-    // Ordering by id is the same as ordering by created date
+    TRACKEDENTITY(
+        "trackedEntity",
+        "uid",
+        MAIN_QUERY_ALIAS), // Ordering by id is the same as ordering by created date
     CREATED(CREATED_ID, "trackedentityinstanceid", MAIN_QUERY_ALIAS),
     CREATED_AT("createdAt", "trackedentityinstanceid", MAIN_QUERY_ALIAS),
     CREATED_AT_CLIENT("createdAtClient", "createdAtClient", MAIN_QUERY_ALIAS),
     UPDATED_AT("updatedAt", "lastUpdated", MAIN_QUERY_ALIAS),
     UPDATED_AT_CLIENT("updatedAtClient", "lastUpdatedAtClient", MAIN_QUERY_ALIAS),
-    ENROLLED_AT("enrolledAt", "enrollmentDate", PROGRAM_INSTANCE_ALIAS),
-    // this works only for the new endpoint
+    ENROLLED_AT(
+        "enrolledAt",
+        "enrollmentDate",
+        PROGRAM_INSTANCE_ALIAS), // this works only for the new endpoint
     // ORGUNIT_NAME( "orgUnitName", MAIN_QUERY_ALIAS+".organisationUnit.name" ),
     INACTIVE(INACTIVE_ID, "inactive", MAIN_QUERY_ALIAS);
 

@@ -33,6 +33,7 @@ import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -60,7 +61,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class RequestParamsMapperTest {
+class TrackedEntityRequestParamsMapperTest {
   private static final String PROGRAM_UID = "XhBYIraw7sv";
 
   private static final String PROGRAM_STAGE_UID = "RpCr2u2pFqw";
@@ -137,6 +138,47 @@ class RequestParamsMapperTest {
         params.getOrders().stream()
             .anyMatch(
                 orderParam -> orderParam.equals(OrderCriteria.of("created", SortDirection.ASC))));
+  }
+
+  @Test
+  void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
+
+    TrackedEntityOperationParams params = mapper.map(requestParams, null);
+
+    assertEquals(OrganisationUnitSelectionMode.SELECTED, params.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeGivenOuModeParam() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
+
+    TrackedEntityOperationParams params = mapper.map(requestParams, null);
+
+    assertEquals(OrganisationUnitSelectionMode.SELECTED, params.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeToDefaultGivenNoOrgUnitModeParamIsSet() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+
+    TrackedEntityOperationParams params = mapper.map(requestParams, null);
+
+    assertEquals(OrganisationUnitSelectionMode.DESCENDANTS, params.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldThrowIfDeprecatedAndNewOrgUnitModeParameterIsSet() {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
+    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
+
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(requestParams, null));
+
+    assertStartsWith("Only one parameter of 'ouMode' and 'orgUnitMode'", exception.getMessage());
   }
 
   @Test
