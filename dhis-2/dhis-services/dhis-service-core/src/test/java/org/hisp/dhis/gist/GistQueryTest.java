@@ -42,9 +42,53 @@ import org.junit.jupiter.api.Test;
 class GistQueryTest {
 
   @Test
-  void testFilterParse() {
-    assertFilterEquals(Filter.parse("name:eq:2"), 0, "name", Comparison.EQ, "2");
-    assertFilterEquals(Filter.parse("1:name:eq:2"), 1, "name", Comparison.EQ, "2");
+  void testFilterParse_SimpleValue() {
+    assertFilterEquals("name:eq:2", -1, "name", Comparison.EQ, "2");
+    assertFilterEquals("name::eq::2", -1, "name", Comparison.EQ, "2");
+    assertFilterEquals("name~eq~2", -1, "name", Comparison.EQ, "2");
+    assertFilterEquals("name@eq@2", -1, "name", Comparison.EQ, "2");
+  }
+
+  @Test
+  void testFilterParse_SimpleValueWithDelimiter() {
+    assertFilterEquals("name:eq:2:3", -1, "name", Comparison.EQ, "2:3");
+  }
+
+  @Test
+  void testFilterParse_GroupSimpleValue() {
+    assertFilterEquals("1:name:eq:2", 1, "name", Comparison.EQ, "2");
+    assertFilterEquals("1~name~eq~2", 1, "name", Comparison.EQ, "2");
+    assertFilterEquals("1@name@eq@2", 1, "name", Comparison.EQ, "2");
+  }
+
+  @Test
+  void testFilterParse_GroupValueWithDelimiter() {
+    assertFilterEquals("1:name:eq:2:3", 1, "name", Comparison.EQ, "2:3");
+  }
+
+  @Test
+  void testFilterParse_ArrayValue() {
+    assertFilterEquals("name:eq:[1,2]", -1, "name", Comparison.EQ, "1", "2");
+  }
+
+  @Test
+  void testFilterParse_ArrayValueWithDelimiters() {
+    assertFilterEquals("name:eq:[1:1,2:2]", -1, "name", Comparison.EQ, "1:1", "2:2");
+  }
+
+  @Test
+  void testFilterParse_GroupArray() {
+    assertFilterEquals("1:name:eq:[1,2]", 1, "name", Comparison.EQ, "1", "2");
+  }
+
+  @Test
+  void testFilterParse_GroupArrayValueWithDelimiters() {
+    assertFilterEquals("2:name:eq:[1:1,2:2]", 2, "name", Comparison.EQ, "1:1", "2:2");
+  }
+
+  private void assertFilterEquals(
+      String filter, int group, String name, Comparison op, String... value) {
+    assertFilterEquals(Filter.parse(filter), group, name, op, value);
   }
 
   private void assertFilterEquals(

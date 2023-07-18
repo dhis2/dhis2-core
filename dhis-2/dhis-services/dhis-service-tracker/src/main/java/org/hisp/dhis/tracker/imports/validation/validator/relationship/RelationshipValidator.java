@@ -43,7 +43,6 @@ public class RelationshipValidator implements Validator<TrackerBundle> {
   private final Validator<TrackerBundle> validator;
 
   public RelationshipValidator() {
-    // @formatter:off
     validator =
         each(
             TrackerBundle::getRelationships,
@@ -55,7 +54,6 @@ public class RelationshipValidator implements Validator<TrackerBundle> {
                 new LinkValidator(),
                 new ConstraintValidator(),
                 new DuplicationValidator()));
-    // @formatter:on
   }
 
   @Override

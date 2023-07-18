@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
+package org.hisp.dhis.tracker.export.trackedentity;
 
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -74,7 +75,6 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -88,14 +88,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-/**
- * Tests {@link TrackedEntityRequestParamsMapper}.
- *
- * @author Luciano Fiandesio
- */
 @MockitoSettings(strictness = Strictness.LENIENT) // common setup
 @ExtendWith(MockitoExtension.class)
-class RequestParamsMapperTest {
+class OperationParamsMapperTest {
   public static final String TEA_1_UID = "TvjwTPToKHO";
 
   public static final String TEA_2_UID = "cy2oRh2sNr6";
@@ -124,7 +119,7 @@ class RequestParamsMapperTest {
 
   @Mock private TrackerAccessManager trackerAccessManager;
 
-  @InjectMocks private TrackedEntityRequestParamsMapper mapper;
+  @InjectMocks private TrackedEntityOperationParamsMapper mapper;
 
   private User user;
 
@@ -137,8 +132,6 @@ class RequestParamsMapperTest {
   private OrganisationUnit orgUnit2;
 
   private TrackedEntityType trackedEntityType;
-
-  private RequestParams requestParams;
 
   @BeforeEach
   public void setUp() {
@@ -183,57 +176,58 @@ class RequestParamsMapperTest {
     trackedEntityType.setUid(TRACKED_ENTITY_TYPE_UID);
     when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
         .thenReturn(trackedEntityType);
-
-    requestParams = new RequestParams();
-    requestParams.setAssignedUserMode(AssignedUserSelectionMode.CURRENT);
   }
 
   @Test
   void testMapping() throws BadRequestException, ForbiddenException {
-    requestParams.setQuery("query-test");
-    requestParams.setOuMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    requestParams.setProgramStatus(ProgramStatus.ACTIVE);
-    requestParams.setFollowUp(true);
-    requestParams.setUpdatedAfter(getDate(2019, 1, 1));
-    requestParams.setUpdatedBefore(getDate(2020, 1, 1));
-    requestParams.setUpdatedWithin("20");
-    requestParams.setEnrollmentOccurredAfter(getDate(2019, 5, 5));
-    requestParams.setEnrollmentOccurredBefore(getDate(2020, 5, 5));
-    requestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
-    requestParams.setEventStatus(EventStatus.COMPLETED);
-    requestParams.setEventOccurredAfter(getDate(2019, 7, 7));
-    requestParams.setEventOccurredBefore(getDate(2020, 7, 7));
-    requestParams.setSkipMeta(true);
-    requestParams.setPage(1);
-    requestParams.setPageSize(50);
-    requestParams.setTotalPages(false);
-    requestParams.setSkipPaging(false);
-    requestParams.setIncludeDeleted(true);
-    requestParams.setIncludeAllAttributes(true);
-    requestParams.setOrder(
-        Collections.singletonList(OrderCriteria.of("created", SortDirection.ASC)));
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .assignedUserQueryParam(
+                new AssignedUserQueryParam(AssignedUserSelectionMode.CURRENT, user, null))
+            .query(new QueryFilter(QueryOperator.EQ, "query-test"))
+            .orgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)
+            .programStatus(ProgramStatus.ACTIVE)
+            .followUp(true)
+            .lastUpdatedStartDate(getDate(2019, 1, 1))
+            .lastUpdatedEndDate(getDate(2020, 1, 1))
+            .lastUpdatedDuration("20")
+            .programEnrollmentStartDate(getDate(2019, 5, 5))
+            .programEnrollmentEndDate(getDate(2020, 5, 5))
+            .trackedEntityTypeUid(TRACKED_ENTITY_TYPE_UID)
+            .eventStatus(EventStatus.COMPLETED)
+            .eventStartDate(getDate(2019, 7, 7))
+            .eventEndDate(getDate(2020, 7, 7))
+            .skipMeta(true)
+            .page(1)
+            .pageSize(50)
+            .totalPages(false)
+            .skipPaging(false)
+            .includeDeleted(true)
+            .includeAllAttributes(true)
+            .orders(Collections.singletonList(OrderCriteria.of("created", SortDirection.ASC)))
+            .build();
 
-    final TrackedEntityQueryParams params = mapper.map(requestParams);
+    final TrackedEntityQueryParams params = mapper.map(operationParams);
 
     assertThat(params.getQuery().getFilter(), is("query-test"));
     assertThat(params.getQuery().getOperator(), is(QueryOperator.EQ));
     assertThat(params.getTrackedEntityType(), is(trackedEntityType));
-    assertThat(params.getPageSizeWithDefault(), is(50));
     assertThat(params.getPageSize(), is(50));
     assertThat(params.getPage(), is(1));
     assertThat(params.isTotalPages(), is(false));
     assertThat(params.getProgramStatus(), is(ProgramStatus.ACTIVE));
     assertThat(params.getFollowUp(), is(true));
-    assertThat(params.getLastUpdatedStartDate(), is(requestParams.getUpdatedAfter()));
-    assertThat(params.getLastUpdatedEndDate(), is(requestParams.getUpdatedBefore()));
+    assertThat(params.getLastUpdatedStartDate(), is(operationParams.getLastUpdatedStartDate()));
+    assertThat(params.getLastUpdatedEndDate(), is(operationParams.getLastUpdatedEndDate()));
     assertThat(
-        params.getProgramIncidentStartDate(), is(requestParams.getEnrollmentOccurredAfter()));
+        params.getProgramEnrollmentStartDate(),
+        is(operationParams.getProgramEnrollmentStartDate()));
     assertThat(
-        params.getProgramIncidentEndDate(),
-        is(DateUtils.addDays(requestParams.getEnrollmentOccurredBefore(), 1)));
+        params.getProgramEnrollmentEndDate(),
+        is(DateUtils.addDays(operationParams.getProgramEnrollmentEndDate(), 1)));
     assertThat(params.getEventStatus(), is(EventStatus.COMPLETED));
-    assertThat(params.getEventStartDate(), is(requestParams.getEventOccurredAfter()));
-    assertThat(params.getEventEndDate(), is(requestParams.getEventOccurredBefore()));
+    assertThat(params.getEventStartDate(), is(operationParams.getEventStartDate()));
+    assertThat(params.getEventEndDate(), is(operationParams.getEventEndDate()));
     assertThat(
         params.getAssignedUserQueryParam().getMode(), is(AssignedUserSelectionMode.PROVIDED));
     assertThat(params.isIncludeDeleted(), is(true));
@@ -247,7 +241,9 @@ class RequestParamsMapperTest {
   @Test
   void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB()
       throws BadRequestException, ForbiddenException {
-    mapper.map(requestParams);
+    TrackedEntityOperationParams operationParams = TrackedEntityOperationParams.builder().build();
+
+    mapper.map(operationParams);
 
     verifyNoInteractions(programService);
     verifyNoInteractions(trackedEntityTypeService);
@@ -256,9 +252,10 @@ class RequestParamsMapperTest {
   @Test
   void testMappingProgramEnrollmentStartDate() throws BadRequestException, ForbiddenException {
     Date date = parseDate("2022-12-13");
-    requestParams.setEnrollmentEnrolledAfter(date);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().programEnrollmentStartDate(date).build();
 
-    TrackedEntityQueryParams params = mapper.map(requestParams);
+    TrackedEntityQueryParams params = mapper.map(operationParams);
 
     assertEquals(date, params.getProgramEnrollmentStartDate());
   }
@@ -266,18 +263,22 @@ class RequestParamsMapperTest {
   @Test
   void testMappingProgramEnrollmentEndDate() throws BadRequestException, ForbiddenException {
     Date date = parseDate("2022-12-13");
-    requestParams.setEnrollmentEnrolledBefore(date);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().programEnrollmentEndDate(date).build();
 
-    TrackedEntityQueryParams params = mapper.map(requestParams);
+    TrackedEntityQueryParams params = mapper.map(operationParams);
 
     assertEquals(DateUtils.addDays(date, 1), params.getProgramEnrollmentEndDate());
   }
 
   @Test
   void testFilter() throws BadRequestException, ForbiddenException {
-    requestParams.setFilter(TEA_1_UID + ":eq:2" + "," + TEA_2_UID + ":like:foo");
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .filters(TEA_1_UID + ":eq:2" + "," + TEA_2_UID + ":like:foo")
+            .build();
 
-    TrackedEntityQueryParams params = mapper.map(requestParams);
+    TrackedEntityQueryParams params = mapper.map(operationParams);
 
     List<QueryItem> items = params.getFilters();
     assertNotNull(items);
@@ -295,8 +296,10 @@ class RequestParamsMapperTest {
     // guaranteed
     Map<String, QueryFilter> expectedFilters =
         Map.of(
-            TEA_1_UID, new QueryFilter(QueryOperator.EQ, "2"),
-            TEA_2_UID, new QueryFilter(QueryOperator.LIKE, "foo"));
+            TEA_1_UID,
+            new QueryFilter(QueryOperator.EQ, "2"),
+            TEA_2_UID,
+            new QueryFilter(QueryOperator.LIKE, "foo"));
     assertAll(
         items.stream()
             .map(
@@ -315,9 +318,10 @@ class RequestParamsMapperTest {
 
   @Test
   void testFilterWhenTEAHasMultipleFilters() throws BadRequestException, ForbiddenException {
-    requestParams.setFilter(TEA_1_UID + ":gt:10:lt:20");
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().filters(TEA_1_UID + ":gt:10:lt:20").build();
 
-    TrackedEntityQueryParams params = mapper.map(requestParams);
+    TrackedEntityQueryParams params = mapper.map(operationParams);
 
     List<QueryItem> items = params.getFilters();
     assertNotNull(items);
@@ -336,23 +340,14 @@ class RequestParamsMapperTest {
   }
 
   @Test
-  void shouldFailWithBadExceptionWhenBadFormattedQueryProvided() {
-    String queryWithBadFormat = "wrong-query:";
-
-    requestParams.setQuery(queryWithBadFormat);
-
-    BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
-
-    assertEquals("Query item or filter is invalid: " + queryWithBadFormat, e.getMessage());
-  }
-
-  @Test
   void testFilterWhenTEAFilterIsRepeated() {
-    requestParams.setFilter(TEA_1_UID + ":gt:10" + "," + TEA_1_UID + ":lt:20");
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .filters(TEA_1_UID + ":gt:10" + "," + TEA_1_UID + ":lt:20")
+            .build();
 
     BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
 
     assertStartsWith(
         "Filter for attribute TvjwTPToKHO was specified more than once.", e.getMessage());
@@ -364,12 +359,15 @@ class RequestParamsMapperTest {
 
   @Test
   void testFilterWhenMultipleTEAFiltersAreRepeated() {
-    requestParams.setFilter(
-        TEA_1_UID + ":gt:10" + "," + TEA_1_UID + ":lt:20" + "," + TEA_2_UID + ":gt:30" + ","
-            + TEA_2_UID + ":lt:40");
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .filters(
+                TEA_1_UID + ":gt:10" + "," + TEA_1_UID + ":lt:20" + "," + TEA_2_UID + ":gt:30" + ","
+                    + TEA_2_UID + ":lt:40")
+            .build();
 
     BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
 
     assertThat(
         e.getMessage(),
@@ -389,9 +387,10 @@ class RequestParamsMapperTest {
 
   @Test
   void testAttributes() throws BadRequestException, ForbiddenException {
-    requestParams.setAttribute(TEA_1_UID + "," + TEA_2_UID);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().attributes(TEA_1_UID + "," + TEA_2_UID).build();
 
-    TrackedEntityQueryParams params = mapper.map(requestParams);
+    TrackedEntityQueryParams params = mapper.map(operationParams);
 
     List<QueryItem> items = params.getAttributes();
     assertNotNull(items);
@@ -404,56 +403,64 @@ class RequestParamsMapperTest {
 
   @Test
   void testMappingAttributeWhenAttributeDoesNotExist() {
-    requestParams.setAttribute(TEA_1_UID + "," + "unknown");
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().attributes(TEA_1_UID + "," + "unknown").build();
 
     BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
     assertEquals("Attribute does not exist: unknown", e.getMessage());
   }
 
   @Test
   void testMappingFailsOnMissingAttribute() {
-    requestParams.setAttribute(TEA_1_UID + "," + "unknown");
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().attributes(TEA_1_UID + "," + "unknown").build();
 
     BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
     assertEquals("Attribute does not exist: unknown", e.getMessage());
   }
 
   @Test
   void testMappingProgram() throws BadRequestException, ForbiddenException {
-    requestParams.setProgram(UID.of(PROGRAM_UID));
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().programUid(PROGRAM_UID).build();
 
-    TrackedEntityQueryParams params = mapper.map(requestParams);
+    TrackedEntityQueryParams params = mapper.map(operationParams);
 
     assertEquals(program, params.getProgram());
   }
 
   @Test
   void testMappingProgramNotFound() {
-    requestParams.setProgram(UID.of("NeU85luyD4w"));
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().programUid("NeU85luyD4w").build();
 
     BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
     assertEquals("Program is specified but does not exist: NeU85luyD4w", e.getMessage());
   }
 
   @Test
   void testMappingProgramStage() throws BadRequestException, ForbiddenException {
-    requestParams.setProgram(UID.of(PROGRAM_UID));
-    requestParams.setProgramStage(UID.of(PROGRAM_STAGE_UID));
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(PROGRAM_UID)
+            .programStageUid(PROGRAM_STAGE_UID)
+            .build();
 
-    TrackedEntityQueryParams params = mapper.map(requestParams);
+    TrackedEntityQueryParams params = mapper.map(operationParams);
 
     assertEquals(programStage, params.getProgramStage());
   }
 
   @Test
   void testMappingProgramStageGivenWithoutProgram() {
-    requestParams.setProgramStage(UID.of(PROGRAM_STAGE_UID));
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().programStageUid(PROGRAM_STAGE_UID).build();
 
     BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
     assertEquals(
         "Program does not contain the specified programStage: " + PROGRAM_STAGE_UID,
         e.getMessage());
@@ -461,72 +468,61 @@ class RequestParamsMapperTest {
 
   @Test
   void testMappingProgramStageNotFound() {
-    requestParams.setProgramStage(UID.of("NeU85luyD4w"));
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().programStageUid("NeU85luyD4w").build();
 
     BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
     assertEquals(
         "Program does not contain the specified programStage: NeU85luyD4w", e.getMessage());
   }
 
   @Test
   void testMappingTrackedEntityType() throws BadRequestException, ForbiddenException {
-    requestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .trackedEntityTypeUid(TRACKED_ENTITY_TYPE_UID)
+            .build();
 
-    TrackedEntityQueryParams params = mapper.map(requestParams);
+    TrackedEntityQueryParams params = mapper.map(operationParams);
 
     assertEquals(trackedEntityType, params.getTrackedEntityType());
   }
 
   @Test
   void testMappingTrackedEntityTypeNotFound() {
-    requestParams.setTrackedEntityType(UID.of("NeU85luyD4w"));
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().trackedEntityTypeUid("NeU85luyD4w").build();
 
     BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
     assertEquals(
         "Tracked entity type is specified but does not exist: NeU85luyD4w", e.getMessage());
-  }
-
-  @Test
-  void testMappingOrgUnit() throws BadRequestException, ForbiddenException {
-    when(trackerAccessManager.canAccess(user, program, orgUnit1)).thenReturn(true);
-    when(trackerAccessManager.canAccess(user, program, orgUnit2)).thenReturn(true);
-    requestParams.setOrgUnit(ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID);
-    requestParams.setProgram(UID.of(PROGRAM_UID));
-
-    TrackedEntityQueryParams params = mapper.map(requestParams);
-
-    assertContainsOnly(Set.of(orgUnit1, orgUnit2), params.getOrganisationUnits());
-  }
-
-  @Test
-  void testMappingOrgUnitNotFound() {
-    requestParams.setOrgUnit("NeU85luyD4w");
-
-    BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
-    assertEquals("Organisation unit does not exist: NeU85luyD4w", e.getMessage());
   }
 
   @Test
   void testMappingOrgUnits() throws BadRequestException, ForbiddenException {
     when(trackerAccessManager.canAccess(user, program, orgUnit1)).thenReturn(true);
     when(trackerAccessManager.canAccess(user, program, orgUnit2)).thenReturn(true);
-    requestParams.setOrgUnits(Set.of(UID.of(ORG_UNIT_1_UID), UID.of(ORG_UNIT_2_UID)));
-    requestParams.setProgram(UID.of(PROGRAM_UID));
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(PROGRAM_UID)
+            .organisationUnits(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID))
+            .user(user)
+            .build();
 
-    TrackedEntityQueryParams params = mapper.map(requestParams);
+    TrackedEntityQueryParams params = mapper.map(operationParams);
 
-    assertContainsOnly(Set.of(orgUnit1, orgUnit2), params.getOrganisationUnits());
+    assertContainsOnly(Set.of(orgUnit1, orgUnit2), params.getOrgUnits());
   }
 
   @Test
   void testMappingOrgUnitsNotFound() {
-    requestParams.setOrgUnits(Set.of(UID.of("NeU85luyD4w")));
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().organisationUnits(Set.of("NeU85luyD4w")).build();
 
     BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
     assertEquals("Organisation unit does not exist: NeU85luyD4w", e.getMessage());
   }
 
@@ -536,32 +532,25 @@ class RequestParamsMapperTest {
             orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
         .thenReturn(false);
 
-    requestParams.setOrgUnit(ORG_UNIT_1_UID);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().organisationUnits(Set.of(ORG_UNIT_1_UID)).build();
 
-    ForbiddenException e = assertThrows(ForbiddenException.class, () -> mapper.map(requestParams));
+    ForbiddenException e =
+        assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
     assertEquals(
         "User does not have access to organisation unit: " + ORG_UNIT_1_UID, e.getMessage());
   }
 
   @Test
-  void testMappingAssignedUser() throws BadRequestException, ForbiddenException {
-    requestParams.setAssignedUser("IsdLBTOBzMi;l5ab8q5skbB");
-    requestParams.setAssignedUserMode(AssignedUserSelectionMode.PROVIDED);
-
-    TrackedEntityQueryParams params = mapper.map(requestParams);
-
-    assertContainsOnly(
-        Set.of("IsdLBTOBzMi", "l5ab8q5skbB"),
-        params.getAssignedUserQueryParam().getAssignedUsers());
-    assertEquals(AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode());
-  }
-
-  @Test
   void testMappingAssignedUsers() throws BadRequestException, ForbiddenException {
-    requestParams.setAssignedUsers(Set.of(UID.of("IsdLBTOBzMi"), UID.of("l5ab8q5skbB")));
-    requestParams.setAssignedUserMode(AssignedUserSelectionMode.PROVIDED);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .assignedUserQueryParam(
+                new AssignedUserQueryParam(
+                    AssignedUserSelectionMode.PROVIDED, null, Set.of("IsdLBTOBzMi", "l5ab8q5skbB")))
+            .build();
 
-    TrackedEntityQueryParams params = mapper.map(requestParams);
+    TrackedEntityQueryParams params = mapper.map(operationParams);
 
     assertContainsOnly(
         Set.of("IsdLBTOBzMi", "l5ab8q5skbB"),
@@ -573,9 +562,10 @@ class RequestParamsMapperTest {
   void testMappingOrderParams() throws BadRequestException, ForbiddenException {
     OrderCriteria order1 = OrderCriteria.of("trackedEntity", SortDirection.ASC);
     OrderCriteria order2 = OrderCriteria.of("createdAt", SortDirection.DESC);
-    requestParams.setOrder(List.of(order1, order2));
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().orders(List.of(order1, order2)).build();
 
-    TrackedEntityQueryParams params = mapper.map(requestParams);
+    TrackedEntityQueryParams params = mapper.map(operationParams);
 
     assertEquals(
         List.of(
@@ -586,7 +576,9 @@ class RequestParamsMapperTest {
 
   @Test
   void testMappingOrderParamsNoOrder() throws BadRequestException, ForbiddenException {
-    TrackedEntityQueryParams params = mapper.map(requestParams);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().programUid(PROGRAM_UID).build();
+    TrackedEntityQueryParams params = mapper.map(operationParams);
 
     assertIsEmpty(params.getOrders());
   }
@@ -594,18 +586,22 @@ class RequestParamsMapperTest {
   @Test
   void testMappingOrderParamsGivenInvalidField() {
     OrderCriteria order1 = OrderCriteria.of("invalid", SortDirection.DESC);
-    requestParams.setOrder(List.of(order1));
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().orders(List.of(order1)).build();
 
     BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
     assertEquals("Invalid order property: invalid", e.getMessage());
   }
 
   @Test
   void shouldCreateCriteriaFiltersWithFirstOperatorWhenMultipleValidOperandAreNotValid()
       throws BadRequestException, ForbiddenException {
-    requestParams.setFilter(TEA_2_UID + ":like:project/:x/:eq/:2");
-    TrackedEntityQueryParams params = mapper.map(requestParams);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .filters(TEA_2_UID + ":like:project/:x/:eq/:2")
+            .build();
+    TrackedEntityQueryParams params = mapper.map(operationParams);
 
     List<QueryFilter> actualFilters =
         params.getFilters().stream()
@@ -618,10 +614,11 @@ class RequestParamsMapperTest {
 
   @Test
   void shouldThrowBadRequestWhenCriteriaFilterHasOperatorInWrongFormat() {
-    requestParams.setFilter(TEA_1_UID + ":lke:value");
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().filters(TEA_1_UID + ":lke:value").build();
 
     BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
     assertEquals(
         "Query item or filter is invalid: " + TEA_1_UID + ":lke:value", exception.getMessage());
   }
@@ -629,11 +626,15 @@ class RequestParamsMapperTest {
   @Test
   void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatDateWithMilliSecondsAndTimeZone()
       throws ForbiddenException, BadRequestException {
-    requestParams.setFilter(
-        TEA_1_UID + ":ge:2020-01-01T00/:00/:00.001 +05/:30:le:2021-01-01T00/:00/:00.001 +05/:30");
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .filters(
+                TEA_1_UID
+                    + ":ge:2020-01-01T00/:00/:00.001 +05/:30:le:2021-01-01T00/:00/:00.001 +05/:30")
+            .build();
 
     List<QueryFilter> actualFilters =
-        mapper.map(requestParams).getFilters().stream()
+        mapper.map(operationParams).getFilters().stream()
             .flatMap(f -> f.getFilters().stream())
             .collect(Collectors.toList());
 
@@ -647,10 +648,13 @@ class RequestParamsMapperTest {
   @Test
   void shouldCreateQueryFilterWhenCriteriaFilterHasMultipleOperatorAndTextRange()
       throws ForbiddenException, BadRequestException {
-    requestParams.setFilter(TEA_1_UID + ":sw:project/:x:ew:project/:le/:");
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .filters(TEA_1_UID + ":sw:project/:x:ew:project/:le/:")
+            .build();
 
     List<QueryFilter> actualFilters =
-        mapper.map(requestParams).getFilters().stream()
+        mapper.map(operationParams).getFilters().stream()
             .flatMap(f -> f.getFilters().stream())
             .collect(Collectors.toList());
 
@@ -664,18 +668,21 @@ class RequestParamsMapperTest {
   @Test
   void shouldCreateQueryFilterWhenCriteriaMultipleFilterMixedCommaAndSlash()
       throws ForbiddenException, BadRequestException {
-    requestParams.setFilter(
-        TEA_1_UID
-            + ":eq:project///,/,//"
-            + ","
-            + TEA_2_UID
-            + ":eq:project//"
-            + ","
-            + TEA_3_UID
-            + ":eq:project//");
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .filters(
+                TEA_1_UID
+                    + ":eq:project///,/,//"
+                    + ","
+                    + TEA_2_UID
+                    + ":eq:project//"
+                    + ","
+                    + TEA_3_UID
+                    + ":eq:project//")
+            .build();
 
     List<QueryFilter> actualFilters =
-        mapper.map(requestParams).getFilters().stream()
+        mapper.map(operationParams).getFilters().stream()
             .flatMap(f -> f.getFilters().stream())
             .collect(Collectors.toList());
 
@@ -690,10 +697,13 @@ class RequestParamsMapperTest {
   @Test
   void shouldCreateQueryFilterWhenCriteriaMultipleOperatorHasFinalColon()
       throws ForbiddenException, BadRequestException {
-    requestParams.setFilter(TEA_1_UID + ":like:value1/::like:value2");
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .filters(TEA_1_UID + ":like:value1/::like:value2")
+            .build();
 
     List<QueryFilter> actualFilters =
-        mapper.map(requestParams).getFilters().stream()
+        mapper.map(operationParams).getFilters().stream()
             .flatMap(f -> f.getFilters().stream())
             .collect(Collectors.toList());
 
@@ -702,21 +712,5 @@ class RequestParamsMapperTest {
             new QueryFilter(QueryOperator.LIKE, "value1:"),
             new QueryFilter(QueryOperator.LIKE, "value2")),
         actualFilters);
-  }
-
-  @Test
-  void shouldFailIfGivenOrgUnitAndOrgUnits() {
-    requestParams.setOrgUnit("IsdLBTOBzMi");
-    requestParams.setOrgUnits(Set.of(UID.of("IsdLBTOBzMi")));
-
-    assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
-  }
-
-  @Test
-  void shouldFailIfGivenTrackedEntityAndTrackedEntities() {
-    requestParams.setTrackedEntity("IsdLBTOBzMi");
-    requestParams.setTrackedEntities(Set.of(UID.of("IsdLBTOBzMi")));
-
-    assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
   }
 }

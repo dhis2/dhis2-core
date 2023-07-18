@@ -27,36 +27,31 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import java.util.List;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 
 public interface TrackedEntityService {
-  TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params)
+
+  TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
-  TrackedEntity getTrackedEntity(TrackedEntity trackedEntity, TrackedEntityParams params)
+  TrackedEntity getTrackedEntity(
+      TrackedEntity trackedEntity, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
-  TrackedEntity getTrackedEntity(String uid, String programIdentifier, TrackedEntityParams params)
+  TrackedEntity getTrackedEntity(
+      String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
   /**
    * Fetches {@see TrackedEntity}s based on the specified parameters.
    *
-   * @param queryParams a {@see TrackedEntityQueryParams} instance with the query parameters
-   * @param params a {@see TrackedEntityParams} instance containing the directives for how much data
-   *     should be fetched (e.g. Enrollments, Events, Relationships)
+   * @param operationParams a {@see TrackedEntityOperationParams} instance with the operation
+   *     parameters
    * @return {@see TrackedEntity}s
    */
-  List<TrackedEntity> getTrackedEntities(
-      TrackedEntityQueryParams queryParams, TrackedEntityParams params)
-      throws ForbiddenException, NotFoundException;
-
-  int getTrackedEntityCount(
-      TrackedEntityQueryParams params,
-      boolean skipAccessValidation,
-      boolean skipSearchScopeValidation);
+  TrackedEntities getTrackedEntities(TrackedEntityOperationParams operationParams)
+      throws ForbiddenException, NotFoundException, BadRequestException;
 }

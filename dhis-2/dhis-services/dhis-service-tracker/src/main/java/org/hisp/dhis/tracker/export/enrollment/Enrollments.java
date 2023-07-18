@@ -27,71 +27,22 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.program.Enrollment;
 
-@JacksonXmlRootElement(localName = "enrollments", namespace = DxfNamespaces.DXF_2_0)
+@RequiredArgsConstructor(staticName = "of")
+@Getter
+@EqualsAndHashCode
 public class Enrollments {
-  private List<Enrollment> enrollments = new ArrayList<>();
 
-  private Pager pager;
+  private final List<Enrollment> enrollments;
+  private final Pager pager;
 
-  public Enrollments() {}
-
-  @JsonProperty("enrollments")
-  @JacksonXmlElementWrapper(
-      localName = "enrollments",
-      useWrapping = false,
-      namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "enrollment", namespace = DxfNamespaces.DXF_2_0)
-  public List<Enrollment> getEnrollments() {
-    return enrollments;
-  }
-
-  public void setEnrollments(List<Enrollment> enrollments) {
-    this.enrollments = enrollments;
-  }
-
-  public Pager getPager() {
-    return this.pager;
-  }
-
-  public void setPager(Pager pager) {
-    this.pager = pager;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    Enrollments that = (Enrollments) o;
-
-    return Objects.equals(enrollments, that.enrollments);
-  }
-
-  @Override
-  public int hashCode() {
-    int result = 0;
-    result = 31 * result + (enrollments != null ? enrollments.hashCode() : 0);
-    return result;
-  }
-
-  @Override
-  public String toString() {
-    return "Enrollments{" + "enrollments=" + enrollments + '}';
+  public static Enrollments withoutPagination(List<Enrollment> enrollments) {
+    return new Enrollments(enrollments, null);
   }
 }

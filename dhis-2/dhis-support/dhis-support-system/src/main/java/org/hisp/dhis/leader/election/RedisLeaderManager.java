@@ -38,6 +38,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
@@ -64,15 +65,18 @@ public class RedisLeaderManager implements LeaderManager {
 
   private final StringRedisTemplate redisTemplate;
 
+  private boolean electionDidRun = false;
+
   public RedisLeaderManager(
       Long timeToLiveMinutes,
       StringRedisTemplate redisTemplate,
-      DhisConfigurationProvider dhisConfigurationProbider) {
-    this.nodeId = dhisConfigurationProbider.getProperty(ConfigurationKey.NODE_ID);
+      DhisConfigurationProvider dhisConfigurationProvider) {
+    this.nodeId = dhisConfigurationProvider.getProperty(ConfigurationKey.NODE_ID);
     this.nodeUuid = UUID.randomUUID().toString();
     log.info(
-        "Setting up redis based leader manager with NodeUuid:%s and NodeID:%s",
-        this.nodeUuid, this.nodeId);
+        "Setting up redis based leader manager with NodeUuid:{} and NodeID:{}",
+        this.nodeUuid,
+        this.nodeId);
     this.timeToLiveSeconds = timeToLiveMinutes * 60;
     this.redisTemplate = redisTemplate;
   }
@@ -101,6 +105,7 @@ public class RedisLeaderManager implements LeaderManager {
               .opsForValue()
               .setIfAbsent(NODE_ID_KEY, nodeId, timeToLiveSeconds, TimeUnit.SECONDS);
         });
+    electionDidRun = true;
     if (isLeader()) {
       renewLeader(progress);
 
@@ -110,7 +115,6 @@ public class RedisLeaderManager implements LeaderManager {
           format("Schedule leader renewal for nodeId:%s at: %s", nodeUuid, calendar.getTime()));
       JobConfiguration leaderRenewalJobConfiguration =
           new JobConfiguration(CLUSTER_LEADER_RENEWAL, JobType.LEADER_RENEWAL, null, true);
-      leaderRenewalJobConfiguration.setLeaderOnlyJob(true);
       progress.runStage(
           () ->
               schedulingManager.scheduleWithStartTime(
@@ -120,6 +124,7 @@ public class RedisLeaderManager implements LeaderManager {
 
   @Override
   public boolean isLeader() {
+    if (!electionDidRun) electLeader(NoopJobProgress.INSTANCE);
     String leaderId = getLeaderNodeUuidFromRedis();
     return nodeUuid.equals(leaderId);
   }

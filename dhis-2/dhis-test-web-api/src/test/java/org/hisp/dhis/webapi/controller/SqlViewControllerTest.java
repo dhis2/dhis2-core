@@ -29,19 +29,51 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.sqlview.SqlView;
+import org.hisp.dhis.sqlview.SqlViewQuery;
+import org.hisp.dhis.sqlview.SqlViewService;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Tests the {@link SqlViewController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@ExtendWith(MockitoExtension.class)
 class SqlViewControllerTest extends DhisControllerConvenienceTest {
+
+  @Mock private SqlViewService sqlViewService;
+
+  @Mock private JobConfigurationService jobConfigurationService;
+
+  @Mock private ContextUtils contextUtils;
+  @Mock private ContextService contextService;
+
+  @Mock private DhisConfigurationProvider config;
+
+  @InjectMocks private SqlViewController controller;
 
   @Test
   void testExecuteView_NoSuchView() {
@@ -134,5 +166,45 @@ class SqlViewControllerTest extends DhisControllerConvenienceTest {
 
     params = GET("/jobConfigurations/{id}", jobId).content().getObject("jobParameters");
     assertEquals(List.of(), params.getArray("sqlViews").stringValues());
+  }
+
+  /**
+   * This test is purely to check the correct control flow is followed based on the value of the
+   * config property SYSTEM_SQL_VIEW_WRITE_ENABLED
+   */
+  @Test
+  void testCorrectServiceMethodCalledWhenSqlViewWritesEnabled() throws NotFoundException {
+    SqlViewQuery query = new SqlViewQuery();
+    query.setCriteria(Set.of("select", "createatable();"));
+
+    when(sqlViewService.getSqlViewByUid("123")).thenReturn(new SqlView());
+    when(contextService.getParameterValues("filter")).thenReturn(List.of());
+    when(config.isEnabled(ConfigurationKey.SYSTEM_SQL_VIEW_WRITE_ENABLED)).thenReturn(true);
+    when(sqlViewService.getSqlViewGridWritesAllowed(any(), any(), any(), any(), any()))
+        .thenReturn(new ListGrid());
+
+    controller.getViewJson("123", query, null);
+    verify(sqlViewService, times(1)).getSqlViewGridWritesAllowed(any(), any(), any(), any(), any());
+    verify(sqlViewService, never()).getSqlViewGridReadOnly(any(), any(), any(), any(), any());
+  }
+
+  /**
+   * This test is purely to check the correct control flow is followed based on the value of the
+   * config property SYSTEM_SQL_VIEW_WRITE_ENABLED
+   */
+  @Test
+  void testCorrectServiceMethodCalledWhenSqlViewWritesDisabled() throws NotFoundException {
+    SqlViewQuery query = new SqlViewQuery();
+    query.setCriteria(Set.of("select", "createatable();"));
+
+    when(sqlViewService.getSqlViewByUid("123")).thenReturn(new SqlView());
+    when(contextService.getParameterValues("filter")).thenReturn(List.of());
+    when(config.isEnabled(ConfigurationKey.SYSTEM_SQL_VIEW_WRITE_ENABLED)).thenReturn(false);
+    when(sqlViewService.getSqlViewGridReadOnly(any(), any(), any(), any(), any()))
+        .thenReturn(new ListGrid());
+
+    controller.getViewJson("123", query, null);
+    verify(sqlViewService, times(1)).getSqlViewGridReadOnly(any(), any(), any(), any(), any());
+    verify(sqlViewService, never()).getSqlViewGridWritesAllowed(any(), any(), any(), any(), any());
   }
 }

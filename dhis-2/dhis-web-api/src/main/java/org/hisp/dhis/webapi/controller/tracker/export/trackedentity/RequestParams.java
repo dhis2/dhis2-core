@@ -84,8 +84,13 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
   @OpenApi.Property({UID[].class, OrganisationUnit.class})
   private Set<UID> orgUnits = new HashSet<>();
 
-  /** Selection mode for the specified organisation units, default is ACCESSIBLE. */
+  /**
+   * @deprecated use {@link #orgUnitMode} instead.
+   */
+  @Deprecated(since = "2.41")
   private OrganisationUnitSelectionMode ouMode;
+
+  private OrganisationUnitSelectionMode orgUnitMode;
 
   /** a Program UID for which instances in the response must be enrolled in. */
   @OpenApi.Property({UID.class, Program.class})

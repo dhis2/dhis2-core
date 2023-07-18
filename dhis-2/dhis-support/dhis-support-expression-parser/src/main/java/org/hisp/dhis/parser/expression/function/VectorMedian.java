@@ -35,7 +35,11 @@ import java.util.List;
  *
  * @author Jim Grace
  */
-public class VectorMedian extends VectorFunction {
+public class VectorMedian extends VectorFunction<Double> {
+  public VectorMedian() {
+    super(Double.class);
+  }
+
   private static VectorPercentileCont percentileContinuous = new VectorPercentileCont();
 
   @Override

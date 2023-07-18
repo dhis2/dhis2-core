@@ -53,11 +53,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -630,16 +632,23 @@ final class GistBuilder {
 
   private String createPluckTransformerHQL(int index, Field field, Property property) {
     String plucked = field.getTransformationArgument();
-    if (plucked != null && plucked.contains(",")) {
+    RelativePropertyContext itemContext = context.switchedTo(property.getItemKlass());
+    List<Property> pluckedProperties =
+        plucked == null || plucked.isEmpty()
+            ? List.of()
+            : Stream.of(field.getTransformationArgument().split(","))
+                .map(itemContext::resolveMandatory)
+                .toList();
+    if (pluckedProperties.size() > 1
+        || pluckedProperties.stream().anyMatch(p -> p.getKlass() != String.class)) {
       return createMultiPluckTransformerHQL(index, field, property);
     }
-    String tableName = "t_" + index;
-    RelativePropertyContext itemContext = context.switchedTo(property.getItemKlass());
     String propertyName = determineReferenceProperty(field, itemContext, true);
     if (propertyName == null || property.getItemKlass() == Period.class) {
       // give up
       return createSizeTransformerHQL(index, field, property, "");
     }
+    String tableName = "t_" + index;
     String accessFilter = createAccessFilterHQL(itemContext, tableName);
     return String.format(
         "(select array_agg(%1$s.%2$s) from %3$s %1$s where %1$s in elements(e.%4$s) and %5$s)",
@@ -651,23 +660,29 @@ final class GistBuilder {
   }
 
   private String createMultiPluckTransformerHQL(int index, Field field, Property property) {
-    String tableName = "t_" + index;
     RelativePropertyContext itemContext = context.switchedTo(property.getItemKlass());
     List<Property> plucked =
         Stream.of(field.getTransformationArgument().split(","))
             .map(itemContext::resolveMandatory)
             .toList();
 
+    Function<Property, String> path =
+        p ->
+            p.getFieldName()
+                + (IdentifiableObject.class.isAssignableFrom(p.getKlass()) ? ".uid" : "");
+    String tableName = "t_" + index;
     String pluckedObj =
         plucked.stream()
-            .map(p -> String.format("'%3$s', %1$s.%2$s", tableName, p.getFieldName(), p.getName()))
+            .map(p -> String.format("'%3$s', %1$s.%2$s", tableName, path.apply(p), p.getName()))
             .collect(joining(","));
     String accessFilter = createAccessFilterHQL(itemContext, tableName);
 
     addTransformer(
         row ->
             row[index] =
-                Stream.of((String[]) row[index]).map(JsonNode::of).toArray(JsonNode[]::new));
+                row[index] == null
+                    ? null
+                    : Stream.of((String[]) row[index]).map(JsonNode::of).toArray(JsonNode[]::new));
 
     return String.format(
         "(select array_agg(json_build_object(%2$s)) from %3$s %1$s where %1$s in elements(e.%4$s) and %5$s)",
@@ -801,13 +816,13 @@ final class GistBuilder {
     Map<Integer, List<Filter>> grouped =
         filters.stream().collect(groupingBy(Filter::getGroup, toList()));
     StringBuilder hql = new StringBuilder();
-    for (List<Filter> group : grouped.values()) {
-      if (!group.isEmpty()) {
+    for (Entry<Integer, List<Filter>> group : grouped.entrySet()) {
+      if (!group.getValue().isEmpty()) {
         hql.append('(');
-        for (Filter f : group) {
+        for (Filter f : group.getValue()) {
           int index = filters.indexOf(f);
           hql.append(createFilterHQL(index, f));
-          hql.append(groupJunction);
+          hql.append(group.getKey() >= 0 ? groupJunction : rootJunction);
         }
         hql.append("1=1");
         hql.append(')');
