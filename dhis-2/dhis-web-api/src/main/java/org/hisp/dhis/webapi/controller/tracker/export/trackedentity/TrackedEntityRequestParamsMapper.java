@@ -29,12 +29,14 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryFilter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AssignedUserQueryParam;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -70,6 +72,13 @@ class TrackedEntityRequestParamsMapper {
         validateDeprecatedUidsParameter(
             "orgUnit", requestParams.getOrgUnit(), "orgUnits", requestParams.getOrgUnits());
 
+    OrganisationUnitSelectionMode orgUnitMode =
+        validateDeprecatedParameter(
+            "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
+    if (orgUnitMode == null) {
+      orgUnitMode = OrganisationUnitSelectionMode.DESCENDANTS;
+    }
+
     QueryFilter queryFilter = parseQueryFilter(requestParams.getQuery());
 
     Set<UID> trackedEntities =
@@ -101,7 +110,7 @@ class TrackedEntityRequestParamsMapper {
                 ? null
                 : requestParams.getTrackedEntityType().getValue())
         .organisationUnits(UID.toValueSet(orgUnitUids))
-        .organisationUnitMode(requestParams.getOuMode())
+        .orgUnitMode(orgUnitMode)
         .eventStatus(requestParams.getEventStatus())
         .eventStartDate(requestParams.getEventOccurredAfter())
         .eventEndDate(requestParams.getEventOccurredBefore())

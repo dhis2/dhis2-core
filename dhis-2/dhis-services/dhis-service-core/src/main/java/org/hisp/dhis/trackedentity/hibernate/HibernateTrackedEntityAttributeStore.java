@@ -123,7 +123,7 @@ public class HibernateTrackedEntityAttributeStore
 
     if (params.hasOrganisationUnits()) {
       String orgUnitUids =
-          params.getOrganisationUnits().stream()
+          params.getOrgUnits().stream()
               .map(OrganisationUnit::getUid)
               .collect(Collectors.joining(", ", "'", "'"));
 

@@ -67,7 +67,7 @@ public class EventOperationParams {
 
   private String orgUnitUid;
 
-  private OrganisationUnitSelectionMode orgUnitSelectionMode;
+  private OrganisationUnitSelectionMode orgUnitMode;
 
   private AssignedUserSelectionMode assignedUserMode;
 
