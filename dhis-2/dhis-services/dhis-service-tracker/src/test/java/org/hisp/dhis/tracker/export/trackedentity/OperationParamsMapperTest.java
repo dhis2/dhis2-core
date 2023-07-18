@@ -185,7 +185,7 @@ class OperationParamsMapperTest {
             .assignedUserQueryParam(
                 new AssignedUserQueryParam(AssignedUserSelectionMode.CURRENT, user, null))
             .query(new QueryFilter(QueryOperator.EQ, "query-test"))
-            .organisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)
+            .orgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)
             .programStatus(ProgramStatus.ACTIVE)
             .followUp(true)
             .lastUpdatedStartDate(getDate(2019, 1, 1))
@@ -296,8 +296,10 @@ class OperationParamsMapperTest {
     // guaranteed
     Map<String, QueryFilter> expectedFilters =
         Map.of(
-            TEA_1_UID, new QueryFilter(QueryOperator.EQ, "2"),
-            TEA_2_UID, new QueryFilter(QueryOperator.LIKE, "foo"));
+            TEA_1_UID,
+            new QueryFilter(QueryOperator.EQ, "2"),
+            TEA_2_UID,
+            new QueryFilter(QueryOperator.LIKE, "foo"));
     assertAll(
         items.stream()
             .map(
@@ -511,7 +513,7 @@ class OperationParamsMapperTest {
 
     TrackedEntityQueryParams params = mapper.map(operationParams);
 
-    assertContainsOnly(Set.of(orgUnit1, orgUnit2), params.getOrganisationUnits());
+    assertContainsOnly(Set.of(orgUnit1, orgUnit2), params.getOrgUnits());
   }
 
   @Test
