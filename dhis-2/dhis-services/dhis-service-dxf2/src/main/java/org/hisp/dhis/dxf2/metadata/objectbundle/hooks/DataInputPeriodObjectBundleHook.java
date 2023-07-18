@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.dataset.DataInputPeriod;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.period.Period;
@@ -40,27 +39,24 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class DataInputPeriodObjectBundleHook extends AbstractObjectBundleHook<DataInputPeriod>
-{
-    private final PeriodService periodService;
+public class DataInputPeriodObjectBundleHook extends AbstractObjectBundleHook<DataInputPeriod> {
+  private final PeriodService periodService;
 
-    @Override
-    public void preCreate( DataInputPeriod object, ObjectBundle bundle )
-    {
-        setPeriod( object );
-    }
+  @Override
+  public void preCreate(DataInputPeriod object, ObjectBundle bundle) {
+    setPeriod(object);
+  }
 
-    @Override
-    public void preUpdate( DataInputPeriod object, DataInputPeriod persistedObject, ObjectBundle bundle )
-    {
-        setPeriod( object );
-    }
+  @Override
+  public void preUpdate(
+      DataInputPeriod object, DataInputPeriod persistedObject, ObjectBundle bundle) {
+    setPeriod(object);
+  }
 
-    private void setPeriod( DataInputPeriod dataInputPeriod )
-    {
-        Period period = periodService.getPeriod( dataInputPeriod.getPeriod().getIsoDate() );
+  private void setPeriod(DataInputPeriod dataInputPeriod) {
+    Period period = periodService.getPeriod(dataInputPeriod.getPeriod().getIsoDate());
 
-        dataInputPeriod.setPeriod( period );
-        sessionFactory.getCurrentSession().save( period );
-    }
+    dataInputPeriod.setPeriod(period);
+    sessionFactory.getCurrentSession().save(period);
+  }
 }

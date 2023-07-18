@@ -28,50 +28,41 @@
 package org.hisp.dhis.period;
 
 import java.util.Calendar;
-
 import org.hisp.dhis.calendar.DateTimeUnit;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
-public class FinancialNovemberPeriodType
-    extends FinancialPeriodType
-{
+public class FinancialNovemberPeriodType extends FinancialPeriodType {
 
-    private static final long serialVersionUID = -8443905531396977357L;
+  private static final long serialVersionUID = -8443905531396977357L;
 
-    private static final String ISO_FORMAT = "yyyyNov";
+  private static final String ISO_FORMAT = "yyyyNov";
 
-    private static final String ISO8601_DURATION = "P1Y";
+  private static final String ISO8601_DURATION = "P1Y";
 
-    @Override
-    public int getBaseMonth()
-    {
-        return Calendar.NOVEMBER;
-    }
+  @Override
+  public int getBaseMonth() {
+    return Calendar.NOVEMBER;
+  }
 
-    @Override
-    public PeriodTypeEnum getPeriodTypeEnum()
-    {
-        return PeriodTypeEnum.FINANCIAL_NOV;
-    }
+  @Override
+  public PeriodTypeEnum getPeriodTypeEnum() {
+    return PeriodTypeEnum.FINANCIAL_NOV;
+  }
 
-    @Override
-    public String getIsoDate( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar )
-    {
-        return String.format( "%dNov", dateTimeUnit.getYear() + 1 );
-    }
+  @Override
+  public String getIsoDate(DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar) {
+    return String.format("%dNov", dateTimeUnit.getYear() + 1);
+  }
 
-    @Override
-    public String getIsoFormat()
-    {
-        return ISO_FORMAT;
-    }
+  @Override
+  public String getIsoFormat() {
+    return ISO_FORMAT;
+  }
 
-    @Override
-    public String getIso8601Duration()
-    {
-        return ISO8601_DURATION;
-    }
+  @Override
+  public String getIso8601Duration() {
+    return ISO8601_DURATION;
+  }
 }

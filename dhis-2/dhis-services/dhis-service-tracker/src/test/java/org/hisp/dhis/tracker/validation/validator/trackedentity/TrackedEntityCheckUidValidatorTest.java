@@ -44,52 +44,50 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Enrico Colasante
  */
-class TrackedEntityCheckUidValidatorTest
-{
+class TrackedEntityCheckUidValidatorTest {
 
-    private static final String INVALID_UID = "InvalidUID";
+  private static final String INVALID_UID = "InvalidUID";
 
-    private UidValidator validator;
+  private UidValidator validator;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    void setUp()
-    {
-        TrackerPreheat preheat = new TrackerPreheat();
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        preheat.setIdSchemes( idSchemes );
-        reporter = new Reporter( idSchemes );
-        bundle = TrackerBundle.builder().preheat( preheat ).build();
+  @BeforeEach
+  void setUp() {
+    TrackerPreheat preheat = new TrackerPreheat();
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    preheat.setIdSchemes(idSchemes);
+    reporter = new Reporter(idSchemes);
+    bundle = TrackerBundle.builder().preheat(preheat).build();
 
-        validator = new UidValidator();
-    }
+    validator = new UidValidator();
+  }
 
-    @Test
-    void verifyTrackedEntityValidationSuccess()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+  @Test
+  void verifyTrackedEntityValidationSuccess() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .build();
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyTrackedEntityWithInvalidUidFails()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( INVALID_UID )
-            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+  @Test
+  void verifyTrackedEntityWithInvalidUidFails() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(INVALID_UID)
+            .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .build();
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertHasError( reporter, trackedEntity, E1048 );
-    }
+    assertHasError(reporter, trackedEntity, E1048);
+  }
 }

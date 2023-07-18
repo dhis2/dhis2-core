@@ -28,22 +28,19 @@
 package org.hisp.dhis.webapi.strategy.old.tracker.imports.request;
 
 import java.io.InputStream;
-
 import lombok.Builder;
 import lombok.Data;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.scheduling.JobConfiguration;
 
 @Data
 @Builder
-public class TrackerEntityInstanceRequest
-{
-    InputStream inputStream;
+public class TrackerEntityInstanceRequest {
+  InputStream inputStream;
 
-    ImportOptions importOptions;
+  ImportOptions importOptions;
 
-    String mediaType;
+  String mediaType;
 
-    JobConfiguration jobConfiguration;
+  JobConfiguration jobConfiguration;
 }

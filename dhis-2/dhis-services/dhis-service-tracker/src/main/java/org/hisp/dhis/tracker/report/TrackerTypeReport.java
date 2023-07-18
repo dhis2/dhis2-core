@@ -27,101 +27,86 @@
  */
 package org.hisp.dhis.tracker.report;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import lombok.Data;
-
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
-public class TrackerTypeReport
-{
-    @JsonProperty
-    private final TrackerType trackerType;
+public class TrackerTypeReport {
+  @JsonProperty private final TrackerType trackerType;
 
-    @JsonProperty
-    private Stats stats = new Stats();
+  @JsonProperty private Stats stats = new Stats();
 
-    @JsonIgnore
-    private List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
+  @JsonIgnore private List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
 
-    private Map<Integer, Entity> entityReport = new HashMap<>();
+  private Map<Integer, Entity> entityReport = new HashMap<>();
 
-    public TrackerTypeReport( TrackerType trackerType )
-    {
-        this.trackerType = trackerType;
+  public TrackerTypeReport(TrackerType trackerType) {
+    this.trackerType = trackerType;
+  }
+
+  @JsonCreator
+  public TrackerTypeReport(
+      @JsonProperty("trackerType") TrackerType trackerType,
+      @JsonProperty("stats") Stats stats,
+      @JsonProperty("sideEffectDataBundles")
+          List<TrackerSideEffectDataBundle> sideEffectDataBundles,
+      @JsonProperty("objectReports") List<Entity> entityReport) {
+    this.trackerType = trackerType;
+    this.stats = stats;
+    this.sideEffectDataBundles = sideEffectDataBundles;
+
+    if (entityReport != null) {
+      for (Entity entity : entityReport) {
+        this.entityReport.put(entity.getIndex(), entity);
+      }
     }
+  }
 
-    @JsonCreator
-    public TrackerTypeReport( @JsonProperty( "trackerType" ) TrackerType trackerType,
-        @JsonProperty( "stats" ) Stats stats,
-        @JsonProperty( "sideEffectDataBundles" ) List<TrackerSideEffectDataBundle> sideEffectDataBundles,
-        @JsonProperty( "objectReports" ) List<Entity> entityReport )
-    {
-        this.trackerType = trackerType;
-        this.stats = stats;
-        this.sideEffectDataBundles = sideEffectDataBundles;
+  @JsonProperty("objectReports")
+  public List<Entity> getEntityReport() {
+    return new ArrayList<>(entityReport.values());
+  }
 
-        if ( entityReport != null )
-        {
-            for ( Entity entity : entityReport )
-            {
-                this.entityReport.put( entity.getIndex(), entity );
-            }
-        }
-    }
+  // -----------------------------------------------------------------------------------
+  // Utility Methods
+  // -----------------------------------------------------------------------------------
 
-    @JsonProperty( "objectReports" )
-    public List<Entity> getEntityReport()
-    {
-        return new ArrayList<>( entityReport.values() );
-    }
+  /**
+   * Are there any errors present?
+   *
+   * @return true or false depending on any errors found
+   */
+  public boolean isEmpty() {
+    return getErrorReports().isEmpty();
+  }
 
-    // -----------------------------------------------------------------------------------
-    // Utility Methods
-    // -----------------------------------------------------------------------------------
+  public void addEntity(Entity entity) {
+    this.entityReport.put(entity.getIndex(), entity);
+  }
 
-    /**
-     * Are there any errors present?
-     *
-     * @return true or false depending on any errors found
-     */
-    public boolean isEmpty()
-    {
-        return getErrorReports().isEmpty();
-    }
+  private List<Error> getErrorReports() {
+    List<Error> errorReports = new ArrayList<>();
+    entityReport.values().forEach(entity -> errorReports.addAll(entity.getErrorReports()));
 
-    public void addEntity( Entity entity )
-    {
-        this.entityReport.put( entity.getIndex(), entity );
-    }
+    return errorReports;
+  }
 
-    private List<Error> getErrorReports()
-    {
-        List<Error> errorReports = new ArrayList<>();
-        entityReport.values().forEach( entity -> errorReports.addAll( entity.getErrorReports() ) );
+  public Map<Integer, Entity> getEntityReportMap() {
+    return entityReport;
+  }
 
-        return errorReports;
-    }
-
-    public Map<Integer, Entity> getEntityReportMap()
-    {
-        return entityReport;
-    }
-
-    public List<TrackerSideEffectDataBundle> getSideEffectDataBundles()
-    {
-        return sideEffectDataBundles;
-    }
+  public List<TrackerSideEffectDataBundle> getSideEffectDataBundles() {
+    return sideEffectDataBundles;
+  }
 }

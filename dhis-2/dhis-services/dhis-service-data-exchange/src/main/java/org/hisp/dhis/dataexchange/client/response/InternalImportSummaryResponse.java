@@ -27,117 +27,92 @@
  */
 package org.hisp.dhis.dataexchange.client.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * Internal representation of a DHIS 2 import summary response. Supports the
- * import summary up to DHIS 2.37 where the summary was located at the root, and
- * the import summary after 2.38 where the summary was located in the
- * {@code response} object.
+ * Internal representation of a DHIS 2 import summary response. Supports the import summary up to
+ * DHIS 2.37 where the summary was located at the root, and the import summary after 2.38 where the
+ * summary was located in the {@code response} object.
  *
  * @author Lars Helge Overland
  */
 @Getter
 @Setter
 @NoArgsConstructor
-public class InternalImportSummaryResponse
-    extends Dhis2Response
-{
-    /**
-     * DHIS 2.38 and later.
-     */
-    @JsonProperty
-    private ImportSummary response;
+public class InternalImportSummaryResponse extends Dhis2Response {
+  /** DHIS 2.38 and later. */
+  @JsonProperty private ImportSummary response;
 
-    /**
-     * DHIS 2.37 and earlier.
-     */
-    private ImportOptions importOptions;
+  /** DHIS 2.37 and earlier. */
+  private ImportOptions importOptions;
 
-    /**
-     * DHIS 2.37 and earlier.
-     */
-    @JsonProperty
-    private String description;
+  /** DHIS 2.37 and earlier. */
+  @JsonProperty private String description;
 
-    /**
-     * DHIS 2.37 and earlier.
-     */
-    @JsonProperty
-    private ImportCount importCount;
+  /** DHIS 2.37 and earlier. */
+  @JsonProperty private ImportCount importCount;
 
-    /**
-     * DHIS 2.37 and earlier.
-     */
-    @JsonProperty
-    private final List<ImportConflict> conflicts = new ArrayList<>();
+  /** DHIS 2.37 and earlier. */
+  @JsonProperty private final List<ImportConflict> conflicts = new ArrayList<>();
 
-    /**
-     * Returns the {@link ImportSummary} response.
-     *
-     * @return the {@link ImportSummary}.
-     */
-    public ImportSummary getImportSummary()
-    {
-        return hasImportSummary238() ? getImportSummary238() : getImportSummary237();
-    }
+  /**
+   * Returns the {@link ImportSummary} response.
+   *
+   * @return the {@link ImportSummary}.
+   */
+  public ImportSummary getImportSummary() {
+    return hasImportSummary238() ? getImportSummary238() : getImportSummary237();
+  }
 
-    /**
-     * Indicates whether a response object is present, which if so means the
-     * response is version 2.38 or later.
-     */
-    private boolean hasImportSummary238()
-    {
-        return response != null && response.getStatus() != null;
-    }
+  /**
+   * Indicates whether a response object is present, which if so means the response is version 2.38
+   * or later.
+   */
+  private boolean hasImportSummary238() {
+    return response != null && response.getStatus() != null;
+  }
 
-    /**
-     * Returns an {@link ImportSummary}.
-     *
-     * @return an {@link ImportSummary}.
-     */
-    private ImportSummary getImportSummary238()
-    {
-        return response;
-    }
+  /**
+   * Returns an {@link ImportSummary}.
+   *
+   * @return an {@link ImportSummary}.
+   */
+  private ImportSummary getImportSummary238() {
+    return response;
+  }
 
-    /**
-     * Returns an {@link ImportSummary}.
-     *
-     * @return an {@link ImportSummary}.
-     */
-    private ImportSummary getImportSummary237()
-    {
-        ImportSummary summary = new ImportSummary();
-        summary.setStatus( toImportStatus( status ) );
-        summary.setImportOptions( importOptions );
-        summary.setImportCount( importCount );
-        summary.setDescription( description );
-        summary.setConflicts( conflicts );
-        return summary;
-    }
+  /**
+   * Returns an {@link ImportSummary}.
+   *
+   * @return an {@link ImportSummary}.
+   */
+  private ImportSummary getImportSummary237() {
+    ImportSummary summary = new ImportSummary();
+    summary.setStatus(toImportStatus(status));
+    summary.setImportOptions(importOptions);
+    summary.setImportCount(importCount);
+    summary.setDescription(description);
+    summary.setConflicts(conflicts);
+    return summary;
+  }
 
-    /**
-     * Returns an {@link ImportStatus} based on the given {@link Status}.
-     *
-     * @param status the {@link Status}.
-     * @return an {@link ImportStatus}.
-     */
-    ImportStatus toImportStatus( Status status )
-    {
-        return status != null ? ImportStatus.valueOf( status.name() ) : null;
-    }
+  /**
+   * Returns an {@link ImportStatus} based on the given {@link Status}.
+   *
+   * @param status the {@link Status}.
+   * @return an {@link ImportStatus}.
+   */
+  ImportStatus toImportStatus(Status status) {
+    return status != null ? ImportStatus.valueOf(status.name()) : null;
+  }
 }

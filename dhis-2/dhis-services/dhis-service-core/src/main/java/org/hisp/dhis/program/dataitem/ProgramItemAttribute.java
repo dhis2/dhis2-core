@@ -39,70 +39,62 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
  *
  * @author Jim Grace
  */
-public class ProgramItemAttribute
-    extends ProgramExpressionItem
-{
-    @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        String attributeId = getProgramAttributeId( ctx );
+public class ProgramItemAttribute extends ProgramExpressionItem {
+  @Override
+  public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    String attributeId = getProgramAttributeId(ctx);
 
-        TrackedEntityAttribute attribute = visitor.getIdObjectManager()
-            .get( TrackedEntityAttribute.class, attributeId );
+    TrackedEntityAttribute attribute =
+        visitor.getIdObjectManager().get(TrackedEntityAttribute.class, attributeId);
 
-        if ( attribute == null )
-        {
-            throw new ParserExceptionWithoutContext( "Tracked entity attribute " + attributeId + " not found." );
-        }
-
-        visitor.getItemDescriptions().put( ctx.getText(), attribute.getDisplayName() );
-
-        return getNullReplacementValue( attribute.getValueType() );
+    if (attribute == null) {
+      throw new ParserExceptionWithoutContext(
+          "Tracked entity attribute " + attributeId + " not found.");
     }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        String attributeId = getProgramAttributeId( ctx );
+    visitor.getItemDescriptions().put(ctx.getText(), attribute.getDisplayName());
 
-        String column = visitor.getStatementBuilder().columnQuote( attributeId );
+    return getNullReplacementValue(attribute.getValueType());
+  }
 
-        if ( visitor.getState().isReplaceNulls() )
-        {
-            TrackedEntityAttribute attribute = visitor.getIdObjectManager()
-                .get( TrackedEntityAttribute.class, attributeId );
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    String attributeId = getProgramAttributeId(ctx);
 
-            if ( attribute == null )
-            {
-                throw new ParserExceptionWithoutContext(
-                    "Tracked entity attribute " + attributeId + " not found during SQL generation." );
-            }
+    String column = visitor.getStatementBuilder().columnQuote(attributeId);
 
-            column = replaceNullSqlValues( column, visitor, attribute.getValueType() );
-        }
+    if (visitor.getState().isReplaceNulls()) {
+      TrackedEntityAttribute attribute =
+          visitor.getIdObjectManager().get(TrackedEntityAttribute.class, attributeId);
 
-        return column;
+      if (attribute == null) {
+        throw new ParserExceptionWithoutContext(
+            "Tracked entity attribute " + attributeId + " not found during SQL generation.");
+      }
+
+      column = replaceNullSqlValues(column, visitor, attribute.getValueType());
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+    return column;
+  }
 
-    /**
-     * Makes sure that the parsed A{...} has a syntax that could be used be used
-     * in an program expression for A{attributeUid}
-     *
-     * @param ctx the item context
-     * @return the attribute UID.
-     */
-    private String getProgramAttributeId( ExprContext ctx )
-    {
-        if ( ctx.uid1 != null )
-        {
-            throw new org.hisp.dhis.antlr.ParserExceptionWithoutContext(
-                "Program attribute must have one UID: " + ctx.getText() );
-        }
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-        return ctx.uid0.getText();
+  /**
+   * Makes sure that the parsed A{...} has a syntax that could be used be used in an program
+   * expression for A{attributeUid}
+   *
+   * @param ctx the item context
+   * @return the attribute UID.
+   */
+  private String getProgramAttributeId(ExprContext ctx) {
+    if (ctx.uid1 != null) {
+      throw new org.hisp.dhis.antlr.ParserExceptionWithoutContext(
+          "Program attribute must have one UID: " + ctx.getText());
     }
+
+    return ctx.uid0.getText();
+  }
 }

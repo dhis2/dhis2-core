@@ -31,7 +31,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
@@ -48,52 +47,46 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class TrackerEntityInstanceStrategyTest
-{
-    @InjectMocks
-    private TrackerEntityInstanceStrategy strategy;
+@ExtendWith(MockitoExtension.class)
+class TrackerEntityInstanceStrategyTest {
+  @InjectMocks private TrackerEntityInstanceStrategy strategy;
 
-    @Mock
-    private TrackedEntityInstanceStore trackedEntityInstanceStore;
+  @Mock private TrackedEntityInstanceStore trackedEntityInstanceStore;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private final BeanRandomizer rnd = BeanRandomizer.create();
+  private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @Test
-    void verifyStrategyAddRightTeisToPreheat()
-    {
-        final List<TrackedEntity> trackedEntities = trackedEntities();
-        final TrackerImportParams params = TrackerImportParams.builder().trackedEntities( trackedEntities ).build();
+  @Test
+  void verifyStrategyAddRightTeisToPreheat() {
+    final List<TrackedEntity> trackedEntities = trackedEntities();
+    final TrackerImportParams params =
+        TrackerImportParams.builder().trackedEntities(trackedEntities).build();
 
-        final List<String> uids = List.of( "TEIA", "TEIB" );
+    final List<String> uids = List.of("TEIA", "TEIB");
 
-        List<List<String>> splitUids = new ArrayList<>();
-        splitUids.add( uids );
+    List<List<String>> splitUids = new ArrayList<>();
+    splitUids.add(uids);
 
-        List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstances();
-        when( trackedEntityInstanceStore.getIncludingDeleted( uids ) ).thenReturn( trackedEntityInstances );
-        strategy.add( params, splitUids, preheat );
+    List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstances();
+    when(trackedEntityInstanceStore.getIncludingDeleted(uids)).thenReturn(trackedEntityInstances);
+    strategy.add(params, splitUids, preheat);
 
-        Mockito.verify( trackedEntityInstanceStore ).getIncludingDeleted( uids );
-        Mockito.verify( preheat ).putTrackedEntities( trackedEntityInstances );
-    }
+    Mockito.verify(trackedEntityInstanceStore).getIncludingDeleted(uids);
+    Mockito.verify(preheat).putTrackedEntities(trackedEntityInstances);
+  }
 
-    private List<TrackedEntity> trackedEntities()
-    {
-        return List.of(
-            TrackedEntity.builder().trackedEntity( "TEIA" ).build(),
-            TrackedEntity.builder().trackedEntity( "TEIB" ).build() );
-    }
+  private List<TrackedEntity> trackedEntities() {
+    return List.of(
+        TrackedEntity.builder().trackedEntity("TEIA").build(),
+        TrackedEntity.builder().trackedEntity("TEIB").build());
+  }
 
-    private List<TrackedEntityInstance> trackedEntityInstances()
-    {
-        TrackedEntityInstance teiA = new TrackedEntityInstance();
-        teiA.setUid( "TEIA" );
-        TrackedEntityInstance teiB = new TrackedEntityInstance();
-        teiB.setUid( "TEIB" );
-        return List.of( teiA, teiB );
-    }
+  private List<TrackedEntityInstance> trackedEntityInstances() {
+    TrackedEntityInstance teiA = new TrackedEntityInstance();
+    teiA.setUid("TEIA");
+    TrackedEntityInstance teiB = new TrackedEntityInstance();
+    teiB.setUid("TEIB");
+    return List.of(teiA, teiB);
+  }
 }

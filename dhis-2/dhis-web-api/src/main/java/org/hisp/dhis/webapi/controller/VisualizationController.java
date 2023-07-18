@@ -36,9 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DimensionService;
@@ -56,137 +54,126 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-@OpenApi.Tags( "metadata" )
+@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping( value = API_ENDPOINT )
-public class VisualizationController
-    extends
-    AbstractCrudController<Visualization>
-{
-    private final LegendSetService legendSetService;
+@RequestMapping(value = API_ENDPOINT)
+public class VisualizationController extends AbstractCrudController<Visualization> {
+  private final LegendSetService legendSetService;
 
-    private final DimensionService dimensionService;
+  private final DimensionService dimensionService;
 
-    private final I18nManager i18nManager;
+  private final I18nManager i18nManager;
 
-    public VisualizationController( final LegendSetService legendSetService, DimensionService dimensionService,
-        I18nManager i18nManager )
-    {
-        this.legendSetService = legendSetService;
-        this.dimensionService = dimensionService;
-        this.i18nManager = i18nManager;
+  public VisualizationController(
+      final LegendSetService legendSetService,
+      DimensionService dimensionService,
+      I18nManager i18nManager) {
+    this.legendSetService = legendSetService;
+    this.dimensionService = dimensionService;
+    this.i18nManager = i18nManager;
+  }
+
+  @Override
+  protected Visualization deserializeJsonEntity(HttpServletRequest request) throws IOException {
+    Visualization visualization = super.deserializeJsonEntity(request);
+
+    addDimensionsInto(visualization);
+
+    return visualization;
+  }
+
+  private void addDimensionsInto(Visualization visualization) {
+    if (visualization != null) {
+      dimensionService.mergeAnalyticalObject(visualization);
+
+      visualization.getColumnDimensions().clear();
+      visualization.getRowDimensions().clear();
+      visualization.getFilterDimensions().clear();
+
+      visualization.getColumnDimensions().addAll(getDimensions(visualization.getColumns()));
+      visualization.getRowDimensions().addAll(getDimensions(visualization.getRows()));
+      visualization.getFilterDimensions().addAll(getDimensions(visualization.getFilters()));
+
+      maybeLoadLegendSetInto(visualization);
     }
+  }
 
-    @Override
-    protected Visualization deserializeJsonEntity( HttpServletRequest request )
-        throws IOException
-    {
-        Visualization visualization = super.deserializeJsonEntity( request );
-
-        addDimensionsInto( visualization );
-
-        return visualization;
+  /**
+   * Load the current/existing legendSet (if any is set) into the current visualization object, so
+   * the relationship can be persisted.
+   *
+   * @param visualization
+   */
+  private void maybeLoadLegendSetInto(Visualization visualization) {
+    if (visualization.getLegendDefinitions() != null
+        && visualization.getLegendDefinitions().getLegendSet() != null) {
+      visualization
+          .getLegendDefinitions()
+          .setLegendSet(
+              legendSetService.getLegendSet(
+                  visualization.getLegendDefinitions().getLegendSet().getUid()));
     }
+  }
 
-    private void addDimensionsInto( Visualization visualization )
-    {
-        if ( visualization != null )
-        {
-            dimensionService.mergeAnalyticalObject( visualization );
+  @Override
+  public void postProcessResponseEntity(
+      Visualization visualization, WebOptions options, Map<String, String> parameters) {
+    if (visualization != null) {
+      visualization.populateAnalyticalProperties();
 
-            visualization.getColumnDimensions().clear();
-            visualization.getRowDimensions().clear();
-            visualization.getFilterDimensions().clear();
+      Set<OrganisationUnit> organisationUnits =
+          currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
 
-            visualization.getColumnDimensions().addAll( getDimensions( visualization.getColumns() ) );
-            visualization.getRowDimensions().addAll( getDimensions( visualization.getRows() ) );
-            visualization.getFilterDimensions().addAll( getDimensions( visualization.getFilters() ) );
+      for (OrganisationUnit organisationUnit : visualization.getOrganisationUnits()) {
+        visualization
+            .getParentGraphMap()
+            .put(organisationUnit.getUid(), organisationUnit.getParentGraph(organisationUnits));
+      }
 
-            maybeLoadLegendSetInto( visualization );
+      I18nFormat i18nFormat = i18nManager.getI18nFormat();
+
+      if (isNotEmpty(visualization.getPeriods())) {
+        for (Period period : visualization.getPeriods()) {
+          period.setName(i18nFormat.formatPeriod(period));
         }
+      }
+
+      addExpressionDimensionItemElementsToDataDimensionItems(visualization);
     }
+  }
 
-    /**
-     * Load the current/existing legendSet (if any is set) into the current
-     * visualization object, so the relationship can be persisted.
-     *
-     * @param visualization
-     */
-    private void maybeLoadLegendSetInto( Visualization visualization )
-    {
-        if ( visualization.getLegendDefinitions() != null
-            && visualization.getLegendDefinitions().getLegendSet() != null )
-        {
-            visualization.getLegendDefinitions().setLegendSet(
-                legendSetService.getLegendSet( visualization.getLegendDefinitions().getLegendSet().getUid() ) );
-        }
-    }
+  private void addExpressionDimensionItemElementsToDataDimensionItems(Visualization visualization) {
+    List<DataDimensionItem> dataDimensionItems = new ArrayList<>();
 
-    @Override
-    public void postProcessResponseEntity( Visualization visualization, WebOptions options,
-        Map<String, String> parameters )
-    {
-        if ( visualization != null )
-        {
-            visualization.populateAnalyticalProperties();
+    visualization.getDataDimensionItems().stream()
+        .filter(ddi -> ddi.getExpressionDimensionItem() != null)
+        .forEach(
+            ddi -> {
+              List<BaseDimensionalItemObject> expressionItems =
+                  ExpressionDimensionItemHelper.getExpressionItems(manager, ddi);
 
-            Set<OrganisationUnit> organisationUnits = currentUserService.getCurrentUser()
-                .getDataViewOrganisationUnitsWithFallback();
-
-            for ( OrganisationUnit organisationUnit : visualization.getOrganisationUnits() )
-            {
-                visualization.getParentGraphMap().put( organisationUnit.getUid(),
-                    organisationUnit.getParentGraph( organisationUnits ) );
-            }
-
-            I18nFormat i18nFormat = i18nManager.getI18nFormat();
-
-            if ( isNotEmpty( visualization.getPeriods() ) )
-            {
-                for ( Period period : visualization.getPeriods() )
-                {
-                    period.setName( i18nFormat.formatPeriod( period ) );
-                }
-            }
-
-            addExpressionDimensionItemElementsToDataDimensionItems( visualization );
-        }
-    }
-
-    private void addExpressionDimensionItemElementsToDataDimensionItems( Visualization visualization )
-    {
-        List<DataDimensionItem> dataDimensionItems = new ArrayList<>();
-
-        visualization.getDataDimensionItems()
-            .stream()
-            .filter( ddi -> ddi.getExpressionDimensionItem() != null )
-            .forEach( ddi -> {
-                List<BaseDimensionalItemObject> expressionItems = ExpressionDimensionItemHelper
-                    .getExpressionItems( manager, ddi );
-
-                expressionItems.forEach( ei -> {
+              expressionItems.forEach(
+                  ei -> {
                     DataDimensionItem dataDimensionItem = new DataDimensionItem();
 
-                    switch ( ei.getDimensionItemType() )
-                    {
-                    case DATA_ELEMENT:
-                        dataDimensionItem.setDataElement( (DataElement) ei );
-                        dataDimensionItems.add( dataDimensionItem );
+                    switch (ei.getDimensionItemType()) {
+                      case DATA_ELEMENT:
+                        dataDimensionItem.setDataElement((DataElement) ei);
+                        dataDimensionItems.add(dataDimensionItem);
                         break;
-                    case DATA_ELEMENT_OPERAND:
-                        dataDimensionItem.setDataElementOperand( (DataElementOperand) ei );
-                        dataDimensionItems.add( dataDimensionItem );
+                      case DATA_ELEMENT_OPERAND:
+                        dataDimensionItem.setDataElementOperand((DataElementOperand) ei);
+                        dataDimensionItems.add(dataDimensionItem);
                         break;
-                    default:
-                        //ignore
+                      default:
+                        // ignore
                         break;
                     }
-                } );
-            } );
+                  });
+            });
 
-        if ( !dataDimensionItems.isEmpty() )
-        {
-            visualization.getDataDimensionItems().addAll( dataDimensionItems );
-        }
+    if (!dataDimensionItems.isEmpty()) {
+      visualization.getDataDimensionItems().addAll(dataDimensionItems);
     }
+  }
 }

@@ -59,116 +59,110 @@ import org.mockito.quality.Strictness;
 /**
  * @author Enrico Colasante
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class MandatoryFieldsValidatorTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class MandatoryFieldsValidatorTest {
 
-    private MandatoryFieldsValidator validator;
+  private MandatoryFieldsValidator validator;
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    public void setUp()
-    {
-        validator = new MandatoryFieldsValidator();
+  @BeforeEach
+  public void setUp() {
+    validator = new MandatoryFieldsValidator();
 
-        when( bundle.getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        when( bundle.getPreheat() ).thenReturn( preheat );
+    when(bundle.getImportStrategy()).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(bundle.getValidationMode()).thenReturn(ValidationMode.FULL);
+    when(bundle.getPreheat()).thenReturn(preheat);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
-    }
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
+  }
 
-    @Test
-    void verifyEventValidationSuccess()
-    {
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .programStage( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+  @Test
+  void verifyEventValidationSuccess() {
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .programStage(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .build();
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyEventValidationFailsOnMissingProgram()
-    {
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .programStage( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .program( MetadataIdentifier.EMPTY_UID )
+  @Test
+  void verifyEventValidationFailsOnMissingProgram() {
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .programStage(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .program(MetadataIdentifier.EMPTY_UID)
             .build();
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertMissingProperty( reporter, event, "program" );
-    }
+    assertMissingProperty(reporter, event, "program");
+  }
 
-    @Test
-    void verifyEventValidationFailsOnMissingProgramStageReferenceToProgram()
-    {
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .programStage( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+  @Test
+  void verifyEventValidationFailsOnMissingProgramStageReferenceToProgram() {
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .programStage(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .build();
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( event.getProgramStage().getIdentifier() );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage ) ) )
-            .thenReturn( programStage );
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid(event.getProgramStage().getIdentifier());
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertHasError( reporter, event, E1008 );
-    }
+    assertTrue(reporter.hasErrors());
+    assertThat(reporter.getErrors(), hasSize(1));
+    assertHasError(reporter, event, E1008);
+  }
 
-    @Test
-    void verifyEventValidationFailsOnMissingProgramStage()
-    {
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .programStage( MetadataIdentifier.EMPTY_UID )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .build();
-
-        validator.validate( reporter, bundle, event );
-
-        assertMissingProperty( reporter, event, "programStage" );
-    }
-
-    @Test
-    void verifyEventValidationFailsOnMissingOrgUnit()
-    {
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.EMPTY_UID )
-            .programStage( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+  @Test
+  void verifyEventValidationFailsOnMissingProgramStage() {
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .programStage(MetadataIdentifier.EMPTY_UID)
+            .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .build();
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertMissingProperty( reporter, event, "orgUnit" );
-    }
+    assertMissingProperty(reporter, event, "programStage");
+  }
 
-    private void assertMissingProperty( Reporter reporter, TrackerDto dto, String property )
-    {
-        AssertValidations.assertMissingProperty( reporter, dto, ValidationCode.E1123, property );
-    }
+  @Test
+  void verifyEventValidationFailsOnMissingOrgUnit() {
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.EMPTY_UID)
+            .programStage(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertMissingProperty(reporter, event, "orgUnit");
+  }
+
+  private void assertMissingProperty(Reporter reporter, TrackerDto dto, String property) {
+    AssertValidations.assertMissingProperty(reporter, dto, ValidationCode.E1123, property);
+  }
 }

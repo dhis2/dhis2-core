@@ -38,9 +38,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.Set;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.program.Program;
@@ -55,451 +55,438 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Enrico Colasante
  */
-class EventProgramPreProcessorTest
-{
+class EventProgramPreProcessorTest {
 
-    private final static String PROGRAM_STAGE_WITH_REGISTRATION = "PROGRAM_STAGE_WITH_REGISTRATION";
+  private static final String PROGRAM_STAGE_WITH_REGISTRATION = "PROGRAM_STAGE_WITH_REGISTRATION";
 
-    private final static String PROGRAM_STAGE_WITHOUT_REGISTRATION = "PROGRAM_STAGE_WITHOUT_REGISTRATION";
+  private static final String PROGRAM_STAGE_WITHOUT_REGISTRATION =
+      "PROGRAM_STAGE_WITHOUT_REGISTRATION";
 
-    private final static String PROGRAM_WITH_REGISTRATION = "PROGRAM_WITH_REGISTRATION";
+  private static final String PROGRAM_WITH_REGISTRATION = "PROGRAM_WITH_REGISTRATION";
 
-    private final static String PROGRAM_WITHOUT_REGISTRATION = "PROGRAM_WITHOUT_REGISTRATION";
+  private static final String PROGRAM_WITHOUT_REGISTRATION = "PROGRAM_WITHOUT_REGISTRATION";
 
-    private TrackerPreheat preheat;
+  private TrackerPreheat preheat;
 
-    private EventProgramPreProcessor preprocessor;
+  private EventProgramPreProcessor preprocessor;
 
-    @BeforeEach
-    void setUp()
-    {
-        preheat = mock( TrackerPreheat.class );
+  @BeforeEach
+  void setUp() {
+    preheat = mock(TrackerPreheat.class);
 
-        this.preprocessor = new EventProgramPreProcessor();
-    }
+    this.preprocessor = new EventProgramPreProcessor();
+  }
 
-    @Test
-    void testTrackerEventIsEnhancedWithProgram()
-    {
-        TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
-        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_WITH_REGISTRATION ) ) )
-            .thenReturn( programStageWithRegistration() );
+  @Test
+  void testTrackerEventIsEnhancedWithProgram() {
+    TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_WITH_REGISTRATION)))
+        .thenReturn(programStageWithRegistration());
 
-        TrackerBundle bundle = TrackerBundle.builder()
-            .events( Collections.singletonList( trackerEventWithProgramStage() ) ).preheat( preheat ).build();
-
-        preprocessor.process( bundle );
-
-        verify( preheat ).put( programWithRegistration() );
-        assertEquals( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ),
-            bundle.getEvents().get( 0 ).getProgram() );
-    }
-
-    @Test
-    void testProgramEventIsEnhancedWithProgram()
-    {
-        TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
-        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_WITHOUT_REGISTRATION ) ) )
-            .thenReturn( programStageWithoutRegistration() );
-
-        TrackerBundle bundle = TrackerBundle.builder()
-            .events( Collections.singletonList( programEventWithProgramStage() ) ).preheat( preheat ).build();
-
-        preprocessor.process( bundle );
-
-        verify( preheat ).put( programWithoutRegistration() );
-        assertEquals( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION ),
-            bundle.getEvents().get( 0 ).getProgram() );
-    }
-
-    @Test
-    void testTrackerEventWithProgramAndProgramStageIsNotProcessed()
-    {
-        TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
-        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
-
-        Event event = completeTrackerEvent();
-        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).preheat( preheat )
+    TrackerBundle bundle =
+        TrackerBundle.builder()
+            .events(Collections.singletonList(trackerEventWithProgramStage()))
+            .preheat(preheat)
             .build();
 
-        preprocessor.process( bundle );
+    preprocessor.process(bundle);
 
-        verify( preheat, never() ).getProgram( PROGRAM_WITH_REGISTRATION );
-        verify( preheat, never() ).getProgramStage( PROGRAM_STAGE_WITH_REGISTRATION );
-        assertEquals( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ),
-            bundle.getEvents().get( 0 ).getProgram() );
-        assertEquals( MetadataIdentifier.ofUid( PROGRAM_STAGE_WITH_REGISTRATION ),
-            bundle.getEvents().get( 0 ).getProgramStage() );
-    }
+    verify(preheat).put(programWithRegistration());
+    assertEquals(
+        MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION),
+        bundle.getEvents().get(0).getProgram());
+  }
 
-    @Test
-    void testProgramStageHasNoReferenceToProgram()
-    {
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( "LGSWs20XFvy" );
-        when( preheat.getProgramStage( "LGSWs20XFvy" ) ).thenReturn( programStage );
+  @Test
+  void testProgramEventIsEnhancedWithProgram() {
+    TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_WITHOUT_REGISTRATION)))
+        .thenReturn(programStageWithoutRegistration());
 
-        Event event = Event.builder()
-            .program( MetadataIdentifier.EMPTY_UID )
-            .programStage( MetadataIdentifier.ofUid( programStage ) )
-            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
-            .attributeCategoryOptions( Collections.emptySet() )
-            .build();
-        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).preheat( preheat )
+    TrackerBundle bundle =
+        TrackerBundle.builder()
+            .events(Collections.singletonList(programEventWithProgramStage()))
+            .preheat(preheat)
             .build();
 
-        preprocessor.process( bundle );
+    preprocessor.process(bundle);
 
-        verify( preheat, never() ).put( programStage.getProgram() );
-    }
+    verify(preheat).put(programWithoutRegistration());
+    assertEquals(
+        MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION),
+        bundle.getEvents().get(0).getProgram());
+  }
 
-    @Test
-    void testProgramEventIsEnhancedWithProgramStage()
-    {
-        TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
-        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION ) ) )
-            .thenReturn( programWithoutRegistrationWithProgramStages() );
+  @Test
+  void testTrackerEventWithProgramAndProgramStageIsNotProcessed() {
+    TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
 
-        Event event = programEventWithProgram();
-        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).preheat( preheat )
+    Event event = completeTrackerEvent();
+    TrackerBundle bundle =
+        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
+
+    preprocessor.process(bundle);
+
+    verify(preheat, never()).getProgram(PROGRAM_WITH_REGISTRATION);
+    verify(preheat, never()).getProgramStage(PROGRAM_STAGE_WITH_REGISTRATION);
+    assertEquals(
+        MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION),
+        bundle.getEvents().get(0).getProgram());
+    assertEquals(
+        MetadataIdentifier.ofUid(PROGRAM_STAGE_WITH_REGISTRATION),
+        bundle.getEvents().get(0).getProgramStage());
+  }
+
+  @Test
+  void testProgramStageHasNoReferenceToProgram() {
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid("LGSWs20XFvy");
+    when(preheat.getProgramStage("LGSWs20XFvy")).thenReturn(programStage);
+
+    Event event =
+        Event.builder()
+            .program(MetadataIdentifier.EMPTY_UID)
+            .programStage(MetadataIdentifier.ofUid(programStage))
+            .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+            .attributeCategoryOptions(Collections.emptySet())
             .build();
+    TrackerBundle bundle =
+        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
 
-        preprocessor.process( bundle );
+    preprocessor.process(bundle);
 
-        verify( preheat ).put( programStageWithoutRegistration() );
-        assertEquals( MetadataIdentifier.ofUid( PROGRAM_STAGE_WITHOUT_REGISTRATION ),
-            bundle.getEvents().get( 0 ).getProgramStage() );
-    }
+    verify(preheat, never()).put(programStage.getProgram());
+  }
 
-    @Test
-    void testTrackerEventIsNotEnhancedWithProgramStage()
-    {
-        TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
-        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ) ) )
-            .thenReturn( programWithRegistrationWithProgramStages() );
-        Event event = trackerEventWithProgram();
-        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).preheat( preheat )
+  @Test
+  void testProgramEventIsEnhancedWithProgramStage() {
+    TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION)))
+        .thenReturn(programWithoutRegistrationWithProgramStages());
+
+    Event event = programEventWithProgram();
+    TrackerBundle bundle =
+        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
+
+    preprocessor.process(bundle);
+
+    verify(preheat).put(programStageWithoutRegistration());
+    assertEquals(
+        MetadataIdentifier.ofUid(PROGRAM_STAGE_WITHOUT_REGISTRATION),
+        bundle.getEvents().get(0).getProgramStage());
+  }
+
+  @Test
+  void testTrackerEventIsNotEnhancedWithProgramStage() {
+    TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION)))
+        .thenReturn(programWithRegistrationWithProgramStages());
+    Event event = trackerEventWithProgram();
+    TrackerBundle bundle =
+        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
+
+    preprocessor.process(bundle);
+
+    assertEquals(
+        MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION),
+        bundle.getEvents().get(0).getProgram());
+    assertEquals(MetadataIdentifier.EMPTY_UID, bundle.getEvents().get(0).getProgramStage());
+  }
+
+  @Test
+  void testProgramEventWithProgramAndProgramStageIsNotProcessed() {
+    TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
+
+    Event event = completeProgramEvent();
+    TrackerBundle bundle =
+        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
+
+    preprocessor.process(bundle);
+
+    verify(preheat, never()).getProgram(PROGRAM_WITHOUT_REGISTRATION);
+    verify(preheat, never()).getProgramStage(PROGRAM_STAGE_WITHOUT_REGISTRATION);
+    assertEquals(
+        MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION),
+        bundle.getEvents().get(0).getProgram());
+    assertEquals(
+        MetadataIdentifier.ofUid(PROGRAM_STAGE_WITHOUT_REGISTRATION),
+        bundle.getEvents().get(0).getProgramStage());
+  }
+
+  @Test
+  void testEventWithOnlyCOsIsEnhancedWithAOC() {
+
+    TrackerIdSchemeParams identifierParams =
+        TrackerIdSchemeParams.builder()
+            .categoryOptionComboIdScheme(TrackerIdSchemeParam.CODE)
             .build();
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
 
-        preprocessor.process( bundle );
+    Program program = createProgram('A');
+    CategoryCombo categoryCombo = createCategoryCombo('A');
+    program.setCategoryCombo(categoryCombo);
+    Event event = completeTrackerEvent();
+    event.setProgram(MetadataIdentifier.ofUid(program));
+    Set<MetadataIdentifier> categoryOptions =
+        Set.of(MetadataIdentifier.ofUid("123"), MetadataIdentifier.ofUid("235"));
+    event.setAttributeCategoryOptions(categoryOptions);
+    when(preheat.getProgram(event.getProgram())).thenReturn(program);
+    CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo('A');
+    when(preheat.getCategoryOptionComboIdentifier(categoryCombo, categoryOptions))
+        .thenReturn(identifierParams.toMetadataIdentifier(categoryOptionCombo));
 
-        assertEquals( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ),
-            bundle.getEvents().get( 0 ).getProgram() );
-        assertEquals( MetadataIdentifier.EMPTY_UID, bundle.getEvents().get( 0 ).getProgramStage() );
-    }
+    TrackerBundle bundle =
+        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
 
-    @Test
-    void testProgramEventWithProgramAndProgramStageIsNotProcessed()
-    {
-        TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
-        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
+    preprocessor.process(bundle);
 
-        Event event = completeProgramEvent();
-        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).preheat( preheat )
+    assertEquals(
+        MetadataIdentifier.ofCode(categoryOptionCombo),
+        bundle.getEvents().get(0).getAttributeOptionCombo());
+    assertEquals(categoryOptions, bundle.getEvents().get(0).getAttributeCategoryOptions());
+  }
+
+  @Test
+  void testEventWithOnlyCOsIsNotEnhancedWithAOCIfItCantBeFound() {
+
+    TrackerIdSchemeParams identifierParams =
+        TrackerIdSchemeParams.builder()
+            .categoryOptionComboIdScheme(TrackerIdSchemeParam.CODE)
             .build();
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
 
-        preprocessor.process( bundle );
+    Program program = createProgram('A');
+    CategoryCombo categoryCombo = createCategoryCombo('A');
+    program.setCategoryCombo(categoryCombo);
+    Event event = completeTrackerEvent();
+    event.setProgram(MetadataIdentifier.ofUid(program));
+    event.setAttributeCategoryOptions(
+        Set.of(MetadataIdentifier.ofUid("123"), MetadataIdentifier.ofUid("235")));
+    when(preheat.getProgram(event.getProgram())).thenReturn(program);
+    when(preheat.getCategoryOptionComboIdentifier(
+            categoryCombo, event.getAttributeCategoryOptions()))
+        .thenReturn(MetadataIdentifier.EMPTY_CODE);
 
-        verify( preheat, never() ).getProgram( PROGRAM_WITHOUT_REGISTRATION );
-        verify( preheat, never() ).getProgramStage( PROGRAM_STAGE_WITHOUT_REGISTRATION );
-        assertEquals( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION ),
-            bundle.getEvents().get( 0 ).getProgram() );
-        assertEquals( MetadataIdentifier.ofUid( PROGRAM_STAGE_WITHOUT_REGISTRATION ),
-            bundle.getEvents().get( 0 ).getProgramStage() );
-    }
+    TrackerBundle bundle =
+        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
 
-    @Test
-    void testEventWithOnlyCOsIsEnhancedWithAOC()
-    {
+    preprocessor.process(bundle);
 
-        TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdSchemeParam.CODE )
+    assertEquals(
+        MetadataIdentifier.EMPTY_CODE, bundle.getEvents().get(0).getAttributeOptionCombo());
+    assertEquals(
+        Set.of(MetadataIdentifier.ofUid("123"), MetadataIdentifier.ofUid("235")),
+        bundle.getEvents().get(0).getAttributeCategoryOptions());
+  }
+
+  @Test
+  void testEventWithOnlyCOsIsNotEnhancedWithAOCIfProgramCantBeFound() {
+
+    TrackerIdSchemeParams identifierParams =
+        TrackerIdSchemeParams.builder()
+            .categoryOptionComboIdScheme(TrackerIdSchemeParam.CODE)
             .build();
-        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
 
-        Program program = createProgram( 'A' );
-        CategoryCombo categoryCombo = createCategoryCombo( 'A' );
-        program.setCategoryCombo( categoryCombo );
-        Event event = completeTrackerEvent();
-        event.setProgram( MetadataIdentifier.ofUid( program ) );
-        Set<MetadataIdentifier> categoryOptions = Set.of( MetadataIdentifier.ofUid( "123" ),
-            MetadataIdentifier.ofUid( "235" ) );
-        event.setAttributeCategoryOptions(
-            categoryOptions );
-        when( preheat.getProgram( event.getProgram() ) ).thenReturn( program );
-        CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( 'A' );
-        when( preheat.getCategoryOptionComboIdentifier( categoryCombo, categoryOptions ) )
-            .thenReturn( identifierParams.toMetadataIdentifier( categoryOptionCombo ) );
+    Program program = createProgram('A');
+    CategoryCombo categoryCombo = createCategoryCombo('A');
+    program.setCategoryCombo(categoryCombo);
+    Event event = completeTrackerEvent();
+    event.setProgram(MetadataIdentifier.ofUid(program));
+    event.setAttributeCategoryOptions(
+        Set.of(MetadataIdentifier.ofUid("123"), MetadataIdentifier.ofUid("235")));
 
-        TrackerBundle bundle = TrackerBundle.builder()
-            .events( Collections.singletonList( event ) )
-            .preheat( preheat )
+    TrackerBundle bundle =
+        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
+
+    preprocessor.process(bundle);
+
+    assertEquals(MetadataIdentifier.EMPTY_UID, bundle.getEvents().get(0).getAttributeOptionCombo());
+    assertEquals(
+        Set.of(MetadataIdentifier.ofUid("123"), MetadataIdentifier.ofUid("235")),
+        bundle.getEvents().get(0).getAttributeCategoryOptions());
+  }
+
+  @Test
+  void testEventWithAOCAndCOsIsNotEnhancedWithAOC() {
+
+    TrackerIdSchemeParams identifierParams =
+        TrackerIdSchemeParams.builder()
+            .categoryOptionComboIdScheme(TrackerIdSchemeParam.CODE)
             .build();
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
 
-        preprocessor.process( bundle );
+    Program program = createProgram('A');
+    CategoryCombo categoryCombo = createCategoryCombo('A');
+    program.setCategoryCombo(categoryCombo);
+    Event event = completeTrackerEvent();
+    event.setProgram(MetadataIdentifier.ofUid(program));
+    event.setAttributeOptionCombo(MetadataIdentifier.ofCode("9871"));
+    event.setAttributeCategoryOptions(
+        Set.of(MetadataIdentifier.ofUid("123"), MetadataIdentifier.ofUid("235")));
+    when(preheat.getProgram(event.getProgram())).thenReturn(program);
 
-        assertEquals( MetadataIdentifier.ofCode( categoryOptionCombo ),
-            bundle.getEvents().get( 0 ).getAttributeOptionCombo() );
-        assertEquals( categoryOptions,
-            bundle.getEvents().get( 0 ).getAttributeCategoryOptions() );
-    }
+    TrackerBundle bundle =
+        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
 
-    @Test
-    void testEventWithOnlyCOsIsNotEnhancedWithAOCIfItCantBeFound()
-    {
+    preprocessor.process(bundle);
 
-        TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdSchemeParam.CODE )
+    assertEquals(
+        MetadataIdentifier.ofCode("9871"), bundle.getEvents().get(0).getAttributeOptionCombo());
+    assertEquals(
+        Set.of(MetadataIdentifier.ofUid("123"), MetadataIdentifier.ofUid("235")),
+        bundle.getEvents().get(0).getAttributeCategoryOptions());
+  }
+
+  @Test
+  void testEventWithOnlyAOCIsLeftUnchanged() {
+
+    TrackerIdSchemeParams identifierParams =
+        TrackerIdSchemeParams.builder()
+            .categoryOptionComboIdScheme(TrackerIdSchemeParam.CODE)
             .build();
-        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
 
-        Program program = createProgram( 'A' );
-        CategoryCombo categoryCombo = createCategoryCombo( 'A' );
-        program.setCategoryCombo( categoryCombo );
-        Event event = completeTrackerEvent();
-        event.setProgram( MetadataIdentifier.ofUid( program ) );
-        event.setAttributeCategoryOptions(
-            Set.of( MetadataIdentifier.ofUid( "123" ), MetadataIdentifier.ofUid( "235" ) ) );
-        when( preheat.getProgram( event.getProgram() ) ).thenReturn( program );
-        when( preheat.getCategoryOptionComboIdentifier( categoryCombo, event.getAttributeCategoryOptions() ) )
-            .thenReturn( MetadataIdentifier.EMPTY_CODE );
+    Program program = createProgram('A');
+    CategoryCombo categoryCombo = createCategoryCombo('A');
+    program.setCategoryCombo(categoryCombo);
+    Event event = completeTrackerEvent();
+    event.setProgram(MetadataIdentifier.ofUid(program));
+    event.setAttributeOptionCombo(MetadataIdentifier.ofCode("9871"));
+    when(preheat.getProgram(event.getProgram())).thenReturn(program);
 
-        TrackerBundle bundle = TrackerBundle.builder()
-            .events( Collections.singletonList( event ) )
-            .preheat( preheat )
+    TrackerBundle bundle =
+        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
+
+    preprocessor.process(bundle);
+
+    assertEquals(
+        MetadataIdentifier.ofCode("9871"), bundle.getEvents().get(0).getAttributeOptionCombo());
+  }
+
+  @Test
+  void testEventWithNoAOCAndNoCOsIsNotEnhancedWithAOC() {
+
+    TrackerIdSchemeParams identifierParams =
+        TrackerIdSchemeParams.builder()
+            .categoryOptionComboIdScheme(TrackerIdSchemeParam.CODE)
             .build();
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
 
-        preprocessor.process( bundle );
+    Program program = createProgram('A');
+    CategoryCombo categoryCombo = createCategoryCombo('A');
+    program.setCategoryCombo(categoryCombo);
+    Event event = completeTrackerEvent();
+    event.setProgram(MetadataIdentifier.ofUid(program));
+    when(preheat.getProgram(event.getProgram())).thenReturn(program);
 
-        assertEquals( MetadataIdentifier.EMPTY_CODE, bundle.getEvents().get( 0 ).getAttributeOptionCombo() );
-        assertEquals( Set.of( MetadataIdentifier.ofUid( "123" ), MetadataIdentifier.ofUid( "235" ) ),
-            bundle.getEvents().get( 0 ).getAttributeCategoryOptions() );
-    }
+    TrackerBundle bundle =
+        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
 
-    @Test
-    void testEventWithOnlyCOsIsNotEnhancedWithAOCIfProgramCantBeFound()
-    {
+    preprocessor.process(bundle);
 
-        TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdSchemeParam.CODE )
-            .build();
-        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
+    assertEquals(MetadataIdentifier.EMPTY_UID, bundle.getEvents().get(0).getAttributeOptionCombo());
+    assertTrue(bundle.getEvents().get(0).getAttributeCategoryOptions().isEmpty());
+  }
 
-        Program program = createProgram( 'A' );
-        CategoryCombo categoryCombo = createCategoryCombo( 'A' );
-        program.setCategoryCombo( categoryCombo );
-        Event event = completeTrackerEvent();
-        event.setProgram( MetadataIdentifier.ofUid( program ) );
-        event.setAttributeCategoryOptions(
-            Set.of( MetadataIdentifier.ofUid( "123" ), MetadataIdentifier.ofUid( "235" ) ) );
+  private ProgramStage programStageWithRegistration() {
+    ProgramStage programStage = createProgramStage('A', 1, false);
+    programStage.setUid(PROGRAM_STAGE_WITH_REGISTRATION);
+    programStage.setProgram(programWithRegistration());
+    return programStage;
+  }
 
-        TrackerBundle bundle = TrackerBundle.builder()
-            .events( Collections.singletonList( event ) )
-            .preheat( preheat )
-            .build();
+  private ProgramStage programStageWithoutRegistration() {
+    ProgramStage programStage = createProgramStage('A', 1, false);
+    programStage.setUid(PROGRAM_STAGE_WITHOUT_REGISTRATION);
+    programStage.setProgram(programWithoutRegistration());
+    return programStage;
+  }
 
-        preprocessor.process( bundle );
+  private Program programWithRegistrationWithProgramStages() {
+    Program program = createProgram('A');
+    program.setUid(PROGRAM_WITH_REGISTRATION);
+    program.setProgramType(ProgramType.WITH_REGISTRATION);
+    program.setProgramStages(Sets.newHashSet(programStageWithRegistration()));
+    return program;
+  }
 
-        assertEquals( MetadataIdentifier.EMPTY_UID, bundle.getEvents().get( 0 ).getAttributeOptionCombo() );
-        assertEquals( Set.of( MetadataIdentifier.ofUid( "123" ), MetadataIdentifier.ofUid( "235" ) ),
-            bundle.getEvents().get( 0 ).getAttributeCategoryOptions() );
-    }
+  private Program programWithoutRegistrationWithProgramStages() {
+    Program program = createProgram('B');
+    program.setUid(PROGRAM_WITHOUT_REGISTRATION);
+    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    program.setProgramStages(Sets.newHashSet(programStageWithoutRegistration()));
+    return program;
+  }
 
-    @Test
-    void testEventWithAOCAndCOsIsNotEnhancedWithAOC()
-    {
+  private Program programWithRegistration() {
+    Program program = createProgram('A');
+    program.setUid(PROGRAM_WITH_REGISTRATION);
+    program.setProgramType(ProgramType.WITH_REGISTRATION);
+    return program;
+  }
 
-        TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdSchemeParam.CODE )
-            .build();
-        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
+  private Program programWithoutRegistration() {
+    Program program = createProgram('B');
+    program.setUid(PROGRAM_WITHOUT_REGISTRATION);
+    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    return program;
+  }
 
-        Program program = createProgram( 'A' );
-        CategoryCombo categoryCombo = createCategoryCombo( 'A' );
-        program.setCategoryCombo( categoryCombo );
-        Event event = completeTrackerEvent();
-        event.setProgram( MetadataIdentifier.ofUid( program ) );
-        event.setAttributeOptionCombo( MetadataIdentifier.ofCode( "9871" ) );
-        event.setAttributeCategoryOptions(
-            Set.of( MetadataIdentifier.ofUid( "123" ), MetadataIdentifier.ofUid( "235" ) ) );
-        when( preheat.getProgram( event.getProgram() ) ).thenReturn( program );
+  private Event programEventWithProgram() {
+    return Event.builder()
+        .program(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION))
+        .programStage(MetadataIdentifier.EMPTY_UID)
+        .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+        .build();
+  }
 
-        TrackerBundle bundle = TrackerBundle.builder()
-            .events( Collections.singletonList( event ) )
-            .preheat( preheat )
-            .build();
+  private Event programEventWithProgramStage() {
+    return Event.builder()
+        .program(MetadataIdentifier.EMPTY_UID)
+        .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_WITHOUT_REGISTRATION))
+        .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+        .build();
+  }
 
-        preprocessor.process( bundle );
+  private Event completeProgramEvent() {
+    return Event.builder()
+        .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_WITHOUT_REGISTRATION))
+        .program(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION))
+        .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+        .build();
+  }
 
-        assertEquals( MetadataIdentifier.ofCode( "9871" ), bundle.getEvents().get( 0 ).getAttributeOptionCombo() );
-        assertEquals( Set.of( MetadataIdentifier.ofUid( "123" ), MetadataIdentifier.ofUid( "235" ) ),
-            bundle.getEvents().get( 0 ).getAttributeCategoryOptions() );
-    }
+  private Event trackerEventWithProgramStage() {
+    return Event.builder()
+        .program(MetadataIdentifier.EMPTY_UID)
+        .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_WITH_REGISTRATION))
+        .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+        .build();
+  }
 
-    @Test
-    void testEventWithOnlyAOCIsLeftUnchanged()
-    {
+  private Event trackerEventWithProgram() {
+    return Event.builder()
+        .program(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION))
+        .programStage(MetadataIdentifier.EMPTY_UID)
+        .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+        .build();
+  }
 
-        TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdSchemeParam.CODE )
-            .build();
-        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
-
-        Program program = createProgram( 'A' );
-        CategoryCombo categoryCombo = createCategoryCombo( 'A' );
-        program.setCategoryCombo( categoryCombo );
-        Event event = completeTrackerEvent();
-        event.setProgram( MetadataIdentifier.ofUid( program ) );
-        event.setAttributeOptionCombo( MetadataIdentifier.ofCode( "9871" ) );
-        when( preheat.getProgram( event.getProgram() ) ).thenReturn( program );
-
-        TrackerBundle bundle = TrackerBundle.builder()
-            .events( Collections.singletonList( event ) )
-            .preheat( preheat )
-            .build();
-
-        preprocessor.process( bundle );
-
-        assertEquals( MetadataIdentifier.ofCode( "9871" ), bundle.getEvents().get( 0 ).getAttributeOptionCombo() );
-    }
-
-    @Test
-    void testEventWithNoAOCAndNoCOsIsNotEnhancedWithAOC()
-    {
-
-        TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdSchemeParam.CODE )
-            .build();
-        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
-
-        Program program = createProgram( 'A' );
-        CategoryCombo categoryCombo = createCategoryCombo( 'A' );
-        program.setCategoryCombo( categoryCombo );
-        Event event = completeTrackerEvent();
-        event.setProgram( MetadataIdentifier.ofUid( program ) );
-        when( preheat.getProgram( event.getProgram() ) ).thenReturn( program );
-
-        TrackerBundle bundle = TrackerBundle.builder()
-            .events( Collections.singletonList( event ) )
-            .preheat( preheat )
-            .build();
-
-        preprocessor.process( bundle );
-
-        assertEquals( MetadataIdentifier.EMPTY_UID, bundle.getEvents().get( 0 ).getAttributeOptionCombo() );
-        assertTrue( bundle.getEvents().get( 0 ).getAttributeCategoryOptions().isEmpty() );
-    }
-
-    private ProgramStage programStageWithRegistration()
-    {
-        ProgramStage programStage = createProgramStage( 'A', 1, false );
-        programStage.setUid( PROGRAM_STAGE_WITH_REGISTRATION );
-        programStage.setProgram( programWithRegistration() );
-        return programStage;
-    }
-
-    private ProgramStage programStageWithoutRegistration()
-    {
-        ProgramStage programStage = createProgramStage( 'A', 1, false );
-        programStage.setUid( PROGRAM_STAGE_WITHOUT_REGISTRATION );
-        programStage.setProgram( programWithoutRegistration() );
-        return programStage;
-    }
-
-    private Program programWithRegistrationWithProgramStages()
-    {
-        Program program = createProgram( 'A' );
-        program.setUid( PROGRAM_WITH_REGISTRATION );
-        program.setProgramType( ProgramType.WITH_REGISTRATION );
-        program.setProgramStages( Sets.newHashSet( programStageWithRegistration() ) );
-        return program;
-    }
-
-    private Program programWithoutRegistrationWithProgramStages()
-    {
-        Program program = createProgram( 'B' );
-        program.setUid( PROGRAM_WITHOUT_REGISTRATION );
-        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        program.setProgramStages( Sets.newHashSet( programStageWithoutRegistration() ) );
-        return program;
-    }
-
-    private Program programWithRegistration()
-    {
-        Program program = createProgram( 'A' );
-        program.setUid( PROGRAM_WITH_REGISTRATION );
-        program.setProgramType( ProgramType.WITH_REGISTRATION );
-        return program;
-    }
-
-    private Program programWithoutRegistration()
-    {
-        Program program = createProgram( 'B' );
-        program.setUid( PROGRAM_WITHOUT_REGISTRATION );
-        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        return program;
-    }
-
-    private Event programEventWithProgram()
-    {
-        return Event.builder()
-            .program( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION ) )
-            .programStage( MetadataIdentifier.EMPTY_UID )
-            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
-            .build();
-    }
-
-    private Event programEventWithProgramStage()
-    {
-        return Event.builder()
-            .program( MetadataIdentifier.EMPTY_UID )
-            .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_WITHOUT_REGISTRATION ) )
-            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
-            .build();
-    }
-
-    private Event completeProgramEvent()
-    {
-        return Event.builder()
-            .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_WITHOUT_REGISTRATION ) )
-            .program( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION ) )
-            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
-            .build();
-    }
-
-    private Event trackerEventWithProgramStage()
-    {
-        return Event.builder()
-            .program( MetadataIdentifier.EMPTY_UID )
-            .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_WITH_REGISTRATION ) )
-            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
-            .build();
-    }
-
-    private Event trackerEventWithProgram()
-    {
-        return Event.builder()
-            .program( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ) )
-            .programStage( MetadataIdentifier.EMPTY_UID )
-            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
-            .build();
-    }
-
-    private Event completeTrackerEvent()
-    {
-        return Event.builder()
-            .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_WITH_REGISTRATION ) )
-            .program( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ) )
-            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
-            .build();
-    }
+  private Event completeTrackerEvent() {
+    return Event.builder()
+        .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_WITH_REGISTRATION))
+        .program(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION))
+        .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+        .build();
+  }
 }

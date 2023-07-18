@@ -40,8 +40,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
 import java.util.List;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -62,128 +62,111 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class ProgramObjectBundleHookTest
-{
-    private ProgramObjectBundleHook subject;
+@ExtendWith(MockitoExtension.class)
+class ProgramObjectBundleHookTest {
+  private ProgramObjectBundleHook subject;
 
-    @Mock
-    private ProgramInstanceService programInstanceService;
+  @Mock private ProgramInstanceService programInstanceService;
 
-    @Mock
-    private ProgramService programService;
+  @Mock private ProgramService programService;
 
-    @Mock
-    private ProgramStageService programStageService;
+  @Mock private ProgramStageService programStageService;
 
-    @Mock
-    private AclService aclService;
+  @Mock private AclService aclService;
 
-    @Mock
-    private SessionFactory sessionFactory;
+  @Mock private SessionFactory sessionFactory;
 
-    private Program programA;
+  private Program programA;
 
-    @BeforeEach
-    public void setUp()
-    {
-        this.subject = new ProgramObjectBundleHook( programInstanceService, programStageService,
-            aclService );
+  @BeforeEach
+  public void setUp() {
+    this.subject =
+        new ProgramObjectBundleHook(programInstanceService, programStageService, aclService);
 
-        programA = createProgram( 'A' );
-        programA.setId( 100 );
-    }
+    programA = createProgram('A');
+    programA.setId(100);
+  }
 
-    @Test
-    void verifyNullObjectIsIgnored()
-    {
-        subject.preCreate( null, null );
+  @Test
+  void verifyNullObjectIsIgnored() {
+    subject.preCreate(null, null);
 
-        verifyNoInteractions( programInstanceService );
-    }
+    verifyNoInteractions(programInstanceService);
+  }
 
-    @Test
-    void verifyMissingBundleIsIgnored()
-    {
-        subject.preCreate( programA, null );
+  @Test
+  void verifyMissingBundleIsIgnored() {
+    subject.preCreate(programA, null);
 
-        verifyNoInteractions( programInstanceService );
-    }
+    verifyNoInteractions(programInstanceService);
+  }
 
-    @Test
-    void verifyProgramInstanceIsSavedForEventProgram()
-    {
-        ArgumentCaptor<ProgramInstance> argument = ArgumentCaptor.forClass( ProgramInstance.class );
+  @Test
+  void verifyProgramInstanceIsSavedForEventProgram() {
+    ArgumentCaptor<ProgramInstance> argument = ArgumentCaptor.forClass(ProgramInstance.class);
 
-        programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        subject.postCreate( programA, null );
+    programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    subject.postCreate(programA, null);
 
-        verify( programInstanceService ).addProgramInstance( argument.capture() );
+    verify(programInstanceService).addProgramInstance(argument.capture());
 
-        assertThat( argument.getValue().getEnrollmentDate(), is( notNullValue() ) );
-        assertThat( argument.getValue().getIncidentDate(), is( notNullValue() ) );
-        assertThat( argument.getValue().getProgram(), is( programA ) );
-        assertThat( argument.getValue().getStatus(), is( ProgramStatus.ACTIVE ) );
-        assertThat( argument.getValue().getStoredBy(), is( "system-process" ) );
-    }
+    assertThat(argument.getValue().getEnrollmentDate(), is(notNullValue()));
+    assertThat(argument.getValue().getIncidentDate(), is(notNullValue()));
+    assertThat(argument.getValue().getProgram(), is(programA));
+    assertThat(argument.getValue().getStatus(), is(ProgramStatus.ACTIVE));
+    assertThat(argument.getValue().getStoredBy(), is("system-process"));
+  }
 
-    @Test
-    void verifyProgramInstanceIsNotSavedForTrackerProgram()
-    {
-        ArgumentCaptor<ProgramInstance> argument = ArgumentCaptor.forClass( ProgramInstance.class );
+  @Test
+  void verifyProgramInstanceIsNotSavedForTrackerProgram() {
+    ArgumentCaptor<ProgramInstance> argument = ArgumentCaptor.forClass(ProgramInstance.class);
 
-        programA.setProgramType( ProgramType.WITH_REGISTRATION );
-        subject.postCreate( programA, null );
+    programA.setProgramType(ProgramType.WITH_REGISTRATION);
+    subject.postCreate(programA, null);
 
-        verify( programInstanceService, times( 0 ) ).addProgramInstance( argument.capture() );
-    }
+    verify(programInstanceService, times(0)).addProgramInstance(argument.capture());
+  }
 
-    @Test
-    void verifyProgramValidates()
-    {
-        assertEquals( 0, subject.validate( programA, null ).size() );
-    }
+  @Test
+  void verifyProgramValidates() {
+    assertEquals(0, subject.validate(programA, null).size());
+  }
 
-    @Test
-    void verifyProgramFailsValidation()
-    {
-        ProgramInstanceQueryParams programInstanceQueryParams = new ProgramInstanceQueryParams();
-        programInstanceQueryParams.setProgram( programA );
-        programInstanceQueryParams.setProgramStatus( ProgramStatus.ACTIVE );
+  @Test
+  void verifyProgramFailsValidation() {
+    ProgramInstanceQueryParams programInstanceQueryParams = new ProgramInstanceQueryParams();
+    programInstanceQueryParams.setProgram(programA);
+    programInstanceQueryParams.setProgramStatus(ProgramStatus.ACTIVE);
 
-        when( programInstanceService.getProgramInstances( programA, ProgramStatus.ACTIVE ) )
-            .thenReturn( Lists.newArrayList( new ProgramInstance(), new ProgramInstance() ) );
+    when(programInstanceService.getProgramInstances(programA, ProgramStatus.ACTIVE))
+        .thenReturn(Lists.newArrayList(new ProgramInstance(), new ProgramInstance()));
 
-        List<ErrorReport> errors = subject.validate( programA, null );
+    List<ErrorReport> errors = subject.validate(programA, null);
 
-        assertEquals( 1, errors.size() );
-        assertEquals( errors.get( 0 ).getErrorCode(), ErrorCode.E6000 );
-    }
+    assertEquals(1, errors.size());
+    assertEquals(errors.get(0).getErrorCode(), ErrorCode.E6000);
+  }
 
-    @Test
-    void verifyValidationIsSkippedWhenObjectIsTransient()
-    {
-        Program transientObj = createProgram( 'A' );
-        subject.validate( transientObj, null );
+  @Test
+  void verifyValidationIsSkippedWhenObjectIsTransient() {
+    Program transientObj = createProgram('A');
+    subject.validate(transientObj, null);
 
-        verifyNoInteractions( programInstanceService );
-    }
+    verifyNoInteractions(programInstanceService);
+  }
 
-    @Test
-    void verifyUpdateProgramStage()
-    {
-        ProgramStage programStage = createProgramStage( 'A', 1 );
-        programA.getProgramStages().add( programStage );
+  @Test
+  void verifyUpdateProgramStage() {
+    ProgramStage programStage = createProgramStage('A', 1);
+    programA.getProgramStages().add(programStage);
 
-        assertNull( programA.getProgramStages().iterator().next().getProgram() );
+    assertNull(programA.getProgramStages().iterator().next().getProgram());
 
-        subject.postCreate( programA, null );
+    subject.postCreate(programA, null);
 
-        assertNotNull( programA.getProgramStages().iterator().next().getProgram() );
-    }
+    assertNotNull(programA.getProgramStages().iterator().next().getProgram());
+  }
 }

@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.metadata;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Input when an existing {@link MetadataProposal} is adjusted.
@@ -40,12 +39,8 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 @Getter
 @Setter
-public class MetadataAdjustParams
-{
-    @JsonProperty
-    private String targetId;
+public class MetadataAdjustParams {
+  @JsonProperty private String targetId;
 
-    @JsonProperty
-    private JsonNode change;
-
+  @JsonProperty private JsonNode change;
 }

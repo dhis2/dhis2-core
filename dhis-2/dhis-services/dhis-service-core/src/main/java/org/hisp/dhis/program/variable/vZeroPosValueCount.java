@@ -28,7 +28,6 @@
 package org.hisp.dhis.program.variable;
 
 import java.util.Set;
-
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
@@ -37,27 +36,27 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
  *
  * @author Jim Grace
  */
-public class vZeroPosValueCount
-    extends ProgramDoubleVariable
-{
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        Set<String> uids = visitor.getProgParams().getDataElementAndAttributeIdentifiers();
+public class vZeroPosValueCount extends ProgramDoubleVariable {
+  @Override
+  public Object getSql(CommonExpressionVisitor visitor) {
+    Set<String> uids = visitor.getProgParams().getDataElementAndAttributeIdentifiers();
 
-        if ( uids.isEmpty() )
-        {
-            return "0";
-        }
-
-        String sql = "nullif(cast((";
-
-        for ( String uid : uids )
-        {
-            sql += "case when " + visitor.getStatementBuilder().columnQuote( uid ) + " >= 0 then 1 else 0 end + ";
-        }
-
-        return TextUtils.removeLast( sql, "+" ).trim() + ") as " + visitor.getStatementBuilder().getDoubleColumnType()
-            + "),0)";
+    if (uids.isEmpty()) {
+      return "0";
     }
+
+    String sql = "nullif(cast((";
+
+    for (String uid : uids) {
+      sql +=
+          "case when "
+              + visitor.getStatementBuilder().columnQuote(uid)
+              + " >= 0 then 1 else 0 end + ";
+    }
+
+    return TextUtils.removeLast(sql, "+").trim()
+        + ") as "
+        + visitor.getStatementBuilder().getDoubleColumnType()
+        + "),0)";
+  }
 }

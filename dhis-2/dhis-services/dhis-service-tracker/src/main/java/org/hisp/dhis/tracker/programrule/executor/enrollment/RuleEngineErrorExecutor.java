@@ -30,9 +30,7 @@ package org.hisp.dhis.tracker.programrule.executor.enrollment;
 import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.warning;
 
 import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
@@ -40,21 +38,17 @@ import org.hisp.dhis.tracker.programrule.executor.RuleActionExecutor;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 
 /**
- * TThis executor emits a warning for any error raised by the rule engine
- * execution.
- *
- * @Author Enrico Colasante
+ * TThis executor emits a warning for any error raised by the rule engine execution. @Author Enrico
+ * Colasante
  */
 @RequiredArgsConstructor
-public class RuleEngineErrorExecutor implements RuleActionExecutor<Enrollment>
-{
-    private final String ruleUid;
+public class RuleEngineErrorExecutor implements RuleActionExecutor<Enrollment> {
+  private final String ruleUid;
 
-    private final String error;
+  private final String error;
 
-    @Override
-    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Enrollment enrollment )
-    {
-        return Optional.of( warning( ruleUid, ValidationCode.E1300, error ) );
-    }
+  @Override
+  public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Enrollment enrollment) {
+    return Optional.of(warning(ruleUid, ValidationCode.E1300, error));
+  }
 }

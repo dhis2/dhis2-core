@@ -37,7 +37,6 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -54,65 +53,59 @@ import org.mockito.quality.Strictness;
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramInstance>
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramInstance> {
 
-    private ProgramInstanceSupplier subject;
+  private ProgramInstanceSupplier subject;
 
-    @Mock
-    private ProgramSupplier programSupplier;
+  @Mock private ProgramSupplier programSupplier;
 
-    @BeforeEach
-    void setUp()
-    {
-        this.subject = new ProgramInstanceSupplier( jdbcTemplate, programSupplier );
-    }
+  @BeforeEach
+  void setUp() {
+    this.subject = new ProgramInstanceSupplier(jdbcTemplate, programSupplier);
+  }
 
-    @Test
-    void handleNullEvents()
-    {
-        assertNotNull( subject.get( ImportOptions.getDefaultImportOptions(), new HashMap<>(), null ) );
-    }
+  @Test
+  void handleNullEvents() {
+    assertNotNull(subject.get(ImportOptions.getDefaultImportOptions(), new HashMap<>(), null));
+  }
 
-    @Test
-    void verifySupplier()
-        throws SQLException
-    {
-        // mock resultset data
-        when( mockResultSet.getLong( "programinstanceid" ) ).thenReturn( 100L );
-        when( mockResultSet.getString( "uid" ) ).thenReturn( "abcded" );
-        when( mockResultSet.getString( "tei_uid" ) ).thenReturn( "efghil" );
-        when( mockResultSet.getString( "tei_ou_uid" ) ).thenReturn( "ouabcde" );
-        when( mockResultSet.getString( "tei_ou_path" ) ).thenReturn( "/ouabcde" );
-        when( mockResultSet.getLong( "programid" ) ).thenReturn( 999L );
-        // create event to import
-        Event event = new Event();
-        event.setUid( CodeGenerator.generateUid() );
-        event.setEnrollment( "abcded" );
-        // mock resultset extraction
-        mockResultSetExtractor( mockResultSet );
-        // create a Program for the ProgramSupplier
-        Program program = new Program();
-        program.setId( 999L );
-        program.setUid( "prabcde" );
-        Map<String, Program> programMap = new HashMap<>();
-        programMap.put( "prabcde", program );
-        final ImportOptions defaultImportOptions = ImportOptions.getDefaultImportOptions();
-        when( programSupplier.get( defaultImportOptions, Collections.singletonList( event ) ) )
-            .thenReturn( programMap );
-        Map<String, ProgramInstance> map = subject.get( defaultImportOptions, new HashMap<>(),
-            Collections.singletonList( event ) );
-        ProgramInstance programInstance = map.get( event.getUid() );
-        assertThat( programInstance, is( notNullValue() ) );
-        assertThat( programInstance.getId(), is( 100L ) );
-        assertThat( programInstance.getUid(), is( "abcded" ) );
-        assertThat( programInstance.getEntityInstance(), is( notNullValue() ) );
-        assertThat( programInstance.getEntityInstance().getUid(), is( "efghil" ) );
-        assertThat( programInstance.getEntityInstance().getOrganisationUnit(), is( notNullValue() ) );
-        assertThat( programInstance.getEntityInstance().getOrganisationUnit().getUid(), is( "ouabcde" ) );
-        assertThat( programInstance.getProgram(), is( notNullValue() ) );
-        assertThat( programInstance.getProgram().getUid(), is( "prabcde" ) );
-    }
+  @Test
+  void verifySupplier() throws SQLException {
+    // mock resultset data
+    when(mockResultSet.getLong("programinstanceid")).thenReturn(100L);
+    when(mockResultSet.getString("uid")).thenReturn("abcded");
+    when(mockResultSet.getString("tei_uid")).thenReturn("efghil");
+    when(mockResultSet.getString("tei_ou_uid")).thenReturn("ouabcde");
+    when(mockResultSet.getString("tei_ou_path")).thenReturn("/ouabcde");
+    when(mockResultSet.getLong("programid")).thenReturn(999L);
+    // create event to import
+    Event event = new Event();
+    event.setUid(CodeGenerator.generateUid());
+    event.setEnrollment("abcded");
+    // mock resultset extraction
+    mockResultSetExtractor(mockResultSet);
+    // create a Program for the ProgramSupplier
+    Program program = new Program();
+    program.setId(999L);
+    program.setUid("prabcde");
+    Map<String, Program> programMap = new HashMap<>();
+    programMap.put("prabcde", program);
+    final ImportOptions defaultImportOptions = ImportOptions.getDefaultImportOptions();
+    when(programSupplier.get(defaultImportOptions, Collections.singletonList(event)))
+        .thenReturn(programMap);
+    Map<String, ProgramInstance> map =
+        subject.get(defaultImportOptions, new HashMap<>(), Collections.singletonList(event));
+    ProgramInstance programInstance = map.get(event.getUid());
+    assertThat(programInstance, is(notNullValue()));
+    assertThat(programInstance.getId(), is(100L));
+    assertThat(programInstance.getUid(), is("abcded"));
+    assertThat(programInstance.getEntityInstance(), is(notNullValue()));
+    assertThat(programInstance.getEntityInstance().getUid(), is("efghil"));
+    assertThat(programInstance.getEntityInstance().getOrganisationUnit(), is(notNullValue()));
+    assertThat(programInstance.getEntityInstance().getOrganisationUnit().getUid(), is("ouabcde"));
+    assertThat(programInstance.getProgram(), is(notNullValue()));
+    assertThat(programInstance.getProgram().getUid(), is("prabcde"));
+  }
 }

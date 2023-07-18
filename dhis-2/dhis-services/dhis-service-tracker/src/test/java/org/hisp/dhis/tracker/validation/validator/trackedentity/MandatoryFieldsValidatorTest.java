@@ -53,78 +53,73 @@ import org.mockito.quality.Strictness;
 /**
  * @author Enrico Colasante
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class MandatoryFieldsValidatorTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class MandatoryFieldsValidatorTest {
 
-    private MandatoryFieldsValidator validator;
+  private MandatoryFieldsValidator validator;
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    public void setUp()
-    {
-        validator = new MandatoryFieldsValidator();
+  @BeforeEach
+  public void setUp() {
+    validator = new MandatoryFieldsValidator();
 
-        when( bundle.getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        when( bundle.getPreheat() ).thenReturn( preheat );
+    when(bundle.getImportStrategy()).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(bundle.getValidationMode()).thenReturn(ValidationMode.FULL);
+    when(bundle.getPreheat()).thenReturn(preheat);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
-    }
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
+  }
 
-    @Test
-    void verifyTrackedEntityValidationSuccess()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( CodeGenerator.generateUid() )
-            .trackedEntityType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+  @Test
+  void verifyTrackedEntityValidationSuccess() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(CodeGenerator.generateUid())
+            .trackedEntityType(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .build();
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyTrackedEntityValidationFailsOnMissingOrgUnit()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( CodeGenerator.generateUid() )
-            .trackedEntityType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .orgUnit( MetadataIdentifier.EMPTY_UID )
+  @Test
+  void verifyTrackedEntityValidationFailsOnMissingOrgUnit() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(CodeGenerator.generateUid())
+            .trackedEntityType(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .orgUnit(MetadataIdentifier.EMPTY_UID)
             .build();
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertMissingProperty( reporter, trackedEntity, "orgUnit" );
-    }
+    assertMissingProperty(reporter, trackedEntity, "orgUnit");
+  }
 
-    @Test
-    void verifyTrackedEntityValidationFailsOnMissingTrackedEntityType()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( CodeGenerator.generateUid() )
-            .trackedEntityType( MetadataIdentifier.EMPTY_UID )
-            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+  @Test
+  void verifyTrackedEntityValidationFailsOnMissingTrackedEntityType() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(CodeGenerator.generateUid())
+            .trackedEntityType(MetadataIdentifier.EMPTY_UID)
+            .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .build();
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertMissingProperty( reporter, trackedEntity, "trackedEntityType" );
-    }
+    assertMissingProperty(reporter, trackedEntity, "trackedEntityType");
+  }
 
-    private void assertMissingProperty( Reporter reporter, TrackerDto dto, String property )
-    {
-        AssertValidations.assertMissingProperty( reporter, dto, ValidationCode.E1121, property );
-    }
+  private void assertMissingProperty(Reporter reporter, TrackerDto dto, String property) {
+    AssertValidations.assertMissingProperty(reporter, dto, ValidationCode.E1121, property);
+  }
 }

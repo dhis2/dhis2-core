@@ -40,101 +40,132 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class MaintenanceControllerTest extends DhisControllerConvenienceTest
-{
+class MaintenanceControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testPruneDataByOrganisationUnit()
-    {
-        String ougId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-        assertWebMessage( "OK", 200, "OK", "Data was pruned successfully",
-            POST( "/maintenance/dataPruning/organisationUnits/" + ougId ).content() );
-    }
+  @Test
+  void testPruneDataByOrganisationUnit() {
+    String ougId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Data was pruned successfully",
+        POST("/maintenance/dataPruning/organisationUnits/" + ougId).content());
+  }
 
-    @Test
-    void testPruneDataByOrganisationUnit_DoesNotExist()
-    {
-        String ouId = CodeGenerator.generateUid();
-        assertEquals( "Organisation unit does not exist: " + ouId,
-            POST( "/maintenance/dataPruning/organisationUnits/" + ouId ).error( HttpStatus.CONFLICT ).getMessage() );
-    }
+  @Test
+  void testPruneDataByOrganisationUnit_DoesNotExist() {
+    String ouId = CodeGenerator.generateUid();
+    assertEquals(
+        "Organisation unit does not exist: " + ouId,
+        POST("/maintenance/dataPruning/organisationUnits/" + ouId)
+            .error(HttpStatus.CONFLICT)
+            .getMessage());
+  }
 
-    @Test
-    void testPruneDataByOrganisationUnit_MissingAuthority()
-    {
-        switchToNewUser( "guest" );
-        assertEquals( "Access is denied",
-            POST( "/maintenance/dataPruning/organisationUnits/xzy" ).error( HttpStatus.FORBIDDEN ).getMessage() );
-    }
+  @Test
+  void testPruneDataByOrganisationUnit_MissingAuthority() {
+    switchToNewUser("guest");
+    assertEquals(
+        "Access is denied",
+        POST("/maintenance/dataPruning/organisationUnits/xzy")
+            .error(HttpStatus.FORBIDDEN)
+            .getMessage());
+  }
 
-    @Test
-    void testPruneDataByDataElement()
-    {
-        String ccId = GET(
-            "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
-                .content().getObject( 0 ).getString( "id" ).string();
-        String deId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements/",
+  @Test
+  void testPruneDataByDataElement() {
+    String ccId =
+        GET("/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default")
+            .content()
+            .getObject(0)
+            .getString("id")
+            .string();
+    String deId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements/",
                 "{'name':'My data element', 'shortName':'DE1', 'code':'DE1', 'valueType':'INTEGER', "
                     + "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', "
-                    + "'categoryCombo': {'id': '" + ccId + "'}}" ) );
-        assertWebMessage( "OK", 200, "OK", "Data was pruned successfully",
-            POST( "/maintenance/dataPruning/dataElements/" + deId ).content() );
-    }
+                    + "'categoryCombo': {'id': '"
+                    + ccId
+                    + "'}}"));
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Data was pruned successfully",
+        POST("/maintenance/dataPruning/dataElements/" + deId).content());
+  }
 
-    @Test
-    void testPruneDataByDataElement_DoesNotExist()
-    {
-        String deId = CodeGenerator.generateUid();
-        assertEquals( "Data element does not exist: " + deId,
-            POST( "/maintenance/dataPruning/dataElements/" + deId ).error( HttpStatus.CONFLICT ).getMessage() );
-    }
+  @Test
+  void testPruneDataByDataElement_DoesNotExist() {
+    String deId = CodeGenerator.generateUid();
+    assertEquals(
+        "Data element does not exist: " + deId,
+        POST("/maintenance/dataPruning/dataElements/" + deId)
+            .error(HttpStatus.CONFLICT)
+            .getMessage());
+  }
 
-    @Test
-    void testPruneDataByDataElement_MissingAuthority()
-    {
-        switchToNewUser( "guest" );
-        assertEquals( "Access is denied",
-            POST( "/maintenance/dataPruning/dataElements/xzy" ).error( HttpStatus.FORBIDDEN ).getMessage() );
-    }
+  @Test
+  void testPruneDataByDataElement_MissingAuthority() {
+    switchToNewUser("guest");
+    assertEquals(
+        "Access is denied",
+        POST("/maintenance/dataPruning/dataElements/xzy").error(HttpStatus.FORBIDDEN).getMessage());
+  }
 
-    @Test
-    void testAppReload()
-    {
-        assertWebMessage( "OK", 200, "OK", "Apps reloaded", GET( "/maintenance/appReload" ).content() );
-    }
+  @Test
+  void testAppReload() {
+    assertWebMessage("OK", 200, "OK", "Apps reloaded", GET("/maintenance/appReload").content());
+  }
 
-    @Test
-    void testAppReload_MissingAuthority()
-    {
-        switchToNewUser( "guest" );
-        assertEquals( "Access is denied", GET( "/maintenance/appReload" ).error( HttpStatus.FORBIDDEN ).getMessage() );
-    }
+  @Test
+  void testAppReload_MissingAuthority() {
+    switchToNewUser("guest");
+    assertEquals(
+        "Access is denied", GET("/maintenance/appReload").error(HttpStatus.FORBIDDEN).getMessage());
+  }
 
-    @Test
-    void testUpdateCategoryOptionCombos()
-    {
-        String ccId = GET(
-            "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
-                .content().getObject( 0 ).getString( "id" ).string();
-        assertWebMessage( "OK", 200, "OK", "Import was successful.",
-            POST( "/maintenance/categoryOptionComboUpdate/categoryCombo/" + ccId ).content() );
-    }
+  @Test
+  void testUpdateCategoryOptionCombos() {
+    String ccId =
+        GET("/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default")
+            .content()
+            .getObject(0)
+            .getString("id")
+            .string();
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Import was successful.",
+        POST("/maintenance/categoryOptionComboUpdate/categoryCombo/" + ccId).content());
+  }
 
-    @Test
-    void testUpdateCategoryOptionCombos_DoesNotExist()
-    {
-        assertEquals( "CategoryCombo does not exist: xyz",
-            POST( "/maintenance/categoryOptionComboUpdate/categoryCombo/xyz" ).error( HttpStatus.CONFLICT )
-                .getMessage() );
-    }
+  @Test
+  void testUpdateCategoryOptionCombos_DoesNotExist() {
+    assertEquals(
+        "CategoryCombo does not exist: xyz",
+        POST("/maintenance/categoryOptionComboUpdate/categoryCombo/xyz")
+            .error(HttpStatus.CONFLICT)
+            .getMessage());
+  }
 
-    @Test
-    void testUpdateCategoryOptionCombos_MissingAuthority()
-    {
-        switchToNewUser( "guest" );
-        assertEquals( "Access is denied", POST( "/maintenance/categoryOptionComboUpdate/categoryCombo/xyz" )
-            .error( HttpStatus.FORBIDDEN ).getMessage() );
-    }
+  @Test
+  void testUpdateCategoryOptionCombos_MissingAuthority() {
+    switchToNewUser("guest");
+    assertEquals(
+        "Access is denied",
+        POST("/maintenance/categoryOptionComboUpdate/categoryCombo/xyz")
+            .error(HttpStatus.FORBIDDEN)
+            .getMessage());
+  }
 }

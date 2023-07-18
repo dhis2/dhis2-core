@@ -27,56 +27,47 @@
  */
 package org.hisp.dhis.commons.action;
 
+import com.opensymphony.xwork2.Action;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.opensymphony.xwork2.Action;
-
 /**
  * @author Chau Thu Tran
- *
  * @version $ GetCategoryOptionGroupsAction.java Feb 13, 2014 6:17:33 PM $
  */
-public class GetCategoryOptionGroupsAction extends BaseAction
-    implements Action
-{
-    @Autowired
-    private CategoryService dataElementCategoryService;
+public class GetCategoryOptionGroupsAction extends BaseAction implements Action {
+  @Autowired private CategoryService dataElementCategoryService;
 
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Output
+  // -------------------------------------------------------------------------
 
-    private List<CategoryOptionGroup> categoryOptionGroups;
+  private List<CategoryOptionGroup> categoryOptionGroups;
 
-    public List<CategoryOptionGroup> getCategoryOptionGroups()
-    {
-        return categoryOptionGroups;
-    }
+  public List<CategoryOptionGroup> getCategoryOptionGroups() {
+    return categoryOptionGroups;
+  }
 
-    // -------------------------------------------------------------------------
-    // Action
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Action
+  // -------------------------------------------------------------------------
 
-    @Override
-    public String execute()
-    {
-        canReadType( CategoryOptionGroup.class );
+  @Override
+  public String execute() {
+    canReadType(CategoryOptionGroup.class);
 
-        categoryOptionGroups = new ArrayList<>(
-            dataElementCategoryService.getAllCategoryOptionGroups() );
+    categoryOptionGroups = new ArrayList<>(dataElementCategoryService.getAllCategoryOptionGroups());
 
-        User currentUser = currentUserService.getCurrentUser();
-        categoryOptionGroups.forEach( instance -> canReadInstance( instance, currentUser ) );
+    User currentUser = currentUserService.getCurrentUser();
+    categoryOptionGroups.forEach(instance -> canReadInstance(instance, currentUser));
 
-        Collections.sort( categoryOptionGroups );
+    Collections.sort(categoryOptionGroups);
 
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

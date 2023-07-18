@@ -28,7 +28,6 @@
 package org.hisp.dhis.helpers;
 
 import java.util.*;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.TestRunStorage;
@@ -40,107 +39,91 @@ import org.hisp.dhis.dto.ApiResponse;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TestCleanUp
-{
-    private Logger logger = LogManager.getLogger( TestCleanUp.class.getName() );
+public class TestCleanUp {
+  private Logger logger = LogManager.getLogger(TestCleanUp.class.getName());
 
-    private int deleteCount = 0;
+  private int deleteCount = 0;
 
-    /**
-     * Deletes entities created during test run. Entities deleted one by one
-     * starting from last created one.
-     */
-    public void deleteCreatedEntities()
-    {
-        Map<String, String> createdEntities = TestRunStorage.getCreatedEntities();
-        List<String> reverseOrderedKeys = new ArrayList<>( createdEntities.keySet() );
-        Collections.reverse( reverseOrderedKeys );
+  /**
+   * Deletes entities created during test run. Entities deleted one by one starting from last
+   * created one.
+   */
+  public void deleteCreatedEntities() {
+    Map<String, String> createdEntities = TestRunStorage.getCreatedEntities();
+    List<String> reverseOrderedKeys = new ArrayList<>(createdEntities.keySet());
+    Collections.reverse(reverseOrderedKeys);
 
-        Iterator<String> iterator = reverseOrderedKeys.iterator();
+    Iterator<String> iterator = reverseOrderedKeys.iterator();
 
-        while ( iterator.hasNext() )
-        {
-            String key = iterator.next();
-            boolean deleted = deleteEntity( createdEntities.get( key ), key );
-            if ( deleted )
-            {
-                TestRunStorage.removeEntity( createdEntities.get( key ), key );
-                createdEntities.remove( createdEntities.get( key ), key );
-            }
+    while (iterator.hasNext()) {
+      String key = iterator.next();
+      boolean deleted = deleteEntity(createdEntities.get(key), key);
+      if (deleted) {
+        TestRunStorage.removeEntity(createdEntities.get(key), key);
+        createdEntities.remove(createdEntities.get(key), key);
+      }
 
-            new MaintenanceActions().removeSoftDeletedData();
-        }
-
-        while ( deleteCount < 2 && !createdEntities.isEmpty() )
-        {
-            deleteCount++;
-            deleteCreatedEntities();
-        }
-
-        TestRunStorage.removeAllEntities();
+      new MaintenanceActions().removeSoftDeletedData();
     }
 
-    /**
-     * Deletes entities created during test run.
-     *
-     * @param resources I.E /organisationUnits to delete created OU's.
-     */
-    public void deleteCreatedEntities( String... resources )
-    {
-        new LoginActions().loginAsSuperUser();
-
-        for ( String resource : resources )
-        {
-            List<String> entityIds = TestRunStorage.getCreatedEntities( resource );
-
-            Iterator<String> iterator = entityIds.iterator();
-
-            while ( iterator.hasNext() )
-            {
-                boolean deleted = deleteEntity( resource, iterator.next() );
-                if ( deleted )
-                {
-                    iterator.remove();
-                }
-            }
-        }
-
+    while (deleteCount < 2 && !createdEntities.isEmpty()) {
+      deleteCount++;
+      deleteCreatedEntities();
     }
 
-    public void deleteCreatedEntities( LinkedHashMap<String, String> entitiesToDelete )
-    {
-        Iterator<String> iterator = entitiesToDelete.keySet().iterator();
+    TestRunStorage.removeAllEntities();
+  }
 
-        while ( iterator.hasNext() )
-        {
-            String key = iterator.next();
+  /**
+   * Deletes entities created during test run.
+   *
+   * @param resources I.E /organisationUnits to delete created OU's.
+   */
+  public void deleteCreatedEntities(String... resources) {
+    new LoginActions().loginAsSuperUser();
 
-            deleteEntity( entitiesToDelete.get( key ), key );
+    for (String resource : resources) {
+      List<String> entityIds = TestRunStorage.getCreatedEntities(resource);
 
+      Iterator<String> iterator = entityIds.iterator();
+
+      while (iterator.hasNext()) {
+        boolean deleted = deleteEntity(resource, iterator.next());
+        if (deleted) {
+          iterator.remove();
         }
+      }
+    }
+  }
+
+  public void deleteCreatedEntities(LinkedHashMap<String, String> entitiesToDelete) {
+    Iterator<String> iterator = entitiesToDelete.keySet().iterator();
+
+    while (iterator.hasNext()) {
+      String key = iterator.next();
+
+      deleteEntity(entitiesToDelete.get(key), key);
+    }
+  }
+
+  public boolean deleteEntity(String resource, String id) {
+    ApiResponse response = new RestApiActions(resource).delete(id + "?force=true");
+
+    if (response.statusCode() == 200 || response.statusCode() == 404) {
+      logger.info(String.format("Entity from resource %s with id %s deleted", resource, id));
+
+      if (response.containsImportSummaries()) {
+        return response.extract("response.importCount.deleted").equals(1);
+      }
+
+      return true;
     }
 
-    public boolean deleteEntity( String resource, String id )
-    {
-        ApiResponse response = new RestApiActions( resource ).delete( id + "?force=true" );
-
-        if ( response.statusCode() == 200 || response.statusCode() == 404 )
-        {
-            logger.info( String.format( "Entity from resource %s with id %s deleted", resource, id ) );
-
-            if ( response.containsImportSummaries() )
-            {
-                return response.extract( "response.importCount.deleted" ).equals( 1 );
-            }
-
-            return true;
-        }
-
-        logger.warn( String.format(
+    logger.warn(
+        String.format(
             "Entity from resource %s with id %s was not deleted. Status code: %s",
-            resource, id, response.statusCode() ) );
+            resource, id, response.statusCode()));
 
-        return false;
-    }
-
+    return false;
+  }
 }

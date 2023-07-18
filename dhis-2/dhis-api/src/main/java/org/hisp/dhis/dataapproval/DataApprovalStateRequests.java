@@ -29,10 +29,5 @@ package org.hisp.dhis.dataapproval;
 
 import java.util.HashSet;
 
-/**
- * Represents a collection of data approval state responses
- */
-public class DataApprovalStateRequests
-    extends HashSet<DataApprovalStateRequest>
-{
-}
+/** Represents a collection of data approval state responses */
+public class DataApprovalStateRequests extends HashSet<DataApprovalStateRequest> {}

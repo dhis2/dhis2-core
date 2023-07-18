@@ -32,11 +32,11 @@ import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = InstantMapper.class )
-public interface AttributeMapper extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Attribute, Attribute>
-{
+@Mapper(uses = InstantMapper.class)
+public interface AttributeMapper
+    extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Attribute, Attribute> {
 
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    Attribute from( org.hisp.dhis.dxf2.events.trackedentity.Attribute attribute );
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "updatedAt", source = "lastUpdated")
+  Attribute from(org.hisp.dhis.dxf2.events.trackedentity.Attribute attribute);
 }

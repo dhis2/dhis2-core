@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.events.importer.mapper;
 /**
  * @author Luciano Fiandesio
  */
-public interface Mapper<T, E>
-{
-    E map( T object );
+public interface Mapper<T, E> {
+  E map(T object);
 }

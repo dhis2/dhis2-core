@@ -28,19 +28,16 @@
 package org.hisp.dhis.security.apikey;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface ApiTokenStore
-    extends IdentifiableObjectStore<ApiToken>
-{
-    ApiToken getByKey( String key, User currentUser );
+public interface ApiTokenStore extends IdentifiableObjectStore<ApiToken> {
+  ApiToken getByKey(String key, User currentUser);
 
-    ApiToken getByKey( String key );
+  ApiToken getByKey(String key);
 
-    List<ApiToken> getAllOwning( User currentUser );
+  List<ApiToken> getAllOwning(User currentUser);
 }

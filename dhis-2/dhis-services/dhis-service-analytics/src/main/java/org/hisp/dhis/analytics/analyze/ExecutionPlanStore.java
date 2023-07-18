@@ -28,37 +28,33 @@
 package org.hisp.dhis.analytics.analyze;
 
 import java.util.List;
-
 import org.hisp.dhis.common.ExecutionPlan;
 
 /**
- * Responsible for providing methods responsible for executing/explaining SQL
- * statements, and making them available for the consumers.
+ * Responsible for providing methods responsible for executing/explaining SQL statements, and making
+ * them available for the consumers.
  */
-public interface ExecutionPlanStore
-{
-    /**
-     * Executes and add the result planning of the given "sql". The resulting
-     * internal {@link ExecutionPlan} will be stored with the associated "key".
-     *
-     * @param key the unique key associated with {@link ExecutionPlan} objects.
-     * @param sql the statement to be executed/explained.
-     */
-    void addExecutionPlan( String key, String sql );
+public interface ExecutionPlanStore {
+  /**
+   * Executes and add the result planning of the given "sql". The resulting internal {@link
+   * ExecutionPlan} will be stored with the associated "key".
+   *
+   * @param key the unique key associated with {@link ExecutionPlan} objects.
+   * @param sql the statement to be executed/explained.
+   */
+  void addExecutionPlan(String key, String sql);
 
-    /**
-     * Returns all available {@link ExecutionPlan} associated with the given
-     * "key".
-     *
-     * @param key the unique key associated with a {@link ExecutionPlan}.
-     */
-    List<ExecutionPlan> getExecutionPlans( String key );
+  /**
+   * Returns all available {@link ExecutionPlan} associated with the given "key".
+   *
+   * @param key the unique key associated with a {@link ExecutionPlan}.
+   */
+  List<ExecutionPlan> getExecutionPlans(String key);
 
-    /**
-     * Removes all {@link ExecutionPlan} objects associated with the given
-     * "key".
-     *
-     * @param key the unique key associated with {@link ExecutionPlan} objects.
-     */
-    void removeExecutionPlans( String key );
+  /**
+   * Removes all {@link ExecutionPlan} objects associated with the given "key".
+   *
+   * @param key the unique key associated with {@link ExecutionPlan} objects.
+   */
+  void removeExecutionPlans(String key);
 }

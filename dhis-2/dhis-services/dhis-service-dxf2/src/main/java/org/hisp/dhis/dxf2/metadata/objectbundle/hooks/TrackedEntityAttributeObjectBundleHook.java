@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.function.Consumer;
-
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -40,98 +39,86 @@ import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 
-@Component( "org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook" )
-public class TrackedEntityAttributeObjectBundleHook extends AbstractObjectBundleHook<TrackedEntityAttribute>
-{
+@Component("org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook")
+public class TrackedEntityAttributeObjectBundleHook
+    extends AbstractObjectBundleHook<TrackedEntityAttribute> {
 
-    /**
-     * Validate that the RenderType (if any) conforms to the constraints of
-     * ValueType or OptionSet.
-     */
-    @Override
-    public void validate( TrackedEntityAttribute attr, ObjectBundle bundle, Consumer<ErrorReport> addReports )
-    {
-        if ( attr.isGenerated() && !attr.getValueType().equals( ValueType.TEXT ) )
-        {
-            addReports.accept( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4010, "generated",
-                attr.getValueType() ) );
+  /**
+   * Validate that the RenderType (if any) conforms to the constraints of ValueType or OptionSet.
+   */
+  @Override
+  public void validate(
+      TrackedEntityAttribute attr, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    if (attr.isGenerated() && !attr.getValueType().equals(ValueType.TEXT)) {
+      addReports.accept(
+          new ErrorReport(
+              TrackedEntityAttribute.class, ErrorCode.E4010, "generated", attr.getValueType()));
+    }
+
+    textPatternValid(attr, addReports);
+
+    if (attr.getFieldMask() != null) {
+      try {
+        TextPatternParser.parse("\"" + attr.getFieldMask() + "\"");
+      } catch (TextPatternParser.TextPatternParsingException e) {
+        addReports.accept(
+            new ErrorReport(
+                TrackedEntityAttribute.class,
+                ErrorCode.E4019,
+                attr.getFieldMask(),
+                "Not a valid TextPattern 'TEXT' segment."));
+      }
+    }
+  }
+
+  @Override
+  public void postCreate(TrackedEntityAttribute persistedObject, ObjectBundle bundle) {
+    updateTextPattern(persistedObject);
+  }
+
+  @Override
+  public void postUpdate(TrackedEntityAttribute persistedObject, ObjectBundle bundle) {
+    updateTextPattern(persistedObject);
+  }
+
+  private void updateTextPattern(TrackedEntityAttribute attr) {
+    if (attr.isGenerated()) {
+      try {
+        TextPattern textPattern = TextPatternParser.parse(attr.getPattern());
+        textPattern.setOwnerObject(Objects.TRACKEDENTITYATTRIBUTE);
+        textPattern.setOwnerUid(attr.getUid());
+        attr.setTextPattern(textPattern);
+      } catch (TextPatternParser.TextPatternParsingException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  private void textPatternValid(TrackedEntityAttribute attr, Consumer<ErrorReport> addReports) {
+    if (attr.isGenerated()) {
+      try {
+        TextPattern tp = TextPatternParser.parse(attr.getPattern());
+
+        long generatedSegments =
+            tp.getSegments().stream().filter((s) -> s.getMethod().isGenerated()).count();
+
+        if (generatedSegments != 1) {
+          addReports.accept(new ErrorReport(TrackedEntityAttribute.class, ErrorCode.E4021));
         }
 
-        textPatternValid( attr, addReports );
-
-        if ( attr.getFieldMask() != null )
-        {
-            try
-            {
-                TextPatternParser.parse( "\"" + attr.getFieldMask() + "\"" );
-            }
-            catch ( TextPatternParser.TextPatternParsingException e )
-            {
-                addReports.accept( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4019,
-                    attr.getFieldMask(), "Not a valid TextPattern 'TEXT' segment." ) );
-            }
+        if (!TextPatternValidationUtils.validateValueType(tp, attr.getValueType())) {
+          addReports.accept(
+              new ErrorReport(
+                  TrackedEntityAttribute.class,
+                  ErrorCode.E4022,
+                  attr.getPattern(),
+                  attr.getValueType().name()));
         }
+      } catch (TextPatternParser.TextPatternParsingException e) {
+        addReports.accept(
+            new ErrorReport(
+                TrackedEntityAttribute.class, ErrorCode.E4019, attr.getPattern(), e.getMessage()));
+      }
     }
-
-    @Override
-    public void postCreate( TrackedEntityAttribute persistedObject, ObjectBundle bundle )
-    {
-        updateTextPattern( persistedObject );
-    }
-
-    @Override
-    public void postUpdate( TrackedEntityAttribute persistedObject, ObjectBundle bundle )
-    {
-        updateTextPattern( persistedObject );
-    }
-
-    private void updateTextPattern( TrackedEntityAttribute attr )
-    {
-        if ( attr.isGenerated() )
-        {
-            try
-            {
-                TextPattern textPattern = TextPatternParser.parse( attr.getPattern() );
-                textPattern.setOwnerObject( Objects.TRACKEDENTITYATTRIBUTE );
-                textPattern.setOwnerUid( attr.getUid() );
-                attr.setTextPattern( textPattern );
-            }
-            catch ( TextPatternParser.TextPatternParsingException e )
-            {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void textPatternValid( TrackedEntityAttribute attr, Consumer<ErrorReport> addReports )
-    {
-        if ( attr.isGenerated() )
-        {
-            try
-            {
-                TextPattern tp = TextPatternParser.parse( attr.getPattern() );
-
-                long generatedSegments = tp.getSegments().stream().filter( ( s ) -> s.getMethod().isGenerated() )
-                    .count();
-
-                if ( generatedSegments != 1 )
-                {
-                    addReports.accept( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4021 ) );
-                }
-
-                if ( !TextPatternValidationUtils.validateValueType( tp, attr.getValueType() ) )
-                {
-                    addReports
-                        .accept( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4022, attr.getPattern(),
-                            attr.getValueType().name() ) );
-                }
-            }
-            catch ( TextPatternParser.TextPatternParsingException e )
-            {
-                addReports.accept( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4019, attr.getPattern(),
-                    e.getMessage() ) );
-            }
-
-        }
-    }
+  }
 }

@@ -31,19 +31,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.util.Assert;
 
-public final class ApiTokenError extends OAuth2Error
-{
-    private final HttpStatus httpStatus;
+public final class ApiTokenError extends OAuth2Error {
+  private final HttpStatus httpStatus;
 
-    public ApiTokenError( String errorCode, HttpStatus httpStatus, String description, String errorUri )
-    {
-        super( errorCode, description, errorUri );
-        Assert.notNull( httpStatus, "httpStatus cannot be null" );
-        this.httpStatus = httpStatus;
-    }
+  public ApiTokenError(
+      String errorCode, HttpStatus httpStatus, String description, String errorUri) {
+    super(errorCode, description, errorUri);
+    Assert.notNull(httpStatus, "httpStatus cannot be null");
+    this.httpStatus = httpStatus;
+  }
 
-    public HttpStatus getHttpStatus()
-    {
-        return httpStatus;
-    }
+  public HttpStatus getHttpStatus() {
+    return httpStatus;
+  }
 }

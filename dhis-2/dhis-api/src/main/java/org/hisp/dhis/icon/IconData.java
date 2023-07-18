@@ -32,50 +32,43 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Kristian Wærstad
  */
-public class IconData
-{
-    private String key;
+public class IconData {
+  private String key;
 
-    private String description;
+  private String description;
 
-    private String[] keywords;
+  private String[] keywords;
 
-    private String reference;
+  private String reference;
 
-    IconData( String key, String description, String[] keywords )
-    {
-        this.key = key;
-        this.description = description;
-        this.keywords = keywords;
-    }
+  IconData(String key, String description, String[] keywords) {
+    this.key = key;
+    this.description = description;
+    this.keywords = keywords;
+  }
 
-    @JsonProperty
-    public String getKey()
-    {
-        return key;
-    }
+  @JsonProperty
+  public String getKey() {
+    return key;
+  }
 
-    @JsonProperty
-    public String getDescription()
-    {
-        return description;
-    }
+  @JsonProperty
+  public String getDescription() {
+    return description;
+  }
 
-    @JsonProperty
-    public String[] getKeywords()
-    {
-        return keywords;
-    }
+  @JsonProperty
+  public String[] getKeywords() {
+    return keywords;
+  }
 
-    @JsonProperty( "href" )
-    public String getReference()
-    {
-        return reference;
-    }
+  @JsonProperty("href")
+  public String getReference() {
+    return reference;
+  }
 
-    public IconData setReference( String ref )
-    {
-        this.reference = ref;
-        return this;
-    }
+  public IconData setReference(String ref) {
+    this.reference = ref;
+    return this;
+  }
 }

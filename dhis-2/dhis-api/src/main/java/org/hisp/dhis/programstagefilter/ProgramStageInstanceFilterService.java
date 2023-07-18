@@ -31,11 +31,9 @@ import java.util.List;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
-public interface ProgramStageInstanceFilterService
-{
-    String ID = ProgramStageInstanceFilter.class.getName();
+public interface ProgramStageInstanceFilterService {
+  String ID = ProgramStageInstanceFilter.class.getName();
 
-    List<String> validate( ProgramStageInstanceFilter programStageInstanceFilter );
+  List<String> validate(ProgramStageInstanceFilter programStageInstanceFilter);
 }

@@ -28,9 +28,7 @@
 package org.hisp.dhis.split.orgunit.handler;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.eventchart.EventChartService;
@@ -45,32 +43,30 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-public class AnalyticalObjectOrgUnitSplitHandler
-{
-    private final VisualizationService visualizationService;
+public class AnalyticalObjectOrgUnitSplitHandler {
+  private final VisualizationService visualizationService;
 
-    private final MappingService mapViewService;
+  private final MappingService mapViewService;
 
-    private final EventReportService eventReportService;
+  private final EventReportService eventReportService;
 
-    private final EventChartService eventChartService;
+  private final EventChartService eventChartService;
 
-    public void splitAnalyticalObjects( OrgUnitSplitRequest request )
-    {
-        splitAnalyticalObject( visualizationService, request );
-        splitAnalyticalObject( mapViewService, request );
-        splitAnalyticalObject( eventReportService, request );
-        splitAnalyticalObject( eventChartService, request );
-    }
+  public void splitAnalyticalObjects(OrgUnitSplitRequest request) {
+    splitAnalyticalObject(visualizationService, request);
+    splitAnalyticalObject(mapViewService, request);
+    splitAnalyticalObject(eventReportService, request);
+    splitAnalyticalObject(eventChartService, request);
+  }
 
-    private <T extends AnalyticalObject> void splitAnalyticalObject(
-        AnalyticalObjectService<T> service, OrgUnitSplitRequest request )
-    {
-        List<T> objects = service.getAnalyticalObjects( request.getSource() );
+  private <T extends AnalyticalObject> void splitAnalyticalObject(
+      AnalyticalObjectService<T> service, OrgUnitSplitRequest request) {
+    List<T> objects = service.getAnalyticalObjects(request.getSource());
 
-        objects.forEach( ao -> {
-            ao.getOrganisationUnits().addAll( request.getTargets() );
-            ao.getOrganisationUnits().remove( request.getSource() );
-        } );
-    }
+    objects.forEach(
+        ao -> {
+          ao.getOrganisationUnits().addAll(request.getTargets());
+          ao.getOrganisationUnits().remove(request.getSource());
+        });
+  }
 }

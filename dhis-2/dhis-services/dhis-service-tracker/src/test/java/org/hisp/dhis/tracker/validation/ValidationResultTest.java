@@ -31,71 +31,60 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerType;
 import org.junit.jupiter.api.Test;
 
-class ValidationResultTest
-{
-    @Test
-    void hasErrorsReturnsFalse()
-    {
+class ValidationResultTest {
+  @Test
+  void hasErrorsReturnsFalse() {
 
-        Result result = Result.empty();
+    Result result = Result.empty();
 
-        assertFalse( result.hasErrors() );
-    }
+    assertFalse(result.hasErrors());
+  }
 
-    @Test
-    void hasErrorsReturnsTrue()
-    {
+  @Test
+  void hasErrorsReturnsTrue() {
 
-        Result result = new Result( null, null, null, null, Set.of( newError() ), null );
+    Result result = new Result(null, null, null, null, Set.of(newError()), null);
 
-        assertTrue( result.hasErrors() );
-    }
+    assertTrue(result.hasErrors());
+  }
 
-    @Test
-    void hasWarningsReturnsFalse()
-    {
+  @Test
+  void hasWarningsReturnsFalse() {
 
-        Result result = Result.empty();
+    Result result = Result.empty();
 
-        assertFalse( result.hasWarnings() );
-    }
+    assertFalse(result.hasWarnings());
+  }
 
-    @Test
-    void hasWarningsReturnsTrue()
-    {
+  @Test
+  void hasWarningsReturnsTrue() {
 
-        Result result = new Result( null, null, null, null, null, Set.of( newWarning() ) );
+    Result result = new Result(null, null, null, null, null, Set.of(newWarning()));
 
-        assertTrue( result.hasWarnings() );
-    }
+    assertTrue(result.hasWarnings());
+  }
 
-    private Error newError()
-    {
-        return newError( ValidationCode.E9999 );
-    }
+  private Error newError() {
+    return newError(ValidationCode.E9999);
+  }
 
-    private Error newError( ValidationCode code )
-    {
-        return newError( CodeGenerator.generateUid(), code );
-    }
+  private Error newError(ValidationCode code) {
+    return newError(CodeGenerator.generateUid(), code);
+  }
 
-    private Error newError( String uid, ValidationCode code )
-    {
-        return new Error( "", code, TrackerType.EVENT, uid );
-    }
+  private Error newError(String uid, ValidationCode code) {
+    return new Error("", code, TrackerType.EVENT, uid);
+  }
 
-    private Warning newWarning()
-    {
-        return newWarning( CodeGenerator.generateUid(), ValidationCode.E9999 );
-    }
+  private Warning newWarning() {
+    return newWarning(CodeGenerator.generateUid(), ValidationCode.E9999);
+  }
 
-    private Warning newWarning( String uid, ValidationCode code )
-    {
-        return new Warning( "", code, TrackerType.EVENT, uid );
-    }
+  private Warning newWarning(String uid, ValidationCode code) {
+    return new Warning("", code, TrackerType.EVENT, uid);
+  }
 }

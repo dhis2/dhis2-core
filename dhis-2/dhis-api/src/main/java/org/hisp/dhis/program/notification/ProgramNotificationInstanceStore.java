@@ -28,18 +28,15 @@
 package org.hisp.dhis.program.notification;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Zubair Asghar
  */
-
 public interface ProgramNotificationInstanceStore
-    extends IdentifiableObjectStore<ProgramNotificationInstance>
-{
-    List<ProgramNotificationInstance> getProgramNotificationInstances(
-        ProgramNotificationInstanceParam programNotificationInstanceParam );
+    extends IdentifiableObjectStore<ProgramNotificationInstance> {
+  List<ProgramNotificationInstance> getProgramNotificationInstances(
+      ProgramNotificationInstanceParam programNotificationInstanceParam);
 
-    Long countProgramNotificationInstances( ProgramNotificationInstanceParam params );
+  Long countProgramNotificationInstances(ProgramNotificationInstanceParam params);
 }

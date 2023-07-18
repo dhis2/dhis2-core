@@ -43,7 +43,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -54,136 +53,129 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class DefaultValidationServiceTest
-{
+class DefaultValidationServiceTest {
 
-    private DefaultValidationService service;
+  private DefaultValidationService service;
 
-    private TrackerPreheat preheat;
+  private TrackerPreheat preheat;
 
-    private TrackerBundle.TrackerBundleBuilder bundleBuilder;
+  private TrackerBundle.TrackerBundleBuilder bundleBuilder;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    private Validator validator;
+  private Validator validator;
 
-    private Validator ruleEngineValidator;
+  private Validator ruleEngineValidator;
 
-    @BeforeEach
-    void setUp()
-    {
-        preheat = mock( TrackerPreheat.class );
-        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+  @BeforeEach
+  void setUp() {
+    preheat = mock(TrackerPreheat.class);
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
 
-        validator = mock( Validator.class );
-        when( validator.needsToRun( any() ) ).thenReturn( true );
-        ruleEngineValidator = mock( Validator.class );
+    validator = mock(Validator.class);
+    when(validator.needsToRun(any())).thenReturn(true);
+    ruleEngineValidator = mock(Validator.class);
 
-        bundleBuilder = newBundle();
-    }
+    bundleBuilder = newBundle();
+  }
 
-    @Test
-    void shouldNotValidateWhenModeIsSkipAndUserIsNull()
-    {
-        bundle = bundleBuilder
-            .validationMode( ValidationMode.SKIP )
-            .user( null )
-            .trackedEntities( trackedEntities( trackedEntity() ) )
+  @Test
+  void shouldNotValidateWhenModeIsSkipAndUserIsNull() {
+    bundle =
+        bundleBuilder
+            .validationMode(ValidationMode.SKIP)
+            .user(null)
+            .trackedEntities(trackedEntities(trackedEntity()))
             .build();
-        service = new DefaultValidationService( validator, ruleEngineValidator );
+    service = new DefaultValidationService(validator, ruleEngineValidator);
 
-        service.validate( bundle );
+    service.validate(bundle);
 
-        verifyNoInteractions( validator );
-    }
+    verifyNoInteractions(validator);
+  }
 
-    @Test
-    void shouldNotValidateWhenModeIsSkipAndUserIsASuperUser()
-    {
-        bundle = bundleBuilder
-            .validationMode( ValidationMode.SKIP )
-            .user( superUser() )
-            .trackedEntities( trackedEntities( trackedEntity() ) )
+  @Test
+  void shouldNotValidateWhenModeIsSkipAndUserIsASuperUser() {
+    bundle =
+        bundleBuilder
+            .validationMode(ValidationMode.SKIP)
+            .user(superUser())
+            .trackedEntities(trackedEntities(trackedEntity()))
             .build();
-        service = new DefaultValidationService( validator, ruleEngineValidator );
+    service = new DefaultValidationService(validator, ruleEngineValidator);
 
-        service.validate( bundle );
+    service.validate(bundle);
 
-        verifyNoInteractions( validator );
-    }
+    verifyNoInteractions(validator);
+  }
 
-    @Test
-    void shouldValidateWhenModeIsNotSkipAndUserIsASuperUser()
-    {
-        TrackedEntity trackedEntity = trackedEntity();
-        bundle = bundleBuilder
-            .validationMode( ValidationMode.FULL )
-            .user( superUser() )
-            .trackedEntities( trackedEntities( trackedEntity ) )
+  @Test
+  void shouldValidateWhenModeIsNotSkipAndUserIsASuperUser() {
+    TrackedEntity trackedEntity = trackedEntity();
+    bundle =
+        bundleBuilder
+            .validationMode(ValidationMode.FULL)
+            .user(superUser())
+            .trackedEntities(trackedEntities(trackedEntity))
             .build();
-        service = new DefaultValidationService( validator, ruleEngineValidator );
+    service = new DefaultValidationService(validator, ruleEngineValidator);
 
-        service.validate( bundle );
+    service.validate(bundle);
 
-        verify( validator, times( 1 ) ).validate( any(), any(), eq( bundle ) );
-    }
+    verify(validator, times(1)).validate(any(), any(), eq(bundle));
+  }
 
-    @Test
-    void failFastModePreventsFurtherValidationAfterFirstErrorIsAdded()
-    {
-        bundle = bundleBuilder
-            .validationMode( ValidationMode.FAIL_FAST )
-            .trackedEntities( trackedEntities( trackedEntity() ) )
+  @Test
+  void failFastModePreventsFurtherValidationAfterFirstErrorIsAdded() {
+    bundle =
+        bundleBuilder
+            .validationMode(ValidationMode.FAIL_FAST)
+            .trackedEntities(trackedEntities(trackedEntity()))
             .build();
 
-        doThrow( new FailFastException( emptyList() ) ).when( validator ).validate( any(), any(), any() );
-        service = new DefaultValidationService( validator, ruleEngineValidator );
+    doThrow(new FailFastException(emptyList())).when(validator).validate(any(), any(), any());
+    service = new DefaultValidationService(validator, ruleEngineValidator);
 
-        service.validate( bundle );
+    service.validate(bundle);
 
-        verify( validator, times( 1 ) ).validate( any(), any(), any() );
-        verifyNoInteractions( ruleEngineValidator );
-    }
+    verify(validator, times(1)).validate(any(), any(), any());
+    verifyNoInteractions(ruleEngineValidator);
+  }
 
-    @Test
-    void warningsDoNotInvalidateAndRemoveEntities()
-    {
-        TrackedEntity validTrackedEntity = trackedEntity();
-        bundle = bundleBuilder
-            .trackedEntities( trackedEntities( validTrackedEntity ) )
-            .build();
+  @Test
+  void warningsDoNotInvalidateAndRemoveEntities() {
+    TrackedEntity validTrackedEntity = trackedEntity();
+    bundle = bundleBuilder.trackedEntities(trackedEntities(validTrackedEntity)).build();
 
-        Validator<TrackerBundle> v1 = ( r, b, e ) -> r.addWarning( validTrackedEntity, ValidationCode.E1120 );
-        service = new DefaultValidationService( v1, ruleEngineValidator );
+    Validator<TrackerBundle> v1 =
+        (r, b, e) -> r.addWarning(validTrackedEntity, ValidationCode.E1120);
+    service = new DefaultValidationService(v1, ruleEngineValidator);
 
-        ValidationResult result = service.validate( bundle );
+    ValidationResult result = service.validate(bundle);
 
-        assertAll( "errors and warnings",
-            () -> assertFalse( result.hasErrors() ),
-            () -> assertHasWarning( result, validTrackedEntity, E1120 ) );
+    assertAll(
+        "errors and warnings",
+        () -> assertFalse(result.hasErrors()),
+        () -> assertHasWarning(result, validTrackedEntity, E1120));
 
-        assertTrue( bundle.getTrackedEntities().contains( validTrackedEntity ) );
-    }
+    assertTrue(bundle.getTrackedEntities().contains(validTrackedEntity));
+  }
 
-    private User superUser()
-    {
-        User user = mock( User.class );
-        when( user.isSuper() ).thenReturn( true );
-        return user;
-    }
+  private User superUser() {
+    User user = mock(User.class);
+    when(user.isSuper()).thenReturn(true);
+    return user;
+  }
 
-    private TrackedEntity trackedEntity()
-    {
-        return TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
-    }
+  private TrackedEntity trackedEntity() {
+    return TrackedEntity.builder().trackedEntity(CodeGenerator.generateUid()).build();
+  }
 
-    private List<TrackedEntity> trackedEntities( TrackedEntity... trackedEntities )
-    {
-        return List.of( trackedEntities );
-    }
+  private List<TrackedEntity> trackedEntities(TrackedEntity... trackedEntities) {
+    return List.of(trackedEntities);
+  }
 
-    private TrackerBundle.TrackerBundleBuilder newBundle()
-    {
-        return TrackerBundle.builder().preheat( preheat ).skipRuleEngine( true );
-    }
+  private TrackerBundle.TrackerBundleBuilder newBundle() {
+    return TrackerBundle.builder().preheat(preheat).skipRuleEngine(true);
+  }
 }

@@ -31,10 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
-
 import lombok.Data;
-
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -43,133 +43,130 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+class FieldFilterServiceTest extends DhisControllerConvenienceTest {
 
-class FieldFilterServiceTest extends DhisControllerConvenienceTest
-{
+  @Autowired FieldFilterService fieldFilterService;
 
-    @Autowired
-    FieldFilterService fieldFilterService;
+  @Autowired FieldPathHelper fieldPathHelper;
 
-    @Autowired
-    FieldPathHelper fieldPathHelper;
+  @Test
+  void shouldIncludeAllPathsGivenFilterContainsPresetAll() {
+    Root root = new Root(new First(new Second(new Third())));
+    List<FieldPath> filter = FieldFilterParser.parse("*");
 
-    @Test
-    void shouldIncludeAllPathsGivenFilterContainsPresetAll()
-    {
-        Root root = new Root( new First( new Second( new Third() ) ) );
-        List<FieldPath> filter = FieldFilterParser.parse( "*" );
+    assertAll(
+        "filterIncludes should match what's included in the filtered JSON",
+        () ->
+            assertJSONIncludes(fieldFilterService.toObjectNode(root, filter), "first.second.third"),
+        () -> assertTrue(fieldFilterService.filterIncludes(Root.class, filter, "first")),
+        () -> assertTrue(fieldFilterService.filterIncludes(Root.class, filter, "first.second")),
+        () ->
+            assertTrue(
+                fieldFilterService.filterIncludes(Root.class, filter, "first.second.third")));
+  }
 
-        assertAll( "filterIncludes should match what's included in the filtered JSON",
-            () -> assertJSONIncludes( fieldFilterService.toObjectNode( root, filter ), "first.second.third" ),
-            () -> assertTrue( fieldFilterService.filterIncludes( Root.class, filter, "first" ) ),
-            () -> assertTrue( fieldFilterService.filterIncludes( Root.class, filter, "first.second" ) ),
-            () -> assertTrue( fieldFilterService.filterIncludes( Root.class, filter, "first.second.third" ) ) );
-    }
+  @Test
+  void shouldIncludeChildPathsGivenFilterContainsParent() {
+    Root root = new Root(new First(new Second(new Third())));
+    List<FieldPath> filter = FieldFilterParser.parse("first");
 
-    @Test
-    void shouldIncludeChildPathsGivenFilterContainsParent()
-    {
-        Root root = new Root( new First( new Second( new Third() ) ) );
-        List<FieldPath> filter = FieldFilterParser.parse( "first" );
+    assertAll(
+        "filterIncludes should match what's included in the filtered JSON",
+        () ->
+            assertJSONIncludes(fieldFilterService.toObjectNode(root, filter), "first.second.third"),
+        () -> assertTrue(fieldFilterService.filterIncludes(Root.class, filter, "first")),
+        () -> assertTrue(fieldFilterService.filterIncludes(Root.class, filter, "first.second")),
+        () ->
+            assertTrue(
+                fieldFilterService.filterIncludes(Root.class, filter, "first.second.third")));
+  }
 
-        assertAll( "filterIncludes should match what's included in the filtered JSON",
-            () -> assertJSONIncludes( fieldFilterService.toObjectNode( root, filter ), "first.second.third" ),
-            () -> assertTrue( fieldFilterService.filterIncludes( Root.class, filter, "first" ) ),
-            () -> assertTrue( fieldFilterService.filterIncludes( Root.class, filter, "first.second" ) ),
-            () -> assertTrue( fieldFilterService.filterIncludes( Root.class, filter, "first.second.third" ) ) );
-    }
+  @Test
+  void shouldExcludePathAsExclusionOverrulesInclusion() {
+    Root root = new Root(new First(new Second(new Third())));
+    List<FieldPath> filter = FieldFilterParser.parse("!first,first");
 
-    @Test
-    void shouldExcludePathAsExclusionOverrulesInclusion()
-    {
-        Root root = new Root( new First( new Second( new Third() ) ) );
-        List<FieldPath> filter = FieldFilterParser.parse( "!first,first" );
+    assertAll(
+        "filterIncludes should match what's included in the filtered JSON",
+        () -> assertJSONExcludes(fieldFilterService.toObjectNode(root, filter), "first"),
+        () -> assertFalse(fieldFilterService.filterIncludes(Root.class, filter, "first")),
+        () -> assertFalse(fieldFilterService.filterIncludes(Root.class, filter, "first.second")),
+        () ->
+            assertFalse(
+                fieldFilterService.filterIncludes(Root.class, filter, "first.second.third")));
+  }
 
-        assertAll( "filterIncludes should match what's included in the filtered JSON",
-            () -> assertJSONExcludes( fieldFilterService.toObjectNode( root, filter ), "first" ),
-            () -> assertFalse( fieldFilterService.filterIncludes( Root.class, filter, "first" ) ),
-            () -> assertFalse( fieldFilterService.filterIncludes( Root.class, filter, "first.second" ) ),
-            () -> assertFalse( fieldFilterService.filterIncludes( Root.class, filter, "first.second.third" ) ) );
-    }
+  @Test
+  void shouldExcludePathGivenFilterContainsExplicitExclusionOfPathDespitePresetAll() {
+    Root root = new Root(new First(new Second(new Third())));
+    List<FieldPath> filter = FieldFilterParser.parse("*,first[second[!third]]");
 
-    @Test
-    void shouldExcludePathGivenFilterContainsExplicitExclusionOfPathDespitePresetAll()
-    {
-        Root root = new Root( new First( new Second( new Third() ) ) );
-        List<FieldPath> filter = FieldFilterParser.parse( "*,first[second[!third]]" );
+    assertAll(
+        "filterIncludes should match what's included in the filtered JSON",
+        () -> assertJSONIncludes(fieldFilterService.toObjectNode(root, filter), "first.second"),
+        () -> assertTrue(fieldFilterService.filterIncludes(Root.class, filter, "first")),
+        () -> assertTrue(fieldFilterService.filterIncludes(Root.class, filter, "first.second")),
+        () ->
+            assertJSONExcludes(fieldFilterService.toObjectNode(root, filter), "first.second.third"),
+        () ->
+            assertFalse(
+                fieldFilterService.filterIncludes(Root.class, filter, "first.second.third")));
+  }
 
-        assertAll( "filterIncludes should match what's included in the filtered JSON",
-            () -> assertJSONIncludes( fieldFilterService.toObjectNode( root, filter ), "first.second" ),
-            () -> assertTrue( fieldFilterService.filterIncludes( Root.class, filter, "first" ) ),
-            () -> assertTrue( fieldFilterService.filterIncludes( Root.class, filter, "first.second" ) ),
-            () -> assertJSONExcludes( fieldFilterService.toObjectNode( root, filter ), "first.second.third" ),
-            () -> assertFalse( fieldFilterService.filterIncludes( Root.class, filter, "first.second.third" ) ) );
-    }
+  @Test
+  void
+      shouldExcludeChildPathGivenFilterContainsExclusionOfAParentDespiteDirectParentBeingIncluded() {
+    Root root = new Root(new First(new Second(new Third())));
+    List<FieldPath> filter = FieldFilterParser.parse("!first,first[second]");
 
-    @Test
-    void shouldExcludeChildPathGivenFilterContainsExclusionOfAParentDespiteDirectParentBeingIncluded()
-    {
-        Root root = new Root( new First( new Second( new Third() ) ) );
-        List<FieldPath> filter = FieldFilterParser.parse( "!first,first[second]" );
+    assertAll(
+        "filterIncludes should match what's included in the filtered JSON",
+        () -> assertJSONExcludes(fieldFilterService.toObjectNode(root, filter), "first"),
+        () -> assertFalse(fieldFilterService.filterIncludes(Root.class, filter, "first")),
+        () -> assertFalse(fieldFilterService.filterIncludes(Root.class, filter, "first.second")),
+        () ->
+            assertFalse(
+                fieldFilterService.filterIncludes(Root.class, filter, "first.second.third")));
+  }
 
-        assertAll( "filterIncludes should match what's included in the filtered JSON",
-            () -> assertJSONExcludes( fieldFilterService.toObjectNode( root, filter ), "first" ),
-            () -> assertFalse( fieldFilterService.filterIncludes( Root.class, filter, "first" ) ),
-            () -> assertFalse( fieldFilterService.filterIncludes( Root.class, filter, "first.second" ) ),
-            () -> assertFalse( fieldFilterService.filterIncludes( Root.class, filter, "first.second.third" ) ) );
-    }
+  void assertJSONIncludes(ObjectNode json, String path) {
+    String jsonPtr = toJSONPointer(path);
+    assertFalse(
+        json.at(jsonPtr).isMissingNode(),
+        () -> String.format("Path '%s' (JSON ptr '%s') not found in JSON %s", path, jsonPtr, json));
+  }
 
-    void assertJSONIncludes( ObjectNode json, String path )
-    {
-        String jsonPtr = toJSONPointer( path );
-        assertFalse( json.at( jsonPtr ).isMissingNode(),
-            () -> String.format( "Path '%s' (JSON ptr '%s') not found in JSON %s", path, jsonPtr, json ) );
-    }
+  void assertJSONExcludes(ObjectNode json, String path) {
+    String jsonPtr = toJSONPointer(path);
+    assertTrue(
+        json.at(jsonPtr).isMissingNode(),
+        () -> String.format("Path '%s' (JSON ptr '%s') found in JSON %s", path, jsonPtr, json));
+  }
 
-    void assertJSONExcludes( ObjectNode json, String path )
-    {
-        String jsonPtr = toJSONPointer( path );
-        assertTrue( json.at( jsonPtr ).isMissingNode(),
-            () -> String.format( "Path '%s' (JSON ptr '%s') found in JSON %s", path, jsonPtr, json ) );
-    }
+  private static String toJSONPointer(String path) {
+    return "/" + path.replace(".", "/");
+  }
 
-    private static String toJSONPointer( String path )
-    {
-        return "/" + path.replace( ".", "/" );
-    }
+  /**
+   * Sample classes used to build nested JSON we can filter using the {@link FieldFilterService}.
+   */
+  @Data
+  private static class Root {
+    @JsonProperty private final First first;
+  }
 
-    /**
-     * Sample classes used to build nested JSON we can filter using the
-     * {@link FieldFilterService}.
-     */
-    @Data
-    private static class Root
-    {
-        @JsonProperty
-        private final First first;
+  @Data
+  private static class First {
+    @JsonProperty private final Second second;
+  }
 
-    }
+  @Data
+  private static class Second {
+    @JsonProperty private final Third third;
+  }
 
-    @Data
-    private static class First
-    {
-        @JsonProperty
-        private final Second second;
-    }
-
-    @Data
-    private static class Second
-    {
-        @JsonProperty
-        private final Third third;
-    }
-
-    @Data
-    private static class Third
-    {
-        @JsonProperty
-        private final String value = "3";
-    }
+  @Data
+  private static class Third {
+    @JsonProperty private final String value = "3";
+  }
 }

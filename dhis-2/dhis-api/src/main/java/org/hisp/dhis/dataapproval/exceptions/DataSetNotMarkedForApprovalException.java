@@ -30,11 +30,8 @@ package org.hisp.dhis.dataapproval.exceptions;
 /**
  * @author Jim Grace
  */
-public class DataSetNotMarkedForApprovalException
-    extends DataApprovalException
-{
-    public DataSetNotMarkedForApprovalException()
-    {
-        super();
-    }
+public class DataSetNotMarkedForApprovalException extends DataApprovalException {
+  public DataSetNotMarkedForApprovalException() {
+    super();
+  }
 }

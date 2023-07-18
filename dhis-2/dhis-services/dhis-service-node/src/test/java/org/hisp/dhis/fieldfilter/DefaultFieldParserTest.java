@@ -35,29 +35,26 @@ import org.junit.jupiter.api.Test;
  *
  * @author Volker Schmidt
  */
-class DefaultFieldParserTest
-{
+class DefaultFieldParserTest {
 
-    private final DefaultFieldParser parser = new DefaultFieldParser();
+  private final DefaultFieldParser parser = new DefaultFieldParser();
 
-    @Test
-    void parseWithTransformer()
-    {
-        final FieldMap fieldMap = parser.parse( "id,organisationUnits~pluck" );
-        Assertions.assertEquals( 2, fieldMap.size() );
-        Assertions.assertTrue( fieldMap.containsKey( "id" ) );
-        Assertions.assertTrue( fieldMap.containsKey( "organisationUnits~pluck" ) );
-    }
+  @Test
+  void parseWithTransformer() {
+    final FieldMap fieldMap = parser.parse("id,organisationUnits~pluck");
+    Assertions.assertEquals(2, fieldMap.size());
+    Assertions.assertTrue(fieldMap.containsKey("id"));
+    Assertions.assertTrue(fieldMap.containsKey("organisationUnits~pluck"));
+  }
 
-    @Test
-    void parseWithTransformerArgAndFields()
-    {
-        final FieldMap fieldMap = parser.parse( "id,organisationUnits~pluck(name)[id,name]" );
-        Assertions.assertEquals( 2, fieldMap.size() );
-        Assertions.assertTrue( fieldMap.containsKey( "id" ) );
-        Assertions.assertTrue( fieldMap.containsKey( "organisationUnits~pluck(name)" ) );
-        final FieldMap innerFieldMap = fieldMap.get( "organisationUnits~pluck(name)" );
-        Assertions.assertTrue( innerFieldMap.containsKey( "id" ) );
-        Assertions.assertTrue( innerFieldMap.containsKey( "name" ) );
-    }
+  @Test
+  void parseWithTransformerArgAndFields() {
+    final FieldMap fieldMap = parser.parse("id,organisationUnits~pluck(name)[id,name]");
+    Assertions.assertEquals(2, fieldMap.size());
+    Assertions.assertTrue(fieldMap.containsKey("id"));
+    Assertions.assertTrue(fieldMap.containsKey("organisationUnits~pluck(name)"));
+    final FieldMap innerFieldMap = fieldMap.get("organisationUnits~pluck(name)");
+    Assertions.assertTrue(innerFieldMap.containsKey("id"));
+    Assertions.assertTrue(innerFieldMap.containsKey("name"));
+  }
 }

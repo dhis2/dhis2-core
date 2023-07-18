@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
-
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
@@ -51,83 +50,84 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.util.concurrent.ListenableFuture;
 
 /**
- * A {@link MessageSender} used in test setup that pretends to send messages and
- * that gives access to the messages "send" to an email using
- * {@link #getMessagesByEmail(String)}.
+ * A {@link MessageSender} used in test setup that pretends to send messages and that gives access
+ * to the messages "send" to an email using {@link #getMessagesByEmail(String)}.
  *
  * @author Jan Bernitt
  */
-public class FakeMessageSender implements MessageSender
-{
-    private final Map<String, List<OutboundMessage>> sendMessagesByRecipient = new HashMap<>();
+public class FakeMessageSender implements MessageSender {
+  private final Map<String, List<OutboundMessage>> sendMessagesByRecipient = new HashMap<>();
 
-    public List<OutboundMessage> getMessagesByEmail( String recipient )
-    {
-        return unmodifiableList( sendMessagesByRecipient.getOrDefault( recipient, emptyList() ) );
-    }
+  public List<OutboundMessage> getMessagesByEmail(String recipient) {
+    return unmodifiableList(sendMessagesByRecipient.getOrDefault(recipient, emptyList()));
+  }
 
-    @Override
-    public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender,
-        Set<User> recipients, boolean forceSend )
-    {
-        return sendMessage( subject, text + (footer == null ? "" : "\n[" + footer + "]"),
-            recipients.stream().map( User::getEmail ).collect( toSet() ) );
-    }
+  @Override
+  public OutboundMessageResponse sendMessage(
+      String subject,
+      String text,
+      String footer,
+      User sender,
+      Set<User> recipients,
+      boolean forceSend) {
+    return sendMessage(
+        subject,
+        text + (footer == null ? "" : "\n[" + footer + "]"),
+        recipients.stream().map(User::getEmail).collect(toSet()));
+  }
 
-    @Override
-    public Future<OutboundMessageResponse> sendMessageAsync( String subject, String text, String footer, User sender,
-        Set<User> recipients, boolean forceSend )
-    {
-        return completedFuture( sendMessage( subject, text, footer, sender, recipients, forceSend ) );
-    }
+  @Override
+  public Future<OutboundMessageResponse> sendMessageAsync(
+      String subject,
+      String text,
+      String footer,
+      User sender,
+      Set<User> recipients,
+      boolean forceSend) {
+    return completedFuture(sendMessage(subject, text, footer, sender, recipients, forceSend));
+  }
 
-    @Override
-    public OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipients )
-    {
-        OutboundMessage message = new OutboundMessage( subject, text, recipients );
-        for ( String recipient : recipients )
-        {
-            sendMessagesByRecipient.computeIfAbsent( recipient, key -> new ArrayList<>() ).add( message );
-        }
-        OutboundMessageResponse response = new OutboundMessageResponse();
-        response.setOk( true );
-        response.setAsync( false );
-        response.setDescription( subject + ":" + text );
-        response.setResponseObject( EmailResponse.SENT );
-        return response;
+  @Override
+  public OutboundMessageResponse sendMessage(String subject, String text, Set<String> recipients) {
+    OutboundMessage message = new OutboundMessage(subject, text, recipients);
+    for (String recipient : recipients) {
+      sendMessagesByRecipient.computeIfAbsent(recipient, key -> new ArrayList<>()).add(message);
     }
+    OutboundMessageResponse response = new OutboundMessageResponse();
+    response.setOk(true);
+    response.setAsync(false);
+    response.setDescription(subject + ":" + text);
+    response.setResponseObject(EmailResponse.SENT);
+    return response;
+  }
 
-    @Override
-    public OutboundMessageResponse sendMessage( String subject, String text, String recipient )
-    {
-        return sendMessage( subject, text, singleton( recipient ) );
-    }
+  @Override
+  public OutboundMessageResponse sendMessage(String subject, String text, String recipient) {
+    return sendMessage(subject, text, singleton(recipient));
+  }
 
-    @Override
-    public OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
-    {
-        for ( OutboundMessage msg : batch.getMessages() )
-        {
-            sendMessage( msg.getSubject(), msg.getText(), msg.getRecipients() );
-        }
-        OutboundMessageResponseSummary summary = new OutboundMessageResponseSummary();
-        int n = batch.getMessages().size();
-        summary.setSent( n );
-        summary.setTotal( n );
-        summary.setBatchStatus( OutboundMessageBatchStatus.COMPLETED );
-        summary.setChannel( batch.getDeliveryChannel() );
-        return summary;
+  @Override
+  public OutboundMessageResponseSummary sendMessageBatch(OutboundMessageBatch batch) {
+    for (OutboundMessage msg : batch.getMessages()) {
+      sendMessage(msg.getSubject(), msg.getText(), msg.getRecipients());
     }
+    OutboundMessageResponseSummary summary = new OutboundMessageResponseSummary();
+    int n = batch.getMessages().size();
+    summary.setSent(n);
+    summary.setTotal(n);
+    summary.setBatchStatus(OutboundMessageBatchStatus.COMPLETED);
+    summary.setChannel(batch.getDeliveryChannel());
+    return summary;
+  }
 
-    @Override
-    public ListenableFuture<OutboundMessageResponseSummary> sendMessageBatchAsync( OutboundMessageBatch batch )
-    {
-        return new AsyncResult<>( sendMessageBatch( batch ) );
-    }
+  @Override
+  public ListenableFuture<OutboundMessageResponseSummary> sendMessageBatchAsync(
+      OutboundMessageBatch batch) {
+    return new AsyncResult<>(sendMessageBatch(batch));
+  }
 
-    @Override
-    public boolean isConfigured()
-    {
-        return true;
-    }
+  @Override
+  public boolean isConfigured() {
+    return true;
+  }
 }

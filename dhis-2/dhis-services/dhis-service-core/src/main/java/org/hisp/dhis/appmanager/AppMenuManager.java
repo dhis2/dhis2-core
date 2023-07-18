@@ -29,10 +29,8 @@ package org.hisp.dhis.appmanager;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
@@ -45,73 +43,63 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AppMenuManager
-{
-    private static final Set<String> MENU_MODULE_EXCLUSIONS = Set.of( "dhis-web-user-profile" );
+public class AppMenuManager {
+  private static final Set<String> MENU_MODULE_EXCLUSIONS = Set.of("dhis-web-user-profile");
 
-    private final I18nManager i18nManager;
+  private final I18nManager i18nManager;
 
-    private final LocaleManager localeManager;
+  private final LocaleManager localeManager;
 
-    private final List<WebModule> menuModules;
+  private final List<WebModule> menuModules;
 
-    private Locale currentLocale;
+  private Locale currentLocale;
 
-    private void generateModules()
-    {
-        Set<String> bundledApps = AppManager.BUNDLED_APPS;
+  private void generateModules() {
+    Set<String> bundledApps = AppManager.BUNDLED_APPS;
 
-        for ( String app : bundledApps )
-        {
-            String key = "dhis-web-" + app;
-            String displayName = i18nManager.getI18n().getString( key );
+    for (String app : bundledApps) {
+      String key = "dhis-web-" + app;
+      String displayName = i18nManager.getI18n().getString(key);
 
-            WebModule module = new WebModule( key, "/" + key, "../" + key + "/index.html" );
-            module.setDisplayName( displayName );
-            module.setIcon( "../icons/" + key + ".png" );
+      WebModule module = new WebModule(key, "/" + key, "../" + key + "/index.html");
+      module.setDisplayName(displayName);
+      module.setIcon("../icons/" + key + ".png");
 
-            if ( !MENU_MODULE_EXCLUSIONS.contains( key ) )
-                menuModules.add( module );
-        }
-
-        currentLocale = localeManager.getCurrentLocale();
+      if (!MENU_MODULE_EXCLUSIONS.contains(key)) menuModules.add(module);
     }
 
-    private void detectLocaleChange()
-    {
-        if ( localeManager.getCurrentLocale().equals( currentLocale ) )
-        {
-            return;
-        }
+    currentLocale = localeManager.getCurrentLocale();
+  }
 
-        menuModules.forEach( m -> m.setDisplayName( i18nManager.getI18n().getString( m.getName() ) ) );
-
-        currentLocale = localeManager.getCurrentLocale();
+  private void detectLocaleChange() {
+    if (localeManager.getCurrentLocale().equals(currentLocale)) {
+      return;
     }
 
-    public List<WebModule> getAccessibleWebModules()
-    {
-        if ( menuModules.isEmpty() )
-        {
-            generateModules();
-        }
+    menuModules.forEach(m -> m.setDisplayName(i18nManager.getI18n().getString(m.getName())));
 
-        detectLocaleChange();
+    currentLocale = localeManager.getCurrentLocale();
+  }
 
-        return getAccessibleModules( menuModules );
+  public List<WebModule> getAccessibleWebModules() {
+    if (menuModules.isEmpty()) {
+      generateModules();
     }
 
-    private List<WebModule> getAccessibleModules( List<WebModule> modules )
-    {
+    detectLocaleChange();
 
-        return modules.stream()
-            .filter( module -> module != null && hasAccess( module.getName() ) )
-            .collect( Collectors.toList() );
-    }
+    return getAccessibleModules(menuModules);
+  }
 
-    private boolean hasAccess( String module )
-    {
-        return CurrentUserUtil
-            .hasAnyAuthority( List.of( "ALL", AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY, "M_" + module ) );
-    }
+  private List<WebModule> getAccessibleModules(List<WebModule> modules) {
+
+    return modules.stream()
+        .filter(module -> module != null && hasAccess(module.getName()))
+        .collect(Collectors.toList());
+  }
+
+  private boolean hasAccess(String module) {
+    return CurrentUserUtil.hasAnyAuthority(
+        List.of("ALL", AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY, "M_" + module));
+  }
 }

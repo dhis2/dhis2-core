@@ -35,17 +35,13 @@ import org.springframework.context.annotation.Profile;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
-public class StartupRedisCacheInvalidationServiceRoutine extends AbstractStartupRoutine
-{
-    @Autowired
-    private RedisCacheInvalidationSubscriptionService subscriptionService;
+@Profile({"!test", "!test-h2"})
+@Conditional(value = RedisCacheInvalidationEnabledCondition.class)
+public class StartupRedisCacheInvalidationServiceRoutine extends AbstractStartupRoutine {
+  @Autowired private RedisCacheInvalidationSubscriptionService subscriptionService;
 
-    @Override
-    public void execute()
-        throws InterruptedException
-    {
-        subscriptionService.start();
-    }
+  @Override
+  public void execute() throws InterruptedException {
+    subscriptionService.start();
+  }
 }

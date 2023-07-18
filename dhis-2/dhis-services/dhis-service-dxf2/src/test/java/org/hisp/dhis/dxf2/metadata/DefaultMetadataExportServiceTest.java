@@ -36,7 +36,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.dashboard.Dashboard;
@@ -66,128 +65,118 @@ import org.mockito.junit.jupiter.MockitoExtension;
  *
  * @author Volker Schmidt
  */
-@ExtendWith( MockitoExtension.class )
-class DefaultMetadataExportServiceTest
-{
-    @Mock
-    private SchemaService schemaService;
+@ExtendWith(MockitoExtension.class)
+class DefaultMetadataExportServiceTest {
+  @Mock private SchemaService schemaService;
 
-    @Mock
-    private ProgramRuleService programRuleService;
+  @Mock private ProgramRuleService programRuleService;
 
-    @Mock
-    private ProgramRuleVariableService programRuleVariableService;
+  @Mock private ProgramRuleVariableService programRuleVariableService;
 
-    @InjectMocks
-    private DefaultMetadataExportService service;
+  @InjectMocks private DefaultMetadataExportService service;
 
-    @Test
-    void getParamsFromMapIncludedSecondary()
-    {
-        when( schemaService.getSchemaByPluralName( Mockito.eq( "jobConfigurations" ) ) )
-            .thenReturn( new Schema( JobConfiguration.class, "jobConfiguration", "jobConfigurations" ) );
-        when( schemaService.getSchemaByPluralName( Mockito.eq( "options" ) ) )
-            .thenReturn( new Schema( Option.class, "option", "options" ) );
+  @Test
+  void getParamsFromMapIncludedSecondary() {
+    when(schemaService.getSchemaByPluralName(Mockito.eq("jobConfigurations")))
+        .thenReturn(new Schema(JobConfiguration.class, "jobConfiguration", "jobConfigurations"));
+    when(schemaService.getSchemaByPluralName(Mockito.eq("options")))
+        .thenReturn(new Schema(Option.class, "option", "options"));
 
-        final Map<String, List<String>> params = new HashMap<>();
-        params.put( "jobConfigurations", Collections.singletonList( "true" ) );
-        params.put( "options", Collections.singletonList( "true" ) );
+    final Map<String, List<String>> params = new HashMap<>();
+    params.put("jobConfigurations", Collections.singletonList("true"));
+    params.put("options", Collections.singletonList("true"));
 
-        MetadataExportParams exportParams = service.getParamsFromMap( params );
-        Assertions.assertTrue( exportParams.getClasses().contains( JobConfiguration.class ) );
-        Assertions.assertTrue( exportParams.getClasses().contains( Option.class ) );
-    }
+    MetadataExportParams exportParams = service.getParamsFromMap(params);
+    Assertions.assertTrue(exportParams.getClasses().contains(JobConfiguration.class));
+    Assertions.assertTrue(exportParams.getClasses().contains(Option.class));
+  }
 
-    @Test
-    void getParamsFromMapNotIncludedSecondary()
-    {
-        when( schemaService.getSchemaByPluralName( Mockito.eq( "jobConfigurations" ) ) )
-            .thenReturn( new Schema( JobConfiguration.class, "jobConfiguration", "jobConfigurations" ) );
-        when( schemaService.getSchemaByPluralName( Mockito.eq( "options" ) ) )
-            .thenReturn( new Schema( Option.class, "option", "options" ) );
+  @Test
+  void getParamsFromMapNotIncludedSecondary() {
+    when(schemaService.getSchemaByPluralName(Mockito.eq("jobConfigurations")))
+        .thenReturn(new Schema(JobConfiguration.class, "jobConfiguration", "jobConfigurations"));
+    when(schemaService.getSchemaByPluralName(Mockito.eq("options")))
+        .thenReturn(new Schema(Option.class, "option", "options"));
 
-        final Map<String, List<String>> params = new HashMap<>();
-        params.put( "jobConfigurations", Arrays.asList( "true", "false" ) );
-        params.put( "options", Collections.singletonList( "true" ) );
+    final Map<String, List<String>> params = new HashMap<>();
+    params.put("jobConfigurations", Arrays.asList("true", "false"));
+    params.put("options", Collections.singletonList("true"));
 
-        MetadataExportParams exportParams = service.getParamsFromMap( params );
-        Assertions.assertFalse( exportParams.getClasses().contains( JobConfiguration.class ) );
-        Assertions.assertTrue( exportParams.getClasses().contains( Option.class ) );
-    }
+    MetadataExportParams exportParams = service.getParamsFromMap(params);
+    Assertions.assertFalse(exportParams.getClasses().contains(JobConfiguration.class));
+    Assertions.assertTrue(exportParams.getClasses().contains(Option.class));
+  }
 
-    @Test
-    void getParamsFromMapNoSecondary()
-    {
-        when( schemaService.getSchemaByPluralName( Mockito.eq( "options" ) ) )
-            .thenReturn( new Schema( Option.class, "option", "options" ) );
+  @Test
+  void getParamsFromMapNoSecondary() {
+    when(schemaService.getSchemaByPluralName(Mockito.eq("options")))
+        .thenReturn(new Schema(Option.class, "option", "options"));
 
-        final Map<String, List<String>> params = new HashMap<>();
-        params.put( "options", Collections.singletonList( "true" ) );
+    final Map<String, List<String>> params = new HashMap<>();
+    params.put("options", Collections.singletonList("true"));
 
-        MetadataExportParams exportParams = service.getParamsFromMap( params );
-        Assertions.assertFalse( exportParams.getClasses().contains( JobConfiguration.class ) );
-        Assertions.assertTrue( exportParams.getClasses().contains( Option.class ) );
-    }
+    MetadataExportParams exportParams = service.getParamsFromMap(params);
+    Assertions.assertFalse(exportParams.getClasses().contains(JobConfiguration.class));
+    Assertions.assertTrue(exportParams.getClasses().contains(Option.class));
+  }
 
-    @Test
-    void testGetMetadataWithDependenciesForDashboardWithMapView()
-    {
-        MapView mapView = new MapView();
-        mapView.setName( "mapViewA" );
+  @Test
+  void testGetMetadataWithDependenciesForDashboardWithMapView() {
+    MapView mapView = new MapView();
+    mapView.setName("mapViewA");
 
-        org.hisp.dhis.mapping.Map map = new org.hisp.dhis.mapping.Map();
-        map.setName( "mapA" );
-        map.getMapViews().add( mapView );
+    org.hisp.dhis.mapping.Map map = new org.hisp.dhis.mapping.Map();
+    map.setName("mapA");
+    map.getMapViews().add(mapView);
 
-        DashboardItem item = new DashboardItem();
-        item.setName( "itemA" );
-        item.setMap( map );
+    DashboardItem item = new DashboardItem();
+    item.setName("itemA");
+    item.setMap(map);
 
-        Dashboard dashboard = new Dashboard( "dashboardA" );
-        dashboard.getItems().add( item );
+    Dashboard dashboard = new Dashboard("dashboardA");
+    dashboard.getItems().add(item);
 
-        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> result = service
-            .getMetadataWithDependencies( dashboard );
-        // MapView is embedded object, it must not be included at top level
-        assertNull( result.get( MapView.class ) );
-        assertNotNull( result.get( Dashboard.class ) );
-        assertNotNull( result.get( org.hisp.dhis.mapping.Map.class ) );
-        Set<IdentifiableObject> setMap = result.get( org.hisp.dhis.mapping.Map.class );
-        assertEquals( 1, setMap.size() );
-        org.hisp.dhis.mapping.Map mapResult = (org.hisp.dhis.mapping.Map) setMap.iterator().next();
-        assertEquals( 1, mapResult.getMapViews().size() );
-        assertEquals( mapView.getName(), mapResult.getMapViews().get( 0 ).getName() );
-    }
+    SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> result =
+        service.getMetadataWithDependencies(dashboard);
+    // MapView is embedded object, it must not be included at top level
+    assertNull(result.get(MapView.class));
+    assertNotNull(result.get(Dashboard.class));
+    assertNotNull(result.get(org.hisp.dhis.mapping.Map.class));
+    Set<IdentifiableObject> setMap = result.get(org.hisp.dhis.mapping.Map.class);
+    assertEquals(1, setMap.size());
+    org.hisp.dhis.mapping.Map mapResult = (org.hisp.dhis.mapping.Map) setMap.iterator().next();
+    assertEquals(1, mapResult.getMapViews().size());
+    assertEquals(mapView.getName(), mapResult.getMapViews().get(0).getName());
+  }
 
-    @Test
-    void testExportProgramWithOptionGroup()
-    {
-        Program program = new Program();
-        program.setName( "programA" );
+  @Test
+  void testExportProgramWithOptionGroup() {
+    Program program = new Program();
+    program.setName("programA");
 
-        OptionSet optionSet = new OptionSet();
-        optionSet.setName( "optionSetA" );
+    OptionSet optionSet = new OptionSet();
+    optionSet.setName("optionSetA");
 
-        OptionGroup optionGroup = new OptionGroup();
-        optionGroup.setName( "optionGroupA" );
-        optionGroup.setOptionSet( optionSet );
+    OptionGroup optionGroup = new OptionGroup();
+    optionGroup.setName("optionGroupA");
+    optionGroup.setOptionSet(optionSet);
 
-        ProgramRuleAction programRuleAction = new ProgramRuleAction();
-        programRuleAction.setName( "programRuleActionA" );
-        programRuleAction.setOptionGroup( optionGroup );
+    ProgramRuleAction programRuleAction = new ProgramRuleAction();
+    programRuleAction.setName("programRuleActionA");
+    programRuleAction.setOptionGroup(optionGroup);
 
-        ProgramRule programRule = new ProgramRule();
-        programRule.setName( "programRuleA" );
-        programRule.getProgramRuleActions().add( programRuleAction );
-        programRule.setProgram( program );
+    ProgramRule programRule = new ProgramRule();
+    programRule.setName("programRuleA");
+    programRule.getProgramRuleActions().add(programRuleAction);
+    programRule.setProgram(program);
 
-        when( programRuleService.getProgramRule( program ) ).thenReturn( List.of( programRule ) );
+    when(programRuleService.getProgramRule(program)).thenReturn(List.of(programRule));
 
-        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> result = service
-            .getMetadataWithDependencies( program );
+    SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> result =
+        service.getMetadataWithDependencies(program);
 
-        assertNotNull( result.get( ProgramRuleAction.class ) );
-        assertNotNull( result.get( OptionGroup.class ) );
-        assertNotNull( result.get( OptionSet.class ) );
-    }
+    assertNotNull(result.get(ProgramRuleAction.class));
+    assertNotNull(result.get(OptionGroup.class));
+    assertNotNull(result.get(OptionSet.class));
+  }
 }

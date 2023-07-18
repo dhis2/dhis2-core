@@ -33,21 +33,22 @@ import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = {
-    RelationshipMapper.class,
-    AttributeMapper.class,
-    EnrollmentMapper.class,
-    ProgramOwnerMapper.class,
-    InstantMapper.class,
-    UserMapper.class } )
-interface TrackedEntityMapper extends ViewMapper<TrackedEntityInstance, TrackedEntity>
-{
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
+@Mapper(
+    uses = {
+      RelationshipMapper.class,
+      AttributeMapper.class,
+      EnrollmentMapper.class,
+      ProgramOwnerMapper.class,
+      InstantMapper.class,
+      UserMapper.class
+    })
+interface TrackedEntityMapper extends ViewMapper<TrackedEntityInstance, TrackedEntity> {
+  @Mapping(target = "trackedEntity", source = "trackedEntityInstance")
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "createdAtClient", source = "createdAtClient")
+  @Mapping(target = "updatedAt", source = "lastUpdated")
+  @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
+  @Mapping(target = "createdBy", source = "createdByUserInfo")
+  @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
+  TrackedEntity from(TrackedEntityInstance trackedEntityInstance);
 }

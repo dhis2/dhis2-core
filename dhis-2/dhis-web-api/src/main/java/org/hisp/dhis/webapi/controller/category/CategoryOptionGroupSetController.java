@@ -37,10 +37,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( "metadata" )
+@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping( value = CategoryOptionGroupSetSchemaDescriptor.API_ENDPOINT )
+@RequestMapping(value = CategoryOptionGroupSetSchemaDescriptor.API_ENDPOINT)
 public class CategoryOptionGroupSetController
-    extends AbstractCrudController<CategoryOptionGroupSet>
-{
-}
+    extends AbstractCrudController<CategoryOptionGroupSet> {}

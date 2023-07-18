@@ -37,19 +37,17 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
-class ExpressionDimensionItemQueryTest
-{
-    @Test
-    void testGetStatementContainsOwnerCheck()
-    {
-        // Given
-        MapSqlParameterSource anyMap = new MapSqlParameterSource();
-        ExpressionDimensionItemQuery query = new ExpressionDimensionItemQuery();
+class ExpressionDimensionItemQueryTest {
+  @Test
+  void testGetStatementContainsOwnerCheck() {
+    // Given
+    MapSqlParameterSource anyMap = new MapSqlParameterSource();
+    ExpressionDimensionItemQuery query = new ExpressionDimensionItemQuery();
 
-        // When
-        String statement = query.getStatement( anyMap );
+    // When
+    String statement = query.getStatement(anyMap);
 
-        // Then
-        assertTrue( statement.contains( "(jsonb_extract_path_text(t.item_sharing, 'owner') = :userUid)" ) );
-    }
+    // Then
+    assertTrue(statement.contains("(jsonb_extract_path_text(t.item_sharing, 'owner') = :userUid)"));
+  }
 }

@@ -35,7 +35,6 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import lombok.Data;
 
 /**
@@ -44,94 +43,81 @@ import lombok.Data;
  * @author Giuseppe Nespolino
  */
 @Data
-public class InQueryFilter extends QueryFilter
-{
-    private final String field;
+public class InQueryFilter extends QueryFilter {
+  private final String field;
 
-    private final boolean isText;
+  private final boolean isText;
 
-    /**
-     * Construct a InQueryFilter using field name and the original
-     * {@link QueryFilter}
-     *
-     * @param field the field on which to construct the InQueryFilter
-     * @param encodedFilter The original encodedFilter in {@link QueryFilter}
-     * @param isText whether this filter contains text or numeric values
-     */
-    public InQueryFilter( String field, String encodedFilter, boolean isText )
-    {
-        super( IN, encodedFilter );
-        this.field = field;
-        this.isText = isText;
+  /**
+   * Construct a InQueryFilter using field name and the original {@link QueryFilter}
+   *
+   * @param field the field on which to construct the InQueryFilter
+   * @param encodedFilter The original encodedFilter in {@link QueryFilter}
+   * @param isText whether this filter contains text or numeric values
+   */
+  public InQueryFilter(String field, String encodedFilter, boolean isText) {
+    super(IN, encodedFilter);
+    this.field = field;
+    this.isText = isText;
+  }
+
+  /**
+   * Renders this InQueryFilter into SQL
+   *
+   * @return a SQL condition representing this InQueryFilter
+   */
+  public String getSqlFilter() {
+    List<String> filterItems = getFilterItems(this.getFilter());
+
+    String condition = "";
+
+    if (hasNonMissingValue(filterItems)) {
+      condition =
+          field
+              + " "
+              + operator.getValue()
+              + streamOfNonMissingValues(filterItems)
+                  .filter(Objects::nonNull)
+                  .map(this::quoteIfNecessary)
+                  .collect(Collectors.joining(",", " (", ")"));
+
+      if (hasMissingValue(filterItems)) {
+        condition = "(" + condition + " or " + field + " is null )";
+      }
+    } else {
+      if (hasMissingValue(filterItems)) {
+        condition = field + " is null";
+      }
     }
 
-    /**
-     * Renders this InQueryFilter into SQL
-     *
-     * @return a SQL condition representing this InQueryFilter
-     */
-    public String getSqlFilter()
-    {
-        List<String> filterItems = getFilterItems( this.getFilter() );
+    return condition + " ";
+  }
 
-        String condition = "";
+  private String quoteIfNecessary(String item) {
+    return isText ? quote(item) : item;
+  }
 
-        if ( hasNonMissingValue( filterItems ) )
-        {
-            condition = field + " " + operator.getValue() + streamOfNonMissingValues( filterItems )
-                .filter( Objects::nonNull )
-                .map( this::quoteIfNecessary )
-                .collect( Collectors.joining( ",", " (", ")" ) );
+  private boolean hasMissingValue(List<String> filterItems) {
+    return anyMatch(filterItems, this::isMissingItem);
+  }
 
-            if ( hasMissingValue( filterItems ) )
-            {
-                condition = "(" + condition + " or " + field + " is null )";
-            }
-        }
-        else
-        {
-            if ( hasMissingValue( filterItems ) )
-            {
-                condition = field + " is null";
-            }
-        }
+  private Stream<String> streamOfNonMissingValues(List<String> filterItems) {
+    return filterItems.stream().filter(this::isNotMissingItem);
+  }
 
-        return condition + " ";
-    }
+  private boolean hasNonMissingValue(List<String> filterItems) {
+    return anyMatch(filterItems, this::isNotMissingItem);
+  }
 
-    private String quoteIfNecessary( String item )
-    {
-        return isText ? quote( item ) : item;
-    }
+  private boolean anyMatch(List<String> filterItems, Predicate<String> predi) {
+    return filterItems.stream().anyMatch(predi);
+  }
 
-    private boolean hasMissingValue( List<String> filterItems )
-    {
-        return anyMatch( filterItems, this::isMissingItem );
-    }
+  private boolean isNotMissingItem(String filterItem) {
+    return !isMissingItem(filterItem);
+  }
 
-    private Stream<String> streamOfNonMissingValues( List<String> filterItems )
-    {
-        return filterItems.stream()
-            .filter( this::isNotMissingItem );
-    }
-
-    private boolean hasNonMissingValue( List<String> filterItems )
-    {
-        return anyMatch( filterItems, this::isNotMissingItem );
-    }
-
-    private boolean anyMatch( List<String> filterItems, Predicate<String> predi )
-    {
-        return filterItems.stream().anyMatch( predi );
-    }
-
-    private boolean isNotMissingItem( String filterItem )
-    {
-        return !isMissingItem( filterItem );
-    }
-
-    private boolean isMissingItem( String filterItem )
-    {
-        return NV.equals( filterItem );
-    }
+  private boolean isMissingItem(String filterItem) {
+    return NV.equals(filterItem);
+  }
 }

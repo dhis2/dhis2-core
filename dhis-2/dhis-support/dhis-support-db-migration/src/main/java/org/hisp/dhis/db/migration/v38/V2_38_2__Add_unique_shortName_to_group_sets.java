@@ -33,19 +33,17 @@ import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 
 /**
- * Initialises the {@code shortname} column with a unique name based on the
- * {@code name} column for {@link org.hisp.dhis.indicator.IndicatorGroupSet}s
- * and {@link org.hisp.dhis.category.CategoryOptionGroupSet}s.
+ * Initialises the {@code shortname} column with a unique name based on the {@code name} column for
+ * {@link org.hisp.dhis.indicator.IndicatorGroupSet}s and {@link
+ * org.hisp.dhis.category.CategoryOptionGroupSet}s.
  *
  * @author Jan Bernitt
  */
-public class V2_38_2__Add_unique_shortName_to_group_sets extends BaseJavaMigration
-{
-    @Override
-    public void migrate( Context context )
-        throws Exception
-    {
-        copyUniqueValue( context, "indicatorgroupset", "indicatorgroupsetid", "name", "shortname", 50 );
-        copyUniqueValue( context, "categoryoptiongroupset", "categoryoptiongroupsetid", "name", "shortname", 50 );
-    }
+public class V2_38_2__Add_unique_shortName_to_group_sets extends BaseJavaMigration {
+  @Override
+  public void migrate(Context context) throws Exception {
+    copyUniqueValue(context, "indicatorgroupset", "indicatorgroupsetid", "name", "shortname", 50);
+    copyUniqueValue(
+        context, "categoryoptiongroupset", "categoryoptiongroupsetid", "name", "shortname", 50);
+  }
 }

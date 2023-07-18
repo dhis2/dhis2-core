@@ -32,12 +32,12 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
 import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
@@ -47,64 +47,55 @@ import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+public class DimensionFilteringAndPagingServiceTest {
 
-public class DimensionFilteringAndPagingServiceTest
-{
+  private final FieldFilterService fieldFilterService = mock(FieldFilterService.class);
 
-    private final FieldFilterService fieldFilterService = mock( FieldFilterService.class );
+  private DimensionFilteringAndPagingService service;
 
-    private DimensionFilteringAndPagingService service;
+  private Collection<DimensionResponse> dimensionResponses;
 
-    private Collection<DimensionResponse> dimensionResponses;
+  @BeforeEach
+  public void setup() {
+    service = new DimensionFilteringAndPagingService(fieldFilterService);
 
-    @BeforeEach
-    public void setup()
-    {
-        service = new DimensionFilteringAndPagingService( fieldFilterService );
+    dimensionResponses =
+        IntStream.rangeClosed(1, 10)
+            .mapToObj(this::buildDimensionResponse)
+            .collect(Collectors.toList());
 
-        dimensionResponses = IntStream.rangeClosed( 1, 10 )
-            .mapToObj( this::buildDimensionResponse )
-            .collect( Collectors.toList() );
+    when(fieldFilterService.toObjectNodes(any()))
+        .thenAnswer(
+            invocationOnMock -> {
+              FieldFilterParams<DimensionResponse> argument = invocationOnMock.getArgument(0);
+              return argument.getObjects();
+            });
+  }
 
-        when( fieldFilterService.toObjectNodes( any() ) )
-            .thenAnswer( invocationOnMock -> {
-                FieldFilterParams<DimensionResponse> argument = invocationOnMock.getArgument( 0 );
-                return argument.getObjects();
-            } );
-    }
+  @Test
+  public void testPaging() {
+    DimensionsCriteria criteria = new DimensionsCriteria();
+    criteria.setPageSize(5);
 
-    @Test
-    public void testPaging()
-    {
-        DimensionsCriteria criteria = new DimensionsCriteria();
-        criteria.setPageSize( 5 );
+    AnalyticsDimensionsPagingWrapper<ObjectNode> pagingWrapper =
+        service.pageAndFilter(dimensionResponses, criteria, Collections.singletonList("*"));
 
-        AnalyticsDimensionsPagingWrapper<ObjectNode> pagingWrapper = service.pageAndFilter(
-            dimensionResponses,
-            criteria,
-            Collections.singletonList( "*" ) );
+    assertThat(pagingWrapper.getDimensions().size(), is(5));
+  }
 
-        assertThat( pagingWrapper.getDimensions().size(), is( 5 ) );
-    }
+  @Test
+  public void testFiltering() {
+    DimensionsCriteria criteria = new DimensionsCriteria();
+    criteria.setFilter(Set.of("name:eq:test"));
 
-    @Test
-    public void testFiltering()
-    {
-        DimensionsCriteria criteria = new DimensionsCriteria();
-        criteria.setFilter( Set.of( "name:eq:test" ) );
+    AnalyticsDimensionsPagingWrapper<ObjectNode> pagingWrapper =
+        service.pageAndFilter(dimensionResponses, criteria, Collections.singletonList("*"));
 
-        AnalyticsDimensionsPagingWrapper<ObjectNode> pagingWrapper = service.pageAndFilter(
-            dimensionResponses,
-            criteria,
-            Collections.singletonList( "*" ) );
+    assertThat(pagingWrapper.getDimensions().size(), is(5));
+  }
 
-        assertThat( pagingWrapper.getDimensions().size(), is( 5 ) );
-    }
-
-    private DimensionResponse buildDimensionResponse( int operand )
-    {
-        DimensionResponse.DimensionResponseBuilder builder = DimensionResponse.builder();
-        return (operand % 2 == 0 ? builder.name( "test" ) : builder.name( "another" )).build();
-    }
+  private DimensionResponse buildDimensionResponse(int operand) {
+    DimensionResponse.DimensionResponseBuilder builder = DimensionResponse.builder();
+    return (operand % 2 == 0 ? builder.name("test") : builder.name("another")).build();
+  }
 }

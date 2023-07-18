@@ -35,9 +35,8 @@ import lombok.Getter;
  */
 @Builder
 @Getter
-public class DataValueAsserter
-{
-    private String value;
+public class DataValueAsserter {
+  private String value;
 
-    private String dataElement;
+  private String dataElement;
 }

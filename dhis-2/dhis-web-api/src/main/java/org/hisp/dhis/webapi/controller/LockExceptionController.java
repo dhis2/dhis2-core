@@ -31,14 +31,13 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
@@ -84,259 +83,230 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@OpenApi.Tags( "data" )
+@OpenApi.Tags("data")
 @Controller
-@RequestMapping( LockExceptionController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class LockExceptionController extends AbstractGistReadOnlyController<LockException>
-{
-    public static final String RESOURCE_PATH = "/lockExceptions";
+@RequestMapping(LockExceptionController.RESOURCE_PATH)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class LockExceptionController extends AbstractGistReadOnlyController<LockException> {
+  public static final String RESOURCE_PATH = "/lockExceptions";
 
-    @Autowired
-    private ContextService contextService;
+  @Autowired private ContextService contextService;
 
-    @Autowired
-    private DataSetService dataSetService;
+  @Autowired private DataSetService dataSetService;
 
-    @Autowired
-    private PeriodService periodService;
+  @Autowired private PeriodService periodService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private AclService aclService;
+  @Autowired private AclService aclService;
 
-    @Autowired
-    private CurrentUserService userService;
+  @Autowired private CurrentUserService userService;
 
-    @Autowired
-    private FieldFilterService fieldFilterService;
+  @Autowired private FieldFilterService fieldFilterService;
 
-    @Autowired
-    private I18nManager i18nManager;
+  @Autowired private I18nManager i18nManager;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+  @Autowired private CurrentUserService currentUserService;
 
-    // -------------------------------------------------------------------------
-    // Resources
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Resources
+  // -------------------------------------------------------------------------
 
-    @GetMapping( produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody RootNode getLockExceptions( @RequestParam( required = false ) String key,
-        @RequestParam Map<String, String> rpParameters, HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException
-    {
-        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+  @GetMapping(produces = ContextUtils.CONTENT_TYPE_JSON)
+  public @ResponseBody RootNode getLockExceptions(
+      @RequestParam(required = false) String key,
+      @RequestParam Map<String, String> rpParameters,
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws WebMessageException {
+    List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
+    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
-        if ( fields.isEmpty() )
-        {
-            fields.addAll( Preset.ALL.getFields() );
-        }
-
-        List<LockException> lockExceptions = new ArrayList<>();
-
-        if ( key != null )
-        {
-            LockException lockException = dataSetService.getLockException( MathUtils.parseInt( key ) );
-
-            if ( lockException == null )
-            {
-                throw new WebMessageException(
-                    notFound( "Cannot find LockException with key: " + key ) );
-            }
-
-            lockExceptions.add( lockException );
-        }
-        else if ( !filters.isEmpty() )
-        {
-            lockExceptions = dataSetService.filterLockExceptions( filters );
-        }
-        else
-        {
-            lockExceptions = dataSetService.getAllLockExceptions();
-        }
-
-        WebOptions options = new WebOptions( rpParameters );
-        WebMetadata metadata = new WebMetadata();
-
-        Pager pager = metadata.getPager();
-
-        if ( options.hasPaging() && pager == null )
-        {
-            pager = new Pager( options.getPage(), lockExceptions.size(), options.getPageSize() );
-            lockExceptions = PagerUtils.pageCollection( lockExceptions, pager );
-        }
-
-        RootNode rootNode = NodeUtils.createMetadata();
-
-        if ( pager != null )
-        {
-            rootNode.addChild( NodeUtils.createPager( pager ) );
-        }
-
-        I18nFormat format = this.i18nManager.getI18nFormat();
-
-        for ( LockException lockException : lockExceptions )
-        {
-            lockException.getPeriod().setName( format.formatPeriod( lockException.getPeriod() ) );
-        }
-
-        rootNode.addChild( fieldFilterService.toCollectionNode( LockException.class,
-            new FieldFilterParams( lockExceptions, fields ) ) );
-
-        return rootNode;
+    if (fields.isEmpty()) {
+      fields.addAll(Preset.ALL.getFields());
     }
 
-    @GetMapping( value = "/combinations", produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody RootNode getLockExceptionCombinations()
-    {
+    List<LockException> lockExceptions = new ArrayList<>();
 
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+    if (key != null) {
+      LockException lockException = dataSetService.getLockException(MathUtils.parseInt(key));
 
-        if ( fields.isEmpty() )
-        {
-            fields.addAll( Preset.ALL.getFields() );
-        }
+      if (lockException == null) {
+        throw new WebMessageException(notFound("Cannot find LockException with key: " + key));
+      }
 
-        List<LockException> lockExceptions = this.dataSetService.getLockExceptionCombinations();
-        I18nFormat format = this.i18nManager.getI18nFormat();
-
-        for ( LockException lockException : lockExceptions )
-        {
-            lockException.getPeriod().setName( format.formatPeriod( lockException.getPeriod() ) );
-        }
-
-        Collections.sort( lockExceptions, new LockExceptionNameComparator() );
-
-        RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.toCollectionNode( LockException.class,
-            new FieldFilterParams( lockExceptions, fields ) ) );
-
-        return rootNode;
+      lockExceptions.add(lockException);
+    } else if (!filters.isEmpty()) {
+      lockExceptions = dataSetService.filterLockExceptions(filters);
+    } else {
+      lockExceptions = dataSetService.getAllLockExceptions();
     }
 
-    @PostMapping
-    @ResponseBody
-    public WebMessage addLockException( @RequestParam( "ou" ) String organisationUnitId,
-        @RequestParam( "pe" ) String pe,
-        @RequestParam( "ds" ) String ds )
-        throws ForbiddenException
-    {
-        User user = userService.getCurrentUser();
+    WebOptions options = new WebOptions(rpParameters);
+    WebMetadata metadata = new WebMetadata();
 
-        DataSet dataSet = dataSetService.getDataSet( ds );
+    Pager pager = metadata.getPager();
 
-        Period period = periodService.reloadPeriod( PeriodType.getPeriodFromIsoString( pe ) );
-
-        if ( dataSet == null || period == null )
-        {
-            return conflict( " DataSet or Period is invalid" );
-        }
-
-        if ( !aclService.canUpdate( user, dataSet ) )
-        {
-            throw new ForbiddenException( "You don't have the proper permissions to update this object" );
-        }
-
-        List<String> listOrgUnitIds = new ArrayList<>();
-
-        if ( organisationUnitId.startsWith( "[" ) && organisationUnitId.endsWith( "]" ) )
-        {
-            String[] arrOrgUnitIds = organisationUnitId.substring( 1, organisationUnitId.length() - 1 ).split( "," );
-            Collections.addAll( listOrgUnitIds, arrOrgUnitIds );
-        }
-        else if ( !organisationUnitId.isEmpty() )
-        {
-            listOrgUnitIds.add( organisationUnitId );
-        }
-
-        if ( listOrgUnitIds.isEmpty() )
-        {
-            return conflict( "OrganisationUnit ID is invalid." );
-        }
-
-        boolean added = false;
-        for ( String id : listOrgUnitIds )
-        {
-            OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( id );
-
-            if ( organisationUnit == null )
-            {
-                return conflict( "Can't find OrganisationUnit with id =" + id );
-            }
-            if ( !canCapture( organisationUnit ) )
-            {
-                throw new ForbiddenException(
-                    "You can only add a lock exceptions to your data capture organisation units." );
-            }
-
-            if ( organisationUnit.getDataSets().contains( dataSet ) )
-            {
-                LockException lockException = new LockException();
-
-                lockException.setOrganisationUnit( organisationUnit );
-                lockException.setDataSet( dataSet );
-                lockException.setPeriod( period );
-                dataSetService.addLockException( lockException );
-                added = true;
-            }
-        }
-        if ( !added )
-        {
-            return conflict( String.format(
-                "None of the target organisation unit(s) %s is linked to the specified data set: %s",
-                String.join( ",", listOrgUnitIds ), ds ) );
-        }
-        return created( "LockException created successfully." );
+    if (options.hasPaging() && pager == null) {
+      pager = new Pager(options.getPage(), lockExceptions.size(), options.getPageSize());
+      lockExceptions = PagerUtils.pageCollection(lockExceptions, pager);
     }
 
-    @DeleteMapping
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void deleteLockException( @RequestParam( name = "ou", required = false ) String organisationUnitId,
-        @RequestParam( "pe" ) String periodId,
-        @RequestParam( "ds" ) String dataSetId, HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException
-    {
-        User user = userService.getCurrentUser();
+    RootNode rootNode = NodeUtils.createMetadata();
 
-        DataSet dataSet = dataSetService.getDataSet( dataSetId );
-
-        Period period = periodService.reloadPeriod( PeriodType.getPeriodFromIsoString( periodId ) );
-        OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( organisationUnitId );
-
-        if ( !ObjectUtils.allNonNull( dataSet, period ) )
-        {
-            throw new WebMessageException( conflict(
-                "Can't find LockException with combination: dataSet=" + dataSetId + ", period=" + periodId ) );
-        }
-
-        if ( !aclService.canDelete( user, dataSet ) )
-        {
-            throw new ReadAccessDeniedException( "You don't have the proper permissions to delete this object." );
-        }
-
-        if ( organisationUnit != null )
-        {
-            dataSetService.deleteLockExceptionCombination( dataSet, period, organisationUnit );
-        }
-        else
-        {
-            dataSetService.deleteLockExceptionCombination( dataSet, period );
-        }
+    if (pager != null) {
+      rootNode.addChild(NodeUtils.createPager(pager));
     }
 
-    private boolean canCapture( OrganisationUnit captureTarget )
-    {
-        return currentUserService.currentUserIsSuper()
-            || currentUserService.getCurrentUserOrganisationUnits().stream().anyMatch(
-                ou -> captureTarget.getPath().startsWith( ou.getPath() ) );
+    I18nFormat format = this.i18nManager.getI18nFormat();
+
+    for (LockException lockException : lockExceptions) {
+      lockException.getPeriod().setName(format.formatPeriod(lockException.getPeriod()));
     }
+
+    rootNode.addChild(
+        fieldFilterService.toCollectionNode(
+            LockException.class, new FieldFilterParams(lockExceptions, fields)));
+
+    return rootNode;
+  }
+
+  @GetMapping(value = "/combinations", produces = ContextUtils.CONTENT_TYPE_JSON)
+  public @ResponseBody RootNode getLockExceptionCombinations() {
+
+    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+
+    if (fields.isEmpty()) {
+      fields.addAll(Preset.ALL.getFields());
+    }
+
+    List<LockException> lockExceptions = this.dataSetService.getLockExceptionCombinations();
+    I18nFormat format = this.i18nManager.getI18nFormat();
+
+    for (LockException lockException : lockExceptions) {
+      lockException.getPeriod().setName(format.formatPeriod(lockException.getPeriod()));
+    }
+
+    Collections.sort(lockExceptions, new LockExceptionNameComparator());
+
+    RootNode rootNode = NodeUtils.createMetadata();
+    rootNode.addChild(
+        fieldFilterService.toCollectionNode(
+            LockException.class, new FieldFilterParams(lockExceptions, fields)));
+
+    return rootNode;
+  }
+
+  @PostMapping
+  @ResponseBody
+  public WebMessage addLockException(
+      @RequestParam("ou") String organisationUnitId,
+      @RequestParam("pe") String pe,
+      @RequestParam("ds") String ds)
+      throws ForbiddenException {
+    User user = userService.getCurrentUser();
+
+    DataSet dataSet = dataSetService.getDataSet(ds);
+
+    Period period = periodService.reloadPeriod(PeriodType.getPeriodFromIsoString(pe));
+
+    if (dataSet == null || period == null) {
+      return conflict(" DataSet or Period is invalid");
+    }
+
+    if (!aclService.canUpdate(user, dataSet)) {
+      throw new ForbiddenException("You don't have the proper permissions to update this object");
+    }
+
+    List<String> listOrgUnitIds = new ArrayList<>();
+
+    if (organisationUnitId.startsWith("[") && organisationUnitId.endsWith("]")) {
+      String[] arrOrgUnitIds =
+          organisationUnitId.substring(1, organisationUnitId.length() - 1).split(",");
+      Collections.addAll(listOrgUnitIds, arrOrgUnitIds);
+    } else if (!organisationUnitId.isEmpty()) {
+      listOrgUnitIds.add(organisationUnitId);
+    }
+
+    if (listOrgUnitIds.isEmpty()) {
+      return conflict("OrganisationUnit ID is invalid.");
+    }
+
+    boolean added = false;
+    for (String id : listOrgUnitIds) {
+      OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(id);
+
+      if (organisationUnit == null) {
+        return conflict("Can't find OrganisationUnit with id =" + id);
+      }
+      if (!canCapture(organisationUnit)) {
+        throw new ForbiddenException(
+            "You can only add a lock exceptions to your data capture organisation units.");
+      }
+
+      if (organisationUnit.getDataSets().contains(dataSet)) {
+        LockException lockException = new LockException();
+
+        lockException.setOrganisationUnit(organisationUnit);
+        lockException.setDataSet(dataSet);
+        lockException.setPeriod(period);
+        dataSetService.addLockException(lockException);
+        added = true;
+      }
+    }
+    if (!added) {
+      return conflict(
+          String.format(
+              "None of the target organisation unit(s) %s is linked to the specified data set: %s",
+              String.join(",", listOrgUnitIds), ds));
+    }
+    return created("LockException created successfully.");
+  }
+
+  @DeleteMapping
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteLockException(
+      @RequestParam(name = "ou", required = false) String organisationUnitId,
+      @RequestParam("pe") String periodId,
+      @RequestParam("ds") String dataSetId,
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws WebMessageException {
+    User user = userService.getCurrentUser();
+
+    DataSet dataSet = dataSetService.getDataSet(dataSetId);
+
+    Period period = periodService.reloadPeriod(PeriodType.getPeriodFromIsoString(periodId));
+    OrganisationUnit organisationUnit =
+        organisationUnitService.getOrganisationUnit(organisationUnitId);
+
+    if (!ObjectUtils.allNonNull(dataSet, period)) {
+      throw new WebMessageException(
+          conflict(
+              "Can't find LockException with combination: dataSet="
+                  + dataSetId
+                  + ", period="
+                  + periodId));
+    }
+
+    if (!aclService.canDelete(user, dataSet)) {
+      throw new ReadAccessDeniedException(
+          "You don't have the proper permissions to delete this object.");
+    }
+
+    if (organisationUnit != null) {
+      dataSetService.deleteLockExceptionCombination(dataSet, period, organisationUnit);
+    } else {
+      dataSetService.deleteLockExceptionCombination(dataSet, period);
+    }
+  }
+
+  private boolean canCapture(OrganisationUnit captureTarget) {
+    return currentUserService.currentUserIsSuper()
+        || currentUserService.getCurrentUserOrganisationUnits().stream()
+            .anyMatch(ou -> captureTarget.getPath().startsWith(ou.getPath()));
+  }
 }

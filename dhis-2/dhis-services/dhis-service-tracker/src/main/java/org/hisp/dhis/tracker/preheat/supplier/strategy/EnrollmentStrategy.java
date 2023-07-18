@@ -28,11 +28,8 @@
 package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
 import java.util.List;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -47,22 +44,19 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( value = Enrollment.class, mapper = ProgramInstanceMapper.class )
-public class EnrollmentStrategy implements ClassBasedSupplierStrategy
-{
-    @Nonnull
-    private final ProgramInstanceStore programInstanceStore;
+@StrategyFor(value = Enrollment.class, mapper = ProgramInstanceMapper.class)
+public class EnrollmentStrategy implements ClassBasedSupplierStrategy {
+  @Nonnull private final ProgramInstanceStore programInstanceStore;
 
-    @Override
-    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
-    {
-        for ( List<String> ids : splitList )
-        {
-            List<ProgramInstance> programInstances = programInstanceStore.getIncludingDeleted( ids );
+  @Override
+  public void add(
+      TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat) {
+    for (List<String> ids : splitList) {
+      List<ProgramInstance> programInstances = programInstanceStore.getIncludingDeleted(ids);
 
-            preheat.putEnrollments(
-                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), programInstances ) );
-
-        }
+      preheat.putEnrollments(
+          DetachUtils.detach(
+              this.getClass().getAnnotation(StrategyFor.class).mapper(), programInstances));
     }
+  }
 }

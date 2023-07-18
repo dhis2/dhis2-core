@@ -42,23 +42,18 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-class MetaValidator
-    implements Validator<TrackedEntity>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackedEntity tei )
-    {
-        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( tei.getOrgUnit() );
-        if ( organisationUnit == null )
-        {
-            reporter.addError( tei, ValidationCode.E1049, tei.getOrgUnit() );
-        }
-
-        TrackedEntityType entityType = bundle.getPreheat().getTrackedEntityType( tei.getTrackedEntityType() );
-        if ( entityType == null )
-        {
-            reporter.addError( tei, E1005, tei.getTrackedEntityType() );
-        }
+class MetaValidator implements Validator<TrackedEntity> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, TrackedEntity tei) {
+    OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit(tei.getOrgUnit());
+    if (organisationUnit == null) {
+      reporter.addError(tei, ValidationCode.E1049, tei.getOrgUnit());
     }
 
+    TrackedEntityType entityType =
+        bundle.getPreheat().getTrackedEntityType(tei.getTrackedEntityType());
+    if (entityType == null) {
+      reporter.addError(tei, E1005, tei.getTrackedEntityType());
+    }
+  }
 }

@@ -33,16 +33,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public interface ViewMapper<FROM, TO>
-{
-    TO from( FROM from );
+public interface ViewMapper<FROM, TO> {
+  TO from(FROM from);
 
-    default List<TO> fromCollection( Collection<FROM> froms )
-    {
-        return Optional.ofNullable( froms )
-            .orElse( Collections.emptySet() )
-            .stream()
-            .map( this::from )
-            .collect( Collectors.toList() );
-    }
+  default List<TO> fromCollection(Collection<FROM> froms) {
+    return Optional.ofNullable(froms).orElse(Collections.emptySet()).stream()
+        .map(this::from)
+        .collect(Collectors.toList());
+  }
 }

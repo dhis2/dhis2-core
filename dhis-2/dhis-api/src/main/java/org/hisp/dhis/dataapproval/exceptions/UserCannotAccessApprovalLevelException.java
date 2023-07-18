@@ -30,11 +30,8 @@ package org.hisp.dhis.dataapproval.exceptions;
 /**
  * @author Jim Grace
  */
-public class UserCannotAccessApprovalLevelException
-    extends DataApprovalException
-{
-    public UserCannotAccessApprovalLevelException()
-    {
-        super();
-    }
+public class UserCannotAccessApprovalLevelException extends DataApprovalException {
+  public UserCannotAccessApprovalLevelException() {
+    super();
+  }
 }

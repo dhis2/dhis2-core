@@ -27,35 +27,23 @@
  */
 package org.hisp.dhis.orgunitprofile;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Getter;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * Org unit profile data model. Used for persistence.
- */
+/** Org unit profile data model. Used for persistence. */
 @Getter
-public class OrgUnitProfile
-{
-    /**
-     * UIDs of metadata attributes associated with org units.
-     */
-    @JsonProperty
-    private List<String> attributes = new ArrayList<>();
+public class OrgUnitProfile {
+  /** UIDs of metadata attributes associated with org units. */
+  @JsonProperty private List<String> attributes = new ArrayList<>();
 
-    /**
-     * UIDs of exclusive org unit group sets.
-     */
-    @JsonProperty
-    private List<String> groupSets = new ArrayList<>();
+  /** UIDs of exclusive org unit group sets. */
+  @JsonProperty private List<String> groupSets = new ArrayList<>();
 
-    /**
-     * UIDs of data items. Can be of type data element, indicator, data set and
-     * program indicator. Data element can of type aggregate and tracker.
-     */
-    @JsonProperty
-    private List<String> dataItems = new ArrayList<>();
+  /**
+   * UIDs of data items. Can be of type data element, indicator, data set and program indicator.
+   * Data element can of type aggregate and tracker.
+   */
+  @JsonProperty private List<String> dataItems = new ArrayList<>();
 }

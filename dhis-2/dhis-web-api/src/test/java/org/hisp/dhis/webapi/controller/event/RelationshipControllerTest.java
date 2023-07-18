@@ -36,7 +36,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Optional;
-
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.program.ProgramInstance;
@@ -58,128 +57,109 @@ import org.springframework.web.util.NestedServletException;
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class RelationshipControllerTest
-{
-    private MockMvc mockMvc;
+@ExtendWith(MockitoExtension.class)
+class RelationshipControllerTest {
+  private MockMvc mockMvc;
 
-    private static final String TEI_ID = "TEI_ID";
+  private static final String TEI_ID = "TEI_ID";
 
-    private static final String EVENT_ID = "EVENT_ID";
+  private static final String EVENT_ID = "EVENT_ID";
 
-    private static final String ENROLLMENT_ID = "ENROLLMENT_ID";
+  private static final String ENROLLMENT_ID = "ENROLLMENT_ID";
 
-    private static final String REL_ID = "REL_ID";
+  private static final String REL_ID = "REL_ID";
 
-    private TrackedEntityInstance tei = new TrackedEntityInstance();
+  private TrackedEntityInstance tei = new TrackedEntityInstance();
 
-    private ProgramInstance enrollment = new ProgramInstance();
+  private ProgramInstance enrollment = new ProgramInstance();
 
-    private ProgramStageInstance event = new ProgramStageInstance();
+  private ProgramStageInstance event = new ProgramStageInstance();
 
-    private Relationship relationship = new Relationship();
+  private Relationship relationship = new Relationship();
 
-    @Mock
-    private RelationshipService relationshipService;
+  @Mock private RelationshipService relationshipService;
 
-    @Mock
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+  @Mock private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Mock
-    private ProgramInstanceService programInstanceService;
+  @Mock private ProgramInstanceService programInstanceService;
 
-    @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+  @Mock private ProgramStageInstanceService programStageInstanceService;
 
-    @InjectMocks
-    private RelationshipController relationshipController;
+  @InjectMocks private RelationshipController relationshipController;
 
-    private final static String ENDPOINT = "/relationships";
+  private static final String ENDPOINT = "/relationships";
 
-    @BeforeEach
-    public void setUp()
-    {
-        mockMvc = MockMvcBuilders.standaloneSetup( relationshipController ).build();
-    }
+  @BeforeEach
+  public void setUp() {
+    mockMvc = MockMvcBuilders.standaloneSetup(relationshipController).build();
+  }
 
-    @Test
-    void verifyEndpointWithNoArgs()
-    {
-        assertThrows( NestedServletException.class, () -> mockMvc.perform( get( ENDPOINT ) ) );
-    }
+  @Test
+  void verifyEndpointWithNoArgs() {
+    assertThrows(NestedServletException.class, () -> mockMvc.perform(get(ENDPOINT)));
+  }
 
-    @Test
-    void verifyEndpointWithNotFoundTei()
-    {
-        assertThrows( NestedServletException.class, () -> mockMvc.perform( get( ENDPOINT ).param( "tei", TEI_ID ) ) );
-    }
+  @Test
+  void verifyEndpointWithNotFoundTei() {
+    assertThrows(
+        NestedServletException.class, () -> mockMvc.perform(get(ENDPOINT).param("tei", TEI_ID)));
+  }
 
-    @Test
-    void verifyEndpointWithTei()
-        throws Exception
-    {
-        when( trackedEntityInstanceService.getTrackedEntityInstance( TEI_ID ) ).thenReturn( tei );
-        mockMvc.perform( get( ENDPOINT ).param( "tei", TEI_ID ) ).andExpect( status().isOk() );
+  @Test
+  void verifyEndpointWithTei() throws Exception {
+    when(trackedEntityInstanceService.getTrackedEntityInstance(TEI_ID)).thenReturn(tei);
+    mockMvc.perform(get(ENDPOINT).param("tei", TEI_ID)).andExpect(status().isOk());
 
-        verify( trackedEntityInstanceService ).getTrackedEntityInstance( TEI_ID );
-        verify( relationshipService ).getRelationshipsByTrackedEntityInstance( eq( tei ), any(), eq( false ) );
-    }
+    verify(trackedEntityInstanceService).getTrackedEntityInstance(TEI_ID);
+    verify(relationshipService).getRelationshipsByTrackedEntityInstance(eq(tei), any(), eq(false));
+  }
 
-    @Test
-    void verifyEndpointWithNotFoundEvent()
-    {
-        assertThrows( NestedServletException.class,
-            () -> mockMvc.perform( get( ENDPOINT ).param( "event", EVENT_ID ) ) );
-    }
+  @Test
+  void verifyEndpointWithNotFoundEvent() {
+    assertThrows(
+        NestedServletException.class,
+        () -> mockMvc.perform(get(ENDPOINT).param("event", EVENT_ID)));
+  }
 
-    @Test
-    void verifyEndpointWithEvent()
-        throws Exception
-    {
-        when( programStageInstanceService.getProgramStageInstance( EVENT_ID ) ).thenReturn( event );
-        mockMvc.perform( get( ENDPOINT ).param( "event", EVENT_ID ) ).andExpect( status().isOk() );
+  @Test
+  void verifyEndpointWithEvent() throws Exception {
+    when(programStageInstanceService.getProgramStageInstance(EVENT_ID)).thenReturn(event);
+    mockMvc.perform(get(ENDPOINT).param("event", EVENT_ID)).andExpect(status().isOk());
 
-        verify( programStageInstanceService ).getProgramStageInstance( EVENT_ID );
-        verify( relationshipService ).getRelationshipsByProgramStageInstance( eq( event ), any(), eq( false ) );
-    }
+    verify(programStageInstanceService).getProgramStageInstance(EVENT_ID);
+    verify(relationshipService).getRelationshipsByProgramStageInstance(eq(event), any(), eq(false));
+  }
 
-    @Test
-    void verifyEndpointWithNotFoundEnrollment()
-    {
-        assertThrows( NestedServletException.class, () -> mockMvc
-            .perform( get( ENDPOINT ).param( "enrollment", ENROLLMENT_ID ) ) );
-    }
+  @Test
+  void verifyEndpointWithNotFoundEnrollment() {
+    assertThrows(
+        NestedServletException.class,
+        () -> mockMvc.perform(get(ENDPOINT).param("enrollment", ENROLLMENT_ID)));
+  }
 
-    @Test
-    void verifyEndpointWithEnrollment()
-        throws Exception
-    {
-        when( programInstanceService.getProgramInstance( ENROLLMENT_ID ) ).thenReturn( enrollment );
-        mockMvc.perform( get( ENDPOINT ).param( "enrollment", ENROLLMENT_ID ) ).andExpect( status().isOk() );
+  @Test
+  void verifyEndpointWithEnrollment() throws Exception {
+    when(programInstanceService.getProgramInstance(ENROLLMENT_ID)).thenReturn(enrollment);
+    mockMvc.perform(get(ENDPOINT).param("enrollment", ENROLLMENT_ID)).andExpect(status().isOk());
 
-        verify( programInstanceService ).getProgramInstance( ENROLLMENT_ID );
-        verify( relationshipService ).getRelationshipsByProgramInstance( eq( enrollment ), any(), eq( false ) );
-    }
+    verify(programInstanceService).getProgramInstance(ENROLLMENT_ID);
+    verify(relationshipService).getRelationshipsByProgramInstance(eq(enrollment), any(), eq(false));
+  }
 
-    @Test
-    void testGetRelationshipNotPresent()
-    {
-        assertThrows( NestedServletException.class, () -> mockMvc.perform( get( ENDPOINT + "/" + REL_ID ) ) );
-    }
+  @Test
+  void testGetRelationshipNotPresent() {
+    assertThrows(NestedServletException.class, () -> mockMvc.perform(get(ENDPOINT + "/" + REL_ID)));
+  }
 
-    @Test
-    void testGetRelationship()
-        throws Exception
-    {
-        when( relationshipService.findRelationshipByUid( REL_ID ) ).thenReturn( Optional.of( relationship ) );
-        mockMvc.perform( get( ENDPOINT + "/" + REL_ID ) ).andExpect( status().isOk() );
-    }
+  @Test
+  void testGetRelationship() throws Exception {
+    when(relationshipService.findRelationshipByUid(REL_ID)).thenReturn(Optional.of(relationship));
+    mockMvc.perform(get(ENDPOINT + "/" + REL_ID)).andExpect(status().isOk());
+  }
 
-    @Test
-    void testDeleteRelationship()
-        throws Exception
-    {
-        when( relationshipService.findRelationshipByUid( REL_ID ) ).thenReturn( Optional.of( relationship ) );
-        mockMvc.perform( get( ENDPOINT + "/" + REL_ID ) ).andExpect( status().isOk() );
-    }
+  @Test
+  void testDeleteRelationship() throws Exception {
+    when(relationshipService.findRelationshipByUid(REL_ID)).thenReturn(Optional.of(relationship));
+    mockMvc.perform(get(ENDPOINT + "/" + REL_ID)).andExpect(status().isOk());
+  }
 }

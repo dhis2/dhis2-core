@@ -28,7 +28,6 @@
 package org.hisp.dhis.gist;
 
 import lombok.Data;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.query.Junction;
 
@@ -39,40 +38,44 @@ import org.hisp.dhis.query.Junction;
  */
 @Data
 @OpenApi.Shared
-public final class GistParams
-{
-    String locale = "";
+public final class GistParams {
+  String locale = "";
 
-    GistAutoType auto;
+  GistAutoType auto;
 
-    int page = 1;
+  int page = 1;
 
-    int pageSize = 50;
+  int pageSize = 50;
 
-    boolean translate = true;
+  /**
+   * The name of the property in the response object that holds the list of response objects when a
+   * paged response is used.
+   */
+  String pageListName;
 
-    boolean inverse = false;
+  boolean translate = true;
 
-    boolean total = false;
+  boolean inverse = false;
 
-    boolean absoluteUrls = false;
+  boolean total = false;
 
-    boolean headless = false;
+  boolean absoluteUrls = false;
 
-    boolean describe = false;
+  boolean headless = false;
 
-    boolean references = true;
+  boolean describe = false;
 
-    Junction.Type rootJunction = Junction.Type.AND;
+  boolean references = true;
 
-    String fields;
+  Junction.Type rootJunction = Junction.Type.AND;
 
-    String filter;
+  String fields;
 
-    String order;
+  String filter;
 
-    public GistAutoType getAuto( GistAutoType defaultValue )
-    {
-        return auto == null ? defaultValue : auto;
-    }
+  String order;
+
+  public GistAutoType getAuto(GistAutoType defaultValue) {
+    return auto == null ? defaultValue : auto;
+  }
 }

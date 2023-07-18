@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
@@ -48,486 +51,388 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.User;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @OpenApi.Shared
-@JacksonXmlRootElement( localName = "metadataImportParams", namespace = DxfNamespaces.DXF_2_0 )
-public class MetadataImportParams
-{
-    /**
-     * User to use for import job (important for threaded imports).
-     */
-    private User user;
+@JacksonXmlRootElement(localName = "metadataImportParams", namespace = DxfNamespaces.DXF_2_0)
+public class MetadataImportParams {
+  /** User to use for import job (important for threaded imports). */
+  private User user;
 
-    /**
-     * How should the user property be handled, by default it is left as is. You
-     * can override this to use current user, or a selected user instead (not
-     * yet supported).
-     */
-    private UserOverrideMode userOverrideMode = UserOverrideMode.NONE;
+  /**
+   * How should the user property be handled, by default it is left as is. You can override this to
+   * use current user, or a selected user instead (not yet supported).
+   */
+  private UserOverrideMode userOverrideMode = UserOverrideMode.NONE;
 
-    /**
-     * User to use for override, can be current or a selected user.
-     */
-    private User overrideUser;
+  /** User to use for override, can be current or a selected user. */
+  private User overrideUser;
 
-    /**
-     * Should import be imported or just validated.
-     */
-    private ObjectBundleMode importMode = ObjectBundleMode.COMMIT;
+  /** Should import be imported or just validated. */
+  private ObjectBundleMode importMode = ObjectBundleMode.COMMIT;
 
-    /**
-     * What identifiers to match on.
-     */
-    private PreheatIdentifier identifier = PreheatIdentifier.UID;
+  /** What identifiers to match on. */
+  private PreheatIdentifier identifier = PreheatIdentifier.UID;
 
-    /**
-     * Preheat mode to use (default is REFERENCE and should not be changed).
-     */
-    private PreheatMode preheatMode = PreheatMode.REFERENCE;
+  /** Preheat mode to use (default is REFERENCE and should not be changed). */
+  private PreheatMode preheatMode = PreheatMode.REFERENCE;
 
-    /**
-     * Sets import strategy (create, update, etc).
-     */
-    private ImportStrategy importStrategy = ImportStrategy.CREATE_AND_UPDATE;
+  /** Sets import strategy (create, update, etc). */
+  private ImportStrategy importStrategy = ImportStrategy.CREATE_AND_UPDATE;
 
-    /**
-     * Should import be treated as a atomic import (all or nothing).
-     */
-    private AtomicMode atomicMode = AtomicMode.ALL;
+  /** Should import be treated as a atomic import (all or nothing). */
+  private AtomicMode atomicMode = AtomicMode.ALL;
 
-    /**
-     * Merge mode for object updates (default is REPLACE).
-     */
-    private MergeMode mergeMode = MergeMode.REPLACE;
+  /** Merge mode for object updates (default is REPLACE). */
+  private MergeMode mergeMode = MergeMode.REPLACE;
 
-    /**
-     * Flush for every object or per type.
-     */
-    private FlushMode flushMode = FlushMode.AUTO;
+  /** Flush for every object or per type. */
+  private FlushMode flushMode = FlushMode.AUTO;
 
-    /**
-     * Decides how much to report back to the user (errors only, or a more full
-     * per object report).
-     */
-    private ImportReportMode importReportMode = ImportReportMode.ERRORS;
+  /**
+   * Decides how much to report back to the user (errors only, or a more full per object report).
+   */
+  private ImportReportMode importReportMode = ImportReportMode.ERRORS;
 
-    /**
-     * Should sharing be considered when importing objects.
-     */
-    private boolean skipSharing;
+  /** Should sharing be considered when importing objects. */
+  private boolean skipSharing;
 
-    /**
-     * Should translation be considered when importing objects.
-     */
-    private boolean skipTranslation;
+  /** Should translation be considered when importing objects. */
+  private boolean skipTranslation;
 
-    /**
-     * Skip validation of objects (not recommended).
-     */
-    private boolean skipValidation;
+  /** Skip validation of objects (not recommended). */
+  private boolean skipValidation;
 
-    /**
-     * Is this import request from Metadata Sync service.
-     */
-    private boolean metadataSyncImport;
+  /** Is this import request from Metadata Sync service. */
+  private boolean metadataSyncImport;
 
-    /**
-     * Name of file that was used for import (if available).
-     */
-    private String filename;
+  /** Name of file that was used for import (if available). */
+  private String filename;
 
-    /**
-     * Metadata Class name for importing using CSV
-     */
-    private CsvImportClass csvImportClass;
+  /** Metadata Class name for importing using CSV */
+  private CsvImportClass csvImportClass;
 
-    /**
-     * Specify whether the first row is header in CSV import
-     */
-    private boolean firstRowIsHeader = true;
+  /** Specify whether the first row is header in CSV import */
+  private boolean firstRowIsHeader = true;
 
-    /**
-     * Job id to use for threaded imports.
-     */
-    private JobConfiguration id;
+  /** Job id to use for threaded imports. */
+  private JobConfiguration id;
 
-    /**
-     * Objects to import.
-     */
-    private Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects = new HashMap<>();
+  /** Objects to import. */
+  private Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects =
+      new HashMap<>();
 
-    public MetadataImportParams()
-    {
+  public MetadataImportParams() {}
+
+  public MetadataImportParams(List<? extends IdentifiableObject> objects) {
+    addObjects(objects);
+  }
+
+  @OpenApi.Ignore
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getUsername() {
+    return user != null ? user.getUsername() : "system-process";
+  }
+
+  public User getUser() {
+    return user;
+  }
+
+  public MetadataImportParams setUser(User user) {
+    this.user = user;
+    return this;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public UserOverrideMode getUserOverrideMode() {
+    return userOverrideMode;
+  }
+
+  public MetadataImportParams setUserOverrideMode(UserOverrideMode userOverrideMode) {
+    this.userOverrideMode = userOverrideMode;
+    return this;
+  }
+
+  public User getOverrideUser() {
+    return overrideUser;
+  }
+
+  public void setOverrideUser(User overrideUser) {
+    this.overrideUser = overrideUser;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ObjectBundleMode getImportMode() {
+    return importMode;
+  }
+
+  public MetadataImportParams setImportMode(ObjectBundleMode importMode) {
+    this.importMode = importMode;
+    return this;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public PreheatIdentifier getIdentifier() {
+    return identifier;
+  }
+
+  public MetadataImportParams setIdentifier(PreheatIdentifier identifier) {
+    this.identifier = identifier;
+    return this;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public PreheatMode getPreheatMode() {
+    return preheatMode;
+  }
+
+  public MetadataImportParams setPreheatMode(PreheatMode preheatMode) {
+    this.preheatMode = preheatMode;
+    return this;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ImportStrategy getImportStrategy() {
+    return importStrategy;
+  }
+
+  public MetadataImportParams setImportStrategy(ImportStrategy importStrategy) {
+    this.importStrategy = importStrategy;
+    return this;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public AtomicMode getAtomicMode() {
+    return atomicMode;
+  }
+
+  public MetadataImportParams setAtomicMode(AtomicMode atomicMode) {
+    this.atomicMode = atomicMode;
+    return this;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public MergeMode getMergeMode() {
+    return mergeMode;
+  }
+
+  public MetadataImportParams setMergeMode(MergeMode mergeMode) {
+    this.mergeMode = mergeMode;
+    return this;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public FlushMode getFlushMode() {
+    return flushMode;
+  }
+
+  public MetadataImportParams setFlushMode(FlushMode flushMode) {
+    this.flushMode = flushMode;
+    return this;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ImportReportMode getImportReportMode() {
+    return importReportMode;
+  }
+
+  public MetadataImportParams setImportReportMode(ImportReportMode importReportMode) {
+    this.importReportMode = importReportMode;
+    return this;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isSkipSharing() {
+    return skipSharing;
+  }
+
+  public MetadataImportParams setSkipSharing(boolean skipSharing) {
+    this.skipSharing = skipSharing;
+    return this;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isSkipTranslation() {
+    return skipTranslation;
+  }
+
+  public MetadataImportParams setSkipTranslation(boolean skipTranslation) {
+    this.skipTranslation = skipTranslation;
+    return this;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isMetadataSyncImport() {
+    return metadataSyncImport;
+  }
+
+  public void setMetadataSyncImport(boolean metadataSyncImport) {
+    this.metadataSyncImport = metadataSyncImport;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isSkipValidation() {
+    return skipValidation;
+  }
+
+  public MetadataImportParams setSkipValidation(boolean skipValidation) {
+    this.skipValidation = skipValidation;
+    return this;
+  }
+
+  @OpenApi.Ignore
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getFilename() {
+    return filename;
+  }
+
+  public MetadataImportParams setFilename(String filename) {
+    this.filename = filename;
+    return this;
+  }
+
+  @OpenApi.Ignore
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public CsvImportClass getCsvImportClass() {
+    return this.csvImportClass;
+  }
+
+  public void setCsvImportClass(CsvImportClass csvImportClass) {
+    this.csvImportClass = csvImportClass;
+  }
+
+  public JobConfiguration getId() {
+    return id;
+  }
+
+  public MetadataImportParams setId(JobConfiguration id) {
+    this.id = id;
+    return this;
+  }
+
+  @OpenApi.Ignore
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isFirstRowIsHeader() {
+    return firstRowIsHeader;
+  }
+
+  public void setFirstRowIsHeader(boolean firstRowIsHeader) {
+    this.firstRowIsHeader = firstRowIsHeader;
+  }
+
+  public boolean hasJobId() {
+    return id != null;
+  }
+
+  public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> getObjects() {
+    return objects;
+  }
+
+  public MetadataImportParams setObjects(
+      Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects) {
+    this.objects = objects;
+    return this;
+  }
+
+  public List<Class<? extends IdentifiableObject>> getClasses() {
+    return new ArrayList<>(objects.keySet());
+  }
+
+  public List<? extends IdentifiableObject> getObjects(Class<? extends IdentifiableObject> klass) {
+    return objects.get(klass);
+  }
+
+  public MetadataImportParams addObject(IdentifiableObject object) {
+    if (object == null) {
+      return this;
     }
 
-    public MetadataImportParams( List<? extends IdentifiableObject> objects )
-    {
-        addObjects( objects );
+    Class<? extends IdentifiableObject> klass = HibernateProxyUtils.getRealClass(object);
+
+    if (!objects.containsKey(klass)) {
+      objects.put(klass, new ArrayList<>());
     }
 
-    @OpenApi.Ignore
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUsername()
-    {
-        return user != null ? user.getUsername() : "system-process";
-    }
+    objects.get(klass).add(klass.cast(object));
 
-    public User getUser()
-    {
-        return user;
-    }
+    return this;
+  }
 
-    public MetadataImportParams setUser( User user )
-    {
-        this.user = user;
-        return this;
-    }
+  public MetadataImportParams addObjects(List<? extends IdentifiableObject> objects) {
+    objects.forEach(this::addObject);
+    return this;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public UserOverrideMode getUserOverrideMode()
-    {
-        return userOverrideMode;
-    }
+  @SuppressWarnings("unchecked")
+  public MetadataImportParams addMetadata(List<Schema> schemas, Metadata metadata) {
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap = new HashMap<>();
 
-    public MetadataImportParams setUserOverrideMode( UserOverrideMode userOverrideMode )
-    {
-        this.userOverrideMode = userOverrideMode;
-        return this;
-    }
+    for (Schema schema : schemas) {
+      if (schema.isIdentifiableObject()) {
+        Class<? extends IdentifiableObject> key =
+            (Class<? extends IdentifiableObject>) schema.getKlass();
+        List<? extends IdentifiableObject> schemaObjects = metadata.getValues(key);
 
-    public User getOverrideUser()
-    {
-        return overrideUser;
-    }
-
-    public void setOverrideUser( User overrideUser )
-    {
-        this.overrideUser = overrideUser;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ObjectBundleMode getImportMode()
-    {
-        return importMode;
-    }
-
-    public MetadataImportParams setImportMode( ObjectBundleMode importMode )
-    {
-        this.importMode = importMode;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public PreheatIdentifier getIdentifier()
-    {
-        return identifier;
-    }
-
-    public MetadataImportParams setIdentifier( PreheatIdentifier identifier )
-    {
-        this.identifier = identifier;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public PreheatMode getPreheatMode()
-    {
-        return preheatMode;
-    }
-
-    public MetadataImportParams setPreheatMode( PreheatMode preheatMode )
-    {
-        this.preheatMode = preheatMode;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ImportStrategy getImportStrategy()
-    {
-        return importStrategy;
-    }
-
-    public MetadataImportParams setImportStrategy( ImportStrategy importStrategy )
-    {
-        this.importStrategy = importStrategy;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AtomicMode getAtomicMode()
-    {
-        return atomicMode;
-    }
-
-    public MetadataImportParams setAtomicMode( AtomicMode atomicMode )
-    {
-        this.atomicMode = atomicMode;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public MergeMode getMergeMode()
-    {
-        return mergeMode;
-    }
-
-    public MetadataImportParams setMergeMode( MergeMode mergeMode )
-    {
-        this.mergeMode = mergeMode;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public FlushMode getFlushMode()
-    {
-        return flushMode;
-    }
-
-    public MetadataImportParams setFlushMode( FlushMode flushMode )
-    {
-        this.flushMode = flushMode;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ImportReportMode getImportReportMode()
-    {
-        return importReportMode;
-    }
-
-    public MetadataImportParams setImportReportMode( ImportReportMode importReportMode )
-    {
-        this.importReportMode = importReportMode;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSkipSharing()
-    {
-        return skipSharing;
-    }
-
-    public MetadataImportParams setSkipSharing( boolean skipSharing )
-    {
-        this.skipSharing = skipSharing;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSkipTranslation()
-    {
-        return skipTranslation;
-    }
-
-    public MetadataImportParams setSkipTranslation( boolean skipTranslation )
-    {
-        this.skipTranslation = skipTranslation;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isMetadataSyncImport()
-    {
-        return metadataSyncImport;
-    }
-
-    public void setMetadataSyncImport( boolean metadataSyncImport )
-    {
-        this.metadataSyncImport = metadataSyncImport;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSkipValidation()
-    {
-        return skipValidation;
-    }
-
-    public MetadataImportParams setSkipValidation( boolean skipValidation )
-    {
-        this.skipValidation = skipValidation;
-        return this;
-    }
-
-    @OpenApi.Ignore
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getFilename()
-    {
-        return filename;
-    }
-
-    public MetadataImportParams setFilename( String filename )
-    {
-        this.filename = filename;
-        return this;
-    }
-
-    @OpenApi.Ignore
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public CsvImportClass getCsvImportClass()
-    {
-        return this.csvImportClass;
-    }
-
-    public void setCsvImportClass( CsvImportClass csvImportClass )
-    {
-        this.csvImportClass = csvImportClass;
-    }
-
-    public JobConfiguration getId()
-    {
-        return id;
-    }
-
-    public MetadataImportParams setId( JobConfiguration id )
-    {
-        this.id = id;
-        return this;
-    }
-
-    @OpenApi.Ignore
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isFirstRowIsHeader()
-    {
-        return firstRowIsHeader;
-    }
-
-    public void setFirstRowIsHeader( boolean firstRowIsHeader )
-    {
-        this.firstRowIsHeader = firstRowIsHeader;
-    }
-
-    public boolean hasJobId()
-    {
-        return id != null;
-    }
-
-    public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> getObjects()
-    {
-        return objects;
-    }
-
-    public MetadataImportParams setObjects( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
-    {
-        this.objects = objects;
-        return this;
-    }
-
-    public List<Class<? extends IdentifiableObject>> getClasses()
-    {
-        return new ArrayList<>( objects.keySet() );
-    }
-
-    public List<? extends IdentifiableObject> getObjects( Class<? extends IdentifiableObject> klass )
-    {
-        return objects.get( klass );
-    }
-
-    public MetadataImportParams addObject( IdentifiableObject object )
-    {
-        if ( object == null )
-        {
-            return this;
+        if (!schemaObjects.isEmpty()) {
+          objectMap.put(key, new ArrayList<>(schemaObjects));
         }
-
-        Class<? extends IdentifiableObject> klass = HibernateProxyUtils.getRealClass( object );
-
-        if ( !objects.containsKey( klass ) )
-        {
-            objects.put( klass, new ArrayList<>() );
-        }
-
-        objects.get( klass ).add( klass.cast( object ) );
-
-        return this;
+      }
     }
 
-    public MetadataImportParams addObjects( List<? extends IdentifiableObject> objects )
-    {
-        objects.forEach( this::addObject );
-        return this;
-    }
+    setObjects(objectMap);
+    return this;
+  }
 
-    @SuppressWarnings( "unchecked" )
-    public MetadataImportParams addMetadata( List<Schema> schemas, Metadata metadata )
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap = new HashMap<>();
+  public ObjectBundleParams toObjectBundleParams() {
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setUser(user);
+    params.setUserOverrideMode(userOverrideMode);
+    params.setOverrideUser(overrideUser);
+    params.setSkipSharing(skipSharing);
+    params.setSkipTranslation(skipTranslation);
+    params.setSkipValidation(skipValidation);
+    params.setJobId(id);
+    params.setImportStrategy(importStrategy);
+    params.setAtomicMode(atomicMode);
+    params.setObjects(objects);
+    params.setPreheatIdentifier(identifier);
+    params.setPreheatMode(preheatMode);
+    params.setObjectBundleMode(importMode);
+    params.setMergeMode(mergeMode);
+    params.setFlushMode(flushMode);
+    params.setImportReportMode(importReportMode);
+    params.setMetadataSyncImport(metadataSyncImport);
 
-        for ( Schema schema : schemas )
-        {
-            if ( schema.isIdentifiableObject() )
-            {
-                Class<? extends IdentifiableObject> key = (Class<? extends IdentifiableObject>) schema.getKlass();
-                List<? extends IdentifiableObject> schemaObjects = metadata.getValues( key );
+    return params;
+  }
 
-                if ( !schemaObjects.isEmpty() )
-                {
-                    objectMap.put( key, new ArrayList<>( schemaObjects ) );
-                }
-            }
-        }
-
-        setObjects( objectMap );
-        return this;
-    }
-
-    public ObjectBundleParams toObjectBundleParams()
-    {
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setUser( user );
-        params.setUserOverrideMode( userOverrideMode );
-        params.setOverrideUser( overrideUser );
-        params.setSkipSharing( skipSharing );
-        params.setSkipTranslation( skipTranslation );
-        params.setSkipValidation( skipValidation );
-        params.setJobId( id );
-        params.setImportStrategy( importStrategy );
-        params.setAtomicMode( atomicMode );
-        params.setObjects( objects );
-        params.setPreheatIdentifier( identifier );
-        params.setPreheatMode( preheatMode );
-        params.setObjectBundleMode( importMode );
-        params.setMergeMode( mergeMode );
-        params.setFlushMode( flushMode );
-        params.setImportReportMode( importReportMode );
-        params.setMetadataSyncImport( metadataSyncImport );
-
-        return params;
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "user", user )
-            .add( "importMode", importMode )
-            .add( "identifier", identifier )
-            .add( "preheatMode", preheatMode )
-            .add( "importStrategy", importStrategy )
-            .add( "mergeMode", mergeMode )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("user", user)
+        .add("importMode", importMode)
+        .add("identifier", identifier)
+        .add("preheatMode", preheatMode)
+        .add("importStrategy", importStrategy)
+        .add("mergeMode", mergeMode)
+        .toString();
+  }
 }

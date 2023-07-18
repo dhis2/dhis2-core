@@ -30,133 +30,120 @@ package org.hisp.dhis.security.apikey;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.CodeGenerator.getRandomSecureToken;
 
+import com.google.common.base.Preconditions;
+import com.google.common.hash.Hashing;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.CRC32;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.base.Preconditions;
-import com.google.common.hash.Hashing;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Service
 @Transactional
-public class ApiTokenServiceImpl implements ApiTokenService
-{
-    private static final Long DEFAULT_EXPIRE_TIME_IN_MILLIS = TimeUnit.DAYS.toMillis( 30 );
+public class ApiTokenServiceImpl implements ApiTokenService {
+  private static final Long DEFAULT_EXPIRE_TIME_IN_MILLIS = TimeUnit.DAYS.toMillis(30);
 
-    private final ApiTokenStore apiTokenStore;
+  private final ApiTokenStore apiTokenStore;
 
-    public ApiTokenServiceImpl( ApiTokenStore apiTokenStore )
-    {
-        checkNotNull( apiTokenStore );
+  public ApiTokenServiceImpl(ApiTokenStore apiTokenStore) {
+    checkNotNull(apiTokenStore);
 
-        this.apiTokenStore = apiTokenStore;
+    this.apiTokenStore = apiTokenStore;
+  }
+
+  @Override
+  public List<ApiToken> getAll() {
+    return this.apiTokenStore.getAll();
+  }
+
+  @Override
+  public List<ApiToken> getAllOwning(User currentUser) {
+    return apiTokenStore.getAllOwning(currentUser);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public ApiToken getWithKey(String key, User currentUser) {
+    return apiTokenStore.getByKey(key, currentUser);
+  }
+
+  @Override
+  public ApiToken getWithKey(String key) {
+    return apiTokenStore.getByKey(key);
+  }
+
+  @Override
+  @Transactional
+  public void save(ApiToken apiToken) {
+    throw new IllegalArgumentException(
+        "Tokens can not be saved, all tokens must be created with the createToken() method.");
+  }
+
+  @Override
+  @Transactional
+  public void update(ApiToken apiToken) {
+    checkNotNull(apiToken, "Token can not be null");
+    Preconditions.checkArgument(
+        StringUtils.isNotEmpty(apiToken.getKey()), "Token key can not be null");
+    checkNotNull(apiToken.getCreatedBy(), "Token must have an owner");
+    checkNotNull(apiToken.getExpire(), "Token must have an expire value");
+    checkNotNull(apiToken.getType(), "Token must have an type value");
+    checkNotNull(apiToken.getVersion(), "Token must have an version value");
+
+    apiTokenStore.update(apiToken);
+
+    // Invalidate cache here or let cache expire ?
+  }
+
+  @Override
+  @Transactional
+  public void delete(ApiToken apiToken) {
+    apiTokenStore.delete(apiToken);
+    // Invalidate cache here or let cache expire ?
+  }
+
+  @Override
+  public ApiToken initToken(ApiToken token) {
+    Preconditions.checkNotNull(token);
+    Preconditions.checkNotNull(token.getType());
+
+    token.setVersion(1);
+
+    if (token.getExpire() == null) {
+      token.setExpire(System.currentTimeMillis() + DEFAULT_EXPIRE_TIME_IN_MILLIS);
     }
 
-    @Override
-    public List<ApiToken> getAll()
-    {
-        return this.apiTokenStore.getAll();
-    }
+    String randomSecureToken = getRandomSecureToken(24).replaceAll("[-_]", "x");
+    Preconditions.checkArgument(
+        randomSecureToken.length() == 32,
+        "Could not create new token, please try again." + randomSecureToken.length());
 
-    @Override
-    public List<ApiToken> getAllOwning( User currentUser )
-    {
-        return apiTokenStore.getAllOwning( currentUser );
-    }
+    byte[] bytes = randomSecureToken.getBytes();
+    CRC32 crc = new CRC32();
+    crc.update(bytes, 0, bytes.length);
+    long checksumLong = crc.getValue();
 
-    @Override
-    @Transactional( readOnly = true )
-    public ApiToken getWithKey( String key, User currentUser )
-    {
-        return apiTokenStore.getByKey( key, currentUser );
-    }
+    token.setKey(
+        String.format("%s_%s%010d", token.getType().getPrefix(), randomSecureToken, checksumLong));
 
-    @Override
-    public ApiToken getWithKey( String key )
-    {
-        return apiTokenStore.getByKey( key );
-    }
+    Preconditions.checkArgument(
+        token.getKey().length() == 48, "Could not create new token, please try again.");
 
-    @Override
-    @Transactional
-    public void save( ApiToken apiToken )
-    {
-        throw new IllegalArgumentException(
-            "Tokens can not be saved, all tokens must be created with the createToken() method." );
+    return token;
+  }
 
-    }
+  public String hashKey(String key) {
+    return Hashing.sha256().hashBytes(key.getBytes(StandardCharsets.UTF_8)).toString();
+  }
 
-    @Override
-    @Transactional
-    public void update( ApiToken apiToken )
-    {
-        checkNotNull( apiToken, "Token can not be null" );
-        Preconditions.checkArgument( StringUtils.isNotEmpty( apiToken.getKey() ), "Token key can not be null" );
-        checkNotNull( apiToken.getCreatedBy(), "Token must have an owner" );
-        checkNotNull( apiToken.getExpire(), "Token must have an expire value" );
-        checkNotNull( apiToken.getType(), "Token must have an type value" );
-        checkNotNull( apiToken.getVersion(), "Token must have an version value" );
-
-        apiTokenStore.update( apiToken );
-
-        // Invalidate cache here or let cache expire ?
-    }
-
-    @Override
-    @Transactional
-    public void delete( ApiToken apiToken )
-    {
-        apiTokenStore.delete( apiToken );
-        // Invalidate cache here or let cache expire ?
-    }
-
-    @Override
-    public ApiToken initToken( ApiToken token )
-    {
-        Preconditions.checkNotNull( token );
-        Preconditions.checkNotNull( token.getType() );
-
-        token.setVersion( 1 );
-
-        if ( token.getExpire() == null )
-        {
-            token.setExpire( System.currentTimeMillis() + DEFAULT_EXPIRE_TIME_IN_MILLIS );
-        }
-
-        String randomSecureToken = getRandomSecureToken( 24 ).replaceAll( "[-_]", "x" );
-        Preconditions.checkArgument( randomSecureToken.length() == 32,
-            "Could not create new token, please try again." + randomSecureToken.length() );
-
-        byte[] bytes = randomSecureToken.getBytes();
-        CRC32 crc = new CRC32();
-        crc.update( bytes, 0, bytes.length );
-        long checksumLong = crc.getValue();
-
-        token.setKey( String.format( "%s_%s%010d", token.getType().getPrefix(), randomSecureToken, checksumLong ) );
-
-        Preconditions.checkArgument( token.getKey().length() == 48,
-            "Could not create new token, please try again." );
-
-        return token;
-    }
-
-    public String hashKey( String key )
-    {
-        return Hashing.sha256().hashBytes( key.getBytes( StandardCharsets.UTF_8 ) ).toString();
-    }
-
-    @Override
-    public ApiToken getWithUid( String uid )
-    {
-        return apiTokenStore.getByUid( uid );
-    }
+  @Override
+  public ApiToken getWithUid(String uid) {
+    return apiTokenStore.getByUid(uid);
+  }
 }

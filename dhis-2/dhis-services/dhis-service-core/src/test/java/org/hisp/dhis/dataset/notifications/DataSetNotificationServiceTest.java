@@ -35,11 +35,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -72,193 +72,196 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Zubair Asghar.
  */
-@ExtendWith( MockitoExtension.class )
-class DataSetNotificationServiceTest extends DhisConvenienceTest
-{
-    public static final String TEMPALTE_A_UID = "smsTemplateA";
+@ExtendWith(MockitoExtension.class)
+class DataSetNotificationServiceTest extends DhisConvenienceTest {
+  public static final String TEMPALTE_A_UID = "smsTemplateA";
 
-    public static final String TEMPALTE_B_UID = "emailTemplateB";
+  public static final String TEMPALTE_B_UID = "emailTemplateB";
 
-    public static final String DATA_ELEMENT_A_UID = "dataElementA";
+  public static final String DATA_ELEMENT_A_UID = "dataElementA";
 
-    public static final String DATA_ELEMENT_B_UID = "dataElementB";
+  public static final String DATA_ELEMENT_B_UID = "dataElementB";
 
-    public static final String PHONE_NUMBER = "00474";
+  public static final String PHONE_NUMBER = "00474";
 
-    private DataSetNotificationTemplate smsTemplateA;
+  private DataSetNotificationTemplate smsTemplateA;
 
-    private DataSetNotificationTemplate emailTemplateB;
+  private DataSetNotificationTemplate emailTemplateB;
 
-    private BatchResponseStatus successStatus;
+  private BatchResponseStatus successStatus;
 
-    private OutboundMessageResponseSummary summary;
+  private OutboundMessageResponseSummary summary;
 
-    private List<DataSetNotificationTemplate> templates = new ArrayList<>();
+  private List<DataSetNotificationTemplate> templates = new ArrayList<>();
 
-    private CompleteDataSetRegistration registrationA;
+  private CompleteDataSetRegistration registrationA;
 
-    private NotificationMessage notificationMessage;
+  private NotificationMessage notificationMessage;
 
-    private OrganisationUnit organisationUnitA;
+  private OrganisationUnit organisationUnitA;
 
-    private OrganisationUnit organisationUnitB;
+  private OrganisationUnit organisationUnitB;
 
-    private DataSet dataSetA;
+  private DataSet dataSetA;
 
-    private Period periodA;
+  private Period periodA;
 
-    private DataElement dataElementA;
+  private DataElement dataElementA;
 
-    private DataElement dataElementB;
+  private DataElement dataElementB;
 
-    private CategoryOptionCombo categoryOptionCombo;
+  private CategoryOptionCombo categoryOptionCombo;
 
-    @Mock
-    private DataSetNotificationTemplateService dsntService;
+  @Mock private DataSetNotificationTemplateService dsntService;
 
-    @Mock
-    private MessageService internalMessageService;
+  @Mock private MessageService internalMessageService;
 
-    @Mock
-    private ProgramMessageService externalMessageService;
+  @Mock private ProgramMessageService externalMessageService;
 
-    @Mock
-    private NotificationMessageRenderer<CompleteDataSetRegistration> renderer;
+  @Mock private NotificationMessageRenderer<CompleteDataSetRegistration> renderer;
 
-    @Mock
-    private CompleteDataSetRegistrationService completeDataSetRegistrationService;
+  @Mock private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
-    @Mock
-    private PeriodService periodService;
+  @Mock private PeriodService periodService;
 
-    @Mock
-    private CategoryService categoryService;
+  @Mock private CategoryService categoryService;
 
-    @Mock
-    private I18nManager i18nManager;
+  @Mock private I18nManager i18nManager;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    @Captor
-    private ArgumentCaptor<CompleteDataSetRegistration> registrationCaptor;
+  @Captor private ArgumentCaptor<CompleteDataSetRegistration> registrationCaptor;
 
-    @Captor
-    private ArgumentCaptor<DataSetNotificationTemplate> templateCaptor;
+  @Captor private ArgumentCaptor<DataSetNotificationTemplate> templateCaptor;
 
-    @Captor
-    private ArgumentCaptor<ArrayList<ProgramMessage>> programMessageCaptor;
+  @Captor private ArgumentCaptor<ArrayList<ProgramMessage>> programMessageCaptor;
 
-    private DataSetNotificationService subject;
+  private DataSetNotificationService subject;
 
-    @BeforeEach
-    public void setUp()
-    {
-        this.subject = new DefaultDataSetNotificationService( dsntService, internalMessageService,
-            externalMessageService, renderer,
-            completeDataSetRegistrationService, periodService, categoryService, i18nManager, organisationUnitService );
+  @BeforeEach
+  public void setUp() {
+    this.subject =
+        new DefaultDataSetNotificationService(
+            dsntService,
+            internalMessageService,
+            externalMessageService,
+            renderer,
+            completeDataSetRegistrationService,
+            periodService,
+            categoryService,
+            i18nManager,
+            organisationUnitService);
 
-        setUpConfigurations();
-    }
+    setUpConfigurations();
+  }
 
-    private void setUpConfigurations()
-    {
-        categoryOptionCombo = new CategoryOptionCombo();
+  private void setUpConfigurations() {
+    categoryOptionCombo = new CategoryOptionCombo();
 
-        organisationUnitA = createOrganisationUnit( 'A' );
-        organisationUnitB = createOrganisationUnit( 'B' );
-        organisationUnitA.setPhoneNumber( PHONE_NUMBER );
-        organisationUnitB.setPhoneNumber( PHONE_NUMBER );
+    organisationUnitA = createOrganisationUnit('A');
+    organisationUnitB = createOrganisationUnit('B');
+    organisationUnitA.setPhoneNumber(PHONE_NUMBER);
+    organisationUnitB.setPhoneNumber(PHONE_NUMBER);
 
-        periodA = createPeriod( new MonthlyPeriodType(), getDate( 2000, 1, 1 ), getDate( 2000, 1, 31 ) );
+    periodA = createPeriod(new MonthlyPeriodType(), getDate(2000, 1, 1), getDate(2000, 1, 31));
 
-        dataElementA = createDataElement( 'A' );
-        dataElementB = createDataElement( 'B' );
-        dataElementA.setUid( DATA_ELEMENT_A_UID );
-        dataElementB.setUid( DATA_ELEMENT_B_UID );
+    dataElementA = createDataElement('A');
+    dataElementB = createDataElement('B');
+    dataElementA.setUid(DATA_ELEMENT_A_UID);
+    dataElementB.setUid(DATA_ELEMENT_B_UID);
 
-        dataSetA = createDataSet( 'A', new MonthlyPeriodType() );
+    dataSetA = createDataSet('A', new MonthlyPeriodType());
 
-        dataSetA.addDataSetElement( dataElementA );
-        dataSetA.addDataSetElement( dataElementB );
+    dataSetA.addDataSetElement(dataElementA);
+    dataSetA.addDataSetElement(dataElementB);
 
-        dataSetA.getSources().add( organisationUnitA );
-        dataSetA.getSources().add( organisationUnitB );
+    dataSetA.getSources().add(organisationUnitA);
+    dataSetA.getSources().add(organisationUnitB);
 
-        smsTemplateA = new DataSetNotificationTemplate();
-        smsTemplateA.setUid( TEMPALTE_A_UID );
-        smsTemplateA.setDataSetNotificationTrigger( DataSetNotificationTrigger.DATA_SET_COMPLETION );
-        smsTemplateA.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.SMS ) );
-        smsTemplateA.setNotificationRecipient( DataSetNotificationRecipient.ORGANISATION_UNIT_CONTACT );
-        smsTemplateA.getDataSets().add( dataSetA );
+    smsTemplateA = new DataSetNotificationTemplate();
+    smsTemplateA.setUid(TEMPALTE_A_UID);
+    smsTemplateA.setDataSetNotificationTrigger(DataSetNotificationTrigger.DATA_SET_COMPLETION);
+    smsTemplateA.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.SMS));
+    smsTemplateA.setNotificationRecipient(DataSetNotificationRecipient.ORGANISATION_UNIT_CONTACT);
+    smsTemplateA.getDataSets().add(dataSetA);
 
-        emailTemplateB = new DataSetNotificationTemplate();
-        emailTemplateB.setUid( TEMPALTE_B_UID );
-        emailTemplateB.setDataSetNotificationTrigger( DataSetNotificationTrigger.DATA_SET_COMPLETION );
-        emailTemplateB.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) );
-        emailTemplateB.setNotificationRecipient( DataSetNotificationRecipient.ORGANISATION_UNIT_CONTACT );
-        emailTemplateB.getDataSets().add( dataSetA );
+    emailTemplateB = new DataSetNotificationTemplate();
+    emailTemplateB.setUid(TEMPALTE_B_UID);
+    emailTemplateB.setDataSetNotificationTrigger(DataSetNotificationTrigger.DATA_SET_COMPLETION);
+    emailTemplateB.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL));
+    emailTemplateB.setNotificationRecipient(DataSetNotificationRecipient.ORGANISATION_UNIT_CONTACT);
+    emailTemplateB.getDataSets().add(dataSetA);
 
-        templates.add( smsTemplateA );
-        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, organisationUnitA, categoryOptionCombo,
-            new Date(), "", new Date(), "", true );
-        notificationMessage = new NotificationMessage( "subject", "message" );
-        summary = new OutboundMessageResponseSummary();
-        summary.setBatchStatus( OutboundMessageBatchStatus.COMPLETED );
-        summary.setChannel( DeliveryChannel.SMS );
-        successStatus = new BatchResponseStatus( Arrays.asList( summary ) );
+    templates.add(smsTemplateA);
+    registrationA =
+        new CompleteDataSetRegistration(
+            dataSetA,
+            periodA,
+            organisationUnitA,
+            categoryOptionCombo,
+            new Date(),
+            "",
+            new Date(),
+            "",
+            true);
+    notificationMessage = new NotificationMessage("subject", "message");
+    summary = new OutboundMessageResponseSummary();
+    summary.setBatchStatus(OutboundMessageBatchStatus.COMPLETED);
+    summary.setChannel(DeliveryChannel.SMS);
+    successStatus = new BatchResponseStatus(Arrays.asList(summary));
+  }
 
-    }
+  @Test
+  void testShouldReturnNullIfRegistrationIsNull() {
+    subject.sendCompleteDataSetNotifications(null);
 
-    @Test
-    void testShouldReturnNullIfRegistrationIsNull()
-    {
-        subject.sendCompleteDataSetNotifications( null );
+    verify(dsntService, times(0)).getCompleteNotifications(any(DataSet.class));
+  }
 
-        verify( dsntService, times( 0 ) ).getCompleteNotifications( any( DataSet.class ) );
-    }
+  @Test
+  void testIfNotTemplateFoundForDataSet() {
+    when(dsntService.getCompleteNotifications(any(DataSet.class))).thenReturn(null);
 
-    @Test
-    void testIfNotTemplateFoundForDataSet()
-    {
-        when( dsntService.getCompleteNotifications( any( DataSet.class ) ) ).thenReturn( null );
+    subject.sendCompleteDataSetNotifications(registrationA);
 
-        subject.sendCompleteDataSetNotifications( registrationA );
+    verify(dsntService, times(1)).getCompleteNotifications(any(DataSet.class));
+    verify(renderer, times(0))
+        .render(any(CompleteDataSetRegistration.class), any(DataSetNotificationTemplate.class));
+  }
 
-        verify( dsntService, times( 1 ) ).getCompleteNotifications( any( DataSet.class ) );
-        verify( renderer, times( 0 ) ).render( any( CompleteDataSetRegistration.class ),
-            any( DataSetNotificationTemplate.class ) );
-    }
+  @Test
+  void testSendCompletionSMSNotification() {
+    when(renderer.render(
+            any(CompleteDataSetRegistration.class), any(DataSetNotificationTemplate.class)))
+        .thenReturn(notificationMessage);
+    when(externalMessageService.sendMessages(anyList())).thenReturn(successStatus);
+    when(dsntService.getCompleteNotifications(any(DataSet.class))).thenReturn(templates);
+    I18nFormat format = Mockito.mock(I18nFormat.class);
+    when(i18nManager.getI18nFormat()).thenReturn(format);
+    when(format.formatPeriod(any())).thenReturn("2000-1-1");
 
-    @Test
-    void testSendCompletionSMSNotification()
-    {
-        when( renderer.render( any( CompleteDataSetRegistration.class ), any( DataSetNotificationTemplate.class ) ) )
-            .thenReturn( notificationMessage );
-        when( externalMessageService.sendMessages( anyList() ) ).thenReturn( successStatus );
-        when( dsntService.getCompleteNotifications( any( DataSet.class ) ) ).thenReturn( templates );
-        I18nFormat format = Mockito.mock( I18nFormat.class );
-        when( i18nManager.getI18nFormat() ).thenReturn( format );
-        when( format.formatPeriod( any() ) ).thenReturn( "2000-1-1" );
+    subject.sendCompleteDataSetNotifications(registrationA);
 
-        subject.sendCompleteDataSetNotifications( registrationA );
+    verify(renderer).render(registrationCaptor.capture(), templateCaptor.capture());
 
-        verify( renderer ).render( registrationCaptor.capture(), templateCaptor.capture() );
+    assertEquals(registrationA, registrationCaptor.getValue());
+    assertEquals(smsTemplateA, templateCaptor.getValue());
 
-        assertEquals( registrationA, registrationCaptor.getValue() );
-        assertEquals( smsTemplateA, templateCaptor.getValue() );
+    verify(externalMessageService).sendMessages(programMessageCaptor.capture());
 
-        verify( externalMessageService ).sendMessages( programMessageCaptor.capture() );
-
-        assertEquals( 1, programMessageCaptor.getValue().size() );
-        assertTrue( programMessageCaptor.getValue().get( 0 ).getDeliveryChannels().contains( DeliveryChannel.SMS ) );
-        assertEquals( "subject", programMessageCaptor.getValue().get( 0 ).getSubject() );
-        assertTrue(
-            programMessageCaptor.getValue().get( 0 ).getRecipients().getPhoneNumbers().contains( PHONE_NUMBER ) );
-    }
+    assertEquals(1, programMessageCaptor.getValue().size());
+    assertTrue(
+        programMessageCaptor.getValue().get(0).getDeliveryChannels().contains(DeliveryChannel.SMS));
+    assertEquals("subject", programMessageCaptor.getValue().get(0).getSubject());
+    assertTrue(
+        programMessageCaptor
+            .getValue()
+            .get(0)
+            .getRecipients()
+            .getPhoneNumbers()
+            .contains(PHONE_NUMBER));
+  }
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.importer.Checker;
@@ -43,26 +42,22 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class AttributeOptionComboAclCheck
-    implements
-    Checker
-{
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
-    {
-        ImportSummary importSummary = new ImportSummary();
-        TrackerAccessManager trackerAccessManager = ctx.getServiceDelegator().getTrackerAccessManager();
-        ImportOptions importOptions = ctx.getImportOptions();
-        CategoryOptionCombo categoryOptionCombo = ctx.getCategoryOptionComboMap().get( event.getUid() );
+public class AttributeOptionComboAclCheck implements Checker {
+  @Override
+  public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
+    ImportSummary importSummary = new ImportSummary();
+    TrackerAccessManager trackerAccessManager = ctx.getServiceDelegator().getTrackerAccessManager();
+    ImportOptions importOptions = ctx.getImportOptions();
+    CategoryOptionCombo categoryOptionCombo = ctx.getCategoryOptionComboMap().get(event.getUid());
 
-        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), categoryOptionCombo );
+    List<String> errors =
+        trackerAccessManager.canWrite(importOptions.getUser(), categoryOptionCombo);
 
-        if ( !errors.isEmpty() )
-        {
-            importSummary.setStatus( ImportStatus.ERROR );
-            errors.forEach( error -> importSummary.addConflict( "CategoryOptionCombo", error ) );
-            importSummary.incrementIgnored();
-        }
-        return importSummary;
+    if (!errors.isEmpty()) {
+      importSummary.setStatus(ImportStatus.ERROR);
+      errors.forEach(error -> importSummary.addConflict("CategoryOptionCombo", error));
+      importSummary.incrementIgnored();
     }
+    return importSummary;
+  }
 }

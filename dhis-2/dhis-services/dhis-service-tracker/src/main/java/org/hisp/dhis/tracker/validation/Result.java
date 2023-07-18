@@ -30,12 +30,10 @@ package org.hisp.dhis.tracker.validation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -44,56 +42,45 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor
-class Result implements ValidationResult
-{
-    @Getter
-    private final List<TrackedEntity> trackedEntities;
+class Result implements ValidationResult {
+  @Getter private final List<TrackedEntity> trackedEntities;
 
-    @Getter
-    private final List<Enrollment> enrollments;
+  @Getter private final List<Enrollment> enrollments;
 
-    @Getter
-    private final List<Event> events;
+  @Getter private final List<Event> events;
 
-    @Getter
-    private final List<Relationship> relationships;
+  @Getter private final List<Relationship> relationships;
 
-    private final Set<Error> errors;
+  private final Set<Error> errors;
 
-    private final Set<Warning> warnings;
+  private final Set<Warning> warnings;
 
-    private Result()
-    {
-        this.trackedEntities = Collections.emptyList();
-        this.enrollments = Collections.emptyList();
-        this.events = Collections.emptyList();
-        this.relationships = Collections.emptyList();
-        this.errors = Collections.emptySet();
-        this.warnings = Collections.emptySet();
-    }
+  private Result() {
+    this.trackedEntities = Collections.emptyList();
+    this.enrollments = Collections.emptyList();
+    this.events = Collections.emptyList();
+    this.relationships = Collections.emptyList();
+    this.errors = Collections.emptySet();
+    this.warnings = Collections.emptySet();
+  }
 
-    public static Result empty()
-    {
-        return new Result();
-    }
+  public static Result empty() {
+    return new Result();
+  }
 
-    public Set<Validation> getErrors()
-    {
-        return Collections.unmodifiableSet( errors );
-    }
+  public Set<Validation> getErrors() {
+    return Collections.unmodifiableSet(errors);
+  }
 
-    public Set<Validation> getWarnings()
-    {
-        return Collections.unmodifiableSet( warnings );
-    }
+  public Set<Validation> getWarnings() {
+    return Collections.unmodifiableSet(warnings);
+  }
 
-    public boolean hasErrors()
-    {
-        return !errors.isEmpty();
-    }
+  public boolean hasErrors() {
+    return !errors.isEmpty();
+  }
 
-    public boolean hasWarnings()
-    {
-        return !warnings.isEmpty();
-    }
+  public boolean hasWarnings() {
+    return !warnings.isEmpty();
+  }
 }

@@ -38,16 +38,13 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class ImportOptionsPreProcessor implements Processor
-{
-    @Override
-    public void process( Event event, WorkContext ctx )
-    {
-        ImportOptions importOptions = ctx.getImportOptions();
-        if ( importOptions == null )
-        {
-            throw new UnrecoverableImportException(
-                "The event process import cannot continue without ImportOptions set" );
-        }
+public class ImportOptionsPreProcessor implements Processor {
+  @Override
+  public void process(Event event, WorkContext ctx) {
+    ImportOptions importOptions = ctx.getImportOptions();
+    if (importOptions == null) {
+      throw new UnrecoverableImportException(
+          "The event process import cannot continue without ImportOptions set");
     }
+  }
 }

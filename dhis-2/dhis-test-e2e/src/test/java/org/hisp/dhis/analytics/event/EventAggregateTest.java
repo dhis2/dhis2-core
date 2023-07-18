@@ -38,44 +38,57 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.Test;
 
-public class EventAggregateTest extends AnalyticsApiTest
-{
-    private final AnalyticsEventActions analyticsEventActions = new AnalyticsEventActions();
+public class EventAggregateTest extends AnalyticsApiTest {
+  private final AnalyticsEventActions analyticsEventActions = new AnalyticsEventActions();
 
-    @Test
-    void testMetadataInfoForOptionSetForAggregate()
-    {
-        // Given
-        QueryParamsBuilder params = new QueryParamsBuilder()
+  @Test
+  void testMetadataInfoForOptionSetForAggregate() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
             .add(
-                "dimension=ou:ImspTQPwCqd,pe:LAST_12_MONTHS,C0aLZo75dgJ.B6TnnFMgmCk,C0aLZo75dgJ.Z1rLc1rVHK8,C0aLZo75dgJ.CklPZdOd6H1" )
-            .add( "filter=C0aLZo75dgJ.vTKipVM0GsX,C0aLZo75dgJ.h5FuguPFF2j,C0aLZo75dgJ.aW66s2QSosT" )
-            .add( "stage=C0aLZo75dgJ" )
-            .add( "displayProperty=NAME" )
-            .add( "outputType=ENROLLMENT" )
-            .add( "totalPages=false" );
+                "dimension=ou:ImspTQPwCqd,pe:LAST_12_MONTHS,C0aLZo75dgJ.B6TnnFMgmCk,C0aLZo75dgJ.Z1rLc1rVHK8,C0aLZo75dgJ.CklPZdOd6H1")
+            .add("filter=C0aLZo75dgJ.vTKipVM0GsX,C0aLZo75dgJ.h5FuguPFF2j,C0aLZo75dgJ.aW66s2QSosT")
+            .add("stage=C0aLZo75dgJ")
+            .add("displayProperty=NAME")
+            .add("outputType=ENROLLMENT")
+            .add("totalPages=false");
 
-        // When
-        ApiResponse response = analyticsEventActions.aggregate().get( "qDkgAbB5Jlk", JSON, JSON, params );
-        response.validate()
-            .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 6 ) ) )
-            .body( "height", equalTo( 0 ) )
-            .body( "width", equalTo( 0 ) )
-            .body( "rows", hasSize( equalTo( 0 ) ) )
+    // When
+    ApiResponse response = analyticsEventActions.aggregate().get("qDkgAbB5Jlk", JSON, JSON, params);
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(6)))
+        .body("height", equalTo(0))
+        .body("width", equalTo(0))
+        .body("rows", hasSize(equalTo(0)))
+        .body("metaData.items", hasKey("CklPZdOd6H1"))
+        .body("metaData.items", hasKey("AZK4rjJCss5"))
+        .body("metaData.items", hasKey("UrUdMteQzlT"));
 
-            .body( "metaData.items", hasKey( "CklPZdOd6H1" ) )
-            .body( "metaData.items", hasKey( "AZK4rjJCss5" ) )
-            .body( "metaData.items", hasKey( "UrUdMteQzlT" ) );
-
-        validateHeader( response, 0, "Z1rLc1rVHK8", "Date of birth (mal) is estimated", "TRUE_ONLY",
-            "java.lang.Boolean", false, true );
-        validateHeader( response, 1, "CklPZdOd6H1", "Sex", "TEXT", "java.lang.String",
-            false, true, "hiQ3QFheQ3O" );
-        validateHeader( response, 2, "B6TnnFMgmCk", "Age (years)", "INTEGER_ZERO_OR_POSITIVE",
-            "java.lang.Integer", false, true );
-        validateHeader( response, 3, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 4, "pe", "Period", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 5, "value", "Value", "NUMBER", "java.lang.Double", false, false );
-    }
+    validateHeader(
+        response,
+        0,
+        "Z1rLc1rVHK8",
+        "Date of birth (mal) is estimated",
+        "TRUE_ONLY",
+        "java.lang.Boolean",
+        false,
+        true);
+    validateHeader(
+        response, 1, "CklPZdOd6H1", "Sex", "TEXT", "java.lang.String", false, true, "hiQ3QFheQ3O");
+    validateHeader(
+        response,
+        2,
+        "B6TnnFMgmCk",
+        "Age (years)",
+        "INTEGER_ZERO_OR_POSITIVE",
+        "java.lang.Integer",
+        false,
+        true);
+    validateHeader(response, 3, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 4, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 5, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+  }
 }

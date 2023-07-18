@@ -49,107 +49,93 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Lars Helge Overland
  */
-@ExtendWith( MockitoExtension.class )
-class MetadataOrgUnitMergeHandlerTest
-{
+@ExtendWith(MockitoExtension.class)
+class MetadataOrgUnitMergeHandlerTest {
 
-    private MetadataOrgUnitMergeHandler handler;
+  private MetadataOrgUnitMergeHandler handler;
 
-    private OrganisationUnit ouA;
+  private OrganisationUnit ouA;
 
-    private OrganisationUnit ouB;
+  private OrganisationUnit ouB;
 
-    private OrganisationUnit ouC;
+  private OrganisationUnit ouC;
 
-    @BeforeEach
-    public void setUp()
-    {
-        handler = new MetadataOrgUnitMergeHandler(
-            mock( UserService.class ), mock( ConfigurationService.class ) );
+  @BeforeEach
+  public void setUp() {
+    handler =
+        new MetadataOrgUnitMergeHandler(mock(UserService.class), mock(ConfigurationService.class));
 
-        ouA = createOrganisationUnit( 'A' );
-        ouB = createOrganisationUnit( 'B' );
-        ouC = createOrganisationUnit( 'C' );
-    }
+    ouA = createOrganisationUnit('A');
+    ouB = createOrganisationUnit('B');
+    ouC = createOrganisationUnit('C');
+  }
 
-    @Test
-    void testMergeDataSets()
-    {
-        DataSet dsA = createDataSet( 'A' );
-        dsA.addOrganisationUnit( ouA );
-        dsA.addOrganisationUnit( ouB );
+  @Test
+  void testMergeDataSets() {
+    DataSet dsA = createDataSet('A');
+    dsA.addOrganisationUnit(ouA);
+    dsA.addOrganisationUnit(ouB);
 
-        DataSet dsB = createDataSet( 'B' );
-        dsB.addOrganisationUnit( ouA );
+    DataSet dsB = createDataSet('B');
+    dsB.addOrganisationUnit(ouA);
 
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
-            .addSource( ouA )
-            .addSource( ouB )
-            .withTarget( ouC )
-            .build();
+    OrgUnitMergeRequest request =
+        new OrgUnitMergeRequest.Builder().addSource(ouA).addSource(ouB).withTarget(ouC).build();
 
-        assertEquals( 2, ouA.getDataSets().size() );
-        assertEquals( 1, ouB.getDataSets().size() );
-        assertEquals( 0, ouC.getDataSets().size() );
+    assertEquals(2, ouA.getDataSets().size());
+    assertEquals(1, ouB.getDataSets().size());
+    assertEquals(0, ouC.getDataSets().size());
 
-        handler.mergeDataSets( request );
+    handler.mergeDataSets(request);
 
-        assertEquals( 0, ouA.getDataSets().size() );
-        assertEquals( 0, ouB.getDataSets().size() );
-        assertEquals( 2, ouC.getDataSets().size() );
-    }
+    assertEquals(0, ouA.getDataSets().size());
+    assertEquals(0, ouB.getDataSets().size());
+    assertEquals(2, ouC.getDataSets().size());
+  }
 
-    @Test
-    void testMergePrograms()
-    {
-        Program prA = createProgram( 'A' );
-        prA.addOrganisationUnit( ouA );
-        prA.addOrganisationUnit( ouB );
+  @Test
+  void testMergePrograms() {
+    Program prA = createProgram('A');
+    prA.addOrganisationUnit(ouA);
+    prA.addOrganisationUnit(ouB);
 
-        Program prB = createProgram( 'B' );
-        prB.addOrganisationUnit( ouA );
+    Program prB = createProgram('B');
+    prB.addOrganisationUnit(ouA);
 
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
-            .addSource( ouA )
-            .addSource( ouB )
-            .withTarget( ouC )
-            .build();
+    OrgUnitMergeRequest request =
+        new OrgUnitMergeRequest.Builder().addSource(ouA).addSource(ouB).withTarget(ouC).build();
 
-        assertEquals( 2, ouA.getPrograms().size() );
-        assertEquals( 1, ouB.getPrograms().size() );
-        assertEquals( 0, ouC.getPrograms().size() );
+    assertEquals(2, ouA.getPrograms().size());
+    assertEquals(1, ouB.getPrograms().size());
+    assertEquals(0, ouC.getPrograms().size());
 
-        handler.mergePrograms( request );
+    handler.mergePrograms(request);
 
-        assertEquals( 0, ouA.getPrograms().size() );
-        assertEquals( 0, ouB.getPrograms().size() );
-        assertEquals( 2, ouC.getPrograms().size() );
-    }
+    assertEquals(0, ouA.getPrograms().size());
+    assertEquals(0, ouB.getPrograms().size());
+    assertEquals(2, ouC.getPrograms().size());
+  }
 
-    @Test
-    void testMergeOrgUnitGroups()
-    {
-        OrganisationUnitGroup ougA = createOrganisationUnitGroup( 'A' );
-        ougA.addOrganisationUnit( ouA );
-        ougA.addOrganisationUnit( ouB );
+  @Test
+  void testMergeOrgUnitGroups() {
+    OrganisationUnitGroup ougA = createOrganisationUnitGroup('A');
+    ougA.addOrganisationUnit(ouA);
+    ougA.addOrganisationUnit(ouB);
 
-        OrganisationUnitGroup ougB = createOrganisationUnitGroup( 'B' );
-        ougB.addOrganisationUnit( ouA );
+    OrganisationUnitGroup ougB = createOrganisationUnitGroup('B');
+    ougB.addOrganisationUnit(ouA);
 
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
-            .addSource( ouA )
-            .addSource( ouB )
-            .withTarget( ouC )
-            .build();
+    OrgUnitMergeRequest request =
+        new OrgUnitMergeRequest.Builder().addSource(ouA).addSource(ouB).withTarget(ouC).build();
 
-        assertEquals( 2, ouA.getGroups().size() );
-        assertEquals( 1, ouB.getGroups().size() );
-        assertEquals( 0, ouC.getGroups().size() );
+    assertEquals(2, ouA.getGroups().size());
+    assertEquals(1, ouB.getGroups().size());
+    assertEquals(0, ouC.getGroups().size());
 
-        handler.mergeOrgUnitGroups( request );
+    handler.mergeOrgUnitGroups(request);
 
-        assertEquals( 0, ouA.getGroups().size() );
-        assertEquals( 0, ouB.getGroups().size() );
-        assertEquals( 2, ouC.getGroups().size() );
-    }
+    assertEquals(0, ouA.getGroups().size());
+    assertEquals(0, ouB.getGroups().size());
+    assertEquals(2, ouC.getGroups().size());
+  }
 }

@@ -32,9 +32,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErro
 
 import java.util.Collection;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
@@ -62,295 +60,272 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class DefaultCollectionService implements CollectionService
-{
-    private final IdentifiableObjectManager manager;
+public class DefaultCollectionService implements CollectionService {
+  private final IdentifiableObjectManager manager;
 
-    private final DbmsManager dbmsManager;
+  private final DbmsManager dbmsManager;
 
-    private final AclService aclService;
+  private final AclService aclService;
 
-    private final SchemaService schemaService;
+  private final SchemaService schemaService;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    private final SchemaValidator schemaValidator;
+  private final SchemaValidator schemaValidator;
 
-    @Override
-    @Transactional
-    public TypeReport addCollectionItems( IdentifiableObject object, String propertyName,
-        Collection<? extends IdentifiableObject> objects )
-        throws ForbiddenException,
-        ConflictException,
-        NotFoundException,
-        BadRequestException
-    {
-        Property property = validateUpdate( object, propertyName,
-            "Only identifiable object collections can be added to." );
+  @Override
+  @Transactional
+  public TypeReport addCollectionItems(
+      IdentifiableObject object,
+      String propertyName,
+      Collection<? extends IdentifiableObject> objects)
+      throws ForbiddenException, ConflictException, NotFoundException, BadRequestException {
+    Property property =
+        validateUpdate(
+            object, propertyName, "Only identifiable object collections can be added to.");
 
-        Collection<String> itemCodes = getItemCodes( objects );
+    Collection<String> itemCodes = getItemCodes(objects);
 
-        if ( itemCodes.isEmpty() )
-        {
-            return TypeReport.empty( property.getItemKlass() );
-        }
-
-        TypeReport report = new TypeReport( property.getItemKlass() );
-        manager.refresh( object );
-
-        if ( property.isOwner() )
-        {
-            addOwnedCollectionItems( object, property, itemCodes, report );
-        }
-        else
-        {
-            addNonOwnedCollectionItems( object, property, itemCodes, report );
-        }
-
-        dbmsManager.clearSession();
-        return report;
+    if (itemCodes.isEmpty()) {
+      return TypeReport.empty(property.getItemKlass());
     }
 
-    private void addOwnedCollectionItems( IdentifiableObject object,
-        Property property,
-        Collection<String> itemCodes,
-        TypeReport report )
-        throws BadRequestException
-    {
-        Collection<IdentifiableObject> collection = getCollection( object, property );
+    TypeReport report = new TypeReport(property.getItemKlass());
+    manager.refresh(object);
 
-        updateCollectionItems( property, itemCodes, report, ErrorCode.E1108,
-            item -> {
-                if ( !collection.contains( item ) )
-                {
-                    collection.add( item );
-                    report.getStats().incUpdated();
-                }
-                else
-                {
-                    report.getStats().incIgnored();
-                }
-            } );
-        validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
-        manager.update( object );
+    if (property.isOwner()) {
+      addOwnedCollectionItems(object, property, itemCodes, report);
+    } else {
+      addNonOwnedCollectionItems(object, property, itemCodes, report);
     }
 
-    private void addNonOwnedCollectionItems( IdentifiableObject object, Property property,
-        Collection<String> itemCodes, TypeReport report )
-    {
-        Schema owningSchema = schemaService.getDynamicSchema( property.getItemKlass() );
-        Property owningProperty = owningSchema.propertyByRole( property.getOwningRole() );
+    dbmsManager.clearSession();
+    return report;
+  }
 
-        updateCollectionItems( property, itemCodes, report, ErrorCode.E1108,
-            item -> {
-                Collection<IdentifiableObject> collection = getCollection( item, owningProperty );
+  private void addOwnedCollectionItems(
+      IdentifiableObject object, Property property, Collection<String> itemCodes, TypeReport report)
+      throws BadRequestException {
+    Collection<IdentifiableObject> collection = getCollection(object, property);
 
-                if ( !collection.contains( object ) )
-                {
-                    validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
-                    collection.add( object );
-                    manager.update( item );
-                    report.getStats().incUpdated();
-                }
-                else
-                {
-                    report.getStats().incIgnored();
-                }
-            } );
+    updateCollectionItems(
+        property,
+        itemCodes,
+        report,
+        ErrorCode.E1108,
+        item -> {
+          if (!collection.contains(item)) {
+            collection.add(item);
+            report.getStats().incUpdated();
+          } else {
+            report.getStats().incIgnored();
+          }
+        });
+    validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
+    manager.update(object);
+  }
+
+  private void addNonOwnedCollectionItems(
+      IdentifiableObject object,
+      Property property,
+      Collection<String> itemCodes,
+      TypeReport report) {
+    Schema owningSchema = schemaService.getDynamicSchema(property.getItemKlass());
+    Property owningProperty = owningSchema.propertyByRole(property.getOwningRole());
+
+    updateCollectionItems(
+        property,
+        itemCodes,
+        report,
+        ErrorCode.E1108,
+        item -> {
+          Collection<IdentifiableObject> collection = getCollection(item, owningProperty);
+
+          if (!collection.contains(object)) {
+            validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
+            collection.add(object);
+            manager.update(item);
+            report.getStats().incUpdated();
+          } else {
+            report.getStats().incIgnored();
+          }
+        });
+  }
+
+  @Override
+  @Transactional
+  public TypeReport delCollectionItems(
+      IdentifiableObject object,
+      String propertyName,
+      Collection<? extends IdentifiableObject> objects)
+      throws ForbiddenException, ConflictException, NotFoundException, BadRequestException {
+    Property property =
+        validateUpdate(
+            object, propertyName, "Only identifiable object collections can be removed from.");
+
+    Collection<String> itemCodes = getItemCodes(objects);
+
+    if (itemCodes.isEmpty()) {
+      return TypeReport.empty(property.getItemKlass());
     }
 
-    @Override
-    @Transactional
-    public TypeReport delCollectionItems( IdentifiableObject object, String propertyName,
-        Collection<? extends IdentifiableObject> objects )
-        throws ForbiddenException,
-        ConflictException,
-        NotFoundException,
-        BadRequestException
-    {
-        Property property = validateUpdate( object, propertyName,
-            "Only identifiable object collections can be removed from." );
+    TypeReport report = new TypeReport(property.getItemKlass());
+    manager.refresh(object);
 
-        Collection<String> itemCodes = getItemCodes( objects );
-
-        if ( itemCodes.isEmpty() )
-        {
-            return TypeReport.empty( property.getItemKlass() );
-        }
-
-        TypeReport report = new TypeReport( property.getItemKlass() );
-        manager.refresh( object );
-
-        if ( property.isOwner() )
-        {
-            delOwnedCollectionItems( object, property, itemCodes, report );
-        }
-        else
-        {
-            delNonOwnedCollectionItems( object, property, itemCodes, report );
-        }
-
-        validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
-        manager.update( object );
-
-        dbmsManager.clearSession();
-        return report;
+    if (property.isOwner()) {
+      delOwnedCollectionItems(object, property, itemCodes, report);
+    } else {
+      delNonOwnedCollectionItems(object, property, itemCodes, report);
     }
 
-    private void delOwnedCollectionItems( IdentifiableObject object,
-        Property property,
-        Collection<String> itemCodes,
-        TypeReport report )
-    {
-        Collection<IdentifiableObject> collection = getCollection( object, property );
+    validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
+    manager.update(object);
 
-        updateCollectionItems( property, itemCodes, report, ErrorCode.E1109, item -> {
-            if ( collection.contains( item ) )
-            {
-                collection.remove( item );
-                report.getStats().incDeleted();
-            }
-            else
-            {
-                report.getStats().incIgnored();
-            }
-        } );
+    dbmsManager.clearSession();
+    return report;
+  }
+
+  private void delOwnedCollectionItems(
+      IdentifiableObject object,
+      Property property,
+      Collection<String> itemCodes,
+      TypeReport report) {
+    Collection<IdentifiableObject> collection = getCollection(object, property);
+
+    updateCollectionItems(
+        property,
+        itemCodes,
+        report,
+        ErrorCode.E1109,
+        item -> {
+          if (collection.contains(item)) {
+            collection.remove(item);
+            report.getStats().incDeleted();
+          } else {
+            report.getStats().incIgnored();
+          }
+        });
+  }
+
+  private void delNonOwnedCollectionItems(
+      IdentifiableObject object,
+      Property property,
+      Collection<String> itemCodes,
+      TypeReport report) {
+    Schema owningSchema = schemaService.getDynamicSchema(property.getItemKlass());
+    Property owningProperty = owningSchema.propertyByRole(property.getOwningRole());
+
+    updateCollectionItems(
+        property,
+        itemCodes,
+        report,
+        ErrorCode.E1109,
+        item -> {
+          Collection<IdentifiableObject> collection = getCollection(item, owningProperty);
+
+          if (collection.contains(object)) {
+            validateAndThrowErrors(() -> schemaValidator.validateProperty(owningProperty, item));
+            collection.remove(object);
+            manager.update(item);
+            report.getStats().incDeleted();
+          } else {
+            report.getStats().incIgnored();
+          }
+        });
+  }
+
+  @Override
+  @Transactional
+  public TypeReport replaceCollectionItems(
+      IdentifiableObject object,
+      String propertyName,
+      Collection<? extends IdentifiableObject> objects)
+      throws ForbiddenException, ConflictException, NotFoundException, BadRequestException {
+    Property property =
+        validateUpdate(
+            object, propertyName, "Only identifiable object collections can be replaced.");
+
+    TypeReport deletions =
+        delCollectionItems(object, propertyName, getCollection(object, property));
+    TypeReport additions = addCollectionItems(object, propertyName, objects);
+    return deletions.mergeAllowEmpty(additions);
+  }
+
+  @Override
+  @Transactional
+  public TypeReport mergeCollectionItems(
+      IdentifiableObject object, String propertyName, IdentifiableObjects items)
+      throws ForbiddenException, ConflictException, NotFoundException, BadRequestException {
+    TypeReport delReport = delCollectionItems(object, propertyName, items.getDeletions());
+    TypeReport addReport = addCollectionItems(object, propertyName, items.getAdditions());
+    return delReport.mergeAllowEmpty(addReport);
+  }
+
+  private Property validateUpdate(IdentifiableObject object, String propertyName, String message)
+      throws ForbiddenException, NotFoundException, ConflictException {
+    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+
+    if (!aclService.canUpdate(currentUserService.getCurrentUser(), object)) {
+      throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 
-    private void delNonOwnedCollectionItems( IdentifiableObject object, Property property,
-        Collection<String> itemCodes, TypeReport report )
-    {
-        Schema owningSchema = schemaService.getDynamicSchema( property.getItemKlass() );
-        Property owningProperty = owningSchema.propertyByRole( property.getOwningRole() );
-
-        updateCollectionItems( property, itemCodes, report, ErrorCode.E1109,
-            item -> {
-                Collection<IdentifiableObject> collection = getCollection( item, owningProperty );
-
-                if ( collection.contains( object ) )
-                {
-                    validateAndThrowErrors( () -> schemaValidator.validateProperty( owningProperty, item ) );
-                    collection.remove( object );
-                    manager.update( item );
-                    report.getStats().incDeleted();
-                }
-                else
-                {
-                    report.getStats().incIgnored();
-                }
-            } );
+    if (!schema.hasProperty(propertyName)) {
+      throw new NotFoundException(
+          "Property " + propertyName + " does not exist on " + object.getClass().getName());
     }
 
-    @Override
-    @Transactional
-    public TypeReport replaceCollectionItems( IdentifiableObject object, String propertyName,
-        Collection<? extends IdentifiableObject> objects )
-        throws ForbiddenException,
-        ConflictException,
-        NotFoundException,
-        BadRequestException
-    {
-        Property property = validateUpdate( object, propertyName,
-            "Only identifiable object collections can be replaced." );
+    Property property = schema.getProperty(propertyName);
 
-        TypeReport deletions = delCollectionItems( object, propertyName, getCollection( object, property ) );
-        TypeReport additions = addCollectionItems( object, propertyName, objects );
-        return deletions.mergeAllowEmpty( additions );
+    if (!property.isCollection() || !property.isIdentifiableObject()) {
+      throw new ConflictException(message);
     }
+    return property;
+  }
 
-    @Override
-    @Transactional
-    public TypeReport mergeCollectionItems( IdentifiableObject object, String propertyName, IdentifiableObjects items )
-        throws ForbiddenException,
-        ConflictException,
-        NotFoundException,
-        BadRequestException
-    {
-        TypeReport delReport = delCollectionItems( object, propertyName, items.getDeletions() );
-        TypeReport addReport = addCollectionItems( object, propertyName, items.getAdditions() );
-        return delReport.mergeAllowEmpty( addReport );
+  private Collection<String> getItemCodes(Collection<? extends IdentifiableObject> objects) {
+    return objects.stream().map(IdentifiableObject::getUid).collect(toList());
+  }
+
+  @SuppressWarnings("unchecked")
+  private List<? extends IdentifiableObject> getItems(
+      Property property, Collection<String> itemCodes) {
+    return manager.getByUid(
+        ((Class<? extends IdentifiableObject>) property.getItemKlass()), itemCodes);
+  }
+
+  @SuppressWarnings("unchecked")
+  private Collection<IdentifiableObject> getCollection(
+      IdentifiableObject object, Property property) {
+    try {
+      return (Collection<IdentifiableObject>) property.getGetterMethod().invoke(object);
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
     }
+  }
 
-    private Property validateUpdate( IdentifiableObject object, String propertyName, String message )
-        throws ForbiddenException,
-        NotFoundException,
-        ConflictException
-    {
-        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
+  @FunctionalInterface
+  private interface CollectionUpdate {
+    void applyToItem(IdentifiableObject item) throws Exception;
+  }
 
-        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), object ) )
-        {
-            throw new ForbiddenException( "You don't have the proper permissions to update this object." );
-        }
-
-        if ( !schema.hasProperty( propertyName ) )
-        {
-            throw new NotFoundException(
-                "Property " + propertyName + " does not exist on " + object.getClass().getName() );
-        }
-
-        Property property = schema.getProperty( propertyName );
-
-        if ( !property.isCollection() || !property.isIdentifiableObject() )
-        {
-            throw new ConflictException( message );
-        }
-        return property;
+  private void updateCollectionItems(
+      Property property,
+      Collection<String> itemCodes,
+      TypeReport report,
+      ErrorCode errorCode,
+      CollectionUpdate update) {
+    int index = 0;
+    for (IdentifiableObject item : getItems(property, itemCodes)) {
+      try {
+        update.applyToItem(item);
+      } catch (Exception ex) {
+        Class<?> itemType = property.getItemKlass();
+        ObjectReport objectReport = new ObjectReport(itemType, index, item.getUid());
+        objectReport.addErrorReport(new ErrorReport(itemType, errorCode, ex.getMessage()));
+        report.addObjectReport(objectReport);
+        report.getStats().incIgnored();
+      }
+      index++;
     }
-
-    private Collection<String> getItemCodes( Collection<? extends IdentifiableObject> objects )
-    {
-        return objects.stream().map( IdentifiableObject::getUid ).collect( toList() );
-    }
-
-    @SuppressWarnings( "unchecked" )
-    private List<? extends IdentifiableObject> getItems( Property property, Collection<String> itemCodes )
-    {
-        return manager.getByUid( ((Class<? extends IdentifiableObject>) property.getItemKlass()), itemCodes );
-    }
-
-    @SuppressWarnings( "unchecked" )
-    private Collection<IdentifiableObject> getCollection( IdentifiableObject object, Property property )
-    {
-        try
-        {
-            return (Collection<IdentifiableObject>) property.getGetterMethod().invoke( object );
-        }
-        catch ( Exception ex )
-        {
-            throw new RuntimeException( ex );
-        }
-    }
-
-    @FunctionalInterface
-    private interface CollectionUpdate
-    {
-        void applyToItem( IdentifiableObject item )
-            throws Exception;
-    }
-
-    private void updateCollectionItems( Property property,
-        Collection<String> itemCodes,
-        TypeReport report,
-        ErrorCode errorCode,
-        CollectionUpdate update )
-    {
-        int index = 0;
-        for ( IdentifiableObject item : getItems( property, itemCodes ) )
-        {
-            try
-            {
-                update.applyToItem( item );
-            }
-            catch ( Exception ex )
-            {
-                Class<?> itemType = property.getItemKlass();
-                ObjectReport objectReport = new ObjectReport( itemType, index, item.getUid() );
-                objectReport.addErrorReport( new ErrorReport( itemType, errorCode, ex.getMessage() ) );
-                report.addObjectReport( objectReport );
-                report.getStats().incIgnored();
-            }
-            index++;
-        }
-    }
+  }
 }

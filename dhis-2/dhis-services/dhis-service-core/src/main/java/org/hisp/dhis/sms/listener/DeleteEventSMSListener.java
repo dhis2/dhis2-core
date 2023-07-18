@@ -49,45 +49,55 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component( "org.hisp.dhis.sms.listener.DeleteEventSMSListener" )
+@Component("org.hisp.dhis.sms.listener.DeleteEventSMSListener")
 @Transactional
-public class DeleteEventSMSListener extends CompressionSMSListener
-{
-    public DeleteEventSMSListener( IncomingSmsService incomingSmsService,
-        @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,
-        TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
-        ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
-        IdentifiableObjectManager identifiableObjectManager )
-    {
-        super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService,
-            identifiableObjectManager );
+public class DeleteEventSMSListener extends CompressionSMSListener {
+  public DeleteEventSMSListener(
+      IncomingSmsService incomingSmsService,
+      @Qualifier("smsMessageSender") MessageSender smsSender,
+      UserService userService,
+      TrackedEntityTypeService trackedEntityTypeService,
+      TrackedEntityAttributeService trackedEntityAttributeService,
+      ProgramService programService,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      DataElementService dataElementService,
+      ProgramStageInstanceService programStageInstanceService,
+      IdentifiableObjectManager identifiableObjectManager) {
+    super(
+        incomingSmsService,
+        smsSender,
+        userService,
+        trackedEntityTypeService,
+        trackedEntityAttributeService,
+        programService,
+        organisationUnitService,
+        categoryService,
+        dataElementService,
+        programStageInstanceService,
+        identifiableObjectManager);
+  }
+
+  @Override
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission)
+      throws SMSProcessingException {
+    DeleteSmsSubmission subm = (DeleteSmsSubmission) submission;
+
+    Uid eventid = subm.getEvent();
+    ProgramStageInstance psi =
+        programStageInstanceService.getProgramStageInstance(eventid.getUid());
+
+    if (psi == null) {
+      throw new SMSProcessingException(SmsResponse.INVALID_EVENT.set(eventid));
     }
 
-    @Override
-    protected SmsResponse postProcess( IncomingSms sms, SmsSubmission submission )
-        throws SMSProcessingException
-    {
-        DeleteSmsSubmission subm = (DeleteSmsSubmission) submission;
+    programStageInstanceService.deleteProgramStageInstance(psi);
 
-        Uid eventid = subm.getEvent();
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( eventid.getUid() );
+    return SmsResponse.SUCCESS;
+  }
 
-        if ( psi == null )
-        {
-            throw new SMSProcessingException( SmsResponse.INVALID_EVENT.set( eventid ) );
-        }
-
-        programStageInstanceService.deleteProgramStageInstance( psi );
-
-        return SmsResponse.SUCCESS;
-    }
-
-    @Override
-    protected boolean handlesType( SubmissionType type )
-    {
-        return (type == SubmissionType.DELETE);
-    }
-
+  @Override
+  protected boolean handlesType(SubmissionType type) {
+    return (type == SubmissionType.DELETE);
+  }
 }

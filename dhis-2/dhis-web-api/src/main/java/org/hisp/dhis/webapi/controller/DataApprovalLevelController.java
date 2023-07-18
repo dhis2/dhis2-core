@@ -35,24 +35,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-@OpenApi.Tags( "metadata" )
+@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping( value = DataApprovalLevelSchemaDescriptor.API_ENDPOINT )
-public class DataApprovalLevelController
-    extends AbstractCrudController<DataApprovalLevel>
-{
-    @Autowired
-    private DataApprovalLevelService dataApprovalLevelService;
+@RequestMapping(value = DataApprovalLevelSchemaDescriptor.API_ENDPOINT)
+public class DataApprovalLevelController extends AbstractCrudController<DataApprovalLevel> {
+  @Autowired private DataApprovalLevelService dataApprovalLevelService;
 
-    @Override
-    protected void preCreateEntity( DataApprovalLevel entity )
-    {
-        dataApprovalLevelService.prepareAddDataApproval( entity );
-    }
+  @Override
+  protected void preCreateEntity(DataApprovalLevel entity) {
+    dataApprovalLevelService.prepareAddDataApproval(entity);
+  }
 
-    @Override
-    protected void postDeleteEntity( String entityUID )
-    {
-        dataApprovalLevelService.postDeleteDataApprovalLevel();
-    }
+  @Override
+  protected void postDeleteEntity(String entityUID) {
+    dataApprovalLevelService.postDeleteDataApprovalLevel();
+  }
 }

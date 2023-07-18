@@ -28,9 +28,7 @@
 package org.hisp.dhis.dataelement.hibernate;
 
 import java.util.List;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.ValueType;
@@ -49,99 +47,109 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Torgeir Lorange Ostby
  */
-@Repository( "org.hisp.dhis.dataelement.DataElementStore" )
-public class HibernateDataElementStore
-    extends HibernateIdentifiableObjectStore<DataElement>
-    implements DataElementStore
-{
-    public HibernateDataElementStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, DataElement.class, currentUserService, aclService, false );
-    }
+@Repository("org.hisp.dhis.dataelement.DataElementStore")
+public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<DataElement>
+    implements DataElementStore {
+  public HibernateDataElementStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        DataElement.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 
-    // -------------------------------------------------------------------------
-    // DataElement
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DataElement
+  // -------------------------------------------------------------------------
 
-    @Override
-    public List<DataElement> getDataElementsByDomainType( DataElementDomain domainType )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<DataElement> getDataElementsByDomainType(DataElementDomain domainType) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder,
-            newJpaParameters().addPredicate( root -> builder.equal( root.get( "domainType" ), domainType ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters().addPredicate(root -> builder.equal(root.get("domainType"), domainType)));
+  }
 
-    @Override
-    public List<DataElement> getDataElementsByValueType( ValueType valueType )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<DataElement> getDataElementsByValueType(ValueType valueType) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder,
-            newJpaParameters().addPredicate( root -> builder.equal( root.get( "valueType" ), valueType ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters().addPredicate(root -> builder.equal(root.get("valueType"), valueType)));
+  }
 
-    @Override
-    public List<DataElement> getDataElementByCategoryCombo( CategoryCombo categoryCombo )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<DataElement> getDataElementByCategoryCombo(CategoryCombo categoryCombo) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder,
-            newJpaParameters().addPredicate( root -> builder.equal( root.get( "categoryCombo" ), categoryCombo ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("categoryCombo"), categoryCombo)));
+  }
 
-    @Override
-    public List<DataElement> getDataElementsByZeroIsSignificant( boolean zeroIsSignificant )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<DataElement> getDataElementsByZeroIsSignificant(boolean zeroIsSignificant) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "zeroIsSignificant" ), zeroIsSignificant ) )
-            .addPredicate( root -> root.get( "valueType" ).in( ValueType.NUMERIC_TYPES ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("zeroIsSignificant"), zeroIsSignificant))
+            .addPredicate(root -> root.get("valueType").in(ValueType.NUMERIC_TYPES)));
+  }
 
-    @Override
-    public List<DataElement> getDataElementsWithoutGroups()
-    {
-        String hql = "from DataElement d where size(d.groups) = 0";
+  @Override
+  public List<DataElement> getDataElementsWithoutGroups() {
+    String hql = "from DataElement d where size(d.groups) = 0";
 
-        return getQuery( hql ).setCacheable( true ).list();
-    }
+    return getQuery(hql).setCacheable(true).list();
+  }
 
-    @Override
-    public List<DataElement> getDataElementsWithoutDataSets()
-    {
-        String hql = "from DataElement d where size(d.dataSetElements) = 0 and d.domainType =:domainType";
+  @Override
+  public List<DataElement> getDataElementsWithoutDataSets() {
+    String hql =
+        "from DataElement d where size(d.dataSetElements) = 0 and d.domainType =:domainType";
 
-        return getQuery( hql ).setParameter( "domainType", DataElementDomain.AGGREGATE ).setCacheable( true ).list();
-    }
+    return getQuery(hql)
+        .setParameter("domainType", DataElementDomain.AGGREGATE)
+        .setCacheable(true)
+        .list();
+  }
 
-    @Override
-    public List<DataElement> getDataElementsWithDataSets()
-    {
-        String hql = "from DataElement d where size(d.dataSetElements) > 0";
+  @Override
+  public List<DataElement> getDataElementsWithDataSets() {
+    String hql = "from DataElement d where size(d.dataSetElements) > 0";
 
-        return getQuery( hql ).setCacheable( true ).list();
-    }
+    return getQuery(hql).setCacheable(true).list();
+  }
 
-    @Override
-    public List<DataElement> getDataElementsByAggregationLevel( int aggregationLevel )
-    {
-        String hql = "from DataElement de join de.aggregationLevels al where al = :aggregationLevel";
+  @Override
+  public List<DataElement> getDataElementsByAggregationLevel(int aggregationLevel) {
+    String hql = "from DataElement de join de.aggregationLevels al where al = :aggregationLevel";
 
-        return getQuery( hql ).setParameter( "aggregationLevel", aggregationLevel ).list();
-    }
+    return getQuery(hql).setParameter("aggregationLevel", aggregationLevel).list();
+  }
 
-    @Override
-    public DataElement getDataElement( String uid, User user )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public DataElement getDataElement(String uid, User user) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<DataElement> param = new JpaQueryParameters<DataElement>()
-            .addPredicates( getSharingPredicates( builder, user, AclService.LIKE_READ_METADATA ) )
-            .addPredicate( root -> builder.equal( root.get( "uid" ), uid ) );
+    JpaQueryParameters<DataElement> param =
+        new JpaQueryParameters<DataElement>()
+            .addPredicates(getSharingPredicates(builder, user, AclService.LIKE_READ_METADATA))
+            .addPredicate(root -> builder.equal(root.get("uid"), uid));
 
-        return getSingleResult( builder, param );
-    }
+    return getSingleResult(builder, param);
+  }
 }

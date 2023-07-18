@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.tracker;
 
+import com.google.gson.JsonObject;
 import java.io.File;
 import java.util.List;
-
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.MaintenanceActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
@@ -41,150 +41,162 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Tag( "category:tracker_nti" )
-public class TrackerNtiApiTest
-    extends TrackerApiTest
-{
-    protected static final String TRACKER_PROGRAM_STAGE_ID = "nlXNK4b7LVr";
+@Tag("category:tracker_nti")
+public class TrackerNtiApiTest extends TrackerApiTest {
+  protected static final String TRACKER_PROGRAM_STAGE_ID = "nlXNK4b7LVr";
 
-    protected String TRACKER_PROGRAM_ID = Constants.TRACKER_PROGRAM_ID;
+  protected String TRACKER_PROGRAM_ID = Constants.TRACKER_PROGRAM_ID;
 
-    protected TrackerActions trackerActions;
+  protected TrackerActions trackerActions;
 
-    @BeforeAll
-    public void beforeTrackerNti()
-    {
-        trackerActions = new TrackerActions();
-    }
+  @BeforeAll
+  public void beforeTrackerNti() {
+    trackerActions = new TrackerActions();
+  }
 
-    protected String importEnrollment()
-        throws Exception
-    {
-        JsonObject teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/teiAndEnrollment.json" ) );
+  protected String importEnrollment() throws Exception {
+    JsonObject teiBody =
+        new FileReaderUtils()
+            .readJsonAndGenerateData(
+                new File("src/test/resources/tracker/importer/teis/teiAndEnrollment.json"));
 
-        return trackerActions.postAndGetJobReport( teiBody ).validateSuccessfulImport().extractImportedEnrollments()
-            .get( 0 );
-    }
+    return trackerActions
+        .postAndGetJobReport(teiBody)
+        .validateSuccessfulImport()
+        .extractImportedEnrollments()
+        .get(0);
+  }
 
-    protected String importTei()
-        throws Exception
-    {
-        JsonObject teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/tei.json" ) );
+  protected String importTei() throws Exception {
+    JsonObject teiBody =
+        new FileReaderUtils()
+            .readJsonAndGenerateData(new File("src/test/resources/tracker/importer/teis/tei.json"));
 
-        return trackerActions.postAndGetJobReport( teiBody ).validateSuccessfulImport().extractImportedTeis().get( 0 );
-    }
+    return trackerActions
+        .postAndGetJobReport(teiBody)
+        .validateSuccessfulImport()
+        .extractImportedTeis()
+        .get(0);
+  }
 
-    protected String importTei( String orgUnit )
-        throws Exception
-    {
-        JsonObject teiBody = new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/importer/teis/tei.json" ) )
-            .replacePropertyValuesRecursivelyWith( "orgUnit", orgUnit )
-            .get( JsonObject.class );
+  protected String importTei(String orgUnit) throws Exception {
+    JsonObject teiBody =
+        new FileReaderUtils()
+            .read(new File("src/test/resources/tracker/importer/teis/tei.json"))
+            .replacePropertyValuesRecursivelyWith("orgUnit", orgUnit)
+            .get(JsonObject.class);
 
-        return trackerActions.postAndGetJobReport( teiBody ).validateSuccessfulImport().extractImportedTeis().get( 0 );
-    }
+    return trackerActions
+        .postAndGetJobReport(teiBody)
+        .validateSuccessfulImport()
+        .extractImportedTeis()
+        .get(0);
+  }
 
-    protected List<String> importEvents()
-        throws Exception
-    {
-        JsonObject object = new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/importer/events/events.json" ) )
-            .replacePropertyValuesWithIds( "event" ).get( JsonObject.class );
+  protected List<String> importEvents() throws Exception {
+    JsonObject object =
+        new FileReaderUtils()
+            .read(new File("src/test/resources/tracker/importer/events/events.json"))
+            .replacePropertyValuesWithIds("event")
+            .get(JsonObject.class);
 
-        return trackerActions.postAndGetJobReport( object )
-            .validateSuccessfulImport().extractImportedEvents();
-    }
+    return trackerActions
+        .postAndGetJobReport(object)
+        .validateSuccessfulImport()
+        .extractImportedEvents();
+  }
 
-    protected TrackerApiResponse importTeiWithEnrollment( String programId )
-        throws Exception
-    {
-        JsonObject teiWithEnrollment = new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollments.json" ) )
-            .replacePropertyValuesRecursivelyWith( "program", programId )
-            .get( JsonObject.class );
+  protected TrackerApiResponse importTeiWithEnrollment(String programId) throws Exception {
+    JsonObject teiWithEnrollment =
+        new FileReaderUtils()
+            .read(new File("src/test/resources/tracker/importer/teis/teiWithEnrollments.json"))
+            .replacePropertyValuesRecursivelyWith("program", programId)
+            .get(JsonObject.class);
 
-        return trackerActions.postAndGetJobReport( teiWithEnrollment ).validateSuccessfulImport();
-    }
+    return trackerActions.postAndGetJobReport(teiWithEnrollment).validateSuccessfulImport();
+  }
 
-    protected TrackerApiResponse importTeiWithEnrollment( String ouId, String programId )
-        throws Exception
-    {
-        JsonObject teiWithEnrollment = new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollments.json" ) )
-            .replacePropertyValuesRecursivelyWith( "program", programId )
-            .replacePropertyValuesRecursivelyWith( "orgUnit", ouId )
-            .get( JsonObject.class );
+  protected TrackerApiResponse importTeiWithEnrollment(String ouId, String programId)
+      throws Exception {
+    JsonObject teiWithEnrollment =
+        new FileReaderUtils()
+            .read(new File("src/test/resources/tracker/importer/teis/teiWithEnrollments.json"))
+            .replacePropertyValuesRecursivelyWith("program", programId)
+            .replacePropertyValuesRecursivelyWith("orgUnit", ouId)
+            .get(JsonObject.class);
 
-        return trackerActions.postAndGetJobReport( teiWithEnrollment ).validateSuccessfulImport();
-    }
+    return trackerActions.postAndGetJobReport(teiWithEnrollment).validateSuccessfulImport();
+  }
 
-    /*
-     * Imports one new TEI with enrollment and event
-     */
-    protected TrackerApiResponse importTeisWithEnrollmentAndEvent( String orgUnit, String programId,
-        String programStageId )
-        throws Exception
-    {
-        JsonObject teiWithEnrollment = new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json" ) )
-            .replacePropertyValuesRecursivelyWith( "orgUnit", orgUnit )
-            .replacePropertyValuesRecursivelyWith( "program", programId )
-            .replacePropertyValuesRecursivelyWith( "programStage", programStageId )
-            .get( JsonObject.class );
+  /*
+   * Imports one new TEI with enrollment and event
+   */
+  protected TrackerApiResponse importTeisWithEnrollmentAndEvent(
+      String orgUnit, String programId, String programStageId) throws Exception {
+    JsonObject teiWithEnrollment =
+        new FileReaderUtils()
+            .read(
+                new File(
+                    "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json"))
+            .replacePropertyValuesRecursivelyWith("orgUnit", orgUnit)
+            .replacePropertyValuesRecursivelyWith("program", programId)
+            .replacePropertyValuesRecursivelyWith("programStage", programStageId)
+            .get(JsonObject.class);
 
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( teiWithEnrollment );
+    TrackerApiResponse response = trackerActions.postAndGetJobReport(teiWithEnrollment);
 
-        response.validateSuccessfulImport();
-        return response;
-    }
+    response.validateSuccessfulImport();
+    return response;
+  }
 
-    /*
-     * Imports new tracked entities, each having an enrollment and event.
-     */
-    protected TrackerApiResponse importTeisWithEnrollmentAndEvent()
-        throws Exception
-    {
-        JsonObject object = new JsonFileReader(
-            new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) )
-                .replaceStringsWithIds( "Kj6vYde4LHh", "Nav6inZRw1u", "MNWZ6hnuhSw", "PuBvJxDB73z", "olfXZzSGacW",
-                    "ZwwuwNp6gVd" )
-                .get( JsonObject.class );
+  /*
+   * Imports new tracked entities, each having an enrollment and event.
+   */
+  protected TrackerApiResponse importTeisWithEnrollmentAndEvent() throws Exception {
+    JsonObject object =
+        new JsonFileReader(
+                new File(
+                    "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json"))
+            .replaceStringsWithIds(
+                "Kj6vYde4LHh",
+                "Nav6inZRw1u",
+                "MNWZ6hnuhSw",
+                "PuBvJxDB73z",
+                "olfXZzSGacW",
+                "ZwwuwNp6gVd")
+            .get(JsonObject.class);
 
-        return trackerActions.postAndGetJobReport( object )
-            .validateSuccessfulImport();
-    }
+    return trackerActions.postAndGetJobReport(object).validateSuccessfulImport();
+  }
 
-    protected TrackerApiResponse importRelationshipBetweenTeis( String teiA, String teiB )
-    {
-        JsonObject payload = new RelationshipDataBuilder()
-            .setFromTrackedEntity( teiA )
-            .setToTrackedEntity( teiB )
-            .setRelationshipType( "xLmPUYJX8Ks" )
+  protected TrackerApiResponse importRelationshipBetweenTeis(String teiA, String teiB) {
+    JsonObject payload =
+        new RelationshipDataBuilder()
+            .setFromTrackedEntity(teiA)
+            .setToTrackedEntity(teiB)
+            .setRelationshipType("xLmPUYJX8Ks")
             .array();
 
-        return trackerActions.postAndGetJobReport( payload ).validateSuccessfulImport();
-    }
+    return trackerActions.postAndGetJobReport(payload).validateSuccessfulImport();
+  }
 
-    protected TrackerApiResponse importRelationshipEnrollmentToTei( String enrollment, String teiB )
-    {
-        JsonObject payload = new RelationshipDataBuilder().setFromEntity( "enrollment", enrollment )
-            .setToTrackedEntity( teiB ).setRelationshipType( "fdc6uOvgoji" ).array();
+  protected TrackerApiResponse importRelationshipEnrollmentToTei(String enrollment, String teiB) {
+    JsonObject payload =
+        new RelationshipDataBuilder()
+            .setFromEntity("enrollment", enrollment)
+            .setToTrackedEntity(teiB)
+            .setRelationshipType("fdc6uOvgoji")
+            .array();
 
-        return trackerActions.postAndGetJobReport( payload ).validateSuccessfulImport();
-    }
+    return trackerActions.postAndGetJobReport(payload).validateSuccessfulImport();
+  }
 
-    @AfterEach
-    public void afterEachNTI()
-    {
-        loginActions.loginAsSuperUser();
-        new MaintenanceActions().removeSoftDeletedData();
-    }
+  @AfterEach
+  public void afterEachNTI() {
+    loginActions.loginAsSuperUser();
+    new MaintenanceActions().removeSoftDeletedData();
+  }
 }

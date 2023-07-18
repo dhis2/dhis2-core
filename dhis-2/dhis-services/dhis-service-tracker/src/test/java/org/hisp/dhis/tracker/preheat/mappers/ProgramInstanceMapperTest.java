@@ -34,33 +34,31 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
-
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.junit.jupiter.api.Test;
 
-class ProgramInstanceMapperTest
-{
+class ProgramInstanceMapperTest {
 
-    @Test
-    void testIdSchemeRelatedFieldsAreMapped()
-    {
+  @Test
+  void testIdSchemeRelatedFieldsAreMapped() {
 
-        Program program = setIdSchemeFields(
+    Program program =
+        setIdSchemeFields(
             new Program(),
             "WTTYiPQDqh1",
             "friendship",
             "red",
-            attributeValues( "m0GpPuMUfFW", "yellow" ) );
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setProgram( program );
+            attributeValues("m0GpPuMUfFW", "yellow"));
+    ProgramInstance programInstance = new ProgramInstance();
+    programInstance.setProgram(program);
 
-        ProgramInstance mapped = ProgramInstanceMapper.INSTANCE.map( programInstance );
+    ProgramInstance mapped = ProgramInstanceMapper.INSTANCE.map(programInstance);
 
-        assertEquals( "WTTYiPQDqh1", mapped.getProgram().getUid() );
-        assertEquals( "friendship", mapped.getProgram().getName() );
-        assertEquals( "red", mapped.getProgram().getCode() );
-        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "yellow" ) ),
-            mapped.getProgram().getAttributeValues() );
-    }
+    assertEquals("WTTYiPQDqh1", mapped.getProgram().getUid());
+    assertEquals("friendship", mapped.getProgram().getName());
+    assertEquals("red", mapped.getProgram().getCode());
+    assertContainsOnly(
+        Set.of(attributeValue("m0GpPuMUfFW", "yellow")), mapped.getProgram().getAttributeValues());
+  }
 }

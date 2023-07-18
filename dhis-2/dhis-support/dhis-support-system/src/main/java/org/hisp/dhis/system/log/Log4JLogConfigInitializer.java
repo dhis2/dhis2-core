@@ -30,16 +30,14 @@ package org.hisp.dhis.system.log;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+import com.google.common.collect.Lists;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.zip.Deflater;
-
 import javax.annotation.PostConstruct;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -56,257 +54,268 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
-
 /**
- * This class adds new Logger(s) and RollingFileAppender(s) to the XML-based,
- * default Log4J configuration. The goal is to create a number of scoped log
- * files, each for different areas of the application. The scope is defined by
- * package name.
+ * This class adds new Logger(s) and RollingFileAppender(s) to the XML-based, default Log4J
+ * configuration. The goal is to create a number of scoped log files, each for different areas of
+ * the application. The scope is defined by package name.
  *
- * Additionally this class also attach a RollingFileAppender to the Root logger.
+ * <p>Additionally this class also attach a RollingFileAppender to the Root logger.
  *
  * @author Lars Helge Overland
  */
 @Slf4j
-@Component( "logInitializer" )
-public class Log4JLogConfigInitializer
-    implements LogConfigInitializer
-{
-    private final PatternLayout PATTERN_LAYOUT = PatternLayout.newBuilder()
-        .withPattern( "* %-5p %d{ISO8601} %m (%F [%t])%n" )
-        .build();
+@Component("logInitializer")
+public class Log4JLogConfigInitializer implements LogConfigInitializer {
+  private final PatternLayout PATTERN_LAYOUT =
+      PatternLayout.newBuilder().withPattern("* %-5p %d{ISO8601} %m (%F [%t])%n").build();
 
-    private static final String LOG_DIR = "logs";
+  private static final String LOG_DIR = "logs";
 
-    private static final String ANALYTICS_TABLE_LOGGER_FILENAME = "dhis-analytics-table.log";
+  private static final String ANALYTICS_TABLE_LOGGER_FILENAME = "dhis-analytics-table.log";
 
-    private static final String DATA_EXCHANGE_LOGGER_FILENAME = "dhis-data-exchange.log";
+  private static final String DATA_EXCHANGE_LOGGER_FILENAME = "dhis-data-exchange.log";
 
-    private static final String DATA_SYNC_LOGGER_FILENAME = "dhis-data-sync.log";
+  private static final String DATA_SYNC_LOGGER_FILENAME = "dhis-data-sync.log";
 
-    private static final String METADATA_SYNC_LOGGER_FILENAME = "dhis-metadata-sync.log";
+  private static final String METADATA_SYNC_LOGGER_FILENAME = "dhis-metadata-sync.log";
 
-    private static final String GENERAL_LOGGER_FILENAME = "dhis.log";
+  private static final String GENERAL_LOGGER_FILENAME = "dhis.log";
 
-    private static final String PUSH_ANALYSIS_LOGGER_FILENAME = "dhis-push-analysis.log";
+  private static final String PUSH_ANALYSIS_LOGGER_FILENAME = "dhis-push-analysis.log";
 
-    private static final String AUDIT_LOGGER_FILENAME = "dhis-audit.log";
+  private static final String AUDIT_LOGGER_FILENAME = "dhis-audit.log";
 
-    private static final String LOG4J_CONF_PROP = "log4j2.configurationFile";
+  private static final String LOG4J_CONF_PROP = "log4j2.configurationFile";
 
-    private static final String LOGGING_LEVEL_PREFIX = "logging.level.";
+  private static final String LOGGING_LEVEL_PREFIX = "logging.level.";
 
-    private final LocationManager locationManager;
+  private final LocationManager locationManager;
 
-    private final DhisConfigurationProvider config;
+  private final DhisConfigurationProvider config;
 
-    public Log4JLogConfigInitializer( LocationManager locationManager, DhisConfigurationProvider config )
-    {
-        checkNotNull( locationManager );
-        checkNotNull( config );
-        this.locationManager = locationManager;
-        this.config = config;
+  public Log4JLogConfigInitializer(
+      LocationManager locationManager, DhisConfigurationProvider config) {
+    checkNotNull(locationManager);
+    checkNotNull(config);
+    this.locationManager = locationManager;
+    this.config = config;
+  }
+
+  @PostConstruct
+  @Override
+  public void initConfig() {
+    if (isNotBlank(System.getProperty(LOG4J_CONF_PROP))) {
+      log.info(
+          "Aborting default log config, external config set through system prop "
+              + LOG4J_CONF_PROP
+              + ": "
+              + System.getProperty(LOG4J_CONF_PROP));
+      return;
     }
 
-    @PostConstruct
-    @Override
-    public void initConfig()
-    {
-        if ( isNotBlank( System.getProperty( LOG4J_CONF_PROP ) ) )
-        {
-            log.info( "Aborting default log config, external config set through system prop " + LOG4J_CONF_PROP + ": "
-                + System.getProperty( LOG4J_CONF_PROP ) );
-            return;
-        }
-
-        if ( !locationManager.externalDirectorySet() )
-        {
-            log.warn( "Could not initialize additional log configuration, external home directory not set" );
-            return;
-        }
-
-        log.info( String.format( "Initializing Log4j, max file size: '%s', max file archives: %s",
-            config.getProperty( ConfigurationKey.LOGGING_FILE_MAX_SIZE ),
-            config.getProperty( ConfigurationKey.LOGGING_FILE_MAX_ARCHIVES ) ) );
-
-        locationManager.buildDirectory( LOG_DIR );
-
-        addConfigurableLogger( ANALYTICS_TABLE_LOGGER_FILENAME,
-            Lists.newArrayList( "org.hisp.dhis.resourcetable", "org.hisp.dhis.analytics.table" ) );
-
-        addConfigurableLogger( DATA_EXCHANGE_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2" ) );
-
-        addConfigurableLogger( DATA_SYNC_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2.sync" ) );
-
-        addConfigurableLogger( METADATA_SYNC_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2.metadata" ) );
-
-        addConfigurableLogger( PUSH_ANALYSIS_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.pushanalysis" ) );
-
-        addConfigurableAuditLog( AUDIT_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.audit" ) );
-
-        addConfigurableRootLog( GENERAL_LOGGER_FILENAME );
-
-        addConfigurableSystemLogs();
-
-        final LoggerContext ctx = (LoggerContext) LogManager.getContext( false );
-        ctx.updateLoggers();
+    if (!locationManager.externalDirectorySet()) {
+      log.warn(
+          "Could not initialize additional log configuration, external home directory not set");
+      return;
     }
 
-    /**
-     * Configures rolling audit file loggers.
-     *
-     * @param filename the filename to output logging to.
-     * @param packages the logger names.
-     */
-    private void addConfigurableAuditLog( String filename, List<String> packages )
-    {
-        String file = getLogFile( filename );
+    log.info(
+        String.format(
+            "Initializing Log4j, max file size: '%s', max file archives: %s",
+            config.getProperty(ConfigurationKey.LOGGING_FILE_MAX_SIZE),
+            config.getProperty(ConfigurationKey.LOGGING_FILE_MAX_ARCHIVES)));
 
-        RollingFileAppender appender = RollingFileAppender.newBuilder()
-            .withFileName( file )
-            .setName( "appender_" + file )
-            .withFilePattern( file + ".%i" )
-            .setLayout( PATTERN_LAYOUT )
-            .withPolicy( CronTriggeringPolicy.createPolicy( getLogConfiguration(), "true", "0 0 0 * * ?" ) )
-            .withStrategy( DefaultRolloverStrategy.newBuilder()
-                .withCompressionLevelStr( String.valueOf( Deflater.BEST_COMPRESSION ) )
-                .withFileIndex( "nomax" )
-                .build() )
-            .build();
+    locationManager.buildDirectory(LOG_DIR);
 
-        appender.start();
+    addConfigurableLogger(
+        ANALYTICS_TABLE_LOGGER_FILENAME,
+        Lists.newArrayList("org.hisp.dhis.resourcetable", "org.hisp.dhis.analytics.table"));
 
-        getLogConfiguration().addAppender( appender );
+    addConfigurableLogger(DATA_EXCHANGE_LOGGER_FILENAME, Lists.newArrayList("org.hisp.dhis.dxf2"));
 
-        AppenderRef[] refs = createAppenderRef( "Ref_" + filename );
+    addConfigurableLogger(DATA_SYNC_LOGGER_FILENAME, Lists.newArrayList("org.hisp.dhis.dxf2.sync"));
 
-        for ( String loggerName : packages )
-        {
-            LoggerConfig loggerConfig = LoggerConfig.createLogger( false, Level.INFO, loggerName, "true", refs, null,
-                getLogConfiguration(), null );
+    addConfigurableLogger(
+        METADATA_SYNC_LOGGER_FILENAME, Lists.newArrayList("org.hisp.dhis.dxf2.metadata"));
 
-            loggerConfig.addAppender( appender, null, null );
+    addConfigurableLogger(
+        PUSH_ANALYSIS_LOGGER_FILENAME, Lists.newArrayList("org.hisp.dhis.pushanalysis"));
 
-            getLogConfiguration().addLogger( loggerName, loggerConfig );
+    addConfigurableAuditLog(AUDIT_LOGGER_FILENAME, Lists.newArrayList("org.hisp.dhis.audit"));
 
-            log.info( "Added logger: " + loggerName + " using file: " + file );
-        }
-    }
+    addConfigurableRootLog(GENERAL_LOGGER_FILENAME);
 
-    /**
-     * Configures rolling file loggers.
-     *
-     * @param filename the filename to output logging to.
-     * @param packages the logger names.
-     */
-    private void addConfigurableLogger( String filename, List<String> packages )
-    {
-        String file = getLogFile( filename );
+    addConfigurableSystemLogs();
 
-        RollingFileAppender appender = getRollingFileAppender( file );
+    final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+    ctx.updateLoggers();
+  }
 
-        getLogConfiguration().addAppender( appender );
+  /**
+   * Configures rolling audit file loggers.
+   *
+   * @param filename the filename to output logging to.
+   * @param packages the logger names.
+   */
+  private void addConfigurableAuditLog(String filename, List<String> packages) {
+    String file = getLogFile(filename);
 
-        AppenderRef[] refs = createAppenderRef( "Ref_" + filename );
-
-        for ( String loggerName : packages )
-        {
-            LoggerConfig loggerConfig = LoggerConfig.createLogger( true, Level.INFO, loggerName, "true", refs, null,
-                getLogConfiguration(), null );
-
-            loggerConfig.addAppender( appender, null, null );
-
-            getLogConfiguration().addLogger( loggerName, loggerConfig );
-
-            log.info( "Added logger: " + loggerName + " using file: " + file );
-        }
-    }
-
-    private AppenderRef[] createAppenderRef( String refName )
-    {
-        AppenderRef ref = AppenderRef.createAppenderRef( refName, Level.INFO, null );
-        return new AppenderRef[] { ref };
-    }
-
-    private Configuration getLogConfiguration()
-    {
-        final LoggerContext ctx = (LoggerContext) LogManager.getContext( false );
-        return ctx.getConfiguration();
-    }
-
-    /**
-     * Configures a root file logger.
-     *
-     * @param filename the filename to output logging to.
-     */
-    private void addConfigurableRootLog( String filename )
-    {
-        String file = getLogFile( filename );
-
-        RollingFileAppender appender = getRollingFileAppender( file );
-
-        getLogConfiguration().addAppender( appender );
-
-        getLogConfiguration().getRootLogger().addAppender( getLogConfiguration().getAppender( appender.getName() ),
-            Level.INFO, null );
-
-        log.info( "Added root logger using file: " + file );
-    }
-
-    private void addConfigurableSystemLogs()
-    {
-        Properties properties = config.getProperties();
-
-        for ( Map.Entry<Object, Object> conf : properties.entrySet() )
-        {
-            String key = (String) conf.getKey();
-
-            if ( key.startsWith( LOGGING_LEVEL_PREFIX ) )
-            {
-                String logPackage = key.substring( LOGGING_LEVEL_PREFIX.length() );
-                Level logLevel = Level.getLevel( conf.getValue().toString().toUpperCase() );
-
-                AppenderRef console = AppenderRef.createAppenderRef( "console", logLevel, null );
-
-                LoggerConfig loggerConfig = LoggerConfig.createLogger( true, logLevel, logPackage, "true",
-                    new AppenderRef[] { console }, null, getLogConfiguration(), null );
-
-                getLogConfiguration().addLogger( logPackage, loggerConfig );
-
-                log.info( "Added logger: " + logPackage + " using level: " + conf.getValue() );
-            }
-        }
-    }
-
-    /**
-     * Returns a rolling file appender.
-     *
-     * @param file the file to output to, including path and filename.
-     */
-    private RollingFileAppender getRollingFileAppender( String file )
-    {
-        RollingFileAppender appender = RollingFileAppender.newBuilder().withFileName( file )
-            .setName( "appender_" + file )
-            .withFilePattern( file + ".%i" )
-            .setLayout( PATTERN_LAYOUT )
+    RollingFileAppender appender =
+        RollingFileAppender.newBuilder()
+            .withFileName(file)
+            .setName("appender_" + file)
+            .withFilePattern(file + ".%i")
+            .setLayout(PATTERN_LAYOUT)
             .withPolicy(
-                SizeBasedTriggeringPolicy.createPolicy( config.getProperty( ConfigurationKey.LOGGING_FILE_MAX_SIZE ) ) )
-            .withStrategy( DefaultRolloverStrategy.newBuilder()
-                .withMax( config.getProperty( ConfigurationKey.LOGGING_FILE_MAX_ARCHIVES ) ).build() )
+                CronTriggeringPolicy.createPolicy(getLogConfiguration(), "true", "0 0 0 * * ?"))
+            .withStrategy(
+                DefaultRolloverStrategy.newBuilder()
+                    .withCompressionLevelStr(String.valueOf(Deflater.BEST_COMPRESSION))
+                    .withFileIndex("nomax")
+                    .build())
             .build();
 
-        appender.start();
-        return appender;
-    }
+    appender.start();
 
-    /**
-     * Returns a file including path and filename.
-     *
-     * @param filename the filename to use for the file path.
-     */
-    private String getLogFile( String filename )
-    {
-        return locationManager.getExternalDirectoryPath() + File.separator + LOG_DIR + File.separator + filename;
+    getLogConfiguration().addAppender(appender);
+
+    AppenderRef[] refs = createAppenderRef("Ref_" + filename);
+
+    for (String loggerName : packages) {
+      LoggerConfig loggerConfig =
+          LoggerConfig.createLogger(
+              false, Level.INFO, loggerName, "true", refs, null, getLogConfiguration(), null);
+
+      loggerConfig.addAppender(appender, null, null);
+
+      getLogConfiguration().addLogger(loggerName, loggerConfig);
+
+      log.info("Added logger: " + loggerName + " using file: " + file);
     }
+  }
+
+  /**
+   * Configures rolling file loggers.
+   *
+   * @param filename the filename to output logging to.
+   * @param packages the logger names.
+   */
+  private void addConfigurableLogger(String filename, List<String> packages) {
+    String file = getLogFile(filename);
+
+    RollingFileAppender appender = getRollingFileAppender(file);
+
+    getLogConfiguration().addAppender(appender);
+
+    AppenderRef[] refs = createAppenderRef("Ref_" + filename);
+
+    for (String loggerName : packages) {
+      LoggerConfig loggerConfig =
+          LoggerConfig.createLogger(
+              true, Level.INFO, loggerName, "true", refs, null, getLogConfiguration(), null);
+
+      loggerConfig.addAppender(appender, null, null);
+
+      getLogConfiguration().addLogger(loggerName, loggerConfig);
+
+      log.info("Added logger: " + loggerName + " using file: " + file);
+    }
+  }
+
+  private AppenderRef[] createAppenderRef(String refName) {
+    AppenderRef ref = AppenderRef.createAppenderRef(refName, Level.INFO, null);
+    return new AppenderRef[] {ref};
+  }
+
+  private Configuration getLogConfiguration() {
+    final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+    return ctx.getConfiguration();
+  }
+
+  /**
+   * Configures a root file logger.
+   *
+   * @param filename the filename to output logging to.
+   */
+  private void addConfigurableRootLog(String filename) {
+    String file = getLogFile(filename);
+
+    RollingFileAppender appender = getRollingFileAppender(file);
+
+    getLogConfiguration().addAppender(appender);
+
+    getLogConfiguration()
+        .getRootLogger()
+        .addAppender(getLogConfiguration().getAppender(appender.getName()), Level.INFO, null);
+
+    log.info("Added root logger using file: " + file);
+  }
+
+  private void addConfigurableSystemLogs() {
+    Properties properties = config.getProperties();
+
+    for (Map.Entry<Object, Object> conf : properties.entrySet()) {
+      String key = (String) conf.getKey();
+
+      if (key.startsWith(LOGGING_LEVEL_PREFIX)) {
+        String logPackage = key.substring(LOGGING_LEVEL_PREFIX.length());
+        Level logLevel = Level.getLevel(conf.getValue().toString().toUpperCase());
+
+        AppenderRef console = AppenderRef.createAppenderRef("console", logLevel, null);
+
+        LoggerConfig loggerConfig =
+            LoggerConfig.createLogger(
+                true,
+                logLevel,
+                logPackage,
+                "true",
+                new AppenderRef[] {console},
+                null,
+                getLogConfiguration(),
+                null);
+
+        getLogConfiguration().addLogger(logPackage, loggerConfig);
+
+        log.info("Added logger: " + logPackage + " using level: " + conf.getValue());
+      }
+    }
+  }
+
+  /**
+   * Returns a rolling file appender.
+   *
+   * @param file the file to output to, including path and filename.
+   */
+  private RollingFileAppender getRollingFileAppender(String file) {
+    RollingFileAppender appender =
+        RollingFileAppender.newBuilder()
+            .withFileName(file)
+            .setName("appender_" + file)
+            .withFilePattern(file + ".%i")
+            .setLayout(PATTERN_LAYOUT)
+            .withPolicy(
+                SizeBasedTriggeringPolicy.createPolicy(
+                    config.getProperty(ConfigurationKey.LOGGING_FILE_MAX_SIZE)))
+            .withStrategy(
+                DefaultRolloverStrategy.newBuilder()
+                    .withMax(config.getProperty(ConfigurationKey.LOGGING_FILE_MAX_ARCHIVES))
+                    .build())
+            .build();
+
+    appender.start();
+    return appender;
+  }
+
+  /**
+   * Returns a file including path and filename.
+   *
+   * @param filename the filename to use for the file path.
+   */
+  private String getLogFile(String filename) {
+    return locationManager.getExternalDirectoryPath()
+        + File.separator
+        + LOG_DIR
+        + File.separator
+        + filename;
+  }
 }

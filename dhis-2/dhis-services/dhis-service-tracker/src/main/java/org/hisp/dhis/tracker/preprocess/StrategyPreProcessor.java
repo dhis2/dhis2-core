@@ -39,128 +39,90 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.springframework.stereotype.Component;
 
 /**
- * This preprocessor is responsible for setting the correct strategy for every
- * tracker object.
+ * This preprocessor is responsible for setting the correct strategy for every tracker object.
  *
  * @author Enrico Colasante
  */
 @Component
-public class StrategyPreProcessor
-    implements BundlePreProcessor
-{
-    @Override
-    public void process( TrackerBundle bundle )
-    {
-        preProcessTrackedEntities( bundle );
-        preProcessEnrollments( bundle );
-        preProcessEvents( bundle );
-        preProcessRelationships( bundle );
-    }
+public class StrategyPreProcessor implements BundlePreProcessor {
+  @Override
+  public void process(TrackerBundle bundle) {
+    preProcessTrackedEntities(bundle);
+    preProcessEnrollments(bundle);
+    preProcessEvents(bundle);
+    preProcessRelationships(bundle);
+  }
 
-    public void preProcessTrackedEntities( TrackerBundle bundle )
-    {
-        for ( TrackedEntity tei : bundle.getTrackedEntities() )
-        {
-            TrackerImportStrategy importStrategy = bundle.getImportStrategy();
+  public void preProcessTrackedEntities(TrackerBundle bundle) {
+    for (TrackedEntity tei : bundle.getTrackedEntities()) {
+      TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-            TrackedEntityInstance existingTei = bundle.getPreheat().getTrackedEntity(
-                tei.getTrackedEntity() );
+      TrackedEntityInstance existingTei =
+          bundle.getPreheat().getTrackedEntity(tei.getTrackedEntity());
 
-            if ( importStrategy.isCreateAndUpdate() )
-            {
-                if ( existingTei == null )
-                {
-                    bundle.setStrategy( tei, TrackerImportStrategy.CREATE );
-                }
-                else
-                {
-                    bundle.setStrategy( tei, TrackerImportStrategy.UPDATE );
-                }
-            }
-            else
-            {
-                bundle.setStrategy( tei, importStrategy );
-            }
+      if (importStrategy.isCreateAndUpdate()) {
+        if (existingTei == null) {
+          bundle.setStrategy(tei, TrackerImportStrategy.CREATE);
+        } else {
+          bundle.setStrategy(tei, TrackerImportStrategy.UPDATE);
         }
+      } else {
+        bundle.setStrategy(tei, importStrategy);
+      }
     }
+  }
 
-    public void preProcessEnrollments( TrackerBundle bundle )
-    {
-        for ( Enrollment enrollment : bundle.getEnrollments() )
-        {
-            TrackerImportStrategy importStrategy = bundle.getImportStrategy();
+  public void preProcessEnrollments(TrackerBundle bundle) {
+    for (Enrollment enrollment : bundle.getEnrollments()) {
+      TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-            ProgramInstance existingPI = bundle.getPreheat().getEnrollment(
-                enrollment.getEnrollment() );
+      ProgramInstance existingPI = bundle.getPreheat().getEnrollment(enrollment.getEnrollment());
 
-            if ( importStrategy.isCreateAndUpdate() )
-            {
-                if ( existingPI == null )
-                {
-                    bundle.setStrategy( enrollment, TrackerImportStrategy.CREATE );
-                }
-                else
-                {
-                    bundle.setStrategy( enrollment, TrackerImportStrategy.UPDATE );
-                }
-            }
-            else
-            {
-                bundle.setStrategy( enrollment, importStrategy );
-            }
+      if (importStrategy.isCreateAndUpdate()) {
+        if (existingPI == null) {
+          bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
+        } else {
+          bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
         }
+      } else {
+        bundle.setStrategy(enrollment, importStrategy);
+      }
     }
+  }
 
-    public void preProcessEvents( TrackerBundle bundle )
-    {
-        for ( Event event : bundle.getEvents() )
-        {
-            TrackerImportStrategy importStrategy = bundle.getImportStrategy();
+  public void preProcessEvents(TrackerBundle bundle) {
+    for (Event event : bundle.getEvents()) {
+      TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-            ProgramStageInstance existingPsi = bundle.getPreheat().getEvent( event.getEvent() );
+      ProgramStageInstance existingPsi = bundle.getPreheat().getEvent(event.getEvent());
 
-            if ( importStrategy.isCreateAndUpdate() )
-            {
-                if ( existingPsi == null )
-                {
-                    bundle.setStrategy( event, TrackerImportStrategy.CREATE );
-                }
-                else
-                {
-                    bundle.setStrategy( event, TrackerImportStrategy.UPDATE );
-                }
-            }
-            else
-            {
-                bundle.setStrategy( event, importStrategy );
-            }
+      if (importStrategy.isCreateAndUpdate()) {
+        if (existingPsi == null) {
+          bundle.setStrategy(event, TrackerImportStrategy.CREATE);
+        } else {
+          bundle.setStrategy(event, TrackerImportStrategy.UPDATE);
         }
+      } else {
+        bundle.setStrategy(event, importStrategy);
+      }
     }
+  }
 
-    public void preProcessRelationships( TrackerBundle bundle )
-    {
-        for ( Relationship relationship : bundle.getRelationships() )
-        {
-            TrackerImportStrategy importStrategy = bundle.getImportStrategy();
-            org.hisp.dhis.relationship.Relationship existingRelationship = bundle.getPreheat()
-                .getRelationship( relationship.getUid() );
+  public void preProcessRelationships(TrackerBundle bundle) {
+    for (Relationship relationship : bundle.getRelationships()) {
+      TrackerImportStrategy importStrategy = bundle.getImportStrategy();
+      org.hisp.dhis.relationship.Relationship existingRelationship =
+          bundle.getPreheat().getRelationship(relationship.getUid());
 
-            if ( importStrategy.isCreateAndUpdate() )
-            {
-                if ( existingRelationship == null )
-                {
-                    bundle.setStrategy( relationship, TrackerImportStrategy.CREATE );
-                }
-                else
-                {
-                    bundle.setStrategy( relationship, TrackerImportStrategy.UPDATE );
-                }
-            }
-            else
-            {
-                bundle.setStrategy( relationship, importStrategy );
-            }
-
+      if (importStrategy.isCreateAndUpdate()) {
+        if (existingRelationship == null) {
+          bundle.setStrategy(relationship, TrackerImportStrategy.CREATE);
+        } else {
+          bundle.setStrategy(relationship, TrackerImportStrategy.UPDATE);
         }
+      } else {
+        bundle.setStrategy(relationship, importStrategy);
+      }
     }
+  }
 }

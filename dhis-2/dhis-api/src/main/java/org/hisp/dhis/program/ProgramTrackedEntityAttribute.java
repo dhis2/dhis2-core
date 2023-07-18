@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.program;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -36,240 +40,231 @@ import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Chau Thu Tran
  */
-@JacksonXmlRootElement( localName = "programTrackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0 )
-public class ProgramTrackedEntityAttribute
-    extends BaseIdentifiableObject implements EmbeddedObject
-{
-    private Program program;
+@JacksonXmlRootElement(
+    localName = "programTrackedEntityAttribute",
+    namespace = DxfNamespaces.DXF_2_0)
+public class ProgramTrackedEntityAttribute extends BaseIdentifiableObject
+    implements EmbeddedObject {
+  private Program program;
 
-    private TrackedEntityAttribute attribute;
+  private TrackedEntityAttribute attribute;
 
-    private boolean displayInList;
+  private boolean displayInList;
 
-    private Integer sortOrder;
+  private Integer sortOrder;
 
-    private Boolean mandatory;
+  private Boolean mandatory;
 
-    private Boolean allowFutureDate;
+  private Boolean allowFutureDate;
 
-    // TODO: Remove, replaced by renderType
-    private Boolean renderOptionsAsRadio = false;
+  // TODO: Remove, replaced by renderType
+  private Boolean renderOptionsAsRadio = false;
 
-    private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
+  private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
 
-    private Boolean searchable = false;
+  private Boolean searchable = false;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public ProgramTrackedEntityAttribute()
-    {
-        setAutoFields();
+  public ProgramTrackedEntityAttribute() {
+    setAutoFields();
+  }
+
+  public ProgramTrackedEntityAttribute(Program program, TrackedEntityAttribute attribute) {
+    this();
+    this.program = program;
+    this.attribute = attribute;
+  }
+
+  public ProgramTrackedEntityAttribute(
+      Program program, TrackedEntityAttribute attribute, boolean displayInList, Boolean mandatory) {
+    this(program, attribute);
+    this.displayInList = displayInList;
+    this.mandatory = mandatory;
+  }
+
+  public ProgramTrackedEntityAttribute(
+      Program program,
+      TrackedEntityAttribute attribute,
+      boolean displayInList,
+      Boolean mandatory,
+      Integer sortOrder) {
+    this(program, attribute);
+    this.displayInList = displayInList;
+    this.mandatory = mandatory;
+    this.sortOrder = sortOrder;
+  }
+
+  public ProgramTrackedEntityAttribute(
+      Program program,
+      TrackedEntityAttribute attribute,
+      boolean displayInList,
+      Boolean mandatory,
+      Boolean allowFutureDate) {
+    this(program, attribute, displayInList, mandatory);
+    this.allowFutureDate = allowFutureDate;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String getName() {
+    return (program != null ? program.getDisplayName() + " " : "")
+        + (attribute != null ? attribute.getDisplayName() : "");
+  }
+
+  @JsonProperty
+  public String getDisplayShortName() {
+    return (program != null ? program.getDisplayShortName() + " " : "")
+        + (attribute != null ? attribute.getDisplayShortName() : "");
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ValueType getValueType() {
+    return attribute != null ? attribute.getValueType() : null;
+  }
+
+  @Override
+  public String toString() {
+    return "ProgramTrackedEntityAttribute{"
+        + "class="
+        + getClass()
+        + ", program="
+        + program
+        + ", attribute="
+        + attribute
+        + ", displayInList="
+        + displayInList
+        + ", sortOrder="
+        + sortOrder
+        + ", mandatory="
+        + mandatory
+        + ", allowFutureDate="
+        + allowFutureDate
+        + ", renderOptionsAsRadio="
+        + renderOptionsAsRadio
+        + ", renderType="
+        + renderType
+        + ", searchable="
+        + searchable
+        + ", id="
+        + id
+        + ", uid='"
+        + uid
+        + '\''
+        + ", created="
+        + created
+        + ", lastUpdated="
+        + lastUpdated
+        + '}';
+  }
+
+  // -------------------------------------------------------------------------
+  // Getters && Setters
+  // -------------------------------------------------------------------------
+
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Program getProgram() {
+    return program;
+  }
+
+  public void setProgram(Program program) {
+    this.program = program;
+  }
+
+  @JsonProperty("trackedEntityAttribute")
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(localName = "trackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0)
+  public TrackedEntityAttribute getAttribute() {
+    return attribute;
+  }
+
+  public void setAttribute(TrackedEntityAttribute attribute) {
+    this.attribute = attribute;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean isMandatory() {
+    if (mandatory != null) {
+      return mandatory;
     }
 
-    public ProgramTrackedEntityAttribute( Program program, TrackedEntityAttribute attribute )
-    {
-        this();
-        this.program = program;
-        this.attribute = attribute;
-    }
+    return false;
+  }
 
-    public ProgramTrackedEntityAttribute( Program program, TrackedEntityAttribute attribute, boolean displayInList,
-        Boolean mandatory )
-    {
-        this( program, attribute );
-        this.displayInList = displayInList;
-        this.mandatory = mandatory;
-    }
+  public void setMandatory(Boolean mandatory) {
+    this.mandatory = mandatory;
+  }
 
-    public ProgramTrackedEntityAttribute( Program program, TrackedEntityAttribute attribute, boolean displayInList,
-        Boolean mandatory, Integer sortOrder )
-    {
-        this( program, attribute );
-        this.displayInList = displayInList;
-        this.mandatory = mandatory;
-        this.sortOrder = sortOrder;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(localName = "displayInList", namespace = DxfNamespaces.DXF_2_0)
+  public boolean isDisplayInList() {
+    return displayInList;
+  }
 
-    public ProgramTrackedEntityAttribute( Program program, TrackedEntityAttribute attribute, boolean displayInList,
-        Boolean mandatory, Boolean allowFutureDate )
-    {
-        this( program, attribute, displayInList, mandatory );
-        this.allowFutureDate = allowFutureDate;
-    }
+  public void setDisplayInList(boolean displayInList) {
+    this.displayInList = displayInList;
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getAllowFutureDate() {
+    return allowFutureDate;
+  }
 
-    @Override
-    public String getName()
-    {
-        return (program != null ? program.getDisplayName() + " " : "")
-            + (attribute != null ? attribute.getDisplayName() : "");
-    }
+  public void setAllowFutureDate(Boolean allowFutureDate) {
+    this.allowFutureDate = allowFutureDate;
+  }
 
-    @JsonProperty
-    public String getDisplayShortName()
-    {
-        return (program != null ? program.getDisplayShortName() + " " : "")
-            + (attribute != null ? attribute.getDisplayShortName() : "");
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Integer getSortOrder() {
+    return sortOrder;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ValueType getValueType()
-    {
-        return attribute != null ? attribute.getValueType() : null;
-    }
+  public void setSortOrder(Integer sortOrder) {
+    this.sortOrder = sortOrder;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "ProgramTrackedEntityAttribute{" +
-            "class=" + getClass() +
-            ", program=" + program +
-            ", attribute=" + attribute +
-            ", displayInList=" + displayInList +
-            ", sortOrder=" + sortOrder +
-            ", mandatory=" + mandatory +
-            ", allowFutureDate=" + allowFutureDate +
-            ", renderOptionsAsRadio=" + renderOptionsAsRadio +
-            ", renderType=" + renderType +
-            ", searchable=" + searchable +
-            ", id=" + id +
-            ", uid='" + uid + '\'' +
-            ", created=" + created +
-            ", lastUpdated=" + lastUpdated +
-            '}';
-    }
-    // -------------------------------------------------------------------------
-    // Getters && Setters
-    // -------------------------------------------------------------------------
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getRenderOptionsAsRadio() {
+    return renderOptionsAsRadio;
+  }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Program getProgram()
-    {
-        return program;
-    }
+  public void setRenderOptionsAsRadio(Boolean renderOptionsAsRadio) {
+    this.renderOptionsAsRadio = renderOptionsAsRadio;
+  }
 
-    public void setProgram( Program program )
-    {
-        this.program = program;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean isSearchable() {
+    return searchable;
+  }
 
-    @JsonProperty( "trackedEntityAttribute" )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( localName = "trackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityAttribute getAttribute()
-    {
-        return attribute;
-    }
+  public void setSearchable(Boolean searchable) {
+    this.searchable = searchable;
+  }
 
-    public void setAttribute( TrackedEntityAttribute attribute )
-    {
-        this.attribute = attribute;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonSerialize(using = DeviceRenderTypeMapSerializer.class)
+  public DeviceRenderTypeMap<ValueTypeRenderingObject> getRenderType() {
+    return renderType;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean isMandatory()
-    {
-        if ( mandatory != null )
-        {
-            return mandatory;
-        }
-
-        return false;
-    }
-
-    public void setMandatory( Boolean mandatory )
-    {
-        this.mandatory = mandatory;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( localName = "displayInList", namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isDisplayInList()
-    {
-        return displayInList;
-    }
-
-    public void setDisplayInList( boolean displayInList )
-    {
-        this.displayInList = displayInList;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getAllowFutureDate()
-    {
-        return allowFutureDate;
-    }
-
-    public void setAllowFutureDate( Boolean allowFutureDate )
-    {
-        this.allowFutureDate = allowFutureDate;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getSortOrder()
-    {
-        return sortOrder;
-    }
-
-    public void setSortOrder( Integer sortOrder )
-    {
-        this.sortOrder = sortOrder;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getRenderOptionsAsRadio()
-    {
-        return renderOptionsAsRadio;
-    }
-
-    public void setRenderOptionsAsRadio( Boolean renderOptionsAsRadio )
-    {
-        this.renderOptionsAsRadio = renderOptionsAsRadio;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean isSearchable()
-    {
-        return searchable;
-    }
-
-    public void setSearchable( Boolean searchable )
-    {
-        this.searchable = searchable;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( using = DeviceRenderTypeMapSerializer.class )
-    public DeviceRenderTypeMap<ValueTypeRenderingObject> getRenderType()
-    {
-        return renderType;
-    }
-
-    public void setRenderType(
-        DeviceRenderTypeMap<ValueTypeRenderingObject> renderType )
-    {
-        this.renderType = renderType;
-    }
+  public void setRenderType(DeviceRenderTypeMap<ValueTypeRenderingObject> renderType) {
+    this.renderType = renderType;
+  }
 }

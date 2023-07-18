@@ -28,7 +28,6 @@
 package org.hisp.dhis.web.embeddedjetty;
 
 import java.io.IOException;
-
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -38,21 +37,16 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class GetAppMenuServlet
-    extends HttpServlet
-{
+public class GetAppMenuServlet extends HttpServlet {
 
-    @Override
-    protected void doGet( HttpServletRequest req, HttpServletResponse resp )
-        throws IOException,
-        ServletException
-    {
-        resp.setContentType( "application/json" );
-        resp.setStatus( HttpServletResponse.SC_OK );
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+      throws IOException, ServletException {
+    resp.setContentType("application/json");
+    resp.setStatus(HttpServletResponse.SC_OK);
 
-        RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(
-            "/api/apps/menu" );
+    RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/api/apps/menu");
 
-        dispatcher.include( req, resp );
-    }
+    dispatcher.include(req, resp);
+  }
 }

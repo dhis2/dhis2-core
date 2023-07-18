@@ -30,27 +30,21 @@ package org.hisp.dhis.dxf2.metadata.feedback;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum ImportReportMode
-{
-    /**
-     * Gives full import report, including object reports for valid objects.
-     */
-    FULL,
+public enum ImportReportMode {
+  /** Gives full import report, including object reports for valid objects. */
+  FULL,
 
-    /**
-     * Returns import report where valid object report has been filtered out.
-     */
-    ERRORS,
+  /** Returns import report where valid object report has been filtered out. */
+  ERRORS,
 
-    /**
-     * Works the same as ERRORS, but in addition it will also report references
-     * that are not owned by the object.
-     */
-    ERRORS_NOT_OWNER,
+  /**
+   * Works the same as ERRORS, but in addition it will also report references that are not owned by
+   * the object.
+   */
+  ERRORS_NOT_OWNER,
 
-    /**
-     * Gives full import report, including object reports for valid objects and
-     * names (if available).
-     */
-    DEBUG
+  /**
+   * Gives full import report, including object reports for valid objects and names (if available).
+   */
+  DEBUG
 }

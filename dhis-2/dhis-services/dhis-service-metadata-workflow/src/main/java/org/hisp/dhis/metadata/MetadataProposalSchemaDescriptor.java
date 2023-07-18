@@ -33,20 +33,18 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Jan Bernitt
  */
-public class MetadataProposalSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "proposal";
+public class MetadataProposalSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "proposal";
 
-    public static final String PLURAL = "proposals";
+  public static final String PLURAL = "proposals";
 
-    public static final String API_ENDPOINT = "/metadata/proposals";
+  public static final String API_ENDPOINT = "/metadata/proposals";
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( MetadataProposal.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(MetadataProposal.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
 
-        return schema;
-    }
+    return schema;
+  }
 }

@@ -33,9 +33,7 @@ import static org.hisp.dhis.tracker.programrule.executor.RuleActionExecutor.isEq
 
 import java.util.Optional;
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -48,96 +46,83 @@ import org.hisp.dhis.tracker.programrule.executor.RuleActionExecutor;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 
 /**
- * This executor assigns a value to a field if it is empty, otherwise returns an
- * error
- *
- * @Author Enrico Colasante
+ * This executor assigns a value to a field if it is empty, otherwise returns an error @Author
+ * Enrico Colasante
  */
 @RequiredArgsConstructor
-public class AssignDataValueExecutor implements RuleActionExecutor<Event>
-{
-    private final SystemSettingManager systemSettingManager;
+public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
+  private final SystemSettingManager systemSettingManager;
 
-    private final String ruleUid;
+  private final String ruleUid;
 
-    private final String value;
+  private final String value;
 
-    private final String dataElementUid;
+  private final String dataElementUid;
 
-    private final Set<DataValue> dataValues;
+  private final Set<DataValue> dataValues;
 
-    @Override
-    public String getDataElementUid()
-    {
-        return dataElementUid;
-    }
+  @Override
+  public String getDataElementUid() {
+    return dataElementUid;
+  }
 
-    @Override
-    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Event event )
-    {
-        Boolean canOverwrite = systemSettingManager
-            .getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE );
+  @Override
+  public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
+    Boolean canOverwrite =
+        systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE);
 
-        DataElement dataElement = bundle.getPreheat().getDataElement( dataElementUid );
+    DataElement dataElement = bundle.getPreheat().getDataElement(dataElementUid);
 
-        DataValue payloadDataValue = dataValues.stream()
-            .filter( dv -> dv.getDataElement().isEqualTo( dataElement ) )
+    DataValue payloadDataValue =
+        dataValues.stream()
+            .filter(dv -> dv.getDataElement().isEqualTo(dataElement))
             .findAny()
-            .orElse( null );
+            .orElse(null);
 
-        // Hopefully we will be able to remove this special case once rule engine will support optionSets
-        if ( dataElement.isOptionSetValue() && !dataElement.getOptionSet().getOptionCodes().contains( value ) )
-        {
-            return assignInvalidOptionDataElement( payloadDataValue, canOverwrite, event );
-        }
-
-        if ( payloadDataValue == null ||
-            Boolean.TRUE.equals( canOverwrite ) ||
-            isEqual( value, payloadDataValue.getValue(), dataElement.getValueType() ) )
-        {
-            addOrOverwriteDataValue( event, bundle, dataElement, payloadDataValue );
-            return Optional.of( warning( ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent() ) );
-        }
-        return Optional.of( error( ruleUid, ValidationCode.E1307, dataElementUid, value ) );
+    // Hopefully we will be able to remove this special case once rule engine will support
+    // optionSets
+    if (dataElement.isOptionSetValue()
+        && !dataElement.getOptionSet().getOptionCodes().contains(value)) {
+      return assignInvalidOptionDataElement(payloadDataValue, canOverwrite, event);
     }
 
-    private Optional<ProgramRuleIssue> assignInvalidOptionDataElement( DataValue payloadDataValue, Boolean canOverwrite,
-        Event event )
-    {
-        if ( payloadDataValue == null || payloadDataValue.getValue() == null )
-        {
-            return Optional.of( warning( ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent() ) );
-        }
+    if (payloadDataValue == null
+        || Boolean.TRUE.equals(canOverwrite)
+        || isEqual(value, payloadDataValue.getValue(), dataElement.getValueType())) {
+      addOrOverwriteDataValue(event, bundle, dataElement, payloadDataValue);
+      return Optional.of(warning(ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent()));
+    }
+    return Optional.of(error(ruleUid, ValidationCode.E1307, dataElementUid, value));
+  }
 
-        if ( Boolean.TRUE.equals( canOverwrite ) )
-        {
-            payloadDataValue.setValue( null );
-            return Optional.of( warning( ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent() ) );
-        }
-
-        return Optional.of( error( ruleUid, ValidationCode.E1307, dataElementUid, "" ) );
+  private Optional<ProgramRuleIssue> assignInvalidOptionDataElement(
+      DataValue payloadDataValue, Boolean canOverwrite, Event event) {
+    if (payloadDataValue == null || payloadDataValue.getValue() == null) {
+      return Optional.of(warning(ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent()));
     }
 
-    private void addOrOverwriteDataValue( Event event, TrackerBundle bundle, DataElement dataElement,
-        DataValue payloadDataValue )
-    {
-        if ( payloadDataValue != null )
-        {
-            payloadDataValue.setValue( value );
-        }
-        else
-        {
-            event.getDataValues()
-                .add( createDataValue( bundle.getPreheat().getIdSchemes().toMetadataIdentifier( dataElement ),
-                    value ) );
-        }
+    if (Boolean.TRUE.equals(canOverwrite)) {
+      payloadDataValue.setValue(null);
+      return Optional.of(warning(ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent()));
     }
 
-    private DataValue createDataValue( MetadataIdentifier dataElement, String newValue )
-    {
-        return DataValue.builder()
-            .dataElement( dataElement )
-            .value( newValue )
-            .build();
+    return Optional.of(error(ruleUid, ValidationCode.E1307, dataElementUid, ""));
+  }
+
+  private void addOrOverwriteDataValue(
+      Event event, TrackerBundle bundle, DataElement dataElement, DataValue payloadDataValue) {
+    if (payloadDataValue != null) {
+      payloadDataValue.setValue(value);
+    } else {
+      event
+          .getDataValues()
+          .add(
+              createDataValue(
+                  bundle.getPreheat().getIdSchemes().toMetadataIdentifier(dataElement), value));
     }
+  }
+
+  private DataValue createDataValue(MetadataIdentifier dataElement, String newValue) {
+    return DataValue.builder().dataElement(dataElement).value(newValue).build();
+  }
 }

@@ -28,51 +28,52 @@
 package org.hisp.dhis.program.notification;
 
 import java.util.List;
-
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
 /**
  * @author Zubair Asghar
  */
-public interface ProgramNotificationTemplateService
-{
-    ProgramNotificationTemplate get( long programNotificationTemplate );
+public interface ProgramNotificationTemplateService {
+  ProgramNotificationTemplate get(long programNotificationTemplate);
 
-    ProgramNotificationTemplate getByUid( String programNotificationTemplate );
+  ProgramNotificationTemplate getByUid(String programNotificationTemplate);
 
-    void save( ProgramNotificationTemplate programNotificationTemplate );
+  void save(ProgramNotificationTemplate programNotificationTemplate);
 
-    void update( ProgramNotificationTemplate programNotificationTemplate );
+  void update(ProgramNotificationTemplate programNotificationTemplate);
 
-    void delete( ProgramNotificationTemplate programNotificationTemplate );
+  void delete(ProgramNotificationTemplate programNotificationTemplate);
 
-    List<ProgramNotificationTemplate> getProgramNotificationByTriggerType( NotificationTrigger trigger );
+  List<ProgramNotificationTemplate> getProgramNotificationByTriggerType(
+      NotificationTrigger trigger);
 
-    /**
-     * Method is used to check if {@link Program} is associated with any web
-     * hook notification template.
-     *
-     * @param program {@link Program} to check for association.
-     * @return true if {@link Program} is associated, otherwise false.
-     */
-    boolean isProgramLinkedToWebHookNotification( Program program );
+  /**
+   * Method is used to check if {@link Program} is associated with any web hook notification
+   * template.
+   *
+   * @param program {@link Program} to check for association.
+   * @return true if {@link Program} is associated, otherwise false.
+   */
+  boolean isProgramLinkedToWebHookNotification(Program program);
 
-    /**
-     * Method is used to check if {@link ProgramStage} is associated with any
-     * web hook notification template.
-     *
-     * @param programStage {@link ProgramStage} to check for association.
-     * @return true if {@link ProgramStage} is associated, otherwise false.
-     */
-    boolean isProgramStageLinkedToWebHookNotification( ProgramStage programStage );
+  /**
+   * Method is used to check if {@link ProgramStage} is associated with any web hook notification
+   * template.
+   *
+   * @param programStage {@link ProgramStage} to check for association.
+   * @return true if {@link ProgramStage} is associated, otherwise false.
+   */
+  boolean isProgramStageLinkedToWebHookNotification(ProgramStage programStage);
 
-    List<ProgramNotificationTemplate> getProgramLinkedToWebHookNotifications( Program program );
+  List<ProgramNotificationTemplate> getProgramLinkedToWebHookNotifications(Program program);
 
-    List<ProgramNotificationTemplate> getProgramStageLinkedToWebHookNotifications( ProgramStage programStage );
+  List<ProgramNotificationTemplate> getProgramStageLinkedToWebHookNotifications(
+      ProgramStage programStage);
 
-    int countProgramNotificationTemplates( ProgramNotificationTemplateParam programNotificationTemplateParam );
+  int countProgramNotificationTemplates(
+      ProgramNotificationTemplateParam programNotificationTemplateParam);
 
-    List<ProgramNotificationTemplate> getProgramNotificationTemplates(
-        ProgramNotificationTemplateParam programNotificationTemplateParam );
+  List<ProgramNotificationTemplate> getProgramNotificationTemplates(
+      ProgramNotificationTemplateParam programNotificationTemplateParam);
 }

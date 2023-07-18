@@ -28,7 +28,6 @@
 package org.hisp.dhis.option.hibernate;
 
 import java.util.List;
-
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -43,41 +42,48 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Chau Thu Tran
  */
-@Repository( "org.hisp.dhis.option.OptionStore" )
-public class HibernateOptionStore
-    extends HibernateIdentifiableObjectStore<Option>
-    implements OptionStore
-{
-    public HibernateOptionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, Option.class, currentUserService, aclService, true );
+@Repository("org.hisp.dhis.option.OptionStore")
+public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Option>
+    implements OptionStore {
+  public HibernateOptionStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        Option.class,
+        currentUserService,
+        aclService,
+        true);
+  }
+
+  // -------------------------------------------------------------------------
+  // Implementation methods
+  // -------------------------------------------------------------------------
+
+  @Override
+  public List<Option> getOptions(long optionSetId, String key, Integer max) {
+    String hql =
+        "select option from OptionSet as optionset "
+            + "join optionset.options as option where optionset.id = :optionSetId ";
+
+    if (key != null) {
+      hql += "and lower(option.name) like lower('%" + key + "%') ";
     }
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
 
-    @Override
-    public List<Option> getOptions( long optionSetId, String key, Integer max )
-    {
-        String hql = "select option from OptionSet as optionset " +
-            "join optionset.options as option where optionset.id = :optionSetId ";
+    hql += "order by index(option)";
 
-        if ( key != null )
-        {
-            hql += "and lower(option.name) like lower('%" + key + "%') ";
-        }
+    Query<Option> query = getQuery(hql);
+    query.setParameter("optionSetId", optionSetId);
 
-        hql += "order by index(option)";
-
-        Query<Option> query = getQuery( hql );
-        query.setParameter( "optionSetId", optionSetId );
-
-        if ( max != null )
-        {
-            query.setMaxResults( max );
-        }
-
-        return query.list();
+    if (max != null) {
+      query.setMaxResults(max);
     }
+
+    return query.list();
+  }
 }

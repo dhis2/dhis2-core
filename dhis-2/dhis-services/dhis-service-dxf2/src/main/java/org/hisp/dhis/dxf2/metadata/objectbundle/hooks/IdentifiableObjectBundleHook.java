@@ -28,9 +28,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.Iterator;
-
 import lombok.AllArgsConstructor;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
@@ -50,119 +48,108 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-@Order( 0 )
+@Order(0)
 @AllArgsConstructor
-public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<IdentifiableObject>
-{
-    private final AclService aclService;
+public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<IdentifiableObject> {
+  private final AclService aclService;
 
-    @Override
-    public void preCreate( IdentifiableObject identifiableObject, ObjectBundle bundle )
-    {
-        BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) identifiableObject;
+  @Override
+  public void preCreate(IdentifiableObject identifiableObject, ObjectBundle bundle) {
+    BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) identifiableObject;
 
-        baseIdentifiableObject.setAutoFields();
-        baseIdentifiableObject.setLastUpdatedBy( bundle.getUser() );
+    baseIdentifiableObject.setAutoFields();
+    baseIdentifiableObject.setLastUpdatedBy(bundle.getUser());
 
-        if ( baseIdentifiableObject.getCreatedBy() == null )
-        {
-            baseIdentifiableObject.setCreatedBy( bundle.getUser() );
-        }
-
-        if ( baseIdentifiableObject.getSharing().getOwner() == null )
-        {
-            baseIdentifiableObject.getSharing()
-                .setOwner( baseIdentifiableObject.getCreatedBy() );
-        }
-
-        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( identifiableObject ) );
-        handleAttributeValues( identifiableObject, bundle, schema );
-        handleSkipSharing( identifiableObject, bundle );
-        handleSkipTranslation( identifiableObject, bundle );
+    if (baseIdentifiableObject.getCreatedBy() == null) {
+      baseIdentifiableObject.setCreatedBy(bundle.getUser());
     }
 
-    @Override
-    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
-    {
-        BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) object;
-        baseIdentifiableObject.setAutoFields();
-        baseIdentifiableObject.setLastUpdatedBy( bundle.getUser() );
-
-        handleCreatedByProperty( object, persistedObject, bundle );
-
-        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
-        handleAttributeValues( object, bundle, schema );
+    if (baseIdentifiableObject.getSharing().getOwner() == null) {
+      baseIdentifiableObject.getSharing().setOwner(baseIdentifiableObject.getCreatedBy());
     }
 
-    private void handleAttributeValues( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
-    {
-        if ( !schema.hasPersistedProperty( "attributeValues" ) )
-            return;
+    Schema schema =
+        schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(identifiableObject));
+    handleAttributeValues(identifiableObject, bundle, schema);
+    handleSkipSharing(identifiableObject, bundle);
+    handleSkipTranslation(identifiableObject, bundle);
+  }
 
-        Iterator<AttributeValue> iterator = identifiableObject.getAttributeValues().iterator();
+  @Override
+  public void preUpdate(
+      IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle) {
+    BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) object;
+    baseIdentifiableObject.setAutoFields();
+    baseIdentifiableObject.setLastUpdatedBy(bundle.getUser());
 
-        while ( iterator.hasNext() )
-        {
-            AttributeValue attributeValue = iterator.next();
+    handleCreatedByProperty(object, persistedObject, bundle);
 
-            // if value null or empty, just skip it
-            if ( StringUtils.isEmpty( attributeValue.getValue() ) )
-            {
-                iterator.remove();
-                continue;
-            }
+    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    handleAttributeValues(object, bundle, schema);
+  }
 
-            Attribute attribute = bundle.getPreheat().get( bundle.getPreheatIdentifier(), Attribute.class,
-                attributeValue.getAttribute().getUid() );
+  private void handleAttributeValues(
+      IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema) {
+    if (!schema.hasPersistedProperty("attributeValues")) return;
 
-            if ( attribute == null )
-            {
-                iterator.remove();
-                continue;
-            }
+    Iterator<AttributeValue> iterator = identifiableObject.getAttributeValues().iterator();
 
-            attributeValue.setAttribute( attribute );
+    while (iterator.hasNext()) {
+      AttributeValue attributeValue = iterator.next();
 
-            attributeValue.setValue( attributeValue.getValue().replaceAll( "\\s{2,}", StringUtils.SPACE ) );
-        }
+      // if value null or empty, just skip it
+      if (StringUtils.isEmpty(attributeValue.getValue())) {
+        iterator.remove();
+        continue;
+      }
+
+      Attribute attribute =
+          bundle
+              .getPreheat()
+              .get(
+                  bundle.getPreheatIdentifier(),
+                  Attribute.class,
+                  attributeValue.getAttribute().getUid());
+
+      if (attribute == null) {
+        iterator.remove();
+        continue;
+      }
+
+      attributeValue.setAttribute(attribute);
+
+      attributeValue.setValue(attributeValue.getValue().replaceAll("\\s{2,}", StringUtils.SPACE));
     }
+  }
 
-    /**
-     * Make sure createdBy is immutable unless persistedObject.createdBy is
-     * null.
-     *
-     * @param object object from payload.
-     * @param persistedObject persistedObject.
-     * @param bundle The {@link ObjectBundle} of the importing service.
-     */
-    private void handleCreatedByProperty( IdentifiableObject object, IdentifiableObject persistedObject,
-        ObjectBundle bundle )
-    {
-        if ( persistedObject.getCreatedBy() == null )
-        {
-            object.setCreatedBy( object.getCreatedBy() != null ? object.getCreatedBy() : bundle.getUser() );
-        }
-        else if ( !IdentifiableObjectUtils.equalsByUid( object.getCreatedBy(), persistedObject.getCreatedBy() ) )
-        {
-            object.setCreatedBy( persistedObject.getCreatedBy() );
-            bundle.getPreheat().put( PreheatIdentifier.UID, object.getCreatedBy() );
-        }
+  /**
+   * Make sure createdBy is immutable unless persistedObject.createdBy is null.
+   *
+   * @param object object from payload.
+   * @param persistedObject persistedObject.
+   * @param bundle The {@link ObjectBundle} of the importing service.
+   */
+  private void handleCreatedByProperty(
+      IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle) {
+    if (persistedObject.getCreatedBy() == null) {
+      object.setCreatedBy(object.getCreatedBy() != null ? object.getCreatedBy() : bundle.getUser());
+    } else if (!IdentifiableObjectUtils.equalsByUid(
+        object.getCreatedBy(), persistedObject.getCreatedBy())) {
+      object.setCreatedBy(persistedObject.getCreatedBy());
+      bundle.getPreheat().put(PreheatIdentifier.UID, object.getCreatedBy());
     }
+  }
 
-    private void handleSkipSharing( IdentifiableObject identifiableObject, ObjectBundle bundle )
-    {
-        if ( !bundle.isSkipSharing() )
-            return;
+  private void handleSkipSharing(IdentifiableObject identifiableObject, ObjectBundle bundle) {
+    if (!bundle.isSkipSharing()) return;
 
-        aclService.clearSharing( identifiableObject, bundle.getUser() );
+    aclService.clearSharing(identifiableObject, bundle.getUser());
+  }
+
+  private void handleSkipTranslation(IdentifiableObject identifiableObject, ObjectBundle bundle) {
+    if (bundle.isSkipTranslation()
+        && !CollectionUtils.isEmpty(identifiableObject.getTranslations())) {
+      identifiableObject.getTranslations().clear();
     }
-
-    private void handleSkipTranslation( IdentifiableObject identifiableObject, ObjectBundle bundle )
-    {
-        if ( bundle.isSkipTranslation() && !CollectionUtils.isEmpty( identifiableObject.getTranslations() ) )
-        {
-            identifiableObject.getTranslations().clear();
-        }
-    }
-
+  }
 }

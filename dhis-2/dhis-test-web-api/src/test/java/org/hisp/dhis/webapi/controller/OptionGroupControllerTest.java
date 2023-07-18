@@ -38,15 +38,15 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Jan Bernitt
  */
-class OptionGroupControllerTest extends DhisControllerConvenienceTest
-{
-    @Test
-    void testPostOptionGroupWithDescription()
-    {
-        String uid = assertStatus( HttpStatus.CREATED,
-            POST( "/optionGroups/", "{'name':'example', 'shortName':'ex', 'description': 'test'}" ) );
-        JsonIdentifiableObject group = GET( "/optionGroups/" + uid ).content().as( JsonIdentifiableObject.class );
-        assertEquals( "test", group.getDescription() );
-    }
-
+class OptionGroupControllerTest extends DhisControllerConvenienceTest {
+  @Test
+  void testPostOptionGroupWithDescription() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/optionGroups/", "{'name':'example', 'shortName':'ex', 'description': 'test'}"));
+    JsonIdentifiableObject group =
+        GET("/optionGroups/" + uid).content().as(JsonIdentifiableObject.class);
+    assertEquals("test", group.getDescription());
+  }
 }

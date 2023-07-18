@@ -37,35 +37,31 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Order( 101 )
-@ComponentScan( basePackages = { "org.hisp.dhis" } )
-@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
+@Order(101)
+@ComponentScan(basePackages = {"org.hisp.dhis"})
+@Conditional(value = DebeziumCacheInvalidationEnabledCondition.class)
 @Configuration
-public class DebeziumSpringConfiguration
-{
-    @Bean
-    public static SessionRegistryImpl sessionRegistry()
-    {
-        return new SessionRegistryImpl();
-    }
+public class DebeziumSpringConfiguration {
+  @Bean
+  public static SessionRegistryImpl sessionRegistry() {
+    return new SessionRegistryImpl();
+  }
 
-    @Bean
-    public DebeziumPreStartupRoutine debeziumPreStartupRoutine()
-    {
-        DebeziumPreStartupRoutine routine = new DebeziumPreStartupRoutine();
-        routine.setName( "debeziumPreStartupRoutine" );
-        routine.setRunlevel( 1 );
-        routine.setSkipInTests( true );
-        return routine;
-    }
+  @Bean
+  public DebeziumPreStartupRoutine debeziumPreStartupRoutine() {
+    DebeziumPreStartupRoutine routine = new DebeziumPreStartupRoutine();
+    routine.setName("debeziumPreStartupRoutine");
+    routine.setRunlevel(1);
+    routine.setSkipInTests(true);
+    return routine;
+  }
 
-    @Bean
-    public StartupDebeziumServiceRoutine startupDebeziumServiceRoutine()
-    {
-        StartupDebeziumServiceRoutine routine = new StartupDebeziumServiceRoutine();
-        routine.setName( "StartupDebeziumServiceRoutine" );
-        routine.setRunlevel( 20 );
-        routine.setSkipInTests( true );
-        return routine;
-    }
+  @Bean
+  public StartupDebeziumServiceRoutine startupDebeziumServiceRoutine() {
+    StartupDebeziumServiceRoutine routine = new StartupDebeziumServiceRoutine();
+    routine.setName("StartupDebeziumServiceRoutine");
+    routine.setRunlevel(20);
+    routine.setSkipInTests(true);
+    return routine;
+  }
 }

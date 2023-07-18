@@ -37,31 +37,25 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
- * HibernateFlushListener that is listening for {@link FlushEvent}s and
- * registering it before the transaction completes
- * {@link BeforeTransactionCompletionProcess} to capture the transaction ID. The
- * captured transaction ID is put in to a hash table to enable lookup of
- * incoming replication events to see if the event/ID matches local transactions
- * or if the transactions/replication event comes from another DHIS2 server
- * instance.
+ * HibernateFlushListener that is listening for {@link FlushEvent}s and registering it before the
+ * transaction completes {@link BeforeTransactionCompletionProcess} to capture the transaction ID.
+ * The captured transaction ID is put in to a hash table to enable lookup of incoming replication
+ * events to see if the event/ID matches local transactions or if the transactions/replication event
+ * comes from another DHIS2 server instance.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
+@Profile({"!test", "!test-h2"})
+@Conditional(value = DebeziumCacheInvalidationEnabledCondition.class)
 @Component
-public class HibernateFlushListener implements FlushEventListener
-{
-    @Autowired
-    private transient KnownTransactionsService knownTransactionsService;
+public class HibernateFlushListener implements FlushEventListener {
+  @Autowired private transient KnownTransactionsService knownTransactionsService;
 
-    @Override
-    public void onFlush( FlushEvent event )
-        throws HibernateException
-    {
-        BeforeTransactionCompletionProcess beforeTransactionCompletionProcess = session -> knownTransactionsService
-            .registerEvent( event );
+  @Override
+  public void onFlush(FlushEvent event) throws HibernateException {
+    BeforeTransactionCompletionProcess beforeTransactionCompletionProcess =
+        session -> knownTransactionsService.registerEvent(event);
 
-        event.getSession().getActionQueue().registerProcess( beforeTransactionCompletionProcess );
-    }
+    event.getSession().getActionQueue().registerProcess(beforeTransactionCompletionProcess);
+  }
 }

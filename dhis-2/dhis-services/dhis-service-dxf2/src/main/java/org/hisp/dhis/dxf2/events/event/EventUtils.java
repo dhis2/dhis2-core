@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.dxf2.events.event;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.MapType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -35,10 +39,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -48,170 +50,140 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.user.User;
 import org.postgresql.util.PGobject;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.MapType;
-import com.fasterxml.jackson.databind.type.TypeFactory;
-
 /**
  * @author Luciano Fiandesio
  */
 @Slf4j
-public class EventUtils
-{
-    public final static String FALLBACK_USERNAME = "[Unknown]";
+public class EventUtils {
+  public static final String FALLBACK_USERNAME = "[Unknown]";
 
-    public static String getValidUsername( String userName, ImportOptions importOptions )
-    {
-        String validUsername = userName;
-        String fallBack = importOptions.getUser() != null ? importOptions.getUser().getUsername() : FALLBACK_USERNAME;
+  public static String getValidUsername(String userName, ImportOptions importOptions) {
+    String validUsername = userName;
+    String fallBack =
+        importOptions.getUser() != null ? importOptions.getUser().getUsername() : FALLBACK_USERNAME;
 
-        if ( StringUtils.isEmpty( validUsername ) )
-        {
-            validUsername = User.getSafeUsername( fallBack );
-        }
-        else if ( validUsername.length() > User.USERNAME_MAX_LENGTH )
-        {
-            validUsername = User.getSafeUsername( fallBack );
-        }
-
-        return validUsername;
+    if (StringUtils.isEmpty(validUsername)) {
+      validUsername = User.getSafeUsername(fallBack);
+    } else if (validUsername.length() > User.USERNAME_MAX_LENGTH) {
+      validUsername = User.getSafeUsername(fallBack);
     }
 
-    /**
-     * Converts a Set of {@see EventDataValue} into a JSON string using the
-     * provided Jackson {@see ObjectMapper} This method, before serializing to
-     * JSON, if first transforms the Set into a Map, where the Map key is the
-     * EventDataValue DataElement UID and the Map value is the actual
-     * {@see EventDataValue}.
-     *
-     * @param dataValues a Set of {@see EventDataValue}
-     * @param mapper a configured Jackson {@see ObjectMapper}
-     * @return a PGobject containing the serialized Set
-     * @throws JsonProcessingException if the JSON serialization fails
-     */
-    public static PGobject eventDataValuesToJson( Set<EventDataValue> dataValues, ObjectMapper mapper )
-        throws JsonProcessingException,
-        SQLException
-    {
-        PGobject jsonbObj = new PGobject();
-        jsonbObj.setType( "json" );
-        jsonbObj.setValue( mapper.writeValueAsString(
-            dataValues.stream().collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) ) ) );
-        return jsonbObj;
+    return validUsername;
+  }
+
+  /**
+   * Converts a Set of {@see EventDataValue} into a JSON string using the provided Jackson {@see
+   * ObjectMapper} This method, before serializing to JSON, if first transforms the Set into a Map,
+   * where the Map key is the EventDataValue DataElement UID and the Map value is the actual {@see
+   * EventDataValue}.
+   *
+   * @param dataValues a Set of {@see EventDataValue}
+   * @param mapper a configured Jackson {@see ObjectMapper}
+   * @return a PGobject containing the serialized Set
+   * @throws JsonProcessingException if the JSON serialization fails
+   */
+  public static PGobject eventDataValuesToJson(Set<EventDataValue> dataValues, ObjectMapper mapper)
+      throws JsonProcessingException, SQLException {
+    PGobject jsonbObj = new PGobject();
+    jsonbObj.setType("json");
+    jsonbObj.setValue(
+        mapper.writeValueAsString(
+            dataValues.stream()
+                .collect(Collectors.toMap(EventDataValue::getDataElement, Function.identity()))));
+    return jsonbObj;
+  }
+
+  /**
+   * Converts a {@see DataValue} into a JSON string using the provided Jackson {@see ObjectMapper}.
+   *
+   * @param dataValue a {@see DataValue}
+   * @param mapper a configured Jackson {@see ObjectMapper}
+   * @return a PGobject containing the serialized object
+   * @throws JsonProcessingException if the JSON serialization fails
+   */
+  public static PGobject eventDataValuesToJson(DataValue dataValue, ObjectMapper mapper)
+      throws JsonProcessingException, SQLException {
+    PGobject jsonbObj = new PGobject();
+    jsonbObj.setType("json");
+    jsonbObj.setValue(mapper.writeValueAsString(dataValue));
+    return jsonbObj;
+  }
+
+  /**
+   * Converts the Event Data Value json payload into a Set of EventDataValue
+   *
+   * <p>Note that the EventDataValue payload is stored as a map: {dataelementid:{ ...},
+   * {dataelementid:{ ...} }
+   *
+   * <p>Therefore, the conversion is a bit convoluted, since the payload has to be converted into a
+   * Map and then into a Set
+   */
+  public static Set<EventDataValue> jsonToEventDataValues(
+      ObjectMapper jsonMapper, Object eventsDataValues) throws JsonProcessingException {
+    final TypeFactory typeFactory = jsonMapper.getTypeFactory();
+    MapType mapType =
+        typeFactory.constructMapType(HashMap.class, String.class, EventDataValue.class);
+
+    String content = null;
+    if (eventsDataValues instanceof String) {
+      content = (String) eventsDataValues;
+    } else if (eventsDataValues instanceof PGobject) {
+      content = ((PGobject) eventsDataValues).getValue();
     }
 
-    /**
-     * Converts a {@see DataValue} into a JSON string using the provided Jackson
-     * {@see ObjectMapper}.
-     *
-     * @param dataValue a {@see DataValue}
-     * @param mapper a configured Jackson {@see ObjectMapper}
-     * @return a PGobject containing the serialized object
-     * @throws JsonProcessingException if the JSON serialization fails
-     */
-    public static PGobject eventDataValuesToJson( DataValue dataValue, ObjectMapper mapper )
-        throws JsonProcessingException,
-        SQLException
-    {
-        PGobject jsonbObj = new PGobject();
-        jsonbObj.setType( "json" );
-        jsonbObj.setValue( mapper.writeValueAsString( dataValue ) );
-        return jsonbObj;
+    Set<EventDataValue> dataValues = new HashSet<>();
+    if (!StringUtils.isEmpty(content)) {
+      Map<String, EventDataValue> parsed = jsonMapper.readValue(content, mapType);
+      for (String dataElementId : parsed.keySet()) {
+        EventDataValue edv = parsed.get(dataElementId);
+        edv.setDataElement(dataElementId);
+        dataValues.add(edv);
+      }
     }
 
-    /**
-     * Converts the Event Data Value json payload into a Set of EventDataValue
-     *
-     * Note that the EventDataValue payload is stored as a map: {dataelementid:{
-     * ...}, {dataelementid:{ ...} }
-     *
-     * Therefore, the conversion is a bit convoluted, since the payload has to
-     * be converted into a Map and then into a Set
-     */
-    public static Set<EventDataValue> jsonToEventDataValues( ObjectMapper jsonMapper, Object eventsDataValues )
-        throws JsonProcessingException
-    {
-        final TypeFactory typeFactory = jsonMapper.getTypeFactory();
-        MapType mapType = typeFactory.constructMapType( HashMap.class, String.class, EventDataValue.class );
+    return dataValues;
+  }
 
-        String content = null;
-        if ( eventsDataValues instanceof String )
-        {
-            content = (String) eventsDataValues;
-        }
-        else if ( eventsDataValues instanceof PGobject )
-        {
-            content = ((PGobject) eventsDataValues).getValue();
-        }
+  @SuppressWarnings("unchecked")
+  public static Set<AttributeValue> getAttributeValues(
+      ObjectMapper jsonMapper, Object attributeValues) throws JsonProcessingException {
+    Set<AttributeValue> attributeValueSet = new HashSet<>();
 
-        Set<EventDataValue> dataValues = new HashSet<>();
-        if ( !StringUtils.isEmpty( content ) )
-        {
-            Map<String, EventDataValue> parsed = jsonMapper.readValue( content, mapType );
-            for ( String dataElementId : parsed.keySet() )
-            {
-                EventDataValue edv = parsed.get( dataElementId );
-                edv.setDataElement( dataElementId );
-                dataValues.add( edv );
-            }
-        }
-
-        return dataValues;
+    String content = null;
+    if (attributeValues instanceof String) {
+      content = (String) attributeValues;
+    } else if (attributeValues instanceof PGobject) {
+      content = ((PGobject) attributeValues).getValue();
     }
 
-    @SuppressWarnings( "unchecked" )
-    public static Set<AttributeValue> getAttributeValues( ObjectMapper jsonMapper, Object attributeValues )
-        throws JsonProcessingException
-    {
-        Set<AttributeValue> attributeValueSet = new HashSet<>();
-
-        String content = null;
-        if ( attributeValues instanceof String )
-        {
-            content = (String) attributeValues;
-        }
-        else if ( attributeValues instanceof PGobject )
-        {
-            content = ((PGobject) attributeValues).getValue();
-        }
-
-        Map<String, Map<String, String>> m = jsonMapper.readValue( content, Map.class );
-        for ( String key : m.keySet() )
-        {
-            Attribute attribute = new Attribute();
-            attribute.setUid( key );
-            String value = m.get( key ).get( "value" );
-            AttributeValue attributeValue = new AttributeValue( value, attribute );
-            attributeValueSet.add( attributeValue );
-        }
-        return attributeValueSet;
-
+    Map<String, Map<String, String>> m = jsonMapper.readValue(content, Map.class);
+    for (String key : m.keySet()) {
+      Attribute attribute = new Attribute();
+      attribute.setUid(key);
+      String value = m.get(key).get("value");
+      AttributeValue attributeValue = new AttributeValue(value, attribute);
+      attributeValueSet.add(attributeValue);
     }
+    return attributeValueSet;
+  }
 
-    @SneakyThrows
-    public static PGobject userInfoToJson( UserInfoSnapshot userInfo, ObjectMapper mapper )
-    {
-        PGobject jsonbObj = new PGobject();
-        jsonbObj.setType( "json" );
-        jsonbObj.setValue( mapper.writeValueAsString( userInfo ) );
-        return jsonbObj;
-    }
+  @SneakyThrows
+  public static PGobject userInfoToJson(UserInfoSnapshot userInfo, ObjectMapper mapper) {
+    PGobject jsonbObj = new PGobject();
+    jsonbObj.setType("json");
+    jsonbObj.setValue(mapper.writeValueAsString(userInfo));
+    return jsonbObj;
+  }
 
-    public static UserInfoSnapshot jsonToUserInfo( String userInfoAsString, ObjectMapper mapper )
-    {
-        try
-        {
-            if ( StringUtils.isNotEmpty( userInfoAsString ) )
-            {
-                return mapper.readValue( userInfoAsString, UserInfoSnapshot.class );
-            }
-            return null;
-        }
-        catch ( IOException e )
-        {
-            log.error( "Parsing UserInfoSnapshot json string failed. String value: " + userInfoAsString );
-            throw new IllegalArgumentException( e );
-        }
+  public static UserInfoSnapshot jsonToUserInfo(String userInfoAsString, ObjectMapper mapper) {
+    try {
+      if (StringUtils.isNotEmpty(userInfoAsString)) {
+        return mapper.readValue(userInfoAsString, UserInfoSnapshot.class);
+      }
+      return null;
+    } catch (IOException e) {
+      log.error("Parsing UserInfoSnapshot json string failed. String value: " + userInfoAsString);
+      throw new IllegalArgumentException(e);
     }
+  }
 }

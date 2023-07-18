@@ -33,113 +33,164 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-
 import org.hamcrest.Matchers;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.junit.jupiter.api.Test;
-
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Unit tests for {JobConfiguration}.
  *
  * @author Volker Schmidt
  */
-class JobConfigurationSerializationTest
-{
+class JobConfigurationSerializationTest {
 
-    private static final String UID1 = "ajsdglkjASG";
+  private static final String UID1 = "ajsdglkjASG";
 
-    private static final String UID2 = "aksjfhakHg2";
+  private static final String UID2 = "aksjfhakHg2";
 
-    @Test
-    void json()
-        throws IOException
-    {
-        final ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        objectMapper.configure( DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY, false );
-        JobConfiguration jc = objectMapper.readValue(
-            "{\n" + "      \"lastUpdated\": \"2018-05-18T09:40:19.561\",\n" + "      \"id\": \"sHMedQF7VYa\",\n"
-                + "      \"created\": \"2017-12-08T12:45:18.351\",\n" + "      \"name\": \"Test Analytic\",\n"
-                + "      \"jobStatus\": \"SCHEDULED\",\n" + "      \"displayName\": \"Test Analytic\",\n"
-                + "      \"enabled\": true,\n" + "      \"leaderOnlyJob\": true,\n"
-                + "      \"externalAccess\": false,\n" + "      \"jobType\": \"ANALYTICS_TABLE\",\n"
+  @Test
+  void json() throws IOException {
+    final ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    objectMapper.configure(DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY, false);
+    JobConfiguration jc =
+        objectMapper.readValue(
+            "{\n"
+                + "      \"lastUpdated\": \"2018-05-18T09:40:19.561\",\n"
+                + "      \"id\": \"sHMedQF7VYa\",\n"
+                + "      \"created\": \"2017-12-08T12:45:18.351\",\n"
+                + "      \"name\": \"Test Analytic\",\n"
+                + "      \"jobStatus\": \"SCHEDULED\",\n"
+                + "      \"displayName\": \"Test Analytic\",\n"
+                + "      \"enabled\": true,\n"
+                + "      \"leaderOnlyJob\": true,\n"
+                + "      \"externalAccess\": false,\n"
+                + "      \"jobType\": \"ANALYTICS_TABLE\",\n"
                 + "      \"cronExpression\": \"0 0 12 ? * MON-FRI\",\n"
                 + "      \"lastRuntimeExecution\": \"00:00:00.060\",\n"
                 + "      \"lastExecutedStatus\": \"COMPLETED\",\n"
-                + "      \"lastExecuted\": \"2018-02-22T09:31:21.906\",\n" + "      \"favorite\": false,\n"
-                + "      \"configurable\": false,\n" + "      \"access\": {\n" + "        \"read\": true,\n"
-                + "        \"update\": true,\n" + "        \"externalize\": false,\n" + "        \"delete\": true,\n"
-                + "        \"write\": true,\n" + "        \"manage\": true\n" + "      },\n"
+                + "      \"lastExecuted\": \"2018-02-22T09:31:21.906\",\n"
+                + "      \"favorite\": false,\n"
+                + "      \"configurable\": false,\n"
+                + "      \"access\": {\n"
+                + "        \"read\": true,\n"
+                + "        \"update\": true,\n"
+                + "        \"externalize\": false,\n"
+                + "        \"delete\": true,\n"
+                + "        \"write\": true,\n"
+                + "        \"manage\": true\n"
+                + "      },\n"
                 + "      \"jobParameters\":{\"lastYears\":2,\"skipResourceTables\":true,"
                 + "      \"skipTableTypes\":[\"ENROLLMENT\",\"ORG_UNIT_TARGET\",\"VALIDATION_RESULT\"],"
-                + "      \"skipPrograms\":[\"" + UID1 + "\"" + ",\"" + UID2 + "\"]" + "      },"
-                + "      \"favorites\": [],\n" + "      \"translations\": [],\n" + "      \"userGroupAccesses\": [],\n"
-                + "      \"attributeValues\": [],\n" + "      \"userAccesses\": []\n" + "    },",
-            JobConfiguration.class );
-        assertEquals( JobStatus.SCHEDULED, jc.getJobStatus() );
-        assertEquals( "Test Analytic", jc.getName() );
-        assertEquals( "Test Analytic", jc.getDisplayName() );
-        assertTrue( jc.isEnabled() );
-        assertTrue( jc.isLeaderOnlyJob() );
-        assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
-        assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
-        assertNotNull( jc.getJobParameters() );
-        assertEquals( (Integer) 2, ((AnalyticsJobParameters) jc.getJobParameters()).getLastYears() );
-        assertTrue( ((AnalyticsJobParameters) jc.getJobParameters()).isSkipResourceTables() );
-        assertNotNull( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes() );
-        assertEquals( 3, ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes().size() );
-        assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes(), Matchers.hasItems(
-            AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
-        assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipPrograms(),
-            Matchers.hasItems( UID1, UID2 ) );
-    }
+                + "      \"skipPrograms\":[\""
+                + UID1
+                + "\""
+                + ",\""
+                + UID2
+                + "\"]"
+                + "      },"
+                + "      \"favorites\": [],\n"
+                + "      \"translations\": [],\n"
+                + "      \"userGroupAccesses\": [],\n"
+                + "      \"attributeValues\": [],\n"
+                + "      \"userAccesses\": []\n"
+                + "    },",
+            JobConfiguration.class);
+    assertEquals(JobStatus.SCHEDULED, jc.getJobStatus());
+    assertEquals("Test Analytic", jc.getName());
+    assertEquals("Test Analytic", jc.getDisplayName());
+    assertTrue(jc.isEnabled());
+    assertTrue(jc.isLeaderOnlyJob());
+    assertEquals(JobType.ANALYTICS_TABLE, jc.getJobType());
+    assertEquals("0 0 12 ? * MON-FRI", jc.getCronExpression());
+    assertNotNull(jc.getJobParameters());
+    assertEquals((Integer) 2, ((AnalyticsJobParameters) jc.getJobParameters()).getLastYears());
+    assertTrue(((AnalyticsJobParameters) jc.getJobParameters()).isSkipResourceTables());
+    assertNotNull(((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes());
+    assertEquals(3, ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes().size());
+    assertThat(
+        ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes(),
+        Matchers.hasItems(
+            AnalyticsTableType.ENROLLMENT,
+            AnalyticsTableType.ORG_UNIT_TARGET,
+            AnalyticsTableType.VALIDATION_RESULT));
+    assertThat(
+        ((AnalyticsJobParameters) jc.getJobParameters()).getSkipPrograms(),
+        Matchers.hasItems(UID1, UID2));
+  }
 
-    @Test
-    void disabled()
-        throws IOException
-    {
-        final ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        objectMapper.configure( DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY, false );
-        JobConfiguration jc = objectMapper.readValue(
-            "{\n" + "      \"lastUpdated\": \"2018-05-18T09:40:19.561\",\n" + "      \"id\": \"sHMedQF7VYa\",\n"
-                + "      \"created\": \"2017-12-08T12:45:18.351\",\n" + "      \"name\": \"Test Analytic\",\n"
-                + "      \"jobStatus\": \"SCHEDULED\",\n" + "      \"displayName\": \"Test Analytic\",\n"
-                + "      \"enabled\": false,\n" + "      \"leaderOnlyJob\": true,\n"
-                + "      \"externalAccess\": false,\n" + "      \"jobType\": \"ANALYTICS_TABLE\",\n"
+  @Test
+  void disabled() throws IOException {
+    final ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    objectMapper.configure(DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY, false);
+    JobConfiguration jc =
+        objectMapper.readValue(
+            "{\n"
+                + "      \"lastUpdated\": \"2018-05-18T09:40:19.561\",\n"
+                + "      \"id\": \"sHMedQF7VYa\",\n"
+                + "      \"created\": \"2017-12-08T12:45:18.351\",\n"
+                + "      \"name\": \"Test Analytic\",\n"
+                + "      \"jobStatus\": \"SCHEDULED\",\n"
+                + "      \"displayName\": \"Test Analytic\",\n"
+                + "      \"enabled\": false,\n"
+                + "      \"leaderOnlyJob\": true,\n"
+                + "      \"externalAccess\": false,\n"
+                + "      \"jobType\": \"ANALYTICS_TABLE\",\n"
                 + "      \"cronExpression\": \"0 0 12 ? * MON-FRI\",\n"
                 + "      \"lastRuntimeExecution\": \"00:00:00.060\",\n"
                 + "      \"lastExecutedStatus\": \"COMPLETED\",\n"
-                + "      \"lastExecuted\": \"2018-02-22T09:31:21.906\",\n" + "      \"favorite\": false,\n"
-                + "      \"configurable\": false,\n" + "      \"access\": {\n" + "        \"read\": true,\n"
-                + "        \"update\": true,\n" + "        \"externalize\": false,\n" + "        \"delete\": true,\n"
-                + "        \"write\": true,\n" + "        \"manage\": true\n" + "      },\n"
+                + "      \"lastExecuted\": \"2018-02-22T09:31:21.906\",\n"
+                + "      \"favorite\": false,\n"
+                + "      \"configurable\": false,\n"
+                + "      \"access\": {\n"
+                + "        \"read\": true,\n"
+                + "        \"update\": true,\n"
+                + "        \"externalize\": false,\n"
+                + "        \"delete\": true,\n"
+                + "        \"write\": true,\n"
+                + "        \"manage\": true\n"
+                + "      },\n"
                 + "      \"jobParameters\":{\"lastYears\":2,\"skipResourceTables\":true,"
                 + "      \"skipTableTypes\":[\"ENROLLMENT\",\"ORG_UNIT_TARGET\",\"VALIDATION_RESULT\"],"
-                + "      \"skipPrograms\":[\"" + UID1 + "\"" + ",\"" + UID2 + "\"]" + "      },"
-                + "      \"favorites\": [],\n" + "      \"translations\": [],\n" + "      \"userGroupAccesses\": [],\n"
-                + "      \"attributeValues\": [],\n" + "      \"userAccesses\": []\n" + "    },",
-            JobConfiguration.class );
-        assertEquals( JobStatus.DISABLED, jc.getJobStatus() );
-        assertEquals( "Test Analytic", jc.getName() );
-        assertEquals( "Test Analytic", jc.getDisplayName() );
-        assertFalse( jc.isEnabled() );
-        assertTrue( jc.isLeaderOnlyJob() );
-        assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
-        assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
-        assertNotNull( jc.getJobParameters() );
-        assertEquals( (Integer) 2, ((AnalyticsJobParameters) jc.getJobParameters()).getLastYears() );
-        assertTrue( ((AnalyticsJobParameters) jc.getJobParameters()).isSkipResourceTables() );
-        assertNotNull( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes() );
-        assertEquals( 3, ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes().size() );
-        assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes(), Matchers.hasItems(
-            AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
-        assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipPrograms(),
-            Matchers.hasItems( UID1, UID2 ) );
-    }
+                + "      \"skipPrograms\":[\""
+                + UID1
+                + "\""
+                + ",\""
+                + UID2
+                + "\"]"
+                + "      },"
+                + "      \"favorites\": [],\n"
+                + "      \"translations\": [],\n"
+                + "      \"userGroupAccesses\": [],\n"
+                + "      \"attributeValues\": [],\n"
+                + "      \"userAccesses\": []\n"
+                + "    },",
+            JobConfiguration.class);
+    assertEquals(JobStatus.DISABLED, jc.getJobStatus());
+    assertEquals("Test Analytic", jc.getName());
+    assertEquals("Test Analytic", jc.getDisplayName());
+    assertFalse(jc.isEnabled());
+    assertTrue(jc.isLeaderOnlyJob());
+    assertEquals(JobType.ANALYTICS_TABLE, jc.getJobType());
+    assertEquals("0 0 12 ? * MON-FRI", jc.getCronExpression());
+    assertNotNull(jc.getJobParameters());
+    assertEquals((Integer) 2, ((AnalyticsJobParameters) jc.getJobParameters()).getLastYears());
+    assertTrue(((AnalyticsJobParameters) jc.getJobParameters()).isSkipResourceTables());
+    assertNotNull(((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes());
+    assertEquals(3, ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes().size());
+    assertThat(
+        ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes(),
+        Matchers.hasItems(
+            AnalyticsTableType.ENROLLMENT,
+            AnalyticsTableType.ORG_UNIT_TARGET,
+            AnalyticsTableType.VALIDATION_RESULT));
+    assertThat(
+        ((AnalyticsJobParameters) jc.getJobParameters()).getSkipPrograms(),
+        Matchers.hasItems(UID1, UID2));
+  }
 }

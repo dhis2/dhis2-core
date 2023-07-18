@@ -28,10 +28,8 @@
 package org.hisp.dhis.tracker.job;
 
 import java.io.IOException;
-
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
-
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.common.AsyncTaskExecutor;
@@ -48,47 +46,44 @@ import org.springframework.stereotype.Component;
  * @author Zubair Asghar
  */
 @Component
-public class TrackerNotificationMessageManager extends BaseMessageManager
-{
-    private final ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory;
+public class TrackerNotificationMessageManager extends BaseMessageManager {
+  private final ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory;
 
-    public TrackerNotificationMessageManager(
-        MessageManager messageManager,
-        AsyncTaskExecutor taskExecutor,
-        RenderService renderService,
-        ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory )
-    {
-        super( messageManager, taskExecutor, renderService );
-        this.trackerNotificationThreadObjectFactory = trackerNotificationThreadObjectFactory;
+  public TrackerNotificationMessageManager(
+      MessageManager messageManager,
+      AsyncTaskExecutor taskExecutor,
+      RenderService renderService,
+      ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory) {
+    super(messageManager, taskExecutor, renderService);
+    this.trackerNotificationThreadObjectFactory = trackerNotificationThreadObjectFactory;
+  }
+
+  @Override
+  public String getTopic() {
+    return Topics.TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME;
+  }
+
+  @JmsListener(
+      destination = Topics.TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME,
+      containerFactory = "jmsQueueListenerContainerFactory")
+  public void consume(TextMessage message) throws JMSException, IOException {
+    TrackerSideEffectDataBundle bundle = toBundle(message);
+
+    if (bundle == null) {
+      return;
     }
 
-    @Override
-    public String getTopic()
-    {
-        return Topics.TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME;
-    }
+    JobConfiguration jobConfiguration =
+        new JobConfiguration(
+            "", JobType.TRACKER_IMPORT_NOTIFICATION_JOB, bundle.getAccessedBy(), true);
 
-    @JmsListener( destination = Topics.TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )
-    public void consume( TextMessage message )
-        throws JMSException,
-        IOException
-    {
-        TrackerSideEffectDataBundle bundle = toBundle( message );
+    bundle.setJobConfiguration(jobConfiguration);
 
-        if ( bundle == null )
-        {
-            return;
-        }
+    TrackerNotificationThread notificationThread =
+        trackerNotificationThreadObjectFactory.getObject();
 
-        JobConfiguration jobConfiguration = new JobConfiguration( "", JobType.TRACKER_IMPORT_NOTIFICATION_JOB,
-            bundle.getAccessedBy(), true );
+    notificationThread.setSideEffectDataBundle(bundle);
 
-        bundle.setJobConfiguration( jobConfiguration );
-
-        TrackerNotificationThread notificationThread = trackerNotificationThreadObjectFactory.getObject();
-
-        notificationThread.setSideEffectDataBundle( bundle );
-
-        executeJob( notificationThread );
-    }
+    executeJob(notificationThread);
+  }
 }

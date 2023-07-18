@@ -31,72 +31,61 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.DelayQueue;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Buffers Audit messages prior to sending them to the Audit queue. This
- * scheduler is disabled by default (config key: audit.inmemory-queue.enabled)
- * and should be used only in very high-traffic environments. Note that upon a
- * JVM crash, the Audit messages in this queue will be lost.
+ * Buffers Audit messages prior to sending them to the Audit queue. This scheduler is disabled by
+ * default (config key: audit.inmemory-queue.enabled) and should be used only in very high-traffic
+ * environments. Note that upon a JVM crash, the Audit messages in this queue will be lost.
  *
- * The buffer is based on a {@link DelayQueue} where messages are buffered for 5
- * seconds, before being de-queued to the Artemis broker.
+ * <p>The buffer is based on a {@link DelayQueue} where messages are buffered for 5 seconds, before
+ * being de-queued to the Artemis broker.
  *
- * To avoid excessive memory pressure, max 200 messages can stay in the queue:
- * in-excess messages are processed immediately.
+ * <p>To avoid excessive memory pressure, max 200 messages can stay in the queue: in-excess messages
+ * are processed immediately.
  *
  * @author Luciano Fiandesio
  */
 @Slf4j
 @Component
-public class AuditScheduler
-{
-    private final static long DELAY = 5_000; // 5 seconds
+public class AuditScheduler {
+  private static final long DELAY = 5_000; // 5 seconds
 
-    private final static int MAX_SIZE = 200;
+  private static final int MAX_SIZE = 200;
 
-    private final AuditProducerSupplier auditProducerSupplier;
+  private final AuditProducerSupplier auditProducerSupplier;
 
-    private final BlockingQueue<QueuedAudit> delayed = new DelayQueue<>();
+  private final BlockingQueue<QueuedAudit> delayed = new DelayQueue<>();
 
-    public AuditScheduler( AuditProducerSupplier auditProducerSupplier )
-    {
-        this.auditProducerSupplier = auditProducerSupplier;
+  public AuditScheduler(AuditProducerSupplier auditProducerSupplier) {
+    this.auditProducerSupplier = auditProducerSupplier;
+  }
+
+  public void addAuditItem(final Audit auditItem) {
+    if (log.isDebugEnabled()) {
+      log.debug(
+          String.format("add Audit object with content %s to delayed queue", auditItem.toLog()));
     }
 
-    public void addAuditItem( final Audit auditItem )
-    {
-        if ( log.isDebugEnabled() )
-        {
-            log.debug( String.format( "add Audit object with content %s to delayed queue", auditItem.toLog() ) );
-        }
+    final QueuedAudit postponed = new QueuedAudit(auditItem, DELAY);
 
-        final QueuedAudit postponed = new QueuedAudit( auditItem, DELAY );
-
-        if ( delayed.size() >= MAX_SIZE )
-        {
-            auditProducerSupplier.publish( auditItem );
-        }
-        else
-        {
-            if ( !delayed.contains( postponed ) )
-            {
-                delayed.offer( postponed );
-            }
-        }
+    if (delayed.size() >= MAX_SIZE) {
+      auditProducerSupplier.publish(auditItem);
+    } else {
+      if (!delayed.contains(postponed)) {
+        delayed.offer(postponed);
+      }
     }
+  }
 
-    @Scheduled( fixedDelay = 5_000 )
-    public void process()
-    {
-        final Collection<QueuedAudit> expired = new ArrayList<>();
+  @Scheduled(fixedDelay = 5_000)
+  public void process() {
+    final Collection<QueuedAudit> expired = new ArrayList<>();
 
-        delayed.drainTo( expired );
+    delayed.drainTo(expired);
 
-        expired.stream().map( QueuedAudit::getAuditItem ).forEach( auditProducerSupplier::publish );
-    }
+    expired.stream().map(QueuedAudit::getAuditItem).forEach(auditProducerSupplier::publish);
+  }
 }

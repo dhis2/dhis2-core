@@ -34,9 +34,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -59,158 +57,161 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.springframework.stereotype.Component;
 
 /**
- * This class "collects" identifiers from all input objects. This resulting map
- * of all identifiers will then be used to "preheat/cache" all the objects
- * needed into memory to speed up the validation process.
+ * This class "collects" identifiers from all input objects. This resulting map of all identifiers
+ * will then be used to "preheat/cache" all the objects needed into memory to speed up the
+ * validation process.
  *
- * The metadata identifiers can be of different idSchemes as specified by the
- * user on import.
+ * <p>The metadata identifiers can be of different idSchemes as specified by the user on import.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @see org.hisp.dhis.tracker.preheat.DefaultTrackerPreheatService
  */
 @Component
 @RequiredArgsConstructor
-public class TrackerIdentifierCollector
-{
-    private final ProgramRuleService programRuleService;
+public class TrackerIdentifierCollector {
+  private final ProgramRuleService programRuleService;
 
-    public Map<Class<?>, Set<String>> collect( TrackerImportParams params )
-    {
-        final Map<Class<?>, Set<String>> identifiers = new HashMap<>();
-        collectTrackedEntities( identifiers, params.getTrackedEntities() );
-        collectEnrollments( identifiers, params.getEnrollments() );
-        collectEvents( identifiers, params.getEvents() );
-        collectRelationships( identifiers, params.getRelationships() );
-        collectProgramRulesFields( identifiers );
-        return identifiers;
+  public Map<Class<?>, Set<String>> collect(TrackerImportParams params) {
+    final Map<Class<?>, Set<String>> identifiers = new HashMap<>();
+    collectTrackedEntities(identifiers, params.getTrackedEntities());
+    collectEnrollments(identifiers, params.getEnrollments());
+    collectEvents(identifiers, params.getEvents());
+    collectRelationships(identifiers, params.getRelationships());
+    collectProgramRulesFields(identifiers);
+    return identifiers;
+  }
+
+  private void collectProgramRulesFields(Map<Class<?>, Set<String>> map) {
+    // collecting program rule dataElement/attributes deliberately using
+    // UIDs
+    // Rule engine rules only know UIDs, so we need to be able to get
+    // dataElements/attributes from rule actions
+    // out of the preheat using UIDs
+    List<ProgramRule> programRules = programRuleService.getProgramRulesLinkedToTeaOrDe();
+
+    Set<String> dataElements =
+        programRules.stream()
+            .flatMap(pr -> pr.getProgramRuleActions().stream())
+            .filter(a -> Objects.nonNull(a.getDataElement()))
+            .map(a -> a.getDataElement().getUid())
+            .collect(Collectors.toSet());
+    dataElements.forEach(de -> addIdentifier(map, DataElement.class, de));
+
+    Set<String> attributes =
+        programRules.stream()
+            .flatMap(pr -> pr.getProgramRuleActions().stream())
+            .filter(a -> Objects.nonNull(a.getAttribute()))
+            .map(a -> a.getAttribute().getUid())
+            .collect(Collectors.toSet());
+    attributes.forEach(attribute -> addIdentifier(map, TrackedEntityAttribute.class, attribute));
+  }
+
+  private void collectTrackedEntities(
+      Map<Class<?>, Set<String>> identifiers, List<TrackedEntity> trackedEntities) {
+    trackedEntities.forEach(
+        trackedEntity -> {
+          addIdentifier(identifiers, TrackedEntity.class, trackedEntity.getTrackedEntity());
+          addIdentifier(identifiers, TrackedEntityType.class, trackedEntity.getTrackedEntityType());
+          addIdentifier(identifiers, OrganisationUnit.class, trackedEntity.getOrgUnit());
+
+          collectEnrollments(identifiers, trackedEntity.getEnrollments());
+
+          trackedEntity
+              .getAttributes()
+              .forEach(
+                  attribute ->
+                      addIdentifier(
+                          identifiers, TrackedEntityAttribute.class, attribute.getAttribute()));
+        });
+  }
+
+  private void collectEnrollments(
+      Map<Class<?>, Set<String>> identifiers, List<Enrollment> enrollments) {
+    enrollments.forEach(
+        enrollment -> {
+          addIdentifier(identifiers, TrackedEntity.class, enrollment.getTrackedEntity());
+          addIdentifier(identifiers, Enrollment.class, enrollment.getEnrollment());
+          addIdentifier(identifiers, Program.class, enrollment.getProgram());
+          addIdentifier(identifiers, OrganisationUnit.class, enrollment.getOrgUnit());
+
+          collectNotes(identifiers, enrollment.getNotes());
+          collectEvents(identifiers, enrollment.getEvents());
+          enrollment
+              .getAttributes()
+              .forEach(
+                  attribute ->
+                      addIdentifier(
+                          identifiers, TrackedEntityAttribute.class, attribute.getAttribute()));
+        });
+  }
+
+  private void collectNotes(Map<Class<?>, Set<String>> identifiers, List<Note> notes) {
+    notes.forEach(
+        note -> {
+          if (!StringUtils.isEmpty(note.getNote()) && !StringUtils.isEmpty(note.getValue())) {
+            addIdentifier(identifiers, TrackedEntityComment.class, note.getNote());
+          }
+        });
+  }
+
+  private void collectEvents(Map<Class<?>, Set<String>> identifiers, List<Event> events) {
+    events.forEach(
+        event -> {
+          addIdentifier(identifiers, Enrollment.class, event.getEnrollment());
+          addIdentifier(identifiers, Event.class, event.getEvent());
+          addIdentifier(identifiers, Program.class, event.getProgram());
+          addIdentifier(identifiers, ProgramStage.class, event.getProgramStage());
+          addIdentifier(identifiers, OrganisationUnit.class, event.getOrgUnit());
+
+          event
+              .getAttributeCategoryOptions()
+              .forEach(s -> addIdentifier(identifiers, CategoryOption.class, s));
+
+          addIdentifier(identifiers, CategoryOptionCombo.class, event.getAttributeOptionCombo());
+
+          event
+              .getDataValues()
+              .forEach(dv -> addIdentifier(identifiers, DataElement.class, dv.getDataElement()));
+
+          collectNotes(identifiers, event.getNotes());
+        });
+  }
+
+  private void collectRelationships(
+      Map<Class<?>, Set<String>> identifiers, List<Relationship> relationships) {
+    relationships.forEach(
+        relationship -> {
+          addIdentifier(identifiers, Relationship.class, relationship.getRelationship());
+          addIdentifier(identifiers, RelationshipType.class, relationship.getRelationshipType());
+
+          if (Objects.nonNull(relationship.getFrom())) {
+            addIdentifier(
+                identifiers, TrackedEntity.class, relationship.getFrom().getTrackedEntity());
+            addIdentifier(identifiers, Enrollment.class, relationship.getFrom().getEnrollment());
+            addIdentifier(identifiers, Event.class, relationship.getFrom().getEvent());
+          }
+
+          if (Objects.nonNull(relationship.getTo())) {
+            addIdentifier(
+                identifiers, TrackedEntity.class, relationship.getTo().getTrackedEntity());
+            addIdentifier(identifiers, Enrollment.class, relationship.getTo().getEnrollment());
+            addIdentifier(identifiers, Event.class, relationship.getTo().getEvent());
+          }
+        });
+  }
+
+  private <T> void addIdentifier(
+      Map<Class<?>, Set<String>> identifiers, Class<T> klass, MetadataIdentifier identifier) {
+    addIdentifier(
+        identifiers, klass, identifier == null ? null : identifier.getIdentifierOrAttributeValue());
+  }
+
+  private <T> void addIdentifier(
+      Map<Class<?>, Set<String>> identifiers, Class<T> klass, String identifier) {
+    if (StringUtils.isEmpty(identifier) || identifiers == null || klass == null) {
+      return;
     }
 
-    private void collectProgramRulesFields( Map<Class<?>, Set<String>> map )
-    {
-        // collecting program rule dataElement/attributes deliberately using
-        // UIDs
-        // Rule engine rules only know UIDs, so we need to be able to get
-        // dataElements/attributes from rule actions
-        // out of the preheat using UIDs
-        List<ProgramRule> programRules = programRuleService.getProgramRulesLinkedToTeaOrDe();
-
-        Set<String> dataElements = programRules.stream()
-            .flatMap( pr -> pr.getProgramRuleActions().stream() )
-            .filter( a -> Objects.nonNull( a.getDataElement() ) )
-            .map( a -> a.getDataElement().getUid() )
-            .collect( Collectors.toSet() );
-        dataElements.forEach( de -> addIdentifier( map, DataElement.class, de ) );
-
-        Set<String> attributes = programRules.stream()
-            .flatMap( pr -> pr.getProgramRuleActions().stream() )
-            .filter( a -> Objects.nonNull( a.getAttribute() ) )
-            .map( a -> a.getAttribute().getUid() )
-            .collect( Collectors.toSet() );
-        attributes.forEach( attribute -> addIdentifier( map, TrackedEntityAttribute.class, attribute ) );
-    }
-
-    private void collectTrackedEntities( Map<Class<?>, Set<String>> identifiers, List<TrackedEntity> trackedEntities )
-    {
-        trackedEntities.forEach( trackedEntity -> {
-            addIdentifier( identifiers, TrackedEntity.class, trackedEntity.getTrackedEntity() );
-            addIdentifier( identifiers, TrackedEntityType.class, trackedEntity.getTrackedEntityType() );
-            addIdentifier( identifiers, OrganisationUnit.class, trackedEntity.getOrgUnit() );
-
-            collectEnrollments( identifiers, trackedEntity.getEnrollments() );
-
-            trackedEntity.getAttributes()
-                .forEach( attribute -> addIdentifier( identifiers, TrackedEntityAttribute.class,
-                    attribute.getAttribute() ) );
-        } );
-    }
-
-    private void collectEnrollments( Map<Class<?>, Set<String>> identifiers, List<Enrollment> enrollments )
-    {
-        enrollments.forEach( enrollment -> {
-            addIdentifier( identifiers, TrackedEntity.class, enrollment.getTrackedEntity() );
-            addIdentifier( identifiers, Enrollment.class, enrollment.getEnrollment() );
-            addIdentifier( identifiers, Program.class, enrollment.getProgram() );
-            addIdentifier( identifiers, OrganisationUnit.class, enrollment.getOrgUnit() );
-
-            collectNotes( identifiers, enrollment.getNotes() );
-            collectEvents( identifiers, enrollment.getEvents() );
-            enrollment.getAttributes().forEach( attribute -> addIdentifier( identifiers, TrackedEntityAttribute.class,
-                attribute.getAttribute() ) );
-        } );
-    }
-
-    private void collectNotes( Map<Class<?>, Set<String>> identifiers, List<Note> notes )
-    {
-        notes.forEach(
-            note -> {
-                if ( !StringUtils.isEmpty( note.getNote() ) && !StringUtils.isEmpty( note.getValue() ) )
-                {
-                    addIdentifier( identifiers, TrackedEntityComment.class, note.getNote() );
-                }
-            } );
-    }
-
-    private void collectEvents( Map<Class<?>, Set<String>> identifiers, List<Event> events )
-    {
-        events.forEach( event -> {
-            addIdentifier( identifiers, Enrollment.class, event.getEnrollment() );
-            addIdentifier( identifiers, Event.class, event.getEvent() );
-            addIdentifier( identifiers, Program.class, event.getProgram() );
-            addIdentifier( identifiers, ProgramStage.class, event.getProgramStage() );
-            addIdentifier( identifiers, OrganisationUnit.class, event.getOrgUnit() );
-
-            event.getAttributeCategoryOptions()
-                .forEach( s -> addIdentifier( identifiers, CategoryOption.class, s ) );
-
-            addIdentifier( identifiers, CategoryOptionCombo.class, event.getAttributeOptionCombo() );
-
-            event.getDataValues()
-                .forEach( dv -> addIdentifier( identifiers, DataElement.class, dv.getDataElement() ) );
-
-            collectNotes( identifiers, event.getNotes() );
-
-        } );
-    }
-
-    private void collectRelationships( Map<Class<?>, Set<String>> identifiers, List<Relationship> relationships )
-    {
-        relationships.forEach( relationship -> {
-
-            addIdentifier( identifiers, Relationship.class, relationship.getRelationship() );
-            addIdentifier( identifiers, RelationshipType.class, relationship.getRelationshipType() );
-
-            if ( Objects.nonNull( relationship.getFrom() ) )
-            {
-                addIdentifier( identifiers, TrackedEntity.class, relationship.getFrom().getTrackedEntity() );
-                addIdentifier( identifiers, Enrollment.class, relationship.getFrom().getEnrollment() );
-                addIdentifier( identifiers, Event.class, relationship.getFrom().getEvent() );
-            }
-
-            if ( Objects.nonNull( relationship.getTo() ) )
-            {
-                addIdentifier( identifiers, TrackedEntity.class, relationship.getTo().getTrackedEntity() );
-                addIdentifier( identifiers, Enrollment.class, relationship.getTo().getEnrollment() );
-                addIdentifier( identifiers, Event.class, relationship.getTo().getEvent() );
-            }
-        } );
-    }
-
-    private <T> void addIdentifier( Map<Class<?>, Set<String>> identifiers, Class<T> klass,
-        MetadataIdentifier identifier )
-    {
-        addIdentifier( identifiers, klass, identifier == null ? null : identifier.getIdentifierOrAttributeValue() );
-    }
-
-    private <T> void addIdentifier( Map<Class<?>, Set<String>> identifiers, Class<T> klass, String identifier )
-    {
-        if ( StringUtils.isEmpty( identifier ) || identifiers == null || klass == null )
-        {
-            return;
-        }
-
-        identifiers
-            .computeIfAbsent( klass, k -> new HashSet<>() )
-            .add( identifier );
-    }
+    identifiers.computeIfAbsent(klass, k -> new HashSet<>()).add(identifier);
+  }
 }

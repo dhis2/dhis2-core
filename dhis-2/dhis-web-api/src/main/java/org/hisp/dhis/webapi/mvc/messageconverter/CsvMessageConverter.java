@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
+import com.google.common.collect.ImmutableList;
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
-
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
@@ -37,62 +37,52 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class CsvMessageConverter extends AbstractRootNodeMessageConverter
-{
-    public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
-        .add( new MediaType( "application", "csv" ) )
-        .add( new MediaType( "text", "csv" ) )
-        .build();
+public class CsvMessageConverter extends AbstractRootNodeMessageConverter {
+  public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES =
+      ImmutableList.<MediaType>builder()
+          .add(new MediaType("application", "csv"))
+          .add(new MediaType("text", "csv"))
+          .build();
 
-    public static final ImmutableList<MediaType> GZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
-        .add( new MediaType( "application", "csv+gzip" ) )
-        .build();
+  public static final ImmutableList<MediaType> GZIP_SUPPORTED_MEDIA_TYPES =
+      ImmutableList.<MediaType>builder().add(new MediaType("application", "csv+gzip")).build();
 
-    public static final ImmutableList<MediaType> ZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
-        .add( new MediaType( "application", "csv+zip" ) )
-        .build();
+  public static final ImmutableList<MediaType> ZIP_SUPPORTED_MEDIA_TYPES =
+      ImmutableList.<MediaType>builder().add(new MediaType("application", "csv+zip")).build();
 
-    @Override
-    protected boolean supports( Class<?> clazz )
-    {
-        HttpServletRequest request = ContextUtils.getRequest();
+  @Override
+  protected boolean supports(Class<?> clazz) {
+    HttpServletRequest request = ContextUtils.getRequest();
 
-        if ( request == null )
-        {
-            return super.supports( clazz );
-        }
-
-        String pathInfo = request.getPathInfo() == null ? "" : request.getPathInfo();
-
-        for ( var pathPattern : WebMvcConfig.CSV_PATTERNS )
-        {
-            if ( pathPattern.matcher( pathInfo ).matches() )
-            {
-                return super.supports( clazz );
-            }
-        }
-
-        return false;
+    if (request == null) {
+      return super.supports(clazz);
     }
 
-    public CsvMessageConverter( @Autowired @Nonnull NodeService nodeService, Compression compression )
-    {
-        super( nodeService, "text/csv", "csv", compression );
-        switch ( getCompression() )
-        {
-        case NONE:
-            setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
-            break;
-        case GZIP:
-            setSupportedMediaTypes( GZIP_SUPPORTED_MEDIA_TYPES );
-            break;
-        case ZIP:
-            setSupportedMediaTypes( ZIP_SUPPORTED_MEDIA_TYPES );
-        }
+    String pathInfo = request.getPathInfo() == null ? "" : request.getPathInfo();
+
+    for (var pathPattern : WebMvcConfig.CSV_PATTERNS) {
+      if (pathPattern.matcher(pathInfo).matches()) {
+        return super.supports(clazz);
+      }
     }
+
+    return false;
+  }
+
+  public CsvMessageConverter(@Autowired @Nonnull NodeService nodeService, Compression compression) {
+    super(nodeService, "text/csv", "csv", compression);
+    switch (getCompression()) {
+      case NONE:
+        setSupportedMediaTypes(SUPPORTED_MEDIA_TYPES);
+        break;
+      case GZIP:
+        setSupportedMediaTypes(GZIP_SUPPORTED_MEDIA_TYPES);
+        break;
+      case ZIP:
+        setSupportedMediaTypes(ZIP_SUPPORTED_MEDIA_TYPES);
+    }
+  }
 }

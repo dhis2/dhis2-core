@@ -28,9 +28,7 @@
 package org.hisp.dhis.webapi.controller.metadata;
 
 import java.io.InputStream;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -49,69 +47,57 @@ import org.springframework.stereotype.Component;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @Component
-@Scope( "prototype" )
+@Scope("prototype")
 @Slf4j
-public class GmlAsyncImporter extends SecurityContextRunnable
-{
-    @Autowired
-    private GmlImportService gmlImportService;
+public class GmlAsyncImporter extends SecurityContextRunnable {
+  @Autowired private GmlImportService gmlImportService;
 
-    @Autowired
-    private SessionFactory sessionFactory;
+  @Autowired private SessionFactory sessionFactory;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private Notifier notifier;
+  @Autowired private Notifier notifier;
 
-    private MetadataImportParams params;
+  private MetadataImportParams params;
 
-    private InputStream inputStream;
+  private InputStream inputStream;
 
-    @Override
-    public void call()
-    {
-        // This is to fix LazyInitializationException
-        if ( params.getUser() != null )
-        {
-            params.setUser( manager.get( User.class, params.getUser().getUid() ) );
-        }
-
-        if ( params.getOverrideUser() != null )
-        {
-            params.setOverrideUser( manager.get( User.class, params.getOverrideUser().getUid() ) );
-        }
-
-        gmlImportService.importGml( inputStream, params );
+  @Override
+  public void call() {
+    // This is to fix LazyInitializationException
+    if (params.getUser() != null) {
+      params.setUser(manager.get(User.class, params.getUser().getUid()));
     }
 
-    @Override
-    public void before()
-    {
-        DbmsUtils.bindSessionToThread( sessionFactory );
+    if (params.getOverrideUser() != null) {
+      params.setOverrideUser(manager.get(User.class, params.getOverrideUser().getUid()));
     }
 
-    @Override
-    public void after()
-    {
-        DbmsUtils.unbindSessionFromThread( sessionFactory );
-    }
+    gmlImportService.importGml(inputStream, params);
+  }
 
-    public void setParams( MetadataImportParams params )
-    {
-        this.params = params;
-    }
+  @Override
+  public void before() {
+    DbmsUtils.bindSessionToThread(sessionFactory);
+  }
 
-    public void setInputStream( InputStream inputStream )
-    {
-        this.inputStream = inputStream;
-    }
+  @Override
+  public void after() {
+    DbmsUtils.unbindSessionFromThread(sessionFactory);
+  }
 
-    @Override
-    public void handleError( Throwable ex )
-    {
-        log.error( DebugUtils.getStackTrace( ex ) );
-        notifier.notify( params.getId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
-    }
+  public void setParams(MetadataImportParams params) {
+    this.params = params;
+  }
+
+  public void setInputStream(InputStream inputStream) {
+    this.inputStream = inputStream;
+  }
+
+  @Override
+  public void handleError(Throwable ex) {
+    log.error(DebugUtils.getStackTrace(ex));
+    notifier.notify(
+        params.getId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true);
+  }
 }

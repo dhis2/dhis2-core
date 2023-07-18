@@ -32,7 +32,6 @@ import static java.util.function.Predicate.not;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -42,76 +41,67 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Named;
 
 @Mapper
-interface MetadataIdentifierMapper
-{
+interface MetadataIdentifierMapper {
 
-    @Named( "dataElementToMetadataIdentifier" )
-    default MetadataIdentifier fromDataElement( String identifier,
-        @Context TrackerIdSchemeParams idSchemeParams )
-    {
-        return idSchemeParams.getDataElementIdScheme().toMetadataIdentifier( identifier );
+  @Named("dataElementToMetadataIdentifier")
+  default MetadataIdentifier fromDataElement(
+      String identifier, @Context TrackerIdSchemeParams idSchemeParams) {
+    return idSchemeParams.getDataElementIdScheme().toMetadataIdentifier(identifier);
+  }
+
+  @Named("programToMetadataIdentifier")
+  default MetadataIdentifier fromProgram(
+      String identifier, @Context TrackerIdSchemeParams idSchemeParams) {
+    return idSchemeParams.getProgramIdScheme().toMetadataIdentifier(identifier);
+  }
+
+  @Named("programStageToMetadataIdentifier")
+  default MetadataIdentifier fromProgramStage(
+      String identifier, @Context TrackerIdSchemeParams idSchemeParams) {
+    return idSchemeParams.getProgramStageIdScheme().toMetadataIdentifier(identifier);
+  }
+
+  @Named("orgUnitToMetadataIdentifier")
+  default MetadataIdentifier fromOrgUnit(
+      String identifier, @Context TrackerIdSchemeParams idSchemeParams) {
+    return idSchemeParams.getOrgUnitIdScheme().toMetadataIdentifier(identifier);
+  }
+
+  @Named("attributeOptionComboToMetadataIdentifier")
+  default MetadataIdentifier fromAttributeOptionCombo(
+      String identifier, @Context TrackerIdSchemeParams idSchemeParams) {
+    return idSchemeParams.getCategoryOptionComboIdScheme().toMetadataIdentifier(identifier);
+  }
+
+  @Named("attributeCategoryOptionsToMetadataIdentifier")
+  default Set<MetadataIdentifier> fromAttributeCategoryOptions(
+      String identifiers, @Context TrackerIdSchemeParams idSchemeParams) {
+    if (StringUtils.isBlank(identifiers)) {
+      return Collections.emptySet();
     }
 
-    @Named( "programToMetadataIdentifier" )
-    default MetadataIdentifier fromProgram( String identifier,
-        @Context TrackerIdSchemeParams idSchemeParams )
-    {
-        return idSchemeParams.getProgramIdScheme().toMetadataIdentifier( identifier );
-    }
+    return TextUtils.splitToSet(identifiers, TextUtils.SEMICOLON).stream()
+        .map(String::trim)
+        .filter(not(String::isEmpty))
+        .map(id -> idSchemeParams.getCategoryOptionIdScheme().toMetadataIdentifier(id))
+        .collect(Collectors.toSet());
+  }
 
-    @Named( "programStageToMetadataIdentifier" )
-    default MetadataIdentifier fromProgramStage( String identifier,
-        @Context TrackerIdSchemeParams idSchemeParams )
-    {
-        return idSchemeParams.getProgramStageIdScheme().toMetadataIdentifier( identifier );
-    }
-
-    @Named( "orgUnitToMetadataIdentifier" )
-    default MetadataIdentifier fromOrgUnit( String identifier,
-        @Context TrackerIdSchemeParams idSchemeParams )
-    {
-        return idSchemeParams.getOrgUnitIdScheme().toMetadataIdentifier( identifier );
-    }
-
-    @Named( "attributeOptionComboToMetadataIdentifier" )
-    default MetadataIdentifier fromAttributeOptionCombo( String identifier,
-        @Context TrackerIdSchemeParams idSchemeParams )
-    {
-        return idSchemeParams.getCategoryOptionComboIdScheme().toMetadataIdentifier( identifier );
-    }
-
-    @Named( "attributeCategoryOptionsToMetadataIdentifier" )
-    default Set<MetadataIdentifier> fromAttributeCategoryOptions( String identifiers,
-        @Context TrackerIdSchemeParams idSchemeParams )
-    {
-        if ( StringUtils.isBlank( identifiers ) )
-        {
-            return Collections.emptySet();
-        }
-
-        return TextUtils.splitToSet( identifiers, TextUtils.SEMICOLON ).stream()
-            .map( String::trim )
-            .filter( not( String::isEmpty ) )
-            .map( id -> idSchemeParams.getCategoryOptionIdScheme().toMetadataIdentifier( id ) )
-            .collect( Collectors.toSet() );
-    }
-
-    /**
-     * Returns the {@code identifier} wrapped in a {@link MetadataIdentifier}
-     * thus adding the {@code idScheme}.
-     *
-     * Use this mapper only for metadata that does not have its own idScheme
-     * query parameter. So if you are for example mapping {@code orgUnit} use
-     * {@link #fromOrgUnit(String, TrackerIdSchemeParams)}.
-     *
-     * @param identifier string identifier to map
-     * @param idSchemeParams idScheme parameters set in the request
-     * @return metadata identifier
-     */
-    @Named( "toMetadataIdentifier" )
-    default MetadataIdentifier fromStringIdentifier( String identifier,
-        @Context TrackerIdSchemeParams idSchemeParams )
-    {
-        return idSchemeParams.getIdScheme().toMetadataIdentifier( identifier );
-    }
+  /**
+   * Returns the {@code identifier} wrapped in a {@link MetadataIdentifier} thus adding the {@code
+   * idScheme}.
+   *
+   * <p>Use this mapper only for metadata that does not have its own idScheme query parameter. So if
+   * you are for example mapping {@code orgUnit} use {@link #fromOrgUnit(String,
+   * TrackerIdSchemeParams)}.
+   *
+   * @param identifier string identifier to map
+   * @param idSchemeParams idScheme parameters set in the request
+   * @return metadata identifier
+   */
+  @Named("toMetadataIdentifier")
+  default MetadataIdentifier fromStringIdentifier(
+      String identifier, @Context TrackerIdSchemeParams idSchemeParams) {
+    return idSchemeParams.getIdScheme().toMetadataIdentifier(identifier);
+  }
 }

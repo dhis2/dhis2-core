@@ -36,23 +36,20 @@ import org.hisp.dhis.analytics.DataType;
  *
  * @author Jim Grace
  */
-public enum ParseType
-{
-    INDICATOR_EXPRESSION( NUMERIC ),
-    VALIDATION_RULE_EXPRESSION( NUMERIC ),
-    PREDICTOR_EXPRESSION( NUMERIC ),
-    PREDICTOR_SKIP_TEST( BOOLEAN ),
-    SIMPLE_TEST( BOOLEAN );
+public enum ParseType {
+  INDICATOR_EXPRESSION(NUMERIC),
+  VALIDATION_RULE_EXPRESSION(NUMERIC),
+  PREDICTOR_EXPRESSION(NUMERIC),
+  PREDICTOR_SKIP_TEST(BOOLEAN),
+  SIMPLE_TEST(BOOLEAN);
 
-    private DataType dataType;
+  private DataType dataType;
 
-    ParseType( DataType dataType )
-    {
-        this.dataType = dataType;
-    }
+  ParseType(DataType dataType) {
+    this.dataType = dataType;
+  }
 
-    public DataType getDataType()
-    {
-        return dataType;
-    }
+  public DataType getDataType() {
+    return dataType;
+  }
 }

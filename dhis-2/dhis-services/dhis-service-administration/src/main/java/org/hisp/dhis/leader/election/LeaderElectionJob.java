@@ -28,7 +28,6 @@
 package org.hisp.dhis.leader.election;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -43,20 +42,17 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class LeaderElectionJob implements Job
-{
-    private final LeaderManager leaderManager;
+public class LeaderElectionJob implements Job {
+  private final LeaderManager leaderManager;
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.LEADER_ELECTION;
-    }
+  @Override
+  public JobType getJobType() {
+    return JobType.LEADER_ELECTION;
+  }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        progress.startingProcess( "Elect leader node" );
-        progress.endingProcess( progress.runStage( () -> leaderManager.electLeader( progress ) ) );
-    }
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    progress.startingProcess("Elect leader node");
+    progress.endingProcess(progress.runStage(() -> leaderManager.electLeader(progress)));
+  }
 }

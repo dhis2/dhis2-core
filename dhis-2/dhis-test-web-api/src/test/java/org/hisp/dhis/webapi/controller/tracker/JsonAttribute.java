@@ -29,19 +29,13 @@ package org.hisp.dhis.webapi.controller.tracker;
 
 import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * Representation of
- * {@link org.hisp.dhis.webapi.controller.tracker.view.Attribute}.
- */
-public interface JsonAttribute extends JsonObject
-{
-    default String getAttribute()
-    {
-        return getString( "attribute" ).string();
-    }
+/** Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.Attribute}. */
+public interface JsonAttribute extends JsonObject {
+  default String getAttribute() {
+    return getString("attribute").string();
+  }
 
-    default String getValue()
-    {
-        return getString( "value" ).string();
-    }
+  default String getValue() {
+    return getString("value").string();
+  }
 }

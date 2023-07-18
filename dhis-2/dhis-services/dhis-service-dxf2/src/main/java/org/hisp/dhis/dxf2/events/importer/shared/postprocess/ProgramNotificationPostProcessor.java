@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.events.importer.shared.postprocess;
 import static org.hisp.dhis.event.EventStatus.SCHEDULE;
 
 import java.util.Optional;
-
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
@@ -47,43 +46,38 @@ import org.springframework.stereotype.Component;
  * @author maikel arabori
  */
 @Component
-public class ProgramNotificationPostProcessor implements Processor
-{
-    @Override
-    public void process( final Event event, final WorkContext ctx )
-    {
-        if ( !ctx.getImportOptions().isSkipNotifications() )
-        {
-            // When this processor is invoked from insert event, then
-            // programStageInstance
-            // might be null and need to be built from Event.
-            final ProgramStageInstance programStageInstance = getProgramStageInstance( ctx, event );
+public class ProgramNotificationPostProcessor implements Processor {
+  @Override
+  public void process(final Event event, final WorkContext ctx) {
+    if (!ctx.getImportOptions().isSkipNotifications()) {
+      // When this processor is invoked from insert event, then
+      // programStageInstance
+      // might be null and need to be built from Event.
+      final ProgramStageInstance programStageInstance = getProgramStageInstance(ctx, event);
 
-            final ApplicationEventPublisher applicationEventPublisher = ctx.getServiceDelegator()
-                .getApplicationEventPublisher();
+      final ApplicationEventPublisher applicationEventPublisher =
+          ctx.getServiceDelegator().getApplicationEventPublisher();
 
-            if ( programStageInstance.isCompleted() )
-            {
-                applicationEventPublisher
-                    .publishEvent( new ProgramStageCompletionNotificationEvent( this, programStageInstance.getId() ) );
-                applicationEventPublisher
-                    .publishEvent( new StageCompletionEvaluationEvent( this, programStageInstance.getUid() ) );
-            }
+      if (programStageInstance.isCompleted()) {
+        applicationEventPublisher.publishEvent(
+            new ProgramStageCompletionNotificationEvent(this, programStageInstance.getId()));
+        applicationEventPublisher.publishEvent(
+            new StageCompletionEvaluationEvent(this, programStageInstance.getUid()));
+      }
 
-            if ( SCHEDULE.equals( programStageInstance.getStatus() ) )
-            {
-                applicationEventPublisher
-                    .publishEvent( new StageScheduledEvaluationEvent( this, programStageInstance.getUid() ) );
-            }
+      if (SCHEDULE.equals(programStageInstance.getStatus())) {
+        applicationEventPublisher.publishEvent(
+            new StageScheduledEvaluationEvent(this, programStageInstance.getUid()));
+      }
 
-            ctx.getServiceDelegator().getApplicationEventPublisher().publishEvent(
-                new TrackerEventWebHookEvent( this, event.getEvent() ) );
-        }
+      ctx.getServiceDelegator()
+          .getApplicationEventPublisher()
+          .publishEvent(new TrackerEventWebHookEvent(this, event.getEvent()));
     }
+  }
 
-    private ProgramStageInstance getProgramStageInstance( WorkContext ctx, Event event )
-    {
-        return Optional.ofNullable( ctx.getProgramStageInstanceMap().get( event.getUid() ) )
-            .orElseGet( () -> new ProgramStageInstanceMapper( ctx ).map( event ) );
-    }
+  private ProgramStageInstance getProgramStageInstance(WorkContext ctx, Event event) {
+    return Optional.ofNullable(ctx.getProgramStageInstanceMap().get(event.getUid()))
+        .orElseGet(() -> new ProgramStageInstanceMapper(ctx).map(event));
+  }
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.program.notification;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotificationEvent;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
@@ -40,60 +39,50 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-/**
- * Created by zubair@dhis2.org on 18.01.18.
- */
+/** Created by zubair@dhis2.org on 18.01.18. */
 @Async
 @RequiredArgsConstructor
-@Component( "org.hisp.dhis.program.notification.ProgramNotificationListener" )
-public class ProgramNotificationListener
-{
-    private final ProgramNotificationService programNotificationService;
+@Component("org.hisp.dhis.program.notification.ProgramNotificationListener")
+public class ProgramNotificationListener {
+  private final ProgramNotificationService programNotificationService;
 
-    private final TrackerNotificationWebHookService trackerNotificationWebHookService;
+  private final TrackerNotificationWebHookService trackerNotificationWebHookService;
 
-    @TransactionalEventListener( fallbackExecution = true )
-    public void onEnrollment( ProgramEnrollmentNotificationEvent event )
-    {
-        programNotificationService.sendEnrollmentNotifications( event.getProgramInstance() );
-    }
+  @TransactionalEventListener(fallbackExecution = true)
+  public void onEnrollment(ProgramEnrollmentNotificationEvent event) {
+    programNotificationService.sendEnrollmentNotifications(event.getProgramInstance());
+  }
 
-    @TransactionalEventListener( fallbackExecution = true )
-    public void onCompletion( ProgramEnrollmentCompletionNotificationEvent event )
-    {
-        programNotificationService.sendEnrollmentCompletionNotifications( event.getProgramInstance() );
-    }
+  @TransactionalEventListener(fallbackExecution = true)
+  public void onCompletion(ProgramEnrollmentCompletionNotificationEvent event) {
+    programNotificationService.sendEnrollmentCompletionNotifications(event.getProgramInstance());
+  }
 
-    @TransactionalEventListener( fallbackExecution = true )
-    public void onEvent( ProgramStageCompletionNotificationEvent event )
-    {
-        programNotificationService.sendEventCompletionNotifications( event.getProgramStageInstance() );
-    }
+  @TransactionalEventListener(fallbackExecution = true)
+  public void onEvent(ProgramStageCompletionNotificationEvent event) {
+    programNotificationService.sendEventCompletionNotifications(event.getProgramStageInstance());
+  }
 
-    // Published by rule engine
-    @TransactionalEventListener( fallbackExecution = true )
-    public void onProgramRuleEnrollment( ProgramRuleEnrollmentEvent event )
-    {
-        programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(),
-            event.getProgramInstance() );
-    }
+  // Published by rule engine
+  @TransactionalEventListener(fallbackExecution = true)
+  public void onProgramRuleEnrollment(ProgramRuleEnrollmentEvent event) {
+    programNotificationService.sendProgramRuleTriggeredNotifications(
+        event.getTemplate(), event.getProgramInstance());
+  }
 
-    @TransactionalEventListener( fallbackExecution = true )
-    public void onProgramRuleEvent( ProgramRuleStageEvent event )
-    {
-        programNotificationService.sendProgramRuleTriggeredEventNotifications( event.getTemplate(),
-            event.getProgramStageInstance() );
-    }
+  @TransactionalEventListener(fallbackExecution = true)
+  public void onProgramRuleEvent(ProgramRuleStageEvent event) {
+    programNotificationService.sendProgramRuleTriggeredEventNotifications(
+        event.getTemplate(), event.getProgramStageInstance());
+  }
 
-    @TransactionalEventListener( fallbackExecution = true )
-    public void onTrackerEventWebHook( TrackerEventWebHookEvent event )
-    {
-        trackerNotificationWebHookService.handleEvent( event.getProgramStageInstance() );
-    }
+  @TransactionalEventListener(fallbackExecution = true)
+  public void onTrackerEventWebHook(TrackerEventWebHookEvent event) {
+    trackerNotificationWebHookService.handleEvent(event.getProgramStageInstance());
+  }
 
-    @TransactionalEventListener( fallbackExecution = true )
-    public void onTrackerEnrollmentWebHook( TrackerEnrollmentWebHookEvent event )
-    {
-        trackerNotificationWebHookService.handleEnrollment( event.getProgramInstance() );
-    }
+  @TransactionalEventListener(fallbackExecution = true)
+  public void onTrackerEnrollmentWebHook(TrackerEnrollmentWebHookEvent event) {
+    trackerNotificationWebHookService.handleEnrollment(event.getProgramInstance());
+  }
 }

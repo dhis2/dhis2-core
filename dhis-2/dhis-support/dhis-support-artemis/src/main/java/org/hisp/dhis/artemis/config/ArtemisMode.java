@@ -30,8 +30,7 @@ package org.hisp.dhis.artemis.config;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum ArtemisMode
-{
-    EMBEDDED,
-    NATIVE
+public enum ArtemisMode {
+  EMBEDDED,
+  NATIVE
 }

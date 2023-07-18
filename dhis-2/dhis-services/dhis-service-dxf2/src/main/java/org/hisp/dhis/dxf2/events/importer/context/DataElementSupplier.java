@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -50,41 +49,47 @@ import org.springframework.stereotype.Component;
  *
  * @author Luciano Fiandesio
  */
-@Component( "workContextDataElementsSupplier" )
-public class DataElementSupplier extends AbstractSupplier<Map<String, DataElement>>
-{
-    private final IdentifiableObjectManager manager;
+@Component("workContextDataElementsSupplier")
+public class DataElementSupplier extends AbstractSupplier<Map<String, DataElement>> {
+  private final IdentifiableObjectManager manager;
 
-    public DataElementSupplier( NamedParameterJdbcTemplate jdbcTemplate, IdentifiableObjectManager manager )
-    {
-        super( jdbcTemplate );
-        this.manager = manager;
+  public DataElementSupplier(
+      NamedParameterJdbcTemplate jdbcTemplate, IdentifiableObjectManager manager) {
+    super(jdbcTemplate);
+    this.manager = manager;
+  }
+
+  @Override
+  public Map<String, DataElement> get(ImportOptions importOptions, List<Event> events) {
+    Map<String, DataElement> dataElementsMap;
+
+    IdScheme dataElementIdScheme = importOptions.getIdSchemes().getDataElementIdScheme();
+
+    // Collects all Data Elements IDs
+    Set<String> allDataElements =
+        events.stream()
+            .map(Event::getDataValues)
+            .flatMap(Collection::stream)
+            .map(DataValue::getDataElement)
+            .collect(Collectors.toSet());
+
+    if (dataElementIdScheme.isNull() || dataElementIdScheme.is(IdentifiableProperty.UID)) {
+      dataElementsMap =
+          manager.getObjects(DataElement.class, IdentifiableProperty.UID, allDataElements).stream()
+              .collect(Collectors.toMap(DataElement::getUid, d -> d));
+    } else {
+      // Slower, but shouldn't happen so often
+      dataElementsMap =
+          allDataElements.stream()
+              .map(deId -> manager.getObject(DataElement.class, dataElementIdScheme, deId))
+              .filter(Objects::nonNull)
+              .collect(
+                  Collectors.toMap(
+                      dataElement ->
+                          IdentifiableObjectUtils.getIdentifierBasedOnIdScheme(
+                              dataElement, dataElementIdScheme),
+                      d -> d));
     }
-
-    @Override
-    public Map<String, DataElement> get( ImportOptions importOptions, List<Event> events )
-    {
-        Map<String, DataElement> dataElementsMap;
-
-        IdScheme dataElementIdScheme = importOptions.getIdSchemes().getDataElementIdScheme();
-
-        // Collects all Data Elements IDs
-        Set<String> allDataElements = events.stream().map( Event::getDataValues ).flatMap( Collection::stream )
-            .map( DataValue::getDataElement ).collect( Collectors.toSet() );
-
-        if ( dataElementIdScheme.isNull() || dataElementIdScheme.is( IdentifiableProperty.UID ) )
-        {
-            dataElementsMap = manager.getObjects( DataElement.class, IdentifiableProperty.UID, allDataElements )
-                .stream().collect( Collectors.toMap( DataElement::getUid, d -> d ) );
-        }
-        else
-        {
-            // Slower, but shouldn't happen so often
-            dataElementsMap = allDataElements.stream()
-                .map( deId -> manager.getObject( DataElement.class, dataElementIdScheme, deId ) )
-                .filter( Objects::nonNull ).collect( Collectors.toMap( dataElement -> IdentifiableObjectUtils
-                    .getIdentifierBasedOnIdScheme( dataElement, dataElementIdScheme ), d -> d ) );
-        }
-        return dataElementsMap;
-    }
+    return dataElementsMap;
+  }
 }

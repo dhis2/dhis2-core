@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.dxf2.common;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -38,34 +38,31 @@ import org.hisp.dhis.jsontree.JsonTypedAccess;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseExtractor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * Converts a response into an ImportSummary instance.
  *
  * @author Lars Helge Overland
  */
-public class ImportSummaryResponseExtractor implements ResponseExtractor<ImportSummary>
-{
-    private static final ObjectMapper JSON_MAPPER = JacksonObjectMapperConfig.staticJsonMapper();
+public class ImportSummaryResponseExtractor implements ResponseExtractor<ImportSummary> {
+  private static final ObjectMapper JSON_MAPPER = JacksonObjectMapperConfig.staticJsonMapper();
 
-    /**
-     * @param response from remote
-     * @return parsed {@link ImportSummary}
-     * @throws IOException if converting the response into an ImportSummary
-     *         failed.
-     */
-    @Override
-    public ImportSummary extractData( ClientHttpResponse response )
-        throws IOException
+  /**
+   * @param response from remote
+   * @return parsed {@link ImportSummary}
+   * @throws IOException if converting the response into an ImportSummary failed.
+   */
+  @Override
+  public ImportSummary extractData(ClientHttpResponse response) throws IOException {
+    JsonObject body =
+        new JsonResponse(
+            new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8),
+            JsonTypedAccess.GLOBAL);
+    // auto-detect if it is wrapped in a WebMessage envelope
+    if (body.has("httpStatus", "response")) // is a WebMessage wrapper
     {
-        JsonObject body = new JsonResponse( new String( response.getBody().readAllBytes(), StandardCharsets.UTF_8 ),
-            JsonTypedAccess.GLOBAL );
-        // auto-detect if it is wrapped in a WebMessage envelope
-        if ( body.has( "httpStatus", "response" ) ) // is a WebMessage wrapper
-        {
-            return JSON_MAPPER.readValue( body.getObject( "response" ).node().getDeclaration(), ImportSummary.class );
-        }
-        return JSON_MAPPER.readValue( body.node().getDeclaration(), ImportSummary.class );
+      return JSON_MAPPER.readValue(
+          body.getObject("response").node().getDeclaration(), ImportSummary.class);
     }
+    return JSON_MAPPER.readValue(body.node().getDeclaration(), ImportSummary.class);
+  }
 }

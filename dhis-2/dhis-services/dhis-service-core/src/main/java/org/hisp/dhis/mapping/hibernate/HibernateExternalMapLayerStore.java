@@ -40,14 +40,22 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@Repository( "org.hisp.dhis.mapping.ExternalMapLayerStore" )
+@Repository("org.hisp.dhis.mapping.ExternalMapLayerStore")
 public class HibernateExternalMapLayerStore
-    extends HibernateIdentifiableObjectStore<ExternalMapLayer>
-    implements ExternalMapLayerStore
-{
-    public HibernateExternalMapLayerStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ExternalMapLayer.class, currentUserService, aclService, false );
-    }
+    extends HibernateIdentifiableObjectStore<ExternalMapLayer> implements ExternalMapLayerStore {
+  public HibernateExternalMapLayerStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        ExternalMapLayer.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 }

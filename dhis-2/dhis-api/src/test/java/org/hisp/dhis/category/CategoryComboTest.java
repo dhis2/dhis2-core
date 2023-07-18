@@ -36,28 +36,24 @@ import org.junit.jupiter.api.Test;
  *
  * @author Volker Schmidt
  */
-class CategoryComboTest
-{
+class CategoryComboTest {
 
-    @Test
-    void hasDefault()
-    {
-        Assertions.assertTrue( SystemDefaultMetadataObject.class.isAssignableFrom( CategoryCombo.class ) );
-    }
+  @Test
+  void hasDefault() {
+    Assertions.assertTrue(SystemDefaultMetadataObject.class.isAssignableFrom(CategoryCombo.class));
+  }
 
-    @Test
-    void isDefault()
-    {
-        CategoryCombo category = new CategoryCombo();
-        category.setName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
-        Assertions.assertTrue( category.isDefault() );
-    }
+  @Test
+  void isDefault() {
+    CategoryCombo category = new CategoryCombo();
+    category.setName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME);
+    Assertions.assertTrue(category.isDefault());
+  }
 
-    @Test
-    void isNotDefault()
-    {
-        CategoryCombo category = new CategoryCombo();
-        category.setName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME + "x" );
-        Assertions.assertFalse( category.isDefault() );
-    }
+  @Test
+  void isNotDefault() {
+    CategoryCombo category = new CategoryCombo();
+    category.setName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME + "x");
+    Assertions.assertFalse(category.isDefault());
+  }
 }

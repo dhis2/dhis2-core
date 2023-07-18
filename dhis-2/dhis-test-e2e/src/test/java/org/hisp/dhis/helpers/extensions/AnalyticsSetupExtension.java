@@ -30,8 +30,8 @@ package org.hisp.dhis.helpers.extensions;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.apache.logging.log4j.LogManager.getLogger;
 
+import com.google.gson.JsonObject;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.actions.LoginActions;
@@ -42,59 +42,53 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-import com.google.gson.JsonObject;
-
 /**
- * This extension is used to prepare/populate the analytics tables, so they can
- * be further used by the analytics e2e tests.
+ * This extension is used to prepare/populate the analytics tables, so they can be further used by
+ * the analytics e2e tests.
  *
- * The database used as baseline for all e2e analytics tests is found at
+ * <p>The database used as baseline for all e2e analytics tests is found at
  * https://databases.dhis2.org/sierra-leone/2.39.0/analytics_be/dhis2-db-sierra-leone.sql.gz
  *
  * @author maikel arabori
  */
-public class AnalyticsSetupExtension implements BeforeAllCallback
-{
+public class AnalyticsSetupExtension implements BeforeAllCallback {
 
-    private static final Logger logger = getLogger( AnalyticsSetupExtension.class.getName() );
+  private static final Logger logger = getLogger(AnalyticsSetupExtension.class.getName());
 
-    /**
-     * Max limit, in minutes, until the process is timed-out.
-     */
-    private static final long TIMEOUT = minutes( 15 );
+  /** Max limit, in minutes, until the process is timed-out. */
+  private static final long TIMEOUT = minutes(15);
 
-    private static AtomicBoolean run = new AtomicBoolean( false );
+  private static AtomicBoolean run = new AtomicBoolean(false);
 
-    @Override
-    public void beforeAll( ExtensionContext context )
-    {
-        if ( run.compareAndSet( false, true ) )
-        {
-            logger.info( "Starting analytics table export." );
+  @Override
+  public void beforeAll(ExtensionContext context) {
+    if (run.compareAndSet(false, true)) {
+      logger.info("Starting analytics table export.");
 
-            // Login into the current DHIS2 instance.
-            new LoginActions().loginAsAdmin();
+      // Login into the current DHIS2 instance.
+      new LoginActions().loginAsAdmin();
 
-            StopWatch watcher = new StopWatch();
-            watcher.start();
+      StopWatch watcher = new StopWatch();
+      watcher.start();
 
-            // Invoke the analytics table generation process.
-            ApiResponse response = new ResourceTableActions().post( "/analytics", new JsonObject(),
-                new QueryParamsBuilder().add( "executeTei=true" ) ).validateStatus( 200 );
+      // Invoke the analytics table generation process.
+      ApiResponse response =
+          new ResourceTableActions()
+              .post("/analytics", new JsonObject(), new QueryParamsBuilder().add("executeTei=true"))
+              .validateStatus(200);
 
-            String analyticsTaskId = response.extractString( "response.id" );
+      String analyticsTaskId = response.extractString("response.id");
 
-            // Wait until the process is completed.
-            new SystemActions().waitUntilTaskCompleted( "ANALYTICS_TABLE", analyticsTaskId, TIMEOUT );
+      // Wait until the process is completed.
+      new SystemActions().waitUntilTaskCompleted("ANALYTICS_TABLE", analyticsTaskId, TIMEOUT);
 
-            watcher.stop();
+      watcher.stop();
 
-            logger.info( "Concluding analytics table export in {} minutes", watcher.getTime( MINUTES ) );
-        }
+      logger.info("Concluding analytics table export in {} minutes", watcher.getTime(MINUTES));
     }
+  }
 
-    private static long minutes( final int minutes )
-    {
-        return MINUTES.toSeconds( minutes );
-    }
+  private static long minutes(final int minutes) {
+    return MINUTES.toSeconds(minutes);
+  }
 }

@@ -33,11 +33,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
-
 import lombok.Builder;
 import lombok.Setter;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.DefaultPropertyIntrospectorService;
@@ -53,301 +52,292 @@ import org.hisp.dhis.schema.introspection.PropertyPropertyIntrospector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * This is a unit test for the {@link DefaultSchemaValidator}.
  *
  * @author Jan Bernitt
  */
-class DefaultSchemaValidatorTest
-{
+class DefaultSchemaValidatorTest {
 
-    @Builder
-    @Setter
-    public static class SimpleFields
-    {
+  @Builder
+  @Setter
+  public static class SimpleFields {
 
-        String optional;
+    String optional;
 
-        String string;
+    String string;
 
-        String email;
+    String email;
 
-        String url;
+    String url;
 
-        String password;
+    String password;
 
-        String color;
+    String color;
 
-        Integer integer;
+    Integer integer;
 
-        Float aFloat;
+    Float aFloat;
 
-        Double aDouble;
+    Double aDouble;
 
-        List<Integer> list;
+    List<Integer> list;
 
-        @JsonProperty
-        public String getOptional()
-        {
-            return optional;
-        }
-
-        @JsonProperty
-        @Property( required = Value.TRUE )
-        @PropertyRange( min = 5, max = 25 )
-        public String getString()
-        {
-            return string;
-        }
-
-        @JsonProperty
-        @Property( PropertyType.EMAIL )
-        public String getEmail()
-        {
-            return email;
-        }
-
-        @JsonProperty
-        @Property( PropertyType.URL )
-        public String getUrl()
-        {
-            return url;
-        }
-
-        @JsonProperty
-        @Property( PropertyType.PASSWORD )
-        public String getPassword()
-        {
-            return password;
-        }
-
-        @JsonProperty
-        @Property( PropertyType.COLOR )
-        public String getColor()
-        {
-            return color;
-        }
-
-        @JsonProperty
-        @PropertyRange( min = 13, max = 42 )
-        public Integer getInteger()
-        {
-            return integer;
-        }
-
-        @JsonProperty
-        @PropertyRange( min = 13, max = 42 )
-        public Float getAFloat()
-        {
-            return aFloat;
-        }
-
-        @JsonProperty
-        @PropertyRange( min = 13, max = 42 )
-        public Double getADouble()
-        {
-            return aDouble;
-        }
-
-        @JsonProperty
-        @PropertyRange( min = 2, max = 4 )
-        public List<Integer> getList()
-        {
-            return list;
-        }
+    @JsonProperty
+    public String getOptional() {
+      return optional;
     }
 
-    private final SchemaService schemaService = mock( SchemaService.class );
-
-    private final DefaultSchemaValidator validator = new DefaultSchemaValidator( schemaService );
-
-    private final PropertyIntrospectorService introspectorService = new DefaultPropertyIntrospectorService(
-        new JacksonPropertyIntrospector().then( new PropertyPropertyIntrospector() ) );
-
-    private final Schema schema = new Schema( SimpleFields.class, "singular", "plural" );
-
-    @BeforeEach
-    void setUpSchema()
-    {
-        schema.setPropertyMap( introspectorService.getPropertiesMap( SimpleFields.class ) );
-        when( schemaService.getDynamicSchema( SimpleFields.class ) ).thenReturn( schema );
+    @JsonProperty
+    @Property(required = Value.TRUE)
+    @PropertyRange(min = 5, max = 25)
+    public String getString() {
+      return string;
     }
 
-    @Test
-    void testRequiredPropertyIsNull()
-    {
-        assertError( ErrorCode.E4000, SimpleFields.builder().build(), "Missing required property `string`" );
+    @JsonProperty
+    @Property(PropertyType.EMAIL)
+    public String getEmail() {
+      return email;
     }
 
-    @Test
-    void testStringPropertyTooLong()
-    {
-        // fake column length limitation
-        schema.getProperty( "string" ).setLength( 20 );
-        assertError( ErrorCode.E4001, SimpleFields.builder().string( "123456789012345678901" ).build(),
-            "Maximum length of property `string`is 20, but given length was 21" );
+    @JsonProperty
+    @Property(PropertyType.URL)
+    public String getUrl() {
+      return url;
     }
 
-    @Test
-    void testStringPropertyShorterThanMinLength()
-    {
-        assertError( ErrorCode.E4002, SimpleFields.builder().string( "Hey" ).build(),
-            "Allowed length range for property `string` is [5 to 25], but given length was 3" );
+    @JsonProperty
+    @Property(PropertyType.PASSWORD)
+    public String getPassword() {
+      return password;
     }
 
-    @Test
-    void testStringPropertyLongerThanMaxLength()
-    {
-        assertError( ErrorCode.E4002, SimpleFields.builder().string( "12345678901234567890123456" ).build(),
-            "Allowed length range for property `string` is [5 to 25], but given length was 26" );
+    @JsonProperty
+    @Property(PropertyType.COLOR)
+    public String getColor() {
+      return color;
     }
 
-    @Test
-    void testEmailPropertyValid()
-    {
-        assertNoError( SimpleFields.builder().string( "valid" ).email( "test@exmaple.com" ).build() );
+    @JsonProperty
+    @PropertyRange(min = 13, max = 42)
+    public Integer getInteger() {
+      return integer;
     }
 
-    @Test
-    void testEmailPropertyInvalid()
-    {
-        assertError( ErrorCode.E4003, SimpleFields.builder().string( "valid" ).email( "notAnEmail" ).build(),
-            "Property `email` requires a valid email address, was given `notAnEmail`" );
+    @JsonProperty
+    @PropertyRange(min = 13, max = 42)
+    public Float getAFloat() {
+      return aFloat;
     }
 
-    @Test
-    void testUrlPropertyValid()
-    {
-        assertNoError( SimpleFields.builder().string( "valid" ).password( "veryGoodS3cret" ).build() );
+    @JsonProperty
+    @PropertyRange(min = 13, max = 42)
+    public Double getADouble() {
+      return aDouble;
     }
 
-    @Test
-    void testUrlPropertyInvalid()
-    {
-        assertError( ErrorCode.E4004, SimpleFields.builder().string( "valid" ).url( "notAnURL" ).build(),
-            "Property `url` requires a valid URL, was given `notAnURL`" );
+    @JsonProperty
+    @PropertyRange(min = 2, max = 4)
+    public List<Integer> getList() {
+      return list;
     }
+  }
 
-    @Test
-    void testPasswordPropertyValid()
-    {
-        assertNoError( SimpleFields.builder().string( "valid" ).password( "veryGoodS3cret" ).build() );
-    }
+  private final SchemaService schemaService = mock(SchemaService.class);
 
-    @Test
-    void testPasswordPropertyInvalid()
-    {
-        assertError( ErrorCode.E4005, SimpleFields.builder().string( "valid" ).password( "tooShort" ).build(),
-            "Property `password` requires a valid password, was given `tooShort`" );
-    }
+  private final DefaultSchemaValidator validator = new DefaultSchemaValidator(schemaService);
 
-    @Test
-    void testColorPropertyValid()
-    {
-        assertNoError( SimpleFields.builder().string( "valid" ).color( "#445566" ).build() );
-    }
+  private final PropertyIntrospectorService introspectorService =
+      new DefaultPropertyIntrospectorService(
+          new JacksonPropertyIntrospector().then(new PropertyPropertyIntrospector()));
 
-    @Test
-    void testColorPropertyInvalid()
-    {
-        assertError( ErrorCode.E4006, SimpleFields.builder().string( "valid" ).color( "notAColor" ).build(),
-            "Property `color` requires a valid HEX color, was given `notAColor`" );
-    }
+  private final Schema schema = new Schema(SimpleFields.class, "singular", "plural");
 
-    @Test
-    void testIntegerPropertySmallerThanMinValue()
-    {
-        assertError( ErrorCode.E4008, SimpleFields.builder().string( "valid" ).integer( 7 ).build(),
-            "Allowed range for numeric property `integer` is [13 to 42], but number given was 7" );
-    }
+  @BeforeEach
+  void setUpSchema() {
+    schema.setPropertyMap(introspectorService.getPropertiesMap(SimpleFields.class));
+    when(schemaService.getDynamicSchema(SimpleFields.class)).thenReturn(schema);
+  }
 
-    @Test
-    void testIntegerPropertyLargerThanMaxValue()
-    {
-        assertError( ErrorCode.E4008, SimpleFields.builder().string( "valid" ).integer( 78 ).build(),
-            "Allowed range for numeric property `integer` is [13 to 42], but number given was 78" );
-    }
+  @Test
+  void testRequiredPropertyIsNull() {
+    assertError(
+        ErrorCode.E4000, SimpleFields.builder().build(), "Missing required property `string`");
+  }
 
-    @Test
-    void testIntegerPropertyBetweenMinMax()
-    {
-        assertNoError( SimpleFields.builder().string( "valid" ).integer( 20 ).build() );
-    }
+  @Test
+  void testStringPropertyTooLong() {
+    // fake column length limitation
+    schema.getProperty("string").setLength(20);
+    assertError(
+        ErrorCode.E4001,
+        SimpleFields.builder().string("123456789012345678901").build(),
+        "Maximum length of property `string`is 20, but given length was 21");
+  }
 
-    @Test
-    void testFloatPropertySmallerThanMinValue()
-    {
-        assertError( ErrorCode.E4008, SimpleFields.builder().string( "valid" ).aFloat( 7f ).build(),
-            "Allowed range for numeric property `aFloat` is [13 to 42], but number given was 7" );
-    }
+  @Test
+  void testStringPropertyShorterThanMinLength() {
+    assertError(
+        ErrorCode.E4002,
+        SimpleFields.builder().string("Hey").build(),
+        "Allowed length range for property `string` is [5 to 25], but given length was 3");
+  }
 
-    @Test
-    void testFloatPropertyLargerThanMaxValue()
-    {
-        assertError( ErrorCode.E4008, SimpleFields.builder().string( "valid" ).aFloat( 78f ).build(),
-            "Allowed range for numeric property `aFloat` is [13 to 42], but number given was 78" );
-    }
+  @Test
+  void testStringPropertyLongerThanMaxLength() {
+    assertError(
+        ErrorCode.E4002,
+        SimpleFields.builder().string("12345678901234567890123456").build(),
+        "Allowed length range for property `string` is [5 to 25], but given length was 26");
+  }
 
-    @Test
-    void testFloatPropertyBetweenMinMax()
-    {
-        assertNoError( SimpleFields.builder().string( "valid" ).aFloat( 20f ).build() );
-    }
+  @Test
+  void testEmailPropertyValid() {
+    assertNoError(SimpleFields.builder().string("valid").email("test@exmaple.com").build());
+  }
 
-    @Test
-    void testDoublePropertySmallerThanMinValue()
-    {
-        assertError( ErrorCode.E4008, SimpleFields.builder().string( "valid" ).aDouble( 7d ).build(),
-            "Allowed range for numeric property `aDouble` is [13 to 42], but number given was 7" );
-    }
+  @Test
+  void testEmailPropertyInvalid() {
+    assertError(
+        ErrorCode.E4003,
+        SimpleFields.builder().string("valid").email("notAnEmail").build(),
+        "Property `email` requires a valid email address, was given `notAnEmail`");
+  }
 
-    @Test
-    void testDoublePropertyLargerThanMaxValue()
-    {
-        assertError( ErrorCode.E4008, SimpleFields.builder().string( "valid" ).aDouble( 78d ).build(),
-            "Allowed range for numeric property `aDouble` is [13 to 42], but number given was 78" );
-    }
+  @Test
+  void testUrlPropertyValid() {
+    assertNoError(SimpleFields.builder().string("valid").password("veryGoodS3cret").build());
+  }
 
-    @Test
-    void testDoublePropertyBetweenMinMax()
-    {
-        assertNoError( SimpleFields.builder().string( "valid" ).aDouble( 20d ).build() );
-    }
+  @Test
+  void testUrlPropertyInvalid() {
+    assertError(
+        ErrorCode.E4004,
+        SimpleFields.builder().string("valid").url("notAnURL").build(),
+        "Property `url` requires a valid URL, was given `notAnURL`");
+  }
 
-    @Test
-    void testCollectionPropertySizeSmallerThanMinSize()
-    {
-        assertError( ErrorCode.E4007, SimpleFields.builder().string( "valid" ).list( emptyList() ).build(),
-            "Allowed size range for collection property `list` is [2 to 4], but size given was 0" );
-    }
+  @Test
+  void testPasswordPropertyValid() {
+    assertNoError(SimpleFields.builder().string("valid").password("veryGoodS3cret").build());
+  }
 
-    @Test
-    void testCollectionPropertySizeLargerThanMaxSize()
-    {
-        assertError( ErrorCode.E4007, SimpleFields.builder().string( "valid" ).list( asList( 1, 2, 3, 4, 5 ) ).build(),
-            "Allowed size range for collection property `list` is [2 to 4], but size given was 5" );
-    }
+  @Test
+  void testPasswordPropertyInvalid() {
+    assertError(
+        ErrorCode.E4005,
+        SimpleFields.builder().string("valid").password("tooShort").build(),
+        "Property `password` requires a valid password, was given `tooShort`");
+  }
 
-    @Test
-    void testCollectionPropertySizeBetweenMinMaxSize()
-    {
-        assertNoError( SimpleFields.builder().string( "valid" ).list( asList( 1, 2, 3 ) ).build() );
-    }
+  @Test
+  void testColorPropertyValid() {
+    assertNoError(SimpleFields.builder().string("valid").color("#445566").build());
+  }
 
-    private void assertError( ErrorCode expected, SimpleFields actual, String expectedMessage )
-    {
-        List<ErrorReport> reports = validator.validate( actual, false );
-        assertEquals( 1, reports.size(), "expected 1 report" );
-        ErrorReport report = reports.get( 0 );
-        assertEquals( expected, report.getErrorCode() );
-        assertEquals( expectedMessage, report.getMessage() );
-    }
+  @Test
+  void testColorPropertyInvalid() {
+    assertError(
+        ErrorCode.E4006,
+        SimpleFields.builder().string("valid").color("notAColor").build(),
+        "Property `color` requires a valid HEX color, was given `notAColor`");
+  }
 
-    private void assertNoError( SimpleFields actual )
-    {
-        List<ErrorReport> reports = validator.validate( actual, false );
-        assertEquals( 0, reports.size() );
-    }
+  @Test
+  void testIntegerPropertySmallerThanMinValue() {
+    assertError(
+        ErrorCode.E4008,
+        SimpleFields.builder().string("valid").integer(7).build(),
+        "Allowed range for numeric property `integer` is [13 to 42], but number given was 7");
+  }
+
+  @Test
+  void testIntegerPropertyLargerThanMaxValue() {
+    assertError(
+        ErrorCode.E4008,
+        SimpleFields.builder().string("valid").integer(78).build(),
+        "Allowed range for numeric property `integer` is [13 to 42], but number given was 78");
+  }
+
+  @Test
+  void testIntegerPropertyBetweenMinMax() {
+    assertNoError(SimpleFields.builder().string("valid").integer(20).build());
+  }
+
+  @Test
+  void testFloatPropertySmallerThanMinValue() {
+    assertError(
+        ErrorCode.E4008,
+        SimpleFields.builder().string("valid").aFloat(7f).build(),
+        "Allowed range for numeric property `aFloat` is [13 to 42], but number given was 7");
+  }
+
+  @Test
+  void testFloatPropertyLargerThanMaxValue() {
+    assertError(
+        ErrorCode.E4008,
+        SimpleFields.builder().string("valid").aFloat(78f).build(),
+        "Allowed range for numeric property `aFloat` is [13 to 42], but number given was 78");
+  }
+
+  @Test
+  void testFloatPropertyBetweenMinMax() {
+    assertNoError(SimpleFields.builder().string("valid").aFloat(20f).build());
+  }
+
+  @Test
+  void testDoublePropertySmallerThanMinValue() {
+    assertError(
+        ErrorCode.E4008,
+        SimpleFields.builder().string("valid").aDouble(7d).build(),
+        "Allowed range for numeric property `aDouble` is [13 to 42], but number given was 7");
+  }
+
+  @Test
+  void testDoublePropertyLargerThanMaxValue() {
+    assertError(
+        ErrorCode.E4008,
+        SimpleFields.builder().string("valid").aDouble(78d).build(),
+        "Allowed range for numeric property `aDouble` is [13 to 42], but number given was 78");
+  }
+
+  @Test
+  void testDoublePropertyBetweenMinMax() {
+    assertNoError(SimpleFields.builder().string("valid").aDouble(20d).build());
+  }
+
+  @Test
+  void testCollectionPropertySizeSmallerThanMinSize() {
+    assertError(
+        ErrorCode.E4007,
+        SimpleFields.builder().string("valid").list(emptyList()).build(),
+        "Allowed size range for collection property `list` is [2 to 4], but size given was 0");
+  }
+
+  @Test
+  void testCollectionPropertySizeLargerThanMaxSize() {
+    assertError(
+        ErrorCode.E4007,
+        SimpleFields.builder().string("valid").list(asList(1, 2, 3, 4, 5)).build(),
+        "Allowed size range for collection property `list` is [2 to 4], but size given was 5");
+  }
+
+  @Test
+  void testCollectionPropertySizeBetweenMinMaxSize() {
+    assertNoError(SimpleFields.builder().string("valid").list(asList(1, 2, 3)).build());
+  }
+
+  private void assertError(ErrorCode expected, SimpleFields actual, String expectedMessage) {
+    List<ErrorReport> reports = validator.validate(actual, false);
+    assertEquals(1, reports.size(), "expected 1 report");
+    ErrorReport report = reports.get(0);
+    assertEquals(expected, report.getErrorCode());
+    assertEquals(expectedMessage, report.getMessage());
+  }
+
+  private void assertNoError(SimpleFields actual) {
+    List<ErrorReport> reports = validator.validate(actual, false);
+    assertEquals(0, reports.size());
+  }
 }

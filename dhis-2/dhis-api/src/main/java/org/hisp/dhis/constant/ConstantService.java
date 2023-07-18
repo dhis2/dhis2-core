@@ -33,39 +33,38 @@ import java.util.Map;
 /**
  * @author Dang Duy Hieu
  */
-public interface ConstantService
-{
-    String ID = ConstantService.class.getName();
+public interface ConstantService {
+  String ID = ConstantService.class.getName();
 
-    // -------------------------------------------------------------------------
-    // Concept
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Concept
+  // -------------------------------------------------------------------------
 
-    long saveConstant( Constant constant );
+  long saveConstant(Constant constant);
 
-    void deleteConstant( Constant constant );
+  void deleteConstant(Constant constant);
 
-    void updateConstant( Constant constant );
+  void updateConstant(Constant constant);
 
-    Constant getConstant( int constantId );
+  Constant getConstant(int constantId);
 
-    Constant getConstant( String uid );
+  Constant getConstant(String uid);
 
-    List<Constant> getAllConstants();
+  List<Constant> getAllConstants();
 
-    Map<String, Constant> getConstantMap();
+  Map<String, Constant> getConstantMap();
 
-    Map<String, Double> getConstantParameterMap();
+  Map<String, Double> getConstantParameterMap();
 
-    // -------------------------------------------------------------------------
-    // Constant expanding
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constant expanding
+  // -------------------------------------------------------------------------
 
-    List<Constant> getConstantsBetween( int first, int max );
+  List<Constant> getConstantsBetween(int first, int max);
 
-    List<Constant> getConstantsBetweenByName( String name, int first, int max );
+  List<Constant> getConstantsBetweenByName(String name, int first, int max);
 
-    int getConstantCount();
+  int getConstantCount();
 
-    int getConstantCountByName( String name );
+  int getConstantCountByName(String name);
 }

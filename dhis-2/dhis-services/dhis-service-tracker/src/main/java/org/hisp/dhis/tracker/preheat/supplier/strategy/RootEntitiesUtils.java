@@ -29,17 +29,14 @@ package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.experimental.UtilityClass;
 
 /**
  * @author Luciano Fiandesio
  */
 @UtilityClass
-public class RootEntitiesUtils
-{
-    public List<String> filterOutNonRootEntities( List<String> ids, List<String> rootEntities )
-    {
-        return ids.stream().filter( rootEntities::contains ).collect( Collectors.toList() );
-    }
+public class RootEntitiesUtils {
+  public List<String> filterOutNonRootEntities(List<String> ids, List<String> rootEntities) {
+    return ids.stream().filter(rootEntities::contains).collect(Collectors.toList());
+  }
 }

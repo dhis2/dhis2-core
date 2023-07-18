@@ -32,41 +32,34 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.With;
-
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
-/**
- * Class to store Program and Program Stage to help to generate the prefix
- * during serialization.
- */
+/** Class to store Program and Program Stage to help to generate the prefix during serialization. */
 @With
 @Getter
 @Builder
-public class PrefixedDimension
-{
-    private final Program program;
+public class PrefixedDimension {
+  private final Program program;
 
-    private final ProgramStage programStage;
+  private final ProgramStage programStage;
 
-    private final BaseIdentifiableObject item;
+  private final BaseIdentifiableObject item;
 
-    private final String dimensionType;
+  private final String dimensionType;
 
-    /**
-     * Get the prefix of this dimension.
-     *
-     * @return the prefix of this dimension.
-     */
-    public String getPrefix()
-    {
-        return Stream.of( program, programStage )
-            .filter( Objects::nonNull )
-            .map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.joining( DIMENSION_IDENTIFIER_SEP ) );
-    }
+  /**
+   * Get the prefix of this dimension.
+   *
+   * @return the prefix of this dimension.
+   */
+  public String getPrefix() {
+    return Stream.of(program, programStage)
+        .filter(Objects::nonNull)
+        .map(BaseIdentifiableObject::getUid)
+        .collect(Collectors.joining(DIMENSION_IDENTIFIER_SEP));
+  }
 }

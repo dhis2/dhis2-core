@@ -36,45 +36,37 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
-public class OrderParamsHelper
-{
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class OrderParamsHelper {
 
-    public static List<OrderParam> toOrderParams( List<OrderCriteria> criteria )
-    {
-        return Optional.ofNullable( criteria )
-            .orElse( Collections.emptyList() )
-            .stream()
-            .filter( Objects::nonNull )
-            .map( orderCriteria -> new OrderParam( orderCriteria.getField(), orderCriteria.getDirection() ) )
-            .collect( Collectors.toList() );
+  public static List<OrderParam> toOrderParams(List<OrderCriteria> criteria) {
+    return Optional.ofNullable(criteria).orElse(Collections.emptyList()).stream()
+        .filter(Objects::nonNull)
+        .map(
+            orderCriteria -> new OrderParam(orderCriteria.getField(), orderCriteria.getDirection()))
+        .collect(Collectors.toList());
+  }
+
+  public static List<String> validateOrderParams(
+      List<OrderParam> orderParams, Map<String, TrackedEntityAttribute> attributes) {
+    List<String> errors = new ArrayList<>();
+
+    if (orderParams == null || orderParams.isEmpty()) {
+      return errors;
     }
 
-    public static List<String> validateOrderParams( List<OrderParam> orderParams,
-        Map<String, TrackedEntityAttribute> attributes )
-    {
-        List<String> errors = new ArrayList<>();
-
-        if ( orderParams == null || orderParams.isEmpty() )
-        {
-            return errors;
-        }
-
-        for ( OrderParam orderParam : orderParams )
-        {
-            if ( findColumn( orderParam.getField() ).isEmpty() && !attributes.containsKey( orderParam.getField() ) )
-            {
-                errors.add( "Invalid order property: " + orderParam.getField() );
-            }
-        }
-
-        return errors;
+    for (OrderParam orderParam : orderParams) {
+      if (findColumn(orderParam.getField()).isEmpty()
+          && !attributes.containsKey(orderParam.getField())) {
+        errors.add("Invalid order property: " + orderParam.getField());
+      }
     }
+
+    return errors;
+  }
 }

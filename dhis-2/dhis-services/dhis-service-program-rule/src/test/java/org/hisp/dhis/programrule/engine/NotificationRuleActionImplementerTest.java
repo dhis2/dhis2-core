@@ -40,9 +40,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
-
 import javax.annotation.Nonnull;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
@@ -71,260 +69,272 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 
-/**
- * Created by zubair@dhis2.org on 05.02.18.
- */
-@ExtendWith( MockitoExtension.class )
-class NotificationRuleActionImplementerTest extends DhisConvenienceTest
-{
+/** Created by zubair@dhis2.org on 05.02.18. */
+@ExtendWith(MockitoExtension.class)
+class NotificationRuleActionImplementerTest extends DhisConvenienceTest {
 
-    private static final String NOTIFICATION_UID = "123abc";
+  private static final String NOTIFICATION_UID = "123abc";
 
-    private static final String MANDATORY_FIELD = "fname";
+  private static final String MANDATORY_FIELD = "fname";
 
-    // -------------------------------------------------------------------------
-    // Mocking Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Mocking Dependencies
+  // -------------------------------------------------------------------------
 
-    @Mock
-    private ProgramNotificationTemplateService templateStore;
+  @Mock private ProgramNotificationTemplateService templateStore;
 
-    @Mock
-    private ApplicationEventPublisher publisher;
+  @Mock private ApplicationEventPublisher publisher;
 
-    @Mock
-    private NotificationLoggingService loggingService;
+  @Mock private NotificationLoggingService loggingService;
 
-    @InjectMocks
-    private RuleActionSendMessageImplementer implementer;
+  @InjectMocks private RuleActionSendMessageImplementer implementer;
 
-    private ProgramNotificationTemplate template;
+  private ProgramNotificationTemplate template;
 
-    private ExternalNotificationLogEntry logEntry;
+  private ExternalNotificationLogEntry logEntry;
 
-    private ApplicationEvent eventType;
+  private ApplicationEvent eventType;
 
-    private RuleEffect ruleEffectWithActionSendMessage;
+  private RuleEffect ruleEffectWithActionSendMessage;
 
-    private RuleAction ruleActionSendMessage;
+  private RuleAction ruleActionSendMessage;
 
-    private RuleAction setMandatoryFieldFalse;
+  private RuleAction setMandatoryFieldFalse;
 
-    private ProgramInstance programInstance;
+  private ProgramInstance programInstance;
 
-    private ProgramStageInstance programStageInstance;
+  private ProgramStageInstance programStageInstance;
 
-    private ProgramRule programRuleA;
+  private ProgramRule programRuleA;
 
-    @BeforeEach
-    public void initTest()
-    {
-        setUpInstances();
-    }
+  @BeforeEach
+  public void initTest() {
+    setUpInstances();
+  }
 
-    @Test
-    void test_acceptBehaviorForActionAssign()
-    {
-        assertFalse( implementer.accept( setMandatoryFieldFalse ) );
-    }
+  @Test
+  void test_acceptBehaviorForActionAssign() {
+    assertFalse(implementer.accept(setMandatoryFieldFalse));
+  }
 
-    @Test
-    void test_acceptBehaviorForActionSendMessage()
-    {
-        assertTrue( implementer.accept( ruleActionSendMessage ) );
-    }
+  @Test
+  void test_acceptBehaviorForActionSendMessage() {
+    assertTrue(implementer.accept(ruleActionSendMessage));
+  }
 
-    @Test
-    void test_implementWithProgramInstanceWithTemplate()
-    {
+  @Test
+  void test_implementWithProgramInstanceWithTemplate() {
 
-        when( templateStore.getByUid( anyString() ) ).thenReturn( template );
+    when(templateStore.getByUid(anyString())).thenReturn(template);
 
-        doAnswer( invocationOnMock -> {
-            eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
-            return eventType;
-        } ).when( publisher ).publishEvent( any() );
+    doAnswer(
+            invocationOnMock -> {
+              eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
+              return eventType;
+            })
+        .when(publisher)
+        .publishEvent(any());
 
-        doAnswer( invocationOnMock -> {
-            logEntry = (ExternalNotificationLogEntry) invocationOnMock.getArguments()[0];
-            return logEntry;
-        } ).when( loggingService ).save( any() );
+    doAnswer(
+            invocationOnMock -> {
+              logEntry = (ExternalNotificationLogEntry) invocationOnMock.getArguments()[0];
+              return logEntry;
+            })
+        .when(loggingService)
+        .save(any());
 
-        when( loggingService.getByKey( anyString() ) )
-            .thenReturn( NotificationValidationResult.builder().valid( true ).build().getLogEntry() );
+    when(loggingService.getByKey(anyString()))
+        .thenReturn(NotificationValidationResult.builder().valid(true).build().getLogEntry());
 
-        ArgumentCaptor<ApplicationEvent> argumentEventCaptor = ArgumentCaptor.forClass( ApplicationEvent.class );
+    ArgumentCaptor<ApplicationEvent> argumentEventCaptor =
+        ArgumentCaptor.forClass(ApplicationEvent.class);
 
-        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
+    implementer.implement(ruleEffectWithActionSendMessage, programInstance);
 
-        verify( templateStore, times( 1 ) ).getByUid( anyString() );
+    verify(templateStore, times(1)).getByUid(anyString());
 
-        verify( publisher ).publishEvent( argumentEventCaptor.capture() );
-        assertEquals( eventType, argumentEventCaptor.getValue() );
-        assertEquals( programInstance.getId(), ((ProgramRuleEnrollmentEvent) eventType).getProgramInstance().getId() );
-    }
+    verify(publisher).publishEvent(argumentEventCaptor.capture());
+    assertEquals(eventType, argumentEventCaptor.getValue());
+    assertEquals(
+        programInstance.getId(),
+        ((ProgramRuleEnrollmentEvent) eventType).getProgramInstance().getId());
+  }
 
-    @Test
-    void test_implementWithProgramStageInstanceWithTemplate()
-    {
-        when( templateStore.getByUid( anyString() ) ).thenReturn( template );
+  @Test
+  void test_implementWithProgramStageInstanceWithTemplate() {
+    when(templateStore.getByUid(anyString())).thenReturn(template);
 
-        doAnswer( invocationOnMock -> {
-            eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
-            return eventType;
-        } ).when( publisher ).publishEvent( any() );
+    doAnswer(
+            invocationOnMock -> {
+              eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
+              return eventType;
+            })
+        .when(publisher)
+        .publishEvent(any());
 
-        doAnswer( invocationOnMock -> {
-            logEntry = (ExternalNotificationLogEntry) invocationOnMock.getArguments()[0];
-            return logEntry;
-        } ).when( loggingService ).save( any() );
+    doAnswer(
+            invocationOnMock -> {
+              logEntry = (ExternalNotificationLogEntry) invocationOnMock.getArguments()[0];
+              return logEntry;
+            })
+        .when(loggingService)
+        .save(any());
 
-        when( loggingService.getByKey( anyString() ) )
-            .thenReturn( NotificationValidationResult.builder().valid( true ).build().getLogEntry() );
+    when(loggingService.getByKey(anyString()))
+        .thenReturn(NotificationValidationResult.builder().valid(true).build().getLogEntry());
 
-        ArgumentCaptor<ApplicationEvent> argumentEventCaptor = ArgumentCaptor.forClass( ApplicationEvent.class );
+    ArgumentCaptor<ApplicationEvent> argumentEventCaptor =
+        ArgumentCaptor.forClass(ApplicationEvent.class);
 
-        implementer.implement( ruleEffectWithActionSendMessage, programStageInstance );
+    implementer.implement(ruleEffectWithActionSendMessage, programStageInstance);
 
-        verify( templateStore, times( 1 ) ).getByUid( anyString() );
+    verify(templateStore, times(1)).getByUid(anyString());
 
-        verify( publisher ).publishEvent( argumentEventCaptor.capture() );
-        assertEquals( eventType, argumentEventCaptor.getValue() );
-        assertEquals( programStageInstance.getId(),
-            ((ProgramRuleStageEvent) eventType).getProgramStageInstance().getId() );
-    }
+    verify(publisher).publishEvent(argumentEventCaptor.capture());
+    assertEquals(eventType, argumentEventCaptor.getValue());
+    assertEquals(
+        programStageInstance.getId(),
+        ((ProgramRuleStageEvent) eventType).getProgramStageInstance().getId());
+  }
 
-    @Test
-    void test_loggingServiceKey()
-    {
-        when( templateStore.getByUid( anyString() ) ).thenReturn( template );
+  @Test
+  void test_loggingServiceKey() {
+    when(templateStore.getByUid(anyString())).thenReturn(template);
 
-        doAnswer( invocationOnMock -> {
-            eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
-            return eventType;
-        } ).when( publisher ).publishEvent( any() );
+    doAnswer(
+            invocationOnMock -> {
+              eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
+              return eventType;
+            })
+        .when(publisher)
+        .publishEvent(any());
 
-        doAnswer( invocationOnMock -> {
-            logEntry = (ExternalNotificationLogEntry) invocationOnMock.getArguments()[0];
-            return logEntry;
-        } ).when( loggingService ).save( any() );
+    doAnswer(
+            invocationOnMock -> {
+              logEntry = (ExternalNotificationLogEntry) invocationOnMock.getArguments()[0];
+              return logEntry;
+            })
+        .when(loggingService)
+        .save(any());
 
-        NotificationValidationResult result = NotificationValidationResult.builder().valid( true ).build();
+    NotificationValidationResult result =
+        NotificationValidationResult.builder().valid(true).build();
 
-        when( loggingService.getByKey( anyString() ) ).thenReturn( result.getLogEntry() );
+    when(loggingService.getByKey(anyString())).thenReturn(result.getLogEntry());
 
-        String key = template.getUid() + programInstance.getUid();
+    String key = template.getUid() + programInstance.getUid();
 
-        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
+    implementer.implement(ruleEffectWithActionSendMessage, programInstance);
 
-        assertEquals( key, logEntry.getKey() );
-    }
+    assertEquals(key, logEntry.getKey());
+  }
 
-    @Test
-    void testSendRepeatableFlag()
-    {
-        when( templateStore.getByUid( anyString() ) ).thenReturn( template );
+  @Test
+  void testSendRepeatableFlag() {
+    when(templateStore.getByUid(anyString())).thenReturn(template);
 
-        template.setSendRepeatable( true );
+    template.setSendRepeatable(true);
 
-        doAnswer( invocationOnMock -> {
-            eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
-            return eventType;
-        } ).when( publisher ).publishEvent( any() );
+    doAnswer(
+            invocationOnMock -> {
+              eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
+              return eventType;
+            })
+        .when(publisher)
+        .publishEvent(any());
 
-        doAnswer( invocationOnMock -> {
-            logEntry = (ExternalNotificationLogEntry) invocationOnMock.getArguments()[0];
-            return logEntry;
-        } ).when( loggingService ).save( any() );
+    doAnswer(
+            invocationOnMock -> {
+              logEntry = (ExternalNotificationLogEntry) invocationOnMock.getArguments()[0];
+              return logEntry;
+            })
+        .when(loggingService)
+        .save(any());
 
-        when( loggingService.getByKey( anyString() ) )
-            .thenReturn( NotificationValidationResult.builder().valid( true ).build().getLogEntry() );
+    when(loggingService.getByKey(anyString()))
+        .thenReturn(NotificationValidationResult.builder().valid(true).build().getLogEntry());
 
-        String key = template.getUid() + programInstance.getUid();
+    String key = template.getUid() + programInstance.getUid();
 
-        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
+    implementer.implement(ruleEffectWithActionSendMessage, programInstance);
 
-        assertEquals( key, logEntry.getKey() );
-        assertTrue( logEntry.isAllowMultiple() );
-    }
+    assertEquals(key, logEntry.getKey());
+    assertTrue(logEntry.isAllowMultiple());
+  }
 
-    @Test
-    void test_NothingHappensIfTemplateDoesNotExist()
-    {
-        // overriding stub to check null templates
-        when( templateStore.getByUid( anyString() ) ).thenReturn( null );
+  @Test
+  void test_NothingHappensIfTemplateDoesNotExist() {
+    // overriding stub to check null templates
+    when(templateStore.getByUid(anyString())).thenReturn(null);
 
-        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
+    implementer.implement(ruleEffectWithActionSendMessage, programInstance);
 
-        verify( templateStore, times( 1 ) ).getByUid( anyString() );
-        verify( loggingService, never() ).save( any() );
-    }
+    verify(templateStore, times(1)).getByUid(anyString());
+    verify(loggingService, never()).save(any());
+  }
 
-    @Test
-    void test_NothingHappensIfTemplateDoesNotExistForPSI()
-    {
-        when( templateStore.getByUid( anyString() ) ).thenReturn( null );
+  @Test
+  void test_NothingHappensIfTemplateDoesNotExistForPSI() {
+    when(templateStore.getByUid(anyString())).thenReturn(null);
 
-        implementer.implement( ruleEffectWithActionSendMessage, programStageInstance );
+    implementer.implement(ruleEffectWithActionSendMessage, programStageInstance);
 
-        verify( templateStore, times( 1 ) ).getByUid( anyString() );
-    }
+    verify(templateStore, times(1)).getByUid(anyString());
+  }
 
-    @Test
-    void test_NothingHappensIfActionIsNull()
-    {
-        assertThrows( NullPointerException.class,
-            () -> implementer.implement( null, programInstance ), "Rule Effect cannot be null" );
-    }
+  @Test
+  void test_NothingHappensIfActionIsNull() {
+    assertThrows(
+        NullPointerException.class,
+        () -> implementer.implement(null, programInstance),
+        "Rule Effect cannot be null");
+  }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-    private void setUpInstances()
-    {
-        template = new ProgramNotificationTemplate();
-        template.setUid( NOTIFICATION_UID );
+  private void setUpInstances() {
+    template = new ProgramNotificationTemplate();
+    template.setUid(NOTIFICATION_UID);
 
-        ruleActionSendMessage = new RuleActionSendMessage()
-        {
-            @Nonnull
-            @Override
-            public String notification()
-            {
-                return NOTIFICATION_UID;
-            }
+    ruleActionSendMessage =
+        new RuleActionSendMessage() {
+          @Nonnull
+          @Override
+          public String notification() {
+            return NOTIFICATION_UID;
+          }
 
-            @Nonnull
-            @Override
-            public String data()
-            {
-                return null;
-            }
+          @Nonnull
+          @Override
+          public String data() {
+            return null;
+          }
         };
 
-        ruleEffectWithActionSendMessage = RuleEffect.create( "", ruleActionSendMessage );
+    ruleEffectWithActionSendMessage = RuleEffect.create("", ruleActionSendMessage);
 
-        setMandatoryFieldFalse = RuleActionSetMandatoryField.create( MANDATORY_FIELD );
+    setMandatoryFieldFalse = RuleActionSetMandatoryField.create(MANDATORY_FIELD);
 
-        OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
+    OrganisationUnit organisationUnitA = createOrganisationUnit('A');
 
-        Program programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
+    Program programA = createProgram('A', new HashSet<>(), organisationUnitA);
 
-        programRuleA = createProgramRule( 'R', programA );
+    programRuleA = createProgramRule('R', programA);
 
-        programRuleA.setProgram( programA );
+    programRuleA.setProgram(programA);
 
-        programInstance = new ProgramInstance();
-        programInstance.setProgram( programA );
-        programInstance.setAutoFields();
+    programInstance = new ProgramInstance();
+    programInstance.setProgram(programA);
+    programInstance.setAutoFields();
 
-        ProgramStage programStageA = createProgramStage( 'S', programA );
-        programA.getProgramStages().add( programStageA );
+    ProgramStage programStageA = createProgramStage('S', programA);
+    programA.getProgramStages().add(programStageA);
 
-        programStageInstance = new ProgramStageInstance();
-        programStageInstance.setProgramStage( programStageA );
-        programStageInstance.setProgramInstance( programInstance );
-        programStageInstance.setAutoFields();
-    }
+    programStageInstance = new ProgramStageInstance();
+    programStageInstance.setProgramStage(programStageA);
+    programStageInstance.setProgramInstance(programInstance);
+    programStageInstance.setAutoFields();
+  }
 }

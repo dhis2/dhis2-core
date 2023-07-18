@@ -37,8 +37,8 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Every.everyItem;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.google.gson.JsonObject;
 import java.io.File;
-
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
@@ -51,189 +51,193 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class UserAssignmentFilterTests
-    extends TrackerApiTest
-{
-    private MetadataActions metadataActions;
+public class UserAssignmentFilterTests extends TrackerApiTest {
+  private MetadataActions metadataActions;
 
-    private UserActions userActions;
+  private UserActions userActions;
 
-    private String userPassword = Constants.USER_PASSWORD;
+  private String userPassword = Constants.USER_PASSWORD;
 
-    private String userUsername;
+  private String userUsername;
 
-    private String programId = "BJ42SUrAvHo";
+  private String programId = "BJ42SUrAvHo";
 
-    private String orgUnit = "O6uvpzGd5pu";
+  private String orgUnit = "O6uvpzGd5pu";
 
-    private String userId;
+  private String userId;
 
-    private Object eventsBody;
+  private Object eventsBody;
 
-    @BeforeAll
-    public void beforeAll()
-        throws Exception
-    {
-        metadataActions = new MetadataActions();
-        userActions = new UserActions();
+  @BeforeAll
+  public void beforeAll() throws Exception {
+    metadataActions = new MetadataActions();
+    userActions = new UserActions();
 
-        userUsername = ("EventFiltersUser" + DataGenerator.randomString()).toLowerCase();
+    userUsername = ("EventFiltersUser" + DataGenerator.randomString()).toLowerCase();
 
-        loginActions.loginAsSuperUser();
-        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
+    loginActions.loginAsSuperUser();
+    metadataActions.importAndValidateMetadata(
+        new File("src/test/resources/tracker/eventProgram.json"));
 
-        userId = userActions.addUser( userUsername, userPassword );
-        userActions.grantUserAccessToOrgUnit( userId, orgUnit );
-        userActions.addUserToUserGroup( userId, Constants.USER_GROUP_ID );
-        userActions.addRoleToUser( userId, Constants.USER_ROLE_ID );
+    userId = userActions.addUser(userUsername, userPassword);
+    userActions.grantUserAccessToOrgUnit(userId, orgUnit);
+    userActions.addUserToUserGroup(userId, Constants.USER_GROUP_ID);
+    userActions.addRoleToUser(userId, Constants.USER_ROLE_ID);
 
-        eventsBody = getEventsBody( programId, "l8oDIfJJhtg", userId );
-    }
+    eventsBody = getEventsBody(programId, "l8oDIfJJhtg", userId);
+  }
 
-    @BeforeEach
-    public void beforeEach()
-        throws Exception
-    {
-        createEvents( eventsBody );
-    }
+  @BeforeEach
+  public void beforeEach() throws Exception {
+    createEvents(eventsBody);
+  }
 
-    @Test
-    public void eventsShouldBeFilteredByAssignedUser()
-        throws Exception
-    {
-        loginActions.loginAsSuperUser();
-        ApiResponse response = eventActions
-            .get( "?program=" + programId + "&assignedUser=" + userId + "&ouMode=ACCESSIBLE" );
+  @Test
+  public void eventsShouldBeFilteredByAssignedUser() throws Exception {
+    loginActions.loginAsSuperUser();
+    ApiResponse response =
+        eventActions.get(
+            "?program=" + programId + "&assignedUser=" + userId + "&ouMode=ACCESSIBLE");
 
-        response.validate().statusCode( 200 )
-            .body( "events", hasSize( 4 ) )
-            .body( "events.assignedUser", everyItem( equalTo( userId ) ) );
-    }
+    response
+        .validate()
+        .statusCode(200)
+        .body("events", hasSize(4))
+        .body("events.assignedUser", everyItem(equalTo(userId)));
+  }
 
-    @Test
-    public void eventsShouldBeFilteredForAssignedUser()
-    {
-        // arrange
-        loginActions.loginAsUser( userUsername, userPassword );
+  @Test
+  public void eventsShouldBeFilteredForAssignedUser() {
+    // arrange
+    loginActions.loginAsUser(userUsername, userPassword);
 
-        // act
-        ApiResponse response = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT" );
+    // act
+    ApiResponse response = eventActions.get("?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT");
 
-        // assert
-        response.validate().statusCode( 200 )
-            .body( "events", hasSize( 4 ) )
-            .body( "events.assignedUser", everyItem( equalTo( userId ) ) );
-    }
+    // assert
+    response
+        .validate()
+        .statusCode(200)
+        .body("events", hasSize(4))
+        .body("events.assignedUser", everyItem(equalTo(userId)));
+  }
 
-    @Test
-    public void eventsShouldBeFilteredByUnassigned()
-    {
-        // arrange
-        loginActions.loginAsUser( userUsername, userPassword );
+  @Test
+  public void eventsShouldBeFilteredByUnassigned() {
+    // arrange
+    loginActions.loginAsUser(userUsername, userPassword);
 
-        String eventId = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT" )
-            .extractString( "events.event[0]" );
+    String eventId =
+        eventActions
+            .get("?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT")
+            .extractString("events.event[0]");
 
-        assertNotNull( eventId, "Event was not found" );
-        unassignEvent( eventId );
+    assertNotNull(eventId, "Event was not found");
+    unassignEvent(eventId);
 
-        // act
-        ApiResponse currentUserEvents = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT" );
-        ApiResponse unassignedEvents = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=NONE" );
+    // act
+    ApiResponse currentUserEvents =
+        eventActions.get("?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT");
+    ApiResponse unassignedEvents =
+        eventActions.get("?orgUnit=" + orgUnit + "&assignedUserMode=NONE");
 
-        // assert
-        currentUserEvents.validate().statusCode( 200 )
-            .body( "events", notNullValue() )
-            .body( "events.event", not( hasItem( eventId ) ) );
+    // assert
+    currentUserEvents
+        .validate()
+        .statusCode(200)
+        .body("events", notNullValue())
+        .body("events.event", not(hasItem(eventId)));
 
-        unassignedEvents.validate().statusCode( 200 )
-            .body( "events", notNullValue() )
-            .body( "events.event", hasItem( eventId ) )
-            .body( "events.assignedUser", everyItem( is( emptyOrNullString() ) ) );
-    }
+    unassignedEvents
+        .validate()
+        .statusCode(200)
+        .body("events", notNullValue())
+        .body("events.event", hasItem(eventId))
+        .body("events.assignedUser", everyItem(is(emptyOrNullString())));
+  }
 
-    @Test
-    public void eventsShouldBeFilteredForAssignedUserByStatus()
-    {
-        // arrange
-        loginActions.loginAsUser( userUsername, userPassword );
+  @Test
+  public void eventsShouldBeFilteredForAssignedUserByStatus() {
+    // arrange
+    loginActions.loginAsUser(userUsername, userPassword);
 
-        String eventId = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT" )
-            .extractString( "events.event[0]" );
-        assertNotNull( eventId, "Event was not found" );
+    String eventId =
+        eventActions
+            .get("?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT")
+            .extractString("events.event[0]");
+    assertNotNull(eventId, "Event was not found");
 
-        String status = "SCHEDULE";
-        changeEventStatus( eventId, status );
+    String status = "SCHEDULE";
+    changeEventStatus(eventId, status);
 
-        // act
-        ApiResponse filteredEvents = eventActions
-            .get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT&status=" + status );
-        ApiResponse activeEvents = eventActions
-            .get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT&status=ACTIVE" );
+    // act
+    ApiResponse filteredEvents =
+        eventActions.get("?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT&status=" + status);
+    ApiResponse activeEvents =
+        eventActions.get("?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT&status=ACTIVE");
 
-        // assert
-        filteredEvents.validate().statusCode( 200 )
-            .body( "events", hasSize( 1 ) )
-            .body( "events.assignedUser", everyItem( equalTo( userId ) ) )
-            .body( "events.status", everyItem( equalTo( status ) ) );
+    // assert
+    filteredEvents
+        .validate()
+        .statusCode(200)
+        .body("events", hasSize(1))
+        .body("events.assignedUser", everyItem(equalTo(userId)))
+        .body("events.status", everyItem(equalTo(status)));
 
-        activeEvents.validate().statusCode( 200 )
-            .body( "events", hasSize( 3 ) )
-            .body( "events.assignedUser", everyItem( equalTo( userId ) ) )
-            .body( "events.status", everyItem( equalTo( "ACTIVE" ) ) );
-    }
+    activeEvents
+        .validate()
+        .statusCode(200)
+        .body("events", hasSize(3))
+        .body("events.assignedUser", everyItem(equalTo(userId)))
+        .body("events.status", everyItem(equalTo("ACTIVE")));
+  }
 
-    private ApiResponse createEvents( Object body )
-        throws Exception
-    {
-        ApiResponse eventResponse = eventActions.post( body, new QueryParamsBuilder().add( "skipCache=true" ) );
+  private ApiResponse createEvents(Object body) throws Exception {
+    ApiResponse eventResponse =
+        eventActions.post(body, new QueryParamsBuilder().add("skipCache=true"));
 
-        eventResponse.validate().statusCode( 200 );
+    eventResponse.validate().statusCode(200);
 
-        return eventResponse;
-    }
+    return eventResponse;
+  }
 
-    private Object getEventsBody( String programId, String programStageId, String assignedUserId )
-        throws Exception
-    {
-        Object body = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/events.json" ) )
-            .replacePropertyValuesWithIds( "event" )
-            .replacePropertyValuesWith( "program", programId )
-            .replacePropertyValuesWith( "programStage", programStageId )
-            .replacePropertyValuesWith( "assignedUser", assignedUserId )
+  private Object getEventsBody(String programId, String programStageId, String assignedUserId)
+      throws Exception {
+    Object body =
+        new FileReaderUtils()
+            .read(new File("src/test/resources/tracker/events/events.json"))
+            .replacePropertyValuesWithIds("event")
+            .replacePropertyValuesWith("program", programId)
+            .replacePropertyValuesWith("programStage", programStageId)
+            .replacePropertyValuesWith("assignedUser", assignedUserId)
             .get();
 
-        return body;
-    }
+    return body;
+  }
 
-    private ApiResponse unassignEvent( String eventId )
-    {
-        JsonObject body = eventActions.get( eventId ).getBody();
+  private ApiResponse unassignEvent(String eventId) {
+    JsonObject body = eventActions.get(eventId).getBody();
 
-        body.addProperty( "assignedUser", "" );
+    body.addProperty("assignedUser", "");
 
-        ApiResponse response = eventActions.update( eventId, body );
+    ApiResponse response = eventActions.update(eventId, body);
 
-        response.validate().statusCode( 200 );
-        return response;
-    }
+    response.validate().statusCode(200);
+    return response;
+  }
 
-    private ApiResponse changeEventStatus( String eventId, String eventStatus )
-    {
-        JsonObject body = eventActions.get( eventId ).getBody();
+  private ApiResponse changeEventStatus(String eventId, String eventStatus) {
+    JsonObject body = eventActions.get(eventId).getBody();
 
-        body.addProperty( "status", eventStatus );
+    body.addProperty("status", eventStatus);
 
-        ApiResponse response = eventActions.update( eventId, body );
+    ApiResponse response = eventActions.update(eventId, body);
 
-        response.validate().statusCode( 200 );
+    response.validate().statusCode(200);
 
-        return response;
-
-    }
+    return response;
+  }
 }

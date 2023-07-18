@@ -39,28 +39,24 @@ import org.junit.jupiter.api.Tag;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Tag( "category:tracker" )
-public class TrackerApiTest
-    extends ApiTest
-{
-    protected RestApiActions enrollmentActions;
+@Tag("category:tracker")
+public class TrackerApiTest extends ApiTest {
+  protected RestApiActions enrollmentActions;
 
-    protected EventActions eventActions;
+  protected EventActions eventActions;
 
-    protected TEIActions teiActions;
+  protected TEIActions teiActions;
 
-    protected LoginActions loginActions;
+  protected LoginActions loginActions;
 
-    protected ProgramActions programActions;
+  protected ProgramActions programActions;
 
-    @BeforeAll
-    public void beforeTracker()
-    {
-        teiActions = new TEIActions();
-        loginActions = new LoginActions();
-        programActions = new ProgramActions();
-        eventActions = new EventActions();
-        enrollmentActions = new RestApiActions( "/enrollments" );
-    }
-
+  @BeforeAll
+  public void beforeTracker() {
+    teiActions = new TEIActions();
+    loginActions = new LoginActions();
+    programActions = new ProgramActions();
+    eventActions = new EventActions();
+    enrollmentActions = new RestApiActions("/enrollments");
+  }
 }

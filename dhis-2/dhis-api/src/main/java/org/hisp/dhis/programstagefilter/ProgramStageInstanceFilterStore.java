@@ -28,14 +28,12 @@
 package org.hisp.dhis.programstagefilter;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
-public interface ProgramStageInstanceFilterStore extends IdentifiableObjectStore<ProgramStageInstanceFilter>
-{
-    List<ProgramStageInstanceFilter> getByProgram( String program );
+public interface ProgramStageInstanceFilterStore
+    extends IdentifiableObjectStore<ProgramStageInstanceFilter> {
+  List<ProgramStageInstanceFilter> getByProgram(String program);
 }

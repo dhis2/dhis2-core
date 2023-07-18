@@ -29,28 +29,24 @@ package org.hisp.dhis.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.collect.Lists;
 import java.util.List;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
  */
-class ObjectUtilsTest
-{
+class ObjectUtilsTest {
 
-    @Test
-    void testJoin()
-    {
-        DataElement deA = new DataElement( "DataElementA" );
-        DataElement deB = new DataElement( "DataElementB" );
-        DataElement deC = new DataElement( "DataElementC" );
-        List<DataElement> elements = Lists.newArrayList( deA, deB, deC );
-        String actual = ObjectUtils.join( elements, ", ", de -> de.getName() );
-        assertEquals( "DataElementA, DataElementB, DataElementC", actual );
-        assertEquals( null, ObjectUtils.join( null, ", ", null ) );
-    }
+  @Test
+  void testJoin() {
+    DataElement deA = new DataElement("DataElementA");
+    DataElement deB = new DataElement("DataElementB");
+    DataElement deC = new DataElement("DataElementC");
+    List<DataElement> elements = Lists.newArrayList(deA, deB, deC);
+    String actual = ObjectUtils.join(elements, ", ", de -> de.getName());
+    assertEquals("DataElementA, DataElementB, DataElementC", actual);
+    assertEquals(null, ObjectUtils.join(null, ", ", null));
+  }
 }

@@ -35,15 +35,14 @@ import java.util.function.Predicate;
  *
  * @author Jan Bernitt
  */
-public interface ErrorReportContainer
-{
-    int getErrorReportsCount();
+public interface ErrorReportContainer {
+  int getErrorReportsCount();
 
-    int getErrorReportsCount( ErrorCode errorCode );
+  int getErrorReportsCount(ErrorCode errorCode);
 
-    boolean hasErrorReports();
+  boolean hasErrorReports();
 
-    boolean hasErrorReport( Predicate<ErrorReport> test );
+  boolean hasErrorReport(Predicate<ErrorReport> test);
 
-    void forEachErrorReport( Consumer<ErrorReport> reportConsumer );
+  void forEachErrorReport(Consumer<ErrorReport> reportConsumer);
 }

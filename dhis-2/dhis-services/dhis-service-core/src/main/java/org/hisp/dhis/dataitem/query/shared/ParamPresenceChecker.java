@@ -32,100 +32,95 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.VALUE_TYPES;
 
 import java.util.Set;
-
 import org.hisp.dhis.common.ValueType;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
- * Checker responsible to provide methods that ensure the existence and
- * integrity of query params.
+ * Checker responsible to provide methods that ensure the existence and integrity of query params.
  *
  * @author maikel arabori
  */
-public class ParamPresenceChecker
-{
-    private ParamPresenceChecker()
-    {
+public class ParamPresenceChecker {
+  private ParamPresenceChecker() {}
+
+  /**
+   * This will check if the the given param is inside the given paramsMap and check if the param is
+   * a non-blank String.
+   *
+   * @param paramsMap the query params map
+   * @param param the param to be validated, that lives inside the given paramsMap
+   * @return true if the param is a String and is not blank, false otherwise
+   */
+  public static boolean hasNonBlankStringPresence(
+      final MapSqlParameterSource paramsMap, final String param) {
+    return paramsMap != null
+        && paramsMap.hasValue(param)
+        && paramsMap.getValue(param) instanceof String
+        && isNotBlank((String) paramsMap.getValue(param));
+  }
+
+  /**
+   * This will check if the the given param is inside the given paramsMap and check if the param is
+   * a String. It allows the presence of blank and empty strings.
+   *
+   * @param paramsMap the query params map
+   * @param param the param to be validated, that lives inside the given paramsMap
+   * @return true if the param is a String, false otherwise
+   */
+  public static boolean hasStringPresence(
+      final MapSqlParameterSource paramsMap, final String param) {
+    return paramsMap != null
+        && paramsMap.hasValue(param)
+        && paramsMap.getValue(param) instanceof String;
+  }
+
+  /**
+   * This will check if the the given param is inside the given paramsMap and check if the param is
+   * a positive Integer.
+   *
+   * @param paramsMap the query params map
+   * @param param the param to be validated, that lives inside the given paramsMap
+   * @return true if the param is an Integer greater than ZERO, false otherwise
+   */
+  public static boolean hasIntegerPresence(
+      final MapSqlParameterSource paramsMap, final String param) {
+    return paramsMap != null
+        && paramsMap.hasValue(param)
+        && paramsMap.getValue(param) instanceof Integer
+        && ((Integer) paramsMap.getValue(param) > 0);
+  }
+
+  /**
+   * This will check if the the given param is inside the given paramsMap and check if the param is
+   * a non-empty Set.
+   *
+   * @param paramsMap the query params map
+   * @param param the param to be validated, that lives inside the given paramsMap
+   * @return true if the param is a Set and is not empty, false otherwise
+   */
+  public static boolean hasSetPresence(final MapSqlParameterSource paramsMap, final String param) {
+    return paramsMap != null
+        && paramsMap.hasValue(param)
+        && paramsMap.getValue(param) instanceof Set
+        && isNotEmpty((Set) paramsMap.getValue(param));
+  }
+
+  /**
+   * Checks if the given paramsMap has the presence of the valueType provided.
+   *
+   * @param paramsMap
+   * @param valueType
+   * @return true if valueType is present in paramsMap, false otherwise
+   */
+  @SuppressWarnings("unchecked")
+  public static boolean hasValueTypePresence(
+      final MapSqlParameterSource paramsMap, final ValueType valueType) {
+    if (hasSetPresence(paramsMap, VALUE_TYPES)) {
+      final Set<String> valueTypeNames = (Set<String>) paramsMap.getValue(VALUE_TYPES);
+
+      return valueTypeNames != null && valueTypeNames.contains(valueType.name());
     }
 
-    /**
-     * This will check if the the given param is inside the given paramsMap and
-     * check if the param is a non-blank String.
-     *
-     * @param paramsMap the query params map
-     * @param param the param to be validated, that lives inside the given
-     *        paramsMap
-     * @return true if the param is a String and is not blank, false otherwise
-     */
-    public static boolean hasNonBlankStringPresence( final MapSqlParameterSource paramsMap, final String param )
-    {
-        return paramsMap != null && paramsMap.hasValue( param ) && paramsMap.getValue( param ) instanceof String
-            && isNotBlank( (String) paramsMap.getValue( param ) );
-    }
-
-    /**
-     * This will check if the the given param is inside the given paramsMap and
-     * check if the param is a String. It allows the presence of blank and empty
-     * strings.
-     *
-     * @param paramsMap the query params map
-     * @param param the param to be validated, that lives inside the given
-     *        paramsMap
-     * @return true if the param is a String, false otherwise
-     */
-    public static boolean hasStringPresence( final MapSqlParameterSource paramsMap, final String param )
-    {
-        return paramsMap != null && paramsMap.hasValue( param ) && paramsMap.getValue( param ) instanceof String;
-    }
-
-    /**
-     * This will check if the the given param is inside the given paramsMap and
-     * check if the param is a positive Integer.
-     *
-     * @param paramsMap the query params map
-     * @param param the param to be validated, that lives inside the given
-     *        paramsMap
-     * @return true if the param is an Integer greater than ZERO, false
-     *         otherwise
-     */
-    public static boolean hasIntegerPresence( final MapSqlParameterSource paramsMap, final String param )
-    {
-        return paramsMap != null && paramsMap.hasValue( param ) && paramsMap.getValue( param ) instanceof Integer
-            && ((Integer) paramsMap.getValue( param ) > 0);
-    }
-
-    /**
-     * This will check if the the given param is inside the given paramsMap and
-     * check if the param is a non-empty Set.
-     *
-     * @param paramsMap the query params map
-     * @param param the param to be validated, that lives inside the given
-     *        paramsMap
-     * @return true if the param is a Set and is not empty, false otherwise
-     */
-    public static boolean hasSetPresence( final MapSqlParameterSource paramsMap, final String param )
-    {
-        return paramsMap != null && paramsMap.hasValue( param ) && paramsMap.getValue( param ) instanceof Set
-            && isNotEmpty( (Set) paramsMap.getValue( param ) );
-    }
-
-    /**
-     * Checks if the given paramsMap has the presence of the valueType provided.
-     *
-     * @param paramsMap
-     * @param valueType
-     * @return true if valueType is present in paramsMap, false otherwise
-     */
-    @SuppressWarnings( "unchecked" )
-    public static boolean hasValueTypePresence( final MapSqlParameterSource paramsMap, final ValueType valueType )
-    {
-        if ( hasSetPresence( paramsMap, VALUE_TYPES ) )
-        {
-            final Set<String> valueTypeNames = (Set<String>) paramsMap.getValue( VALUE_TYPES );
-
-            return valueTypeNames != null && valueTypeNames.contains( valueType.name() );
-        }
-
-        return false;
-    }
+    return false;
+  }
 }

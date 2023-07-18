@@ -29,15 +29,13 @@ package org.hisp.dhis.validation;
 
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 
+import com.google.common.collect.Sets;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -51,271 +49,241 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Margrethe Store
  * @author Lars Helge Overland
  * @author Jim Grace
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.validation.ValidationRuleService" )
+@Service("org.hisp.dhis.validation.ValidationRuleService")
 @Transactional
-public class DefaultValidationRuleService
-    implements ValidationRuleService
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class DefaultValidationRuleService implements ValidationRuleService {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final ValidationRuleStore validationRuleStore;
+  private final ValidationRuleStore validationRuleStore;
 
-    @Qualifier( "org.hisp.dhis.validation.ValidationRuleGroupStore" )
-    private final IdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore;
+  @Qualifier("org.hisp.dhis.validation.ValidationRuleGroupStore")
+  private final IdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore;
 
-    private final ExpressionService expressionService;
+  private final ExpressionService expressionService;
 
-    private final IdentifiableObjectManager idObjectManager;
+  private final IdentifiableObjectManager idObjectManager;
 
-    // -------------------------------------------------------------------------
-    // ValidationRule CRUD operations
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // ValidationRule CRUD operations
+  // -------------------------------------------------------------------------
 
-    @Override
-    public long saveValidationRule( ValidationRule validationRule )
-    {
-        validationRuleStore.save( validationRule );
+  @Override
+  public long saveValidationRule(ValidationRule validationRule) {
+    validationRuleStore.save(validationRule);
 
-        return validationRule.getId();
+    return validationRule.getId();
+  }
+
+  @Override
+  public void updateValidationRule(ValidationRule validationRule) {
+    validationRuleStore.update(validationRule);
+  }
+
+  @Override
+  public void deleteValidationRule(ValidationRule validationRule) {
+    validationRuleStore.delete(validationRule);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public ValidationRule getValidationRule(long id) {
+    return validationRuleStore.get(id);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public ValidationRule getValidationRule(String uid) {
+    return validationRuleStore.getByUid(uid);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public ValidationRule getValidationRuleByName(String name) {
+    return validationRuleStore.getByName(name);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public List<ValidationRule> getAllValidationRules() {
+    return validationRuleStore.getAll();
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public List<ValidationRule> getAllFormValidationRules() {
+    return validationRuleStore.getAllFormValidationRules();
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public int getValidationRuleCount() {
+    return validationRuleStore.getCount();
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public int getValidationRuleCountByName(String name) {
+    return validationRuleStore.getCountLikeName(name);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public List<ValidationRule> getValidationRulesBetween(int first, int max) {
+    return validationRuleStore.getAllOrderedName(first, max);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public List<ValidationRule> getValidationRulesBetweenByName(String name, int first, int max) {
+    return validationRuleStore.getAllLikeName(name, first, max);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public List<ValidationRule> getValidationRulesByUid(@Nonnull Collection<String> uids) {
+    return validationRuleStore.getByUid(uids);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public Set<ValidationRule> getValidationRulesForDataSet(DataSet dataSet) {
+    Set<String> elementsAndOptionCombos = new HashSet<>();
+
+    for (DataSetElement dataSetElement : dataSet.getDataSetElements()) {
+      DataElement dataElement = dataSetElement.getDataElement();
+
+      elementsAndOptionCombos.add(dataElement.getUid());
+
+      CategoryCombo catCombo =
+          dataSetElement.hasCategoryCombo()
+              ? dataSetElement.getCategoryCombo()
+              : dataElement.getCategoryCombo();
+
+      for (CategoryOptionCombo optionCombo : catCombo.getOptionCombos()) {
+        elementsAndOptionCombos.add(
+            dataElement.getUid() + Expression.SEPARATOR + optionCombo.getUid());
+      }
     }
 
-    @Override
-    public void updateValidationRule( ValidationRule validationRule )
-    {
-        validationRuleStore.update( validationRule );
+    Set<ValidationRule> rulesForDataSet = new HashSet<>();
+
+    for (ValidationRule rule : getAllFormValidationRules()) {
+      Set<String> leftSideElementsAndCombos =
+          expressionService.getExpressionElementAndOptionComboIds(
+              rule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION);
+      Set<String> rightSideElementsAndCombos =
+          expressionService.getExpressionElementAndOptionComboIds(
+              rule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION);
+
+      if (!Sets.intersection(leftSideElementsAndCombos, elementsAndOptionCombos).isEmpty()
+          || !Sets.intersection(rightSideElementsAndCombos, elementsAndOptionCombos).isEmpty()) {
+        rulesForDataSet.add(rule);
+      }
     }
 
-    @Override
-    public void deleteValidationRule( ValidationRule validationRule )
-    {
-        validationRuleStore.delete( validationRule );
-    }
+    return rulesForDataSet;
+  }
 
-    @Transactional( readOnly = true )
-    @Override
-    public ValidationRule getValidationRule( long id )
-    {
-        return validationRuleStore.get( id );
-    }
+  @Transactional(readOnly = true)
+  @Override
+  public Set<DataElement> getDataElements(ValidationRule validationRule) {
+    Set<String> uids = new HashSet<>();
+    uids.addAll(
+        expressionService.getExpressionDataElementIds(
+            validationRule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION));
+    uids.addAll(
+        expressionService.getExpressionDataElementIds(
+            validationRule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION));
+    return new HashSet<>(idObjectManager.getByUid(DataElement.class, uids));
+  }
 
-    @Transactional( readOnly = true )
-    @Override
-    public ValidationRule getValidationRule( String uid )
-    {
-        return validationRuleStore.getByUid( uid );
-    }
+  @Transactional(readOnly = true)
+  @Override
+  public List<ValidationRule> getValidationRulesWithNotificationTemplates() {
+    return validationRuleStore.getValidationRulesWithNotificationTemplates();
+  }
 
-    @Transactional( readOnly = true )
-    @Override
-    public ValidationRule getValidationRuleByName( String name )
-    {
-        return validationRuleStore.getByName( name );
-    }
+  // -------------------------------------------------------------------------
+  // ValidationRuleGroup CRUD operations
+  // -------------------------------------------------------------------------
 
-    @Transactional( readOnly = true )
-    @Override
-    public List<ValidationRule> getAllValidationRules()
-    {
-        return validationRuleStore.getAll();
-    }
+  @Override
+  public long addValidationRuleGroup(ValidationRuleGroup validationRuleGroup) {
+    validationRuleGroupStore.save(validationRuleGroup);
 
-    @Transactional( readOnly = true )
-    @Override
-    public List<ValidationRule> getAllFormValidationRules()
-    {
-        return validationRuleStore.getAllFormValidationRules();
-    }
+    return validationRuleGroup.getId();
+  }
 
-    @Transactional( readOnly = true )
-    @Override
-    public int getValidationRuleCount()
-    {
-        return validationRuleStore.getCount();
-    }
+  @Override
+  public void deleteValidationRuleGroup(ValidationRuleGroup validationRuleGroup) {
+    validationRuleGroupStore.delete(validationRuleGroup);
+  }
 
-    @Transactional( readOnly = true )
-    @Override
-    public int getValidationRuleCountByName( String name )
-    {
-        return validationRuleStore.getCountLikeName( name );
-    }
+  @Override
+  public void updateValidationRuleGroup(ValidationRuleGroup validationRuleGroup) {
+    validationRuleGroupStore.update(validationRuleGroup);
+  }
 
-    @Transactional( readOnly = true )
-    @Override
-    public List<ValidationRule> getValidationRulesBetween( int first, int max )
-    {
-        return validationRuleStore.getAllOrderedName( first, max );
-    }
+  @Transactional(readOnly = true)
+  @Override
+  public ValidationRuleGroup getValidationRuleGroup(long id) {
+    return validationRuleGroupStore.get(id);
+  }
 
-    @Transactional( readOnly = true )
-    @Override
-    public List<ValidationRule> getValidationRulesBetweenByName( String name, int first, int max )
-    {
-        return validationRuleStore.getAllLikeName( name, first, max );
-    }
+  @Transactional(readOnly = true)
+  @Override
+  public ValidationRuleGroup getValidationRuleGroup(String uid) {
+    return validationRuleGroupStore.getByUid(uid);
+  }
 
-    @Transactional( readOnly = true )
-    @Override
-    public List<ValidationRule> getValidationRulesByUid( @Nonnull Collection<String> uids )
-    {
-        return validationRuleStore.getByUid( uids );
-    }
+  @Transactional(readOnly = true)
+  @Override
+  public List<ValidationRuleGroup> getAllValidationRuleGroups() {
+    return validationRuleGroupStore.getAll();
+  }
 
-    @Transactional( readOnly = true )
-    @Override
-    public Set<ValidationRule> getValidationRulesForDataSet( DataSet dataSet )
-    {
-        Set<String> elementsAndOptionCombos = new HashSet<>();
+  @Transactional(readOnly = true)
+  @Override
+  public ValidationRuleGroup getValidationRuleGroupByName(String name) {
+    return validationRuleGroupStore.getByName(name);
+  }
 
-        for ( DataSetElement dataSetElement : dataSet.getDataSetElements() )
-        {
-            DataElement dataElement = dataSetElement.getDataElement();
+  @Transactional(readOnly = true)
+  @Override
+  public int getValidationRuleGroupCount() {
+    return validationRuleGroupStore.getCount();
+  }
 
-            elementsAndOptionCombos.add( dataElement.getUid() );
+  @Transactional(readOnly = true)
+  @Override
+  public int getValidationRuleGroupCountByName(String name) {
+    return validationRuleGroupStore.getCountLikeName(name);
+  }
 
-            CategoryCombo catCombo = dataSetElement.hasCategoryCombo()
-                ? dataSetElement.getCategoryCombo()
-                : dataElement.getCategoryCombo();
+  @Transactional(readOnly = true)
+  @Override
+  public List<ValidationRuleGroup> getValidationRuleGroupsBetween(int first, int max) {
+    return validationRuleGroupStore.getAllOrderedName(first, max);
+  }
 
-            for ( CategoryOptionCombo optionCombo : catCombo.getOptionCombos() )
-            {
-                elementsAndOptionCombos.add( dataElement.getUid() + Expression.SEPARATOR + optionCombo.getUid() );
-            }
-        }
+  @Transactional(readOnly = true)
+  @Override
+  public List<ValidationRuleGroup> getValidationRuleGroupsBetweenByName(
+      String name, int first, int max) {
+    return validationRuleGroupStore.getAllLikeName(name, first, max);
+  }
 
-        Set<ValidationRule> rulesForDataSet = new HashSet<>();
-
-        for ( ValidationRule rule : getAllFormValidationRules() )
-        {
-            Set<String> leftSideElementsAndCombos = expressionService.getExpressionElementAndOptionComboIds(
-                rule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION );
-            Set<String> rightSideElementsAndCombos = expressionService.getExpressionElementAndOptionComboIds(
-                rule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION );
-
-            if ( !Sets.intersection( leftSideElementsAndCombos, elementsAndOptionCombos ).isEmpty() ||
-                !Sets.intersection( rightSideElementsAndCombos, elementsAndOptionCombos ).isEmpty() )
-            {
-                rulesForDataSet.add( rule );
-            }
-        }
-
-        return rulesForDataSet;
-    }
-
-    @Transactional( readOnly = true )
-    @Override
-    public Set<DataElement> getDataElements( ValidationRule validationRule )
-    {
-        Set<String> uids = new HashSet<>();
-        uids.addAll( expressionService.getExpressionDataElementIds( validationRule.getLeftSide().getExpression(),
-            VALIDATION_RULE_EXPRESSION ) );
-        uids.addAll( expressionService.getExpressionDataElementIds( validationRule.getRightSide().getExpression(),
-            VALIDATION_RULE_EXPRESSION ) );
-        return new HashSet<>( idObjectManager.getByUid( DataElement.class, uids ) );
-    }
-
-    @Transactional( readOnly = true )
-    @Override
-    public List<ValidationRule> getValidationRulesWithNotificationTemplates()
-    {
-        return validationRuleStore.getValidationRulesWithNotificationTemplates();
-    }
-
-    // -------------------------------------------------------------------------
-    // ValidationRuleGroup CRUD operations
-    // -------------------------------------------------------------------------
-
-    @Override
-    public long addValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
-    {
-        validationRuleGroupStore.save( validationRuleGroup );
-
-        return validationRuleGroup.getId();
-    }
-
-    @Override
-    public void deleteValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
-    {
-        validationRuleGroupStore.delete( validationRuleGroup );
-    }
-
-    @Override
-    public void updateValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
-    {
-        validationRuleGroupStore.update( validationRuleGroup );
-    }
-
-    @Transactional( readOnly = true )
-    @Override
-    public ValidationRuleGroup getValidationRuleGroup( long id )
-    {
-        return validationRuleGroupStore.get( id );
-    }
-
-    @Transactional( readOnly = true )
-    @Override
-    public ValidationRuleGroup getValidationRuleGroup( String uid )
-    {
-        return validationRuleGroupStore.getByUid( uid );
-    }
-
-    @Transactional( readOnly = true )
-    @Override
-    public List<ValidationRuleGroup> getAllValidationRuleGroups()
-    {
-        return validationRuleGroupStore.getAll();
-    }
-
-    @Transactional( readOnly = true )
-    @Override
-    public ValidationRuleGroup getValidationRuleGroupByName( String name )
-    {
-        return validationRuleGroupStore.getByName( name );
-    }
-
-    @Transactional( readOnly = true )
-    @Override
-    public int getValidationRuleGroupCount()
-    {
-        return validationRuleGroupStore.getCount();
-    }
-
-    @Transactional( readOnly = true )
-    @Override
-    public int getValidationRuleGroupCountByName( String name )
-    {
-        return validationRuleGroupStore.getCountLikeName( name );
-    }
-
-    @Transactional( readOnly = true )
-    @Override
-    public List<ValidationRuleGroup> getValidationRuleGroupsBetween( int first, int max )
-    {
-        return validationRuleGroupStore.getAllOrderedName( first, max );
-    }
-
-    @Transactional( readOnly = true )
-    @Override
-    public List<ValidationRuleGroup> getValidationRuleGroupsBetweenByName( String name, int first, int max )
-    {
-        return validationRuleGroupStore.getAllLikeName( name, first, max );
-    }
-
-    @Transactional( readOnly = true )
-    @Override
-    public List<ValidationRule> getValidationRulesWithoutGroups()
-    {
-        return validationRuleStore.getValidationRulesWithoutGroups();
-    }
-
+  @Transactional(readOnly = true)
+  @Override
+  public List<ValidationRule> getValidationRulesWithoutGroups() {
+    return validationRuleStore.getValidationRulesWithoutGroups();
+  }
 }

@@ -41,37 +41,28 @@ import org.hisp.dhis.tracker.validation.Validator;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class ExistenceValidator
-    implements Validator<Enrollment>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        TrackerImportStrategy importStrategy = bundle.getStrategy( enrollment );
+class ExistenceValidator implements Validator<Enrollment> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    TrackerImportStrategy importStrategy = bundle.getStrategy(enrollment);
 
-        ProgramInstance existingPi = bundle.getPreheat().getEnrollment( enrollment.getEnrollment() );
+    ProgramInstance existingPi = bundle.getPreheat().getEnrollment(enrollment.getEnrollment());
 
-        // If the tracked entity is soft-deleted no operation is allowed
-        if ( existingPi != null && existingPi.isDeleted() )
-        {
-            reporter.addError( enrollment, E1113, enrollment.getEnrollment() );
-            return;
-        }
-
-        if ( existingPi != null && importStrategy.isCreate() )
-        {
-            reporter.addError( enrollment, E1080, enrollment.getEnrollment() );
-        }
-        else if ( existingPi == null && importStrategy.isUpdateOrDelete() )
-        {
-            reporter.addError( enrollment, E1081, enrollment.getEnrollment() );
-        }
+    // If the tracked entity is soft-deleted no operation is allowed
+    if (existingPi != null && existingPi.isDeleted()) {
+      reporter.addError(enrollment, E1113, enrollment.getEnrollment());
+      return;
     }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true;
+    if (existingPi != null && importStrategy.isCreate()) {
+      reporter.addError(enrollment, E1080, enrollment.getEnrollment());
+    } else if (existingPi == null && importStrategy.isUpdateOrDelete()) {
+      reporter.addError(enrollment, E1081, enrollment.getEnrollment());
     }
+  }
 
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true;
+  }
 }

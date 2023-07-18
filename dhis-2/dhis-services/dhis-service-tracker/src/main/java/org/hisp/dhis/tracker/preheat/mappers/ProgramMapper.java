@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.preheat.mappers;
 
 import java.util.Set;
-
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.user.UserAccess;
@@ -38,52 +37,52 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = {
-    DebugMapper.class,
-    OrganisationUnitMapper.class,
-    UserGroupAccessMapper.class,
-    UserAccessMapper.class,
-    CategoryComboMapper.class,
-    TrackedEntityTypeMapper.class,
-    ProgramStageMapper.class,
-    ProgramTrackedEntityAttributeMapper.class,
-    AttributeValueMapper.class
-} )
-public interface ProgramMapper extends PreheatMapper<Program>
-{
-    ProgramMapper INSTANCE = Mappers.getMapper( ProgramMapper.class );
+@Mapper(
+    uses = {
+      DebugMapper.class,
+      OrganisationUnitMapper.class,
+      UserGroupAccessMapper.class,
+      UserAccessMapper.class,
+      CategoryComboMapper.class,
+      TrackedEntityTypeMapper.class,
+      ProgramStageMapper.class,
+      ProgramTrackedEntityAttributeMapper.class,
+      AttributeValueMapper.class
+    })
+public interface ProgramMapper extends PreheatMapper<Program> {
+  ProgramMapper INSTANCE = Mappers.getMapper(ProgramMapper.class);
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "name" )
-    @Mapping( target = "attributeValues" )
-    @Mapping( target = "trackedEntityType" )
-    @Mapping( target = "publicAccess" )
-    @Mapping( target = "externalAccess" )
-    @Mapping( target = "userGroupAccesses" )
-    @Mapping( target = "userAccesses" )
-    @Mapping( target = "programType" )
-    @Mapping( target = "programAttributes" )
-    @Mapping( target = "programStages" )
-    @Mapping( target = "onlyEnrollOnce" )
-    @Mapping( target = "featureType" )
-    @Mapping( target = "categoryCombo" )
-    @Mapping( target = "selectEnrollmentDatesInFuture" )
-    @Mapping( target = "selectIncidentDatesInFuture" )
-    @Mapping( target = "displayIncidentDate" )
-    @Mapping( target = "ignoreOverdueEvents" )
-    @Mapping( target = "expiryDays" )
-    @Mapping( target = "expiryPeriodType" )
-    @Mapping( target = "completeEventsExpiryDays" )
-    @Mapping( target = "sharing" )
-    @Mapping( target = "accessLevel" )
-    Program map( Program program );
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "code")
+  @Mapping(target = "name")
+  @Mapping(target = "attributeValues")
+  @Mapping(target = "trackedEntityType")
+  @Mapping(target = "publicAccess")
+  @Mapping(target = "externalAccess")
+  @Mapping(target = "userGroupAccesses")
+  @Mapping(target = "userAccesses")
+  @Mapping(target = "programType")
+  @Mapping(target = "programAttributes")
+  @Mapping(target = "programStages")
+  @Mapping(target = "onlyEnrollOnce")
+  @Mapping(target = "featureType")
+  @Mapping(target = "categoryCombo")
+  @Mapping(target = "selectEnrollmentDatesInFuture")
+  @Mapping(target = "selectIncidentDatesInFuture")
+  @Mapping(target = "displayIncidentDate")
+  @Mapping(target = "ignoreOverdueEvents")
+  @Mapping(target = "expiryDays")
+  @Mapping(target = "expiryPeriodType")
+  @Mapping(target = "completeEventsExpiryDays")
+  @Mapping(target = "sharing")
+  @Mapping(target = "accessLevel")
+  Program map(Program program);
 
-    Set<UserGroupAccess> userGroupAccessesProgram( Set<UserGroupAccess> userGroupAccesses );
+  Set<UserGroupAccess> userGroupAccessesProgram(Set<UserGroupAccess> userGroupAccesses);
 
-    Set<UserAccess> mapUserAccessProgramInstanceProgram( Set<UserAccess> userAccesses );
+  Set<UserAccess> mapUserAccessProgramInstanceProgram(Set<UserAccess> userAccesses);
 
-    Set<ProgramStage> mapProgramStages( Set<ProgramStage> programStages );
+  Set<ProgramStage> mapProgramStages(Set<ProgramStage> programStages);
 }

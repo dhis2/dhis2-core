@@ -27,14 +27,13 @@
  */
 package org.hisp.dhis.jsonpatch;
 
+import com.google.common.base.MoreObjects;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-
 import lombok.Builder;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ErrorReportContainer;
@@ -42,109 +41,91 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.jsonpatch.validator.BulkPatchValidator;
 import org.hisp.dhis.jsonpatch.validator.BulkPatchValidatorFactory;
 
-import com.google.common.base.MoreObjects;
-
 @Builder
-public class BulkPatchParameters implements ErrorReportContainer
-{
-    /**
-     * Map of {@link TypeReport} that contains all errors from the patch process
-     * and will be returned to api consumer.
-     */
-    @Builder.Default
-    private final Map<Class<?>, TypeReport> typeReportMap = new HashMap<>();
+public class BulkPatchParameters implements ErrorReportContainer {
+  /**
+   * Map of {@link TypeReport} that contains all errors from the patch process and will be returned
+   * to api consumer.
+   */
+  @Builder.Default private final Map<Class<?>, TypeReport> typeReportMap = new HashMap<>();
 
-    /**
-     * Contains all validators needed for the patch process.
-     */
-    private List<BulkPatchValidator> validators;
+  /** Contains all validators needed for the patch process. */
+  private List<BulkPatchValidator> validators;
 
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Helpers
+  // -------------------------------------------------------------------------
 
-    public List<BulkPatchValidator> getValidators()
-    {
-        return validators == null ? BulkPatchValidatorFactory.DEFAULT : validators;
+  public List<BulkPatchValidator> getValidators() {
+    return validators == null ? BulkPatchValidatorFactory.DEFAULT : validators;
+  }
+
+  public Iterable<TypeReport> getTypeReports() {
+    return typeReportMap.values();
+  }
+
+  public int getErrorReportsCountByCode(Class<?> klass, ErrorCode errorCode) {
+    TypeReport report = typeReportMap.get(klass);
+    return report == null ? 0 : report.getErrorReportsCount(errorCode);
+  }
+
+  public void addTypeReport(TypeReport report) {
+    if (report == null) {
+      return;
     }
 
-    public Iterable<TypeReport> getTypeReports()
-    {
-        return typeReportMap.values();
-    }
+    typeReportMap.compute(
+        report.getKlass(),
+        (key, value) -> {
+          if (value == null) {
+            return report;
+          }
+          value.merge(report);
+          return value;
+        });
+  }
 
-    public int getErrorReportsCountByCode( Class<?> klass, ErrorCode errorCode )
-    {
-        TypeReport report = typeReportMap.get( klass );
-        return report == null ? 0 : report.getErrorReportsCount( errorCode );
-    }
+  // -----------------------------------------------------------------------------------
+  // Getters and Setters
+  // -----------------------------------------------------------------------------------
 
-    public void addTypeReport( TypeReport report )
-    {
-        if ( report == null )
-        {
-            return;
-        }
+  public boolean isEmpty() {
+    return typeReportMap.isEmpty();
+  }
 
-        typeReportMap.compute( report.getKlass(), ( key, value ) -> {
-            if ( value == null )
-            {
-                return report;
-            }
-            value.merge( report );
-            return value;
-        } );
-    }
+  public TypeReport getTypeReport(Class<?> klass) {
+    return typeReportMap.get(klass);
+  }
 
-    // -----------------------------------------------------------------------------------
-    // Getters and Setters
-    // -----------------------------------------------------------------------------------
+  @Override
+  public int getErrorReportsCount() {
+    return typeReportMap.values().stream().mapToInt(TypeReport::getErrorReportsCount).sum();
+  }
 
-    public boolean isEmpty()
-    {
-        return typeReportMap.isEmpty();
-    }
+  @Override
+  public int getErrorReportsCount(ErrorCode errorCode) {
+    return typeReportMap.values().stream()
+        .mapToInt(report -> report.getErrorReportsCount(errorCode))
+        .sum();
+  }
 
-    public TypeReport getTypeReport( Class<?> klass )
-    {
-        return typeReportMap.get( klass );
-    }
+  @Override
+  public boolean hasErrorReports() {
+    return typeReportMap.values().stream().anyMatch(TypeReport::hasErrorReports);
+  }
 
-    @Override
-    public int getErrorReportsCount()
-    {
-        return typeReportMap.values().stream().mapToInt( TypeReport::getErrorReportsCount ).sum();
-    }
+  @Override
+  public boolean hasErrorReport(Predicate<ErrorReport> test) {
+    return typeReportMap.values().stream().anyMatch(report -> report.hasErrorReport(test));
+  }
 
-    @Override
-    public int getErrorReportsCount( ErrorCode errorCode )
-    {
-        return typeReportMap.values().stream().mapToInt( report -> report.getErrorReportsCount( errorCode ) ).sum();
-    }
+  @Override
+  public void forEachErrorReport(Consumer<ErrorReport> reportConsumer) {
+    typeReportMap.values().forEach(report -> report.forEachErrorReport(reportConsumer));
+  }
 
-    @Override
-    public boolean hasErrorReports()
-    {
-        return typeReportMap.values().stream().anyMatch( TypeReport::hasErrorReports );
-    }
-
-    @Override
-    public boolean hasErrorReport( Predicate<ErrorReport> test )
-    {
-        return typeReportMap.values().stream().anyMatch( report -> report.hasErrorReport( test ) );
-    }
-
-    @Override
-    public void forEachErrorReport( Consumer<ErrorReport> reportConsumer )
-    {
-        typeReportMap.values().forEach( report -> report.forEachErrorReport( reportConsumer ) );
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "typeReportMap", typeReportMap )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("typeReportMap", typeReportMap).toString();
+  }
 }

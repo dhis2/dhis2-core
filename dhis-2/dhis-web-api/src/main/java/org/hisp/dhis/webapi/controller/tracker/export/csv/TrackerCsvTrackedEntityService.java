@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.csv;
 
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvParser;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -34,106 +38,93 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvParser;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+@Service("org.hisp.dhis.dxf2.events.enrollment.TrackedEntityService")
+public class TrackerCsvTrackedEntityService implements CsvEventService<TrackedEntity> {
+  private static final CsvMapper CSV_MAPPER =
+      new CsvMapper().enable(CsvParser.Feature.WRAP_AS_ARRAY);
 
-@Service( "org.hisp.dhis.dxf2.events.enrollment.TrackedEntityService" )
-public class TrackerCsvTrackedEntityService implements CsvEventService<TrackedEntity>
-{
-    private static final CsvMapper CSV_MAPPER = new CsvMapper().enable( CsvParser.Feature.WRAP_AS_ARRAY );
+  @Override
+  public void writeEvents(
+      OutputStream outputStream, List<TrackedEntity> trackedEntities, boolean withHeader)
+      throws IOException {
+    final CsvSchema csvSchema =
+        CSV_MAPPER
+            .schemaFor(CsvTrackedEntity.class)
+            .withLineSeparator("\n")
+            .withUseHeader(withHeader);
 
-    @Override
-    public void writeEvents( OutputStream outputStream, List<TrackedEntity> trackedEntities, boolean withHeader )
-        throws IOException
-    {
-        final CsvSchema csvSchema = CSV_MAPPER.schemaFor( CsvTrackedEntity.class )
-            .withLineSeparator( "\n" )
-            .withUseHeader( withHeader );
+    ObjectWriter writer = CSV_MAPPER.writer(csvSchema.withUseHeader(withHeader));
 
-        ObjectWriter writer = CSV_MAPPER.writer( csvSchema.withUseHeader( withHeader ) );
+    List<CsvTrackedEntity> attributes = new ArrayList<>();
 
-        List<CsvTrackedEntity> attributes = new ArrayList<>();
+    for (TrackedEntity trackedEntity : trackedEntities) {
+      CsvTrackedEntity trackedEntityValue = new CsvTrackedEntity();
+      trackedEntityValue.setTrackedEntity(trackedEntity.getTrackedEntity());
+      trackedEntityValue.setTrackedEntityType(trackedEntity.getTrackedEntityType());
+      trackedEntityValue.setCreatedAt(checkForNull(trackedEntity.getCreatedAt()));
+      trackedEntityValue.setCreatedAtClient(checkForNull(trackedEntity.getCreatedAtClient()));
+      trackedEntityValue.setUpdatedAt(checkForNull(trackedEntity.getUpdatedAt()));
+      trackedEntityValue.setUpdatedAtClient(checkForNull(trackedEntity.getUpdatedAtClient()));
+      trackedEntityValue.setOrgUnit(trackedEntity.getOrgUnit());
+      trackedEntityValue.setInactive(trackedEntity.isInactive());
+      trackedEntityValue.setDeleted(trackedEntity.isDeleted());
+      trackedEntityValue.setPotentialDuplicate(trackedEntity.isPotentialDuplicate());
+      trackedEntityValue.setStoredBy(trackedEntity.getStoredBy());
+      trackedEntityValue.setCreatedBy(
+          trackedEntity.getCreatedBy() == null ? null : trackedEntity.getCreatedBy().getUsername());
+      trackedEntityValue.setUpdatedBy(
+          trackedEntity.getUpdatedBy() == null ? null : trackedEntity.getUpdatedBy().getUsername());
 
-        for ( TrackedEntity trackedEntity : trackedEntities )
-        {
-            CsvTrackedEntity trackedEntityValue = new CsvTrackedEntity();
-            trackedEntityValue.setTrackedEntity( trackedEntity.getTrackedEntity() );
-            trackedEntityValue.setTrackedEntityType( trackedEntity.getTrackedEntityType() );
-            trackedEntityValue.setCreatedAt( checkForNull( trackedEntity.getCreatedAt() ) );
-            trackedEntityValue.setCreatedAtClient( checkForNull( trackedEntity.getCreatedAtClient() ) );
-            trackedEntityValue.setUpdatedAt( checkForNull( trackedEntity.getUpdatedAt() ) );
-            trackedEntityValue.setUpdatedAtClient( checkForNull( trackedEntity.getUpdatedAtClient() ) );
-            trackedEntityValue.setOrgUnit( trackedEntity.getOrgUnit() );
-            trackedEntityValue.setInactive( trackedEntity.isInactive() );
-            trackedEntityValue.setDeleted( trackedEntity.isDeleted() );
-            trackedEntityValue.setPotentialDuplicate( trackedEntity.isPotentialDuplicate() );
-            trackedEntityValue.setStoredBy( trackedEntity.getStoredBy() );
-            trackedEntityValue.setCreatedBy(
-                trackedEntity.getCreatedBy() == null ? null : trackedEntity.getCreatedBy().getUsername() );
-            trackedEntityValue.setUpdatedBy(
-                trackedEntity.getUpdatedBy() == null ? null : trackedEntity.getUpdatedBy().getUsername() );
+      if (trackedEntity.getGeometry() != null) {
+        trackedEntityValue.setGeometry(trackedEntity.getGeometry().toText());
 
-            if ( trackedEntity.getGeometry() != null )
-            {
-                trackedEntityValue.setGeometry( trackedEntity.getGeometry().toText() );
-
-                if ( trackedEntity.getGeometry().getGeometryType().equals( "Point" ) )
-                {
-                    trackedEntityValue.setLongitude( trackedEntity.getGeometry().getCoordinate().x );
-                    trackedEntityValue.setLatitude( trackedEntity.getGeometry().getCoordinate().y );
-                }
-            }
-
-            if ( trackedEntity.getAttributes().isEmpty() )
-            {
-                attributes.add( trackedEntityValue );
-            }
-            else
-            {
-                addAttributes( trackedEntity, trackedEntityValue, attributes );
-            }
+        if (trackedEntity.getGeometry().getGeometryType().equals("Point")) {
+          trackedEntityValue.setLongitude(trackedEntity.getGeometry().getCoordinate().x);
+          trackedEntityValue.setLatitude(trackedEntity.getGeometry().getCoordinate().y);
         }
+      }
 
-        writer.writeValue( outputStream, attributes );
+      if (trackedEntity.getAttributes().isEmpty()) {
+        attributes.add(trackedEntityValue);
+      } else {
+        addAttributes(trackedEntity, trackedEntityValue, attributes);
+      }
     }
 
-    private String checkForNull( Instant instant )
-    {
-        if ( instant == null )
-        {
-            return null;
-        }
+    writer.writeValue(outputStream, attributes);
+  }
 
-        return instant.toString();
+  private String checkForNull(Instant instant) {
+    if (instant == null) {
+      return null;
     }
 
-    private void addAttributes( TrackedEntity trackedEntity, CsvTrackedEntity currentDataValue,
-        List<CsvTrackedEntity> attributes )
-    {
-        for ( Attribute attribute : trackedEntity.getAttributes() )
-        {
-            CsvTrackedEntity trackedEntityValue = new CsvTrackedEntity( currentDataValue );
-            trackedEntityValue.setAttribute( attribute.getAttribute() );
-            trackedEntityValue.setDisplayName( attribute.getDisplayName() );
-            trackedEntityValue.setAttrCreatedAt( checkForNull( attribute.getCreatedAt() ) );
-            trackedEntityValue.setAttrUpdatedAt( checkForNull( attribute.getUpdatedAt() ) );
-            trackedEntityValue.setValueType( attribute.getValueType().toString() );
-            trackedEntityValue.setValue( attribute.getValue() );
-            attributes.add( trackedEntityValue );
-        }
-    }
+    return instant.toString();
+  }
 
-    @Override
-    public List<TrackedEntity> readEvents( InputStream inputStream, boolean skipFirst )
-    {
-        return Collections.emptyList();
+  private void addAttributes(
+      TrackedEntity trackedEntity,
+      CsvTrackedEntity currentDataValue,
+      List<CsvTrackedEntity> attributes) {
+    for (Attribute attribute : trackedEntity.getAttributes()) {
+      CsvTrackedEntity trackedEntityValue = new CsvTrackedEntity(currentDataValue);
+      trackedEntityValue.setAttribute(attribute.getAttribute());
+      trackedEntityValue.setDisplayName(attribute.getDisplayName());
+      trackedEntityValue.setAttrCreatedAt(checkForNull(attribute.getCreatedAt()));
+      trackedEntityValue.setAttrUpdatedAt(checkForNull(attribute.getUpdatedAt()));
+      trackedEntityValue.setValueType(attribute.getValueType().toString());
+      trackedEntityValue.setValue(attribute.getValue());
+      attributes.add(trackedEntityValue);
     }
+  }
+
+  @Override
+  public List<TrackedEntity> readEvents(InputStream inputStream, boolean skipFirst) {
+    return Collections.emptyList();
+  }
 }

@@ -36,11 +36,8 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.p
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -60,131 +57,112 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Maps query parameters from {@link TrackerEnrollmentsExportController} stored
- * in {@link TrackerEnrollmentCriteria} to {@link ProgramInstanceQueryParams}
- * which is used to fetch enrollments from the DB.
+ * Maps query parameters from {@link TrackerEnrollmentsExportController} stored in {@link
+ * TrackerEnrollmentCriteria} to {@link ProgramInstanceQueryParams} which is used to fetch
+ * enrollments from the DB.
  */
-@Service( "org.hisp.dhis.webapi.controller.tracker.export.TrackerEnrollmentCriteriaMapper" )
+@Service("org.hisp.dhis.webapi.controller.tracker.export.TrackerEnrollmentCriteriaMapper")
 @RequiredArgsConstructor
-public class TrackerEnrollmentCriteriaMapper
-{
+public class TrackerEnrollmentCriteriaMapper {
 
-    @Nonnull
-    private final CurrentUserService currentUserService;
+  @Nonnull private final CurrentUserService currentUserService;
 
-    @Nonnull
-    private final OrganisationUnitService organisationUnitService;
+  @Nonnull private final OrganisationUnitService organisationUnitService;
 
-    @Nonnull
-    private final ProgramService programService;
+  @Nonnull private final ProgramService programService;
 
-    @Nonnull
-    private final TrackedEntityTypeService trackedEntityTypeService;
+  @Nonnull private final TrackedEntityTypeService trackedEntityTypeService;
 
-    @Nonnull
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+  @Nonnull private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Nonnull
-    private final TrackerAccessManager trackerAccessManager;
+  @Nonnull private final TrackerAccessManager trackerAccessManager;
 
-    @Transactional( readOnly = true )
-    public ProgramInstanceQueryParams map( TrackerEnrollmentCriteria criteria )
-        throws BadRequestException,
-        ForbiddenException
-    {
-        Program program = applyIfNonEmpty( programService::getProgram, criteria.getProgram() );
-        validateProgram( criteria.getProgram(), program );
+  @Transactional(readOnly = true)
+  public ProgramInstanceQueryParams map(TrackerEnrollmentCriteria criteria)
+      throws BadRequestException, ForbiddenException {
+    Program program = applyIfNonEmpty(programService::getProgram, criteria.getProgram());
+    validateProgram(criteria.getProgram(), program);
 
-        TrackedEntityType trackedEntityType = applyIfNonEmpty( trackedEntityTypeService::getTrackedEntityType,
-            criteria.getTrackedEntityType() );
-        validateTrackedEntityType( criteria.getTrackedEntityType(), trackedEntityType );
+    TrackedEntityType trackedEntityType =
+        applyIfNonEmpty(
+            trackedEntityTypeService::getTrackedEntityType, criteria.getTrackedEntityType());
+    validateTrackedEntityType(criteria.getTrackedEntityType(), trackedEntityType);
 
-        TrackedEntityInstance trackedEntity = applyIfNonEmpty( trackedEntityInstanceService::getTrackedEntityInstance,
-            criteria.getTrackedEntity() );
-        validateTrackedEntityInstance( criteria.getTrackedEntity(), trackedEntity );
+    TrackedEntityInstance trackedEntity =
+        applyIfNonEmpty(
+            trackedEntityInstanceService::getTrackedEntityInstance, criteria.getTrackedEntity());
+    validateTrackedEntityInstance(criteria.getTrackedEntity(), trackedEntity);
 
-        User user = currentUserService.getCurrentUser();
-        Set<String> orgUnitIds = parseUids( criteria.getOrgUnit() );
-        Set<OrganisationUnit> orgUnits = validateOrgUnits( user, orgUnitIds, program );
+    User user = currentUserService.getCurrentUser();
+    Set<String> orgUnitIds = parseUids(criteria.getOrgUnit());
+    Set<OrganisationUnit> orgUnits = validateOrgUnits(user, orgUnitIds, program);
 
-        ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
-        params.setProgram( program );
-        params.setProgramStatus( criteria.getProgramStatus() );
-        params.setFollowUp( criteria.getFollowUp() );
-        params.setLastUpdated( criteria.getUpdatedAfter() );
-        params.setLastUpdatedDuration( criteria.getUpdatedWithin() );
-        params.setProgramStartDate( criteria.getEnrolledAfter() );
-        params.setProgramEndDate( criteria.getEnrolledBefore() );
-        params.setTrackedEntityType( trackedEntityType );
-        params.setTrackedEntityInstanceUid(
-            Optional.ofNullable( trackedEntity ).map( BaseIdentifiableObject::getUid ).orElse( null ) );
-        params.addOrganisationUnits( orgUnits );
-        params.setOrganisationUnitMode( criteria.getOuMode() );
-        params.setPage( criteria.getPage() );
-        params.setPageSize( criteria.getPageSize() );
-        params.setTotalPages( criteria.isTotalPages() );
-        params.setSkipPaging( toBooleanDefaultIfNull( criteria.isSkipPaging(), false ) );
-        params.setIncludeDeleted( criteria.isIncludeDeleted() );
-        params.setUser( user );
-        params.setOrder( toOrderParams( criteria.getOrder() ) );
+    ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+    params.setProgram(program);
+    params.setProgramStatus(criteria.getProgramStatus());
+    params.setFollowUp(criteria.getFollowUp());
+    params.setLastUpdated(criteria.getUpdatedAfter());
+    params.setLastUpdatedDuration(criteria.getUpdatedWithin());
+    params.setProgramStartDate(criteria.getEnrolledAfter());
+    params.setProgramEndDate(criteria.getEnrolledBefore());
+    params.setTrackedEntityType(trackedEntityType);
+    params.setTrackedEntityInstanceUid(
+        Optional.ofNullable(trackedEntity).map(BaseIdentifiableObject::getUid).orElse(null));
+    params.addOrganisationUnits(orgUnits);
+    params.setOrganisationUnitMode(criteria.getOuMode());
+    params.setPage(criteria.getPage());
+    params.setPageSize(criteria.getPageSize());
+    params.setTotalPages(criteria.isTotalPages());
+    params.setSkipPaging(toBooleanDefaultIfNull(criteria.isSkipPaging(), false));
+    params.setIncludeDeleted(criteria.isIncludeDeleted());
+    params.setUser(user);
+    params.setOrder(toOrderParams(criteria.getOrder()));
 
-        return params;
+    return params;
+  }
+
+  private static void validateProgram(String id, Program program) throws BadRequestException {
+    if (isNotEmpty(id) && program == null) {
+      throw new BadRequestException("Program is specified but does not exist: " + id);
     }
+  }
 
-    private static void validateProgram( String id, Program program )
-        throws BadRequestException
-    {
-        if ( isNotEmpty( id ) && program == null )
-        {
-            throw new BadRequestException( "Program is specified but does not exist: " + id );
-        }
+  private void validateTrackedEntityType(String id, TrackedEntityType trackedEntityType)
+      throws BadRequestException {
+    if (isNotEmpty(id) && trackedEntityType == null) {
+      throw new BadRequestException("Tracked entity type is specified but does not exist: " + id);
     }
+  }
 
-    private void validateTrackedEntityType( String id, TrackedEntityType trackedEntityType )
-        throws BadRequestException
-    {
-        if ( isNotEmpty( id ) && trackedEntityType == null )
-        {
-            throw new BadRequestException( "Tracked entity type is specified but does not exist: " + id );
-        }
+  private void validateTrackedEntityInstance(String id, TrackedEntityInstance trackedEntityInstance)
+      throws BadRequestException {
+    if (isNotEmpty(id) && trackedEntityInstance == null) {
+      throw new BadRequestException(
+          "Tracked entity instance is specified but does not exist: " + id);
     }
+  }
 
-    private void validateTrackedEntityInstance( String id, TrackedEntityInstance trackedEntityInstance )
-        throws BadRequestException
-    {
-        if ( isNotEmpty( id ) && trackedEntityInstance == null )
-        {
-            throw new BadRequestException( "Tracked entity instance is specified but does not exist: " + id );
-        }
-    }
+  private Set<OrganisationUnit> validateOrgUnits(User user, Set<String> orgUnitIds, Program program)
+      throws BadRequestException, ForbiddenException {
 
-    private Set<OrganisationUnit> validateOrgUnits( User user, Set<String> orgUnitIds, Program program )
-        throws BadRequestException,
-        ForbiddenException
-    {
+    Set<OrganisationUnit> orgUnits = new HashSet<>();
+    if (orgUnitIds != null) {
+      for (String orgUnitId : orgUnitIds) {
+        OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(orgUnitId);
 
-        Set<OrganisationUnit> orgUnits = new HashSet<>();
-        if ( orgUnitIds != null )
-        {
-            for ( String orgUnitId : orgUnitIds )
-            {
-                OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( orgUnitId );
-
-                if ( organisationUnit == null )
-                {
-                    throw new BadRequestException( "Organisation unit does not exist: " + orgUnitId );
-                }
-
-                if ( !trackerAccessManager.canAccess( user, program, organisationUnit ) )
-                {
-                    throw new ForbiddenException(
-                        "User does not have access to organisation unit: " + organisationUnit.getUid() );
-                }
-
-                orgUnits.add( organisationUnit );
-            }
+        if (organisationUnit == null) {
+          throw new BadRequestException("Organisation unit does not exist: " + orgUnitId);
         }
 
-        return orgUnits;
+        if (!trackerAccessManager.canAccess(user, program, organisationUnit)) {
+          throw new ForbiddenException(
+              "User does not have access to organisation unit: " + organisationUnit.getUid());
+        }
+
+        orgUnits.add(organisationUnit);
+      }
     }
+
+    return orgUnits;
+  }
 }

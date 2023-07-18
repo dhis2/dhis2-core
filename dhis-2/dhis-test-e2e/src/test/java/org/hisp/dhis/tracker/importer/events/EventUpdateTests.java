@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.importer.events;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.hasSize;
 
+import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -37,58 +38,56 @@ import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventUpdateTests
-    extends TrackerNtiApiTest
-{
-    private String eventId;
+public class EventUpdateTests extends TrackerNtiApiTest {
+  private String eventId;
 
-    @BeforeAll
-    public void beforeAll()
-        throws Exception
-    {
-        loginActions.loginAsSuperUser();
-        eventId = importTeisWithEnrollmentAndEvent().extractImportedEvents().get( 0 );
-    }
+  @BeforeAll
+  public void beforeAll() throws Exception {
+    loginActions.loginAsSuperUser();
+    eventId = importTeisWithEnrollmentAndEvent().extractImportedEvents().get(0);
+  }
 
-    @Test
-    public void shouldNotUpdateImmutableProperties()
-        throws Exception
-    {
+  @Test
+  public void shouldNotUpdateImmutableProperties() throws Exception {
 
-        String enrollmentId = importEnrollment();
-        JsonObject object = trackerActions.get( "/events/" + eventId ).getBody();
+    String enrollmentId = importEnrollment();
+    JsonObject object = trackerActions.get("/events/" + eventId).getBody();
 
-        object = JsonObjectBuilder.jsonObject( object )
-            .addProperty( "programStage", Constants.EVENT_PROGRAM_STAGE_ID )
-            .addProperty( "enrollment", enrollmentId )
-            .wrapIntoArray( "events" );
+    object =
+        JsonObjectBuilder.jsonObject(object)
+            .addProperty("programStage", Constants.EVENT_PROGRAM_STAGE_ID)
+            .addProperty("enrollment", enrollmentId)
+            .wrapIntoArray("events");
 
-        trackerActions.postAndGetJobReport( object )
-            .validateErrorReport()
-            .body( "", hasSize( Matchers.greaterThanOrEqualTo( 2 ) ) )
-            .body( "errorCode", hasItems( "E1128", "E1128" ) )
-            .body( "message", allOf( Matchers.hasItem( Matchers.containsString( "programStage" ) ),
-                hasItem( Matchers.containsString( "enrollment" ) ) ) );
-    }
+    trackerActions
+        .postAndGetJobReport(object)
+        .validateErrorReport()
+        .body("", hasSize(Matchers.greaterThanOrEqualTo(2)))
+        .body("errorCode", hasItems("E1128", "E1128"))
+        .body(
+            "message",
+            allOf(
+                Matchers.hasItem(Matchers.containsString("programStage")),
+                hasItem(Matchers.containsString("enrollment"))));
+  }
 
-    @Test
-    public void shouldValidateWhenEnrollmentIsMissing()
-    {
-        JsonObject object = trackerActions.get( "/events/" + eventId ).getBody();
+  @Test
+  public void shouldValidateWhenEnrollmentIsMissing() {
+    JsonObject object = trackerActions.get("/events/" + eventId).getBody();
 
-        object = JsonObjectBuilder.jsonObject( object )
-            .addProperty( "enrollment", null )
-            .wrapIntoArray( "events" );
+    object =
+        JsonObjectBuilder.jsonObject(object)
+            .addProperty("enrollment", null)
+            .wrapIntoArray("events");
 
-        trackerActions.postAndGetJobReport( object )
-            .validateErrorReport()
-            .body( "", hasSize( Matchers.greaterThanOrEqualTo( 1 ) ) )
-            .body( "errorCode", hasItems( "E1033" ) )
-            .body( "message", Matchers.hasItem( Matchers.containsString( "Enrollment" ) ) );
-    }
+    trackerActions
+        .postAndGetJobReport(object)
+        .validateErrorReport()
+        .body("", hasSize(Matchers.greaterThanOrEqualTo(1)))
+        .body("errorCode", hasItems("E1033"))
+        .body("message", Matchers.hasItem(Matchers.containsString("Enrollment")));
+  }
 }

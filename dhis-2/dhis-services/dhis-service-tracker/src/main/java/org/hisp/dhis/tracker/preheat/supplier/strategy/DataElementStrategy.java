@@ -39,12 +39,13 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor( value = DataElement.class, mapper = DataElementMapper.class )
-public class DataElementStrategy extends AbstractSchemaStrategy
-{
-    public DataElementStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager, PreheatCacheService cacheService )
-    {
-        super( schemaService, queryService, manager, cacheService );
-    }
+@StrategyFor(value = DataElement.class, mapper = DataElementMapper.class)
+public class DataElementStrategy extends AbstractSchemaStrategy {
+  public DataElementStrategy(
+      SchemaService schemaService,
+      QueryService queryService,
+      IdentifiableObjectManager manager,
+      PreheatCacheService cacheService) {
+    super(schemaService, queryService, manager, cacheService);
+  }
 }

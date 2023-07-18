@@ -33,14 +33,13 @@ import static org.hisp.dhis.sqlview.SqlView.STANDARD_VARIABLES;
 import static org.hisp.dhis.sqlview.SqlView.getInvalidQueryParams;
 import static org.hisp.dhis.sqlview.SqlView.getInvalidQueryValues;
 
+import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -59,378 +58,355 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Dang Duy Hieu
  */
 @Slf4j
 @Transactional
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.sqlview.SqlViewService" )
-public class DefaultSqlViewService
-    implements SqlViewService
-{
-    private static final String SELECT_EXPRESSION = "^(?i)\\s*(select|with)\\s+.+";
+@Service("org.hisp.dhis.sqlview.SqlViewService")
+public class DefaultSqlViewService implements SqlViewService {
+  private static final String SELECT_EXPRESSION = "^(?i)\\s*(select|with)\\s+.+";
 
-    private static final Pattern SELECT_PATTERN = Pattern.compile( SELECT_EXPRESSION, Pattern.DOTALL );
+  private static final Pattern SELECT_PATTERN = Pattern.compile(SELECT_EXPRESSION, Pattern.DOTALL);
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final SqlViewStore sqlViewStore;
+  private final SqlViewStore sqlViewStore;
 
-    private final StatementBuilder statementBuilder;
+  private final StatementBuilder statementBuilder;
 
-    private final DhisConfigurationProvider config;
+  private final DhisConfigurationProvider config;
 
-    private final AclService aclService;
+  private final AclService aclService;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    // -------------------------------------------------------------------------
-    // CRUD methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // CRUD methods
+  // -------------------------------------------------------------------------
 
-    @Override
-    public long saveSqlView( SqlView sqlView )
-    {
-        sqlViewStore.save( sqlView );
+  @Override
+  public long saveSqlView(SqlView sqlView) {
+    sqlViewStore.save(sqlView);
 
-        return sqlView.getId();
+    return sqlView.getId();
+  }
+
+  @Override
+  public void updateSqlView(SqlView sqlView) {
+    sqlViewStore.update(sqlView);
+  }
+
+  @Override
+  public void deleteSqlView(SqlView sqlView) {
+    if (!sqlView.isQuery()) {
+      dropViewTable(sqlView);
     }
 
-    @Override
-    public void updateSqlView( SqlView sqlView )
-    {
-        sqlViewStore.update( sqlView );
+    sqlViewStore.delete(sqlView);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<SqlView> getAllSqlViews() {
+    return sqlViewStore.getAll();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<SqlView> getAllSqlViewsNoAcl() {
+    return sqlViewStore.getAllNoAcl();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public SqlView getSqlView(long viewId) {
+    return sqlViewStore.get(viewId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public SqlView getSqlViewByUid(String uid) {
+    return sqlViewStore.getByUid(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public SqlView getSqlView(String viewName) {
+    return sqlViewStore.getByName(viewName);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public int getSqlViewCount() {
+    return sqlViewStore.getCount();
+  }
+
+  // -------------------------------------------------------------------------
+  // Service methods
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String createViewTable(SqlView sqlView) {
+    validateSqlView(sqlView, null, null);
+
+    return sqlViewStore.createViewTable(sqlView);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Grid getSqlViewGrid(
+      SqlView sqlView,
+      Map<String, String> criteria,
+      Map<String, String> variables,
+      List<String> filters,
+      List<String> fields) {
+    canAccess(sqlView);
+    validateSqlView(sqlView, criteria, variables);
+
+    Grid grid = new ListGrid();
+    grid.setTitle(sqlView.getName());
+    grid.setSubtitle(sqlView.getDescription());
+
+    log.info(String.format("Retrieving data for SQL view: '%s'", sqlView.getUid()));
+
+    String sql =
+        sqlView.isQuery()
+            ? getSqlForQuery(sqlView, criteria, variables, filters, fields)
+            : getSqlForView(sqlView, criteria, filters, fields);
+
+    sqlViewStore.populateSqlViewGrid(grid, sql);
+
+    return grid;
+  }
+
+  private void canAccess(SqlView sqlView) {
+    User currentUser = currentUserService.getCurrentUser();
+    if (!aclService.canDataRead(currentUser, sqlView)) {
+      throw new IllegalQueryException(new ErrorMessage(ErrorCode.E4312, sqlView.getUid()));
+    }
+  }
+
+  private String parseFilters(List<String> filters, SqlHelper sqlHelper)
+      throws QueryParserException {
+    String query = "";
+
+    for (String filter : filters) {
+      String[] split = filter.split(":");
+
+      if (split.length == 3) {
+        int index = split[0].length() + ":".length() + split[1].length() + ":".length();
+        query += getFilterQuery(sqlHelper, split[0], split[1], filter.substring(index));
+      } else {
+        throw new QueryParserException("Invalid filter => " + filter);
+      }
     }
 
-    @Override
-    public void deleteSqlView( SqlView sqlView )
-    {
-        if ( !sqlView.isQuery() )
-        {
-            dropViewTable( sqlView );
-        }
+    return query;
+  }
 
-        sqlViewStore.delete( sqlView );
+  private String getFilterQuery(
+      SqlHelper sqlHelper, String columnName, String operator, String value) {
+    String query = "";
+
+    query +=
+        sqlHelper.whereAnd()
+            + " "
+            + columnName
+            + " "
+            + QueryUtils.parseFilterOperator(operator, value);
+
+    return query;
+  }
+
+  private String getSqlForQuery(
+      SqlView sqlView,
+      Map<String, String> criteria,
+      Map<String, String> variables,
+      List<String> filters,
+      List<String> fields) {
+    boolean hasCriteria = criteria != null && !criteria.isEmpty();
+
+    boolean hasFilter = filters != null && !filters.isEmpty();
+
+    String sql = substituteQueryVariables(sqlView, variables);
+
+    if (hasCriteria || hasFilter) {
+      sql = SqlViewUtils.removeQuerySeparator(sql);
+
+      String outerSql =
+          "select " + QueryUtils.parseSelectFields(fields) + " from " + "(" + sql + ") as qry ";
+
+      SqlHelper sqlHelper = new SqlHelper();
+
+      if (hasCriteria) {
+        outerSql += getCriteriaSqlClause(criteria, sqlHelper);
+      }
+
+      if (hasFilter) {
+        outerSql += parseFilters(filters, sqlHelper);
+      }
+
+      sql = outerSql;
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<SqlView> getAllSqlViews()
-    {
-        return sqlViewStore.getAll();
+    return sql;
+  }
+
+  private String substituteQueryVariables(SqlView sqlView, Map<String, String> variables) {
+    String sql = SqlViewUtils.substituteSqlVariables(sqlView.getSqlQuery(), variables);
+
+    User currentUser = currentUserService.getCurrentUser();
+
+    if (currentUser != null) {
+      sql =
+          SqlViewUtils.substituteSqlVariable(
+              sql, CURRENT_USER_ID_VARIABLE, Long.toString(currentUser.getId()));
+      sql =
+          SqlViewUtils.substituteSqlVariable(
+              sql, CURRENT_USERNAME_VARIABLE, currentUser.getUsername());
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<SqlView> getAllSqlViewsNoAcl()
-    {
-        return sqlViewStore.getAllNoAcl();
+    return sql;
+  }
+
+  private String getSqlForView(
+      SqlView sqlView, Map<String, String> criteria, List<String> filters, List<String> fields) {
+    String sql =
+        "select "
+            + QueryUtils.parseSelectFields(fields)
+            + " from "
+            + statementBuilder.columnQuote(sqlView.getViewName())
+            + " ";
+
+    boolean hasCriteria = criteria != null && !criteria.isEmpty();
+
+    boolean hasFilter = filters != null && !filters.isEmpty();
+
+    if (hasCriteria || hasFilter) {
+      SqlHelper sqlHelper = new SqlHelper();
+
+      if (hasCriteria) {
+        sql += getCriteriaSqlClause(criteria, sqlHelper);
+      }
+
+      if (hasFilter) {
+        sql += parseFilters(filters, sqlHelper);
+      }
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public SqlView getSqlView( long viewId )
-    {
-        return sqlViewStore.get( viewId );
+    return sql;
+  }
+
+  private String getCriteriaSqlClause(Map<String, String> criteria, SqlHelper sqlHelper) {
+    String sql = "";
+
+    if (criteria != null && !criteria.isEmpty()) {
+      sqlHelper = ObjectUtils.firstNonNull(sqlHelper, new SqlHelper());
+
+      for (String filter : criteria.keySet()) {
+        sql +=
+            sqlHelper.whereAnd()
+                + " "
+                + statementBuilder.columnQuote(filter)
+                + "='"
+                + criteria.get(filter)
+                + "' ";
+      }
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public SqlView getSqlViewByUid( String uid )
-    {
-        return sqlViewStore.getByUid( uid );
+    return sql;
+  }
+
+  @Override
+  public void validateSqlView(
+      SqlView sqlView, Map<String, String> criteria, Map<String, String> variables)
+      throws IllegalQueryException {
+    ErrorMessage error = null;
+
+    if (sqlView == null || sqlView.getSqlQuery() == null) {
+      throw new IllegalQueryException(ErrorCode.E4300);
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public SqlView getSqlView( String viewName )
-    {
-        return sqlViewStore.getByName( viewName );
+    final Set<String> sqlVars = SqlViewUtils.getVariables(sqlView.getSqlQuery());
+    final String sql = sqlView.getSqlQuery().replaceAll("\\r|\\n", " ").toLowerCase();
+    final boolean ignoreSqlViewTableProtection =
+        config.isDisabled(ConfigurationKey.SYSTEM_SQL_VIEW_TABLE_PROTECTION);
+    final Set<String> allowedVariables =
+        variables == null ? STANDARD_VARIABLES : Sets.union(variables.keySet(), STANDARD_VARIABLES);
+
+    if (!SELECT_PATTERN.matcher(sql).matches()) {
+      error = new ErrorMessage(ErrorCode.E4301);
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public int getSqlViewCount()
-    {
-        return sqlViewStore.getCount();
+    if (sql.contains(";") && !sql.trim().endsWith(";")) {
+      error = new ErrorMessage(ErrorCode.E4302);
     }
 
-    // -------------------------------------------------------------------------
-    // Service methods
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String createViewTable( SqlView sqlView )
-    {
-        validateSqlView( sqlView, null, null );
-
-        return sqlViewStore.createViewTable( sqlView );
+    if (variables != null && variables.containsKey(null)) {
+      error = new ErrorMessage(ErrorCode.E4303);
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables,
-        List<String> filters, List<String> fields )
-    {
-        canAccess( sqlView );
-        validateSqlView( sqlView, criteria, variables );
-
-        Grid grid = new ListGrid();
-        grid.setTitle( sqlView.getName() );
-        grid.setSubtitle( sqlView.getDescription() );
-
-        log.info( String.format( "Retrieving data for SQL view: '%s'", sqlView.getUid() ) );
-
-        String sql = sqlView.isQuery() ? getSqlForQuery( sqlView, criteria, variables, filters, fields )
-            : getSqlForView( sqlView, criteria, filters, fields );
-
-        sqlViewStore.populateSqlViewGrid( grid, sql );
-
-        return grid;
+    if (variables != null && variables.containsValue(null)) {
+      error = new ErrorMessage(ErrorCode.E4304);
     }
 
-    private void canAccess( SqlView sqlView )
-    {
-        User currentUser = currentUserService.getCurrentUser();
-        if ( !aclService.canDataRead( currentUser, sqlView ) )
-        {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E4312, sqlView.getUid() ) );
-        }
+    if (variables != null && !getInvalidQueryParams(variables.keySet()).isEmpty()) {
+      error = new ErrorMessage(ErrorCode.E4305, getInvalidQueryParams(variables.keySet()));
     }
 
-    private String parseFilters( List<String> filters, SqlHelper sqlHelper )
-        throws QueryParserException
-    {
-        String query = "";
-
-        for ( String filter : filters )
-        {
-            String[] split = filter.split( ":" );
-
-            if ( split.length == 3 )
-            {
-                int index = split[0].length() + ":".length() + split[1].length() + ":".length();
-                query += getFilterQuery( sqlHelper, split[0], split[1], filter.substring( index ) );
-            }
-            else
-            {
-                throw new QueryParserException( "Invalid filter => " + filter );
-            }
-        }
-
-        return query;
+    if (variables != null && !getInvalidQueryValues(variables.values()).isEmpty()) {
+      error = new ErrorMessage(ErrorCode.E4306, getInvalidQueryValues(variables.values()));
     }
 
-    private String getFilterQuery( SqlHelper sqlHelper, String columnName, String operator, String value )
-    {
-        String query = "";
-
-        query += sqlHelper.whereAnd() + " " + columnName + " " + QueryUtils.parseFilterOperator( operator, value );
-
-        return query;
+    if (sqlView.isQuery() && !sqlVars.isEmpty() && (!allowedVariables.containsAll(sqlVars))) {
+      error = new ErrorMessage(ErrorCode.E4307, sqlVars);
     }
 
-    private String getSqlForQuery( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables,
-        List<String> filters, List<String> fields )
-    {
-        boolean hasCriteria = criteria != null && !criteria.isEmpty();
-
-        boolean hasFilter = filters != null && !filters.isEmpty();
-
-        String sql = substituteQueryVariables( sqlView, variables );
-
-        if ( hasCriteria || hasFilter )
-        {
-            sql = SqlViewUtils.removeQuerySeparator( sql );
-
-            String outerSql = "select " + QueryUtils.parseSelectFields( fields ) + " from " + "(" + sql + ") as qry ";
-
-            SqlHelper sqlHelper = new SqlHelper();
-
-            if ( hasCriteria )
-            {
-                outerSql += getCriteriaSqlClause( criteria, sqlHelper );
-            }
-
-            if ( hasFilter )
-            {
-                outerSql += parseFilters( filters, sqlHelper );
-            }
-
-            sql = outerSql;
-        }
-
-        return sql;
+    if (sqlView.isQuery() && !sqlVars.isEmpty() && !getInvalidQueryParams(sqlVars).isEmpty()) {
+      error = new ErrorMessage(ErrorCode.E4313, getInvalidQueryParams(sqlVars));
     }
 
-    private String substituteQueryVariables( SqlView sqlView, Map<String, String> variables )
-    {
-        String sql = SqlViewUtils.substituteSqlVariables( sqlView.getSqlQuery(), variables );
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( currentUser != null )
-        {
-            sql = SqlViewUtils.substituteSqlVariable( sql, CURRENT_USER_ID_VARIABLE,
-                Long.toString( currentUser.getId() ) );
-            sql = SqlViewUtils.substituteSqlVariable( sql, CURRENT_USERNAME_VARIABLE, currentUser.getUsername() );
-        }
-
-        return sql;
+    if (criteria != null && !getInvalidQueryParams(criteria.keySet()).isEmpty()) {
+      error = new ErrorMessage(ErrorCode.E4308, getInvalidQueryParams(criteria.keySet()));
     }
 
-    private String getSqlForView( SqlView sqlView, Map<String, String> criteria, List<String> filters,
-        List<String> fields )
-    {
-        String sql = "select " + QueryUtils.parseSelectFields( fields ) + " from "
-            + statementBuilder.columnQuote( sqlView.getViewName() ) + " ";
-
-        boolean hasCriteria = criteria != null && !criteria.isEmpty();
-
-        boolean hasFilter = filters != null && !filters.isEmpty();
-
-        if ( hasCriteria || hasFilter )
-        {
-            SqlHelper sqlHelper = new SqlHelper();
-
-            if ( hasCriteria )
-            {
-                sql += getCriteriaSqlClause( criteria, sqlHelper );
-            }
-
-            if ( hasFilter )
-            {
-                sql += parseFilters( filters, sqlHelper );
-            }
-        }
-
-        return sql;
+    if (criteria != null && !getInvalidQueryValues(criteria.values()).isEmpty()) {
+      error = new ErrorMessage(ErrorCode.E4309, getInvalidQueryValues(criteria.values()));
     }
 
-    private String getCriteriaSqlClause( Map<String, String> criteria, SqlHelper sqlHelper )
-    {
-        String sql = "";
-
-        if ( criteria != null && !criteria.isEmpty() )
-        {
-            sqlHelper = ObjectUtils.firstNonNull( sqlHelper, new SqlHelper() );
-
-            for ( String filter : criteria.keySet() )
-            {
-                sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( filter ) + "='"
-                    + criteria.get( filter ) + "' ";
-            }
-        }
-
-        return sql;
+    if (!ignoreSqlViewTableProtection && sql.matches(SqlView.getProtectedTablesRegex())) {
+      error = new ErrorMessage(ErrorCode.E4310);
     }
 
-    @Override
-    public void validateSqlView( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables )
-        throws IllegalQueryException
-    {
-        ErrorMessage error = null;
-
-        if ( sqlView == null || sqlView.getSqlQuery() == null )
-        {
-            throw new IllegalQueryException( ErrorCode.E4300 );
-        }
-
-        final Set<String> sqlVars = SqlViewUtils.getVariables( sqlView.getSqlQuery() );
-        final String sql = sqlView.getSqlQuery().replaceAll( "\\r|\\n", " " ).toLowerCase();
-        final boolean ignoreSqlViewTableProtection = config.isDisabled(
-            ConfigurationKey.SYSTEM_SQL_VIEW_TABLE_PROTECTION );
-        final Set<String> allowedVariables = variables == null ? STANDARD_VARIABLES
-            : Sets.union( variables.keySet(), STANDARD_VARIABLES );
-
-        if ( !SELECT_PATTERN.matcher( sql ).matches() )
-        {
-            error = new ErrorMessage( ErrorCode.E4301 );
-        }
-
-        if ( sql.contains( ";" ) && !sql.trim().endsWith( ";" ) )
-        {
-            error = new ErrorMessage( ErrorCode.E4302 );
-        }
-
-        if ( variables != null && variables.containsKey( null ) )
-        {
-            error = new ErrorMessage( ErrorCode.E4303 );
-        }
-
-        if ( variables != null && variables.containsValue( null ) )
-        {
-            error = new ErrorMessage( ErrorCode.E4304 );
-        }
-
-        if ( variables != null && !getInvalidQueryParams( variables.keySet() ).isEmpty() )
-        {
-            error = new ErrorMessage( ErrorCode.E4305, getInvalidQueryParams( variables.keySet() ) );
-        }
-
-        if ( variables != null && !getInvalidQueryValues( variables.values() ).isEmpty() )
-        {
-            error = new ErrorMessage( ErrorCode.E4306, getInvalidQueryValues( variables.values() ) );
-        }
-
-        if ( sqlView.isQuery() && !sqlVars.isEmpty() && (!allowedVariables.containsAll( sqlVars )) )
-        {
-            error = new ErrorMessage( ErrorCode.E4307, sqlVars );
-        }
-
-        if ( sqlView.isQuery() && !sqlVars.isEmpty() && !getInvalidQueryParams( sqlVars ).isEmpty() )
-        {
-            error = new ErrorMessage( ErrorCode.E4313, getInvalidQueryParams( sqlVars ) );
-        }
-
-        if ( criteria != null && !getInvalidQueryParams( criteria.keySet() ).isEmpty() )
-        {
-            error = new ErrorMessage( ErrorCode.E4308, getInvalidQueryParams( criteria.keySet() ) );
-        }
-
-        if ( criteria != null && !getInvalidQueryValues( criteria.values() ).isEmpty() )
-        {
-            error = new ErrorMessage( ErrorCode.E4309, getInvalidQueryValues( criteria.values() ) );
-        }
-
-        if ( !ignoreSqlViewTableProtection && sql.matches( SqlView.getProtectedTablesRegex() ) )
-        {
-            error = new ErrorMessage( ErrorCode.E4310 );
-        }
-
-        if ( sql.matches( SqlView.getIllegalKeywordsRegex() ) )
-        {
-            error = new ErrorMessage( ErrorCode.E4311 );
-        }
-
-        if ( error != null )
-        {
-            log.warn( String.format( "Validation failed for SQL view '%s' with code: '%s' and message: '%s'",
-                sqlView.getUid(), error.getErrorCode(), error.getMessage() ) );
-
-            throw new IllegalQueryException( error );
-        }
+    if (sql.matches(SqlView.getIllegalKeywordsRegex())) {
+      error = new ErrorMessage(ErrorCode.E4311);
     }
 
-    @Override
-    public void dropViewTable( SqlView sqlView )
-    {
-        sqlViewStore.dropViewTable( sqlView );
+    if (error != null) {
+      log.warn(
+          String.format(
+              "Validation failed for SQL view '%s' with code: '%s' and message: '%s'",
+              sqlView.getUid(), error.getErrorCode(), error.getMessage()));
+
+      throw new IllegalQueryException(error);
+    }
+  }
+
+  @Override
+  public void dropViewTable(SqlView sqlView) {
+    sqlViewStore.dropViewTable(sqlView);
+  }
+
+  @Override
+  public boolean refreshMaterializedView(SqlView sqlView) {
+    if (sqlView == null || !sqlView.isMaterializedView()) {
+      return false;
     }
 
-    @Override
-    public boolean refreshMaterializedView( SqlView sqlView )
-    {
-        if ( sqlView == null || !sqlView.isMaterializedView() )
-        {
-            return false;
-        }
-
-        return sqlViewStore.refreshMaterializedView( sqlView );
-    }
+    return sqlViewStore.refreshMaterializedView(sqlView);
+  }
 }

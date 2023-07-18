@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.option;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -49,45 +48,39 @@ import org.springframework.web.bind.annotation.RequestParam;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( "metadata" )
+@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping( value = OptionSetSchemaDescriptor.API_ENDPOINT )
+@RequestMapping(value = OptionSetSchemaDescriptor.API_ENDPOINT)
 @AllArgsConstructor
-public class OptionSetController
-    extends AbstractCrudController<OptionSet>
-{
-    private final OptionService optionService;
+public class OptionSetController extends AbstractCrudController<OptionSet> {
+  private final OptionService optionService;
 
-    @GetMapping( "/{uid}/metadata" )
-    public ResponseEntity<MetadataExportParams> getOptionSetWithDependencies( @PathVariable( "uid" ) String pvUid,
-        @RequestParam( required = false, defaultValue = "false" ) boolean download )
-        throws WebMessageException
-    {
-        OptionSet optionSet = optionService.getOptionSet( pvUid );
+  @GetMapping("/{uid}/metadata")
+  public ResponseEntity<MetadataExportParams> getOptionSetWithDependencies(
+      @PathVariable("uid") String pvUid,
+      @RequestParam(required = false, defaultValue = "false") boolean download)
+      throws WebMessageException {
+    OptionSet optionSet = optionService.getOptionSet(pvUid);
 
-        if ( optionSet == null )
-        {
-            throw new WebMessageException( notFound( "OptionSet not found for uid: " + pvUid ) );
-        }
-
-        MetadataExportParams exportParams = exportService.getParamsFromMap( contextService.getParameterValuesMap() );
-        exportService.validate( exportParams );
-        exportParams.setObjectExportWithDependencies( optionSet );
-
-        return ResponseEntity.ok( exportParams );
+    if (optionSet == null) {
+      throw new WebMessageException(notFound("OptionSet not found for uid: " + pvUid));
     }
 
-    @Override
-    protected void preCreateEntity( OptionSet entity )
-        throws ConflictException
-    {
-        optionService.validateOptionSet( entity );
-    }
+    MetadataExportParams exportParams =
+        exportService.getParamsFromMap(contextService.getParameterValuesMap());
+    exportService.validate(exportParams);
+    exportParams.setObjectExportWithDependencies(optionSet);
 
-    @Override
-    protected void preUpdateEntity( OptionSet entity, OptionSet newEntity )
-        throws ConflictException
-    {
-        optionService.validateOptionSet( newEntity );
-    }
+    return ResponseEntity.ok(exportParams);
+  }
+
+  @Override
+  protected void preCreateEntity(OptionSet entity) throws ConflictException {
+    optionService.validateOptionSet(entity);
+  }
+
+  @Override
+  protected void preUpdateEntity(OptionSet entity, OptionSet newEntity) throws ConflictException {
+    optionService.validateOptionSet(newEntity);
+  }
 }

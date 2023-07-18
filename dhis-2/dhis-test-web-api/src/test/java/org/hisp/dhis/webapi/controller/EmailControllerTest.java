@@ -31,33 +31,49 @@ import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the {@link EmailController} using (mocked) REST requests.
- */
-class EmailControllerTest extends DhisControllerConvenienceTest
-{
+/** Tests the {@link EmailController} using (mocked) REST requests. */
+class EmailControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testSendTestEmail()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "SMTP server not configured",
-            POST( "/email/test" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testSendTestEmail() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "SMTP server not configured",
+        POST("/email/test").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testSendSystemNotificationEmail()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "SMTP server not configured",
-            POST( "/email/notification", "{" + "'subject':'Subject'," + "'text':'Text'," + "'sender':{'id':'"
-                + getCurrentUser().getUid() + "'}," + "'recipients':[{'id':'" + getSuperuserUid() + "'}]" + "}" )
-                    .content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testSendSystemNotificationEmail() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "SMTP server not configured",
+        POST(
+                "/email/notification",
+                "{"
+                    + "'subject':'Subject',"
+                    + "'text':'Text',"
+                    + "'sender':{'id':'"
+                    + getCurrentUser().getUid()
+                    + "'},"
+                    + "'recipients':[{'id':'"
+                    + getSuperuserUid()
+                    + "'}]"
+                    + "}")
+            .content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testSendEmailNotification()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "SMTP server not configured",
-            POST( "/email/notification?subject=Subject&message=Text&recipients=" + getSuperuserUid() )
-                .content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testSendEmailNotification() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "SMTP server not configured",
+        POST("/email/notification?subject=Subject&message=Text&recipients=" + getSuperuserUid())
+            .content(HttpStatus.CONFLICT));
+  }
 }

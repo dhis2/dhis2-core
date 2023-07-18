@@ -36,37 +36,37 @@ import org.hisp.dhis.program.AnalyticsType;
  *
  * @author Dusan Bernat
  */
-public class vScheduledDate
-    extends ProgramDateVariable
-{
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        ProgramExpressionParams params = visitor.getProgParams();
+public class vScheduledDate extends ProgramDateVariable {
+  @Override
+  public Object getSql(CommonExpressionVisitor visitor) {
+    ProgramExpressionParams params = visitor.getProgParams();
 
-        if ( AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType() )
-        {
-            String sqlStatement = visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-                null, "duedate", params.getReportingStartDate(), params.getReportingEndDate(),
-                params.getProgramIndicator() );
+    if (AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType()) {
+      String sqlStatement =
+          visitor
+              .getStatementBuilder()
+              .getProgramIndicatorEventColumnSql(
+                  null,
+                  "duedate",
+                  params.getReportingStartDate(),
+                  params.getReportingEndDate(),
+                  params.getProgramIndicator());
 
-            return maybeAppendEventStatusFilterIntoWhere( sqlStatement );
-        }
-
-        return "duedate";
+      return maybeAppendEventStatusFilterIntoWhere(sqlStatement);
     }
 
-    private String maybeAppendEventStatusFilterIntoWhere( String sqlStatement )
-    {
-        int index = sqlStatement.indexOf( "order by executiondate" );
+    return "duedate";
+  }
 
-        if ( index == -1 )
-        {
-            return sqlStatement;
-        }
+  private String maybeAppendEventStatusFilterIntoWhere(String sqlStatement) {
+    int index = sqlStatement.indexOf("order by executiondate");
 
-        return sqlStatement.substring( 0, index )
-            + " and psistatus = 'SCHEDULE' "
-            + sqlStatement.substring( index );
+    if (index == -1) {
+      return sqlStatement;
     }
+
+    return sqlStatement.substring(0, index)
+        + " and psistatus = 'SCHEDULE' "
+        + sqlStatement.substring(index);
+  }
 }

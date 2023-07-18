@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.tracker.job;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
-
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -41,56 +42,48 @@ import org.springframework.jms.annotation.JmsListener;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class TrackerMessageManager
-{
-    private final ObjectMapper objectMapper;
+public class TrackerMessageManager {
+  private final ObjectMapper objectMapper;
 
-    private final AsyncTaskExecutor taskExecutor;
+  private final AsyncTaskExecutor taskExecutor;
 
-    private final ObjectFactory<TrackerImportThread> trackerImportThreadFactory;
+  private final ObjectFactory<TrackerImportThread> trackerImportThreadFactory;
 
-    public TrackerMessageManager(
-        ObjectMapper objectMapper,
-        AsyncTaskExecutor taskExecutor,
-        ObjectFactory<TrackerImportThread> trackerImportThreadFactory )
-    {
-        this.objectMapper = objectMapper;
-        this.taskExecutor = taskExecutor;
-        this.trackerImportThreadFactory = trackerImportThreadFactory;
-    }
+  public TrackerMessageManager(
+      ObjectMapper objectMapper,
+      AsyncTaskExecutor taskExecutor,
+      ObjectFactory<TrackerImportThread> trackerImportThreadFactory) {
+    this.objectMapper = objectMapper;
+    this.taskExecutor = taskExecutor;
+    this.trackerImportThreadFactory = trackerImportThreadFactory;
+  }
 
-    @JmsListener( destination = Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )
-    public void consume( TextMessage message )
-        throws JMSException,
-        JsonProcessingException
-    {
-        String payload = message.getText();
+  @JmsListener(
+      destination = Topics.TRACKER_IMPORT_JOB_TOPIC_NAME,
+      containerFactory = "jmsQueueListenerContainerFactory")
+  public void consume(TextMessage message) throws JMSException, JsonProcessingException {
+    String payload = message.getText();
 
-        TrackerMessage trackerMessage = objectMapper.readValue( payload, TrackerMessage.class );
-        TrackerImportParams trackerImportParams = trackerMessage.getTrackerImportParams();
+    TrackerMessage trackerMessage = objectMapper.readValue(payload, TrackerMessage.class);
+    TrackerImportParams trackerImportParams = trackerMessage.getTrackerImportParams();
 
-        JobConfiguration jobConfiguration = new JobConfiguration(
-            "",
-            JobType.TRACKER_IMPORT_JOB,
-            trackerImportParams.getUserId(),
-            true );
+    JobConfiguration jobConfiguration =
+        new JobConfiguration("", JobType.TRACKER_IMPORT_JOB, trackerImportParams.getUserId(), true);
 
-        jobConfiguration.setUid( trackerMessage.getUid() );
-        trackerImportParams.setJobConfiguration( jobConfiguration );
+    jobConfiguration.setUid(trackerMessage.getUid());
+    trackerImportParams.setJobConfiguration(jobConfiguration);
 
-        TrackerImportThread trackerImportThread = trackerImportThreadFactory.getObject();
-        trackerImportThread.setTrackerImportParams( trackerImportParams );
+    TrackerImportThread trackerImportThread = trackerImportThreadFactory.getObject();
+    trackerImportThread.setTrackerImportParams(trackerImportParams);
 
-        SecurityContextHolder.getContext()
-            .setAuthentication( AuthenticationSerializer.deserialize( trackerMessage.getAuthentication() ) );
+    SecurityContextHolder.getContext()
+        .setAuthentication(
+            AuthenticationSerializer.deserialize(trackerMessage.getAuthentication()));
 
-        taskExecutor.executeTask( trackerImportThread );
-    }
+    taskExecutor.executeTask(trackerImportThread);
+  }
 }

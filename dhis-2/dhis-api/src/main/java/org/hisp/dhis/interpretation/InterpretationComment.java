@@ -27,78 +27,66 @@
  */
 package org.hisp.dhis.interpretation;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.user.User;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "interpretationComment", namespace = DxfNamespaces.DXF_2_0 )
-public class InterpretationComment
-    extends BaseIdentifiableObject
-{
-    private String text;
+@JacksonXmlRootElement(localName = "interpretationComment", namespace = DxfNamespaces.DXF_2_0)
+public class InterpretationComment extends BaseIdentifiableObject {
+  private String text;
 
-    private List<Mention> mentions = new ArrayList<>();
+  private List<Mention> mentions = new ArrayList<>();
 
-    public InterpretationComment()
-    {
-        this.created = new Date();
-    }
+  public InterpretationComment() {
+    this.created = new Date();
+  }
 
-    public InterpretationComment( String text )
-    {
-        this.text = text;
-        this.created = new Date();
-    }
+  public InterpretationComment(String text) {
+    this.text = text;
+    this.created = new Date();
+  }
 
-    public InterpretationComment( String text, User user )
-    {
-        this.text = text;
-        this.created = new Date();
-        this.sharing.setOwner( user );
-    }
+  public InterpretationComment(String text, User user) {
+    this.text = text;
+    this.created = new Date();
+    this.sharing.setOwner(user);
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getText()
-    {
-        return text;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getText() {
+    return text;
+  }
 
-    public void setText( String text )
-    {
-        this.text = text;
-    }
+  public void setText(String text) {
+    this.text = text;
+  }
 
-    @JsonProperty( "mentions" )
-    @JacksonXmlElementWrapper( localName = "mentions", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "mentions", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Mention> getMentions()
-    {
-        return mentions;
-    }
+  @JsonProperty("mentions")
+  @JacksonXmlElementWrapper(localName = "mentions", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "mentions", namespace = DxfNamespaces.DXF_2_0)
+  public List<Mention> getMentions() {
+    return mentions;
+  }
 
-    public void setMentions( List<Mention> mentions )
-    {
-        this.mentions = mentions;
-    }
+  public void setMentions(List<Mention> mentions) {
+    this.mentions = mentions;
+  }
 
-    @JsonIgnore
-    public void setMentionsFromUsers( Set<User> users )
-    {
-        this.mentions = MentionUtils.convertUsersToMentions( users );
-    }
+  @JsonIgnore
+  public void setMentionsFromUsers(Set<User> users) {
+    this.mentions = MentionUtils.convertUsersToMentions(users);
+  }
 }

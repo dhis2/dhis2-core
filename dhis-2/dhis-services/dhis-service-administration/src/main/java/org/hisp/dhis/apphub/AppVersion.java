@@ -27,130 +27,107 @@
  */
 package org.hisp.dhis.apphub;
 
-import java.util.Date;
-
-import org.apache.commons.io.FilenameUtils;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Date;
+import org.apache.commons.io.FilenameUtils;
 
-/**
- * Created by zubair@dhis2.org on 07.09.17.
- */
-public class AppVersion
-{
-    private String id;
+/** Created by zubair@dhis2.org on 07.09.17. */
+public class AppVersion {
+  private String id;
 
-    private String version;
+  private String version;
 
-    private String minDhisVersion;
+  private String minDhisVersion;
 
-    private String maxDhisVersion;
+  private String maxDhisVersion;
 
-    private String downloadUrl;
+  private String downloadUrl;
 
-    private String demoUrl;
+  private String demoUrl;
 
-    private Date created;
+  private Date created;
 
-    private Date lastUpdated;
+  private Date lastUpdated;
 
-    public AppVersion()
-    {
-        // empty constructor
-    }
+  public AppVersion() {
+    // empty constructor
+  }
 
-    @JsonIgnore
-    public String getFilename()
-    {
-        return FilenameUtils.getName( downloadUrl );
-    }
+  @JsonIgnore
+  public String getFilename() {
+    return FilenameUtils.getName(downloadUrl);
+  }
 
-    @JsonProperty
-    public String getVersion()
-    {
-        return version;
-    }
+  @JsonProperty
+  public String getVersion() {
+    return version;
+  }
 
-    public void setVersion( String version )
-    {
-        this.version = version;
-    }
+  public void setVersion(String version) {
+    this.version = version;
+  }
 
-    @JsonProperty
-    public String getMinDhisVersion()
-    {
-        return minDhisVersion;
-    }
+  @JsonProperty
+  public String getMinDhisVersion() {
+    return minDhisVersion;
+  }
 
-    public void setMinDhisVersion( String minDhisVersion )
-    {
-        this.minDhisVersion = minDhisVersion;
-    }
+  public void setMinDhisVersion(String minDhisVersion) {
+    this.minDhisVersion = minDhisVersion;
+  }
 
-    @JsonProperty
-    public String getMaxDhisVersion()
-    {
-        return maxDhisVersion;
-    }
+  @JsonProperty
+  public String getMaxDhisVersion() {
+    return maxDhisVersion;
+  }
 
-    public void setMaxDhisVersion( String maxDhisVersion )
-    {
-        this.maxDhisVersion = maxDhisVersion;
-    }
+  public void setMaxDhisVersion(String maxDhisVersion) {
+    this.maxDhisVersion = maxDhisVersion;
+  }
 
-    @JsonProperty
-    public String getDownloadUrl()
-    {
-        return downloadUrl;
-    }
+  @JsonProperty
+  public String getDownloadUrl() {
+    return downloadUrl;
+  }
 
-    public void setDownloadUrl( String downloadUrl )
-    {
-        this.downloadUrl = downloadUrl;
-    }
+  public void setDownloadUrl(String downloadUrl) {
+    this.downloadUrl = downloadUrl;
+  }
 
-    @JsonProperty
-    public String getDemoUrl()
-    {
-        return demoUrl;
-    }
+  @JsonProperty
+  public String getDemoUrl() {
+    return demoUrl;
+  }
 
-    public void setDemoUrl( String demoUrl )
-    {
-        this.demoUrl = demoUrl;
-    }
+  public void setDemoUrl(String demoUrl) {
+    this.demoUrl = demoUrl;
+  }
 
-    @JsonProperty
-    public Date getCreated()
-    {
-        return created;
-    }
+  @JsonProperty
+  public Date getCreated() {
+    return created;
+  }
 
-    public void setCreated( Date created )
-    {
-        this.created = created;
-    }
+  public void setCreated(Date created) {
+    this.created = created;
+  }
 
-    @JsonProperty
-    public String getId()
-    {
-        return id;
-    }
+  @JsonProperty
+  public String getId() {
+    return id;
+  }
 
-    public void setId( String id )
-    {
-        this.id = id;
-    }
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    @JsonProperty
-    public Date getLastUpdated()
-    {
-        return lastUpdated;
-    }
+  @JsonProperty
+  public Date getLastUpdated() {
+    return lastUpdated;
+  }
 
-    public void setLastUpdated( Date lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
-    }
+  public void setLastUpdated(Date lastUpdated) {
+    this.lastUpdated = lastUpdated;
+  }
 }

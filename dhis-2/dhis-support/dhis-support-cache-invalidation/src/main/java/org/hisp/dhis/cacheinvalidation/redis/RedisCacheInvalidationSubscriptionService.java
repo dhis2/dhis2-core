@@ -27,42 +27,37 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
-import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
 @Service
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
-public class RedisCacheInvalidationSubscriptionService
-{
-    @Autowired
-    private CacheInvalidationListener cacheInvalidationListener;
+@Profile({"!test", "!test-h2"})
+@Conditional(value = RedisCacheInvalidationEnabledCondition.class)
+public class RedisCacheInvalidationSubscriptionService {
+  @Autowired private CacheInvalidationListener cacheInvalidationListener;
 
-    @Autowired
-    @Qualifier( "pubSubConnection" )
-    private StatefulRedisPubSubConnection<String, String> pubSubConnection;
+  @Autowired
+  @Qualifier("pubSubConnection")
+  private StatefulRedisPubSubConnection<String, String> pubSubConnection;
 
-    public void start()
-    {
-        log.info( "RedisCacheInvalidationSubscriptionService starting" );
+  public void start() {
+    log.info("RedisCacheInvalidationSubscriptionService starting");
 
-        pubSubConnection.addListener( cacheInvalidationListener );
+    pubSubConnection.addListener(cacheInvalidationListener);
 
-        RedisPubSubAsyncCommands<String, String> async = pubSubConnection.async();
-        async.subscribe( RedisCacheInvalidationConfiguration.CHANNEL_NAME );
+    RedisPubSubAsyncCommands<String, String> async = pubSubConnection.async();
+    async.subscribe(RedisCacheInvalidationConfiguration.CHANNEL_NAME);
 
-        log.debug( "Subscribed to channel: " + RedisCacheInvalidationConfiguration.CHANNEL_NAME );
-    }
+    log.debug("Subscribed to channel: " + RedisCacheInvalidationConfiguration.CHANNEL_NAME);
+  }
 }

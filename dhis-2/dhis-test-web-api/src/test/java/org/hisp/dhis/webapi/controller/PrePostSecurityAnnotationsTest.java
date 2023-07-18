@@ -38,25 +38,19 @@ import org.springframework.mock.web.MockHttpSession;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class PrePostSecurityAnnotationsTest extends DhisWebSpringTest
-{
+class PrePostSecurityAnnotationsTest extends DhisWebSpringTest {
 
-    @Test
-    void authorityAllCanAccessApps()
-        throws Exception
-    {
-        MockHttpSession session = getSession( "ALL" );
-        mvc.perform( put( "/apps" ).session( session ) ).andExpect( status().isNoContent() );
-    }
+  @Test
+  void authorityAllCanAccessApps() throws Exception {
+    MockHttpSession session = getSession("ALL");
+    mvc.perform(put("/apps").session(session)).andExpect(status().isNoContent());
+  }
 
-    @Test
-    void authorityNoAuthorityCantAccessApps()
-        throws Exception
-    {
-        User noAuthUser = createAndAddUser( "A", null, "NO_AUTHORITY" );
-        injectSecurityContext( noAuthUser );
-        MockHttpSession session = getSession( "NO_AUTHORITY" );
-        mvc.perform( put( "/apps" ).session( session ) ).andExpect(
-            status().isForbidden() );
-    }
+  @Test
+  void authorityNoAuthorityCantAccessApps() throws Exception {
+    User noAuthUser = createAndAddUser("A", null, "NO_AUTHORITY");
+    injectSecurityContext(noAuthUser);
+    MockHttpSession session = getSession("NO_AUTHORITY");
+    mvc.perform(put("/apps").session(session)).andExpect(status().isForbidden());
+  }
 }

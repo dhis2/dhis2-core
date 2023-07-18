@@ -28,7 +28,6 @@
 package org.hisp.dhis.trackedentitycomment;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
@@ -37,30 +36,25 @@ import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
 @RequiredArgsConstructor
-public class TrackedEntityCommentDeletionHandler extends IdObjectDeletionHandler<TrackedEntityComment>
-{
-    private final TrackedEntityCommentService commentService;
+public class TrackedEntityCommentDeletionHandler
+    extends IdObjectDeletionHandler<TrackedEntityComment> {
+  private final TrackedEntityCommentService commentService;
 
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
-        whenDeleting( ProgramStageInstance.class, this::deleteProgramStageInstance );
-    }
+  @Override
+  protected void registerHandler() {
+    whenDeleting(ProgramInstance.class, this::deleteProgramInstance);
+    whenDeleting(ProgramStageInstance.class, this::deleteProgramStageInstance);
+  }
 
-    private void deleteProgramInstance( ProgramInstance programInstance )
-    {
-        for ( TrackedEntityComment comment : programInstance.getComments() )
-        {
-            commentService.deleteTrackedEntityComment( comment );
-        }
+  private void deleteProgramInstance(ProgramInstance programInstance) {
+    for (TrackedEntityComment comment : programInstance.getComments()) {
+      commentService.deleteTrackedEntityComment(comment);
     }
+  }
 
-    private void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
-    {
-        for ( TrackedEntityComment comment : programStageInstance.getComments() )
-        {
-            commentService.deleteTrackedEntityComment( comment );
-        }
+  private void deleteProgramStageInstance(ProgramStageInstance programStageInstance) {
+    for (TrackedEntityComment comment : programStageInstance.getComments()) {
+      commentService.deleteTrackedEntityComment(comment);
     }
+  }
 }

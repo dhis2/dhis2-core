@@ -39,118 +39,92 @@ import org.hisp.dhis.system.util.MathUtils;
  *
  * @author Jim Grace
  */
-public class PredictionFormatter
-{
-    /**
-     * Formats a predicted value as a {@see DataValue} string.
-     *
-     * @param value
-     * @param outputDataElement
-     * @return formatted {@see DataValue} string
-     */
-    public static String formatPrediction( final Object value, final DataElement outputDataElement )
-    {
-        ValueType valueType = outputDataElement.getValueType();
+public class PredictionFormatter {
+  /**
+   * Formats a predicted value as a {@see DataValue} string.
+   *
+   * @param value
+   * @param outputDataElement
+   * @return formatted {@see DataValue} string
+   */
+  public static String formatPrediction(final Object value, final DataElement outputDataElement) {
+    ValueType valueType = outputDataElement.getValueType();
 
-        if ( valueType.isNumeric() || (valueType.isText() && value instanceof Double) )
-        {
-            return formatNumericPrediction( value, outputDataElement );
-        }
-
-        if ( valueType.isText() )
-        {
-            return formatTextPrediction( value );
-        }
-
-        if ( valueType.isDate() )
-        {
-            return formatDatePrediction( value );
-        }
-
-        if ( valueType.isBoolean() )
-        {
-            return formatBooleanPrediction( value );
-        }
-
-        return null;
+    if (valueType.isNumeric() || (valueType.isText() && value instanceof Double)) {
+      return formatNumericPrediction(value, outputDataElement);
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * Formats a numeric predicted value as a string.
-     */
-    private static String formatNumericPrediction( final Object value, final DataElement outputDataElement )
-    {
-        final Object val = (value == null)
-            ? 0.0
-            : value;
-
-        if ( !(val instanceof Double) )
-        {
-            return null;
-        }
-
-        Double dval = (Double) val;
-
-        if ( dval.isNaN()
-            || dval.isInfinite()
-            || dataValueIsZeroAndInsignificant( Double.toString( dval ), outputDataElement ) )
-        {
-            return null;
-        }
-
-        if ( outputDataElement.getValueType().isInteger() )
-        {
-            return Long.toString( Math.round( dval ) );
-        }
-
-        return Double.toString( MathUtils.roundFraction( dval, 4 ) );
+    if (valueType.isText()) {
+      return formatTextPrediction(value);
     }
 
-    /**
-     * Formats a date predicted value as a string.
-     */
-    private static String formatDatePrediction( final Object value )
-    {
-        if ( value instanceof String && dateIsValid( (String) value ) )
-        {
-            return (String) value;
-        }
-
-        return null;
+    if (valueType.isDate()) {
+      return formatDatePrediction(value);
     }
 
-    /**
-     * Formats a text predicted value as a string.
-     */
-    private static String formatTextPrediction( final Object value )
-    {
-        if ( value == null )
-        {
-            return "";
-        }
-
-        return value.toString();
+    if (valueType.isBoolean()) {
+      return formatBooleanPrediction(value);
     }
 
-    /**
-     * Formats a boolean predicted value as a string.
-     */
-    private static String formatBooleanPrediction( final Object value )
-    {
-        if ( value == null )
-        {
-            return "false";
-        }
+    return null;
+  }
 
-        if ( value instanceof Boolean )
-        {
-            return ((Boolean) value).toString();
-        }
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-        return null;
+  /** Formats a numeric predicted value as a string. */
+  private static String formatNumericPrediction(
+      final Object value, final DataElement outputDataElement) {
+    final Object val = (value == null) ? 0.0 : value;
+
+    if (!(val instanceof Double)) {
+      return null;
     }
+
+    Double dval = (Double) val;
+
+    if (dval.isNaN()
+        || dval.isInfinite()
+        || dataValueIsZeroAndInsignificant(Double.toString(dval), outputDataElement)) {
+      return null;
+    }
+
+    if (outputDataElement.getValueType().isInteger()) {
+      return Long.toString(Math.round(dval));
+    }
+
+    return Double.toString(MathUtils.roundFraction(dval, 4));
+  }
+
+  /** Formats a date predicted value as a string. */
+  private static String formatDatePrediction(final Object value) {
+    if (value instanceof String && dateIsValid((String) value)) {
+      return (String) value;
+    }
+
+    return null;
+  }
+
+  /** Formats a text predicted value as a string. */
+  private static String formatTextPrediction(final Object value) {
+    if (value == null) {
+      return "";
+    }
+
+    return value.toString();
+  }
+
+  /** Formats a boolean predicted value as a string. */
+  private static String formatBooleanPrediction(final Object value) {
+    if (value == null) {
+      return "false";
+    }
+
+    if (value instanceof Boolean) {
+      return ((Boolean) value).toString();
+    }
+
+    return null;
+  }
 }

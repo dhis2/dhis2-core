@@ -38,14 +38,10 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class OperatorCompareLessThan
-    extends AntlrOperatorCompareLessThan
-    implements ExpressionItem
-{
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return visitor.sqlNumericVisit( ctx.expr( 0 ) )
-            + " < " + visitor.sqlNumericVisit( ctx.expr( 1 ) );
-    }
+public class OperatorCompareLessThan extends AntlrOperatorCompareLessThan
+    implements ExpressionItem {
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return visitor.sqlNumericVisit(ctx.expr(0)) + " < " + visitor.sqlNumericVisit(ctx.expr(1));
+  }
 }

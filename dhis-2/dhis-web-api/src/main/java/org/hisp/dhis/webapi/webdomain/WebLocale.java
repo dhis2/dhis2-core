@@ -27,53 +27,46 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
-import java.util.Locale;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Locale;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "locale" )
-public class WebLocale
-{
-    private String locale;
+@JacksonXmlRootElement(localName = "locale")
+public class WebLocale {
+  private String locale;
 
-    private String name;
+  private String name;
 
-    public static WebLocale fromLocale( Locale locale )
-    {
-        WebLocale loc = new WebLocale();
+  public static WebLocale fromLocale(Locale locale) {
+    WebLocale loc = new WebLocale();
 
-        loc.setLocale( locale.toString() );
-        loc.setName( locale.getDisplayName() );
+    loc.setLocale(locale.toString());
+    loc.setName(locale.getDisplayName());
 
-        return loc;
-    }
+    return loc;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty
-    public String getLocale()
-    {
-        return locale;
-    }
+  @JsonProperty
+  @JacksonXmlProperty
+  public String getLocale() {
+    return locale;
+  }
 
-    public void setLocale( String locale )
-    {
-        this.locale = locale;
-    }
+  public void setLocale(String locale) {
+    this.locale = locale;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty
-    public String getName()
-    {
-        return name;
-    }
+  @JsonProperty
+  @JacksonXmlProperty
+  public String getName() {
+    return name;
+  }
 
-    public void setName( String name )
-    {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 }

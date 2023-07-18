@@ -30,13 +30,11 @@ package org.hisp.dhis.analytics;
 /**
  * @author Lars Helge Overland
  */
-public enum ColumnNotNullConstraint
-{
-    NULL,
-    NOT_NULL;
+public enum ColumnNotNullConstraint {
+  NULL,
+  NOT_NULL;
 
-    public boolean isNotNull()
-    {
-        return this == NOT_NULL;
-    }
+  public boolean isNotNull() {
+    return this == NOT_NULL;
+  }
 }

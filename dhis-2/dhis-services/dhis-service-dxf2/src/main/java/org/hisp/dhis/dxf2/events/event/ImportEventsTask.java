@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.events.event;
 
 import java.util.List;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.SecurityContextRunnable;
@@ -36,30 +35,29 @@ import org.hisp.dhis.security.SecurityContextRunnable;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ImportEventsTask
-    extends SecurityContextRunnable
-{
-    private final List<Event> events;
+public class ImportEventsTask extends SecurityContextRunnable {
+  private final List<Event> events;
 
-    private final EventService eventService;
+  private final EventService eventService;
 
-    private final ImportOptions importOptions;
+  private final ImportOptions importOptions;
 
-    private final JobConfiguration id;
+  private final JobConfiguration id;
 
-    public ImportEventsTask( List<Event> events, EventService eventService, ImportOptions importOptions,
-        JobConfiguration id )
-    {
-        super();
-        this.events = events;
-        this.eventService = eventService;
-        this.importOptions = importOptions;
-        this.id = id;
-    }
+  public ImportEventsTask(
+      List<Event> events,
+      EventService eventService,
+      ImportOptions importOptions,
+      JobConfiguration id) {
+    super();
+    this.events = events;
+    this.eventService = eventService;
+    this.importOptions = importOptions;
+    this.id = id;
+  }
 
-    @Override
-    public void call()
-    {
-        eventService.processEventImport( events, importOptions, id );
-    }
+  @Override
+  public void call() {
+    eventService.processEventImport(events, importOptions, id);
+  }
 }

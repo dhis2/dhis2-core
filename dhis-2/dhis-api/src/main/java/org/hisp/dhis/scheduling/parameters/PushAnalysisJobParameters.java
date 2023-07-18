@@ -27,14 +27,13 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -42,38 +41,32 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.scheduling.JobParameters;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * @author Henning Håkonsen
  */
 @Getter
 @Setter
 @NoArgsConstructor
-public class PushAnalysisJobParameters implements JobParameters
-{
-    @JsonProperty( required = true )
-    @OpenApi.Property( { UID[].class, PushAnalysis.class } )
-    private List<String> pushAnalysis = new ArrayList<>();
+public class PushAnalysisJobParameters implements JobParameters {
+  @JsonProperty(required = true)
+  @OpenApi.Property({UID[].class, PushAnalysis.class})
+  private List<String> pushAnalysis = new ArrayList<>();
 
-    public PushAnalysisJobParameters( String pushAnalysis )
-    {
-        this.pushAnalysis.add( pushAnalysis );
+  public PushAnalysisJobParameters(String pushAnalysis) {
+    this.pushAnalysis.add(pushAnalysis);
+  }
+
+  public PushAnalysisJobParameters(List<String> pushAnalysis) {
+    this.pushAnalysis = pushAnalysis;
+  }
+
+  @Override
+  public Optional<ErrorReport> validate() {
+    if (pushAnalysis == null || pushAnalysis.isEmpty()) {
+      return Optional.of(
+          new ErrorReport(this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis"));
     }
 
-    public PushAnalysisJobParameters( List<String> pushAnalysis )
-    {
-        this.pushAnalysis = pushAnalysis;
-    }
-
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        if ( pushAnalysis == null || pushAnalysis.isEmpty() )
-        {
-            return Optional.of( new ErrorReport( this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis" ) );
-        }
-
-        return Optional.empty();
-    }
+    return Optional.empty();
+  }
 }

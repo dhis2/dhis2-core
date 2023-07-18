@@ -28,7 +28,6 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -41,77 +40,87 @@ import org.hisp.dhis.user.User;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerAccessManager
-{
-    List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance );
+public interface TrackerAccessManager {
+  List<String> canRead(User user, TrackedEntityInstance trackedEntityInstance);
 
-    List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance );
+  List<String> canWrite(User user, TrackedEntityInstance trackedEntityInstance);
 
-    List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance, Program program,
-        boolean skipOwnershipCheck );
+  List<String> canRead(
+      User user,
+      TrackedEntityInstance trackedEntityInstance,
+      Program program,
+      boolean skipOwnershipCheck);
 
-    List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance, Program program,
-        boolean skipOwnershipCheck );
+  List<String> canWrite(
+      User user,
+      TrackedEntityInstance trackedEntityInstance,
+      Program program,
+      boolean skipOwnershipCheck);
 
-    List<String> canRead( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
+  List<String> canRead(User user, ProgramInstance programInstance, boolean skipOwnershipCheck);
 
-    List<String> canCreate( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
+  List<String> canCreate(User user, ProgramInstance programInstance, boolean skipOwnershipCheck);
 
-    List<String> canUpdate( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
+  List<String> canUpdate(User user, ProgramInstance programInstance, boolean skipOwnershipCheck);
 
-    List<String> canDelete( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
+  List<String> canDelete(User user, ProgramInstance programInstance, boolean skipOwnershipCheck);
 
-    List<String> canRead( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
+  List<String> canRead(
+      User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck);
 
-    List<String> canCreate( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
+  List<String> canCreate(
+      User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck);
 
-    List<String> canUpdate( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
+  List<String> canUpdate(
+      User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck);
 
-    List<String> canDelete( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
+  List<String> canDelete(
+      User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck);
 
-    List<String> canRead( User user, Relationship relationship );
+  List<String> canRead(User user, Relationship relationship);
 
-    List<String> canWrite( User user, Relationship relationship );
+  List<String> canWrite(User user, Relationship relationship);
 
-    /**
-     * Checks the sharing read access to EventDataValue
-     *
-     * @param user User validated for write access
-     * @param programStageInstance ProgramStageInstance under which the
-     *        EventDataValue belongs
-     * @param dataElement DataElement of EventDataValue
-     * @return Empty list if read access allowed, list of errors otherwise.
-     */
-    List<String> canRead( User user, ProgramStageInstance programStageInstance, DataElement dataElement,
-        boolean skipOwnershipCheck );
+  /**
+   * Checks the sharing read access to EventDataValue
+   *
+   * @param user User validated for write access
+   * @param programStageInstance ProgramStageInstance under which the EventDataValue belongs
+   * @param dataElement DataElement of EventDataValue
+   * @return Empty list if read access allowed, list of errors otherwise.
+   */
+  List<String> canRead(
+      User user,
+      ProgramStageInstance programStageInstance,
+      DataElement dataElement,
+      boolean skipOwnershipCheck);
 
-    /**
-     * Checks the sharing write access to EventDataValue
-     *
-     * @param user User validated for write access
-     * @param programStageInstance ProgramStageInstance under which the
-     *        EventDataValue belongs
-     * @param dataElement DataElement of EventDataValue
-     * @return Empty list if write access allowed, list of errors otherwise.
-     */
-    List<String> canWrite( User user, ProgramStageInstance programStageInstance, DataElement dataElement,
-        boolean skipOwnershipCheck );
+  /**
+   * Checks the sharing write access to EventDataValue
+   *
+   * @param user User validated for write access
+   * @param programStageInstance ProgramStageInstance under which the EventDataValue belongs
+   * @param dataElement DataElement of EventDataValue
+   * @return Empty list if write access allowed, list of errors otherwise.
+   */
+  List<String> canWrite(
+      User user,
+      ProgramStageInstance programStageInstance,
+      DataElement dataElement,
+      boolean skipOwnershipCheck);
 
-    List<String> canRead( User user, CategoryOptionCombo categoryOptionCombo );
+  List<String> canRead(User user, CategoryOptionCombo categoryOptionCombo);
 
-    List<String> canWrite( User user, CategoryOptionCombo categoryOptionCombo );
+  List<String> canWrite(User user, CategoryOptionCombo categoryOptionCombo);
 
-    /**
-     * Checks if user has access to organisation unit under defined tracker
-     * program protection level
-     *
-     * @param user the user to check access for
-     * @param program program to check against protection level
-     * @param orgUnit the org unit to be checked under user's scope and program
-     *        protection
-     *
-     * @return true if user has access to the org unit under the mentioned
-     *         program context, otherwise return false
-     */
-    boolean canAccess( User user, Program program, OrganisationUnit orgUnit );
+  /**
+   * Checks if user has access to organisation unit under defined tracker program protection level
+   *
+   * @param user the user to check access for
+   * @param program program to check against protection level
+   * @param orgUnit the org unit to be checked under user's scope and program protection
+   * @return true if user has access to the org unit under the mentioned program context, otherwise
+   *     return false
+   */
+  boolean canAccess(User user, Program program, OrganisationUnit orgUnit);
 }

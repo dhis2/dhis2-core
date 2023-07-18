@@ -36,94 +36,85 @@ import static org.hisp.dhis.util.DateUtils.calculateDateFrom;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
-
 import org.junit.jupiter.api.Test;
 
-class TimeToLiveTest
-{
-    @Test
-    void testComputeForCurrentDayWhenCacheFactorIsNegative()
-    {
-        int aNegativeCachingFactor = -1;
-        Date endingDate = new Date();
+class TimeToLiveTest {
+  @Test
+  void testComputeForCurrentDayWhenCacheFactorIsNegative() {
+    int aNegativeCachingFactor = -1;
+    Date endingDate = new Date();
 
-        assertThrows( IllegalArgumentException.class, () -> new TimeToLive( endingDate, aNegativeCachingFactor ) );
-    }
+    assertThrows(
+        IllegalArgumentException.class, () -> new TimeToLive(endingDate, aNegativeCachingFactor));
+  }
 
-    @Test
-    void testComputeForZeroDayDiffWhenCacheFactorIsPositive()
-    {
-        int aPositiveCachingFactor = 3;
-        Date endingDate = new Date();
-        long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
+  @Test
+  void testComputeForZeroDayDiffWhenCacheFactorIsPositive() {
+    int aPositiveCachingFactor = 3;
+    Date endingDate = new Date();
+    long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
 
-        long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
+    long actualTtl = new TimeToLive(endingDate, aPositiveCachingFactor).compute();
 
-        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
-    }
+    assertThat(actualTtl, is(equalTo(expectedTtl)));
+  }
 
-    @Test
-    void testComputeForOneDayBeforeWhenCacheFactorIsPositive()
-    {
-        int oneDayDiff = 1;
-        int aPositiveCachingFactor = 2;
-        Date endingDate = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
-        long expectedTtl = aPositiveCachingFactor * oneDayDiff;
+  @Test
+  void testComputeForOneDayBeforeWhenCacheFactorIsPositive() {
+    int oneDayDiff = 1;
+    int aPositiveCachingFactor = 2;
+    Date endingDate = calculateDateFrom(new Date(), minus(oneDayDiff), DATE);
+    long expectedTtl = aPositiveCachingFactor * oneDayDiff;
 
-        long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
+    long actualTtl = new TimeToLive(endingDate, aPositiveCachingFactor).compute();
 
-        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
-    }
+    assertThat(actualTtl, is(equalTo(expectedTtl)));
+  }
 
-    @Test
-    void testComputeWhenDateObjectIsOfTypeSqlDate()
-    {
-        int oneDayDiff = 1;
-        int aPositiveCachingFactor = 2;
-        java.sql.Date endingDate = new java.sql.Date(
-            calculateDateFrom( new Date(), minus( oneDayDiff ), DATE ).getTime() );
-        long expectedTtl = aPositiveCachingFactor * oneDayDiff;
+  @Test
+  void testComputeWhenDateObjectIsOfTypeSqlDate() {
+    int oneDayDiff = 1;
+    int aPositiveCachingFactor = 2;
+    java.sql.Date endingDate =
+        new java.sql.Date(calculateDateFrom(new Date(), minus(oneDayDiff), DATE).getTime());
+    long expectedTtl = aPositiveCachingFactor * oneDayDiff;
 
-        long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
+    long actualTtl = new TimeToLive(endingDate, aPositiveCachingFactor).compute();
 
-        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
-    }
+    assertThat(actualTtl, is(equalTo(expectedTtl)));
+  }
 
-    @Test
-    void testComputeEndingDateIsAheadOfNowAndCacheFactorIsPositive()
-    {
-        int tenDaysAhead = 10;
-        int aPositiveCachingFactor = 1;
-        Date beginningDate = new Date();
-        Date endingDate = calculateDateFrom( beginningDate, plus( tenDaysAhead ), DATE );
-        long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
+  @Test
+  void testComputeEndingDateIsAheadOfNowAndCacheFactorIsPositive() {
+    int tenDaysAhead = 10;
+    int aPositiveCachingFactor = 1;
+    Date beginningDate = new Date();
+    Date endingDate = calculateDateFrom(beginningDate, plus(tenDaysAhead), DATE);
+    long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
 
-        long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
+    long actualTtl = new TimeToLive(endingDate, aPositiveCachingFactor).compute();
 
-        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
-    }
+    assertThat(actualTtl, is(equalTo(expectedTtl)));
+  }
 
-    @Test
-    void testComputeEndingDateIsTenDaysBeforeNowAndCacheFactorIsPositive()
-    {
-        int tenDays = 10;
-        int aPositiveCachingFactor = 2;
-        Date now = new Date();
-        Date endingDate = calculateDateFrom( now, minus( tenDays ), DATE );
-        long expectedTtl = aPositiveCachingFactor * tenDays;
+  @Test
+  void testComputeEndingDateIsTenDaysBeforeNowAndCacheFactorIsPositive() {
+    int tenDays = 10;
+    int aPositiveCachingFactor = 2;
+    Date now = new Date();
+    Date endingDate = calculateDateFrom(now, minus(tenDays), DATE);
+    long expectedTtl = aPositiveCachingFactor * tenDays;
 
-        long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
+    long actualTtl = new TimeToLive(endingDate, aPositiveCachingFactor).compute();
 
-        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
-    }
+    assertThat(actualTtl, is(equalTo(expectedTtl)));
+  }
 
-    private int minus( int value )
-    {
-        return -value;
-    }
+  private int minus(int value) {
+    return -value;
+  }
 
-    private int plus( int value )
-    {
-        return value;
-    }
+  private int plus(int value) {
+    return value;
+  }
 }

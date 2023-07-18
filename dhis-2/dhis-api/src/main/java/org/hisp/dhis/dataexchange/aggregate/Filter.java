@@ -27,26 +27,20 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.List;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 @Getter
 @Setter
 @NoArgsConstructor
-@Accessors( chain = true )
-public class Filter
-    implements Serializable
-{
-    @JsonProperty
-    private String dimension;
+@Accessors(chain = true)
+public class Filter implements Serializable {
+  @JsonProperty private String dimension;
 
-    @JsonProperty
-    private List<String> items;
+  @JsonProperty private List<String> items;
 }

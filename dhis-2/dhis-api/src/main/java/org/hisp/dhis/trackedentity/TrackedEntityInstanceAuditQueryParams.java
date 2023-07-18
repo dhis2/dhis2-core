@@ -30,10 +30,8 @@ package org.hisp.dhis.trackedentity;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import lombok.Data;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.Pager;
 
@@ -41,52 +39,45 @@ import org.hisp.dhis.common.Pager;
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
 @Data
-@Accessors( chain = true )
-public class TrackedEntityInstanceAuditQueryParams
-{
-    private List<String> trackedEntityInstances = new ArrayList<>();
+@Accessors(chain = true)
+public class TrackedEntityInstanceAuditQueryParams {
+  private List<String> trackedEntityInstances = new ArrayList<>();
 
-    private List<String> users = new ArrayList<>();
+  private List<String> users = new ArrayList<>();
 
-    private List<AuditType> auditTypes = new ArrayList<>();
+  private List<AuditType> auditTypes = new ArrayList<>();
 
-    private Date startDate = null;
+  private Date startDate = null;
 
-    private Date endDate = null;
+  private Date endDate = null;
 
-    private Pager pager;
+  private Pager pager;
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    public boolean hasTrackedEntityInstances()
-    {
-        return trackedEntityInstances != null && !trackedEntityInstances.isEmpty();
-    }
+  public boolean hasTrackedEntityInstances() {
+    return trackedEntityInstances != null && !trackedEntityInstances.isEmpty();
+  }
 
-    public boolean hasUsers()
-    {
-        return users != null && !users.isEmpty();
-    }
+  public boolean hasUsers() {
+    return users != null && !users.isEmpty();
+  }
 
-    public boolean hasAuditTypes()
-    {
-        return auditTypes != null && !auditTypes.isEmpty();
-    }
+  public boolean hasAuditTypes() {
+    return auditTypes != null && !auditTypes.isEmpty();
+  }
 
-    public boolean hasStartDate()
-    {
-        return startDate != null;
-    }
+  public boolean hasStartDate() {
+    return startDate != null;
+  }
 
-    public boolean hasEndDate()
-    {
-        return endDate != null;
-    }
+  public boolean hasEndDate() {
+    return endDate != null;
+  }
 
-    public boolean hasPaging()
-    {
-        return pager != null;
-    }
+  public boolean hasPaging() {
+    return pager != null;
+  }
 }

@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.junit.jupiter.api.Test;
 
 /**
@@ -41,25 +40,22 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class UniqueValueUtilsTest
-{
+class UniqueValueUtilsTest {
 
-    @Test
-    void addUniqueEnsuresUniqueNames()
-    {
-        Set<String> uniques = new HashSet<>( Arrays.asList( "abc", "ab1", "bcd", "bc2" ) );
-        assertEquals( "ab2", addValue( "abc", 3, uniques ) );
-        assertEquals( "ab3", addValue( "ab2", 3, uniques ) );
-        assertEquals( "new", addValue( "new", 3, uniques ) );
-        assertEquals( "bc1", addValue( "bc1", 3, uniques ) );
-        assertEquals( "bc3", addValue( "bc1d", 3, uniques ) );
-        for ( int i = 4; i <= 9; i++ )
-        {
-            assertEquals( "bc" + i, addValue( "bc1" + i, 3, uniques ) );
-        }
-        assertEquals( "b10", addValue( "bc1x", 3, uniques ) );
-        assertEquals( "b11", addValue( "bc1z", 3, uniques ) );
-        assertEquals( "a", addValue( "a", 3, uniques ) );
-        assertEquals( "a1", addValue( "a", 3, uniques ) );
+  @Test
+  void addUniqueEnsuresUniqueNames() {
+    Set<String> uniques = new HashSet<>(Arrays.asList("abc", "ab1", "bcd", "bc2"));
+    assertEquals("ab2", addValue("abc", 3, uniques));
+    assertEquals("ab3", addValue("ab2", 3, uniques));
+    assertEquals("new", addValue("new", 3, uniques));
+    assertEquals("bc1", addValue("bc1", 3, uniques));
+    assertEquals("bc3", addValue("bc1d", 3, uniques));
+    for (int i = 4; i <= 9; i++) {
+      assertEquals("bc" + i, addValue("bc1" + i, 3, uniques));
     }
+    assertEquals("b10", addValue("bc1x", 3, uniques));
+    assertEquals("b11", addValue("bc1z", 3, uniques));
+    assertEquals("a", addValue("a", 3, uniques));
+    assertEquals("a1", addValue("a", 3, uniques));
+  }
 }

@@ -37,12 +37,12 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class UpdateProgramCheck implements Checker
-{
-    @Override
-    public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )
-    {
-        return checkNull( ctx.getProgramsMap().get( event.getProgram() ),
-            "Program '" + event.getProgram() + "' for event '" + event.getEvent() + "' was not found.", event );
-    }
+public class UpdateProgramCheck implements Checker {
+  @Override
+  public ImportSummary check(final ImmutableEvent event, final WorkContext ctx) {
+    return checkNull(
+        ctx.getProgramsMap().get(event.getProgram()),
+        "Program '" + event.getProgram() + "' for event '" + event.getEvent() + "' was not found.",
+        event);
+  }
 }

@@ -33,26 +33,22 @@ import org.springframework.context.ApplicationEvent;
 /**
  * @author Zubair Asghar.
  */
-public class ProgramRuleEnrollmentEvent extends ApplicationEvent
-{
-    private long template;
+public class ProgramRuleEnrollmentEvent extends ApplicationEvent {
+  private long template;
 
-    private ProgramInstance programInstance;
+  private ProgramInstance programInstance;
 
-    public ProgramRuleEnrollmentEvent( Object source, long template, ProgramInstance programInstance )
-    {
-        super( source );
-        this.template = template;
-        this.programInstance = programInstance;
-    }
+  public ProgramRuleEnrollmentEvent(Object source, long template, ProgramInstance programInstance) {
+    super(source);
+    this.template = template;
+    this.programInstance = programInstance;
+  }
 
-    public long getTemplate()
-    {
-        return template;
-    }
+  public long getTemplate() {
+    return template;
+  }
 
-    public ProgramInstance getProgramInstance()
-    {
-        return programInstance;
-    }
+  public ProgramInstance getProgramInstance() {
+    return programInstance;
+  }
 }

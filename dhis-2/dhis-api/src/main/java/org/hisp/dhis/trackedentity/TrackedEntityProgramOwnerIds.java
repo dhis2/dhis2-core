@@ -27,33 +27,29 @@
  */
 package org.hisp.dhis.trackedentity;
 
-public class TrackedEntityProgramOwnerIds
-{
-    private final String trackedEntityInstanceId;
+public class TrackedEntityProgramOwnerIds {
+  private final String trackedEntityInstanceId;
 
-    private final String programId;
+  private final String programId;
 
-    private final String orgUnitUid;
+  private final String orgUnitUid;
 
-    public TrackedEntityProgramOwnerIds( String trackedEntityInstanceId, String programId, String orgUnitUid )
-    {
-        this.trackedEntityInstanceId = trackedEntityInstanceId;
-        this.programId = programId;
-        this.orgUnitUid = orgUnitUid;
-    }
+  public TrackedEntityProgramOwnerIds(
+      String trackedEntityInstanceId, String programId, String orgUnitUid) {
+    this.trackedEntityInstanceId = trackedEntityInstanceId;
+    this.programId = programId;
+    this.orgUnitUid = orgUnitUid;
+  }
 
-    public String getTrackedEntityInstanceId()
-    {
-        return trackedEntityInstanceId;
-    }
+  public String getTrackedEntityInstanceId() {
+    return trackedEntityInstanceId;
+  }
 
-    public String getProgramId()
-    {
-        return programId;
-    }
+  public String getProgramId() {
+    return programId;
+  }
 
-    public String getOrgUnitUid()
-    {
-        return orgUnitUid;
-    }
+  public String getOrgUnitUid() {
+    return orgUnitUid;
+  }
 }

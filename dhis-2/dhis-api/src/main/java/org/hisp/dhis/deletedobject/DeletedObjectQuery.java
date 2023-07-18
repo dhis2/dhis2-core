@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.deletedobject;
 
+import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -39,156 +39,130 @@ import org.hisp.dhis.common.PagerUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
-import com.google.common.base.MoreObjects;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DeletedObjectQuery
-{
-    public static final DeletedObjectQuery EMPTY = new DeletedObjectQuery();
+public class DeletedObjectQuery {
+  public static final DeletedObjectQuery EMPTY = new DeletedObjectQuery();
 
-    private List<String> klass = new ArrayList<>();
+  private List<String> klass = new ArrayList<>();
 
-    private List<String> uid = new ArrayList<>();
+  private List<String> uid = new ArrayList<>();
 
-    private List<String> code = new ArrayList<>();
+  private List<String> code = new ArrayList<>();
 
-    private Date deletedAt;
+  private Date deletedAt;
 
-    private Boolean skipPaging;
+  private Boolean skipPaging;
 
-    private Boolean paging;
+  private Boolean paging;
 
-    private int page = 1;
+  private int page = 1;
 
-    private int pageSize = Pager.DEFAULT_PAGE_SIZE;
+  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
 
-    private int total;
+  private int total;
 
-    public DeletedObjectQuery()
-    {
+  public DeletedObjectQuery() {}
+
+  public DeletedObjectQuery(IdentifiableObject identifiableObject) {
+    Assert.notNull(
+        identifiableObject, "identifiableObject is a required parameter and can not be null.");
+
+    klass.add(ClassUtils.getShortName(identifiableObject.getClass()));
+    uid.add(identifiableObject.getUid());
+
+    if (!StringUtils.isEmpty(identifiableObject.getCode())) {
+      code.add(identifiableObject.getCode());
     }
+  }
 
-    public DeletedObjectQuery( IdentifiableObject identifiableObject )
-    {
-        Assert.notNull( identifiableObject, "identifiableObject is a required parameter and can not be null." );
+  public List<String> getKlass() {
+    return klass;
+  }
 
-        klass.add( ClassUtils.getShortName( identifiableObject.getClass() ) );
-        uid.add( identifiableObject.getUid() );
+  public void setKlass(List<String> klass) {
+    this.klass = klass;
+  }
 
-        if ( !StringUtils.isEmpty( identifiableObject.getCode() ) )
-        {
-            code.add( identifiableObject.getCode() );
-        }
-    }
+  public List<String> getUid() {
+    return uid;
+  }
 
-    public List<String> getKlass()
-    {
-        return klass;
-    }
+  public void setUid(List<String> uid) {
+    this.uid = uid;
+  }
 
-    public void setKlass( List<String> klass )
-    {
-        this.klass = klass;
-    }
+  public List<String> getCode() {
+    return code;
+  }
 
-    public List<String> getUid()
-    {
-        return uid;
-    }
+  public void setCode(List<String> code) {
+    this.code = code;
+  }
 
-    public void setUid( List<String> uid )
-    {
-        this.uid = uid;
-    }
+  public Date getDeletedAt() {
+    return deletedAt;
+  }
 
-    public List<String> getCode()
-    {
-        return code;
-    }
+  public void setDeletedAt(Date deletedAt) {
+    this.deletedAt = deletedAt;
+  }
 
-    public void setCode( List<String> code )
-    {
-        this.code = code;
-    }
+  public boolean isSkipPaging() {
+    return PagerUtils.isSkipPaging(skipPaging, paging);
+  }
 
-    public Date getDeletedAt()
-    {
-        return deletedAt;
-    }
+  public void setSkipPaging(Boolean skipPaging) {
+    this.skipPaging = skipPaging;
+  }
 
-    public void setDeletedAt( Date deletedAt )
-    {
-        this.deletedAt = deletedAt;
-    }
+  public boolean isPaging() {
+    return BooleanUtils.toBoolean(paging);
+  }
 
-    public boolean isSkipPaging()
-    {
-        return PagerUtils.isSkipPaging( skipPaging, paging );
-    }
+  public void setPaging(Boolean paging) {
+    this.paging = paging;
+  }
 
-    public void setSkipPaging( Boolean skipPaging )
-    {
-        this.skipPaging = skipPaging;
-    }
+  public int getPage() {
+    return page;
+  }
 
-    public boolean isPaging()
-    {
-        return BooleanUtils.toBoolean( paging );
-    }
+  public void setPage(int page) {
+    this.page = page;
+  }
 
-    public void setPaging( Boolean paging )
-    {
-        this.paging = paging;
-    }
+  public int getPageSize() {
+    return pageSize;
+  }
 
-    public int getPage()
-    {
-        return page;
-    }
+  public void setPageSize(int pageSize) {
+    this.pageSize = pageSize;
+  }
 
-    public void setPage( int page )
-    {
-        this.page = page;
-    }
+  public int getTotal() {
+    return total;
+  }
 
-    public int getPageSize()
-    {
-        return pageSize;
-    }
+  public void setTotal(int total) {
+    this.total = total;
+  }
 
-    public void setPageSize( int pageSize )
-    {
-        this.pageSize = pageSize;
-    }
+  public Pager getPager() {
+    return PagerUtils.isSkipPaging(skipPaging, paging) ? null : new Pager(page, total, pageSize);
+  }
 
-    public int getTotal()
-    {
-        return total;
-    }
-
-    public void setTotal( int total )
-    {
-        this.total = total;
-    }
-
-    public Pager getPager()
-    {
-        return PagerUtils.isSkipPaging( skipPaging, paging ) ? null : new Pager( page, total, pageSize );
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "klass", klass )
-            .add( "uid", uid )
-            .add( "code", code )
-            .add( "deletedAt", deletedAt )
-            .add( "page", page )
-            .add( "pageSize", pageSize )
-            .add( "total", total )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("klass", klass)
+        .add("uid", uid)
+        .add("code", code)
+        .add("deletedAt", deletedAt)
+        .add("page", page)
+        .add("pageSize", pageSize)
+        .add("total", total)
+        .toString();
+  }
 }

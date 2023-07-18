@@ -27,60 +27,61 @@
  */
 package org.hisp.dhis.actions.tracker;
 
+import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.MaintenanceActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class RelationshipActions
-    extends RestApiActions
-{
-    public RelationshipActions()
-    {
-        super( "/relationships" );
-    }
+public class RelationshipActions extends RestApiActions {
+  public RelationshipActions() {
+    super("/relationships");
+  }
 
-    /**
-     * Hard deletes relationship.
-     *
-     * @param relationshipId ID of relationship to delete
-     */
-    @Override
-    public ApiResponse delete( String relationshipId )
-    {
-        ApiResponse response = super.delete( relationshipId );
-        new MaintenanceActions().removeSoftDeletedRelationships();
+  /**
+   * Hard deletes relationship.
+   *
+   * @param relationshipId ID of relationship to delete
+   */
+  @Override
+  public ApiResponse delete(String relationshipId) {
+    ApiResponse response = super.delete(relationshipId);
+    new MaintenanceActions().removeSoftDeletedRelationships();
 
-        return response;
-    }
+    return response;
+  }
 
-    public ApiResponse softDelete( String relationshipId )
-    {
-        ApiResponse response = super.delete( relationshipId );
+  public ApiResponse softDelete(String relationshipId) {
+    ApiResponse response = super.delete(relationshipId);
 
-        response.validate().statusCode( 200 );
+    response.validate().statusCode(200);
 
-        return response;
-    }
+    return response;
+  }
 
-    public JsonObject createRelationshipBody( String relationshipTypeId, String fromEntity, String fromEntityId,
-        String toEntity,
-        String toEntityId )
-    {
-        JsonObject relationship = new JsonObjectBuilder()
-            .addProperty( "relationshipType", relationshipTypeId )
-            .addObject( "from", new JsonObjectBuilder()
-                .addObject( fromEntity, new JsonObjectBuilder().addProperty( fromEntity, fromEntityId ) ) )
-            .addObject( "to", new JsonObjectBuilder()
-                .addObject( toEntity, new JsonObjectBuilder().addProperty( toEntity, toEntityId ) ) )
+  public JsonObject createRelationshipBody(
+      String relationshipTypeId,
+      String fromEntity,
+      String fromEntityId,
+      String toEntity,
+      String toEntityId) {
+    JsonObject relationship =
+        new JsonObjectBuilder()
+            .addProperty("relationshipType", relationshipTypeId)
+            .addObject(
+                "from",
+                new JsonObjectBuilder()
+                    .addObject(
+                        fromEntity, new JsonObjectBuilder().addProperty(fromEntity, fromEntityId)))
+            .addObject(
+                "to",
+                new JsonObjectBuilder()
+                    .addObject(toEntity, new JsonObjectBuilder().addProperty(toEntity, toEntityId)))
             .build();
 
-        return relationship;
-
-    }
+    return relationship;
+  }
 }

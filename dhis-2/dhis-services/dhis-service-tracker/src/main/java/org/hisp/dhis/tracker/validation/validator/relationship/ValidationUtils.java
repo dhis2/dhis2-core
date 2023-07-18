@@ -35,33 +35,24 @@ import org.hisp.dhis.tracker.domain.RelationshipItem;
 /**
  * @author Enrico Colasante
  */
-class ValidationUtils
-{
+class ValidationUtils {
 
-    private ValidationUtils()
-    {
-        throw new IllegalStateException( "Utility class" );
-    }
+  private ValidationUtils() {
+    throw new IllegalStateException("Utility class");
+  }
 
-    public static TrackerType relationshipItemValueType( RelationshipItem item )
-    {
-        if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
-        {
-            return TrackerType.TRACKED_ENTITY;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEnrollment() ) )
-        {
-            return TrackerType.ENROLLMENT;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEvent() ) )
-        {
-            return TrackerType.EVENT;
-        }
-        return null;
+  public static TrackerType relationshipItemValueType(RelationshipItem item) {
+    if (StringUtils.isNotEmpty(item.getTrackedEntity())) {
+      return TrackerType.TRACKED_ENTITY;
+    } else if (StringUtils.isNotEmpty(item.getEnrollment())) {
+      return TrackerType.ENROLLMENT;
+    } else if (StringUtils.isNotEmpty(item.getEvent())) {
+      return TrackerType.EVENT;
     }
+    return null;
+  }
 
-    public static String getUidFromRelationshipItem( RelationshipItem item )
-    {
-        return ObjectUtils.firstNonNull( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() );
-    }
+  public static String getUidFromRelationshipItem(RelationshipItem item) {
+    return ObjectUtils.firstNonNull(item.getTrackedEntity(), item.getEnrollment(), item.getEvent());
+  }
 }

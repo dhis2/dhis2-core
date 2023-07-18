@@ -30,11 +30,8 @@ package org.hisp.dhis.dataapproval.exceptions;
 /**
  * @author Jim Grace
  */
-public class DataApprovalNotFound
-    extends DataApprovalException
-{
-    public DataApprovalNotFound( String message )
-    {
-        super( message );
-    }
+public class DataApprovalNotFound extends DataApprovalException {
+  public DataApprovalNotFound(String message) {
+    super(message);
+  }
 }

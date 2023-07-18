@@ -32,12 +32,12 @@ import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = { InstantMapper.class, UserMapper.class } )
-public interface DataValueMapper extends ViewMapper<org.hisp.dhis.dxf2.events.event.DataValue, DataValue>
-{
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    DataValue from( org.hisp.dhis.dxf2.events.event.DataValue dataValue );
+@Mapper(uses = {InstantMapper.class, UserMapper.class})
+public interface DataValueMapper
+    extends ViewMapper<org.hisp.dhis.dxf2.events.event.DataValue, DataValue> {
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "updatedAt", source = "lastUpdated")
+  @Mapping(target = "createdBy", source = "createdByUserInfo")
+  @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
+  DataValue from(org.hisp.dhis.dxf2.events.event.DataValue dataValue);
 }

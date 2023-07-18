@@ -27,86 +27,71 @@
  */
 package org.hisp.dhis.sms.config;
 
-import java.io.Serializable;
-
-import lombok.EqualsAndHashCode;
-
-import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
-
 import com.fasterxml.jackson.annotation.JsonView;
+import java.io.Serializable;
+import lombok.EqualsAndHashCode;
+import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@EqualsAndHashCode( of = { "key", "value", "confidential", "encode", "header" } )
-public class GenericGatewayParameter
-    implements Serializable
-{
-    private static final long serialVersionUID = -863990758156009672L;
+@EqualsAndHashCode(of = {"key", "value", "confidential", "encode", "header"})
+public class GenericGatewayParameter implements Serializable {
+  private static final long serialVersionUID = -863990758156009672L;
 
-    @JsonView( SmsConfigurationViews.Public.class )
-    private String key;
+  @JsonView(SmsConfigurationViews.Public.class)
+  private String key;
 
-    @JsonView( SmsConfigurationViews.Public.class )
-    private String value;
+  @JsonView(SmsConfigurationViews.Public.class)
+  private String value;
 
-    @JsonView( SmsConfigurationViews.Public.class )
-    private boolean header;
+  @JsonView(SmsConfigurationViews.Public.class)
+  private boolean header;
 
-    @JsonView( SmsConfigurationViews.Public.class )
-    private boolean encode;
+  @JsonView(SmsConfigurationViews.Public.class)
+  private boolean encode;
 
-    @JsonView( SmsConfigurationViews.Public.class )
-    private boolean confidential;
+  @JsonView(SmsConfigurationViews.Public.class)
+  private boolean confidential;
 
-    @JsonView( SmsConfigurationViews.Public.class )
-    public String getKey()
-    {
-        return key;
-    }
+  @JsonView(SmsConfigurationViews.Public.class)
+  public String getKey() {
+    return key;
+  }
 
-    public void setKey( String key )
-    {
-        this.key = key;
-    }
+  public void setKey(String key) {
+    this.key = key;
+  }
 
-    public String getValue()
-    {
-        return value;
-    }
+  public String getValue() {
+    return value;
+  }
 
-    public void setValue( String value )
-    {
-        this.value = value;
-    }
+  public void setValue(String value) {
+    this.value = value;
+  }
 
-    public boolean isConfidential()
-    {
-        return confidential;
-    }
+  public boolean isConfidential() {
+    return confidential;
+  }
 
-    public void setConfidential( boolean confidential )
-    {
-        this.confidential = confidential;
-    }
+  public void setConfidential(boolean confidential) {
+    this.confidential = confidential;
+  }
 
-    public boolean isHeader()
-    {
-        return header;
-    }
+  public boolean isHeader() {
+    return header;
+  }
 
-    public void setHeader( boolean header )
-    {
-        this.header = header;
-    }
+  public void setHeader(boolean header) {
+    this.header = header;
+  }
 
-    public boolean isEncode()
-    {
-        return encode;
-    }
+  public boolean isEncode() {
+    return encode;
+  }
 
-    public void setEncode( boolean encode )
-    {
-        this.encode = encode;
-    }
+  public void setEncode(boolean encode) {
+    this.encode = encode;
+  }
 }

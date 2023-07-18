@@ -35,50 +35,44 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class RouteTest
-{
-    Route tldRoute = new Route();
+class RouteTest {
+  Route tldRoute = new Route();
 
-    Route routeWithSubPath = new Route();
+  Route routeWithSubPath = new Route();
 
-    Route routeWithDirectorySubPath = new Route();
+  Route routeWithDirectorySubPath = new Route();
 
-    Route routeWithPathWildcard = new Route();
+  Route routeWithPathWildcard = new Route();
 
-    Route routeWithSubPathAndPathWildcard = new Route();
+  Route routeWithSubPathAndPathWildcard = new Route();
 
-    @BeforeEach
-    void setUp()
-    {
-        tldRoute.setUrl( "https://thisisatest.com" );
-        routeWithSubPath.setUrl( "https://thisisatest.com/some/path/123" );
-        routeWithDirectorySubPath.setUrl( "https://thisisatest.com/some/path/123/" );
-        routeWithPathWildcard.setUrl( "https://thisisatest.com/**" );
-        routeWithSubPathAndPathWildcard.setUrl( "https://thisisatest.com/sub/path/**" );
-    }
+  @BeforeEach
+  void setUp() {
+    tldRoute.setUrl("https://thisisatest.com");
+    routeWithSubPath.setUrl("https://thisisatest.com/some/path/123");
+    routeWithDirectorySubPath.setUrl("https://thisisatest.com/some/path/123/");
+    routeWithPathWildcard.setUrl("https://thisisatest.com/**");
+    routeWithSubPathAndPathWildcard.setUrl("https://thisisatest.com/sub/path/**");
+  }
 
-    @AfterEach
-    void tearDown()
-    {
-    }
+  @AfterEach
+  void tearDown() {}
 
-    @Test
-    void testAllowsSubpaths()
-    {
-        assertFalse( tldRoute.allowsSubpaths() );
-        assertFalse( routeWithSubPath.allowsSubpaths() );
-        assertFalse( routeWithDirectorySubPath.allowsSubpaths() );
-        assertTrue( routeWithPathWildcard.allowsSubpaths() );
-        assertTrue( routeWithSubPathAndPathWildcard.allowsSubpaths() );
-    }
+  @Test
+  void testAllowsSubpaths() {
+    assertFalse(tldRoute.allowsSubpaths());
+    assertFalse(routeWithSubPath.allowsSubpaths());
+    assertFalse(routeWithDirectorySubPath.allowsSubpaths());
+    assertTrue(routeWithPathWildcard.allowsSubpaths());
+    assertTrue(routeWithSubPathAndPathWildcard.allowsSubpaths());
+  }
 
-    @Test
-    void testGetBaseUrl()
-    {
-        assertEquals( "https://thisisatest.com", tldRoute.getBaseUrl() );
-        assertEquals( "https://thisisatest.com/some/path/123", routeWithSubPath.getBaseUrl() );
-        assertEquals( "https://thisisatest.com/some/path/123/", routeWithDirectorySubPath.getBaseUrl() );
-        assertEquals( "https://thisisatest.com/", routeWithPathWildcard.getBaseUrl() );
-        assertEquals( "https://thisisatest.com/sub/path/", routeWithSubPathAndPathWildcard.getBaseUrl() );
-    }
+  @Test
+  void testGetBaseUrl() {
+    assertEquals("https://thisisatest.com", tldRoute.getBaseUrl());
+    assertEquals("https://thisisatest.com/some/path/123", routeWithSubPath.getBaseUrl());
+    assertEquals("https://thisisatest.com/some/path/123/", routeWithDirectorySubPath.getBaseUrl());
+    assertEquals("https://thisisatest.com/", routeWithPathWildcard.getBaseUrl());
+    assertEquals("https://thisisatest.com/sub/path/", routeWithSubPathAndPathWildcard.getBaseUrl());
+  }
 }

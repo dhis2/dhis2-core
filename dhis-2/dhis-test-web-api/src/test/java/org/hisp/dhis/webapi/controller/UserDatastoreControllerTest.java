@@ -39,74 +39,104 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class UserDatastoreControllerTest extends DhisControllerConvenienceTest
-{
-    @Test
-    void testDeleteKeys()
-    {
-        assertWebMessage( "OK", 200, "OK", "All keys from namespace 'test' deleted.",
-            DELETE( "/userDataStore/test" ).content( HttpStatus.OK ) );
-    }
+class UserDatastoreControllerTest extends DhisControllerConvenienceTest {
+  @Test
+  void testDeleteKeys() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "All keys from namespace 'test' deleted.",
+        DELETE("/userDataStore/test").content(HttpStatus.OK));
+  }
 
-    @Test
-    void testAddUserKeyJsonValue()
-    {
-        assertWebMessage( "Created", 201, "OK", "Key 'key1' in namespace 'test' created.",
-            POST( "/userDataStore/test/key1", "true" ).content( HttpStatus.CREATED ) );
-    }
+  @Test
+  void testAddUserKeyJsonValue() {
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "Key 'key1' in namespace 'test' created.",
+        POST("/userDataStore/test/key1", "true").content(HttpStatus.CREATED));
+  }
 
-    @Test
-    void testAddUserKeyJsonValue_MalformedValue()
-    {
-        assertWebMessage( "Bad Request", 400, "ERROR", "The data is not valid JSON.",
-            POST( "/userDataStore/test/key1", "invalidJson" ).content( HttpStatus.BAD_REQUEST )
-                .as( JsonWebMessage.class ) );
-    }
+  @Test
+  void testAddUserKeyJsonValue_MalformedValue() {
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        "The data is not valid JSON.",
+        POST("/userDataStore/test/key1", "invalidJson")
+            .content(HttpStatus.BAD_REQUEST)
+            .as(JsonWebMessage.class));
+  }
 
-    @Test
-    void testAddUserKeyJsonValue_AlreadyExists()
-    {
-        assertStatus( HttpStatus.CREATED, POST( "/userDataStore/test/key1", "true" ) );
-        assertWebMessage( "Conflict", 409, "ERROR", "The key 'key1' already exists in the namespace 'test'.",
-            POST( "/userDataStore/test/key1", "true" ).content( HttpStatus.CONFLICT ).as( JsonWebMessage.class ) );
-    }
+  @Test
+  void testAddUserKeyJsonValue_AlreadyExists() {
+    assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "The key 'key1' already exists in the namespace 'test'.",
+        POST("/userDataStore/test/key1", "true")
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class));
+  }
 
-    @Test
-    void testUpdateUserKeyJsonValue()
-    {
-        assertStatus( HttpStatus.CREATED, POST( "/userDataStore/test/key1", "true" ) );
-        assertWebMessage( "Created", 201, "OK", "Key 'key1' in namespace 'test' updated.",
-            PUT( "/userDataStore/test/key1", "false" ).content( HttpStatus.CREATED ) );
-    }
+  @Test
+  void testUpdateUserKeyJsonValue() {
+    assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "Key 'key1' in namespace 'test' updated.",
+        PUT("/userDataStore/test/key1", "false").content(HttpStatus.CREATED));
+  }
 
-    @Test
-    void testUpdateUserKeyJsonValue_UnknownKey()
-    {
-        assertWebMessage( "Not Found", 404, "ERROR", "The key 'unknown' was not found in the namespace 'test'.",
-            PUT( "/userDataStore/test/unknown", "false" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testUpdateUserKeyJsonValue_UnknownKey() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "The key 'unknown' was not found in the namespace 'test'.",
+        PUT("/userDataStore/test/unknown", "false").content(HttpStatus.NOT_FOUND));
+  }
 
-    @Test
-    void testUpdateUserKeyJsonValue_MalformedValue()
-    {
-        assertStatus( HttpStatus.CREATED, POST( "/userDataStore/test/key1", "true" ) );
-        assertWebMessage( "Bad Request", 400, "ERROR", "The data is not valid JSON.",
-            PUT( "/userDataStore/test/key1", "invalidJson" ).error( HttpStatus.BAD_REQUEST )
-                .as( JsonWebMessage.class ) );
-    }
+  @Test
+  void testUpdateUserKeyJsonValue_MalformedValue() {
+    assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        "The data is not valid JSON.",
+        PUT("/userDataStore/test/key1", "invalidJson")
+            .error(HttpStatus.BAD_REQUEST)
+            .as(JsonWebMessage.class));
+  }
 
-    @Test
-    void testDeleteUserKeyJsonValue()
-    {
-        assertStatus( HttpStatus.CREATED, POST( "/userDataStore/test/key1", "true" ) );
-        assertWebMessage( "OK", 200, "OK", "Key 'key1' deleted from the namespace 'test'.",
-            DELETE( "/userDataStore/test/key1" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testDeleteUserKeyJsonValue() {
+    assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Key 'key1' deleted from the namespace 'test'.",
+        DELETE("/userDataStore/test/key1").content(HttpStatus.OK));
+  }
 
-    @Test
-    void testDeleteUserKeyJsonValue_UnknownKey()
-    {
-        assertWebMessage( "Not Found", 404, "ERROR", "The key 'key1' was not found in the namespace 'test'.",
-            DELETE( "/userDataStore/test/key1" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testDeleteUserKeyJsonValue_UnknownKey() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "The key 'key1' was not found in the namespace 'test'.",
+        DELETE("/userDataStore/test/key1").content(HttpStatus.NOT_FOUND));
+  }
 }

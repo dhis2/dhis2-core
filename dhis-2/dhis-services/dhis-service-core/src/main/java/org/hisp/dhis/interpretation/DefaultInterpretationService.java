@@ -34,9 +34,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SubscribableObject;
@@ -65,402 +63,391 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
-@Service( "org.hisp.dhis.interpretation.InterpretationService" )
+@Service("org.hisp.dhis.interpretation.InterpretationService")
 @Transactional
 @RequiredArgsConstructor
-public class DefaultInterpretationService
-    implements InterpretationService
-{
-    private final SchemaService schemaService;
+public class DefaultInterpretationService implements InterpretationService {
+  private final SchemaService schemaService;
 
-    private final InterpretationStore interpretationStore;
+  private final InterpretationStore interpretationStore;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    private final UserService userService;
+  private final UserService userService;
 
-    private final PeriodService periodService;
+  private final PeriodService periodService;
 
-    private final MessageService messageService;
+  private final MessageService messageService;
 
-    private final AclService aclService;
+  private final AclService aclService;
 
-    private final I18nManager i18nManager;
+  private final I18nManager i18nManager;
 
-    private final DhisConfigurationProvider configurationProvider;
+  private final DhisConfigurationProvider configurationProvider;
 
-    // -------------------------------------------------------------------------
-    // InterpretationService implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // InterpretationService implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public long saveInterpretation( Interpretation interpretation )
-    {
-        User user = currentUserService.getCurrentUser();
+  @Override
+  public long saveInterpretation(Interpretation interpretation) {
+    User user = currentUserService.getCurrentUser();
 
-        if ( user != null )
-        {
-            interpretation.setCreatedBy( user );
+    if (user != null) {
+      interpretation.setCreatedBy(user);
+    }
+
+    if (interpretation.getPeriod() != null) {
+      interpretation.setPeriod(periodService.reloadPeriod(interpretation.getPeriod()));
+    }
+
+    Set<User> users = MentionUtils.getMentionedUsers(interpretation.getText(), userService);
+    interpretation.setMentionsFromUsers(users);
+    updateSharingForMentions(interpretation, users);
+
+    interpretationStore.save(interpretation);
+    notifySubscribers(interpretation, null, NotificationType.INTERPRETATION_CREATE);
+
+    sendMentionNotifications(interpretation, null, users);
+
+    return interpretation.getId();
+  }
+
+  @Override
+  public Interpretation getInterpretation(long id) {
+    return interpretationStore.get(id);
+  }
+
+  @Override
+  public Interpretation getInterpretation(String uid) {
+    return interpretationStore.getByUid(uid);
+  }
+
+  @Override
+  public void updateComment(Interpretation interpretation, InterpretationComment comment) {
+    Set<User> users = MentionUtils.getMentionedUsers(comment.getText(), userService);
+    comment.setMentionsFromUsers(users);
+    comment.setLastUpdated(new Date());
+    if (updateSharingForMentions(interpretation, users)) {
+      interpretationStore.update(interpretation);
+    }
+    notifySubscribers(interpretation, comment, NotificationType.COMMENT_UPDATE);
+    sendMentionNotifications(interpretation, comment, users);
+  }
+
+  @Override
+  public void updateInterpretation(Interpretation interpretation) {
+    interpretationStore.update(interpretation);
+  }
+
+  @Override
+  public void updateInterpretationText(Interpretation interpretation, String text) {
+    interpretation.setText(text);
+    updateInterpretation(interpretation);
+    notifySubscribers(interpretation, null, NotificationType.INTERPRETATION_UPDATE);
+    Set<User> users = MentionUtils.getMentionedUsers(interpretation.getText(), userService);
+    interpretation.setMentionsFromUsers(users);
+    updateSharingForMentions(interpretation, users);
+    sendMentionNotifications(interpretation, null, users);
+  }
+
+  @Override
+  public void deleteInterpretation(Interpretation interpretation) {
+    interpretationStore.delete(interpretation);
+  }
+
+  @Override
+  public List<Interpretation> getInterpretations() {
+    return interpretationStore.getAll();
+  }
+
+  @Override
+  public List<Interpretation> getInterpretations(Visualization visualization) {
+    return interpretationStore.getInterpretations(visualization);
+  }
+
+  @Override
+  public List<Interpretation> getInterpretations(EventVisualization eventVisualization) {
+    return interpretationStore.getInterpretations(eventVisualization);
+  }
+
+  @Override
+  public List<Interpretation> getInterpretations(Map map) {
+    return interpretationStore.getInterpretations(map);
+  }
+
+  @Override
+  public List<Interpretation> getInterpretations(Date lastUpdated) {
+    return interpretationStore.getAllGeLastUpdated(lastUpdated);
+  }
+
+  @Override
+  public List<Interpretation> getInterpretations(int first, int max) {
+    return interpretationStore.getAllOrderedLastUpdated(first, max);
+  }
+
+  private long sendNotificationMessage(
+      Set<User> users,
+      Interpretation interpretation,
+      InterpretationComment comment,
+      NotificationType notificationType) {
+    I18n i18n = i18nManager.getI18n();
+    String currentUsername = currentUserService.getCurrentUsername();
+    String interpretableName = interpretation.getObject().getName();
+    String actionString;
+    String details;
+
+    switch (notificationType) {
+      case INTERPRETATION_CREATE:
+        actionString = i18n.getString("notification_interpretation_create");
+        details = interpretation.getText();
+        break;
+      case INTERPRETATION_UPDATE:
+        actionString = i18n.getString("notification_interpretation_update");
+        details = interpretation.getText();
+        break;
+      case INTERPRETATION_LIKE:
+        actionString = i18n.getString("notification_interpretation_like");
+        details = "";
+        break;
+      case COMMENT_CREATE:
+        actionString = i18n.getString("notification_comment_create");
+        details = comment.getText();
+        break;
+      case COMMENT_UPDATE:
+        actionString = i18n.getString("notification_comment_update");
+        details = comment.getText();
+        break;
+      default:
+        throw new IllegalArgumentException("Unknown notification type: " + notificationType);
+    }
+
+    String subject =
+        String.join(
+            " ",
+            Arrays.asList(
+                i18n.getString("notification_user"),
+                currentUsername,
+                actionString,
+                i18n.getString("notification_object_subscribed")));
+
+    String fullBody =
+        String.join(
+            "\n\n",
+            Arrays.asList(
+                String.format("%s: %s", subject, interpretableName),
+                Jsoup.parse(details).text(),
+                String.format(
+                    "%s %s", i18n.getString("go_to"), getInterpretationLink(interpretation))));
+
+    return messageService.sendSystemMessage(users, subject, fullBody);
+  }
+
+  private void notifySubscribers(
+      Interpretation interpretation,
+      InterpretationComment comment,
+      NotificationType notificationType) {
+    IdentifiableObject interpretableObject = interpretation.getObject();
+    Schema interpretableObjectSchema =
+        schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(interpretableObject));
+
+    if (interpretableObjectSchema.isSubscribable()) {
+      SubscribableObject object = (SubscribableObject) interpretableObject;
+      Set<String> subscribersUid = object.getSubscribers();
+
+      if (isNotEmpty(subscribersUid)) {
+        Set<User> subscribers = new HashSet<>(userService.getUsers(subscribersUid));
+        subscribers.remove(currentUserService.getCurrentUser());
+
+        if (!subscribers.isEmpty()) {
+          sendNotificationMessage(subscribers, interpretation, comment, notificationType);
         }
-
-        if ( interpretation.getPeriod() != null )
-        {
-            interpretation.setPeriod( periodService.reloadPeriod( interpretation.getPeriod() ) );
-        }
-
-        Set<User> users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
-        interpretation.setMentionsFromUsers( users );
-        updateSharingForMentions( interpretation, users );
-
-        interpretationStore.save( interpretation );
-        notifySubscribers( interpretation, null, NotificationType.INTERPRETATION_CREATE );
-
-        sendMentionNotifications( interpretation, null, users );
-
-        return interpretation.getId();
+      }
     }
+  }
 
-    @Override
-    public Interpretation getInterpretation( long id )
-    {
-        return interpretationStore.get( id );
+  private void sendMentionNotifications(
+      Interpretation interpretation, InterpretationComment comment, Set<User> users) {
+    if (interpretation == null || users.isEmpty()) {
+      return;
     }
+    String link = getInterpretationLink(interpretation);
+    StringBuilder messageContent;
+    I18n i18n = i18nManager.getI18n();
 
-    @Override
-    public Interpretation getInterpretation( String uid )
-    {
-        return interpretationStore.getByUid( uid );
+    if (comment != null) {
+      messageContent =
+          new StringBuilder(i18n.getString("comment_mention_notification"))
+              .append(":")
+              .append("\n\n")
+              .append(Jsoup.parse(comment.getText()).text());
+    } else {
+      messageContent =
+          new StringBuilder(i18n.getString("interpretation_mention_notification"))
+              .append(":")
+              .append("\n\n")
+              .append(Jsoup.parse(interpretation.getText()).text());
     }
+    messageContent.append("\n\n").append(i18n.getString("go_to")).append(" ").append(link);
 
-    @Override
-    public void updateComment( Interpretation interpretation, InterpretationComment comment )
-    {
-        Set<User> users = MentionUtils.getMentionedUsers( comment.getText(), userService );
-        comment.setMentionsFromUsers( users );
-        comment.setLastUpdated( new Date() );
-        if ( updateSharingForMentions( interpretation, users ) )
-        {
-            interpretationStore.update( interpretation );
-        }
-        notifySubscribers( interpretation, comment, NotificationType.COMMENT_UPDATE );
-        sendMentionNotifications( interpretation, comment, users );
-    }
+    User user = currentUserService.getCurrentUser();
+    StringBuilder subjectContent =
+        new StringBuilder(user.getDisplayName())
+            .append(" ")
+            .append(i18n.getString("mentioned_you_in_dhis2"));
 
-    @Override
-    public void updateInterpretation( Interpretation interpretation )
-    {
-        interpretationStore.update( interpretation );
-    }
+    messageService.sendSystemMessage(users, subjectContent.toString(), messageContent.toString());
+  }
 
-    @Override
-    public void updateInterpretationText( Interpretation interpretation, String text )
-    {
-        interpretation.setText( text );
-        updateInterpretation( interpretation );
-        notifySubscribers( interpretation, null, NotificationType.INTERPRETATION_UPDATE );
-        Set<User> users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
-        interpretation.setMentionsFromUsers( users );
-        updateSharingForMentions( interpretation, users );
-        sendMentionNotifications( interpretation, null, users );
-    }
+  private String getInterpretationLink(Interpretation interpretation) {
+    String path;
 
-    @Override
-    public void deleteInterpretation( Interpretation interpretation )
-    {
-        interpretationStore.delete( interpretation );
-    }
-
-    @Override
-    public List<Interpretation> getInterpretations()
-    {
-        return interpretationStore.getAll();
-    }
-
-    @Override
-    public List<Interpretation> getInterpretations( Visualization visualization )
-    {
-        return interpretationStore.getInterpretations( visualization );
-    }
-
-    @Override
-    public List<Interpretation> getInterpretations( EventVisualization eventVisualization )
-    {
-        return interpretationStore.getInterpretations( eventVisualization );
-    }
-
-    @Override
-    public List<Interpretation> getInterpretations( Map map )
-    {
-        return interpretationStore.getInterpretations( map );
-    }
-
-    @Override
-    public List<Interpretation> getInterpretations( Date lastUpdated )
-    {
-        return interpretationStore.getAllGeLastUpdated( lastUpdated );
-    }
-
-    @Override
-    public List<Interpretation> getInterpretations( int first, int max )
-    {
-        return interpretationStore.getAllOrderedLastUpdated( first, max );
-    }
-
-    private long sendNotificationMessage( Set<User> users, Interpretation interpretation, InterpretationComment comment,
-        NotificationType notificationType )
-    {
-        I18n i18n = i18nManager.getI18n();
-        String currentUsername = currentUserService.getCurrentUsername();
-        String interpretableName = interpretation.getObject().getName();
-        String actionString;
-        String details;
-
-        switch ( notificationType )
-        {
-        case INTERPRETATION_CREATE:
-            actionString = i18n.getString( "notification_interpretation_create" );
-            details = interpretation.getText();
-            break;
-        case INTERPRETATION_UPDATE:
-            actionString = i18n.getString( "notification_interpretation_update" );
-            details = interpretation.getText();
-            break;
-        case INTERPRETATION_LIKE:
-            actionString = i18n.getString( "notification_interpretation_like" );
-            details = "";
-            break;
-        case COMMENT_CREATE:
-            actionString = i18n.getString( "notification_comment_create" );
-            details = comment.getText();
-            break;
-        case COMMENT_UPDATE:
-            actionString = i18n.getString( "notification_comment_update" );
-            details = comment.getText();
-            break;
-        default:
-            throw new IllegalArgumentException( "Unknown notification type: " + notificationType );
-        }
-
-        String subject = String.join( " ", Arrays.asList(
-            i18n.getString( "notification_user" ),
-            currentUsername,
-            actionString,
-            i18n.getString( "notification_object_subscribed" ) ) );
-
-        String fullBody = String.join( "\n\n", Arrays.asList(
-            String.format( "%s: %s", subject, interpretableName ),
-            Jsoup.parse( details ).text(),
-            String.format( "%s %s", i18n.getString( "go_to" ), getInterpretationLink( interpretation ) ) ) );
-
-        return messageService.sendSystemMessage( users, subject, fullBody );
-    }
-
-    private void notifySubscribers( Interpretation interpretation, InterpretationComment comment,
-        NotificationType notificationType )
-    {
-        IdentifiableObject interpretableObject = interpretation.getObject();
-        Schema interpretableObjectSchema = schemaService
-            .getDynamicSchema( HibernateProxyUtils.getRealClass( interpretableObject ) );
-
-        if ( interpretableObjectSchema.isSubscribable() )
-        {
-            SubscribableObject object = (SubscribableObject) interpretableObject;
-            Set<String> subscribersUid = object.getSubscribers();
-
-            if ( isNotEmpty( subscribersUid ) )
-            {
-                Set<User> subscribers = new HashSet<>( userService.getUsers( subscribersUid ) );
-                subscribers.remove( currentUserService.getCurrentUser() );
-
-                if ( !subscribers.isEmpty() )
-                {
-                    sendNotificationMessage( subscribers, interpretation, comment, notificationType );
-                }
-            }
-        }
-    }
-
-    private void sendMentionNotifications( Interpretation interpretation, InterpretationComment comment,
-        Set<User> users )
-    {
-        if ( interpretation == null || users.isEmpty() )
-        {
-            return;
-        }
-        String link = getInterpretationLink( interpretation );
-        StringBuilder messageContent;
-        I18n i18n = i18nManager.getI18n();
-
-        if ( comment != null )
-        {
-            messageContent = new StringBuilder( i18n.getString( "comment_mention_notification" ) ).append( ":" )
-                .append( "\n\n" ).append( Jsoup.parse( comment.getText() ).text() );
-        }
-        else
-        {
-            messageContent = new StringBuilder( i18n.getString( "interpretation_mention_notification" ) ).append( ":" )
-                .append( "\n\n" ).append( Jsoup.parse( interpretation.getText() ).text() );
-
-        }
-        messageContent.append( "\n\n" ).append( i18n.getString( "go_to" ) ).append( " " ).append( link );
-
-        User user = currentUserService.getCurrentUser();
-        StringBuilder subjectContent = new StringBuilder( user.getDisplayName() ).append( " " )
-            .append( i18n.getString( "mentioned_you_in_dhis2" ) );
-
-        messageService.sendSystemMessage( users, subjectContent.toString(), messageContent.toString() );
-    }
-
-    private String getInterpretationLink( Interpretation interpretation )
-    {
-        String path;
-
-        switch ( interpretation.getType() )
-        {
-        case MAP:
-            path = "/dhis-web-maps/index.html?id=" + interpretation.getMap().getUid() + "&interpretationid="
+    switch (interpretation.getType()) {
+      case MAP:
+        path =
+            "/dhis-web-maps/index.html?id="
+                + interpretation.getMap().getUid()
+                + "&interpretationid="
                 + interpretation.getUid();
-            break;
-        case VISUALIZATION:
-            path = "/dhis-web-data-visualizer/index.html#/" + interpretation.getVisualization().getUid()
-                + "/interpretation/" + interpretation.getUid();
-            break;
-        case EVENT_REPORT:
-            path = "/dhis-web-event-reports/index.html?id=" + interpretation.getEventReport().getUid()
-                + "&interpretationid=" + interpretation.getUid();
-            break;
-        case EVENT_VISUALIZATION:
-            path = "/api/apps/line-listing/#/" + interpretation.getEventVisualization().getUid() + "?interpretationId="
+        break;
+      case VISUALIZATION:
+        path =
+            "/dhis-web-data-visualizer/index.html#/"
+                + interpretation.getVisualization().getUid()
+                + "/interpretation/"
                 + interpretation.getUid();
-            break;
-        case EVENT_CHART:
-            path = "/dhis-web-event-visualizer/index.html?id=" + interpretation.getEventChart().getUid()
-                + "&interpretationid=" + interpretation.getUid();
-            break;
-        default:
-            path = "";
-            break;
-        }
-        return configurationProvider.getServerBaseUrl() + path;
+        break;
+      case EVENT_REPORT:
+        path =
+            "/dhis-web-event-reports/index.html?id="
+                + interpretation.getEventReport().getUid()
+                + "&interpretationid="
+                + interpretation.getUid();
+        break;
+      case EVENT_VISUALIZATION:
+        path =
+            "/api/apps/line-listing/#/"
+                + interpretation.getEventVisualization().getUid()
+                + "?interpretationId="
+                + interpretation.getUid();
+        break;
+      case EVENT_CHART:
+        path =
+            "/dhis-web-event-visualizer/index.html?id="
+                + interpretation.getEventChart().getUid()
+                + "&interpretationid="
+                + interpretation.getUid();
+        break;
+      default:
+        path = "";
+        break;
+    }
+    return configurationProvider.getServerBaseUrl() + path;
+  }
+
+  @Override
+  public boolean updateSharingForMentions(Interpretation interpretation, Set<User> users) {
+    boolean modified = false;
+    IdentifiableObject interpretationObject = interpretation.getObject();
+
+    for (User user : users) {
+      if (!aclService.canRead(user, interpretationObject)) {
+        interpretationObject
+            .getSharing()
+            .addDtoUserAccess(new UserAccess(user, AccessStringHelper.READ));
+        modified = true;
+      }
     }
 
-    @Override
-    public boolean updateSharingForMentions( Interpretation interpretation, Set<User> users )
-    {
-        boolean modified = false;
-        IdentifiableObject interpretationObject = interpretation.getObject();
+    return modified;
+  }
 
-        for ( User user : users )
-        {
-            if ( !aclService.canRead( user, interpretationObject ) )
-            {
-                interpretationObject.getSharing().addDtoUserAccess( new UserAccess( user, AccessStringHelper.READ ) );
-                modified = true;
-            }
-        }
+  @Override
+  public InterpretationComment addInterpretationComment(String uid, String text) {
+    Interpretation interpretation = getInterpretation(uid);
+    User user = currentUserService.getCurrentUser();
 
-        return modified;
+    InterpretationComment comment = new InterpretationComment(text);
+    comment.setLastUpdated(new Date());
+    comment.setUid(CodeGenerator.generateUid());
+
+    Set<User> users = MentionUtils.getMentionedUsers(text, userService);
+    comment.setMentionsFromUsers(users);
+    updateSharingForMentions(interpretation, users);
+
+    if (user != null) {
+      comment.setCreatedBy(user);
     }
 
-    @Override
-    public InterpretationComment addInterpretationComment( String uid, String text )
-    {
-        Interpretation interpretation = getInterpretation( uid );
-        User user = currentUserService.getCurrentUser();
+    interpretation.addComment(comment);
+    interpretationStore.update(interpretation);
 
-        InterpretationComment comment = new InterpretationComment( text );
-        comment.setLastUpdated( new Date() );
-        comment.setUid( CodeGenerator.generateUid() );
+    notifySubscribers(interpretation, comment, NotificationType.COMMENT_CREATE);
+    sendMentionNotifications(interpretation, comment, users);
 
-        Set<User> users = MentionUtils.getMentionedUsers( text, userService );
-        comment.setMentionsFromUsers( users );
-        updateSharingForMentions( interpretation, users );
+    return comment;
+  }
 
-        if ( user != null )
-        {
-            comment.setCreatedBy( user );
-        }
+  @Override
+  public void updateCurrentUserLastChecked() {
+    User user = currentUserService.getCurrentUser();
 
-        interpretation.addComment( comment );
-        interpretationStore.update( interpretation );
+    user.setLastCheckedInterpretations(new Date());
 
-        notifySubscribers( interpretation, comment, NotificationType.COMMENT_CREATE );
-        sendMentionNotifications( interpretation, comment, users );
+    userService.updateUser(user);
+  }
 
-        return comment;
+  @Override
+  public long getNewInterpretationCount() {
+    User user = currentUserService.getCurrentUser();
+
+    long count;
+
+    if (user != null && user.getLastCheckedInterpretations() != null) {
+      count = interpretationStore.getCountGeLastUpdated(user.getLastCheckedInterpretations());
+    } else {
+      count = interpretationStore.getCount();
     }
 
-    @Override
-    public void updateCurrentUserLastChecked()
-    {
-        User user = currentUserService.getCurrentUser();
+    return count;
+  }
 
-        user.setLastCheckedInterpretations( new Date() );
+  @Override
+  @Transactional(isolation = Isolation.REPEATABLE_READ)
+  public boolean likeInterpretation(long id) {
+    Interpretation interpretation = getInterpretation(id);
 
-        userService.updateUser( user );
+    if (interpretation == null) {
+      return false;
     }
 
-    @Override
-    public long getNewInterpretationCount()
-    {
-        User user = currentUserService.getCurrentUser();
+    User user = currentUserService.getCurrentUser();
 
-        long count;
-
-        if ( user != null && user.getLastCheckedInterpretations() != null )
-        {
-            count = interpretationStore.getCountGeLastUpdated( user.getLastCheckedInterpretations() );
-        }
-        else
-        {
-            count = interpretationStore.getCount();
-        }
-
-        return count;
+    if (user == null) {
+      return false;
     }
 
-    @Override
-    @Transactional( isolation = Isolation.REPEATABLE_READ )
-    public boolean likeInterpretation( long id )
-    {
-        Interpretation interpretation = getInterpretation( id );
+    boolean userLike = interpretation.like(user);
+    notifySubscribers(interpretation, null, NotificationType.INTERPRETATION_LIKE);
 
-        if ( interpretation == null )
-        {
-            return false;
-        }
+    return userLike;
+  }
 
-        User user = currentUserService.getCurrentUser();
+  @Override
+  @Transactional(isolation = Isolation.REPEATABLE_READ)
+  public boolean unlikeInterpretation(long id) {
+    Interpretation interpretation = getInterpretation(id);
 
-        if ( user == null )
-        {
-            return false;
-        }
-
-        boolean userLike = interpretation.like( user );
-        notifySubscribers( interpretation, null, NotificationType.INTERPRETATION_LIKE );
-
-        return userLike;
+    if (interpretation == null) {
+      return false;
     }
 
-    @Override
-    @Transactional( isolation = Isolation.REPEATABLE_READ )
-    public boolean unlikeInterpretation( long id )
-    {
-        Interpretation interpretation = getInterpretation( id );
+    User user = currentUserService.getCurrentUser();
 
-        if ( interpretation == null )
-        {
-            return false;
-        }
-
-        User user = currentUserService.getCurrentUser();
-
-        if ( user == null )
-        {
-            return false;
-        }
-
-        return interpretation.unlike( user );
+    if (user == null) {
+      return false;
     }
+
+    return interpretation.unlike(user);
+  }
 }

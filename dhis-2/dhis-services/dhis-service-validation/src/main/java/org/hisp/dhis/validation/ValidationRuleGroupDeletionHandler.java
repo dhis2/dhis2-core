@@ -28,7 +28,6 @@
 package org.hisp.dhis.validation;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
@@ -38,22 +37,18 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ValidationRuleGroupDeletionHandler extends DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+public class ValidationRuleGroupDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( ValidationRule.class, this::deleteValidationRule );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(ValidationRule.class, this::deleteValidationRule);
+  }
 
-    private void deleteValidationRule( ValidationRule validationRule )
-    {
-        for ( ValidationRuleGroup group : validationRule.getGroups() )
-        {
-            group.getMembers().remove( validationRule );
-            idObjectManager.updateNoAcl( group );
-        }
+  private void deleteValidationRule(ValidationRule validationRule) {
+    for (ValidationRuleGroup group : validationRule.getGroups()) {
+      group.getMembers().remove(validationRule);
+      idObjectManager.updateNoAcl(group);
     }
+  }
 }

@@ -29,12 +29,10 @@ package org.hisp.dhis.fieldfiltering;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.schema.Property;
 
@@ -43,101 +41,80 @@ import org.hisp.dhis.schema.Property;
  */
 @Data
 @RequiredArgsConstructor
-public class FieldPath
-{
-    public static final String FIELD_PATH_SEPARATOR = ".";
+public class FieldPath {
+  public static final String FIELD_PATH_SEPARATOR = ".";
 
-    /**
-     * Name of field (excluding path).
-     */
-    private final String name;
+  /** Name of field (excluding path). */
+  private final String name;
 
-    /**
-     * Path to reach field name, can be empty for root level fields.
-     */
-    private final List<String> path;
+  /** Path to reach field name, can be empty for root level fields. */
+  private final List<String> path;
 
-    /**
-     * True if field path should be excluded (removed) from the set of paths to
-     * include. In the API this is exposed as "?fields=id,name,!do_not_include"
-     * where "!" marks the path as not to be included.
-     */
-    private final boolean exclude;
+  /**
+   * True if field path should be excluded (removed) from the set of paths to include. In the API
+   * this is exposed as "?fields=id,name,!do_not_include" where "!" marks the path as not to be
+   * included.
+   */
+  private final boolean exclude;
 
-    /**
-     * True if the field path should be handled as a preset path, which means we
-     * have to expand before going into the filtering process. For example
-     * ":owner" would be expanded to include all properties where
-     * "property.owner=true".
-     */
-    private final boolean preset;
+  /**
+   * True if the field path should be handled as a preset path, which means we have to expand before
+   * going into the filtering process. For example ":owner" would be expanded to include all
+   * properties where "property.owner=true".
+   */
+  private final boolean preset;
 
-    /**
-     * Transformers to apply to field, can be empty.
-     */
-    private final List<FieldPathTransformer> transformers;
+  /** Transformers to apply to field, can be empty. */
+  private final List<FieldPathTransformer> transformers;
 
-    /**
-     * Schema Property if present (added by {@link FieldPathHelper}).
-     */
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Property property;
+  /** Schema Property if present (added by {@link FieldPathHelper}). */
+  @ToString.Exclude @EqualsAndHashCode.Exclude private Property property;
 
-    /**
-     * Fully calculated dot separated path for FieldPath.
-     */
-    private String fullPath;
+  /** Fully calculated dot separated path for FieldPath. */
+  private String fullPath;
 
-    public FieldPath( String name, List<String> path )
-    {
-        this.name = name;
-        this.path = path;
-        this.exclude = false;
-        this.preset = false;
-        this.transformers = new ArrayList<>();
+  public FieldPath(String name, List<String> path) {
+    this.name = name;
+    this.path = path;
+    this.exclude = false;
+    this.preset = false;
+    this.transformers = new ArrayList<>();
+  }
+
+  public FieldPath(String name, List<String> path, boolean exclude, boolean preset) {
+    this.name = name;
+    this.path = path;
+    this.exclude = exclude;
+    this.preset = preset;
+    this.transformers = new ArrayList<>();
+  }
+
+  /**
+   * @return Dot separated path + field name (i.e. path.to.field)
+   */
+  public String toFullPath() {
+    if (fullPath == null) {
+      fullPath = path.isEmpty() ? name : toPath() + FIELD_PATH_SEPARATOR + name;
     }
 
-    public FieldPath( String name, List<String> path, boolean exclude, boolean preset )
-    {
-        this.name = name;
-        this.path = path;
-        this.exclude = exclude;
-        this.preset = preset;
-        this.transformers = new ArrayList<>();
-    }
+    return fullPath;
+  }
 
-    /**
-     * @return Dot separated path + field name (i.e. path.to.field)
-     */
-    public String toFullPath()
-    {
-        if ( fullPath == null )
-        {
-            fullPath = path.isEmpty() ? name : toPath() + FIELD_PATH_SEPARATOR + name;
-        }
+  public String toPath() {
+    return StringUtils.join(path, FIELD_PATH_SEPARATOR);
+  }
 
-        return fullPath;
-    }
+  /**
+   * @return true if we have at least one field path transformer
+   */
+  public boolean isTransformer() {
+    return transformers != null && !transformers.isEmpty();
+  }
 
-    public String toPath()
-    {
-        return StringUtils.join( path, FIELD_PATH_SEPARATOR );
-    }
-
-    /**
-     * @return true if we have at least one field path transformer
-     */
-    public boolean isTransformer()
-    {
-        return transformers != null && !transformers.isEmpty();
-    }
-
-    /**
-     * @return true if name is the root of the path
-     */
-    public boolean isRoot()
-    {
-        return path.isEmpty();
-    }
+  /**
+   * @return true if name is the root of the path
+   */
+  public boolean isRoot() {
+    return path.isEmpty();
+  }
 }

@@ -30,10 +30,11 @@ package org.hisp.dhis.actions.metadata;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.oneOf;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.RestApiActions;
@@ -42,204 +43,199 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ProgramActions
-    extends RestApiActions
-{
-    public ProgramStageActions programStageActions;
+public class ProgramActions extends RestApiActions {
+  public ProgramStageActions programStageActions;
 
-    public ProgramActions()
-    {
-        super( "/programs" );
-        this.programStageActions = new ProgramStageActions();
+  public ProgramActions() {
+    super("/programs");
+    this.programStageActions = new ProgramStageActions();
+  }
+
+  public ApiResponse createProgram(String programType) {
+    JsonObject object = buildProgram(programType);
+
+    if (programType.equalsIgnoreCase("WITH_REGISTRATION")) {
+      JsonObjectBuilder.jsonObject(object)
+          .addObject("trackedEntityType", new JsonObjectBuilder().addProperty("id", "Q9GufDoplCL"));
     }
 
-    public ApiResponse createProgram( String programType )
-    {
-        JsonObject object = buildProgram( programType );
+    return post(object);
+  }
 
-        if ( programType.equalsIgnoreCase( "WITH_REGISTRATION" ) )
-        {
-            JsonObjectBuilder.jsonObject( object )
-                .addObject( "trackedEntityType", new JsonObjectBuilder().addProperty( "id", "Q9GufDoplCL" ) );
-        }
+  public ApiResponse createTrackerProgram(String trackedEntityTypeId, String... orgUnitIds) {
+    return createProgram("WITH_REGISTRATION", trackedEntityTypeId, orgUnitIds).validateStatus(201);
+  }
 
-        return post( object );
-    }
+  public String createProgramWithAccessLevel(String accessLevel, String... orgUnits) {
+    String programId =
+        this.createTrackerProgram(Constants.TRACKED_ENTITY_TYPE, orgUnits).extractUid();
 
-    public ApiResponse createTrackerProgram( String trackedEntityTypeId, String... orgUnitIds )
-    {
-        return createProgram( "WITH_REGISTRATION", trackedEntityTypeId, orgUnitIds ).validateStatus( 201 );
-    }
-
-    public String createProgramWithAccessLevel( String accessLevel, String... orgUnits )
-    {
-        String programId = this.createTrackerProgram( Constants.TRACKED_ENTITY_TYPE, orgUnits ).extractUid();
-
-        JsonObject program = this.get( programId )
+    JsonObject program =
+        this.get(programId)
             .getBodyAsJsonBuilder()
-            .addProperty( "accessLevel", accessLevel )
-            .addProperty( "publicAccess", "rwrw----" )
-            .addProperty( "onlyEnrollOnce", "false" )
+            .addProperty("accessLevel", accessLevel)
+            .addProperty("publicAccess", "rwrw----")
+            .addProperty("onlyEnrollOnce", "false")
             .build();
 
-        this.update( programId, program ).validateStatus( 200 );
-        this.createProgramStage( programId, "Program stage " + DataGenerator.randomString() );
+    this.update(programId, program).validateStatus(200);
+    this.createProgramStage(programId, "Program stage " + DataGenerator.randomString());
 
-        return programId;
-    }
+    return programId;
+  }
 
-    public ApiResponse createEventProgram( String... orgUnitsIds )
-    {
-        JsonObject body = new JsonObjectBuilder( buildProgram( "WITHOUT_REGISTRATION", null, orgUnitsIds ) ).build();
-        ApiResponse response = post( body );
+  public ApiResponse createEventProgram(String... orgUnitsIds) {
+    JsonObject body =
+        new JsonObjectBuilder(buildProgram("WITHOUT_REGISTRATION", null, orgUnitsIds)).build();
+    ApiResponse response = post(body);
 
-        createProgramStage( response.extractUid(), "DEFAULT STAGE" + response.extractUid() );
+    createProgramStage(response.extractUid(), "DEFAULT STAGE" + response.extractUid());
 
-        return response;
-    }
+    return response;
+  }
 
-    public ApiResponse createProgram( String programType, String trackedEntityTypeId, String... orgUnitIds )
-    {
-        JsonObject object = buildProgram( programType, trackedEntityTypeId, orgUnitIds );
+  public ApiResponse createProgram(
+      String programType, String trackedEntityTypeId, String... orgUnitIds) {
+    JsonObject object = buildProgram(programType, trackedEntityTypeId, orgUnitIds);
 
-        return post( object );
-    }
+    return post(object);
+  }
 
-    public ApiResponse addProgramStage( String programId, String programStageId )
-    {
-        JsonObject body = get( programId ).getBodyAsJsonBuilder()
-            .addArray( "programStages", new JsonObjectBuilder()
-                .addProperty( "id", programStageId )
-                .build() )
-            .build();
-
-        return update( programId, body );
-    }
-
-    /**
-     * Creates a program stage and links it to the program.
-     *
-     * @param programId
-     * @param programStageName
-     * @return program stage id
-     */
-    public String createProgramStage( String programId, String programStageName )
-    {
-        JsonObject programStage = new JsonObjectBuilder()
-            .addProperty( "name", programStageName )
-            .addProperty( "code", programStageName )
-            .addObject( "program", new JsonObjectBuilder().addProperty( "id", programId ) )
-            .addProperty( "publicAccess", "rwrw----" ).build();
-
-        ApiResponse response = programStageActions.post( programStage );
-
-        response.validate().statusCode( is( oneOf( 201, 200 ) ) );
-        return response.extractUid();
-    }
-
-    public ApiResponse addOrganisationUnits( String programId, String... orgUnitIds )
-    {
-        JsonObject object = this.get( programId ).getBody();
-
-        JsonArray orgUnits = Optional.ofNullable( object.getAsJsonArray( "organisationUnits" ) )
-            .orElse( new JsonArray() );
-
-        for ( String ouid : orgUnitIds )
-        {
-            JsonObject orgUnit = new JsonObject();
-            orgUnit.addProperty( "id", ouid );
-
-            orgUnits.add( orgUnit );
-        }
-
-        object.add( "organisationUnits", orgUnits );
-
-        return this.update( programId, object );
-    }
-
-    public ApiResponse addDataElement( String programStageId, String dataElementId, boolean isMandatory )
-    {
-        JsonObject object = programStageActions.get( programStageId, new QueryParamsBuilder().add( "fields=*" ) )
-            .getBody();
-
-        JsonObjectBuilder.jsonObject( object )
-            .addOrAppendToArray( "programStageDataElements", new JsonObjectBuilder()
-                .addProperty( "compulsory", String.valueOf( isMandatory ) )
-                .addObject( "dataElement", new JsonObjectBuilder().addProperty( "id", dataElementId ) )
-                .build() );
-
-        return programStageActions.update( programStageId, object );
-    }
-
-    public ApiResponse addAttribute( String programId, String teiAttributeId, boolean isMandatory )
-    {
-        JsonObject object = this.get( programId, new QueryParamsBuilder().add( "fields=*" ) )
+  public ApiResponse addProgramStage(String programId, String programStageId) {
+    JsonObject body =
+        get(programId)
             .getBodyAsJsonBuilder()
-            .addOrAppendToArray( "programTrackedEntityAttributes", new JsonObjectBuilder()
-                .addProperty( "mandatory", String.valueOf( isMandatory ) )
-                .addObject( "trackedEntityAttribute", new JsonObjectBuilder().addProperty( "id", teiAttributeId ) )
-                .build() )
+            .addArray(
+                "programStages", new JsonObjectBuilder().addProperty("id", programStageId).build())
             .build();
 
-        JsonObjectBuilder.jsonObject( object );
+    return update(programId, body);
+  }
 
-        return this.update( programId, object ).validateStatus( 200 );
+  /**
+   * Creates a program stage and links it to the program.
+   *
+   * @param programId
+   * @param programStageName
+   * @return program stage id
+   */
+  public String createProgramStage(String programId, String programStageName) {
+    JsonObject programStage =
+        new JsonObjectBuilder()
+            .addProperty("name", programStageName)
+            .addProperty("code", programStageName)
+            .addObject("program", new JsonObjectBuilder().addProperty("id", programId))
+            .addProperty("publicAccess", "rwrw----")
+            .build();
+
+    ApiResponse response = programStageActions.post(programStage);
+
+    response.validate().statusCode(is(oneOf(201, 200)));
+    return response.extractUid();
+  }
+
+  public ApiResponse addOrganisationUnits(String programId, String... orgUnitIds) {
+    JsonObject object = this.get(programId).getBody();
+
+    JsonArray orgUnits =
+        Optional.ofNullable(object.getAsJsonArray("organisationUnits")).orElse(new JsonArray());
+
+    for (String ouid : orgUnitIds) {
+      JsonObject orgUnit = new JsonObject();
+      orgUnit.addProperty("id", ouid);
+
+      orgUnits.add(orgUnit);
     }
 
-    public JsonObject buildProgram()
-    {
-        String random = DataGenerator.randomString();
+    object.add("organisationUnits", orgUnits);
 
-        JsonObject object = JsonObjectBuilder.jsonObject()
-            .addProperty( "name", "AutoTest program " + random )
-            .addProperty( "shortName", "AutoTest program " + random )
-            .addProperty( "code", "TA_PROGRAM_" + random )
+    return this.update(programId, object);
+  }
+
+  public ApiResponse addDataElement(
+      String programStageId, String dataElementId, boolean isMandatory) {
+    JsonObject object =
+        programStageActions.get(programStageId, new QueryParamsBuilder().add("fields=*")).getBody();
+
+    JsonObjectBuilder.jsonObject(object)
+        .addOrAppendToArray(
+            "programStageDataElements",
+            new JsonObjectBuilder()
+                .addProperty("compulsory", String.valueOf(isMandatory))
+                .addObject("dataElement", new JsonObjectBuilder().addProperty("id", dataElementId))
+                .build());
+
+    return programStageActions.update(programStageId, object);
+  }
+
+  public ApiResponse addAttribute(String programId, String teiAttributeId, boolean isMandatory) {
+    JsonObject object =
+        this.get(programId, new QueryParamsBuilder().add("fields=*"))
+            .getBodyAsJsonBuilder()
+            .addOrAppendToArray(
+                "programTrackedEntityAttributes",
+                new JsonObjectBuilder()
+                    .addProperty("mandatory", String.valueOf(isMandatory))
+                    .addObject(
+                        "trackedEntityAttribute",
+                        new JsonObjectBuilder().addProperty("id", teiAttributeId))
+                    .build())
+            .build();
+
+    JsonObjectBuilder.jsonObject(object);
+
+    return this.update(programId, object).validateStatus(200);
+  }
+
+  public JsonObject buildProgram() {
+    String random = DataGenerator.randomString();
+
+    JsonObject object =
+        JsonObjectBuilder.jsonObject()
+            .addProperty("name", "AutoTest program " + random)
+            .addProperty("shortName", "AutoTest program " + random)
+            .addProperty("code", "TA_PROGRAM_" + random)
             .addUserGroupAccess()
-            .addProperty( "publicAccess", "rwrw----" )
+            .addProperty("publicAccess", "rwrw----")
             .build();
 
-        return object;
+    return object;
+  }
+
+  public JsonObject buildProgram(String programType) {
+    return new JsonObjectBuilder(buildProgram())
+        .addProperty("programType", programType)
+        .addProperty("displayFrontPageList", "true")
+        .addProperty("publicAccess", "rwrw----")
+        .build();
+  }
+
+  public JsonObject buildProgram(
+      String programType, String trackedEntityTypeId, String... orgUnitIds) {
+    JsonObjectBuilder builder = new JsonObjectBuilder(buildProgram(programType));
+
+    for (String ouid : orgUnitIds) {
+      builder.addOrAppendToArray(
+          "organisationUnits", new JsonObjectBuilder().addProperty("id", ouid).build());
     }
 
-    public JsonObject buildProgram( String programType )
-    {
-        return new JsonObjectBuilder( buildProgram() )
-            .addProperty( "programType", programType )
-            .addProperty( "displayFrontPageList", "true" )
-            .addProperty( "publicAccess", "rwrw----" )
-            .build();
+    if (!StringUtils.isEmpty(trackedEntityTypeId)) {
+      builder
+          .addObject(
+              "trackedEntityType", new JsonObjectBuilder().addProperty("id", trackedEntityTypeId))
+          .build();
     }
 
-    public JsonObject buildProgram( String programType, String trackedEntityTypeId, String... orgUnitIds )
-    {
-        JsonObjectBuilder builder = new JsonObjectBuilder( buildProgram( programType ) );
+    return builder.build();
+  }
 
-        for ( String ouid : orgUnitIds )
-        {
-            builder.addOrAppendToArray( "organisationUnits", new JsonObjectBuilder()
-                .addProperty( "id", ouid ).build() );
-        }
-
-        if ( !StringUtils.isEmpty( trackedEntityTypeId ) )
-        {
-            builder.addObject( "trackedEntityType", new JsonObjectBuilder().addProperty( "id", trackedEntityTypeId ) )
-                .build();
-        }
-
-        return builder.build();
-    }
-
-    public ApiResponse getOrgUnitsAssociations( String... programUids )
-    {
-        return get( "/orgUnits", new QueryParamsBuilder().add(
-            Arrays.stream( programUids )
-                .collect( Collectors.joining( ",", "programs=", "" ) ) ) );
-    }
-
+  public ApiResponse getOrgUnitsAssociations(String... programUids) {
+    return get(
+        "/orgUnits",
+        new QueryParamsBuilder()
+            .add(Arrays.stream(programUids).collect(Collectors.joining(",", "programs=", ""))));
+  }
 }

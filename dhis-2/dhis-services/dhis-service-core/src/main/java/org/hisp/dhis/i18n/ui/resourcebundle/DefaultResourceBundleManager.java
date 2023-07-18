@@ -45,9 +45,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.comparator.LocaleNameComparator;
 import org.hisp.dhis.commons.util.PathUtils;
 import org.hisp.dhis.i18n.locale.LocaleManager;
@@ -58,203 +56,173 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
  * @author Nguyen Dang Quang
  */
 @Slf4j
-public class DefaultResourceBundleManager
-    implements ResourceBundleManager
-{
-    private static final String EXT_RESOURCE_BUNDLE = ".properties";
+public class DefaultResourceBundleManager implements ResourceBundleManager {
+  private static final String EXT_RESOURCE_BUNDLE = ".properties";
 
-    private static final String GLOBAL_RESOURCE_BUNDLE_NAME = "i18n_global";
+  private static final String GLOBAL_RESOURCE_BUNDLE_NAME = "i18n_global";
 
-    private static final String SPECIFIC_RESOURCE_BUNDLE_NAME = "i18n_module";
+  private static final String SPECIFIC_RESOURCE_BUNDLE_NAME = "i18n_module";
 
-    // -------------------------------------------------------------------------
-    // Configuration
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Configuration
+  // -------------------------------------------------------------------------
 
-    public DefaultResourceBundleManager()
-    {
+  public DefaultResourceBundleManager() {}
+
+  // -------------------------------------------------------------------------
+  // ResourceBundleManager implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public ResourceBundle getSpecificResourceBundle(String clazzName, Locale locale) {
+    String path = PathUtils.getClassPath(clazzName);
+
+    for (String dir = path; dir != null; dir = PathUtils.getParent(dir)) {
+      String baseName = PathUtils.addChild(dir, SPECIFIC_RESOURCE_BUNDLE_NAME);
+
+      try {
+        return ResourceBundle.getBundle(baseName, locale);
+      } catch (MissingResourceException ignored) {
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // ResourceBundleManager implementation
-    // -------------------------------------------------------------------------
+    return null;
+  }
 
-    @Override
-    public ResourceBundle getSpecificResourceBundle( String clazzName, Locale locale )
-    {
-        String path = PathUtils.getClassPath( clazzName );
+  @Override
+  public ResourceBundle getGlobalResourceBundle(Locale locale)
+      throws ResourceBundleManagerException {
+    try {
+      return ResourceBundle.getBundle(GLOBAL_RESOURCE_BUNDLE_NAME, locale);
+    } catch (MissingResourceException e) {
+      throw new ResourceBundleManagerException("Failed to get global resource bundle");
+    }
+  }
 
-        for ( String dir = path; dir != null; dir = PathUtils.getParent( dir ) )
-        {
-            String baseName = PathUtils.addChild( dir, SPECIFIC_RESOURCE_BUNDLE_NAME );
+  @Override
+  public List<Locale> getAvailableLocales() throws ResourceBundleManagerException {
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
-            try
-            {
-                return ResourceBundle.getBundle( baseName, locale );
-            }
-            catch ( MissingResourceException ignored )
-            {
-            }
-        }
+    URL url = classLoader.getResource(GLOBAL_RESOURCE_BUNDLE_NAME + EXT_RESOURCE_BUNDLE);
 
-        return null;
+    if (url == null) {
+      throw new ResourceBundleManagerException("Failed to find global resource bundle");
     }
 
-    @Override
-    public ResourceBundle getGlobalResourceBundle( Locale locale )
-        throws ResourceBundleManagerException
-    {
-        try
-        {
-            return ResourceBundle.getBundle( GLOBAL_RESOURCE_BUNDLE_NAME, locale );
-        }
-        catch ( MissingResourceException e )
-        {
-            throw new ResourceBundleManagerException( "Failed to get global resource bundle" );
-        }
+    List<Locale> locales;
+
+    if (url.toExternalForm().startsWith("jar:")) {
+      locales = new ArrayList<>(getAvailableLocalesFromJar(url));
+    } else {
+      String dirPath = new File(url.getFile()).getParent();
+
+      locales = new ArrayList<>(getAvailableLocalesFromDir(dirPath));
     }
 
-    @Override
-    public List<Locale> getAvailableLocales()
-        throws ResourceBundleManagerException
-    {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    locales.sort(LocaleNameComparator.INSTANCE);
 
-        URL url = classLoader.getResource( GLOBAL_RESOURCE_BUNDLE_NAME + EXT_RESOURCE_BUNDLE );
+    return locales;
+  }
 
-        if ( url == null )
-        {
-            throw new ResourceBundleManagerException( "Failed to find global resource bundle" );
+  private Collection<Locale> getAvailableLocalesFromJar(URL url)
+      throws ResourceBundleManagerException {
+    JarFile jar;
+
+    Set<Locale> availableLocales = new HashSet<>();
+
+    try {
+      JarURLConnection connection = (JarURLConnection) url.openConnection();
+
+      jar = connection.getJarFile();
+
+      Enumeration<JarEntry> e = jar.entries();
+
+      while (e.hasMoreElements()) {
+        JarEntry entry = e.nextElement();
+
+        String name = entry.getName();
+
+        if (name.startsWith(GLOBAL_RESOURCE_BUNDLE_NAME) && name.endsWith(EXT_RESOURCE_BUNDLE)) {
+          availableLocales.add(getLocaleFromName(name));
         }
-
-        List<Locale> locales;
-
-        if ( url.toExternalForm().startsWith( "jar:" ) )
-        {
-            locales = new ArrayList<>( getAvailableLocalesFromJar( url ) );
-        }
-        else
-        {
-            String dirPath = new File( url.getFile() ).getParent();
-
-            locales = new ArrayList<>( getAvailableLocalesFromDir( dirPath ) );
-        }
-
-        locales.sort( LocaleNameComparator.INSTANCE );
-
-        return locales;
+      }
+    } catch (IOException e) {
+      throw new ResourceBundleManagerException("Failed to get jar file: " + url, e);
     }
 
-    private Collection<Locale> getAvailableLocalesFromJar( URL url )
-        throws ResourceBundleManagerException
-    {
-        JarFile jar;
+    return availableLocales;
+  }
 
-        Set<Locale> availableLocales = new HashSet<>();
+  private Collection<Locale> getAvailableLocalesFromDir(String dirPath) {
+    dirPath = convertURLToFilePath(dirPath);
 
-        try
-        {
-            JarURLConnection connection = (JarURLConnection) url.openConnection();
+    File dir = new File(dirPath);
+    Set<Locale> availableLocales = new HashSet<>();
 
-            jar = connection.getJarFile();
+    File[] files =
+        dir.listFiles(
+            (dir1, name) ->
+                name.startsWith(GLOBAL_RESOURCE_BUNDLE_NAME) && name.endsWith(EXT_RESOURCE_BUNDLE));
 
-            Enumeration<JarEntry> e = jar.entries();
-
-            while ( e.hasMoreElements() )
-            {
-                JarEntry entry = e.nextElement();
-
-                String name = entry.getName();
-
-                if ( name.startsWith( GLOBAL_RESOURCE_BUNDLE_NAME ) && name.endsWith( EXT_RESOURCE_BUNDLE ) )
-                {
-                    availableLocales.add( getLocaleFromName( name ) );
-                }
-            }
-        }
-        catch ( IOException e )
-        {
-            throw new ResourceBundleManagerException( "Failed to get jar file: " + url, e );
-        }
-
-        return availableLocales;
+    if (files != null) {
+      for (File file : files) {
+        availableLocales.add(getLocaleFromName(file.getName()));
+      }
     }
 
-    private Collection<Locale> getAvailableLocalesFromDir( String dirPath )
-    {
-        dirPath = convertURLToFilePath( dirPath );
+    return availableLocales;
+  }
 
-        File dir = new File( dirPath );
-        Set<Locale> availableLocales = new HashSet<>();
+  /**
+   * Retrieves a {@link Locale} from the given resource bundle name. The resource bundle naming
+   * follows the Java locale format:
+   *
+   * <pre>
+   * [2-3 letter language]_[2 letter country/region]_[variant]
+   * </pre>
+   *
+   * @param name the resource bundle name.
+   * @return a {@link Locale}.
+   */
+  private Locale getLocaleFromName(String name) {
+    Pattern pattern =
+        Pattern.compile(
+            "^"
+                + GLOBAL_RESOURCE_BUNDLE_NAME
+                + "(?:_([a-z]{2,3})(?:_([A-Z]{2})(?:_(.+))?)?)?"
+                + EXT_RESOURCE_BUNDLE
+                + "$");
 
-        File[] files = dir.listFiles(
-            ( dir1, name ) -> name.startsWith( GLOBAL_RESOURCE_BUNDLE_NAME ) && name.endsWith( EXT_RESOURCE_BUNDLE ) );
+    Matcher matcher = pattern.matcher(name);
 
-        if ( files != null )
-        {
-            for ( File file : files )
-            {
-                availableLocales.add( getLocaleFromName( file.getName() ) );
-            }
+    if (matcher.matches()) {
+      if (matcher.group(1) != null) {
+        if (matcher.group(2) != null) {
+          if (matcher.group(3) != null) {
+            return new Locale(matcher.group(1), matcher.group(2), matcher.group(3));
+          }
+
+          return new Locale(matcher.group(1), matcher.group(2));
         }
 
-        return availableLocales;
+        return new Locale(matcher.group(1));
+      }
     }
 
-    /**
-     * Retrieves a {@link Locale} from the given resource bundle name. The
-     * resource bundle naming follows the Java locale format:
-     *
-     * <pre>
-     * [2-3 letter language]_[2 letter country/region]_[variant]
-     * </pre>
-     *
-     * @param name the resource bundle name.
-     * @return a {@link Locale}.
-     */
-    private Locale getLocaleFromName( String name )
-    {
-        Pattern pattern = Pattern.compile( "^" + GLOBAL_RESOURCE_BUNDLE_NAME
-            + "(?:_([a-z]{2,3})(?:_([A-Z]{2})(?:_(.+))?)?)?" + EXT_RESOURCE_BUNDLE + "$" );
+    return LocaleManager.DEFAULT_LOCALE;
+  }
 
-        Matcher matcher = pattern.matcher( name );
+  // -------------------------------------------------------------------------
+  // Support method
+  // -------------------------------------------------------------------------
 
-        if ( matcher.matches() )
-        {
-            if ( matcher.group( 1 ) != null )
-            {
-                if ( matcher.group( 2 ) != null )
-                {
-                    if ( matcher.group( 3 ) != null )
-                    {
-                        return new Locale( matcher.group( 1 ), matcher.group( 2 ), matcher.group( 3 ) );
-                    }
-
-                    return new Locale( matcher.group( 1 ), matcher.group( 2 ) );
-                }
-
-                return new Locale( matcher.group( 1 ) );
-            }
-        }
-
-        return LocaleManager.DEFAULT_LOCALE;
+  private String convertURLToFilePath(String url) {
+    try {
+      url = URLDecoder.decode(url, "iso-8859-1");
+    } catch (Exception ex) {
+      log.error("Failed to convert URL", ex);
     }
 
-    // -------------------------------------------------------------------------
-    // Support method
-    // -------------------------------------------------------------------------
-
-    private String convertURLToFilePath( String url )
-    {
-        try
-        {
-            url = URLDecoder.decode( url, "iso-8859-1" );
-        }
-        catch ( Exception ex )
-        {
-            log.error( "Failed to convert URL", ex );
-        }
-
-        return url;
-    }
+    return url;
+  }
 }

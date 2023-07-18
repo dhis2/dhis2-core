@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.bundle.persister;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Objects;
-
 import org.hibernate.Session;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -51,121 +50,120 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, ProgramInstance>
-{
-    private final TrackerConverterService<Enrollment, ProgramInstance> enrollmentConverter;
+public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, ProgramInstance> {
+  private final TrackerConverterService<Enrollment, ProgramInstance> enrollmentConverter;
 
-    private final TrackedEntityCommentService trackedEntityCommentService;
+  private final TrackedEntityCommentService trackedEntityCommentService;
 
-    private final TrackerSideEffectConverterService sideEffectConverterService;
+  private final TrackerSideEffectConverterService sideEffectConverterService;
 
-    private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
+  private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
-    public EnrollmentPersister( ReservedValueService reservedValueService,
-        TrackerConverterService<Enrollment, ProgramInstance> enrollmentConverter,
-        TrackedEntityCommentService trackedEntityCommentService,
-        TrackerSideEffectConverterService sideEffectConverterService,
-        TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
-        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService )
-    {
-        super( reservedValueService, trackedEntityAttributeValueAuditService );
+  public EnrollmentPersister(
+      ReservedValueService reservedValueService,
+      TrackerConverterService<Enrollment, ProgramInstance> enrollmentConverter,
+      TrackedEntityCommentService trackedEntityCommentService,
+      TrackerSideEffectConverterService sideEffectConverterService,
+      TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
+      TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService) {
+    super(reservedValueService, trackedEntityAttributeValueAuditService);
 
-        this.enrollmentConverter = enrollmentConverter;
-        this.trackedEntityCommentService = trackedEntityCommentService;
-        this.sideEffectConverterService = sideEffectConverterService;
-        this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
-    }
+    this.enrollmentConverter = enrollmentConverter;
+    this.trackedEntityCommentService = trackedEntityCommentService;
+    this.sideEffectConverterService = sideEffectConverterService;
+    this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
+  }
 
-    @Override
-    protected void updateAttributes( Session session, TrackerPreheat preheat,
-        Enrollment enrollment, ProgramInstance programInstance )
-    {
-        handleTrackedEntityAttributeValues( session, preheat, enrollment.getAttributes(),
-            preheat.getTrackedEntity( programInstance.getEntityInstance().getUid() ) );
-    }
+  @Override
+  protected void updateAttributes(
+      Session session,
+      TrackerPreheat preheat,
+      Enrollment enrollment,
+      ProgramInstance programInstance) {
+    handleTrackedEntityAttributeValues(
+        session,
+        preheat,
+        enrollment.getAttributes(),
+        preheat.getTrackedEntity(programInstance.getEntityInstance().getUid()));
+  }
 
-    @Override
-    protected void updateDataValues( Session session, TrackerPreheat preheat,
-        Enrollment enrollment, ProgramInstance programInstance )
-    {
-        // DO NOTHING - TEI HAVE NO DATA VALUES
-    }
+  @Override
+  protected void updateDataValues(
+      Session session,
+      TrackerPreheat preheat,
+      Enrollment enrollment,
+      ProgramInstance programInstance) {
+    // DO NOTHING - TEI HAVE NO DATA VALUES
+  }
 
-    @Override
-    protected void persistComments( TrackerPreheat preheat, ProgramInstance programInstance )
-    {
-        if ( !programInstance.getComments().isEmpty() )
-        {
-            for ( TrackedEntityComment comment : programInstance.getComments() )
-            {
-                if ( Objects.isNull( preheat.getNote( comment.getUid() ) ) )
-                {
-                    this.trackedEntityCommentService.addTrackedEntityComment( comment );
-                }
-            }
+  @Override
+  protected void persistComments(TrackerPreheat preheat, ProgramInstance programInstance) {
+    if (!programInstance.getComments().isEmpty()) {
+      for (TrackedEntityComment comment : programInstance.getComments()) {
+        if (Objects.isNull(preheat.getNote(comment.getUid()))) {
+          this.trackedEntityCommentService.addTrackedEntityComment(comment);
         }
+      }
     }
+  }
 
-    @Override
-    protected void updatePreheat( TrackerPreheat preheat, ProgramInstance programInstance )
-    {
-        preheat.putEnrollments( Collections.singletonList( programInstance ) );
-        preheat.addProgramOwner( programInstance.getEntityInstance().getUid(), programInstance.getProgram().getUid(),
-            programInstance.getOrganisationUnit() );
-    }
+  @Override
+  protected void updatePreheat(TrackerPreheat preheat, ProgramInstance programInstance) {
+    preheat.putEnrollments(Collections.singletonList(programInstance));
+    preheat.addProgramOwner(
+        programInstance.getEntityInstance().getUid(),
+        programInstance.getProgram().getUid(),
+        programInstance.getOrganisationUnit());
+  }
 
-    @Override
-    protected boolean isNew( TrackerPreheat preheat, String uid )
-    {
-        return preheat.getEnrollment( uid ) == null;
-    }
+  @Override
+  protected boolean isNew(TrackerPreheat preheat, String uid) {
+    return preheat.getEnrollment(uid) == null;
+  }
 
-    @Override
-    protected TrackerSideEffectDataBundle handleSideEffects( TrackerBundle bundle, ProgramInstance programInstance )
-    {
-        return TrackerSideEffectDataBundle.builder()
-            .klass( ProgramInstance.class )
-            .enrollmentRuleEffects(
-                sideEffectConverterService.toTrackerSideEffects( bundle.getEnrollmentRuleEffects() ) )
-            .eventRuleEffects( new HashMap<>() )
-            .object( programInstance.getUid() )
-            .importStrategy( bundle.getImportStrategy() )
-            .accessedBy( bundle.getUsername() )
-            .programInstance( programInstance )
-            .program( programInstance.getProgram() )
-            .build();
-    }
+  @Override
+  protected TrackerSideEffectDataBundle handleSideEffects(
+      TrackerBundle bundle, ProgramInstance programInstance) {
+    return TrackerSideEffectDataBundle.builder()
+        .klass(ProgramInstance.class)
+        .enrollmentRuleEffects(
+            sideEffectConverterService.toTrackerSideEffects(bundle.getEnrollmentRuleEffects()))
+        .eventRuleEffects(new HashMap<>())
+        .object(programInstance.getUid())
+        .importStrategy(bundle.getImportStrategy())
+        .accessedBy(bundle.getUsername())
+        .programInstance(programInstance)
+        .program(programInstance.getProgram())
+        .build();
+  }
 
-    @Override
-    protected ProgramInstance convert( TrackerBundle bundle, Enrollment enrollment )
-    {
-        return enrollmentConverter.from( bundle.getPreheat(), enrollment );
-    }
+  @Override
+  protected ProgramInstance convert(TrackerBundle bundle, Enrollment enrollment) {
+    return enrollmentConverter.from(bundle.getPreheat(), enrollment);
+  }
 
-    @Override
-    protected TrackerType getType()
-    {
-        return TrackerType.ENROLLMENT;
-    }
+  @Override
+  protected TrackerType getType() {
+    return TrackerType.ENROLLMENT;
+  }
 
-    @Override
-    protected void persistOwnership( TrackerPreheat preheat, ProgramInstance entity )
-    {
-        if ( isNew( preheat, entity.getUid() ) )
-        {
-            if ( preheat.getProgramOwner().get( entity.getEntityInstance().getUid() ) == null
-                || preheat.getProgramOwner().get( entity.getEntityInstance().getUid() )
-                    .get( entity.getProgram().getUid() ) == null )
-            {
-                trackedEntityProgramOwnerService.createTrackedEntityProgramOwner( entity.getEntityInstance(),
-                    entity.getProgram(), entity.getOrganisationUnit() );
-            }
-        }
+  @Override
+  protected void persistOwnership(TrackerPreheat preheat, ProgramInstance entity) {
+    if (isNew(preheat, entity.getUid())) {
+      if (preheat.getProgramOwner().get(entity.getEntityInstance().getUid()) == null
+          || preheat
+                  .getProgramOwner()
+                  .get(entity.getEntityInstance().getUid())
+                  .get(entity.getProgram().getUid())
+              == null) {
+        trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+            entity.getEntityInstance(), entity.getProgram(), entity.getOrganisationUnit());
+      }
     }
+  }
 
-    @Override
-    protected String getUpdatedTrackedEntity( ProgramInstance entity )
-    {
-        return entity.getEntityInstance().getUid();
-    }
+  @Override
+  protected String getUpdatedTrackedEntity(ProgramInstance entity) {
+    return entity.getEntityInstance().getUid();
+  }
 }

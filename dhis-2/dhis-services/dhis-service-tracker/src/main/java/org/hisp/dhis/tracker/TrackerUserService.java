@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker;
 
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.tracker.preheat.mappers.FullUserMapper;
@@ -38,41 +37,36 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Specialized User Service for Tracker that executes User look-up in a
- * read-only transaction
+ * Specialized User Service for Tracker that executes User look-up in a read-only transaction
  *
  * @author Luciano Fiandesio
  */
 @RequiredArgsConstructor
 @Service
-public class TrackerUserService
-{
-    private final CurrentUserService currentUserService;
+public class TrackerUserService {
+  private final CurrentUserService currentUserService;
 
-    private final IdentifiableObjectManager manager;
+  private final IdentifiableObjectManager manager;
 
-    /**
-     * Fetch a User by user uid
-     *
-     * @param userUid a User uid
-     * @return a User
-     */
-    @Transactional( readOnly = true )
-    public User getUser( String userUid )
-    {
-        User user = null;
+  /**
+   * Fetch a User by user uid
+   *
+   * @param userUid a User uid
+   * @return a User
+   */
+  @Transactional(readOnly = true)
+  public User getUser(String userUid) {
+    User user = null;
 
-        if ( !StringUtils.isEmpty( userUid ) )
-        {
-            user = manager.get( User.class, userUid );
-        }
-        if ( user == null )
-        {
-            user = currentUserService.getCurrentUser();
-        }
-        // Make a copy of the user object, retaining only the properties
-        // required for
-        // the import operation
-        return FullUserMapper.INSTANCE.map( user );
+    if (!StringUtils.isEmpty(userUid)) {
+      user = manager.get(User.class, userUid);
     }
+    if (user == null) {
+      user = currentUserService.getCurrentUser();
+    }
+    // Make a copy of the user object, retaining only the properties
+    // required for
+    // the import operation
+    return FullUserMapper.INSTANCE.map(user);
+  }
 }

@@ -31,51 +31,46 @@ import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import java.util.List;
-
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
 /**
- * Abstract class for expression items that need only the period type and period
- * such as {@link ItemPeriodInYear} and {@link ItemYearlyPeriodCount}.
+ * Abstract class for expression items that need only the period type and period such as {@link
+ * ItemPeriodInYear} and {@link ItemYearlyPeriodCount}.
  *
  * @author Jim Grace
  */
-public abstract class ItemPeriodBase
-    implements ExpressionItem
-{
-    @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return DOUBLE_VALUE_IF_NULL;
+public abstract class ItemPeriodBase implements ExpressionItem {
+  @Override
+  public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return DOUBLE_VALUE_IF_NULL;
+  }
+
+  @Override
+  public Double evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
+    List<Period> periods = visitor.getParams().getPeriods();
+
+    if (periods.size() != 1) {
+      return 0.0; // Not applicable
     }
 
-    @Override
-    public Double evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        List<Period> periods = visitor.getParams().getPeriods();
+    PeriodType periodType = periods.get(0).getPeriodType();
 
-        if ( periods.size() != 1 )
-        {
-            return 0.0; // Not applicable
-        }
-
-        PeriodType periodType = periods.get( 0 ).getPeriodType();
-
-        int periodOffset = (visitor.getState().getQueryMods() == null)
+    int periodOffset =
+        (visitor.getState().getQueryMods() == null)
             ? 0
             : visitor.getState().getQueryMods().getPeriodOffset();
 
-        Period period = periodType.getShiftedPeriod( periods.get( 0 ), periodOffset );
+    Period period = periodType.getShiftedPeriod(periods.get(0), periodOffset);
 
-        return evaluate( periodType, period );
-    }
+    return evaluate(periodType, period);
+  }
 
-    // -------------------------------------------------------------------------
-    // Abstract methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Abstract methods
+  // -------------------------------------------------------------------------
 
-    protected abstract Double evaluate( PeriodType periodType, Period period );
+  protected abstract Double evaluate(PeriodType periodType, Period period);
 }

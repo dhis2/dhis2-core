@@ -28,7 +28,6 @@
 package org.hisp.dhis.artemis.audit.listener;
 
 import java.time.LocalDateTime;
-
 import org.hibernate.event.spi.PostLoadEvent;
 import org.hibernate.event.spi.PostLoadEventListener;
 import org.hisp.dhis.artemis.audit.Audit;
@@ -44,33 +43,35 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen
  */
 @Component
-public class PostLoadAuditListener
-    extends AbstractHibernateListener implements PostLoadEventListener
-{
-    public PostLoadAuditListener(
-        AuditManager auditManager,
-        AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier,
-        SchemaService schemaService )
-    {
-        super( auditManager, auditObjectFactory, userNameSupplier, schemaService );
-    }
+public class PostLoadAuditListener extends AbstractHibernateListener
+    implements PostLoadEventListener {
+  public PostLoadAuditListener(
+      AuditManager auditManager,
+      AuditObjectFactory auditObjectFactory,
+      UsernameSupplier userNameSupplier,
+      SchemaService schemaService) {
+    super(auditManager, auditObjectFactory, userNameSupplier, schemaService);
+  }
 
-    AuditType getAuditType()
-    {
-        return AuditType.READ;
-    }
+  AuditType getAuditType() {
+    return AuditType.READ;
+  }
 
-    @Override
-    public void onPostLoad( PostLoadEvent postLoadEvent )
-    {
-        getAuditable( postLoadEvent.getEntity(), "read" ).ifPresent( auditable -> auditManager.send( Audit.builder()
-            .auditType( getAuditType() )
-            .auditScope( auditable.scope() )
-            .createdAt( LocalDateTime.now() )
-            .createdBy( getCreatedBy() )
-            .object( postLoadEvent.getEntity() )
-            .auditableEntity( new AuditableEntity( postLoadEvent.getEntity().getClass(), postLoadEvent.getEntity() ) )
-            .build() ) );
-    }
+  @Override
+  public void onPostLoad(PostLoadEvent postLoadEvent) {
+    getAuditable(postLoadEvent.getEntity(), "read")
+        .ifPresent(
+            auditable ->
+                auditManager.send(
+                    Audit.builder()
+                        .auditType(getAuditType())
+                        .auditScope(auditable.scope())
+                        .createdAt(LocalDateTime.now())
+                        .createdBy(getCreatedBy())
+                        .object(postLoadEvent.getEntity())
+                        .auditableEntity(
+                            new AuditableEntity(
+                                postLoadEvent.getEntity().getClass(), postLoadEvent.getEntity()))
+                        .build()));
+  }
 }

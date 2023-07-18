@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.tracker;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -41,11 +41,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * Wrapper object to handle identifier-related parameters for tracker
- * import/export
+ * Wrapper object to handle identifier-related parameters for tracker import/export
  *
  * @author Stian Sandvold
  */
@@ -53,173 +50,132 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrackerIdSchemeParams
-{
-    /**
-     * Specific identifier to match data elements on.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdSchemeParam dataElementIdScheme = TrackerIdSchemeParam.UID;
+public class TrackerIdSchemeParams {
+  /** Specific identifier to match data elements on. */
+  @JsonProperty @Builder.Default
+  private TrackerIdSchemeParam dataElementIdScheme = TrackerIdSchemeParam.UID;
 
-    /**
-     * Specific identifier to match organisation units on.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdSchemeParam orgUnitIdScheme = TrackerIdSchemeParam.UID;
+  /** Specific identifier to match organisation units on. */
+  @JsonProperty @Builder.Default
+  private TrackerIdSchemeParam orgUnitIdScheme = TrackerIdSchemeParam.UID;
 
-    /**
-     * Specific identifier to match program on.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdSchemeParam programIdScheme = TrackerIdSchemeParam.UID;
+  /** Specific identifier to match program on. */
+  @JsonProperty @Builder.Default
+  private TrackerIdSchemeParam programIdScheme = TrackerIdSchemeParam.UID;
 
-    /**
-     * Specific identifier to match program stage on.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdSchemeParam programStageIdScheme = TrackerIdSchemeParam.UID;
+  /** Specific identifier to match program stage on. */
+  @JsonProperty @Builder.Default
+  private TrackerIdSchemeParam programStageIdScheme = TrackerIdSchemeParam.UID;
 
-    /**
-     * Specific identifier to match all metadata on. Will be overridden by
-     * metadata-specific idSchemes.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdSchemeParam idScheme = TrackerIdSchemeParam.UID;
+  /**
+   * Specific identifier to match all metadata on. Will be overridden by metadata-specific
+   * idSchemes.
+   */
+  @JsonProperty @Builder.Default private TrackerIdSchemeParam idScheme = TrackerIdSchemeParam.UID;
 
-    /**
-     * Specific identifier to match category option combo on.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdSchemeParam categoryOptionComboIdScheme = TrackerIdSchemeParam.UID;
+  /** Specific identifier to match category option combo on. */
+  @JsonProperty @Builder.Default
+  private TrackerIdSchemeParam categoryOptionComboIdScheme = TrackerIdSchemeParam.UID;
 
-    /**
-     * Specific identifier to match category option on.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdSchemeParam categoryOptionIdScheme = TrackerIdSchemeParam.UID;
+  /** Specific identifier to match category option on. */
+  @JsonProperty @Builder.Default
+  private TrackerIdSchemeParam categoryOptionIdScheme = TrackerIdSchemeParam.UID;
 
-    public TrackerIdSchemeParam getByClass( Class<?> klazz )
-    {
-        switch ( klazz.getSimpleName() )
-        {
-        case "CategoryOptionCombo":
-            return categoryOptionComboIdScheme;
-        case "OrganisationUnit":
-            return orgUnitIdScheme;
-        case "CategoryOption":
-            return categoryOptionIdScheme;
-        case "DataElement":
-            return dataElementIdScheme;
-        case "Program":
-            return programIdScheme;
-        case "ProgramStage":
-            return programStageIdScheme;
-        default:
-            return idScheme;
-        }
-
+  public TrackerIdSchemeParam getByClass(Class<?> klazz) {
+    switch (klazz.getSimpleName()) {
+      case "CategoryOptionCombo":
+        return categoryOptionComboIdScheme;
+      case "OrganisationUnit":
+        return orgUnitIdScheme;
+      case "CategoryOption":
+        return categoryOptionIdScheme;
+      case "DataElement":
+        return dataElementIdScheme;
+      case "Program":
+        return programIdScheme;
+      case "ProgramStage":
+        return programStageIdScheme;
+      default:
+        return idScheme;
     }
+  }
 
-    /**
-     * Creates metadata identifier for given {@code metadata} using
-     * {@link #idScheme}. For more details refer to
-     * {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
-     *
-     * @param metadata to create metadata identifier for
-     * @return metadata identifier representing metadata using the idScheme
-     */
-    public MetadataIdentifier toMetadataIdentifier( IdentifiableObject metadata )
-    {
-        return idScheme.toMetadataIdentifier( metadata );
-    }
+  /**
+   * Creates metadata identifier for given {@code metadata} using {@link #idScheme}. For more
+   * details refer to {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
+   *
+   * @param metadata to create metadata identifier for
+   * @return metadata identifier representing metadata using the idScheme
+   */
+  public MetadataIdentifier toMetadataIdentifier(IdentifiableObject metadata) {
+    return idScheme.toMetadataIdentifier(metadata);
+  }
 
-    /**
-     * Creates metadata identifier for given {@code categoryOptionCombo} using
-     * {@link #categoryOptionComboIdScheme}. For more details refer to
-     * {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
-     *
-     * @param categoryOptionCombo to create metadata identifier for
-     * @return metadata identifier representing metadata using the
-     *         categoryOptionComboIdScheme
-     */
-    public MetadataIdentifier toMetadataIdentifier( CategoryOptionCombo categoryOptionCombo )
-    {
-        return categoryOptionComboIdScheme.toMetadataIdentifier( categoryOptionCombo );
-    }
+  /**
+   * Creates metadata identifier for given {@code categoryOptionCombo} using {@link
+   * #categoryOptionComboIdScheme}. For more details refer to {@link
+   * TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
+   *
+   * @param categoryOptionCombo to create metadata identifier for
+   * @return metadata identifier representing metadata using the categoryOptionComboIdScheme
+   */
+  public MetadataIdentifier toMetadataIdentifier(CategoryOptionCombo categoryOptionCombo) {
+    return categoryOptionComboIdScheme.toMetadataIdentifier(categoryOptionCombo);
+  }
 
-    /**
-     * Creates metadata identifier for given {@code categoryOption} using
-     * {@link #categoryOptionIdScheme}. For more details refer to
-     * {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
-     *
-     * @param categoryOption to create metadata identifier for
-     * @return metadata identifier representing metadata using the
-     *         categoryOptionIdScheme
-     */
-    public MetadataIdentifier toMetadataIdentifier( CategoryOption categoryOption )
-    {
-        return categoryOptionIdScheme.toMetadataIdentifier( categoryOption );
-    }
+  /**
+   * Creates metadata identifier for given {@code categoryOption} using {@link
+   * #categoryOptionIdScheme}. For more details refer to {@link
+   * TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
+   *
+   * @param categoryOption to create metadata identifier for
+   * @return metadata identifier representing metadata using the categoryOptionIdScheme
+   */
+  public MetadataIdentifier toMetadataIdentifier(CategoryOption categoryOption) {
+    return categoryOptionIdScheme.toMetadataIdentifier(categoryOption);
+  }
 
-    /**
-     * Creates metadata identifier for given {@code dataElement} using
-     * {@link #dataElementIdScheme}. For more details refer to
-     * {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
-     *
-     * @param dataElement to create metadata identifier for
-     * @return metadata identifier representing dataElement using the idScheme
-     */
-    public MetadataIdentifier toMetadataIdentifier( DataElement dataElement )
-    {
-        return dataElementIdScheme.toMetadataIdentifier( dataElement );
-    }
+  /**
+   * Creates metadata identifier for given {@code dataElement} using {@link #dataElementIdScheme}.
+   * For more details refer to {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
+   *
+   * @param dataElement to create metadata identifier for
+   * @return metadata identifier representing dataElement using the idScheme
+   */
+  public MetadataIdentifier toMetadataIdentifier(DataElement dataElement) {
+    return dataElementIdScheme.toMetadataIdentifier(dataElement);
+  }
 
-    /**
-     * Creates metadata identifier for given {@code orgUnit} using
-     * {@link #orgUnitIdScheme}. For more details refer to
-     * {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
-     *
-     * @param orgUnit to create metadata identifier for
-     * @return metadata identifier representing metadata using the
-     *         orgUnitIdScheme
-     */
-    public MetadataIdentifier toMetadataIdentifier( OrganisationUnit orgUnit )
-    {
-        return orgUnitIdScheme.toMetadataIdentifier( orgUnit );
-    }
+  /**
+   * Creates metadata identifier for given {@code orgUnit} using {@link #orgUnitIdScheme}. For more
+   * details refer to {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
+   *
+   * @param orgUnit to create metadata identifier for
+   * @return metadata identifier representing metadata using the orgUnitIdScheme
+   */
+  public MetadataIdentifier toMetadataIdentifier(OrganisationUnit orgUnit) {
+    return orgUnitIdScheme.toMetadataIdentifier(orgUnit);
+  }
 
-    /**
-     * Creates metadata identifier for given {@code program} using
-     * {@link #programIdScheme}. For more details refer to
-     * {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
-     *
-     * @param program to create metadata identifier for
-     * @return metadata identifier representing metadata using the
-     *         programIdScheme
-     */
-    public MetadataIdentifier toMetadataIdentifier( Program program )
-    {
-        return programIdScheme.toMetadataIdentifier( program );
-    }
+  /**
+   * Creates metadata identifier for given {@code program} using {@link #programIdScheme}. For more
+   * details refer to {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
+   *
+   * @param program to create metadata identifier for
+   * @return metadata identifier representing metadata using the programIdScheme
+   */
+  public MetadataIdentifier toMetadataIdentifier(Program program) {
+    return programIdScheme.toMetadataIdentifier(program);
+  }
 
-    /**
-     * Creates metadata identifier for given {@code programStage} using
-     * {@link #programStageIdScheme}. For more details refer to
-     * {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
-     *
-     * @param programStage to create metadata identifier for
-     * @return metadata identifier representing metadata using the
-     *         programIdScheme
-     */
-    public MetadataIdentifier toMetadataIdentifier( ProgramStage programStage )
-    {
-        return programStageIdScheme.toMetadataIdentifier( programStage );
-    }
+  /**
+   * Creates metadata identifier for given {@code programStage} using {@link #programStageIdScheme}.
+   * For more details refer to {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
+   *
+   * @param programStage to create metadata identifier for
+   * @return metadata identifier representing metadata using the programIdScheme
+   */
+  public MetadataIdentifier toMetadataIdentifier(ProgramStage programStage) {
+    return programStageIdScheme.toMetadataIdentifier(programStage);
+  }
 }

@@ -29,65 +29,53 @@ package org.hisp.dhis.apphub;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Created by zubair@dhis2.org on 07.09.17.
- */
-public class Developer
-{
-    private String name;
+/** Created by zubair@dhis2.org on 07.09.17. */
+public class Developer {
+  private String name;
 
-    private String organisation;
+  private String organisation;
 
-    private String address;
+  private String address;
 
-    private String email;
+  private String email;
 
-    public Developer()
-    {
-        // empty constructor
-    }
+  public Developer() {
+    // empty constructor
+  }
 
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
+  @JsonProperty
+  public String getName() {
+    return name;
+  }
 
-    public void setName( String name )
-    {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    @JsonProperty
-    public String getOrganisation()
-    {
-        return organisation;
-    }
+  @JsonProperty
+  public String getOrganisation() {
+    return organisation;
+  }
 
-    public void setOrganisation( String organisation )
-    {
-        this.organisation = organisation;
-    }
+  public void setOrganisation(String organisation) {
+    this.organisation = organisation;
+  }
 
-    @JsonProperty
-    public String getEmail()
-    {
-        return email;
-    }
+  @JsonProperty
+  public String getEmail() {
+    return email;
+  }
 
-    public void setEmail( String email )
-    {
-        this.email = email;
-    }
+  public void setEmail(String email) {
+    this.email = email;
+  }
 
-    @JsonProperty
-    public String getAddress()
-    {
-        return address;
-    }
+  @JsonProperty
+  public String getAddress() {
+    return address;
+  }
 
-    public void setAddress( String address )
-    {
-        this.address = address;
-    }
+  public void setAddress(String address) {
+    this.address = address;
+  }
 }

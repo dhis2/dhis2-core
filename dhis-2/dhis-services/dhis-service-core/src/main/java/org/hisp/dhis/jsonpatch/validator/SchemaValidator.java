@@ -29,23 +29,19 @@ package org.hisp.dhis.jsonpatch.validator;
 
 import java.util.List;
 import java.util.function.Consumer;
-
 import org.hisp.dhis.feedback.ErrorReport;
 
 /**
  * @author viet@dhis2.org
  */
-public class SchemaValidator implements BulkPatchValidator
-{
-    @Override
-    public void validate( BulkPatchValidateParams params, Consumer<ErrorReport> addError )
-    {
-        List<ErrorReport> errors = SchemaCheck.isExist.apply( params.getSchema() );
+public class SchemaValidator implements BulkPatchValidator {
+  @Override
+  public void validate(BulkPatchValidateParams params, Consumer<ErrorReport> addError) {
+    List<ErrorReport> errors = SchemaCheck.isExist.apply(params.getSchema());
 
-        if ( !errors.isEmpty() )
-        {
-            errors.forEach( error -> addError.accept( error ) );
-            return;
-        }
+    if (!errors.isEmpty()) {
+      errors.forEach(error -> addError.accept(error));
+      return;
     }
+  }
 }

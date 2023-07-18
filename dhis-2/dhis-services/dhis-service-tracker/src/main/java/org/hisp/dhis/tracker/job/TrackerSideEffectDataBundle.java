@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.tracker.job;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import lombok.Builder;
 import lombok.Data;
-
 import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -44,67 +45,47 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-
 /**
  * Class holding data necessary for implementation of side effects.
  *
  * @author Zubair Asghar
  */
 @Data
-@Builder( builderClassName = "TrackerSideEffectBundleBuilder" )
-@JsonDeserialize( builder = TrackerSideEffectDataBundle.TrackerSideEffectBundleBuilder.class )
-public class TrackerSideEffectDataBundle implements Message
-{
-    @JsonProperty
-    private String uid;
+@Builder(builderClassName = "TrackerSideEffectBundleBuilder")
+@JsonDeserialize(builder = TrackerSideEffectDataBundle.TrackerSideEffectBundleBuilder.class)
+public class TrackerSideEffectDataBundle implements Message {
+  @JsonProperty private String uid;
 
-    @JsonProperty
-    private Class<? extends BaseIdentifiableObject> klass;
+  @JsonProperty private Class<? extends BaseIdentifiableObject> klass;
 
-    @JsonProperty
-    private String object;
+  @JsonProperty private String object;
 
-    @JsonProperty
-    private JobConfiguration jobConfiguration;
+  @JsonProperty private JobConfiguration jobConfiguration;
 
-    @JsonProperty
-    private Program program;
+  @JsonProperty private Program program;
 
-    @JsonProperty
-    private ProgramInstance programInstance;
+  @JsonProperty private ProgramInstance programInstance;
 
-    @JsonProperty
-    private ProgramStageInstance programStageInstance;
+  @JsonProperty private ProgramStageInstance programStageInstance;
 
-    @JsonProperty
-    @Builder.Default
-    private Map<String, List<TrackerRuleEngineSideEffect>> enrollmentRuleEffects = new HashMap<>();
+  @JsonProperty @Builder.Default
+  private Map<String, List<TrackerRuleEngineSideEffect>> enrollmentRuleEffects = new HashMap<>();
 
-    @JsonProperty
-    @Builder.Default
-    private Map<String, List<TrackerRuleEngineSideEffect>> eventRuleEffects = new HashMap<>();
+  @JsonProperty @Builder.Default
+  private Map<String, List<TrackerRuleEngineSideEffect>> eventRuleEffects = new HashMap<>();
 
-    @JsonProperty
-    private TrackerImportStrategy importStrategy;
+  @JsonProperty private TrackerImportStrategy importStrategy;
 
-    @JsonProperty
-    private String accessedBy;
+  @JsonProperty private String accessedBy;
 
-    @JsonProperty
-    private String jobId;
+  @JsonProperty private String jobId;
 
-    @Override
-    @JsonProperty
-    public MessageType getMessageType()
-    {
-        return MessageType.TRACKER_SIDE_EFFECT;
-    }
+  @Override
+  @JsonProperty
+  public MessageType getMessageType() {
+    return MessageType.TRACKER_SIDE_EFFECT;
+  }
 
-    @JsonPOJOBuilder( withPrefix = "" )
-    public static final class TrackerSideEffectBundleBuilder
-    {
-    }
+  @JsonPOJOBuilder(withPrefix = "")
+  public static final class TrackerSideEffectBundleBuilder {}
 }

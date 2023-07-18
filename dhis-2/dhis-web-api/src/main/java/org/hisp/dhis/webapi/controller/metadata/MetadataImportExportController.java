@@ -35,14 +35,13 @@ import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -88,229 +87,205 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( "metadata" )
+@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping( "/metadata" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class MetadataImportExportController
-{
-    @Autowired
-    private MetadataImportService metadataImportService;
+@RequestMapping("/metadata")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class MetadataImportExportController {
+  @Autowired private MetadataImportService metadataImportService;
 
-    @Autowired
-    private ContextService contextService;
+  @Autowired private ContextService contextService;
 
-    @Autowired
-    private RenderService renderService;
+  @Autowired private RenderService renderService;
 
-    @Autowired
-    private SchemaService schemaService;
+  @Autowired private SchemaService schemaService;
 
-    @Autowired
-    private CsvImportService csvImportService;
+  @Autowired private CsvImportService csvImportService;
 
-    @Autowired
-    private GmlImportService gmlImportService;
+  @Autowired private GmlImportService gmlImportService;
 
-    @Autowired
-    private AsyncTaskExecutor taskExecutor;
+  @Autowired private AsyncTaskExecutor taskExecutor;
 
-    @Autowired
-    private MetadataExportService metadataExportService;
+  @Autowired private MetadataExportService metadataExportService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+  @Autowired private CurrentUserService currentUserService;
 
-    @Autowired
-    private UserSettingService userSettingService;
+  @Autowired private UserSettingService userSettingService;
 
-    @Autowired
-    private ObjectFactory<MetadataAsyncImporter> metadataAsyncImporterFactory;
+  @Autowired private ObjectFactory<MetadataAsyncImporter> metadataAsyncImporterFactory;
 
-    @Autowired
-    private ObjectFactory<GmlAsyncImporter> gmlAsyncImporterFactory;
+  @Autowired private ObjectFactory<GmlAsyncImporter> gmlAsyncImporterFactory;
 
-    @Autowired
-    private ObjectMapper jsonMapper;
+  @Autowired private ObjectMapper jsonMapper;
 
-    @Autowired
-    private BulkPatchManager bulkPatchManager;
+  @Autowired private BulkPatchManager bulkPatchManager;
 
-    @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage postJsonMetadata( HttpServletRequest request )
-        throws IOException
-    {
-        MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
+  @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage postJsonMetadata(HttpServletRequest request) throws IOException {
+    MetadataImportParams params =
+        metadataImportService.getParamsFromMap(contextService.getParameterValuesMap());
 
-        final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects = renderService
-            .fromMetadata( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), RenderFormat.JSON );
-        params.setObjects( objects );
+    final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects =
+        renderService.fromMetadata(
+            StreamUtils.wrapAndCheckCompressionFormat(request.getInputStream()), RenderFormat.JSON);
+    params.setObjects(objects);
 
-        if ( params.hasJobId() )
-        {
-            return startAsyncMetadata( params );
-        }
-
-        ImportReport importReport = metadataImportService.importMetadata( params );
-
-        return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
+    if (params.hasJobId()) {
+      return startAsyncMetadata(params);
     }
 
-    @PostMapping( value = "", consumes = "application/csv" )
-    @ResponseBody
-    public WebMessage postCsvMetadata( HttpServletRequest request )
-        throws IOException
-    {
-        MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
+    ImportReport importReport = metadataImportService.importMetadata(params);
 
-        String classKey = request.getParameter( "classKey" );
+    return importReport(importReport).withPlainResponseBefore(DhisApiVersion.V38);
+  }
 
-        if ( StringUtils.isEmpty( classKey ) || !CsvImportClass.classExists( classKey ) )
-        {
-            return conflict( "Cannot find Csv import class:  " + classKey );
-        }
+  @PostMapping(value = "", consumes = "application/csv")
+  @ResponseBody
+  public WebMessage postCsvMetadata(HttpServletRequest request) throws IOException {
+    MetadataImportParams params =
+        metadataImportService.getParamsFromMap(contextService.getParameterValuesMap());
 
-        params.setCsvImportClass( CsvImportClass.valueOf( classKey ) );
+    String classKey = request.getParameter("classKey");
 
-        Metadata metadata = csvImportService.fromCsv( request.getInputStream(), new CsvImportOptions()
-            .setImportClass( params.getCsvImportClass() )
-            .setFirstRowIsHeader( params.isFirstRowIsHeader() ) );
-
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-
-        if ( params.hasJobId() )
-        {
-            return startAsyncMetadata( params );
-        }
-
-        ImportReport importReport = metadataImportService.importMetadata( params );
-
-        return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
+    if (StringUtils.isEmpty(classKey) || !CsvImportClass.classExists(classKey)) {
+      return conflict("Cannot find Csv import class:  " + classKey);
     }
 
-    @PostMapping( value = "/gml", consumes = APPLICATION_XML_VALUE )
-    @ResponseBody
-    public WebMessage postGmlMetadata( HttpServletRequest request )
-        throws IOException
-    {
-        MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
+    params.setCsvImportClass(CsvImportClass.valueOf(classKey));
 
-        if ( params.hasJobId() )
-        {
-            return startAsyncGml( params, request );
-        }
-        ImportReport importReport = gmlImportService.importGml( request.getInputStream(), params );
-        return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
+    Metadata metadata =
+        csvImportService.fromCsv(
+            request.getInputStream(),
+            new CsvImportOptions()
+                .setImportClass(params.getCsvImportClass())
+                .setFirstRowIsHeader(params.isFirstRowIsHeader()));
+
+    params.addMetadata(schemaService.getMetadataSchemas(), metadata);
+
+    if (params.hasJobId()) {
+      return startAsyncMetadata(params);
     }
 
-    @GetMapping( "/csvImportClasses" )
-    public @ResponseBody List<CsvImportClass> getCsvImportClasses()
-    {
-        return Arrays.asList( CsvImportClass.values() );
+    ImportReport importReport = metadataImportService.importMetadata(params);
+
+    return importReport(importReport).withPlainResponseBefore(DhisApiVersion.V38);
+  }
+
+  @PostMapping(value = "/gml", consumes = APPLICATION_XML_VALUE)
+  @ResponseBody
+  public WebMessage postGmlMetadata(HttpServletRequest request) throws IOException {
+    MetadataImportParams params =
+        metadataImportService.getParamsFromMap(contextService.getParameterValuesMap());
+
+    if (params.hasJobId()) {
+      return startAsyncGml(params, request);
+    }
+    ImportReport importReport = gmlImportService.importGml(request.getInputStream(), params);
+    return importReport(importReport).withPlainResponseBefore(DhisApiVersion.V38);
+  }
+
+  @GetMapping("/csvImportClasses")
+  public @ResponseBody List<CsvImportClass> getCsvImportClasses() {
+    return Arrays.asList(CsvImportClass.values());
+  }
+
+  @GetMapping
+  public ResponseEntity<MetadataExportParams> getMetadata(
+      @RequestParam(required = false, defaultValue = "false") boolean translate,
+      @RequestParam(required = false) String locale,
+      @RequestParam(defaultValue = "false") boolean download) {
+    if (translate) {
+      setTranslationParams(new TranslateParams(true, locale));
     }
 
-    @GetMapping
-    public ResponseEntity<MetadataExportParams> getMetadata(
-        @RequestParam( required = false, defaultValue = "false" ) boolean translate,
-        @RequestParam( required = false ) String locale,
-        @RequestParam( defaultValue = "false" ) boolean download )
-    {
-        if ( translate )
-        {
-            setTranslationParams( new TranslateParams( true, locale ) );
-        }
+    MetadataExportParams params =
+        metadataExportService.getParamsFromMap(contextService.getParameterValuesMap());
+    metadataExportService.validate(params);
 
-        MetadataExportParams params = metadataExportService.getParamsFromMap( contextService.getParameterValuesMap() );
-        metadataExportService.validate( params );
+    return ResponseEntity.ok(params);
+  }
 
-        return ResponseEntity.ok( params );
+  @ResponseBody
+  @PatchMapping(
+      value = "sharing",
+      consumes = "application/json-patch+json",
+      produces = APPLICATION_JSON_VALUE)
+  public WebMessage bulkSharing(
+      @RequestParam(required = false, defaultValue = "false") boolean atomic,
+      HttpServletRequest request)
+      throws IOException {
+    final BulkJsonPatches bulkJsonPatches =
+        jsonMapper.readValue(request.getInputStream(), BulkJsonPatches.class);
+
+    BulkPatchParameters patchParams =
+        BulkPatchParameters.builder().validators(BulkPatchValidatorFactory.SHARING).build();
+
+    List<IdentifiableObject> patchedObjects =
+        bulkPatchManager.applyPatches(bulkJsonPatches, patchParams);
+
+    if (patchedObjects.isEmpty() || (atomic && !patchParams.hasErrorReports())) {
+      ImportReport importReport = new ImportReport();
+      importReport.addTypeReports(patchParams.getTypeReports());
+      importReport.setStatus(Status.ERROR);
+      return importReport(importReport);
     }
 
-    @ResponseBody
-    @PatchMapping( value = "sharing", consumes = "application/json-patch+json", produces = APPLICATION_JSON_VALUE )
-    public WebMessage bulkSharing( @RequestParam( required = false, defaultValue = "false" ) boolean atomic,
-        HttpServletRequest request )
-        throws IOException
-    {
-        final BulkJsonPatches bulkJsonPatches = jsonMapper.readValue( request.getInputStream(), BulkJsonPatches.class );
+    Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
 
-        BulkPatchParameters patchParams = BulkPatchParameters.builder()
-            .validators( BulkPatchValidatorFactory.SHARING )
-            .build();
+    MetadataImportParams importParams = metadataImportService.getParamsFromMap(parameterValuesMap);
 
-        List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatches( bulkJsonPatches, patchParams );
+    importParams
+        .setUser(currentUserService.getCurrentUser())
+        .setImportStrategy(ImportStrategy.UPDATE)
+        .setAtomicMode(atomic ? AtomicMode.ALL : AtomicMode.NONE)
+        .addObjects(patchedObjects);
 
-        if ( patchedObjects.isEmpty() || (atomic && !patchParams.hasErrorReports()) )
-        {
-            ImportReport importReport = new ImportReport();
-            importReport.addTypeReports( patchParams.getTypeReports() );
-            importReport.setStatus( Status.ERROR );
-            return importReport( importReport );
-        }
+    ImportReport importReport = metadataImportService.importMetadata(importParams);
 
-        Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
-
-        MetadataImportParams importParams = metadataImportService.getParamsFromMap( parameterValuesMap );
-
-        importParams.setUser( currentUserService.getCurrentUser() )
-            .setImportStrategy( ImportStrategy.UPDATE )
-            .setAtomicMode( atomic ? AtomicMode.ALL : AtomicMode.NONE )
-            .addObjects( patchedObjects );
-
-        ImportReport importReport = metadataImportService.importMetadata( importParams );
-
-        if ( patchParams.hasErrorReports() )
-        {
-            importReport.addTypeReports( patchParams.getTypeReports() );
-            importReport.setStatus( importReport.getStatus() == Status.OK ? Status.WARNING : importReport.getStatus() );
-        }
-
-        return importReport( importReport );
+    if (patchParams.hasErrorReports()) {
+      importReport.addTypeReports(patchParams.getTypeReports());
+      importReport.setStatus(
+          importReport.getStatus() == Status.OK ? Status.WARNING : importReport.getStatus());
     }
 
-    // ----------------------------------------------------------------------------------------------------------------------------------------
-    // Helpers
-    // ----------------------------------------------------------------------------------------------------------------------------------------
+    return importReport(importReport);
+  }
 
-    private WebMessage startAsyncMetadata( MetadataImportParams params )
-    {
-        MetadataAsyncImporter metadataImporter = metadataAsyncImporterFactory.getObject();
-        metadataImporter.setParams( params );
-        taskExecutor.executeTask( metadataImporter );
+  // ----------------------------------------------------------------------------------------------------------------------------------------
+  // Helpers
+  // ----------------------------------------------------------------------------------------------------------------------------------------
 
-        return jobConfigurationReport( params.getId() )
-            .setLocation( "/system/tasks/" + METADATA_IMPORT );
-    }
+  private WebMessage startAsyncMetadata(MetadataImportParams params) {
+    MetadataAsyncImporter metadataImporter = metadataAsyncImporterFactory.getObject();
+    metadataImporter.setParams(params);
+    taskExecutor.executeTask(metadataImporter);
 
-    private WebMessage startAsyncGml( MetadataImportParams params, HttpServletRequest request )
-        throws IOException
-    {
-        GmlAsyncImporter gmlImporter = gmlAsyncImporterFactory.getObject();
-        gmlImporter.setInputStream( request.getInputStream() );
-        gmlImporter.setParams( params );
-        taskExecutor.executeTask( gmlImporter );
+    return jobConfigurationReport(params.getId()).setLocation("/system/tasks/" + METADATA_IMPORT);
+  }
 
-        return jobConfigurationReport( params.getId() )
-            .setLocation( "/system/tasks/" + GML_IMPORT );
-    }
+  private WebMessage startAsyncGml(MetadataImportParams params, HttpServletRequest request)
+      throws IOException {
+    GmlAsyncImporter gmlImporter = gmlAsyncImporterFactory.getObject();
+    gmlImporter.setInputStream(request.getInputStream());
+    gmlImporter.setParams(params);
+    taskExecutor.executeTask(gmlImporter);
 
-    private void setTranslationParams( TranslateParams translateParams )
-    {
-        Locale dbLocale = getLocaleWithDefault( translateParams );
-        CurrentUserUtil.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
-    }
+    return jobConfigurationReport(params.getId()).setLocation("/system/tasks/" + GML_IMPORT);
+  }
 
-    private Locale getLocaleWithDefault( TranslateParams translateParams )
-    {
-        return translateParams.isTranslate()
-            ? translateParams
-                .getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) )
-            : null;
-    }
+  private void setTranslationParams(TranslateParams translateParams) {
+    Locale dbLocale = getLocaleWithDefault(translateParams);
+    CurrentUserUtil.setUserSetting(UserSettingKey.DB_LOCALE, dbLocale);
+  }
+
+  private Locale getLocaleWithDefault(TranslateParams translateParams) {
+    return translateParams.isTranslate()
+        ? translateParams.getLocaleWithDefault(
+            (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE))
+        : null;
+  }
 }

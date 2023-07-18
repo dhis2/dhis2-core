@@ -28,10 +28,8 @@
 package org.hisp.dhis.tracker.job;
 
 import java.io.IOException;
-
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
-
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.CodeGenerator;
@@ -42,47 +40,39 @@ import org.springframework.stereotype.Component;
  * @author Zubair Asghar
  */
 @Component
-public abstract class BaseMessageManager
-{
-    private final MessageManager messageManager;
+public abstract class BaseMessageManager {
+  private final MessageManager messageManager;
 
-    private final AsyncTaskExecutor taskExecutor;
+  private final AsyncTaskExecutor taskExecutor;
 
-    private final RenderService renderService;
+  private final RenderService renderService;
 
-    public BaseMessageManager(
-        MessageManager messageManager,
-        AsyncTaskExecutor taskExecutor,
-        RenderService renderService )
-    {
-        this.messageManager = messageManager;
-        this.taskExecutor = taskExecutor;
-        this.renderService = renderService;
-    }
+  public BaseMessageManager(
+      MessageManager messageManager, AsyncTaskExecutor taskExecutor, RenderService renderService) {
+    this.messageManager = messageManager;
+    this.taskExecutor = taskExecutor;
+    this.renderService = renderService;
+  }
 
-    public String addJob( TrackerSideEffectDataBundle sideEffectDataBundle )
-    {
-        String jobId = CodeGenerator.generateUid();
-        sideEffectDataBundle.setJobId( jobId );
+  public String addJob(TrackerSideEffectDataBundle sideEffectDataBundle) {
+    String jobId = CodeGenerator.generateUid();
+    sideEffectDataBundle.setJobId(jobId);
 
-        messageManager.sendQueue( getTopic(), sideEffectDataBundle );
+    messageManager.sendQueue(getTopic(), sideEffectDataBundle);
 
-        return jobId;
-    }
+    return jobId;
+  }
 
-    public void executeJob( Runnable runnable )
-    {
-        taskExecutor.executeTask( runnable );
-    }
+  public void executeJob(Runnable runnable) {
+    taskExecutor.executeTask(runnable);
+  }
 
-    public TrackerSideEffectDataBundle toBundle( TextMessage message )
-        throws JMSException,
-        IOException
-    {
-        String payload = message.getText();
+  public TrackerSideEffectDataBundle toBundle(TextMessage message)
+      throws JMSException, IOException {
+    String payload = message.getText();
 
-        return renderService.fromJson( payload, TrackerSideEffectDataBundle.class );
-    }
+    return renderService.fromJson(payload, TrackerSideEffectDataBundle.class);
+  }
 
-    public abstract String getTopic();
+  public abstract String getTopic();
 }

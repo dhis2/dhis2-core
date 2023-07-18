@@ -33,65 +33,75 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Checks for orphaned organisation units, namely those which are not part of
- * any hierarchy.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_orphaned.yaml
+ * Checks for orphaned organisation units, namely those which are not part of any hierarchy. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_orphaned.yaml
  * }
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityOrphanedOrganisationUnitControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
 
-    private String orgunitA;
+  private String orgunitA;
 
-    private static final String check = "orgunits_orphaned";
+  private static final String check = "orgunits_orphaned";
 
-    private static final String detailsIdType = "organisationUnits";
+  private static final String detailsIdType = "organisationUnits";
 
-    @Test
-    void testOrphanedOrganisationUnits()
-    {
+  @Test
+  void testOrphanedOrganisationUnits() {
 
-        orgunitA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}" ) );
+    orgunitA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01', " +
-                    "'parent': {'id' : '" + orgunitA + "'}}" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits",
+            "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01', "
+                + "'parent': {'id' : '"
+                + orgunitA
+                + "'}}"));
 
-        /* Create the orphaned organisation unit */
-        String orgunitC = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Cupcake District', 'shortName': 'Cupcake District', 'openingDate' : '2022-01-01'}" ) );
+    /* Create the orphaned organisation unit */
+    String orgunitC =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Cupcake District', 'shortName': 'Cupcake District', 'openingDate' : '2022-01-01'}"));
 
-        assertHasDataIntegrityIssues( detailsIdType, check,
-            33, orgunitC, "Cupcake District", null, true );
+    assertHasDataIntegrityIssues(
+        detailsIdType, check, 33, orgunitC, "Cupcake District", null, true);
+  }
 
-    }
+  @Test
+  void testNotOrphanedOrganisationUnits() {
+    orgunitA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}"));
 
-    @Test
-    void testNotOrphanedOrganisationUnits()
-    {
-        orgunitA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits",
+            "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01', "
+                + "'parent': {'id' : '"
+                + orgunitA
+                + "'}}"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01', " +
-                    "'parent': {'id' : '" + orgunitA + "'}}" ) );
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
-
-    }
-
-    @Test
-    void testOrphansZeroCase()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-    }
-
+  @Test
+  void testOrphansZeroCase() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 }

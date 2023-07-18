@@ -33,7 +33,6 @@ import static org.hisp.dhis.util.DateUtils.instantFromDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -46,59 +45,53 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class AttributeValueConverterService
-    implements TrackerConverterService<Attribute, TrackedEntityAttributeValue>
-{
-    @Override
-    public Attribute to( TrackedEntityAttributeValue teav )
-    {
-        Attribute attribute = new Attribute();
+    implements TrackerConverterService<Attribute, TrackedEntityAttributeValue> {
+  @Override
+  public Attribute to(TrackedEntityAttributeValue teav) {
+    Attribute attribute = new Attribute();
 
-        attribute.setAttribute( MetadataIdentifier.ofUid( teav.getAttribute().getUid() ) );
-        attribute.setCode( teav.getAttribute().getCode() );
-        attribute.setDisplayName( teav.getAttribute().getDisplayName() );
-        attribute.setCreatedAt( instantFromDate( teav.getCreated() ) );
-        attribute.setUpdatedAt( instantFromDate( teav.getLastUpdated() ) );
-        attribute.setStoredBy( teav.getStoredBy() );
-        attribute.setValueType( teav.getAttribute().getValueType() );
-        attribute.setValue( teav.getValue() );
+    attribute.setAttribute(MetadataIdentifier.ofUid(teav.getAttribute().getUid()));
+    attribute.setCode(teav.getAttribute().getCode());
+    attribute.setDisplayName(teav.getAttribute().getDisplayName());
+    attribute.setCreatedAt(instantFromDate(teav.getCreated()));
+    attribute.setUpdatedAt(instantFromDate(teav.getLastUpdated()));
+    attribute.setStoredBy(teav.getStoredBy());
+    attribute.setValueType(teav.getAttribute().getValueType());
+    attribute.setValue(teav.getValue());
 
-        return attribute;
+    return attribute;
+  }
+
+  @Override
+  public List<Attribute> to(List<TrackedEntityAttributeValue> attributeValues) {
+    return attributeValues.stream().map(this::to).collect(Collectors.toList());
+  }
+
+  @Override
+  public TrackedEntityAttributeValue from(TrackerPreheat preheat, Attribute at) {
+    TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute(at.getAttribute());
+
+    if (attribute == null) {
+      return null;
     }
 
-    @Override
-    public List<Attribute> to( List<TrackedEntityAttributeValue> attributeValues )
-    {
-        return attributeValues.stream().map( this::to ).collect( Collectors.toList() );
-    }
+    TrackedEntityAttributeValue teav = new TrackedEntityAttributeValue();
 
-    @Override
-    public TrackedEntityAttributeValue from( TrackerPreheat preheat, Attribute at )
-    {
-        TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( at.getAttribute() );
+    teav.setCreated(fromInstant(at.getCreatedAt()));
+    teav.setLastUpdated(fromInstant(at.getUpdatedAt()));
+    teav.setStoredBy(at.getStoredBy());
+    teav.setValue(at.getValue());
+    teav.setAttribute(attribute);
 
-        if ( attribute == null )
-        {
-            return null;
-        }
+    return teav;
+  }
 
-        TrackedEntityAttributeValue teav = new TrackedEntityAttributeValue();
-
-        teav.setCreated( fromInstant( at.getCreatedAt() ) );
-        teav.setLastUpdated( fromInstant( at.getUpdatedAt() ) );
-        teav.setStoredBy( at.getStoredBy() );
-        teav.setValue( at.getValue() );
-        teav.setAttribute( attribute );
-
-        return teav;
-    }
-
-    @Override
-    public List<TrackedEntityAttributeValue> from( TrackerPreheat preheat, List<Attribute> attributes )
-    {
-        return attributes
-            .stream()
-            .filter( Objects::nonNull )
-            .map( n -> from( preheat, n ) )
-            .collect( Collectors.toList() );
-    }
+  @Override
+  public List<TrackedEntityAttributeValue> from(
+      TrackerPreheat preheat, List<Attribute> attributes) {
+    return attributes.stream()
+        .filter(Objects::nonNull)
+        .map(n -> from(preheat, n))
+        .collect(Collectors.toList());
+  }
 }

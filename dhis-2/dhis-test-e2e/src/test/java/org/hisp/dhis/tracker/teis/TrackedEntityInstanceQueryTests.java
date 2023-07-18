@@ -32,9 +32,9 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hisp.dhis.helpers.matchers.CustomMatchers.hasToStringContaining;
 
+import com.google.gson.JsonObject;
 import java.util.Arrays;
 import java.util.stream.Stream;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.IdGenerator;
@@ -52,106 +52,115 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-class TrackedEntityInstanceQueryTests
-    extends TrackerApiTest
-{
-    private TrackerActions trackerActions;
+class TrackedEntityInstanceQueryTests extends TrackerApiTest {
+  private TrackerActions trackerActions;
 
-    private RestApiActions trackedEntityInstanceQueryActions;
+  private RestApiActions trackedEntityInstanceQueryActions;
 
-    private final String ou = Constants.ORG_UNIT_IDS[0];
+  private final String ou = Constants.ORG_UNIT_IDS[0];
 
-    private final Pair<String, String> firstNameAttribute = Pair
-        .of( "dIVt4l5vIOa", "TrackedEntityInstanceQueryTests_Firstname" + DataGenerator.randomString( 4 ) );
+  private final Pair<String, String> firstNameAttribute =
+      Pair.of(
+          "dIVt4l5vIOa",
+          "TrackedEntityInstanceQueryTests_Firstname" + DataGenerator.randomString(4));
 
-    private final Pair<String, String> lastNameAttribute = Pair
-        .of( "kZeSYCgaHTk", "TrackedEntityInstanceQueryTests_Lastname" + DataGenerator.randomString( 4 ) );
+  private final Pair<String, String> lastNameAttribute =
+      Pair.of(
+          "kZeSYCgaHTk",
+          "TrackedEntityInstanceQueryTests_Lastname" + DataGenerator.randomString(4));
 
-    private final Pair<String, String> ageProgramAttribute = Pair.of(
-        "ypGAwVRNtVY", "11" );
+  private final Pair<String, String> ageProgramAttribute = Pair.of("ypGAwVRNtVY", "11");
 
-    private String teiId;
+  private String teiId;
 
-    @BeforeAll
-    public void beforeAll()
-    {
-        trackerActions = new TrackerActions();
-        trackedEntityInstanceQueryActions = new RestApiActions( "/trackedEntityInstances/query" );
+  @BeforeAll
+  public void beforeAll() {
+    trackerActions = new TrackerActions();
+    trackedEntityInstanceQueryActions = new RestApiActions("/trackedEntityInstances/query");
 
-        new LoginActions().loginAsSuperUser();
+    new LoginActions().loginAsSuperUser();
 
-        teiId = createTei();
-    }
+    teiId = createTei();
+  }
 
-    Stream<Arguments> queryShouldReturnTeisMatchingAttributeValue()
-    {
-        return Stream.of(
-            Arguments.of( "query=LIKE:first" ),
-            Arguments.of( String
-                .format( "attribute=%s:LIKE:%s", firstNameAttribute.getKey(),
-                    firstNameAttribute.getValue().substring( 0, 8 ) ) ),
-            Arguments.of( String.format( "attribute:%s&query=LIKE:%s", lastNameAttribute.getKey(),
-                lastNameAttribute.getValue().substring( 10, 15 ) ) ),
-            Arguments.of(
-                String.format( "attribute=%s:EQ:%s&attribute=%s:EQ:%s", lastNameAttribute.getKey(),
-                    lastNameAttribute.getValue(),
-                    firstNameAttribute.getKey(), firstNameAttribute.getValue() ) ),
-            Arguments.of(
-                String.format( "attribute=%s:EQ:%s", ageProgramAttribute.getKey(), ageProgramAttribute.getValue() ) ) );
-    }
+  Stream<Arguments> queryShouldReturnTeisMatchingAttributeValue() {
+    return Stream.of(
+        Arguments.of("query=LIKE:first"),
+        Arguments.of(
+            String.format(
+                "attribute=%s:LIKE:%s",
+                firstNameAttribute.getKey(), firstNameAttribute.getValue().substring(0, 8))),
+        Arguments.of(
+            String.format(
+                "attribute:%s&query=LIKE:%s",
+                lastNameAttribute.getKey(), lastNameAttribute.getValue().substring(10, 15))),
+        Arguments.of(
+            String.format(
+                "attribute=%s:EQ:%s&attribute=%s:EQ:%s",
+                lastNameAttribute.getKey(),
+                lastNameAttribute.getValue(),
+                firstNameAttribute.getKey(),
+                firstNameAttribute.getValue())),
+        Arguments.of(
+            String.format(
+                "attribute=%s:EQ:%s",
+                ageProgramAttribute.getKey(), ageProgramAttribute.getValue())));
+  }
 
-    @ParameterizedTest( name = "/query with params [{arguments}]" )
-    @MethodSource
-    public void queryShouldReturnTeisMatchingAttributeValue( String attributesQueryParams )
-    {
+  @ParameterizedTest(name = "/query with params [{arguments}]")
+  @MethodSource
+  public void queryShouldReturnTeisMatchingAttributeValue(String attributesQueryParams) {
 
-        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
-            .add( "trackedEntityType", Constants.TRACKED_ENTITY_TYPE )
-            .add( "ouMode", "ACCESSIBLE" );
+    QueryParamsBuilder queryParamsBuilder =
+        new QueryParamsBuilder()
+            .add("trackedEntityType", Constants.TRACKED_ENTITY_TYPE)
+            .add("ouMode", "ACCESSIBLE");
 
-        trackedEntityInstanceQueryActions
-            .get( String.format( "%s&%s", queryParamsBuilder.build(), attributesQueryParams ) )
-            .validate()
-            .statusCode( 200 )
-            .body( "height", greaterThanOrEqualTo( 1 ) )
-            .body( "rows", hasItem(
+    trackedEntityInstanceQueryActions
+        .get(String.format("%s&%s", queryParamsBuilder.build(), attributesQueryParams))
+        .validate()
+        .statusCode(200)
+        .body("height", greaterThanOrEqualTo(1))
+        .body(
+            "rows",
+            hasItem(
                 hasToStringContaining(
-                    Arrays.asList( teiId, lastNameAttribute.getValue(), firstNameAttribute.getValue() ) ) ) );
-    }
+                    Arrays.asList(
+                        teiId, lastNameAttribute.getValue(), firstNameAttribute.getValue()))));
+  }
 
-    @Test
-    public void shouldReturnBadRequestProgramWithNoFilterableAttributes()
-    {
-        trackedEntityInstanceQueryActions
-            .get( "?ouMode=ACCESSIBLE&query=LIKE:value&program=jDnjGYZFkA2" )
-            .validate()
-            .statusCode( 400 )
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "httpStatusCode", equalTo( 400 ) );
-    }
+  @Test
+  public void shouldReturnBadRequestProgramWithNoFilterableAttributes() {
+    trackedEntityInstanceQueryActions
+        .get("?ouMode=ACCESSIBLE&query=LIKE:value&program=jDnjGYZFkA2")
+        .validate()
+        .statusCode(400)
+        .body("status", equalTo("ERROR"))
+        .body("httpStatusCode", equalTo(400));
+  }
 
-    private String createTei()
-    {
-        String uid = new IdGenerator().generateUniqueId();
+  private String createTei() {
+    String uid = new IdGenerator().generateUniqueId();
 
-        JsonObject tei = new TeiDataBuilder().setTeiType( Constants.TRACKED_ENTITY_TYPE )
-            .setOu( ou )
-            .addAttribute( firstNameAttribute.getKey(), firstNameAttribute.getValue() )
-            .addAttribute( lastNameAttribute.getKey(), lastNameAttribute.getValue() )
-            .addEnrollment( new EnrollmentDataBuilder()
-                .setProgram( Constants.TRACKER_PROGRAM_ID )
-                .setOu( ou )
-                .addAttribute( ageProgramAttribute.getKey(), ageProgramAttribute.getValue() ) )
-            .setId( uid )
+    JsonObject tei =
+        new TeiDataBuilder()
+            .setTeiType(Constants.TRACKED_ENTITY_TYPE)
+            .setOu(ou)
+            .addAttribute(firstNameAttribute.getKey(), firstNameAttribute.getValue())
+            .addAttribute(lastNameAttribute.getKey(), lastNameAttribute.getValue())
+            .addEnrollment(
+                new EnrollmentDataBuilder()
+                    .setProgram(Constants.TRACKER_PROGRAM_ID)
+                    .setOu(ou)
+                    .addAttribute(ageProgramAttribute.getKey(), ageProgramAttribute.getValue()))
+            .setId(uid)
             .array();
 
-        trackerActions.postAndGetJobReport( tei ).validateSuccessfulImport();
+    trackerActions.postAndGetJobReport(tei).validateSuccessfulImport();
 
-        return uid;
-    }
+    return uid;
+  }
 }

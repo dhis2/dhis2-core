@@ -27,15 +27,12 @@
  */
 package org.hisp.dhis.sms.incoming;
 
-/**
- * Status of an incoming sms.
- */
-public enum SmsMessageStatus
-{
-    INCOMING,
-    PROCESSING,
-    UNHANDLED,
-    FAILED,
-    PROCESSED,
-    SENT,
+/** Status of an incoming sms. */
+public enum SmsMessageStatus {
+  INCOMING,
+  PROCESSING,
+  UNHANDLED,
+  FAILED,
+  PROCESSED,
+  SENT,
 }

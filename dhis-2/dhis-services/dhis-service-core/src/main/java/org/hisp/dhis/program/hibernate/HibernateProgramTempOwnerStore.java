@@ -41,35 +41,33 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@Repository( "org.hisp.dhis.program.ProgramTempOwnerStore" )
-public class HibernateProgramTempOwnerStore
-    extends HibernateGenericStore<ProgramTempOwner>
-    implements ProgramTempOwnerStore
-{
-    public HibernateProgramTempOwnerStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramTempOwner.class, false );
-    }
+@Repository("org.hisp.dhis.program.ProgramTempOwnerStore")
+public class HibernateProgramTempOwnerStore extends HibernateGenericStore<ProgramTempOwner>
+    implements ProgramTempOwnerStore {
+  public HibernateProgramTempOwnerStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher) {
+    super(sessionFactory, jdbcTemplate, publisher, ProgramTempOwner.class, false);
+  }
 
-    // -------------------------------------------------------------------------
-    // ProgramTempOwnerStore implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // ProgramTempOwnerStore implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public void addProgramTempOwner( ProgramTempOwner programTempOwner )
-    {
-        sessionFactory.getCurrentSession().save( programTempOwner );
-    }
+  @Override
+  public void addProgramTempOwner(ProgramTempOwner programTempOwner) {
+    sessionFactory.getCurrentSession().save(programTempOwner);
+  }
 
-    @Override
-    public int getValidTempOwnerCount( Program program, TrackedEntityInstance entityInstance, User user )
-    {
-        final String sql = "select count(1) from programtempowner "
+  @Override
+  public int getValidTempOwnerCount(
+      Program program, TrackedEntityInstance entityInstance, User user) {
+    final String sql =
+        "select count(1) from programtempowner "
             + "where programid = ? and trackedentityinstanceid=? and userid=? "
             + "and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0";
-        return jdbcTemplate.queryForObject( sql, new Object[] { program.getId(), entityInstance.getId(), user.getId() },
-            Integer.class );
-    }
-
+    return jdbcTemplate.queryForObject(
+        sql, new Object[] {program.getId(), entityInstance.getId(), user.getId()}, Integer.class);
+  }
 }

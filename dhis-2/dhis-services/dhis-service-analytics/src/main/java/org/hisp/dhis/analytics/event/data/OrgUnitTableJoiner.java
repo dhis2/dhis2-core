@@ -37,7 +37,6 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
 
 import java.util.Date;
-
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.table.PartitionUtils;
@@ -48,86 +47,98 @@ import org.hisp.dhis.program.AnalyticsType;
  *
  * @author Jim Grace
  */
-public final class OrgUnitTableJoiner
-{
-    private OrgUnitTableJoiner()
-    {
-        throw new UnsupportedOperationException( "util" );
+public final class OrgUnitTableJoiner {
+  private OrgUnitTableJoiner() {
+    throw new UnsupportedOperationException("util");
+  }
+
+  /**
+   * Generates SQL to join any needed organisation unit tables.
+   *
+   * @param params a {@see EventQueryParams}
+   * @param analyticsType a {@see AnalyticsType}
+   */
+  public static String joinOrgUnitTables(EventQueryParams params, AnalyticsType analyticsType) {
+    String sql = "";
+
+    if (params.getOrgUnitField().getType().isOwnership()) {
+      sql += joinOwnershipTable(params);
     }
 
-    /**
-     * Generates SQL to join any needed organisation unit tables.
-     *
-     * @param params a {@see EventQueryParams}
-     * @param analyticsType a {@see AnalyticsType}
-     */
-    public static String joinOrgUnitTables( EventQueryParams params, AnalyticsType analyticsType )
-    {
-        String sql = "";
-
-        if ( params.getOrgUnitField().getType().isOwnership() )
-        {
-            sql += joinOwnershipTable( params );
-        }
-
-        if ( params.getOrgUnitField().isJoinOrgUnitTables( analyticsType ) )
-        {
-            sql += joinOrgUnitStructureTables( params, analyticsType );
-        }
-
-        return sql;
+    if (params.getOrgUnitField().isJoinOrgUnitTables(analyticsType)) {
+      sql += joinOrgUnitStructureTables(params, analyticsType);
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+    return sql;
+  }
 
-    /**
-     * Joins the ownership table.
-     * <p>
-     * The date ranges in the ownership table are based on the ownership at the
-     * start of each day. To get the ownership at the end of a day, we must add
-     * one to the date, to get the ownership at the start of the next day.
-     * <p>
-     * If we get here, the {@link DefaultEventQueryPlanner} will have separated
-     * any period dimensions to one period per query. Therefore, we can use the
-     * earliest start date and latest end date to get the date range for either
-     * that one period or any collection of filter periods.
-     */
-    private static String joinOwnershipTable( EventQueryParams params )
-    {
-        Date compareDate = (params.getOrgUnitField().getType() == OWNER_AT_START)
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * Joins the ownership table.
+   *
+   * <p>The date ranges in the ownership table are based on the ownership at the start of each day.
+   * To get the ownership at the end of a day, we must add one to the date, to get the ownership at
+   * the start of the next day.
+   *
+   * <p>If we get here, the {@link DefaultEventQueryPlanner} will have separated any period
+   * dimensions to one period per query. Therefore, we can use the earliest start date and latest
+   * end date to get the date range for either that one period or any collection of filter periods.
+   */
+  private static String joinOwnershipTable(EventQueryParams params) {
+    Date compareDate =
+        (params.getOrgUnitField().getType() == OWNER_AT_START)
             ? params.getEarliestStartDate()
-            : plusOneDay( params.getLatestEndDate() );
+            : plusOneDay(params.getLatestEndDate());
 
-        String ownershipTable = PartitionUtils.getTableName( AnalyticsTableType.OWNERSHIP.getTableName(),
-            params.getProgram() );
+    String ownershipTable =
+        PartitionUtils.getTableName(
+            AnalyticsTableType.OWNERSHIP.getTableName(), params.getProgram());
 
-        return "left join " + ownershipTable + " as " + OWNERSHIP_TBL_ALIAS + " on " +
-            quote( ANALYTICS_TBL_ALIAS, "tei" ) + " = " + quote( OWNERSHIP_TBL_ALIAS, "teiuid" ) +
-            " and '" + getMediumDateString( compareDate ) + "' between " +
-            quote( OWNERSHIP_TBL_ALIAS, "startdate" ) + " and " +
-            quote( OWNERSHIP_TBL_ALIAS, "enddate" ) + " ";
+    return "left join "
+        + ownershipTable
+        + " as "
+        + OWNERSHIP_TBL_ALIAS
+        + " on "
+        + quote(ANALYTICS_TBL_ALIAS, "tei")
+        + " = "
+        + quote(OWNERSHIP_TBL_ALIAS, "teiuid")
+        + " and '"
+        + getMediumDateString(compareDate)
+        + "' between "
+        + quote(OWNERSHIP_TBL_ALIAS, "startdate")
+        + " and "
+        + quote(OWNERSHIP_TBL_ALIAS, "enddate")
+        + " ";
+  }
+
+  /** Joins the orgunitstructure table and, if needed, the orgunitgroupsetstructure table. */
+  private static String joinOrgUnitStructureTables(
+      EventQueryParams params, AnalyticsType analyticsType) {
+    String orgUnitJoinCol = params.getOrgUnitField().getOrgUnitJoinCol(analyticsType);
+
+    String sql =
+        "left join _orgunitstructure as "
+            + ORG_UNIT_STRUCT_ALIAS
+            + " on "
+            + orgUnitJoinCol
+            + " = "
+            + quote(ORG_UNIT_STRUCT_ALIAS, "organisationunituid")
+            + " ";
+
+    if (params.hasOrganisationUnitGroupSets()) {
+      sql +=
+          "left join _organisationunitgroupsetstructure as "
+              + ORG_UNIT_GROUPSET_STRUCT_ALIAS
+              + " on "
+              + quote(ORG_UNIT_STRUCT_ALIAS, "organisationunitid")
+              + " = "
+              + quote(ORG_UNIT_GROUPSET_STRUCT_ALIAS, "organisationunitid")
+              + " ";
     }
 
-    /**
-     * Joins the orgunitstructure table and, if needed, the
-     * orgunitgroupsetstructure table.
-     */
-    private static String joinOrgUnitStructureTables( EventQueryParams params, AnalyticsType analyticsType )
-    {
-        String orgUnitJoinCol = params.getOrgUnitField().getOrgUnitJoinCol( analyticsType );
-
-        String sql = "left join _orgunitstructure as " + ORG_UNIT_STRUCT_ALIAS + " on " + orgUnitJoinCol +
-            " = " + quote( ORG_UNIT_STRUCT_ALIAS, "organisationunituid" ) + " ";
-
-        if ( params.hasOrganisationUnitGroupSets() )
-        {
-            sql += "left join _organisationunitgroupsetstructure as " + ORG_UNIT_GROUPSET_STRUCT_ALIAS +
-                " on " + quote( ORG_UNIT_STRUCT_ALIAS, "organisationunitid" ) +
-                " = " + quote( ORG_UNIT_GROUPSET_STRUCT_ALIAS, "organisationunitid" ) + " ";
-        }
-
-        return sql;
-    }
+    return sql;
+  }
 }

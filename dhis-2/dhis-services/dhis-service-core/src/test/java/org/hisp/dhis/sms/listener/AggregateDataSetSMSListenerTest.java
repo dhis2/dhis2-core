@@ -37,8 +37,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -72,188 +72,179 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import com.google.common.collect.Sets;
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
 
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class AggregateDataSetSMSListenerTest extends
-    CompressionSMSListenerTest
-{
+  @Mock private UserService userService;
 
-    @Mock
-    private UserService userService;
+  @Mock private IncomingSmsService incomingSmsService;
 
-    @Mock
-    private IncomingSmsService incomingSmsService;
+  @Mock private MessageSender smsSender;
 
-    @Mock
-    private MessageSender smsSender;
+  @Mock private DataElementService dataElementService;
 
-    @Mock
-    private DataElementService dataElementService;
+  @Mock private TrackedEntityTypeService trackedEntityTypeService;
 
-    @Mock
-    private TrackedEntityTypeService trackedEntityTypeService;
+  @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Mock
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+  @Mock private ProgramService programService;
 
-    @Mock
-    private ProgramService programService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  @Mock private CategoryService categoryService;
 
-    @Mock
-    private CategoryService categoryService;
+  @Mock private ProgramStageInstanceService programStageInstanceService;
 
-    @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+  // Needed for this test
 
-    // Needed for this test
+  @Mock private DataSetService dataSetService;
 
-    @Mock
-    private DataSetService dataSetService;
+  @Mock private CompleteDataSetRegistrationService registrationService;
 
-    @Mock
-    private CompleteDataSetRegistrationService registrationService;
+  @Mock private DataValueService dataValueService;
 
-    @Mock
-    private DataValueService dataValueService;
+  @Mock private IdentifiableObjectManager identifiableObjectManager;
 
-    @Mock
-    private IdentifiableObjectManager identifiableObjectManager;
+  private AggregateDataSetSMSListener subject;
 
-    private AggregateDataSetSMSListener subject;
+  // Needed for all
 
-    // Needed for all
+  private User user;
 
-    private User user;
+  private OutboundMessageResponse response = new OutboundMessageResponse();
 
-    private OutboundMessageResponse response = new OutboundMessageResponse();
+  private IncomingSms updatedIncomingSms;
 
-    private IncomingSms updatedIncomingSms;
+  private String message = "";
 
-    private String message = "";
+  // Needed for this test
 
-    // Needed for this test
+  private IncomingSms incomingSmsAggregate;
 
-    private IncomingSms incomingSmsAggregate;
+  private IncomingSms incomingSmsAggregateNoValues;
 
-    private IncomingSms incomingSmsAggregateNoValues;
+  private OrganisationUnit organisationUnit;
 
-    private OrganisationUnit organisationUnit;
+  private CategoryOptionCombo categoryOptionCombo;
 
-    private CategoryOptionCombo categoryOptionCombo;
+  private DataElement dataElement;
 
-    private DataElement dataElement;
+  private DataSet dataSet;
 
-    private DataSet dataSet;
+  @BeforeEach
+  public void initTest() throws SmsCompressionException {
+    subject =
+        new AggregateDataSetSMSListener(
+            incomingSmsService,
+            smsSender,
+            userService,
+            trackedEntityTypeService,
+            trackedEntityAttributeService,
+            programService,
+            organisationUnitService,
+            categoryService,
+            dataElementService,
+            programStageInstanceService,
+            dataSetService,
+            dataValueService,
+            registrationService,
+            identifiableObjectManager);
 
-    @BeforeEach
-    public void initTest()
-        throws SmsCompressionException
-    {
-        subject = new AggregateDataSetSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
-            trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageInstanceService, dataSetService, dataValueService, registrationService,
-            identifiableObjectManager );
+    setUpInstances();
 
-        setUpInstances();
+    when(userService.getUser(anyString())).thenReturn(user);
+    when(smsSender.isConfigured()).thenReturn(true);
+    when(smsSender.sendMessage(any(), any(), anyString()))
+        .thenAnswer(
+            invocation -> {
+              message = (String) invocation.getArguments()[1];
+              return response;
+            });
 
-        when( userService.getUser( anyString() ) ).thenReturn( user );
-        when( smsSender.isConfigured() ).thenReturn( true );
-        when( smsSender.sendMessage( any(), any(), anyString() ) ).thenAnswer( invocation -> {
-            message = (String) invocation.getArguments()[1];
-            return response;
-        } );
+    when(organisationUnitService.getOrganisationUnit(anyString())).thenReturn(organisationUnit);
+    when(dataSetService.getDataSet(anyString())).thenReturn(dataSet);
+    when(dataSetService.getLockStatus(any(DataSet.class), any(), any(), any()))
+        .thenReturn(LockStatus.OPEN);
+    when(dataValueService.addDataValue(any())).thenReturn(true);
+    when(categoryService.getCategoryOptionCombo(anyString())).thenReturn(categoryOptionCombo);
+    when(dataElementService.getDataElement(anyString())).thenReturn(dataElement);
 
-        when( organisationUnitService.getOrganisationUnit( anyString() ) ).thenReturn( organisationUnit );
-        when( dataSetService.getDataSet( anyString() ) ).thenReturn( dataSet );
-        when( dataSetService.getLockStatus( any( DataSet.class ), any(), any(), any() ) )
-            .thenReturn( LockStatus.OPEN );
-        when( dataValueService.addDataValue( any() ) ).thenReturn( true );
-        when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
-        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
+    doAnswer(
+            invocation -> {
+              updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
+              return updatedIncomingSms;
+            })
+        .when(incomingSmsService)
+        .update(any());
+  }
 
-        doAnswer( invocation -> {
-            updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
-            return updatedIncomingSms;
-        } ).when( incomingSmsService ).update( any() );
-    }
+  @Test
+  void testAggregateDatasetListener() {
+    subject.receive(incomingSmsAggregate);
 
-    @Test
-    void testAggregateDatasetListener()
-    {
-        subject.receive( incomingSmsAggregate );
+    assertNotNull(updatedIncomingSms);
+    assertTrue(updatedIncomingSms.isParsed());
+    assertEquals(SUCCESS_MESSAGE, message);
 
-        assertNotNull( updatedIncomingSms );
-        assertTrue( updatedIncomingSms.isParsed() );
-        assertEquals( SUCCESS_MESSAGE, message );
+    verify(incomingSmsService, times(1)).update(any());
+  }
 
-        verify( incomingSmsService, times( 1 ) ).update( any() );
-    }
+  @Test
+  void testAggregateDatasetListenerRepeat() {
+    subject.receive(incomingSmsAggregate);
+    subject.receive(incomingSmsAggregate);
 
-    @Test
-    void testAggregateDatasetListenerRepeat()
-    {
-        subject.receive( incomingSmsAggregate );
-        subject.receive( incomingSmsAggregate );
+    assertNotNull(updatedIncomingSms);
+    assertTrue(updatedIncomingSms.isParsed());
+    assertEquals(SUCCESS_MESSAGE, message);
 
-        assertNotNull( updatedIncomingSms );
-        assertTrue( updatedIncomingSms.isParsed() );
-        assertEquals( SUCCESS_MESSAGE, message );
+    verify(incomingSmsService, times(2)).update(any());
+  }
 
-        verify( incomingSmsService, times( 2 ) ).update( any() );
-    }
+  @Test
+  void testAggregateDatasetListenerNoValues() {
+    subject.receive(incomingSmsAggregateNoValues);
 
-    @Test
-    void testAggregateDatasetListenerNoValues()
-    {
-        subject.receive( incomingSmsAggregateNoValues );
+    assertNotNull(updatedIncomingSms);
+    assertTrue(updatedIncomingSms.isParsed());
+    assertEquals(NOVALUES_MESSAGE, message);
 
-        assertNotNull( updatedIncomingSms );
-        assertTrue( updatedIncomingSms.isParsed() );
-        assertEquals( NOVALUES_MESSAGE, message );
+    verify(incomingSmsService, times(1)).update(any());
+  }
 
-        verify( incomingSmsService, times( 1 ) ).update( any() );
-    }
+  private void setUpInstances() throws SmsCompressionException {
+    organisationUnit = createOrganisationUnit('O');
+    user = makeUser("U");
+    user.setPhoneNumber(ORIGINATOR);
+    user.setOrganisationUnits(Sets.newHashSet(organisationUnit));
+    dataSet = createDataSet('D');
+    dataSet.getSources().add(organisationUnit);
+    categoryOptionCombo = createCategoryOptionCombo('C');
+    dataElement = createDataElement('D');
 
-    private void setUpInstances()
-        throws SmsCompressionException
-    {
-        organisationUnit = createOrganisationUnit( 'O' );
-        user = makeUser( "U" );
-        user.setPhoneNumber( ORIGINATOR );
-        user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        dataSet = createDataSet( 'D' );
-        dataSet.getSources().add( organisationUnit );
-        categoryOptionCombo = createCategoryOptionCombo( 'C' );
-        dataElement = createDataElement( 'D' );
+    incomingSmsAggregate = createSMSFromSubmission(createAggregateDatasetSubmission());
 
-        incomingSmsAggregate = createSMSFromSubmission( createAggregateDatasetSubmission() );
+    AggregateDatasetSmsSubmission subm = createAggregateDatasetSubmission();
 
-        AggregateDatasetSmsSubmission subm = createAggregateDatasetSubmission();
+    subm.setValues(null);
+    incomingSmsAggregateNoValues = createSMSFromSubmission(subm);
+  }
 
-        subm.setValues( null );
-        incomingSmsAggregateNoValues = createSMSFromSubmission( subm );
-    }
+  private AggregateDatasetSmsSubmission createAggregateDatasetSubmission() {
+    AggregateDatasetSmsSubmission subm = new AggregateDatasetSmsSubmission();
 
-    private AggregateDatasetSmsSubmission createAggregateDatasetSubmission()
-    {
-        AggregateDatasetSmsSubmission subm = new AggregateDatasetSmsSubmission();
+    subm.setUserId(user.getUid());
+    subm.setOrgUnit(organisationUnit.getUid());
+    subm.setDataSet(dataSet.getUid());
+    subm.setComplete(true);
+    subm.setAttributeOptionCombo(categoryOptionCombo.getUid());
+    subm.setPeriod("2019W16");
+    ArrayList<SmsDataValue> values = new ArrayList<>();
+    values.add(new SmsDataValue(categoryOptionCombo.getUid(), dataElement.getUid(), "12345678"));
+    subm.setValues(values);
+    subm.setSubmissionId(1);
 
-        subm.setUserId( user.getUid() );
-        subm.setOrgUnit( organisationUnit.getUid() );
-        subm.setDataSet( dataSet.getUid() );
-        subm.setComplete( true );
-        subm.setAttributeOptionCombo( categoryOptionCombo.getUid() );
-        subm.setPeriod( "2019W16" );
-        ArrayList<SmsDataValue> values = new ArrayList<>();
-        values.add( new SmsDataValue( categoryOptionCombo.getUid(), dataElement.getUid(), "12345678" ) );
-        subm.setValues( values );
-        subm.setSubmissionId( 1 );
-
-        return subm;
-    }
+    return subm;
+  }
 }

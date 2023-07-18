@@ -40,14 +40,22 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Lars Helge Overland
  */
-@Repository( "org.hisp.dhis.trackedentity.TrackedEntityTypeStore" )
+@Repository("org.hisp.dhis.trackedentity.TrackedEntityTypeStore")
 public class HibernateTrackedEntityTypeStore
-    extends HibernateIdentifiableObjectStore<TrackedEntityType>
-    implements TrackedEntityTypeStore
-{
-    public HibernateTrackedEntityTypeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityType.class, currentUserService, aclService, true );
-    }
+    extends HibernateIdentifiableObjectStore<TrackedEntityType> implements TrackedEntityTypeStore {
+  public HibernateTrackedEntityTypeStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        TrackedEntityType.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 }

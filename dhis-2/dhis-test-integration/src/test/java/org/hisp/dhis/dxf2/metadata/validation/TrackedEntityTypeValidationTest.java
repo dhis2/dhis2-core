@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
@@ -48,66 +47,62 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-class TrackedEntityTypeValidationTest extends SingleSetupIntegrationTestBase
-{
-    @Autowired
-    private RenderService _renderService;
+class TrackedEntityTypeValidationTest extends SingleSetupIntegrationTestBase {
+  @Autowired private RenderService _renderService;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Autowired
-    private MetadataImportService importService;
+  @Autowired private MetadataImportService importService;
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        renderService = _renderService;
-        userService = _userService;
-    }
+  @Override
+  protected void setUpTest() throws Exception {
+    renderService = _renderService;
+    userService = _userService;
+  }
 
-    @Test
-    void shouldSuccessTrackedEntityAttributeExists()
-        throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
-            .fromMetadata( new ClassPathResource( "dxf2/simple_metadata.json" ).getInputStream(), RenderFormat.JSON );
-        MetadataImportParams importParams = new MetadataImportParams();
-        importParams.setImportMode( ObjectBundleMode.COMMIT );
-        importParams.setImportStrategy( ImportStrategy.CREATE );
-        importParams.setObjects( metadata );
-        ImportReport report = importService.importMetadata( importParams );
-        assertEquals( Status.OK, report.getStatus() );
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> importMetadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/import/te_type_tea_ok.json" ).getInputStream(), RenderFormat.JSON );
-        MetadataImportParams importParamsFail = new MetadataImportParams();
-        importParamsFail.setImportMode( ObjectBundleMode.COMMIT );
-        importParamsFail.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        importParamsFail.setObjects( importMetadata );
-        ImportReport importReport = importService.importMetadata( importParamsFail );
-        assertEquals( Status.OK, importReport.getStatus() );
-    }
+  @Test
+  void shouldSuccessTrackedEntityAttributeExists() throws IOException {
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(
+            new ClassPathResource("dxf2/simple_metadata.json").getInputStream(), RenderFormat.JSON);
+    MetadataImportParams importParams = new MetadataImportParams();
+    importParams.setImportMode(ObjectBundleMode.COMMIT);
+    importParams.setImportStrategy(ImportStrategy.CREATE);
+    importParams.setObjects(metadata);
+    ImportReport report = importService.importMetadata(importParams);
+    assertEquals(Status.OK, report.getStatus());
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> importMetadata =
+        renderService.fromMetadata(
+            new ClassPathResource("dxf2/import/te_type_tea_ok.json").getInputStream(),
+            RenderFormat.JSON);
+    MetadataImportParams importParamsFail = new MetadataImportParams();
+    importParamsFail.setImportMode(ObjectBundleMode.COMMIT);
+    importParamsFail.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
+    importParamsFail.setObjects(importMetadata);
+    ImportReport importReport = importService.importMetadata(importParamsFail);
+    assertEquals(Status.OK, importReport.getStatus());
+  }
 
-    @Test
-    void shouldFailMissingTrackedEntityAttribute()
-        throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
-            .fromMetadata( new ClassPathResource( "dxf2/simple_metadata.json" ).getInputStream(), RenderFormat.JSON );
-        MetadataImportParams importParams = new MetadataImportParams();
-        importParams.setImportMode( ObjectBundleMode.COMMIT );
-        importParams.setImportStrategy( ImportStrategy.CREATE );
-        importParams.setObjects( metadata );
-        ImportReport report = importService.importMetadata( importParams );
-        assertEquals( Status.OK, report.getStatus() );
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> importMetadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/import/te_type_missing_tea.json" ).getInputStream(), RenderFormat.JSON );
-        MetadataImportParams importParamsFail = new MetadataImportParams();
-        importParamsFail.setImportMode( ObjectBundleMode.COMMIT );
-        importParamsFail.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        importParamsFail.setObjects( importMetadata );
-        ImportReport importReport = importService.importMetadata( importParamsFail );
-        assertEquals( Status.ERROR, importReport.getStatus() );
-    }
+  @Test
+  void shouldFailMissingTrackedEntityAttribute() throws IOException {
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(
+            new ClassPathResource("dxf2/simple_metadata.json").getInputStream(), RenderFormat.JSON);
+    MetadataImportParams importParams = new MetadataImportParams();
+    importParams.setImportMode(ObjectBundleMode.COMMIT);
+    importParams.setImportStrategy(ImportStrategy.CREATE);
+    importParams.setObjects(metadata);
+    ImportReport report = importService.importMetadata(importParams);
+    assertEquals(Status.OK, report.getStatus());
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> importMetadata =
+        renderService.fromMetadata(
+            new ClassPathResource("dxf2/import/te_type_missing_tea.json").getInputStream(),
+            RenderFormat.JSON);
+    MetadataImportParams importParamsFail = new MetadataImportParams();
+    importParamsFail.setImportMode(ObjectBundleMode.COMMIT);
+    importParamsFail.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
+    importParamsFail.setObjects(importMetadata);
+    ImportReport importReport = importService.importMetadata(importParamsFail);
+    assertEquals(Status.ERROR, importReport.getStatus());
+  }
 }

@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -44,19 +43,19 @@ import org.hisp.dhis.system.util.ValidationUtils;
  * @author viet
  */
 @FunctionalInterface
-public interface TextCheck extends Function<String, List<ErrorReport>>
-{
-    DateCheck empty = $ -> List.of();
+public interface TextCheck extends Function<String, List<ErrorReport>> {
+  DateCheck empty = $ -> List.of();
 
-    DateCheck isBoolean = check( str -> MathUtils.isBool( str ), ErrorCode.E6016 );
+  DateCheck isBoolean = check(str -> MathUtils.isBool(str), ErrorCode.E6016);
 
-    DateCheck isTrueOnly = check( str -> "true".equals( str ), ErrorCode.E6017 );
+  DateCheck isTrueOnly = check(str -> "true".equals(str), ErrorCode.E6017);
 
-    DateCheck isEmail = check( str -> ValidationUtils.emailIsValid( str ), ErrorCode.E6018 );
+  DateCheck isEmail = check(str -> ValidationUtils.emailIsValid(str), ErrorCode.E6018);
 
-    static DateCheck check( final Predicate<String> predicate, ErrorCode errorCode )
-    {
-        return str -> !predicate.test( str ) ? List.of( new ErrorReport( AttributeValue.class, errorCode, str ) )
+  static DateCheck check(final Predicate<String> predicate, ErrorCode errorCode) {
+    return str ->
+        !predicate.test(str)
+            ? List.of(new ErrorReport(AttributeValue.class, errorCode, str))
             : List.of();
-    }
+  }
 }

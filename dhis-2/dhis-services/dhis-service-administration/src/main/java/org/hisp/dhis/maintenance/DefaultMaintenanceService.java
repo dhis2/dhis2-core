@@ -29,10 +29,8 @@ package org.hisp.dhis.maintenance;
 
 import java.util.Collections;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.commons.util.PageRange;
@@ -59,194 +57,174 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.maintenance.MaintenanceService" )
-public class DefaultMaintenanceService
-    implements MaintenanceService
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@Service("org.hisp.dhis.maintenance.MaintenanceService")
+public class DefaultMaintenanceService implements MaintenanceService {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final MaintenanceStore maintenanceStore;
+  private final MaintenanceStore maintenanceStore;
 
-    private final PeriodService periodService;
+  private final PeriodService periodService;
 
-    private final UserService userService;
+  private final UserService userService;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    private final DataValueService dataValueService;
+  private final DataValueService dataValueService;
 
-    private final DataValueAuditService dataValueAuditService;
+  private final DataValueAuditService dataValueAuditService;
 
-    private final CompleteDataSetRegistrationService completeRegistrationService;
+  private final CompleteDataSetRegistrationService completeRegistrationService;
 
-    private final DataApprovalService dataApprovalService;
+  private final DataApprovalService dataApprovalService;
 
-    private final DataApprovalAuditService dataApprovalAuditService;
+  private final DataApprovalAuditService dataApprovalAuditService;
 
-    private final ApplicationEventPublisher eventPublisher;
+  private final ApplicationEventPublisher eventPublisher;
 
-    private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
+  private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
 
-    // -------------------------------------------------------------------------
-    // MaintenanceService implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // MaintenanceService implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public int deleteZeroDataValues()
-    {
-        int result = maintenanceStore.deleteZeroDataValues();
+  @Override
+  public int deleteZeroDataValues() {
+    int result = maintenanceStore.deleteZeroDataValues();
 
-        log.info( "Deleted zero data values: " + result );
+    log.info("Deleted zero data values: " + result);
 
-        return result;
+    return result;
+  }
+
+  @Override
+  public int deleteSoftDeletedDataValues() {
+    int result = maintenanceStore.deleteSoftDeletedDataValues();
+
+    log.info("Permanently deleted soft deleted data values: " + result);
+
+    return result;
+  }
+
+  @Override
+  public int deleteSoftDeletedProgramStageInstances() {
+    int result = maintenanceStore.deleteSoftDeletedProgramStageInstances();
+
+    log.info("Permanently deleted soft deleted events: " + result);
+
+    return result;
+  }
+
+  @Override
+  public int deleteSoftDeletedRelationships() {
+    int result = maintenanceStore.deleteSoftDeletedRelationships();
+
+    log.info("Permanently deleted soft deleted relationships: " + result);
+
+    return result;
+  }
+
+  @Override
+  public int deleteSoftDeletedProgramInstances() {
+    int result = maintenanceStore.deleteSoftDeletedProgramInstances();
+
+    log.info("Permanently deleted soft deleted enrollments: " + result);
+
+    return result;
+  }
+
+  @Override
+  public int deleteSoftDeletedTrackedEntityInstances() {
+    int result = maintenanceStore.deleteSoftDeletedTrackedEntityInstances();
+
+    log.info("Permanently deleted soft deleted tracked entity instances: " + result);
+
+    return result;
+  }
+
+  @Override
+  @Transactional
+  public void prunePeriods() {
+    maintenanceStore.prunePeriods();
+  }
+
+  @Override
+  @Transactional
+  public boolean pruneData(OrganisationUnit organisationUnit) {
+    User user = currentUserService.getCurrentUser();
+
+    if (user == null || !user.isSuper()) {
+      return false;
     }
 
-    @Override
-    public int deleteSoftDeletedDataValues()
-    {
-        int result = maintenanceStore.deleteSoftDeletedDataValues();
+    dataApprovalService.deleteDataApprovals(organisationUnit);
+    dataApprovalAuditService.deleteDataApprovalAudits(organisationUnit);
+    completeRegistrationService.deleteCompleteDataSetRegistrations(organisationUnit);
+    dataValueAuditService.deleteDataValueAudits(organisationUnit);
+    dataValueService.deleteDataValues(organisationUnit);
 
-        log.info( "Permanently deleted soft deleted data values: " + result );
+    log.info("Pruned data for organisation unit: " + organisationUnit);
 
-        return result;
+    return true;
+  }
+
+  @Override
+  @Transactional
+  public boolean pruneData(DataElement dataElement) {
+    User user = currentUserService.getCurrentUser();
+
+    if (user == null || !user.isSuper()) {
+      return false;
     }
 
-    @Override
-    public int deleteSoftDeletedProgramStageInstances()
-    {
-        int result = maintenanceStore.deleteSoftDeletedProgramStageInstances();
+    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit(dataElement);
+    dataValueAuditService.deleteDataValueAudits(dataElement);
+    dataValueService.deleteDataValues(dataElement);
 
-        log.info( "Permanently deleted soft deleted events: " + result );
+    log.info("Pruned data for data element: " + dataElement);
 
-        return result;
-    }
+    return true;
+  }
 
-    @Override
-    public int deleteSoftDeletedRelationships()
-    {
-        int result = maintenanceStore.deleteSoftDeletedRelationships();
+  @Override
+  @Transactional
+  public int removeExpiredInvitations() {
+    UserQueryParams params = new UserQueryParams();
+    params.setInvitationStatus(UserInvitationStatus.EXPIRED);
 
-        log.info( "Permanently deleted soft deleted relationships: " + result );
+    int userCount = userService.getUserCount(params);
+    int removeCount = 0;
 
-        return result;
-    }
+    PageRange range = new PageRange(userCount).setPageSize(200);
+    List<int[]> pages = range.getPages();
+    Collections.reverse(pages); // Iterate from end since users are
+    // deleted
 
-    @Override
-    public int deleteSoftDeletedProgramInstances()
-    {
-        int result = maintenanceStore.deleteSoftDeletedProgramInstances();
+    log.debug("Pages: " + pages);
 
-        log.info( "Permanently deleted soft deleted enrollments: " + result );
+    for (int[] page : pages) {
+      params.setFirst(page[0]);
+      params.setMax(range.getPageSize());
+      List<User> users = userService.getUsers(params);
 
-        return result;
-    }
-
-    @Override
-    public int deleteSoftDeletedTrackedEntityInstances()
-    {
-        int result = maintenanceStore.deleteSoftDeletedTrackedEntityInstances();
-
-        log.info( "Permanently deleted soft deleted tracked entity instances: " + result );
-
-        return result;
-    }
-
-    @Override
-    @Transactional
-    public void prunePeriods()
-    {
-        maintenanceStore.prunePeriods();
-    }
-
-    @Override
-    @Transactional
-    public boolean pruneData( OrganisationUnit organisationUnit )
-    {
-        User user = currentUserService.getCurrentUser();
-
-        if ( user == null || !user.isSuper() )
-        {
-            return false;
+      for (User user : users) {
+        try {
+          userService.deleteUser(user);
+          removeCount++;
+        } catch (DeleteNotAllowedException ex) {
+          log.warn("Could not delete user " + user.getUsername());
         }
-
-        dataApprovalService.deleteDataApprovals( organisationUnit );
-        dataApprovalAuditService.deleteDataApprovalAudits( organisationUnit );
-        completeRegistrationService.deleteCompleteDataSetRegistrations( organisationUnit );
-        dataValueAuditService.deleteDataValueAudits( organisationUnit );
-        dataValueService.deleteDataValues( organisationUnit );
-
-        log.info( "Pruned data for organisation unit: " + organisationUnit );
-
-        return true;
+      }
     }
 
-    @Override
-    @Transactional
-    public boolean pruneData( DataElement dataElement )
-    {
-        User user = currentUserService.getCurrentUser();
+    log.info("Removed expired invitations: " + removeCount);
 
-        if ( user == null || !user.isSuper() )
-        {
-            return false;
-        }
+    return removeCount;
+  }
 
-        trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit( dataElement );
-        dataValueAuditService.deleteDataValueAudits( dataElement );
-        dataValueService.deleteDataValues( dataElement );
-
-        log.info( "Pruned data for data element: " + dataElement );
-
-        return true;
-    }
-
-    @Override
-    @Transactional
-    public int removeExpiredInvitations()
-    {
-        UserQueryParams params = new UserQueryParams();
-        params.setInvitationStatus( UserInvitationStatus.EXPIRED );
-
-        int userCount = userService.getUserCount( params );
-        int removeCount = 0;
-
-        PageRange range = new PageRange( userCount ).setPageSize( 200 );
-        List<int[]> pages = range.getPages();
-        Collections.reverse( pages ); // Iterate from end since users are
-                                     // deleted
-
-        log.debug( "Pages: " + pages );
-
-        for ( int[] page : pages )
-        {
-            params.setFirst( page[0] );
-            params.setMax( range.getPageSize() );
-            List<User> users = userService.getUsers( params );
-
-            for ( User user : users )
-            {
-                try
-                {
-                    userService.deleteUser( user );
-                    removeCount++;
-                }
-                catch ( DeleteNotAllowedException ex )
-                {
-                    log.warn( "Could not delete user " + user.getUsername() );
-                }
-            }
-        }
-
-        log.info( "Removed expired invitations: " + removeCount );
-
-        return removeCount;
-    }
-
-    @Override
-    public void clearApplicationCaches()
-    {
-        eventPublisher.publishEvent( new ApplicationCacheClearedEvent() );
-    }
+  @Override
+  public void clearApplicationCaches() {
+    eventPublisher.publishEvent(new ApplicationCacheClearedEvent());
+  }
 }

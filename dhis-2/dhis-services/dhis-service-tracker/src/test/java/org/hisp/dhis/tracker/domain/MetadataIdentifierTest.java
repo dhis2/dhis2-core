@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
@@ -41,278 +40,255 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.junit.jupiter.api.Test;
 
-class MetadataIdentifierTest
-{
-    @Test
-    void ofUid()
-    {
+class MetadataIdentifierTest {
+  @Test
+  void ofUid() {
 
-        Program p = new Program();
-        p.setUid( "MNWZ6hnuhSw" );
+    Program p = new Program();
+    p.setUid("MNWZ6hnuhSw");
 
-        assertEquals( MetadataIdentifier.of( TrackerIdScheme.UID, "MNWZ6hnuhSw", null ),
-            MetadataIdentifier.ofUid( p ) );
-    }
+    assertEquals(
+        MetadataIdentifier.of(TrackerIdScheme.UID, "MNWZ6hnuhSw", null),
+        MetadataIdentifier.ofUid(p));
+  }
 
-    @Test
-    void ofUidGivenNull()
-    {
+  @Test
+  void ofUidGivenNull() {
 
-        assertEquals( MetadataIdentifier.of( TrackerIdScheme.UID, null, null ),
-            MetadataIdentifier.ofUid( (IdentifiableObject) null ) );
-    }
+    assertEquals(
+        MetadataIdentifier.of(TrackerIdScheme.UID, null, null),
+        MetadataIdentifier.ofUid((IdentifiableObject) null));
+  }
 
-    @Test
-    void ofCode()
-    {
+  @Test
+  void ofCode() {
 
-        Program p = new Program();
-        p.setCode( "cloud" );
+    Program p = new Program();
+    p.setCode("cloud");
 
-        assertEquals( MetadataIdentifier.of( TrackerIdScheme.CODE, "cloud", null ),
-            MetadataIdentifier.ofCode( p ) );
-    }
+    assertEquals(
+        MetadataIdentifier.of(TrackerIdScheme.CODE, "cloud", null), MetadataIdentifier.ofCode(p));
+  }
 
-    @Test
-    void ofCodeGivenNull()
-    {
+  @Test
+  void ofCodeGivenNull() {
 
-        assertEquals( MetadataIdentifier.of( TrackerIdScheme.CODE, null, null ),
-            MetadataIdentifier.ofCode( (IdentifiableObject) null ) );
-    }
+    assertEquals(
+        MetadataIdentifier.of(TrackerIdScheme.CODE, null, null),
+        MetadataIdentifier.ofCode((IdentifiableObject) null));
+  }
 
-    @Test
-    void getIdentifierOrAttributeValue()
-    {
+  @Test
+  void getIdentifierOrAttributeValue() {
 
-        assertEquals( "wow", MetadataIdentifier.ofUid( "wow" ).getIdentifierOrAttributeValue() );
-        assertEquals( "wow", MetadataIdentifier.ofCode( "wow" ).getIdentifierOrAttributeValue() );
-        assertEquals( "wow", MetadataIdentifier.ofName( "wow" ).getIdentifierOrAttributeValue() );
-    }
+    assertEquals("wow", MetadataIdentifier.ofUid("wow").getIdentifierOrAttributeValue());
+    assertEquals("wow", MetadataIdentifier.ofCode("wow").getIdentifierOrAttributeValue());
+    assertEquals("wow", MetadataIdentifier.ofName("wow").getIdentifierOrAttributeValue());
+  }
 
-    @Test
-    void getIdentifierOrAttributeValueGivenAttribute()
-    {
+  @Test
+  void getIdentifierOrAttributeValueGivenAttribute() {
 
-        assertEquals( "wow", MetadataIdentifier.ofAttribute( "MNWZ6hnuhSw", "wow" ).getIdentifierOrAttributeValue() );
-    }
+    assertEquals(
+        "wow",
+        MetadataIdentifier.ofAttribute("MNWZ6hnuhSw", "wow").getIdentifierOrAttributeValue());
+  }
 
-    @Test
-    void isEqualToNull()
-    {
+  @Test
+  void isEqualToNull() {
 
-        Program p = new Program();
-        p.setUid( CodeGenerator.generateUid() );
+    Program p = new Program();
+    p.setUid(CodeGenerator.generateUid());
 
-        MetadataIdentifier id = MetadataIdentifier.ofUid( p );
+    MetadataIdentifier id = MetadataIdentifier.ofUid(p);
 
-        assertFalse( id.isEqualTo( null ) );
-    }
+    assertFalse(id.isEqualTo(null));
+  }
 
-    @Test
-    void isEqualToUID()
-    {
+  @Test
+  void isEqualToUID() {
 
-        Program p = new Program();
-        p.setUid( CodeGenerator.generateUid() );
+    Program p = new Program();
+    p.setUid(CodeGenerator.generateUid());
 
-        MetadataIdentifier id = MetadataIdentifier.ofUid( p );
+    MetadataIdentifier id = MetadataIdentifier.ofUid(p);
 
-        assertTrue( id.isEqualTo( p ) );
-    }
+    assertTrue(id.isEqualTo(p));
+  }
 
-    @Test
-    void isEqualToUIDWithDifferentUID()
-    {
+  @Test
+  void isEqualToUIDWithDifferentUID() {
 
-        Program p = new Program();
-        p.setUid( CodeGenerator.generateUid() );
+    Program p = new Program();
+    p.setUid(CodeGenerator.generateUid());
 
-        MetadataIdentifier id = MetadataIdentifier.ofUid( CodeGenerator.generateUid() );
+    MetadataIdentifier id = MetadataIdentifier.ofUid(CodeGenerator.generateUid());
 
-        assertFalse( id.isEqualTo( p ) );
-    }
+    assertFalse(id.isEqualTo(p));
+  }
 
-    @Test
-    void isEqualToUIDWithNull()
-    {
+  @Test
+  void isEqualToUIDWithNull() {
 
-        Program p = new Program();
-        p.setUid( CodeGenerator.generateUid() );
+    Program p = new Program();
+    p.setUid(CodeGenerator.generateUid());
 
-        MetadataIdentifier id = MetadataIdentifier.ofUid( (String) null );
+    MetadataIdentifier id = MetadataIdentifier.ofUid((String) null);
 
-        assertFalse( id.isEqualTo( p ) );
-    }
+    assertFalse(id.isEqualTo(p));
+  }
 
-    @Test
-    void isEqualToCode()
-    {
+  @Test
+  void isEqualToCode() {
 
-        Program p = new Program();
-        p.setCode( "PROGRAM" );
+    Program p = new Program();
+    p.setCode("PROGRAM");
 
-        MetadataIdentifier id = MetadataIdentifier.ofCode( "PROGRAM" );
+    MetadataIdentifier id = MetadataIdentifier.ofCode("PROGRAM");
 
-        assertTrue( id.isEqualTo( p ) );
-    }
+    assertTrue(id.isEqualTo(p));
+  }
 
-    @Test
-    void isEqualToCodeWithDifferentCode()
-    {
+  @Test
+  void isEqualToCodeWithDifferentCode() {
 
-        Program p = new Program();
-        p.setName( "PROGRAM" );
+    Program p = new Program();
+    p.setName("PROGRAM");
 
-        MetadataIdentifier id = MetadataIdentifier.ofCode( "PROGRAMB" );
+    MetadataIdentifier id = MetadataIdentifier.ofCode("PROGRAMB");
 
-        assertFalse( id.isEqualTo( p ) );
-    }
+    assertFalse(id.isEqualTo(p));
+  }
 
-    @Test
-    void isEqualToName()
-    {
+  @Test
+  void isEqualToName() {
 
-        Program p = new Program();
-        p.setName( "program" );
+    Program p = new Program();
+    p.setName("program");
 
-        MetadataIdentifier id = MetadataIdentifier.ofName( "program" );
+    MetadataIdentifier id = MetadataIdentifier.ofName("program");
 
-        assertTrue( id.isEqualTo( p ) );
-    }
+    assertTrue(id.isEqualTo(p));
+  }
 
-    @Test
-    void isEqualToNameWithDifferentName()
-    {
+  @Test
+  void isEqualToNameWithDifferentName() {
 
-        Program p = new Program();
-        p.setName( "program" );
+    Program p = new Program();
+    p.setName("program");
 
-        MetadataIdentifier id = MetadataIdentifier.ofName( "programB" );
+    MetadataIdentifier id = MetadataIdentifier.ofName("programB");
 
-        assertFalse( id.isEqualTo( p ) );
-    }
+    assertFalse(id.isEqualTo(p));
+  }
 
-    @Test
-    void isEqualToNameWithNull()
-    {
+  @Test
+  void isEqualToNameWithNull() {
 
-        Program p = new Program();
-        p.setName( "program" );
+    Program p = new Program();
+    p.setName("program");
 
-        MetadataIdentifier id = MetadataIdentifier.ofName( (String) null );
+    MetadataIdentifier id = MetadataIdentifier.ofName((String) null);
 
-        assertFalse( id.isEqualTo( p ) );
-    }
+    assertFalse(id.isEqualTo(p));
+  }
 
-    @Test
-    void isEqualToAttribute()
-    {
+  @Test
+  void isEqualToAttribute() {
 
-        Program p = new Program();
-        Attribute att = new Attribute();
-        att.setUid( CodeGenerator.generateUid() );
-        p.setAttributeValues( Set.of( new AttributeValue( att, "sunshine" ) ) );
+    Program p = new Program();
+    Attribute att = new Attribute();
+    att.setUid(CodeGenerator.generateUid());
+    p.setAttributeValues(Set.of(new AttributeValue(att, "sunshine")));
 
-        MetadataIdentifier id = MetadataIdentifier.ofAttribute( att.getUid(), "sunshine" );
+    MetadataIdentifier id = MetadataIdentifier.ofAttribute(att.getUid(), "sunshine");
 
-        assertTrue( id.isEqualTo( p ) );
-    }
+    assertTrue(id.isEqualTo(p));
+  }
 
-    @Test
-    void isEqualToAttributeWithDifferentUID()
-    {
+  @Test
+  void isEqualToAttributeWithDifferentUID() {
 
-        Program p = new Program();
-        p.setAttributeValues(
-            Set.of( attributeValue( "sunshine" ), attributeValue( "grass" ), attributeValue( "rocks" ) ) );
+    Program p = new Program();
+    p.setAttributeValues(
+        Set.of(attributeValue("sunshine"), attributeValue("grass"), attributeValue("rocks")));
 
-        MetadataIdentifier id = MetadataIdentifier.ofAttribute( CodeGenerator.generateUid(), "sunshine" );
+    MetadataIdentifier id = MetadataIdentifier.ofAttribute(CodeGenerator.generateUid(), "sunshine");
 
-        assertFalse( id.isEqualTo( p ) );
-    }
+    assertFalse(id.isEqualTo(p));
+  }
 
-    @Test
-    void isEqualToAttributeWithDifferentValue()
-    {
+  @Test
+  void isEqualToAttributeWithDifferentValue() {
 
-        Program p = new Program();
-        Attribute att = new Attribute( CodeGenerator.generateUid() );
-        p.setAttributeValues(
-            Set.of( new AttributeValue( att, "sunshine" ), attributeValue( "grass" ), attributeValue( "rocks" ) ) );
+    Program p = new Program();
+    Attribute att = new Attribute(CodeGenerator.generateUid());
+    p.setAttributeValues(
+        Set.of(
+            new AttributeValue(att, "sunshine"), attributeValue("grass"), attributeValue("rocks")));
 
-        MetadataIdentifier id = MetadataIdentifier.ofAttribute( att.getUid(), "clouds" );
+    MetadataIdentifier id = MetadataIdentifier.ofAttribute(att.getUid(), "clouds");
 
-        assertFalse( id.isEqualTo( p ) );
-    }
+    assertFalse(id.isEqualTo(p));
+  }
 
-    @Test
-    void isBlankTrueForUIDIfIdentifierIsBlank()
-    {
+  @Test
+  void isBlankTrueForUIDIfIdentifierIsBlank() {
 
-        assertTrue( MetadataIdentifier.ofUid( (String) null ).isBlank() );
-        assertTrue( MetadataIdentifier.ofUid( " " ).isBlank() );
-    }
+    assertTrue(MetadataIdentifier.ofUid((String) null).isBlank());
+    assertTrue(MetadataIdentifier.ofUid(" ").isBlank());
+  }
 
-    @Test
-    void isBlankFalseForUIDIfIdentifierIsNotBlank()
-    {
+  @Test
+  void isBlankFalseForUIDIfIdentifierIsNotBlank() {
 
-        assertFalse( MetadataIdentifier.ofUid( "a" ).isBlank() );
-    }
+    assertFalse(MetadataIdentifier.ofUid("a").isBlank());
+  }
 
-    @Test
-    void isBlankTrueForCodeIfIdentifierIsBlank()
-    {
+  @Test
+  void isBlankTrueForCodeIfIdentifierIsBlank() {
 
-        assertTrue( MetadataIdentifier.ofCode( (String) null ).isBlank() );
-        assertTrue( MetadataIdentifier.ofCode( " " ).isBlank() );
-    }
+    assertTrue(MetadataIdentifier.ofCode((String) null).isBlank());
+    assertTrue(MetadataIdentifier.ofCode(" ").isBlank());
+  }
 
-    @Test
-    void isBlankFalseForCodeIfIdentifierIsNotBlank()
-    {
+  @Test
+  void isBlankFalseForCodeIfIdentifierIsNotBlank() {
 
-        assertFalse( MetadataIdentifier.ofCode( "a" ).isBlank() );
-    }
+    assertFalse(MetadataIdentifier.ofCode("a").isBlank());
+  }
 
-    @Test
-    void isBlankTrueForNameIfIdentifierIsBlank()
-    {
+  @Test
+  void isBlankTrueForNameIfIdentifierIsBlank() {
 
-        assertTrue( MetadataIdentifier.ofName( (String) null ).isBlank() );
-        assertTrue( MetadataIdentifier.ofName( " " ).isBlank() );
-    }
+    assertTrue(MetadataIdentifier.ofName((String) null).isBlank());
+    assertTrue(MetadataIdentifier.ofName(" ").isBlank());
+  }
 
-    @Test
-    void isBlankFalseForNameIfIdentifierIsNotBlank()
-    {
+  @Test
+  void isBlankFalseForNameIfIdentifierIsNotBlank() {
 
-        assertFalse( MetadataIdentifier.ofName( "a" ).isBlank() );
-    }
+    assertFalse(MetadataIdentifier.ofName("a").isBlank());
+  }
 
-    @Test
-    void isBlankTrueForAttributeIfIdentifierIsBlank()
-    {
+  @Test
+  void isBlankTrueForAttributeIfIdentifierIsBlank() {
 
-        assertTrue( MetadataIdentifier.ofAttribute( "XkJ3MQigbiU", null ).isBlank() );
-        assertTrue( MetadataIdentifier.ofAttribute( "XkJ3MQigbiU", " " ).isBlank() );
-    }
+    assertTrue(MetadataIdentifier.ofAttribute("XkJ3MQigbiU", null).isBlank());
+    assertTrue(MetadataIdentifier.ofAttribute("XkJ3MQigbiU", " ").isBlank());
+  }
 
-    @Test
-    void isBlankFalseForAttributeIfIdentifierIsNotBlank()
-    {
+  @Test
+  void isBlankFalseForAttributeIfIdentifierIsNotBlank() {
 
-        assertFalse( MetadataIdentifier.ofAttribute( "XkJ3MQigbiU", "a" ).isBlank() );
-    }
+    assertFalse(MetadataIdentifier.ofAttribute("XkJ3MQigbiU", "a").isBlank());
+  }
 
-    private AttributeValue attributeValue( String value )
-    {
-        return attributeValue( CodeGenerator.generateUid(), value );
-    }
+  private AttributeValue attributeValue(String value) {
+    return attributeValue(CodeGenerator.generateUid(), value);
+  }
 
-    private AttributeValue attributeValue( String uid, String value )
-    {
-        return new AttributeValue( new Attribute( uid ), value );
-    }
+  private AttributeValue attributeValue(String uid, String value) {
+    return new AttributeValue(new Attribute(uid), value);
+  }
 }

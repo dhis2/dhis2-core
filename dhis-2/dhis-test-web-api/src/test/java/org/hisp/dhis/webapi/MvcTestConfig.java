@@ -29,11 +29,12 @@ package org.hisp.dhis.webapi;
 
 import static org.springframework.http.MediaType.parseMediaType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -91,235 +92,218 @@ import org.springframework.web.servlet.handler.ConversionServiceExposingIntercep
 import org.springframework.web.servlet.resource.ResourceUrlProvider;
 import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInterceptor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Configuration
 @EnableWebMvc
-@EnableGlobalMethodSecurity( prePostEnabled = true )
-public class MvcTestConfig implements WebMvcConfigurer
-{
-    @Autowired
-    private CurrentUserService currentUserService;
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class MvcTestConfig implements WebMvcConfigurer {
+  @Autowired private CurrentUserService currentUserService;
 
-    @Autowired
-    private UserSettingService userSettingService;
+  @Autowired private UserSettingService userSettingService;
 
-    @Autowired
-    public DefaultRequestInfoService requestInfoService;
+  @Autowired public DefaultRequestInfoService requestInfoService;
 
-    @Autowired
-    private MetadataExportService metadataExportService;
+  @Autowired private MetadataExportService metadataExportService;
 
-    @Autowired
-    private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
+  @Autowired
+  private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
 
-    @Autowired
-    @Qualifier( "jsonMapper" )
-    private ObjectMapper jsonMapper;
+  @Autowired
+  @Qualifier("jsonMapper")
+  private ObjectMapper jsonMapper;
 
-    @Autowired
-    @Qualifier( "xmlMapper" )
-    private ObjectMapper xmlMapper;
+  @Autowired
+  @Qualifier("xmlMapper")
+  private ObjectMapper xmlMapper;
 
-    @Autowired
-    private FieldFilterService fieldFilterService;
+  @Autowired private FieldFilterService fieldFilterService;
 
-    @Autowired
-    private FormattingConversionService mvcConversionService;
+  @Autowired private FormattingConversionService mvcConversionService;
 
-    @Autowired
-    private ResourceUrlProvider mvcResourceUrlProvider;
+  @Autowired private ResourceUrlProvider mvcResourceUrlProvider;
 
-    @Bean
-    @Primary
-    public CustomRequestMappingHandlerMapping requestMappingHandlerMapping(
-        FormattingConversionService mvcConversionService, ResourceUrlProvider mvcResourceUrlProvider )
-    {
-        CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
-        mapping.setOrder( 0 );
-        TestInterceptorRegistry registry = new TestInterceptorRegistry();
-        addInterceptors( registry );
-        registry.addInterceptor( new ConversionServiceExposingInterceptor( mvcConversionService ) );
-        registry.addInterceptor( new ResourceUrlProviderExposingInterceptor( mvcResourceUrlProvider ) );
-        registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
-        registry.addInterceptor( new RequestInfoInterceptor( requestInfoService ) );
-        mapping.setInterceptors( registry.getInterceptors().toArray() );
+  @Bean
+  @Primary
+  public CustomRequestMappingHandlerMapping requestMappingHandlerMapping(
+      FormattingConversionService mvcConversionService,
+      ResourceUrlProvider mvcResourceUrlProvider) {
+    CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
+    mapping.setOrder(0);
+    TestInterceptorRegistry registry = new TestInterceptorRegistry();
+    addInterceptors(registry);
+    registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService));
+    registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
+    registry.addInterceptor(new UserContextInterceptor(currentUserService, userSettingService));
+    registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
+    mapping.setInterceptors(registry.getInterceptors().toArray());
 
-        CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
-            mediaTypeMap );
-        pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly( true );
+    CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
+        new CustomPathExtensionContentNegotiationStrategy(mediaTypeMap);
+    pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly(true);
 
-        mapping.setContentNegotiationManager( new ContentNegotiationManager(
+    mapping.setContentNegotiationManager(
+        new ContentNegotiationManager(
             Arrays.asList(
                 pathExtensionNegotiationStrategy,
                 new HeaderContentNegotiationStrategy(),
-                new FixedContentNegotiationStrategy( MediaType.APPLICATION_JSON ) ) ) );
+                new FixedContentNegotiationStrategy(MediaType.APPLICATION_JSON))));
 
-        return mapping;
-    }
+    return mapping;
+  }
 
-    private Map<String, MediaType> mediaTypeMap = new ImmutableMap.Builder<String, MediaType>()
-        .put( "json", MediaType.APPLICATION_JSON )
-        .put( "json.gz", parseMediaType( "application/json+gzip" ) )
-        .put( "json.zip", parseMediaType( "application/json+zip" ) )
-        .put( "jsonp", parseMediaType( "application/javascript" ) )
-        .put( "xml", MediaType.APPLICATION_XML )
-        .put( "xml.gz", parseMediaType( "application/xml+gzip" ) )
-        .put( "xml.zip", parseMediaType( "application/xml+zip" ) )
-        .put( "png", MediaType.IMAGE_PNG )
-        .put( "pdf", MediaType.APPLICATION_PDF )
-        .put( "xls", parseMediaType( "application/vnd.ms-excel" ) )
-        .put( "xlsx", parseMediaType( "application/vnd.ms-excel" ) )
-        .put( "csv", parseMediaType( "text/csv" ) )
-        .put( "csv.gz", parseMediaType( "application/csv+gzip" ) )
-        .put( "csv.zip", parseMediaType( "application/csv+zip" ) )
-        .put( "adx.xml", parseMediaType( "application/adx+xml" ) )
-        .put( "adx.xml.gz", parseMediaType( "application/adx+xml+gzip" ) )
-        .put( "adx.xml.zip", parseMediaType( "application/adx+xml+zip" ) )
-        .put( "geojson", parseMediaType( "application/json+geojson" ) )
-        .build();
+  private Map<String, MediaType> mediaTypeMap =
+      new ImmutableMap.Builder<String, MediaType>()
+          .put("json", MediaType.APPLICATION_JSON)
+          .put("json.gz", parseMediaType("application/json+gzip"))
+          .put("json.zip", parseMediaType("application/json+zip"))
+          .put("jsonp", parseMediaType("application/javascript"))
+          .put("xml", MediaType.APPLICATION_XML)
+          .put("xml.gz", parseMediaType("application/xml+gzip"))
+          .put("xml.zip", parseMediaType("application/xml+zip"))
+          .put("png", MediaType.IMAGE_PNG)
+          .put("pdf", MediaType.APPLICATION_PDF)
+          .put("xls", parseMediaType("application/vnd.ms-excel"))
+          .put("xlsx", parseMediaType("application/vnd.ms-excel"))
+          .put("csv", parseMediaType("text/csv"))
+          .put("csv.gz", parseMediaType("application/csv+gzip"))
+          .put("csv.zip", parseMediaType("application/csv+zip"))
+          .put("adx.xml", parseMediaType("application/adx+xml"))
+          .put("adx.xml.gz", parseMediaType("application/adx+xml+gzip"))
+          .put("adx.xml.zip", parseMediaType("application/adx+xml+zip"))
+          .put("geojson", parseMediaType("application/json+geojson"))
+          .build();
 
+  @Override
+  public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+    CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
+        new CustomPathExtensionContentNegotiationStrategy(mediaTypeMap);
+
+    configurer.strategies(
+        Arrays.asList(
+            pathExtensionNegotiationStrategy,
+            new HeaderContentNegotiationStrategy(),
+            new FixedContentNegotiationStrategy(MediaType.APPLICATION_JSON)));
+  }
+
+  @Override
+  public void configurePathMatch(PathMatchConfigurer configurer) {
+    configurer.setUseSuffixPatternMatch(false);
+    configurer.setUseRegisteredSuffixPatternMatch(true);
+  }
+
+  @Bean
+  public NodeService nodeService() {
+    return new DefaultNodeService();
+  }
+
+  @Bean("databaseInfo")
+  public DatabaseInfo databaseInfo() {
+    return new DatabaseInfo();
+  }
+
+  @Primary
+  @Bean("systemService")
+  public SystemService systemService() {
+    SystemService systemService = Mockito.mock(SystemService.class);
+    Mockito.when(systemService.getSystemInfo()).thenReturn(new SystemInfo());
+    return systemService;
+  }
+
+  @Override
+  public void addInterceptors(InterceptorRegistry registry) {
+    registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService));
+    registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
+
+    registry.addInterceptor(new UserContextInterceptor(currentUserService, userSettingService));
+    registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
+  }
+
+  @Bean
+  public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
+    return new MappingJackson2HttpMessageConverter(jsonMapper);
+  }
+
+  @Bean
+  public MappingJackson2XmlHttpMessageConverter mappingJackson2XmlHttpMessageConverter() {
+    XmlPathMappingJackson2XmlHttpMessageConverter messageConverter =
+        new XmlPathMappingJackson2XmlHttpMessageConverter(xmlMapper);
+
+    messageConverter.setSupportedMediaTypes(
+        Arrays.asList(
+            new MediaType("application", "xml", StandardCharsets.UTF_8),
+            new MediaType("application", "*+xml", StandardCharsets.UTF_8)));
+
+    return messageConverter;
+  }
+
+  @Override
+  public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+    Arrays.stream(Compression.values())
+        .forEach(
+            compression -> converters.add(new JsonMessageConverter(nodeService(), compression)));
+    Arrays.stream(Compression.values())
+        .forEach(
+            compression -> converters.add(new XmlMessageConverter(nodeService(), compression)));
+    Arrays.stream(Compression.values())
+        .forEach(
+            compression -> converters.add(new CsvMessageConverter(nodeService(), compression)));
+
+    Arrays.stream(Compression.values())
+        .forEach(
+            compression ->
+                converters.add(
+                    new MetadataExportParamsMessageConverter(metadataExportService, compression)));
+
+    Arrays.stream(Compression.values())
+        .forEach(
+            compression ->
+                converters.add(
+                    new StreamingJsonRootMessageConverter(fieldFilterService, compression)));
+
+    converters.add(new StringHttpMessageConverter());
+    converters.add(new ByteArrayHttpMessageConverter());
+    converters.add(new FormHttpMessageConverter());
+
+    converters.add(mappingJackson2HttpMessageConverter());
+    converters.add(mappingJackson2XmlHttpMessageConverter());
+  }
+
+  @Override
+  public void addFormatters(FormatterRegistry registry) {
+    registry.addConverter(new FieldPathConverter());
+  }
+
+  @Bean
+  public DhisApiVersionHandlerMethodArgumentResolver dhisApiVersionHandlerMethodArgumentResolver() {
+    return new DhisApiVersionHandlerMethodArgumentResolver();
+  }
+
+  @Override
+  public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+    resolvers.add(dhisApiVersionHandlerMethodArgumentResolver());
+    resolvers.add(currentUserHandlerMethodArgumentResolver);
+  }
+
+  @Bean
+  public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+    DefaultMethodSecurityExpressionHandler expressionHandler =
+        new DefaultMethodSecurityExpressionHandler();
+    expressionHandler.setDefaultRolePrefix("");
+    return expressionHandler;
+  }
+
+  @Bean
+  @Primary
+  public MessageSender fakeMessageSender() {
+    return new FakeMessageSender();
+  }
+
+  static final class TestInterceptorRegistry extends InterceptorRegistry {
     @Override
-    public void configureContentNegotiation( ContentNegotiationConfigurer configurer )
-    {
-        CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
-            mediaTypeMap );
-
-        configurer.strategies(
-            Arrays.asList(
-                pathExtensionNegotiationStrategy,
-                new HeaderContentNegotiationStrategy(),
-                new FixedContentNegotiationStrategy( MediaType.APPLICATION_JSON ) ) );
+    public List<Object> getInterceptors() {
+      return super.getInterceptors();
     }
-
-    @Override
-    public void configurePathMatch( PathMatchConfigurer configurer )
-    {
-        configurer.setUseSuffixPatternMatch( false );
-        configurer.setUseRegisteredSuffixPatternMatch( true );
-    }
-
-    @Bean
-    public NodeService nodeService()
-    {
-        return new DefaultNodeService();
-    }
-
-    @Bean( "databaseInfo" )
-    public DatabaseInfo databaseInfo()
-    {
-        return new DatabaseInfo();
-    }
-
-    @Primary
-    @Bean( "systemService" )
-    public SystemService systemService()
-    {
-        SystemService systemService = Mockito.mock( SystemService.class );
-        Mockito.when( systemService.getSystemInfo() ).thenReturn( new SystemInfo() );
-        return systemService;
-    }
-
-    @Override
-    public void addInterceptors( InterceptorRegistry registry )
-    {
-        registry.addInterceptor( new ConversionServiceExposingInterceptor( mvcConversionService ) );
-        registry.addInterceptor( new ResourceUrlProviderExposingInterceptor( mvcResourceUrlProvider ) );
-
-        registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
-        registry.addInterceptor( new RequestInfoInterceptor( requestInfoService ) );
-    }
-
-    @Bean
-    public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter()
-    {
-        return new MappingJackson2HttpMessageConverter( jsonMapper );
-    }
-
-    @Bean
-    public MappingJackson2XmlHttpMessageConverter mappingJackson2XmlHttpMessageConverter()
-    {
-        XmlPathMappingJackson2XmlHttpMessageConverter messageConverter = new XmlPathMappingJackson2XmlHttpMessageConverter(
-            xmlMapper );
-
-        messageConverter.setSupportedMediaTypes( Arrays.asList(
-            new MediaType( "application", "xml", StandardCharsets.UTF_8 ),
-            new MediaType( "application", "*+xml", StandardCharsets.UTF_8 ) ) );
-
-        return messageConverter;
-    }
-
-    @Override
-    public void configureMessageConverters(
-        List<HttpMessageConverter<?>> converters )
-    {
-        Arrays.stream( Compression.values() )
-            .forEach( compression -> converters.add( new JsonMessageConverter( nodeService(), compression ) ) );
-        Arrays.stream( Compression.values() )
-            .forEach( compression -> converters.add( new XmlMessageConverter( nodeService(), compression ) ) );
-        Arrays.stream( Compression.values() )
-            .forEach( compression -> converters.add( new CsvMessageConverter( nodeService(), compression ) ) );
-
-        Arrays.stream( Compression.values() )
-            .forEach( compression -> converters
-                .add( new MetadataExportParamsMessageConverter( metadataExportService, compression ) ) );
-
-        Arrays.stream( Compression.values() )
-            .forEach( compression -> converters
-                .add( new StreamingJsonRootMessageConverter( fieldFilterService, compression ) ) );
-
-        converters.add( new StringHttpMessageConverter() );
-        converters.add( new ByteArrayHttpMessageConverter() );
-        converters.add( new FormHttpMessageConverter() );
-
-        converters.add( mappingJackson2HttpMessageConverter() );
-        converters.add( mappingJackson2XmlHttpMessageConverter() );
-    }
-
-    @Override
-    public void addFormatters( FormatterRegistry registry )
-    {
-        registry.addConverter( new FieldPathConverter() );
-    }
-
-    @Bean
-    public DhisApiVersionHandlerMethodArgumentResolver dhisApiVersionHandlerMethodArgumentResolver()
-    {
-        return new DhisApiVersionHandlerMethodArgumentResolver();
-    }
-
-    @Override
-    public void addArgumentResolvers( List<HandlerMethodArgumentResolver> resolvers )
-    {
-        resolvers.add( dhisApiVersionHandlerMethodArgumentResolver() );
-        resolvers.add( currentUserHandlerMethodArgumentResolver );
-    }
-
-    @Bean
-    public MethodSecurityExpressionHandler methodSecurityExpressionHandler()
-    {
-        DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
-        expressionHandler.setDefaultRolePrefix( "" );
-        return expressionHandler;
-    }
-
-    @Bean
-    @Primary
-    public MessageSender fakeMessageSender()
-    {
-        return new FakeMessageSender();
-    }
-
-    static final class TestInterceptorRegistry extends InterceptorRegistry
-    {
-        @Override
-        public List<Object> getInterceptors()
-        {
-            return super.getInterceptors();
-        }
-    }
+  }
 }

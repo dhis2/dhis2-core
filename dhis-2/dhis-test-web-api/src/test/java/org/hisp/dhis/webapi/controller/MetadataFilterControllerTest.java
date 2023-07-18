@@ -43,76 +43,91 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class MetadataFilterControllerTest extends DhisControllerConvenienceTest
-{
-    private String attrId;
+class MetadataFilterControllerTest extends DhisControllerConvenienceTest {
+  private String attrId;
 
-    private String ouId;
+  private String ouId;
 
-    @BeforeEach
-    void setUp()
-    {
-        attrId = assertStatus( HttpStatus.CREATED, POST( "/attributes", "{" + "'name':'extra', "
-            + "'valueType':'TEXT', " + "'" + Attribute.ObjectType.ORGANISATION_UNIT.getPropertyName() + "':true}" ) );
-        ouId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{"
-                + "'name':'My Unit', "
-                + "'shortName':'OU1', "
-                + "'openingDate': '2020-01-01',"
-                + "'attributeValues':[{'attribute': {'id':'" + attrId + "'}, 'value':'test'}]"
-                + "}" ) );
-    }
+  @BeforeEach
+  void setUp() {
+    attrId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/attributes",
+                "{"
+                    + "'name':'extra', "
+                    + "'valueType':'TEXT', "
+                    + "'"
+                    + Attribute.ObjectType.ORGANISATION_UNIT.getPropertyName()
+                    + "':true}"));
+    ouId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{"
+                    + "'name':'My Unit', "
+                    + "'shortName':'OU1', "
+                    + "'openingDate': '2020-01-01',"
+                    + "'attributeValues':[{'attribute': {'id':'"
+                    + attrId
+                    + "'}, 'value':'test'}]"
+                    + "}"));
+  }
 
-    @Test
-    void testFilter_attributeEq()
-    {
-        JsonArray units = GET( "/organisationUnits?filter={attr}:eq:test", attrId ).content()
-            .getArray( "organisationUnits" );
-        assertEquals( 1, units.size() );
-        JsonObject unit = units.getObject( 0 );
-        assertEquals( "My Unit", unit.getString( "displayName" ).string() );
-        assertEquals( ouId, unit.getString( "id" ).string() );
-    }
+  @Test
+  void testFilter_attributeEq() {
+    JsonArray units =
+        GET("/organisationUnits?filter={attr}:eq:test", attrId)
+            .content()
+            .getArray("organisationUnits");
+    assertEquals(1, units.size());
+    JsonObject unit = units.getObject(0);
+    assertEquals("My Unit", unit.getString("displayName").string());
+    assertEquals(ouId, unit.getString("id").string());
+  }
 
-    @Test
-    void testFields_ListAttribute()
-    {
-        JsonArray units = GET( "/organisationUnits?fields=id,name,{attr}", attrId ).content()
-            .getArray( "organisationUnits" );
-        assertEquals( 1, units.size() );
-        JsonObject unit = units.getObject( 0 );
-        assertEquals( ouId, unit.getString( "id" ).string() );
-        assertEquals( "My Unit", unit.getString( "name" ).string() );
-        assertEquals( "test", unit.getString( attrId ).string() );
-    }
+  @Test
+  void testFields_ListAttribute() {
+    JsonArray units =
+        GET("/organisationUnits?fields=id,name,{attr}", attrId)
+            .content()
+            .getArray("organisationUnits");
+    assertEquals(1, units.size());
+    JsonObject unit = units.getObject(0);
+    assertEquals(ouId, unit.getString("id").string());
+    assertEquals("My Unit", unit.getString("name").string());
+    assertEquals("test", unit.getString(attrId).string());
+  }
 
-    @Test
-    void testFields_ListAttributeWithAlias()
-    {
-        JsonArray units = GET( "/organisationUnits?fields=id,name,{attr}::rename(x)", attrId ).content()
-            .getArray( "organisationUnits" );
-        assertEquals( 1, units.size() );
-        JsonObject unit = units.getObject( 0 );
-        assertEquals( ouId, unit.getString( "id" ).string() );
-        assertEquals( "My Unit", unit.getString( "name" ).string() );
-        assertEquals( "test", unit.getString( "x" ).string() );
-    }
+  @Test
+  void testFields_ListAttributeWithAlias() {
+    JsonArray units =
+        GET("/organisationUnits?fields=id,name,{attr}::rename(x)", attrId)
+            .content()
+            .getArray("organisationUnits");
+    assertEquals(1, units.size());
+    JsonObject unit = units.getObject(0);
+    assertEquals(ouId, unit.getString("id").string());
+    assertEquals("My Unit", unit.getString("name").string());
+    assertEquals("test", unit.getString("x").string());
+  }
 
-    @Test
-    void testFields_ObjectAttribute()
-    {
-        JsonObject unit = GET( "/organisationUnits/{uid}?fields=id,name,{attr}", ouId, attrId ).content();
-        assertEquals( ouId, unit.getString( "id" ).string() );
-        assertEquals( "My Unit", unit.getString( "name" ).string() );
-        assertEquals( "test", unit.getString( attrId ).string() );
-    }
+  @Test
+  void testFields_ObjectAttribute() {
+    JsonObject unit = GET("/organisationUnits/{uid}?fields=id,name,{attr}", ouId, attrId).content();
+    assertEquals(ouId, unit.getString("id").string());
+    assertEquals("My Unit", unit.getString("name").string());
+    assertEquals("test", unit.getString(attrId).string());
+  }
 
-    @Test
-    void testFields_ObjectAttributeWithAlias()
-    {
-        JsonObject unit = GET( "/organisationUnits/{uid}?fields=id,name,{attr}::rename(x)", ouId, attrId ).content();
-        assertEquals( ouId, unit.getString( "id" ).string() );
-        assertEquals( "My Unit", unit.getString( "name" ).string() );
-        assertEquals( "test", unit.getString( "x" ).string() );
-    }
+  @Test
+  void testFields_ObjectAttributeWithAlias() {
+    JsonObject unit =
+        GET("/organisationUnits/{uid}?fields=id,name,{attr}::rename(x)", ouId, attrId).content();
+    assertEquals(ouId, unit.getString("id").string());
+    assertEquals("My Unit", unit.getString("name").string());
+    assertEquals("test", unit.getString("x").string());
+  }
 }

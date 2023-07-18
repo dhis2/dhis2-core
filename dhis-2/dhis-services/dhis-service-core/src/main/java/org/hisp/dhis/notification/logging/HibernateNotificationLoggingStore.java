@@ -28,7 +28,6 @@
 package org.hisp.dhis.notification.logging;
 
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -37,36 +36,42 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-/**
- * Created by zubair@dhis2.org on 10.01.18.
- */
-@Repository( "org.hisp.dhis.notification.logging.NotificationLoggingStore" )
+/** Created by zubair@dhis2.org on 10.01.18. */
+@Repository("org.hisp.dhis.notification.logging.NotificationLoggingStore")
 public class HibernateNotificationLoggingStore
     extends HibernateIdentifiableObjectStore<ExternalNotificationLogEntry>
-    implements NotificationLoggingStore
-{
-    public HibernateNotificationLoggingStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ExternalNotificationLogEntry.class, currentUserService,
-            aclService, true );
-    }
+    implements NotificationLoggingStore {
+  public HibernateNotificationLoggingStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        ExternalNotificationLogEntry.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public ExternalNotificationLogEntry getByTemplateUid( String templateUid )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public ExternalNotificationLogEntry getByTemplateUid(String templateUid) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "notificationTemplateUid" ), templateUid ) ) );
-    }
+    return getSingleResult(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("notificationTemplateUid"), templateUid)));
+  }
 
-    @Override
-    public ExternalNotificationLogEntry getByKey( String key )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public ExternalNotificationLogEntry getByKey(String key) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "key" ), key ) ) );
-    }
+    return getSingleResult(
+        builder, newJpaParameters().addPredicate(root -> builder.equal(root.get("key"), key)));
+  }
 }

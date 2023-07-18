@@ -32,8 +32,7 @@ package org.hisp.dhis.metadata.version;
  *
  * @author vanyas
  */
-public enum VersionType
-{
-    BEST_EFFORT,
-    ATOMIC
+public enum VersionType {
+  BEST_EFFORT,
+  ATOMIC
 }

@@ -41,37 +41,28 @@ import org.hisp.dhis.tracker.validation.Validator;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class ExistenceValidator
-    implements Validator<Event>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
-    {
-        TrackerImportStrategy importStrategy = bundle.getStrategy( event );
+class ExistenceValidator implements Validator<Event> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
+    TrackerImportStrategy importStrategy = bundle.getStrategy(event);
 
-        ProgramStageInstance existingPsi = bundle.getPreheat().getEvent( event.getEvent() );
+    ProgramStageInstance existingPsi = bundle.getPreheat().getEvent(event.getEvent());
 
-        // If the event is soft-deleted no operation is allowed
-        if ( existingPsi != null && existingPsi.isDeleted() )
-        {
-            reporter.addError( event, E1082, event.getEvent() );
-            return;
-        }
-
-        if ( existingPsi != null && importStrategy.isCreate() )
-        {
-            reporter.addError( event, E1030, event.getEvent() );
-        }
-        else if ( existingPsi == null && importStrategy.isUpdateOrDelete() )
-        {
-            reporter.addError( event, E1032, event.getEvent() );
-        }
+    // If the event is soft-deleted no operation is allowed
+    if (existingPsi != null && existingPsi.isDeleted()) {
+      reporter.addError(event, E1082, event.getEvent());
+      return;
     }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true;
+    if (existingPsi != null && importStrategy.isCreate()) {
+      reporter.addError(event, E1030, event.getEvent());
+    } else if (existingPsi == null && importStrategy.isUpdateOrDelete()) {
+      reporter.addError(event, E1032, event.getEvent());
     }
+  }
 
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true;
+  }
 }

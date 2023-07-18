@@ -27,63 +27,50 @@
  */
 package org.hisp.dhis.user.sharing;
 
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.sharing.AccessObject;
 import org.hisp.dhis.user.User;
-
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @NoArgsConstructor
-@JacksonXmlRootElement( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
-public class UserAccess
-    extends AccessObject
-{
-    public UserAccess( String access, String id )
-    {
-        super( access, id );
-    }
+@JacksonXmlRootElement(localName = "userAccess", namespace = DxfNamespaces.DXF_2_0)
+public class UserAccess extends AccessObject {
+  public UserAccess(String access, String id) {
+    super(access, id);
+  }
 
-    public UserAccess( User user, String access )
-    {
-        super( access, user.getUid() );
-    }
+  public UserAccess(User user, String access) {
+    super(access, user.getUid());
+  }
 
-    /**
-     * This is for backward compatibility with legacy
-     * {@link org.hisp.dhis.user.UserAccess}
-     */
-    public UserAccess( org.hisp.dhis.user.UserAccess userAccess )
-    {
-        super( userAccess.getAccess(), userAccess.getUid() );
-    }
+  /** This is for backward compatibility with legacy {@link org.hisp.dhis.user.UserAccess} */
+  public UserAccess(org.hisp.dhis.user.UserAccess userAccess) {
+    super(userAccess.getAccess(), userAccess.getUid());
+  }
 
-    public void setUser( User user )
-    {
-        setId( user.getUid() );
-    }
+  public void setUser(User user) {
+    setId(user.getUid());
+  }
 
-    public org.hisp.dhis.user.UserAccess toDtoObject()
-    {
-        org.hisp.dhis.user.UserAccess userAccess = new org.hisp.dhis.user.UserAccess();
-        userAccess.setUid( getId() );
-        userAccess.setAccess( getAccess() );
-        User user = new User();
-        user.setUid( getId() );
-        userAccess.setUser( user );
-        userAccess.setUid( getId() );
-        userAccess.setDisplayName( getDisplayName() );
+  public org.hisp.dhis.user.UserAccess toDtoObject() {
+    org.hisp.dhis.user.UserAccess userAccess = new org.hisp.dhis.user.UserAccess();
+    userAccess.setUid(getId());
+    userAccess.setAccess(getAccess());
+    User user = new User();
+    user.setUid(getId());
+    userAccess.setUser(user);
+    userAccess.setUid(getId());
+    userAccess.setDisplayName(getDisplayName());
 
-        return userAccess;
-    }
+    return userAccess;
+  }
 
-    @Override
-    public UserAccess copy()
-    {
-        return new UserAccess( this.access, this.id );
-    }
+  @Override
+  public UserAccess copy() {
+    return new UserAccess(this.access, this.id);
+  }
 }

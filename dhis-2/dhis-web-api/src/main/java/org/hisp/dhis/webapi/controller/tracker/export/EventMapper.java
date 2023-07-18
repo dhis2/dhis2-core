@@ -34,36 +34,36 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-@Mapper( uses = {
-    RelationshipMapper.class,
-    NoteMapper.class,
-    DataValueMapper.class,
-    InstantMapper.class,
-    UserMapper.class } )
-interface EventMapper extends ViewMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
-{
-    @Mapping( target = "occurredAt", source = "eventDate" )
-    @Mapping( target = "scheduledAt", source = "dueDate" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "completedAt", source = "completedDate" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    @Mapping( target = "assignedUser", source = ".", qualifiedByName = "toUserInfo" )
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    Event from( org.hisp.dhis.dxf2.events.event.Event event );
+@Mapper(
+    uses = {
+      RelationshipMapper.class,
+      NoteMapper.class,
+      DataValueMapper.class,
+      InstantMapper.class,
+      UserMapper.class
+    })
+interface EventMapper extends ViewMapper<org.hisp.dhis.dxf2.events.event.Event, Event> {
+  @Mapping(target = "occurredAt", source = "eventDate")
+  @Mapping(target = "scheduledAt", source = "dueDate")
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "createdAtClient", source = "createdAtClient")
+  @Mapping(target = "updatedAt", source = "lastUpdated")
+  @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
+  @Mapping(target = "completedAt", source = "completedDate")
+  @Mapping(target = "createdBy", source = "createdByUserInfo")
+  @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
+  @Mapping(target = "assignedUser", source = ".", qualifiedByName = "toUserInfo")
+  @Mapping(target = "trackedEntity", source = "trackedEntityInstance")
+  Event from(org.hisp.dhis.dxf2.events.event.Event event);
 
-    @Named( "toUserInfo" )
-    default User buildUserInfo( org.hisp.dhis.dxf2.events.event.Event event )
-    {
-        return User.builder()
-            .uid( event.getAssignedUser() )
-            .username( event.getAssignedUserUsername() )
-            .firstName( event.getAssignedUserFirstName() )
-            .surname( event.getAssignedUserSurname() )
-            .displayName( event.getAssignedUserDisplayName() )
-            .build();
-    }
+  @Named("toUserInfo")
+  default User buildUserInfo(org.hisp.dhis.dxf2.events.event.Event event) {
+    return User.builder()
+        .uid(event.getAssignedUser())
+        .username(event.getAssignedUserUsername())
+        .firstName(event.getAssignedUserFirstName())
+        .surname(event.getAssignedUserSurname())
+        .displayName(event.getAssignedUserDisplayName())
+        .build();
+  }
 }

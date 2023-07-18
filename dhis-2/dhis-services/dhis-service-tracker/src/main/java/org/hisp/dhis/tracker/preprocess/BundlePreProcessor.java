@@ -30,17 +30,14 @@ package org.hisp.dhis.tracker.preprocess;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
 /**
- * Interface for classes responsible of preprocessing the payload prior to
- * validation.
+ * Interface for classes responsible of preprocessing the payload prior to validation.
  *
- * The validation stage is not supposed to change the payload. A pre-processor
- * can modify the payload content and add data to the preheat if needed. Note
- * that the pre-processing stage takes place after the preheat and before the
- * validation.
+ * <p>The validation stage is not supposed to change the payload. A pre-processor can modify the
+ * payload content and add data to the preheat if needed. Note that the pre-processing stage takes
+ * place after the preheat and before the validation.
  *
  * @author Luciano Fiandesio
  */
-public interface BundlePreProcessor
-{
-    void process( TrackerBundle bundle );
+public interface BundlePreProcessor {
+  void process(TrackerBundle bundle);
 }

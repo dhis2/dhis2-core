@@ -37,25 +37,20 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
  *
  * @author Jim Grace
  */
-public class VectorStddevPop
-    extends VectorFunctionDoubleArray
-{
-    private final StandardDeviation sdPopulation = new StandardDeviation( false );
+public class VectorStddevPop extends VectorFunctionDoubleArray {
+  private final StandardDeviation sdPopulation = new StandardDeviation(false);
 
-    @Override
-    public Object aggregate( double[] values )
-    {
-        if ( values.length == 0 )
-        {
-            return null;
-        }
-
-        return sdPopulation.evaluate( values );
+  @Override
+  public Object aggregate(double[] values) {
+    if (values.length == 0) {
+      return null;
     }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return "stddev_pop(" + visitor.visit( ctx.expr( 0 ) ) + ")";
-    }
+    return sdPopulation.evaluate(values);
+  }
+
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return "stddev_pop(" + visitor.visit(ctx.expr(0)) + ")";
+  }
 }

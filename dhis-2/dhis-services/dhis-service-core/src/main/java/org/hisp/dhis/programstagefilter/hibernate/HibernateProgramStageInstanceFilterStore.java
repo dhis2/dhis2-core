@@ -28,7 +28,6 @@
 package org.hisp.dhis.programstagefilter.hibernate;
 
 import java.util.List;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter;
@@ -41,25 +40,30 @@ import org.springframework.stereotype.Repository;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
-@Repository( "org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterStore" )
+@Repository("org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterStore")
 public class HibernateProgramStageInstanceFilterStore
     extends HibernateIdentifiableObjectStore<ProgramStageInstanceFilter>
-    implements ProgramStageInstanceFilterStore
-{
-    public HibernateProgramStageInstanceFilterStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramStageInstanceFilter.class, currentUserService,
-            aclService, false );
-    }
+    implements ProgramStageInstanceFilterStore {
+  public HibernateProgramStageInstanceFilterStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        ProgramStageInstanceFilter.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 
-    @Override
-    public List<ProgramStageInstanceFilter> getByProgram( String program )
-    {
-        String hql = "from ProgramStageInstanceFilter psif where psif.program =:program";
-        return getQuery( hql ).setParameter( "program", program ).getResultList();
-    }
-
+  @Override
+  public List<ProgramStageInstanceFilter> getByProgram(String program) {
+    String hql = "from ProgramStageInstanceFilter psif where psif.program =:program";
+    return getQuery(hql).setParameter("program", program).getResultList();
+  }
 }

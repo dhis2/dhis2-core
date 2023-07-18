@@ -30,11 +30,8 @@ package org.hisp.dhis.dataapproval.exceptions;
 /**
  * @author Jim Grace
  */
-public class PeriodShorterThanDataSetPeriodException
-    extends DataApprovalException
-{
-    public PeriodShorterThanDataSetPeriodException()
-    {
-        super();
-    }
+public class PeriodShorterThanDataSetPeriodException extends DataApprovalException {
+  public PeriodShorterThanDataSetPeriodException() {
+    super();
+  }
 }

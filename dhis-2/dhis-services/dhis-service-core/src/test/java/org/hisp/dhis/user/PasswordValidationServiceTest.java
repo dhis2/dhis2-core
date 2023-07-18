@@ -56,159 +56,149 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  *
  * @author Jan Bernitt
  */
-class PasswordValidationServiceTest
-{
+class PasswordValidationServiceTest {
 
-    private PasswordValidationService validation;
+  private PasswordValidationService validation;
 
-    private PasswordEncoder encoder;
+  private PasswordEncoder encoder;
 
-    @BeforeEach
-    void setUp()
-    {
-        encoder = mock( PasswordEncoder.class );
-        UserService userService = mock( UserService.class );
-        User user = new User();
-        user.setUsername( "Luke" );
-        user.setPreviousPasswords( asList( "$kyWalker1", "$kyWalker2", "$kyWalker3" ) );
+  @BeforeEach
+  void setUp() {
+    encoder = mock(PasswordEncoder.class);
+    UserService userService = mock(UserService.class);
+    User user = new User();
+    user.setUsername("Luke");
+    user.setPreviousPasswords(asList("$kyWalker1", "$kyWalker2", "$kyWalker3"));
 
-        when( userService.getUserByUsername( anyString() ) ).thenReturn( user );
+    when(userService.getUserByUsername(anyString())).thenReturn(user);
 
-        CurrentUserService currentUserService = mock( CurrentUserService.class );
-        SystemSettingManager systemSettings = mock( SystemSettingManager.class );
-        when( systemSettings.getIntSetting( SettingKey.MIN_PASSWORD_LENGTH ) ).thenReturn( 8 );
-        when( systemSettings.getIntSetting( SettingKey.MAX_PASSWORD_LENGTH ) ).thenReturn( 16 );
-        validation = new DefaultPasswordValidationService( encoder, userService, currentUserService, systemSettings );
+    CurrentUserService currentUserService = mock(CurrentUserService.class);
+    SystemSettingManager systemSettings = mock(SystemSettingManager.class);
+    when(systemSettings.getIntSetting(SettingKey.MIN_PASSWORD_LENGTH)).thenReturn(8);
+    when(systemSettings.getIntSetting(SettingKey.MAX_PASSWORD_LENGTH)).thenReturn(16);
+    validation =
+        new DefaultPasswordValidationService(
+            encoder, userService, currentUserService, systemSettings);
+  }
+
+  @Test
+  void tooShortPasswords() {
+    assertInvalid("Luke", "Sev€n77", PASSWORD_TOO_LONG_TOO_SHORT, 8, 16);
+    assertInvalid("Lucky", "Sky", PASSWORD_TOO_LONG_TOO_SHORT, 8, 16);
+  }
+
+  @Test
+  void tooLongPasswords() {
+    assertInvalid("Luke", "17teen17teen17teen", PASSWORD_TOO_LONG_TOO_SHORT, 8, 16);
+    assertInvalid("Lucky", "JediKnightSkywalker", PASSWORD_TOO_LONG_TOO_SHORT, 8, 16);
+  }
+
+  @Test
+  void passwordIsMandatory() {
+    assertInvalid("Luke", "", PASSWORD_IS_MANDATORY);
+    assertInvalid("Lucky", null, PASSWORD_IS_MANDATORY);
+  }
+
+  @Test
+  void usernameIsMandatory() {
+    assertInvalid("", "$kyWalker7", PASSWORD_IS_MANDATORY);
+    assertInvalid(null, "$kyWalker7", PASSWORD_IS_MANDATORY);
+  }
+
+  @Test
+  void passwordMustHaveDigits() {
+    assertInvalid("Luke", "$kyWalker", PASSWORD_MUST_HAVE_DIGIT);
+    assertInvalid("Lucky", "$kyWalker", PASSWORD_MUST_HAVE_DIGIT);
+  }
+
+  @Test
+  void passwordMustHaveUpperCaseLetters() {
+    assertInvalid("Luke", "$kywalker7", PASSWORD_MUST_HAVE_UPPER);
+    assertInvalid("Lucky", "$kywalker7", PASSWORD_MUST_HAVE_UPPER);
+  }
+
+  @Test
+  void passwordMustHaveSpecialCharacters() {
+    assertInvalid("Luke", "SkyWalker7", PASSWORD_MUST_HAVE_SPECIAL);
+    assertInvalid("Lucky", "SkyWalker7", PASSWORD_MUST_HAVE_SPECIAL);
+  }
+
+  @Test
+  void passwordMustNotContainReservedWords() {
+    for (String reserved :
+        new String[] {"user", "admin", "system", "username", "password", "login", "manager"}) {
+      assertInvalid("Luke", "$kY7" + reserved, PASSWORD_CONTAINS_RESERVED_WORD);
+      assertInvalid("Lucky", reserved + "$kY7", PASSWORD_CONTAINS_RESERVED_WORD);
     }
+  }
 
-    @Test
-    void tooShortPasswords()
-    {
-        assertInvalid( "Luke", "Sev€n77", PASSWORD_TOO_LONG_TOO_SHORT, 8, 16 );
-        assertInvalid( "Lucky", "Sky", PASSWORD_TOO_LONG_TOO_SHORT, 8, 16 );
-    }
+  @Test
+  void passwordMustNotContainUsername() {
+    assertInvalid("Luke", "$kyLuke7", PASSWORD_CONTAINS_NAME_OR_EMAIL);
+    assertInvalid("Lucky", "LuckyW@lker7", PASSWORD_CONTAINS_NAME_OR_EMAIL);
+  }
 
-    @Test
-    void tooLongPasswords()
-    {
-        assertInvalid( "Luke", "17teen17teen17teen", PASSWORD_TOO_LONG_TOO_SHORT, 8, 16 );
-        assertInvalid( "Lucky", "JediKnightSkywalker", PASSWORD_TOO_LONG_TOO_SHORT, 8, 16 );
-    }
+  @Test
+  void passwordMustNotContainEmail() {
+    assertInvalid(
+        new CredentialsInfo("Luke", "Sky@walker.nu7", "Sky@walker.nu", true),
+        PASSWORD_CONTAINS_NAME_OR_EMAIL);
+    assertInvalid(
+        new CredentialsInfo("Luke", "Sky@walker.nu7", "Sky@walker.nu", false),
+        PASSWORD_CONTAINS_NAME_OR_EMAIL);
+  }
 
-    @Test
-    void passwordIsMandatory()
-    {
-        assertInvalid( "Luke", "", PASSWORD_IS_MANDATORY );
-        assertInvalid( "Lucky", null, PASSWORD_IS_MANDATORY );
-    }
+  @Test
+  void passwordMustNotHaveBeenUsedBefore() {
+    when(encoder.matches(any(), any())).thenReturn(true);
+    assertInvalid("Luke", "$kyWalker1", PASSWORD_ALREADY_USED_BEFORE, 24);
+    assertInvalid("Lucky", "$kyWalker2", PASSWORD_ALREADY_USED_BEFORE, 24);
+  }
 
-    @Test
-    void usernameIsMandatory()
-    {
-        assertInvalid( "", "$kyWalker7", PASSWORD_IS_MANDATORY );
-        assertInvalid( null, "$kyWalker7", PASSWORD_IS_MANDATORY );
-    }
+  @Test
+  void validPasswords() {
+    assertValid("Luke", "$kyWalker42");
+    assertValid("Lucky", "m@yThe4thBeWithU");
+  }
 
-    @Test
-    void passwordMustHaveDigits()
-    {
-        assertInvalid( "Luke", "$kyWalker", PASSWORD_MUST_HAVE_DIGIT );
-        assertInvalid( "Lucky", "$kyWalker", PASSWORD_MUST_HAVE_DIGIT );
-    }
+  private void assertInvalid(
+      String username, String password, PasswordValidationError expected, Object... args) {
+    assertInvalid(username, password, username + "@force.net", expected, args);
+  }
 
-    @Test
-    void passwordMustHaveUpperCaseLetters()
-    {
-        assertInvalid( "Luke", "$kywalker7", PASSWORD_MUST_HAVE_UPPER );
-        assertInvalid( "Lucky", "$kywalker7", PASSWORD_MUST_HAVE_UPPER );
+  private void assertInvalid(
+      String username,
+      String password,
+      String email,
+      PasswordValidationError expected,
+      Object... args) {
+    if (username != null && !username.isEmpty()) {
+      assertInvalid(new CredentialsInfo(username, password, email, true), expected, args);
+      assertInvalid(new CredentialsInfo(username, password, null, true), expected, args);
     }
+    assertInvalid(new CredentialsInfo(username, password, email, false), expected, args);
+    assertInvalid(new CredentialsInfo(username, password, null, false), expected, args);
+  }
 
-    @Test
-    void passwordMustHaveSpecialCharacters()
-    {
-        assertInvalid( "Luke", "SkyWalker7", PASSWORD_MUST_HAVE_SPECIAL );
-        assertInvalid( "Lucky", "SkyWalker7", PASSWORD_MUST_HAVE_SPECIAL );
-    }
+  private void assertInvalid(
+      CredentialsInfo credentials, PasswordValidationError expected, Object... args) {
+    PasswordValidationResult actual = validation.validate(credentials);
+    assertFalse(actual.isValid());
+    assertEquals(expected.getI18nKey(), actual.getI18ErrorMessage(), actual.getErrorMessage());
+    assertEquals(String.format(expected.getMessage(), args), actual.getErrorMessage());
+  }
 
-    @Test
-    void passwordMustNotContainReservedWords()
-    {
-        for ( String reserved : new String[] { "user", "admin", "system", "username", "password", "login", "manager" } )
-        {
-            assertInvalid( "Luke", "$kY7" + reserved, PASSWORD_CONTAINS_RESERVED_WORD );
-            assertInvalid( "Lucky", reserved + "$kY7", PASSWORD_CONTAINS_RESERVED_WORD );
-        }
-    }
+  private void assertValid(String username, String password) {
+    assertValid(new CredentialsInfo(username, password, username + "@force.net", true));
+    assertValid(new CredentialsInfo(username, password, username + "@force.net", false));
+    assertValid(new CredentialsInfo(username, password, null, true));
+    assertValid(new CredentialsInfo(username, password, null, false));
+  }
 
-    @Test
-    void passwordMustNotContainUsername()
-    {
-        assertInvalid( "Luke", "$kyLuke7", PASSWORD_CONTAINS_NAME_OR_EMAIL );
-        assertInvalid( "Lucky", "LuckyW@lker7", PASSWORD_CONTAINS_NAME_OR_EMAIL );
-    }
-
-    @Test
-    void passwordMustNotContainEmail()
-    {
-        assertInvalid( new CredentialsInfo( "Luke", "Sky@walker.nu7", "Sky@walker.nu", true ),
-            PASSWORD_CONTAINS_NAME_OR_EMAIL );
-        assertInvalid( new CredentialsInfo( "Luke", "Sky@walker.nu7", "Sky@walker.nu", false ),
-            PASSWORD_CONTAINS_NAME_OR_EMAIL );
-    }
-
-    @Test
-    void passwordMustNotHaveBeenUsedBefore()
-    {
-        when( encoder.matches( any(), any() ) ).thenReturn( true );
-        assertInvalid( "Luke", "$kyWalker1", PASSWORD_ALREADY_USED_BEFORE, 24 );
-        assertInvalid( "Lucky", "$kyWalker2", PASSWORD_ALREADY_USED_BEFORE, 24 );
-    }
-
-    @Test
-    void validPasswords()
-    {
-        assertValid( "Luke", "$kyWalker42" );
-        assertValid( "Lucky", "m@yThe4thBeWithU" );
-    }
-
-    private void assertInvalid( String username, String password, PasswordValidationError expected, Object... args )
-    {
-        assertInvalid( username, password, username + "@force.net", expected, args );
-    }
-
-    private void assertInvalid( String username, String password, String email, PasswordValidationError expected,
-        Object... args )
-    {
-        if ( username != null && !username.isEmpty() )
-        {
-            assertInvalid( new CredentialsInfo( username, password, email, true ), expected, args );
-            assertInvalid( new CredentialsInfo( username, password, null, true ), expected, args );
-        }
-        assertInvalid( new CredentialsInfo( username, password, email, false ), expected, args );
-        assertInvalid( new CredentialsInfo( username, password, null, false ), expected, args );
-    }
-
-    private void assertInvalid( CredentialsInfo credentials, PasswordValidationError expected, Object... args )
-    {
-        PasswordValidationResult actual = validation.validate( credentials );
-        assertFalse( actual.isValid() );
-        assertEquals( expected.getI18nKey(), actual.getI18ErrorMessage(), actual.getErrorMessage() );
-        assertEquals( String.format( expected.getMessage(), args ), actual.getErrorMessage() );
-    }
-
-    private void assertValid( String username, String password )
-    {
-        assertValid( new CredentialsInfo( username, password, username + "@force.net", true ) );
-        assertValid( new CredentialsInfo( username, password, username + "@force.net", false ) );
-        assertValid( new CredentialsInfo( username, password, null, true ) );
-        assertValid( new CredentialsInfo( username, password, null, false ) );
-    }
-
-    private void assertValid( CredentialsInfo credentials )
-    {
-        PasswordValidationResult actual = validation.validate( credentials );
-        assertTrue( actual.isValid() );
-        assertNull( actual.getErrorMessage() );
-        assertNull( actual.getI18ErrorMessage() );
-    }
+  private void assertValid(CredentialsInfo credentials) {
+    PasswordValidationResult actual = validation.validate(credentials);
+    assertTrue(actual.isValid());
+    assertNull(actual.getErrorMessage());
+    assertNull(actual.getI18ErrorMessage());
+  }
 }

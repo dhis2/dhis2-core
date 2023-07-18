@@ -41,39 +41,42 @@ import org.hisp.dhis.program.ProgramExpressionItem;
  *
  * @author Jim Grace
  */
-public class D2Condition
-    extends ProgramExpressionItem
-{
-    @Override
-    public final Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        String testExpression = trimQuotes( ctx.stringLiteral().getText() );
+public class D2Condition extends ProgramExpressionItem {
+  @Override
+  public final Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    String testExpression = trimQuotes(ctx.stringLiteral().getText());
 
-        visitor.getProgramIndicatorService()
-            .validate( testExpression, Boolean.class, visitor.getItemDescriptions() );
+    visitor
+        .getProgramIndicatorService()
+        .validate(testExpression, Boolean.class, visitor.getItemDescriptions());
 
-        Object valueIfTrue = visitor.visit( ctx.expr( 0 ) );
-        Object valueIfFalse = visitor.visit( ctx.expr( 1 ) );
+    Object valueIfTrue = visitor.visit(ctx.expr(0));
+    Object valueIfFalse = visitor.visit(ctx.expr(1));
 
-        castClass( valueIfTrue.getClass(), valueIfFalse );
+    castClass(valueIfTrue.getClass(), valueIfFalse);
 
-        return valueIfTrue;
-    }
+    return valueIfTrue;
+  }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        String testExpression = trimQuotes( ctx.stringLiteral().getText() );
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    String testExpression = trimQuotes(ctx.stringLiteral().getText());
 
-        ProgramExpressionParams params = visitor.getProgParams();
+    ProgramExpressionParams params = visitor.getProgParams();
 
-        String testSql = visitor.getProgramIndicatorService().getAnalyticsSql( testExpression, BOOLEAN,
-            params.getProgramIndicator(), params.getReportingStartDate(),
-            params.getReportingEndDate() );
+    String testSql =
+        visitor
+            .getProgramIndicatorService()
+            .getAnalyticsSql(
+                testExpression,
+                BOOLEAN,
+                params.getProgramIndicator(),
+                params.getReportingStartDate(),
+                params.getReportingEndDate());
 
-        String valueIfTrue = visitor.castStringVisit( ctx.expr( 0 ) );
-        String valueIfFalse = visitor.castStringVisit( ctx.expr( 1 ) );
+    String valueIfTrue = visitor.castStringVisit(ctx.expr(0));
+    String valueIfFalse = visitor.castStringVisit(ctx.expr(1));
 
-        return "case when (" + testSql + ") then " + valueIfTrue + " else " + valueIfFalse + " end";
-    }
+    return "case when (" + testSql + ") then " + valueIfTrue + " else " + valueIfFalse + " end";
+  }
 }

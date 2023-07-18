@@ -27,94 +27,76 @@
  */
 package org.hisp.dhis.dataapproval;
 
+import com.google.common.base.MoreObjects;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-
 import lombok.Data;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-import com.google.common.base.MoreObjects;
 
 /**
  * @author Jim Grace
  */
 @Data
-@Accessors( chain = true )
-public class DataApprovalAuditQueryParams
-{
-    /**
-     * Approval levels to include.
-     */
-    private Set<DataApprovalLevel> levels = new HashSet<>();
+@Accessors(chain = true)
+public class DataApprovalAuditQueryParams {
+  /** Approval levels to include. */
+  private Set<DataApprovalLevel> levels = new HashSet<>();
 
-    /**
-     * Workflows to include.
-     */
-    private Set<DataApprovalWorkflow> workflows = new HashSet<>();
+  /** Workflows to include. */
+  private Set<DataApprovalWorkflow> workflows = new HashSet<>();
 
-    /**
-     * OrganisationUnits to include.
-     */
-    private Set<OrganisationUnit> organisationUnits = new HashSet<>();
+  /** OrganisationUnits to include. */
+  private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
-    /**
-     * AttributeOptionCombos to include.
-     */
-    private Set<CategoryOptionCombo> attributeOptionCombos = new HashSet<>();
+  /** AttributeOptionCombos to include. */
+  private Set<CategoryOptionCombo> attributeOptionCombos = new HashSet<>();
 
-    /**
-     * Starting date.
-     */
-    private Date startDate = null;
+  /** Starting date. */
+  private Date startDate = null;
 
-    /**
-     * Ending date.
-     */
-    private Date endDate = null;
+  /** Ending date. */
+  private Date endDate = null;
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    public boolean hasWorkflows()
-    {
-        return workflows != null && !workflows.isEmpty();
-    }
+  public boolean hasWorkflows() {
+    return workflows != null && !workflows.isEmpty();
+  }
 
-    public boolean hasLevels()
-    {
-        return levels != null && !levels.isEmpty();
-    }
+  public boolean hasLevels() {
+    return levels != null && !levels.isEmpty();
+  }
 
-    public boolean hasOrganisationUnits()
-    {
-        return organisationUnits != null && !organisationUnits.isEmpty();
-    }
+  public boolean hasOrganisationUnits() {
+    return organisationUnits != null && !organisationUnits.isEmpty();
+  }
 
-    public boolean hasAttributeOptionCombos()
-    {
-        return attributeOptionCombos != null && !attributeOptionCombos.isEmpty();
-    }
+  public boolean hasAttributeOptionCombos() {
+    return attributeOptionCombos != null && !attributeOptionCombos.isEmpty();
+  }
 
-    public boolean hasStartDate()
-    {
-        return startDate != null;
-    }
+  public boolean hasStartDate() {
+    return startDate != null;
+  }
 
-    public boolean hasEndDate()
-    {
-        return endDate != null;
-    }
+  public boolean hasEndDate() {
+    return endDate != null;
+  }
 
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this ).add( "levels", levels ).add( "workflows", workflows )
-            .add( "organisationUnits", organisationUnits ).add( "attributeOptionCombos", attributeOptionCombos )
-            .add( "startDate", startDate ).add( "endDate", endDate ).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("levels", levels)
+        .add("workflows", workflows)
+        .add("organisationUnits", organisationUnits)
+        .add("attributeOptionCombos", attributeOptionCombos)
+        .add("startDate", startDate)
+        .add("endDate", endDate)
+        .toString();
+  }
 }

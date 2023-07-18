@@ -33,41 +33,39 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for visualizations which have not been viewed in the past year.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/analytical_objects/visualizations_not_used_1year.yaml
+ * Test for visualizations which have not been viewed in the past year. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/analytical_objects/visualizations_not_used_1year.yaml
  * }
  *
- * @implNote The API and service layer will coerce a missing value strategy to a
- *           non-null type, thus it is not possible to create a test for this
- *           situation.
+ * @implNote The API and service layer will coerce a missing value strategy to a non-null type, thus
+ *     it is not possible to create a test for this situation.
  * @author Jason P. Pickering
  */
-class DataIntegrityValidationRulesMissingStrategyControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityValidationRulesMissingStrategyControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
 
-    private static final String check = "validation_rules_missing_value_strategy_null";
+  private static final String check = "validation_rules_missing_value_strategy_null";
 
-    private static final String detailsIdType = "validationRules";
+  private static final String detailsIdType = "validationRules";
 
-    @Test
-    void testValidationRulesWithNoStrategyExist()
-    {
+  @Test
+  void testValidationRulesWithNoStrategyExist() {
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/validationRules",
-                "{'importance':'MEDIUM','operator':'not_equal_to','leftSide':{'missingValueStrategy':'NEVER_SKIP', "
-                    + "" +
-                    "'description':'Test','expression':'#{FTRrcoaog83.qk6n4eMAdtK}'}," +
-                    "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test2'," +
-                    "'expression':'#{FTRrcoaog83.sqGRzCziswD}'},'periodType':'Monthly','name':'Test rule'}" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/validationRules",
+            "{'importance':'MEDIUM','operator':'not_equal_to','leftSide':{'missingValueStrategy':'NEVER_SKIP', "
+                + ""
+                + "'description':'Test','expression':'#{FTRrcoaog83.qk6n4eMAdtK}'},"
+                + "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test2',"
+                + "'expression':'#{FTRrcoaog83.sqGRzCziswD}'},'periodType':'Monthly','name':'Test rule'}"));
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
-    }
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    @Test
-    void testValidationRulesMissingStrategyRuns()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-    }
-
+  @Test
+  void testValidationRulesMissingStrategyRuns() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 }

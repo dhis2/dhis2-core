@@ -34,9 +34,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Date;
 import java.util.List;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
@@ -65,105 +63,93 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Ken Haase (ken@dhis2.org)
  */
-@OpenApi.Tags( "metadata" )
+@OpenApi.Tags("metadata")
 @Controller
 @Slf4j
-@RequestMapping( value = PredictorSchemaDescriptor.API_ENDPOINT )
-public class PredictorController extends AbstractCrudController<Predictor>
-{
-    @Autowired
-    private PredictorService predictorService;
+@RequestMapping(value = PredictorSchemaDescriptor.API_ENDPOINT)
+public class PredictorController extends AbstractCrudController<Predictor> {
+  @Autowired private PredictorService predictorService;
 
-    @Autowired
-    private PredictionService predictionService;
+  @Autowired private PredictionService predictionService;
 
-    @Autowired
-    private ExpressionService expressionService;
+  @Autowired private ExpressionService expressionService;
 
-    @Autowired
-    private I18nManager i18nManager;
+  @Autowired private I18nManager i18nManager;
 
-    @RequestMapping( value = "/{uid}/run", method = { RequestMethod.POST, RequestMethod.PUT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
-    @ResponseBody
-    public WebMessage runPredictor(
-        @PathVariable( "uid" ) String uid,
-        @RequestParam Date startDate,
-        @RequestParam Date endDate,
-        TranslateParams translateParams )
-    {
-        Predictor predictor = predictorService.getPredictor( uid );
+  @RequestMapping(
+      value = "/{uid}/run",
+      method = {RequestMethod.POST, RequestMethod.PUT})
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PREDICTOR_RUN')")
+  @ResponseBody
+  public WebMessage runPredictor(
+      @PathVariable("uid") String uid,
+      @RequestParam Date startDate,
+      @RequestParam Date endDate,
+      TranslateParams translateParams) {
+    Predictor predictor = predictorService.getPredictor(uid);
 
-        try
-        {
-            PredictionSummary predictionSummary = new PredictionSummary();
+    try {
+      PredictionSummary predictionSummary = new PredictionSummary();
 
-            predictionService.predict( predictor, startDate, endDate, predictionSummary );
+      predictionService.predict(predictor, startDate, endDate, predictionSummary);
 
-            return ok( "Generated " + predictionSummary.getPredictions() + " predictions" );
-        }
-        catch ( Exception ex )
-        {
-            log.error( "Unable to predict " + predictor.getName(), ex );
+      return ok("Generated " + predictionSummary.getPredictions() + " predictions");
+    } catch (Exception ex) {
+      log.error("Unable to predict " + predictor.getName(), ex);
 
-            return conflict( "Unable to predict " + predictor.getName(), ex.getMessage() );
-        }
+      return conflict("Unable to predict " + predictor.getName(), ex.getMessage());
+    }
+  }
+
+  @RequestMapping(
+      value = "/run",
+      method = {RequestMethod.POST, RequestMethod.PUT})
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PREDICTOR_RUN')")
+  @ResponseBody
+  public WebMessage runPredictors(
+      @RequestParam Date startDate, @RequestParam Date endDate, TranslateParams translateParams) {
+    int count = 0;
+
+    List<Predictor> allPredictors = predictorService.getAllPredictors();
+
+    for (Predictor predictor : allPredictors) {
+      try {
+        PredictionSummary predictionSummary = new PredictionSummary();
+
+        predictionService.predict(predictor, startDate, endDate, predictionSummary);
+
+        count += predictionSummary.getPredictions();
+      } catch (Exception ex) {
+        log.error("Unable to predict " + predictor.getName(), ex);
+
+        return conflict("Unable to predict " + predictor.getName(), ex.getMessage());
+      }
     }
 
-    @RequestMapping( value = "/run", method = { RequestMethod.POST, RequestMethod.PUT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
-    @ResponseBody
-    public WebMessage runPredictors(
-        @RequestParam Date startDate,
-        @RequestParam Date endDate,
-        TranslateParams translateParams )
-    {
-        int count = 0;
+    return ok("Generated " + count + " predictions");
+  }
 
-        List<Predictor> allPredictors = predictorService.getAllPredictors();
+  @PostMapping(value = "/expression/description", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage getExpressionDescription(@RequestBody String expression) {
+    ExpressionValidationOutcome result = predictionService.expressionIsValid(expression);
 
-        for ( Predictor predictor : allPredictors )
-        {
-            try
-            {
-                PredictionSummary predictionSummary = new PredictionSummary();
+    return new DescriptiveWebMessage(result.isValid() ? Status.OK : Status.ERROR, HttpStatus.OK)
+        .setDescription(
+            result::isValid, () -> predictionService.getExpressionDescription(expression))
+        .setMessage(i18nManager.getI18n().getString(result.getKey()));
+  }
 
-                predictionService.predict( predictor, startDate, endDate, predictionSummary );
+  @PostMapping(value = "/skipTest/description", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage getSkipTestDescription(@RequestBody String expression) {
+    ExpressionValidationOutcome result =
+        expressionService.expressionIsValid(expression, PREDICTOR_SKIP_TEST);
 
-                count += predictionSummary.getPredictions();
-            }
-            catch ( Exception ex )
-            {
-                log.error( "Unable to predict " + predictor.getName(), ex );
-
-                return conflict( "Unable to predict " + predictor.getName(), ex.getMessage() );
-            }
-        }
-
-        return ok( "Generated " + count + " predictions" );
-    }
-
-    @PostMapping( value = "/expression/description", produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage getExpressionDescription( @RequestBody String expression )
-    {
-        ExpressionValidationOutcome result = predictionService.expressionIsValid( expression );
-
-        return new DescriptiveWebMessage( result.isValid() ? Status.OK : Status.ERROR, HttpStatus.OK )
-            .setDescription( result::isValid,
-                () -> predictionService.getExpressionDescription( expression ) )
-            .setMessage( i18nManager.getI18n().getString( result.getKey() ) );
-    }
-
-    @PostMapping( value = "/skipTest/description", produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage getSkipTestDescription( @RequestBody String expression )
-    {
-        ExpressionValidationOutcome result = expressionService.expressionIsValid( expression, PREDICTOR_SKIP_TEST );
-
-        return new DescriptiveWebMessage( result.isValid() ? Status.OK : Status.ERROR, HttpStatus.OK )
-            .setDescription( result::isValid,
-                () -> expressionService.getExpressionDescription( expression, PREDICTOR_SKIP_TEST ) )
-            .setMessage( i18nManager.getI18n().getString( result.getKey() ) );
-    }
+    return new DescriptiveWebMessage(result.isValid() ? Status.OK : Status.ERROR, HttpStatus.OK)
+        .setDescription(
+            result::isValid,
+            () -> expressionService.getExpressionDescription(expression, PREDICTOR_SKIP_TEST))
+        .setMessage(i18nManager.getI18n().getString(result.getKey()));
+  }
 }

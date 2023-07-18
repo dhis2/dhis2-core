@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
-
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.trackedentity.ImportTrackedEntitiesTask;
@@ -63,136 +62,131 @@ import org.springframework.http.MediaType;
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class TrackedEntityInstanceStrategyHandlerImplTest
-{
-    @InjectMocks
-    private TrackedEntityInstanceAsyncStrategyImpl trackedEntityInstanceAsyncStrategy;
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class TrackedEntityInstanceStrategyHandlerImplTest {
+  @InjectMocks private TrackedEntityInstanceAsyncStrategyImpl trackedEntityInstanceAsyncStrategy;
 
-    @InjectMocks
-    private TrackedEntityInstanceSyncStrategyImpl trackedEntityInstanceSyncStrategy;
+  @InjectMocks private TrackedEntityInstanceSyncStrategyImpl trackedEntityInstanceSyncStrategy;
 
-    @Mock
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+  @Mock private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Mock
-    private AsyncTaskExecutor taskExecutor;
+  @Mock private AsyncTaskExecutor taskExecutor;
 
-    @Mock
-    private TrackedEntityInstance trackedEntityInstance;
+  @Mock private TrackedEntityInstance trackedEntityInstance;
 
-    @Mock
-    private InputStream inputStream;
+  @Mock private InputStream inputStream;
 
-    @Mock
-    private ImportOptions importOptions;
+  @Mock private ImportOptions importOptions;
 
-    @Mock
-    private JobConfiguration jobConfiguration;
+  @Mock private JobConfiguration jobConfiguration;
 
-    @Captor
-    private ArgumentCaptor<ImportTrackedEntitiesTask> trackedEntitiesTaskArgumentCaptor;
+  @Captor private ArgumentCaptor<ImportTrackedEntitiesTask> trackedEntitiesTaskArgumentCaptor;
 
-    private static List<TrackedEntityInstance> trackedEntityInstanceList;
+  private static List<TrackedEntityInstance> trackedEntityInstanceList;
 
-    @BeforeEach
-    public void setUp()
-    {
-        trackedEntityInstanceList = Collections.singletonList( trackedEntityInstance );
-    }
+  @BeforeEach
+  public void setUp() {
+    trackedEntityInstanceList = Collections.singletonList(trackedEntityInstance);
+  }
 
-    @Test
-    void shouldCallSyncTrackedEntityJsonSyncStrategy()
-        throws IOException,
-        BadRequestException
-    {
-        when( trackedEntityInstanceService.getTrackedEntityInstancesJson( any() ) )
-            .thenReturn( trackedEntityInstanceList );
+  @Test
+  void shouldCallSyncTrackedEntityJsonSyncStrategy() throws IOException, BadRequestException {
+    when(trackedEntityInstanceService.getTrackedEntityInstancesJson(any()))
+        .thenReturn(trackedEntityInstanceList);
 
-        TrackerEntityInstanceRequest trackerEntityInstanceRequest = TrackerEntityInstanceRequest.builder()
-            .mediaType( MediaType.APPLICATION_JSON_VALUE ).importOptions( importOptions ).inputStream( inputStream )
+    TrackerEntityInstanceRequest trackerEntityInstanceRequest =
+        TrackerEntityInstanceRequest.builder()
+            .mediaType(MediaType.APPLICATION_JSON_VALUE)
+            .importOptions(importOptions)
+            .inputStream(inputStream)
             .build();
 
-        trackedEntityInstanceSyncStrategy.mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
+    trackedEntityInstanceSyncStrategy.mergeOrDeleteTrackedEntityInstances(
+        trackerEntityInstanceRequest);
 
-        verify( trackedEntityInstanceService, times( 1 ) ).mergeOrDeleteTrackedEntityInstances(
-            trackedEntityInstanceList,
-            importOptions, null );
-        verify( trackedEntityInstanceService, times( 1 ) ).getTrackedEntityInstancesJson( inputStream );
-    }
+    verify(trackedEntityInstanceService, times(1))
+        .mergeOrDeleteTrackedEntityInstances(trackedEntityInstanceList, importOptions, null);
+    verify(trackedEntityInstanceService, times(1)).getTrackedEntityInstancesJson(inputStream);
+  }
 
-    @Test
-    void shouldCallSyncTrackedEntityXmlSyncStrategy()
-        throws BadRequestException,
-        IOException
-    {
-        when( trackedEntityInstanceService.getTrackedEntityInstancesXml( any() ) )
-            .thenReturn( trackedEntityInstanceList );
+  @Test
+  void shouldCallSyncTrackedEntityXmlSyncStrategy() throws BadRequestException, IOException {
+    when(trackedEntityInstanceService.getTrackedEntityInstancesXml(any()))
+        .thenReturn(trackedEntityInstanceList);
 
-        TrackerEntityInstanceRequest trackerEntityInstanceRequest = TrackerEntityInstanceRequest.builder()
-            .mediaType( MediaType.APPLICATION_XML_VALUE ).importOptions( importOptions ).inputStream( inputStream )
+    TrackerEntityInstanceRequest trackerEntityInstanceRequest =
+        TrackerEntityInstanceRequest.builder()
+            .mediaType(MediaType.APPLICATION_XML_VALUE)
+            .importOptions(importOptions)
+            .inputStream(inputStream)
             .build();
 
-        trackedEntityInstanceSyncStrategy.mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
+    trackedEntityInstanceSyncStrategy.mergeOrDeleteTrackedEntityInstances(
+        trackerEntityInstanceRequest);
 
-        verify( trackedEntityInstanceService, times( 1 ) ).mergeOrDeleteTrackedEntityInstances(
-            trackedEntityInstanceList,
-            importOptions, null );
-        verify( trackedEntityInstanceService, times( 1 ) ).getTrackedEntityInstancesXml( inputStream );
-    }
+    verify(trackedEntityInstanceService, times(1))
+        .mergeOrDeleteTrackedEntityInstances(trackedEntityInstanceList, importOptions, null);
+    verify(trackedEntityInstanceService, times(1)).getTrackedEntityInstancesXml(inputStream);
+  }
 
-    @Test
-    void shouldCallAsyncTrackedEntityJsonAsyncStrategy()
-        throws BadRequestException,
-        IOException
-    {
-        when( trackedEntityInstanceService.getTrackedEntityInstancesJson( any() ) )
-            .thenReturn( trackedEntityInstanceList );
+  @Test
+  void shouldCallAsyncTrackedEntityJsonAsyncStrategy() throws BadRequestException, IOException {
+    when(trackedEntityInstanceService.getTrackedEntityInstancesJson(any()))
+        .thenReturn(trackedEntityInstanceList);
 
-        TrackerEntityInstanceRequest trackerEntityInstanceRequest = TrackerEntityInstanceRequest.builder()
-            .mediaType( MediaType.APPLICATION_JSON_VALUE ).importOptions( importOptions )
-            .jobConfiguration( jobConfiguration ).inputStream( inputStream )
+    TrackerEntityInstanceRequest trackerEntityInstanceRequest =
+        TrackerEntityInstanceRequest.builder()
+            .mediaType(MediaType.APPLICATION_JSON_VALUE)
+            .importOptions(importOptions)
+            .jobConfiguration(jobConfiguration)
+            .inputStream(inputStream)
             .build();
 
-        trackedEntityInstanceAsyncStrategy.mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
+    trackedEntityInstanceAsyncStrategy.mergeOrDeleteTrackedEntityInstances(
+        trackerEntityInstanceRequest);
 
-        verify( trackedEntityInstanceService, times( 1 ) ).getTrackedEntityInstancesJson( inputStream );
-        verify( taskExecutor, times( 1 ) ).executeTask( trackedEntitiesTaskArgumentCaptor.capture() );
-    }
+    verify(trackedEntityInstanceService, times(1)).getTrackedEntityInstancesJson(inputStream);
+    verify(taskExecutor, times(1)).executeTask(trackedEntitiesTaskArgumentCaptor.capture());
+  }
 
-    @Test
-    void shouldCallAsyncTrackedEntityXmlAsyncStrategy()
-        throws IOException,
-        BadRequestException
-    {
-        when( trackedEntityInstanceService.getTrackedEntityInstancesJson( any() ) )
-            .thenReturn( trackedEntityInstanceList );
+  @Test
+  void shouldCallAsyncTrackedEntityXmlAsyncStrategy() throws IOException, BadRequestException {
+    when(trackedEntityInstanceService.getTrackedEntityInstancesJson(any()))
+        .thenReturn(trackedEntityInstanceList);
 
-        TrackerEntityInstanceRequest trackerEntityInstanceRequest = TrackerEntityInstanceRequest.builder()
-            .mediaType( MediaType.APPLICATION_XML_VALUE ).importOptions( importOptions )
-            .jobConfiguration( jobConfiguration ).inputStream( inputStream )
+    TrackerEntityInstanceRequest trackerEntityInstanceRequest =
+        TrackerEntityInstanceRequest.builder()
+            .mediaType(MediaType.APPLICATION_XML_VALUE)
+            .importOptions(importOptions)
+            .jobConfiguration(jobConfiguration)
+            .inputStream(inputStream)
             .build();
 
-        trackedEntityInstanceAsyncStrategy.mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
+    trackedEntityInstanceAsyncStrategy.mergeOrDeleteTrackedEntityInstances(
+        trackerEntityInstanceRequest);
 
-        verify( trackedEntityInstanceService, times( 1 ) ).getTrackedEntityInstancesXml( inputStream );
-        verify( taskExecutor, times( 1 ) ).executeTask( trackedEntitiesTaskArgumentCaptor.capture() );
-    }
+    verify(trackedEntityInstanceService, times(1)).getTrackedEntityInstancesXml(inputStream);
+    verify(taskExecutor, times(1)).executeTask(trackedEntitiesTaskArgumentCaptor.capture());
+  }
 
-    @Test
-    void shouldThrowMediaTypeNotAllowed()
-        throws IOException
-    {
-        when( trackedEntityInstanceService.getTrackedEntityInstancesJson( any() ) )
-            .thenReturn( trackedEntityInstanceList );
+  @Test
+  void shouldThrowMediaTypeNotAllowed() throws IOException {
+    when(trackedEntityInstanceService.getTrackedEntityInstancesJson(any()))
+        .thenReturn(trackedEntityInstanceList);
 
-        TrackerEntityInstanceRequest trackerEntityInstanceRequest = TrackerEntityInstanceRequest.builder()
-            .mediaType( MediaType.APPLICATION_PDF_VALUE ).importOptions( importOptions )
-            .jobConfiguration( jobConfiguration ).inputStream( inputStream )
+    TrackerEntityInstanceRequest trackerEntityInstanceRequest =
+        TrackerEntityInstanceRequest.builder()
+            .mediaType(MediaType.APPLICATION_PDF_VALUE)
+            .importOptions(importOptions)
+            .jobConfiguration(jobConfiguration)
+            .inputStream(inputStream)
             .build();
 
-        assertThrows( BadRequestException.class, () -> trackedEntityInstanceAsyncStrategy
-            .mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest ) );
-    }
+    assertThrows(
+        BadRequestException.class,
+        () ->
+            trackedEntityInstanceAsyncStrategy.mergeOrDeleteTrackedEntityInstances(
+                trackerEntityInstanceRequest));
+  }
 }

@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.dataset.DataSet;
@@ -46,79 +45,75 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook<IdentifiableObject>
-{
-    @Override
-    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
-    {
-        if ( object instanceof VersionedObject )
-        {
-            VersionedObject versionObj = (VersionedObject) object;
-            int persistedVersion = ((VersionedObject) persistedObject).getVersion();
+public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook<IdentifiableObject> {
+  @Override
+  public void preUpdate(
+      IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle) {
+    if (object instanceof VersionedObject) {
+      VersionedObject versionObj = (VersionedObject) object;
+      int persistedVersion = ((VersionedObject) persistedObject).getVersion();
 
-            versionObj.setVersion( persistedVersion > versionObj.getVersion() ? persistedVersion
-                : persistedVersion < versionObj.getVersion() ? versionObj.getVersion() : versionObj.increaseVersion() );
-        }
+      versionObj.setVersion(
+          persistedVersion > versionObj.getVersion()
+              ? persistedVersion
+              : persistedVersion < versionObj.getVersion()
+                  ? versionObj.getVersion()
+                  : versionObj.increaseVersion());
+    }
+  }
+
+  @Override
+  public void postCreate(IdentifiableObject persistedObject, ObjectBundle bundle) {
+    VersionedObject versionedObject = null;
+
+    if (persistedObject instanceof Section) {
+      versionedObject = ((Section) persistedObject).getDataSet();
+    } else if (persistedObject instanceof Option) {
+      versionedObject = ((Option) persistedObject).getOptionSet();
     }
 
-    @Override
-    public void postCreate( IdentifiableObject persistedObject, ObjectBundle bundle )
-    {
-        VersionedObject versionedObject = null;
-
-        if ( persistedObject instanceof Section )
-        {
-            versionedObject = ((Section) persistedObject).getDataSet();
-        }
-        else if ( persistedObject instanceof Option )
-        {
-            versionedObject = ((Option) persistedObject).getOptionSet();
-        }
-
-        if ( versionedObject != null )
-        {
-            versionedObject.increaseVersion();
-            sessionFactory.getCurrentSession().save( versionedObject );
-        }
+    if (versionedObject != null) {
+      versionedObject.increaseVersion();
+      sessionFactory.getCurrentSession().save(versionedObject);
     }
+  }
 
-    @Override
-    public <T extends IdentifiableObject> void postTypeImport( Class<T> klass, List<T> objects, ObjectBundle bundle )
-    {
-        if ( Section.class.isAssignableFrom( klass ) )
-        {
-            Set<DataSet> dataSets = new HashSet<>();
-            objects.forEach( o -> {
-                DataSet dataSet = ((Section) o).getDataSet();
+  @Override
+  public <T extends IdentifiableObject> void postTypeImport(
+      Class<T> klass, List<T> objects, ObjectBundle bundle) {
+    if (Section.class.isAssignableFrom(klass)) {
+      Set<DataSet> dataSets = new HashSet<>();
+      objects.forEach(
+          o -> {
+            DataSet dataSet = ((Section) o).getDataSet();
 
-                if ( dataSet != null && dataSet.getId() > 0 )
-                {
-                    dataSets.add( dataSet );
-                }
-            } );
+            if (dataSet != null && dataSet.getId() > 0) {
+              dataSets.add(dataSet);
+            }
+          });
 
-            dataSets.forEach( ds -> {
-                ds.increaseVersion();
-                sessionFactory.getCurrentSession().save( ds );
-            } );
-        }
-        else if ( Option.class.isAssignableFrom( klass ) )
-        {
-            Set<OptionSet> optionSets = new HashSet<>();
+      dataSets.forEach(
+          ds -> {
+            ds.increaseVersion();
+            sessionFactory.getCurrentSession().save(ds);
+          });
+    } else if (Option.class.isAssignableFrom(klass)) {
+      Set<OptionSet> optionSets = new HashSet<>();
 
-            objects.forEach( o -> {
-                Option option = (Option) o;
+      objects.forEach(
+          o -> {
+            Option option = (Option) o;
 
-                if ( option.getOptionSet() != null && option.getId() > 0 )
-                {
-                    optionSets.add( option.getOptionSet() );
-                }
-            } );
+            if (option.getOptionSet() != null && option.getId() > 0) {
+              optionSets.add(option.getOptionSet());
+            }
+          });
 
-            optionSets.forEach( os -> {
-                os.increaseVersion();
-                sessionFactory.getCurrentSession().save( os );
-            } );
-        }
+      optionSets.forEach(
+          os -> {
+            os.increaseVersion();
+            sessionFactory.getCurrentSession().save(os);
+          });
     }
+  }
 }

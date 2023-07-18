@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -42,75 +41,69 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Stian Sandvold.
  */
-class UserDatastoreEntryStoreTest extends SingleSetupIntegrationTestBase
-{
+class UserDatastoreEntryStoreTest extends SingleSetupIntegrationTestBase {
 
-    @Autowired
-    private UserDatastoreStore userDatastoreStore;
+  @Autowired private UserDatastoreStore userDatastoreStore;
 
-    @Autowired
-    private UserService injectUserService;
+  @Autowired private UserService injectUserService;
 
-    private User user;
+  private User user;
 
-    @Override
-    public void setUpTest()
-    {
-        this.userService = injectUserService;
-        user = createUserAndInjectSecurityContext( true );
-    }
+  @Override
+  public void setUpTest() {
+    this.userService = injectUserService;
+    user = createUserAndInjectSecurityContext(true);
+  }
 
-    @Test
-    void testAddUserKeyJsonValue()
-    {
-        UserDatastoreEntry userEntry = new UserDatastoreEntry();
-        userEntry.setValue( "{}" );
-        userEntry.setKey( "test" );
-        userEntry.setNamespace( "a" );
-        userEntry.setCreatedBy( user );
-        userDatastoreStore.save( userEntry );
-        long id = userEntry.getId();
-        assertNotNull( userEntry );
-        assertEquals( userEntry, userDatastoreStore.get( id ) );
-    }
+  @Test
+  void testAddUserKeyJsonValue() {
+    UserDatastoreEntry userEntry = new UserDatastoreEntry();
+    userEntry.setValue("{}");
+    userEntry.setKey("test");
+    userEntry.setNamespace("a");
+    userEntry.setCreatedBy(user);
+    userDatastoreStore.save(userEntry);
+    long id = userEntry.getId();
+    assertNotNull(userEntry);
+    assertEquals(userEntry, userDatastoreStore.get(id));
+  }
 
-    @Test
-    void testAddUserKeyJsonValuesAndGetNamespacesByUser()
-    {
-        UserDatastoreEntry userEntryA = new UserDatastoreEntry();
-        userEntryA.setValue( "{}" );
-        userEntryA.setNamespace( "test_a" );
-        userEntryA.setKey( "a" );
-        userEntryA.setCreatedBy( user );
-        userDatastoreStore.save( userEntryA );
-        UserDatastoreEntry userEntryB = new UserDatastoreEntry();
-        userEntryB.setValue( "{}" );
-        userEntryB.setNamespace( "test_b" );
-        userEntryB.setKey( "b" );
-        userEntryB.setCreatedBy( user );
-        userDatastoreStore.save( userEntryB );
-        List<String> list = userDatastoreStore.getNamespacesByUser( user );
-        assertTrue( list.contains( "test_a" ) );
-        assertTrue( list.contains( "test_b" ) );
-    }
+  @Test
+  void testAddUserKeyJsonValuesAndGetNamespacesByUser() {
+    UserDatastoreEntry userEntryA = new UserDatastoreEntry();
+    userEntryA.setValue("{}");
+    userEntryA.setNamespace("test_a");
+    userEntryA.setKey("a");
+    userEntryA.setCreatedBy(user);
+    userDatastoreStore.save(userEntryA);
+    UserDatastoreEntry userEntryB = new UserDatastoreEntry();
+    userEntryB.setValue("{}");
+    userEntryB.setNamespace("test_b");
+    userEntryB.setKey("b");
+    userEntryB.setCreatedBy(user);
+    userDatastoreStore.save(userEntryB);
+    List<String> list = userDatastoreStore.getNamespacesByUser(user);
+    assertTrue(list.contains("test_a"));
+    assertTrue(list.contains("test_b"));
+  }
 
-    @Test
-    void testAddUserKeyJsonValuesAndGetUserKeyJsonValuesByUser()
-    {
-        UserDatastoreEntry userEntryA = new UserDatastoreEntry();
-        userEntryA.setValue( "{}" );
-        userEntryA.setNamespace( "a" );
-        userEntryA.setKey( "test_a" );
-        userEntryA.setCreatedBy( user );
-        userDatastoreStore.save( userEntryA );
-        UserDatastoreEntry userEntryB = new UserDatastoreEntry();
-        userEntryB.setValue( "{}" );
-        userEntryB.setNamespace( "a" );
-        userEntryB.setKey( "test_b" );
-        userEntryB.setCreatedBy( user );
-        userDatastoreStore.save( userEntryB );
-        List<UserDatastoreEntry> list = userDatastoreStore.getUserKeyJsonValueByUserAndNamespace( user, "a" );
-        assertTrue( list.contains( userEntryA ) );
-        assertTrue( list.contains( userEntryB ) );
-    }
+  @Test
+  void testAddUserKeyJsonValuesAndGetUserKeyJsonValuesByUser() {
+    UserDatastoreEntry userEntryA = new UserDatastoreEntry();
+    userEntryA.setValue("{}");
+    userEntryA.setNamespace("a");
+    userEntryA.setKey("test_a");
+    userEntryA.setCreatedBy(user);
+    userDatastoreStore.save(userEntryA);
+    UserDatastoreEntry userEntryB = new UserDatastoreEntry();
+    userEntryB.setValue("{}");
+    userEntryB.setNamespace("a");
+    userEntryB.setKey("test_b");
+    userEntryB.setCreatedBy(user);
+    userDatastoreStore.save(userEntryB);
+    List<UserDatastoreEntry> list =
+        userDatastoreStore.getUserKeyJsonValueByUserAndNamespace(user, "a");
+    assertTrue(list.contains(userEntryA));
+    assertTrue(list.contains(userEntryB));
+  }
 }

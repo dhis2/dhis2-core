@@ -31,7 +31,6 @@ import static org.hisp.dhis.dxf2.events.event.EventUtils.getValidUsername;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 
 import java.util.Date;
-
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -39,25 +38,21 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramStageInstanceNoteMapper
-    extends
-    AbstractMapper<Note, TrackedEntityComment>
-{
-    public ProgramStageInstanceNoteMapper( WorkContext ctx )
-    {
-        super( ctx );
-    }
+public class ProgramStageInstanceNoteMapper extends AbstractMapper<Note, TrackedEntityComment> {
+  public ProgramStageInstanceNoteMapper(WorkContext ctx) {
+    super(ctx);
+  }
 
-    @Override
-    public TrackedEntityComment map( Note note )
-    {
-        final TrackedEntityComment comment = new TrackedEntityComment();
-        comment.setUid( note.getNote() );
-        comment.setCommentText( note.getValue() );
-        comment.setCreator( getValidUsername( note.getStoredBy(), workContext.getImportOptions() ) );
-        comment.setCreated( note.getStoredDate() == null ? new Date() : parseDate( note.getStoredDate() ) );
-        comment.setLastUpdated( new Date() );
-        comment.setLastUpdatedBy( workContext.getServiceDelegator().getEventImporterUserService().getCurrentUser() );
-        return comment;
-    }
+  @Override
+  public TrackedEntityComment map(Note note) {
+    final TrackedEntityComment comment = new TrackedEntityComment();
+    comment.setUid(note.getNote());
+    comment.setCommentText(note.getValue());
+    comment.setCreator(getValidUsername(note.getStoredBy(), workContext.getImportOptions()));
+    comment.setCreated(note.getStoredDate() == null ? new Date() : parseDate(note.getStoredDate()));
+    comment.setLastUpdated(new Date());
+    comment.setLastUpdatedBy(
+        workContext.getServiceDelegator().getEventImporterUserService().getCurrentUser());
+    return comment;
+  }
 }

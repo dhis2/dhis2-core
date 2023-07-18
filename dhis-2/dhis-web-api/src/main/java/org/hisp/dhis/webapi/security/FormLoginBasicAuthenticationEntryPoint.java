@@ -29,12 +29,12 @@ package org.hisp.dhis.webapi.security;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.net.HttpHeaders;
 import java.io.IOException;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hisp.dhis.render.RenderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,68 +44,57 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.net.HttpHeaders;
-
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class FormLoginBasicAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint
-{
-    @Autowired
-    private RenderService renderService;
+public class FormLoginBasicAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
+  @Autowired private RenderService renderService;
 
-    /**
-     * @param loginFormUrl URL where the login page can be found. Should either
-     *        be relative to the web-app context path (include a leading
-     *        {@code /}) or an absolute URL.
-     */
-    public FormLoginBasicAuthenticationEntryPoint( String loginFormUrl )
-    {
-        super( loginFormUrl );
+  /**
+   * @param loginFormUrl URL where the login page can be found. Should either be relative to the
+   *     web-app context path (include a leading {@code /}) or an absolute URL.
+   */
+  public FormLoginBasicAuthenticationEntryPoint(String loginFormUrl) {
+    super(loginFormUrl);
+  }
+
+  @Override
+  public void commence(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      AuthenticationException authException)
+      throws IOException, ServletException {
+    String acceptHeader = MoreObjects.firstNonNull(request.getHeader(HttpHeaders.ACCEPT), "");
+    String requestWithHeader =
+        MoreObjects.firstNonNull(request.getHeader(HttpHeaders.X_REQUESTED_WITH), "");
+    String authorizationHeader =
+        MoreObjects.firstNonNull(request.getHeader(HttpHeaders.AUTHORIZATION), "");
+
+    if ("XMLHttpRequest".equals(requestWithHeader) || authorizationHeader.contains("Basic")) {
+      String message = "Unauthorized";
+
+      if (ExceptionUtils.indexOfThrowable(authException, LockedException.class) != -1) {
+        message = "Account locked";
+      }
+
+      if (ExceptionUtils.indexOfThrowable(authException, DisabledException.class) != -1) {
+        message = "Account disabled";
+      }
+
+      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+      if (acceptHeader.contains(MediaType.APPLICATION_XML_VALUE)) {
+        response.setContentType(MediaType.APPLICATION_XML_VALUE);
+        renderService.toXml(response.getOutputStream(), unauthorized(message));
+      } else {
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        renderService.toJson(response.getOutputStream(), unauthorized(message));
+      }
+
+      return;
     }
 
-    @Override
-    public void commence( HttpServletRequest request, HttpServletResponse response,
-        AuthenticationException authException )
-        throws IOException,
-        ServletException
-    {
-        String acceptHeader = MoreObjects.firstNonNull( request.getHeader( HttpHeaders.ACCEPT ), "" );
-        String requestWithHeader = MoreObjects.firstNonNull( request.getHeader( HttpHeaders.X_REQUESTED_WITH ), "" );
-        String authorizationHeader = MoreObjects.firstNonNull( request.getHeader( HttpHeaders.AUTHORIZATION ), "" );
-
-        if ( "XMLHttpRequest".equals( requestWithHeader ) || authorizationHeader.contains( "Basic" ) )
-        {
-            String message = "Unauthorized";
-
-            if ( ExceptionUtils.indexOfThrowable( authException, LockedException.class ) != -1 )
-            {
-                message = "Account locked";
-            }
-
-            if ( ExceptionUtils.indexOfThrowable( authException, DisabledException.class ) != -1 )
-            {
-                message = "Account disabled";
-            }
-
-            response.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
-
-            if ( acceptHeader.contains( MediaType.APPLICATION_XML_VALUE ) )
-            {
-                response.setContentType( MediaType.APPLICATION_XML_VALUE );
-                renderService.toXml( response.getOutputStream(), unauthorized( message ) );
-            }
-            else
-            {
-                response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-                renderService.toJson( response.getOutputStream(), unauthorized( message ) );
-            }
-
-            return;
-        }
-
-        super.commence( request, response, authException );
-    }
+    super.commence(request, response, authException);
+  }
 }

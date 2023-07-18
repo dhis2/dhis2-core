@@ -43,23 +43,21 @@ import org.springframework.stereotype.Component;
  * @author maikel arabori
  */
 @Component
-public class ProgramStageInstanceAuthCheck implements Checker
-{
-    @Override
-    public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )
-    {
-        final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
+public class ProgramStageInstanceAuthCheck implements Checker {
+  @Override
+  public ImportSummary check(final ImmutableEvent event, final WorkContext ctx) {
+    final ProgramStageInstance programStageInstance =
+        ctx.getProgramStageInstanceMap().get(event.getEvent());
 
-        if ( event.getStatus() != programStageInstance.getStatus() && programStageInstance.getStatus() == COMPLETED )
-        {
-            final User user = ctx.getImportOptions().getUser();
+    if (event.getStatus() != programStageInstance.getStatus()
+        && programStageInstance.getStatus() == COMPLETED) {
+      final User user = ctx.getImportOptions().getUser();
 
-            if ( !user.isSuper() && !user.isAuthorized( "F_UNCOMPLETE_EVENT" ) )
-            {
-                return error( "User is not authorized to uncomplete events" );
-            }
-        }
-
-        return success();
+      if (!user.isSuper() && !user.isAuthorized("F_UNCOMPLETE_EVENT")) {
+        return error("User is not authorized to uncomplete events");
+      }
     }
+
+    return success();
+  }
 }

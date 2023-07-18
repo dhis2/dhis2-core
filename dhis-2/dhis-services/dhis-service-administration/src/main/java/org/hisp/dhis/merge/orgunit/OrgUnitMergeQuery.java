@@ -27,12 +27,10 @@
  */
 package org.hisp.dhis.merge.orgunit;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Data;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Encapsulation of a web API request for org unit merge.
@@ -40,20 +38,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Lars Helge Overland
  */
 @Data
-public class OrgUnitMergeQuery
-{
-    @JsonProperty
-    private List<String> sources = new ArrayList<>();
+public class OrgUnitMergeQuery {
+  @JsonProperty private List<String> sources = new ArrayList<>();
 
-    @JsonProperty
-    private String target;
+  @JsonProperty private String target;
 
-    @JsonProperty
-    private DataMergeStrategy dataValueMergeStrategy;
+  @JsonProperty private DataMergeStrategy dataValueMergeStrategy;
 
-    @JsonProperty
-    private DataMergeStrategy dataApprovalMergeStrategy;
+  @JsonProperty private DataMergeStrategy dataApprovalMergeStrategy;
 
-    @JsonProperty
-    private Boolean deleteSources;
+  @JsonProperty private Boolean deleteSources;
 }

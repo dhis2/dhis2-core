@@ -27,148 +27,126 @@
  */
 package org.hisp.dhis.mapping;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.legend.LegendSet;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@JacksonXmlRootElement( localName = "externalMapLayer", namespace = DxfNamespaces.DXF_2_0 )
-public class ExternalMapLayer
-    extends BaseIdentifiableObject implements MetadataObject
-{
-    private MapService mapService;
+@JacksonXmlRootElement(localName = "externalMapLayer", namespace = DxfNamespaces.DXF_2_0)
+public class ExternalMapLayer extends BaseIdentifiableObject implements MetadataObject {
+  private MapService mapService;
 
-    private String url;
+  private String url;
 
-    private String attribution;
+  private String attribution;
 
-    private String layers;
+  private String layers;
 
-    private ImageFormat imageFormat;
+  private ImageFormat imageFormat;
 
-    private MapLayerPosition mapLayerPosition;
+  private MapLayerPosition mapLayerPosition;
 
-    private LegendSet legendSet;
+  private LegendSet legendSet;
 
-    private String legendSetUrl;
+  private String legendSetUrl;
 
-    // -----------------------------------------------------
-    // Constructor
-    // -----------------------------------------------------
+  // -----------------------------------------------------
+  // Constructor
+  // -----------------------------------------------------
 
-    public ExternalMapLayer()
-    {
-    }
+  public ExternalMapLayer() {}
 
-    public ExternalMapLayer( String name )
-    {
-        this.name = name;
-    }
+  public ExternalMapLayer(String name) {
+    this.name = name;
+  }
 
-    // -----------------------------------------------------
-    // Getters & Setters
-    // -----------------------------------------------------
+  // -----------------------------------------------------
+  // Getters & Setters
+  // -----------------------------------------------------
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public MapService getMapService()
-    {
-        return mapService;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public MapService getMapService() {
+    return mapService;
+  }
 
-    public void setMapService( MapService mapService )
-    {
-        this.mapService = mapService;
-    }
+  public void setMapService(MapService mapService) {
+    this.mapService = mapService;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUrl()
-    {
-        return url;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getUrl() {
+    return url;
+  }
 
-    public void setUrl( String url )
-    {
-        this.url = url;
-    }
+  public void setUrl(String url) {
+    this.url = url;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getAttribution()
-    {
-        return attribution;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getAttribution() {
+    return attribution;
+  }
 
-    public void setAttribution( String attribution )
-    {
-        this.attribution = attribution;
-    }
+  public void setAttribution(String attribution) {
+    this.attribution = attribution;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getLayers()
-    {
-        return layers;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getLayers() {
+    return layers;
+  }
 
-    public void setLayers( String layers )
-    {
-        this.layers = layers;
-    }
+  public void setLayers(String layers) {
+    this.layers = layers;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ImageFormat getImageFormat()
-    {
-        return imageFormat;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ImageFormat getImageFormat() {
+    return imageFormat;
+  }
 
-    public void setImageFormat( ImageFormat imageFormat )
-    {
-        this.imageFormat = imageFormat;
-    }
+  public void setImageFormat(ImageFormat imageFormat) {
+    this.imageFormat = imageFormat;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public MapLayerPosition getMapLayerPosition()
-    {
-        return mapLayerPosition;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public MapLayerPosition getMapLayerPosition() {
+    return mapLayerPosition;
+  }
 
-    public void setMapLayerPosition( MapLayerPosition mapLayerPosition )
-    {
-        this.mapLayerPosition = mapLayerPosition;
-    }
+  public void setMapLayerPosition(MapLayerPosition mapLayerPosition) {
+    this.mapLayerPosition = mapLayerPosition;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public LegendSet getLegendSet()
-    {
-        return legendSet;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public LegendSet getLegendSet() {
+    return legendSet;
+  }
 
-    public void setLegendSet( LegendSet legendSet )
-    {
-        this.legendSet = legendSet;
-    }
+  public void setLegendSet(LegendSet legendSet) {
+    this.legendSet = legendSet;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getLegendSetUrl()
-    {
-        return legendSetUrl;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getLegendSetUrl() {
+    return legendSetUrl;
+  }
 
-    public void setLegendSetUrl( String legendSetUrl )
-    {
-        this.legendSetUrl = legendSetUrl;
-    }
+  public void setLegendSetUrl(String legendSetUrl) {
+    this.legendSetUrl = legendSetUrl;
+  }
 }

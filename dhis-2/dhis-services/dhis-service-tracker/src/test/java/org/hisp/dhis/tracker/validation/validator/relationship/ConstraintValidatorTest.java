@@ -57,258 +57,279 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class ConstraintValidatorTest
-{
-    private ConstraintValidator validator;
+@ExtendWith(MockitoExtension.class)
+class ConstraintValidatorTest {
+  private ConstraintValidator validator;
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    @Mock
-    private TrackerIdSchemeParams params;
+  @Mock private TrackerIdSchemeParams params;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    public void setUp()
-    {
-        validator = new ConstraintValidator();
+  @BeforeEach
+  public void setUp() {
+    validator = new ConstraintValidator();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
+    when(bundle.getPreheat()).thenReturn(preheat);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
-    }
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
+  }
 
-    @Test
-    void shouldBeValidWhenRelationshipTypeIsCorrectlySetAndEntitiesExist()
-    {
-        RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
-        TrackedEntityType trackedEntityType = new TrackedEntityType();
-        relType.getFromConstraint().setTrackedEntityType( trackedEntityType );
-        relType.getToConstraint().setTrackedEntityType( trackedEntityType );
-        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
+  @Test
+  void shouldBeValidWhenRelationshipTypeIsCorrectlySetAndEntitiesExist() {
+    RelationshipType relType =
+        createRelTypeConstraint(TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE);
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    relType.getFromConstraint().setTrackedEntityType(trackedEntityType);
+    relType.getToConstraint().setTrackedEntityType(trackedEntityType);
+    TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+    trackedEntityInstance.setTrackedEntityType(trackedEntityType);
 
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .from( trackedEntityRelationshipItem() )
-            .to( trackedEntityRelationshipItem() )
-            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
+    Relationship relationship =
+        Relationship.builder()
+            .relationship(CodeGenerator.generateUid())
+            .from(trackedEntityRelationshipItem())
+            .to(trackedEntityRelationshipItem())
+            .relationshipType(MetadataIdentifier.ofUid(relType.getUid()))
             .build();
 
-        when( bundle.getPreheat().getRelationshipType( relationship.getRelationshipType() ) ).thenReturn( relType );
-        when( bundle.getPreheat().getTrackedEntity( anyString() ) ).thenReturn( trackedEntityInstance );
-        when( params.toMetadataIdentifier( trackedEntityType ) )
-            .thenReturn( MetadataIdentifier.ofUid( trackedEntityType.getUid() ) );
-        when( bundle.getPreheat().getIdSchemes() ).thenReturn( params );
+    when(bundle.getPreheat().getRelationshipType(relationship.getRelationshipType()))
+        .thenReturn(relType);
+    when(bundle.getPreheat().getTrackedEntity(anyString())).thenReturn(trackedEntityInstance);
+    when(params.toMetadataIdentifier(trackedEntityType))
+        .thenReturn(MetadataIdentifier.ofUid(trackedEntityType.getUid()));
+    when(bundle.getPreheat().getIdSchemes()).thenReturn(params);
 
-        validator.validate( reporter, bundle, relationship );
+    validator.validate(reporter, bundle, relationship);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void shouldFailWhenRelationshipEntityIsTrackedEntityInstanceAndToConstraintIsSetToEnrollment()
-    {
-        RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
+  @Test
+  void shouldFailWhenRelationshipEntityIsTrackedEntityInstanceAndToConstraintIsSetToEnrollment() {
+    RelationshipType relType =
+        createRelTypeConstraint(TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE);
 
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .from( trackedEntityRelationshipItem() )
-            .to( enrollmentRelationshipItem() )
-            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
+    Relationship relationship =
+        Relationship.builder()
+            .relationship(CodeGenerator.generateUid())
+            .from(trackedEntityRelationshipItem())
+            .to(enrollmentRelationshipItem())
+            .relationshipType(MetadataIdentifier.ofUid(relType.getUid()))
             .build();
 
-        when( bundle.getPreheat().getRelationshipType( relationship.getRelationshipType() ) ).thenReturn( relType );
+    when(bundle.getPreheat().getRelationshipType(relationship.getRelationshipType()))
+        .thenReturn(relType);
 
-        validator.validate( reporter, bundle, relationship );
+    validator.validate(reporter, bundle, relationship);
 
-        assertHasError( reporter, relationship, E4010,
-            "Relationship type `to` constraint requires a trackedEntity but a enrollment was found." );
-    }
+    assertHasError(
+        reporter,
+        relationship,
+        E4010,
+        "Relationship type `to` constraint requires a trackedEntity but a enrollment was found.");
+  }
 
-    @Test
-    void shouldFailWhenRelationshipEntityIsTrackedEntityInstanceAndEntityDoesNotExist()
-    {
-        RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
+  @Test
+  void shouldFailWhenRelationshipEntityIsTrackedEntityInstanceAndEntityDoesNotExist() {
+    RelationshipType relType =
+        createRelTypeConstraint(TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE);
 
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .from( trackedEntityRelationshipItem() )
-            .to( enrollmentRelationshipItem() )
-            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
+    Relationship relationship =
+        Relationship.builder()
+            .relationship(CodeGenerator.generateUid())
+            .from(trackedEntityRelationshipItem())
+            .to(enrollmentRelationshipItem())
+            .relationshipType(MetadataIdentifier.ofUid(relType.getUid()))
             .build();
 
-        when( bundle.getPreheat().getRelationshipType( relationship.getRelationshipType() ) ).thenReturn( relType );
+    when(bundle.getPreheat().getRelationshipType(relationship.getRelationshipType()))
+        .thenReturn(relType);
 
-        validator.validate( reporter, bundle, relationship );
+    validator.validate(reporter, bundle, relationship);
 
-        assertHasError( reporter, relationship, E4012,
-            "Could not find `trackedEntity`: `" + relationship.getFrom().getTrackedEntity()
-                + "`, linked to relationship." );
-    }
+    assertHasError(
+        reporter,
+        relationship,
+        E4012,
+        "Could not find `trackedEntity`: `"
+            + relationship.getFrom().getTrackedEntity()
+            + "`, linked to relationship.");
+  }
 
-    @Test
-    void shouldFailWhenRelationshipEntityIsProgramStageInstanceAndToConstraintIsSetToEnrollment()
-    {
-        RelationshipType relType = createRelTypeConstraint( PROGRAM_INSTANCE, PROGRAM_STAGE_INSTANCE );
+  @Test
+  void shouldFailWhenRelationshipEntityIsProgramStageInstanceAndToConstraintIsSetToEnrollment() {
+    RelationshipType relType = createRelTypeConstraint(PROGRAM_INSTANCE, PROGRAM_STAGE_INSTANCE);
 
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .from( enrollmentRelationshipItem() )
-            .to( enrollmentRelationshipItem() )
-            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
+    Relationship relationship =
+        Relationship.builder()
+            .relationship(CodeGenerator.generateUid())
+            .from(enrollmentRelationshipItem())
+            .to(enrollmentRelationshipItem())
+            .relationshipType(MetadataIdentifier.ofUid(relType.getUid()))
             .build();
 
-        when( bundle.getPreheat().getRelationshipType( relationship.getRelationshipType() ) ).thenReturn( relType );
+    when(bundle.getPreheat().getRelationshipType(relationship.getRelationshipType()))
+        .thenReturn(relType);
 
-        validator.validate( reporter, bundle, relationship );
+    validator.validate(reporter, bundle, relationship);
 
-        assertHasError( reporter, relationship, E4010,
-            "Relationship type `to` constraint requires a event but a enrollment was found." );
-    }
+    assertHasError(
+        reporter,
+        relationship,
+        E4010,
+        "Relationship type `to` constraint requires a event but a enrollment was found.");
+  }
 
-    @Test
-    void shouldFailWhenRelationshipEntityIsTrackedEntityInstanceAndEntityTypeDoesNotMatch()
-    {
-        RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
-        TrackedEntityType trackedEntityType = new TrackedEntityType();
-        trackedEntityType.setUid( "madeUpUid" );
-        relType.getFromConstraint().setTrackedEntityType( trackedEntityType );
-        relType.getToConstraint().setTrackedEntityType( trackedEntityType );
-        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
+  @Test
+  void shouldFailWhenRelationshipEntityIsTrackedEntityInstanceAndEntityTypeDoesNotMatch() {
+    RelationshipType relType =
+        createRelTypeConstraint(TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE);
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setUid("madeUpUid");
+    relType.getFromConstraint().setTrackedEntityType(trackedEntityType);
+    relType.getToConstraint().setTrackedEntityType(trackedEntityType);
+    TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+    trackedEntityInstance.setTrackedEntityType(trackedEntityType);
 
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .from( trackedEntityRelationshipItem() )
-            .to( trackedEntityRelationshipItem() )
-            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
+    Relationship relationship =
+        Relationship.builder()
+            .relationship(CodeGenerator.generateUid())
+            .from(trackedEntityRelationshipItem())
+            .to(trackedEntityRelationshipItem())
+            .relationshipType(MetadataIdentifier.ofUid(relType.getUid()))
             .build();
 
-        when( bundle.getPreheat().getRelationshipType( relationship.getRelationshipType() ) ).thenReturn( relType );
-        when( bundle.getPreheat().getTrackedEntity( anyString() ) ).thenReturn( trackedEntityInstance );
-        String uid = CodeGenerator.generateUid();
-        when( params.toMetadataIdentifier( trackedEntityType ) ).thenReturn( MetadataIdentifier.ofUid( uid ) );
-        when( bundle.getPreheat().getIdSchemes() ).thenReturn( params );
+    when(bundle.getPreheat().getRelationshipType(relationship.getRelationshipType()))
+        .thenReturn(relType);
+    when(bundle.getPreheat().getTrackedEntity(anyString())).thenReturn(trackedEntityInstance);
+    String uid = CodeGenerator.generateUid();
+    when(params.toMetadataIdentifier(trackedEntityType)).thenReturn(MetadataIdentifier.ofUid(uid));
+    when(bundle.getPreheat().getIdSchemes()).thenReturn(params);
 
-        validator.validate( reporter, bundle, relationship );
+    validator.validate(reporter, bundle, relationship);
 
-        assertHasError( reporter, relationship, E4014,
-            "Relationship type `from` constraint requires a tracked entity having type `madeUpUid` but `" + uid
-                + "` was found." );
-    }
+    assertHasError(
+        reporter,
+        relationship,
+        E4014,
+        "Relationship type `from` constraint requires a tracked entity having type `madeUpUid` but `"
+            + uid
+            + "` was found.");
+  }
 
-    @Test
-    void shouldFailWhenRelationshipEntityIsProgramInstanceAndEnrollmentDoesNotExist()
-    {
-        RelationshipType relType = createRelTypeConstraint( PROGRAM_INSTANCE, PROGRAM_STAGE_INSTANCE );
+  @Test
+  void shouldFailWhenRelationshipEntityIsProgramInstanceAndEnrollmentDoesNotExist() {
+    RelationshipType relType = createRelTypeConstraint(PROGRAM_INSTANCE, PROGRAM_STAGE_INSTANCE);
 
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .from( enrollmentRelationshipItem() )
-            .to( enrollmentRelationshipItem() )
-            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
+    Relationship relationship =
+        Relationship.builder()
+            .relationship(CodeGenerator.generateUid())
+            .from(enrollmentRelationshipItem())
+            .to(enrollmentRelationshipItem())
+            .relationshipType(MetadataIdentifier.ofUid(relType.getUid()))
             .build();
 
-        when( bundle.getPreheat().getRelationshipType( relationship.getRelationshipType() ) ).thenReturn( relType );
+    when(bundle.getPreheat().getRelationshipType(relationship.getRelationshipType()))
+        .thenReturn(relType);
 
-        validator.validate( reporter, bundle, relationship );
+    validator.validate(reporter, bundle, relationship);
 
-        assertHasError( reporter, relationship, E4012,
-            "Could not find `enrollment`: `" + relationship.getFrom().getEnrollment() + "`, linked to relationship." );
-    }
+    assertHasError(
+        reporter,
+        relationship,
+        E4012,
+        "Could not find `enrollment`: `"
+            + relationship.getFrom().getEnrollment()
+            + "`, linked to relationship.");
+  }
 
-    @Test
-    void shouldFailWhenRelationshipEntityIsProgramInstanceAndFromConstraintIsSetToEvent()
-    {
-        RelationshipType relType = createRelTypeConstraint( PROGRAM_INSTANCE, TRACKED_ENTITY_INSTANCE );
+  @Test
+  void shouldFailWhenRelationshipEntityIsProgramInstanceAndFromConstraintIsSetToEvent() {
+    RelationshipType relType = createRelTypeConstraint(PROGRAM_INSTANCE, TRACKED_ENTITY_INSTANCE);
 
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .from( RelationshipItem.builder()
-                .event( event() )
-                .build() )
-            .to( trackedEntityRelationshipItem() )
-            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
+    Relationship relationship =
+        Relationship.builder()
+            .relationship(CodeGenerator.generateUid())
+            .from(RelationshipItem.builder().event(event()).build())
+            .to(trackedEntityRelationshipItem())
+            .relationshipType(MetadataIdentifier.ofUid(relType.getUid()))
             .build();
 
-        when( bundle.getPreheat().getRelationshipType( relationship.getRelationshipType() ) ).thenReturn( relType );
+    when(bundle.getPreheat().getRelationshipType(relationship.getRelationshipType()))
+        .thenReturn(relType);
 
-        validator.validate( reporter, bundle, relationship );
+    validator.validate(reporter, bundle, relationship);
 
-        assertHasError( reporter, relationship, E4010,
-            "Relationship type `from` constraint requires a enrollment but a event was found." );
-    }
+    assertHasError(
+        reporter,
+        relationship,
+        E4010,
+        "Relationship type `from` constraint requires a enrollment but a event was found.");
+  }
 
-    @Test
-    void shouldFailWhenRelationshipEntityIsProgramStageInstanceAndEventDoesNotExist()
-    {
-        RelationshipType relType = createRelTypeConstraint( PROGRAM_STAGE_INSTANCE, TRACKED_ENTITY_INSTANCE );
+  @Test
+  void shouldFailWhenRelationshipEntityIsProgramStageInstanceAndEventDoesNotExist() {
+    RelationshipType relType =
+        createRelTypeConstraint(PROGRAM_STAGE_INSTANCE, TRACKED_ENTITY_INSTANCE);
 
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .from( RelationshipItem.builder()
-                .event( event() )
-                .build() )
-            .to( trackedEntityRelationshipItem() )
-            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
+    Relationship relationship =
+        Relationship.builder()
+            .relationship(CodeGenerator.generateUid())
+            .from(RelationshipItem.builder().event(event()).build())
+            .to(trackedEntityRelationshipItem())
+            .relationshipType(MetadataIdentifier.ofUid(relType.getUid()))
             .build();
 
-        when( bundle.getPreheat().getRelationshipType( relationship.getRelationshipType() ) ).thenReturn( relType );
+    when(bundle.getPreheat().getRelationshipType(relationship.getRelationshipType()))
+        .thenReturn(relType);
 
-        validator.validate( reporter, bundle, relationship );
+    validator.validate(reporter, bundle, relationship);
 
-        assertHasError( reporter, relationship, E4012,
-            "Could not find `event`: `" + relationship.getFrom().getEvent() + "`, linked to relationship." );
-    }
+    assertHasError(
+        reporter,
+        relationship,
+        E4012,
+        "Could not find `event`: `"
+            + relationship.getFrom().getEvent()
+            + "`, linked to relationship.");
+  }
 
-    private RelationshipType createRelTypeConstraint( RelationshipEntity from, RelationshipEntity to )
-    {
-        RelationshipType relType = new RelationshipType();
-        relType.setUid( CodeGenerator.generateUid() );
-        RelationshipConstraint relationshipConstraintFrom = new RelationshipConstraint();
-        relationshipConstraintFrom.setRelationshipEntity( from );
-        RelationshipConstraint relationshipConstraintTo = new RelationshipConstraint();
-        relationshipConstraintTo.setRelationshipEntity( to );
+  private RelationshipType createRelTypeConstraint(RelationshipEntity from, RelationshipEntity to) {
+    RelationshipType relType = new RelationshipType();
+    relType.setUid(CodeGenerator.generateUid());
+    RelationshipConstraint relationshipConstraintFrom = new RelationshipConstraint();
+    relationshipConstraintFrom.setRelationshipEntity(from);
+    RelationshipConstraint relationshipConstraintTo = new RelationshipConstraint();
+    relationshipConstraintTo.setRelationshipEntity(to);
 
-        relType.setFromConstraint( relationshipConstraintFrom );
-        relType.setToConstraint( relationshipConstraintTo );
+    relType.setFromConstraint(relationshipConstraintFrom);
+    relType.setToConstraint(relationshipConstraintTo);
 
-        return relType;
-    }
+    return relType;
+  }
 
-    private RelationshipItem trackedEntityRelationshipItem()
-    {
-        return RelationshipItem.builder()
-            .trackedEntity( trackedEntity() )
-            .build();
-    }
+  private RelationshipItem trackedEntityRelationshipItem() {
+    return RelationshipItem.builder().trackedEntity(trackedEntity()).build();
+  }
 
-    private RelationshipItem enrollmentRelationshipItem()
-    {
-        return RelationshipItem.builder()
-            .enrollment( enrollment() )
-            .build();
-    }
+  private RelationshipItem enrollmentRelationshipItem() {
+    return RelationshipItem.builder().enrollment(enrollment()).build();
+  }
 
-    private String trackedEntity()
-    {
-        return CodeGenerator.generateUid();
-    }
+  private String trackedEntity() {
+    return CodeGenerator.generateUid();
+  }
 
-    private String enrollment()
-    {
-        return CodeGenerator.generateUid();
-    }
+  private String enrollment() {
+    return CodeGenerator.generateUid();
+  }
 
-    private String event()
-    {
-        return CodeGenerator.generateUid();
-    }
+  private String event() {
+    return CodeGenerator.generateUid();
+  }
 }

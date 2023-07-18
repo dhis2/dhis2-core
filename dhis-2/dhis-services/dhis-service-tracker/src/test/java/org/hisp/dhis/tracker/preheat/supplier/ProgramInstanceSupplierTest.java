@@ -33,9 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -54,114 +54,104 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class ProgramInstanceSupplierTest extends DhisConvenienceTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class ProgramInstanceSupplierTest extends DhisConvenienceTest {
 
-    @InjectMocks
-    private ProgramInstanceSupplier supplier;
+  @InjectMocks private ProgramInstanceSupplier supplier;
 
-    @Mock
-    private ProgramInstanceStore programInstanceStore;
+  @Mock private ProgramInstanceStore programInstanceStore;
 
-    @Mock
-    private ProgramStore programStore;
+  @Mock private ProgramStore programStore;
 
-    private List<ProgramInstance> programInstances;
+  private List<ProgramInstance> programInstances;
 
-    private Program programWithRegistration;
+  private Program programWithRegistration;
 
-    private Program programWithoutRegistration;
+  private Program programWithoutRegistration;
 
-    private TrackerImportParams params;
+  private TrackerImportParams params;
 
-    private final BeanRandomizer rnd = BeanRandomizer.create();
+  private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    private TrackerPreheat preheat;
+  private TrackerPreheat preheat;
 
-    private ProgramInstance programInstanceWithoutRegistration;
+  private ProgramInstance programInstanceWithoutRegistration;
 
-    @BeforeEach
-    public void setUp()
-    {
-        programInstances = rnd.objects( ProgramInstance.class, 2 ).collect( Collectors.toList() );
-        // set the OrgUnit parent to null to avoid recursive errors when mapping
-        programInstances.forEach( p -> p.getOrganisationUnit().setParent( null ) );
+  @BeforeEach
+  public void setUp() {
+    programInstances = rnd.objects(ProgramInstance.class, 2).collect(Collectors.toList());
+    // set the OrgUnit parent to null to avoid recursive errors when mapping
+    programInstances.forEach(p -> p.getOrganisationUnit().setParent(null));
 
-        programWithRegistration = createProgram( 'A' );
-        programWithRegistration.setProgramType( WITH_REGISTRATION );
-        ProgramInstance programInstanceWithRegistration = programInstances.get( 0 );
-        programInstanceWithRegistration.setProgram( programWithRegistration );
+    programWithRegistration = createProgram('A');
+    programWithRegistration.setProgramType(WITH_REGISTRATION);
+    ProgramInstance programInstanceWithRegistration = programInstances.get(0);
+    programInstanceWithRegistration.setProgram(programWithRegistration);
 
-        programWithoutRegistration = createProgram( 'B' );
-        programWithoutRegistration.setProgramType( WITHOUT_REGISTRATION );
-        programInstanceWithoutRegistration = programInstances.get( 1 );
-        programInstanceWithoutRegistration.setProgram( programWithoutRegistration );
+    programWithoutRegistration = createProgram('B');
+    programWithoutRegistration.setProgramType(WITHOUT_REGISTRATION);
+    programInstanceWithoutRegistration = programInstances.get(1);
+    programInstanceWithoutRegistration.setProgram(programWithoutRegistration);
 
-        when( programInstanceStore.getByPrograms( Lists.newArrayList( programWithoutRegistration ) ) )
-            .thenReturn( programInstances );
+    when(programInstanceStore.getByPrograms(Lists.newArrayList(programWithoutRegistration)))
+        .thenReturn(programInstances);
 
-        params = TrackerImportParams.builder().build();
-        preheat = new TrackerPreheat();
+    params = TrackerImportParams.builder().build();
+    preheat = new TrackerPreheat();
+  }
+
+  @Test
+  void verifySupplierWhenNoEventProgramArePresent() {
+    preheat.put(TrackerIdSchemeParam.UID, programWithRegistration);
+
+    this.supplier.preheatAdd(params, preheat);
+
+    final List<String> programUids =
+        programInstances.stream().map(pi -> pi.getProgram().getUid()).collect(Collectors.toList());
+    for (String programUid : programUids) {
+      assertNull(preheat.getProgramInstancesWithoutRegistration(programUid));
     }
+  }
 
-    @Test
-    void verifySupplierWhenNoEventProgramArePresent()
-    {
-        preheat.put( TrackerIdSchemeParam.UID, programWithRegistration );
+  @Test
+  void verifySupplierWhenNoProgramsArePresent() {
+    when(programStore.getByType(WITHOUT_REGISTRATION))
+        .thenReturn(List.of(programWithoutRegistration));
+    programInstances = rnd.objects(ProgramInstance.class, 1).collect(Collectors.toList());
+    // set the OrgUnit parent to null to avoid recursive errors when mapping
+    programInstances.forEach(p -> p.getOrganisationUnit().setParent(null));
+    ProgramInstance programInstance = programInstances.get(0);
+    programInstance.setProgram(programWithoutRegistration);
+    when(programInstanceStore.getByPrograms(List.of(programWithoutRegistration)))
+        .thenReturn(programInstances);
 
-        this.supplier.preheatAdd( params, preheat );
+    this.supplier.preheatAdd(params, preheat);
 
-        final List<String> programUids = programInstances
-            .stream()
-            .map( pi -> pi.getProgram().getUid() )
-            .collect( Collectors.toList() );
-        for ( String programUid : programUids )
-        {
-            assertNull( preheat.getProgramInstancesWithoutRegistration( programUid ) );
-        }
-    }
+    assertProgramInstanceInPreheat(
+        programInstance,
+        preheat.getProgramInstancesWithoutRegistration(programWithoutRegistration.getUid()));
+  }
 
-    @Test
-    void verifySupplierWhenNoProgramsArePresent()
-    {
-        when( programStore.getByType( WITHOUT_REGISTRATION ) ).thenReturn( List.of( programWithoutRegistration ) );
-        programInstances = rnd.objects( ProgramInstance.class, 1 ).collect( Collectors.toList() );
-        // set the OrgUnit parent to null to avoid recursive errors when mapping
-        programInstances.forEach( p -> p.getOrganisationUnit().setParent( null ) );
-        ProgramInstance programInstance = programInstances.get( 0 );
-        programInstance.setProgram( programWithoutRegistration );
-        when( programInstanceStore.getByPrograms( List.of( programWithoutRegistration ) ) )
-            .thenReturn( programInstances );
+  @Test
+  void verifySupplier() {
+    preheat.put(
+        TrackerIdSchemeParam.UID,
+        Lists.newArrayList(programWithRegistration, programWithoutRegistration));
 
-        this.supplier.preheatAdd( params, preheat );
+    this.supplier.preheatAdd(params, preheat);
 
-        assertProgramInstanceInPreheat( programInstance,
-            preheat.getProgramInstancesWithoutRegistration( programWithoutRegistration.getUid() ) );
-    }
+    assertProgramInstanceInPreheat(
+        programInstanceWithoutRegistration,
+        preheat.getProgramInstancesWithoutRegistration(programWithoutRegistration.getUid()));
+  }
 
-    @Test
-    void verifySupplier()
-    {
-        preheat.put( TrackerIdSchemeParam.UID,
-            Lists.newArrayList( programWithRegistration, programWithoutRegistration ) );
-
-        this.supplier.preheatAdd( params, preheat );
-
-        assertProgramInstanceInPreheat( programInstanceWithoutRegistration,
-            preheat.getProgramInstancesWithoutRegistration( programWithoutRegistration.getUid() ) );
-    }
-
-    private void assertProgramInstanceInPreheat( ProgramInstance expected, ProgramInstance actual )
-    {
-        assertEquals( expected.getUid(), actual.getUid() );
-        assertEquals( expected.getProgram().getUid(), actual.getProgram().getUid() );
-        assertEquals( actual, preheat.getEnrollment( actual.getUid() ) );
-    }
+  private void assertProgramInstanceInPreheat(ProgramInstance expected, ProgramInstance actual) {
+    assertEquals(expected.getUid(), actual.getUid());
+    assertEquals(expected.getProgram().getUid(), actual.getProgram().getUid());
+    assertEquals(actual, preheat.getEnrollment(actual.getUid()));
+  }
 }

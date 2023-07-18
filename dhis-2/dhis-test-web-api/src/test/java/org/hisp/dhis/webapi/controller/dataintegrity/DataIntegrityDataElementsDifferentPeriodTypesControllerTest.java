@@ -34,83 +34,104 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for data elements which belong to datasets of different period types.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_datasets_different_period_types.yaml}
+ * Test for data elements which belong to datasets of different period types. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_datasets_different_period_types.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityDataElementsDifferentPeriodTypesControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    private final String check = "data_elements_aggregate_with_different_period_types";
+class DataIntegrityDataElementsDifferentPeriodTypesControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
+  private final String check = "data_elements_aggregate_with_different_period_types";
 
-    private final String detailsIdType = "dataElements";
+  private final String detailsIdType = "dataElements";
 
-    private String dataElementA;
+  private String dataElementA;
 
-    private String defaultCatCombo;
+  private String defaultCatCombo;
 
-    @Test
-    void testDataElementsHaveDifferentPeriodTypes()
-    {
+  @Test
+  void testDataElementsHaveDifferentPeriodTypes() {
 
-        setUpTest();
+    setUpTest();
 
-        String datasetUID = generateUid();
-        String datasetMetadata = "{ 'id':'" + datasetUID
-            + "', 'name': 'Test Weekly', 'shortName': 'Test Weekly', 'periodType' : 'Weekly'," +
-            "'categoryCombo' : {'id': '" + defaultCatCombo + "'}, " +
-            "'dataSetElements' : [{'dataSet' : {'id':'" + datasetUID + "'}, 'id':'" + generateUid() +
-            "', 'dataElement': {'id' : '" + dataElementA + "'}}]}";
-        assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets", datasetMetadata ) );
+    String datasetUID = generateUid();
+    String datasetMetadata =
+        "{ 'id':'"
+            + datasetUID
+            + "', 'name': 'Test Weekly', 'shortName': 'Test Weekly', 'periodType' : 'Weekly',"
+            + "'categoryCombo' : {'id': '"
+            + defaultCatCombo
+            + "'}, "
+            + "'dataSetElements' : [{'dataSet' : {'id':'"
+            + datasetUID
+            + "'}, 'id':'"
+            + generateUid()
+            + "', 'dataElement': {'id' : '"
+            + dataElementA
+            + "'}}]}";
+    assertStatus(HttpStatus.CREATED, POST("/dataSets", datasetMetadata));
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 100,
-            dataElementA, "ANC1", "Test Weekly", true );
+    assertHasDataIntegrityIssues(
+        detailsIdType, check, 100, dataElementA, "ANC1", "Test Weekly", true);
+  }
 
-    }
+  @Test
+  void testDataElementHasSamePeriodType() {
 
-    @Test
-    void testDataElementHasSamePeriodType()
-    {
+    setUpTest();
+    String datasetUID = generateUid();
+    String datasetMetadata =
+        "{ 'id':'"
+            + datasetUID
+            + "', 'name': 'Test Monthly 2', 'shortName': 'Test Monthly 2', 'periodType' : 'Monthly',"
+            + "'categoryCombo' : {'id': '"
+            + defaultCatCombo
+            + "'}, "
+            + "'dataSetElements' : [{'dataSet' : {'id':'"
+            + datasetUID
+            + "'}, 'id':'"
+            + generateUid()
+            + "', 'dataElement': {'id' : '"
+            + dataElementA
+            + "'}}]}";
+    assertStatus(HttpStatus.CREATED, POST("/dataSets", datasetMetadata));
 
-        setUpTest();
-        String datasetUID = generateUid();
-        String datasetMetadata = "{ 'id':'" + datasetUID
-            + "', 'name': 'Test Monthly 2', 'shortName': 'Test Monthly 2', 'periodType' : 'Monthly'," +
-            "'categoryCombo' : {'id': '" + defaultCatCombo + "'}, " +
-            "'dataSetElements' : [{'dataSet' : {'id':'" + datasetUID + "'}, 'id':'" + generateUid() +
-            "', 'dataElement': {'id' : '" + dataElementA + "'}}]}";
-        assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets", datasetMetadata ) );
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
+  @Test
+  void testDataElementPeriodTypeCheckRuns() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 
-    }
+  void setUpTest() {
 
-    @Test
-    void testDataElementPeriodTypeCheckRuns()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-    }
+    defaultCatCombo = getDefaultCatCombo();
 
-    void setUpTest()
-    {
+    dataElementA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
-        defaultCatCombo = getDefaultCatCombo();
+    String datasetUID = generateUid();
+    String datasetMetadata =
+        "{ 'id':'"
+            + datasetUID
+            + "', 'name': 'Test Monthly', 'shortName': 'Test Monthly', 'periodType' : 'Monthly',"
+            + "'categoryCombo' : {'id': '"
+            + defaultCatCombo
+            + "'}, "
+            + "'dataSetElements' : [{'dataSet' : {'id':'"
+            + datasetUID
+            + "'}, 'id':'"
+            + generateUid()
+            + "', 'dataElement': {'id' : '"
+            + dataElementA
+            + "'}}]}";
 
-        dataElementA = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
-
-        String datasetUID = generateUid();
-        String datasetMetadata = "{ 'id':'" + datasetUID
-            + "', 'name': 'Test Monthly', 'shortName': 'Test Monthly', 'periodType' : 'Monthly'," +
-            "'categoryCombo' : {'id': '" + defaultCatCombo + "'}, " +
-            "'dataSetElements' : [{'dataSet' : {'id':'" + datasetUID + "'}, 'id':'" + generateUid() +
-            "', 'dataElement': {'id' : '" + dataElementA + "'}}]}";
-
-        assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets", datasetMetadata ) );
-    }
+    assertStatus(HttpStatus.CREATED, POST("/dataSets", datasetMetadata));
+  }
 }

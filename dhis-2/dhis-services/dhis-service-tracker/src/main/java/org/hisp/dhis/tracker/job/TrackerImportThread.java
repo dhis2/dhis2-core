@@ -39,30 +39,24 @@ import org.springframework.util.Assert;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-@Scope( BeanDefinition.SCOPE_PROTOTYPE )
-public class TrackerImportThread
-    extends SecurityContextRunnable
-{
-    private final TrackerImportService trackerImportService;
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
+public class TrackerImportThread extends SecurityContextRunnable {
+  private final TrackerImportService trackerImportService;
 
-    private TrackerImportParams trackerImportParams;
+  private TrackerImportParams trackerImportParams;
 
-    public TrackerImportThread( TrackerImportService trackerImportService )
-    {
-        this.trackerImportService = trackerImportService;
-    }
+  public TrackerImportThread(TrackerImportService trackerImportService) {
+    this.trackerImportService = trackerImportService;
+  }
 
-    @Override
-    public void call()
-    {
-        Assert.notNull( trackerImportParams, "Field trackerImportParams can not be null. " );
+  @Override
+  public void call() {
+    Assert.notNull(trackerImportParams, "Field trackerImportParams can not be null. ");
 
-        trackerImportService
-            .importTracker( trackerImportParams ); // discard returned report
-    }
+    trackerImportService.importTracker(trackerImportParams); // discard returned report
+  }
 
-    public void setTrackerImportParams( TrackerImportParams trackerImportParams )
-    {
-        this.trackerImportParams = trackerImportParams;
-    }
+  public void setTrackerImportParams(TrackerImportParams trackerImportParams) {
+    this.trackerImportParams = trackerImportParams;
+  }
 }

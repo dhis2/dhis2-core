@@ -28,9 +28,7 @@
 package org.hisp.dhis.analytics.hibernate;
 
 import java.util.List;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookStore;
@@ -48,58 +46,62 @@ import org.springframework.stereotype.Repository;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Repository( "org.hisp.dhis.analytics.AnalyticsTableHookStore" )
+@Repository("org.hisp.dhis.analytics.AnalyticsTableHookStore")
 public class HibernateAnalyticsTableHookStore
     extends HibernateIdentifiableObjectStore<AnalyticsTableHook>
-    implements AnalyticsTableHookStore
-{
-    public HibernateAnalyticsTableHookStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher,
-        CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, AnalyticsTableHook.class, currentUserService, aclService,
-            false );
+    implements AnalyticsTableHookStore {
+  public HibernateAnalyticsTableHookStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        AnalyticsTableHook.class,
+        currentUserService,
+        aclService,
+        false);
+  }
+
+  @Override
+  public List<AnalyticsTableHook> getByPhase(AnalyticsTablePhase phase) {
+
+    return getQuery("from AnalyticsTableHook h where h.phase = :phase")
+        .setParameter("phase", phase)
+        .getResultList();
+  }
+
+  @Override
+  public List<AnalyticsTableHook> getByPhaseAndResourceTableType(
+      AnalyticsTablePhase phase, ResourceTableType resourceTableType) {
+    return getQuery(
+            "from AnalyticsTableHook h where h.phase = :phase and h.resourceTableType = :resourceTableType")
+        .setParameter("phase", phase)
+        .setParameter("resourceTableType", resourceTableType)
+        .getResultList();
+  }
+
+  @Override
+  public List<AnalyticsTableHook> getByPhaseAndAnalyticsTableType(
+      AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType) {
+    return getQuery(
+            "from AnalyticsTableHook h where h.phase = :phase and h.analyticsTableType = :analyticsTableType")
+        .setParameter("phase", phase)
+        .setParameter("analyticsTableType", analyticsTableType)
+        .getResultList();
+  }
+
+  @Override
+  public void executeAnalyticsTableSqlHooks(List<AnalyticsTableHook> hooks) {
+    for (AnalyticsTableHook hook : hooks) {
+      log.info(
+          String.format(
+              "Executing analytics table hook: '%s', '%s'", hook.getUid(), hook.getName()));
+
+      jdbcTemplate.execute(hook.getSql());
     }
-
-    @Override
-    public List<AnalyticsTableHook> getByPhase( AnalyticsTablePhase phase )
-    {
-
-        return getQuery( "from AnalyticsTableHook h where h.phase = :phase" )
-            .setParameter( "phase", phase )
-            .getResultList();
-    }
-
-    @Override
-    public List<AnalyticsTableHook> getByPhaseAndResourceTableType( AnalyticsTablePhase phase,
-        ResourceTableType resourceTableType )
-    {
-        return getQuery(
-            "from AnalyticsTableHook h where h.phase = :phase and h.resourceTableType = :resourceTableType" )
-                .setParameter( "phase", phase )
-                .setParameter( "resourceTableType", resourceTableType )
-                .getResultList();
-    }
-
-    @Override
-    public List<AnalyticsTableHook> getByPhaseAndAnalyticsTableType( AnalyticsTablePhase phase,
-        AnalyticsTableType analyticsTableType )
-    {
-        return getQuery(
-            "from AnalyticsTableHook h where h.phase = :phase and h.analyticsTableType = :analyticsTableType" )
-                .setParameter( "phase", phase )
-                .setParameter( "analyticsTableType", analyticsTableType )
-                .getResultList();
-    }
-
-    @Override
-    public void executeAnalyticsTableSqlHooks( List<AnalyticsTableHook> hooks )
-    {
-        for ( AnalyticsTableHook hook : hooks )
-        {
-            log.info( String.format( "Executing analytics table hook: '%s', '%s'", hook.getUid(), hook.getName() ) );
-
-            jdbcTemplate.execute( hook.getSql() );
-        }
-    }
+  }
 }

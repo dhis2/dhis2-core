@@ -33,25 +33,24 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
-public interface DbmsManager
-{
-    String ID = DbmsManager.class.getName();
+public interface DbmsManager {
+  String ID = DbmsManager.class.getName();
 
-    void emptyDatabase();
+  void emptyDatabase();
 
-    void clearSession();
+  void clearSession();
 
-    void flushSession();
+  void flushSession();
 
-    void emptyTable( String table );
+  void emptyTable(String table);
 
-    boolean tableExists( String tableName );
+  boolean tableExists(String tableName);
 
-    List<List<Object>> getTableContent( String table );
+  List<List<Object>> getTableContent(String table);
 
-    void evictObject( Object object );
+  void evictObject(Object object);
 
-    boolean contains( Object object );
+  boolean contains(Object object);
 
-    Serializable getIdentifier( Object object );
+  Serializable getIdentifier(Object object);
 }

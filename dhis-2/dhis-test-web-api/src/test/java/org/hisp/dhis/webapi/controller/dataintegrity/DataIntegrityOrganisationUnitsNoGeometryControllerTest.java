@@ -35,92 +35,111 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Checks for organisation units with no geometry.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_no_geometry.yaml}
+ * Checks for organisation units with no geometry. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_no_geometry.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitsNoGeometryControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityOrganisationUnitsNoGeometryControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
 
-    private String clinicA;
+  private String clinicA;
 
-    private String clinicB;
+  private String clinicB;
 
-    private String districtA;
+  private String districtA;
 
-    private static final String check = "orgunits_no_coordinates";
+  private static final String check = "orgunits_no_coordinates";
 
-    private static final String detailsIdType = "organisationUnits";
+  private static final String detailsIdType = "organisationUnits";
 
-    @Test
-    void testOrgunitsNoGeometry()
-    {
+  @Test
+  void testOrgunitsNoGeometry() {
 
-        districtA = assertStatus( HttpStatus.CREATED, POST( "/organisationUnits",
-            "{ 'name': 'Offgrid District', 'shortName': 'Offgrid District', 'openingDate' : '2022-01-01' }" ) );
+    districtA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Offgrid District', 'shortName': 'Offgrid District', 'openingDate' : '2022-01-01' }"));
 
-        clinicA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Clinic A', 'shortName': 'Clinic A', " +
-                    "'parent': {'id' : '" + districtA + "'}, " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [1, 1]} }" ) );
+    clinicA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Clinic A', 'shortName': 'Clinic A', "
+                    + "'parent': {'id' : '"
+                    + districtA
+                    + "'}, "
+                    + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [1, 1]} }"));
 
-        clinicB = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Clinic B', 'shortName': 'Clinic B', " +
-                    "'parent': {'id' : '" + districtA + "'}, " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
+    clinicB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Clinic B', 'shortName': 'Clinic B', "
+                    + "'parent': {'id' : '"
+                    + districtA
+                    + "'}, "
+                    + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }"));
 
-        assertNamedMetadataObjectExists( detailsIdType, "Clinic B" );
-        assertHasDataIntegrityIssues( detailsIdType, check, 33, districtA, "Offgrid District", "1", true );
+    assertNamedMetadataObjectExists(detailsIdType, "Clinic B");
+    assertHasDataIntegrityIssues(
+        detailsIdType, check, 33, districtA, "Offgrid District", "1", true);
+  }
 
-    }
+  @Test
+  void testOrgunitsHasGeometry() {
 
-    @Test
-    void testOrgunitsHasGeometry()
-    {
+    districtA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'District A', 'shortName': 'District A', "
+                    + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Polygon', 'coordinates' : [[[0,0],[3,0],[3,3],[0,3],[0,0]]]} }"));
 
-        districtA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'District A', 'shortName': 'District A', " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Polygon', 'coordinates' : [[[0,0],[3,0],[3,3],[0,3],[0,0]]]} }" ) );
+    clinicA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Clinic A', 'shortName': 'Clinic A', "
+                    + "'parent': {'id' : '"
+                    + districtA
+                    + "'}, "
+                    + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [1, 1]} }"));
 
-        clinicA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Clinic A', 'shortName': 'Clinic A', " +
-                    "'parent': {'id' : '" + districtA + "'}, " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [1, 1]} }" ) );
+    clinicB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Clinic B', 'shortName': 'Clinic B', "
+                    + "'parent': {'id' : '"
+                    + districtA
+                    + "'}, "
+                    + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }"));
 
-        clinicB = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Clinic B', 'shortName': 'Clinic B', " +
-                    "'parent': {'id' : '" + districtA + "'}, " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
+  @Test
+  void testOrgunitsNoGeometryDivideByZero() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 
-    }
+  @BeforeEach
+  void setUp() {
+    deleteAllOrgUnits();
+  }
 
-    @Test
-    void testOrgunitsNoGeometryDivideByZero()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-
-    }
-
-    @BeforeEach
-    void setUp()
-    {
-        deleteAllOrgUnits();
-
-    }
-
-    @AfterEach
-    void tearDown()
-    {
-        deleteMetadataObject( "organisationUnits", clinicB );
-        deleteMetadataObject( "organisationUnits", clinicA );
-        deleteMetadataObject( "organisationUnits", districtA );
-    }
+  @AfterEach
+  void tearDown() {
+    deleteMetadataObject("organisationUnits", clinicB);
+    deleteMetadataObject("organisationUnits", clinicA);
+    deleteMetadataObject("organisationUnits", districtA);
+  }
 }

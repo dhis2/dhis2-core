@@ -29,12 +29,13 @@ package org.hisp.dhis.monitoring.metrics;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_DBPOOL_ENABLED;
 
+import com.google.common.collect.Lists;
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-
 import javax.sql.DataSource;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.monitoring.metrics.jdbc.C3p0MetadataProvider;
@@ -45,80 +46,66 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
-import com.google.common.collect.Lists;
-import com.mchange.v2.c3p0.ComboPooledDataSource;
-import io.micrometer.core.instrument.MeterRegistry;
-
 /**
  * @author Luciano Fiandesio
  */
 @Configuration
-public class DataSourcePoolMetricsConfig
-{
-    @Configuration
-    @Conditional( DataSourcePoolMetricsEnabledCondition.class )
-    static class DataSourcePoolMetadataMetricsConfiguration
-    {
+public class DataSourcePoolMetricsConfig {
+  @Configuration
+  @Conditional(DataSourcePoolMetricsEnabledCondition.class)
+  static class DataSourcePoolMetadataMetricsConfiguration {
 
-        private static final String DATASOURCE_SUFFIX = "dataSource";
+    private static final String DATASOURCE_SUFFIX = "dataSource";
 
-        private final MeterRegistry registry;
+    private final MeterRegistry registry;
 
-        private final Collection<DataSourcePoolMetadataProvider> metadataProviders;
+    private final Collection<DataSourcePoolMetadataProvider> metadataProviders;
 
-        DataSourcePoolMetadataMetricsConfiguration( MeterRegistry registry,
-            Collection<DataSourcePoolMetadataProvider> metadataProviders )
-        {
-            this.registry = registry;
-            this.metadataProviders = metadataProviders;
-        }
-
-        @Autowired
-        public void bindDataSourcesToRegistry( Map<String, DataSource> dataSources )
-        {
-            dataSources.forEach( this::bindDataSourceToRegistry );
-        }
-
-        private void bindDataSourceToRegistry( String beanName, DataSource dataSource )
-        {
-            String dataSourceName = getDataSourceName( beanName );
-            new DataSourcePoolMetrics( dataSource, this.metadataProviders, dataSourceName, Collections.emptyList() )
-                .bindTo( this.registry );
-        }
-
-        /**
-         * Get the name of a DataSource based on its {@code beanName}.
-         *
-         * @param beanName the name of the data source bean
-         * @return a name for the given data source
-         */
-        private String getDataSourceName( String beanName )
-        {
-            if ( beanName.length() > DATASOURCE_SUFFIX.length()
-                && StringUtils.endsWithIgnoreCase( beanName, DATASOURCE_SUFFIX ) )
-            {
-                return beanName.substring( 0, beanName.length() - DATASOURCE_SUFFIX.length() );
-            }
-            return beanName;
-        }
+    DataSourcePoolMetadataMetricsConfiguration(
+        MeterRegistry registry, Collection<DataSourcePoolMetadataProvider> metadataProviders) {
+      this.registry = registry;
+      this.metadataProviders = metadataProviders;
     }
 
-    @Bean
-    public Collection<DataSourcePoolMetadataProvider> dataSourceMetadataProvider()
-    {
-        DataSourcePoolMetadataProvider provider = dataSource -> new C3p0MetadataProvider(
-            (ComboPooledDataSource) dataSource );
-
-        return Lists.newArrayList( provider );
+    @Autowired
+    public void bindDataSourcesToRegistry(Map<String, DataSource> dataSources) {
+      dataSources.forEach(this::bindDataSourceToRegistry);
     }
 
-    static class DataSourcePoolMetricsEnabledCondition
-        extends MetricsEnabler
-    {
-        @Override
-        protected ConfigurationKey getConfigKey()
-        {
-            return MONITORING_DBPOOL_ENABLED;
-        }
+    private void bindDataSourceToRegistry(String beanName, DataSource dataSource) {
+      String dataSourceName = getDataSourceName(beanName);
+      new DataSourcePoolMetrics(
+              dataSource, this.metadataProviders, dataSourceName, Collections.emptyList())
+          .bindTo(this.registry);
     }
+
+    /**
+     * Get the name of a DataSource based on its {@code beanName}.
+     *
+     * @param beanName the name of the data source bean
+     * @return a name for the given data source
+     */
+    private String getDataSourceName(String beanName) {
+      if (beanName.length() > DATASOURCE_SUFFIX.length()
+          && StringUtils.endsWithIgnoreCase(beanName, DATASOURCE_SUFFIX)) {
+        return beanName.substring(0, beanName.length() - DATASOURCE_SUFFIX.length());
+      }
+      return beanName;
+    }
+  }
+
+  @Bean
+  public Collection<DataSourcePoolMetadataProvider> dataSourceMetadataProvider() {
+    DataSourcePoolMetadataProvider provider =
+        dataSource -> new C3p0MetadataProvider((ComboPooledDataSource) dataSource);
+
+    return Lists.newArrayList(provider);
+  }
+
+  static class DataSourcePoolMetricsEnabledCondition extends MetricsEnabler {
+    @Override
+    protected ConfigurationKey getConfigKey() {
+      return MONITORING_DBPOOL_ENABLED;
+    }
+  }
 }

@@ -30,50 +30,42 @@ package org.hisp.dhis.mapgeneration;
 import java.util.ArrayList;
 import java.util.List;
 
-public class InternalMap
-{
-    private List<InternalMapLayer> layers = new ArrayList<>();
+public class InternalMap {
+  private List<InternalMapLayer> layers = new ArrayList<>();
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public InternalMap()
-    {
+  public InternalMap() {}
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  /**
+   * Returns the first data layer of the list of layers for this map. Returns null of none of the
+   * layers are data layers.
+   */
+  public InternalMapLayer getFirstDataLayer() {
+    for (InternalMapLayer layer : layers) {
+      if (layer != null && layer.isDataLayer()) {
+        return layer;
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+    return null;
+  }
 
-    /**
-     * Returns the first data layer of the list of layers for this map. Returns
-     * null of none of the layers are data layers.
-     */
-    public InternalMapLayer getFirstDataLayer()
-    {
-        for ( InternalMapLayer layer : layers )
-        {
-            if ( layer != null && layer.isDataLayer() )
-            {
-                return layer;
-            }
-        }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-        return null;
-    }
+  public List<InternalMapLayer> getLayers() {
+    return layers;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    public List<InternalMapLayer> getLayers()
-    {
-        return layers;
-    }
-
-    public void setLayers( List<InternalMapLayer> layers )
-    {
-        this.layers = layers;
-    }
+  public void setLayers(List<InternalMapLayer> layers) {
+    this.layers = layers;
+  }
 }

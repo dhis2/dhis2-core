@@ -30,49 +30,41 @@ package org.hisp.dhis.dxf2.csv;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public class CsvImportOptions
-{
-    private CsvImportClass importClass;
+public class CsvImportOptions {
+  private CsvImportClass importClass;
 
-    private boolean firstRowIsHeader;
+  private boolean firstRowIsHeader;
 
-    // ---------------------------------------------------
-    // Constructor
-    // ---------------------------------------------------
+  // ---------------------------------------------------
+  // Constructor
+  // ---------------------------------------------------
 
-    public CsvImportOptions()
-    {
-    }
+  public CsvImportOptions() {}
 
-    public CsvImportOptions( CsvImportClass importClass, boolean firstRowIsHeader )
-    {
-        this.importClass = importClass;
-        this.firstRowIsHeader = firstRowIsHeader;
-    }
+  public CsvImportOptions(CsvImportClass importClass, boolean firstRowIsHeader) {
+    this.importClass = importClass;
+    this.firstRowIsHeader = firstRowIsHeader;
+  }
 
-    // ---------------------------------------------------
-    // Getter & Setter
-    // ---------------------------------------------------
+  // ---------------------------------------------------
+  // Getter & Setter
+  // ---------------------------------------------------
 
-    public CsvImportClass getImportClass()
-    {
-        return importClass;
-    }
+  public CsvImportClass getImportClass() {
+    return importClass;
+  }
 
-    public CsvImportOptions setImportClass( CsvImportClass importClass )
-    {
-        this.importClass = importClass;
-        return this;
-    }
+  public CsvImportOptions setImportClass(CsvImportClass importClass) {
+    this.importClass = importClass;
+    return this;
+  }
 
-    public CsvImportOptions setFirstRowIsHeader( boolean firstRowIsHeader )
-    {
-        this.firstRowIsHeader = firstRowIsHeader;
-        return this;
-    }
+  public CsvImportOptions setFirstRowIsHeader(boolean firstRowIsHeader) {
+    this.firstRowIsHeader = firstRowIsHeader;
+    return this;
+  }
 
-    public boolean isFirstRowIsHeader()
-    {
-        return firstRowIsHeader;
-    }
+  public boolean isFirstRowIsHeader() {
+    return firstRowIsHeader;
+  }
 }

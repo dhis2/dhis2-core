@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.orgunit;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.orgunit.data.DefaultOrgUnitAnalyticsService;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -43,31 +42,27 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Lars Helge Overland
  */
-@ExtendWith( MockitoExtension.class )
-class OrgUnitAnalyticsServiceTest extends DhisConvenienceTest
-{
-    @InjectMocks
-    private DefaultOrgUnitAnalyticsService subject;
+@ExtendWith(MockitoExtension.class)
+class OrgUnitAnalyticsServiceTest extends DhisConvenienceTest {
+  @InjectMocks private DefaultOrgUnitAnalyticsService subject;
 
-    @Test
-    void testValidateNoOrgUnits()
-    {
-        OrgUnitQueryParams params = new OrgUnitQueryParams.Builder()
-            .withOrgUnitGroupSets( List.of( createOrganisationUnitGroupSet( 'A' ) ) )
+  @Test
+  void testValidateNoOrgUnits() {
+    OrgUnitQueryParams params =
+        new OrgUnitQueryParams.Builder()
+            .withOrgUnitGroupSets(List.of(createOrganisationUnitGroupSet('A')))
             .build();
 
-        assertIllegalQueryEx( assertThrows( IllegalQueryException.class, () -> subject.validate( params ) ),
-            ErrorCode.E7300 );
-    }
+    assertIllegalQueryEx(
+        assertThrows(IllegalQueryException.class, () -> subject.validate(params)), ErrorCode.E7300);
+  }
 
-    @Test
-    void testValidateNoOrgUnitGroupSets()
-    {
-        OrgUnitQueryParams params = new OrgUnitQueryParams.Builder()
-            .withOrgUnits( List.of( createOrganisationUnit( 'A' ) ) )
-            .build();
+  @Test
+  void testValidateNoOrgUnitGroupSets() {
+    OrgUnitQueryParams params =
+        new OrgUnitQueryParams.Builder().withOrgUnits(List.of(createOrganisationUnit('A'))).build();
 
-        assertIllegalQueryEx( assertThrows( IllegalQueryException.class, () -> subject.validate( params ) ),
-            ErrorCode.E7301 );
-    }
+    assertIllegalQueryEx(
+        assertThrows(IllegalQueryException.class, () -> subject.validate(params)), ErrorCode.E7301);
+  }
 }

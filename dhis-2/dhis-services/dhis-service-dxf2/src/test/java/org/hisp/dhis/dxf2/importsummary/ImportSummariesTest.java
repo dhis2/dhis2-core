@@ -34,47 +34,44 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-class ImportSummariesTest
-{
+class ImportSummariesTest {
 
-    @Test
-    void testAddImportSummary()
-    {
-        ImportSummaries summaries = new ImportSummaries();
-        summaries.addImportSummary(
-            new ImportSummary( ImportStatus.SUCCESS, "Great success", new ImportCount( 4, 2, 1, 2 ) ) );
-        summaries.addImportSummary(
-            new ImportSummary( ImportStatus.WARNING, "Ouch warning", new ImportCount( 1, 2, 3, 0 ) ) );
-        summaries.addImportSummary(
-            new ImportSummary( ImportStatus.SUCCESS, "Great failure", new ImportCount( 0, 0, 4, 3 ) ) );
-        assertEquals( 5, summaries.getImported() );
-        assertEquals( 4, summaries.getUpdated() );
-        assertEquals( 8, summaries.getIgnored() );
-        assertEquals( 5, summaries.getDeleted() );
-    }
+  @Test
+  void testAddImportSummary() {
+    ImportSummaries summaries = new ImportSummaries();
+    summaries.addImportSummary(
+        new ImportSummary(ImportStatus.SUCCESS, "Great success", new ImportCount(4, 2, 1, 2)));
+    summaries.addImportSummary(
+        new ImportSummary(ImportStatus.WARNING, "Ouch warning", new ImportCount(1, 2, 3, 0)));
+    summaries.addImportSummary(
+        new ImportSummary(ImportStatus.SUCCESS, "Great failure", new ImportCount(0, 0, 4, 3)));
+    assertEquals(5, summaries.getImported());
+    assertEquals(4, summaries.getUpdated());
+    assertEquals(8, summaries.getIgnored());
+    assertEquals(5, summaries.getDeleted());
+  }
 
-    @Test
-    void testGetImportStatus()
-    {
-        ImportSummaries summaries = new ImportSummaries();
-        summaries.addImportSummary(
-            new ImportSummary( ImportStatus.SUCCESS, "Great success", new ImportCount( 4, 2, 1, 2 ) ) );
-        summaries.addImportSummary(
-            new ImportSummary( ImportStatus.WARNING, "Ouch warning", new ImportCount( 1, 2, 3, 0 ) ) );
-        summaries.addImportSummary(
-            new ImportSummary( ImportStatus.ERROR, "Great failure", new ImportCount( 0, 0, 4, 3 ) ) );
-        assertEquals( ImportStatus.ERROR, summaries.getStatus() );
-        summaries = new ImportSummaries();
-        summaries.addImportSummary(
-            new ImportSummary( ImportStatus.SUCCESS, "Great success", new ImportCount( 4, 2, 1, 2 ) ) );
-        summaries.addImportSummary(
-            new ImportSummary( ImportStatus.WARNING, "Ouch warning", new ImportCount( 1, 2, 3, 0 ) ) );
-        assertEquals( ImportStatus.WARNING, summaries.getStatus() );
-        summaries = new ImportSummaries();
-        summaries.addImportSummary(
-            new ImportSummary( ImportStatus.SUCCESS, "Great success", new ImportCount( 4, 2, 1, 2 ) ) );
-        assertEquals( ImportStatus.SUCCESS, summaries.getStatus() );
-        summaries = new ImportSummaries();
-        assertEquals( ImportStatus.SUCCESS, summaries.getStatus() );
-    }
+  @Test
+  void testGetImportStatus() {
+    ImportSummaries summaries = new ImportSummaries();
+    summaries.addImportSummary(
+        new ImportSummary(ImportStatus.SUCCESS, "Great success", new ImportCount(4, 2, 1, 2)));
+    summaries.addImportSummary(
+        new ImportSummary(ImportStatus.WARNING, "Ouch warning", new ImportCount(1, 2, 3, 0)));
+    summaries.addImportSummary(
+        new ImportSummary(ImportStatus.ERROR, "Great failure", new ImportCount(0, 0, 4, 3)));
+    assertEquals(ImportStatus.ERROR, summaries.getStatus());
+    summaries = new ImportSummaries();
+    summaries.addImportSummary(
+        new ImportSummary(ImportStatus.SUCCESS, "Great success", new ImportCount(4, 2, 1, 2)));
+    summaries.addImportSummary(
+        new ImportSummary(ImportStatus.WARNING, "Ouch warning", new ImportCount(1, 2, 3, 0)));
+    assertEquals(ImportStatus.WARNING, summaries.getStatus());
+    summaries = new ImportSummaries();
+    summaries.addImportSummary(
+        new ImportSummary(ImportStatus.SUCCESS, "Great success", new ImportCount(4, 2, 1, 2)));
+    assertEquals(ImportStatus.SUCCESS, summaries.getStatus());
+    summaries = new ImportSummaries();
+    assertEquals(ImportStatus.SUCCESS, summaries.getStatus());
+  }
 }

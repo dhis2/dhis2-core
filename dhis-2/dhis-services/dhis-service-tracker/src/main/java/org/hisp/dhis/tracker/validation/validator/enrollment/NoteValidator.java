@@ -36,12 +36,11 @@ import org.hisp.dhis.tracker.validation.validator.ValidationUtils;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class NoteValidator implements Validator<Enrollment>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        enrollment.setNotes( ValidationUtils.validateNotes( reporter, bundle.getPreheat(), enrollment,
-            enrollment.getNotes() ) );
-    }
+class NoteValidator implements Validator<Enrollment> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    enrollment.setNotes(
+        ValidationUtils.validateNotes(
+            reporter, bundle.getPreheat(), enrollment, enrollment.getNotes()));
+  }
 }

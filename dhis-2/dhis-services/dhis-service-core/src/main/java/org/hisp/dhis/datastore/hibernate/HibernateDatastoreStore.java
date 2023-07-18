@@ -35,9 +35,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -55,118 +53,120 @@ import org.springframework.stereotype.Repository;
  * @author Stian Sandvold
  */
 @Repository
-public class HibernateDatastoreStore
-    extends HibernateIdentifiableObjectStore<DatastoreEntry>
-    implements DatastoreStore
-{
-    public HibernateDatastoreStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, DatastoreEntry.class, currentUserService, aclService,
-            true );
+public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<DatastoreEntry>
+    implements DatastoreStore {
+  public HibernateDatastoreStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        DatastoreEntry.class,
+        currentUserService,
+        aclService,
+        true);
+  }
+
+  @Override
+  public List<String> getNamespaces() {
+    Query<String> query = getTypedQuery("select distinct namespace from DatastoreEntry");
+    return query.list();
+  }
+
+  @Override
+  public List<String> getKeysInNamespace(String namespace) {
+    String hql = "select key from DatastoreEntry where namespace = :namespace";
+    Query<String> query = getTypedQuery(hql);
+    return query.setParameter("namespace", namespace).list();
+  }
+
+  @Override
+  public List<String> getKeysInNamespace(String namespace, Date lastUpdated) {
+    String hql = "select key from DatastoreEntry where namespace = :namespace";
+
+    if (lastUpdated != null) {
+      hql += " and lastupdated >= :lastUpdated ";
     }
 
-    @Override
-    public List<String> getNamespaces()
-    {
-        Query<String> query = getTypedQuery( "select distinct namespace from DatastoreEntry" );
-        return query.list();
+    Query<String> query = getTypedQuery(hql);
+    query.setParameter("namespace", namespace);
+
+    if (lastUpdated != null) {
+      query.setParameter("lastUpdated", lastUpdated);
     }
 
-    @Override
-    public List<String> getKeysInNamespace( String namespace )
-    {
-        String hql = "select key from DatastoreEntry where namespace = :namespace";
-        Query<String> query = getTypedQuery( hql );
-        return query.setParameter( "namespace", namespace ).list();
+    return query.list();
+  }
+
+  @Override
+  public List<DatastoreEntry> getEntryByNamespace(String namespace) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+
+    return getList(
+        builder,
+        newJpaParameters().addPredicate(root -> builder.equal(root.get("namespace"), namespace)));
+  }
+
+  @Override
+  public <T> T getFields(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform) {
+    DatastoreQueryBuilder builder = new DatastoreQueryBuilder(query);
+    String hql = builder.createFetchHQL();
+
+    Query<?> hQuery =
+        getSession()
+            .createQuery(hql, Object[].class)
+            .setParameter("namespace", query.getNamespace())
+            .setCacheable(false);
+
+    builder.applyParameterValues(hQuery::setParameter);
+
+    if (query.isPaging()) {
+      int size = Math.min(1000, Math.max(1, query.getPageSize()));
+      int offset = Math.max(0, (query.getPage() - 1) * size);
+      hQuery.setMaxResults(size);
+      hQuery.setFirstResult(offset);
     }
 
-    @Override
-    public List<String> getKeysInNamespace( String namespace, Date lastUpdated )
-    {
-        String hql = "select key from DatastoreEntry where namespace = :namespace";
-
-        if ( lastUpdated != null )
-        {
-            hql += " and lastupdated >= :lastUpdated ";
-        }
-
-        Query<String> query = getTypedQuery( hql );
-        query.setParameter( "namespace", namespace );
-
-        if ( lastUpdated != null )
-        {
-            query.setParameter( "lastUpdated", lastUpdated );
-        }
-
-        return query.list();
+    if (query.getFields().isEmpty()) {
+      return transform.apply(
+          hQuery.stream().map(row -> new DatastoreFields((String) row, emptyList())));
     }
 
-    @Override
-    public List<DatastoreEntry> getEntryByNamespace( String namespace )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+    @SuppressWarnings("unchecked")
+    Query<Object[]> multiFieldQuery = (Query<Object[]>) hQuery;
+    return transform.apply(
+        multiFieldQuery.stream()
+            .map(
+                row ->
+                    new DatastoreFields(
+                        (String) row[0], asList(copyOfRange(row, 1, row.length, String[].class)))));
+  }
 
-        return getList( builder,
-            newJpaParameters().addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) ) );
-    }
+  @Override
+  public DatastoreEntry getEntry(String namespace, String key) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-    @Override
-    public <T> T getFields( DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform )
-    {
-        DatastoreQueryBuilder builder = new DatastoreQueryBuilder( query );
-        String hql = builder.createFetchHQL();
+    return getSingleResult(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("namespace"), namespace))
+            .addPredicate(root -> builder.equal(root.get("key"), key)));
+  }
 
-        Query<?> hQuery = getSession().createQuery( hql, Object[].class )
-            .setParameter( "namespace", query.getNamespace() )
-            .setCacheable( false );
+  @Override
+  public void deleteNamespace(String namespace) {
+    String hql = "delete from DatastoreEntry v where v.namespace = :namespace";
+    getSession().createQuery(hql).setParameter("namespace", namespace).executeUpdate();
+  }
 
-        builder.applyParameterValues( hQuery::setParameter );
-
-        if ( query.isPaging() )
-        {
-            int size = Math.min( 1000, Math.max( 1, query.getPageSize() ) );
-            int offset = Math.max( 0, (query.getPage() - 1) * size );
-            hQuery.setMaxResults( size );
-            hQuery.setFirstResult( offset );
-        }
-
-        if ( query.getFields().isEmpty() )
-        {
-            return transform.apply(
-                hQuery.stream().map( row -> new DatastoreFields( (String) row, emptyList() ) ) );
-        }
-
-        @SuppressWarnings( "unchecked" )
-        Query<Object[]> multiFieldQuery = (Query<Object[]>) hQuery;
-        return transform.apply( multiFieldQuery
-            .stream()
-            .map( row -> new DatastoreFields( (String) row[0],
-                asList( copyOfRange( row, 1, row.length, String[].class ) ) ) ) );
-    }
-
-    @Override
-    public DatastoreEntry getEntry( String namespace, String key )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) )
-            .addPredicate( root -> builder.equal( root.get( "key" ), key ) ) );
-    }
-
-    @Override
-    public void deleteNamespace( String namespace )
-    {
-        String hql = "delete from DatastoreEntry v where v.namespace = :namespace";
-        getSession().createQuery( hql ).setParameter( "namespace", namespace ).executeUpdate();
-    }
-
-    @Override
-    public int countKeysInNamespace( String namespace )
-    {
-        String hql = "select count(*) from DatastoreEntry v where v.namespace = :namespace";
-        Query<Long> count = getTypedQuery( hql );
-        return count.setParameter( "namespace", namespace ).getSingleResult().intValue();
-    }
+  @Override
+  public int countKeysInNamespace(String namespace) {
+    String hql = "select count(*) from DatastoreEntry v where v.namespace = :namespace";
+    Query<Long> count = getTypedQuery(hql);
+    return count.setParameter("namespace", namespace).getSingleResult().intValue();
+  }
 }

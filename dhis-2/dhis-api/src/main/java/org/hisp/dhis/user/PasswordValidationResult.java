@@ -27,44 +27,35 @@
  */
 package org.hisp.dhis.user;
 
-/**
- * Created by zubair on 06.03.17.
- */
-public class PasswordValidationResult
-{
-    public static final PasswordValidationResult VALID = new PasswordValidationResult( null );
+/** Created by zubair on 06.03.17. */
+public class PasswordValidationResult {
+  public static final PasswordValidationResult VALID = new PasswordValidationResult(null);
 
-    private final String message;
+  private final String message;
 
-    private final PasswordValidationError error;
+  private final PasswordValidationError error;
 
-    public PasswordValidationResult( PasswordValidationError error, Object... args )
-    {
-        this.message = getMessage( error, args );
-        this.error = error;
+  public PasswordValidationResult(PasswordValidationError error, Object... args) {
+    this.message = getMessage(error, args);
+    this.error = error;
+  }
+
+  private String getMessage(PasswordValidationError error, Object[] args) {
+    if (error == null) {
+      return null;
     }
+    return args.length == 0 ? error.getMessage() : String.format(error.getMessage(), args);
+  }
 
-    private String getMessage( PasswordValidationError error, Object[] args )
-    {
-        if ( error == null )
-        {
-            return null;
-        }
-        return args.length == 0 ? error.getMessage() : String.format( error.getMessage(), args );
-    }
+  public String getErrorMessage() {
+    return message;
+  }
 
-    public String getErrorMessage()
-    {
-        return message;
-    }
+  public boolean isValid() {
+    return error == null;
+  }
 
-    public boolean isValid()
-    {
-        return error == null;
-    }
-
-    public String getI18ErrorMessage()
-    {
-        return error == null ? null : error.getI18nKey();
-    }
+  public String getI18ErrorMessage() {
+    return error == null ? null : error.getI18nKey();
+  }
 }

@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -53,55 +52,45 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackedEntityAttributeTest extends TrackerTest
-{
+class TrackedEntityAttributeTest extends TrackerTest {
 
-    @Autowired
-    private TrackerPreheatService trackerPreheatService;
+  @Autowired private TrackerPreheatService trackerPreheatService;
 
-    @Autowired
-    private TrackerImportService trackerImportService;
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Autowired
-    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/te_with_tea_metadata.json" );
-        injectAdminUser();
-    }
+  @Override
+  protected void initTest() throws IOException {
+    setUpMetadata("tracker/te_with_tea_metadata.json");
+    injectAdminUser();
+  }
 
-    @Test
-    void testTrackedAttributePreheater()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/te_with_tea_data.json" );
-        TrackerPreheat preheat = trackerPreheatService.preheat( trackerImportParams );
-        assertNotNull( preheat.get( OrganisationUnit.class, "cNEZTkdAvmg" ) );
-        assertNotNull( preheat.get( TrackedEntityType.class, "KrYIdvLxkMb" ) );
-        assertNotNull( preheat.get( TrackedEntityAttribute.class, "sYn3tkL3XKa" ) );
-        assertNotNull( preheat.get( TrackedEntityAttribute.class, "TsfP85GKsU5" ) );
-        assertNotNull( preheat.get( TrackedEntityAttribute.class, "sTGqP5JNy6E" ) );
-    }
+  @Test
+  void testTrackedAttributePreheater() throws IOException {
+    TrackerImportParams trackerImportParams = fromJson("tracker/te_with_tea_data.json");
+    TrackerPreheat preheat = trackerPreheatService.preheat(trackerImportParams);
+    assertNotNull(preheat.get(OrganisationUnit.class, "cNEZTkdAvmg"));
+    assertNotNull(preheat.get(TrackedEntityType.class, "KrYIdvLxkMb"));
+    assertNotNull(preheat.get(TrackedEntityAttribute.class, "sYn3tkL3XKa"));
+    assertNotNull(preheat.get(TrackedEntityAttribute.class, "TsfP85GKsU5"));
+    assertNotNull(preheat.get(TrackedEntityAttribute.class, "sTGqP5JNy6E"));
+  }
 
-    @Test
-    void testTrackedAttributeValueBundleImporter()
-        throws IOException
-    {
-        ImportReport importReport = trackerImportService
-            .importTracker( fromJson( "tracker/te_with_tea_data.json" ) );
-        assertNoErrors( importReport );
+  @Test
+  void testTrackedAttributeValueBundleImporter() throws IOException {
+    ImportReport importReport =
+        trackerImportService.importTracker(fromJson("tracker/te_with_tea_data.json"));
+    assertNoErrors(importReport);
 
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
-        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( trackedEntityInstance );
-        assertEquals( 3, attributeValues.size() );
-    }
+    List<TrackedEntityInstance> trackedEntityInstances =
+        manager.getAll(TrackedEntityInstance.class);
+    assertEquals(1, trackedEntityInstances.size());
+    TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get(0);
+    List<TrackedEntityAttributeValue> attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntityInstance);
+    assertEquals(3, attributeValues.size());
+  }
 }

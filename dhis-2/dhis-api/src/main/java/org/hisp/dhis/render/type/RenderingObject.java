@@ -27,13 +27,12 @@
  */
 package org.hisp.dhis.render.type;
 
-public interface RenderingObject<T extends Enum<?>>
-{
-    String _TYPE = "type";
+public interface RenderingObject<T extends Enum<?>> {
+  String _TYPE = "type";
 
-    T getType();
+  T getType();
 
-    void setType( T type );
+  void setType(T type);
 
-    Class<T> getRenderTypeClass();
+  Class<T> getRenderTypeClass();
 }

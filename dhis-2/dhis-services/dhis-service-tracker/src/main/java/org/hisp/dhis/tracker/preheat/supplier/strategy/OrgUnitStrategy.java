@@ -39,12 +39,18 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor( value = OrganisationUnit.class, mapper = OrganisationUnitMapper.class, cache = true, ttl = 30, capacity = 100 )
-public class OrgUnitStrategy extends AbstractSchemaStrategy
-{
-    public OrgUnitStrategy( SchemaService schemaService, QueryService queryService, IdentifiableObjectManager manager,
-        PreheatCacheService cacheService )
-    {
-        super( schemaService, queryService, manager, cacheService );
-    }
+@StrategyFor(
+    value = OrganisationUnit.class,
+    mapper = OrganisationUnitMapper.class,
+    cache = true,
+    ttl = 30,
+    capacity = 100)
+public class OrgUnitStrategy extends AbstractSchemaStrategy {
+  public OrgUnitStrategy(
+      SchemaService schemaService,
+      QueryService queryService,
+      IdentifiableObjectManager manager,
+      PreheatCacheService cacheService) {
+    super(schemaService, queryService, manager, cacheService);
+  }
 }

@@ -32,8 +32,6 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 /**
  * @author Ken Haase
  */
-public interface PredictorStore
-    extends IdentifiableObjectStore<Predictor>
-{
-    String ID = PredictorStore.class.getName();
+public interface PredictorStore extends IdentifiableObjectStore<Predictor> {
+  String ID = PredictorStore.class.getName();
 }

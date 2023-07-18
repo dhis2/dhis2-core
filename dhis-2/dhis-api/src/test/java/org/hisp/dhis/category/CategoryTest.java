@@ -36,28 +36,24 @@ import org.junit.jupiter.api.Test;
  *
  * @author Volker Schmidt
  */
-class CategoryTest
-{
+class CategoryTest {
 
-    @Test
-    void hasDefault()
-    {
-        Assertions.assertTrue( SystemDefaultMetadataObject.class.isAssignableFrom( Category.class ) );
-    }
+  @Test
+  void hasDefault() {
+    Assertions.assertTrue(SystemDefaultMetadataObject.class.isAssignableFrom(Category.class));
+  }
 
-    @Test
-    void isDefault()
-    {
-        Category category = new Category();
-        category.setName( Category.DEFAULT_NAME );
-        Assertions.assertTrue( category.isDefault() );
-    }
+  @Test
+  void isDefault() {
+    Category category = new Category();
+    category.setName(Category.DEFAULT_NAME);
+    Assertions.assertTrue(category.isDefault());
+  }
 
-    @Test
-    void isNotDefault()
-    {
-        Category category = new Category();
-        category.setName( Category.DEFAULT_NAME + "x" );
-        Assertions.assertFalse( category.isDefault() );
-    }
+  @Test
+  void isNotDefault() {
+    Category category = new Category();
+    category.setName(Category.DEFAULT_NAME + "x");
+    Assertions.assertFalse(category.isDefault());
+  }
 }

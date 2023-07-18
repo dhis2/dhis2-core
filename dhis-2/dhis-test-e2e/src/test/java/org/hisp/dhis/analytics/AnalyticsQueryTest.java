@@ -32,7 +32,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
 
 import java.util.List;
-
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -45,62 +44,60 @@ import org.junit.jupiter.api.Test;
  *
  * @author dusan bernat
  */
-public class AnalyticsQueryTest extends AnalyticsApiTest
-{
-    private RestApiActions analyticsActions;
+public class AnalyticsQueryTest extends AnalyticsApiTest {
+  private RestApiActions analyticsActions;
 
-    @BeforeAll
-    public void setup()
-    {
-        analyticsActions = new RestApiActions( "analytics" );
-    }
+  @BeforeAll
+  public void setup() {
+    analyticsActions = new RestApiActions("analytics");
+  }
 
-    @Test
-    public void testAnalyticsGetWithTextDataElementAggregationTypeNone()
-    {
-        // Given
-        QueryParamsBuilder params = new QueryParamsBuilder()
-            .add( "dimension=dx:M3xtLkYBlKI.fyjPqlHE7Dn,pe:202107" )
-            .add( "filter=ou:USER_ORGUNIT" )
-            .add( "displayProperty=NAME" )
-            .add( "skipMeta=true" )
-            .add( "skipData=false" );
+  @Test
+  public void testAnalyticsGetWithTextDataElementAggregationTypeNone() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=dx:M3xtLkYBlKI.fyjPqlHE7Dn,pe:202107")
+            .add("filter=ou:USER_ORGUNIT")
+            .add("displayProperty=NAME")
+            .add("skipMeta=true")
+            .add("skipData=false");
 
-        // When
-        ApiResponse response = analyticsActions.get( params );
+    // When
+    ApiResponse response = analyticsActions.get(params);
 
-        // Then
-        response.validate()
-            .statusCode( 200 )
-            .body( "rows", hasSize( equalTo( 2 ) ) );
+    // Then
+    response.validate().statusCode(200).body("rows", hasSize(equalTo(2)));
 
-        validateRow( response, List.of( "M3xtLkYBlKI.fyjPqlHE7Dn", "202107", "" ) );
-        validateRow( response, List.of( "M3xtLkYBlKI.fyjPqlHE7Dn", "202107", "Some insecticide resistance" ) );
-    }
+    validateRow(response, List.of("M3xtLkYBlKI.fyjPqlHE7Dn", "202107", ""));
+    validateRow(
+        response, List.of("M3xtLkYBlKI.fyjPqlHE7Dn", "202107", "Some insecticide resistance"));
+  }
 
-    @Test
-    public void testAnalyticsGetWithLongTextDataElementAggregationTypeSum()
-    {
-        // Given
-        QueryParamsBuilder params = new QueryParamsBuilder()
-            .add( "dimension=dx:mxc1T932aWM,pe:202210" )
-            .add( "filter=ou:USER_ORGUNIT" )
-            .add( "displayProperty=NAME" )
-            .add( "desc=lastupdated" )
-            .add( "skipMeta=true" )
-            .add( "skipData=false" );
+  @Test
+  public void testAnalyticsGetWithLongTextDataElementAggregationTypeSum() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=dx:mxc1T932aWM,pe:202210")
+            .add("filter=ou:USER_ORGUNIT")
+            .add("displayProperty=NAME")
+            .add("desc=lastupdated")
+            .add("skipMeta=true")
+            .add("skipData=false");
 
-        // When
-        ApiResponse response = analyticsActions.get( params );
+    // When
+    ApiResponse response = analyticsActions.get(params);
 
-        // Then
-        response.validate()
-            .statusCode( 200 )
-            .body( "rows", hasSize( equalTo( 1 ) ) );
+    // Then
+    response.validate().statusCode(200).body("rows", hasSize(equalTo(1)));
 
-        validateRow( response, 0,
-            List.of( "mxc1T932aWM",
-                "202210",
-                "Cholera is an infection of the small intestine caused by the bacterium Vibrio cholerae.\n\nThe main symptoms are watery diarrhea and vomiting. This may result in dehydration and in severe cases grayish-bluish skin.[1] Transmission occurs primarily by drinking water or eating food that has been contaminated by the feces (waste product) of an infected person, including one with no apparent symptoms.\n\nThe severity of the diarrhea and vomiting can lead to rapid dehydration and electrolyte imbalance, and death in some cases. The primary treatment is oral rehydration therapy, typically with oral rehydration solution, to replace water and electrolytes. If this is not tolerated or does not provide improvement fast enough, intravenous fluids can also be used. Antibacterial drugs are beneficial in those with severe disease to shorten its duration and severity." ) );
-    }
+    validateRow(
+        response,
+        0,
+        List.of(
+            "mxc1T932aWM",
+            "202210",
+            "Cholera is an infection of the small intestine caused by the bacterium Vibrio cholerae.\n\nThe main symptoms are watery diarrhea and vomiting. This may result in dehydration and in severe cases grayish-bluish skin.[1] Transmission occurs primarily by drinking water or eating food that has been contaminated by the feces (waste product) of an infected person, including one with no apparent symptoms.\n\nThe severity of the diarrhea and vomiting can lead to rapid dehydration and electrolyte imbalance, and death in some cases. The primary treatment is oral rehydration therapy, typically with oral rehydration solution, to replace water and electrolytes. If this is not tolerated or does not provide improvement fast enough, intravenous fluids can also be used. Antibacterial drugs are beneficial in those with severe disease to shorten its duration and severity."));
+  }
 }

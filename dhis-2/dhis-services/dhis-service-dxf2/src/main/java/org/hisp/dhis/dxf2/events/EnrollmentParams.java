@@ -32,54 +32,51 @@ import lombok.With;
 
 @With
 @Value
-public class EnrollmentParams
-{
-    public static final EnrollmentParams TRUE = new EnrollmentParams( EnrollmentEventsParams.TRUE, true, true, false,
-        false );
+public class EnrollmentParams {
+  public static final EnrollmentParams TRUE =
+      new EnrollmentParams(EnrollmentEventsParams.TRUE, true, true, false, false);
 
-    public static final EnrollmentParams FALSE = new EnrollmentParams( EnrollmentEventsParams.FALSE, false, false,
-        false, false );
+  public static final EnrollmentParams FALSE =
+      new EnrollmentParams(EnrollmentEventsParams.FALSE, false, false, false, false);
 
-    private EnrollmentEventsParams enrollmentEventsParams;
+  private EnrollmentEventsParams enrollmentEventsParams;
 
-    private boolean includeRelationships;
+  private boolean includeRelationships;
 
-    private boolean includeAttributes;
+  private boolean includeAttributes;
 
-    private boolean includeDeleted;
+  private boolean includeDeleted;
 
-    private boolean dataSynchronizationQuery;
+  private boolean dataSynchronizationQuery;
 
-    public boolean isIncludeRelationships()
-    {
-        return includeRelationships;
-    }
+  public boolean isIncludeRelationships() {
+    return includeRelationships;
+  }
 
-    public boolean isIncludeEvents()
-    {
-        return enrollmentEventsParams.isIncludeEvents();
-    }
+  public boolean isIncludeEvents() {
+    return enrollmentEventsParams.isIncludeEvents();
+  }
 
-    public EnrollmentParams withIncludeEvents( boolean includeEvents )
-    {
-        return this.enrollmentEventsParams.isIncludeEvents() == includeEvents ? this
-            : new EnrollmentParams( enrollmentEventsParams.withIncludeEvents( includeEvents ),
-                this.includeRelationships, this.includeAttributes, this.includeDeleted,
-                this.dataSynchronizationQuery );
-    }
+  public EnrollmentParams withIncludeEvents(boolean includeEvents) {
+    return this.enrollmentEventsParams.isIncludeEvents() == includeEvents
+        ? this
+        : new EnrollmentParams(
+            enrollmentEventsParams.withIncludeEvents(includeEvents),
+            this.includeRelationships,
+            this.includeAttributes,
+            this.includeDeleted,
+            this.dataSynchronizationQuery);
+  }
 
-    public boolean isIncludeAttributes()
-    {
-        return includeAttributes;
-    }
+  public boolean isIncludeAttributes() {
+    return includeAttributes;
+  }
 
-    public boolean isIncludeDeleted()
-    {
-        return includeDeleted;
-    }
+  public boolean isIncludeDeleted() {
+    return includeDeleted;
+  }
 
-    public boolean isDataSynchronizationQuery()
-    {
-        return dataSynchronizationQuery;
-    }
+  public boolean isDataSynchronizationQuery() {
+    return dataSynchronizationQuery;
+  }
 }

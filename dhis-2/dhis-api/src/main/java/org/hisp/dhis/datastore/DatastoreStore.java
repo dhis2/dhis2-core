@@ -31,86 +31,80 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Stian Sandvold
  */
-public interface DatastoreStore
-    extends IdentifiableObjectStore<DatastoreEntry>
-{
-    /**
-     * Retrieves a list of all namespaces
-     *
-     * @return a list of strings representing each existing namespace
-     */
-    List<String> getNamespaces();
+public interface DatastoreStore extends IdentifiableObjectStore<DatastoreEntry> {
+  /**
+   * Retrieves a list of all namespaces
+   *
+   * @return a list of strings representing each existing namespace
+   */
+  List<String> getNamespaces();
 
-    /**
-     * Retrieves a list of keys associated with a given namespace.
-     *
-     * @param namespace the namespace to retrieve keys from
-     * @return a list of strings representing the different keys in the
-     *         namespace
-     */
-    List<String> getKeysInNamespace( String namespace );
+  /**
+   * Retrieves a list of keys associated with a given namespace.
+   *
+   * @param namespace the namespace to retrieve keys from
+   * @return a list of strings representing the different keys in the namespace
+   */
+  List<String> getKeysInNamespace(String namespace);
 
-    /**
-     * Retrieves a list of keys associated with a given namespace which are
-     * updated after lastUpdated time.
-     *
-     * @param namespace the namespace to retrieve keys from
-     * @param lastUpdated the lastUpdated time to retrieve keys from
-     * @return a list of strings representing the different keys in the
-     *         namespace
-     */
-    List<String> getKeysInNamespace( String namespace, Date lastUpdated );
+  /**
+   * Retrieves a list of keys associated with a given namespace which are updated after lastUpdated
+   * time.
+   *
+   * @param namespace the namespace to retrieve keys from
+   * @param lastUpdated the lastUpdated time to retrieve keys from
+   * @return a list of strings representing the different keys in the namespace
+   */
+  List<String> getKeysInNamespace(String namespace, Date lastUpdated);
 
-    /**
-     * Retrieves a list of KeyJsonValue objects based on a given namespace
-     *
-     * @param namespace the namespace to retrieve KeyJsonValues from
-     * @return a List of KeyJsonValues
-     */
-    List<DatastoreEntry> getEntryByNamespace( String namespace );
+  /**
+   * Retrieves a list of KeyJsonValue objects based on a given namespace
+   *
+   * @param namespace the namespace to retrieve KeyJsonValues from
+   * @return a List of KeyJsonValues
+   */
+  List<DatastoreEntry> getEntryByNamespace(String namespace);
 
-    /**
-     * Stream the matching entries to a transformer or consumer function.
-     *
-     * Note that this API cannot return the {@link Stream} since it has to be
-     * processed within the transaction bounds of the function call. For the
-     * same reason a transformer function has to process the stream in a way
-     * that actually will evaluate the stream.
-     *
-     * @param query query parameters
-     * @param transform transformer or consumer for the stream of matches
-     * @param <T> type of the transformed stream
-     * @return the transformed stream
-     */
-    <T> T getFields( DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform );
+  /**
+   * Stream the matching entries to a transformer or consumer function.
+   *
+   * <p>Note that this API cannot return the {@link Stream} since it has to be processed within the
+   * transaction bounds of the function call. For the same reason a transformer function has to
+   * process the stream in a way that actually will evaluate the stream.
+   *
+   * @param query query parameters
+   * @param transform transformer or consumer for the stream of matches
+   * @param <T> type of the transformed stream
+   * @return the transformed stream
+   */
+  <T> T getFields(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform);
 
-    /**
-     * Retrieves a KeyJsonValue based on the associated key and namespace
-     *
-     * @param namespace the namespace where the key is stored
-     * @param key the key referencing the value
-     * @return the KeyJsonValue retrieved
-     */
-    DatastoreEntry getEntry( String namespace, String key );
+  /**
+   * Retrieves a KeyJsonValue based on the associated key and namespace
+   *
+   * @param namespace the namespace where the key is stored
+   * @param key the key referencing the value
+   * @return the KeyJsonValue retrieved
+   */
+  DatastoreEntry getEntry(String namespace, String key);
 
-    /**
-     * Deletes all values in the provided namespace.
-     *
-     * @param namespace the namespace for which to remove all values
-     */
-    void deleteNamespace( String namespace );
+  /**
+   * Deletes all values in the provided namespace.
+   *
+   * @param namespace the namespace for which to remove all values
+   */
+  void deleteNamespace(String namespace);
 
-    /**
-     * Counts the entries in a given namespace.
-     *
-     * @param namespace the namespace to count
-     * @return number of entries in the given namespace.
-     */
-    int countKeysInNamespace( String namespace );
+  /**
+   * Counts the entries in a given namespace.
+   *
+   * @param namespace the namespace to count
+   * @return number of entries in the given namespace.
+   */
+  int countKeysInNamespace(String namespace);
 }

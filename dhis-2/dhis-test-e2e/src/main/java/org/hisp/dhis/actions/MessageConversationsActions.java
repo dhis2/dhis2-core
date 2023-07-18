@@ -33,26 +33,21 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class MessageConversationsActions
-    extends RestApiActions
-{
-    public MessageConversationsActions()
-    {
-        super( "/messageConversations" );
+public class MessageConversationsActions extends RestApiActions {
+  public MessageConversationsActions() {
+    super("/messageConversations");
+  }
+
+  public ApiResponse waitForNotification(int expectedCount) {
+    boolean isReceived = false;
+    int attemptCount = 20;
+    ApiResponse response = null;
+    while (!isReceived && attemptCount > 0) {
+      response = this.get("", new QueryParamsBuilder().add("fields=subject"));
+      isReceived = (response.extractList("messageConversations").size() == expectedCount);
+      attemptCount--;
     }
 
-    public ApiResponse waitForNotification( int expectedCount )
-    {
-        boolean isReceived = false;
-        int attemptCount = 20;
-        ApiResponse response = null;
-        while ( !isReceived && attemptCount > 0 )
-        {
-            response = this.get( "", new QueryParamsBuilder().add( "fields=subject" ) );
-            isReceived = (response.extractList( "messageConversations" ).size() == expectedCount);
-            attemptCount--;
-        }
-
-        return response;
-    }
+    return response;
+  }
 }

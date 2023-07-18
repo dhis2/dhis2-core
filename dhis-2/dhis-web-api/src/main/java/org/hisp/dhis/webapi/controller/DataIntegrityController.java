@@ -35,12 +35,9 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationRepo
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataintegrity.DataIntegrityCheck;
@@ -69,173 +66,162 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-@OpenApi.Tags( "data" )
+@OpenApi.Tags("data")
 @Controller
-@RequestMapping( "/dataIntegrity" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequestMapping("/dataIntegrity")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
-public class DataIntegrityController
-{
-    private final SchedulingManager schedulingManager;
+public class DataIntegrityController {
+  private final SchedulingManager schedulingManager;
 
-    private final DataIntegrityService dataIntegrityService;
+  private final DataIntegrityService dataIntegrityService;
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    @PostMapping
-    @ResponseBody
-    public WebMessage runDataIntegrity(
-        @CheckForNull @RequestParam( required = false ) Set<String> checks,
-        @CheckForNull @RequestBody( required = false ) Set<String> checksBody,
-        @CurrentUser User currentUser )
-    {
-        Set<String> names = getCheckNames( checksBody, checks );
-        return runDataIntegrityAsync( names, currentUser, "runDataIntegrity", DataIntegrityReportType.REPORT )
-            .setLocation( "/dataIntegrity/details?checks=" + toChecksList( names ) );
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @PostMapping
+  @ResponseBody
+  public WebMessage runDataIntegrity(
+      @CheckForNull @RequestParam(required = false) Set<String> checks,
+      @CheckForNull @RequestBody(required = false) Set<String> checksBody,
+      @CurrentUser User currentUser) {
+    Set<String> names = getCheckNames(checksBody, checks);
+    return runDataIntegrityAsync(
+            names, currentUser, "runDataIntegrity", DataIntegrityReportType.REPORT)
+        .setLocation("/dataIntegrity/details?checks=" + toChecksList(names));
+  }
+
+  private WebMessage runDataIntegrityAsync(
+      @Nonnull Set<String> checks,
+      User currentUser,
+      String description,
+      DataIntegrityReportType type) {
+    DataIntegrityJobParameters params = new DataIntegrityJobParameters();
+    params.setChecks(checks);
+    params.setType(type);
+    JobConfiguration config =
+        new JobConfiguration(description, JobType.DATA_INTEGRITY, null, params, true, true);
+    config.setUserUid(currentUser.getUid());
+    config.setAutoFields();
+
+    if (!schedulingManager.executeNow(config)) {
+      return conflict("Data integrity check is already running");
     }
+    return jobConfigurationReport(config);
+  }
 
-    private WebMessage runDataIntegrityAsync( @Nonnull Set<String> checks,
-        User currentUser,
-        String description,
-        DataIntegrityReportType type )
-    {
-        DataIntegrityJobParameters params = new DataIntegrityJobParameters();
-        params.setChecks( checks );
-        params.setType( type );
-        JobConfiguration config = new JobConfiguration( description, JobType.DATA_INTEGRITY, null,
-            params, true, true );
-        config.setUserUid( currentUser.getUid() );
-        config.setAutoFields();
+  @GetMapping
+  @ResponseBody
+  public Collection<DataIntegrityCheck> getAvailableChecks(
+      @CheckForNull @RequestParam(required = false) Set<String> checks,
+      @CheckForNull @RequestParam(required = false) String section) {
+    Collection<DataIntegrityCheck> matches =
+        dataIntegrityService.getDataIntegrityChecks(getCheckNames(checks));
+    return section == null || section.isBlank()
+        ? matches
+        : matches.stream().filter(check -> section.equals(check.getSection())).collect(toList());
+  }
 
-        if ( !schedulingManager.executeNow( config ) )
-        {
-            return conflict( "Data integrity check is already running" );
-        }
-        return jobConfigurationReport( config );
+  @GetMapping("/summary/running")
+  @ResponseBody
+  public Set<String> getRunningSummaryChecks() {
+    return dataIntegrityService.getRunningSummaryChecks();
+  }
+
+  @GetMapping("/summary/completed")
+  @ResponseBody
+  public Set<String> getCompletedSummaryChecks() {
+    return dataIntegrityService.getCompletedSummaryChecks();
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @GetMapping("/summary")
+  @ResponseBody
+  public Map<String, DataIntegritySummary> getSummaries(
+      @CheckForNull @RequestParam(required = false) Set<String> checks,
+      @RequestParam(required = false, defaultValue = "0") long timeout) {
+    return dataIntegrityService.getSummaries(getCheckNames(checks), timeout);
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @PostMapping("/summary")
+  @ResponseBody
+  public WebMessage runSummariesCheck(
+      @CheckForNull @RequestParam(required = false) Set<String> checks,
+      @CheckForNull @RequestBody(required = false) Set<String> checksBody,
+      @CurrentUser User currentUser) {
+    Set<String> names = getCheckNames(checksBody, checks);
+    return runDataIntegrityAsync(
+            names, currentUser, "runSummariesCheck", DataIntegrityReportType.SUMMARY)
+        .setLocation("/dataIntegrity/summary?checks=" + toChecksList(names));
+  }
+
+  @GetMapping("/details/running")
+  @ResponseBody
+  public Set<String> getRunningDetailsChecks() {
+    return dataIntegrityService.getRunningDetailsChecks();
+  }
+
+  @GetMapping("/details/completed")
+  @ResponseBody
+  public Set<String> getCompletedDetailsChecks() {
+    return dataIntegrityService.getCompletedDetailsChecks();
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @GetMapping("/details")
+  @ResponseBody
+  public Map<String, DataIntegrityDetails> getDetails(
+      @CheckForNull @RequestParam(required = false) Set<String> checks,
+      @RequestParam(required = false, defaultValue = "0") long timeout) {
+    return dataIntegrityService.getDetails(getCheckNames(checks), timeout);
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @PostMapping("/details")
+  @ResponseBody
+  public WebMessage runDetailsCheck(
+      @CheckForNull @RequestParam(required = false) Set<String> checks,
+      @RequestBody(required = false) Set<String> checksBody,
+      @CurrentUser User currentUser) {
+    Set<String> names = getCheckNames(checksBody, checks);
+    return runDataIntegrityAsync(
+            names, currentUser, "runDetailsCheck", DataIntegrityReportType.DETAILS)
+        .setLocation("/dataIntegrity/details?checks=" + toChecksList(names));
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @GetMapping("/{check}/summary")
+  @ResponseBody
+  public DataIntegritySummary getSummary(
+      @PathVariable String check,
+      @RequestParam(required = false, defaultValue = "0") long timeout) {
+    Collection<DataIntegritySummary> summaries =
+        dataIntegrityService.getSummaries(Set.of(check), timeout).values();
+    return summaries.isEmpty() ? null : summaries.iterator().next();
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @GetMapping("/{check}/details")
+  @ResponseBody
+  public DataIntegrityDetails getDetails(
+      @PathVariable String check,
+      @RequestParam(required = false, defaultValue = "0") long timeout) {
+    Collection<DataIntegrityDetails> details =
+        dataIntegrityService.getDetails(Set.of(check), timeout).values();
+    return details.isEmpty() ? null : details.iterator().next();
+  }
+
+  @SafeVarargs
+  @Nonnull
+  private static Set<String> getCheckNames(Set<String>... checks) {
+    for (Set<String> names : checks) {
+      if (!isEmpty(names)) {
+        return names;
+      }
     }
+    return Set.of();
+  }
 
-    @GetMapping
-    @ResponseBody
-    public Collection<DataIntegrityCheck> getAvailableChecks(
-        @CheckForNull @RequestParam( required = false ) Set<String> checks,
-        @CheckForNull @RequestParam( required = false ) String section )
-    {
-        Collection<DataIntegrityCheck> matches = dataIntegrityService.getDataIntegrityChecks( getCheckNames( checks ) );
-        return section == null || section.isBlank()
-            ? matches
-            : matches.stream().filter( check -> section.equals( check.getSection() ) ).collect( toList() );
-    }
-
-    @GetMapping( "/summary/running" )
-    @ResponseBody
-    public Set<String> getRunningSummaryChecks()
-    {
-        return dataIntegrityService.getRunningSummaryChecks();
-    }
-
-    @GetMapping( "/summary/completed" )
-    @ResponseBody
-    public Set<String> getCompletedSummaryChecks()
-    {
-        return dataIntegrityService.getCompletedSummaryChecks();
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    @GetMapping( "/summary" )
-    @ResponseBody
-    public Map<String, DataIntegritySummary> getSummaries(
-        @CheckForNull @RequestParam( required = false ) Set<String> checks,
-        @RequestParam( required = false, defaultValue = "0" ) long timeout )
-    {
-        return dataIntegrityService.getSummaries( getCheckNames( checks ), timeout );
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    @PostMapping( "/summary" )
-    @ResponseBody
-    public WebMessage runSummariesCheck(
-        @CheckForNull @RequestParam( required = false ) Set<String> checks,
-        @CheckForNull @RequestBody( required = false ) Set<String> checksBody,
-        @CurrentUser User currentUser )
-    {
-        Set<String> names = getCheckNames( checksBody, checks );
-        return runDataIntegrityAsync( names, currentUser, "runSummariesCheck", DataIntegrityReportType.SUMMARY )
-            .setLocation( "/dataIntegrity/summary?checks=" + toChecksList( names ) );
-    }
-
-    @GetMapping( "/details/running" )
-    @ResponseBody
-    public Set<String> getRunningDetailsChecks()
-    {
-        return dataIntegrityService.getRunningDetailsChecks();
-    }
-
-    @GetMapping( "/details/completed" )
-    @ResponseBody
-    public Set<String> getCompletedDetailsChecks()
-    {
-        return dataIntegrityService.getCompletedDetailsChecks();
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    @GetMapping( "/details" )
-    @ResponseBody
-    public Map<String, DataIntegrityDetails> getDetails(
-        @CheckForNull @RequestParam( required = false ) Set<String> checks,
-        @RequestParam( required = false, defaultValue = "0" ) long timeout )
-    {
-        return dataIntegrityService.getDetails( getCheckNames( checks ), timeout );
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    @PostMapping( "/details" )
-    @ResponseBody
-    public WebMessage runDetailsCheck(
-        @CheckForNull @RequestParam( required = false ) Set<String> checks,
-        @RequestBody( required = false ) Set<String> checksBody,
-        @CurrentUser User currentUser )
-    {
-        Set<String> names = getCheckNames( checksBody, checks );
-        return runDataIntegrityAsync( names, currentUser, "runDetailsCheck", DataIntegrityReportType.DETAILS )
-            .setLocation( "/dataIntegrity/details?checks=" + toChecksList( names ) );
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    @GetMapping( "/{check}/summary" )
-    @ResponseBody
-    public DataIntegritySummary getSummary( @PathVariable String check,
-        @RequestParam( required = false, defaultValue = "0" ) long timeout )
-    {
-        Collection<DataIntegritySummary> summaries = dataIntegrityService.getSummaries( Set.of( check ), timeout )
-            .values();
-        return summaries.isEmpty() ? null : summaries.iterator().next();
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    @GetMapping( "/{check}/details" )
-    @ResponseBody
-    public DataIntegrityDetails getDetails( @PathVariable String check,
-        @RequestParam( required = false, defaultValue = "0" ) long timeout )
-    {
-        Collection<DataIntegrityDetails> details = dataIntegrityService.getDetails( Set.of( check ), timeout ).values();
-        return details.isEmpty() ? null : details.iterator().next();
-    }
-
-    @SafeVarargs
-    @Nonnull
-    private static Set<String> getCheckNames( Set<String>... checks )
-    {
-        for ( Set<String> names : checks )
-        {
-            if ( !isEmpty( names ) )
-            {
-                return names;
-            }
-        }
-        return Set.of();
-    }
-
-    private String toChecksList( Collection<String> checks )
-    {
-        return checks == null || checks.isEmpty() ? "" : String.join( ",", checks );
-    }
+  private String toChecksList(Collection<String> checks) {
+    return checks == null || checks.isEmpty() ? "" : String.join(",", checks);
+  }
 }

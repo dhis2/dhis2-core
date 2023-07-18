@@ -27,99 +27,83 @@
  */
 package org.hisp.dhis.common;
 
+import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableList;
-
 /**
- * Class representing a dimension item keyword. Main responsibility is to keep
- * information about which keywords are part of a request and return as part of
- * metadata in response.
+ * Class representing a dimension item keyword. Main responsibility is to keep information about
+ * which keywords are part of a request and return as part of metadata in response.
  *
  * @author Luciano Fiandesio
  */
-public class DimensionItemKeywords
-{
-    public static class Keyword
-    {
-        private final String key;
+public class DimensionItemKeywords {
+  public static class Keyword {
+    private final String key;
 
-        private final String uid;
+    private final String uid;
 
-        private final String name;
+    private final String name;
 
-        private final String code;
+    private final String code;
 
-        Keyword( String key, String uid, String name, String code )
-        {
-            this.key = key;
-            this.uid = uid;
-            this.name = name;
-            this.code = code;
-        }
-
-        public String getKey()
-        {
-            return key;
-        }
-
-        public MetadataItem getMetadataItem()
-        {
-            return new MetadataItem( name, uid, code );
-        }
+    Keyword(String key, String uid, String name, String code) {
+      this.key = key;
+      this.uid = uid;
+      this.name = name;
+      this.code = code;
     }
 
-    private final List<Keyword> keywords;
-
-    public DimensionItemKeywords()
-    {
-        this.keywords = new ArrayList<>();
+    public String getKey() {
+      return key;
     }
 
-    public DimensionItemKeywords( List<IdentifiableObject> objects )
-    {
-        this.keywords = new ArrayList<>();
-
-        this.keywords.addAll( objects.stream().map( this::asKeyword ).collect( Collectors.toList() ) );
+    public MetadataItem getMetadataItem() {
+      return new MetadataItem(name, uid, code);
     }
+  }
 
-    public void addKeyword( IdentifiableObject object )
-    {
-        this.keywords.add( asKeyword( object ) );
-    }
+  private final List<Keyword> keywords;
 
-    public void addKeyword( String key, String name )
-    {
-        this.keywords.add( new Keyword( key, null, name, null ) );
-    }
+  public DimensionItemKeywords() {
+    this.keywords = new ArrayList<>();
+  }
 
-    public void addKeywords( List<? extends IdentifiableObject> objects )
-    {
-        objects.forEach( this::addKeyword );
-    }
+  public DimensionItemKeywords(List<IdentifiableObject> objects) {
+    this.keywords = new ArrayList<>();
 
-    public Keyword getKeyword( String key )
-    {
-        return keywords.stream()
-            .filter( keyword -> keyword.getKey().equals( key ) )
-            .findFirst()
-            .orElse( null );
-    }
+    this.keywords.addAll(objects.stream().map(this::asKeyword).collect(Collectors.toList()));
+  }
 
-    public List<Keyword> getKeywords()
-    {
-        return ImmutableList.copyOf( keywords );
-    }
+  public void addKeyword(IdentifiableObject object) {
+    this.keywords.add(asKeyword(object));
+  }
 
-    public boolean isEmpty()
-    {
-        return keywords.isEmpty();
-    }
+  public void addKeyword(String key, String name) {
+    this.keywords.add(new Keyword(key, null, name, null));
+  }
 
-    private Keyword asKeyword( IdentifiableObject object )
-    {
-        return new Keyword( object.getUid(), object.getUid(), object.getName(), object.getCode() );
-    }
+  public void addKeywords(List<? extends IdentifiableObject> objects) {
+    objects.forEach(this::addKeyword);
+  }
+
+  public Keyword getKeyword(String key) {
+    return keywords.stream()
+        .filter(keyword -> keyword.getKey().equals(key))
+        .findFirst()
+        .orElse(null);
+  }
+
+  public List<Keyword> getKeywords() {
+    return ImmutableList.copyOf(keywords);
+  }
+
+  public boolean isEmpty() {
+    return keywords.isEmpty();
+  }
+
+  private Keyword asKeyword(IdentifiableObject object) {
+    return new Keyword(object.getUid(), object.getUid(), object.getName(), object.getCode());
+  }
 }

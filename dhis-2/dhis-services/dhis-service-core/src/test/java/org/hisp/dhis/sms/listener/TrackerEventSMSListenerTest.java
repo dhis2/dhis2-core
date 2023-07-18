@@ -37,10 +37,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -77,232 +77,223 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import com.google.common.collect.Sets;
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class TrackerEventSMSListenerTest extends CompressionSMSListenerTest {
 
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class TrackerEventSMSListenerTest extends
-    CompressionSMSListenerTest
-{
+  @Mock private UserService userService;
 
-    @Mock
-    private UserService userService;
+  @Mock private IncomingSmsService incomingSmsService;
 
-    @Mock
-    private IncomingSmsService incomingSmsService;
+  @Mock private MessageSender smsSender;
 
-    @Mock
-    private MessageSender smsSender;
+  @Mock private DataElementService dataElementService;
 
-    @Mock
-    private DataElementService dataElementService;
+  @Mock private TrackedEntityTypeService trackedEntityTypeService;
 
-    @Mock
-    private TrackedEntityTypeService trackedEntityTypeService;
+  @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Mock
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+  @Mock private ProgramService programService;
 
-    @Mock
-    private ProgramService programService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  @Mock private CategoryService categoryService;
 
-    @Mock
-    private CategoryService categoryService;
+  @Mock private ProgramStageInstanceService programStageInstanceService;
 
-    @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+  @Mock private IdentifiableObjectManager identifiableObjectManager;
 
-    @Mock
-    private IdentifiableObjectManager identifiableObjectManager;
+  private User user;
 
-    private User user;
+  private OutboundMessageResponse response = new OutboundMessageResponse();
 
-    private OutboundMessageResponse response = new OutboundMessageResponse();
+  private IncomingSms updatedIncomingSms;
 
-    private IncomingSms updatedIncomingSms;
+  private String message = "";
 
-    private String message = "";
+  // Needed for this test
 
-    // Needed for this test
+  @Mock private ProgramInstanceService programInstanceService;
 
-    @Mock
-    private ProgramInstanceService programInstanceService;
+  @Mock private ProgramStageService programStageService;
 
-    @Mock
-    private ProgramStageService programStageService;
+  TrackerEventSMSListener subject;
 
-    TrackerEventSMSListener subject;
+  private IncomingSms incomingSmsTrackerEvent;
 
-    private IncomingSms incomingSmsTrackerEvent;
+  private IncomingSms incomingSmsTrackerEventWithNulls;
 
-    private IncomingSms incomingSmsTrackerEventWithNulls;
+  private IncomingSms incomingSmsTrackerEventNoValues;
 
-    private IncomingSms incomingSmsTrackerEventNoValues;
+  private OrganisationUnit organisationUnit;
 
-    private OrganisationUnit organisationUnit;
+  private CategoryOptionCombo categoryOptionCombo;
 
-    private CategoryOptionCombo categoryOptionCombo;
+  private DataElement dataElement;
 
-    private DataElement dataElement;
+  private Program program;
 
-    private Program program;
+  private ProgramStage programStage;
 
-    private ProgramStage programStage;
+  private ProgramInstance programInstance;
 
-    private ProgramInstance programInstance;
+  private ProgramStageInstance programStageInstance;
 
-    private ProgramStageInstance programStageInstance;
+  @BeforeEach
+  public void initTest() throws SmsCompressionException {
+    subject =
+        new TrackerEventSMSListener(
+            incomingSmsService,
+            smsSender,
+            userService,
+            trackedEntityTypeService,
+            trackedEntityAttributeService,
+            programService,
+            organisationUnitService,
+            categoryService,
+            dataElementService,
+            programStageInstanceService,
+            programStageService,
+            programInstanceService,
+            identifiableObjectManager);
 
-    @BeforeEach
-    public void initTest()
-        throws SmsCompressionException
-    {
-        subject = new TrackerEventSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
-            trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageInstanceService, programStageService, programInstanceService, identifiableObjectManager );
+    setUpInstances();
 
-        setUpInstances();
+    when(userService.getUser(anyString())).thenReturn(user);
+    when(smsSender.isConfigured()).thenReturn(true);
+    when(smsSender.sendMessage(any(), any(), anyString()))
+        .thenAnswer(
+            invocation -> {
+              message = (String) invocation.getArguments()[1];
+              return response;
+            });
 
-        when( userService.getUser( anyString() ) ).thenReturn( user );
-        when( smsSender.isConfigured() ).thenReturn( true );
-        when( smsSender.sendMessage( any(), any(), anyString() ) ).thenAnswer( invocation -> {
-            message = (String) invocation.getArguments()[1];
-            return response;
-        } );
+    when(organisationUnitService.getOrganisationUnit(anyString())).thenReturn(organisationUnit);
+    when(programStageService.getProgramStage(anyString())).thenReturn(programStage);
+    when(programInstanceService.getProgramInstance(anyString())).thenReturn(programInstance);
+    when(dataElementService.getDataElement(anyString())).thenReturn(dataElement);
+    when(categoryService.getCategoryOptionCombo(anyString())).thenReturn(categoryOptionCombo);
 
-        when( organisationUnitService.getOrganisationUnit( anyString() ) ).thenReturn( organisationUnit );
-        when( programStageService.getProgramStage( anyString() ) ).thenReturn( programStage );
-        when( programInstanceService.getProgramInstance( anyString() ) ).thenReturn( programInstance );
-        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
-        when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
+    doAnswer(
+            invocation -> {
+              updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
+              return updatedIncomingSms;
+            })
+        .when(incomingSmsService)
+        .update(any());
+  }
 
-        doAnswer( invocation -> {
-            updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
-            return updatedIncomingSms;
-        } ).when( incomingSmsService ).update( any() );
-    }
+  @Test
+  void testTrackerEvent() {
+    subject.receive(incomingSmsTrackerEvent);
 
-    @Test
-    void testTrackerEvent()
-    {
-        subject.receive( incomingSmsTrackerEvent );
+    assertNotNull(updatedIncomingSms);
+    assertTrue(updatedIncomingSms.isParsed());
+    assertEquals(SUCCESS_MESSAGE, message);
 
-        assertNotNull( updatedIncomingSms );
-        assertTrue( updatedIncomingSms.isParsed() );
-        assertEquals( SUCCESS_MESSAGE, message );
+    verify(incomingSmsService, times(1)).update(any());
+  }
 
-        verify( incomingSmsService, times( 1 ) ).update( any() );
-    }
+  @Test
+  void testTrackerEventRepeat() {
+    subject.receive(incomingSmsTrackerEvent);
+    subject.receive(incomingSmsTrackerEvent);
 
-    @Test
-    void testTrackerEventRepeat()
-    {
-        subject.receive( incomingSmsTrackerEvent );
-        subject.receive( incomingSmsTrackerEvent );
+    assertNotNull(updatedIncomingSms);
+    assertTrue(updatedIncomingSms.isParsed());
+    assertEquals(SUCCESS_MESSAGE, message);
 
-        assertNotNull( updatedIncomingSms );
-        assertTrue( updatedIncomingSms.isParsed() );
-        assertEquals( SUCCESS_MESSAGE, message );
+    verify(incomingSmsService, times(2)).update(any());
+  }
 
-        verify( incomingSmsService, times( 2 ) ).update( any() );
-    }
+  @Test
+  void testTrackerEventWithNulls() {
+    subject.receive(incomingSmsTrackerEventWithNulls);
 
-    @Test
-    void testTrackerEventWithNulls()
-    {
-        subject.receive( incomingSmsTrackerEventWithNulls );
+    assertNotNull(updatedIncomingSms);
+    assertTrue(updatedIncomingSms.isParsed());
+    assertEquals(SUCCESS_MESSAGE, message);
 
-        assertNotNull( updatedIncomingSms );
-        assertTrue( updatedIncomingSms.isParsed() );
-        assertEquals( SUCCESS_MESSAGE, message );
+    verify(incomingSmsService, times(1)).update(any());
+  }
 
-        verify( incomingSmsService, times( 1 ) ).update( any() );
-    }
+  @Test
+  void testTrackerEventNoValues() {
+    subject.receive(incomingSmsTrackerEventNoValues);
 
-    @Test
-    void testTrackerEventNoValues()
-    {
-        subject.receive( incomingSmsTrackerEventNoValues );
+    assertNotNull(updatedIncomingSms);
+    assertTrue(updatedIncomingSms.isParsed());
+    assertEquals(NOVALUES_MESSAGE, message);
 
-        assertNotNull( updatedIncomingSms );
-        assertTrue( updatedIncomingSms.isParsed() );
-        assertEquals( NOVALUES_MESSAGE, message );
+    verify(incomingSmsService, times(1)).update(any());
+  }
 
-        verify( incomingSmsService, times( 1 ) ).update( any() );
-    }
+  private void setUpInstances() throws SmsCompressionException {
+    organisationUnit = createOrganisationUnit('O');
+    program = createProgram('P');
+    programStage = createProgramStage('S', program);
 
-    private void setUpInstances()
-        throws SmsCompressionException
-    {
-        organisationUnit = createOrganisationUnit( 'O' );
-        program = createProgram( 'P' );
-        programStage = createProgramStage( 'S', program );
+    user = makeUser("U");
+    user.setPhoneNumber(ORIGINATOR);
+    user.setOrganisationUnits(Sets.newHashSet(organisationUnit));
 
-        user = makeUser( "U" );
-        user.setPhoneNumber( ORIGINATOR );
-        user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+    categoryOptionCombo = createCategoryOptionCombo('C');
+    dataElement = createDataElement('D');
 
-        categoryOptionCombo = createCategoryOptionCombo( 'C' );
-        dataElement = createDataElement( 'D' );
+    program.getOrganisationUnits().add(organisationUnit);
+    HashSet<ProgramStage> stages = new HashSet<>();
+    stages.add(programStage);
+    program.setProgramStages(stages);
 
-        program.getOrganisationUnits().add( organisationUnit );
-        HashSet<ProgramStage> stages = new HashSet<>();
-        stages.add( programStage );
-        program.setProgramStages( stages );
+    programInstance = new ProgramInstance();
+    programInstance.setAutoFields();
+    programInstance.setProgram(program);
 
-        programInstance = new ProgramInstance();
-        programInstance.setAutoFields();
-        programInstance.setProgram( program );
+    programStageInstance = new ProgramStageInstance();
+    programStageInstance.setAutoFields();
 
-        programStageInstance = new ProgramStageInstance();
-        programStageInstance.setAutoFields();
+    incomingSmsTrackerEvent = createSMSFromSubmission(createTrackerEventSubmission());
+    incomingSmsTrackerEventWithNulls =
+        createSMSFromSubmission(createTrackerEventSubmissionWithNulls());
+    incomingSmsTrackerEventNoValues =
+        createSMSFromSubmission(createTrackerEventSubmissionNoValues());
+  }
 
-        incomingSmsTrackerEvent = createSMSFromSubmission( createTrackerEventSubmission() );
-        incomingSmsTrackerEventWithNulls = createSMSFromSubmission( createTrackerEventSubmissionWithNulls() );
-        incomingSmsTrackerEventNoValues = createSMSFromSubmission( createTrackerEventSubmissionNoValues() );
-    }
+  private TrackerEventSmsSubmission createTrackerEventSubmission() {
+    TrackerEventSmsSubmission subm = new TrackerEventSmsSubmission();
 
-    private TrackerEventSmsSubmission createTrackerEventSubmission()
-    {
-        TrackerEventSmsSubmission subm = new TrackerEventSmsSubmission();
+    subm.setUserId(user.getUid());
+    subm.setOrgUnit(organisationUnit.getUid());
+    subm.setProgramStage(programStage.getUid());
+    subm.setAttributeOptionCombo(categoryOptionCombo.getUid());
+    subm.setEnrollment(programInstance.getUid());
+    subm.setEvent(programStageInstance.getUid());
+    subm.setEventStatus(SmsEventStatus.COMPLETED);
+    subm.setEventDate(new Date());
+    subm.setDueDate(new Date());
+    subm.setCoordinates(new GeoPoint(59.9399586f, 10.7195609f));
+    ArrayList<SmsDataValue> values = new ArrayList<>();
+    values.add(new SmsDataValue(categoryOptionCombo.getUid(), dataElement.getUid(), "10"));
 
-        subm.setUserId( user.getUid() );
-        subm.setOrgUnit( organisationUnit.getUid() );
-        subm.setProgramStage( programStage.getUid() );
-        subm.setAttributeOptionCombo( categoryOptionCombo.getUid() );
-        subm.setEnrollment( programInstance.getUid() );
-        subm.setEvent( programStageInstance.getUid() );
-        subm.setEventStatus( SmsEventStatus.COMPLETED );
-        subm.setEventDate( new Date() );
-        subm.setDueDate( new Date() );
-        subm.setCoordinates( new GeoPoint( 59.9399586f, 10.7195609f ) );
-        ArrayList<SmsDataValue> values = new ArrayList<>();
-        values.add( new SmsDataValue( categoryOptionCombo.getUid(), dataElement.getUid(), "10" ) );
+    subm.setValues(values);
+    subm.setSubmissionId(1);
 
-        subm.setValues( values );
-        subm.setSubmissionId( 1 );
+    return subm;
+  }
 
-        return subm;
-    }
+  private TrackerEventSmsSubmission createTrackerEventSubmissionWithNulls() {
+    TrackerEventSmsSubmission subm = createTrackerEventSubmission();
+    subm.setEventDate(null);
+    subm.setDueDate(null);
+    subm.setCoordinates(null);
 
-    private TrackerEventSmsSubmission createTrackerEventSubmissionWithNulls()
-    {
-        TrackerEventSmsSubmission subm = createTrackerEventSubmission();
-        subm.setEventDate( null );
-        subm.setDueDate( null );
-        subm.setCoordinates( null );
+    return subm;
+  }
 
-        return subm;
-    }
+  private TrackerEventSmsSubmission createTrackerEventSubmissionNoValues() {
+    TrackerEventSmsSubmission subm = createTrackerEventSubmission();
+    subm.setValues(null);
 
-    private TrackerEventSmsSubmission createTrackerEventSubmissionNoValues()
-    {
-        TrackerEventSmsSubmission subm = createTrackerEventSubmission();
-        subm.setValues( null );
-
-        return subm;
-    }
+    return subm;
+  }
 }

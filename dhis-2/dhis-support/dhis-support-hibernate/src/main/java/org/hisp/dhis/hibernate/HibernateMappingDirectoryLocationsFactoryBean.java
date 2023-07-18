@@ -33,40 +33,34 @@ import org.springframework.core.io.Resource;
 /**
  * @author Lars Helge Overland
  */
-public class HibernateMappingDirectoryLocationsFactoryBean
-    implements FactoryBean<Object[]>
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class HibernateMappingDirectoryLocationsFactoryBean implements FactoryBean<Object[]> {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private HibernateConfigurationProvider hibernateConfigurationProvider;
+  private HibernateConfigurationProvider hibernateConfigurationProvider;
 
-    public void setHibernateConfigurationProvider( HibernateConfigurationProvider hibernateConfigurationProvider )
-    {
-        this.hibernateConfigurationProvider = hibernateConfigurationProvider;
-    }
+  public void setHibernateConfigurationProvider(
+      HibernateConfigurationProvider hibernateConfigurationProvider) {
+    this.hibernateConfigurationProvider = hibernateConfigurationProvider;
+  }
 
-    // -------------------------------------------------------------------------
-    // FactoryBean implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // FactoryBean implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public Object[] getObject()
-        throws Exception
-    {
-        return hibernateConfigurationProvider.getDirectoryResources().toArray();
-    }
+  @Override
+  public Object[] getObject() throws Exception {
+    return hibernateConfigurationProvider.getDirectoryResources().toArray();
+  }
 
-    @Override
-    public Class<Resource> getObjectType()
-    {
-        return Resource.class;
-    }
+  @Override
+  public Class<Resource> getObjectType() {
+    return Resource.class;
+  }
 
-    @Override
-    public boolean isSingleton()
-    {
-        return true;
-    }
+  @Override
+  public boolean isSingleton() {
+    return true;
+  }
 }

@@ -31,7 +31,6 @@ import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataset.DataSet;
@@ -60,109 +59,107 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Jim Grace
  */
-class DataApprovalWorkflowTest
-{
+class DataApprovalWorkflowTest {
 
-    @Test
-    void testGetSortedLevels()
-    {
-        DataApprovalLevel level1 = new DataApprovalLevel( "level1", 1, null );
-        level1.setLevel( 1 );
-        DataApprovalLevel level2 = new DataApprovalLevel( "level2", 2, null );
-        level2.setLevel( 2 );
-        DataApprovalLevel level3 = new DataApprovalLevel( "level3", 3, null );
-        level3.setLevel( 3 );
-        DataApprovalWorkflow workflow = new DataApprovalWorkflow( "test workflow", new DailyPeriodType(),
-            newHashSet( level3, level2, level1 ) );
-        List<DataApprovalLevel> levels = workflow.getSortedLevels();
-        assertEquals( 1, levels.get( 0 ).getLevel() );
-        assertEquals( 2, levels.get( 1 ).getLevel() );
-        assertEquals( 3, levels.get( 2 ).getLevel() );
-    }
+  @Test
+  void testGetSortedLevels() {
+    DataApprovalLevel level1 = new DataApprovalLevel("level1", 1, null);
+    level1.setLevel(1);
+    DataApprovalLevel level2 = new DataApprovalLevel("level2", 2, null);
+    level2.setLevel(2);
+    DataApprovalLevel level3 = new DataApprovalLevel("level3", 3, null);
+    level3.setLevel(3);
+    DataApprovalWorkflow workflow =
+        new DataApprovalWorkflow(
+            "test workflow", new DailyPeriodType(), newHashSet(level3, level2, level1));
+    List<DataApprovalLevel> levels = workflow.getSortedLevels();
+    assertEquals(1, levels.get(0).getLevel());
+    assertEquals(2, levels.get(1).getLevel());
+    assertEquals(3, levels.get(2).getLevel());
+  }
 
-    /**
-     * Note that as part of the following test, we are checking to be sure that
-     * the longest extension to the category option end date is returned from
-     * data sets that are successively added to the workflow. The total
-     * extension length (period length times number of periods) is always
-     * increasing as we add data sets to the workflow. The most recently-added
-     * data set always has the longest total extension so far.
-     */
-    @Test
-    void testGetWorkflowSqlCoEnddateExtension()
-    {
-        DataSet noPeriodsAfterCoEndDate = createDataSet( "noPeriodsAfterCoEndDate", new MonthlyPeriodType(), 0 );
-        DataSet dailyDs = createDataSet( "dailyDs", new DailyPeriodType(), 3 );
-        DataSet weeklyDs = createDataSet( "weeklyDs", new WeeklyPeriodType(), 3 );
-        DataSet weeklyWedDs = createDataSet( "weeklyWedDs", new WeeklyWednesdayPeriodType(), 4 );
-        DataSet weeklyThuDs = createDataSet( "weeklyThuDs", new WeeklyThursdayPeriodType(), 5 );
-        DataSet weeklySatDs = createDataSet( "weeklySatDs", new WeeklySaturdayPeriodType(), 6 );
-        DataSet weeklySunDs = createDataSet( "weeklySunDs", new WeeklySundayPeriodType(), 7 );
-        DataSet biWeeklyDs = createDataSet( "biWeeklyDs", new BiWeeklyPeriodType(), 4 );
-        DataSet monthlyDs = createDataSet( "monthlyDs", new MonthlyPeriodType(), 3 );
-        DataSet biMonthlyDs = createDataSet( "biMonthlyDs", new BiMonthlyPeriodType(), 3 );
-        DataSet querterlyDs = createDataSet( "querterlyDs", new QuarterlyPeriodType(), 3 );
-        DataSet sixMonthlyDs = createDataSet( "sixMonthlyDs", new SixMonthlyPeriodType(), 3 );
-        DataSet sixMonthlyAprDs = createDataSet( "sixMonthlyAprDs", new SixMonthlyAprilPeriodType(), 4 );
-        DataSet sixMonthlyNovDs = createDataSet( "sixMonthlyNovDs", new SixMonthlyNovemberPeriodType(), 5 );
-        DataSet yearlyDs = createDataSet( "yearlyDs", new YearlyPeriodType(), 3 );
-        DataSet financialAprDs = createDataSet( "financialAprDs", new FinancialAprilPeriodType(), 4 );
-        DataSet financialJulDs = createDataSet( "financialJulDs", new FinancialJulyPeriodType(), 5 );
-        DataSet financialOctDs = createDataSet( "financialOctDs", new FinancialOctoberPeriodType(), 6 );
-        DataSet financialNovDs = createDataSet( "financialNovDs", new FinancialNovemberPeriodType(), 7 );
-        DataSet twoYearlyDs = createDataSet( "twoYearlyDs", new TwoYearlyPeriodType(), 4 );
-        DataApprovalWorkflow workflow = new DataApprovalWorkflow( "test workflow", new DailyPeriodType(),
-            newHashSet() );
-        assertEquals( "", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( noPeriodsAfterCoEndDate );
-        assertEquals( "", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( dailyDs );
-        assertEquals( " + 3 * INTERVAL '+ 1 day'", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( weeklyDs );
-        assertEquals( " + 3 * INTERVAL '+ 1 week'", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( weeklyWedDs );
-        assertEquals( " + 4 * INTERVAL '+ 1 week'", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( weeklyThuDs );
-        assertEquals( " + 5 * INTERVAL '+ 1 week'", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( weeklySatDs );
-        assertEquals( " + 6 * INTERVAL '+ 1 week'", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( weeklySunDs );
-        assertEquals( " + 7 * INTERVAL '+ 1 week'", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( biWeeklyDs );
-        assertEquals( " + 4 * INTERVAL '+ 2 weeks'", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( monthlyDs );
-        assertEquals( " + 3 * INTERVAL '+ 1 month'", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( biMonthlyDs );
-        assertEquals( " + 3 * INTERVAL '+ 2 months'", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( querterlyDs );
-        assertEquals( " + 3 * INTERVAL '+ 3 months'", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( sixMonthlyDs );
-        assertEquals( " + 3 * INTERVAL '+ 6 months'", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( sixMonthlyAprDs );
-        assertEquals( " + 4 * INTERVAL '+ 6 months'", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( sixMonthlyNovDs );
-        assertEquals( " + 5 * INTERVAL '+ 6 months'", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( yearlyDs );
-        assertEquals( " + 3 * INTERVAL '+ 1 year'", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( financialAprDs );
-        assertEquals( " + 4 * INTERVAL '+ 1 year'", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( financialJulDs );
-        assertEquals( " + 5 * INTERVAL '+ 1 year'", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( financialOctDs );
-        assertEquals( " + 6 * INTERVAL '+ 1 year'", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( financialNovDs );
-        assertEquals( " + 7 * INTERVAL '+ 1 year'", workflow.getSqlCoEndDateExtension() );
-        workflow.getDataSets().add( twoYearlyDs );
-        assertEquals( " + 4 * INTERVAL '+ 2 years'", workflow.getSqlCoEndDateExtension() );
-    }
+  /**
+   * Note that as part of the following test, we are checking to be sure that the longest extension
+   * to the category option end date is returned from data sets that are successively added to the
+   * workflow. The total extension length (period length times number of periods) is always
+   * increasing as we add data sets to the workflow. The most recently-added data set always has the
+   * longest total extension so far.
+   */
+  @Test
+  void testGetWorkflowSqlCoEnddateExtension() {
+    DataSet noPeriodsAfterCoEndDate =
+        createDataSet("noPeriodsAfterCoEndDate", new MonthlyPeriodType(), 0);
+    DataSet dailyDs = createDataSet("dailyDs", new DailyPeriodType(), 3);
+    DataSet weeklyDs = createDataSet("weeklyDs", new WeeklyPeriodType(), 3);
+    DataSet weeklyWedDs = createDataSet("weeklyWedDs", new WeeklyWednesdayPeriodType(), 4);
+    DataSet weeklyThuDs = createDataSet("weeklyThuDs", new WeeklyThursdayPeriodType(), 5);
+    DataSet weeklySatDs = createDataSet("weeklySatDs", new WeeklySaturdayPeriodType(), 6);
+    DataSet weeklySunDs = createDataSet("weeklySunDs", new WeeklySundayPeriodType(), 7);
+    DataSet biWeeklyDs = createDataSet("biWeeklyDs", new BiWeeklyPeriodType(), 4);
+    DataSet monthlyDs = createDataSet("monthlyDs", new MonthlyPeriodType(), 3);
+    DataSet biMonthlyDs = createDataSet("biMonthlyDs", new BiMonthlyPeriodType(), 3);
+    DataSet querterlyDs = createDataSet("querterlyDs", new QuarterlyPeriodType(), 3);
+    DataSet sixMonthlyDs = createDataSet("sixMonthlyDs", new SixMonthlyPeriodType(), 3);
+    DataSet sixMonthlyAprDs = createDataSet("sixMonthlyAprDs", new SixMonthlyAprilPeriodType(), 4);
+    DataSet sixMonthlyNovDs =
+        createDataSet("sixMonthlyNovDs", new SixMonthlyNovemberPeriodType(), 5);
+    DataSet yearlyDs = createDataSet("yearlyDs", new YearlyPeriodType(), 3);
+    DataSet financialAprDs = createDataSet("financialAprDs", new FinancialAprilPeriodType(), 4);
+    DataSet financialJulDs = createDataSet("financialJulDs", new FinancialJulyPeriodType(), 5);
+    DataSet financialOctDs = createDataSet("financialOctDs", new FinancialOctoberPeriodType(), 6);
+    DataSet financialNovDs = createDataSet("financialNovDs", new FinancialNovemberPeriodType(), 7);
+    DataSet twoYearlyDs = createDataSet("twoYearlyDs", new TwoYearlyPeriodType(), 4);
+    DataApprovalWorkflow workflow =
+        new DataApprovalWorkflow("test workflow", new DailyPeriodType(), newHashSet());
+    assertEquals("", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(noPeriodsAfterCoEndDate);
+    assertEquals("", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(dailyDs);
+    assertEquals(" + 3 * INTERVAL '+ 1 day'", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(weeklyDs);
+    assertEquals(" + 3 * INTERVAL '+ 1 week'", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(weeklyWedDs);
+    assertEquals(" + 4 * INTERVAL '+ 1 week'", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(weeklyThuDs);
+    assertEquals(" + 5 * INTERVAL '+ 1 week'", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(weeklySatDs);
+    assertEquals(" + 6 * INTERVAL '+ 1 week'", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(weeklySunDs);
+    assertEquals(" + 7 * INTERVAL '+ 1 week'", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(biWeeklyDs);
+    assertEquals(" + 4 * INTERVAL '+ 2 weeks'", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(monthlyDs);
+    assertEquals(" + 3 * INTERVAL '+ 1 month'", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(biMonthlyDs);
+    assertEquals(" + 3 * INTERVAL '+ 2 months'", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(querterlyDs);
+    assertEquals(" + 3 * INTERVAL '+ 3 months'", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(sixMonthlyDs);
+    assertEquals(" + 3 * INTERVAL '+ 6 months'", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(sixMonthlyAprDs);
+    assertEquals(" + 4 * INTERVAL '+ 6 months'", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(sixMonthlyNovDs);
+    assertEquals(" + 5 * INTERVAL '+ 6 months'", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(yearlyDs);
+    assertEquals(" + 3 * INTERVAL '+ 1 year'", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(financialAprDs);
+    assertEquals(" + 4 * INTERVAL '+ 1 year'", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(financialJulDs);
+    assertEquals(" + 5 * INTERVAL '+ 1 year'", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(financialOctDs);
+    assertEquals(" + 6 * INTERVAL '+ 1 year'", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(financialNovDs);
+    assertEquals(" + 7 * INTERVAL '+ 1 year'", workflow.getSqlCoEndDateExtension());
+    workflow.getDataSets().add(twoYearlyDs);
+    assertEquals(" + 4 * INTERVAL '+ 2 years'", workflow.getSqlCoEndDateExtension());
+  }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-    private DataSet createDataSet( String name, PeriodType periodType, int openPeriodsAfterCoEndDate )
-    {
-        DataSet dataSet = new DataSet( name, periodType );
-        dataSet.setOpenPeriodsAfterCoEndDate( openPeriodsAfterCoEndDate );
-        return dataSet;
-    }
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+  private DataSet createDataSet(String name, PeriodType periodType, int openPeriodsAfterCoEndDate) {
+    DataSet dataSet = new DataSet(name, periodType);
+    dataSet.setOpenPeriodsAfterCoEndDate(openPeriodsAfterCoEndDate);
+    return dataSet;
+  }
 }

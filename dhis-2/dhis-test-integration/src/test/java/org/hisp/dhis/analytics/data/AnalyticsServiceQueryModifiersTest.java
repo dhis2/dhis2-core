@@ -37,7 +37,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -73,447 +72,399 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jim Grace
  */
-class AnalyticsServiceQueryModifiersTest
-    extends SingleSetupIntegrationTestBase
-{
-    @Autowired
-    private List<AnalyticsTableService> analyticsTableServices;
+class AnalyticsServiceQueryModifiersTest extends SingleSetupIntegrationTestBase {
+  @Autowired private List<AnalyticsTableService> analyticsTableServices;
 
-    @Autowired
-    private DataElementService dataElementService;
+  @Autowired private DataElementService dataElementService;
 
-    @Autowired
-    private CategoryService categoryService;
+  @Autowired private CategoryService categoryService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private PeriodService periodService;
+  @Autowired private PeriodService periodService;
 
-    @Autowired
-    private DataValueService dataValueService;
+  @Autowired private DataValueService dataValueService;
 
-    @Autowired
-    private AnalyticsTableGenerator analyticsTableGenerator;
+  @Autowired private AnalyticsTableGenerator analyticsTableGenerator;
 
-    @Autowired
-    private AnalyticsService analyticsService;
+  @Autowired private AnalyticsService analyticsService;
 
-    @Autowired
-    private IndicatorService indicatorService;
+  @Autowired private IndicatorService indicatorService;
 
-    private Period jan;
+  private Period jan;
 
-    private Period feb;
+  private Period feb;
 
-    private Period mar;
+  private Period mar;
 
-    private Period q1;
+  private Period q1;
 
-    private OrganisationUnit ouA;
+  private OrganisationUnit ouA;
 
-    private Indicator indicatorA;
+  private Indicator indicatorA;
 
-    List<String> expected;
+  List<String> expected;
 
-    List<String> result;
+  List<String> result;
 
-    // -------------------------------------------------------------------------
-    // Fixture
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Fixture
+  // -------------------------------------------------------------------------
 
-    @Override
-    public void setUpTest()
-        throws IOException,
-        InterruptedException
-    {
-        jan = createPeriod( "2022-01" );
-        feb = createPeriod( "2022-02" );
-        mar = createPeriod( "2022-03" );
-        q1 = createPeriod( "2022Q1" );
-        periodService.addPeriod( jan );
-        periodService.addPeriod( feb );
-        periodService.addPeriod( mar );
-        periodService.addPeriod( q1 );
-        jan = periodService.reloadPeriod( jan );
-        feb = periodService.reloadPeriod( feb );
-        mar = periodService.reloadPeriod( mar );
-        q1 = periodService.reloadPeriod( q1 );
+  @Override
+  public void setUpTest() throws IOException, InterruptedException {
+    jan = createPeriod("2022-01");
+    feb = createPeriod("2022-02");
+    mar = createPeriod("2022-03");
+    q1 = createPeriod("2022Q1");
+    periodService.addPeriod(jan);
+    periodService.addPeriod(feb);
+    periodService.addPeriod(mar);
+    periodService.addPeriod(q1);
+    jan = periodService.reloadPeriod(jan);
+    feb = periodService.reloadPeriod(feb);
+    mar = periodService.reloadPeriod(mar);
+    q1 = periodService.reloadPeriod(q1);
 
-        DataElement deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
-        DataElement deB = createDataElement( 'B', ValueType.TEXT, AggregationType.NONE );
-        dataElementService.addDataElement( deA );
-        dataElementService.addDataElement( deB );
+    DataElement deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
+    DataElement deB = createDataElement('B', ValueType.TEXT, AggregationType.NONE);
+    dataElementService.addDataElement(deA);
+    dataElementService.addDataElement(deB);
 
-        ouA = createOrganisationUnit( 'A' );
-        organisationUnitService.addOrganisationUnit( ouA );
+    ouA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(ouA);
 
-        CategoryOption optionA = new CategoryOption( "CategoryOptionA" );
-        CategoryOption optionB = new CategoryOption( "CategoryOptionB" );
-        categoryService.addCategoryOption( optionA );
-        categoryService.addCategoryOption( optionB );
+    CategoryOption optionA = new CategoryOption("CategoryOptionA");
+    CategoryOption optionB = new CategoryOption("CategoryOptionB");
+    categoryService.addCategoryOption(optionA);
+    categoryService.addCategoryOption(optionB);
 
-        Category categoryA = createCategory( 'A', optionA, optionB );
-        categoryService.addCategory( categoryA );
+    Category categoryA = createCategory('A', optionA, optionB);
+    categoryService.addCategory(categoryA);
 
-        CategoryCombo categoryComboA = createCategoryCombo( 'A', categoryA );
-        categoryService.addCategoryCombo( categoryComboA );
+    CategoryCombo categoryComboA = createCategoryCombo('A', categoryA);
+    categoryService.addCategoryCombo(categoryComboA);
 
-        CategoryOptionCombo cocA = createCategoryOptionCombo( categoryComboA, optionA );
-        CategoryOptionCombo cocB = createCategoryOptionCombo( categoryComboA, optionB );
-        cocA.setUid( "OptionCombA" );
-        cocB.setUid( "OptionCombB" );
-        categoryService.addCategoryOptionCombo( cocA );
-        categoryService.addCategoryOptionCombo( cocB );
-        CategoryOptionCombo aocA = categoryService.getDefaultCategoryOptionCombo();
+    CategoryOptionCombo cocA = createCategoryOptionCombo(categoryComboA, optionA);
+    CategoryOptionCombo cocB = createCategoryOptionCombo(categoryComboA, optionB);
+    cocA.setUid("OptionCombA");
+    cocB.setUid("OptionCombB");
+    categoryService.addCategoryOptionCombo(cocA);
+    categoryService.addCategoryOptionCombo(cocB);
+    CategoryOptionCombo aocA = categoryService.getDefaultCategoryOptionCombo();
 
-        categoryComboA.getOptionCombos().add( cocA );
-        categoryComboA.getOptionCombos().add( cocB );
-        categoryService.updateCategoryCombo( categoryComboA );
+    categoryComboA.getOptionCombos().add(cocA);
+    categoryComboA.getOptionCombos().add(cocB);
+    categoryService.updateCategoryCombo(categoryComboA);
 
-        IndicatorType indicatorTypeA = createIndicatorType( 'A' );
-        indicatorTypeA.setFactor( 1 );
-        indicatorService.addIndicatorType( indicatorTypeA );
+    IndicatorType indicatorTypeA = createIndicatorType('A');
+    indicatorTypeA.setFactor(1);
+    indicatorService.addIndicatorType(indicatorTypeA);
 
-        indicatorA = createIndicator( 'A', indicatorTypeA );
-        indicatorA.setNumerator( "1" ); // to be overwritten
-        indicatorA.setDenominator( "1" );
-        indicatorService.addIndicator( indicatorA );
+    indicatorA = createIndicator('A', indicatorTypeA);
+    indicatorA.setNumerator("1"); // to be overwritten
+    indicatorA.setDenominator("1");
+    indicatorService.addIndicator(indicatorA);
 
-        dataValueService.addDataValue( newDataValue( deA, jan, ouA, cocA, aocA, "1" ) );
-        dataValueService.addDataValue( newDataValue( deA, feb, ouA, cocB, aocA, "2" ) );
-        dataValueService.addDataValue( newDataValue( deA, mar, ouA, cocA, aocA, "3" ) );
-        dataValueService.addDataValue( newDataValue( deB, jan, ouA, cocA, aocA, "A" ) );
-        dataValueService.addDataValue( newDataValue( deB, feb, ouA, cocB, aocA, "B" ) );
+    dataValueService.addDataValue(newDataValue(deA, jan, ouA, cocA, aocA, "1"));
+    dataValueService.addDataValue(newDataValue(deA, feb, ouA, cocB, aocA, "2"));
+    dataValueService.addDataValue(newDataValue(deA, mar, ouA, cocA, aocA, "3"));
+    dataValueService.addDataValue(newDataValue(deB, jan, ouA, cocA, aocA, "A"));
+    dataValueService.addDataValue(newDataValue(deB, feb, ouA, cocB, aocA, "B"));
 
-        // We need to make sure that table generation start time is greater than
-        // lastUpdated on tables populated in the setup
-        Date oneSecondFromNow = Date
-            .from( LocalDateTime.now().plusSeconds( 1 ).atZone( ZoneId.systemDefault() ).toInstant() );
+    // We need to make sure that table generation start time is greater than
+    // lastUpdated on tables populated in the setup
+    Date oneSecondFromNow =
+        Date.from(LocalDateTime.now().plusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
 
-        // Generate analytics tables
-        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder()
-            .withStartTime( oneSecondFromNow )
-            .build(),
-            NoopJobProgress.INSTANCE );
+    // Generate analytics tables
+    analyticsTableGenerator.generateTables(
+        AnalyticsTableUpdateParams.newBuilder().withStartTime(oneSecondFromNow).build(),
+        NoopJobProgress.INSTANCE);
+  }
+
+  @Override
+  public void tearDownTest() {
+    for (AnalyticsTableService service : analyticsTableServices) {
+      service.dropTables();
     }
+  }
 
-    @Override
-    public void tearDownTest()
-    {
-        for ( AnalyticsTableService service : analyticsTableServices )
-        {
-            service.dropTables();
-        }
-    }
+  // -------------------------------------------------------------------------
+  // aggregationType
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // aggregationType
-    // -------------------------------------------------------------------------
-
-    @Test
-    void testNoAggregationType()
-    {
-        expected = List.of(
+  @Test
+  void testNoAggregationType() {
+    expected =
+        List.of(
             "inabcdefghA-202201-1.0",
             "inabcdefghA-202202-2.0",
             "inabcdefghA-202203-3.0",
-            "inabcdefghA-2022Q1-6.0" );
+            "inabcdefghA-2022Q1-6.0");
 
-        result = query( "#{deabcdefghA}", jan, feb, mar, q1 );
+    result = query("#{deabcdefghA}", jan, feb, mar, q1);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    @Test
-    void testAverageAggregationType()
-    {
-        expected = List.of(
-            "inabcdefghA-2022Q1-2.0" );
+  @Test
+  void testAverageAggregationType() {
+    expected = List.of("inabcdefghA-2022Q1-2.0");
 
-        result = query( "#{deabcdefghA}.aggregationType(AVERAGE)", q1 );
+    result = query("#{deabcdefghA}.aggregationType(AVERAGE)", q1);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    @Test
-    void testLastAggregationType()
-    {
-        expected = List.of(
-            "inabcdefghA-2022Q1-3.0" );
+  @Test
+  void testLastAggregationType() {
+    expected = List.of("inabcdefghA-2022Q1-3.0");
 
-        result = query( "#{deabcdefghA.OptionCombA}.aggregationType(LAST)", q1 );
+    result = query("#{deabcdefghA.OptionCombA}.aggregationType(LAST)", q1);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    @Test
-    void testWithAndWithoutAggregationType()
-    {
-        expected = List.of(
-            "inabcdefghA-2022Q1-8.0" );
+  @Test
+  void testWithAndWithoutAggregationType() {
+    expected = List.of("inabcdefghA-2022Q1-8.0");
 
-        result = query( "#{deabcdefghA} + #{deabcdefghA}.aggregationType(AVERAGE)", q1 );
+    result = query("#{deabcdefghA} + #{deabcdefghA}.aggregationType(AVERAGE)", q1);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    @Test
-    void testMultipleAggregationTypes()
-    {
-        expected = List.of(
-            "inabcdefghA-2022Q1-5.0" );
+  @Test
+  void testMultipleAggregationTypes() {
+    expected = List.of("inabcdefghA-2022Q1-5.0");
 
-        result = query( "#{deabcdefghA}.aggregationType(MAX) + #{deabcdefghA}.aggregationType(AVERAGE)", q1 );
+    result =
+        query("#{deabcdefghA}.aggregationType(MAX) + #{deabcdefghA}.aggregationType(AVERAGE)", q1);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    @Test
-    void testGroupedAggregationType()
-    {
-        expected = List.of(
-            "inabcdefghA-2022Q1-6.0" );
+  @Test
+  void testGroupedAggregationType() {
+    expected = List.of("inabcdefghA-2022Q1-6.0");
 
-        result = query( "(2*#{deabcdefghA} + #{deabcdefghA}).aggregationType(AVERAGE)", q1 );
+    result = query("(2*#{deabcdefghA} + #{deabcdefghA}).aggregationType(AVERAGE)", q1);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    @Test
-    void testOperandAggregationType()
-    {
-        expected = List.of(
-            "inabcdefghA-2022Q1-4.0" );
+  @Test
+  void testOperandAggregationType() {
+    expected = List.of("inabcdefghA-2022Q1-4.0");
 
-        result = query( "#{deabcdefghA.OptionCombA}.aggregationType(AVERAGE) + #{deabcdefghA.OptionCombB}", q1 );
+    result =
+        query(
+            "#{deabcdefghA.OptionCombA}.aggregationType(AVERAGE) + #{deabcdefghA.OptionCombB}", q1);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    // -------------------------------------------------------------------------
-    // periodOffset
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // periodOffset
+  // -------------------------------------------------------------------------
 
-    @Test
-    void testSimplePeriodOffset()
-    {
-        expected = List.of(
-            "inabcdefghA-202202-1.0",
-            "inabcdefghA-202203-2.0" );
+  @Test
+  void testSimplePeriodOffset() {
+    expected = List.of("inabcdefghA-202202-1.0", "inabcdefghA-202203-2.0");
 
-        result = query( "#{deabcdefghA}.periodOffset(-1)", jan, feb, mar );
+    result = query("#{deabcdefghA}.periodOffset(-1)", jan, feb, mar);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    @Test
-    void testInsideAndOutsidePeriodOffset()
-    {
-        expected = List.of(
-            "inabcdefghA-202201-3.0",
-            "inabcdefghA-202202-5.0",
-            "inabcdefghA-202203-3.0" );
+  @Test
+  void testInsideAndOutsidePeriodOffset() {
+    expected =
+        List.of("inabcdefghA-202201-3.0", "inabcdefghA-202202-5.0", "inabcdefghA-202203-3.0");
 
-        result = query( "#{deabcdefghA} + #{deabcdefghA}.periodOffset(1)", jan, feb, mar );
+    result = query("#{deabcdefghA} + #{deabcdefghA}.periodOffset(1)", jan, feb, mar);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    @Test
-    void testGroupedPeriodOffset()
-    {
-        expected = List.of(
-            "inabcdefghA-202202-2.0",
-            "inabcdefghA-202203-4.0" );
+  @Test
+  void testGroupedPeriodOffset() {
+    expected = List.of("inabcdefghA-202202-2.0", "inabcdefghA-202203-4.0");
 
-        result = query( "(#{deabcdefghA} + #{deabcdefghA}).periodOffset(-1)", jan, feb, mar );
+    result = query("(#{deabcdefghA} + #{deabcdefghA}).periodOffset(-1)", jan, feb, mar);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    @Test
-    void testAdditivePeriodOffset()
-    {
-        expected = List.of(
-            "inabcdefghA-202202-1.0",
-            "inabcdefghA-202203-3.0" );
+  @Test
+  void testAdditivePeriodOffset() {
+    expected = List.of("inabcdefghA-202202-1.0", "inabcdefghA-202203-3.0");
 
-        result = query( "(#{deabcdefghA}.periodOffset(-1) + #{deabcdefghA}).periodOffset(-1)", jan, feb, mar );
+    result =
+        query("(#{deabcdefghA}.periodOffset(-1) + #{deabcdefghA}).periodOffset(-1)", jan, feb, mar);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    @Test
-    void testOperandPeriodOffset()
-    {
-        expected = List.of(
-            "inabcdefghA-202201-4.0",
-            "inabcdefghA-202202-1.0" );
+  @Test
+  void testOperandPeriodOffset() {
+    expected = List.of("inabcdefghA-202201-4.0", "inabcdefghA-202202-1.0");
 
-        result = query( "#{deabcdefghA.OptionCombA}.periodOffset(-1) + 2*#{deabcdefghA.OptionCombB}.periodOffset(1)",
-            jan, feb, mar );
+    result =
+        query(
+            "#{deabcdefghA.OptionCombA}.periodOffset(-1) + 2*#{deabcdefghA.OptionCombB}.periodOffset(1)",
+            jan,
+            feb,
+            mar);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    // -------------------------------------------------------------------------
-    // minDate and maxDate
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // minDate and maxDate
+  // -------------------------------------------------------------------------
 
-    @Test
-    void testMinDate()
-    {
-        expected = List.of(
-            "inabcdefghA-202202-2.0",
-            "inabcdefghA-202203-3.0" );
+  @Test
+  void testMinDate() {
+    expected = List.of("inabcdefghA-202202-2.0", "inabcdefghA-202203-3.0");
 
-        result = query( "#{deabcdefghA}.minDate(2022-2-1)", jan, feb, mar );
+    result = query("#{deabcdefghA}.minDate(2022-2-1)", jan, feb, mar);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    @Test
-    void testMaxDate()
-    {
-        expected = List.of(
-            "inabcdefghA-202201-1.0",
-            "inabcdefghA-202202-2.0" );
+  @Test
+  void testMaxDate() {
+    expected = List.of("inabcdefghA-202201-1.0", "inabcdefghA-202202-2.0");
 
-        result = query( "#{deabcdefghA}.maxDate(2022-2-28)", jan, feb, mar );
+    result = query("#{deabcdefghA}.maxDate(2022-2-28)", jan, feb, mar);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    @Test
-    void testMinAndMaxDate()
-    {
-        expected = List.of(
-            "inabcdefghA-202202-2.0" );
+  @Test
+  void testMinAndMaxDate() {
+    expected = List.of("inabcdefghA-202202-2.0");
 
-        result = query( "#{deabcdefghA}.minDate(2022-2-1).maxDate(2022-2-28)", jan, feb, mar );
+    result = query("#{deabcdefghA}.minDate(2022-2-1).maxDate(2022-2-28)", jan, feb, mar);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    // -------------------------------------------------------------------------
-    // subExpression
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // subExpression
+  // -------------------------------------------------------------------------
 
-    @Test
-    void testSimpleSubExpression()
-    {
-        expected = List.of(
+  @Test
+  void testSimpleSubExpression() {
+    expected =
+        List.of(
             "inabcdefghA-202201-4.0",
             "inabcdefghA-202202-5.0",
             "inabcdefghA-202203-5.0",
-            "inabcdefghA-2022Q1-14.0" );
+            "inabcdefghA-2022Q1-14.0");
 
-        result = query( "subExpression(if(#{deabcdefghA}==1,4,5))", jan, feb, mar, q1 );
+    result = query("subExpression(if(#{deabcdefghA}==1,4,5))", jan, feb, mar, q1);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    @Test
-    void testMultipleReferenceSubExpression()
-    {
-        expected = List.of(
-            "inabcdefghA-202201-0.0",
-            "inabcdefghA-202202-2.0" );
+  @Test
+  void testMultipleReferenceSubExpression() {
+    expected = List.of("inabcdefghA-202201-0.0", "inabcdefghA-202202-2.0");
 
-        result = query( "subExpression(if(#{deabcdefghA}<2,0,#{deabcdefghA}))", jan, feb );
+    result = query("subExpression(if(#{deabcdefghA}<2,0,#{deabcdefghA}))", jan, feb);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    @Test
-    void testSubExpressionConversionFromTextToNumeric()
-    {
-        expected = List.of(
-            "inabcdefghA-202201-3.0",
-            "inabcdefghA-202202-4.0" );
+  @Test
+  void testSubExpressionConversionFromTextToNumeric() {
+    expected = List.of("inabcdefghA-202201-3.0", "inabcdefghA-202202-4.0");
 
-        result = query( "subExpression(if(#{deabcdefghB}=='A',3,4))", jan, feb );
+    result = query("subExpression(if(#{deabcdefghB}=='A',3,4))", jan, feb);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    @Test
-    void testReferencesInsideAndOutsideOfSubExpression()
-    {
-        expected = List.of(
-            "inabcdefghA-202201-3.0",
-            "inabcdefghA-202202-8.0" );
+  @Test
+  void testReferencesInsideAndOutsideOfSubExpression() {
+    expected = List.of("inabcdefghA-202201-3.0", "inabcdefghA-202202-8.0");
 
-        result = query( "3 * #{deabcdefghA} + subExpression(if(#{deabcdefghA}<2,0,#{deabcdefghA}))", jan, feb );
+    result =
+        query(
+            "3 * #{deabcdefghA} + subExpression(if(#{deabcdefghA}<2,0,#{deabcdefghA}))", jan, feb);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    @Test
-    void testTwoSubExpressions()
-    {
-        expected = List.of(
-            "inabcdefghA-202201-10.0",
-            "inabcdefghA-202202-11.0" );
+  @Test
+  void testTwoSubExpressions() {
+    expected = List.of("inabcdefghA-202201-10.0", "inabcdefghA-202202-11.0");
 
-        result = query( "subExpression(if(#{deabcdefghA}==1,3,5)) + subExpression(if(#{deabcdefghA}==2,6,7))",
-            jan, feb );
+    result =
+        query(
+            "subExpression(if(#{deabcdefghA}==1,3,5)) + subExpression(if(#{deabcdefghA}==2,6,7))",
+            jan,
+            feb);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    @Test
-    void testOperandSubExpression()
-    {
-        expected = List.of(
-            "inabcdefghA-202201-3.0",
-            "inabcdefghA-202202-2.0",
-            "inabcdefghA-202203-9.0" );
+  @Test
+  void testOperandSubExpression() {
+    expected =
+        List.of("inabcdefghA-202201-3.0", "inabcdefghA-202202-2.0", "inabcdefghA-202203-9.0");
 
-        result = query(
+    result =
+        query(
             "subExpression(if(#{deabcdefghA.OptionCombA}>0,#{deabcdefghA.OptionCombA}*3,0)) + #{deabcdefghA.OptionCombB}",
-            jan, feb, mar );
+            jan,
+            feb,
+            mar);
 
-        assertEquals( expected, result );
-    }
+    assertEquals(expected, result);
+  }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-    /**
-     * Creates a data value. Sets the last updated time to something in the past
-     * because at the time of this writing analytics won't include the value if
-     * it was last updated within the same second as the analytics update.
-     */
-    private DataValue newDataValue( DataElement de, Period pe, OrganisationUnit ou,
-        CategoryOptionCombo coc, CategoryOptionCombo aoc, String value )
-    {
-        return new DataValue( de, pe, ou, coc, aoc, value, null, parseDate( "2022-01-01" ), null );
-    }
+  /**
+   * Creates a data value. Sets the last updated time to something in the past because at the time
+   * of this writing analytics won't include the value if it was last updated within the same second
+   * as the analytics update.
+   */
+  private DataValue newDataValue(
+      DataElement de,
+      Period pe,
+      OrganisationUnit ou,
+      CategoryOptionCombo coc,
+      CategoryOptionCombo aoc,
+      String value) {
+    return new DataValue(de, pe, ou, coc, aoc, value, null, parseDate("2022-01-01"), null);
+  }
 
-    /**
-     * Queries analytics with an indicator expression.
-     */
-    private List<String> query( String expression, Period... periods )
-    {
-        indicatorA.setNumerator( expression );
-        indicatorService.updateIndicator( indicatorA );
+  /** Queries analytics with an indicator expression. */
+  private List<String> query(String expression, Period... periods) {
+    indicatorA.setNumerator(expression);
+    indicatorService.updateIndicator(indicatorA);
 
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .withIndicators( List.of( indicatorA ) )
-            .withAggregationType( AnalyticsAggregationType.SUM )
-            .withFilterOrganisationUnits( List.of( ouA ) )
-            .withPeriods( List.of( periods ) )
-            .withOutputFormat( OutputFormat.ANALYTICS )
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withIndicators(List.of(indicatorA))
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .withFilterOrganisationUnits(List.of(ouA))
+            .withPeriods(List.of(periods))
+            .withOutputFormat(OutputFormat.ANALYTICS)
             .build();
 
-        Map<String, Object> map = analyticsService.getAggregatedDataValueMapping( params );
+    Map<String, Object> map = analyticsService.getAggregatedDataValueMapping(params);
 
-        return map.entrySet().stream()
-            .map( e -> e.getKey() + '-' + e.getValue() )
-            .sorted().collect( Collectors.toList() );
-    }
+    return map.entrySet().stream()
+        .map(e -> e.getKey() + '-' + e.getValue())
+        .sorted()
+        .collect(Collectors.toList());
+  }
 }

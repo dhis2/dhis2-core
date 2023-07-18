@@ -27,25 +27,21 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
 
+import com.google.common.base.CaseFormat;
 import java.util.Arrays;
 import java.util.Optional;
-
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
-import com.google.common.base.CaseFormat;
+public class FieldTranslatorSupport {
 
-public class FieldTranslatorSupport
-{
-
-    public static Optional<String> translate( String dtoFieldName,
-        Enum<? extends PagingAndSortingCriteriaAdapter.EntityNameSupplier>[] translator )
-    {
-        String upperSnakeCase = CaseFormat.LOWER_CAMEL.to( CaseFormat.UPPER_UNDERSCORE, dtoFieldName );
-        return Arrays.stream( translator )
-            .filter( fieldTranslator -> fieldTranslator.name().equals( upperSnakeCase ) )
-            .findFirst()
-            .map( anEnum -> (PagingAndSortingCriteriaAdapter.EntityNameSupplier) anEnum )
-            .map( PagingAndSortingCriteriaAdapter.EntityNameSupplier::getEntityName );
-    }
-
+  public static Optional<String> translate(
+      String dtoFieldName,
+      Enum<? extends PagingAndSortingCriteriaAdapter.EntityNameSupplier>[] translator) {
+    String upperSnakeCase = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, dtoFieldName);
+    return Arrays.stream(translator)
+        .filter(fieldTranslator -> fieldTranslator.name().equals(upperSnakeCase))
+        .findFirst()
+        .map(anEnum -> (PagingAndSortingCriteriaAdapter.EntityNameSupplier) anEnum)
+        .map(PagingAndSortingCriteriaAdapter.EntityNameSupplier::getEntityName);
+  }
 }

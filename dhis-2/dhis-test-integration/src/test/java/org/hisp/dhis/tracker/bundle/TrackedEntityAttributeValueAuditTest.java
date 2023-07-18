@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -54,81 +53,80 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Zubair Asghar
  */
-class TrackedEntityAttributeValueAuditTest extends TrackerTest
-{
-    @Autowired
-    private TrackerImportService trackerImportService;
+class TrackedEntityAttributeValueAuditTest extends TrackerTest {
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Autowired
-    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private TrackedEntityAttributeValueAuditService attributeValueAuditService;
+  @Autowired private TrackedEntityAttributeValueAuditService attributeValueAuditService;
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/te_program_with_tea_allow_audit_metadata.json" );
-        injectAdminUser();
-    }
+  @Override
+  protected void initTest() throws IOException {
+    setUpMetadata("tracker/te_program_with_tea_allow_audit_metadata.json");
+    injectAdminUser();
+  }
 
-    @Test
-    void testTrackedEntityAttributeValueAuditCreate()
-        throws IOException
-    {
-        assertNoErrors(
-            trackerImportService.importTracker( fromJson( "tracker/te_program_with_tea_data.json" ) ) );
+  @Test
+  void testTrackedEntityAttributeValueAuditCreate() throws IOException {
+    assertNoErrors(
+        trackerImportService.importTracker(fromJson("tracker/te_program_with_tea_data.json")));
 
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
-        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( trackedEntityInstance );
-        assertEquals( 5, attributeValues.size() );
+    List<TrackedEntityInstance> trackedEntityInstances =
+        manager.getAll(TrackedEntityInstance.class);
+    assertEquals(1, trackedEntityInstances.size());
+    TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get(0);
+    List<TrackedEntityAttributeValue> attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntityInstance);
+    assertEquals(5, attributeValues.size());
 
-        List<TrackedEntityAttribute> attributes = attributeValues.stream()
-            .map( TrackedEntityAttributeValue::getAttribute ).collect( Collectors.toList() );
-        List<TrackedEntityAttributeValueAudit> attributeValueAudits = attributeValueAuditService
-            .getTrackedEntityAttributeValueAudits( new TrackedEntityAttributeValueAuditQueryParams()
-                .setTrackedEntityAttributes( attributes )
-                .setTrackedEntityInstances( trackedEntityInstances )
-                .setAuditTypes( List.of( AuditType.CREATE ) ) );
-        assertEquals( 5, attributeValueAudits.size() );
-    }
-
-    @Test
-    void testTrackedEntityAttributeValueAuditDelete()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_data.json" );
-
-        ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoErrors( importReport );
-        List<TrackedEntityAttributeValue> attributeValues1 = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( manager.getAll( TrackedEntityInstance.class ).get( 0 ) );
-        List<TrackedEntityAttribute> attributes1 = attributeValues1.stream()
-            .map( TrackedEntityAttributeValue::getAttribute ).collect( Collectors.toList() );
-        trackerImportParams = fromJson( "tracker/te_program_with_tea_null_data.json" );
-        trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
-        importReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoErrors( importReport );
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        List<TrackedEntityAttributeValueAudit> attributeValueAudits = attributeValueAuditService
-            .getTrackedEntityAttributeValueAudits( new TrackedEntityAttributeValueAuditQueryParams()
-                .setTrackedEntityAttributes( attributes1 )
-                .setTrackedEntityInstances( trackedEntityInstances )
-                .setAuditTypes( List.of( AuditType.DELETE ) ) );
-        assertEquals( 1, attributeValueAudits.size() );
-
-        attributeValueAudits = attributeValueAuditService.getTrackedEntityAttributeValueAudits(
+    List<TrackedEntityAttribute> attributes =
+        attributeValues.stream()
+            .map(TrackedEntityAttributeValue::getAttribute)
+            .collect(Collectors.toList());
+    List<TrackedEntityAttributeValueAudit> attributeValueAudits =
+        attributeValueAuditService.getTrackedEntityAttributeValueAudits(
             new TrackedEntityAttributeValueAuditQueryParams()
-                .setTrackedEntityAttributes( attributes1 )
-                .setTrackedEntityInstances( trackedEntityInstances )
-                .setAuditTypes( List.of( AuditType.UPDATE ) ) );
-        assertEquals( 1, attributeValueAudits.size() );
-    }
+                .setTrackedEntityAttributes(attributes)
+                .setTrackedEntityInstances(trackedEntityInstances)
+                .setAuditTypes(List.of(AuditType.CREATE)));
+    assertEquals(5, attributeValueAudits.size());
+  }
+
+  @Test
+  void testTrackedEntityAttributeValueAuditDelete() throws IOException {
+    TrackerImportParams trackerImportParams = fromJson("tracker/te_program_with_tea_data.json");
+
+    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
+    assertNoErrors(importReport);
+    List<TrackedEntityAttributeValue> attributeValues1 =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(
+            manager.getAll(TrackedEntityInstance.class).get(0));
+    List<TrackedEntityAttribute> attributes1 =
+        attributeValues1.stream()
+            .map(TrackedEntityAttributeValue::getAttribute)
+            .collect(Collectors.toList());
+    trackerImportParams = fromJson("tracker/te_program_with_tea_null_data.json");
+    trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+    importReport = trackerImportService.importTracker(trackerImportParams);
+    assertNoErrors(importReport);
+    List<TrackedEntityInstance> trackedEntityInstances =
+        manager.getAll(TrackedEntityInstance.class);
+    List<TrackedEntityAttributeValueAudit> attributeValueAudits =
+        attributeValueAuditService.getTrackedEntityAttributeValueAudits(
+            new TrackedEntityAttributeValueAuditQueryParams()
+                .setTrackedEntityAttributes(attributes1)
+                .setTrackedEntityInstances(trackedEntityInstances)
+                .setAuditTypes(List.of(AuditType.DELETE)));
+    assertEquals(1, attributeValueAudits.size());
+
+    attributeValueAudits =
+        attributeValueAuditService.getTrackedEntityAttributeValueAudits(
+            new TrackedEntityAttributeValueAuditQueryParams()
+                .setTrackedEntityAttributes(attributes1)
+                .setTrackedEntityInstances(trackedEntityInstances)
+                .setAuditTypes(List.of(AuditType.UPDATE)));
+    assertEquals(1, attributeValueAudits.size());
+  }
 }

@@ -30,7 +30,6 @@ package org.hisp.dhis.programrule;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.dataelement.DataElement;
@@ -41,97 +40,87 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author markusbekken
  */
-@Service( "org.hisp.dhis.programrule.ProgramRuleVariableService" )
-public class DefaultProgramRuleVariableService
-    implements ProgramRuleVariableService
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@Service("org.hisp.dhis.programrule.ProgramRuleVariableService")
+public class DefaultProgramRuleVariableService implements ProgramRuleVariableService {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private ProgramRuleVariableStore programRuleVariableStore;
+  private ProgramRuleVariableStore programRuleVariableStore;
 
-    private final Cache<Boolean> programRuleVariablesCache;
+  private final Cache<Boolean> programRuleVariablesCache;
 
-    public DefaultProgramRuleVariableService( ProgramRuleVariableStore programRuleVariableStore,
-        CacheProvider cacheProvider )
-    {
-        checkNotNull( programRuleVariableStore );
+  public DefaultProgramRuleVariableService(
+      ProgramRuleVariableStore programRuleVariableStore, CacheProvider cacheProvider) {
+    checkNotNull(programRuleVariableStore);
 
-        this.programRuleVariableStore = programRuleVariableStore;
-        this.programRuleVariablesCache = cacheProvider.createProgramRuleVariablesCache();
-    }
+    this.programRuleVariableStore = programRuleVariableStore;
+    this.programRuleVariablesCache = cacheProvider.createProgramRuleVariablesCache();
+  }
 
-    // -------------------------------------------------------------------------
-    // ProgramRuleVariable implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // ProgramRuleVariable implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public long addProgramRuleVariable( ProgramRuleVariable programRuleVariable )
-    {
-        programRuleVariableStore.save( programRuleVariable );
-        return programRuleVariable.getId();
-    }
+  @Override
+  @Transactional
+  public long addProgramRuleVariable(ProgramRuleVariable programRuleVariable) {
+    programRuleVariableStore.save(programRuleVariable);
+    return programRuleVariable.getId();
+  }
 
-    @Override
-    @Transactional
-    public void deleteProgramRuleVariable( ProgramRuleVariable programRuleVariable )
-    {
-        programRuleVariableStore.delete( programRuleVariable );
-        programRuleVariablesCache.invalidateAll();
-    }
+  @Override
+  @Transactional
+  public void deleteProgramRuleVariable(ProgramRuleVariable programRuleVariable) {
+    programRuleVariableStore.delete(programRuleVariable);
+    programRuleVariablesCache.invalidateAll();
+  }
 
-    @Override
-    @Transactional
-    public void updateProgramRuleVariable( ProgramRuleVariable programRuleVariable )
-    {
-        programRuleVariableStore.update( programRuleVariable );
-    }
+  @Override
+  @Transactional
+  public void updateProgramRuleVariable(ProgramRuleVariable programRuleVariable) {
+    programRuleVariableStore.update(programRuleVariable);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public ProgramRuleVariable getProgramRuleVariable( long id )
-    {
-        return programRuleVariableStore.get( id );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public ProgramRuleVariable getProgramRuleVariable(long id) {
+    return programRuleVariableStore.get(id);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<ProgramRuleVariable> getAllProgramRuleVariable()
-    {
-        return programRuleVariableStore.getAll();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<ProgramRuleVariable> getAllProgramRuleVariable() {
+    return programRuleVariableStore.getAll();
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<ProgramRuleVariable> getProgramRuleVariable( Program program )
-    {
-        return programRuleVariableStore.get( program );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<ProgramRuleVariable> getProgramRuleVariable(Program program) {
+    return programRuleVariableStore.get(program);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public boolean isLinkedToProgramRuleVariableCached( Program program, DataElement dataElement )
-    {
-        return programRuleVariablesCache.get( dataElement.getUid(), uid -> {
-            List<ProgramRuleVariable> ruleVariables = programRuleVariableStore
-                .getProgramVariables( program, dataElement );
-            return !ruleVariables.isEmpty();
-        } );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public boolean isLinkedToProgramRuleVariableCached(Program program, DataElement dataElement) {
+    return programRuleVariablesCache.get(
+        dataElement.getUid(),
+        uid -> {
+          List<ProgramRuleVariable> ruleVariables =
+              programRuleVariableStore.getProgramVariables(program, dataElement);
+          return !ruleVariables.isEmpty();
+        });
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<ProgramRuleVariable> getVariablesWithNoDataElement()
-    {
-        return programRuleVariableStore.getVariablesWithNoDataElement();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<ProgramRuleVariable> getVariablesWithNoDataElement() {
+    return programRuleVariableStore.getVariablesWithNoDataElement();
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<ProgramRuleVariable> getVariablesWithNoAttribute()
-    {
-        return programRuleVariableStore.getVariablesWithNoAttribute();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<ProgramRuleVariable> getVariablesWithNoAttribute() {
+    return programRuleVariableStore.getVariablesWithNoAttribute();
+  }
 }

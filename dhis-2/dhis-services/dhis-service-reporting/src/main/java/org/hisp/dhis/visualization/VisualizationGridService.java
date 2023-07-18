@@ -28,13 +28,11 @@
 package org.hisp.dhis.visualization;
 
 import java.util.Date;
-
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.user.User;
 
-public interface VisualizationGridService
-{
-    Grid getVisualizationGrid( String uid, Date relativePeriodDate, String orgUnitUid );
+public interface VisualizationGridService {
+  Grid getVisualizationGrid(String uid, Date relativePeriodDate, String orgUnitUid);
 
-    Grid getVisualizationGrid( String uid, Date relativePeriodDate, String orgUnitUid, User user );
+  Grid getVisualizationGrid(String uid, Date relativePeriodDate, String orgUnitUid, User user);
 }

@@ -28,59 +28,54 @@
 package org.hisp.dhis.webapi.controller;
 
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests specifically the {@code order} parameter aspect of the
- * {@link DatastoreController#getEntries(String, String, boolean, HttpServletRequest, HttpServletResponse)}
+ * Tests specifically the {@code order} parameter aspect of the {@link
+ * DatastoreController#getEntries(String, String, boolean, HttpServletRequest, HttpServletResponse)}
  * method using (mocked) REST requests.
- * <p>
- * Tests will use {@code fields} parameter as it is a required parameter for the
- * API.
+ *
+ * <p>Tests will use {@code fields} parameter as it is a required parameter for the API.
  *
  * @author Jan Bernitt
  */
-class DatastoreOrderControllerTest extends AbstractDatastoreControllerTest
-{
-    @BeforeEach
-    void setUp()
-    {
-        postPet( "cat", "Miao", 9, List.of( "tuna", "mice", "birds" ) );
-        postPet( "cow", "Muuhh", 15, List.of( "gras" ) );
-        postPet( "dog", "Pluto", 2, List.of( "rabbits" ) );
-        postPet( "pig", "Oink", 6, List.of( "carrots", "potatoes" ) );
-    }
+class DatastoreOrderControllerTest extends AbstractDatastoreControllerTest {
+  @BeforeEach
+  void setUp() {
+    postPet("cat", "Miao", 9, List.of("tuna", "mice", "birds"));
+    postPet("cow", "Muuhh", 15, List.of("gras"));
+    postPet("dog", "Pluto", 2, List.of("rabbits"));
+    postPet("pig", "Oink", 6, List.of("carrots", "potatoes"));
+  }
 
-    @Test
-    void testOrder_Asc_String()
-    {
-        assertJson( "[{'key':'cat'},{'key':'cow'},{'key':'pig'},{'key':'dog'}]",
-            GET( "/dataStore/pets?fields=&headless=true&order=name" ) );
-    }
+  @Test
+  void testOrder_Asc_String() {
+    assertJson(
+        "[{'key':'cat'},{'key':'cow'},{'key':'pig'},{'key':'dog'}]",
+        GET("/dataStore/pets?fields=&headless=true&order=name"));
+  }
 
-    @Test
-    void testOrder_Desc_String()
-    {
-        assertJson( "[{'key':'dog'},{'key':'pig'},{'key':'cow'},{'key':'cat'}]",
-            GET( "/dataStore/pets?fields=&headless=true&order=name:desc" ) );
-    }
+  @Test
+  void testOrder_Desc_String() {
+    assertJson(
+        "[{'key':'dog'},{'key':'pig'},{'key':'cow'},{'key':'cat'}]",
+        GET("/dataStore/pets?fields=&headless=true&order=name:desc"));
+  }
 
-    @Test
-    void testOrder_Asc_Number()
-    {
-        assertJson( "[{'key':'dog'},{'key':'pig'},{'key':'cat'},{'key':'cow'}]",
-            GET( "/dataStore/pets?fields=&headless=true&order=age:nasc" ) );
-    }
+  @Test
+  void testOrder_Asc_Number() {
+    assertJson(
+        "[{'key':'dog'},{'key':'pig'},{'key':'cat'},{'key':'cow'}]",
+        GET("/dataStore/pets?fields=&headless=true&order=age:nasc"));
+  }
 
-    @Test
-    void testOrder_Desc_Number()
-    {
-        assertJson( "[{'key':'cow'},{'key':'cat'},{'key':'pig'},{'key':'dog'}]",
-            GET( "/dataStore/pets?fields=&headless=true&order=age:ndesc" ) );
-    }
+  @Test
+  void testOrder_Desc_Number() {
+    assertJson(
+        "[{'key':'cow'},{'key':'cat'},{'key':'pig'},{'key':'dog'}]",
+        GET("/dataStore/pets?fields=&headless=true&order=age:ndesc"));
+  }
 }

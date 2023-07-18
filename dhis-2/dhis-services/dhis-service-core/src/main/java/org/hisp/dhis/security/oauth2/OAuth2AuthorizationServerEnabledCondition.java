@@ -35,22 +35,19 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class OAuth2AuthorizationServerEnabledCondition extends PropertiesAwareConfigurationCondition
-{
-    @Override
-    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
-    {
-        if ( isTestRun( context ) )
-        {
-            return false;
-        }
-
-        return getConfiguration().isEnabled( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER );
+public class OAuth2AuthorizationServerEnabledCondition
+    extends PropertiesAwareConfigurationCondition {
+  @Override
+  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+    if (isTestRun(context)) {
+      return false;
     }
 
-    @Override
-    public ConfigurationPhase getConfigurationPhase()
-    {
-        return ConfigurationPhase.PARSE_CONFIGURATION;
-    }
+    return getConfiguration().isEnabled(ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER);
+  }
+
+  @Override
+  public ConfigurationPhase getConfigurationPhase() {
+    return ConfigurationPhase.PARSE_CONFIGURATION;
+  }
 }

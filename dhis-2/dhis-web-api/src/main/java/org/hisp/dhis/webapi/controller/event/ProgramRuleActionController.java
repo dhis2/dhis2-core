@@ -50,53 +50,47 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- *
  * @author markusbekken
  */
-@OpenApi.Tags( "tracker" )
+@OpenApi.Tags("tracker")
 @Controller
-@RequestMapping( value = ProgramRuleActionSchemaDescriptor.API_ENDPOINT )
-public class ProgramRuleActionController
-    extends AbstractCrudController<ProgramRuleAction>
-{
-    private final I18nManager i18nManager;
+@RequestMapping(value = ProgramRuleActionSchemaDescriptor.API_ENDPOINT)
+public class ProgramRuleActionController extends AbstractCrudController<ProgramRuleAction> {
+  private final I18nManager i18nManager;
 
-    private final ProgramRuleEngineService programRuleEngineService;
+  private final ProgramRuleEngineService programRuleEngineService;
 
-    public ProgramRuleActionController( I18nManager i18nManager, ProgramRuleEngineService programRuleEngineService )
-    {
-        this.i18nManager = i18nManager;
-        this.programRuleEngineService = programRuleEngineService;
+  public ProgramRuleActionController(
+      I18nManager i18nManager, ProgramRuleEngineService programRuleEngineService) {
+    this.i18nManager = i18nManager;
+    this.programRuleEngineService = programRuleEngineService;
+  }
+
+  @PostMapping(value = "/data/expression/description", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage getDataExpressionDescription(
+      @RequestBody String condition, @RequestParam String programId) {
+    I18n i18n = i18nManager.getI18n();
+
+    RuleValidationResult result =
+        programRuleEngineService.getDataExpressionDescription(condition, programId);
+
+    if (result.isValid()) {
+      return new DescriptiveWebMessage(Status.OK, HttpStatus.OK)
+          .setDescription(result.getDescription())
+          .setMessage(i18n.getString(ProgramIndicator.VALID));
     }
 
-    @PostMapping( value = "/data/expression/description", produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage getDataExpressionDescription( @RequestBody String condition, @RequestParam String programId )
-    {
-        I18n i18n = i18nManager.getI18n();
+    String description = null;
 
-        RuleValidationResult result = programRuleEngineService.getDataExpressionDescription( condition, programId );
-
-        if ( result.isValid() )
-        {
-            return new DescriptiveWebMessage( Status.OK, HttpStatus.OK )
-                .setDescription( result.getDescription() )
-                .setMessage( i18n.getString( ProgramIndicator.VALID ) );
-        }
-
-        String description = null;
-
-        if ( result.getErrorMessage() != null )
-        {
-            description = result.getErrorMessage();
-        }
-        else if ( result.getException() != null )
-        {
-            description = result.getException().getMessage();
-        }
-
-        return new DescriptiveWebMessage( Status.ERROR, HttpStatus.CONFLICT )
-            .setDescription( description )
-            .setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
+    if (result.getErrorMessage() != null) {
+      description = result.getErrorMessage();
+    } else if (result.getException() != null) {
+      description = result.getException().getMessage();
     }
+
+    return new DescriptiveWebMessage(Status.ERROR, HttpStatus.CONFLICT)
+        .setDescription(description)
+        .setMessage(i18n.getString(ProgramIndicator.EXPRESSION_NOT_VALID));
+  }
 }

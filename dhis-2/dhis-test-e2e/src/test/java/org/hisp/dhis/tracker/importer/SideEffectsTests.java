@@ -30,8 +30,9 @@ package org.hisp.dhis.tracker.importer;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.io.File;
-
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.MessageConversationsActions;
@@ -48,94 +49,98 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+public class SideEffectsTests extends TrackerNtiApiTest {
+  private String trackerProgramStageId = "PaOOjwLVW23";
 
-public class SideEffectsTests
-    extends TrackerNtiApiTest
-{
-    private String trackerProgramStageId = "PaOOjwLVW23";
+  private String trackerProgramId = Constants.TRACKER_PROGRAM_ID;
 
-    private String trackerProgramId = Constants.TRACKER_PROGRAM_ID;
+  private MessageConversationsActions messageConversationsActions;
 
-    private MessageConversationsActions messageConversationsActions;
+  @BeforeAll
+  public void beforeAll() throws Exception {
+    messageConversationsActions = new MessageConversationsActions();
 
-    @BeforeAll
-    public void beforeAll()
-        throws Exception
-    {
-        messageConversationsActions = new MessageConversationsActions();
+    new LoginActions().loginAsSuperUser();
 
-        new LoginActions().loginAsSuperUser();
+    setupData();
+  }
 
-        setupData();
+  @ParameterizedTest
+  @ValueSource(strings = {"true", "false"})
+  @Disabled("todo: fix this test 12098")
+  public void shouldSendNotificationIfNotSkipSideEffects(Boolean shouldSkipSideEffects) {
+    JsonObject object =
+        new TeiDataBuilder()
+            .buildWithEnrollmentAndEvent(
+                Constants.TRACKED_ENTITY_TYPE,
+                Constants.ORG_UNIT_IDS[0],
+                trackerProgramId,
+                trackerProgramStageId,
+                "COMPLETED");
+
+    ApiResponse response =
+        new RestApiActions("/messageConversations")
+            .get("", new QueryParamsBuilder().add("fields=*"));
+
+    int size = response.getBody().getAsJsonArray("messageConversations").size();
+
+    trackerActions
+        .postAndGetJobReport(
+            object, new QueryParamsBuilder().add("skipSideEffects=" + shouldSkipSideEffects))
+        .validateSuccessfulImport();
+
+    int expectedCount = (shouldSkipSideEffects) ? size : size + 1;
+
+    response = messageConversationsActions.waitForNotification(expectedCount);
+
+    response.validate().statusCode(200).body("messageConversations", hasSize(expectedCount));
+
+    if (shouldSkipSideEffects) {
+      return;
     }
 
-    @ParameterizedTest
-    @ValueSource( strings = { "true", "false" } )
-    @Disabled( "todo: fix this test 12098" )
-    public void shouldSendNotificationIfNotSkipSideEffects( Boolean shouldSkipSideEffects )
-    {
-        JsonObject object = new TeiDataBuilder()
-            .buildWithEnrollmentAndEvent( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0], trackerProgramId,
-                trackerProgramStageId, "COMPLETED" );
+    response
+        .validate()
+        .body("messageConversations.subject", hasItem("TA program stage completion"));
+  }
 
-        ApiResponse response = new RestApiActions( "/messageConversations" ).get( "",
-            new QueryParamsBuilder().add( "fields=*" ) );
+  private void setupData() throws Exception {
+    ProgramStageActions programStageActions = new ProgramStageActions();
 
-        int size = response.getBody().getAsJsonArray( "messageConversations" ).size();
+    JsonArray array =
+        new FileReaderUtils()
+            .read(new File("src/test/resources/tracker/notificationTemplates.json"))
+            .get(JsonObject.class)
+            .getAsJsonArray("programNotificationTemplates");
 
-        trackerActions
-            .postAndGetJobReport( object, new QueryParamsBuilder().add( "skipSideEffects=" + shouldSkipSideEffects ) )
-            .validateSuccessfulImport();
+    array.forEach(
+        nt -> {
+          String programNotificationTemplate =
+              new RestApiActions("/programNotificationTemplates")
+                  .post(nt.getAsJsonObject())
+                  .extractUid();
 
-        int expectedCount = (shouldSkipSideEffects) ? size : size + 1;
+          JsonObject programStage =
+              JsonObjectBuilder.jsonObject(programStageActions.get(trackerProgramStageId).getBody())
+                  .addOrAppendToArray(
+                      "notificationTemplates",
+                      new JsonObjectBuilder()
+                          .addProperty("id", programNotificationTemplate)
+                          .build())
+                  .build();
 
-        response = messageConversationsActions.waitForNotification( expectedCount );
+          programStageActions
+              .update(trackerProgramStageId, programStage)
+              .validate()
+              .statusCode(200);
 
-        response
-            .validate()
-            .statusCode( 200 )
-            .body( "messageConversations", hasSize( expectedCount ) );
-
-        if ( shouldSkipSideEffects )
-        {
-            return;
-        }
-
-        response.validate().body( "messageConversations.subject", hasItem( "TA program stage completion" ) );
-    }
-
-    private void setupData()
-        throws Exception
-    {
-        ProgramStageActions programStageActions = new ProgramStageActions();
-
-        JsonArray array = new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/notificationTemplates.json" ) )
-            .get( JsonObject.class ).getAsJsonArray( "programNotificationTemplates" );
-
-        array.forEach( nt -> {
-            String programNotificationTemplate = new RestApiActions( "/programNotificationTemplates" )
-                .post( nt.getAsJsonObject() )
-                .extractUid();
-
-            JsonObject programStage = JsonObjectBuilder
-                .jsonObject( programStageActions.get( trackerProgramStageId ).getBody() )
-                .addOrAppendToArray( "notificationTemplates",
-                    new JsonObjectBuilder().addProperty( "id", programNotificationTemplate ).build() )
-                .build();
-
-            programStageActions.update( trackerProgramStageId, programStage )
-                .validate().statusCode( 200 );
-
-            programStageActions.get( trackerProgramStageId ).validate()
-                .body( "notificationTemplates.id", hasItem( programNotificationTemplate ) );
-        } );
-
-    }
+          programStageActions
+              .get(trackerProgramStageId)
+              .validate()
+              .body("notificationTemplates.id", hasItem(programNotificationTemplate));
+        });
+  }
 }

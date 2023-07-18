@@ -32,19 +32,18 @@ import java.util.Collection;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface OAuth2ClientService
-{
-    void saveOAuth2Client( OAuth2Client oAuth2Client );
+public interface OAuth2ClientService {
+  void saveOAuth2Client(OAuth2Client oAuth2Client);
 
-    void updateOAuth2Client( OAuth2Client oAuth2Client );
+  void updateOAuth2Client(OAuth2Client oAuth2Client);
 
-    void deleteOAuth2Client( OAuth2Client oAuth2Client );
+  void deleteOAuth2Client(OAuth2Client oAuth2Client);
 
-    OAuth2Client getOAuth2Client( int id );
+  OAuth2Client getOAuth2Client(int id);
 
-    OAuth2Client getOAuth2Client( String uid );
+  OAuth2Client getOAuth2Client(String uid);
 
-    OAuth2Client getOAuth2ClientByClientId( String cid );
+  OAuth2Client getOAuth2ClientByClientId(String cid);
 
-    Collection<OAuth2Client> getOAuth2Clients();
+  Collection<OAuth2Client> getOAuth2Clients();
 }

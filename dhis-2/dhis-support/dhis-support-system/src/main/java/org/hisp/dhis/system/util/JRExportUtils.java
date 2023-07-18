@@ -28,7 +28,6 @@
 package org.hisp.dhis.system.util;
 
 import java.io.OutputStream;
-
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.export.JRPdfExporter;
@@ -42,45 +41,40 @@ import net.sf.jasperreports.export.SimpleXlsReportConfiguration;
  *
  * @author Lars Helge Overland
  */
-public class JRExportUtils
-{
-    public static final String TYPE_XLS = "xls";
+public class JRExportUtils {
+  public static final String TYPE_XLS = "xls";
 
-    public static final String TYPE_PDF = "pdf";
+  public static final String TYPE_PDF = "pdf";
 
-    /**
-     * Export the provided JasperPrint the format given by type.
-     *
-     * @param type the type to export to. XLS, PDF and HTML are supported.
-     * @param out the OutputStream to export to.
-     * @param jasperPrint the JasperPrint to export.
-     * @throws JRException on export failure.
-     */
-    public static void export( String type, OutputStream out, JasperPrint jasperPrint )
-        throws JRException
-    {
-        if ( TYPE_XLS.equals( type ) )
-        {
-            SimpleXlsReportConfiguration config = new SimpleXlsReportConfiguration();
+  /**
+   * Export the provided JasperPrint the format given by type.
+   *
+   * @param type the type to export to. XLS, PDF and HTML are supported.
+   * @param out the OutputStream to export to.
+   * @param jasperPrint the JasperPrint to export.
+   * @throws JRException on export failure.
+   */
+  public static void export(String type, OutputStream out, JasperPrint jasperPrint)
+      throws JRException {
+    if (TYPE_XLS.equals(type)) {
+      SimpleXlsReportConfiguration config = new SimpleXlsReportConfiguration();
 
-            config.setDetectCellType( true );
-            config.setRemoveEmptySpaceBetweenRows( true );
-            config.setRemoveEmptySpaceBetweenRows( true );
-            config.setCollapseRowSpan( true );
-            config.setWhitePageBackground( false );
+      config.setDetectCellType(true);
+      config.setRemoveEmptySpaceBetweenRows(true);
+      config.setRemoveEmptySpaceBetweenRows(true);
+      config.setCollapseRowSpan(true);
+      config.setWhitePageBackground(false);
 
-            JRXlsExporter exporter = new JRXlsExporter();
-            exporter.setExporterInput( new SimpleExporterInput( jasperPrint ) );
-            exporter.setExporterOutput( new SimpleOutputStreamExporterOutput( out ) );
-            exporter.setConfiguration( config );
-            exporter.exportReport();
-        }
-        else if ( TYPE_PDF.equals( type ) )
-        {
-            JRPdfExporter exporter = new JRPdfExporter();
-            exporter.setExporterInput( new SimpleExporterInput( jasperPrint ) );
-            exporter.setExporterOutput( new SimpleOutputStreamExporterOutput( out ) );
-            exporter.exportReport();
-        }
+      JRXlsExporter exporter = new JRXlsExporter();
+      exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+      exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(out));
+      exporter.setConfiguration(config);
+      exporter.exportReport();
+    } else if (TYPE_PDF.equals(type)) {
+      JRPdfExporter exporter = new JRPdfExporter();
+      exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+      exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(out));
+      exporter.exportReport();
     }
+  }
 }

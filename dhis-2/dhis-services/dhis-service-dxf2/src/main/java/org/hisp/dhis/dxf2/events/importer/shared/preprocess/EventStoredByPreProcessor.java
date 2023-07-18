@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
 
 import java.util.Set;
-
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventUtils;
@@ -42,19 +41,17 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class EventStoredByPreProcessor implements Processor
-{
-    @Override
-    public void process( Event event, WorkContext ctx )
-    {
-        final String storedBy = EventUtils.getValidUsername( event.getStoredBy(), ctx.getImportOptions() );
-        event.setStoredBy( storedBy );
+public class EventStoredByPreProcessor implements Processor {
+  @Override
+  public void process(Event event, WorkContext ctx) {
+    final String storedBy =
+        EventUtils.getValidUsername(event.getStoredBy(), ctx.getImportOptions());
+    event.setStoredBy(storedBy);
 
-        Set<DataValue> dataValues = event.getDataValues();
+    Set<DataValue> dataValues = event.getDataValues();
 
-        for ( DataValue dataValue : dataValues )
-        {
-            dataValue.setStoredBy( storedBy );
-        }
+    for (DataValue dataValue : dataValues) {
+      dataValue.setStoredBy(storedBy);
     }
+  }
 }

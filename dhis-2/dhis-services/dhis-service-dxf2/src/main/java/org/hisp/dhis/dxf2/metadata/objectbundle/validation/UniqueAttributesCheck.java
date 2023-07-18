@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -53,82 +52,93 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class UniqueAttributesCheck implements ObjectValidationCheck
-{
-    @Override
-    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
-        List<T> persistedObjects, List<T> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
-    {
-        List<T> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
+public class UniqueAttributesCheck implements ObjectValidationCheck {
+  @Override
+  public <T extends IdentifiableObject> void check(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects,
+      ImportStrategy importStrategy,
+      ValidationContext ctx,
+      Consumer<ObjectReport> addReports) {
+    List<T> objects = selectObjects(persistedObjects, nonPersistedObjects, importStrategy);
 
-        if ( objects.isEmpty()
-            || !ctx.getSchemaService().getDynamicSchema( klass ).hasPersistedProperty( "attributeValues" ) )
-        {
-            return;
-        }
-
-        for ( T object : objects )
-        {
-            List<ErrorReport> errorReports = checkUniqueAttributes( klass, object, bundle.getPreheat(),
-                bundle.getPreheatIdentifier() );
-
-            if ( !errorReports.isEmpty() )
-            {
-
-                addReports.accept( createObjectReport( errorReports, object, bundle ) );
-                ctx.markForRemoval( object );
-            }
-        }
+    if (objects.isEmpty()
+        || !ctx.getSchemaService()
+            .getDynamicSchema(klass)
+            .hasPersistedProperty("attributeValues")) {
+      return;
     }
 
-    private List<ErrorReport> checkUniqueAttributes( Class<? extends IdentifiableObject> klass,
-        IdentifiableObject object, Preheat preheat, PreheatIdentifier identifier )
-    {
-        if ( object == null || preheat.isDefault( object ) || !preheat.getUniqueAttributes().containsKey( klass ) )
-        {
-            return emptyList();
-        }
-        if ( preheat.getUniqueAttributes().get( klass ).isEmpty() )
-        {
-            return emptyList();
-        }
+    for (T object : objects) {
+      List<ErrorReport> errorReports =
+          checkUniqueAttributes(klass, object, bundle.getPreheat(), bundle.getPreheatIdentifier());
 
-        Map<String, Map<String, String>> uniqueAttributeValues = preheat.getUniqueAttributeValues()
-            .computeIfAbsent( klass, key -> new HashMap<>() );
+      if (!errorReports.isEmpty()) {
 
-        List<ErrorReport> errorReports = new ArrayList<>();
-        object.getAttributeValues().forEach( attributeValue -> {
-            Attribute attribute = preheat.get( identifier, attributeValue.getAttribute() );
+        addReports.accept(createObjectReport(errorReports, object, bundle));
+        ctx.markForRemoval(object);
+      }
+    }
+  }
 
-            if ( attribute == null || !attribute.isUnique() || StringUtils.isEmpty( attributeValue.getValue() ) )
-            {
+  private List<ErrorReport> checkUniqueAttributes(
+      Class<? extends IdentifiableObject> klass,
+      IdentifiableObject object,
+      Preheat preheat,
+      PreheatIdentifier identifier) {
+    if (object == null
+        || preheat.isDefault(object)
+        || !preheat.getUniqueAttributes().containsKey(klass)) {
+      return emptyList();
+    }
+    if (preheat.getUniqueAttributes().get(klass).isEmpty()) {
+      return emptyList();
+    }
+
+    Map<String, Map<String, String>> uniqueAttributeValues =
+        preheat.getUniqueAttributeValues().computeIfAbsent(klass, key -> new HashMap<>());
+
+    List<ErrorReport> errorReports = new ArrayList<>();
+    object
+        .getAttributeValues()
+        .forEach(
+            attributeValue -> {
+              Attribute attribute = preheat.get(identifier, attributeValue.getAttribute());
+
+              if (attribute == null
+                  || !attribute.isUnique()
+                  || StringUtils.isEmpty(attributeValue.getValue())) {
                 return;
-            }
+              }
 
-            if ( uniqueAttributeValues.containsKey( attribute.getUid() ) )
-            {
-                Map<String, String> values = uniqueAttributeValues.get( attribute.getUid() );
+              if (uniqueAttributeValues.containsKey(attribute.getUid())) {
+                Map<String, String> values = uniqueAttributeValues.get(attribute.getUid());
 
-                if ( values.containsKey( attributeValue.getValue() )
-                    && !values.get( attributeValue.getValue() ).equals( object.getUid() ) )
-                {
-                    errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4009,
-                        IdentifiableObjectUtils.getDisplayName( attribute ), attributeValue.getValue() )
-                            .setMainId( attribute.getUid() ).setErrorProperty( "value" ) );
+                if (values.containsKey(attributeValue.getValue())
+                    && !values.get(attributeValue.getValue()).equals(object.getUid())) {
+                  errorReports.add(
+                      new ErrorReport(
+                              Attribute.class,
+                              ErrorCode.E4009,
+                              IdentifiableObjectUtils.getDisplayName(attribute),
+                              attributeValue.getValue())
+                          .setMainId(attribute.getUid())
+                          .setErrorProperty("value"));
+                } else {
+                  uniqueAttributeValues
+                      .get(attribute.getUid())
+                      .put(attributeValue.getValue(), object.getUid());
                 }
-                else
-                {
-                    uniqueAttributeValues.get( attribute.getUid() ).put( attributeValue.getValue(), object.getUid() );
-                }
-            }
-            else
-            {
-                uniqueAttributeValues.put( attribute.getUid(), new HashMap<>() );
-                uniqueAttributeValues.get( attribute.getUid() ).put( attributeValue.getValue(), object.getUid() );
-            }
-        } );
+              } else {
+                uniqueAttributeValues.put(attribute.getUid(), new HashMap<>());
+                uniqueAttributeValues
+                    .get(attribute.getUid())
+                    .put(attributeValue.getValue(), object.getUid());
+              }
+            });
 
-        return errorReports;
-    }
+    return errorReports;
+  }
 }

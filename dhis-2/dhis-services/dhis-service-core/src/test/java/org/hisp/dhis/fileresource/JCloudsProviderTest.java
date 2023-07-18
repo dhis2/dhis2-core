@@ -37,23 +37,19 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jim Grace
  */
-class JCloudsProviderTest
-{
-    @Test
-    void verifyFilesystem()
-    {
-        assertDoesNotThrow( () -> newBuilder( "filesystem" ) );
-    }
+class JCloudsProviderTest {
+  @Test
+  void verifyFilesystem() {
+    assertDoesNotThrow(() -> newBuilder("filesystem"));
+  }
 
-    @Test
-    void verifyAwsS3()
-    {
-        assertDoesNotThrow( () -> newBuilder( "aws-s3" ) );
-    }
+  @Test
+  void verifyAwsS3() {
+    assertDoesNotThrow(() -> newBuilder("aws-s3"));
+  }
 
-    @Test
-    void verifyTransient()
-    {
-        assertDoesNotThrow( () -> newBuilder( "transient" ) );
-    }
+  @Test
+  void verifyTransient() {
+    assertDoesNotThrow(() -> newBuilder("transient"));
+  }
 }

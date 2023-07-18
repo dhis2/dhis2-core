@@ -42,25 +42,32 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Repository( "org.hisp.dhis.user.UserRoleStore" )
-public class HibernateUserRoleStore
-    extends HibernateIdentifiableObjectStore<UserRole>
-    implements UserRoleStore
-{
-    public HibernateUserRoleStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, UserRole.class, currentUserService, aclService,
-            true );
-    }
+@Repository("org.hisp.dhis.user.UserRoleStore")
+public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<UserRole>
+    implements UserRoleStore {
+  public HibernateUserRoleStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        UserRole.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public int countDataSetUserRoles( DataSet dataSet )
-    {
-        Query<Long> query = getTypedQuery(
-            "select count(distinct c) from UserRole c where :dataSet in elements(c.dataSets)" );
-        query.setParameter( "dataSet", dataSet );
+  @Override
+  public int countDataSetUserRoles(DataSet dataSet) {
+    Query<Long> query =
+        getTypedQuery(
+            "select count(distinct c) from UserRole c where :dataSet in elements(c.dataSets)");
+    query.setParameter("dataSet", dataSet);
 
-        return query.getSingleResult().intValue();
-    }
+    return query.getSingleResult().intValue();
+  }
 }

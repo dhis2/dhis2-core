@@ -32,309 +32,283 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
-
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
-class MetadataIdentifierMapperTest
-{
+class MetadataIdentifierMapperTest {
 
-    private static final MetadataIdentifierMapper MAPPER = Mappers.getMapper( MetadataIdentifierMapper.class );
+  private static final MetadataIdentifierMapper MAPPER =
+      Mappers.getMapper(MetadataIdentifierMapper.class);
 
-    @Test
-    void dataElementIdentifierFromUID()
-    {
+  @Test
+  void dataElementIdentifierFromUID() {
 
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+
+    MetadataIdentifier id = MAPPER.fromDataElement("RiNIt1yJoge", params);
+
+    assertEquals(MetadataIdentifier.ofUid("RiNIt1yJoge"), id);
+  }
+
+  @Test
+  void dataElementIdentifierFromAttribute() {
+
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder()
+            .idScheme(TrackerIdSchemeParam.CODE)
+            .dataElementIdScheme(TrackerIdSchemeParam.ofAttribute("RiNIt1yJoge"))
             .build();
 
-        MetadataIdentifier id = MAPPER.fromDataElement( "RiNIt1yJoge", params );
+    MetadataIdentifier id = MAPPER.fromDataElement("clouds", params);
 
-        assertEquals( MetadataIdentifier.ofUid( "RiNIt1yJoge" ), id );
-    }
+    assertEquals(MetadataIdentifier.ofAttribute("RiNIt1yJoge", "clouds"), id);
+  }
 
-    @Test
-    void dataElementIdentifierFromAttribute()
-    {
+  @Test
+  void dataElementIdentifierFromUIDIfNull() {
 
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
-            .dataElementIdScheme( TrackerIdSchemeParam.ofAttribute( "RiNIt1yJoge" ) )
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+
+    MetadataIdentifier id = MAPPER.fromDataElement(null, params);
+
+    assertEquals(MetadataIdentifier.EMPTY_UID, id);
+  }
+
+  @Test
+  void programIdentifierFromUID() {
+
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+
+    MetadataIdentifier id = MAPPER.fromProgram("RiNIt1yJoge", params);
+
+    assertEquals(MetadataIdentifier.ofUid("RiNIt1yJoge"), id);
+  }
+
+  @Test
+  void programIdentifierFromAttribute() {
+
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder()
+            .idScheme(TrackerIdSchemeParam.CODE)
+            .programIdScheme(TrackerIdSchemeParam.ofAttribute("RiNIt1yJoge"))
             .build();
 
-        MetadataIdentifier id = MAPPER.fromDataElement( "clouds", params );
+    MetadataIdentifier id = MAPPER.fromProgram("clouds", params);
 
-        assertEquals( MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "clouds" ), id );
-    }
+    assertEquals(MetadataIdentifier.ofAttribute("RiNIt1yJoge", "clouds"), id);
+  }
 
-    @Test
-    void dataElementIdentifierFromUIDIfNull()
-    {
+  @Test
+  void programIdentifierFromUIDIfNull() {
 
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+
+    MetadataIdentifier id = MAPPER.fromProgram(null, params);
+
+    assertEquals(MetadataIdentifier.EMPTY_UID, id);
+  }
+
+  @Test
+  void programStageIdentifierFromUID() {
+
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+
+    MetadataIdentifier id = MAPPER.fromProgramStage("RiNIt1yJoge", params);
+
+    assertEquals(MetadataIdentifier.ofUid("RiNIt1yJoge"), id);
+  }
+
+  @Test
+  void programStageIdentifierFromAttribute() {
+
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder()
+            .idScheme(TrackerIdSchemeParam.CODE)
+            .programStageIdScheme(TrackerIdSchemeParam.ofAttribute("RiNIt1yJoge"))
             .build();
 
-        MetadataIdentifier id = MAPPER.fromDataElement( null, params );
+    MetadataIdentifier id = MAPPER.fromProgramStage("clouds", params);
 
-        assertEquals( MetadataIdentifier.EMPTY_UID, id );
-    }
+    assertEquals(MetadataIdentifier.ofAttribute("RiNIt1yJoge", "clouds"), id);
+  }
 
-    @Test
-    void programIdentifierFromUID()
-    {
+  @Test
+  void programStageIdentifierFromUIDIfNull() {
 
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+
+    MetadataIdentifier id = MAPPER.fromProgramStage(null, params);
+
+    assertEquals(MetadataIdentifier.EMPTY_UID, id);
+  }
+
+  @Test
+  void orgUnitIdentifierFromUID() {
+
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+
+    MetadataIdentifier id = MAPPER.fromOrgUnit("RiNIt1yJoge", params);
+
+    assertEquals(MetadataIdentifier.ofUid("RiNIt1yJoge"), id);
+  }
+
+  @Test
+  void orgUnitIdentifierFromAttribute() {
+
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder()
+            .idScheme(TrackerIdSchemeParam.CODE)
+            .orgUnitIdScheme(TrackerIdSchemeParam.ofAttribute("RiNIt1yJoge"))
             .build();
 
-        MetadataIdentifier id = MAPPER.fromProgram( "RiNIt1yJoge", params );
+    MetadataIdentifier id = MAPPER.fromOrgUnit("clouds", params);
 
-        assertEquals( MetadataIdentifier.ofUid( "RiNIt1yJoge" ), id );
-    }
+    assertEquals(MetadataIdentifier.ofAttribute("RiNIt1yJoge", "clouds"), id);
+  }
 
-    @Test
-    void programIdentifierFromAttribute()
-    {
+  @Test
+  void orgUnitIdentifierFromUIDIfNull() {
 
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
-            .programIdScheme( TrackerIdSchemeParam.ofAttribute( "RiNIt1yJoge" ) )
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+
+    MetadataIdentifier id = MAPPER.fromOrgUnit(null, params);
+
+    assertEquals(MetadataIdentifier.EMPTY_UID, id);
+  }
+
+  @Test
+  void attributeOptionComboIdentifierFromUID() {
+
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+
+    MetadataIdentifier id = MAPPER.fromAttributeOptionCombo("RiNIt1yJoge", params);
+
+    assertEquals(MetadataIdentifier.ofUid("RiNIt1yJoge"), id);
+  }
+
+  @Test
+  void attributeOptionComboIdentifierFromAttribute() {
+
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder()
+            .idScheme(TrackerIdSchemeParam.CODE)
+            .categoryOptionComboIdScheme(TrackerIdSchemeParam.ofAttribute("RiNIt1yJoge"))
             .build();
 
-        MetadataIdentifier id = MAPPER.fromProgram( "clouds", params );
+    MetadataIdentifier id = MAPPER.fromAttributeOptionCombo("clouds", params);
 
-        assertEquals( MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "clouds" ), id );
-    }
+    assertEquals(MetadataIdentifier.ofAttribute("RiNIt1yJoge", "clouds"), id);
+  }
 
-    @Test
-    void programIdentifierFromUIDIfNull()
-    {
+  @Test
+  void attributeOptionComboIdentifierFromUIDIfNull() {
 
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+
+    MetadataIdentifier id = MAPPER.fromAttributeOptionCombo(null, params);
+
+    assertEquals(MetadataIdentifier.EMPTY_UID, id);
+  }
+
+  @Test
+  void attributeCategoryOptionsIdentifierFromUIDWithWhitespaces() {
+
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+
+    Set<MetadataIdentifier> ids =
+        MAPPER.fromAttributeCategoryOptions(" RiNIt1yJoge;AiNIt1yJoge  ; ", params);
+
+    assertContainsOnly(
+        Set.of(MetadataIdentifier.ofUid("RiNIt1yJoge"), MetadataIdentifier.ofUid("AiNIt1yJoge")),
+        ids);
+  }
+
+  @Test
+  void attributeCategoryOptionsIdentifierFromAttribute() {
+
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder()
+            .idScheme(TrackerIdSchemeParam.CODE)
+            .categoryOptionIdScheme(TrackerIdSchemeParam.ofAttribute("RiNIt1yJoge"))
             .build();
 
-        MetadataIdentifier id = MAPPER.fromProgram( null, params );
+    Set<MetadataIdentifier> ids = MAPPER.fromAttributeCategoryOptions("clouds;fruits", params);
 
-        assertEquals( MetadataIdentifier.EMPTY_UID, id );
-    }
+    assertContainsOnly(
+        Set.of(
+            MetadataIdentifier.ofAttribute("RiNIt1yJoge", "clouds"),
+            MetadataIdentifier.ofAttribute("RiNIt1yJoge", "fruits")),
+        ids);
+  }
 
-    @Test
-    void programStageIdentifierFromUID()
-    {
+  @Test
+  void attributeCategoryOptionsIdentifierFromUIDIfNull() {
 
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+
+    Set<MetadataIdentifier> ids = MAPPER.fromAttributeCategoryOptions(null, params);
+
+    assertTrue(ids.isEmpty());
+  }
+
+  @Test
+  void attributeCategoryOptionsIdentifierFromUIDIfEmpty() {
+
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+
+    Set<MetadataIdentifier> ids = MAPPER.fromAttributeCategoryOptions("  ", params);
+
+    assertTrue(ids.isEmpty());
+  }
+
+  @Test
+  void stringToIdentifierFromUID() {
+
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
+
+    MetadataIdentifier id = MAPPER.fromStringIdentifier("RiNIt1yJoge", params);
+
+    assertEquals(MetadataIdentifier.ofUid("RiNIt1yJoge"), id);
+  }
+
+  @Test
+  void stringToIdentifierFromAttribute() {
+
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder()
+            .idScheme(TrackerIdSchemeParam.ofAttribute("RiNIt1yJoge"))
             .build();
 
-        MetadataIdentifier id = MAPPER.fromProgramStage( "RiNIt1yJoge", params );
+    MetadataIdentifier id = MAPPER.fromStringIdentifier("clouds", params);
 
-        assertEquals( MetadataIdentifier.ofUid( "RiNIt1yJoge" ), id );
-    }
+    assertEquals(MetadataIdentifier.ofAttribute("RiNIt1yJoge", "clouds"), id);
+  }
 
-    @Test
-    void programStageIdentifierFromAttribute()
-    {
+  @Test
+  void stringToIdentifierFromUIDIfNull() {
 
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
-            .programStageIdScheme( TrackerIdSchemeParam.ofAttribute( "RiNIt1yJoge" ) )
-            .build();
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
 
-        MetadataIdentifier id = MAPPER.fromProgramStage( "clouds", params );
+    MetadataIdentifier id = MAPPER.fromStringIdentifier(null, params);
 
-        assertEquals( MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "clouds" ), id );
-    }
-
-    @Test
-    void programStageIdentifierFromUIDIfNull()
-    {
-
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
-            .build();
-
-        MetadataIdentifier id = MAPPER.fromProgramStage( null, params );
-
-        assertEquals( MetadataIdentifier.EMPTY_UID, id );
-    }
-
-    @Test
-    void orgUnitIdentifierFromUID()
-    {
-
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
-            .build();
-
-        MetadataIdentifier id = MAPPER.fromOrgUnit( "RiNIt1yJoge", params );
-
-        assertEquals( MetadataIdentifier.ofUid( "RiNIt1yJoge" ), id );
-    }
-
-    @Test
-    void orgUnitIdentifierFromAttribute()
-    {
-
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
-            .orgUnitIdScheme( TrackerIdSchemeParam.ofAttribute( "RiNIt1yJoge" ) )
-            .build();
-
-        MetadataIdentifier id = MAPPER.fromOrgUnit( "clouds", params );
-
-        assertEquals( MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "clouds" ), id );
-    }
-
-    @Test
-    void orgUnitIdentifierFromUIDIfNull()
-    {
-
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
-            .build();
-
-        MetadataIdentifier id = MAPPER.fromOrgUnit( null, params );
-
-        assertEquals( MetadataIdentifier.EMPTY_UID, id );
-    }
-
-    @Test
-    void attributeOptionComboIdentifierFromUID()
-    {
-
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
-            .build();
-
-        MetadataIdentifier id = MAPPER.fromAttributeOptionCombo( "RiNIt1yJoge", params );
-
-        assertEquals( MetadataIdentifier.ofUid( "RiNIt1yJoge" ), id );
-    }
-
-    @Test
-    void attributeOptionComboIdentifierFromAttribute()
-    {
-
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
-            .categoryOptionComboIdScheme( TrackerIdSchemeParam.ofAttribute( "RiNIt1yJoge" ) )
-            .build();
-
-        MetadataIdentifier id = MAPPER.fromAttributeOptionCombo( "clouds", params );
-
-        assertEquals( MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "clouds" ), id );
-    }
-
-    @Test
-    void attributeOptionComboIdentifierFromUIDIfNull()
-    {
-
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
-            .build();
-
-        MetadataIdentifier id = MAPPER.fromAttributeOptionCombo( null, params );
-
-        assertEquals( MetadataIdentifier.EMPTY_UID, id );
-    }
-
-    @Test
-    void attributeCategoryOptionsIdentifierFromUIDWithWhitespaces()
-    {
-
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
-            .build();
-
-        Set<MetadataIdentifier> ids = MAPPER.fromAttributeCategoryOptions( " RiNIt1yJoge;AiNIt1yJoge  ; ", params );
-
-        assertContainsOnly(
-            Set.of( MetadataIdentifier.ofUid( "RiNIt1yJoge" ), MetadataIdentifier.ofUid( "AiNIt1yJoge" ) ), ids );
-    }
-
-    @Test
-    void attributeCategoryOptionsIdentifierFromAttribute()
-    {
-
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
-            .categoryOptionIdScheme( TrackerIdSchemeParam.ofAttribute( "RiNIt1yJoge" ) )
-            .build();
-
-        Set<MetadataIdentifier> ids = MAPPER.fromAttributeCategoryOptions( "clouds;fruits", params );
-
-        assertContainsOnly( Set.of( MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "clouds" ),
-            MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "fruits" ) ), ids );
-    }
-
-    @Test
-    void attributeCategoryOptionsIdentifierFromUIDIfNull()
-    {
-
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
-            .build();
-
-        Set<MetadataIdentifier> ids = MAPPER.fromAttributeCategoryOptions( null, params );
-
-        assertTrue( ids.isEmpty() );
-    }
-
-    @Test
-    void attributeCategoryOptionsIdentifierFromUIDIfEmpty()
-    {
-
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
-            .build();
-
-        Set<MetadataIdentifier> ids = MAPPER.fromAttributeCategoryOptions( "  ", params );
-
-        assertTrue( ids.isEmpty() );
-    }
-
-    @Test
-    void stringToIdentifierFromUID()
-    {
-
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.UID )
-            .build();
-
-        MetadataIdentifier id = MAPPER.fromStringIdentifier( "RiNIt1yJoge", params );
-
-        assertEquals( MetadataIdentifier.ofUid( "RiNIt1yJoge" ), id );
-    }
-
-    @Test
-    void stringToIdentifierFromAttribute()
-    {
-
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.ofAttribute( "RiNIt1yJoge" ) )
-            .build();
-
-        MetadataIdentifier id = MAPPER.fromStringIdentifier( "clouds", params );
-
-        assertEquals( MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "clouds" ), id );
-    }
-
-    @Test
-    void stringToIdentifierFromUIDIfNull()
-    {
-
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.UID )
-            .build();
-
-        MetadataIdentifier id = MAPPER.fromStringIdentifier( null, params );
-
-        assertEquals( MetadataIdentifier.EMPTY_UID, id );
-    }
+    assertEquals(MetadataIdentifier.EMPTY_UID, id);
+  }
 }

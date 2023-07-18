@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
-
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -48,71 +47,77 @@ import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DashboardControllerTest extends DhisControllerIntegrationTest
-{
-    @Autowired
-    private AclService aclService;
+class DashboardControllerTest extends DhisControllerIntegrationTest {
+  @Autowired private AclService aclService;
 
-    @Test
-    void testUpdateWithNonAccessibleItems()
-    {
-        POST( "/metadata", Body( "dashboard/create_dashboard_non_accessible_visualization.json" ) )
-            .content( HttpStatus.OK );
-        User userA = userService.getUser( "XThzKnyzeYW" );
+  @Test
+  void testUpdateWithNonAccessibleItems() {
+    POST("/metadata", Body("dashboard/create_dashboard_non_accessible_visualization.json"))
+        .content(HttpStatus.OK);
+    User userA = userService.getUser("XThzKnyzeYW");
 
-        // Verify if all objects created correctly.
-        Dashboard dashboard = manager.get( Dashboard.class, "f1OijtLnf8a" );
-        assertNotNull( dashboard );
-        assertEquals( 1, dashboard.getItems().size() );
-        Visualization visualization = dashboard.getItems().stream()
-            .filter( item -> item.getUid().equals( "KnmKNIFiAwC" ) ).findFirst().get().getVisualization();
-        assertNotNull( visualization );
+    // Verify if all objects created correctly.
+    Dashboard dashboard = manager.get(Dashboard.class, "f1OijtLnf8a");
+    assertNotNull(dashboard);
+    assertEquals(1, dashboard.getItems().size());
+    Visualization visualization =
+        dashboard.getItems().stream()
+            .filter(item -> item.getUid().equals("KnmKNIFiAwC"))
+            .findFirst()
+            .get()
+            .getVisualization();
+    assertNotNull(visualization);
 
-        switchContextToUser( userA );
-        // UserA can't read visualization but can update Dashboard.
-        assertTrue( aclService.canUpdate( userA, dashboard ) );
-        assertFalse( aclService.canRead( userA, visualization ) );
+    switchContextToUser(userA);
+    // UserA can't read visualization but can update Dashboard.
+    assertTrue(aclService.canUpdate(userA, dashboard));
+    assertFalse(aclService.canRead(userA, visualization));
 
-        // Add one more DashboardItem to the created Dashboard
-        JsonResponse response = PUT( "/dashboards/f1OijtLnf8a", Body( "dashboard/update_dashboard.json" ) )
-            .content( HttpStatus.CONFLICT );
-        assertEquals(
-            "DashboardItem `KnmKNIFiAwC` object reference `VISUALIZATION` with id `gyYXi0rXAIc` not found or not accessible",
-            response.find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4061 ).getMessage() );
-    }
+    // Add one more DashboardItem to the created Dashboard
+    JsonResponse response =
+        PUT("/dashboards/f1OijtLnf8a", Body("dashboard/update_dashboard.json"))
+            .content(HttpStatus.CONFLICT);
+    assertEquals(
+        "DashboardItem `KnmKNIFiAwC` object reference `VISUALIZATION` with id `gyYXi0rXAIc` not found or not accessible",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4061)
+            .getMessage());
+  }
 
-    @Test
-    void testUpdateWithAccessibleItems()
-    {
-        POST( "/metadata", Body( "dashboard/create_dashboard.json" ) )
-            .content( HttpStatus.OK );
-        User userA = userService.getUser( "XThzKnyzeYW" );
+  @Test
+  void testUpdateWithAccessibleItems() {
+    POST("/metadata", Body("dashboard/create_dashboard.json")).content(HttpStatus.OK);
+    User userA = userService.getUser("XThzKnyzeYW");
 
-        // Verify if all objects created correctly.
-        Dashboard dashboard = manager.get( Dashboard.class, "f1OijtLnf8a" );
-        assertNotNull( dashboard );
-        assertEquals( 1, dashboard.getItems().size() );
-        Visualization visualization = dashboard.getItems().stream()
-            .filter( item -> item.getUid().equals( "KnmKNIFiAwC" ) ).findFirst().get().getVisualization();
-        assertNotNull( visualization );
+    // Verify if all objects created correctly.
+    Dashboard dashboard = manager.get(Dashboard.class, "f1OijtLnf8a");
+    assertNotNull(dashboard);
+    assertEquals(1, dashboard.getItems().size());
+    Visualization visualization =
+        dashboard.getItems().stream()
+            .filter(item -> item.getUid().equals("KnmKNIFiAwC"))
+            .findFirst()
+            .get()
+            .getVisualization();
+    assertNotNull(visualization);
 
-        assertTrue( aclService.canUpdate( userA, dashboard ) );
-        assertTrue( aclService.canRead( userA, visualization ) );
-        switchContextToUser( userA );
+    assertTrue(aclService.canUpdate(userA, dashboard));
+    assertTrue(aclService.canRead(userA, visualization));
+    switchContextToUser(userA);
 
-        // Add one more DashboardItem to the created Dashboard
-        PUT( "/dashboards/f1OijtLnf8a", Body( "dashboard/update_dashboard.json" ) ).content( HttpStatus.OK );
-        dashboard = manager.get( Dashboard.class, "f1OijtLnf8a" );
+    // Add one more DashboardItem to the created Dashboard
+    PUT("/dashboards/f1OijtLnf8a", Body("dashboard/update_dashboard.json")).content(HttpStatus.OK);
+    dashboard = manager.get(Dashboard.class, "f1OijtLnf8a");
 
-        // Dashboard should have 2 items after update.
-        assertEquals( 2, dashboard.getItems().size() );
+    // Dashboard should have 2 items after update.
+    assertEquals(2, dashboard.getItems().size());
 
-        // Visualization is still attached to the dashboard item.
-        Optional<DashboardItem> dashboardItem = dashboard.getItems().stream()
-            .filter( item -> item.getUid().equals( "KnmKNIFiAwC" ) )
+    // Visualization is still attached to the dashboard item.
+    Optional<DashboardItem> dashboardItem =
+        dashboard.getItems().stream()
+            .filter(item -> item.getUid().equals("KnmKNIFiAwC"))
             .findFirst();
-        assertTrue( dashboardItem.isPresent() );
-        assertEquals( "gyYXi0rXAIc", dashboardItem.get().getVisualization().getUid() );
-
-    }
+    assertTrue(dashboardItem.isPresent());
+    assertEquals("gyYXi0rXAIc", dashboardItem.get().getVisualization().getUid());
+  }
 }

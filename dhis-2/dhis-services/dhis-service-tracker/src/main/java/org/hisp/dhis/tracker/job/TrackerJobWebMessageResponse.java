@@ -27,26 +27,20 @@
  */
 package org.hisp.dhis.tracker.job;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
 @Builder
-@EqualsAndHashCode( callSuper = true )
-public class TrackerJobWebMessageResponse
-    extends AbstractWebMessageResponse
-{
-    @JsonProperty
-    private final String id;
+@EqualsAndHashCode(callSuper = true)
+public class TrackerJobWebMessageResponse extends AbstractWebMessageResponse {
+  @JsonProperty private final String id;
 
-    @JsonProperty
-    private final String location;
+  @JsonProperty private final String location;
 }

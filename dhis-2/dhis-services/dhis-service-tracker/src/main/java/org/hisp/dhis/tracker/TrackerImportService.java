@@ -32,23 +32,21 @@ import org.hisp.dhis.tracker.report.ImportReport;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerImportService
-{
-    /**
-     * Import object using provided params. Takes the objects through all phases
-     * of the importer from preheating to validation, and then finished with a
-     * commit (unless its validate only)
-     *
-     * @param params Parameters for import, including objects
-     * @return Report giving status of import (and any errors)
-     */
-    ImportReport importTracker( TrackerImportParams params );
+public interface TrackerImportService {
+  /**
+   * Import object using provided params. Takes the objects through all phases of the importer from
+   * preheating to validation, and then finished with a commit (unless its validate only)
+   *
+   * @param params Parameters for import, including objects
+   * @return Report giving status of import (and any errors)
+   */
+  ImportReport importTracker(TrackerImportParams params);
 
-    /**
-     * Build the report based on the mode selected by the client.
-     *
-     * @param importReport report with all the data collected during import
-     * @return TrackerImportReport report with filtered data based on reportMode
-     */
-    ImportReport buildImportReport( ImportReport importReport, TrackerBundleReportMode reportMode );
+  /**
+   * Build the report based on the mode selected by the client.
+   *
+   * @param importReport report with all the data collected during import
+   * @return TrackerImportReport report with filtered data based on reportMode
+   */
+  ImportReport buildImportReport(ImportReport importReport, TrackerBundleReportMode reportMode);
 }

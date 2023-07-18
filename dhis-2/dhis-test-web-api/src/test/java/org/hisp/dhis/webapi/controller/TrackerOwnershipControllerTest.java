@@ -35,46 +35,68 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.event.TrackerOwnershipController}
- * using (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.webapi.controller.event.TrackerOwnershipController} using (mocked)
+ * REST requests.
  *
  * @author Jan Bernitt
  */
-class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest
-{
+class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
 
-    private String ouId;
+  private String ouId;
 
-    private String teiId;
+  private String teiId;
 
-    private String pId;
+  private String pId;
 
-    @BeforeEach
-    void setUp()
-    {
-        ouId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-        String tetId = assertStatus( HttpStatus.CREATED, POST( "/trackedEntityTypes/", "{'name': 'A'}" ) );
-        teiId = assertStatus( HttpStatus.OK, POST( "/trackedEntityInstances",
-            "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}" ) );
-        pId = assertStatus( HttpStatus.CREATED,
-            POST( "/programs/", "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}" ) );
-    }
+  @BeforeEach
+  void setUp() {
+    ouId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+    String tetId = assertStatus(HttpStatus.CREATED, POST("/trackedEntityTypes/", "{'name': 'A'}"));
+    teiId =
+        assertStatus(
+            HttpStatus.OK,
+            POST(
+                "/trackedEntityInstances",
+                "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}"));
+    pId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}"));
+  }
 
-    @Test
-    void testUpdateTrackerProgramOwner()
-    {
-        assertWebMessage( "OK", 200, "OK", "Ownership transferred",
-            PUT( "/tracker/ownership/transfer?trackedEntityInstance={tei}&program={prog}&ou={ou}", teiId, pId, ouId )
-                .content( HttpStatus.OK ) );
-    }
+  @Test
+  void testUpdateTrackerProgramOwner() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Ownership transferred",
+        PUT(
+                "/tracker/ownership/transfer?trackedEntityInstance={tei}&program={prog}&ou={ou}",
+                teiId,
+                pId,
+                ouId)
+            .content(HttpStatus.OK));
+  }
 
-    @Test
-    void testOverrideOwnershipAccess()
-    {
-        assertWebMessage( "OK", 200, "OK", "Temporary Ownership granted",
-            POST( "/tracker/ownership/override?trackedEntityInstance={tei}&program={prog}&reason=42", teiId, pId )
-                .content( HttpStatus.OK ) );
-    }
+  @Test
+  void testOverrideOwnershipAccess() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Temporary Ownership granted",
+        POST(
+                "/tracker/ownership/override?trackedEntityInstance={tei}&program={prog}&reason=42",
+                teiId,
+                pId)
+            .content(HttpStatus.OK));
+  }
 }

@@ -32,11 +32,8 @@ import java.util.List;
 /**
  * @author Jan Bernitt
  */
-public interface DataSetDataIntegrityProvider
-{
+public interface DataSetDataIntegrityProvider {
 
-    /**
-     * Gets all data sets which are not assigned to any organisation units.
-     */
-    List<DataSet> getDataSetsNotAssignedToOrganisationUnits();
+  /** Gets all data sets which are not assigned to any organisation units. */
+  List<DataSet> getDataSetsNotAssignedToOrganisationUnits();
 }

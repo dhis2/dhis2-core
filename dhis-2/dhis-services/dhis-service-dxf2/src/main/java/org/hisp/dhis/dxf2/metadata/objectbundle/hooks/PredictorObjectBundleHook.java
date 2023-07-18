@@ -35,39 +35,33 @@ import org.springframework.stereotype.Component;
 /**
  * @author Ken Haase
  */
-
 @Component
-public class PredictorObjectBundleHook extends AbstractObjectBundleHook<Predictor>
-{
-    @Override
-    public void preCreate( Predictor predictor, ObjectBundle bundle )
-    {
-        saveSkipTest( predictor, bundle );
+public class PredictorObjectBundleHook extends AbstractObjectBundleHook<Predictor> {
+  @Override
+  public void preCreate(Predictor predictor, ObjectBundle bundle) {
+    saveSkipTest(predictor, bundle);
+  }
+
+  @Override
+  public void preUpdate(Predictor predictor, Predictor persistedPredictor, ObjectBundle bundle) {
+    saveSkipTest(predictor, bundle);
+  }
+
+  private void saveSkipTest(Predictor predictor, ObjectBundle bundle) {
+    Expression skipTest = predictor.getSampleSkipTest();
+
+    preheatService.connectReferences(
+        predictor.getGenerator(), bundle.getPreheat(), bundle.getPreheatIdentifier());
+
+    if (skipTest != null) {
+      preheatService.connectReferences(
+          skipTest, bundle.getPreheat(), bundle.getPreheatIdentifier());
     }
 
-    @Override
-    public void preUpdate( Predictor predictor, Predictor persistedPredictor, ObjectBundle bundle )
-    {
-        saveSkipTest( predictor, bundle );
+    sessionFactory.getCurrentSession().save(predictor.getGenerator());
+
+    if (skipTest != null) {
+      sessionFactory.getCurrentSession().save(skipTest);
     }
-
-    private void saveSkipTest( Predictor predictor, ObjectBundle bundle )
-    {
-        Expression skipTest = predictor.getSampleSkipTest();
-
-        preheatService.connectReferences( predictor.getGenerator(), bundle.getPreheat(),
-            bundle.getPreheatIdentifier() );
-
-        if ( skipTest != null )
-        {
-            preheatService.connectReferences( skipTest, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-        }
-
-        sessionFactory.getCurrentSession().save( predictor.getGenerator() );
-
-        if ( skipTest != null )
-        {
-            sessionFactory.getCurrentSession().save( skipTest );
-        }
-    }
+  }
 }

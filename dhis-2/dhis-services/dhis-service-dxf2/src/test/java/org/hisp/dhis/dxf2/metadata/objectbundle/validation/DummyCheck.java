@@ -31,7 +31,6 @@ import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtil
 
 import java.util.List;
 import java.util.function.Consumer;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -42,25 +41,30 @@ import org.hisp.dhis.importexport.ImportStrategy;
 /**
  * @author Luciano Fiandesio
  */
-public class DummyCheck implements ObjectValidationCheck
-{
+public class DummyCheck implements ObjectValidationCheck {
 
-    @Override
-    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
-        List<T> persistedObjects, List<T> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext context, Consumer<ObjectReport> addReports )
-    {
-        for ( T nonPersistedObject : nonPersistedObjects )
-        {
-            if ( nonPersistedObject.getUid().startsWith( "u" ) )
-            {
-                ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E5000, bundle.getPreheatIdentifier(),
-                    bundle.getPreheatIdentifier().getIdentifiersWithName( nonPersistedObject ) )
-                        .setMainId( nonPersistedObject.getUid() );
-                addReports.accept( createObjectReport( errorReport, nonPersistedObject, bundle ) );
+  @Override
+  public <T extends IdentifiableObject> void check(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects,
+      ImportStrategy importStrategy,
+      ValidationContext context,
+      Consumer<ObjectReport> addReports) {
+    for (T nonPersistedObject : nonPersistedObjects) {
+      if (nonPersistedObject.getUid().startsWith("u")) {
+        ErrorReport errorReport =
+            new ErrorReport(
+                    klass,
+                    ErrorCode.E5000,
+                    bundle.getPreheatIdentifier(),
+                    bundle.getPreheatIdentifier().getIdentifiersWithName(nonPersistedObject))
+                .setMainId(nonPersistedObject.getUid());
+        addReports.accept(createObjectReport(errorReport, nonPersistedObject, bundle));
 
-                context.markForRemoval( nonPersistedObject );
-            }
-        }
+        context.markForRemoval(nonPersistedObject);
+      }
     }
+  }
 }

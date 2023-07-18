@@ -27,71 +27,59 @@
  */
 package org.hisp.dhis.scheduling;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.schema.Property;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Class which represents information about a job type.
  *
  * @author Lars Helge Overland
  */
-public class JobTypeInfo
-{
-    private String name;
+public class JobTypeInfo {
+  private String name;
 
-    private JobType jobType;
+  private JobType jobType;
 
-    private SchedulingType schedulingType;
+  private SchedulingType schedulingType;
 
-    private List<Property> jobParameters = new ArrayList<>();
+  private List<Property> jobParameters = new ArrayList<>();
 
-    /**
-     * Default constructor.
-     */
-    public JobTypeInfo()
-    {
-    }
+  /** Default constructor. */
+  public JobTypeInfo() {}
 
-    /**
-     * Constructor.
-     *
-     * @param name the job type name.
-     * @param jobType the {@link JobType}.
-     * @param jobParameters the list of {@link Property}.
-     */
-    public JobTypeInfo( String name, JobType jobType, List<Property> jobParameters )
-    {
-        this.name = name;
-        this.jobType = jobType;
-        this.schedulingType = jobType.getSchedulingType();
-        this.jobParameters = jobParameters;
-    }
+  /**
+   * Constructor.
+   *
+   * @param name the job type name.
+   * @param jobType the {@link JobType}.
+   * @param jobParameters the list of {@link Property}.
+   */
+  public JobTypeInfo(String name, JobType jobType, List<Property> jobParameters) {
+    this.name = name;
+    this.jobType = jobType;
+    this.schedulingType = jobType.getSchedulingType();
+    this.jobParameters = jobParameters;
+  }
 
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
+  @JsonProperty
+  public String getName() {
+    return name;
+  }
 
-    @JsonProperty
-    public JobType getJobType()
-    {
-        return jobType;
-    }
+  @JsonProperty
+  public JobType getJobType() {
+    return jobType;
+  }
 
-    @JsonProperty
-    public SchedulingType getSchedulingType()
-    {
-        return schedulingType;
-    }
+  @JsonProperty
+  public SchedulingType getSchedulingType() {
+    return schedulingType;
+  }
 
-    @JsonProperty
-    public List<Property> getJobParameters()
-    {
-        return jobParameters;
-    }
+  @JsonProperty
+  public List<Property> getJobParameters() {
+    return jobParameters;
+  }
 }

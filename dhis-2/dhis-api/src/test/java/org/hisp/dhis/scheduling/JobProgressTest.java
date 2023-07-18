@@ -54,7 +54,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -63,196 +62,198 @@ import org.mockito.Mockito;
  *
  * @author Jan Bernitt
  */
-class JobProgressTest
-{
+class JobProgressTest {
 
-    @Test
-    void testRunStage_Stream()
-    {
-        JobProgress progress = newMockJobProgress();
-        List<Integer> worked = new ArrayList<>();
-        progress.runStage( Stream.of( 1, 2, 3 ), String::valueOf, worked::add, JobProgressTest::printSummary );
-        assertEquals( asList( 1, 2, 3 ), worked );
-        verify( progress ).startingWorkItem( "1" );
-        verify( progress ).startingWorkItem( "2" );
-        verify( progress ).startingWorkItem( "3" );
-        verify( progress, times( 3 ) ).completedWorkItem( null );
-        verify( progress ).completedStage( "(3/0)" );
-        verify( progress, atLeast( 3 ) ).isCancellationRequested();
-        verify( progress, never() ).failedWorkItem( any( Exception.class ) );
-        verify( progress, never() ).failedWorkItem( anyString() );
-        verify( progress, never() ).failedStage( any( Exception.class ) );
-        verify( progress, never() ).failedStage( anyString() );
-    }
+  @Test
+  void testRunStage_Stream() {
+    JobProgress progress = newMockJobProgress();
+    List<Integer> worked = new ArrayList<>();
+    progress.runStage(
+        Stream.of(1, 2, 3), String::valueOf, worked::add, JobProgressTest::printSummary);
+    assertEquals(asList(1, 2, 3), worked);
+    verify(progress).startingWorkItem("1");
+    verify(progress).startingWorkItem("2");
+    verify(progress).startingWorkItem("3");
+    verify(progress, times(3)).completedWorkItem(null);
+    verify(progress).completedStage("(3/0)");
+    verify(progress, atLeast(3)).isCancellationRequested();
+    verify(progress, never()).failedWorkItem(any(Exception.class));
+    verify(progress, never()).failedWorkItem(anyString());
+    verify(progress, never()).failedStage(any(Exception.class));
+    verify(progress, never()).failedStage(anyString());
+  }
 
-    @Test
-    void testRunStage_StreamCancel()
-    {
-        JobProgress progress = newMockJobProgress();
-        when( progress.isCancellationRequested() ).thenReturn( true );
-        List<Integer> worked = new ArrayList<>();
-        progress.runStage( Stream.of( 1, 2, 3 ), String::valueOf, worked::add, JobProgressTest::printSummary );
-        assertTrue( worked.isEmpty() );
-        verify( progress ).failedStage( any( CancellationException.class ) );
-        verify( progress, never() ).startingWorkItem( any() );
-        verify( progress, never() ).completedWorkItem( any() );
-    }
+  @Test
+  void testRunStage_StreamCancel() {
+    JobProgress progress = newMockJobProgress();
+    when(progress.isCancellationRequested()).thenReturn(true);
+    List<Integer> worked = new ArrayList<>();
+    progress.runStage(
+        Stream.of(1, 2, 3), String::valueOf, worked::add, JobProgressTest::printSummary);
+    assertTrue(worked.isEmpty());
+    verify(progress).failedStage(any(CancellationException.class));
+    verify(progress, never()).startingWorkItem(any());
+    verify(progress, never()).completedWorkItem(any());
+  }
 
-    @Test
-    void testRunStage_StreamExceptionNoCancel()
-    {
-        JobProgress progress = newMockJobProgress();
-        List<Integer> worked = new ArrayList<>();
-        progress.runStage( Stream.of( 1, 2, 3 ), String::valueOf, e -> {
-            if ( worked.isEmpty() )
-            {
-                worked.add( e );
-            }
-            else
-            {
-                throw new RuntimeException( "work item failed" );
-            }
-        }, JobProgressTest::printSummary );
-        assertEquals( singletonList( 1 ), worked );
-        verify( progress, times( 3 ) ).startingWorkItem( anyString() );
-        verify( progress, times( 1 ) ).completedWorkItem( any() );
-        verify( progress, times( 2 ) ).failedWorkItem( any( RuntimeException.class ) );
-        verify( progress ).completedStage( "(1/2)" );
-    }
+  @Test
+  void testRunStage_StreamExceptionNoCancel() {
+    JobProgress progress = newMockJobProgress();
+    List<Integer> worked = new ArrayList<>();
+    progress.runStage(
+        Stream.of(1, 2, 3),
+        String::valueOf,
+        e -> {
+          if (worked.isEmpty()) {
+            worked.add(e);
+          } else {
+            throw new RuntimeException("work item failed");
+          }
+        },
+        JobProgressTest::printSummary);
+    assertEquals(singletonList(1), worked);
+    verify(progress, times(3)).startingWorkItem(anyString());
+    verify(progress, times(1)).completedWorkItem(any());
+    verify(progress, times(2)).failedWorkItem(any(RuntimeException.class));
+    verify(progress).completedStage("(1/2)");
+  }
 
-    @Test
-    void testRunStage_StreamExceptionWithCancel()
-    {
-        JobProgress progress = newMockJobProgress();
-        // first return true after we failed once
-        doAnswer( invocation -> {
-            when( progress.isCancellationRequested() ).thenReturn( true );
-            return null;
-        } ).when( progress ).failedWorkItem( any( RuntimeException.class ) );
-        List<Integer> worked = new ArrayList<>();
-        progress.runStage( Stream.of( 1, 2, 3 ), String::valueOf, e -> {
-            if ( worked.isEmpty() )
-            {
-                worked.add( e );
-            }
-            else
-            {
-                throw new RuntimeException( "work item failed" );
-            }
-        }, JobProgressTest::printSummary );
-        assertEquals( singletonList( 1 ), worked );
-        verify( progress, times( 2 ) ).startingWorkItem( anyString() );
-        verify( progress ).completedWorkItem( any() );
-        verify( progress ).failedWorkItem( any( RuntimeException.class ) );
-        verify( progress ).failedStage( any( CancellationException.class ) );
-    }
+  @Test
+  void testRunStage_StreamExceptionWithCancel() {
+    JobProgress progress = newMockJobProgress();
+    // first return true after we failed once
+    doAnswer(
+            invocation -> {
+              when(progress.isCancellationRequested()).thenReturn(true);
+              return null;
+            })
+        .when(progress)
+        .failedWorkItem(any(RuntimeException.class));
+    List<Integer> worked = new ArrayList<>();
+    progress.runStage(
+        Stream.of(1, 2, 3),
+        String::valueOf,
+        e -> {
+          if (worked.isEmpty()) {
+            worked.add(e);
+          } else {
+            throw new RuntimeException("work item failed");
+          }
+        },
+        JobProgressTest::printSummary);
+    assertEquals(singletonList(1), worked);
+    verify(progress, times(2)).startingWorkItem(anyString());
+    verify(progress).completedWorkItem(any());
+    verify(progress).failedWorkItem(any(RuntimeException.class));
+    verify(progress).failedStage(any(CancellationException.class));
+  }
 
-    @Test
-    void testRunStage_RunnableSuccess()
-    {
-        JobProgress progress = newMockJobProgress();
-        progress.runStage( () -> {
-            /* NOOP - work done fine */
-        } );
-        verify( progress ).completedStage( null );
-        verify( progress, never() ).startingWorkItem( anyString() );
-        verify( progress, never() ).failedStage( any( Exception.class ) );
-        verify( progress, never() ).failedStage( anyString() );
-    }
+  @Test
+  void testRunStage_RunnableSuccess() {
+    JobProgress progress = newMockJobProgress();
+    progress.runStage(
+        () -> {
+          /* NOOP - work done fine */
+        });
+    verify(progress).completedStage(null);
+    verify(progress, never()).startingWorkItem(anyString());
+    verify(progress, never()).failedStage(any(Exception.class));
+    verify(progress, never()).failedStage(anyString());
+  }
 
-    @Test
-    void testRunStage_RunnableFailure()
-    {
-        JobProgress progress = newMockJobProgress();
-        progress.runStage( () -> {
-            throw new IllegalStateException();
-        } );
-        verify( progress, never() ).completedStage( anyString() );
-        verify( progress, never() ).startingWorkItem( anyString() );
-        verify( progress ).failedStage( any( IllegalStateException.class ) );
-        verify( progress ).failedStage( "java.lang.IllegalStateException" );
-        assertFalse( progress.isSkipCurrentStage() );
-    }
+  @Test
+  void testRunStage_RunnableFailure() {
+    JobProgress progress = newMockJobProgress();
+    progress.runStage(
+        () -> {
+          throw new IllegalStateException();
+        });
+    verify(progress, never()).completedStage(anyString());
+    verify(progress, never()).startingWorkItem(anyString());
+    verify(progress).failedStage(any(IllegalStateException.class));
+    verify(progress).failedStage("java.lang.IllegalStateException");
+    assertFalse(progress.isSkipCurrentStage());
+  }
 
-    @Test
-    void testRunStage_Callable()
-    {
-        JobProgress progress = newMockJobProgress();
-        assertEquals( 42, progress.runStage( -1, () -> 42 ).intValue() );
-        verify( progress ).completedStage( null );
-        verify( progress, never() ).startingWorkItem( anyString() );
-        verify( progress, never() ).failedStage( any( Exception.class ) );
-        verify( progress, never() ).failedStage( anyString() );
-    }
+  @Test
+  void testRunStage_Callable() {
+    JobProgress progress = newMockJobProgress();
+    assertEquals(42, progress.runStage(-1, () -> 42).intValue());
+    verify(progress).completedStage(null);
+    verify(progress, never()).startingWorkItem(anyString());
+    verify(progress, never()).failedStage(any(Exception.class));
+    verify(progress, never()).failedStage(anyString());
+  }
 
-    @Test
-    void testRunStage_CallableError()
-    {
-        JobProgress progress = newMockJobProgress();
-        assertEquals( -1, progress.runStage( -1, () -> {
-            throw new IllegalStateException();
-        } ).intValue() );
-        verify( progress, never() ).completedStage( anyString() );
-        verify( progress, never() ).startingWorkItem( anyString() );
-        verify( progress ).failedStage( any( IllegalStateException.class ) );
-        verify( progress ).failedStage( "java.lang.IllegalStateException" );
-        assertFalse( progress.isSkipCurrentStage() );
-    }
+  @Test
+  void testRunStage_CallableError() {
+    JobProgress progress = newMockJobProgress();
+    assertEquals(
+        -1,
+        progress
+            .runStage(
+                -1,
+                () -> {
+                  throw new IllegalStateException();
+                })
+            .intValue());
+    verify(progress, never()).completedStage(anyString());
+    verify(progress, never()).startingWorkItem(anyString());
+    verify(progress).failedStage(any(IllegalStateException.class));
+    verify(progress).failedStage("java.lang.IllegalStateException");
+    assertFalse(progress.isSkipCurrentStage());
+  }
 
-    @Test
-    void testRunStageInParallel_CommonPoolHalfFailed()
-    {
-        runStageInParallel_Success( Runtime.getRuntime().availableProcessors() );
-    }
+  @Test
+  void testRunStageInParallel_CommonPoolHalfFailed() {
+    runStageInParallel_Success(Runtime.getRuntime().availableProcessors());
+  }
 
-    @Test
-    void testRunStageInParallel_CustomPoolHalfFailed()
-    {
-        runStageInParallel_Success( max( 2, Runtime.getRuntime().availableProcessors() / 2 ) );
-    }
+  @Test
+  void testRunStageInParallel_CustomPoolHalfFailed() {
+    runStageInParallel_Success(max(2, Runtime.getRuntime().availableProcessors() / 2));
+  }
 
-    private static void runStageInParallel_Success( int parallelism )
-    {
-        AtomicInteger enterCount = new AtomicInteger();
-        AtomicInteger exitCount = new AtomicInteger();
-        AtomicInteger concurrentCount = new AtomicInteger();
-        AtomicInteger maxConcurrentCount = new AtomicInteger();
-        List<Integer> worked = new CopyOnWriteArrayList<>();
-        Consumer<Integer> work = value -> {
-            enterCount.incrementAndGet();
-            int cur = concurrentCount.incrementAndGet();
-            maxConcurrentCount.updateAndGet( val -> max( val, cur ) );
-            // simulate the actual "work"
-            worked.add( value );
-            await().atLeast( 100, TimeUnit.MILLISECONDS );
-            concurrentCount.decrementAndGet();
-            exitCount.incrementAndGet();
+  private static void runStageInParallel_Success(int parallelism) {
+    AtomicInteger enterCount = new AtomicInteger();
+    AtomicInteger exitCount = new AtomicInteger();
+    AtomicInteger concurrentCount = new AtomicInteger();
+    AtomicInteger maxConcurrentCount = new AtomicInteger();
+    List<Integer> worked = new CopyOnWriteArrayList<>();
+    Consumer<Integer> work =
+        value -> {
+          enterCount.incrementAndGet();
+          int cur = concurrentCount.incrementAndGet();
+          maxConcurrentCount.updateAndGet(val -> max(val, cur));
+          // simulate the actual "work"
+          worked.add(value);
+          await().atLeast(100, TimeUnit.MILLISECONDS);
+          concurrentCount.decrementAndGet();
+          exitCount.incrementAndGet();
         };
-        JobProgress progress = newMockJobProgress();
-        List<Integer> items = IntStream.range( 1, parallelism * 2 ).boxed().collect( toList() );
-        progress.runStageInParallel( parallelism, items, String::valueOf, work );
-        assertFalse( progress.isSkipCurrentStage() );
-        int itemCount = items.size();
-        assertEquals( new HashSet<>( items ), new HashSet<>( worked ) );
-        assertEquals( itemCount, enterCount.get() );
-        assertEquals( itemCount, exitCount.get() );
-        assertTrue( maxConcurrentCount.get() <= parallelism, "too much parallel work" );
-        verify( progress, times( itemCount ) ).startingWorkItem( anyString() );
-        verify( progress, times( itemCount ) ).completedWorkItem( null );
-        verify( progress ).completedStage( null );
-        verify( progress, never() ).failedWorkItem( anyString() );
-        verify( progress, never() ).failedWorkItem( any( Exception.class ) );
-        verify( progress, never() ).failedStage( anyString() );
-        verify( progress, never() ).failedStage( any( Exception.class ) );
-    }
+    JobProgress progress = newMockJobProgress();
+    List<Integer> items = IntStream.range(1, parallelism * 2).boxed().collect(toList());
+    progress.runStageInParallel(parallelism, items, String::valueOf, work);
+    assertFalse(progress.isSkipCurrentStage());
+    int itemCount = items.size();
+    assertEquals(new HashSet<>(items), new HashSet<>(worked));
+    assertEquals(itemCount, enterCount.get());
+    assertEquals(itemCount, exitCount.get());
+    assertTrue(maxConcurrentCount.get() <= parallelism, "too much parallel work");
+    verify(progress, times(itemCount)).startingWorkItem(anyString());
+    verify(progress, times(itemCount)).completedWorkItem(null);
+    verify(progress).completedStage(null);
+    verify(progress, never()).failedWorkItem(anyString());
+    verify(progress, never()).failedWorkItem(any(Exception.class));
+    verify(progress, never()).failedStage(anyString());
+    verify(progress, never()).failedStage(any(Exception.class));
+  }
 
-    private static String printSummary( int success, int failed )
-    {
-        return String.format( "(%d/%d)", success, failed );
-    }
+  private static String printSummary(int success, int failed) {
+    return String.format("(%d/%d)", success, failed);
+  }
 
-    private static JobProgress newMockJobProgress()
-    {
-        return Mockito.spy( JobProgress.class );
-    }
+  private static JobProgress newMockJobProgress() {
+    return Mockito.spy(JobProgress.class);
+  }
 }

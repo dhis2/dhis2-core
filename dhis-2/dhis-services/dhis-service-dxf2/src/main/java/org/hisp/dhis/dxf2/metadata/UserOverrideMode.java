@@ -30,9 +30,8 @@ package org.hisp.dhis.dxf2.metadata;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum UserOverrideMode
-{
-    NONE,
-    CURRENT,
-    SELECTED
+public enum UserOverrideMode {
+  NONE,
+  CURRENT,
+  SELECTED
 }

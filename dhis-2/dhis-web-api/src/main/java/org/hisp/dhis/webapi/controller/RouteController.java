@@ -29,11 +29,8 @@ package org.hisp.dhis.webapi.controller;
 
 import java.io.IOException;
 import java.util.Optional;
-
 import javax.servlet.http.HttpServletRequest;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -55,58 +52,48 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Morten Olav Hansen
  */
 @RestController
-@OpenApi.Tags( "integration" )
+@OpenApi.Tags("integration")
 @RequiredArgsConstructor
-@RequestMapping( value = RouteSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class RouteController
-    extends AbstractCrudController<Route>
-{
-    private final RouteService routeService;
+@RequestMapping(value = RouteSchemaDescriptor.API_ENDPOINT)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class RouteController extends AbstractCrudController<Route> {
+  private final RouteService routeService;
 
-    @RequestMapping( value = "/{id}/run", method = { RequestMethod.GET, RequestMethod.POST } )
-    public ResponseEntity<String> run( @PathVariable( "id" ) String id, @CurrentUser User user,
-        HttpServletRequest request )
-        throws IOException,
-        ForbiddenException,
-        NotFoundException,
-        BadRequestException
-    {
-        return runWithSubpath( id, user, request );
+  @RequestMapping(
+      value = "/{id}/run",
+      method = {RequestMethod.GET, RequestMethod.POST})
+  public ResponseEntity<String> run(
+      @PathVariable("id") String id, @CurrentUser User user, HttpServletRequest request)
+      throws IOException, ForbiddenException, NotFoundException, BadRequestException {
+    return runWithSubpath(id, user, request);
+  }
+
+  @RequestMapping(
+      value = "/{id}/run/**",
+      method = {RequestMethod.GET, RequestMethod.POST})
+  public ResponseEntity<String> runWithSubpath(
+      @PathVariable("id") String id, @CurrentUser User user, HttpServletRequest request)
+      throws IOException, ForbiddenException, NotFoundException, BadRequestException {
+    Route route = routeService.getDecryptedRoute(id);
+
+    if (route == null) {
+      throw new NotFoundException(String.format("Route %s not found", id));
     }
 
-    @RequestMapping( value = "/{id}/run/**", method = { RequestMethod.GET, RequestMethod.POST } )
-    public ResponseEntity<String> runWithSubpath( @PathVariable( "id" ) String id, @CurrentUser User user,
-        HttpServletRequest request )
-        throws IOException,
-        ForbiddenException,
-        NotFoundException,
-        BadRequestException
-    {
-        Route route = routeService.getDecryptedRoute( id );
-
-        if ( route == null )
-        {
-            throw new NotFoundException( String.format( "Route %s not found", id ) );
-        }
-
-        if ( !aclService.canRead( user, route ) && !user.hasAnyAuthority( route.getAuthorities() ) )
-        {
-            throw new ForbiddenException( "User not authorized" );
-        }
-
-        Optional<String> subPath = getSubPath( request.getPathInfo(), id );
-
-        return routeService.exec( route, user, subPath, request );
+    if (!aclService.canRead(user, route) && !user.hasAnyAuthority(route.getAuthorities())) {
+      throw new ForbiddenException("User not authorized");
     }
 
-    private Optional<String> getSubPath( String path, String id )
-    {
-        String prefix = String.format( "%s/%s/run/", RouteSchemaDescriptor.API_ENDPOINT, id );
-        if ( path.startsWith( prefix ) )
-        {
-            return Optional.of( path.substring( prefix.length() ) );
-        }
-        return Optional.empty();
+    Optional<String> subPath = getSubPath(request.getPathInfo(), id);
+
+    return routeService.exec(route, user, subPath, request);
+  }
+
+  private Optional<String> getSubPath(String path, String id) {
+    String prefix = String.format("%s/%s/run/", RouteSchemaDescriptor.API_ENDPOINT, id);
+    if (path.startsWith(prefix)) {
+      return Optional.of(path.substring(prefix.length()));
     }
+    return Optional.empty();
+  }
 }

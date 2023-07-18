@@ -28,9 +28,7 @@
 package org.hisp.dhis.category.hibernate;
 
 import java.util.List;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryOptionGroupSetStore;
@@ -45,27 +43,35 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Lars Helge Overland
  */
-@Repository( "org.hisp.dhis.category.CategoryOptionGroupSetStore" )
+@Repository("org.hisp.dhis.category.CategoryOptionGroupSetStore")
 public class HibernateCategoryOptionGroupSetStore
     extends HibernateIdentifiableObjectStore<CategoryOptionGroupSet>
-    implements CategoryOptionGroupSetStore
-{
-    public HibernateCategoryOptionGroupSetStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher,
-        CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, CategoryOptionGroupSet.class, currentUserService, aclService,
-            true );
-    }
+    implements CategoryOptionGroupSetStore {
+  public HibernateCategoryOptionGroupSetStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        CategoryOptionGroupSet.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public List<CategoryOptionGroupSet> getCategoryOptionGroupSetsNoAcl( DataDimensionType dataDimensionType,
-        boolean dataDimension )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<CategoryOptionGroupSet> getCategoryOptionGroupSetsNoAcl(
+      DataDimensionType dataDimensionType, boolean dataDimension) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
-            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("dataDimensionType"), dataDimensionType))
+            .addPredicate(root -> builder.equal(root.get("dataDimension"), dataDimension)));
+  }
 }

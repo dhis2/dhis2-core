@@ -37,26 +37,24 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 
-public class DuplicationValidator implements Validator<Relationship>
-{
+public class DuplicationValidator implements Validator<Relationship> {
 
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Relationship relationship )
-    {
-        if ( bundle.getPreheat().isDuplicate( relationship ) )
-        {
-            reporter.addError( relationship, E4018,
-                relationship.getRelationship(),
-                relationshipItemValueType( relationship.getFrom() ),
-                getUidFromRelationshipItem( relationship.getFrom() ),
-                relationshipItemValueType( relationship.getTo() ),
-                getUidFromRelationshipItem( relationship.getTo() ) );
-        }
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
+    if (bundle.getPreheat().isDuplicate(relationship)) {
+      reporter.addError(
+          relationship,
+          E4018,
+          relationship.getRelationship(),
+          relationshipItemValueType(relationship.getFrom()),
+          getUidFromRelationshipItem(relationship.getFrom()),
+          relationshipItemValueType(relationship.getTo()),
+          getUidFromRelationshipItem(relationship.getTo()));
     }
+  }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return strategy.isCreate();
-    }
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return strategy.isCreate();
+  }
 }

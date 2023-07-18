@@ -35,74 +35,67 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
  *
  * @author Jan Bernitt
  */
-public interface MetadataWorkflowService
-{
-    /**
-     * Get a {@link MetadataProposal} by UID
-     *
-     * @param uid non-null
-     * @return the proposal or null
-     */
-    MetadataProposal getByUid( String uid );
+public interface MetadataWorkflowService {
+  /**
+   * Get a {@link MetadataProposal} by UID
+   *
+   * @param uid non-null
+   * @return the proposal or null
+   */
+  MetadataProposal getByUid(String uid);
 
-    /**
-     * Create a new Proposal from parameters.
-     *
-     * @param params input parameters for the proposal
-     * @return the created proposal
-     * @throws IllegalStateException when the proposal is inconsistent
-     * @throws MetadataValidationException when the proposal cannot possibly be
-     *         applied successful
-     */
-    MetadataProposal propose( MetadataProposeParams params )
-        throws MetadataValidationException;
+  /**
+   * Create a new Proposal from parameters.
+   *
+   * @param params input parameters for the proposal
+   * @return the created proposal
+   * @throws IllegalStateException when the proposal is inconsistent
+   * @throws MetadataValidationException when the proposal cannot possibly be applied successful
+   */
+  MetadataProposal propose(MetadataProposeParams params) throws MetadataValidationException;
 
-    /**
-     * Adjusts an existing proposal with status
-     * {@link MetadataProposalStatus#NEEDS_UPDATE}.
-     *
-     * @param uid UID of the adjusted proposal
-     * @param params updated fields of the proposal
-     * @return the updated proposal
-     * @throws IllegalStateException when the proposal is in not in state
-     *         {@link MetadataProposalStatus#NEEDS_UPDATE} or the adjustment
-     *         inconsistent
-     * @throws MetadataValidationException when the proposal cannot possibly be
-     *         applied successful
-     */
-    MetadataProposal adjust( String uid, MetadataAdjustParams params )
-        throws MetadataValidationException;
+  /**
+   * Adjusts an existing proposal with status {@link MetadataProposalStatus#NEEDS_UPDATE}.
+   *
+   * @param uid UID of the adjusted proposal
+   * @param params updated fields of the proposal
+   * @return the updated proposal
+   * @throws IllegalStateException when the proposal is in not in state {@link
+   *     MetadataProposalStatus#NEEDS_UPDATE} or the adjustment inconsistent
+   * @throws MetadataValidationException when the proposal cannot possibly be applied successful
+   */
+  MetadataProposal adjust(String uid, MetadataAdjustParams params)
+      throws MetadataValidationException;
 
-    /**
-     * Accepts the given proposal.
-     *
-     * @param proposal proposal to accept, not null
-     * @return the result of the change - if
-     *         {@link org.hisp.dhis.feedback.Status} is error the proposal is
-     *         not accepted but changes its status to
-     *         {@link MetadataProposalStatus#NEEDS_UPDATE} containing the error
-     *         summary in the {@link MetadataProposal#getReason()}
-     * @throws IllegalStateException When the proposal is not in state
-     *         {@link MetadataProposalStatus#PROPOSED}
-     */
-    ImportReport accept( MetadataProposal proposal );
+  /**
+   * Accepts the given proposal.
+   *
+   * @param proposal proposal to accept, not null
+   * @return the result of the change - if {@link org.hisp.dhis.feedback.Status} is error the
+   *     proposal is not accepted but changes its status to {@link
+   *     MetadataProposalStatus#NEEDS_UPDATE} containing the error summary in the {@link
+   *     MetadataProposal#getReason()}
+   * @throws IllegalStateException When the proposal is not in state {@link
+   *     MetadataProposalStatus#PROPOSED}
+   */
+  ImportReport accept(MetadataProposal proposal);
 
-    /**
-     * Asks for updates on the proposed change by the original creator.
-     *
-     * @param proposal proposal to oppose
-     * @param reason the reason the proposal is not acceptable yet
-     * @throws IllegalStateException When the proposal is not in state
-     *         {@link MetadataProposalStatus#PROPOSED}
-     */
-    void oppose( MetadataProposal proposal, String reason );
+  /**
+   * Asks for updates on the proposed change by the original creator.
+   *
+   * @param proposal proposal to oppose
+   * @param reason the reason the proposal is not acceptable yet
+   * @throws IllegalStateException When the proposal is not in state {@link
+   *     MetadataProposalStatus#PROPOSED}
+   */
+  void oppose(MetadataProposal proposal, String reason);
 
-    /**
-     * Rejects the proposal forever.
-     *
-     * @param proposal the proposal being rejected
-     * @throws IllegalStateException When the proposal is not in state
-     *         {@link MetadataProposalStatus#PROPOSED}
-     */
-    void reject( MetadataProposal proposal, String reason );
+  /**
+   * Rejects the proposal forever.
+   *
+   * @param proposal the proposal being rejected
+   * @throws IllegalStateException When the proposal is not in state {@link
+   *     MetadataProposalStatus#PROPOSED}
+   */
+  void reject(MetadataProposal proposal, String reason);
 }

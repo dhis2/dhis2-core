@@ -28,15 +28,12 @@
 package org.hisp.dhis.mapping;
 
 import java.util.List;
-
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface MapViewStore
-    extends AnalyticalObjectStore<MapView>
-{
-    List<MapView> getByOrganisationUnitGroupSet( OrganisationUnitGroupSet groupSet );
+public interface MapViewStore extends AnalyticalObjectStore<MapView> {
+  List<MapView> getByOrganisationUnitGroupSet(OrganisationUnitGroupSet groupSet);
 }

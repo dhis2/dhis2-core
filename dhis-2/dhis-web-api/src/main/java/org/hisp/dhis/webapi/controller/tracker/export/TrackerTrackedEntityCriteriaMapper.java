@@ -45,11 +45,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -75,233 +72,212 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Maps query parameters from {@link TrackerTrackedEntitiesExportController}
- * stored in {@link TrackerTrackedEntityCriteria} to
- * {@link TrackedEntityInstanceQueryParams} which is used to fetch tracked
- * entities from the DB.
+ * Maps query parameters from {@link TrackerTrackedEntitiesExportController} stored in {@link
+ * TrackerTrackedEntityCriteria} to {@link TrackedEntityInstanceQueryParams} which is used to fetch
+ * tracked entities from the DB.
  *
  * @author Luciano Fiandesio
  */
-@Component( "org.hisp.dhis.webapi.controller.tracker.export.TrackedEntityCriteriaMapper" )
+@Component("org.hisp.dhis.webapi.controller.tracker.export.TrackedEntityCriteriaMapper")
 @RequiredArgsConstructor
-public class TrackerTrackedEntityCriteriaMapper
-{
-    @Nonnull
-    private final CurrentUserService currentUserService;
+public class TrackerTrackedEntityCriteriaMapper {
+  @Nonnull private final CurrentUserService currentUserService;
 
-    @Nonnull
-    private final OrganisationUnitService organisationUnitService;
+  @Nonnull private final OrganisationUnitService organisationUnitService;
 
-    @Nonnull
-    private final ProgramService programService;
+  @Nonnull private final ProgramService programService;
 
-    @Nonnull
-    private final TrackedEntityTypeService trackedEntityTypeService;
+  @Nonnull private final TrackedEntityTypeService trackedEntityTypeService;
 
-    @Nonnull
-    private final TrackedEntityAttributeService attributeService;
+  @Nonnull private final TrackedEntityAttributeService attributeService;
 
-    @Nonnull
-    private final TrackerAccessManager trackerAccessManager;
+  @Nonnull private final TrackerAccessManager trackerAccessManager;
 
-    @Transactional( readOnly = true )
-    public TrackedEntityInstanceQueryParams map( TrackerTrackedEntityCriteria criteria )
-        throws BadRequestException,
-        ForbiddenException
-    {
-        Program program = applyIfNonEmpty( programService::getProgram, criteria.getProgram() );
-        validateProgram( criteria.getProgram(), program );
-        ProgramStage programStage = validateProgramStage( criteria, program );
+  @Transactional(readOnly = true)
+  public TrackedEntityInstanceQueryParams map(TrackerTrackedEntityCriteria criteria)
+      throws BadRequestException, ForbiddenException {
+    Program program = applyIfNonEmpty(programService::getProgram, criteria.getProgram());
+    validateProgram(criteria.getProgram(), program);
+    ProgramStage programStage = validateProgramStage(criteria, program);
 
-        TrackedEntityType trackedEntityType = applyIfNonEmpty( trackedEntityTypeService::getTrackedEntityType,
-            criteria.getTrackedEntityType() );
-        validateTrackedEntityType( criteria.getTrackedEntityType(), trackedEntityType );
+    TrackedEntityType trackedEntityType =
+        applyIfNonEmpty(
+            trackedEntityTypeService::getTrackedEntityType, criteria.getTrackedEntityType());
+    validateTrackedEntityType(criteria.getTrackedEntityType(), trackedEntityType);
 
-        Set<String> assignedUserIds = parseAndFilterUids( criteria.getAssignedUser() );
+    Set<String> assignedUserIds = parseAndFilterUids(criteria.getAssignedUser());
 
-        User user = currentUserService.getCurrentUser();
-        Set<String> orgUnitIds = parseUids( criteria.getOrgUnit() );
-        Set<OrganisationUnit> orgUnits = validateOrgUnits( user, orgUnitIds, program );
-        if ( criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null )
-        {
-            orgUnits.addAll( user.getOrganisationUnits() );
+    User user = currentUserService.getCurrentUser();
+    Set<String> orgUnitIds = parseUids(criteria.getOrgUnit());
+    Set<OrganisationUnit> orgUnits = validateOrgUnits(user, orgUnitIds, program);
+    if (criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null) {
+      orgUnits.addAll(user.getOrganisationUnits());
+    }
+
+    QueryFilter queryFilter = parseQueryFilter(criteria.getQuery());
+
+    Map<String, TrackedEntityAttribute> attributes =
+        attributeService.getAllTrackedEntityAttributes().stream()
+            .collect(Collectors.toMap(TrackedEntityAttribute::getUid, att -> att));
+
+    List<QueryItem> attributeItems = parseAttributeQueryItems(criteria.getAttribute(), attributes);
+
+    List<QueryItem> filters = parseAttributeQueryItems(criteria.getFilter(), attributes);
+
+    validateDuplicatedAttributeFilters(filters);
+
+    List<OrderParam> orderParams = toOrderParams(criteria.getOrder());
+    validateOrderParams(orderParams, attributes);
+
+    Set<String> trackedEntities = parseUids(criteria.getTrackedEntity());
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+    params
+        .setQuery(queryFilter)
+        .setProgram(program)
+        .setProgramStage(programStage)
+        .setProgramStatus(criteria.getProgramStatus())
+        .setFollowUp(criteria.getFollowUp())
+        .setLastUpdatedStartDate(criteria.getUpdatedAfter())
+        .setLastUpdatedEndDate(criteria.getUpdatedBefore())
+        .setLastUpdatedDuration(criteria.getUpdatedWithin())
+        .setProgramEnrollmentStartDate(criteria.getEnrollmentEnrolledAfter())
+        .setProgramEnrollmentEndDate(criteria.getEnrollmentEnrolledBefore())
+        .setProgramIncidentStartDate(criteria.getEnrollmentOccurredAfter())
+        .setProgramIncidentEndDate(criteria.getEnrollmentOccurredBefore())
+        .setTrackedEntityType(trackedEntityType)
+        .addOrganisationUnits(orgUnits)
+        .setOrganisationUnitMode(criteria.getOuMode())
+        .setEventStatus(criteria.getEventStatus())
+        .setEventStartDate(criteria.getEventOccurredAfter())
+        .setEventEndDate(criteria.getEventOccurredBefore())
+        .setUserWithAssignedUsers(criteria.getAssignedUserMode(), user, assignedUserIds)
+        .setTrackedEntityInstanceUids(trackedEntities)
+        .setAttributes(attributeItems)
+        .setFilters(filters)
+        .setSkipMeta(criteria.isSkipMeta())
+        .setPage(criteria.getPage())
+        .setPageSize(criteria.getPageSize())
+        .setTotalPages(criteria.isTotalPages())
+        .setSkipPaging(toBooleanDefaultIfNull(criteria.isSkipPaging(), false))
+        .setIncludeDeleted(criteria.isIncludeDeleted())
+        .setIncludeAllAttributes(criteria.isIncludeAllAttributes())
+        .setPotentialDuplicate(criteria.getPotentialDuplicate())
+        .setOrders(orderParams);
+
+    return params;
+  }
+
+  private void validateDuplicatedAttributeFilters(List<QueryItem> attributeItems)
+      throws BadRequestException {
+    Set<DimensionalItemObject> duplicatedAttributes = getDuplicatedAttributes(attributeItems);
+
+    if (!duplicatedAttributes.isEmpty()) {
+      List<String> errorMessages = new ArrayList<>();
+      for (DimensionalItemObject duplicatedAttribute : duplicatedAttributes) {
+        List<String> duplicateDFilters = getDuplicateDFilters(attributeItems, duplicatedAttribute);
+        String message =
+            MessageFormat.format(
+                "Filter for attribute {0} was specified more than once. "
+                    + "Try to define a single filter with multiple operators [{0}:{1}]",
+                duplicatedAttribute.getUid(), StringUtils.join(duplicateDFilters, ':'));
+        errorMessages.add(message);
+      }
+
+      throw new BadRequestException(StringUtils.join(errorMessages, ", "));
+    }
+  }
+
+  private List<String> getDuplicateDFilters(
+      List<QueryItem> attributeItems, DimensionalItemObject duplicatedAttribute) {
+    return attributeItems.stream()
+        .filter(q -> Objects.equals(q.getItem(), duplicatedAttribute))
+        .flatMap(q -> q.getFilters().stream())
+        .map(f -> f.getOperator() + ":" + f.getFilter())
+        .collect(Collectors.toList());
+  }
+
+  private Set<DimensionalItemObject> getDuplicatedAttributes(List<QueryItem> attributeItems) {
+    return attributeItems.stream()
+        .collect(Collectors.groupingBy(QueryItem::getItem, Collectors.counting()))
+        .entrySet()
+        .stream()
+        .filter(m -> m.getValue() > 1)
+        .map(Map.Entry::getKey)
+        .collect(Collectors.toSet());
+  }
+
+  private Set<OrganisationUnit> validateOrgUnits(User user, Set<String> orgUnitIds, Program program)
+      throws BadRequestException, ForbiddenException {
+
+    Set<OrganisationUnit> orgUnits = new HashSet<>();
+    for (String orgUnitId : orgUnitIds) {
+      OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitId);
+
+      if (orgUnit == null) {
+        throw new BadRequestException("Organisation unit does not exist: " + orgUnitId);
+      }
+
+      if (!trackerAccessManager.canAccess(user, program, orgUnit)) {
+        throw new ForbiddenException(
+            "User does not have access to organisation unit: " + orgUnitId);
+      }
+
+      orgUnits.add(orgUnit);
+    }
+
+    return orgUnits;
+  }
+
+  private static void validateProgram(String id, Program program) throws BadRequestException {
+    if (isNotEmpty(id) && program == null) {
+      throw new BadRequestException("Program is specified but does not exist: " + id);
+    }
+  }
+
+  private ProgramStage validateProgramStage(TrackerTrackedEntityCriteria criteria, Program program)
+      throws BadRequestException {
+
+    final String programStage = criteria.getProgramStage();
+
+    ProgramStage ps =
+        programStage != null ? getProgramStageFromProgram(program, programStage) : null;
+
+    if (programStage != null && ps == null) {
+      throw new BadRequestException(
+          "Program does not contain the specified programStage: " + programStage);
+    }
+    return ps;
+  }
+
+  private ProgramStage getProgramStageFromProgram(Program program, String programStage) {
+    if (program == null) {
+      return null;
+    }
+
+    return program.getProgramStages().stream()
+        .filter(ps -> ps.getUid().equals(programStage))
+        .findFirst()
+        .orElse(null);
+  }
+
+  private void validateTrackedEntityType(String id, TrackedEntityType trackedEntityType)
+      throws BadRequestException {
+    if (isNotEmpty(id) && trackedEntityType == null) {
+      throw new BadRequestException("Tracked entity type does not exist: " + id);
+    }
+  }
+
+  private void validateOrderParams(
+      List<OrderParam> orderParams, Map<String, TrackedEntityAttribute> attributes)
+      throws BadRequestException {
+    if (orderParams != null && !orderParams.isEmpty()) {
+      for (OrderParam orderParam : orderParams) {
+        if (findColumn(orderParam.getField()).isEmpty()
+            && !attributes.containsKey(orderParam.getField())) {
+          throw new BadRequestException("Invalid order property: " + orderParam.getField());
         }
-
-        QueryFilter queryFilter = parseQueryFilter( criteria.getQuery() );
-
-        Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
-            .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
-
-        List<QueryItem> attributeItems = parseAttributeQueryItems( criteria.getAttribute(), attributes );
-
-        List<QueryItem> filters = parseAttributeQueryItems( criteria.getFilter(), attributes );
-
-        validateDuplicatedAttributeFilters( filters );
-
-        List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );
-        validateOrderParams( orderParams, attributes );
-
-        Set<String> trackedEntities = parseUids( criteria.getTrackedEntity() );
-
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setQuery( queryFilter )
-            .setProgram( program )
-            .setProgramStage( programStage )
-            .setProgramStatus( criteria.getProgramStatus() )
-            .setFollowUp( criteria.getFollowUp() )
-            .setLastUpdatedStartDate( criteria.getUpdatedAfter() )
-            .setLastUpdatedEndDate( criteria.getUpdatedBefore() )
-            .setLastUpdatedDuration( criteria.getUpdatedWithin() )
-            .setProgramEnrollmentStartDate( criteria.getEnrollmentEnrolledAfter() )
-            .setProgramEnrollmentEndDate( criteria.getEnrollmentEnrolledBefore() )
-            .setProgramIncidentStartDate( criteria.getEnrollmentOccurredAfter() )
-            .setProgramIncidentEndDate( criteria.getEnrollmentOccurredBefore() )
-            .setTrackedEntityType( trackedEntityType )
-            .addOrganisationUnits( orgUnits )
-            .setOrganisationUnitMode( criteria.getOuMode() )
-            .setEventStatus( criteria.getEventStatus() )
-            .setEventStartDate( criteria.getEventOccurredAfter() )
-            .setEventEndDate( criteria.getEventOccurredBefore() )
-            .setUserWithAssignedUsers( criteria.getAssignedUserMode(), user, assignedUserIds )
-            .setTrackedEntityInstanceUids( trackedEntities )
-            .setAttributes( attributeItems )
-            .setFilters( filters )
-            .setSkipMeta( criteria.isSkipMeta() )
-            .setPage( criteria.getPage() )
-            .setPageSize( criteria.getPageSize() )
-            .setTotalPages( criteria.isTotalPages() )
-            .setSkipPaging( toBooleanDefaultIfNull( criteria.isSkipPaging(), false ) )
-            .setIncludeDeleted( criteria.isIncludeDeleted() )
-            .setIncludeAllAttributes( criteria.isIncludeAllAttributes() )
-            .setPotentialDuplicate( criteria.getPotentialDuplicate() )
-            .setOrders( orderParams );
-
-        return params;
+      }
     }
-
-    private void validateDuplicatedAttributeFilters( List<QueryItem> attributeItems )
-        throws BadRequestException
-    {
-        Set<DimensionalItemObject> duplicatedAttributes = getDuplicatedAttributes( attributeItems );
-
-        if ( !duplicatedAttributes.isEmpty() )
-        {
-            List<String> errorMessages = new ArrayList<>();
-            for ( DimensionalItemObject duplicatedAttribute : duplicatedAttributes )
-            {
-                List<String> duplicateDFilters = getDuplicateDFilters( attributeItems, duplicatedAttribute );
-                String message = MessageFormat.format( "Filter for attribute {0} was specified more than once. " +
-                    "Try to define a single filter with multiple operators [{0}:{1}]",
-                    duplicatedAttribute.getUid(), StringUtils.join( duplicateDFilters, ':' ) );
-                errorMessages.add( message );
-            }
-
-            throw new BadRequestException( StringUtils.join( errorMessages, ", " ) );
-        }
-    }
-
-    private List<String> getDuplicateDFilters( List<QueryItem> attributeItems,
-        DimensionalItemObject duplicatedAttribute )
-    {
-        return attributeItems.stream()
-            .filter( q -> Objects.equals( q.getItem(), duplicatedAttribute ) )
-            .flatMap( q -> q.getFilters().stream() )
-            .map( f -> f.getOperator() + ":" + f.getFilter() )
-            .collect( Collectors.toList() );
-    }
-
-    private Set<DimensionalItemObject> getDuplicatedAttributes( List<QueryItem> attributeItems )
-    {
-        return attributeItems.stream()
-            .collect( Collectors.groupingBy( QueryItem::getItem, Collectors.counting() ) )
-            .entrySet().stream()
-            .filter( m -> m.getValue() > 1 )
-            .map( Map.Entry::getKey )
-            .collect( Collectors.toSet() );
-    }
-
-    private Set<OrganisationUnit> validateOrgUnits( User user, Set<String> orgUnitIds, Program program )
-        throws BadRequestException,
-        ForbiddenException
-    {
-
-        Set<OrganisationUnit> orgUnits = new HashSet<>();
-        for ( String orgUnitId : orgUnitIds )
-        {
-            OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgUnitId );
-
-            if ( orgUnit == null )
-            {
-                throw new BadRequestException( "Organisation unit does not exist: " + orgUnitId );
-            }
-
-            if ( !trackerAccessManager.canAccess( user, program, orgUnit ) )
-            {
-                throw new ForbiddenException( "User does not have access to organisation unit: " + orgUnitId );
-            }
-
-            orgUnits.add( orgUnit );
-        }
-
-        return orgUnits;
-    }
-
-    private static void validateProgram( String id, Program program )
-        throws BadRequestException
-    {
-        if ( isNotEmpty( id ) && program == null )
-        {
-            throw new BadRequestException( "Program is specified but does not exist: " + id );
-        }
-    }
-
-    private ProgramStage validateProgramStage( TrackerTrackedEntityCriteria criteria, Program program )
-        throws BadRequestException
-    {
-
-        final String programStage = criteria.getProgramStage();
-
-        ProgramStage ps = programStage != null ? getProgramStageFromProgram( program, programStage ) : null;
-
-        if ( programStage != null && ps == null )
-        {
-            throw new BadRequestException( "Program does not contain the specified programStage: " + programStage );
-        }
-        return ps;
-    }
-
-    private ProgramStage getProgramStageFromProgram( Program program, String programStage )
-    {
-        if ( program == null )
-        {
-            return null;
-        }
-
-        return program.getProgramStages().stream().filter( ps -> ps.getUid().equals( programStage ) ).findFirst()
-            .orElse( null );
-    }
-
-    private void validateTrackedEntityType( String id, TrackedEntityType trackedEntityType )
-        throws BadRequestException
-    {
-        if ( isNotEmpty( id ) && trackedEntityType == null )
-        {
-            throw new BadRequestException( "Tracked entity type does not exist: " + id );
-        }
-    }
-
-    private void validateOrderParams( List<OrderParam> orderParams, Map<String, TrackedEntityAttribute> attributes )
-        throws BadRequestException
-    {
-        if ( orderParams != null && !orderParams.isEmpty() )
-        {
-            for ( OrderParam orderParam : orderParams )
-            {
-                if ( findColumn( orderParam.getField() ).isEmpty() && !attributes.containsKey( orderParam.getField() ) )
-                {
-                    throw new BadRequestException( "Invalid order property: " + orderParam.getField() );
-                }
-            }
-        }
-    }
+  }
 }

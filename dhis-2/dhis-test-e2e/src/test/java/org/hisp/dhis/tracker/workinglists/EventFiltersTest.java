@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.workinglists;
 
+import com.google.gson.JsonObject;
 import java.io.File;
-
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
@@ -37,34 +37,27 @@ import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventFiltersTest
-    extends TrackerApiTest
-{
-    private RestApiActions eventFiltersActions;
+public class EventFiltersTest extends TrackerApiTest {
+  private RestApiActions eventFiltersActions;
 
-    private String pathToFile = "src/test/resources/tracker/workinglists/eventFilters.json";
+  private String pathToFile = "src/test/resources/tracker/workinglists/eventFilters.json";
 
-    @BeforeAll
-    public void beforeAll()
-    {
-        eventFiltersActions = new RestApiActions( "/eventFilters" );
+  @BeforeAll
+  public void beforeAll() {
+    eventFiltersActions = new RestApiActions("/eventFilters");
 
-        loginActions.loginAsSuperUser();
-    }
+    loginActions.loginAsSuperUser();
+  }
 
-    @Test
-    public void eventFilterCanBeSaved()
-        throws Exception
-    {
-        JsonObject body = new FileReaderUtils().readJsonAndGenerateData( new File( pathToFile ) );
+  @Test
+  public void eventFilterCanBeSaved() throws Exception {
+    JsonObject body = new FileReaderUtils().readJsonAndGenerateData(new File(pathToFile));
 
-        ApiResponse response = eventFiltersActions.post( body );
+    ApiResponse response = eventFiltersActions.post(body);
 
-        ResponseValidationHelper.validateObjectCreation( response );
-    }
+    ResponseValidationHelper.validateObjectCreation(response);
+  }
 }

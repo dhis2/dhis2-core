@@ -50,154 +50,145 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegrationTest
-{
+class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegrationTest {
 
-    @Autowired
-    private PotentialDuplicateStore potentialDuplicateStore;
+  @Autowired private PotentialDuplicateStore potentialDuplicateStore;
 
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+  @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Autowired
-    private RelationshipService relationshipService;
+  @Autowired private RelationshipService relationshipService;
 
-    @Autowired
-    private RelationshipTypeService relationshipTypeService;
+  @Autowired private RelationshipTypeService relationshipTypeService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+  @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Autowired
-    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
-    @Autowired
-    private ProgramInstanceService programInstanceService;
+  @Autowired private ProgramInstanceService programInstanceService;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    @Test
-    void shouldDeleteTrackedEntityInstance()
-    {
-        TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'A' );
-        trackedEntityAttributeService.addTrackedEntityAttribute( trackedEntityAttribute );
-        TrackedEntityInstance trackedEntityInstance = createTei( trackedEntityAttribute );
-        assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance.getUid() ) );
-        removeTrackedEntity( trackedEntityInstance );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance.getUid() ) );
-    }
+  @Test
+  void shouldDeleteTrackedEntityInstance() {
+    TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
+    trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
+    TrackedEntityInstance trackedEntityInstance = createTei(trackedEntityAttribute);
+    assertNotNull(
+        trackedEntityInstanceService.getTrackedEntityInstance(trackedEntityInstance.getUid()));
+    removeTrackedEntity(trackedEntityInstance);
+    assertNull(
+        trackedEntityInstanceService.getTrackedEntityInstance(trackedEntityInstance.getUid()));
+  }
 
-    @Test
-    void shouldDeleteTeiAndAttributeValues()
-    {
-        TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'A' );
-        trackedEntityAttributeService.addTrackedEntityAttribute( trackedEntityAttribute );
-        TrackedEntityInstance trackedEntityInstance = createTei( trackedEntityAttribute );
-        trackedEntityInstance.getTrackedEntityAttributeValues()
-            .forEach( trackedEntityAttributeValueService::addTrackedEntityAttributeValue );
-        assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance.getUid() ) );
-        removeTrackedEntity( trackedEntityInstance );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance.getUid() ) );
-        assertNull( trackedEntityAttributeValueService.getTrackedEntityAttributeValue( trackedEntityInstance,
-            trackedEntityAttribute ) );
-    }
+  @Test
+  void shouldDeleteTeiAndAttributeValues() {
+    TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
+    trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
+    TrackedEntityInstance trackedEntityInstance = createTei(trackedEntityAttribute);
+    trackedEntityInstance
+        .getTrackedEntityAttributeValues()
+        .forEach(trackedEntityAttributeValueService::addTrackedEntityAttributeValue);
+    assertNotNull(
+        trackedEntityInstanceService.getTrackedEntityInstance(trackedEntityInstance.getUid()));
+    removeTrackedEntity(trackedEntityInstance);
+    assertNull(
+        trackedEntityInstanceService.getTrackedEntityInstance(trackedEntityInstance.getUid()));
+    assertNull(
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValue(
+            trackedEntityInstance, trackedEntityAttribute));
+  }
 
-    @Test
-    void shouldDeleteRelationShips()
-    {
-        OrganisationUnit ou = createOrganisationUnit( "OU_A" );
-        organisationUnitService.addOrganisationUnit( ou );
-        TrackedEntityInstance original = createTrackedEntityInstance( ou );
-        TrackedEntityInstance duplicate = createTrackedEntityInstance( ou );
-        TrackedEntityInstance control1 = createTrackedEntityInstance( ou );
-        TrackedEntityInstance control2 = createTrackedEntityInstance( ou );
-        trackedEntityInstanceService.addTrackedEntityInstance( original );
-        trackedEntityInstanceService.addTrackedEntityInstance( duplicate );
-        trackedEntityInstanceService.addTrackedEntityInstance( control1 );
-        trackedEntityInstanceService.addTrackedEntityInstance( control2 );
-        RelationshipType relationshipType = createRelationshipType( 'A' );
-        relationshipTypeService.addRelationshipType( relationshipType );
-        Relationship relationship1 = createTeiToTeiRelationship( original, control1, relationshipType );
-        Relationship relationship2 = createTeiToTeiRelationship( control2, control1, relationshipType );
-        Relationship relationship3 = createTeiToTeiRelationship( duplicate, control2, relationshipType );
-        Relationship relationship4 = createTeiToTeiRelationship( control1, duplicate, relationshipType );
-        Relationship relationship5 = createTeiToTeiRelationship( control1, original, relationshipType );
-        long relationShip1 = relationshipService.addRelationship( relationship1 );
-        long relationShip2 = relationshipService.addRelationship( relationship2 );
-        long relationShip3 = relationshipService.addRelationship( relationship3 );
-        long relationShip4 = relationshipService.addRelationship( relationship4 );
-        long relationShip5 = relationshipService.addRelationship( relationship5 );
-        assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( original.getUid() ) );
-        assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( duplicate.getUid() ) );
-        assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( control1.getUid() ) );
-        assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( control2.getUid() ) );
-        removeTrackedEntity( duplicate );
-        assertNull( relationshipService.getRelationship( relationShip3 ) );
-        assertNull( relationshipService.getRelationship( relationShip4 ) );
-        assertNotNull( relationshipService.getRelationship( relationShip1 ) );
-        assertNotNull( relationshipService.getRelationship( relationShip2 ) );
-        assertNotNull( relationshipService.getRelationship( relationShip5 ) );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( duplicate.getUid() ) );
-    }
+  @Test
+  void shouldDeleteRelationShips() {
+    OrganisationUnit ou = createOrganisationUnit("OU_A");
+    organisationUnitService.addOrganisationUnit(ou);
+    TrackedEntityInstance original = createTrackedEntityInstance(ou);
+    TrackedEntityInstance duplicate = createTrackedEntityInstance(ou);
+    TrackedEntityInstance control1 = createTrackedEntityInstance(ou);
+    TrackedEntityInstance control2 = createTrackedEntityInstance(ou);
+    trackedEntityInstanceService.addTrackedEntityInstance(original);
+    trackedEntityInstanceService.addTrackedEntityInstance(duplicate);
+    trackedEntityInstanceService.addTrackedEntityInstance(control1);
+    trackedEntityInstanceService.addTrackedEntityInstance(control2);
+    RelationshipType relationshipType = createRelationshipType('A');
+    relationshipTypeService.addRelationshipType(relationshipType);
+    Relationship relationship1 = createTeiToTeiRelationship(original, control1, relationshipType);
+    Relationship relationship2 = createTeiToTeiRelationship(control2, control1, relationshipType);
+    Relationship relationship3 = createTeiToTeiRelationship(duplicate, control2, relationshipType);
+    Relationship relationship4 = createTeiToTeiRelationship(control1, duplicate, relationshipType);
+    Relationship relationship5 = createTeiToTeiRelationship(control1, original, relationshipType);
+    long relationShip1 = relationshipService.addRelationship(relationship1);
+    long relationShip2 = relationshipService.addRelationship(relationship2);
+    long relationShip3 = relationshipService.addRelationship(relationship3);
+    long relationShip4 = relationshipService.addRelationship(relationship4);
+    long relationShip5 = relationshipService.addRelationship(relationship5);
+    assertNotNull(trackedEntityInstanceService.getTrackedEntityInstance(original.getUid()));
+    assertNotNull(trackedEntityInstanceService.getTrackedEntityInstance(duplicate.getUid()));
+    assertNotNull(trackedEntityInstanceService.getTrackedEntityInstance(control1.getUid()));
+    assertNotNull(trackedEntityInstanceService.getTrackedEntityInstance(control2.getUid()));
+    removeTrackedEntity(duplicate);
+    assertNull(relationshipService.getRelationship(relationShip3));
+    assertNull(relationshipService.getRelationship(relationShip4));
+    assertNotNull(relationshipService.getRelationship(relationShip1));
+    assertNotNull(relationshipService.getRelationship(relationShip2));
+    assertNotNull(relationshipService.getRelationship(relationShip5));
+    assertNull(trackedEntityInstanceService.getTrackedEntityInstance(duplicate.getUid()));
+  }
 
-    @Test
-    void shouldDeleteEnrollments()
-    {
-        OrganisationUnit ou = createOrganisationUnit( "OU_A" );
-        organisationUnitService.addOrganisationUnit( ou );
-        TrackedEntityInstance original = createTrackedEntityInstance( ou );
-        TrackedEntityInstance duplicate = createTrackedEntityInstance( ou );
-        TrackedEntityInstance control1 = createTrackedEntityInstance( ou );
-        TrackedEntityInstance control2 = createTrackedEntityInstance( ou );
-        trackedEntityInstanceService.addTrackedEntityInstance( original );
-        trackedEntityInstanceService.addTrackedEntityInstance( duplicate );
-        trackedEntityInstanceService.addTrackedEntityInstance( control1 );
-        trackedEntityInstanceService.addTrackedEntityInstance( control2 );
-        Program program = createProgram( 'A' );
-        programService.addProgram( program );
-        ProgramInstance programInstance1 = createProgramInstance( program, original, ou );
-        ProgramInstance programInstance2 = createProgramInstance( program, duplicate, ou );
-        ProgramInstance programInstance3 = createProgramInstance( program, control1, ou );
-        ProgramInstance programInstance4 = createProgramInstance( program, control2, ou );
-        programInstanceService.addProgramInstance( programInstance1 );
-        programInstanceService.addProgramInstance( programInstance2 );
-        programInstanceService.addProgramInstance( programInstance3 );
-        programInstanceService.addProgramInstance( programInstance4 );
-        original.getProgramInstances().add( programInstance1 );
-        duplicate.getProgramInstances().add( programInstance2 );
-        control1.getProgramInstances().add( programInstance3 );
-        control2.getProgramInstances().add( programInstance4 );
-        trackedEntityInstanceService.updateTrackedEntityInstance( original );
-        trackedEntityInstanceService.updateTrackedEntityInstance( duplicate );
-        trackedEntityInstanceService.updateTrackedEntityInstance( control1 );
-        trackedEntityInstanceService.updateTrackedEntityInstance( control2 );
-        assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( original.getUid() ) );
-        assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( duplicate.getUid() ) );
-        assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( control1.getUid() ) );
-        assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( control2.getUid() ) );
-        removeTrackedEntity( duplicate );
-        assertNull( programInstanceService.getProgramInstance( programInstance2.getUid() ) );
-        assertNotNull( programInstanceService.getProgramInstance( programInstance1.getUid() ) );
-        assertNotNull( programInstanceService.getProgramInstance( programInstance3.getUid() ) );
-        assertNotNull( programInstanceService.getProgramInstance( programInstance4.getUid() ) );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( duplicate.getUid() ) );
-    }
+  @Test
+  void shouldDeleteEnrollments() {
+    OrganisationUnit ou = createOrganisationUnit("OU_A");
+    organisationUnitService.addOrganisationUnit(ou);
+    TrackedEntityInstance original = createTrackedEntityInstance(ou);
+    TrackedEntityInstance duplicate = createTrackedEntityInstance(ou);
+    TrackedEntityInstance control1 = createTrackedEntityInstance(ou);
+    TrackedEntityInstance control2 = createTrackedEntityInstance(ou);
+    trackedEntityInstanceService.addTrackedEntityInstance(original);
+    trackedEntityInstanceService.addTrackedEntityInstance(duplicate);
+    trackedEntityInstanceService.addTrackedEntityInstance(control1);
+    trackedEntityInstanceService.addTrackedEntityInstance(control2);
+    Program program = createProgram('A');
+    programService.addProgram(program);
+    ProgramInstance programInstance1 = createProgramInstance(program, original, ou);
+    ProgramInstance programInstance2 = createProgramInstance(program, duplicate, ou);
+    ProgramInstance programInstance3 = createProgramInstance(program, control1, ou);
+    ProgramInstance programInstance4 = createProgramInstance(program, control2, ou);
+    programInstanceService.addProgramInstance(programInstance1);
+    programInstanceService.addProgramInstance(programInstance2);
+    programInstanceService.addProgramInstance(programInstance3);
+    programInstanceService.addProgramInstance(programInstance4);
+    original.getProgramInstances().add(programInstance1);
+    duplicate.getProgramInstances().add(programInstance2);
+    control1.getProgramInstances().add(programInstance3);
+    control2.getProgramInstances().add(programInstance4);
+    trackedEntityInstanceService.updateTrackedEntityInstance(original);
+    trackedEntityInstanceService.updateTrackedEntityInstance(duplicate);
+    trackedEntityInstanceService.updateTrackedEntityInstance(control1);
+    trackedEntityInstanceService.updateTrackedEntityInstance(control2);
+    assertNotNull(trackedEntityInstanceService.getTrackedEntityInstance(original.getUid()));
+    assertNotNull(trackedEntityInstanceService.getTrackedEntityInstance(duplicate.getUid()));
+    assertNotNull(trackedEntityInstanceService.getTrackedEntityInstance(control1.getUid()));
+    assertNotNull(trackedEntityInstanceService.getTrackedEntityInstance(control2.getUid()));
+    removeTrackedEntity(duplicate);
+    assertNull(programInstanceService.getProgramInstance(programInstance2.getUid()));
+    assertNotNull(programInstanceService.getProgramInstance(programInstance1.getUid()));
+    assertNotNull(programInstanceService.getProgramInstance(programInstance3.getUid()));
+    assertNotNull(programInstanceService.getProgramInstance(programInstance4.getUid()));
+    assertNull(trackedEntityInstanceService.getTrackedEntityInstance(duplicate.getUid()));
+  }
 
-    private TrackedEntityInstance createTei( TrackedEntityAttribute trackedEntityAttribute )
-    {
-        OrganisationUnit ou = createOrganisationUnit( "OU_A" );
-        organisationUnitService.addOrganisationUnit( ou );
-        TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( 'T', ou, trackedEntityAttribute );
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstance );
-        return trackedEntityInstance;
-    }
+  private TrackedEntityInstance createTei(TrackedEntityAttribute trackedEntityAttribute) {
+    OrganisationUnit ou = createOrganisationUnit("OU_A");
+    organisationUnitService.addOrganisationUnit(ou);
+    TrackedEntityInstance trackedEntityInstance =
+        createTrackedEntityInstance('T', ou, trackedEntityAttribute);
+    trackedEntityInstanceService.addTrackedEntityInstance(trackedEntityInstance);
+    return trackedEntityInstance;
+  }
 
-    private void removeTrackedEntity( TrackedEntityInstance trackedEntityInstance )
-    {
-        potentialDuplicateStore.removeTrackedEntity( trackedEntityInstance );
-    }
+  private void removeTrackedEntity(TrackedEntityInstance trackedEntityInstance) {
+    potentialDuplicateStore.removeTrackedEntity(trackedEntityInstance);
+  }
 }

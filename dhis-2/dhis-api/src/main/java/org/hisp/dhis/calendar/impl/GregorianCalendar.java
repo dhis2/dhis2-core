@@ -37,29 +37,24 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class GregorianCalendar extends ChronologyBasedCalendar
-{
-    private static final Calendar SELF = new GregorianCalendar();
+public class GregorianCalendar extends ChronologyBasedCalendar {
+  private static final Calendar SELF = new GregorianCalendar();
 
-    public static Calendar getInstance()
-    {
-        return SELF;
-    }
+  public static Calendar getInstance() {
+    return SELF;
+  }
 
-    protected GregorianCalendar()
-    {
-        super( GregorianChronology.getInstance( DateTimeZone.getDefault() ) );
-    }
+  protected GregorianCalendar() {
+    super(GregorianChronology.getInstance(DateTimeZone.getDefault()));
+  }
 
-    @Override
-    public String name()
-    {
-        return "gregorian";
-    }
+  @Override
+  public String name() {
+    return "gregorian";
+  }
 
-    @Override
-    public boolean isIso8601()
-    {
-        return true;
-    }
+  @Override
+  public boolean isIso8601() {
+    return true;
+  }
 }

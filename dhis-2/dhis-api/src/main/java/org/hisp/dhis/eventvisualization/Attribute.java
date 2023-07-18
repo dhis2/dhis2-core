@@ -28,17 +28,15 @@
 package org.hisp.dhis.eventvisualization;
 
 /**
- * Holds the name of existing event visualization attributes that might be
- * associated to any dimension.
+ * Holds the name of existing event visualization attributes that might be associated to any
+ * dimension.
  *
- * Is very likely that the associated dimension will refer to a parent attribute
- * in this Enum.
+ * <p>Is very likely that the associated dimension will refer to a parent attribute in this Enum.
  *
  * @author maikel arabori
  */
-public enum Attribute
-{
-    COLUMN,
-    ROW,
-    FILTER;
+public enum Attribute {
+  COLUMN,
+  ROW,
+  FILTER;
 }

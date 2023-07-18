@@ -37,7 +37,6 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -66,376 +65,409 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class AssignDataValueExecutorTest extends DhisConvenienceTest
-{
-    private final static String EVENT_ID = "EventId";
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class AssignDataValueExecutorTest extends DhisConvenienceTest {
+  private static final String EVENT_ID = "EventId";
 
-    private final static String SECOND_EVENT_ID = "SecondEventId";
+  private static final String SECOND_EVENT_ID = "SecondEventId";
 
-    private final static String DATA_ELEMENT_ID = "DataElementId";
+  private static final String DATA_ELEMENT_ID = "DataElementId";
 
-    private final static String DATA_ELEMENT_CODE = "DataElementCode";
+  private static final String DATA_ELEMENT_CODE = "DataElementCode";
 
-    private final static String ANOTHER_DATA_ELEMENT_ID = "AnotherDataElementId";
+  private static final String ANOTHER_DATA_ELEMENT_ID = "AnotherDataElementId";
 
-    private final static String OPTION_SET_DATA_ELEMENT_ID = "OptionSetDataElementId";
+  private static final String OPTION_SET_DATA_ELEMENT_ID = "OptionSetDataElementId";
 
-    private final static String DATAELEMENT_OLD_VALUE = "10.0";
+  private static final String DATAELEMENT_OLD_VALUE = "10.0";
 
-    private final static String DATAELEMENT_NEW_VALUE = "24.0";
+  private static final String DATAELEMENT_NEW_VALUE = "24.0";
 
-    private final static String VALID_OPTION_VALUE = "10";
+  private static final String VALID_OPTION_VALUE = "10";
 
-    private final static String INVALID_OPTION_VALUE = "0";
+  private static final String INVALID_OPTION_VALUE = "0";
 
-    private static ProgramStage firstProgramStage;
+  private static ProgramStage firstProgramStage;
 
-    private static ProgramStage secondProgramStage;
+  private static ProgramStage secondProgramStage;
 
-    private static DataElement dataElementA;
+  private static DataElement dataElementA;
 
-    private static DataElement dataElementB;
+  private static DataElement dataElementB;
 
-    private static DataElement optionSetDataElement;
+  private static DataElement optionSetDataElement;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    @Mock
-    private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingManager systemSettingManager;
 
-    @BeforeEach
-    void setUpTest()
-    {
-        firstProgramStage = createProgramStage( 'A', 0 );
-        firstProgramStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        dataElementA = createDataElement( 'A' );
-        dataElementA.setUid( DATA_ELEMENT_ID );
-        dataElementA.setCode( DATA_ELEMENT_CODE );
-        ProgramStageDataElement programStageDataElementA = createProgramStageDataElement( firstProgramStage,
-            dataElementA, 0 );
-        firstProgramStage.setProgramStageDataElements( Set.of( programStageDataElementA ) );
-        secondProgramStage = createProgramStage( 'B', 0 );
-        secondProgramStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        dataElementB = createDataElement( 'B' );
-        dataElementB.setUid( ANOTHER_DATA_ELEMENT_ID );
-        ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( secondProgramStage,
-            dataElementB, 0 );
-        optionSetDataElement = createDataElement( 'P' );
-        optionSetDataElement.setUid( OPTION_SET_DATA_ELEMENT_ID );
-        OptionSet optionSet = new OptionSet();
-        Option option = new Option( "ten", "10" );
-        optionSet.setOptions( List.of( option ) );
-        optionSet.setValueType( ValueType.TEXT );
-        optionSetDataElement.setOptionSet( optionSet );
-        ProgramStageDataElement programStageDataElementOptionSet = createProgramStageDataElement( secondProgramStage,
-            optionSetDataElement, 0 );
-        secondProgramStage
-            .setProgramStageDataElements( Set.of( programStageDataElementB, programStageDataElementOptionSet ) );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) ) )
-            .thenReturn( firstProgramStage );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( secondProgramStage ) ) )
-            .thenReturn( secondProgramStage );
-        when( preheat.getDataElement( DATA_ELEMENT_ID ) ).thenReturn( dataElementA );
-        when( preheat.getDataElement( OPTION_SET_DATA_ELEMENT_ID ) ).thenReturn( optionSetDataElement );
+  @BeforeEach
+  void setUpTest() {
+    firstProgramStage = createProgramStage('A', 0);
+    firstProgramStage.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
+    dataElementA = createDataElement('A');
+    dataElementA.setUid(DATA_ELEMENT_ID);
+    dataElementA.setCode(DATA_ELEMENT_CODE);
+    ProgramStageDataElement programStageDataElementA =
+        createProgramStageDataElement(firstProgramStage, dataElementA, 0);
+    firstProgramStage.setProgramStageDataElements(Set.of(programStageDataElementA));
+    secondProgramStage = createProgramStage('B', 0);
+    secondProgramStage.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
+    dataElementB = createDataElement('B');
+    dataElementB.setUid(ANOTHER_DATA_ELEMENT_ID);
+    ProgramStageDataElement programStageDataElementB =
+        createProgramStageDataElement(secondProgramStage, dataElementB, 0);
+    optionSetDataElement = createDataElement('P');
+    optionSetDataElement.setUid(OPTION_SET_DATA_ELEMENT_ID);
+    OptionSet optionSet = new OptionSet();
+    Option option = new Option("ten", "10");
+    optionSet.setOptions(List.of(option));
+    optionSet.setValueType(ValueType.TEXT);
+    optionSetDataElement.setOptionSet(optionSet);
+    ProgramStageDataElement programStageDataElementOptionSet =
+        createProgramStageDataElement(secondProgramStage, optionSetDataElement, 0);
+    secondProgramStage.setProgramStageDataElements(
+        Set.of(programStageDataElementB, programStageDataElementOptionSet));
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(firstProgramStage)))
+        .thenReturn(firstProgramStage);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(secondProgramStage)))
+        .thenReturn(secondProgramStage);
+    when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElementA);
+    when(preheat.getDataElement(OPTION_SET_DATA_ELEMENT_ID)).thenReturn(optionSetDataElement);
 
-        bundle = TrackerBundle.builder().build();
-        bundle.setPreheat( preheat );
-        when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
-            .thenReturn( Boolean.FALSE );
-    }
+    bundle = TrackerBundle.builder().build();
+    bundle.setPreheat(preheat);
+    when(systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
+        .thenReturn(Boolean.FALSE);
+  }
 
-    @Test
-    void shouldFailWhenAssignedValueIsInvalidOptionAndDataValueIsValidOption()
-    {
-        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
-        Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
-        List<Event> events = List.of( eventWithOptionDataValue );
-        bundle.setEvents( events );
+  @Test
+  void shouldFailWhenAssignedValueIsInvalidOptionAndDataValueIsValidOption() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
+    List<Event> events = List.of(eventWithOptionDataValue);
+    bundle.setEvents(events);
 
-        AssignDataValueExecutor executor = new AssignDataValueExecutor( systemSettingManager,
-            "", INVALID_OPTION_VALUE, OPTION_SET_DATA_ELEMENT_ID, eventWithOptionDataValue.getDataValues() );
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            systemSettingManager,
+            "",
+            INVALID_OPTION_VALUE,
+            OPTION_SET_DATA_ELEMENT_ID,
+            eventWithOptionDataValue.getDataValues());
 
-        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle, eventWithOptionDataValue );
+    Optional<ProgramRuleIssue> warning =
+        executor.executeRuleAction(bundle, eventWithOptionDataValue);
 
-        Optional<DataValue> dataValue = findDataValueByUid( bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_ID );
+    Optional<DataValue> dataValue =
+        findDataValueByUid(bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_ID);
 
-        assertDataValueWasNotAssignedAndErrorIsPresent( VALID_OPTION_VALUE, dataValue, warning );
-    }
+    assertDataValueWasNotAssignedAndErrorIsPresent(VALID_OPTION_VALUE, dataValue, warning);
+  }
 
-    @Test
-    void shouldAssignDataValueWhenAssignedValueIsValidOptionAndDataValueIsEmpty()
-    {
-        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
-        Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
-        List<Event> events = List.of( eventWithOptionDataValue );
-        bundle.setEvents( events );
+  @Test
+  void shouldAssignDataValueWhenAssignedValueIsValidOptionAndDataValueIsEmpty() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
+    List<Event> events = List.of(eventWithOptionDataValue);
+    bundle.setEvents(events);
 
-        AssignDataValueExecutor executor = new AssignDataValueExecutor( systemSettingManager,
-            "", VALID_OPTION_VALUE, OPTION_SET_DATA_ELEMENT_ID, eventWithOptionDataValue.getDataValues() );
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            systemSettingManager,
+            "",
+            VALID_OPTION_VALUE,
+            OPTION_SET_DATA_ELEMENT_ID,
+            eventWithOptionDataValue.getDataValues());
 
-        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle, eventWithOptionDataValue );
+    Optional<ProgramRuleIssue> warning =
+        executor.executeRuleAction(bundle, eventWithOptionDataValue);
 
-        Optional<DataValue> dataValue = findDataValueByUid( bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_ID );
+    Optional<DataValue> dataValue =
+        findDataValueByUid(bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_ID);
 
-        assertTrue( dataValue.isPresent() );
-        assertEquals( VALID_OPTION_VALUE, dataValue.get().getValue() );
-        assertTrue( warning.isPresent() );
-        assertEquals( WARNING, warning.get().getIssueType() );
-    }
+    assertTrue(dataValue.isPresent());
+    assertEquals(VALID_OPTION_VALUE, dataValue.get().getValue());
+    assertTrue(warning.isPresent());
+    assertEquals(WARNING, warning.get().getIssueType());
+  }
 
-    @Test
-    void shouldAssignDataValueWhenAssignedValueIsInvalidOptionAndDataValueIsEmpty()
-    {
-        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
-        Event eventWithOptionDataValue = getEventWithDataValueNOTSet();
-        List<Event> events = List.of( eventWithOptionDataValue );
-        bundle.setEvents( events );
+  @Test
+  void shouldAssignDataValueWhenAssignedValueIsInvalidOptionAndDataValueIsEmpty() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    Event eventWithOptionDataValue = getEventWithDataValueNOTSet();
+    List<Event> events = List.of(eventWithOptionDataValue);
+    bundle.setEvents(events);
 
-        AssignDataValueExecutor executor = new AssignDataValueExecutor( systemSettingManager,
-            "", INVALID_OPTION_VALUE, OPTION_SET_DATA_ELEMENT_ID, eventWithOptionDataValue.getDataValues() );
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            systemSettingManager,
+            "",
+            INVALID_OPTION_VALUE,
+            OPTION_SET_DATA_ELEMENT_ID,
+            eventWithOptionDataValue.getDataValues());
 
-        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle, eventWithOptionDataValue );
+    Optional<ProgramRuleIssue> warning =
+        executor.executeRuleAction(bundle, eventWithOptionDataValue);
 
-        Optional<DataValue> dataValue = findDataValueByUid( bundle, SECOND_EVENT_ID, OPTION_SET_DATA_ELEMENT_ID );
+    Optional<DataValue> dataValue =
+        findDataValueByUid(bundle, SECOND_EVENT_ID, OPTION_SET_DATA_ELEMENT_ID);
 
-        assertAll(
-            () -> assertTrue( dataValue.isEmpty() ),
-            () -> assertTrue( warning.isPresent() ),
-            () -> assertEquals( WARNING, warning.get().getIssueType() ) );
-    }
+    assertAll(
+        () -> assertTrue(dataValue.isEmpty()),
+        () -> assertTrue(warning.isPresent()),
+        () -> assertEquals(WARNING, warning.get().getIssueType()));
+  }
 
-    @Test
-    void shouldAssignNullDataValueWhenAssignedValueIsInvalidOptionAndOverwriteIsTrue()
-    {
-        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
-        when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
-            .thenReturn( Boolean.TRUE );
-        Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
-        List<Event> events = List.of( eventWithOptionDataValue );
-        bundle.setEvents( events );
+  @Test
+  void shouldAssignNullDataValueWhenAssignedValueIsInvalidOptionAndOverwriteIsTrue() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
+        .thenReturn(Boolean.TRUE);
+    Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
+    List<Event> events = List.of(eventWithOptionDataValue);
+    bundle.setEvents(events);
 
-        AssignDataValueExecutor executor = new AssignDataValueExecutor( systemSettingManager,
-            "", INVALID_OPTION_VALUE, OPTION_SET_DATA_ELEMENT_ID, eventWithOptionDataValue.getDataValues() );
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            systemSettingManager,
+            "",
+            INVALID_OPTION_VALUE,
+            OPTION_SET_DATA_ELEMENT_ID,
+            eventWithOptionDataValue.getDataValues());
 
-        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle, eventWithOptionDataValue );
+    Optional<ProgramRuleIssue> warning =
+        executor.executeRuleAction(bundle, eventWithOptionDataValue);
 
-        Optional<DataValue> dataValue = findDataValueByUid( bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_ID );
+    Optional<DataValue> dataValue =
+        findDataValueByUid(bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_ID);
 
-        assertDataValueWasAssignedAndWarningIsPresent( null, dataValue, warning );
-    }
+    assertDataValueWasAssignedAndWarningIsPresent(null, dataValue, warning);
+  }
 
-    @Test
-    void shouldAssignDataValueValueForEventsWhenDataValueIsEmpty()
-    {
-        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
-        Event eventWithDataValueNOTSet = getEventWithDataValueNOTSet();
-        List<Event> events = List.of( eventWithDataValueNOTSet );
-        bundle.setEvents( events );
+  @Test
+  void shouldAssignDataValueValueForEventsWhenDataValueIsEmpty() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    Event eventWithDataValueNOTSet = getEventWithDataValueNOTSet();
+    List<Event> events = List.of(eventWithDataValueNOTSet);
+    bundle.setEvents(events);
 
-        AssignDataValueExecutor executor = new AssignDataValueExecutor( systemSettingManager,
-            "", DATAELEMENT_NEW_VALUE, DATA_ELEMENT_ID, eventWithDataValueNOTSet.getDataValues() );
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            systemSettingManager,
+            "",
+            DATAELEMENT_NEW_VALUE,
+            DATA_ELEMENT_ID,
+            eventWithDataValueNOTSet.getDataValues());
 
-        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle, eventWithDataValueNOTSet );
+    Optional<ProgramRuleIssue> warning =
+        executor.executeRuleAction(bundle, eventWithDataValueNOTSet);
 
-        Optional<DataValue> dataValue = findDataValueByUid( bundle, SECOND_EVENT_ID, DATA_ELEMENT_ID );
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, SECOND_EVENT_ID, DATA_ELEMENT_ID);
 
-        assertDataValueWasAssignedAndWarningIsPresent( DATAELEMENT_NEW_VALUE, dataValue, warning );
-    }
+    assertDataValueWasAssignedAndWarningIsPresent(DATAELEMENT_NEW_VALUE, dataValue, warning);
+  }
 
-    @Test
-    void shouldNotAssignDataValueValueForEventsWhenDataValueIsAlreadyPresent()
-    {
-        Event eventWithDataValueSet = getEventWithDataValueSet();
-        List<Event> events = List.of( eventWithDataValueSet );
-        bundle.setEvents( events );
+  @Test
+  void shouldNotAssignDataValueValueForEventsWhenDataValueIsAlreadyPresent() {
+    Event eventWithDataValueSet = getEventWithDataValueSet();
+    List<Event> events = List.of(eventWithDataValueSet);
+    bundle.setEvents(events);
 
-        AssignDataValueExecutor executor = new AssignDataValueExecutor( systemSettingManager,
-            "", DATAELEMENT_NEW_VALUE, DATA_ELEMENT_ID, eventWithDataValueSet.getDataValues() );
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            systemSettingManager,
+            "",
+            DATAELEMENT_NEW_VALUE,
+            DATA_ELEMENT_ID,
+            eventWithDataValueSet.getDataValues());
 
-        Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle, eventWithDataValueSet );
+    Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, eventWithDataValueSet);
 
-        Optional<DataValue> dataValue = findDataValueByUid( bundle, EVENT_ID, DATA_ELEMENT_ID );
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_ID, DATA_ELEMENT_ID);
 
-        assertDataValueWasNotAssignedAndErrorIsPresent( DATAELEMENT_OLD_VALUE, dataValue, error );
-    }
+    assertDataValueWasNotAssignedAndErrorIsPresent(DATAELEMENT_OLD_VALUE, dataValue, error);
+  }
 
-    @Test
-    void shouldNotAssignDataValueValueForEventsWhenDataValueIsAlreadyPresentUsingIdSchemeCode()
-    {
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
-            .dataElementIdScheme( TrackerIdSchemeParam.CODE )
+  @Test
+  void shouldNotAssignDataValueValueForEventsWhenDataValueIsAlreadyPresentUsingIdSchemeCode() {
+    TrackerIdSchemeParams idSchemes =
+        TrackerIdSchemeParams.builder().dataElementIdScheme(TrackerIdSchemeParam.CODE).build();
+    when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElementA);
+    Event eventWithDataValueSet = getEventWithDataValueSet(idSchemes);
+    List<Event> events = List.of(eventWithDataValueSet);
+    bundle.setEvents(events);
+
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            systemSettingManager,
+            "",
+            DATAELEMENT_NEW_VALUE,
+            DATA_ELEMENT_ID,
+            eventWithDataValueSet.getDataValues());
+
+    Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, eventWithDataValueSet);
+
+    Optional<DataValue> dataValue = findDataValueByCode(bundle, EVENT_ID, DATA_ELEMENT_CODE);
+
+    assertDataValueWasNotAssignedAndErrorIsPresent(DATAELEMENT_OLD_VALUE, dataValue, error);
+  }
+
+  @Test
+  void shouldAssignDataValueValueForEventsWhenDataValueIsAlreadyPresentAndHasTheSameValue() {
+    Event eventWithDataValueSetSameValue = getEventWithDataValueSetSameValue();
+    List<Event> events = List.of(eventWithDataValueSetSameValue);
+    bundle.setEvents(events);
+
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            systemSettingManager,
+            "",
+            DATAELEMENT_NEW_VALUE,
+            DATA_ELEMENT_ID,
+            eventWithDataValueSetSameValue.getDataValues());
+
+    Optional<ProgramRuleIssue> warning =
+        executor.executeRuleAction(bundle, eventWithDataValueSetSameValue);
+
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_ID, DATA_ELEMENT_ID);
+
+    assertDataValueWasAssignedAndWarningIsPresent(DATAELEMENT_NEW_VALUE, dataValue, warning);
+  }
+
+  @Test
+  void
+      shouldAssignDataValueValueForEventsWhenDataValueIsAlreadyPresentAndSystemSettingToOverwriteIsTrue() {
+    Event eventWithDataValueSet = getEventWithDataValueSet();
+    List<Event> events = List.of(eventWithDataValueSet);
+    bundle.setEvents(events);
+    when(systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
+        .thenReturn(Boolean.TRUE);
+
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            systemSettingManager,
+            "",
+            DATAELEMENT_NEW_VALUE,
+            DATA_ELEMENT_ID,
+            eventWithDataValueSet.getDataValues());
+
+    Optional<ProgramRuleIssue> warning = executor.executeRuleAction(bundle, eventWithDataValueSet);
+
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_ID, DATA_ELEMENT_ID);
+
+    assertDataValueWasAssignedAndWarningIsPresent(DATAELEMENT_NEW_VALUE, dataValue, warning);
+  }
+
+  private Optional<DataValue> findDataValueByUid(
+      TrackerBundle bundle, String eventUid, String dataValueUid) {
+    Event event = bundle.findEventByUid(eventUid).get();
+    return event.getDataValues().stream()
+        .filter(dv -> dv.getDataElement().equals(MetadataIdentifier.ofUid(dataValueUid)))
+        .findAny();
+  }
+
+  private Optional<DataValue> findDataValueByCode(
+      TrackerBundle bundle, String eventUid, String dataValueCode) {
+    Event event = bundle.findEventByUid(eventUid).get();
+    return event.getDataValues().stream()
+        .filter(dv -> dv.getDataElement().equals(MetadataIdentifier.ofCode(dataValueCode)))
+        .findAny();
+  }
+
+  private void assertDataValueWasAssignedAndWarningIsPresent(
+      String dataValue, Optional<DataValue> dataElement, Optional<ProgramRuleIssue> warning) {
+    assertDataValueWasAssignedAndValidationIsPresent(dataValue, dataElement, warning, WARNING);
+  }
+
+  private void assertDataValueWasNotAssignedAndErrorIsPresent(
+      String dataValue, Optional<DataValue> dataElement, Optional<ProgramRuleIssue> error) {
+    assertDataValueWasAssignedAndValidationIsPresent(dataValue, dataElement, error, ERROR);
+  }
+
+  private void assertDataValueWasAssignedAndValidationIsPresent(
+      String dataValue,
+      Optional<DataValue> dataElement,
+      Optional<ProgramRuleIssue> warning,
+      IssueType issueType) {
+    assertTrue(dataElement.isPresent());
+    assertEquals(dataValue, dataElement.get().getValue());
+    assertTrue(warning.isPresent());
+    assertEquals(issueType, warning.get().getIssueType());
+  }
+
+  private Event getEventWithDataValueSet() {
+    return Event.builder()
+        .event(EVENT_ID)
+        .status(EventStatus.ACTIVE)
+        .dataValues(getDataValues())
+        .build();
+  }
+
+  private Event getEventWithDataValueSet(TrackerIdSchemeParams idSchemes) {
+    return Event.builder()
+        .event(EVENT_ID)
+        .status(EventStatus.ACTIVE)
+        .dataValues(getDataValues(idSchemes))
+        .build();
+  }
+
+  private Event getEventWithDataValueSetSameValue() {
+    return Event.builder()
+        .event(EVENT_ID)
+        .status(EventStatus.ACTIVE)
+        .dataValues(getDataValuesSameValue())
+        .build();
+  }
+
+  private Event getEventWithOptionSetDataValueWithValidValue() {
+    return Event.builder()
+        .event(EVENT_ID)
+        .status(EventStatus.ACTIVE)
+        .dataValues(getOptionSetDataValues())
+        .build();
+  }
+
+  private Event getEventWithDataValueNOTSet() {
+    return Event.builder().event(SECOND_EVENT_ID).status(EventStatus.COMPLETED).build();
+  }
+
+  private Set<DataValue> getDataValues(TrackerIdSchemeParams idSchemes) {
+    DataValue dataValue =
+        DataValue.builder()
+            .dataElement(idSchemes.toMetadataIdentifier(dataElementA))
+            .value(DATAELEMENT_OLD_VALUE)
             .build();
-        when( preheat.getDataElement( DATA_ELEMENT_ID ) ).thenReturn( dataElementA );
-        Event eventWithDataValueSet = getEventWithDataValueSet( idSchemes );
-        List<Event> events = List.of( eventWithDataValueSet );
-        bundle.setEvents( events );
+    return Set.of(dataValue);
+  }
 
-        AssignDataValueExecutor executor = new AssignDataValueExecutor( systemSettingManager,
-            "", DATAELEMENT_NEW_VALUE, DATA_ELEMENT_ID, eventWithDataValueSet.getDataValues() );
-
-        Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle, eventWithDataValueSet );
-
-        Optional<DataValue> dataValue = findDataValueByCode( bundle, EVENT_ID, DATA_ELEMENT_CODE );
-
-        assertDataValueWasNotAssignedAndErrorIsPresent( DATAELEMENT_OLD_VALUE, dataValue, error );
-    }
-
-    @Test
-    void shouldAssignDataValueValueForEventsWhenDataValueIsAlreadyPresentAndHasTheSameValue()
-    {
-        Event eventWithDataValueSetSameValue = getEventWithDataValueSetSameValue();
-        List<Event> events = List.of( eventWithDataValueSetSameValue );
-        bundle.setEvents( events );
-
-        AssignDataValueExecutor executor = new AssignDataValueExecutor( systemSettingManager,
-            "", DATAELEMENT_NEW_VALUE, DATA_ELEMENT_ID, eventWithDataValueSetSameValue.getDataValues() );
-
-        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle,
-            eventWithDataValueSetSameValue );
-
-        Optional<DataValue> dataValue = findDataValueByUid( bundle, EVENT_ID, DATA_ELEMENT_ID );
-
-        assertDataValueWasAssignedAndWarningIsPresent( DATAELEMENT_NEW_VALUE, dataValue, warning );
-    }
-
-    @Test
-    void shouldAssignDataValueValueForEventsWhenDataValueIsAlreadyPresentAndSystemSettingToOverwriteIsTrue()
-    {
-        Event eventWithDataValueSet = getEventWithDataValueSet();
-        List<Event> events = List.of( eventWithDataValueSet );
-        bundle.setEvents( events );
-        when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
-            .thenReturn( Boolean.TRUE );
-
-        AssignDataValueExecutor executor = new AssignDataValueExecutor( systemSettingManager,
-            "", DATAELEMENT_NEW_VALUE, DATA_ELEMENT_ID, eventWithDataValueSet.getDataValues() );
-
-        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle, eventWithDataValueSet );
-
-        Optional<DataValue> dataValue = findDataValueByUid( bundle, EVENT_ID, DATA_ELEMENT_ID );
-
-        assertDataValueWasAssignedAndWarningIsPresent( DATAELEMENT_NEW_VALUE, dataValue, warning );
-    }
-
-    private Optional<DataValue> findDataValueByUid( TrackerBundle bundle, String eventUid, String dataValueUid )
-    {
-        Event event = bundle.findEventByUid( eventUid ).get();
-        return event.getDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( MetadataIdentifier.ofUid( dataValueUid ) ) )
-            .findAny();
-    }
-
-    private Optional<DataValue> findDataValueByCode( TrackerBundle bundle, String eventUid, String dataValueCode )
-    {
-        Event event = bundle.findEventByUid( eventUid ).get();
-        return event.getDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( MetadataIdentifier.ofCode( dataValueCode ) ) )
-            .findAny();
-    }
-
-    private void assertDataValueWasAssignedAndWarningIsPresent( String dataValue, Optional<DataValue> dataElement,
-        Optional<ProgramRuleIssue> warning )
-    {
-        assertDataValueWasAssignedAndValidationIsPresent( dataValue, dataElement, warning, WARNING );
-    }
-
-    private void assertDataValueWasNotAssignedAndErrorIsPresent( String dataValue, Optional<DataValue> dataElement,
-        Optional<ProgramRuleIssue> error )
-    {
-        assertDataValueWasAssignedAndValidationIsPresent( dataValue, dataElement, error, ERROR );
-    }
-
-    private void assertDataValueWasAssignedAndValidationIsPresent( String dataValue, Optional<DataValue> dataElement,
-        Optional<ProgramRuleIssue> warning, IssueType issueType )
-    {
-        assertTrue( dataElement.isPresent() );
-        assertEquals( dataValue, dataElement.get().getValue() );
-        assertTrue( warning.isPresent() );
-        assertEquals( issueType, warning.get().getIssueType() );
-    }
-
-    private Event getEventWithDataValueSet()
-    {
-        return Event.builder()
-            .event( EVENT_ID )
-            .status( EventStatus.ACTIVE )
-            .dataValues( getDataValues() )
+  private Set<DataValue> getDataValues() {
+    DataValue dataValue =
+        DataValue.builder()
+            .dataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_ID))
+            .value(DATAELEMENT_OLD_VALUE)
             .build();
-    }
+    return Set.of(dataValue);
+  }
 
-    private Event getEventWithDataValueSet( TrackerIdSchemeParams idSchemes )
-    {
-        return Event.builder()
-            .event( EVENT_ID )
-            .status( EventStatus.ACTIVE )
-            .dataValues( getDataValues( idSchemes ) )
+  private Set<DataValue> getDataValuesSameValue() {
+    DataValue dataValue =
+        DataValue.builder()
+            .dataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_ID))
+            .value(DATAELEMENT_NEW_VALUE)
             .build();
-    }
+    return Set.of(dataValue);
+  }
 
-    private Event getEventWithDataValueSetSameValue()
-    {
-        return Event.builder()
-            .event( EVENT_ID )
-            .status( EventStatus.ACTIVE )
-            .dataValues( getDataValuesSameValue() )
+  private Set<DataValue> getOptionSetDataValues() {
+    DataValue dataValue =
+        DataValue.builder()
+            .dataElement(MetadataIdentifier.ofUid(OPTION_SET_DATA_ELEMENT_ID))
+            .value(VALID_OPTION_VALUE)
             .build();
-    }
-
-    private Event getEventWithOptionSetDataValueWithValidValue()
-    {
-        return Event.builder()
-            .event( EVENT_ID )
-            .status( EventStatus.ACTIVE )
-            .dataValues( getOptionSetDataValues() )
-            .build();
-    }
-
-    private Event getEventWithDataValueNOTSet()
-    {
-        return Event.builder()
-            .event( SECOND_EVENT_ID )
-            .status( EventStatus.COMPLETED )
-            .build();
-    }
-
-    private Set<DataValue> getDataValues( TrackerIdSchemeParams idSchemes )
-    {
-        DataValue dataValue = DataValue.builder()
-            .dataElement( idSchemes.toMetadataIdentifier( dataElementA ) )
-            .value( DATAELEMENT_OLD_VALUE )
-            .build();
-        return Set.of( dataValue );
-    }
-
-    private Set<DataValue> getDataValues()
-    {
-        DataValue dataValue = DataValue.builder()
-            .dataElement( MetadataIdentifier.ofUid( DATA_ELEMENT_ID ) )
-            .value( DATAELEMENT_OLD_VALUE )
-            .build();
-        return Set.of( dataValue );
-    }
-
-    private Set<DataValue> getDataValuesSameValue()
-    {
-        DataValue dataValue = DataValue.builder()
-            .dataElement( MetadataIdentifier.ofUid( DATA_ELEMENT_ID ) )
-            .value( DATAELEMENT_NEW_VALUE )
-            .build();
-        return Set.of( dataValue );
-    }
-
-    private Set<DataValue> getOptionSetDataValues()
-    {
-        DataValue dataValue = DataValue.builder()
-            .dataElement( MetadataIdentifier.ofUid( OPTION_SET_DATA_ELEMENT_ID ) )
-            .value( VALID_OPTION_VALUE )
-            .build();
-        return Set.of( dataValue );
-    }
+    return Set.of(dataValue);
+  }
 }

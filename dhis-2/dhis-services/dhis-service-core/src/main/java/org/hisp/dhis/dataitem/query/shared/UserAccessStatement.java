@@ -46,158 +46,191 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
-public class UserAccessStatement
-{
-    public static final String READ_ACCESS = "r%";
+public class UserAccessStatement {
+  public static final String READ_ACCESS = "r%";
 
-    private UserAccessStatement()
-    {
+  private UserAccessStatement() {}
+
+  /**
+   * Creates a sharing statement for the given column and on the paramsMap. It will also take
+   * consideration user groups if this is set in the paramsMap. This statement will check sharing
+   * conditions for Metadata ONLY.
+   *
+   * @param column the sharing column
+   * @param paramsMap the parameters map
+   * @param access the access condition we are checking for. ie.: r%, for read only access
+   * @return the sharing SQL statement for the current user
+   */
+  public static String sharingConditions(
+      final String column, final String access, final MapSqlParameterSource paramsMap) {
+    final StringBuilder conditions = new StringBuilder();
+
+    conditions
+        .append(" (") // Isolator
+        .append(" ( ") // Grouping clauses
+        .append(publicAccessCondition(column, access))
+        .append(SPACED_OR)
+        .append(ownerAccessCondition(column))
+        .append(SPACED_OR)
+        .append(userAccessCondition(column, access))
+        .append(" ) "); // Grouping clauses closing
+
+    if (hasNonBlankStringPresence(paramsMap, USER_GROUP_UIDS)) {
+      conditions.append(" or (" + userGroupAccessCondition(column, access) + ")");
     }
 
-    /**
-     * Creates a sharing statement for the given column and on the paramsMap. It
-     * will also take consideration user groups if this is set in the paramsMap.
-     * This statement will check sharing conditions for Metadata ONLY.
-     *
-     * @param column the sharing column
-     * @param paramsMap the parameters map
-     * @param access the access condition we are checking for. ie.: r%, for read
-     *        only access
-     * @return the sharing SQL statement for the current user
-     */
-    public static String sharingConditions( final String column, final String access,
-        final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder conditions = new StringBuilder();
+    conditions.append(")"); // Isolator closing
 
-        conditions
-            .append( " (" ) // Isolator
+    return conditions.toString();
+  }
 
-            .append( " ( " ) // Grouping clauses
-            .append( publicAccessCondition( column, access ) )
-            .append( SPACED_OR )
-            .append( ownerAccessCondition( column ) )
-            .append( SPACED_OR )
-            .append( userAccessCondition( column, access ) )
-            .append( " ) " ); // Grouping clauses closing
+  /**
+   * Creates a sharing statement for the given column that checks if given sharing settings present
+   * in the column belongs to the current logged user.
+   *
+   * @param column the sharing column
+   * @return the sharing SQL statement for the current user
+   */
+  public static String checkOwnerConditions(String column) {
+    return "(" + EXTRACT_PATH_TEXT + "(" + column + ", 'owner') = :userUid)";
+  }
 
-        if ( hasNonBlankStringPresence( paramsMap, USER_GROUP_UIDS ) )
-        {
-            conditions.append( " or (" + userGroupAccessCondition( column, access ) + ")" );
-        }
+  /**
+   * Creates a sharing statement for the given columns, based on the paramsMap. It will also take
+   * consideration user groups if this is set in the paramsMap. This statement will check sharing
+   * conditions for Metadata ONLY.
+   *
+   * @param columnOne a sharing column
+   * @param columnTwo the other sharing column
+   * @param access the access condition we are checking for. ie.: r%, for read only access
+   * @param paramsMap the parameters map
+   * @return the sharing SQL statement for the current user
+   */
+  public static String sharingConditions(
+      final String columnOne,
+      final String columnTwo,
+      final String access,
+      final MapSqlParameterSource paramsMap) {
+    final StringBuilder conditions = new StringBuilder();
 
-        conditions.append( ")" ); // Isolator closing
+    conditions
+        .append(" (") // Isolator
+        .append(" ( ") // Grouping clauses
+        .append("(") // Table 1 conditions
+        .append(publicAccessCondition(columnOne, access))
+        .append(SPACED_OR)
+        .append(ownerAccessCondition(columnOne))
+        .append(SPACED_OR)
+        .append(userAccessCondition(columnOne, access))
+        .append(")") // Table 1 conditions end
+        .append(" and (") // Table 2 conditions
+        .append(publicAccessCondition(columnTwo, access))
+        .append(SPACED_OR)
+        .append(ownerAccessCondition(columnTwo))
+        .append(SPACED_OR)
+        .append(userAccessCondition(columnTwo, access))
+        .append(")") // Table 2 conditions end
+        .append(" )"); // Grouping clauses closing
 
-        return conditions.toString();
+    if (hasNonBlankStringPresence(paramsMap, USER_GROUP_UIDS)) {
+      conditions.append(" or (");
+
+      // Program group access checks
+      conditions.append(userGroupAccessCondition(columnOne, access));
+
+      // DataElement access checks
+      conditions.append(SPACED_AND + userGroupAccessCondition(columnTwo, access));
+
+      // Closing OR condition
+      conditions.append(")");
     }
 
-    /**
-     * Creates a sharing statement for the given column that checks if given
-     * sharing settings present in the column belongs to the current logged
-     * user.
-     *
-     * @param column the sharing column
-     * @return the sharing SQL statement for the current user
-     */
-    public static String checkOwnerConditions( String column )
-    {
-        return "(" + EXTRACT_PATH_TEXT + "(" + column + ", 'owner') = :userUid)";
-    }
+    conditions.append(")"); // Isolator closing
 
-    /**
-     * Creates a sharing statement for the given columns, based on the
-     * paramsMap. It will also take consideration user groups if this is set in
-     * the paramsMap. This statement will check sharing conditions for Metadata
-     * ONLY.
-     *
-     * @param columnOne a sharing column
-     * @param columnTwo the other sharing column
-     * @param access the access condition we are checking for. ie.: r%, for read
-     *        only access
-     * @param paramsMap the parameters map
-     * @return the sharing SQL statement for the current user
-     */
-    public static String sharingConditions( final String columnOne, final String columnTwo,
-        final String access, final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder conditions = new StringBuilder();
+    return conditions.toString();
+  }
 
-        conditions
-            .append( " (" ) // Isolator
+  static String ownerAccessCondition(final String column) {
+    assertTableAlias(column);
 
-            .append( " ( " ) // Grouping clauses
-            .append( "(" ) // Table 1 conditions
-            .append( publicAccessCondition( columnOne, access ) )
-            .append( SPACED_OR )
-            .append( ownerAccessCondition( columnOne ) )
-            .append( SPACED_OR )
-            .append( userAccessCondition( columnOne, access ) )
-            .append( ")" ) // Table 1 conditions end
-            .append( " and (" ) // Table 2 conditions
-            .append( publicAccessCondition( columnTwo, access ) )
-            .append( SPACED_OR )
-            .append( ownerAccessCondition( columnTwo ) )
-            .append( SPACED_OR )
-            .append( userAccessCondition( columnTwo, access ) )
-            .append( ")" ) // Table 2 conditions end
-            .append( " )" ); // Grouping clauses closing
+    return "("
+        + EXTRACT_PATH_TEXT
+        + "("
+        + column
+        + ", 'owner') is null or "
+        + EXTRACT_PATH_TEXT
+        + "("
+        + column
+        + ", 'owner') = 'null' or "
+        + EXTRACT_PATH_TEXT
+        + "("
+        + column
+        + ", 'owner') = :userUid)";
+  }
 
-        if ( hasNonBlankStringPresence( paramsMap, USER_GROUP_UIDS ) )
-        {
-            conditions.append( " or (" );
+  static String publicAccessCondition(final String column, final String access) {
+    assertTableAlias(column);
 
-            // Program group access checks
-            conditions.append( userGroupAccessCondition( columnOne, access ) );
+    return "("
+        + EXTRACT_PATH_TEXT
+        + "("
+        + column
+        + ", 'public') is null or "
+        + EXTRACT_PATH_TEXT
+        + "("
+        + column
+        + ", 'public') = 'null' or "
+        + EXTRACT_PATH_TEXT
+        + "("
+        + column
+        + ", 'public') like '"
+        + access
+        + "')";
+  }
 
-            // DataElement access checks
-            conditions.append( SPACED_AND + userGroupAccessCondition( columnTwo, access ) );
+  static String userAccessCondition(final String tableName, final String access) {
+    assertTableAlias(tableName);
 
-            // Closing OR condition
-            conditions.append( ")" );
-        }
+    return "("
+        + HAS_USER_ID
+        + "("
+        + tableName
+        + ", :"
+        + USER_UID
+        + ") = true "
+        + SPACED_AND
+        + CHECK_USER_ACCESS
+        + "("
+        + tableName
+        + ", :"
+        + USER_UID
+        + ", '"
+        + access
+        + "') = true)";
+  }
 
-        conditions.append( ")" ); // Isolator closing
+  static String userGroupAccessCondition(final String column, final String access) {
+    assertTableAlias(column);
 
-        return conditions.toString();
-    }
+    return "("
+        + HAS_USER_GROUP_IDS
+        + "("
+        + column
+        + ", :"
+        + USER_GROUP_UIDS
+        + ") = true "
+        + SPACED_AND
+        + CHECK_USER_GROUPS_ACCESS
+        + "("
+        + column
+        + ", '"
+        + access
+        + "', :"
+        + USER_GROUP_UIDS
+        + ") = true)";
+  }
 
-    static String ownerAccessCondition( final String column )
-    {
-        assertTableAlias( column );
-
-        return "(" + EXTRACT_PATH_TEXT + "(" + column + ", 'owner') is null or "
-            + EXTRACT_PATH_TEXT + "(" + column + ", 'owner') = 'null' or "
-            + EXTRACT_PATH_TEXT + "(" + column + ", 'owner') = :userUid)";
-    }
-
-    static String publicAccessCondition( final String column, final String access )
-    {
-        assertTableAlias( column );
-
-        return "(" + EXTRACT_PATH_TEXT + "(" + column + ", 'public') is null or "
-            + EXTRACT_PATH_TEXT + "(" + column + ", 'public') = 'null' or "
-            + EXTRACT_PATH_TEXT + "(" + column + ", 'public') like '" + access + "')";
-    }
-
-    static String userAccessCondition( final String tableName, final String access )
-    {
-        assertTableAlias( tableName );
-
-        return "(" + HAS_USER_ID + "(" + tableName + ", :" + USER_UID + ") = true "
-            + SPACED_AND + CHECK_USER_ACCESS + "(" + tableName + ", :" + USER_UID + ", '" + access + "') = true)";
-    }
-
-    static String userGroupAccessCondition( final String column, final String access )
-    {
-        assertTableAlias( column );
-
-        return "(" + HAS_USER_GROUP_IDS + "(" + column + ", :" + USER_GROUP_UIDS + ") = true " +
-            SPACED_AND + CHECK_USER_GROUPS_ACCESS + "(" + column + ", '" + access + "', :" + USER_GROUP_UIDS
-            + ") = true)";
-    }
-
-    private static void assertTableAlias( String columnName )
-    {
-        hasText( columnName, "The argument columnName cannot be null/blank." );
-    }
+  private static void assertTableAlias(String columnName) {
+    hasText(columnName, "The argument columnName cannot be null/blank.");
+  }
 }

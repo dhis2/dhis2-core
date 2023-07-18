@@ -27,39 +27,35 @@
  */
 package org.hisp.dhis.commons.jackson.jsonpatch.operations;
 
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchValueOperation;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchValueOperation;
 
 /**
- * Just a combination of the two other operators, first it removes the old value
- * then sets a new one.
+ * Just a combination of the two other operators, first it removes the old value then sets a new
+ * one.
  *
  * @author Morten Olav Hansen
  */
-public class ReplaceOperation extends JsonPatchValueOperation
-{
-    @JsonCreator
-    public ReplaceOperation( @JsonProperty( "path" ) JsonPointer path, @JsonProperty( "value" ) JsonNode value )
-    {
-        super( "replace", path, value );
-    }
+public class ReplaceOperation extends JsonPatchValueOperation {
+  @JsonCreator
+  public ReplaceOperation(
+      @JsonProperty("path") JsonPointer path, @JsonProperty("value") JsonNode value) {
+    super("replace", path, value);
+  }
 
-    @Override
-    public JsonNode apply( JsonNode node )
-        throws JsonPatchException
-    {
-        // TODO replace with custom impl? so we don't need to create new objects
-        final RemoveOperation removeOperation = new RemoveOperation( path );
-        final AddOperation addOperation = new AddOperation( path, value );
+  @Override
+  public JsonNode apply(JsonNode node) throws JsonPatchException {
+    // TODO replace with custom impl? so we don't need to create new objects
+    final RemoveOperation removeOperation = new RemoveOperation(path);
+    final AddOperation addOperation = new AddOperation(path, value);
 
-        node = removeOperation.apply( node );
-        node = addOperation.apply( node );
+    node = removeOperation.apply(node);
+    node = addOperation.apply(node);
 
-        return node;
-    }
+    return node;
+  }
 }

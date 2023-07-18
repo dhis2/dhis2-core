@@ -30,10 +30,8 @@ package org.hisp.dhis.trackedentity;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import lombok.Data;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
@@ -43,40 +41,36 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
- * Encapsulation of a web API request for tracked entity data value audit
- * records.
+ * Encapsulation of a web API request for tracked entity data value audit records.
  *
  * @author Lars Helge Overland
  */
 @Data
-@Accessors( chain = true )
-public class TrackedEntityDataValueAuditQueryParams
-{
-    private List<DataElement> dataElements = new ArrayList<>();
+@Accessors(chain = true)
+public class TrackedEntityDataValueAuditQueryParams {
+  private List<DataElement> dataElements = new ArrayList<>();
 
-    private List<OrganisationUnit> orgUnits = new ArrayList<>();
+  private List<OrganisationUnit> orgUnits = new ArrayList<>();
 
-    private List<ProgramStageInstance> programStageInstances = new ArrayList<>();
+  private List<ProgramStageInstance> programStageInstances = new ArrayList<>();
 
-    private List<ProgramStage> programStages = new ArrayList<>();
+  private List<ProgramStage> programStages = new ArrayList<>();
 
-    private Date startDate;
+  private Date startDate;
 
-    private Date endDate;
+  private Date endDate;
 
-    private OrganisationUnitSelectionMode ouMode;
+  private OrganisationUnitSelectionMode ouMode;
 
-    private List<AuditType> auditTypes = new ArrayList<>();
+  private List<AuditType> auditTypes = new ArrayList<>();
 
-    private Pager pager;
+  private Pager pager;
 
-    public boolean hasOuMode()
-    {
-        return ouMode != null;
-    }
+  public boolean hasOuMode() {
+    return ouMode != null;
+  }
 
-    public boolean hasPaging()
-    {
-        return pager != null;
-    }
+  public boolean hasPaging() {
+    return pager != null;
+  }
 }

@@ -38,23 +38,23 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Luciano Fiandesio
  */
-class AnnotationUtilsTest
-{
+class AnnotationUtilsTest {
 
-    @Test
-    void testIsAnnotationPresent()
-    {
-        TestImplementation testImplementation = new TestImplementation();
-        NestedTestImplementation nestedTestImplementation = new NestedTestImplementation();
-        assertTrue( AnnotationUtils.isAnnotationPresent( testImplementation.getClass(), Auditable.class ) );
-        assertTrue( AnnotationUtils.isAnnotationPresent( nestedTestImplementation.getClass(), Auditable.class ) );
-    }
+  @Test
+  void testIsAnnotationPresent() {
+    TestImplementation testImplementation = new TestImplementation();
+    NestedTestImplementation nestedTestImplementation = new NestedTestImplementation();
+    assertTrue(AnnotationUtils.isAnnotationPresent(testImplementation.getClass(), Auditable.class));
+    assertTrue(
+        AnnotationUtils.isAnnotationPresent(nestedTestImplementation.getClass(), Auditable.class));
+  }
 
-    @Test
-    void testGetAnnotatedFields()
-    {
-        NestedTestImplementation testImplementation = new NestedTestImplementation();
-        assertEquals( 3,
-            AnnotationUtils.getAnnotatedFields( testImplementation.getClass(), AuditAttribute.class ).size() );
-    }
+  @Test
+  void testGetAnnotatedFields() {
+    NestedTestImplementation testImplementation = new NestedTestImplementation();
+    assertEquals(
+        3,
+        AnnotationUtils.getAnnotatedFields(testImplementation.getClass(), AuditAttribute.class)
+            .size());
+  }
 }

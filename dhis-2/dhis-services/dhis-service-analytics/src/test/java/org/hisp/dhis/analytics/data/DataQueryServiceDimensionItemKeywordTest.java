@@ -38,13 +38,15 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -78,619 +80,631 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
-
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class DataQueryServiceDimensionItemKeywordTest
-{
-    private static final DataElement DATA_ELEMENT_1 = getDataElement( "fbfJHSPpUQD", "D1" );
+@ExtendWith(MockitoExtension.class)
+class DataQueryServiceDimensionItemKeywordTest {
+  private static final DataElement DATA_ELEMENT_1 = getDataElement("fbfJHSPpUQD", "D1");
 
-    private static final DataElement DATA_ELEMENT_2 = getDataElement( "cYeuwXTCPkU", "D2" );
+  private static final DataElement DATA_ELEMENT_2 = getDataElement("cYeuwXTCPkU", "D2");
 
-    private static final DataElement DATA_ELEMENT_3 = getDataElement( "Jtf34kNZhzP", "D3" );
+  private static final DataElement DATA_ELEMENT_3 = getDataElement("Jtf34kNZhzP", "D3");
 
-    private static final String PERIOD_DIMENSION = "LAST_12_MONTHS;LAST_YEAR";
+  private static final String PERIOD_DIMENSION = "LAST_12_MONTHS;LAST_YEAR";
 
-    private static final BeanRandomizer rnd = BeanRandomizer
-        .create( Map.of( OrganisationUnitGroup.class, Set.of( "geometry" ),
-            OrganisationUnit.class, Set.of( "geometry", "parent", "groups", "children" ) ) );
+  private static final BeanRandomizer rnd =
+      BeanRandomizer.create(
+          Map.of(
+              OrganisationUnitGroup.class,
+              Set.of("geometry"),
+              OrganisationUnit.class,
+              Set.of("geometry", "parent", "groups", "children")));
 
-    private DimensionalObjectProducer dimensionalObjectProducer;
+  private DimensionalObjectProducer dimensionalObjectProducer;
 
-    private RequestBuilder rb;
+  private RequestBuilder rb;
 
-    private OrganisationUnit rootOu;
+  private OrganisationUnit rootOu;
 
-    private DefaultDataQueryService target;
+  private DefaultDataQueryService target;
 
-    @Mock
-    private IdentifiableObjectManager idObjectManager;
+  @Mock private IdentifiableObjectManager idObjectManager;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    @Mock
-    private DimensionService dimensionService;
+  @Mock private DimensionService dimensionService;
 
-    @Mock
-    private AnalyticsSecurityManager securityManager;
+  @Mock private AnalyticsSecurityManager securityManager;
 
-    @Mock
-    private UserSettingService userSettingService;
+  @Mock private UserSettingService userSettingService;
 
-    @Mock
-    private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingManager systemSettingManager;
 
-    @Mock
-    private AclService aclService;
+  @Mock private AclService aclService;
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private CurrentUserService currentUserService;
 
-    @Mock
-    private I18nManager i18nManager;
+  @Mock private I18nManager i18nManager;
 
-    @Mock
-    private I18n i18n;
+  @Mock private I18n i18n;
 
-    @BeforeEach
-    public void setUp()
-    {
-        dimensionalObjectProducer = new DimensionalObjectProducer( idObjectManager, organisationUnitService,
-            systemSettingManager, i18nManager, dimensionService, aclService, currentUserService );
-        target = new DefaultDataQueryService( dimensionalObjectProducer, idObjectManager,
-            securityManager, userSettingService );
+  @BeforeEach
+  public void setUp() {
+    dimensionalObjectProducer =
+        new DimensionalObjectProducer(
+            idObjectManager,
+            organisationUnitService,
+            systemSettingManager,
+            i18nManager,
+            dimensionService,
+            aclService,
+            currentUserService);
+    target =
+        new DefaultDataQueryService(
+            dimensionalObjectProducer, idObjectManager, securityManager, userSettingService);
 
-        rb = new RequestBuilder();
+    rb = new RequestBuilder();
 
-        Mockito.lenient().when( i18nManager.getI18n() ).thenReturn( i18n );
-        Mockito.lenient().when( i18n.getString( "LAST_12_MONTHS" ) ).thenReturn( "Last 12 months" );
+    Mockito.lenient().when(i18nManager.getI18n()).thenReturn(i18n);
+    Mockito.lenient().when(i18n.getString("LAST_12_MONTHS")).thenReturn("Last 12 months");
 
-        rootOu = new OrganisationUnit( "Sierra Leone" );
-        rootOu.setUid( CodeGenerator.generateUid() );
-        rootOu.setCode( "OU_525" );
-    }
+    rootOu = new OrganisationUnit("Sierra Leone");
+    rootOu.setUid(CodeGenerator.generateUid());
+    rootOu.setCode("OU_525");
+  }
 
-    private void mockDimensionService()
-    {
-        when( dimensionService.getDataDimensionalItemObject( UID, DATA_ELEMENT_1.getUid() ) )
-            .thenReturn( DATA_ELEMENT_1 );
-        when( dimensionService.getDataDimensionalItemObject( UID, DATA_ELEMENT_2.getUid() ) )
-            .thenReturn( DATA_ELEMENT_2 );
-        when( dimensionService.getDataDimensionalItemObject( UID, DATA_ELEMENT_3.getUid() ) )
-            .thenReturn( DATA_ELEMENT_3 );
-    }
+  private void mockDimensionService() {
+    when(dimensionService.getDataDimensionalItemObject(UID, DATA_ELEMENT_1.getUid()))
+        .thenReturn(DATA_ELEMENT_1);
+    when(dimensionService.getDataDimensionalItemObject(UID, DATA_ELEMENT_2.getUid()))
+        .thenReturn(DATA_ELEMENT_2);
+    when(dimensionService.getDataDimensionalItemObject(UID, DATA_ELEMENT_3.getUid()))
+        .thenReturn(DATA_ELEMENT_3);
+  }
 
-    @Test
-    void convertAnalyticsRequestWithOuLevelToDataQueryParam()
-    {
-        mockDimensionService();
+  @Test
+  void convertAnalyticsRequestWithOuLevelToDataQueryParam() {
+    mockDimensionService();
 
-        when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
-            .thenReturn( getOrgUnitLevel( 2, "level2UID", "District", null ) );
-        when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "2" ) ).thenReturn( 2 );
-        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.anyList(), Mockito.anyList() ) )
-            .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
+    when(organisationUnitService.getOrganisationUnitLevelByLevel(2))
+        .thenReturn(getOrgUnitLevel(2, "level2UID", "District", null));
+    when(organisationUnitService.getOrganisationUnitLevelByLevelOrUid("2")).thenReturn(2);
+    when(organisationUnitService.getOrganisationUnitsAtLevels(Mockito.anyList(), Mockito.anyList()))
+        .thenReturn(Lists.newArrayList(new OrganisationUnit(), new OrganisationUnit()));
 
-        rb.addOuFilter( "LEVEL-2;ImspTQPwCqd" );
-        rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
-        rb.addPeDimension( PERIOD_DIMENSION );
+    rb.addOuFilter("LEVEL-2;ImspTQPwCqd");
+    rb.addDimension(concatenateUuid(DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3));
+    rb.addPeDimension(PERIOD_DIMENSION);
 
-        DataQueryRequest request = DataQueryRequest.newBuilder().filter( rb.getFilterParams() )
-            .dimension( rb.getDimensionParams() ).build();
-
-        DataQueryParams params = target.getFromRequest( request );
-
-        DimensionalObject filter = params.getFilters().get( 0 );
-        DimensionItemKeywords keywords = filter.getDimensionItemKeywords();
-
-        assertEquals( 1, keywords.getKeywords().size() );
-
-        assertNotNull( keywords.getKeyword( "level2UID" ) );
-        assertEquals( "District", keywords.getKeyword( "level2UID" ).getMetadataItem().getName() );
-        assertNull( keywords.getKeyword( "level2UID" ).getMetadataItem().getCode() );
-    }
-
-    @Test
-    void convertAnalyticsRequestWithMultipleOuLevelToDataQueryParam()
-    {
-        mockDimensionService();
-
-        when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
-            .thenReturn( getOrgUnitLevel( 2, "level2UID", "District", null ) );
-        when( organisationUnitService.getOrganisationUnitLevelByLevel( 3 ) )
-            .thenReturn( getOrgUnitLevel( 3, "level3UID", "Chiefdom", null ) );
-        when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "3" ) )
-            .thenReturn( 3 );
-        when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "2" ) )
-            .thenReturn( 2 );
-        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.anyList(), Mockito.anyList() ) )
-            .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
-
-        rb.addOuFilter( "LEVEL-2;LEVEL-3;ImspTQPwCqd" );
-        rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
-        rb.addPeDimension( PERIOD_DIMENSION );
-
-        DataQueryRequest request = DataQueryRequest.newBuilder()
-            .filter( rb.getFilterParams() )
-            .dimension( rb.getDimensionParams() ).build();
-
-        DataQueryParams params = target.getFromRequest( request );
-
-        DimensionalObject filter = params.getFilters().get( 0 );
-        DimensionItemKeywords keywords = filter.getDimensionItemKeywords();
-        assertEquals( 2, keywords.getKeywords().size() );
-
-        assertNotNull( keywords.getKeyword( "level2UID" ) );
-        assertEquals( "District", keywords.getKeyword( "level2UID" ).getMetadataItem().getName() );
-        assertNull( keywords.getKeyword( "level2UID" ).getMetadataItem().getCode() );
-
-        assertNotNull( keywords.getKeyword( "level3UID" ) );
-        assertEquals( "Chiefdom", keywords.getKeyword( "level3UID" ).getMetadataItem().getName() );
-        assertNull( keywords.getKeyword( "level3UID" ).getMetadataItem().getCode() );
-    }
-
-    @Test
-    void convertAnalyticsRequestWithIndicatorGroup()
-    {
-        String INDICATOR_GROUP_UID = "oehv9EO3vP7";
-
-        when( dimensionService.getDataDimensionalItemObject( UID, "cYeuwXTCPkU" ) ).thenReturn( new DataElement() );
-
-        IndicatorGroup indicatorGroup = new IndicatorGroup( "dummy" );
-        indicatorGroup.setUid( INDICATOR_GROUP_UID );
-        indicatorGroup.setCode( "CODE_10" );
-        indicatorGroup.setMembers( Sets.newHashSet( new Indicator(), new Indicator() ) );
-        when( idObjectManager.getObject( IndicatorGroup.class, UID, INDICATOR_GROUP_UID ) )
-            .thenReturn( indicatorGroup );
-        when( idObjectManager.getObject( OrganisationUnit.class, UID, "goRUwCHPg1M" ) )
-            .thenReturn( new OrganisationUnit( "aaa" ) );
-        when( idObjectManager.getObject( OrganisationUnit.class, UID, "fdc6uOvgoji" ) )
-            .thenReturn( new OrganisationUnit( "bbb" ) );
-
-        rb.addOuFilter( "goRUwCHPg1M;fdc6uOvgoji" );
-        rb.addDimension( "IN_GROUP-" + INDICATOR_GROUP_UID + ";cYeuwXTCPkU;Jtf34kNZhz" );
-        rb.addPeDimension( PERIOD_DIMENSION );
-
-        DataQueryRequest request = DataQueryRequest.newBuilder().filter( rb.getFilterParams() )
-            .dimension( rb.getDimensionParams() ).build();
-        DataQueryParams params = target.getFromRequest( request );
-        DimensionalObject dimension = params.getDimension( "dx" );
-        assertThat( dimension.getDimensionItemKeywords().getKeywords(), hasSize( 1 ) );
-
-        DimensionItemKeywords.Keyword aggregation = dimension.getDimensionItemKeywords().getKeywords().get( 0 );
-
-        assertThat( aggregation.getMetadataItem().getUid(), is( indicatorGroup.getUid() ) );
-        assertThat( aggregation.getMetadataItem().getCode(), is( indicatorGroup.getCode() ) );
-        assertThat( aggregation.getMetadataItem().getName(), is( indicatorGroup.getName() ) );
-    }
-
-    @Test
-    void convertAnalyticsRequestWithOrgUnitGroup()
-    {
-        mockDimensionService();
-
-        String ouGroupUID = "gzcv65VyaGq";
-
-        initOrgUnitGroup( ouGroupUID );
-
-        rb.addPeDimension( PERIOD_DIMENSION );
-        rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
-        rb.addOuDimension( "OU_GROUP-" + ouGroupUID + ";" + rootOu.getUid() );
-        DataQueryRequest request = DataQueryRequest.newBuilder()
-            .dimension( rb.getDimensionParams() )
+    DataQueryRequest request =
+        DataQueryRequest.newBuilder()
+            .filter(rb.getFilterParams())
+            .dimension(rb.getDimensionParams())
             .build();
-        DataQueryParams params = target.getFromRequest( request );
 
-        assertOrgUnitGroup( ouGroupUID, params.getDimension( "ou" ) );
+    DataQueryParams params = target.getFromRequest(request);
+
+    DimensionalObject filter = params.getFilters().get(0);
+    DimensionItemKeywords keywords = filter.getDimensionItemKeywords();
+
+    assertEquals(1, keywords.getKeywords().size());
+
+    assertNotNull(keywords.getKeyword("level2UID"));
+    assertEquals("District", keywords.getKeyword("level2UID").getMetadataItem().getName());
+    assertNull(keywords.getKeyword("level2UID").getMetadataItem().getCode());
+  }
+
+  @Test
+  void convertAnalyticsRequestWithMultipleOuLevelToDataQueryParam() {
+    mockDimensionService();
+
+    when(organisationUnitService.getOrganisationUnitLevelByLevel(2))
+        .thenReturn(getOrgUnitLevel(2, "level2UID", "District", null));
+    when(organisationUnitService.getOrganisationUnitLevelByLevel(3))
+        .thenReturn(getOrgUnitLevel(3, "level3UID", "Chiefdom", null));
+    when(organisationUnitService.getOrganisationUnitLevelByLevelOrUid("3")).thenReturn(3);
+    when(organisationUnitService.getOrganisationUnitLevelByLevelOrUid("2")).thenReturn(2);
+    when(organisationUnitService.getOrganisationUnitsAtLevels(Mockito.anyList(), Mockito.anyList()))
+        .thenReturn(Lists.newArrayList(new OrganisationUnit(), new OrganisationUnit()));
+
+    rb.addOuFilter("LEVEL-2;LEVEL-3;ImspTQPwCqd");
+    rb.addDimension(concatenateUuid(DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3));
+    rb.addPeDimension(PERIOD_DIMENSION);
+
+    DataQueryRequest request =
+        DataQueryRequest.newBuilder()
+            .filter(rb.getFilterParams())
+            .dimension(rb.getDimensionParams())
+            .build();
+
+    DataQueryParams params = target.getFromRequest(request);
+
+    DimensionalObject filter = params.getFilters().get(0);
+    DimensionItemKeywords keywords = filter.getDimensionItemKeywords();
+    assertEquals(2, keywords.getKeywords().size());
+
+    assertNotNull(keywords.getKeyword("level2UID"));
+    assertEquals("District", keywords.getKeyword("level2UID").getMetadataItem().getName());
+    assertNull(keywords.getKeyword("level2UID").getMetadataItem().getCode());
+
+    assertNotNull(keywords.getKeyword("level3UID"));
+    assertEquals("Chiefdom", keywords.getKeyword("level3UID").getMetadataItem().getName());
+    assertNull(keywords.getKeyword("level3UID").getMetadataItem().getCode());
+  }
+
+  @Test
+  void convertAnalyticsRequestWithIndicatorGroup() {
+    String INDICATOR_GROUP_UID = "oehv9EO3vP7";
+
+    when(dimensionService.getDataDimensionalItemObject(UID, "cYeuwXTCPkU"))
+        .thenReturn(new DataElement());
+
+    IndicatorGroup indicatorGroup = new IndicatorGroup("dummy");
+    indicatorGroup.setUid(INDICATOR_GROUP_UID);
+    indicatorGroup.setCode("CODE_10");
+    indicatorGroup.setMembers(Sets.newHashSet(new Indicator(), new Indicator()));
+    when(idObjectManager.getObject(IndicatorGroup.class, UID, INDICATOR_GROUP_UID))
+        .thenReturn(indicatorGroup);
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, "goRUwCHPg1M"))
+        .thenReturn(new OrganisationUnit("aaa"));
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, "fdc6uOvgoji"))
+        .thenReturn(new OrganisationUnit("bbb"));
+
+    rb.addOuFilter("goRUwCHPg1M;fdc6uOvgoji");
+    rb.addDimension("IN_GROUP-" + INDICATOR_GROUP_UID + ";cYeuwXTCPkU;Jtf34kNZhz");
+    rb.addPeDimension(PERIOD_DIMENSION);
+
+    DataQueryRequest request =
+        DataQueryRequest.newBuilder()
+            .filter(rb.getFilterParams())
+            .dimension(rb.getDimensionParams())
+            .build();
+    DataQueryParams params = target.getFromRequest(request);
+    DimensionalObject dimension = params.getDimension("dx");
+    assertThat(dimension.getDimensionItemKeywords().getKeywords(), hasSize(1));
+
+    DimensionItemKeywords.Keyword aggregation =
+        dimension.getDimensionItemKeywords().getKeywords().get(0);
+
+    assertThat(aggregation.getMetadataItem().getUid(), is(indicatorGroup.getUid()));
+    assertThat(aggregation.getMetadataItem().getCode(), is(indicatorGroup.getCode()));
+    assertThat(aggregation.getMetadataItem().getName(), is(indicatorGroup.getName()));
+  }
+
+  @Test
+  void convertAnalyticsRequestWithOrgUnitGroup() {
+    mockDimensionService();
+
+    String ouGroupUID = "gzcv65VyaGq";
+
+    initOrgUnitGroup(ouGroupUID);
+
+    rb.addPeDimension(PERIOD_DIMENSION);
+    rb.addDimension(concatenateUuid(DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3));
+    rb.addOuDimension("OU_GROUP-" + ouGroupUID + ";" + rootOu.getUid());
+    DataQueryRequest request =
+        DataQueryRequest.newBuilder().dimension(rb.getDimensionParams()).build();
+    DataQueryParams params = target.getFromRequest(request);
+
+    assertOrgUnitGroup(ouGroupUID, params.getDimension("ou"));
+  }
+
+  @Test
+  void convertAnalyticsRequestWithOrgUnitGroupAsFilter() {
+    mockDimensionService();
+
+    String ouGroupUID = "gzcv65VyaGq";
+
+    initOrgUnitGroup(ouGroupUID);
+
+    rb.addPeDimension(PERIOD_DIMENSION);
+    rb.addDimension(concatenateUuid(DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3));
+    rb.addOuFilter("OU_GROUP-" + ouGroupUID + ";" + rootOu.getUid());
+
+    DataQueryRequest request =
+        DataQueryRequest.newBuilder()
+            .dimension(rb.getDimensionParams())
+            .filter(rb.getFilterParams())
+            .build();
+    DataQueryParams params = target.getFromRequest(request);
+
+    assertOrgUnitGroup(ouGroupUID, params.getFilter("ou"));
+  }
+
+  @Test
+  void convertAnalyticsRequestWithOrgUnitLevelAsFilter() {
+    OrganisationUnit level2OuA = new OrganisationUnit("Bo");
+    OrganisationUnit level2OuB = new OrganisationUnit("Bombali");
+
+    mockDimensionService();
+
+    when(organisationUnitService.getOrganisationUnitLevelByLevelOrUid("wjP19dkFeIk")).thenReturn(2);
+
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, "ImspTQPwCqd")).thenReturn(rootOu);
+
+    when(organisationUnitService.getOrganisationUnitsAtLevels(Mockito.anyList(), Mockito.anyList()))
+        .thenReturn(Lists.newArrayList(level2OuA, level2OuB));
+
+    when(organisationUnitService.getOrganisationUnitLevelByLevel(2))
+        .thenReturn(getOrgUnitLevel(2, "level2UID", "District", null));
+
+    rb.addOuFilter("LEVEL-wjP19dkFeIk;ImspTQPwCqd");
+    rb.addDimension(concatenateUuid(DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3));
+    rb.addPeDimension(PERIOD_DIMENSION);
+
+    DataQueryRequest request =
+        DataQueryRequest.newBuilder()
+            .filter(rb.getFilterParams())
+            .dimension(rb.getDimensionParams())
+            .build();
+
+    DataQueryParams params = target.getFromRequest(request);
+    DimensionalObject filter = params.getFilters().get(0);
+    DimensionItemKeywords keywords = filter.getDimensionItemKeywords();
+
+    assertEquals(2, keywords.getKeywords().size());
+
+    assertNotNull(keywords.getKeyword("level2UID"));
+    assertEquals("District", keywords.getKeyword("level2UID").getMetadataItem().getName());
+    assertNull(keywords.getKeyword("level2UID").getMetadataItem().getCode());
+
+    assertNotNull(keywords.getKeyword(rootOu.getUid()));
+    assertEquals("Sierra Leone", keywords.getKeyword(rootOu.getUid()).getMetadataItem().getName());
+    assertEquals(
+        rootOu.getCode(), keywords.getKeyword(rootOu.getUid()).getMetadataItem().getCode());
+  }
+
+  @Test
+  void convertAnalyticsRequestWithOrgUnitLevelAndOrgUnitGroupAsFilter() {
+    OrganisationUnit level2OuA = new OrganisationUnit("Bo");
+    OrganisationUnit level2OuB = new OrganisationUnit("Bombali");
+
+    OrganisationUnit ou1Group = new OrganisationUnit("ou1-group");
+    OrganisationUnit ou2Group = new OrganisationUnit("ou2-group");
+
+    OrganisationUnitGroup groupOu = rnd.nextObject(OrganisationUnitGroup.class);
+
+    mockDimensionService();
+
+    when(organisationUnitService.getOrganisationUnitLevelByLevelOrUid("wjP19dkFeIk")).thenReturn(2);
+
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, "ImspTQPwCqd")).thenReturn(rootOu);
+    when(idObjectManager.getObject(OrganisationUnitGroup.class, UID, "tDZVQ1WtwpA"))
+        .thenReturn(groupOu);
+
+    when(organisationUnitService.getOrganisationUnitsAtLevels(Mockito.anyList(), Mockito.anyList()))
+        .thenReturn(Lists.newArrayList(level2OuA, level2OuB));
+
+    when(organisationUnitService.getOrganisationUnitLevelByLevel(2))
+        .thenReturn(getOrgUnitLevel(2, "level2UID", "District", null));
+
+    when(organisationUnitService.getOrganisationUnits(
+            Lists.newArrayList(groupOu), Lists.newArrayList(rootOu)))
+        .thenReturn(Lists.newArrayList(ou1Group, ou2Group));
+
+    rb.addOuFilter("LEVEL-wjP19dkFeIk;OU_GROUP-tDZVQ1WtwpA;ImspTQPwCqd");
+    rb.addDimension(concatenateUuid(DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3));
+    rb.addPeDimension(PERIOD_DIMENSION);
+
+    DataQueryRequest request =
+        DataQueryRequest.newBuilder()
+            .filter(rb.getFilterParams())
+            .dimension(rb.getDimensionParams())
+            .build();
+
+    DataQueryParams params = target.getFromRequest(request);
+    DimensionalObject filter = params.getFilters().get(0);
+    DimensionItemKeywords keywords = filter.getDimensionItemKeywords();
+
+    assertEquals(3, keywords.getKeywords().size());
+
+    assertNotNull(keywords.getKeyword("level2UID"));
+    assertEquals("District", keywords.getKeyword("level2UID").getMetadataItem().getName());
+    assertNull(keywords.getKeyword("level2UID").getMetadataItem().getCode());
+
+    assertNotNull(keywords.getKeyword(groupOu.getUid()));
+    assertEquals(
+        groupOu.getName(), keywords.getKeyword(groupOu.getUid()).getMetadataItem().getName());
+    assertEquals(
+        groupOu.getCode(), keywords.getKeyword(groupOu.getUid()).getMetadataItem().getCode());
+
+    assertNotNull(keywords.getKeyword(rootOu.getUid()));
+    assertEquals("Sierra Leone", keywords.getKeyword(rootOu.getUid()).getMetadataItem().getName());
+    assertEquals(
+        rootOu.getCode(), keywords.getKeyword(rootOu.getUid()).getMetadataItem().getCode());
+  }
+
+  @Test
+  void convertAnalyticsRequestWithDataElementGroup() {
+    when(dimensionService.getDataDimensionalItemObject(UID, DATA_ELEMENT_2.getUid()))
+        .thenReturn(DATA_ELEMENT_2);
+    String DATA_ELEMENT_GROUP_UID = "oehv9EO3vP7";
+    when(dimensionService.getDataDimensionalItemObject(UID, "cYeuwXTCPkU"))
+        .thenReturn(new DataElement());
+
+    DataElementGroup dataElementGroup = new DataElementGroup("dummy");
+    dataElementGroup.setUid(DATA_ELEMENT_GROUP_UID);
+    dataElementGroup.setCode("CODE_10");
+    dataElementGroup.setMembers(Sets.newHashSet(new DataElement(), new DataElement()));
+
+    when(idObjectManager.getObject(DataElementGroup.class, UID, DATA_ELEMENT_GROUP_UID))
+        .thenReturn(dataElementGroup);
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, "goRUwCHPg1M"))
+        .thenReturn(new OrganisationUnit("aaa"));
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, "fdc6uOvgoji"))
+        .thenReturn(new OrganisationUnit("bbb"));
+
+    rb.addOuFilter("goRUwCHPg1M;fdc6uOvgoji");
+    rb.addDimension("DE_GROUP-" + DATA_ELEMENT_GROUP_UID + ";cYeuwXTCPkU;Jtf34kNZhz");
+    rb.addPeDimension(PERIOD_DIMENSION);
+
+    DataQueryRequest request =
+        DataQueryRequest.newBuilder()
+            .filter(rb.getFilterParams())
+            .dimension(rb.getDimensionParams())
+            .build();
+    DataQueryParams params = target.getFromRequest(request);
+    DimensionalObject dimension = params.getDimension("dx");
+    assertThat(dimension.getDimensionItemKeywords().getKeywords(), hasSize(1));
+
+    DimensionItemKeywords.Keyword aggregation =
+        dimension.getDimensionItemKeywords().getKeywords().get(0);
+
+    assertThat(aggregation.getMetadataItem().getUid(), is(dataElementGroup.getUid()));
+    assertThat(aggregation.getMetadataItem().getCode(), is(dataElementGroup.getCode()));
+    assertThat(aggregation.getMetadataItem().getName(), is(dataElementGroup.getName()));
+  }
+
+  @Test
+  void convertAnalyticsRequestWithDataElementGroupAndIndicatorGroup() {
+    String DATA_ELEMENT_GROUP_UID = "oehv9EO3vP7";
+    String INDICATOR_GROUP_UID = "iezv4GO4vD9";
+
+    when(dimensionService.getDataDimensionalItemObject(UID, "cYeuwXTCPkU"))
+        .thenReturn(new DataElement());
+
+    DataElementGroup dataElementGroup = new DataElementGroup("dummyDG");
+    dataElementGroup.setUid(DATA_ELEMENT_GROUP_UID);
+    dataElementGroup.setCode("CODE_10");
+    dataElementGroup.setMembers(Sets.newHashSet(new DataElement(), new DataElement()));
+
+    IndicatorGroup indicatorGroup = new IndicatorGroup("dummyIG");
+    indicatorGroup.setUid(INDICATOR_GROUP_UID);
+    indicatorGroup.setCode("CODE_10");
+    indicatorGroup.setMembers(Sets.newHashSet(new Indicator(), new Indicator()));
+
+    when(idObjectManager.getObject(DataElementGroup.class, UID, DATA_ELEMENT_GROUP_UID))
+        .thenReturn(dataElementGroup);
+    when(idObjectManager.getObject(IndicatorGroup.class, UID, INDICATOR_GROUP_UID))
+        .thenReturn(indicatorGroup);
+
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, "goRUwCHPg1M"))
+        .thenReturn(new OrganisationUnit("aaa"));
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, "fdc6uOvgoji"))
+        .thenReturn(new OrganisationUnit("bbb"));
+
+    rb.addOuFilter("goRUwCHPg1M;fdc6uOvgoji");
+    rb.addDimension(
+        "DE_GROUP-"
+            + DATA_ELEMENT_GROUP_UID
+            + ";cYeuwXTCPkU;Jtf34kNZhz;IN_GROUP-"
+            + INDICATOR_GROUP_UID);
+    rb.addPeDimension(PERIOD_DIMENSION);
+
+    DataQueryRequest request =
+        DataQueryRequest.newBuilder()
+            .filter(rb.getFilterParams())
+            .dimension(rb.getDimensionParams())
+            .build();
+    DataQueryParams params = target.getFromRequest(request);
+    DimensionalObject dimension = params.getDimension("dx");
+    DimensionItemKeywords keywords = dimension.getDimensionItemKeywords();
+
+    assertEquals(2, keywords.getKeywords().size());
+
+    assertNotNull(keywords.getKeyword(dataElementGroup.getUid()));
+    assertEquals(
+        "dummyDG", keywords.getKeyword(dataElementGroup.getUid()).getMetadataItem().getName());
+    assertEquals(
+        "CODE_10", keywords.getKeyword(dataElementGroup.getUid()).getMetadataItem().getCode());
+
+    assertNotNull(keywords.getKeyword(indicatorGroup.getUid()));
+    assertEquals(
+        "dummyIG", keywords.getKeyword(indicatorGroup.getUid()).getMetadataItem().getName());
+    assertEquals(
+        "CODE_10", keywords.getKeyword(indicatorGroup.getUid()).getMetadataItem().getCode());
+  }
+
+  @Test
+  void convertAnalyticsRequestWithRelativePeriod() {
+    mockDimensionService();
+    when(i18n.getString("LAST_12_MONTHS")).thenReturn("Last 12 months");
+    when(i18n.getString("LAST_YEAR")).thenReturn("Last year");
+
+    rb.addDimension(concatenateUuid(DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3));
+    rb.addPeDimension(PERIOD_DIMENSION);
+
+    DataQueryRequest request =
+        DataQueryRequest.newBuilder()
+            .filter(rb.getFilterParams())
+            .dimension(rb.getDimensionParams())
+            .build();
+
+    DataQueryParams params = target.getFromRequest(request);
+
+    DimensionalObject dimension = params.getDimension(PERIOD_DIM_ID);
+    DimensionItemKeywords keywords = dimension.getDimensionItemKeywords();
+
+    assertEquals(2, keywords.getKeywords().size());
+
+    assertNotNull(keywords.getKeyword("LAST_12_MONTHS"));
+    assertEquals(
+        "Last 12 months", keywords.getKeyword("LAST_12_MONTHS").getMetadataItem().getName());
+
+    assertNotNull(keywords.getKeyword("LAST_YEAR"));
+    assertEquals("Last year", keywords.getKeyword("LAST_YEAR").getMetadataItem().getName());
+  }
+
+  @Test
+  void convertAnalyticsRequestWithRelativePeriodAsFilter() {
+    mockDimensionService();
+    when(i18n.getString("LAST_12_MONTHS")).thenReturn("Last 12 months");
+    when(i18n.getString("LAST_YEAR")).thenReturn("Last year");
+
+    rb.addDimension(concatenateUuid(DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3));
+    rb.addPeDimension(PERIOD_DIMENSION);
+    rb.addFilter("pe", "QUARTERS_THIS_YEAR");
+
+    DataQueryRequest request =
+        DataQueryRequest.newBuilder()
+            .filter(rb.getFilterParams())
+            .dimension(rb.getDimensionParams())
+            .build();
+
+    DataQueryParams params = target.getFromRequest(request);
+
+    DimensionalObject dimension = params.getDimension(PERIOD_DIM_ID);
+    DimensionItemKeywords keywords = dimension.getDimensionItemKeywords();
+
+    assertEquals(2, keywords.getKeywords().size());
+
+    assertNotNull(keywords.getKeyword("LAST_12_MONTHS"));
+    assertEquals(
+        "Last 12 months", keywords.getKeyword("LAST_12_MONTHS").getMetadataItem().getName());
+
+    assertNotNull(keywords.getKeyword("LAST_YEAR"));
+    assertEquals("Last year", keywords.getKeyword("LAST_YEAR").getMetadataItem().getName());
+  }
+
+  @Test
+  void verifyGetOrgUnitsBasedOnUserOrgUnitType() {
+    testGetUserOrgUnits(UserOrgUnitType.DATA_CAPTURE);
+    testGetUserOrgUnits(UserOrgUnitType.TEI_SEARCH);
+    testGetUserOrgUnits(UserOrgUnitType.DATA_OUTPUT);
+  }
+
+  private void testGetUserOrgUnits(UserOrgUnitType userOrgUnitType) {
+    int orgUnitSize = 10;
+    User user = new User();
+
+    Set<OrganisationUnit> orgUnits =
+        rnd.objects(OrganisationUnit.class, orgUnitSize).collect(Collectors.toSet());
+
+    switch (userOrgUnitType) {
+      case DATA_CAPTURE:
+        user.setOrganisationUnits(orgUnits);
+        break;
+      case DATA_OUTPUT:
+        user.setDataViewOrganisationUnits(orgUnits);
+        break;
+      case TEI_SEARCH:
+        user.setTeiSearchOrganisationUnits(orgUnits);
+        break;
     }
 
-    @Test
-    void convertAnalyticsRequestWithOrgUnitGroupAsFilter()
-    {
-        mockDimensionService();
+    DataQueryRequest request =
+        DataQueryRequest.newBuilder().userOrgUnitType(userOrgUnitType).build();
 
-        String ouGroupUID = "gzcv65VyaGq";
+    DataQueryParams params = target.getFromRequest(request);
 
-        initOrgUnitGroup( ouGroupUID );
+    when(securityManager.getCurrentUser(params)).thenReturn(user);
 
-        rb.addPeDimension( PERIOD_DIMENSION );
-        rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
-        rb.addOuFilter( "OU_GROUP-" + ouGroupUID + ";" + rootOu.getUid() );
+    List<OrganisationUnit> result = target.getUserOrgUnits(params, null);
+    assertThat(result, hasSize(orgUnitSize));
 
-        DataQueryRequest request = DataQueryRequest.newBuilder().dimension( rb.getDimensionParams() )
-            .filter( rb.getFilterParams() ).build();
-        DataQueryParams params = target.getFromRequest( request );
+    // Check collection is sorted
+    assertTrue(Ordering.natural().isOrdered(result));
+  }
 
-        assertOrgUnitGroup( ouGroupUID, params.getFilter( "ou" ) );
+  private void initOrgUnitGroup(String ouGroupUID) {
+    when(idObjectManager.getObject(OrganisationUnitGroup.class, UID, ouGroupUID))
+        .thenReturn(getOrgUnitGroup(ouGroupUID, "Chiefdom", "CODE_001"));
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, this.rootOu.getUid()))
+        .thenReturn(rootOu);
+    when(organisationUnitService.getOrganisationUnits(Mockito.anyList(), Mockito.anyList()))
+        .thenReturn(Lists.newArrayList(new OrganisationUnit(), new OrganisationUnit()));
+  }
+
+  private void assertOrgUnitGroup(String ouGroupUID, DimensionalObject dimension) {
+    DimensionItemKeywords keywords = dimension.getDimensionItemKeywords();
+    assertEquals(2, keywords.getKeywords().size());
+
+    assertNotNull(keywords.getKeyword(ouGroupUID));
+    assertEquals("Chiefdom", keywords.getKeyword(ouGroupUID).getMetadataItem().getName());
+    assertEquals("CODE_001", keywords.getKeyword(ouGroupUID).getMetadataItem().getCode());
+
+    assertNotNull(keywords.getKeyword(rootOu.getUid()));
+    assertEquals("Sierra Leone", keywords.getKeyword(rootOu.getUid()).getMetadataItem().getName());
+    assertEquals(
+        rootOu.getCode(), keywords.getKeyword(rootOu.getUid()).getMetadataItem().getCode());
+  }
+
+  private OrganisationUnitLevel getOrgUnitLevel(int level, String uid, String name, String code) {
+
+    OrganisationUnitLevel oul = new OrganisationUnitLevel(level, name);
+    oul.setUid(uid);
+    oul.setCode(code);
+    return oul;
+  }
+
+  private static DataElement getDataElement(String uid, String name) {
+    DataElement d = new DataElement(name);
+    d.setUid(uid);
+    return d;
+  }
+
+  private OrganisationUnitGroup getOrgUnitGroup(String uid, String name, String code) {
+    OrganisationUnitGroup oug = new OrganisationUnitGroup(name);
+    oug.setUid(uid);
+    oug.setCode(code);
+    return oug;
+  }
+
+  private String concatenateUuid(DataElement required, DataElement... additional) {
+    Stream.Builder<DataElement> builder = Stream.<DataElement>builder().add(required);
+    for (DataElement s : additional) {
+      builder.add(s);
     }
 
-    @Test
-    void convertAnalyticsRequestWithOrgUnitLevelAsFilter()
-    {
-        OrganisationUnit level2OuA = new OrganisationUnit( "Bo" );
-        OrganisationUnit level2OuB = new OrganisationUnit( "Bombali" );
+    return builder.build().map(BaseIdentifiableObject::getUid).collect(Collectors.joining(";"));
+  }
 
-        mockDimensionService();
+  class RequestBuilder {
+    private Set<String> dimensionParams = new HashSet<>();
 
-        when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "wjP19dkFeIk" ) ).thenReturn( 2 );
+    private Set<String> filterParams = new HashSet<>();
 
-        when( idObjectManager.getObject( OrganisationUnit.class, UID, "ImspTQPwCqd" ) ).thenReturn( rootOu );
-
-        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.anyList(),
-            Mockito.anyList() ) ).thenReturn( Lists.newArrayList( level2OuA, level2OuB ) );
-
-        when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
-            .thenReturn( getOrgUnitLevel( 2, "level2UID", "District", null ) );
-
-        rb.addOuFilter( "LEVEL-wjP19dkFeIk;ImspTQPwCqd" );
-        rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
-        rb.addPeDimension( PERIOD_DIMENSION );
-
-        DataQueryRequest request = DataQueryRequest.newBuilder().filter( rb.getFilterParams() )
-            .dimension( rb.getDimensionParams() ).build();
-
-        DataQueryParams params = target.getFromRequest( request );
-        DimensionalObject filter = params.getFilters().get( 0 );
-        DimensionItemKeywords keywords = filter.getDimensionItemKeywords();
-
-        assertEquals( 2, keywords.getKeywords().size() );
-
-        assertNotNull( keywords.getKeyword( "level2UID" ) );
-        assertEquals( "District", keywords.getKeyword( "level2UID" ).getMetadataItem().getName() );
-        assertNull( keywords.getKeyword( "level2UID" ).getMetadataItem().getCode() );
-
-        assertNotNull( keywords.getKeyword( rootOu.getUid() ) );
-        assertEquals( "Sierra Leone", keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getName() );
-        assertEquals( rootOu.getCode(), keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getCode() );
+    void addDimension(String key, String value) {
+      dimensionParams.add(key + ":" + value);
     }
 
-    @Test
-    void convertAnalyticsRequestWithOrgUnitLevelAndOrgUnitGroupAsFilter()
-    {
-        OrganisationUnit level2OuA = new OrganisationUnit( "Bo" );
-        OrganisationUnit level2OuB = new OrganisationUnit( "Bombali" );
-
-        OrganisationUnit ou1Group = new OrganisationUnit( "ou1-group" );
-        OrganisationUnit ou2Group = new OrganisationUnit( "ou2-group" );
-
-        OrganisationUnitGroup groupOu = rnd.nextObject( OrganisationUnitGroup.class );
-
-        mockDimensionService();
-
-        when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "wjP19dkFeIk" ) ).thenReturn( 2 );
-
-        when( idObjectManager.getObject( OrganisationUnit.class, UID, "ImspTQPwCqd" ) ).thenReturn( rootOu );
-        when( idObjectManager.getObject( OrganisationUnitGroup.class, UID, "tDZVQ1WtwpA" ) ).thenReturn( groupOu );
-
-        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.anyList(),
-            Mockito.anyList() ) ).thenReturn( Lists.newArrayList( level2OuA, level2OuB ) );
-
-        when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
-            .thenReturn( getOrgUnitLevel( 2, "level2UID", "District", null ) );
-
-        when( organisationUnitService.getOrganisationUnits( Lists.newArrayList( groupOu ),
-            Lists.newArrayList( rootOu ) ) )
-                .thenReturn( Lists.newArrayList( ou1Group, ou2Group ) );
-
-        rb.addOuFilter( "LEVEL-wjP19dkFeIk;OU_GROUP-tDZVQ1WtwpA;ImspTQPwCqd" );
-        rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
-        rb.addPeDimension( PERIOD_DIMENSION );
-
-        DataQueryRequest request = DataQueryRequest.newBuilder().filter( rb.getFilterParams() )
-            .dimension( rb.getDimensionParams() ).build();
-
-        DataQueryParams params = target.getFromRequest( request );
-        DimensionalObject filter = params.getFilters().get( 0 );
-        DimensionItemKeywords keywords = filter.getDimensionItemKeywords();
-
-        assertEquals( 3, keywords.getKeywords().size() );
-
-        assertNotNull( keywords.getKeyword( "level2UID" ) );
-        assertEquals( "District", keywords.getKeyword( "level2UID" ).getMetadataItem().getName() );
-        assertNull( keywords.getKeyword( "level2UID" ).getMetadataItem().getCode() );
-
-        assertNotNull( keywords.getKeyword( groupOu.getUid() ) );
-        assertEquals( groupOu.getName(), keywords.getKeyword( groupOu.getUid() ).getMetadataItem().getName() );
-        assertEquals( groupOu.getCode(), keywords.getKeyword( groupOu.getUid() ).getMetadataItem().getCode() );
-
-        assertNotNull( keywords.getKeyword( rootOu.getUid() ) );
-        assertEquals( "Sierra Leone", keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getName() );
-        assertEquals( rootOu.getCode(), keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getCode() );
+    void addOuDimension(String value) {
+      addDimension("ou", value);
     }
 
-    @Test
-    void convertAnalyticsRequestWithDataElementGroup()
-    {
-        when( dimensionService.getDataDimensionalItemObject( UID, DATA_ELEMENT_2.getUid() ) )
-            .thenReturn( DATA_ELEMENT_2 );
-        String DATA_ELEMENT_GROUP_UID = "oehv9EO3vP7";
-        when( dimensionService.getDataDimensionalItemObject( UID, "cYeuwXTCPkU" ) ).thenReturn( new DataElement() );
-
-        DataElementGroup dataElementGroup = new DataElementGroup( "dummy" );
-        dataElementGroup.setUid( DATA_ELEMENT_GROUP_UID );
-        dataElementGroup.setCode( "CODE_10" );
-        dataElementGroup.setMembers( Sets.newHashSet( new DataElement(), new DataElement() ) );
-
-        when( idObjectManager.getObject( DataElementGroup.class, UID, DATA_ELEMENT_GROUP_UID ) )
-            .thenReturn( dataElementGroup );
-        when( idObjectManager.getObject( OrganisationUnit.class, UID, "goRUwCHPg1M" ) )
-            .thenReturn( new OrganisationUnit( "aaa" ) );
-        when( idObjectManager.getObject( OrganisationUnit.class, UID, "fdc6uOvgoji" ) )
-            .thenReturn( new OrganisationUnit( "bbb" ) );
-
-        rb.addOuFilter( "goRUwCHPg1M;fdc6uOvgoji" );
-        rb.addDimension( "DE_GROUP-" + DATA_ELEMENT_GROUP_UID + ";cYeuwXTCPkU;Jtf34kNZhz" );
-        rb.addPeDimension( PERIOD_DIMENSION );
-
-        DataQueryRequest request = DataQueryRequest.newBuilder().filter( rb.getFilterParams() )
-            .dimension( rb.getDimensionParams() ).build();
-        DataQueryParams params = target.getFromRequest( request );
-        DimensionalObject dimension = params.getDimension( "dx" );
-        assertThat( dimension.getDimensionItemKeywords().getKeywords(), hasSize( 1 ) );
-
-        DimensionItemKeywords.Keyword aggregation = dimension.getDimensionItemKeywords().getKeywords().get( 0 );
-
-        assertThat( aggregation.getMetadataItem().getUid(), is( dataElementGroup.getUid() ) );
-        assertThat( aggregation.getMetadataItem().getCode(), is( dataElementGroup.getCode() ) );
-        assertThat( aggregation.getMetadataItem().getName(), is( dataElementGroup.getName() ) );
+    void addDimension(String value) {
+      addDimension("dx", value);
     }
 
-    @Test
-    void convertAnalyticsRequestWithDataElementGroupAndIndicatorGroup()
-    {
-        String DATA_ELEMENT_GROUP_UID = "oehv9EO3vP7";
-        String INDICATOR_GROUP_UID = "iezv4GO4vD9";
-
-        when( dimensionService.getDataDimensionalItemObject( UID, "cYeuwXTCPkU" ) ).thenReturn( new DataElement() );
-
-        DataElementGroup dataElementGroup = new DataElementGroup( "dummyDG" );
-        dataElementGroup.setUid( DATA_ELEMENT_GROUP_UID );
-        dataElementGroup.setCode( "CODE_10" );
-        dataElementGroup.setMembers( Sets.newHashSet( new DataElement(), new DataElement() ) );
-
-        IndicatorGroup indicatorGroup = new IndicatorGroup( "dummyIG" );
-        indicatorGroup.setUid( INDICATOR_GROUP_UID );
-        indicatorGroup.setCode( "CODE_10" );
-        indicatorGroup.setMembers( Sets.newHashSet( new Indicator(), new Indicator() ) );
-
-        when( idObjectManager.getObject( DataElementGroup.class, UID, DATA_ELEMENT_GROUP_UID ) )
-            .thenReturn( dataElementGroup );
-        when( idObjectManager.getObject( IndicatorGroup.class, UID, INDICATOR_GROUP_UID ) )
-            .thenReturn( indicatorGroup );
-
-        when( idObjectManager.getObject( OrganisationUnit.class, UID, "goRUwCHPg1M" ) )
-            .thenReturn( new OrganisationUnit( "aaa" ) );
-        when( idObjectManager.getObject( OrganisationUnit.class, UID, "fdc6uOvgoji" ) )
-            .thenReturn( new OrganisationUnit( "bbb" ) );
-
-        rb.addOuFilter( "goRUwCHPg1M;fdc6uOvgoji" );
-        rb.addDimension(
-            "DE_GROUP-" + DATA_ELEMENT_GROUP_UID + ";cYeuwXTCPkU;Jtf34kNZhz;IN_GROUP-" + INDICATOR_GROUP_UID );
-        rb.addPeDimension( PERIOD_DIMENSION );
-
-        DataQueryRequest request = DataQueryRequest.newBuilder().filter( rb.getFilterParams() )
-            .dimension( rb.getDimensionParams() ).build();
-        DataQueryParams params = target.getFromRequest( request );
-        DimensionalObject dimension = params.getDimension( "dx" );
-        DimensionItemKeywords keywords = dimension.getDimensionItemKeywords();
-
-        assertEquals( 2, keywords.getKeywords().size() );
-
-        assertNotNull( keywords.getKeyword( dataElementGroup.getUid() ) );
-        assertEquals( "dummyDG", keywords.getKeyword( dataElementGroup.getUid() ).getMetadataItem().getName() );
-        assertEquals( "CODE_10", keywords.getKeyword( dataElementGroup.getUid() ).getMetadataItem().getCode() );
-
-        assertNotNull( keywords.getKeyword( indicatorGroup.getUid() ) );
-        assertEquals( "dummyIG", keywords.getKeyword( indicatorGroup.getUid() ).getMetadataItem().getName() );
-        assertEquals( "CODE_10", keywords.getKeyword( indicatorGroup.getUid() ).getMetadataItem().getCode() );
+    void addPeDimension(String value) {
+      addDimension("pe", value);
     }
 
-    @Test
-    void convertAnalyticsRequestWithRelativePeriod()
-    {
-        mockDimensionService();
-        when( i18n.getString( "LAST_12_MONTHS" ) ).thenReturn( "Last 12 months" );
-        when( i18n.getString( "LAST_YEAR" ) ).thenReturn( "Last year" );
-
-        rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
-        rb.addPeDimension( PERIOD_DIMENSION );
-
-        DataQueryRequest request = DataQueryRequest.newBuilder().filter( rb.getFilterParams() )
-            .dimension( rb.getDimensionParams() ).build();
-
-        DataQueryParams params = target.getFromRequest( request );
-
-        DimensionalObject dimension = params.getDimension( PERIOD_DIM_ID );
-        DimensionItemKeywords keywords = dimension.getDimensionItemKeywords();
-
-        assertEquals( 2, keywords.getKeywords().size() );
-
-        assertNotNull( keywords.getKeyword( "LAST_12_MONTHS" ) );
-        assertEquals( "Last 12 months", keywords.getKeyword( "LAST_12_MONTHS" ).getMetadataItem().getName() );
-
-        assertNotNull( keywords.getKeyword( "LAST_YEAR" ) );
-        assertEquals( "Last year", keywords.getKeyword( "LAST_YEAR" ).getMetadataItem().getName() );
+    void addFilter(String key, String value) {
+      filterParams.add(key + ":" + value);
     }
 
-    @Test
-    void convertAnalyticsRequestWithRelativePeriodAsFilter()
-    {
-        mockDimensionService();
-        when( i18n.getString( "LAST_12_MONTHS" ) ).thenReturn( "Last 12 months" );
-        when( i18n.getString( "LAST_YEAR" ) ).thenReturn( "Last year" );
-
-        rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
-        rb.addPeDimension( PERIOD_DIMENSION );
-        rb.addFilter( "pe", "QUARTERS_THIS_YEAR" );
-
-        DataQueryRequest request = DataQueryRequest.newBuilder().filter( rb.getFilterParams() )
-            .dimension( rb.getDimensionParams() ).build();
-
-        DataQueryParams params = target.getFromRequest( request );
-
-        DimensionalObject dimension = params.getDimension( PERIOD_DIM_ID );
-        DimensionItemKeywords keywords = dimension.getDimensionItemKeywords();
-
-        assertEquals( 2, keywords.getKeywords().size() );
-
-        assertNotNull( keywords.getKeyword( "LAST_12_MONTHS" ) );
-        assertEquals( "Last 12 months", keywords.getKeyword( "LAST_12_MONTHS" ).getMetadataItem().getName() );
-
-        assertNotNull( keywords.getKeyword( "LAST_YEAR" ) );
-        assertEquals( "Last year", keywords.getKeyword( "LAST_YEAR" ).getMetadataItem().getName() );
+    void addOuFilter(String value) {
+      addFilter("ou", value);
     }
 
-    @Test
-    void verifyGetOrgUnitsBasedOnUserOrgUnitType()
-    {
-        testGetUserOrgUnits( UserOrgUnitType.DATA_CAPTURE );
-        testGetUserOrgUnits( UserOrgUnitType.TEI_SEARCH );
-        testGetUserOrgUnits( UserOrgUnitType.DATA_OUTPUT );
+    Set<String> getDimensionParams() {
+      return dimensionParams;
     }
 
-    private void testGetUserOrgUnits( UserOrgUnitType userOrgUnitType )
-    {
-        int orgUnitSize = 10;
-        User user = new User();
-
-        Set<OrganisationUnit> orgUnits = rnd.objects( OrganisationUnit.class, orgUnitSize )
-            .collect( Collectors.toSet() );
-
-        switch ( userOrgUnitType )
-        {
-        case DATA_CAPTURE:
-            user.setOrganisationUnits( orgUnits );
-            break;
-        case DATA_OUTPUT:
-            user.setDataViewOrganisationUnits( orgUnits );
-            break;
-        case TEI_SEARCH:
-            user.setTeiSearchOrganisationUnits( orgUnits );
-            break;
-        }
-
-        DataQueryRequest request = DataQueryRequest.newBuilder().userOrgUnitType( userOrgUnitType ).build();
-
-        DataQueryParams params = target.getFromRequest( request );
-
-        when( securityManager.getCurrentUser( params ) ).thenReturn( user );
-
-        List<OrganisationUnit> result = target.getUserOrgUnits( params, null );
-        assertThat( result, hasSize( orgUnitSize ) );
-
-        // Check collection is sorted
-        assertTrue( Ordering.natural().isOrdered( result ) );
+    Set<String> getFilterParams() {
+      return filterParams;
     }
-
-    private void initOrgUnitGroup( String ouGroupUID )
-    {
-        when( idObjectManager.getObject( OrganisationUnitGroup.class, UID, ouGroupUID ) )
-            .thenReturn( getOrgUnitGroup( ouGroupUID, "Chiefdom", "CODE_001" ) );
-        when( idObjectManager.getObject( OrganisationUnit.class, UID, this.rootOu.getUid() ) )
-            .thenReturn( rootOu );
-        when( organisationUnitService.getOrganisationUnits( Mockito.anyList(), Mockito.anyList() ) )
-            .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
-    }
-
-    private void assertOrgUnitGroup( String ouGroupUID, DimensionalObject dimension )
-    {
-        DimensionItemKeywords keywords = dimension.getDimensionItemKeywords();
-        assertEquals( 2, keywords.getKeywords().size() );
-
-        assertNotNull( keywords.getKeyword( ouGroupUID ) );
-        assertEquals( "Chiefdom", keywords.getKeyword( ouGroupUID ).getMetadataItem().getName() );
-        assertEquals( "CODE_001", keywords.getKeyword( ouGroupUID ).getMetadataItem().getCode() );
-
-        assertNotNull( keywords.getKeyword( rootOu.getUid() ) );
-        assertEquals( "Sierra Leone", keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getName() );
-        assertEquals( rootOu.getCode(), keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getCode() );
-    }
-
-    private OrganisationUnitLevel getOrgUnitLevel( int level, String uid, String name, String code )
-    {
-
-        OrganisationUnitLevel oul = new OrganisationUnitLevel( level, name );
-        oul.setUid( uid );
-        oul.setCode( code );
-        return oul;
-    }
-
-    private static DataElement getDataElement( String uid, String name )
-    {
-        DataElement d = new DataElement( name );
-        d.setUid( uid );
-        return d;
-    }
-
-    private OrganisationUnitGroup getOrgUnitGroup( String uid, String name, String code )
-    {
-        OrganisationUnitGroup oug = new OrganisationUnitGroup( name );
-        oug.setUid( uid );
-        oug.setCode( code );
-        return oug;
-    }
-
-    private String concatenateUuid( DataElement required, DataElement... additional )
-    {
-        Stream.Builder<DataElement> builder = Stream.<DataElement> builder().add( required );
-        for ( DataElement s : additional )
-        {
-            builder.add( s );
-        }
-
-        return builder.build().map( BaseIdentifiableObject::getUid ).collect( Collectors.joining( ";" ) );
-    }
-
-    class RequestBuilder
-    {
-        private Set<String> dimensionParams = new HashSet<>();
-
-        private Set<String> filterParams = new HashSet<>();
-
-        void addDimension( String key, String value )
-        {
-            dimensionParams.add( key + ":" + value );
-        }
-
-        void addOuDimension( String value )
-        {
-            addDimension( "ou", value );
-        }
-
-        void addDimension( String value )
-        {
-            addDimension( "dx", value );
-        }
-
-        void addPeDimension( String value )
-        {
-            addDimension( "pe", value );
-        }
-
-        void addFilter( String key, String value )
-        {
-            filterParams.add( key + ":" + value );
-        }
-
-        void addOuFilter( String value )
-        {
-            addFilter( "ou", value );
-        }
-
-        Set<String> getDimensionParams()
-        {
-            return dimensionParams;
-        }
-
-        Set<String> getFilterParams()
-        {
-            return filterParams;
-        }
-    }
+  }
 }

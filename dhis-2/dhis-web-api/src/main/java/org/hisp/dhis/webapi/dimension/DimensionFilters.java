@@ -38,59 +38,53 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class DimensionFilters implements Predicate<DimensionResponse>
-{
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class DimensionFilters implements Predicate<DimensionResponse> {
 
-    public static final DimensionFilters EMPTY_DATA_DIMENSION_FILTER = new DimensionFilters()
-    {
+  public static final DimensionFilters EMPTY_DATA_DIMENSION_FILTER =
+      new DimensionFilters() {
         @Override
-        public boolean test( DimensionResponse dimensionResponse )
-        {
-            return true;
+        public boolean test(DimensionResponse dimensionResponse) {
+          return true;
         }
-    };
+      };
 
-    private Collection<SingleFilter> filters;
+  private Collection<SingleFilter> filters;
 
-    public static DimensionFilters of( Collection<String> filterStrings )
-    {
-        if ( Objects.isNull( filterStrings ) || filterStrings.isEmpty() )
-        {
-            return EMPTY_DATA_DIMENSION_FILTER;
-        }
-        List<SingleFilter> filters = filterStrings.stream()
-            .map( String::trim )
-            .map( SingleFilter::of )
-            .filter( Objects::nonNull )
-            .collect( Collectors.toList() );
-
-        if ( filters.isEmpty() )
-        {
-            return EMPTY_DATA_DIMENSION_FILTER;
-        }
-        return new DimensionFilters( filters );
+  public static DimensionFilters of(Collection<String> filterStrings) {
+    if (Objects.isNull(filterStrings) || filterStrings.isEmpty()) {
+      return EMPTY_DATA_DIMENSION_FILTER;
     }
+    List<SingleFilter> filters =
+        filterStrings.stream()
+            .map(String::trim)
+            .map(SingleFilter::of)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
 
-    @Override
-    public boolean test( DimensionResponse dimensionResponse )
-    {
-        return filters.stream().allMatch( filter -> filter.test( dimensionResponse ) );
+    if (filters.isEmpty()) {
+      return EMPTY_DATA_DIMENSION_FILTER;
     }
+    return new DimensionFilters(filters);
+  }
 
-    @Getter
-    @AllArgsConstructor( access = AccessLevel.PRIVATE )
-    private static class SingleFilter implements Predicate<DimensionResponse>
-    {
-        private static final Map<String, Function<DimensionResponse, ?>> FIELD_EXTRACTORS = Map.of(
+  @Override
+  public boolean test(DimensionResponse dimensionResponse) {
+    return filters.stream().allMatch(filter -> filter.test(dimensionResponse));
+  }
+
+  @Getter
+  @AllArgsConstructor(access = AccessLevel.PRIVATE)
+  private static class SingleFilter implements Predicate<DimensionResponse> {
+    private static final Map<String, Function<DimensionResponse, ?>> FIELD_EXTRACTORS =
+        Map.of(
             "id", DimensionResponse::getId,
             "uid", DimensionResponse::getUid,
             "code", DimensionResponse::getCode,
@@ -98,75 +92,69 @@ public class DimensionFilters implements Predicate<DimensionResponse>
             "name", DimensionResponse::getName,
             "dimensionType", DimensionResponse::getDimensionType,
             "displayName", DimensionResponse::getDisplayName,
-            "displayShortName", DimensionResponse::getDisplayShortName );
+            "displayShortName", DimensionResponse::getDisplayShortName);
 
-        private static final Map<String, BiFunction<String, String, Boolean>> OPERATOR_MAP = new HashMap<>();
+    private static final Map<String, BiFunction<String, String, Boolean>> OPERATOR_MAP =
+        new HashMap<>();
 
-        static
-        {
-            putOperator( "startsWith", String::startsWith, true );
-            putOperator( "endsWith", String::endsWith, true );
-            putOperator( "eq", String::equals );
-            putOperator( "ieq", String::equalsIgnoreCase );
-            putOperator( "ne", ( fv, v ) -> !fv.equals( v ) );
-            putOperator( "like", String::contains, true );
-            putOperator( "ilike", ( fv, v ) -> fv.toLowerCase().contains( v.toLowerCase() ), true );
-        }
-
-        private static void putOperator( String operator, BiFunction<String, String, Boolean> function )
-        {
-            putOperator( operator, function, false );
-        }
-
-        private static void putOperator( String operator, BiFunction<String, String, Boolean> function,
-            boolean negateAlso )
-        {
-            OPERATOR_MAP.put( operator, function );
-            if ( negateAlso )
-            {
-                OPERATOR_MAP.put( "!" + operator, ( s, s2 ) -> !function.apply( s, s2 ) );
-            }
-        }
-
-        private String field;
-
-        private String operator;
-
-        private String value;
-
-        private static SingleFilter of( String filter )
-        {
-            StringTokenizer filterTokenizer = new StringTokenizer( filter, ":" );
-            if ( filterTokenizer.countTokens() == 3 )
-            {
-                String field = filterTokenizer.nextToken().trim();
-                String operator = filterTokenizer.nextToken().trim();
-                String value = filterTokenizer.nextToken().trim();
-
-                if ( FIELD_EXTRACTORS.containsKey( field ) && OPERATOR_MAP.containsKey( operator ) )
-                {
-                    return new SingleFilter( field, operator, value );
-                }
-                return null;
-            }
-            return null;
-        }
-
-        @Override
-        public boolean test( DimensionResponse dimension )
-        {
-            return Optional.ofNullable( FIELD_EXTRACTORS.get( field ) )
-                .map( baseDimensionalItemObjectFunction -> baseDimensionalItemObjectFunction.apply( dimension ) )
-                .map( Object::toString )
-                .map( this::applyOperator )
-                .orElse( false );
-        }
-
-        private boolean applyOperator( String fieldValue )
-        {
-            return Optional.ofNullable( OPERATOR_MAP.get( operator ) )
-                .map( operation -> operation.apply( fieldValue, value ) )
-                .orElse( false );
-        }
+    static {
+      putOperator("startsWith", String::startsWith, true);
+      putOperator("endsWith", String::endsWith, true);
+      putOperator("eq", String::equals);
+      putOperator("ieq", String::equalsIgnoreCase);
+      putOperator("ne", (fv, v) -> !fv.equals(v));
+      putOperator("like", String::contains, true);
+      putOperator("ilike", (fv, v) -> fv.toLowerCase().contains(v.toLowerCase()), true);
     }
+
+    private static void putOperator(String operator, BiFunction<String, String, Boolean> function) {
+      putOperator(operator, function, false);
+    }
+
+    private static void putOperator(
+        String operator, BiFunction<String, String, Boolean> function, boolean negateAlso) {
+      OPERATOR_MAP.put(operator, function);
+      if (negateAlso) {
+        OPERATOR_MAP.put("!" + operator, (s, s2) -> !function.apply(s, s2));
+      }
+    }
+
+    private String field;
+
+    private String operator;
+
+    private String value;
+
+    private static SingleFilter of(String filter) {
+      StringTokenizer filterTokenizer = new StringTokenizer(filter, ":");
+      if (filterTokenizer.countTokens() == 3) {
+        String field = filterTokenizer.nextToken().trim();
+        String operator = filterTokenizer.nextToken().trim();
+        String value = filterTokenizer.nextToken().trim();
+
+        if (FIELD_EXTRACTORS.containsKey(field) && OPERATOR_MAP.containsKey(operator)) {
+          return new SingleFilter(field, operator, value);
+        }
+        return null;
+      }
+      return null;
+    }
+
+    @Override
+    public boolean test(DimensionResponse dimension) {
+      return Optional.ofNullable(FIELD_EXTRACTORS.get(field))
+          .map(
+              baseDimensionalItemObjectFunction ->
+                  baseDimensionalItemObjectFunction.apply(dimension))
+          .map(Object::toString)
+          .map(this::applyOperator)
+          .orElse(false);
+    }
+
+    private boolean applyOperator(String fieldValue) {
+      return Optional.ofNullable(OPERATOR_MAP.get(operator))
+          .map(operation -> operation.apply(fieldValue, value))
+          .orElse(false);
+    }
+  }
 }

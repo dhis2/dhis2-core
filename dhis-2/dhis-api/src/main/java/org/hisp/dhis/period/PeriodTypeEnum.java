@@ -31,28 +31,26 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public enum PeriodTypeEnum
-{
-    BI_MONTHLY( "BiMonthly" ),
-    BI_WEEKLY( "BiWeekly" ),
-    DAILY( "Daily" ),
-    FINANCIAL_APRIL( "FinancialApril" ),
-    FINANCIAL_JULY( "FinancialJuly" ),
-    FINANCIAL_NOV( "FinancialNov" ),
-    FINANCIAL_OCT( "FinancialOct" ),
-    MONTHLY( "Monthly" ),
-    QUARTERLY( "Quarterly" ),
-    SIX_MONTHLY_APRIL( "SixMonthlyApril" ),
-    SIX_MONTHLY_NOV( "SixMonthlyNov" ),
-    SIX_MONTHLY( "SixMonthly" ),
-    TWO_YEARLY( "TwoYearly" ),
-    WEEKLY( "Weekly" ),
-    WEEKLY_SATURDAY( "WeeklySaturday" ),
-    WEEKLY_SUNDAY( "WeeklySunday" ),
-    WEEKLY_THURSDAY( "WeeklyThursday" ),
-    WEEKLY_WEDNESDAY( "WeeklyWednesday" ),
-    YEARLY( "Yearly" );
+public enum PeriodTypeEnum {
+  BI_MONTHLY("BiMonthly"),
+  BI_WEEKLY("BiWeekly"),
+  DAILY("Daily"),
+  FINANCIAL_APRIL("FinancialApril"),
+  FINANCIAL_JULY("FinancialJuly"),
+  FINANCIAL_NOV("FinancialNov"),
+  FINANCIAL_OCT("FinancialOct"),
+  MONTHLY("Monthly"),
+  QUARTERLY("Quarterly"),
+  SIX_MONTHLY_APRIL("SixMonthlyApril"),
+  SIX_MONTHLY_NOV("SixMonthlyNov"),
+  SIX_MONTHLY("SixMonthly"),
+  TWO_YEARLY("TwoYearly"),
+  WEEKLY("Weekly"),
+  WEEKLY_SATURDAY("WeeklySaturday"),
+  WEEKLY_SUNDAY("WeeklySunday"),
+  WEEKLY_THURSDAY("WeeklyThursday"),
+  WEEKLY_WEDNESDAY("WeeklyWednesday"),
+  YEARLY("Yearly");
 
-    @Getter
-    private final String name;
+  @Getter private final String name;
 }

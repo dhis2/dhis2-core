@@ -30,8 +30,8 @@ package org.hisp.dhis.deduplication.hibernate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.google.common.collect.Lists;
 import java.util.List;
-
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -46,191 +46,205 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
+@Disabled(
+    "moveAttributes method do not really belong to a store now. We should a better place for it")
+class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase {
 
-@Disabled( "moveAttributes method do not really belong to a store now. We should a better place for it" )
-class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
-{
+  @Autowired private PotentialDuplicateStore potentialDuplicateStore;
 
-    @Autowired
-    private PotentialDuplicateStore potentialDuplicateStore;
+  @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+  @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Autowired
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
-    @Autowired
-    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  private TrackedEntityInstance original;
 
-    private TrackedEntityInstance original;
+  private TrackedEntityInstance duplicate;
 
-    private TrackedEntityInstance duplicate;
+  private TrackedEntityInstance control;
 
-    private TrackedEntityInstance control;
+  private TrackedEntityAttribute trackedEntityAttributeA;
 
-    private TrackedEntityAttribute trackedEntityAttributeA;
+  private TrackedEntityAttribute trackedEntityAttributeB;
 
-    private TrackedEntityAttribute trackedEntityAttributeB;
+  private TrackedEntityAttribute trackedEntityAttributeC;
 
-    private TrackedEntityAttribute trackedEntityAttributeC;
+  private TrackedEntityAttribute trackedEntityAttributeD;
 
-    private TrackedEntityAttribute trackedEntityAttributeD;
+  private TrackedEntityAttribute trackedEntityAttributeE;
 
-    private TrackedEntityAttribute trackedEntityAttributeE;
+  @BeforeEach
+  void setupTest() {
+    OrganisationUnit ou = createOrganisationUnit("OU_A");
+    organisationUnitService.addOrganisationUnit(ou);
+    original = createTrackedEntityInstance(ou);
+    duplicate = createTrackedEntityInstance(ou);
+    control = createTrackedEntityInstance(ou);
+    trackedEntityInstanceService.addTrackedEntityInstance(original);
+    trackedEntityInstanceService.addTrackedEntityInstance(duplicate);
+    trackedEntityInstanceService.addTrackedEntityInstance(control);
+    trackedEntityAttributeA = createTrackedEntityAttribute('A');
+    trackedEntityAttributeB = createTrackedEntityAttribute('B');
+    trackedEntityAttributeC = createTrackedEntityAttribute('C');
+    trackedEntityAttributeD = createTrackedEntityAttribute('D');
+    trackedEntityAttributeE = createTrackedEntityAttribute('E');
+    trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttributeA);
+    trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttributeB);
+    trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttributeC);
+    trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttributeD);
+    trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttributeE);
+    original.addAttributeValue(
+        createTrackedEntityAttributeValue('A', original, trackedEntityAttributeA));
+    original.addAttributeValue(
+        createTrackedEntityAttributeValue('A', original, trackedEntityAttributeB));
+    original.addAttributeValue(
+        createTrackedEntityAttributeValue('A', original, trackedEntityAttributeC));
+    duplicate.addAttributeValue(
+        createTrackedEntityAttributeValue('B', duplicate, trackedEntityAttributeA));
+    duplicate.addAttributeValue(
+        createTrackedEntityAttributeValue('B', duplicate, trackedEntityAttributeB));
+    duplicate.addAttributeValue(
+        createTrackedEntityAttributeValue('B', duplicate, trackedEntityAttributeC));
+    duplicate.addAttributeValue(
+        createTrackedEntityAttributeValue('B', duplicate, trackedEntityAttributeD));
+    duplicate.addAttributeValue(
+        createTrackedEntityAttributeValue('B', duplicate, trackedEntityAttributeE));
+    control.addAttributeValue(
+        createTrackedEntityAttributeValue('C', control, trackedEntityAttributeA));
+    control.addAttributeValue(
+        createTrackedEntityAttributeValue('C', control, trackedEntityAttributeB));
+    control.addAttributeValue(
+        createTrackedEntityAttributeValue('C', control, trackedEntityAttributeC));
+    original
+        .getTrackedEntityAttributeValues()
+        .forEach(trackedEntityAttributeValueService::addTrackedEntityAttributeValue);
+    duplicate
+        .getTrackedEntityAttributeValues()
+        .forEach(trackedEntityAttributeValueService::addTrackedEntityAttributeValue);
+    control
+        .getTrackedEntityAttributeValues()
+        .forEach(trackedEntityAttributeValueService::addTrackedEntityAttributeValue);
+  }
 
-    @BeforeEach
-    void setupTest()
-    {
-        OrganisationUnit ou = createOrganisationUnit( "OU_A" );
-        organisationUnitService.addOrganisationUnit( ou );
-        original = createTrackedEntityInstance( ou );
-        duplicate = createTrackedEntityInstance( ou );
-        control = createTrackedEntityInstance( ou );
-        trackedEntityInstanceService.addTrackedEntityInstance( original );
-        trackedEntityInstanceService.addTrackedEntityInstance( duplicate );
-        trackedEntityInstanceService.addTrackedEntityInstance( control );
-        trackedEntityAttributeA = createTrackedEntityAttribute( 'A' );
-        trackedEntityAttributeB = createTrackedEntityAttribute( 'B' );
-        trackedEntityAttributeC = createTrackedEntityAttribute( 'C' );
-        trackedEntityAttributeD = createTrackedEntityAttribute( 'D' );
-        trackedEntityAttributeE = createTrackedEntityAttribute( 'E' );
-        trackedEntityAttributeService.addTrackedEntityAttribute( trackedEntityAttributeA );
-        trackedEntityAttributeService.addTrackedEntityAttribute( trackedEntityAttributeB );
-        trackedEntityAttributeService.addTrackedEntityAttribute( trackedEntityAttributeC );
-        trackedEntityAttributeService.addTrackedEntityAttribute( trackedEntityAttributeD );
-        trackedEntityAttributeService.addTrackedEntityAttribute( trackedEntityAttributeE );
-        original.addAttributeValue( createTrackedEntityAttributeValue( 'A', original, trackedEntityAttributeA ) );
-        original.addAttributeValue( createTrackedEntityAttributeValue( 'A', original, trackedEntityAttributeB ) );
-        original.addAttributeValue( createTrackedEntityAttributeValue( 'A', original, trackedEntityAttributeC ) );
-        duplicate.addAttributeValue( createTrackedEntityAttributeValue( 'B', duplicate, trackedEntityAttributeA ) );
-        duplicate.addAttributeValue( createTrackedEntityAttributeValue( 'B', duplicate, trackedEntityAttributeB ) );
-        duplicate.addAttributeValue( createTrackedEntityAttributeValue( 'B', duplicate, trackedEntityAttributeC ) );
-        duplicate.addAttributeValue( createTrackedEntityAttributeValue( 'B', duplicate, trackedEntityAttributeD ) );
-        duplicate.addAttributeValue( createTrackedEntityAttributeValue( 'B', duplicate, trackedEntityAttributeE ) );
-        control.addAttributeValue( createTrackedEntityAttributeValue( 'C', control, trackedEntityAttributeA ) );
-        control.addAttributeValue( createTrackedEntityAttributeValue( 'C', control, trackedEntityAttributeB ) );
-        control.addAttributeValue( createTrackedEntityAttributeValue( 'C', control, trackedEntityAttributeC ) );
-        original.getTrackedEntityAttributeValues()
-            .forEach( trackedEntityAttributeValueService::addTrackedEntityAttributeValue );
-        duplicate.getTrackedEntityAttributeValues()
-            .forEach( trackedEntityAttributeValueService::addTrackedEntityAttributeValue );
-        control.getTrackedEntityAttributeValues()
-            .forEach( trackedEntityAttributeValueService::addTrackedEntityAttributeValue );
-    }
+  @Test
+  void moveTrackedEntityAttributeValuesSingleTea() {
+    List<String> teas = Lists.newArrayList(trackedEntityAttributeA.getUid());
+    transactionTemplate.execute(
+        status -> {
+          potentialDuplicateStore.moveTrackedEntityAttributeValues(original, duplicate, teas);
+          return null;
+        });
+    transactionTemplate.execute(
+        status -> {
+          // Clear the session so we get new data from the DB for the next
+          // queries.
+          dbmsManager.clearSession();
+          TrackedEntityInstance _original =
+              trackedEntityInstanceService.getTrackedEntityInstance(original.getUid());
+          TrackedEntityInstance _duplicate =
+              trackedEntityInstanceService.getTrackedEntityInstance(duplicate.getUid());
+          assertNotNull(_original);
+          assertNotNull(_duplicate);
+          assertEquals(3, _original.getTrackedEntityAttributeValues().size());
+          assertEquals(4, _duplicate.getTrackedEntityAttributeValues().size());
+          _original
+              .getTrackedEntityAttributeValues()
+              .forEach(
+                  teav -> {
+                    if (teas.contains(teav.getAttribute().getUid())) {
+                      assertEquals("AttributeB", teav.getValue());
+                    } else {
+                      assertEquals("AttributeA", teav.getValue());
+                    }
+                  });
+          TrackedEntityInstance _control =
+              trackedEntityInstanceService.getTrackedEntityInstance(control.getUid());
+          assertNotNull(_control);
+          assertEquals(3, _control.getTrackedEntityAttributeValues().size());
+          return null;
+        });
+  }
 
-    @Test
-    void moveTrackedEntityAttributeValuesSingleTea()
-    {
-        List<String> teas = Lists.newArrayList( trackedEntityAttributeA.getUid() );
-        transactionTemplate.execute( status -> {
-            potentialDuplicateStore.moveTrackedEntityAttributeValues( original, duplicate, teas );
-            return null;
-        } );
-        transactionTemplate.execute( status -> {
-            // Clear the session so we get new data from the DB for the next
-            // queries.
-            dbmsManager.clearSession();
-            TrackedEntityInstance _original = trackedEntityInstanceService
-                .getTrackedEntityInstance( original.getUid() );
-            TrackedEntityInstance _duplicate = trackedEntityInstanceService
-                .getTrackedEntityInstance( duplicate.getUid() );
-            assertNotNull( _original );
-            assertNotNull( _duplicate );
-            assertEquals( 3, _original.getTrackedEntityAttributeValues().size() );
-            assertEquals( 4, _duplicate.getTrackedEntityAttributeValues().size() );
-            _original.getTrackedEntityAttributeValues().forEach( teav -> {
-                if ( teas.contains( teav.getAttribute().getUid() ) )
-                {
-                    assertEquals( "AttributeB", teav.getValue() );
-                }
-                else
-                {
-                    assertEquals( "AttributeA", teav.getValue() );
-                }
-            } );
-            TrackedEntityInstance _control = trackedEntityInstanceService.getTrackedEntityInstance( control.getUid() );
-            assertNotNull( _control );
-            assertEquals( 3, _control.getTrackedEntityAttributeValues().size() );
-            return null;
-        } );
-    }
+  @Test
+  void moveTrackedEntityAttributeValuesMultipleTeas() {
+    List<String> teas =
+        Lists.newArrayList(trackedEntityAttributeA.getUid(), trackedEntityAttributeB.getUid());
+    transactionTemplate.execute(
+        status -> {
+          potentialDuplicateStore.moveTrackedEntityAttributeValues(original, duplicate, teas);
+          return null;
+        });
+    transactionTemplate.execute(
+        status -> {
+          // Clear the session so we get new data from the DB for the next
+          // queries.
+          dbmsManager.clearSession();
+          TrackedEntityInstance _original =
+              trackedEntityInstanceService.getTrackedEntityInstance(original.getUid());
+          TrackedEntityInstance _duplicate =
+              trackedEntityInstanceService.getTrackedEntityInstance(duplicate.getUid());
+          assertNotNull(_original);
+          assertNotNull(_duplicate);
+          assertEquals(3, _original.getTrackedEntityAttributeValues().size());
+          assertEquals(3, _duplicate.getTrackedEntityAttributeValues().size());
+          _original
+              .getTrackedEntityAttributeValues()
+              .forEach(
+                  teav -> {
+                    if (teas.contains(teav.getAttribute().getUid())) {
+                      assertEquals("AttributeB", teav.getValue());
+                    } else {
+                      assertEquals("AttributeA", teav.getValue());
+                    }
+                  });
+          TrackedEntityInstance _control =
+              trackedEntityInstanceService.getTrackedEntityInstance(control.getUid());
+          assertNotNull(_control);
+          assertEquals(3, _control.getTrackedEntityAttributeValues().size());
+          return null;
+        });
+  }
 
-    @Test
-    void moveTrackedEntityAttributeValuesMultipleTeas()
-    {
-        List<String> teas = Lists.newArrayList( trackedEntityAttributeA.getUid(), trackedEntityAttributeB.getUid() );
-        transactionTemplate.execute( status -> {
-            potentialDuplicateStore.moveTrackedEntityAttributeValues( original, duplicate, teas );
-            return null;
-        } );
-        transactionTemplate.execute( status -> {
-            // Clear the session so we get new data from the DB for the next
-            // queries.
-            dbmsManager.clearSession();
-            TrackedEntityInstance _original = trackedEntityInstanceService
-                .getTrackedEntityInstance( original.getUid() );
-            TrackedEntityInstance _duplicate = trackedEntityInstanceService
-                .getTrackedEntityInstance( duplicate.getUid() );
-            assertNotNull( _original );
-            assertNotNull( _duplicate );
-            assertEquals( 3, _original.getTrackedEntityAttributeValues().size() );
-            assertEquals( 3, _duplicate.getTrackedEntityAttributeValues().size() );
-            _original.getTrackedEntityAttributeValues().forEach( teav -> {
-                if ( teas.contains( teav.getAttribute().getUid() ) )
-                {
-                    assertEquals( "AttributeB", teav.getValue() );
-                }
-                else
-                {
-                    assertEquals( "AttributeA", teav.getValue() );
-                }
-            } );
-            TrackedEntityInstance _control = trackedEntityInstanceService.getTrackedEntityInstance( control.getUid() );
-            assertNotNull( _control );
-            assertEquals( 3, _control.getTrackedEntityAttributeValues().size() );
-            return null;
-        } );
-    }
-
-    @Test
-    void moveTrackedEntityAttributeValuesByOverwritingAndCreatingNew()
-    {
-        List<String> teas = Lists.newArrayList( trackedEntityAttributeD.getUid(), trackedEntityAttributeB.getUid() );
-        transactionTemplate.execute( status -> {
-            potentialDuplicateStore.moveTrackedEntityAttributeValues( original, duplicate, teas );
-            return null;
-        } );
-        transactionTemplate.execute( status -> {
-            // Clear the session so we get new data from the DB for the next
-            // queries.
-            dbmsManager.clearSession();
-            TrackedEntityInstance _original = trackedEntityInstanceService
-                .getTrackedEntityInstance( original.getUid() );
-            TrackedEntityInstance _duplicate = trackedEntityInstanceService
-                .getTrackedEntityInstance( duplicate.getUid() );
-            assertNotNull( _original );
-            assertNotNull( _duplicate );
-            assertEquals( 4, _original.getTrackedEntityAttributeValues().size() );
-            assertEquals( 3, _duplicate.getTrackedEntityAttributeValues().size() );
-            _original.getTrackedEntityAttributeValues().forEach( teav -> {
-                if ( teas.contains( teav.getAttribute().getUid() ) )
-                {
-                    assertEquals( "AttributeB", teav.getValue() );
-                }
-                else
-                {
-                    assertEquals( "AttributeA", teav.getValue() );
-                }
-            } );
-            TrackedEntityInstance _control = trackedEntityInstanceService.getTrackedEntityInstance( control.getUid() );
-            assertNotNull( _control );
-            assertEquals( 3, _control.getTrackedEntityAttributeValues().size() );
-            return null;
-        } );
-    }
+  @Test
+  void moveTrackedEntityAttributeValuesByOverwritingAndCreatingNew() {
+    List<String> teas =
+        Lists.newArrayList(trackedEntityAttributeD.getUid(), trackedEntityAttributeB.getUid());
+    transactionTemplate.execute(
+        status -> {
+          potentialDuplicateStore.moveTrackedEntityAttributeValues(original, duplicate, teas);
+          return null;
+        });
+    transactionTemplate.execute(
+        status -> {
+          // Clear the session so we get new data from the DB for the next
+          // queries.
+          dbmsManager.clearSession();
+          TrackedEntityInstance _original =
+              trackedEntityInstanceService.getTrackedEntityInstance(original.getUid());
+          TrackedEntityInstance _duplicate =
+              trackedEntityInstanceService.getTrackedEntityInstance(duplicate.getUid());
+          assertNotNull(_original);
+          assertNotNull(_duplicate);
+          assertEquals(4, _original.getTrackedEntityAttributeValues().size());
+          assertEquals(3, _duplicate.getTrackedEntityAttributeValues().size());
+          _original
+              .getTrackedEntityAttributeValues()
+              .forEach(
+                  teav -> {
+                    if (teas.contains(teav.getAttribute().getUid())) {
+                      assertEquals("AttributeB", teav.getValue());
+                    } else {
+                      assertEquals("AttributeA", teav.getValue());
+                    }
+                  });
+          TrackedEntityInstance _control =
+              trackedEntityInstanceService.getTrackedEntityInstance(control.getUid());
+          assertNotNull(_control);
+          assertEquals(3, _control.getTrackedEntityAttributeValues().size());
+          return null;
+        });
+  }
 }

@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.util.List;
-
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -47,45 +46,45 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Zubair Asghar
  */
-class ProgramRuleVariableIntegrationTest extends TrackerTest
-{
-    @Autowired
-    private ProgramRuleVariableService programRuleVariableService;
+class ProgramRuleVariableIntegrationTest extends TrackerTest {
+  @Autowired private ProgramRuleVariableService programRuleVariableService;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    @Autowired
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+  @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Override
-    public void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/tracker_metadata_with_program_rules_variables.json" );
-    }
+  @Override
+  public void initTest() throws IOException {
+    setUpMetadata("tracker/tracker_metadata_with_program_rules_variables.json");
+  }
 
-    @Test
-    public void shouldAssignValueTypeFromTrackedEntityAttributeToProgramRuleVariable()
-    {
-        Program program = programService.getProgram( "BFcipDERJne" );
-        TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService
-            .getTrackedEntityAttribute( "sYn3tkL3XKa" );
-        List<ProgramRuleVariable> ruleVariables = programRuleVariableService.getProgramRuleVariable( program );
+  @Test
+  public void shouldAssignValueTypeFromTrackedEntityAttributeToProgramRuleVariable() {
+    Program program = programService.getProgram("BFcipDERJne");
+    TrackedEntityAttribute trackedEntityAttribute =
+        trackedEntityAttributeService.getTrackedEntityAttribute("sYn3tkL3XKa");
+    List<ProgramRuleVariable> ruleVariables =
+        programRuleVariableService.getProgramRuleVariable(program);
 
-        ProgramRuleVariable prv = ruleVariables.stream()
-            .filter( r -> ProgramRuleVariableSourceType.TEI_ATTRIBUTE == r.getSourceType() ).findFirst().get();
-        assertEquals( trackedEntityAttribute.getValueType(), prv.getValueType() );
-    }
+    ProgramRuleVariable prv =
+        ruleVariables.stream()
+            .filter(r -> ProgramRuleVariableSourceType.TEI_ATTRIBUTE == r.getSourceType())
+            .findFirst()
+            .get();
+    assertEquals(trackedEntityAttribute.getValueType(), prv.getValueType());
+  }
 
-    @Test
-    public void shouldAssignDefaultValueTypeToProgramRuleVariable()
-    {
-        Program program = programService.getProgram( "BFcipDERJne" );
-        List<ProgramRuleVariable> ruleVariables = programRuleVariableService.getProgramRuleVariable( program );
+  @Test
+  public void shouldAssignDefaultValueTypeToProgramRuleVariable() {
+    Program program = programService.getProgram("BFcipDERJne");
+    List<ProgramRuleVariable> ruleVariables =
+        programRuleVariableService.getProgramRuleVariable(program);
 
-        ProgramRuleVariable prv = ruleVariables.stream()
-            .filter( r -> ProgramRuleVariableSourceType.CALCULATED_VALUE == r.getSourceType() ).findFirst().get();
-        assertEquals( ValueType.TEXT, prv.getValueType() );
-    }
+    ProgramRuleVariable prv =
+        ruleVariables.stream()
+            .filter(r -> ProgramRuleVariableSourceType.CALCULATED_VALUE == r.getSourceType())
+            .findFirst()
+            .get();
+    assertEquals(ValueType.TEXT, prv.getValueType());
+  }
 }

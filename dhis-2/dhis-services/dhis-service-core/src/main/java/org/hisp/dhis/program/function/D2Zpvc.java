@@ -40,27 +40,22 @@ import org.hisp.dhis.program.ProgramExpressionItem;
  *
  * @author Jim Grace
  */
-public class D2Zpvc
-    extends ProgramExpressionItem
-{
-    @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        ctx.expr().stream().forEach( i -> castDouble( visitor.visit( i ) ) );
+public class D2Zpvc extends ProgramExpressionItem {
+  @Override
+  public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    ctx.expr().stream().forEach(i -> castDouble(visitor.visit(i)));
 
-        return DEFAULT_DOUBLE_VALUE;
+    return DEFAULT_DOUBLE_VALUE;
+  }
+
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    String sql = "nullif(cast((";
+
+    for (ExprContext c : ctx.expr()) {
+      sql += "case when " + visitor.visitAllowingNulls(c) + " >= 0 then 1 else 0 end + ";
     }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        String sql = "nullif(cast((";
-
-        for ( ExprContext c : ctx.expr() )
-        {
-            sql += "case when " + visitor.visitAllowingNulls( c ) + " >= 0 then 1 else 0 end + ";
-        }
-
-        return TextUtils.removeLast( sql, "+" ).trim() + ") as double precision),0)";
-    }
+    return TextUtils.removeLast(sql, "+").trim() + ") as double precision),0)";
+  }
 }

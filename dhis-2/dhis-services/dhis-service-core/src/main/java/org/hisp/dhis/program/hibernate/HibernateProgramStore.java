@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.program.hibernate;
 
+import com.google.common.collect.Lists;
 import java.util.List;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -46,75 +45,84 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Chau Thu Tran
  */
-@Repository( "org.hisp.dhis.program.ProgramStore" )
-public class HibernateProgramStore
-    extends HibernateIdentifiableObjectStore<Program>
-    implements ProgramStore
-{
-    public HibernateProgramStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, Program.class, currentUserService, aclService, true );
+@Repository("org.hisp.dhis.program.ProgramStore")
+public class HibernateProgramStore extends HibernateIdentifiableObjectStore<Program>
+    implements ProgramStore {
+  public HibernateProgramStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        Program.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    }
-    // -------------------------------------------------------------------------
-    // Implemented methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implemented methods
+  // -------------------------------------------------------------------------
 
-    @Override
-    public List<Program> getByType( ProgramType type )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<Program> getByType(ProgramType type) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "programType" ), type ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters().addPredicate(root -> builder.equal(root.get("programType"), type)));
+  }
 
-    @Override
-    public List<Program> get( OrganisationUnit organisationUnit )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<Program> get(OrganisationUnit organisationUnit) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
+    return getList(
+        builder,
+        newJpaParameters()
             .addPredicate(
-                root -> builder.equal( root.join( "organisationUnits" ).get( "id" ), organisationUnit.getId() ) ) );
+                root ->
+                    builder.equal(
+                        root.join("organisationUnits").get("id"), organisationUnit.getId())));
+  }
+
+  @Override
+  public List<Program> getByTrackedEntityType(TrackedEntityType trackedEntityType) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("trackedEntityType"), trackedEntityType)));
+  }
+
+  @Override
+  public List<Program> getByDataEntryForm(DataEntryForm dataEntryForm) {
+    if (dataEntryForm == null) {
+      return Lists.newArrayList();
     }
 
-    @Override
-    public List<Program> getByTrackedEntityType( TrackedEntityType trackedEntityType )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+    final String hql = "from Program p where p.dataEntryForm = :dataEntryForm";
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "trackedEntityType" ), trackedEntityType ) ) );
-    }
+    return getQuery(hql).setParameter("dataEntryForm", dataEntryForm).list();
+  }
 
-    @Override
-    public List<Program> getByDataEntryForm( DataEntryForm dataEntryForm )
-    {
-        if ( dataEntryForm == null )
-        {
-            return Lists.newArrayList();
-        }
+  @SuppressWarnings("unchecked")
+  public boolean hasOrgUnit(Program program, OrganisationUnit organisationUnit) {
+    NativeQuery<Long> query =
+        getSession()
+            .createNativeQuery(
+                "select programid from program_organisationunits where programid = :pid and organisationunitid = :ouid");
+    query.setParameter("pid", program.getId());
+    query.setParameter("ouid", organisationUnit.getId());
 
-        final String hql = "from Program p where p.dataEntryForm = :dataEntryForm";
-
-        return getQuery( hql ).setParameter( "dataEntryForm", dataEntryForm ).list();
-    }
-
-    @SuppressWarnings( "unchecked" )
-    public boolean hasOrgUnit( Program program, OrganisationUnit organisationUnit )
-    {
-        NativeQuery<Long> query = getSession().createNativeQuery(
-            "select programid from program_organisationunits where programid = :pid and organisationunitid = :ouid" );
-        query.setParameter( "pid", program.getId() );
-        query.setParameter( "ouid", organisationUnit.getId() );
-
-        return !query.getResultList().isEmpty();
-    }
+    return !query.getResultList().isEmpty();
+  }
 }

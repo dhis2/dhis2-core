@@ -33,24 +33,21 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.locationtech.jts.geom.Geometry;
 
-public class OrganisationUnitPolygonCoveringCoordinateFilter
-    implements Filter<OrganisationUnit>
-{
-    private double longitude;
+public class OrganisationUnitPolygonCoveringCoordinateFilter implements Filter<OrganisationUnit> {
+  private double longitude;
 
-    private double latitude;
+  private double latitude;
 
-    public OrganisationUnitPolygonCoveringCoordinateFilter( double longitude, double latitude )
-    {
-        this.longitude = longitude;
-        this.latitude = latitude;
-    }
+  public OrganisationUnitPolygonCoveringCoordinateFilter(double longitude, double latitude) {
+    this.longitude = longitude;
+    this.latitude = latitude;
+  }
 
-    @Override
-    public boolean retain( OrganisationUnit unit )
-    {
-        Geometry geometry = unit.getGeometry();
-        return geometry != null && FeatureType.getTypeFromName( geometry.getGeometryType() ) == FeatureType.POLYGON
-            && GeoUtils.checkPointWithMultiPolygon( longitude, latitude, unit.getGeometry() );
-    }
+  @Override
+  public boolean retain(OrganisationUnit unit) {
+    Geometry geometry = unit.getGeometry();
+    return geometry != null
+        && FeatureType.getTypeFromName(geometry.getGeometryType()) == FeatureType.POLYGON
+        && GeoUtils.checkPointWithMultiPolygon(longitude, latitude, unit.getGeometry());
+  }
 }

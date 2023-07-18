@@ -28,7 +28,6 @@
 package org.hisp.dhis.common;
 
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -45,47 +44,46 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 /**
  * @author Lars Helge Overland
  */
-public interface AnalyticalObjectService<T extends AnalyticalObject>
-{
-    void update( T object );
+public interface AnalyticalObjectService<T extends AnalyticalObject> {
+  void update(T object);
 
-    List<T> getAnalyticalObjects( ExpressionDimensionItem expressionDimensionItem );
+  List<T> getAnalyticalObjects(ExpressionDimensionItem expressionDimensionItem);
 
-    List<T> getAnalyticalObjects( Indicator indicator );
+  List<T> getAnalyticalObjects(Indicator indicator);
 
-    List<T> getAnalyticalObjects( DataElement dataElement );
+  List<T> getAnalyticalObjects(DataElement dataElement);
 
-    List<T> getAnalyticalObjectsByDataDimension( DataElement dataElement );
+  List<T> getAnalyticalObjectsByDataDimension(DataElement dataElement);
 
-    List<T> getAnalyticalObjectsByDataDimension( TrackedEntityAttribute attribute );
+  List<T> getAnalyticalObjectsByDataDimension(TrackedEntityAttribute attribute);
 
-    List<T> getAnalyticalObjects( DataSet dataSet );
+  List<T> getAnalyticalObjects(DataSet dataSet);
 
-    List<T> getAnalyticalObjects( ProgramIndicator programIndicator );
+  List<T> getAnalyticalObjects(ProgramIndicator programIndicator);
 
-    List<T> getAnalyticalObjects( Period period );
+  List<T> getAnalyticalObjects(Period period);
 
-    List<T> getAnalyticalObjects( OrganisationUnit organisationUnit );
+  List<T> getAnalyticalObjects(OrganisationUnit organisationUnit);
 
-    List<T> getAnalyticalObjects( OrganisationUnitGroup organisationUnitGroup );
+  List<T> getAnalyticalObjects(OrganisationUnitGroup organisationUnitGroup);
 
-    List<T> getAnalyticalObjects( OrganisationUnitGroupSet organisationUnitGroupSet );
+  List<T> getAnalyticalObjects(OrganisationUnitGroupSet organisationUnitGroupSet);
 
-    List<T> getAnalyticalObjects( CategoryOptionGroup categoryOptionGroup );
+  List<T> getAnalyticalObjects(CategoryOptionGroup categoryOptionGroup);
 
-    List<T> getAnalyticalObjects( LegendSet legendSet );
+  List<T> getAnalyticalObjects(LegendSet legendSet);
 
-    long countAnalyticalObjects( Indicator indicator );
+  long countAnalyticalObjects(Indicator indicator);
 
-    long countAnalyticalObjects( DataElement dataElement );
+  long countAnalyticalObjects(DataElement dataElement);
 
-    long countAnalyticalObjects( DataSet dataSet );
+  long countAnalyticalObjects(DataSet dataSet);
 
-    long countAnalyticalObjects( ProgramIndicator programIndicator );
+  long countAnalyticalObjects(ProgramIndicator programIndicator);
 
-    long countAnalyticalObjects( Period period );
+  long countAnalyticalObjects(Period period);
 
-    long countAnalyticalObjects( OrganisationUnit organisationUnit );
+  long countAnalyticalObjects(OrganisationUnit organisationUnit);
 
-    long countAnalyticalObjects( CategoryOptionGroup categoryOptionGroup );
+  long countAnalyticalObjects(CategoryOptionGroup categoryOptionGroup);
 }

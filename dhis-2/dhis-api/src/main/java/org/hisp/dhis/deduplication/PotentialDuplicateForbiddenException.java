@@ -30,10 +30,8 @@ package org.hisp.dhis.deduplication;
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public class PotentialDuplicateForbiddenException extends Exception
-{
-    public PotentialDuplicateForbiddenException( String message )
-    {
-        super( message );
-    }
+public class PotentialDuplicateForbiddenException extends Exception {
+  public PotentialDuplicateForbiddenException(String message) {
+    super(message);
+  }
 }

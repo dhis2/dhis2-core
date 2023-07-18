@@ -28,20 +28,16 @@
 package org.hisp.dhis.dxf2.events.event;
 
 import java.util.List;
-
 import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public interface EventCommentStore
-{
-    /**
-     * Inserts non-empty comments from a List {@see ProgramStageInstance}
-     *
-     * @param programStageInstances a List of {@see ProgramStageInstance}
-     *
-     */
-    void saveAllComments( List<ProgramStageInstance> programStageInstances );
-
+public interface EventCommentStore {
+  /**
+   * Inserts non-empty comments from a List {@see ProgramStageInstance}
+   *
+   * @param programStageInstances a List of {@see ProgramStageInstance}
+   */
+  void saveAllComments(List<ProgramStageInstance> programStageInstances);
 }

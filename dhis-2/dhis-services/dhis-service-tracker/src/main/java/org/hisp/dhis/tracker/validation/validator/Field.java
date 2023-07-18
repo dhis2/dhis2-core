@@ -29,72 +29,64 @@ package org.hisp.dhis.tracker.validation.validator;
 
 import java.util.function.Function;
 import java.util.function.Predicate;
-
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.Validator;
 
 /**
- * Field adapts a {@link Validator} of type S to type T given a mapping
- * {@link Function}.
- * <p>
- * Use it for example when you need a {@code Validator<TrackerBundle>} and want
- * to validate every {@code Event} in the bundles events.
- * </p>
- * You would then write
+ * Field adapts a {@link Validator} of type S to type T given a mapping {@link Function}.
+ *
+ * <p>Use it for example when you need a {@code Validator<TrackerBundle>} and want to validate every
+ * {@code Event} in the bundles events. You would then write
  *
  * <pre>
  * field( TrackerBundle::getEvents, repeatedEventsValidator )
  * </pre>
  */
-public class Field
-{
+public class Field {
 
-    private Field()
-    {
-        throw new IllegalStateException( "Utility class" );
-    }
+  private Field() {
+    throw new IllegalStateException("Utility class");
+  }
 
-    public static <T, S> Validator<T> field( Function<T, S> map, Validator<S> validator )
-    {
-        return ( reporter, bundle, input ) -> {
-            if ( (input instanceof TrackerDto && !validator.needsToRun( bundle.getStrategy( (TrackerDto) input ) ))
-                || (!(input instanceof TrackerDto) && !validator.needsToRun( bundle.getImportStrategy() )) )
-            {
-                return;
-            }
+  public static <T, S> Validator<T> field(Function<T, S> map, Validator<S> validator) {
+    return (reporter, bundle, input) -> {
+      if ((input instanceof TrackerDto
+              && !validator.needsToRun(bundle.getStrategy((TrackerDto) input)))
+          || (!(input instanceof TrackerDto)
+              && !validator.needsToRun(bundle.getImportStrategy()))) {
+        return;
+      }
 
-            validator.validate( reporter, bundle, map.apply( input ) );
-        };
-    }
+      validator.validate(reporter, bundle, map.apply(input));
+    };
+  }
 
-    /**
-     * Field will create a {@link Validator} of type T out of a
-     * {@link Predicate} of type S. The input to the returned {@code Validator}
-     * is of type T which is mapped using given {@code map} function before
-     * applying the {@code Predicate} to it.
-     * <p>
-     * Note: the {@code validator} will always be executed irrespective of the
-     * {@link org.hisp.dhis.tracker.TrackerImportStrategy}.
-     * </p>
-     *
-     * @param map function taking type T to type S
-     * @param validator predicate testing input of type S
-     * @param errorCode error code for error added to invalid input dto
-     * @param errorMessageArgs args to be interpolated into the error codes
-     *        message
-     * @return validator of type T
-     * @param <T> tracker dto to be validate
-     * @param <S> input type of predicate
-     */
-    public static <T extends TrackerDto, S> Validator<T> field( Function<T, S> map, Predicate<S> validator,
-        ValidationCode errorCode, Object... errorMessageArgs )
-    {
-        return ( reporter, bundle, input ) -> {
-            if ( !validator.test( map.apply( input ) ) )
-            {
-                reporter.addError( input, errorCode, errorMessageArgs );
-            }
-        };
-    }
+  /**
+   * Field will create a {@link Validator} of type T out of a {@link Predicate} of type S. The input
+   * to the returned {@code Validator} is of type T which is mapped using given {@code map} function
+   * before applying the {@code Predicate} to it.
+   *
+   * <p>Note: the {@code validator} will always be executed irrespective of the {@link
+   * org.hisp.dhis.tracker.TrackerImportStrategy}.
+   *
+   * @param map function taking type T to type S
+   * @param validator predicate testing input of type S
+   * @param errorCode error code for error added to invalid input dto
+   * @param errorMessageArgs args to be interpolated into the error codes message
+   * @return validator of type T
+   * @param <T> tracker dto to be validate
+   * @param <S> input type of predicate
+   */
+  public static <T extends TrackerDto, S> Validator<T> field(
+      Function<T, S> map,
+      Predicate<S> validator,
+      ValidationCode errorCode,
+      Object... errorMessageArgs) {
+    return (reporter, bundle, input) -> {
+      if (!validator.test(map.apply(input))) {
+        reporter.addError(input, errorCode, errorMessageArgs);
+      }
+    };
+  }
 }

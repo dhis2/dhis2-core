@@ -29,33 +29,25 @@ package org.hisp.dhis.webapi.controller.tracker;
 
 import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.User}.
- */
-public interface JsonUser extends JsonObject
-{
-    default String getUid()
-    {
-        return getString( "uid" ).string();
-    }
+/** Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.User}. */
+public interface JsonUser extends JsonObject {
+  default String getUid() {
+    return getString("uid").string();
+  }
 
-    default String getUsername()
-    {
-        return getString( "username" ).string();
-    }
+  default String getUsername() {
+    return getString("username").string();
+  }
 
-    default String getFirstName()
-    {
-        return getString( "firstName" ).string();
-    }
+  default String getFirstName() {
+    return getString("firstName").string();
+  }
 
-    default String getSurname()
-    {
-        return getString( "surname" ).string();
-    }
+  default String getSurname() {
+    return getString("surname").string();
+  }
 
-    default String getDisplayName()
-    {
-        return getString( "displayName" ).string();
-    }
+  default String getDisplayName() {
+    return getString("displayName").string();
+  }
 }

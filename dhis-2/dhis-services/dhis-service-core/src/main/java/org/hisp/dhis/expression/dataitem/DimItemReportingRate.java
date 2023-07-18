@@ -38,15 +38,10 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
  *
  * @author Jim Grace
  */
-public class DimItemReportingRate
-    extends DimensionalItem
-{
-    @Override
-    public DimensionalItemId getDimensionalItemId( ExprContext ctx,
-        CommonExpressionVisitor visitor )
-    {
-        return new DimensionalItemId( REPORTING_RATE,
-            ctx.uid0.getText(),
-            ctx.REPORTING_RATE_TYPE().getText() );
-    }
+public class DimItemReportingRate extends DimensionalItem {
+  @Override
+  public DimensionalItemId getDimensionalItemId(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return new DimensionalItemId(
+        REPORTING_RATE, ctx.uid0.getText(), ctx.REPORTING_RATE_TYPE().getText());
+  }
 }

@@ -40,33 +40,37 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.organisationunit.OrganisationUnitLocationController}
- * using (mocked) REST requests.
+ * Tests the {@link
+ * org.hisp.dhis.webapi.controller.organisationunit.OrganisationUnitLocationController} using
+ * (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-class OrganisationUnitLocationControllerTest extends DhisControllerConvenienceTest
-{
+class OrganisationUnitLocationControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testGetParentByLocation()
-    {
-        JsonArray parents = GET( "/organisationUnitLocations/orgUnitByLocation?longitude=23.1&latitude=56.2" )
-            .content( HttpStatus.OK );
-        assertTrue( parents.isArray() );
-        assertTrue( parents.isEmpty() );
-    }
+  @Test
+  void testGetParentByLocation() {
+    JsonArray parents =
+        GET("/organisationUnitLocations/orgUnitByLocation?longitude=23.1&latitude=56.2")
+            .content(HttpStatus.OK);
+    assertTrue(parents.isArray());
+    assertTrue(parents.isEmpty());
+  }
 
-    @Test
-    void testCheckLocationWithinOrgUnit()
-    {
-        String ouId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-        JsonBoolean isWithin = GET(
-            "/organisationUnitLocations/locationWithinOrgUnitBoundary?longitude=23.1&latitude=56.2&orgUnitUid={ou}",
-            ouId ).content( HttpStatus.OK );
-        assertEquals( JsonNodeType.BOOLEAN, isWithin.node().getType() );
-        assertFalse( isWithin.booleanValue() );
-    }
+  @Test
+  void testCheckLocationWithinOrgUnit() {
+    String ouId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+    JsonBoolean isWithin =
+        GET(
+                "/organisationUnitLocations/locationWithinOrgUnitBoundary?longitude=23.1&latitude=56.2&orgUnitUid={ou}",
+                ouId)
+            .content(HttpStatus.OK);
+    assertEquals(JsonNodeType.BOOLEAN, isWithin.node().getType());
+    assertFalse(isWithin.booleanValue());
+  }
 }

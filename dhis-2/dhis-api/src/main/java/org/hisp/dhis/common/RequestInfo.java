@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.common;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,39 +35,32 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * Various information about the HTTP request made available to the system.
  *
  * @author Jan Bernitt
  */
 @Getter
-@Builder( toBuilder = true )
+@Builder(toBuilder = true)
 @ToString
 @EqualsAndHashCode
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public final class RequestInfo
-{
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public final class RequestInfo {
 
-    @JsonProperty
-    private final String headerXRequestID;
+  @JsonProperty private final String headerXRequestID;
 
-    /**
-     * Since the xRequestID is a user provided input that will be used in logs
-     * and potentially other places we need to make sure it is secure to be
-     * used. Therefore, it is limited to unique identifier patterns such as UUID
-     * strings or the UIDs used by DHIS2.
-     *
-     * A valid ID is alphanumeric (which dash and underscored being allowed too)
-     * and has a length between 1 and 36.
-     *
-     * @param xRequestID the ID to check, may be null
-     * @return true, if the provided ID is legal (null is legal) or false if it
-     *         is not
-     */
-    public static boolean isValidXRequestID( String xRequestID )
-    {
-        return xRequestID == null || xRequestID.matches( "[-_a-zA-Z0-9]{1,36}" );
-    }
+  /**
+   * Since the xRequestID is a user provided input that will be used in logs and potentially other
+   * places we need to make sure it is secure to be used. Therefore, it is limited to unique
+   * identifier patterns such as UUID strings or the UIDs used by DHIS2.
+   *
+   * <p>A valid ID is alphanumeric (which dash and underscored being allowed too) and has a length
+   * between 1 and 36.
+   *
+   * @param xRequestID the ID to check, may be null
+   * @return true, if the provided ID is legal (null is legal) or false if it is not
+   */
+  public static boolean isValidXRequestID(String xRequestID) {
+    return xRequestID == null || xRequestID.matches("[-_a-zA-Z0-9]{1,36}");
+  }
 }

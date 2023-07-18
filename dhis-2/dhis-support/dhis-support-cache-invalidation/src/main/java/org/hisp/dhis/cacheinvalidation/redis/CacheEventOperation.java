@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
-public enum CacheEventOperation
-{
-    INSERT,
-    UPDATE,
-    DELETE,
-    COLLECTION
+public enum CacheEventOperation {
+  INSERT,
+  UPDATE,
+  DELETE,
+  COLLECTION
 }

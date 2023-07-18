@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.hisp.dhis.common.DimensionalItemId;
@@ -42,197 +41,170 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
 /**
- * Holds information for each period type that is needed during a validation run
- * (either interactive or a scheduled run).
+ * Holds information for each period type that is needed during a validation run (either interactive
+ * or a scheduled run).
  *
- * By computing these values once at the start of a validation run, we avoid the
- * overhead of having to compute them during the processing of every
- * organisation unit. For some of these properties this is also important
- * because they should be copied from Hibernate lazy collections before the
- * multithreaded part of the run starts, otherwise the threads may not be able
- * to access these values.
+ * <p>By computing these values once at the start of a validation run, we avoid the overhead of
+ * having to compute them during the processing of every organisation unit. For some of these
+ * properties this is also important because they should be copied from Hibernate lazy collections
+ * before the multithreaded part of the run starts, otherwise the threads may not be able to access
+ * these values.
  *
  * @author Jim Grace
  */
-public class PeriodTypeExtended
-{
-    private final PeriodType periodType;
+public class PeriodTypeExtended {
+  private final PeriodType periodType;
 
-    private final Set<Period> periods = new HashSet<>();
+  private final Set<Period> periods = new HashSet<>();
 
-    private final Set<ValidationRuleExtended> ruleXs = new HashSet<>();
+  private final Set<ValidationRuleExtended> ruleXs = new HashSet<>();
 
-    private final Set<PeriodType> allowedPeriodTypes = new HashSet<>();
+  private final Set<PeriodType> allowedPeriodTypes = new HashSet<>();
 
-    private final Set<DimensionalItemObject> eventItems = new HashSet<>();
+  private final Set<DimensionalItemObject> eventItems = new HashSet<>();
 
-    private final Set<DimensionalItemObject> eventItemsWithoutAttributeOptions = new HashSet<>();
+  private final Set<DimensionalItemObject> eventItemsWithoutAttributeOptions = new HashSet<>();
 
-    private final Set<DimensionalItemObject> indicators = new HashSet<>();
+  private final Set<DimensionalItemObject> indicators = new HashSet<>();
 
-    private final Set<DataElement> dataElements = new HashSet<>();
+  private final Set<DataElement> dataElements = new HashSet<>();
 
-    private final Set<DataElementOperand> dataElementOperands = new HashSet<>();
+  private final Set<DataElementOperand> dataElementOperands = new HashSet<>();
 
-    private final Map<Long, DataElement> dataElementIdMap = new HashMap<>();
+  private final Map<Long, DataElement> dataElementIdMap = new HashMap<>();
 
-    private final Map<String, DataElementOperand> dataElementOperandIdMap = new HashMap<>();
+  private final Map<String, DataElementOperand> dataElementOperandIdMap = new HashMap<>();
 
-    private final Set<DimensionalItemId> leftSideItemIds = new HashSet<>();
+  private final Set<DimensionalItemId> leftSideItemIds = new HashSet<>();
 
-    private final Set<DimensionalItemId> rightSideItemIds = new HashSet<>();
+  private final Set<DimensionalItemId> rightSideItemIds = new HashSet<>();
 
-    private boolean slidingWindowsNeeded = false;
+  private boolean slidingWindowsNeeded = false;
 
-    private boolean nonSlidingWindowsNeeded = false;
+  private boolean nonSlidingWindowsNeeded = false;
 
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructor
+  // -------------------------------------------------------------------------
 
-    public PeriodTypeExtended( PeriodType periodType )
-    {
-        this.periodType = periodType;
+  public PeriodTypeExtended(PeriodType periodType) {
+    this.periodType = periodType;
+  }
+
+  @Override
+  public String toString() {
+    return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+        .append("periodType", periodType)
+        .append("periods", periods)
+        .append("ruleXs", ruleXs.toArray())
+        .append("eventItems", eventItems)
+        .append("eventItemsWithoutAttributeOptions", eventItemsWithoutAttributeOptions)
+        .append("indicators", indicators)
+        .append("dataElements", dataElements)
+        .append("dataElementOperands", dataElementOperands)
+        .append("allowedPeriodTypes", allowedPeriodTypes)
+        .toString();
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  public void addPeriod(Period p) {
+    periods.add(p);
+  }
+
+  public void addIndicator(DimensionalItemObject indicator) {
+    indicators.add(indicator);
+  }
+
+  public void addDataElement(DataElement de) {
+    dataElements.add(de);
+
+    dataElementIdMap.put(de.getId(), de);
+  }
+
+  public void addDataElementOperand(DataElementOperand deo) {
+    dataElementOperands.add(deo);
+
+    String deoIdKey = getDeoIds(deo.getDataElement().getId(), deo.getCategoryOptionCombo().getId());
+
+    dataElementOperandIdMap.put(deoIdKey, deo);
+  }
+
+  public String getDeoIds(long dataElementId, long categoryOptionComboId) {
+    return dataElementId + "." + categoryOptionComboId;
+  }
+
+  public void setSlidingWindows(boolean slidingWindows) {
+    if (slidingWindows) {
+      slidingWindowsNeeded = true;
+    } else {
+      nonSlidingWindowsNeeded = true;
     }
+  }
 
-    @Override
-    public String toString()
-    {
-        return new ToStringBuilder( this, ToStringStyle.SHORT_PREFIX_STYLE )
-            .append( "periodType", periodType )
-            .append( "periods", periods )
-            .append( "ruleXs", ruleXs.toArray() )
-            .append( "eventItems", eventItems )
-            .append( "eventItemsWithoutAttributeOptions", eventItemsWithoutAttributeOptions )
-            .append( "indicators", indicators )
-            .append( "dataElements", dataElements )
-            .append( "dataElementOperands", dataElementOperands )
-            .append( "allowedPeriodTypes", allowedPeriodTypes ).toString();
-    }
+  public boolean areSlidingWindowsNeeded() {
+    return slidingWindowsNeeded;
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  public boolean areNonSlidingWindowsNeeded() {
+    return nonSlidingWindowsNeeded;
+  }
 
-    public void addPeriod( Period p )
-    {
-        periods.add( p );
-    }
+  // -------------------------------------------------------------------------
+  // Get methods
+  // -------------------------------------------------------------------------
 
-    public void addIndicator( DimensionalItemObject indicator )
-    {
-        indicators.add( indicator );
-    }
+  public PeriodType getPeriodType() {
+    return periodType;
+  }
 
-    public void addDataElement( DataElement de )
-    {
-        dataElements.add( de );
+  public Set<Period> getPeriods() {
+    return periods;
+  }
 
-        dataElementIdMap.put( de.getId(), de );
-    }
+  public Set<ValidationRuleExtended> getRuleXs() {
+    return ruleXs;
+  }
 
-    public void addDataElementOperand( DataElementOperand deo )
-    {
-        dataElementOperands.add( deo );
+  public Set<DimensionalItemObject> getEventItems() {
+    return eventItems;
+  }
 
-        String deoIdKey = getDeoIds( deo.getDataElement().getId(), deo.getCategoryOptionCombo().getId() );
+  public Set<DimensionalItemObject> getEventItemsWithoutAttributeOptions() {
+    return eventItemsWithoutAttributeOptions;
+  }
 
-        dataElementOperandIdMap.put( deoIdKey, deo );
-    }
+  public Set<DimensionalItemObject> getIndicators() {
+    return indicators;
+  }
 
-    public String getDeoIds( long dataElementId, long categoryOptionComboId )
-    {
-        return dataElementId + "." + categoryOptionComboId;
-    }
+  public Set<DataElement> getDataElements() {
+    return dataElements;
+  }
 
-    public void setSlidingWindows( boolean slidingWindows )
-    {
-        if ( slidingWindows )
-        {
-            slidingWindowsNeeded = true;
-        }
-        else
-        {
-            nonSlidingWindowsNeeded = true;
-        }
-    }
+  public Set<DataElementOperand> getDataElementOperands() {
+    return dataElementOperands;
+  }
 
-    public boolean areSlidingWindowsNeeded()
-    {
-        return slidingWindowsNeeded;
-    }
+  public Map<Long, DataElement> getDataElementIdMap() {
+    return dataElementIdMap;
+  }
 
-    public boolean areNonSlidingWindowsNeeded()
-    {
-        return nonSlidingWindowsNeeded;
-    }
+  public Map<String, DataElementOperand> getDataElementOperandIdMap() {
+    return dataElementOperandIdMap;
+  }
 
-    // -------------------------------------------------------------------------
-    // Get methods
-    // -------------------------------------------------------------------------
+  public Set<PeriodType> getAllowedPeriodTypes() {
+    return allowedPeriodTypes;
+  }
 
-    public PeriodType getPeriodType()
-    {
-        return periodType;
-    }
+  public Set<DimensionalItemId> getLeftSideItemIds() {
+    return leftSideItemIds;
+  }
 
-    public Set<Period> getPeriods()
-    {
-        return periods;
-    }
-
-    public Set<ValidationRuleExtended> getRuleXs()
-    {
-        return ruleXs;
-    }
-
-    public Set<DimensionalItemObject> getEventItems()
-    {
-        return eventItems;
-    }
-
-    public Set<DimensionalItemObject> getEventItemsWithoutAttributeOptions()
-    {
-        return eventItemsWithoutAttributeOptions;
-    }
-
-    public Set<DimensionalItemObject> getIndicators()
-    {
-        return indicators;
-    }
-
-    public Set<DataElement> getDataElements()
-    {
-        return dataElements;
-    }
-
-    public Set<DataElementOperand> getDataElementOperands()
-    {
-        return dataElementOperands;
-    }
-
-    public Map<Long, DataElement> getDataElementIdMap()
-    {
-        return dataElementIdMap;
-    }
-
-    public Map<String, DataElementOperand> getDataElementOperandIdMap()
-    {
-        return dataElementOperandIdMap;
-    }
-
-    public Set<PeriodType> getAllowedPeriodTypes()
-    {
-        return allowedPeriodTypes;
-    }
-
-    public Set<DimensionalItemId> getLeftSideItemIds()
-    {
-        return leftSideItemIds;
-    }
-
-    public Set<DimensionalItemId> getRightSideItemIds()
-    {
-        return rightSideItemIds;
-    }
+  public Set<DimensionalItemId> getRightSideItemIds() {
+    return rightSideItemIds;
+  }
 }

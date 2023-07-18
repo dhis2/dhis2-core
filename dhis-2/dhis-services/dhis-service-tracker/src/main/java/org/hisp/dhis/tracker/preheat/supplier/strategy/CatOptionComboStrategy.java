@@ -39,12 +39,17 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor( value = CategoryOptionCombo.class, mapper = CategoryOptionComboMapper.class, cache = true, ttl = 5 )
-public class CatOptionComboStrategy extends AbstractSchemaStrategy
-{
-    public CatOptionComboStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager, PreheatCacheService cacheService )
-    {
-        super( schemaService, queryService, manager, cacheService );
-    }
+@StrategyFor(
+    value = CategoryOptionCombo.class,
+    mapper = CategoryOptionComboMapper.class,
+    cache = true,
+    ttl = 5)
+public class CatOptionComboStrategy extends AbstractSchemaStrategy {
+  public CatOptionComboStrategy(
+      SchemaService schemaService,
+      QueryService queryService,
+      IdentifiableObjectManager manager,
+      PreheatCacheService cacheService) {
+    super(schemaService, queryService, manager, cacheService);
+  }
 }

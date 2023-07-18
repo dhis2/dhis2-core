@@ -32,9 +32,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
@@ -46,119 +44,117 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Contains functions to apply {@link JsonPatch} to one or multiple object
- * types.
- */
+/** Contains functions to apply {@link JsonPatch} to one or multiple object types. */
 @Service
 @AllArgsConstructor
-public class BulkPatchManager
-{
-    private final JsonPatchManager jsonPatchManager;
+public class BulkPatchManager {
+  private final JsonPatchManager jsonPatchManager;
 
-    private final BulkPatchValidatorService validatorFactory;
+  private final BulkPatchValidatorService validatorFactory;
 
-    /**
-     * Apply one {@link JsonPatch} to multiple objects of same class.
-     *
-     * @param bulkJsonPatch {@link BulkJsonPatch} instance contains the data
-     *        parsed from request payload.
-     * @param patchParameters {@link BulkPatchParameters} contains all
-     *        parameters used for patch function.
-     * @return List of patched objects
-     */
-    @Transactional( readOnly = true )
-    public List<IdentifiableObject> applyPatch( BulkJsonPatch bulkJsonPatch,
-        BulkPatchParameters patchParameters )
-    {
-        PatchBundle bundle = validatorFactory.validate( bulkJsonPatch, patchParameters );
+  /**
+   * Apply one {@link JsonPatch} to multiple objects of same class.
+   *
+   * @param bulkJsonPatch {@link BulkJsonPatch} instance contains the data parsed from request
+   *     payload.
+   * @param patchParameters {@link BulkPatchParameters} contains all parameters used for patch
+   *     function.
+   * @return List of patched objects
+   */
+  @Transactional(readOnly = true)
+  public List<IdentifiableObject> applyPatch(
+      BulkJsonPatch bulkJsonPatch, BulkPatchParameters patchParameters) {
+    PatchBundle bundle = validatorFactory.validate(bulkJsonPatch, patchParameters);
 
-        if ( bundle.isEmpty() )
-        {
-            return Collections.emptyList();
-        }
-
-        return bundle.getIds().stream()
-            .map( id -> applySafely( bundle.getJsonPatch( id ), bundle.getEntity( id ), patchParameters,
-                patched -> postApply( id, patched ) ) )
-            .filter( Optional::isPresent )
-            .map( Optional::get )
-            .collect( Collectors.toList() );
+    if (bundle.isEmpty()) {
+      return Collections.emptyList();
     }
 
-    /**
-     * Apply multiple {@link JsonPatch} to multiple objects of different classes
-     * from given {@link BulkJsonPatches}.
-     * <p>
-     * Each object has its own {@link JsonPatch}.
-     */
-    @Transactional( readOnly = true )
-    public List<IdentifiableObject> applyPatches( BulkJsonPatches patches,
-        BulkPatchParameters patchParameters )
-    {
-        PatchBundle bundle = validatorFactory.validate( patches, patchParameters );
+    return bundle.getIds().stream()
+        .map(
+            id ->
+                applySafely(
+                    bundle.getJsonPatch(id),
+                    bundle.getEntity(id),
+                    patchParameters,
+                    patched -> postApply(id, patched)))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(Collectors.toList());
+  }
 
-        if ( bundle.isEmpty() )
-        {
-            return Collections.emptyList();
-        }
+  /**
+   * Apply multiple {@link JsonPatch} to multiple objects of different classes from given {@link
+   * BulkJsonPatches}.
+   *
+   * <p>Each object has its own {@link JsonPatch}.
+   */
+  @Transactional(readOnly = true)
+  public List<IdentifiableObject> applyPatches(
+      BulkJsonPatches patches, BulkPatchParameters patchParameters) {
+    PatchBundle bundle = validatorFactory.validate(patches, patchParameters);
 
-        return bundle.getIds().stream()
-            .map( id -> applySafely( bundle.getJsonPatch( id ), bundle.getEntity( id ), patchParameters,
-                patched -> postApply( id, patched ) ) )
-            .filter( Optional::isPresent )
-            .map( Optional::get )
-            .collect( Collectors.toList() );
+    if (bundle.isEmpty()) {
+      return Collections.emptyList();
     }
 
-    /**
-     * Try to apply given {@link JsonPatch} to given entity by calling
-     * {@link JsonPatchManager#apply}.
-     * <p>
-     * If there is an error, add it to the given {@link ObjectReport} list and
-     * return {@link Optional#empty()}.
-     */
-    private Optional<IdentifiableObject> applySafely( JsonPatch patch, IdentifiableObject entity,
-        BulkPatchParameters parameters, Consumer<Optional<IdentifiableObject>> entityConsumer )
-    {
-        try
-        {
-            Optional<IdentifiableObject> patched = Optional.ofNullable( jsonPatchManager.apply( patch, entity ) );
-            entityConsumer.accept( patched );
-            return patched;
-        }
-        catch ( JsonPatchException e )
-        {
-            parameters.addTypeReport(
-                createTypeReport( entity.getClass(), entity.getUid(),
-                    new ErrorReport( entity.getClass(), ErrorCode.E6003, e.getMessage() ) ) );
-            return Optional.empty();
-        }
+    return bundle.getIds().stream()
+        .map(
+            id ->
+                applySafely(
+                    bundle.getJsonPatch(id),
+                    bundle.getEntity(id),
+                    patchParameters,
+                    patched -> postApply(id, patched)))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Try to apply given {@link JsonPatch} to given entity by calling {@link JsonPatchManager#apply}.
+   *
+   * <p>If there is an error, add it to the given {@link ObjectReport} list and return {@link
+   * Optional#empty()}.
+   */
+  private Optional<IdentifiableObject> applySafely(
+      JsonPatch patch,
+      IdentifiableObject entity,
+      BulkPatchParameters parameters,
+      Consumer<Optional<IdentifiableObject>> entityConsumer) {
+    try {
+      Optional<IdentifiableObject> patched =
+          Optional.ofNullable(jsonPatchManager.apply(patch, entity));
+      entityConsumer.accept(patched);
+      return patched;
+    } catch (JsonPatchException e) {
+      parameters.addTypeReport(
+          createTypeReport(
+              entity.getClass(),
+              entity.getUid(),
+              new ErrorReport(entity.getClass(), ErrorCode.E6003, e.getMessage())));
+      return Optional.empty();
+    }
+  }
+
+  /** Apply some additional logics for patched object. */
+  private void postApply(String id, Optional<IdentifiableObject> patchedObject) {
+    if (!patchedObject.isPresent()) {
+      return;
     }
 
-    /**
-     * Apply some additional logics for patched object.
-     */
-    private void postApply( String id, Optional<IdentifiableObject> patchedObject )
-    {
-        if ( !patchedObject.isPresent() )
-        {
-            return;
-        }
+    // we don't allow changing UIDs
+    ((BaseIdentifiableObject) patchedObject.get()).setUid(id);
 
-        // we don't allow changing UIDs
-        ((BaseIdentifiableObject) patchedObject.get()).setUid( id );
+    // Only supports new Sharing format
+    ((BaseIdentifiableObject) patchedObject.get()).clearLegacySharingCollections();
+  }
 
-        // Only supports new Sharing format
-        ((BaseIdentifiableObject) patchedObject.get()).clearLegacySharingCollections();
-    }
-
-    private static TypeReport createTypeReport( Class<?> klass, String id, ErrorReport errorReport )
-    {
-        TypeReport typeReport = new TypeReport( klass );
-        ObjectReport objectReport = new ObjectReport( klass, 0, id );
-        objectReport.addErrorReport( errorReport );
-        typeReport.addObjectReport( objectReport );
-        return typeReport;
-    }
+  private static TypeReport createTypeReport(Class<?> klass, String id, ErrorReport errorReport) {
+    TypeReport typeReport = new TypeReport(klass);
+    ObjectReport objectReport = new ObjectReport(klass, 0, id);
+    objectReport.addErrorReport(errorReport);
+    typeReport.addObjectReport(objectReport);
+    return typeReport;
+  }
 }

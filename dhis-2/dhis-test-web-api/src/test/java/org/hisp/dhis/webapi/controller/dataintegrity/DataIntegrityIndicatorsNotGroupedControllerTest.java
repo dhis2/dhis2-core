@@ -38,80 +38,90 @@ import org.hisp.dhis.webapi.json.domain.JsonIndicatorGroup;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test metadata check for indicators which are not part of an indicator group
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/indicators/indicator_nongrouped.yaml}
+ * Test metadata check for indicators which are not part of an indicator group {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/indicators/indicator_nongrouped.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityIndicatorsNotGroupedControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityIndicatorsNotGroupedControllerTest extends AbstractDataIntegrityIntegrationTest {
 
-    private static final String check = "indicators_not_grouped";
+  private static final String check = "indicators_not_grouped";
 
-    private String indicatorA;
+  private String indicatorA;
 
-    private String indicatorB;
+  private String indicatorB;
 
-    @Test
-    void testIndicatorsWithoutGroupsExist()
-    {
+  @Test
+  void testIndicatorsWithoutGroupsExist() {
 
-        setUpTest();
-        assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorGroups",
-                "{ 'name' : 'An indicator group', 'indicators' : [{'id' : '" + indicatorA + "'}]}" ) );
+    setUpTest();
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/indicatorGroups",
+            "{ 'name' : 'An indicator group', 'indicators' : [{'id' : '" + indicatorA + "'}]}"));
 
-        JsonObject content = GET( "/indicatorGroups?fields=id,name,indicators[id,name]" ).content();
-        JsonList<JsonIndicatorGroup> myIndicatorGroup = content.getList( "indicatorGroups", JsonIndicatorGroup.class );
-        assertEquals( 1, myIndicatorGroup.size() );
-        JsonList<JsonIndicator> myIndicators = myIndicatorGroup.get( 0 ).getIndicators();
-        assertEquals( 1, myIndicators.size() );
-        assertEquals( indicatorA, myIndicators.get( 0 ).getId() );
+    JsonObject content = GET("/indicatorGroups?fields=id,name,indicators[id,name]").content();
+    JsonList<JsonIndicatorGroup> myIndicatorGroup =
+        content.getList("indicatorGroups", JsonIndicatorGroup.class);
+    assertEquals(1, myIndicatorGroup.size());
+    JsonList<JsonIndicator> myIndicators = myIndicatorGroup.get(0).getIndicators();
+    assertEquals(1, myIndicators.size());
+    assertEquals(indicatorA, myIndicators.get(0).getId());
 
-        assertHasDataIntegrityIssues( "indicators", check, 50, indicatorB,
-            null, null, true );
-    }
+    assertHasDataIntegrityIssues("indicators", check, 50, indicatorB, null, null, true);
+  }
 
-    @Test
-    void testIndicatorsInGroups()
-    {
+  @Test
+  void testIndicatorsInGroups() {
 
-        setUpTest();
-        assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorGroups",
-                "{ 'name' : 'An indicator group', 'indicators' : [{'id' : '" + indicatorA + "'}, " +
-                    " {'id' : '" + indicatorB + "'}]}" ) );
+    setUpTest();
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/indicatorGroups",
+            "{ 'name' : 'An indicator group', 'indicators' : [{'id' : '"
+                + indicatorA
+                + "'}, "
+                + " {'id' : '"
+                + indicatorB
+                + "'}]}"));
 
-        assertHasNoDataIntegrityIssues( "indicators", check, true );
-    }
+    assertHasNoDataIntegrityIssues("indicators", check, true);
+  }
 
-    @Test
-    void testIndicatorsInGroupsRuns()
-    {
-        assertHasNoDataIntegrityIssues( "indicators", check, false );
-    }
+  @Test
+  void testIndicatorsInGroupsRuns() {
+    assertHasNoDataIntegrityIssues("indicators", check, false);
+  }
 
-    void setUpTest()
-    {
+  void setUpTest() {
 
-        String indicatorTypeA = assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorTypes",
-                "{ 'name': 'Per cent', 'factor' : 100, 'number' : false }" ) );
+    String indicatorTypeA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/indicatorTypes", "{ 'name': 'Per cent', 'factor' : 100, 'number' : false }"));
 
-        indicatorA = assertStatus( HttpStatus.CREATED,
-            POST( "/indicators",
-                "{ 'name': 'Indicator A', 'shortName': 'Indicator A',  'indicatorType' : {'id' : '" + indicatorTypeA
-                    + "'}," +
-                    " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', " +
-                    "'denominatorDescription' : 'Zero'} }" ) );
+    indicatorA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators",
+                "{ 'name': 'Indicator A', 'shortName': 'Indicator A',  'indicatorType' : {'id' : '"
+                    + indicatorTypeA
+                    + "'},"
+                    + " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', "
+                    + "'denominatorDescription' : 'Zero'} }"));
 
-        indicatorB = assertStatus( HttpStatus.CREATED,
-            POST( "/indicators",
-                "{ 'name': 'Indicator B', 'shortName': 'Indicator B', 'indicatorType' : {'id' : '" + indicatorTypeA
-                    + "'}," +
-                    " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', " +
-                    "'denominatorDescription' : 'Zero'}" ) );
-
-    }
-
+    indicatorB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators",
+                "{ 'name': 'Indicator B', 'shortName': 'Indicator B', 'indicatorType' : {'id' : '"
+                    + indicatorTypeA
+                    + "'},"
+                    + " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', "
+                    + "'denominatorDescription' : 'Zero'}"));
+  }
 }

@@ -31,33 +31,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.scheduling.JobConfiguration;
 
 /**
  * @author Lars Helge Overland
  */
-public class JobLocalList<T>
-{
-    private final Map<JobConfiguration, List<T>> internalMap;
+public class JobLocalList<T> {
+  private final Map<JobConfiguration, List<T>> internalMap;
 
-    public JobLocalList()
-    {
-        this.internalMap = new HashMap<>();
-    }
+  public JobLocalList() {
+    this.internalMap = new HashMap<>();
+  }
 
-    public List<T> get( JobConfiguration id )
-    {
-        return internalMap.computeIfAbsent( id, k -> new ArrayList<>() );
-    }
+  public List<T> get(JobConfiguration id) {
+    return internalMap.computeIfAbsent(id, k -> new ArrayList<>());
+  }
 
-    public Map<JobConfiguration, List<T>> getInternalMap()
-    {
-        return internalMap;
-    }
+  public Map<JobConfiguration, List<T>> getInternalMap() {
+    return internalMap;
+  }
 
-    public boolean clear( JobConfiguration id )
-    {
-        return internalMap.remove( id ) != null;
-    }
+  public boolean clear(JobConfiguration id) {
+    return internalMap.remove(id) != null;
+  }
 }

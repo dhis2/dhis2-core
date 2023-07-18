@@ -30,16 +30,10 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum ObjectBundleMode
-{
-    /**
-     * If bundle is valid, commit the bundle to the database. Commits at
-     * intervals.
-     */
-    COMMIT,
+public enum ObjectBundleMode {
+  /** If bundle is valid, commit the bundle to the database. Commits at intervals. */
+  COMMIT,
 
-    /**
-     * Validate bundle only (dry run)
-     */
-    VALIDATE;
+  /** Validate bundle only (dry run) */
+  VALIDATE;
 }

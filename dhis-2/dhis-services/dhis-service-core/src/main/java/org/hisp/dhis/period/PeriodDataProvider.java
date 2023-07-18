@@ -33,78 +33,75 @@ import static java.util.Collections.unmodifiableList;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * Component responsible for fetching, extracting and providing specific data
- * related to existing periods in the database.
+ * Component responsible for fetching, extracting and providing specific data related to existing
+ * periods in the database.
  *
  * @author maikel arabori
  */
 @Component
 @RequiredArgsConstructor
-public class PeriodDataProvider
-{
-    private static final int BEFORE_AND_AFTER_DATA_YEARS_SUPPORTED = 5;
+public class PeriodDataProvider {
+  private static final int BEFORE_AND_AFTER_DATA_YEARS_SUPPORTED = 5;
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    /**
-     * Returns a distinct union of all years available in the
-     * "programstageinstance" table + "period" table, both from aggregate and
-     * tracker, with 5 years previous and future additions.
-     *
-     * ie: [extra_5_previous_years, data_years, extra_5_future_year]
-     *
-     * @return an unmodifiable list of distinct years and the respective
-     *         additions.
-     */
-    public List<Integer> getAvailableYears()
-    {
-        List<Integer> availableDataYears = new ArrayList<>( fetchAvailableYears() );
+  /**
+   * Returns a distinct union of all years available in the "programstageinstance" table + "period"
+   * table, both from aggregate and tracker, with 5 years previous and future additions.
+   *
+   * <p>ie: [extra_5_previous_years, data_years, extra_5_future_year]
+   *
+   * @return an unmodifiable list of distinct years and the respective additions.
+   */
+  public List<Integer> getAvailableYears() {
+    List<Integer> availableDataYears = new ArrayList<>(fetchAvailableYears());
 
-        if ( availableDataYears.isEmpty() )
-        {
-            availableDataYears.add( now().getYear() );
-        }
-
-        int firstYear = availableDataYears.get( 0 );
-        int lastYear = availableDataYears.get( availableDataYears.size() - 1 );
-
-        for ( int i = 0; i < BEFORE_AND_AFTER_DATA_YEARS_SUPPORTED; i++ )
-        {
-            availableDataYears.add( --firstYear );
-            availableDataYears.add( ++lastYear );
-        }
-
-        sort( availableDataYears );
-
-        return unmodifiableList( availableDataYears );
+    if (availableDataYears.isEmpty()) {
+      availableDataYears.add(now().getYear());
     }
 
-    /**
-     * Queries the database in order to fetch all years available in the
-     * "period" and "programstageinstance" tables.
-     *
-     * @return the list of distinct years found.
-     */
-    private List<Integer> fetchAvailableYears()
-    {
-        String dueDateOrExecutionDate = "(case when 'SCHEDULE' = psi.status then psi.duedate else psi.executiondate end)";
+    int firstYear = availableDataYears.get(0);
+    int lastYear = availableDataYears.get(availableDataYears.size() - 1);
 
-        String sql = "( select distinct (extract(year from pe.startdate)) as datayear from period pe )" +
-            " union" +
-            " ( select distinct (extract(year from pe.enddate)) as datayear from period pe )" +
-            " union" +
-            " ( select distinct (extract(year from " + dueDateOrExecutionDate + ")) as datayear" +
-            " from programstageinstance psi" +
-            " where " + dueDateOrExecutionDate + " is not null" +
-            " and psi.deleted is false ) order by datayear asc";
-
-        return jdbcTemplate.queryForList( sql, Integer.class );
+    for (int i = 0; i < BEFORE_AND_AFTER_DATA_YEARS_SUPPORTED; i++) {
+      availableDataYears.add(--firstYear);
+      availableDataYears.add(++lastYear);
     }
+
+    sort(availableDataYears);
+
+    return unmodifiableList(availableDataYears);
+  }
+
+  /**
+   * Queries the database in order to fetch all years available in the "period" and
+   * "programstageinstance" tables.
+   *
+   * @return the list of distinct years found.
+   */
+  private List<Integer> fetchAvailableYears() {
+    String dueDateOrExecutionDate =
+        "(case when 'SCHEDULE' = psi.status then psi.duedate else psi.executiondate end)";
+
+    String sql =
+        "( select distinct (extract(year from pe.startdate)) as datayear from period pe )"
+            + " union"
+            + " ( select distinct (extract(year from pe.enddate)) as datayear from period pe )"
+            + " union"
+            + " ( select distinct (extract(year from "
+            + dueDateOrExecutionDate
+            + ")) as datayear"
+            + " from programstageinstance psi"
+            + " where "
+            + dueDateOrExecutionDate
+            + " is not null"
+            + " and psi.deleted is false ) order by datayear asc";
+
+    return jdbcTemplate.queryForList(sql, Integer.class);
+  }
 }

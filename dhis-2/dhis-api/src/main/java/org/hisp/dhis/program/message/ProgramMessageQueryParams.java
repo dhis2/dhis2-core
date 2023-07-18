@@ -29,160 +29,142 @@ package org.hisp.dhis.program.message;
 
 import java.util.Date;
 import java.util.Set;
-
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-public class ProgramMessageQueryParams
-{
-    private Set<String> organisationUnit;
+public class ProgramMessageQueryParams {
+  private Set<String> organisationUnit;
 
-    private ProgramMessageStatus messageStatus;
+  private ProgramMessageStatus messageStatus;
 
-    private ProgramInstance programInstance;
+  private ProgramInstance programInstance;
 
-    private ProgramStageInstance programStageInstance;
+  private ProgramStageInstance programStageInstance;
 
-    private Date afterDate;
+  private Date afterDate;
 
-    private Date beforeDate;
+  private Date beforeDate;
 
-    private Integer page;
+  private Integer page;
 
-    private Integer pageSize;
+  private Integer pageSize;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public ProgramMessageQueryParams()
-    {
-        super();
-    }
+  public ProgramMessageQueryParams() {
+    super();
+  }
 
-    public ProgramMessageQueryParams( Set<String> organisationUnit, ProgramMessageStatus messageStatus,
-        ProgramInstance programInstance, ProgramStageInstance programStageInstance, Date afterDate, Date beforeDate,
-        Integer page, Integer pageSize )
-    {
-        super();
-        this.organisationUnit = organisationUnit;
-        this.messageStatus = messageStatus;
-        this.programInstance = programInstance;
-        this.programStageInstance = programStageInstance;
-        this.afterDate = afterDate;
-        this.beforeDate = beforeDate;
-        this.page = page;
-        this.pageSize = pageSize;
-    }
+  public ProgramMessageQueryParams(
+      Set<String> organisationUnit,
+      ProgramMessageStatus messageStatus,
+      ProgramInstance programInstance,
+      ProgramStageInstance programStageInstance,
+      Date afterDate,
+      Date beforeDate,
+      Integer page,
+      Integer pageSize) {
+    super();
+    this.organisationUnit = organisationUnit;
+    this.messageStatus = messageStatus;
+    this.programInstance = programInstance;
+    this.programStageInstance = programStageInstance;
+    this.afterDate = afterDate;
+    this.beforeDate = beforeDate;
+    this.page = page;
+    this.pageSize = pageSize;
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    public boolean hasOrignisationUnit()
-    {
-        return organisationUnit != null;
-    }
+  public boolean hasOrignisationUnit() {
+    return organisationUnit != null;
+  }
 
-    public boolean hasProgramInstance()
-    {
-        return programInstance != null;
-    }
+  public boolean hasProgramInstance() {
+    return programInstance != null;
+  }
 
-    public boolean hasProgramStageInstance()
-    {
-        return programStageInstance != null;
-    }
+  public boolean hasProgramStageInstance() {
+    return programStageInstance != null;
+  }
 
-    public boolean hasPaging()
-    {
-        return page != null && pageSize != null;
-    }
+  public boolean hasPaging() {
+    return page != null && pageSize != null;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and Setters
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Getters and Setters
+  // -------------------------------------------------------------------------
 
-    public ProgramInstance getProgramInstance()
-    {
-        return programInstance;
-    }
+  public ProgramInstance getProgramInstance() {
+    return programInstance;
+  }
 
-    public void setProgramInstance( ProgramInstance programInstance )
-    {
-        this.programInstance = programInstance;
-    }
+  public void setProgramInstance(ProgramInstance programInstance) {
+    this.programInstance = programInstance;
+  }
 
-    public ProgramStageInstance getProgramStageInstance()
-    {
-        return programStageInstance;
-    }
+  public ProgramStageInstance getProgramStageInstance() {
+    return programStageInstance;
+  }
 
-    public void setProgramStageInstance( ProgramStageInstance programStageInstance )
-    {
-        this.programStageInstance = programStageInstance;
-    }
+  public void setProgramStageInstance(ProgramStageInstance programStageInstance) {
+    this.programStageInstance = programStageInstance;
+  }
 
-    public Set<String> getOrganisationUnit()
-    {
-        return organisationUnit;
-    }
+  public Set<String> getOrganisationUnit() {
+    return organisationUnit;
+  }
 
-    public void setOrganisationUnit( Set<String> organisationUnit )
-    {
-        this.organisationUnit = organisationUnit;
-    }
+  public void setOrganisationUnit(Set<String> organisationUnit) {
+    this.organisationUnit = organisationUnit;
+  }
 
-    public Integer getPage()
-    {
-        return page;
-    }
+  public Integer getPage() {
+    return page;
+  }
 
-    public void setPage( Integer page )
-    {
-        this.page = page;
-    }
+  public void setPage(Integer page) {
+    this.page = page;
+  }
 
-    public Integer getPageSize()
-    {
-        return pageSize;
-    }
+  public Integer getPageSize() {
+    return pageSize;
+  }
 
-    public void setPageSize( Integer pageSize )
-    {
-        this.pageSize = pageSize;
-    }
+  public void setPageSize(Integer pageSize) {
+    this.pageSize = pageSize;
+  }
 
-    public ProgramMessageStatus getMessageStatus()
-    {
-        return messageStatus;
-    }
+  public ProgramMessageStatus getMessageStatus() {
+    return messageStatus;
+  }
 
-    public void setMessageStatus( ProgramMessageStatus messageStatus )
-    {
-        this.messageStatus = messageStatus;
-    }
+  public void setMessageStatus(ProgramMessageStatus messageStatus) {
+    this.messageStatus = messageStatus;
+  }
 
-    public Date getAfterDate()
-    {
-        return afterDate;
-    }
+  public Date getAfterDate() {
+    return afterDate;
+  }
 
-    public void setAfterDate( Date afterDate )
-    {
-        this.afterDate = afterDate;
-    }
+  public void setAfterDate(Date afterDate) {
+    this.afterDate = afterDate;
+  }
 
-    public Date getBeforeDate()
-    {
-        return beforeDate;
-    }
+  public Date getBeforeDate() {
+    return beforeDate;
+  }
 
-    public void setBeforeDate( Date beforeDate )
-    {
-        this.beforeDate = beforeDate;
-    }
+  public void setBeforeDate(Date beforeDate) {
+    this.beforeDate = beforeDate;
+  }
 }

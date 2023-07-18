@@ -34,17 +34,15 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ProgramStageDataElementSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "programStageDataElement";
+public class ProgramStageDataElementSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "programStageDataElement";
 
-    public static final String PLURAL = "programStageDataElements";
+  public static final String PLURAL = "programStageDataElements";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( ProgramStageDataElement.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(ProgramStageDataElement.class, SINGULAR, PLURAL);
+  }
 }

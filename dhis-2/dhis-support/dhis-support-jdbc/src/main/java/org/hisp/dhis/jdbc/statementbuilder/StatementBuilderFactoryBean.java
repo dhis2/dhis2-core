@@ -36,66 +36,52 @@ import org.springframework.beans.factory.FactoryBean;
 /**
  * @author Lars Helge Overland
  */
-public class StatementBuilderFactoryBean
-    implements FactoryBean<StatementBuilder>
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class StatementBuilderFactoryBean implements FactoryBean<StatementBuilder> {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final StatementDialect statementDialect;
+  private final StatementDialect statementDialect;
 
-    public StatementBuilderFactoryBean( StatementDialect statementDialect )
-    {
-        checkNotNull( statementDialect );
-        this.statementDialect = statementDialect;
+  public StatementBuilderFactoryBean(StatementDialect statementDialect) {
+    checkNotNull(statementDialect);
+    this.statementDialect = statementDialect;
+  }
+
+  private StatementBuilder statementBuilder;
+
+  // -------------------------------------------------------------------------
+  // Init
+  // -------------------------------------------------------------------------
+
+  public void init() {
+    if (statementDialect.equals(StatementDialect.POSTGRESQL)) {
+      this.statementBuilder = new PostgreSQLStatementBuilder();
+    } else if (statementDialect.equals(StatementDialect.H2)) {
+      this.statementBuilder = new H2StatementBuilder();
+    } else if (statementDialect.equals(StatementDialect.HSQL)) {
+      this.statementBuilder = new HsqlStatementBuilder();
+    } else {
+      throw new RuntimeException("Unsupported dialect: " + statementDialect.toString());
     }
+  }
 
-    private StatementBuilder statementBuilder;
+  // -------------------------------------------------------------------------
+  // FactoryBean implementation
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Init
-    // -------------------------------------------------------------------------
+  @Override
+  public StatementBuilder getObject() {
+    return statementBuilder;
+  }
 
-    public void init()
-    {
-        if ( statementDialect.equals( StatementDialect.POSTGRESQL ) )
-        {
-            this.statementBuilder = new PostgreSQLStatementBuilder();
-        }
-        else if ( statementDialect.equals( StatementDialect.H2 ) )
-        {
-            this.statementBuilder = new H2StatementBuilder();
-        }
-        else if ( statementDialect.equals( StatementDialect.HSQL ) )
-        {
-            this.statementBuilder = new HsqlStatementBuilder();
-        }
-        else
-        {
-            throw new RuntimeException( "Unsupported dialect: " + statementDialect.toString() );
-        }
-    }
+  @Override
+  public Class<StatementBuilder> getObjectType() {
+    return StatementBuilder.class;
+  }
 
-    // -------------------------------------------------------------------------
-    // FactoryBean implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public StatementBuilder getObject()
-    {
-        return statementBuilder;
-    }
-
-    @Override
-    public Class<StatementBuilder> getObjectType()
-    {
-        return StatementBuilder.class;
-    }
-
-    @Override
-    public boolean isSingleton()
-    {
-        return true;
-    }
+  @Override
+  public boolean isSingleton() {
+    return true;
+  }
 }

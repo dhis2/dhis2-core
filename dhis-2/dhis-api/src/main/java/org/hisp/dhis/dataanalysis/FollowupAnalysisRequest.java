@@ -29,14 +29,12 @@ package org.hisp.dhis.dataanalysis;
 
 import java.util.Date;
 import java.util.List;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -45,17 +43,19 @@ import org.hisp.dhis.period.Period;
 /**
  * Request query parameters for followup analysis.
  *
- * Mandatory are:
+ * <p>Mandatory are:
+ *
  * <ul>
- * <li>at least one {@link #ou}</li>
- * <li>either {@link #de} or {@link #ds}</li>
- * <li>either {@link #pe} or {@link #startDate} and {@link #endDate}</li>
+ *   <li>at least one {@link #ou}
+ *   <li>either {@link #de} or {@link #ds}
+ *   <li>either {@link #pe} or {@link #startDate} and {@link #endDate}
  * </ul>
  *
  * Optional are:
+ *
  * <ul>
- * <li>{@link #coc} (derived from {@link #de} if empty)</li>
- * <li>{@link #maxResults} (default 50)</li>
+ *   <li>{@link #coc} (derived from {@link #de} if empty)
+ *   <li>{@link #maxResults} (default 50)
  * </ul>
  *
  * @author Jan Bernitt
@@ -63,52 +63,48 @@ import org.hisp.dhis.period.Period;
 @Getter
 @Setter
 @Builder
-@NoArgsConstructor( access = AccessLevel.PUBLIC )
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public final class FollowupAnalysisRequest
-{
-    /**
-     * {@link org.hisp.dhis.dataelement.DataElement} UIDs
-     *
-     * Only considered when {@link #ds} is non-empty. Otherwise the elements
-     * considered is based on {@link DataSet#getDataElements()}.
-     */
-    private List<String> de;
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public final class FollowupAnalysisRequest {
+  /**
+   * {@link org.hisp.dhis.dataelement.DataElement} UIDs
+   *
+   * <p>Only considered when {@link #ds} is non-empty. Otherwise the elements considered is based on
+   * {@link DataSet#getDataElements()}.
+   */
+  private List<String> de;
 
-    /**
-     * {@link org.hisp.dhis.dataset.DataSet} UIDs
-     *
-     * If specified it as the same effect as if {@link #de} had been filled with
-     * the union of all {@link DataSet#getDataElements()}.
-     */
-    private List<String> ds;
+  /**
+   * {@link org.hisp.dhis.dataset.DataSet} UIDs
+   *
+   * <p>If specified it as the same effect as if {@link #de} had been filled with the union of all
+   * {@link DataSet#getDataElements()}.
+   */
+  private List<String> ds;
 
-    /**
-     * {@link org.hisp.dhis.category.CategoryOptionCombo} UIDs
-     *
-     * If not specified (empty) it has the same effect as if it holds the union
-     * of all {@link DataElement#getCategoryOptionCombos()} that are
-     * {@link ValueType#isNumeric()}.
-     */
-    private List<String> coc;
+  /**
+   * {@link org.hisp.dhis.category.CategoryOptionCombo} UIDs
+   *
+   * <p>If not specified (empty) it has the same effect as if it holds the union of all {@link
+   * DataElement#getCategoryOptionCombos()} that are {@link ValueType#isNumeric()}.
+   */
+  private List<String> coc;
 
-    /**
-     * {@link org.hisp.dhis.organisationunit.OrganisationUnit} UIDs of the
-     * parent(s) whose children should be included
-     */
-    private List<String> ou;
+  /**
+   * {@link org.hisp.dhis.organisationunit.OrganisationUnit} UIDs of the parent(s) whose children
+   * should be included
+   */
+  private List<String> ou;
 
-    /**
-     * As an alternative to providing {@link #startDate} and {@link #endDate} a
-     * {@link Period} ISO string can be provided which is just used to derive
-     * the start and end date from it.
-     */
-    private String pe;
+  /**
+   * As an alternative to providing {@link #startDate} and {@link #endDate} a {@link Period} ISO
+   * string can be provided which is just used to derive the start and end date from it.
+   */
+  private String pe;
 
-    private Date startDate;
+  private Date startDate;
 
-    private Date endDate;
+  private Date endDate;
 
-    @Builder.Default
-    private int maxResults = 50;
+  @Builder.Default private int maxResults = 50;
 }

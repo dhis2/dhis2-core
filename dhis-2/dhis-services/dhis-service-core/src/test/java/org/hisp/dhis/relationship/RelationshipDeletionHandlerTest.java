@@ -48,58 +48,54 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class RelationshipDeletionHandlerTest
-{
+@ExtendWith(MockitoExtension.class)
+class RelationshipDeletionHandlerTest {
 
-    @Mock
-    private RelationshipService relationshipService;
+  @Mock private RelationshipService relationshipService;
 
-    private final DeletionManager deletionManager = new DefaultDeletionManager();
+  private final DeletionManager deletionManager = new DefaultDeletionManager();
 
-    @BeforeEach
-    public void setUp()
-    {
-        RelationshipDeletionHandler handler = new RelationshipDeletionHandler( relationshipService );
-        handler.setManager( deletionManager );
-        handler.init();
-    }
+  @BeforeEach
+  public void setUp() {
+    RelationshipDeletionHandler handler = new RelationshipDeletionHandler(relationshipService);
+    handler.setManager(deletionManager);
+    handler.init();
+  }
 
-    @Test
-    void allowDeleteRelationshipTypeWithData()
-    {
-        when( relationshipService.getRelationshipsByRelationshipType( any() ) )
-            .thenReturn( singletonList( new Relationship() ) );
+  @Test
+  void allowDeleteRelationshipTypeWithData() {
+    when(relationshipService.getRelationshipsByRelationshipType(any()))
+        .thenReturn(singletonList(new Relationship()));
 
-        ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent( new RelationshipType() );
-        Exception ex = assertThrows( DeleteNotAllowedException.class,
-            () -> deletionManager.onDeletion( event ) );
-        assertEquals( "Object could not be deleted because it is associated with another object: Relationship",
-            ex.getMessage() );
-    }
+    ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent(new RelationshipType());
+    Exception ex =
+        assertThrows(DeleteNotAllowedException.class, () -> deletionManager.onDeletion(event));
+    assertEquals(
+        "Object could not be deleted because it is associated with another object: Relationship",
+        ex.getMessage());
+  }
 
-    @Test
-    void allowDeleteRelationshipTypeWithoutData()
-    {
-        when( relationshipService.getRelationshipsByRelationshipType( any() ) )
-            .thenReturn( emptyList() );
+  @Test
+  void allowDeleteRelationshipTypeWithoutData() {
+    when(relationshipService.getRelationshipsByRelationshipType(any())).thenReturn(emptyList());
 
-        ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent( new RelationshipType() );
-        deletionManager.onDeletion( event );
+    ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent(new RelationshipType());
+    deletionManager.onDeletion(event);
 
-        verify( relationshipService, atLeastOnce() ).getRelationshipsByRelationshipType( any() );
-    }
+    verify(relationshipService, atLeastOnce()).getRelationshipsByRelationshipType(any());
+  }
 
-    @Test
-    void deleteTrackedEntityInstance()
-    {
-        when( relationshipService.getRelationshipsByTrackedEntityInstance( any(), anyBoolean() ) )
-            .thenReturn( singletonList( new Relationship() ) );
+  @Test
+  void deleteTrackedEntityInstance() {
+    when(relationshipService.getRelationshipsByTrackedEntityInstance(any(), anyBoolean()))
+        .thenReturn(singletonList(new Relationship()));
 
-        ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent( new TrackedEntityInstance() );
-        deletionManager.onDeletion( event );
+    ObjectDeletionRequestedEvent event =
+        new ObjectDeletionRequestedEvent(new TrackedEntityInstance());
+    deletionManager.onDeletion(event);
 
-        verify( relationshipService, atLeastOnce() ).getRelationshipsByTrackedEntityInstance( any(), anyBoolean() );
-        verify( relationshipService, atLeastOnce() ).deleteRelationship( any() );
-    }
+    verify(relationshipService, atLeastOnce())
+        .getRelationshipsByTrackedEntityInstance(any(), anyBoolean());
+    verify(relationshipService, atLeastOnce()).deleteRelationship(any());
+  }
 }

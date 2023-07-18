@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
@@ -48,96 +47,89 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class QueryParserTest extends IntegrationTestBase
-{
+class QueryParserTest extends IntegrationTestBase {
 
-    private QueryParser queryParser;
+  private QueryParser queryParser;
 
-    @Autowired
-    private SchemaService schemaService;
+  @Autowired private SchemaService schemaService;
 
-    @Autowired
-    private OrganisationUnitStore organisationUnitStore;
+  @Autowired private OrganisationUnitStore organisationUnitStore;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        this.userService = _userService;
+  @Override
+  protected void setUpTest() throws Exception {
+    this.userService = _userService;
 
-        OrganisationUnit orgUnitA = createOrganisationUnit( 'A' );
-        organisationUnitStore.save( orgUnitA );
+    OrganisationUnit orgUnitA = createOrganisationUnit('A');
+    organisationUnitStore.save(orgUnitA);
 
-        User user = createAndAddUser( "A" );
-        user.addOrganisationUnit( orgUnitA );
-        userService.updateUser( user );
+    User user = createAndAddUser("A");
+    user.addOrganisationUnit(orgUnitA);
+    userService.updateUser(user);
 
-        injectSecurityContext( user );
+    injectSecurityContext(user);
 
-        queryParser = new DefaultJpaQueryParser( schemaService );
-    }
+    queryParser = new DefaultJpaQueryParser(schemaService);
+  }
 
-    @Test
-    void failedFilters()
-    {
-        assertThrows( QueryParserException.class,
-            () -> queryParser.parse( DataElement.class, Arrays.asList( "id", "name" ) ) );
-    }
+  @Test
+  void failedFilters() {
+    assertThrows(
+        QueryParserException.class,
+        () -> queryParser.parse(DataElement.class, Arrays.asList("id", "name")));
+  }
 
-    @Test
-    void eqOperator()
-        throws QueryParserException
-    {
-        Query query = queryParser.parse( DataElement.class, Arrays.asList( "id:eq:1", "id:eq:2" ) );
-        assertEquals( 2, query.getCriterions().size() );
-        Restriction restriction = (Restriction) query.getCriterions().get( 0 );
-        assertEquals( "id", restriction.getPath() );
-        assertEquals( "1", restriction.getOperator().getArgs().get( 0 ) );
-        assertTrue( restriction.getOperator() instanceof EqualOperator );
-        restriction = (Restriction) query.getCriterions().get( 1 );
-        assertEquals( "id", restriction.getPath() );
-        assertEquals( "2", restriction.getOperator().getArgs().get( 0 ) );
-        assertTrue( restriction.getOperator() instanceof EqualOperator );
-    }
+  @Test
+  void eqOperator() throws QueryParserException {
+    Query query = queryParser.parse(DataElement.class, Arrays.asList("id:eq:1", "id:eq:2"));
+    assertEquals(2, query.getCriterions().size());
+    Restriction restriction = (Restriction) query.getCriterions().get(0);
+    assertEquals("id", restriction.getPath());
+    assertEquals("1", restriction.getOperator().getArgs().get(0));
+    assertTrue(restriction.getOperator() instanceof EqualOperator);
+    restriction = (Restriction) query.getCriterions().get(1);
+    assertEquals("id", restriction.getPath());
+    assertEquals("2", restriction.getOperator().getArgs().get(0));
+    assertTrue(restriction.getOperator() instanceof EqualOperator);
+  }
 
-    @Test
-    void eqOperatorDeepPath1()
-        throws QueryParserException
-    {
-        Query query = queryParser.parse( DataElement.class,
-            Arrays.asList( "dataElementGroups.id:eq:1", "dataElementGroups.id:eq:2" ) );
-        assertEquals( 2, query.getCriterions().size() );
-        Restriction restriction = (Restriction) query.getCriterions().get( 0 );
-        assertEquals( "dataElementGroups.id", restriction.getPath() );
-        assertEquals( "1", restriction.getOperator().getArgs().get( 0 ) );
-        assertTrue( restriction.getOperator() instanceof EqualOperator );
-        restriction = (Restriction) query.getCriterions().get( 1 );
-        assertEquals( "dataElementGroups.id", restriction.getPath() );
-        assertEquals( "2", restriction.getOperator().getArgs().get( 0 ) );
-        assertTrue( restriction.getOperator() instanceof EqualOperator );
-    }
+  @Test
+  void eqOperatorDeepPath1() throws QueryParserException {
+    Query query =
+        queryParser.parse(
+            DataElement.class,
+            Arrays.asList("dataElementGroups.id:eq:1", "dataElementGroups.id:eq:2"));
+    assertEquals(2, query.getCriterions().size());
+    Restriction restriction = (Restriction) query.getCriterions().get(0);
+    assertEquals("dataElementGroups.id", restriction.getPath());
+    assertEquals("1", restriction.getOperator().getArgs().get(0));
+    assertTrue(restriction.getOperator() instanceof EqualOperator);
+    restriction = (Restriction) query.getCriterions().get(1);
+    assertEquals("dataElementGroups.id", restriction.getPath());
+    assertEquals("2", restriction.getOperator().getArgs().get(0));
+    assertTrue(restriction.getOperator() instanceof EqualOperator);
+  }
 
-    @Test
-    void eqOperatorDeepPathFail()
-    {
-        assertThrows( QueryParserException.class, () -> queryParser.parse( DataElement.class,
-            Arrays.asList( "dataElementGroups.id.name:eq:1", "dataElementGroups.id.abc:eq:2" ) ) );
-    }
+  @Test
+  void eqOperatorDeepPathFail() {
+    assertThrows(
+        QueryParserException.class,
+        () ->
+            queryParser.parse(
+                DataElement.class,
+                Arrays.asList("dataElementGroups.id.name:eq:1", "dataElementGroups.id.abc:eq:2")));
+  }
 
-    @Test
-    void nullOperator()
-        throws QueryParserException
-    {
-        Query query = queryParser.parse( DataElement.class, Arrays.asList( "id:null", "name:null" ) );
-        assertEquals( 2, query.getCriterions().size() );
-        Restriction restriction = (Restriction) query.getCriterions().get( 0 );
-        assertEquals( "id", restriction.getPath() );
-        assertTrue( restriction.getOperator() instanceof NullOperator );
-        restriction = (Restriction) query.getCriterions().get( 1 );
-        assertEquals( "name", restriction.getPath() );
-        assertTrue( restriction.getOperator() instanceof NullOperator );
-    }
+  @Test
+  void nullOperator() throws QueryParserException {
+    Query query = queryParser.parse(DataElement.class, Arrays.asList("id:null", "name:null"));
+    assertEquals(2, query.getCriterions().size());
+    Restriction restriction = (Restriction) query.getCriterions().get(0);
+    assertEquals("id", restriction.getPath());
+    assertTrue(restriction.getOperator() instanceof NullOperator);
+    restriction = (Restriction) query.getCriterions().get(1);
+    assertEquals("name", restriction.getPath());
+    assertTrue(restriction.getOperator() instanceof NullOperator);
+  }
 }

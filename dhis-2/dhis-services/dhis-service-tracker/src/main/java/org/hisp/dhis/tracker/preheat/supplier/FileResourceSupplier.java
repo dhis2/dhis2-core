@@ -31,11 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -54,56 +51,66 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-public class FileResourceSupplier extends AbstractPreheatSupplier
-{
-    @Nonnull
-    private final FileResourceService fileResourceService;
+public class FileResourceSupplier extends AbstractPreheatSupplier {
+  @Nonnull private final FileResourceService fileResourceService;
 
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
-    {
-        TrackerIdSchemeParams idSchemes = params.getIdSchemes();
+  @Override
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+    TrackerIdSchemeParams idSchemes = params.getIdSchemes();
 
-        List<MetadataIdentifier> fileResourceAttributes = preheat.getAll( TrackedEntityAttribute.class ).stream()
-            .filter( at -> at.getValueType().isFile() )
-            .map( idSchemes::toMetadataIdentifier )
-            .collect( Collectors.toList() );
+    List<MetadataIdentifier> fileResourceAttributes =
+        preheat.getAll(TrackedEntityAttribute.class).stream()
+            .filter(at -> at.getValueType().isFile())
+            .map(idSchemes::toMetadataIdentifier)
+            .collect(Collectors.toList());
 
-        List<MetadataIdentifier> fileResourceDataElements = preheat.getAll( DataElement.class ).stream()
-            .filter( at -> at.getValueType().isFile() )
-            .map( idSchemes::toMetadataIdentifier )
-            .collect( Collectors.toList() );
+    List<MetadataIdentifier> fileResourceDataElements =
+        preheat.getAll(DataElement.class).stream()
+            .filter(at -> at.getValueType().isFile())
+            .map(idSchemes::toMetadataIdentifier)
+            .collect(Collectors.toList());
 
-        List<String> fileResourceIds = new ArrayList<>();
-        params.getTrackedEntities()
-            .forEach( te -> collectResourceIds( fileResourceAttributes, fileResourceIds, te.getAttributes() ) );
-        params.getEnrollments()
-            .forEach( en -> collectResourceIds( fileResourceAttributes, fileResourceIds, en.getAttributes() ) );
-        params.getEvents()
-            .forEach( en -> collectResourceIds( fileResourceDataElements, fileResourceIds, en.getDataValues() ) );
+    List<String> fileResourceIds = new ArrayList<>();
+    params
+        .getTrackedEntities()
+        .forEach(
+            te -> collectResourceIds(fileResourceAttributes, fileResourceIds, te.getAttributes()));
+    params
+        .getEnrollments()
+        .forEach(
+            en -> collectResourceIds(fileResourceAttributes, fileResourceIds, en.getAttributes()));
+    params
+        .getEvents()
+        .forEach(
+            en ->
+                collectResourceIds(fileResourceDataElements, fileResourceIds, en.getDataValues()));
 
-        preheat.put( TrackerIdSchemeParam.UID, fileResourceService.getFileResources( fileResourceIds ) );
-    }
+    preheat.put(TrackerIdSchemeParam.UID, fileResourceService.getFileResources(fileResourceIds));
+  }
 
-    private void collectResourceIds( List<MetadataIdentifier> fileResourceAttributes, List<String> fileResourceIds,
-        List<Attribute> attributes )
-    {
-        attributes.forEach( at -> {
-            if ( fileResourceAttributes.contains( at.getAttribute() ) && !StringUtils.isEmpty( at.getValue() ) )
-            {
-                fileResourceIds.add( at.getValue() );
-            }
-        } );
-    }
+  private void collectResourceIds(
+      List<MetadataIdentifier> fileResourceAttributes,
+      List<String> fileResourceIds,
+      List<Attribute> attributes) {
+    attributes.forEach(
+        at -> {
+          if (fileResourceAttributes.contains(at.getAttribute())
+              && !StringUtils.isEmpty(at.getValue())) {
+            fileResourceIds.add(at.getValue());
+          }
+        });
+  }
 
-    private void collectResourceIds( List<MetadataIdentifier> fileResourceDataElements, List<String> fileResourceIds,
-        Set<DataValue> dataElements )
-    {
-        dataElements.forEach( de -> {
-            if ( fileResourceDataElements.contains( de.getDataElement() ) && !StringUtils.isEmpty( de.getValue() ) )
-            {
-                fileResourceIds.add( de.getValue() );
-            }
-        } );
-    }
+  private void collectResourceIds(
+      List<MetadataIdentifier> fileResourceDataElements,
+      List<String> fileResourceIds,
+      Set<DataValue> dataElements) {
+    dataElements.forEach(
+        de -> {
+          if (fileResourceDataElements.contains(de.getDataElement())
+              && !StringUtils.isEmpty(de.getValue())) {
+            fileResourceIds.add(de.getValue());
+          }
+        });
+  }
 }

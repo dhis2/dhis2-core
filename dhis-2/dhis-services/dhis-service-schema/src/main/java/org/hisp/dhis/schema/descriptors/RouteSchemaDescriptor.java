@@ -28,7 +28,6 @@
 package org.hisp.dhis.schema.descriptors;
 
 import java.util.List;
-
 import org.hisp.dhis.route.Route;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
@@ -38,25 +37,23 @@ import org.hisp.dhis.security.AuthorityType;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class RouteSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "route";
+public class RouteSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "route";
 
-    public static final String PLURAL = "routes";
+  public static final String PLURAL = "routes";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( Route.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1200 );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(Route.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1200);
 
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, List.of( "F_ROUTE_PUBLIC_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.CREATE_PRIVATE, List.of( "F_ROUTE_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, List.of( "F_ROUTE_DELETE" ) ) );
+    schema.add(new Authority(AuthorityType.CREATE_PUBLIC, List.of("F_ROUTE_PUBLIC_ADD")));
+    schema.add(new Authority(AuthorityType.CREATE_PRIVATE, List.of("F_ROUTE_PRIVATE_ADD")));
+    schema.add(new Authority(AuthorityType.DELETE, List.of("F_ROUTE_DELETE")));
 
-        return schema;
-    }
+    return schema;
+  }
 }

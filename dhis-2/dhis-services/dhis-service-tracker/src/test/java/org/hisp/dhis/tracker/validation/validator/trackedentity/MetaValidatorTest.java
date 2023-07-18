@@ -50,80 +50,72 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class MetaValidatorTest
-{
-    private static final String ORG_UNIT_UID = "OrgUnitUid";
+@ExtendWith(MockitoExtension.class)
+class MetaValidatorTest {
+  private static final String ORG_UNIT_UID = "OrgUnitUid";
 
-    private static final String TRACKED_ENTITY_TYPE_UID = "TrackedEntityTypeUid";
+  private static final String TRACKED_ENTITY_TYPE_UID = "TrackedEntityTypeUid";
 
-    private static final String TRACKED_ENTITY_UID = "TrackedEntityUid";
+  private static final String TRACKED_ENTITY_UID = "TrackedEntityUid";
 
-    private MetaValidator validator;
+  private MetaValidator validator;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    public void setUp()
-    {
-        validator = new MetaValidator();
+  @BeforeEach
+  public void setUp() {
+    validator = new MetaValidator();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
+    when(bundle.getPreheat()).thenReturn(preheat);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
-    }
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
+  }
 
-    @Test
-    void verifyTrackedEntityValidationSuccess()
-    {
-        TrackedEntity tei = validTei();
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
-            .thenReturn( new OrganisationUnit() );
-        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TRACKED_ENTITY_TYPE_UID ) ) )
-            .thenReturn( new TrackedEntityType() );
+  @Test
+  void verifyTrackedEntityValidationSuccess() {
+    TrackedEntity tei = validTei();
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
+        .thenReturn(new OrganisationUnit());
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TRACKED_ENTITY_TYPE_UID)))
+        .thenReturn(new TrackedEntityType());
 
-        validator.validate( reporter, bundle, tei );
+    validator.validate(reporter, bundle, tei);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyTrackedEntityValidationFailsWhenOrgUnitIsNotPresentInDb()
-    {
-        TrackedEntity tei = validTei();
-        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TRACKED_ENTITY_TYPE_UID ) ) )
-            .thenReturn( new TrackedEntityType() );
+  @Test
+  void verifyTrackedEntityValidationFailsWhenOrgUnitIsNotPresentInDb() {
+    TrackedEntity tei = validTei();
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TRACKED_ENTITY_TYPE_UID)))
+        .thenReturn(new TrackedEntityType());
 
-        validator.validate( reporter, bundle, tei );
+    validator.validate(reporter, bundle, tei);
 
-        assertHasError( reporter, tei, E1049 );
-    }
+    assertHasError(reporter, tei, E1049);
+  }
 
-    @Test
-    void verifyTrackedEntityValidationFailsWhenTrackedEntityTypeIsNotPresentInDb()
-    {
-        TrackedEntity tei = validTei();
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
-            .thenReturn( new OrganisationUnit() );
+  @Test
+  void verifyTrackedEntityValidationFailsWhenTrackedEntityTypeIsNotPresentInDb() {
+    TrackedEntity tei = validTei();
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
+        .thenReturn(new OrganisationUnit());
 
-        validator.validate( reporter, bundle, tei );
+    validator.validate(reporter, bundle, tei);
 
-        assertHasError( reporter, tei, E1005 );
-    }
+    assertHasError(reporter, tei, E1005);
+  }
 
-    private TrackedEntity validTei()
-    {
-        return TrackedEntity.builder()
-            .trackedEntity( TRACKED_ENTITY_UID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TRACKED_ENTITY_TYPE_UID ) )
-            .build();
-    }
+  private TrackedEntity validTei() {
+    return TrackedEntity.builder()
+        .trackedEntity(TRACKED_ENTITY_UID)
+        .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID))
+        .trackedEntityType(MetadataIdentifier.ofUid(TRACKED_ENTITY_TYPE_UID))
+        .build();
+  }
 }

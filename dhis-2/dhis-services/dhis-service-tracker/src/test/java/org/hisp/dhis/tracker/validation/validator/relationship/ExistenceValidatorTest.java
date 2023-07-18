@@ -52,126 +52,108 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class ExistenceValidatorTest
-{
-    private final static String NOT_PRESENT_RELATIONSHIP_UID = "NotPresentRelationshipId";
+@ExtendWith(MockitoExtension.class)
+class ExistenceValidatorTest {
+  private static final String NOT_PRESENT_RELATIONSHIP_UID = "NotPresentRelationshipId";
 
-    private final static String RELATIONSHIP_UID = "RelationshipId";
+  private static final String RELATIONSHIP_UID = "RelationshipId";
 
-    private final static String SOFT_DELETED_RELATIONSHIP_UID = "SoftDeletedRelationshipId";
+  private static final String SOFT_DELETED_RELATIONSHIP_UID = "SoftDeletedRelationshipId";
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private ExistenceValidator validator;
+  private ExistenceValidator validator;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    void setUp()
-    {
-        when( bundle.getPreheat() ).thenReturn( preheat );
+  @BeforeEach
+  void setUp() {
+    when(bundle.getPreheat()).thenReturn(preheat);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
 
-        validator = new ExistenceValidator();
-    }
+    validator = new ExistenceValidator();
+  }
 
-    @Test
-    void verifyRelationshipValidationSuccessWhenIsCreate()
-    {
-        Relationship rel = Relationship.builder()
-            .relationship( NOT_PRESENT_RELATIONSHIP_UID )
-            .build();
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( rel ) ).thenReturn( TrackerImportStrategy.CREATE );
+  @Test
+  void verifyRelationshipValidationSuccessWhenIsCreate() {
+    Relationship rel = Relationship.builder().relationship(NOT_PRESENT_RELATIONSHIP_UID).build();
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(rel)).thenReturn(TrackerImportStrategy.CREATE);
 
-        validator.validate( reporter, bundle, rel );
+    validator.validate(reporter, bundle, rel);
 
-        assertIsEmpty( reporter.getErrors() );
-        assertThat( reporter.getWarnings(), empty() );
-    }
+    assertIsEmpty(reporter.getErrors());
+    assertThat(reporter.getWarnings(), empty());
+  }
 
-    @Test
-    void verifyRelationshipValidationSuccessWithWarningWhenUpdate()
-    {
-        Relationship rel = getPayloadRelationship();
-        when( bundle.getStrategy( rel ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( preheat.getRelationship( RELATIONSHIP_UID ) ).thenReturn( getRelationship() );
+  @Test
+  void verifyRelationshipValidationSuccessWithWarningWhenUpdate() {
+    Relationship rel = getPayloadRelationship();
+    when(bundle.getStrategy(rel)).thenReturn(TrackerImportStrategy.UPDATE);
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(preheat.getRelationship(RELATIONSHIP_UID)).thenReturn(getRelationship());
 
-        validator.validate( reporter, bundle, rel );
+    validator.validate(reporter, bundle, rel);
 
-        assertIsEmpty( reporter.getErrors() );
-        assertHasWarning( reporter, rel, E4015 );
-    }
+    assertIsEmpty(reporter.getErrors());
+    assertHasWarning(reporter, rel, E4015);
+  }
 
-    @Test
-    void verifyRelationshipValidationFailsWhenIsCreateAndRelationshipIsAlreadyPresent()
-    {
-        Relationship rel = getPayloadRelationship();
-        when( bundle.getStrategy( rel ) ).thenReturn( TrackerImportStrategy.CREATE );
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( preheat.getRelationship( RELATIONSHIP_UID ) ).thenReturn( getRelationship() );
+  @Test
+  void verifyRelationshipValidationFailsWhenIsCreateAndRelationshipIsAlreadyPresent() {
+    Relationship rel = getPayloadRelationship();
+    when(bundle.getStrategy(rel)).thenReturn(TrackerImportStrategy.CREATE);
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(preheat.getRelationship(RELATIONSHIP_UID)).thenReturn(getRelationship());
 
-        validator.validate( reporter, bundle, rel );
+    validator.validate(reporter, bundle, rel);
 
-        assertHasError( reporter, rel, E4015 );
-    }
+    assertHasError(reporter, rel, E4015);
+  }
 
-    @Test
-    void verifyRelationshipValidationFailsWhenIsDeleteAndRelationshipIsNotPresent()
-    {
-        Relationship rel = Relationship.builder()
-            .relationship( NOT_PRESENT_RELATIONSHIP_UID )
-            .build();
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( rel ) ).thenReturn( TrackerImportStrategy.DELETE );
+  @Test
+  void verifyRelationshipValidationFailsWhenIsDeleteAndRelationshipIsNotPresent() {
+    Relationship rel = Relationship.builder().relationship(NOT_PRESENT_RELATIONSHIP_UID).build();
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(rel)).thenReturn(TrackerImportStrategy.DELETE);
 
-        validator.validate( reporter, bundle, rel );
+    validator.validate(reporter, bundle, rel);
 
-        assertHasError( reporter, rel, E4016 );
-    }
+    assertHasError(reporter, rel, E4016);
+  }
 
-    @Test
-    void verifyRelationshipValidationFailsWhenIsSoftDeleted()
-    {
-        Relationship rel = Relationship.builder()
-            .relationship( SOFT_DELETED_RELATIONSHIP_UID )
-            .build();
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( preheat.getRelationship( SOFT_DELETED_RELATIONSHIP_UID ) )
-            .thenReturn( softDeletedRelationship() );
+  @Test
+  void verifyRelationshipValidationFailsWhenIsSoftDeleted() {
+    Relationship rel = Relationship.builder().relationship(SOFT_DELETED_RELATIONSHIP_UID).build();
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(preheat.getRelationship(SOFT_DELETED_RELATIONSHIP_UID))
+        .thenReturn(softDeletedRelationship());
 
-        validator.validate( reporter, bundle, rel );
+    validator.validate(reporter, bundle, rel);
 
-        assertHasError( reporter, rel, E4017 );
-    }
+    assertHasError(reporter, rel, E4017);
+  }
 
-    private Relationship getPayloadRelationship()
-    {
-        return Relationship.builder()
-            .relationship( RELATIONSHIP_UID )
-            .build();
-    }
+  private Relationship getPayloadRelationship() {
+    return Relationship.builder().relationship(RELATIONSHIP_UID).build();
+  }
 
-    private org.hisp.dhis.relationship.Relationship softDeletedRelationship()
-    {
-        org.hisp.dhis.relationship.Relationship relationship = new org.hisp.dhis.relationship.Relationship();
-        relationship.setUid( SOFT_DELETED_RELATIONSHIP_UID );
-        relationship.setDeleted( true );
-        return relationship;
-    }
+  private org.hisp.dhis.relationship.Relationship softDeletedRelationship() {
+    org.hisp.dhis.relationship.Relationship relationship =
+        new org.hisp.dhis.relationship.Relationship();
+    relationship.setUid(SOFT_DELETED_RELATIONSHIP_UID);
+    relationship.setDeleted(true);
+    return relationship;
+  }
 
-    private org.hisp.dhis.relationship.Relationship getRelationship()
-    {
-        org.hisp.dhis.relationship.Relationship relationship = new org.hisp.dhis.relationship.Relationship();
-        relationship.setUid( RELATIONSHIP_UID );
-        return relationship;
-    }
+  private org.hisp.dhis.relationship.Relationship getRelationship() {
+    org.hisp.dhis.relationship.Relationship relationship =
+        new org.hisp.dhis.relationship.Relationship();
+    relationship.setUid(RELATIONSHIP_UID);
+    return relationship;
+  }
 }

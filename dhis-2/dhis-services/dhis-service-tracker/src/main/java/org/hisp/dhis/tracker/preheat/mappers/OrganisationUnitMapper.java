@@ -34,26 +34,22 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = {
-    AttributeValueMapper.class
-} )
-@DecoratedWith( OrgUnitDecorator.class )
-public interface OrganisationUnitMapper
-    extends PreheatMapper<OrganisationUnit>
-{
-    OrganisationUnitMapper INSTANCE = Mappers.getMapper( OrganisationUnitMapper.class );
+@Mapper(uses = {AttributeValueMapper.class})
+@DecoratedWith(OrgUnitDecorator.class)
+public interface OrganisationUnitMapper extends PreheatMapper<OrganisationUnit> {
+  OrganisationUnitMapper INSTANCE = Mappers.getMapper(OrganisationUnitMapper.class);
 
-    @Override
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "name" )
-    @Mapping( target = "attributeValues" )
-    @Mapping( target = "user" )
-    @Mapping( target = "publicAccess" )
-    @Mapping( target = "externalAccess" )
-    @Mapping( target = "userGroupAccesses" )
-    @Mapping( target = "userAccesses" )
-    OrganisationUnit map( OrganisationUnit organisationUnit );
+  @Override
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "code")
+  @Mapping(target = "name")
+  @Mapping(target = "attributeValues")
+  @Mapping(target = "user")
+  @Mapping(target = "publicAccess")
+  @Mapping(target = "externalAccess")
+  @Mapping(target = "userGroupAccesses")
+  @Mapping(target = "userAccesses")
+  OrganisationUnit map(OrganisationUnit organisationUnit);
 }

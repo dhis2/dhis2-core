@@ -27,24 +27,21 @@
  */
 package org.hisp.dhis.program.notification;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Date;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.template.snapshot.ProgramNotificationTemplateSnapshot;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Zubair Asghar
@@ -54,43 +51,39 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
-public class ProgramNotificationInstance extends BaseIdentifiableObject
-{
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private ProgramNotificationTemplateSnapshot programNotificationTemplateSnapshot;
+@JacksonXmlRootElement(namespace = DxfNamespaces.DXF_2_0)
+public class ProgramNotificationInstance extends BaseIdentifiableObject {
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  private ProgramNotificationTemplateSnapshot programNotificationTemplateSnapshot;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private Long programNotificationTemplateId;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  private Long programNotificationTemplateId;
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private ProgramInstance programInstance;
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  private ProgramInstance programInstance;
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private ProgramStageInstance programStageInstance;
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  private ProgramStageInstance programStageInstance;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private Date sentAt;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  private Date sentAt;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private Date scheduledAt;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  private Date scheduledAt;
 
-    public boolean hasProgramInstance()
-    {
-        return programInstance != null;
-    }
+  public boolean hasProgramInstance() {
+    return programInstance != null;
+  }
 
-    public boolean hasProgramStageInstance()
-    {
-        return programStageInstance != null;
-    }
-
+  public boolean hasProgramStageInstance() {
+    return programStageInstance != null;
+  }
 }

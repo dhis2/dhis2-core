@@ -28,9 +28,7 @@
 package org.hisp.dhis.i18n.hibernate;
 
 import java.util.Locale;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.i18n.I18nLocaleStore;
@@ -41,24 +39,32 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-@Repository( "org.hisp.dhis.i18n.I18nLocaleStore" )
-public class HibernateI18nLocaleStore
-    extends HibernateIdentifiableObjectStore<I18nLocale>
-    implements I18nLocaleStore
-{
-    public HibernateI18nLocaleStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, I18nLocale.class, currentUserService, aclService, false );
-    }
+@Repository("org.hisp.dhis.i18n.I18nLocaleStore")
+public class HibernateI18nLocaleStore extends HibernateIdentifiableObjectStore<I18nLocale>
+    implements I18nLocaleStore {
+  public HibernateI18nLocaleStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        I18nLocale.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 
-    @Override
-    public I18nLocale getI18nLocaleByLocale( Locale locale )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public I18nLocale getI18nLocaleByLocale(Locale locale) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "locale" ), locale.toString() ) ) );
-    }
-
+    return getSingleResult(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("locale"), locale.toString())));
+  }
 }

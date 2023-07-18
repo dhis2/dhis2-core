@@ -35,7 +35,6 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -43,346 +42,305 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @author Lars Helge Overland
  */
-public class ListUtils
-{
-    /**
-     * Removes from the given list the elements at the given indexes. Ignores
-     * indexes which are out of bounds of list.
-     *
-     * @param <T> type.
-     * @param list the list to remove elements from.
-     * @param indexes the indexes for the elements to remove.
-     */
-    public static <T> void removeAll( List<T> list, List<Integer> indexes )
-    {
-        if ( list == null || indexes == null )
-        {
-            return;
-        }
-
-        Collections.sort( indexes, Collections.reverseOrder() );
-
-        final int size = list.size();
-
-        for ( Integer index : indexes )
-        {
-            if ( index >= 0 && index < size )
-            {
-                list.remove( (int) index );
-            }
-        }
+public class ListUtils {
+  /**
+   * Removes from the given list the elements at the given indexes. Ignores indexes which are out of
+   * bounds of list.
+   *
+   * @param <T> type.
+   * @param list the list to remove elements from.
+   * @param indexes the indexes for the elements to remove.
+   */
+  public static <T> void removeAll(List<T> list, List<Integer> indexes) {
+    if (list == null || indexes == null) {
+      return;
     }
 
-    /**
-     * Removes from the given list the elements at the given indexes. Ignores
-     * indexes which are out of bounds of list.
-     *
-     * @param <T> type.
-     * @param list the list to operate on.
-     * @param indexes the indexes to remove elements in the list from.
-     */
-    public static <T> void removeAll( List<T> list, Integer... indexes )
-    {
-        List<Integer> inx = new ArrayList<>( Arrays.asList( indexes ) );
+    Collections.sort(indexes, Collections.reverseOrder());
 
-        removeAll( list, inx );
+    final int size = list.size();
+
+    for (Integer index : indexes) {
+      if (index >= 0 && index < size) {
+        list.remove((int) index);
+      }
+    }
+  }
+
+  /**
+   * Removes from the given list the elements at the given indexes. Ignores indexes which are out of
+   * bounds of list.
+   *
+   * @param <T> type.
+   * @param list the list to operate on.
+   * @param indexes the indexes to remove elements in the list from.
+   */
+  public static <T> void removeAll(List<T> list, Integer... indexes) {
+    List<Integer> inx = new ArrayList<>(Arrays.asList(indexes));
+
+    removeAll(list, inx);
+  }
+
+  /**
+   * Returns a sublist of the given list with the elements at the given indexes. Does not modify the
+   * given list of elements.
+   *
+   * @param <T> type.
+   * @param list the list to select from.
+   * @param indexes the indexes of the elements in the list to select.
+   * @return sublist of the given list with the elements at the given indexes.
+   */
+  public static <T> List<T> getAtIndexes(List<T> list, List<Integer> indexes) {
+    List<T> elements = new ArrayList<>();
+
+    for (Integer index : indexes) {
+      elements.add(list.get(index));
     }
 
-    /**
-     * Returns a sublist of the given list with the elements at the given
-     * indexes. Does not modify the given list of elements.
-     *
-     * @param <T> type.
-     * @param list the list to select from.
-     * @param indexes the indexes of the elements in the list to select.
-     * @return sublist of the given list with the elements at the given indexes.
-     */
-    public static <T> List<T> getAtIndexes( List<T> list, List<Integer> indexes )
-    {
-        List<T> elements = new ArrayList<>();
+    return elements;
+  }
 
-        for ( Integer index : indexes )
-        {
-            elements.add( list.get( index ) );
-        }
+  /**
+   * Checks whether the given list contains duplicates. List entries are compared using the given
+   * comparator.
+   *
+   * @param <T> type.
+   * @param list the list.
+   * @param comparator the comparator.
+   * @return true if the list contains duplicates, false if not.
+   */
+  public static <T> boolean containsDuplicates(List<T> list, Comparator<T> comparator) {
+    Collections.sort(list, comparator);
 
-        return elements;
+    T previous = null;
+
+    for (T entry : list) {
+      if (previous != null && previous.equals(entry)) {
+        return true;
+      }
+
+      previous = entry;
     }
 
-    /**
-     * Checks whether the given list contains duplicates. List entries are
-     * compared using the given comparator.
-     *
-     * @param <T> type.
-     * @param list the list.
-     * @param comparator the comparator.
-     * @return true if the list contains duplicates, false if not.
-     */
-    public static <T> boolean containsDuplicates( List<T> list, Comparator<T> comparator )
-    {
-        Collections.sort( list, comparator );
+    return false;
+  }
 
-        T previous = null;
+  /**
+   * Returns the duplicates in the given list. List entries are compared using the given comparator.
+   *
+   * @param <T> type.
+   * @param list the list.
+   * @param comparator the comparator.
+   * @return a set of duplicates from the given list.
+   */
+  public static <T> Set<T> getDuplicates(List<T> list, Comparator<? super T> comparator) {
+    Set<T> duplicates = new HashSet<>();
 
-        for ( T entry : list )
-        {
-            if ( previous != null && previous.equals( entry ) )
-            {
-                return true;
-            }
+    Collections.sort(list, comparator);
 
-            previous = entry;
-        }
+    T previous = null;
 
-        return false;
+    for (T entry : list) {
+      if (previous != null && previous.equals(entry)) {
+        duplicates.add(entry);
+      }
+
+      previous = entry;
     }
 
-    /**
-     * Returns the duplicates in the given list. List entries are compared using
-     * the given comparator.
-     *
-     * @param <T> type.
-     * @param list the list.
-     * @param comparator the comparator.
-     * @return a set of duplicates from the given list.
-     */
-    public static <T> Set<T> getDuplicates( List<T> list, Comparator<? super T> comparator )
-    {
-        Set<T> duplicates = new HashSet<>();
+    return duplicates;
+  }
 
-        Collections.sort( list, comparator );
+  /**
+   * Returns the duplicates in the given list.
+   *
+   * @param <T> type.
+   * @param list the list.
+   * @return a set of duplicates from the given list.
+   */
+  public static <T> Set<T> getDuplicates(Collection<T> list) {
+    Set<T> duplicates = new HashSet<>();
+    UniqueArrayList<T> uniqueElements = new UniqueArrayList<>();
 
-        T previous = null;
-
-        for ( T entry : list )
-        {
-            if ( previous != null && previous.equals( entry ) )
-            {
-                duplicates.add( entry );
-            }
-
-            previous = entry;
-        }
-
-        return duplicates;
+    for (T element : list) {
+      if (!uniqueElements.add(element)) {
+        duplicates.add(element);
+      }
     }
 
-    /**
-     * Returns the duplicates in the given list.
-     *
-     * @param <T> type.
-     * @param list the list.
-     * @return a set of duplicates from the given list.
-     */
-    public static <T> Set<T> getDuplicates( Collection<T> list )
-    {
-        Set<T> duplicates = new HashSet<>();
-        UniqueArrayList<T> uniqueElements = new UniqueArrayList<>();
+    return duplicates;
+  }
 
-        for ( T element : list )
-        {
-            if ( !uniqueElements.add( element ) )
-            {
-                duplicates.add( element );
-            }
-        }
+  /**
+   * Removes empty strings from the given list. Empty includes null.
+   *
+   * @param list the list of strings.
+   */
+  public static void removeEmptys(List<String> list) {
+    if (list != null && !list.isEmpty()) {
+      list.removeIf(StringUtils::isEmpty);
+    }
+  }
 
-        return duplicates;
+  /**
+   * Returns the sub list of the given list avoiding exceptions, starting on the given start index
+   * and returning at maximum the given max number of items.
+   *
+   * @param <T> type.
+   * @param list the list.
+   * @param start the start index.
+   * @param max the max number of items to return.
+   * @return sublist of the given list with the elements at the given indexes.
+   */
+  public static <T> List<T> subList(List<T> list, int start, int max) {
+    if (list == null) {
+      return null;
     }
 
-    /**
-     * Removes empty strings from the given list. Empty includes null.
-     *
-     * @param list the list of strings.
-     */
-    public static void removeEmptys( List<String> list )
-    {
-        if ( list != null && !list.isEmpty() )
-        {
-            list.removeIf( StringUtils::isEmpty );
-        }
+    int end = start + max;
+
+    return list.subList(Math.max(0, start), Math.min(list.size(), end));
+  }
+
+  /**
+   * Unions the given array of lists into a single list.
+   *
+   * @param <T> type.
+   * @param lists the array of lists.
+   * @return a union of the given lists.
+   */
+  @SafeVarargs
+  public static final <T> List<T> union(final List<T>... lists) {
+    final List<T> union = new ArrayList<>();
+
+    for (List<T> list : lists) {
+      union.addAll(list);
     }
 
-    /**
-     * Returns the sub list of the given list avoiding exceptions, starting on
-     * the given start index and returning at maximum the given max number of
-     * items.
-     *
-     * @param <T> type.
-     * @param list the list.
-     * @param start the start index.
-     * @param max the max number of items to return.
-     * @return sublist of the given list with the elements at the given indexes.
-     */
-    public static <T> List<T> subList( List<T> list, int start, int max )
-    {
-        if ( list == null )
-        {
-            return null;
-        }
+    return union;
+  }
 
-        int end = start + max;
+  /**
+   * Unions the given array of lists into a single list with distinct items.
+   *
+   * @param <T> type.
+   * @param lists the array of lists.
+   * @return a union of the given lists.
+   */
+  @SafeVarargs
+  public static final <T> List<T> distinctUnion(final List<T>... lists) {
+    final List<T> union = new UniqueArrayList<>();
 
-        return list.subList( Math.max( 0, start ), Math.min( list.size(), end ) );
+    for (List<T> list : lists) {
+      union.addAll(list);
     }
 
-    /**
-     * Unions the given array of lists into a single list.
-     *
-     * @param <T> type.
-     * @param lists the array of lists.
-     * @return a union of the given lists.
-     */
-    @SafeVarargs
-    public static final <T> List<T> union( final List<T>... lists )
-    {
-        final List<T> union = new ArrayList<>();
+    return union;
+  }
 
-        for ( List<T> list : lists )
-        {
-            union.addAll( list );
-        }
+  /**
+   * Returns a contiguous list of Integers starting on and including a, ending on and excluding b.
+   *
+   * @param a start, inclusive.
+   * @param b end, exclusive.
+   * @return a list of Integers.
+   */
+  public static List<Integer> getClosedOpenList(int a, int b) {
+    List<Integer> list = new ArrayList<>();
 
-        return union;
+    for (int i = a; i < b; i++) {
+      list.add(i);
     }
 
-    /**
-     * Unions the given array of lists into a single list with distinct items.
-     *
-     * @param <T> type.
-     * @param lists the array of lists.
-     * @return a union of the given lists.
-     */
-    @SafeVarargs
-    public static final <T> List<T> distinctUnion( final List<T>... lists )
-    {
-        final List<T> union = new UniqueArrayList<>();
+    return list;
+  }
 
-        for ( List<T> list : lists )
-        {
-            union.addAll( list );
-        }
+  /**
+   * Converts a List into a double[].
+   *
+   * @param list the List.
+   * @return a double array.
+   */
+  public static double[] getArray(List<Double> list) {
+    double[] array = new double[list.size()];
 
-        return union;
+    int index = 0;
+
+    for (Double d : list) {
+      array[index++] = d;
     }
 
-    /**
-     * Returns a contiguous list of Integers starting on and including a, ending
-     * on and excluding b.
-     *
-     * @param a start, inclusive.
-     * @param b end, exclusive.
-     * @return a list of Integers.
-     */
-    public static List<Integer> getClosedOpenList( int a, int b )
-    {
-        List<Integer> list = new ArrayList<>();
+    return array;
+  }
 
-        for ( int i = a; i < b; i++ )
-        {
-            list.add( i );
-        }
+  /**
+   * Creates a collection of Integers out of a collection of Strings.
+   *
+   * @param strings the collection of Strings.
+   * @return a collection of Integers.
+   */
+  public static List<Integer> getIntegerCollection(Collection<String> strings) {
+    List<Integer> integers = new ArrayList<>();
 
-        return list;
+    if (strings != null) {
+      for (String string : strings) {
+        integers.add(Integer.valueOf(string));
+      }
     }
 
-    /**
-     * Converts a List into a double[].
-     *
-     * @param list the List.
-     * @return a double array.
-     */
-    public static double[] getArray( List<Double> list )
-    {
-        double[] array = new double[list.size()];
+    return integers;
+  }
 
-        int index = 0;
+  /**
+   * Sorts the given list according to its natural sort order and returns it.
+   *
+   * @param <T> type.
+   * @param list the list to sort.
+   * @return a sorted list.
+   */
+  public static <T extends Comparable<? super T>> List<T> sort(List<T> list) {
+    Collections.sort(list);
+    return list;
+  }
 
-        for ( Double d : list )
-        {
-            array[index++] = d;
-        }
+  /**
+   * Sorts the given list using the given comparator and returns it.
+   *
+   * @param <T> type.
+   * @param list the list to sort.
+   * @param comparator the comparator.
+   * @return a sorted list.
+   */
+  public static <T> List<T> sort(List<T> list, Comparator<? super T> comparator) {
+    Collections.sort(list, comparator);
+    return list;
+  }
 
-        return array;
+  /**
+   * Returns a mutable copy of the given collection. Accepts nulls as collection items.
+   *
+   * @param <T>
+   * @param collection the {@link Collection}.
+   * @return a {@link List}.
+   */
+  public static <T> List<T> mutableCopy(Collection<T> collection) {
+    return new ArrayList<>(collection);
+  }
+
+  /**
+   * Creates a new mutable list based on the given items.
+   *
+   * @param items the items.
+   * @return a list.
+   */
+  @SafeVarargs
+  public static <T> List<T> newList(T... items) {
+    List<T> list = new ArrayList<>();
+
+    for (T item : items) {
+      list.add(item);
     }
 
-    /**
-     * Creates a collection of Integers out of a collection of Strings.
-     *
-     * @param strings the collection of Strings.
-     * @return a collection of Integers.
-     */
-    public static List<Integer> getIntegerCollection( Collection<String> strings )
-    {
-        List<Integer> integers = new ArrayList<>();
-
-        if ( strings != null )
-        {
-            for ( String string : strings )
-            {
-                integers.add( Integer.valueOf( string ) );
-            }
-        }
-
-        return integers;
-    }
-
-    /**
-     * Sorts the given list according to its natural sort order and returns it.
-     *
-     * @param <T> type.
-     * @param list the list to sort.
-     * @return a sorted list.
-     */
-    public static <T extends Comparable<? super T>> List<T> sort( List<T> list )
-    {
-        Collections.sort( list );
-        return list;
-    }
-
-    /**
-     * Sorts the given list using the given comparator and returns it.
-     *
-     * @param <T> type.
-     * @param list the list to sort.
-     * @param comparator the comparator.
-     * @return a sorted list.
-     */
-    public static <T> List<T> sort( List<T> list, Comparator<? super T> comparator )
-    {
-        Collections.sort( list, comparator );
-        return list;
-    }
-
-    /**
-     * Returns a mutable copy of the given collection. Accepts nulls as
-     * collection items.
-     *
-     * @param <T>
-     * @param collection the {@link Collection}.
-     * @return a {@link List}.
-     */
-    public static <T> List<T> mutableCopy( Collection<T> collection )
-    {
-        return new ArrayList<>( collection );
-    }
-
-    /**
-     * Creates a new mutable list based on the given items.
-     *
-     * @param items the items.
-     * @return a list.
-     */
-    @SafeVarargs
-    public static <T> List<T> newList( T... items )
-    {
-        List<T> list = new ArrayList<>();
-
-        for ( T item : items )
-        {
-            list.add( item );
-        }
-
-        return list;
-    }
+    return list;
+  }
 }

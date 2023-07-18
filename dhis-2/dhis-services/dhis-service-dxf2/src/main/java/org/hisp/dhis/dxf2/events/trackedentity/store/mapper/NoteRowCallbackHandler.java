@@ -29,40 +29,31 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Luciano Fiandesio
  */
-public class NoteRowCallbackHandler
-    extends
-    AbstractMapper<Note>
-{
-    @Override
-    Note getItem( ResultSet rs )
-        throws SQLException
-    {
-        return getNote( rs );
-    }
+public class NoteRowCallbackHandler extends AbstractMapper<Note> {
+  @Override
+  Note getItem(ResultSet rs) throws SQLException {
+    return getNote(rs);
+  }
 
-    @Override
-    String getKeyColumn()
-    {
-        return "key";
-    }
+  @Override
+  String getKeyColumn() {
+    return "key";
+  }
 
-    private Note getNote( ResultSet rs )
-        throws SQLException
-    {
-        Note note = new Note();
+  private Note getNote(ResultSet rs) throws SQLException {
+    Note note = new Note();
 
-        note.setNote( rs.getString( "uid" ) );
-        note.setValue( rs.getString( "commenttext" ) );
-        note.setStoredBy( rs.getString( "creator" ) );
-        note.setStoredDate( DateUtils.getIso8601NoTz( rs.getDate( "created" ) ) );
+    note.setNote(rs.getString("uid"));
+    note.setValue(rs.getString("commenttext"));
+    note.setStoredBy(rs.getString("creator"));
+    note.setStoredDate(DateUtils.getIso8601NoTz(rs.getDate("created")));
 
-        return note;
-    }
+    return note;
+  }
 }

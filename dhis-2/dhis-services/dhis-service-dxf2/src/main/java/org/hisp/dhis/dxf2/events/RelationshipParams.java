@@ -27,44 +27,36 @@
  */
 package org.hisp.dhis.dxf2.events;
 
-public class RelationshipParams
-{
-    public static final RelationshipParams TRUE = new RelationshipParams( true, true );
+public class RelationshipParams {
+  public static final RelationshipParams TRUE = new RelationshipParams(true, true);
 
-    public static final RelationshipParams FALSE = new RelationshipParams( false, false );
+  public static final RelationshipParams FALSE = new RelationshipParams(false, false);
 
-    private boolean includeFrom;
+  private boolean includeFrom;
 
-    private boolean includeTo;
+  private boolean includeTo;
 
-    @SuppressWarnings( "unused" )
-    private RelationshipParams()
-    {
-    }
+  @SuppressWarnings("unused")
+  private RelationshipParams() {}
 
-    public RelationshipParams( boolean includeFrom, boolean includeTo )
-    {
-        this.includeFrom = includeFrom;
-        this.includeTo = includeTo;
-    }
+  public RelationshipParams(boolean includeFrom, boolean includeTo) {
+    this.includeFrom = includeFrom;
+    this.includeTo = includeTo;
+  }
 
-    public boolean isIncludeFrom()
-    {
-        return includeFrom;
-    }
+  public boolean isIncludeFrom() {
+    return includeFrom;
+  }
 
-    public void setIncludeFrom( boolean includeFrom )
-    {
-        this.includeFrom = includeFrom;
-    }
+  public void setIncludeFrom(boolean includeFrom) {
+    this.includeFrom = includeFrom;
+  }
 
-    public boolean isIncludeTo()
-    {
-        return includeTo;
-    }
+  public boolean isIncludeTo() {
+    return includeTo;
+  }
 
-    public void setIncludeTo( boolean includeTo )
-    {
-        this.includeTo = includeTo;
-    }
+  public void setIncludeTo(boolean includeTo) {
+    this.includeTo = includeTo;
+  }
 }

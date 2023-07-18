@@ -38,10 +38,9 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.jdbc.batchhandler.MappingBatchHandler;
 
 /**
@@ -49,163 +48,138 @@ import org.hisp.dhis.jdbc.batchhandler.MappingBatchHandler;
  *
  * @author Jim Grace
  */
-@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
-public class JdbcOwnershipWriter
-{
-    private final MappingBatchHandler batchHandler;
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class JdbcOwnershipWriter {
+  private final MappingBatchHandler batchHandler;
 
-    /**
-     * Previous row for this TEI, if any.
-     */
-    private Map<String, Object> prevRow = null;
+  /** Previous row for this TEI, if any. */
+  private Map<String, Object> prevRow = null;
 
-    /**
-     * Row of the current write, possibly modified.
-     */
-    private Map<String, Object> newRow;
+  /** Row of the current write, possibly modified. */
+  private Map<String, Object> newRow;
 
-    public static final String TEIUID = quote( "teiuid" );
+  public static final String TEIUID = quote("teiuid");
 
-    public static final String STARTDATE = quote( "startdate" );
+  public static final String STARTDATE = quote("startdate");
 
-    public static final String ENDDATE = quote( "enddate" );
+  public static final String ENDDATE = quote("enddate");
 
-    public static final String OU = quote( "ou" );
+  public static final String OU = quote("ou");
 
-    private static final Date FAR_PAST_DATE = new GregorianCalendar( 1000, JANUARY, 1 ).getTime();
+  private static final Date FAR_PAST_DATE = new GregorianCalendar(1000, JANUARY, 1).getTime();
 
-    private static final Date FAR_FUTURE_DATE = new GregorianCalendar( 9999, DECEMBER, 31 ).getTime();
+  private static final Date FAR_FUTURE_DATE = new GregorianCalendar(9999, DECEMBER, 31).getTime();
 
-    /**
-     * Gets instance by a factory method (so it can be mocked).
-     */
-    public static JdbcOwnershipWriter getInstance( MappingBatchHandler batchHandler )
-    {
-        return new JdbcOwnershipWriter( batchHandler );
+  /** Gets instance by a factory method (so it can be mocked). */
+  public static JdbcOwnershipWriter getInstance(MappingBatchHandler batchHandler) {
+    return new JdbcOwnershipWriter(batchHandler);
+  }
+
+  /**
+   * Write a row to an analytics_ownership temp table. Work on a copy of the row, so we do not
+   * change the original row. We cannot use immutable maps because the orgUnit levels contain nulls
+   * when the orgUnit is not at the lowest level, and immutable maps do not allow null values. Also,
+   * the end date is null in the last record for each TEI.
+   *
+   * @param row map of values to write
+   */
+  public void write(Map<String, Object> row) {
+    newRow = new HashMap<>(row);
+
+    if (newRow.get(ENDDATE) != null) {
+      // Remove the time of day portion of the ENDDATE.
+      newRow.put(ENDDATE, truncate(newRow.get(ENDDATE), Calendar.DATE));
     }
 
-    /**
-     * Write a row to an analytics_ownership temp table. Work on a copy of the
-     * row, so we do not change the original row. We cannot use immutable maps
-     * because the orgUnit levels contain nulls when the orgUnit is not at the
-     * lowest level, and immutable maps do not allow null values. Also, the end
-     * date is null in the last record for each TEI.
-     *
-     * @param row map of values to write
-     */
-    public void write( Map<String, Object> row )
-    {
-        newRow = new HashMap<>( row );
-
-        if ( newRow.get( ENDDATE ) != null )
-        {
-            // Remove the time of day portion of the ENDDATE.
-            newRow.put( ENDDATE, truncate( newRow.get( ENDDATE ), Calendar.DATE ) );
-        }
-
-        if ( prevRow == null )
-        {
-            startNewTei();
-        }
-        else if ( sameValue( OU ) || sameValue( ENDDATE ) )
-        {
-            combineWithPreviousRow();
-        }
-        else
-        {
-            writePreviousRow();
-        }
+    if (prevRow == null) {
+      startNewTei();
+    } else if (sameValue(OU) || sameValue(ENDDATE)) {
+      combineWithPreviousRow();
+    } else {
+      writePreviousRow();
     }
+  }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-    /**
-     * Process the first row for a TEI. For now just save it as the previous row
-     * and set the start date for far in the past.
-     */
-    private void startNewTei()
+  /**
+   * Process the first row for a TEI. Save it as the previous row and set the start date for far in
+   * the past. If the previous row does not have an "enddate", we enforce a default one.
+   */
+  private void startNewTei() {
+    prevRow = newRow;
+
+    // Ensure a default "enddate" value.
+    prevRow.putIfAbsent(ENDDATE, FAR_FUTURE_DATE);
+
+    prevRow.put(STARTDATE, FAR_PAST_DATE);
+  }
+
+  /**
+   * Combine the current row with the previous row by updating the previous row's OU and ENDDATE. If
+   * the ENDDATE is the same this means there were multiple assignments during a day, and we want to
+   * record only the last OU assignment for the day. If the OU is the same this means there were
+   * successive assignments to the same OU (possibly after collapsing the same ENDDATE assignments
+   * such as if a TEI was switched during a day to a different OU and then switched back again.) In
+   * this case we can combine the two successive records for the same OU into a single record.
+   *
+   * <p>If this is the last (and not only) row for this TEI, write it out.
+   */
+  private void combineWithPreviousRow() {
+    prevRow.put(OU, newRow.get(OU));
+    prevRow.put(ENDDATE, newRow.get(ENDDATE));
+
+    writeRowIfLast(prevRow);
+  }
+
+  /**
+   * The new row is for a different ownership period of the same TEI. So write out the old row and
+   * start the new row after the old row's end date. Then also write out the new row if it is the
+   * last for this TEI.
+   */
+  private void writePreviousRow() {
+    batchHandler.addObject(prevRow);
+
+    newRow.put(STARTDATE, addDays((Date) prevRow.get(ENDDATE), 1));
+
+    prevRow = newRow;
+
+    writeRowIfLast(prevRow);
+  }
+
+  /**
+   * If the passed row is the last for this TEI (no end date), then set the end date to far in the
+   * future and write it out. However, if this is the only row for this TEI (from the beginning of
+   * time to the end of time), then don't write it because the ownership never changed and analytics
+   * queries can always use the enrollment orgUnit.
+   *
+   * <p>After, there will be no previous row for this TEI.
+   */
+  private void writeRowIfLast(Map<String, Object> row) {
+    if (hasNullValue(row, ENDDATE)) // If the last row...
     {
-        prevRow = newRow;
+      row.put(ENDDATE, FAR_FUTURE_DATE);
 
-        prevRow.put( STARTDATE, FAR_PAST_DATE );
+      if (!FAR_PAST_DATE.equals(row.get(STARTDATE))) {
+        batchHandler.addObject(row);
+      }
+
+      prevRow = null;
     }
+  }
 
-    /**
-     * Combine the current row with the previous row by updating the previous
-     * row's OU and ENDDATE. If the ENDDATE is the same this means there were
-     * multiple assignments during a day, and we want to record only the last OU
-     * assignment for the day. If the OU is the same this means there were
-     * successive assignments to the same OU (possibly after collapsing the same
-     * ENDDATE assignments such as if a TEI was switched during a day to a
-     * different OU and then switched back again.) In this case we can combine
-     * the two successive records for the same OU into a single record.
-     * <p>
-     * If this is the last (and not only) row for this TEI, write it out.
-     */
-    private void combineWithPreviousRow()
-    {
-        prevRow.put( OU, newRow.get( OU ) );
-        prevRow.put( ENDDATE, newRow.get( ENDDATE ) );
+  /** Returns true if the map has a null value. */
+  private boolean hasNullValue(Map<String, Object> row, String colName) {
+    return row.get(colName) == null;
+  }
 
-        writeRowIfLast( prevRow );
-    }
-
-    /**
-     * The new row is for a different ownership period of the same TEI. So write
-     * out the old row and start the new row after the old row's end date. Then
-     * also write out the new row if it is the last for this TEI.
-     */
-    private void writePreviousRow()
-    {
-        batchHandler.addObject( prevRow );
-
-        newRow.put( STARTDATE, addDays( (Date) prevRow.get( ENDDATE ), 1 ) );
-
-        prevRow = newRow;
-
-        writeRowIfLast( prevRow );
-    }
-
-    /**
-     * If the passed row is the last for this TEI (no end date), then set the
-     * end date to far in the future and write it out. However, if this is the
-     * only row for this TEI (from the beginning of time to the end of time),
-     * then don't write it because the ownership never changed and analytics
-     * queries can always use the enrollment orgUnit.
-     * <p>
-     * After, there will be no previous row for this TEI.
-     */
-    private void writeRowIfLast( Map<String, Object> row )
-    {
-        if ( hasNullValue( row, ENDDATE ) ) // If the last row...
-        {
-            row.put( ENDDATE, FAR_FUTURE_DATE );
-
-            if ( !FAR_PAST_DATE.equals( row.get( STARTDATE ) ) )
-            {
-                batchHandler.addObject( row );
-            }
-
-            prevRow = null;
-        }
-    }
-
-    /**
-     * Returns true if the map has a null value.
-     */
-    private boolean hasNullValue( Map<String, Object> row, String colName )
-    {
-        return row.get( colName ) == null;
-    }
-
-    /**
-     * Returns true if the column has the same value between the previous row
-     * and the new row. (Note that the new row may have a null value!)
-     */
-    private boolean sameValue( String colName )
-    {
-        return prevRow.get( colName ).equals( newRow.get( colName ) );
-    }
+  /**
+   * Returns true if the column has the same value between the previous row and the new row. (Note
+   * that the new row may have a null value!)
+   */
+  private boolean sameValue(String colName) {
+    return Objects.equals(prevRow.get(colName), newRow.get(colName));
+  }
 }

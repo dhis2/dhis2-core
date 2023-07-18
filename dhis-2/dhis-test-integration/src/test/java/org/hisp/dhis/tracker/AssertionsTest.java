@@ -33,118 +33,115 @@ import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
-
 import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.ValidationReport;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for {@link Assertions}. Uncomment the commented assertions in each test
- * if you want to iterate on the assertion messages. They are a copy of the
- * {@link org.junit.jupiter.api.function.Executable} in the
- * <code>assertThrows</code> statements.
- *
+ * Test for {@link Assertions}. Uncomment the commented assertions in each test if you want to
+ * iterate on the assertion messages. They are a copy of the {@link
+ * org.junit.jupiter.api.function.Executable} in the <code>assertThrows</code> statements.
  */
-public class AssertionsTest
-{
-    @Test
-    void testAssertHasOnlyErrorsFailsIfReportHasNoErrors()
-    {
-        ValidationReport report = ValidationReport.emptyReport();
+public class AssertionsTest {
+  @Test
+  void testAssertHasOnlyErrorsFailsIfReportHasNoErrors() {
+    ValidationReport report = ValidationReport.emptyReport();
 
-        assertThrows( AssertionError.class, () -> assertHasOnlyErrors( report, ValidationCode.E1000 ) );
-    }
+    assertThrows(AssertionError.class, () -> assertHasOnlyErrors(report, ValidationCode.E1000));
+  }
 
-    @Test
-    void testAssertHasOnlyErrorsFailsIfReportHasMoreErrors()
-    {
+  @Test
+  void testAssertHasOnlyErrorsFailsIfReportHasMoreErrors() {
 
-        ValidationReport report = new ValidationReport(
-            List.of( Error.builder().errorCode( ValidationCode.E1000.name() ).build(),
-                Error.builder().errorCode( ValidationCode.E1019.name() ).build(),
-                Error.builder().errorCode( ValidationCode.E1041.name() ).build() ),
-            List.of() );
+    ValidationReport report =
+        new ValidationReport(
+            List.of(
+                Error.builder().errorCode(ValidationCode.E1000.name()).build(),
+                Error.builder().errorCode(ValidationCode.E1019.name()).build(),
+                Error.builder().errorCode(ValidationCode.E1041.name()).build()),
+            List.of());
 
-        assertThrows( AssertionError.class,
-            () -> assertHasOnlyErrors( report, ValidationCode.E1000, ValidationCode.E1019 ) );
-    }
+    assertThrows(
+        AssertionError.class,
+        () -> assertHasOnlyErrors(report, ValidationCode.E1000, ValidationCode.E1019));
+  }
 
-    @Test
-    void testAssertHasOnlyErrorsFailsIfReportHasLessErrors()
-    {
+  @Test
+  void testAssertHasOnlyErrorsFailsIfReportHasLessErrors() {
 
-        ValidationReport report = new ValidationReport(
-            List.of( Error.builder().errorCode( ValidationCode.E1000.name() ).build() ),
-            List.of() );
+    ValidationReport report =
+        new ValidationReport(
+            List.of(Error.builder().errorCode(ValidationCode.E1000.name()).build()), List.of());
 
-        assertThrows( AssertionError.class,
-            () -> assertHasOnlyErrors( report, ValidationCode.E1000, ValidationCode.E1003 ) );
-    }
+    assertThrows(
+        AssertionError.class,
+        () -> assertHasOnlyErrors(report, ValidationCode.E1000, ValidationCode.E1003));
+  }
 
-    @Test
-    void testAssertHasOnlyErrorsSucceeds()
-    {
+  @Test
+  void testAssertHasOnlyErrorsSucceeds() {
 
-        ValidationReport report = new ValidationReport(
-            List.of( Error.builder().errorCode( ValidationCode.E1000.name() ).build() ),
-            List.of() );
+    ValidationReport report =
+        new ValidationReport(
+            List.of(Error.builder().errorCode(ValidationCode.E1000.name()).build()), List.of());
 
-        assertHasOnlyErrors( report, ValidationCode.E1000 );
-    }
+    assertHasOnlyErrors(report, ValidationCode.E1000);
+  }
 
-    @Test
-    void testAssertHasErrorsFailsIfReportHasLessErrors()
-    {
-        ValidationReport report = new ValidationReport(
-            List.of( Error.builder().errorCode( ValidationCode.E1000.name() ).build(),
-                Error.builder().errorCode( ValidationCode.E1001.name() ).build() ),
-            List.of() );
+  @Test
+  void testAssertHasErrorsFailsIfReportHasLessErrors() {
+    ValidationReport report =
+        new ValidationReport(
+            List.of(
+                Error.builder().errorCode(ValidationCode.E1000.name()).build(),
+                Error.builder().errorCode(ValidationCode.E1001.name()).build()),
+            List.of());
 
-        assertThrows( AssertionError.class, () -> assertHasErrors( report, 3, ValidationCode.E1000 ) );
-        // assertHasErrors( report,3, ValidationCode.E1000 );
-    }
+    assertThrows(AssertionError.class, () -> assertHasErrors(report, 3, ValidationCode.E1000));
+    // assertHasErrors( report,3, ValidationCode.E1000 );
+  }
 
-    @Test
-    void testAssertHasErrorsSucceeds()
-    {
-        ValidationReport report = new ValidationReport(
-            List.of( Error.builder().errorCode( ValidationCode.E1000.name() ).build(),
-                Error.builder().errorCode( ValidationCode.E1001.name() ).build() ),
-            List.of() );
+  @Test
+  void testAssertHasErrorsSucceeds() {
+    ValidationReport report =
+        new ValidationReport(
+            List.of(
+                Error.builder().errorCode(ValidationCode.E1000.name()).build(),
+                Error.builder().errorCode(ValidationCode.E1001.name()).build()),
+            List.of());
 
-        assertHasErrors( report, 2, ValidationCode.E1000 );
-    }
+    assertHasErrors(report, 2, ValidationCode.E1000);
+  }
 
-    @Test
-    void testAssertHasErrorFailsIfReportDoesNotHaveError()
-    {
+  @Test
+  void testAssertHasErrorFailsIfReportDoesNotHaveError() {
 
-        ValidationReport report = new ValidationReport(
-            List.of( Error.builder().errorCode( ValidationCode.E1000.name() ).build(),
-                Error.builder().errorCode( ValidationCode.E1041.name() ).build() ),
-            List.of() );
+    ValidationReport report =
+        new ValidationReport(
+            List.of(
+                Error.builder().errorCode(ValidationCode.E1000.name()).build(),
+                Error.builder().errorCode(ValidationCode.E1041.name()).build()),
+            List.of());
 
-        assertThrows( AssertionError.class, () -> assertHasError( report, ValidationCode.E1019 ) );
-    }
+    assertThrows(AssertionError.class, () -> assertHasError(report, ValidationCode.E1019));
+  }
 
-    @Test
-    void testAssertHasErrorFailsIfReportDoesNotHaveErrors()
-    {
-        ValidationReport report = ValidationReport.emptyReport();
+  @Test
+  void testAssertHasErrorFailsIfReportDoesNotHaveErrors() {
+    ValidationReport report = ValidationReport.emptyReport();
 
-        assertThrows( AssertionError.class, () -> assertHasError( report, ValidationCode.E1019 ) );
-        // assertHasError( report, ValidationCode.E1019 );
-    }
+    assertThrows(AssertionError.class, () -> assertHasError(report, ValidationCode.E1019));
+    // assertHasError( report, ValidationCode.E1019 );
+  }
 
-    @Test
-    void testAssertHasErrorSucceeds()
-    {
+  @Test
+  void testAssertHasErrorSucceeds() {
 
-        ValidationReport report = new ValidationReport(
-            List.of( Error.builder().errorCode( ValidationCode.E1000.name() ).build() ),
-            List.of() );
+    ValidationReport report =
+        new ValidationReport(
+            List.of(Error.builder().errorCode(ValidationCode.E1000.name()).build()), List.of());
 
-        assertHasError( report, ValidationCode.E1000 );
-    }
+    assertHasError(report, ValidationCode.E1000);
+  }
 }

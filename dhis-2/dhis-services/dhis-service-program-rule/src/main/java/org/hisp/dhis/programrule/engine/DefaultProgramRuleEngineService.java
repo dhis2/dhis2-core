@@ -29,11 +29,10 @@ package org.hisp.dhis.programrule.engine;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_PROGRAM_RULE_SERVER_EXECUTION;
 
+import com.google.common.collect.Lists;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -48,141 +47,134 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Zubair Asghar
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.programrule.engine.ProgramRuleEngineService" )
-public class DefaultProgramRuleEngineService
-    implements ProgramRuleEngineService
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@Service("org.hisp.dhis.programrule.engine.ProgramRuleEngineService")
+public class DefaultProgramRuleEngineService implements ProgramRuleEngineService {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    @Qualifier( "notificationRuleEngine" )
-    private final ProgramRuleEngine programRuleEngine;
+  @Qualifier("notificationRuleEngine")
+  private final ProgramRuleEngine programRuleEngine;
 
-    private final List<RuleActionImplementer> ruleActionImplementers;
+  private final List<RuleActionImplementer> ruleActionImplementers;
 
-    private final ProgramInstanceService programInstanceService;
+  private final ProgramInstanceService programInstanceService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+  private final ProgramStageInstanceService programStageInstanceService;
 
-    private final ProgramService programService;
+  private final ProgramService programService;
 
-    private final DhisConfigurationProvider config;
+  private final DhisConfigurationProvider config;
 
-    @Override
-    @Transactional
-    public List<RuleEffect> evaluateEnrollmentAndRunEffects( long enrollment )
-    {
-        if ( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) )
-        {
-            return List.of();
-        }
-
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment );
-
-        if ( programInstance == null )
-        {
-            return List.of();
-        }
-
-        List<ProgramRule> programRules = programRuleEngine.getProgramRules( programInstance.getProgram() );
-
-        if ( programRules.isEmpty() )
-        {
-            return List.of();
-        }
-
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance,
-            programInstance.getProgramStageInstances(), programRules );
-
-        for ( RuleEffect effect : ruleEffects )
-        {
-            ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i -> {
-                log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
-
-                i.implement( effect, programInstance );
-            } );
-        }
-
-        return ruleEffects;
+  @Override
+  @Transactional
+  public List<RuleEffect> evaluateEnrollmentAndRunEffects(long enrollment) {
+    if (config.isDisabled(SYSTEM_PROGRAM_RULE_SERVER_EXECUTION)) {
+      return List.of();
     }
 
-    @Override
-    @Transactional
-    public List<RuleEffect> evaluateEventAndRunEffects( String event )
-    {
-        if ( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) )
-        {
-            return Lists.newArrayList();
-        }
+    ProgramInstance programInstance = programInstanceService.getProgramInstance(enrollment);
 
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( event );
-
-        return evaluateEventAndRunEffects( psi );
+    if (programInstance == null) {
+      return List.of();
     }
 
-    @Override
-    public RuleValidationResult getDescription( String condition, String programId )
-    {
-        Program program = programService.getProgram( programId );
+    List<ProgramRule> programRules =
+        programRuleEngine.getProgramRules(programInstance.getProgram());
 
-        return programRuleEngine.getDescription( condition, program );
+    if (programRules.isEmpty()) {
+      return List.of();
     }
 
-    @Override
-    public RuleValidationResult getDataExpressionDescription( String dataExpression, String programId )
-    {
-        Program program = programService.getProgram( programId );
+    List<RuleEffect> ruleEffects =
+        programRuleEngine.evaluate(
+            programInstance, programInstance.getProgramStageInstances(), programRules);
 
-        return programRuleEngine.getDataExpressionDescription( dataExpression, program );
+    for (RuleEffect effect : ruleEffects) {
+      ruleActionImplementers.stream()
+          .filter(i -> i.accept(effect.ruleAction()))
+          .forEach(
+              i -> {
+                log.debug(
+                    String.format("Invoking action implementer: %s", i.getClass().getSimpleName()));
+
+                i.implement(effect, programInstance);
+              });
     }
 
-    private List<RuleEffect> evaluateEventAndRunEffects( ProgramStageInstance psi )
-    {
-        if ( psi == null )
-        {
-            return Lists.newArrayList();
-        }
+    return ruleEffects;
+  }
 
-        Program program = psi.getProgramStage().getProgram();
-        List<ProgramRule> programRules = programRuleEngine.getProgramRules( program, List.of( psi.getProgramStage() ) );
-
-        if ( programRules.isEmpty() )
-        {
-            return List.of();
-        }
-
-        List<RuleEffect> ruleEffects;
-
-        if ( program.isWithoutRegistration() )
-        {
-            ruleEffects = programRuleEngine.evaluateProgramEvent( psi, program, programRules );
-        }
-        else
-        {
-            ProgramInstance programInstance = programInstanceService
-                .getProgramInstance( psi.getProgramInstance().getId() );
-
-            ruleEffects = programRuleEngine.evaluate( programInstance, psi, programInstance.getProgramStageInstances(),
-                programRules );
-        }
-
-        for ( RuleEffect effect : ruleEffects )
-        {
-            ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i -> {
-                log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
-
-                i.implement( effect, psi );
-            } );
-        }
-
-        return ruleEffects;
+  @Override
+  @Transactional
+  public List<RuleEffect> evaluateEventAndRunEffects(String event) {
+    if (config.isDisabled(SYSTEM_PROGRAM_RULE_SERVER_EXECUTION)) {
+      return Lists.newArrayList();
     }
+
+    ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance(event);
+
+    return evaluateEventAndRunEffects(psi);
+  }
+
+  @Override
+  public RuleValidationResult getDescription(String condition, String programId) {
+    Program program = programService.getProgram(programId);
+
+    return programRuleEngine.getDescription(condition, program);
+  }
+
+  @Override
+  public RuleValidationResult getDataExpressionDescription(
+      String dataExpression, String programId) {
+    Program program = programService.getProgram(programId);
+
+    return programRuleEngine.getDataExpressionDescription(dataExpression, program);
+  }
+
+  private List<RuleEffect> evaluateEventAndRunEffects(ProgramStageInstance psi) {
+    if (psi == null) {
+      return Lists.newArrayList();
+    }
+
+    Program program = psi.getProgramStage().getProgram();
+    List<ProgramRule> programRules =
+        programRuleEngine.getProgramRules(program, List.of(psi.getProgramStage()));
+
+    if (programRules.isEmpty()) {
+      return List.of();
+    }
+
+    List<RuleEffect> ruleEffects;
+
+    if (program.isWithoutRegistration()) {
+      ruleEffects = programRuleEngine.evaluateProgramEvent(psi, program, programRules);
+    } else {
+      ProgramInstance programInstance =
+          programInstanceService.getProgramInstance(psi.getProgramInstance().getId());
+
+      ruleEffects =
+          programRuleEngine.evaluate(
+              programInstance, psi, programInstance.getProgramStageInstances(), programRules);
+    }
+
+    for (RuleEffect effect : ruleEffects) {
+      ruleActionImplementers.stream()
+          .filter(i -> i.accept(effect.ruleAction()))
+          .forEach(
+              i -> {
+                log.debug(
+                    String.format("Invoking action implementer: %s", i.getClass().getSimpleName()));
+
+                i.implement(effect, psi);
+              });
+    }
+
+    return ruleEffects;
+  }
 }

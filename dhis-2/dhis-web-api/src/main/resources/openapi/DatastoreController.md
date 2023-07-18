@@ -1,40 +1,42 @@
 # Datastore Descriptions
 
-## Any endpoint `*`
+## Common for all endpoints
 
-### Parameter: `namespace`
+### `*.parameter.namespace`
 Name of the namespace.
 
-### Parameter: `key`
+### `*.parameter.key`
 Name of the key.
 
-### Response: `404`
+## Specific endpoints
+
+### `*.response.404`
 In case no entry in the namespace is found for the key.
 
-## Endpoint `getNamespaces`
+### `getNamespaces`
 Lists names of available namespaces.
 
-## Endpoint `getKeysInNamespace`
+### `getKeysInNamespace`
 List all keys in a specific namespace.
 
-## Endpoint `getEntries`
+### `getEntries`
 List all entries in a namespace matching the search criteria.
 
-## Endpoint `deleteNamespace`
+### `deleteNamespace`
 Delete a namespace including all its entries.
 
-## Endpoint `getKeyJsonValue`
+### `getKeyJsonValue`
 Get JSON value of a single entry.
 
-## Endpoint `getKeyJsonValueMetaData`
+### `getKeyJsonValueMetaData`
 Get metadata for a single entry.
 
-## Endpoint `addKeyJsonValue`
+### `addKeyJsonValue`
 Add a key-value pair to a namespace.
 
-## Endpoint `updateKeyJsonValue`
+### `updateKeyJsonValue`
 Update a value for a specific key and namespace.
 
-## Endpoint `deleteKeyJsonValue`
+### `deleteKeyJsonValue`
 Delete a single key from a specific namespace.
 

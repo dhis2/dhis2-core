@@ -28,9 +28,7 @@
 package org.hisp.dhis.user;
 
 import java.util.Iterator;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -39,25 +37,21 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class UserSettingDeletionHandler extends DeletionHandler
-{
-    private final UserSettingService userSettingService;
+public class UserSettingDeletionHandler extends DeletionHandler {
+  private final UserSettingService userSettingService;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( User.class, this::deleteUser );
+  @Override
+  protected void register() {
+    whenDeleting(User.class, this::deleteUser);
+  }
+
+  private void deleteUser(User user) {
+    Iterator<UserSetting> settings = userSettingService.getUserSettings(user).iterator();
+
+    while (settings.hasNext()) {
+      UserSetting setting = settings.next();
+      settings.remove();
+      userSettingService.deleteUserSetting(setting);
     }
-
-    private void deleteUser( User user )
-    {
-        Iterator<UserSetting> settings = userSettingService.getUserSettings( user ).iterator();
-
-        while ( settings.hasNext() )
-        {
-            UserSetting setting = settings.next();
-            settings.remove();
-            userSettingService.deleteUserSetting( setting );
-        }
-    }
+  }
 }

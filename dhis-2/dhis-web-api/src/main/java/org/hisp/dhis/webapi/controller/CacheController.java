@@ -32,9 +32,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.cache.CacheInfo;
 import org.hisp.dhis.cache.CacheInfo.CacheCapInfo;
 import org.hisp.dhis.cache.CacheInfo.CacheGroupInfo;
@@ -54,106 +52,95 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Gives insights into the {@link CappedLocalCache} state and allows to
- * invalidate entries as well as configure the cap settings.
+ * Gives insights into the {@link CappedLocalCache} state and allows to invalidate entries as well
+ * as configure the cap settings.
  *
  * @author Jan Bernitt
  */
-@OpenApi.Tags( "system" )
+@OpenApi.Tags("system")
 @OpenApi.Ignore
 @Controller
-@RequestMapping( value = "/caches" )
+@RequestMapping(value = "/caches")
 @RequiredArgsConstructor
-@PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-public class CacheController
-{
+@PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+public class CacheController {
 
-    private final CappedLocalCache cache;
+  private final CappedLocalCache cache;
 
-    @GetMapping( produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody CacheInfo getInfo( @RequestParam( value = "condensed", required = false ) Boolean condensed )
-    {
-        CacheInfo info = getCacheInfo();
-        if ( condensed == null || !condensed )
-        {
-            return info;
-        }
-        return new CacheInfo( info.getCap(), info.getBurden(), info.getTotal(),
-            info.getRegions().stream()
-                .filter( r -> r.getEntries() > 0 )
-                .sorted( ( a, b ) -> Long.compare( b.getSize(), a.getSize() ) )
-                .collect( Collectors.toList() ) );
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody CacheInfo getInfo(
+      @RequestParam(value = "condensed", required = false) Boolean condensed) {
+    CacheInfo info = getCacheInfo();
+    if (condensed == null || !condensed) {
+      return info;
     }
+    return new CacheInfo(
+        info.getCap(),
+        info.getBurden(),
+        info.getTotal(),
+        info.getRegions().stream()
+            .filter(r -> r.getEntries() > 0)
+            .sorted((a, b) -> Long.compare(b.getSize(), a.getSize()))
+            .collect(Collectors.toList()));
+  }
 
-    @GetMapping( value = "/regions", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody Set<String> getRegions()
-    {
-        // sort alphabetically
-        return new TreeSet<>( cache.getRegions() );
-    }
+  @GetMapping(value = "/regions", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody Set<String> getRegions() {
+    // sort alphabetically
+    return new TreeSet<>(cache.getRegions());
+  }
 
-    @GetMapping( value = "/regions/{region}", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody CacheGroupInfo getRegionInfo( @PathVariable( "region" ) String region )
-        throws NotFoundException
-    {
-        CacheInfo info = getCacheInfo();
-        for ( CacheGroupInfo groupInfo : info.getRegions() )
-        {
-            if ( groupInfo.getName().equals( region ) )
-            {
-                return groupInfo;
-            }
-        }
-        throw new NotFoundException( region );
+  @GetMapping(value = "/regions/{region}", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody CacheGroupInfo getRegionInfo(@PathVariable("region") String region)
+      throws NotFoundException {
+    CacheInfo info = getCacheInfo();
+    for (CacheGroupInfo groupInfo : info.getRegions()) {
+      if (groupInfo.getName().equals(region)) {
+        return groupInfo;
+      }
     }
+    throw new NotFoundException(region);
+  }
 
-    @GetMapping( value = "/cap", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody CacheCapInfo getCapInfo()
-    {
-        return getCacheInfo().getCap();
-    }
+  @GetMapping(value = "/cap", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody CacheCapInfo getCapInfo() {
+    return getCacheInfo().getCap();
+  }
 
-    @PutMapping( "/cap" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void updateCap( @RequestParam( value = "heap", required = false ) Integer heap,
-        @RequestParam( value = "hard", required = false ) Integer hard,
-        @RequestParam( value = "soft", required = false ) Integer soft )
-    {
-        if ( heap != null )
-        {
-            cache.setCapPercent( heap );
-        }
-        if ( hard != null )
-        {
-            cache.setHardCapPercentage( hard );
-        }
-        if ( soft != null )
-        {
-            cache.setSoftCapPercentage( soft );
-        }
+  @PutMapping("/cap")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void updateCap(
+      @RequestParam(value = "heap", required = false) Integer heap,
+      @RequestParam(value = "hard", required = false) Integer hard,
+      @RequestParam(value = "soft", required = false) Integer soft) {
+    if (heap != null) {
+      cache.setCapPercent(heap);
     }
+    if (hard != null) {
+      cache.setHardCapPercentage(hard);
+    }
+    if (soft != null) {
+      cache.setSoftCapPercentage(soft);
+    }
+  }
 
-    @PostMapping( "/invalidate" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void invalidate()
-    {
-        cache.invalidate();
-    }
+  @PostMapping("/invalidate")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void invalidate() {
+    cache.invalidate();
+  }
 
-    @PostMapping( "/regions/{region}/invalidate" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void invalidateRegion( @PathVariable( "region" ) String region )
-    {
-        cache.invalidateRegion( region );
-    }
+  @PostMapping("/regions/{region}/invalidate")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void invalidateRegion(@PathVariable("region") String region) {
+    cache.invalidateRegion(region);
+  }
 
-    private CacheInfo getCacheInfo()
-    {
-        CacheInfo info = cache.getInfo();
-        if ( info == null )
-        {
-            throw new IllegalStateException( "Capped local cache is not used." );
-        }
-        return info;
+  private CacheInfo getCacheInfo() {
+    CacheInfo info = cache.getInfo();
+    if (info == null) {
+      throw new IllegalStateException("Capped local cache is not used.");
     }
+    return info;
+  }
 }

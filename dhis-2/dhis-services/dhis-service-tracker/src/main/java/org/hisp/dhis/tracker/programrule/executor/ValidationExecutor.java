@@ -31,7 +31,6 @@ import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.error;
 import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.warning;
 
 import java.util.Optional;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.programrule.IssueType;
@@ -39,50 +38,41 @@ import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 
 /**
- * This executor checks if there are errors or warnings in the
- * {@link TrackerBundle}
- *
- * @Author Enrico Colasante
+ * This executor checks if there are errors or warnings in the {@link TrackerBundle} @Author Enrico
+ * Colasante
  */
-public interface ValidationExecutor<T> extends RuleActionExecutor<T>
-{
-    IssueType getIssueType();
+public interface ValidationExecutor<T> extends RuleActionExecutor<T> {
+  IssueType getIssueType();
 
-    boolean needsToRun( T t );
+  boolean needsToRun(T t);
 
-    default Optional<ProgramRuleIssue> execute( ValidationRuleAction ruleAction, T t )
-    {
-        if ( needsToRun( t ) )
-        {
-            return mapToIssue( ruleAction );
-        }
+  default Optional<ProgramRuleIssue> execute(ValidationRuleAction ruleAction, T t) {
+    if (needsToRun(t)) {
+      return mapToIssue(ruleAction);
+    }
+    return Optional.empty();
+  }
+
+  private Optional<ProgramRuleIssue> mapToIssue(ValidationRuleAction ruleAction) {
+    StringBuilder validationMessage = new StringBuilder(ruleAction.getContent());
+    String data = ruleAction.getData();
+    if (!StringUtils.isEmpty(data)) {
+      validationMessage.append(" ").append(data);
+    }
+    String field = ruleAction.getField();
+    if (!StringUtils.isEmpty(field)) {
+      validationMessage.append(" (").append(field).append(")");
+    }
+
+    switch (getIssueType()) {
+      case WARNING:
+        return Optional.of(
+            warning(ruleAction.getRuleUid(), ValidationCode.E1300, validationMessage.toString()));
+      case ERROR:
+        return Optional.of(
+            error(ruleAction.getRuleUid(), ValidationCode.E1300, validationMessage.toString()));
+      default:
         return Optional.empty();
     }
-
-    private Optional<ProgramRuleIssue> mapToIssue( ValidationRuleAction ruleAction )
-    {
-        StringBuilder validationMessage = new StringBuilder( ruleAction.getContent() );
-        String data = ruleAction.getData();
-        if ( !StringUtils.isEmpty( data ) )
-        {
-            validationMessage.append( " " ).append( data );
-        }
-        String field = ruleAction.getField();
-        if ( !StringUtils.isEmpty( field ) )
-        {
-            validationMessage.append( " (" ).append( field ).append( ")" );
-        }
-
-        switch ( getIssueType() )
-        {
-        case WARNING:
-            return Optional.of( warning( ruleAction.getRuleUid(), ValidationCode.E1300,
-                validationMessage.toString() ) );
-        case ERROR:
-            return Optional.of(
-                error( ruleAction.getRuleUid(), ValidationCode.E1300, validationMessage.toString() ) );
-        default:
-            return Optional.empty();
-        }
-    }
+  }
 }

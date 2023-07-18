@@ -29,8 +29,8 @@ package org.hisp.dhis.metadata.users;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 
+import com.google.gson.JsonObject;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
@@ -44,100 +44,118 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class UserTest extends ApiTest
-{
-    private String username;
+public class UserTest extends ApiTest {
+  private String username;
 
-    private String password = Constants.USER_PASSWORD;
+  private String password = Constants.USER_PASSWORD;
 
-    private UserActions userActions;
+  private UserActions userActions;
 
-    private LoginActions loginActions;
+  private LoginActions loginActions;
 
-    private RestApiActions meActions;
+  private RestApiActions meActions;
 
-    @BeforeEach
-    public void beforeEach()
-    {
-        userActions = new UserActions();
-        loginActions = new LoginActions();
-        meActions = new RestApiActions( "/me" );
+  @BeforeEach
+  public void beforeEach() {
+    userActions = new UserActions();
+    loginActions = new LoginActions();
+    meActions = new RestApiActions("/me");
 
-        username = ("user_tests_" + DataGenerator.randomString()).toLowerCase();
-        loginActions.loginAsSuperUser();
-        userActions.addUser( username, password );
-        loginActions.loginAsUser( username, password );
-    }
+    username = ("user_tests_" + DataGenerator.randomString()).toLowerCase();
+    loginActions.loginAsSuperUser();
+    userActions.addUser(username, password);
+    loginActions.loginAsUser(username, password);
+  }
 
-    private Stream<Arguments> provideParams()
-    {
-        return Stream.of( new Arguments[] {
-            Arguments.of( password, password, "Password must not be one of the previous 24 passwords",
-                "newPassword is the same as old" ),
-            Arguments.of( password, "Test1?", "Password must have at least 8, and at most 40 characters",
-                "newPassword is too short" ),
-            Arguments.of( password, DataGenerator.randomString( 41 ) + "1?",
-                "Password must have at least 8, and at most 40 characters", "newPassword is too-long" ),
-            Arguments.of( password, "", "OldPassword and newPassword must be provided", "newPassword is empty" ),
-            Arguments.of( "not-an-old-password", "Test1212???", "OldPassword is incorrect",
-                "oldPassword is incorrect" ),
-            Arguments.of( password, "test1212?", "Password must have at least one upper case",
-                "newPassword doesn't contain uppercase" ),
-            Arguments.of( password, "Testtest1212", "Password must have at least one special character",
-                "newPassword doesn't contain a special character" ),
-            Arguments.of( password, "Testtest?", "Password must have at least one digit",
-                "newPassword doesn't contain a digit" )
+  private Stream<Arguments> provideParams() {
+    return Stream.of(
+        new Arguments[] {
+          Arguments.of(
+              password,
+              password,
+              "Password must not be one of the previous 24 passwords",
+              "newPassword is the same as old"),
+          Arguments.of(
+              password,
+              "Test1?",
+              "Password must have at least 8, and at most 40 characters",
+              "newPassword is too short"),
+          Arguments.of(
+              password,
+              DataGenerator.randomString(41) + "1?",
+              "Password must have at least 8, and at most 40 characters",
+              "newPassword is too-long"),
+          Arguments.of(
+              password, "", "OldPassword and newPassword must be provided", "newPassword is empty"),
+          Arguments.of(
+              "not-an-old-password",
+              "Test1212???",
+              "OldPassword is incorrect",
+              "oldPassword is incorrect"),
+          Arguments.of(
+              password,
+              "test1212?",
+              "Password must have at least one upper case",
+              "newPassword doesn't contain uppercase"),
+          Arguments.of(
+              password,
+              "Testtest1212",
+              "Password must have at least one special character",
+              "newPassword doesn't contain a special character"),
+          Arguments.of(
+              password,
+              "Testtest?",
+              "Password must have at least one digit",
+              "newPassword doesn't contain a digit")
+        });
+  }
 
-        } );
-    }
+  @ParameterizedTest(name = "[{index}] {3}")
+  @MethodSource("provideParams")
+  public void shouldNotBeAbleToChangePasswordWhenValidationErrors(
+      String oldPassword, String newPassword, String message, String description) {
+    JsonObject payload = getPayload(oldPassword, newPassword);
 
-    @ParameterizedTest( name = "[{index}] {3}" )
-    @MethodSource( "provideParams" )
-    public void shouldNotBeAbleToChangePasswordWhenValidationErrors( String oldPassword, String newPassword,
-        String message, String description )
-    {
-        JsonObject payload = getPayload( oldPassword, newPassword );
+    ApiResponse response = meActions.update("/changePassword", payload);
 
-        ApiResponse response = meActions.update( "/changePassword", payload );
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .body("message", equalTo(message));
+  }
 
-        response.validate().statusCode( 409 )
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "message", equalTo( message ) );
-    }
+  @Test
+  public void shouldBeAbleToChangePassword() {
+    String newPassword = "Test1212??";
+    JsonObject payload = getPayload(password, newPassword);
 
-    @Test
-    public void shouldBeAbleToChangePassword()
-    {
-        String newPassword = "Test1212??";
-        JsonObject payload = getPayload( password, newPassword );
+    ApiResponse response = meActions.update("/changePassword", payload);
 
-        ApiResponse response = meActions.update( "/changePassword", payload );
+    response.validate().statusCode(202);
 
-        response.validate().statusCode( 202 );
+    // should login with new credentials
+    loginActions.addAuthenticationHeader(username, newPassword);
+    loginActions
+        .getLoggedInUserInfo()
+        .validate()
+        .statusCode(200)
+        .body("username", equalTo(username));
 
-        // should login with new credentials
-        loginActions.addAuthenticationHeader( username, newPassword );
-        loginActions.getLoggedInUserInfo().validate()
-            .statusCode( 200 )
-            .body( "username", equalTo( username ) );
+    // should not login in with old credentials
+    loginActions.addAuthenticationHeader(username, password);
+    loginActions.getLoggedInUserInfo().validate().statusCode(401);
+  }
 
-        // should not login in with old credentials
-        loginActions.addAuthenticationHeader( username, password );
-        loginActions.getLoggedInUserInfo().validate().statusCode( 401 );
-    }
+  private JsonObject getPayload(String oldPsw, String newPsw) {
+    JsonObject payload = new JsonObject();
 
-    private JsonObject getPayload( String oldPsw, String newPsw )
-    {
-        JsonObject payload = new JsonObject();
+    payload.addProperty("oldPassword", oldPsw);
+    payload.addProperty("newPassword", newPsw);
 
-        payload.addProperty( "oldPassword", oldPsw );
-        payload.addProperty( "newPassword", newPsw );
-
-        return payload;
-    }
+    return payload;
+  }
 }

@@ -42,73 +42,67 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
  *
  * @author Jim Grace
  */
-public class DimItemDataElementAndOperand
-    extends DimensionalItem
-{
-    @Override
-    public DimensionalItemId getDimensionalItemId( ExprContext ctx,
-        CommonExpressionVisitor visitor )
-    {
-        if ( isDataElementOperandSyntax( ctx ) )
-        {
-            return new DimensionalItemId( DATA_ELEMENT_OPERAND,
-                ctx.uid0.getText(),
-                ctx.uid1 == null ? null : ctx.uid1.getText(),
-                ctx.uid2 == null ? null : ctx.uid2.getText(),
-                ctx.getText(), visitor.getState().getQueryMods() );
-        }
-        else
-        {
-            return new DimensionalItemId( DATA_ELEMENT,
-                ctx.uid0.getText(), null, null,
-                ctx.getText(), visitor.getState().getQueryMods() );
-        }
+public class DimItemDataElementAndOperand extends DimensionalItem {
+  @Override
+  public DimensionalItemId getDimensionalItemId(ExprContext ctx, CommonExpressionVisitor visitor) {
+    if (isDataElementOperandSyntax(ctx)) {
+      return new DimensionalItemId(
+          DATA_ELEMENT_OPERAND,
+          ctx.uid0.getText(),
+          ctx.uid1 == null ? null : ctx.uid1.getText(),
+          ctx.uid2 == null ? null : ctx.uid2.getText(),
+          ctx.getText(),
+          visitor.getState().getQueryMods());
+    } else {
+      return new DimensionalItemId(
+          DATA_ELEMENT,
+          ctx.uid0.getText(),
+          null,
+          null,
+          ctx.getText(),
+          visitor.getState().getQueryMods());
+    }
+  }
+
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    if (!visitor.getState().isInSubexpression()) {
+      throw new ParserExceptionWithoutContext(
+          "Not valid to generate DataElement or DataElementOperand SQL here: " + ctx.getText());
     }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        if ( !visitor.getState().isInSubexpression() )
-        {
-            throw new ParserExceptionWithoutContext(
-                "Not valid to generate DataElement or DataElementOperand SQL here: " + ctx.getText() );
-        }
+    DataElement dataElement =
+        visitor.getIdObjectManager().getNoAcl(DataElement.class, ctx.uid0.getText());
 
-        DataElement dataElement = visitor.getIdObjectManager().getNoAcl( DataElement.class, ctx.uid0.getText() );
-
-        if ( dataElement == null )
-        {
-            throw new ParserExceptionWithoutContext( "DataElement not found: " + ctx.uid0.getText() );
-        }
-
-        // Boolean is stored as 1 or 0. Convert to SQL bool in subexpression:
-        if ( dataElement.getValueType().isBoolean() )
-        {
-            return dataElement.getValueColumn() + "::int::bool";
-        }
-
-        return dataElement.getValueColumn();
+    if (dataElement == null) {
+      throw new ParserExceptionWithoutContext("DataElement not found: " + ctx.uid0.getText());
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * Does an item of the form #{...} have the syntax of a data element operand
-     * (as opposed to a data element)?
-     *
-     * @param ctx the item context
-     * @return true if data element operand syntax
-     */
-    private boolean isDataElementOperandSyntax( ExprContext ctx )
-    {
-        if ( ctx.uid0 == null )
-        {
-            throw new ParserExceptionWithoutContext(
-                "Data Element or DataElementOperand must have a uid " + ctx.getText() );
-        }
-
-        return anyNotNull( ctx.uid1, ctx.uid2 );
+    // Boolean is stored as 1 or 0. Convert to SQL bool in subexpression:
+    if (dataElement.getValueType().isBoolean()) {
+      return dataElement.getValueColumn() + "::int::bool";
     }
+
+    return dataElement.getValueColumn();
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * Does an item of the form #{...} have the syntax of a data element operand (as opposed to a data
+   * element)?
+   *
+   * @param ctx the item context
+   * @return true if data element operand syntax
+   */
+  private boolean isDataElementOperandSyntax(ExprContext ctx) {
+    if (ctx.uid0 == null) {
+      throw new ParserExceptionWithoutContext(
+          "Data Element or DataElementOperand must have a uid " + ctx.getText());
+    }
+
+    return anyNotNull(ctx.uid1, ctx.uid2);
+  }
 }

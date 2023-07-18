@@ -31,9 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Locale;
 import java.util.Set;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
@@ -44,37 +42,32 @@ import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
  * @author Lars Helge Overland
  */
 @Slf4j
-public class I18nLocalePopulator
-    extends TransactionContextStartupRoutine
-{
-    private final I18nLocaleService localeService;
+public class I18nLocalePopulator extends TransactionContextStartupRoutine {
+  private final I18nLocaleService localeService;
 
-    public I18nLocalePopulator( I18nLocaleService localeService )
-    {
-        checkNotNull( localeService );
+  public I18nLocalePopulator(I18nLocaleService localeService) {
+    checkNotNull(localeService);
 
-        this.localeService = localeService;
+    this.localeService = localeService;
+  }
+
+  private static final Set<String> DEFAULT_LOCALES =
+      Set.of(
+          "af", "ar", "bi", "am", "de", "dz", "en", "es", "fa", "fr", "gu", "hi", "id", "it", "km",
+          "lo", "my", "ne", "nl", "no", "ps", "pt", "ru", "rw", "sw", "tg", "vi", "zh");
+
+  @Override
+  public void executeInTransaction() {
+    int count = localeService.getI18nLocaleCount();
+
+    if (count > 0) {
+      return;
     }
 
-    private static final Set<String> DEFAULT_LOCALES = Set.of(
-        "af", "ar", "bi", "am", "de", "dz", "en", "es", "fa", "fr", "gu", "hi", "id", "it",
-        "km", "lo", "my", "ne", "nl", "no", "ps", "pt", "ru", "rw", "sw", "tg", "vi", "zh" );
-
-    @Override
-    public void executeInTransaction()
-    {
-        int count = localeService.getI18nLocaleCount();
-
-        if ( count > 0 )
-        {
-            return;
-        }
-
-        for ( String locale : DEFAULT_LOCALES )
-        {
-            localeService.saveI18nLocale( new I18nLocale( new Locale( locale ) ) );
-        }
-
-        log.info( "Populated default locales" );
+    for (String locale : DEFAULT_LOCALES) {
+      localeService.saveI18nLocale(new I18nLocale(new Locale(locale)));
     }
+
+    log.info("Populated default locales");
+  }
 }

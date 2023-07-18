@@ -35,16 +35,13 @@ import org.flywaydb.core.api.migration.Context;
 /**
  * @author Jan Bernitt
  */
-public class V2_36_27__Add_unique_shortName extends BaseJavaMigration
-{
+public class V2_36_27__Add_unique_shortName extends BaseJavaMigration {
 
-    @Override
-    public void migrate( Context context )
-        throws Exception
-    {
-        copyUniqueValue( context, "dataelementcategory", "categoryid", "name", "shortname", 50 );
-        copyUniqueValue( context, "dataelementgroupset", "dataelementgroupsetid", "name", "shortname", 50 );
-        copyUniqueValue( context, "orgunitgroupset", "orgunitgroupsetid", "name", "shortname", 50 );
-    }
-
+  @Override
+  public void migrate(Context context) throws Exception {
+    copyUniqueValue(context, "dataelementcategory", "categoryid", "name", "shortname", 50);
+    copyUniqueValue(
+        context, "dataelementgroupset", "dataelementgroupsetid", "name", "shortname", 50);
+    copyUniqueValue(context, "orgunitgroupset", "orgunitgroupsetid", "name", "shortname", 50);
+  }
 }

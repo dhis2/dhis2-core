@@ -30,7 +30,6 @@ package org.hisp.dhis.expressiondimensionitem;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
@@ -42,73 +41,63 @@ import org.hisp.dhis.dataelement.DataElementOperand;
  * Parsing the expression of ExpressionDimensionItem, provides collection of
  * BaseDimensionalItemObjects.
  */
-public class ExpressionDimensionItemHelper
-{
-    public static final Pattern pattern = Pattern
-        .compile( "[a-zA-Z0-9]{11}[.]?[a-zA-Z0-9]{0,11}[.]?[a-zA-Z0-9]{0,11}" );
+public class ExpressionDimensionItemHelper {
+  public static final Pattern pattern =
+      Pattern.compile("[a-zA-Z0-9]{11}[.]?[a-zA-Z0-9]{0,11}[.]?[a-zA-Z0-9]{0,11}");
 
-    private ExpressionDimensionItemHelper()
-    {
-        throw new UnsupportedOperationException( "helper" );
+  private ExpressionDimensionItemHelper() {
+    throw new UnsupportedOperationException("helper");
+  }
+
+  /**
+   * Provides collection of selected item types inside the expression
+   *
+   * @param manager {@link IdentifiableObjectManager} service for item delivery
+   * @param dataDimensionItem {@link IdentifiableObjectManager} expression dimension item
+   * @return collection of selected item types
+   */
+  public static List<BaseDimensionalItemObject> getExpressionItems(
+      IdentifiableObjectManager manager, DataDimensionItem dataDimensionItem) {
+    if (dataDimensionItem.getExpressionDimensionItem() == null) {
+      return new ArrayList<>();
     }
 
-    /**
-     * Provides collection of selected item types inside the expression
-     *
-     * @param manager {@link IdentifiableObjectManager} service for item
-     *        delivery
-     * @param dataDimensionItem {@link IdentifiableObjectManager} expression
-     *        dimension item
-     * @return collection of selected item types
-     */
-    public static List<BaseDimensionalItemObject> getExpressionItems( IdentifiableObjectManager manager,
-        DataDimensionItem dataDimensionItem )
-    {
-        if ( dataDimensionItem.getExpressionDimensionItem() == null )
-        {
-            return new ArrayList<>();
-        }
+    String expression = dataDimensionItem.getExpressionDimensionItem().getExpression();
 
-        String expression = dataDimensionItem.getExpressionDimensionItem().getExpression();
+    List<String> expressionTokens = getExpressionTokens(pattern, expression);
 
-        List<String> expressionTokens = getExpressionTokens( pattern, expression );
+    List<BaseDimensionalItemObject> baseDimensionalItemObjects = new ArrayList<>();
 
-        List<BaseDimensionalItemObject> baseDimensionalItemObjects = new ArrayList<>();
+    expressionTokens.forEach(
+        et -> {
+          String[] uids = et.split(Pattern.quote("."));
+          if (uids.length > 1) {
+            DataElementOperand deo =
+                new DataElementOperand(
+                    manager.get(DataElement.class, uids[0]),
+                    manager.get(CategoryOptionCombo.class, uids[1]));
+            baseDimensionalItemObjects.add(deo);
+          } else if (uids.length > 0) {
+            baseDimensionalItemObjects.add(manager.get(DataElement.class, uids[0]));
+          }
+        });
 
-        expressionTokens.forEach( et -> {
-            String[] uids = et.split( Pattern.quote( "." ) );
-            if ( uids.length > 1 )
-            {
-                DataElementOperand deo = new DataElementOperand( manager.get( DataElement.class, uids[0] ),
-                    manager.get( CategoryOptionCombo.class, uids[1] ) );
-                baseDimensionalItemObjects.add( deo );
-            }
-            else if ( uids.length > 0 )
-            {
-                baseDimensionalItemObjects.add( manager.get( DataElement.class, uids[0] ) );
-            }
-        } );
+    return baseDimensionalItemObjects;
+  }
 
-        return baseDimensionalItemObjects;
-    }
+  /**
+   * Expression parser for expression tokens of indicator ( data_element.category_option_combo or
+   * data_element only )
+   *
+   * @param pattern compiled Patter object of regular expression
+   * @param expression expression of indicator
+   * @return collection of tokens
+   */
+  public static List<String> getExpressionTokens(Pattern pattern, String expression) {
+    List<String> expressionTokens = new ArrayList<>();
 
-    /**
-     * Expression parser for expression tokens of indicator (
-     * data_element.category_option_combo or data_element only )
-     *
-     * @param pattern compiled Patter object of regular expression
-     * @param expression expression of indicator
-     * @return collection of tokens
-     */
-    public static List<String> getExpressionTokens( Pattern pattern, String expression )
-    {
-        List<String> expressionTokens = new ArrayList<>();
+    pattern.matcher(expression).results().map(mr -> mr.group(0)).forEach(expressionTokens::add);
 
-        pattern.matcher( expression )
-            .results()
-            .map( mr -> mr.group( 0 ) )
-            .forEach( expressionTokens::add );
-
-        return expressionTokens;
-    }
+    return expressionTokens;
+  }
 }

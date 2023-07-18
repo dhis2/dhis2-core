@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
-
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
@@ -42,68 +41,69 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Henning Håkonsen
  */
-class JobConfigurationServiceTest extends SingleSetupIntegrationTestBase
-{
+class JobConfigurationServiceTest extends SingleSetupIntegrationTestBase {
 
-    private static final String CRON_EVERY_MIN = "0 * * ? * *";
+  private static final String CRON_EVERY_MIN = "0 * * ? * *";
 
-    @Autowired
-    private JobConfigurationService jobConfigurationService;
+  @Autowired private JobConfigurationService jobConfigurationService;
 
-    private JobConfiguration jobA;
+  private JobConfiguration jobA;
 
-    private JobConfiguration jobB;
+  private JobConfiguration jobB;
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        jobA = new JobConfiguration( "jobA", JobType.MOCK, CRON_EVERY_MIN, new MockJobParameters( "test" ) );
-        jobB = new JobConfiguration( "jobB", JobType.DATA_INTEGRITY, CRON_EVERY_MIN, null );
-        jobConfigurationService.addJobConfiguration( jobA );
-        jobConfigurationService.addJobConfiguration( jobB );
-    }
+  @Override
+  protected void setUpTest() throws Exception {
+    jobA =
+        new JobConfiguration("jobA", JobType.MOCK, CRON_EVERY_MIN, new MockJobParameters("test"));
+    jobB = new JobConfiguration("jobB", JobType.DATA_INTEGRITY, CRON_EVERY_MIN, null);
+    jobConfigurationService.addJobConfiguration(jobA);
+    jobConfigurationService.addJobConfiguration(jobB);
+  }
 
-    @Test
-    void testGetJobTypeInfo()
-    {
-        List<JobTypeInfo> jobTypes = jobConfigurationService.getJobTypeInfo();
-        assertNotNull( jobTypes );
-        assertFalse( jobTypes.isEmpty() );
-        JobTypeInfo jobType = jobTypes.stream().filter( j -> j.getJobType() == JobType.CONTINUOUS_ANALYTICS_TABLE )
-            .findFirst().get();
-        assertNotNull( jobType );
-        assertEquals( JobType.CONTINUOUS_ANALYTICS_TABLE.getSchedulingType(), jobType.getSchedulingType() );
-    }
+  @Test
+  void testGetJobTypeInfo() {
+    List<JobTypeInfo> jobTypes = jobConfigurationService.getJobTypeInfo();
+    assertNotNull(jobTypes);
+    assertFalse(jobTypes.isEmpty());
+    JobTypeInfo jobType =
+        jobTypes.stream()
+            .filter(j -> j.getJobType() == JobType.CONTINUOUS_ANALYTICS_TABLE)
+            .findFirst()
+            .get();
+    assertNotNull(jobType);
+    assertEquals(
+        JobType.CONTINUOUS_ANALYTICS_TABLE.getSchedulingType(), jobType.getSchedulingType());
+  }
 
-    @Test
-    void testGetJob()
-    {
-        List<JobConfiguration> jobConfigurationList = jobConfigurationService.getAllJobConfigurations();
-        assertEquals( 2, jobConfigurationList.size(), "The number of job configurations does not match" );
-        assertEquals( JobType.MOCK, jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ).getJobType() );
-        MockJobParameters jobParameters = (MockJobParameters) jobConfigurationService
-            .getJobConfigurationByUid( jobA.getUid() ).getJobParameters();
-        assertNotNull( jobParameters );
-        assertEquals( "test", jobParameters.getMessage() );
-        assertEquals( JobType.DATA_INTEGRITY,
-            jobConfigurationService.getJobConfigurationByUid( jobB.getUid() ).getJobType() );
-        assertNull( jobConfigurationService.getJobConfigurationByUid( jobB.getUid() ).getJobParameters() );
-    }
+  @Test
+  void testGetJob() {
+    List<JobConfiguration> jobConfigurationList = jobConfigurationService.getAllJobConfigurations();
+    assertEquals(2, jobConfigurationList.size(), "The number of job configurations does not match");
+    assertEquals(
+        JobType.MOCK, jobConfigurationService.getJobConfigurationByUid(jobA.getUid()).getJobType());
+    MockJobParameters jobParameters =
+        (MockJobParameters)
+            jobConfigurationService.getJobConfigurationByUid(jobA.getUid()).getJobParameters();
+    assertNotNull(jobParameters);
+    assertEquals("test", jobParameters.getMessage());
+    assertEquals(
+        JobType.DATA_INTEGRITY,
+        jobConfigurationService.getJobConfigurationByUid(jobB.getUid()).getJobType());
+    assertNull(jobConfigurationService.getJobConfigurationByUid(jobB.getUid()).getJobParameters());
+  }
 
-    @Test
-    void testUpdateJob()
-    {
-        JobConfiguration test = jobConfigurationService.getJobConfigurationByUid( jobA.getUid() );
-        test.setName( "testUpdate" );
-        jobConfigurationService.updateJobConfiguration( test );
-        assertEquals( "testUpdate", jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ).getName() );
-    }
+  @Test
+  void testUpdateJob() {
+    JobConfiguration test = jobConfigurationService.getJobConfigurationByUid(jobA.getUid());
+    test.setName("testUpdate");
+    jobConfigurationService.updateJobConfiguration(test);
+    assertEquals(
+        "testUpdate", jobConfigurationService.getJobConfigurationByUid(jobA.getUid()).getName());
+  }
 
-    @Test
-    void testDeleteJob()
-    {
-        jobConfigurationService.deleteJobConfiguration( jobA );
-        assertNull( jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ) );
-    }
+  @Test
+  void testDeleteJob() {
+    jobConfigurationService.deleteJobConfiguration(jobA);
+    assertNull(jobConfigurationService.getJobConfigurationByUid(jobA.getUid()));
+  }
 }

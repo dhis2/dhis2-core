@@ -28,31 +28,29 @@
 package org.hisp.dhis.security.apikey;
 
 import java.util.List;
-
 import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface ApiTokenService
-{
-    List<ApiToken> getAll();
+public interface ApiTokenService {
+  List<ApiToken> getAll();
 
-    List<ApiToken> getAllOwning( User currentUser );
+  List<ApiToken> getAllOwning(User currentUser);
 
-    ApiToken getWithKey( String key, User currentUser );
+  ApiToken getWithKey(String key, User currentUser);
 
-    ApiToken getWithKey( String key );
+  ApiToken getWithKey(String key);
 
-    void save( ApiToken apiToken );
+  void save(ApiToken apiToken);
 
-    void update( ApiToken apiToken );
+  void update(ApiToken apiToken);
 
-    void delete( ApiToken apiToken );
+  void delete(ApiToken apiToken);
 
-    ApiToken getWithUid( String uid );
+  ApiToken getWithUid(String uid);
 
-    ApiToken initToken( ApiToken entity );
+  ApiToken initToken(ApiToken entity);
 
-    String hashKey( String key );
+  String hashKey(String key);
 }

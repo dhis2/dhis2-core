@@ -34,10 +34,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.OpenApi;
@@ -62,90 +60,92 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Zubair <rajazubair.asghar@gmail.com>
- */
-@OpenApi.Tags( "tracker" )
+/** Zubair <rajazubair.asghar@gmail.com> */
+@OpenApi.Tags("tracker")
 @RestController
-@RequestMapping( value = "/messages" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ProgramMessageController
-    extends AbstractCrudController<ProgramMessage>
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@RequestMapping(value = "/messages")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class ProgramMessageController extends AbstractCrudController<ProgramMessage> {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    @Autowired
-    private ProgramMessageService programMessageService;
+  @Autowired private ProgramMessageService programMessageService;
 
-    @Autowired
-    private RenderService renderService;
+  @Autowired private RenderService renderService;
 
-    @Autowired
-    @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )
-    private IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
+  @Autowired
+  @Qualifier("org.hisp.dhis.program.notification.ProgramNotificationInstanceStore")
+  private IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
 
-    // -------------------------------------------------------------------------
-    // GET
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // GET
+  // -------------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @GetMapping( produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public List<ProgramMessage> getProgramMessages( @RequestParam( required = false ) Set<String> ou,
-        @RequestParam( required = false ) String programInstance,
-        @RequestParam( required = false ) String programStageInstance,
-        @RequestParam( required = false ) ProgramMessageStatus messageStatus,
-        @RequestParam( required = false ) Date afterDate, @RequestParam( required = false ) Date beforeDate,
-        @RequestParam( required = false ) Integer page, @RequestParam( required = false ) Integer pageSize )
-        throws WebMessageException
-    {
-        ProgramMessageQueryParams params = programMessageService.getFromUrl( ou, programInstance, programStageInstance,
-            messageStatus, page, pageSize, afterDate, beforeDate );
-
-        if ( programInstance == null && programStageInstance == null )
-        {
-            throw new WebMessageException(
-                conflict( "ProgramInstance or ProgramStageInstance must be specified." ) );
-        }
-
-        return programMessageService.getProgramMessages( params );
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @GetMapping( value = "/scheduled/sent", produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public List<ProgramMessage> getScheduledSentMessage(
-        @RequestParam( required = false ) String programInstance,
-        @RequestParam( required = false ) String programStageInstance,
-        @RequestParam( required = false ) Date afterDate, @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize )
-    {
-        ProgramMessageQueryParams params = programMessageService.getFromUrl( null, programInstance,
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public List<ProgramMessage> getProgramMessages(
+      @RequestParam(required = false) Set<String> ou,
+      @RequestParam(required = false) String programInstance,
+      @RequestParam(required = false) String programStageInstance,
+      @RequestParam(required = false) ProgramMessageStatus messageStatus,
+      @RequestParam(required = false) Date afterDate,
+      @RequestParam(required = false) Date beforeDate,
+      @RequestParam(required = false) Integer page,
+      @RequestParam(required = false) Integer pageSize)
+      throws WebMessageException {
+    ProgramMessageQueryParams params =
+        programMessageService.getFromUrl(
+            ou,
+            programInstance,
             programStageInstance,
-            null, page, pageSize, afterDate, null );
+            messageStatus,
+            page,
+            pageSize,
+            afterDate,
+            beforeDate);
 
-        return programMessageService.getProgramMessages( params );
+    if (programInstance == null && programStageInstance == null) {
+      throw new WebMessageException(
+          conflict("ProgramInstance or ProgramStageInstance must be specified."));
     }
 
-    // -------------------------------------------------------------------------
-    // POST
-    // -------------------------------------------------------------------------
+    return programMessageService.getProgramMessages(params);
+  }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS') or hasRole('F_SEND_EMAIL')" )
-    @PostMapping( consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public BatchResponseStatus saveMessages( HttpServletRequest request, HttpServletResponse response )
-        throws IOException
-    {
-        ProgramMessageBatch batch = renderService.fromJson( request.getInputStream(), ProgramMessageBatch.class );
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
+  @GetMapping(value = "/scheduled/sent", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public List<ProgramMessage> getScheduledSentMessage(
+      @RequestParam(required = false) String programInstance,
+      @RequestParam(required = false) String programStageInstance,
+      @RequestParam(required = false) Date afterDate,
+      @RequestParam(required = false) Integer page,
+      @RequestParam(required = false) Integer pageSize) {
+    ProgramMessageQueryParams params =
+        programMessageService.getFromUrl(
+            null, programInstance, programStageInstance, null, page, pageSize, afterDate, null);
 
-        for ( ProgramMessage programMessage : batch.getProgramMessages() )
-        {
-            programMessageService.validatePayload( programMessage );
-        }
+    return programMessageService.getProgramMessages(params);
+  }
 
-        return programMessageService.sendMessages( batch.getProgramMessages() );
+  // -------------------------------------------------------------------------
+  // POST
+  // -------------------------------------------------------------------------
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS') or hasRole('F_SEND_EMAIL')")
+  @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public BatchResponseStatus saveMessages(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
+    ProgramMessageBatch batch =
+        renderService.fromJson(request.getInputStream(), ProgramMessageBatch.class);
+
+    for (ProgramMessage programMessage : batch.getProgramMessages()) {
+      programMessageService.validatePayload(programMessage);
     }
+
+    return programMessageService.sendMessages(batch.getProgramMessages());
+  }
 }

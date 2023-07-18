@@ -33,7 +33,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
@@ -47,56 +46,49 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-@ExtendWith( MockitoExtension.class )
-class FileResourceControllerMockTest
-{
+@ExtendWith(MockitoExtension.class)
+class FileResourceControllerMockTest {
 
-    private FileResourceController controller;
+  private FileResourceController controller;
 
-    @Mock
-    private FileResourceService fileResourceService;
+  @Mock private FileResourceService fileResourceService;
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private CurrentUserService currentUserService;
 
-    @Mock
-    private FileResourceUtils fileResourceUtils;
+  @Mock private FileResourceUtils fileResourceUtils;
 
-    @Mock
-    private DhisConfigurationProvider dhisConfig;
+  @Mock private DhisConfigurationProvider dhisConfig;
 
-    @Test
-    void testGetOrgUnitImage()
-        throws WebMessageException,
-        IOException
-    {
-        controller = new FileResourceController( fileResourceService, fileResourceUtils, dhisConfig );
-        FileResource fileResource = new FileResource();
-        fileResource.setContentType( "image/png" );
-        fileResource.setDomain( FileResourceDomain.ORG_UNIT );
-        fileResource.setUid( "id" );
+  @Test
+  void testGetOrgUnitImage() throws WebMessageException, IOException {
+    controller = new FileResourceController(fileResourceService, fileResourceUtils, dhisConfig);
+    FileResource fileResource = new FileResource();
+    fileResource.setContentType("image/png");
+    fileResource.setDomain(FileResourceDomain.ORG_UNIT);
+    fileResource.setUid("id");
 
-        when( fileResourceService.getFileResource( "id" ) ).thenReturn( fileResource );
+    when(fileResourceService.getFileResource("id")).thenReturn(fileResource);
 
-        controller.getFileResourceData( "id", new MockHttpServletResponse(), null,
-            currentUserService.getCurrentUser() );
+    controller.getFileResourceData(
+        "id", new MockHttpServletResponse(), null, currentUserService.getCurrentUser());
 
-        verify( fileResourceService ).copyFileResourceContent( any(), any() );
-    }
+    verify(fileResourceService).copyFileResourceContent(any(), any());
+  }
 
-    @Test
-    void testGetDataValue()
-    {
-        controller = new FileResourceController( fileResourceService, fileResourceUtils, dhisConfig );
-        FileResource fileResource = new FileResource();
-        fileResource.setContentType( "image/png" );
-        fileResource.setDomain( FileResourceDomain.DATA_VALUE );
-        fileResource.setUid( "id" );
+  @Test
+  void testGetDataValue() {
+    controller = new FileResourceController(fileResourceService, fileResourceUtils, dhisConfig);
+    FileResource fileResource = new FileResource();
+    fileResource.setContentType("image/png");
+    fileResource.setDomain(FileResourceDomain.DATA_VALUE);
+    fileResource.setUid("id");
 
-        when( fileResourceService.getFileResource( "id" ) ).thenReturn( fileResource );
+    when(fileResourceService.getFileResource("id")).thenReturn(fileResource);
 
-        assertThrows( WebMessageException.class,
-            () -> controller.getFileResourceData( "id", new MockHttpServletResponse(), null,
-                currentUserService.getCurrentUser() ) );
-    }
+    assertThrows(
+        WebMessageException.class,
+        () ->
+            controller.getFileResourceData(
+                "id", new MockHttpServletResponse(), null, currentUserService.getCurrentUser()));
+  }
 }

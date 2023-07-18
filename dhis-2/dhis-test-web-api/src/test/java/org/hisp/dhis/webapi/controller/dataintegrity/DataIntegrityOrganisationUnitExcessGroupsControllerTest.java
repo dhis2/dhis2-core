@@ -33,99 +33,134 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Checks for organisation units which are part of multiple organisation unit
- * groups within the same group set.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_excess_group_memberships.yaml}
+ * Checks for organisation units which are part of multiple organisation unit groups within the same
+ * group set. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_excess_group_memberships.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitExcessGroupsControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityOrganisationUnitExcessGroupsControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
 
-    private String orgunitA;
+  private String orgunitA;
 
-    private String orgunitB;
+  private String orgunitB;
 
-    private String testOrgUnitGroupA;
+  private String testOrgUnitGroupA;
 
-    private String testOrgUnitGroupB;
+  private String testOrgUnitGroupB;
 
-    private static final String check = "orgunit_group_sets_excess_groups";
+  private static final String check = "orgunit_group_sets_excess_groups";
 
-    private static final String detailsIdType = "organisationUnits";
+  private static final String detailsIdType = "organisationUnits";
 
-    @Test
-    void testOrganisationUnitInMultipleGroupSetGroups()
-    {
+  @Test
+  void testOrganisationUnitInMultipleGroupSetGroups() {
 
-        orgunitA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}" ) );
+    orgunitA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}"));
 
-        orgunitB = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}" ) );
+    orgunitB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}"));
 
-        //Create an orgunit group
-        testOrgUnitGroupA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroups",
-                "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '" +
-                    orgunitA + "'}, {'id' : '" + orgunitB + "'}]}" ) );
+    // Create an orgunit group
+    testOrgUnitGroupA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnitGroups",
+                "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '"
+                    + orgunitA
+                    + "'}, {'id' : '"
+                    + orgunitB
+                    + "'}]}"));
 
-        testOrgUnitGroupB = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroups",
-                "{'name': 'Type B', 'shortName': 'Type B', 'organisationUnits' : [{'id' : '" + orgunitB
-                    + "'}]}" ) );
+    testOrgUnitGroupB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnitGroups",
+                "{'name': 'Type B', 'shortName': 'Type B', 'organisationUnits' : [{'id' : '"
+                    + orgunitB
+                    + "'}]}"));
 
-        //Add it to a group set
-        assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroupSets",
-                "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , " +
-                    "'organisationUnitGroups' :[{'id' : '"
-                    + testOrgUnitGroupA + "'}, {'id' : '" + testOrgUnitGroupB + "'}]}" ) );
+    // Add it to a group set
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnitGroupSets",
+            "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , "
+                + "'organisationUnitGroups' :[{'id' : '"
+                + testOrgUnitGroupA
+                + "'}, {'id' : '"
+                + testOrgUnitGroupB
+                + "'}]}"));
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 50, orgunitB, "Pizza District", "Type", true );
+    assertHasDataIntegrityIssues(
+        detailsIdType, check, 50, orgunitB, "Pizza District", "Type", true);
+  }
 
-    }
+  @Test
+  void testOrganisationUnitNotInMultipleGroupSetGroups() {
 
-    @Test
-    void testOrganisationUnitNotInMultipleGroupSetGroups()
-    {
+    orgunitA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}"));
 
-        orgunitA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}" ) );
+    orgunitB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}"));
 
-        orgunitB = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}" ) );
+    // Create an orgunit group
+    testOrgUnitGroupA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnitGroups",
+                "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '"
+                    + orgunitA
+                    + "'}]}"));
 
-        //Create an orgunit group
-        testOrgUnitGroupA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroups",
-                "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '" +
-                    orgunitA + "'}]}" ) );
+    testOrgUnitGroupB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnitGroups",
+                "{'name': 'Type B', 'shortName': 'Type B', 'organisationUnits' : [{'id' : '"
+                    + orgunitB
+                    + "'}]}"));
 
-        testOrgUnitGroupB = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroups",
-                "{'name': 'Type B', 'shortName': 'Type B', 'organisationUnits' : [{'id' : '" + orgunitB
-                    + "'}]}" ) );
+    // Add it to a group set
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnitGroupSets",
+            "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , "
+                + "'organisationUnitGroups' :[{'id' : '"
+                + testOrgUnitGroupA
+                + "'}, {'id' : '"
+                + testOrgUnitGroupB
+                + "'}]}"));
 
-        //Add it to a group set
-        assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroupSets",
-                "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , " +
-                    "'organisationUnitGroups' :[{'id' : '"
-                    + testOrgUnitGroupA + "'}, {'id' : '" + testOrgUnitGroupB + "'}]}" ) );
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
-
-    }
-
-    @Test
-    void testOrganisationMultipleGroupsInGroupSetDivideByZero()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-    }
-
+  @Test
+  void testOrganisationMultipleGroupsInGroupSetDivideByZero() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 }

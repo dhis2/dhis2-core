@@ -28,7 +28,6 @@
 package org.hisp.dhis.cache;
 
 import java.util.function.Function;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,42 +38,35 @@ import org.springframework.stereotype.Component;
  * Provides cache builder to build instances.
  *
  * @author Ameen Mohamed
- *
  */
-@Component( "cacheProvider" )
-public class DefaultCacheBuilderProvider implements CacheBuilderProvider
-{
-    private DhisConfigurationProvider configurationProvider;
+@Component("cacheProvider")
+public class DefaultCacheBuilderProvider implements CacheBuilderProvider {
+  private DhisConfigurationProvider configurationProvider;
 
-    private RedisTemplate<String, ?> redisTemplate;
+  private RedisTemplate<String, ?> redisTemplate;
 
-    private CappedLocalCache cappedLocalCache;
+  private CappedLocalCache cappedLocalCache;
 
-    @Override
-    public <V> CacheBuilder<V> newCacheBuilder()
-    {
-        Function<CacheBuilder<V>, Cache<V>> capCacheFactory = cappedLocalCache != null
-            ? cappedLocalCache::createRegion
-            : builder -> new NoOpCache<>();
-        return new ExtendedCacheBuilder<>( redisTemplate, configurationProvider, capCacheFactory );
-    }
+  @Override
+  public <V> CacheBuilder<V> newCacheBuilder() {
+    Function<CacheBuilder<V>, Cache<V>> capCacheFactory =
+        cappedLocalCache != null ? cappedLocalCache::createRegion : builder -> new NoOpCache<>();
+    return new ExtendedCacheBuilder<>(redisTemplate, configurationProvider, capCacheFactory);
+  }
 
-    @Autowired
-    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
-    {
-        this.configurationProvider = configurationProvider;
-    }
+  @Autowired
+  public void setConfigurationProvider(DhisConfigurationProvider configurationProvider) {
+    this.configurationProvider = configurationProvider;
+  }
 
-    @Autowired( required = false )
-    @Qualifier( "redisTemplate" )
-    public void setRedisTemplate( RedisTemplate<String, ?> redisTemplate )
-    {
-        this.redisTemplate = redisTemplate;
-    }
+  @Autowired(required = false)
+  @Qualifier("redisTemplate")
+  public void setRedisTemplate(RedisTemplate<String, ?> redisTemplate) {
+    this.redisTemplate = redisTemplate;
+  }
 
-    @Autowired
-    public void setCappedLocalCache( CappedLocalCache cappedLocalCache )
-    {
-        this.cappedLocalCache = cappedLocalCache;
-    }
+  @Autowired
+  public void setCappedLocalCache(CappedLocalCache cappedLocalCache) {
+    this.cappedLocalCache = cappedLocalCache;
+  }
 }

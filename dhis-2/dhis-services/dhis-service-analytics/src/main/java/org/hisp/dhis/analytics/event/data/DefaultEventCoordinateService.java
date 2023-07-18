@@ -31,11 +31,8 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -53,116 +50,100 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-public class DefaultEventCoordinateService
-    implements EventCoordinateService
-{
-    public static final String COL_NAME_PI_GEOMETRY = "pigeometry";
+public class DefaultEventCoordinateService implements EventCoordinateService {
+  public static final String COL_NAME_PI_GEOMETRY = "pigeometry";
 
-    public static final String COL_NAME_PSI_GEOMETRY = "psigeometry";
+  public static final String COL_NAME_PSI_GEOMETRY = "psigeometry";
 
-    public static final String COL_NAME_TEI_GEOMETRY = "teigeometry";
+  public static final String COL_NAME_TEI_GEOMETRY = "teigeometry";
 
-    public static final String COL_NAME_OU_GEOMETRY = "ougeometry";
+  public static final String COL_NAME_OU_GEOMETRY = "ougeometry";
 
-    public static final List<String> COL_NAME_GEOMETRY_LIST = List.of( COL_NAME_PSI_GEOMETRY, COL_NAME_PI_GEOMETRY,
-        COL_NAME_TEI_GEOMETRY, COL_NAME_OU_GEOMETRY );
+  public static final List<String> COL_NAME_GEOMETRY_LIST =
+      List.of(
+          COL_NAME_PSI_GEOMETRY, COL_NAME_PI_GEOMETRY, COL_NAME_TEI_GEOMETRY, COL_NAME_OU_GEOMETRY);
 
-    public static final List<String> COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST = List.of( COL_NAME_PSI_GEOMETRY,
-        COL_NAME_PI_GEOMETRY, COL_NAME_OU_GEOMETRY );
+  public static final List<String> COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST =
+      List.of(COL_NAME_PSI_GEOMETRY, COL_NAME_PI_GEOMETRY, COL_NAME_OU_GEOMETRY);
 
-    @Nonnull
-    private final ProgramService programService;
+  @Nonnull private final ProgramService programService;
 
-    @Nonnull
-    private final DataElementService dataElementService;
+  @Nonnull private final DataElementService dataElementService;
 
-    @Nonnull
-    private final TrackedEntityAttributeService attributeService;
+  @Nonnull private final TrackedEntityAttributeService attributeService;
 
-    @Override
-    public boolean isFallbackCoordinateFieldValid( boolean isRegistration, String coordinateField )
-    {
-        if ( coordinateField == null )
-        {
-            return false;
-        }
-
-        if ( COL_NAME_TEI_GEOMETRY.equals( coordinateField ) )
-        {
-            return isRegistration;
-        }
-
-        if ( COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST.contains( coordinateField ) )
-        {
-            return true;
-        }
-
-        DataElement dataElement = dataElementService.getDataElement( coordinateField );
-
-        TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( coordinateField );
-
-        if ( dataElement != null || attribute != null )
-        {
-            return true;
-        }
-
-        throwIllegalQueryEx( ErrorCode.E7232, coordinateField );
-
-        return false;
+  @Override
+  public boolean isFallbackCoordinateFieldValid(boolean isRegistration, String coordinateField) {
+    if (coordinateField == null) {
+      return false;
     }
 
-    @Override
-    public List<String> getFallbackCoordinateFields( String program, String fallbackCoordinateField,
-        boolean defaultCoordinateFallback )
-    {
-        Program pr = programService.getProgram( program );
-
-        List<String> fallbackCoordinateFields = new ArrayList<>();
-
-        if ( fallbackCoordinateField != null )
-        {
-            if ( !isFallbackCoordinateFieldValid( pr.isRegistration(), fallbackCoordinateField ) )
-            {
-                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7232, fallbackCoordinateField ) );
-            }
-
-            fallbackCoordinateFields.add( fallbackCoordinateField );
-        }
-        else
-        {
-            if ( defaultCoordinateFallback )
-            {
-                List<String> items = new ArrayList<>(
-                    pr.isRegistration() ? COL_NAME_GEOMETRY_LIST : COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST );
-
-                fallbackCoordinateFields.addAll( items );
-            }
-        }
-
-        return fallbackCoordinateFields;
+    if (COL_NAME_TEI_GEOMETRY.equals(coordinateField)) {
+      return isRegistration;
     }
 
-    @Override
-    public String getCoordinateField( ValueType valueType, String field, ErrorCode errorCode )
-    {
-        if ( ValueType.COORDINATE != valueType && ValueType.ORGANISATION_UNIT != valueType )
-        {
-            throwIllegalQueryEx( errorCode, field );
-        }
-
-        return field;
+    if (COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST.contains(coordinateField)) {
+      return true;
     }
 
-    @Override
-    public String getCoordinateField( String program, String coordinateField, ErrorCode errorCode )
-    {
-        Program pr = programService.getProgram( program );
+    DataElement dataElement = dataElementService.getDataElement(coordinateField);
 
-        if ( COL_NAME_TEI_GEOMETRY.equals( coordinateField ) && !pr.isRegistration() )
-        {
-            throwIllegalQueryEx( errorCode, coordinateField );
-        }
+    TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute(coordinateField);
 
-        return coordinateField;
+    if (dataElement != null || attribute != null) {
+      return true;
     }
+
+    throwIllegalQueryEx(ErrorCode.E7232, coordinateField);
+
+    return false;
+  }
+
+  @Override
+  public List<String> getFallbackCoordinateFields(
+      String program, String fallbackCoordinateField, boolean defaultCoordinateFallback) {
+    Program pr = programService.getProgram(program);
+
+    List<String> fallbackCoordinateFields = new ArrayList<>();
+
+    if (fallbackCoordinateField != null) {
+      if (!isFallbackCoordinateFieldValid(pr.isRegistration(), fallbackCoordinateField)) {
+        throw new IllegalQueryException(new ErrorMessage(ErrorCode.E7232, fallbackCoordinateField));
+      }
+
+      fallbackCoordinateFields.add(fallbackCoordinateField);
+    } else {
+      if (defaultCoordinateFallback) {
+        List<String> items =
+            new ArrayList<>(
+                pr.isRegistration()
+                    ? COL_NAME_GEOMETRY_LIST
+                    : COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST);
+
+        fallbackCoordinateFields.addAll(items);
+      }
+    }
+
+    return fallbackCoordinateFields;
+  }
+
+  @Override
+  public String getCoordinateField(ValueType valueType, String field, ErrorCode errorCode) {
+    if (ValueType.COORDINATE != valueType && ValueType.ORGANISATION_UNIT != valueType) {
+      throwIllegalQueryEx(errorCode, field);
+    }
+
+    return field;
+  }
+
+  @Override
+  public String getCoordinateField(String program, String coordinateField, ErrorCode errorCode) {
+    Program pr = programService.getProgram(program);
+
+    if (COL_NAME_TEI_GEOMETRY.equals(coordinateField) && !pr.isRegistration()) {
+      throwIllegalQueryEx(errorCode, coordinateField);
+    }
+
+    return coordinateField;
+  }
 }

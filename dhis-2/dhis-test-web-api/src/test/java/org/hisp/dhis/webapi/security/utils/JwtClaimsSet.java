@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-
 import org.springframework.security.oauth2.jwt.JwtClaimAccessor;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.util.Assert;
@@ -41,98 +40,79 @@ import org.springframework.util.Assert;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public final class JwtClaimsSet implements JwtClaimAccessor
-{
-    private final Map<String, Object> claims;
+public final class JwtClaimsSet implements JwtClaimAccessor {
+  private final Map<String, Object> claims;
 
-    private JwtClaimsSet( Map<String, Object> claims )
-    {
-        this.claims = Collections.unmodifiableMap( new HashMap<>( claims ) );
+  private JwtClaimsSet(Map<String, Object> claims) {
+    this.claims = Collections.unmodifiableMap(new HashMap<>(claims));
+  }
+
+  @Override
+  public Map<String, Object> getClaims() {
+    return this.claims;
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public static Builder from(JwtClaimsSet claims) {
+    return new Builder(claims);
+  }
+
+  public static final class Builder {
+    private final Map<String, Object> claims = new HashMap<>();
+
+    private Builder() {}
+
+    private Builder(JwtClaimsSet claims) {
+      Assert.notNull(claims, "claims cannot be null");
+      this.claims.putAll(claims.getClaims());
     }
 
-    @Override
-    public Map<String, Object> getClaims()
-    {
-        return this.claims;
+    public Builder issuer(String issuer) {
+      return claim(JwtClaimNames.ISS, issuer);
     }
 
-    public static Builder builder()
-    {
-        return new Builder();
+    public Builder subject(String subject) {
+      return claim(JwtClaimNames.SUB, subject);
     }
 
-    public static Builder from( JwtClaimsSet claims )
-    {
-        return new Builder( claims );
+    public Builder audience(List<String> audience) {
+      return claim(JwtClaimNames.AUD, audience);
     }
 
-    public static final class Builder
-    {
-        private final Map<String, Object> claims = new HashMap<>();
-
-        private Builder()
-        {
-        }
-
-        private Builder( JwtClaimsSet claims )
-        {
-            Assert.notNull( claims, "claims cannot be null" );
-            this.claims.putAll( claims.getClaims() );
-        }
-
-        public Builder issuer( String issuer )
-        {
-            return claim( JwtClaimNames.ISS, issuer );
-        }
-
-        public Builder subject( String subject )
-        {
-            return claim( JwtClaimNames.SUB, subject );
-        }
-
-        public Builder audience( List<String> audience )
-        {
-            return claim( JwtClaimNames.AUD, audience );
-        }
-
-        public Builder expiresAt( Instant expiresAt )
-        {
-            return claim( JwtClaimNames.EXP, expiresAt );
-        }
-
-        public Builder notBefore( Instant notBefore )
-        {
-            return claim( JwtClaimNames.NBF, notBefore );
-        }
-
-        public Builder issuedAt( Instant issuedAt )
-        {
-            return claim( JwtClaimNames.IAT, issuedAt );
-        }
-
-        public Builder id( String jti )
-        {
-            return claim( JwtClaimNames.JTI, jti );
-        }
-
-        public Builder claim( String name, Object value )
-        {
-            Assert.hasText( name, "name cannot be empty" );
-            Assert.notNull( value, "value cannot be null" );
-            this.claims.put( name, value );
-            return this;
-        }
-
-        public Builder claims( Consumer<Map<String, Object>> claimsConsumer )
-        {
-            claimsConsumer.accept( this.claims );
-            return this;
-        }
-
-        public JwtClaimsSet build()
-        {
-            Assert.notEmpty( this.claims, "claims cannot be empty" );
-            return new JwtClaimsSet( this.claims );
-        }
+    public Builder expiresAt(Instant expiresAt) {
+      return claim(JwtClaimNames.EXP, expiresAt);
     }
+
+    public Builder notBefore(Instant notBefore) {
+      return claim(JwtClaimNames.NBF, notBefore);
+    }
+
+    public Builder issuedAt(Instant issuedAt) {
+      return claim(JwtClaimNames.IAT, issuedAt);
+    }
+
+    public Builder id(String jti) {
+      return claim(JwtClaimNames.JTI, jti);
+    }
+
+    public Builder claim(String name, Object value) {
+      Assert.hasText(name, "name cannot be empty");
+      Assert.notNull(value, "value cannot be null");
+      this.claims.put(name, value);
+      return this;
+    }
+
+    public Builder claims(Consumer<Map<String, Object>> claimsConsumer) {
+      claimsConsumer.accept(this.claims);
+      return this;
+    }
+
+    public JwtClaimsSet build() {
+      Assert.notEmpty(this.claims, "claims cannot be empty");
+      return new JwtClaimsSet(this.claims);
+    }
+  }
 }

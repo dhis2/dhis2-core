@@ -40,47 +40,41 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class ItemConstant
-    implements ExpressionItem
-{
-    @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        Constant constant = visitor.getConstantMap().get( ctx.uid0.getText() );
+public class ItemConstant implements ExpressionItem {
+  @Override
+  public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    Constant constant = visitor.getConstantMap().get(ctx.uid0.getText());
 
-        if ( constant == null )
-        {
-            throw new ParserExceptionWithoutContext( "No constant defined for " + ctx.uid0.getText() );
-        }
-
-        visitor.getItemDescriptions().put( ctx.getText(), constant.getDisplayName() );
-
-        return DOUBLE_VALUE_IF_NULL;
+    if (constant == null) {
+      throw new ParserExceptionWithoutContext("No constant defined for " + ctx.uid0.getText());
     }
 
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    visitor.getItemDescriptions().put(ctx.getText(), constant.getDisplayName());
+
+    return DOUBLE_VALUE_IF_NULL;
+  }
+
+  @Override
+  public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
+    Constant constant = visitor.getConstantMap().get(ctx.uid0.getText());
+
+    if (constant == null) // Shouldn't happen for a valid expression.
     {
-        Constant constant = visitor.getConstantMap().get( ctx.uid0.getText() );
-
-        if ( constant == null ) // Shouldn't happen for a valid expression.
-        {
-            throw new ParserExceptionWithoutContext( "Can't find constant to evaluate " + ctx.uid0.getText() );
-        }
-
-        return constant.getValue();
+      throw new ParserExceptionWithoutContext(
+          "Can't find constant to evaluate " + ctx.uid0.getText());
     }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        Constant constant = visitor.getConstantMap().get( ctx.uid0.getText() );
+    return constant.getValue();
+  }
 
-        if ( constant == null )
-        {
-            throw new ParserExceptionWithoutContext( "Can't find constant for SQL " + ctx.uid0.getText() );
-        }
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    Constant constant = visitor.getConstantMap().get(ctx.uid0.getText());
 
-        return Double.valueOf( constant.getValue() ).toString();
+    if (constant == null) {
+      throw new ParserExceptionWithoutContext("Can't find constant for SQL " + ctx.uid0.getText());
     }
+
+    return Double.valueOf(constant.getValue()).toString();
+  }
 }

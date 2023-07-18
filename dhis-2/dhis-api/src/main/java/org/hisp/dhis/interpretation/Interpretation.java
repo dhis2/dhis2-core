@@ -35,11 +35,17 @@ import static org.hisp.dhis.analytics.AnalyticsFavoriteType.MAP;
 import static org.hisp.dhis.analytics.AnalyticsFavoriteType.VISUALIZATION;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.analytics.AnalyticsFavoriteType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -56,448 +62,370 @@ import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "interpretation", namespace = DXF_2_0 )
-public class Interpretation
-    extends BaseIdentifiableObject
-{
-    private Visualization visualization;
+@JacksonXmlRootElement(localName = "interpretation", namespace = DXF_2_0)
+public class Interpretation extends BaseIdentifiableObject {
+  private Visualization visualization;
 
-    private EventVisualization eventVisualization;
+  private EventVisualization eventVisualization;
 
-    private Map map;
+  private Map map;
 
-    private EventReport eventReport;
+  private EventReport eventReport;
 
-    private EventChart eventChart;
+  private EventChart eventChart;
 
-    private DataSet dataSet;
+  private DataSet dataSet;
 
-    /**
-     * Applicable to visualization and data set report.
-     */
-    private Period period;
+  /** Applicable to visualization and data set report. */
+  private Period period;
 
-    /**
-     * Applicable to visualization and data set report.
-     */
-    private OrganisationUnit organisationUnit;
+  /** Applicable to visualization and data set report. */
+  private OrganisationUnit organisationUnit;
 
-    private String text;
+  private String text;
 
-    private List<InterpretationComment> comments = new ArrayList<>();
+  private List<InterpretationComment> comments = new ArrayList<>();
 
-    private int likes;
+  private int likes;
 
-    private Set<User> likedBy = new HashSet<>();
+  private Set<User> likedBy = new HashSet<>();
 
-    private List<Mention> mentions = new ArrayList<>();
+  private List<Mention> mentions = new ArrayList<>();
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public Interpretation()
-    {
+  public Interpretation() {}
+
+  public Interpretation(
+      Visualization visualization, OrganisationUnit organisationUnit, String text) {
+    this.visualization = visualization;
+    visualization.getInterpretations().add(this);
+    this.organisationUnit = organisationUnit;
+    this.text = text;
+  }
+
+  public Interpretation(
+      Visualization visualization, Period period, OrganisationUnit organisationUnit, String text) {
+    this.visualization = visualization;
+    visualization.getInterpretations().add(this);
+    this.period = period;
+    this.organisationUnit = organisationUnit;
+    this.text = text;
+  }
+
+  public Interpretation(Map map, String text) {
+    this.map = map;
+    map.getInterpretations().add(this);
+    this.text = text;
+  }
+
+  public Interpretation(
+      EventVisualization eventVisualization,
+      EventReport eventReport,
+      OrganisationUnit organisationUnit,
+      String text) {
+    this.eventReport = eventReport;
+    eventReport.getInterpretations().add(this);
+    this.eventVisualization = eventVisualization;
+    eventVisualization.getInterpretations().add(this);
+    this.organisationUnit = organisationUnit;
+    this.text = text;
+  }
+
+  public Interpretation(
+      EventVisualization eventVisualization,
+      EventChart eventChart,
+      OrganisationUnit organisationUnit,
+      String text) {
+    this.eventChart = eventChart;
+    eventChart.getInterpretations().add(this);
+    this.eventVisualization = eventVisualization;
+    eventVisualization.getInterpretations().add(this);
+    this.organisationUnit = organisationUnit;
+    this.text = text;
+  }
+
+  public Interpretation(
+      EventVisualization eventVisualization, OrganisationUnit organisationUnit, String text) {
+    this.eventVisualization = eventVisualization;
+    eventVisualization.getInterpretations().add(this);
+    this.organisationUnit = organisationUnit;
+    this.text = text;
+  }
+
+  public Interpretation(
+      DataSet dataSet, Period period, OrganisationUnit organisationUnit, String text) {
+    this.dataSet = dataSet;
+    this.period = period;
+    this.organisationUnit = organisationUnit;
+    this.text = text;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public AnalyticsFavoriteType getType() {
+    if (visualization != null) {
+      return VISUALIZATION;
+    } else if (eventVisualization != null) {
+      return EVENT_VISUALIZATION;
+    } else if (map != null) {
+      return MAP;
+    } else if (eventReport != null) {
+      return EVENT_REPORT;
+    } else if (eventChart != null) {
+      return EVENT_CHART;
+    } else if (dataSet != null) {
+      return DATASET_REPORT;
     }
 
-    public Interpretation( Visualization visualization, OrganisationUnit organisationUnit, String text )
-    {
-        this.visualization = visualization;
-        visualization.getInterpretations().add( this );
-        this.organisationUnit = organisationUnit;
-        this.text = text;
+    return null;
+  }
+
+  public IdentifiableObject getObject() {
+    if (visualization != null) {
+      return visualization;
+    } else if (map != null) {
+      return map;
+    } else if (eventReport != null) {
+      return eventReport;
+    } else if (eventChart != null) {
+      return eventChart;
+    } else if (eventVisualization != null) {
+      return eventVisualization;
+    } else if (dataSet != null) {
+      return dataSet;
     }
 
-    public Interpretation( Visualization visualization, Period period, OrganisationUnit organisationUnit, String text )
-    {
-        this.visualization = visualization;
-        visualization.getInterpretations().add( this );
-        this.period = period;
-        this.organisationUnit = organisationUnit;
-        this.text = text;
+    return null;
+  }
+
+  public void addComment(InterpretationComment comment) {
+    this.comments.add(comment);
+  }
+
+  public boolean isVisualizationInterpretation() {
+    return visualization != null;
+  }
+
+  public boolean isEventVisualizationInterpretation() {
+    return visualization != null;
+  }
+
+  public boolean isEventReportInterpretation() {
+    return eventReport != null;
+  }
+
+  public boolean isEventChartInterpretation() {
+    return eventChart != null;
+  }
+
+  public boolean isDataSetReportInterpretation() {
+    return dataSet != null;
+  }
+
+  public PeriodType getPeriodType() {
+    return period != null ? period.getPeriodType() : null;
+  }
+
+  /**
+   * Attempts to add the given user to the set of users liking this interpretation. If user not
+   * already present, increments the like count with one.
+   *
+   * @param user the user liking this interpretation.
+   * @return true if the given user had not already liked this interpretation.
+   */
+  public boolean like(User user) {
+    boolean like = this.likedBy.add(user);
+
+    if (like) {
+      this.likes++;
     }
 
-    public Interpretation( Map map, String text )
-    {
-        this.map = map;
-        map.getInterpretations().add( this );
-        this.text = text;
+    return like;
+  }
+
+  /**
+   * Attempts to remove the given user from the set of users liking this interpretation. If user not
+   * already present, decrease the like count with one.
+   *
+   * @param user the user removing the like from this interpretation.
+   * @return true if the given user had previously liked this interpretation.
+   */
+  public boolean unlike(User user) {
+    boolean unlike = this.likedBy.remove(user);
+
+    if (unlike) {
+      this.likes--;
     }
 
-    public Interpretation( EventVisualization eventVisualization, EventReport eventReport,
-        OrganisationUnit organisationUnit, String text )
-    {
-        this.eventReport = eventReport;
-        eventReport.getInterpretations().add( this );
-        this.eventVisualization = eventVisualization;
-        eventVisualization.getInterpretations().add( this );
-        this.organisationUnit = organisationUnit;
-        this.text = text;
-    }
+    return unlike;
+  }
 
-    public Interpretation( EventVisualization eventVisualization, EventChart eventChart,
-        OrganisationUnit organisationUnit, String text )
-    {
-        this.eventChart = eventChart;
-        eventChart.getInterpretations().add( this );
-        this.eventVisualization = eventVisualization;
-        eventVisualization.getInterpretations().add( this );
-        this.organisationUnit = organisationUnit;
-        this.text = text;
-    }
+  // -------------------------------------------------------------------------
+  // Get and set methods
+  // -------------------------------------------------------------------------
 
-    public Interpretation( EventVisualization eventVisualization, OrganisationUnit organisationUnit, String text )
-    {
-        this.eventVisualization = eventVisualization;
-        eventVisualization.getInterpretations().add( this );
-        this.organisationUnit = organisationUnit;
-        this.text = text;
-    }
+  @Override
+  public String getName() {
+    return uid;
+  }
 
-    public Interpretation( DataSet dataSet, Period period, OrganisationUnit organisationUnit, String text )
-    {
-        this.dataSet = dataSet;
-        this.period = period;
-        this.organisationUnit = organisationUnit;
-        this.text = text;
-    }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Visualization getVisualization() {
+    return visualization;
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  public void setVisualization(Visualization visualization) {
+    this.visualization = visualization;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public AnalyticsFavoriteType getType()
-    {
-        if ( visualization != null )
-        {
-            return VISUALIZATION;
-        }
-        else if ( eventVisualization != null )
-        {
-            return EVENT_VISUALIZATION;
-        }
-        else if ( map != null )
-        {
-            return MAP;
-        }
-        else if ( eventReport != null )
-        {
-            return EVENT_REPORT;
-        }
-        else if ( eventChart != null )
-        {
-            return EVENT_CHART;
-        }
-        else if ( dataSet != null )
-        {
-            return DATASET_REPORT;
-        }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public EventVisualization getEventVisualization() {
+    return eventVisualization;
+  }
 
-        return null;
-    }
+  public void setEventVisualization(EventVisualization eventVisualization) {
+    this.eventVisualization = eventVisualization;
+  }
 
-    public IdentifiableObject getObject()
-    {
-        if ( visualization != null )
-        {
-            return visualization;
-        }
-        else if ( map != null )
-        {
-            return map;
-        }
-        else if ( eventReport != null )
-        {
-            return eventReport;
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart;
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization;
-        }
-        else if ( dataSet != null )
-        {
-            return dataSet;
-        }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Map getMap() {
+    return map;
+  }
 
-        return null;
-    }
+  public void setMap(Map map) {
+    this.map = map;
+  }
 
-    public void addComment( InterpretationComment comment )
-    {
-        this.comments.add( comment );
-    }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public EventReport getEventReport() {
+    return eventReport;
+  }
 
-    public boolean isVisualizationInterpretation()
-    {
-        return visualization != null;
-    }
+  public void setEventReport(EventReport eventReport) {
+    this.eventReport = eventReport;
+  }
 
-    public boolean isEventVisualizationInterpretation()
-    {
-        return visualization != null;
-    }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public EventChart getEventChart() {
+    return eventChart;
+  }
 
-    public boolean isEventReportInterpretation()
-    {
-        return eventReport != null;
-    }
+  public void setEventChart(EventChart eventChart) {
+    this.eventChart = eventChart;
+  }
 
-    public boolean isEventChartInterpretation()
-    {
-        return eventChart != null;
-    }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public DataSet getDataSet() {
+    return dataSet;
+  }
 
-    public boolean isDataSetReportInterpretation()
-    {
-        return dataSet != null;
-    }
+  public void setDataSet(DataSet dataSet) {
+    this.dataSet = dataSet;
+  }
 
-    public PeriodType getPeriodType()
-    {
-        return period != null ? period.getPeriodType() : null;
-    }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Period getPeriod() {
+    return period;
+  }
 
-    /**
-     * Attempts to add the given user to the set of users liking this
-     * interpretation. If user not already present, increments the like count
-     * with one.
-     *
-     * @param user the user liking this interpretation.
-     * @return true if the given user had not already liked this interpretation.
-     */
-    public boolean like( User user )
-    {
-        boolean like = this.likedBy.add( user );
+  public void setPeriod(Period period) {
+    this.period = period;
+  }
 
-        if ( like )
-        {
-            this.likes++;
-        }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public OrganisationUnit getOrganisationUnit() {
+    return organisationUnit;
+  }
 
-        return like;
-    }
+  public void setOrganisationUnit(OrganisationUnit organisationUnit) {
+    this.organisationUnit = organisationUnit;
+  }
 
-    /**
-     * Attempts to remove the given user from the set of users liking this
-     * interpretation. If user not already present, decrease the like count with
-     * one.
-     *
-     * @param user the user removing the like from this interpretation.
-     * @return true if the given user had previously liked this interpretation.
-     */
-    public boolean unlike( User user )
-    {
-        boolean unlike = this.likedBy.remove( user );
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public String getText() {
+    return text;
+  }
 
-        if ( unlike )
-        {
-            this.likes--;
-        }
+  public void setText(String text) {
+    this.text = text;
+  }
 
-        return unlike;
-    }
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "comments", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "comment", namespace = DXF_2_0)
+  public List<InterpretationComment> getComments() {
+    return comments;
+  }
 
-    // -------------------------------------------------------------------------
-    // Get and set methods
-    // -------------------------------------------------------------------------
+  public void setComments(List<InterpretationComment> comments) {
+    this.comments = comments;
+  }
 
-    @Override
-    public String getName()
-    {
-        return uid;
-    }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public int getLikes() {
+    return likes;
+  }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Visualization getVisualization()
-    {
-        return visualization;
-    }
+  public void setLikes(int likes) {
+    this.likes = likes;
+  }
 
-    public void setVisualization( Visualization visualization )
-    {
-        this.visualization = visualization;
-    }
+  @JsonProperty("likedBy")
+  @JsonSerialize(contentUsing = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(contentUsing = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
+  @JacksonXmlElementWrapper(localName = "likedBy", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "likeByUser", namespace = DXF_2_0)
+  public Set<User> getLikedBy() {
+    return likedBy;
+  }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public EventVisualization getEventVisualization()
-    {
-        return eventVisualization;
-    }
+  public void setLikedBy(Set<User> likedBy) {
+    this.likedBy = likedBy;
+  }
 
-    public void setEventVisualization( EventVisualization eventVisualization )
-    {
-        this.eventVisualization = eventVisualization;
-    }
+  @JsonProperty("mentions")
+  @JacksonXmlElementWrapper(localName = "mentions", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "mentions", namespace = DXF_2_0)
+  public List<Mention> getMentions() {
+    return mentions;
+  }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Map getMap()
-    {
-        return map;
-    }
+  public void setMentions(List<Mention> mentions) {
+    this.mentions = mentions;
+  }
 
-    public void setMap( Map map )
-    {
-        this.map = map;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public EventReport getEventReport()
-    {
-        return eventReport;
-    }
-
-    public void setEventReport( EventReport eventReport )
-    {
-        this.eventReport = eventReport;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public EventChart getEventChart()
-    {
-        return eventChart;
-    }
-
-    public void setEventChart( EventChart eventChart )
-    {
-        this.eventChart = eventChart;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public DataSet getDataSet()
-    {
-        return dataSet;
-    }
-
-    public void setDataSet( DataSet dataSet )
-    {
-        this.dataSet = dataSet;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Period getPeriod()
-    {
-        return period;
-    }
-
-    public void setPeriod( Period period )
-    {
-        this.period = period;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public OrganisationUnit getOrganisationUnit()
-    {
-        return organisationUnit;
-    }
-
-    public void setOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        this.organisationUnit = organisationUnit;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public String getText()
-    {
-        return text;
-    }
-
-    public void setText( String text )
-    {
-        this.text = text;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "comments", namespace = DXF_2_0 )
-    @JacksonXmlProperty( localName = "comment", namespace = DXF_2_0 )
-    public List<InterpretationComment> getComments()
-    {
-        return comments;
-    }
-
-    public void setComments( List<InterpretationComment> comments )
-    {
-        this.comments = comments;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public int getLikes()
-    {
-        return likes;
-    }
-
-    public void setLikes( int likes )
-    {
-        this.likes = likes;
-    }
-
-    @JsonProperty( "likedBy" )
-    @JsonSerialize( contentUsing = UserPropertyTransformer.JacksonSerialize.class )
-    @JsonDeserialize( contentUsing = UserPropertyTransformer.JacksonDeserialize.class )
-    @PropertyTransformer( UserPropertyTransformer.class )
-    @JacksonXmlElementWrapper( localName = "likedBy", namespace = DXF_2_0 )
-    @JacksonXmlProperty( localName = "likeByUser", namespace = DXF_2_0 )
-    public Set<User> getLikedBy()
-    {
-        return likedBy;
-    }
-
-    public void setLikedBy( Set<User> likedBy )
-    {
-        this.likedBy = likedBy;
-    }
-
-    @JsonProperty( "mentions" )
-    @JacksonXmlElementWrapper( localName = "mentions", namespace = DXF_2_0 )
-    @JacksonXmlProperty( localName = "mentions", namespace = DXF_2_0 )
-    public List<Mention> getMentions()
-    {
-        return mentions;
-    }
-
-    public void setMentions( List<Mention> mentions )
-    {
-        this.mentions = mentions;
-    }
-
-    @JsonIgnore
-    public void setMentionsFromUsers( Set<User> users )
-    {
-        this.mentions = MentionUtils.convertUsersToMentions( users );
-    }
+  @JsonIgnore
+  public void setMentionsFromUsers(Set<User> users) {
+    this.mentions = MentionUtils.convertUsersToMentions(users);
+  }
 }

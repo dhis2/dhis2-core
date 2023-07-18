@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.scheduling.JobType;
 import org.junit.jupiter.api.Test;
 
@@ -42,25 +41,22 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class NotificationTest
-{
-    @Test
-    void testNotificationAreNaturallySortedNewestFirst()
-    {
-        Date now = new Date();
+class NotificationTest {
+  @Test
+  void testNotificationAreNaturallySortedNewestFirst() {
+    Date now = new Date();
 
-        Notification a = createNotificationWithTime( now );
-        Notification b = createNotificationWithTime( new Date( now.getTime() - 1000L ) );
-        Notification c = createNotificationWithTime( new Date( now.getTime() + 1000L ) );
+    Notification a = createNotificationWithTime(now);
+    Notification b = createNotificationWithTime(new Date(now.getTime() - 1000L));
+    Notification c = createNotificationWithTime(new Date(now.getTime() + 1000L));
 
-        assertEquals( List.of( c, a, b ), Stream.of( a, b, c ).sorted().collect( toList() ) );
-    }
+    assertEquals(List.of(c, a, b), Stream.of(a, b, c).sorted().collect(toList()));
+  }
 
-    private Notification createNotificationWithTime( Date now )
-    {
-        Notification notification = new Notification();
-        notification.setCategory( JobType.ACCOUNT_EXPIRY_ALERT );
-        notification.setTime( now );
-        return notification;
-    }
+  private Notification createNotificationWithTime(Date now) {
+    Notification notification = new Notification();
+    notification.setCategory(JobType.ACCOUNT_EXPIRY_ALERT);
+    notification.setTime(now);
+    return notification;
+  }
 }

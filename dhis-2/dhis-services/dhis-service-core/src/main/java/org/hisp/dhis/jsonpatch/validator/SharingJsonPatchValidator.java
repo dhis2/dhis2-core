@@ -28,25 +28,26 @@
 package org.hisp.dhis.jsonpatch.validator;
 
 import java.util.function.Consumer;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 
 /**
  * @author viet@dhis2.org
  */
-public class SharingJsonPatchValidator
-    implements BulkPatchValidator
-{
-    @Override
-    public void validate( BulkPatchValidateParams params, Consumer<ErrorReport> addError )
-    {
-        if ( params.getSchema() != null && params.getEntity() == null )
-        {
-            addError.accept( new ErrorReport( params.getSchema().getKlass(), ErrorCode.E4014, params.getId(),
-                params.getSchema().getName() ) );
-        }
-
-        JsonPatchCheck.isSharingPatch.apply( params.getJsonPatch() ).forEach( error -> addError.accept( error ) );
+public class SharingJsonPatchValidator implements BulkPatchValidator {
+  @Override
+  public void validate(BulkPatchValidateParams params, Consumer<ErrorReport> addError) {
+    if (params.getSchema() != null && params.getEntity() == null) {
+      addError.accept(
+          new ErrorReport(
+              params.getSchema().getKlass(),
+              ErrorCode.E4014,
+              params.getId(),
+              params.getSchema().getName()));
     }
+
+    JsonPatchCheck.isSharingPatch
+        .apply(params.getJsonPatch())
+        .forEach(error -> addError.accept(error));
+  }
 }

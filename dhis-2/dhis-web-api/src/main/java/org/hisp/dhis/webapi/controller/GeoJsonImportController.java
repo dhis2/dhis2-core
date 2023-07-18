@@ -37,12 +37,9 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
-
 import lombok.AllArgsConstructor;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.OpenApi;
@@ -74,162 +71,160 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Jan Bernitt
  */
-@OpenApi.Tags( "data" )
-@RequestMapping( "/organisationUnits" )
+@OpenApi.Tags("data")
+@RequestMapping("/organisationUnits")
 @RestController
 @AllArgsConstructor
-public class GeoJsonImportController
-{
-    private final GeoJsonService geoJsonService;
+public class GeoJsonImportController {
+  private final GeoJsonService geoJsonService;
 
-    private final Notifier notifier;
+  private final Notifier notifier;
 
-    private final TaskExecutor taskExecutor;
+  private final TaskExecutor taskExecutor;
 
-    private final SessionFactory sessionFactory;
+  private final SessionFactory sessionFactory;
 
-    private final UserService userService;
+  private final UserService userService;
 
-    @PostMapping( value = "/geometry", consumes = { "application/geo+json", "application/json" } )
-    public WebMessage postImport(
-        @RequestParam( defaultValue = "true" ) boolean geoJsonId,
-        @RequestParam( required = false ) String geoJsonProperty,
-        @RequestParam( required = false ) String orgUnitProperty,
-        @RequestParam( required = false ) String attributeId,
-        @RequestParam( required = false ) boolean dryRun,
-        @RequestParam( required = false, defaultValue = "false" ) boolean async,
-        HttpServletRequest request,
-        @CurrentUser User currentUser )
-        throws IOException
-    {
-        GeoJsonImportParams params = GeoJsonImportParams.builder()
-            .attributeId( attributeId )
-            .dryRun( dryRun )
-            .idType( orgUnitProperty == null ? UID : IdentifiableProperty.valueOf( orgUnitProperty.toUpperCase() ) )
-            .orgUnitIdProperty( geoJsonId ? "id" : "properties." + geoJsonProperty )
-            .user( currentUser )
+  @PostMapping(
+      value = "/geometry",
+      consumes = {"application/geo+json", "application/json"})
+  public WebMessage postImport(
+      @RequestParam(defaultValue = "true") boolean geoJsonId,
+      @RequestParam(required = false) String geoJsonProperty,
+      @RequestParam(required = false) String orgUnitProperty,
+      @RequestParam(required = false) String attributeId,
+      @RequestParam(required = false) boolean dryRun,
+      @RequestParam(required = false, defaultValue = "false") boolean async,
+      HttpServletRequest request,
+      @CurrentUser User currentUser)
+      throws IOException {
+    GeoJsonImportParams params =
+        GeoJsonImportParams.builder()
+            .attributeId(attributeId)
+            .dryRun(dryRun)
+            .idType(
+                orgUnitProperty == null
+                    ? UID
+                    : IdentifiableProperty.valueOf(orgUnitProperty.toUpperCase()))
+            .orgUnitIdProperty(geoJsonId ? "id" : "properties." + geoJsonProperty)
+            .user(currentUser)
             .build();
 
-        return runImport( async, params, request.getInputStream() );
+    return runImport(async, params, request.getInputStream());
+  }
+
+  private WebMessage runImport(boolean async, GeoJsonImportParams params, ServletInputStream data)
+      throws IOException {
+    if (async) {
+      JobConfiguration config =
+          new JobConfiguration(
+              "GeoJSON import", JobType.GEOJSON_IMPORT, params.getUser().getUid(), true);
+      taskExecutor.execute(new GeoJsonAsyncImporter(params, config, toBufferedInputStream(data)));
+      return jobConfigurationReport(config);
     }
 
-    private WebMessage runImport( boolean async, GeoJsonImportParams params, ServletInputStream data )
-        throws IOException
-    {
-        if ( async )
-        {
-            JobConfiguration config = new JobConfiguration( "GeoJSON import", JobType.GEOJSON_IMPORT,
-                params.getUser().getUid(), true );
-            taskExecutor.execute(
-                new GeoJsonAsyncImporter( params, config, toBufferedInputStream( data ) ) );
-            return jobConfigurationReport( config );
-        }
+    return toWebMessage(geoJsonService.importGeoData(params, data));
+  }
 
-        return toWebMessage( geoJsonService.importGeoData( params, data ) );
-    }
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @DeleteMapping(value = "/geometry")
+  public WebMessage deleteImport(@RequestParam(required = false) String attributeId) {
+    return toWebMessage(geoJsonService.deleteGeoData(attributeId));
+  }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    @DeleteMapping( value = "/geometry" )
-    public WebMessage deleteImport( @RequestParam( required = false ) String attributeId )
-    {
-        return toWebMessage( geoJsonService.deleteGeoData( attributeId ) );
-    }
-
-    @PostMapping( value = "/{uid}/geometry", consumes = { "application/geo+json", "application/json" } )
-    public WebMessage postImportSingle(
-        @PathVariable( "uid" ) String ou,
-        @RequestParam( required = false ) String attributeId,
-        @RequestParam( required = false ) boolean dryRun,
-        @RequestBody String geometry,
-        @CurrentUser User currentUser )
-    {
-        GeoJsonImportParams params = GeoJsonImportParams.builder()
-            .user( currentUser )
-            .attributeId( attributeId )
-            .dryRun( dryRun )
-            .orgUnitIdProperty( "id" )
-            .idType( UID )
+  @PostMapping(
+      value = "/{uid}/geometry",
+      consumes = {"application/geo+json", "application/json"})
+  public WebMessage postImportSingle(
+      @PathVariable("uid") String ou,
+      @RequestParam(required = false) String attributeId,
+      @RequestParam(required = false) boolean dryRun,
+      @RequestBody String geometry,
+      @CurrentUser User currentUser) {
+    GeoJsonImportParams params =
+        GeoJsonImportParams.builder()
+            .user(currentUser)
+            .attributeId(attributeId)
+            .dryRun(dryRun)
+            .orgUnitIdProperty("id")
+            .idType(UID)
             .build();
 
-        return toWebMessage( geoJsonService.importGeoData( params,
-            toInputStream( format( "{\"features\":[{\"id\":\"%s\",\"geometry\":%s}]}", ou, geometry ),
-                StandardCharsets.UTF_8 ) ) );
+    return toWebMessage(
+        geoJsonService.importGeoData(
+            params,
+            toInputStream(
+                format("{\"features\":[{\"id\":\"%s\",\"geometry\":%s}]}", ou, geometry),
+                StandardCharsets.UTF_8)));
+  }
+
+  @DeleteMapping(value = "/{uid}/geometry")
+  public WebMessage deleteImportSingle(
+      @PathVariable("uid") String ou,
+      @RequestParam(required = false) String attributeId,
+      @RequestParam(required = false) boolean dryRun,
+      @CurrentUser User currentUser) {
+    return postImportSingle(ou, attributeId, dryRun, "null", currentUser);
+  }
+
+  private WebMessage toWebMessage(GeoJsonImportReport report) {
+    String msg = "Import successful.";
+    Status status = Status.OK;
+    if (report.getStatus() == ImportStatus.ERROR) {
+      msg = "Import failed.";
+      status = Status.ERROR;
+    } else if (report.getImportCount().getIgnored() > 0) {
+      msg = "Import partially successful.";
+      status = Status.WARNING;
+    }
+    return ok(msg).setStatus(status).setResponse(report);
+  }
+
+  @AllArgsConstructor
+  private class GeoJsonAsyncImporter extends SecurityContextRunnable {
+
+    private final GeoJsonImportParams params;
+
+    private final JobConfiguration config;
+
+    private final InputStream data;
+
+    @Override
+    public void before() {
+      DbmsUtils.bindSessionToThread(sessionFactory);
     }
 
-    @DeleteMapping( value = "/{uid}/geometry" )
-    public WebMessage deleteImportSingle(
-        @PathVariable( "uid" ) String ou,
-        @RequestParam( required = false ) String attributeId,
-        @RequestParam( required = false ) boolean dryRun,
-        @CurrentUser User currentUser )
-    {
-        return postImportSingle( ou, attributeId, dryRun, "null", currentUser );
+    @Override
+    public void after() {
+      DbmsUtils.unbindSessionFromThread(sessionFactory);
     }
 
-    private WebMessage toWebMessage( GeoJsonImportReport report )
-    {
-        String msg = "Import successful.";
-        Status status = Status.OK;
-        if ( report.getStatus() == ImportStatus.ERROR )
-        {
-            msg = "Import failed.";
-            status = Status.ERROR;
-        }
-        else if ( report.getImportCount().getIgnored() > 0 )
-        {
-            msg = "Import partially successful.";
-            status = Status.WARNING;
-        }
-        return ok( msg ).setStatus( status ).setResponse( report );
+    @Override
+    public void call() {
+      notifier.clear(config);
+      notifier.notify(config, NotificationLevel.INFO, "GeoJSON import stared", false);
+      GeoJsonImportReport report = geoJsonService.importGeoData(reattachedParams(), data);
+      notifier.notify(
+          config,
+          NotificationLevel.INFO,
+          "GeoJSON import complete. " + report.getImportCount(),
+          true);
+      notifier.addJobSummary(config, report, GeoJsonImportReport.class);
     }
 
-    @AllArgsConstructor
-    private class GeoJsonAsyncImporter extends SecurityContextRunnable
-    {
-
-        private final GeoJsonImportParams params;
-
-        private final JobConfiguration config;
-
-        private final InputStream data;
-
-        @Override
-        public void before()
-        {
-            DbmsUtils.bindSessionToThread( sessionFactory );
-        }
-
-        @Override
-        public void after()
-        {
-            DbmsUtils.unbindSessionFromThread( sessionFactory );
-        }
-
-        @Override
-        public void call()
-        {
-            notifier.clear( config );
-            notifier.notify( config, NotificationLevel.INFO, "GeoJSON import stared", false );
-            GeoJsonImportReport report = geoJsonService.importGeoData( reattachedParams(), data );
-            notifier.notify( config, NotificationLevel.INFO, "GeoJSON import complete. " + report.getImportCount(),
-                true );
-            notifier.addJobSummary( config, report, GeoJsonImportReport.class );
-        }
-
-        @Override
-        public void handleError( Throwable ex )
-        {
-            notifier.notify( config, NotificationLevel.ERROR, "GeoJSON import failed: " + ex.getMessage(), true );
-        }
-
-        /**
-         * This is a work-around for the time being because the user otherwise
-         * is not attached to the session. What we should be using here instead
-         * is the CurrentUserDetails
-         */
-        private GeoJsonImportParams reattachedParams()
-        {
-            return params.toBuilder().user( userService.getUser( params.getUser().getUid() ) ).build();
-        }
+    @Override
+    public void handleError(Throwable ex) {
+      notifier.notify(
+          config, NotificationLevel.ERROR, "GeoJSON import failed: " + ex.getMessage(), true);
     }
+
+    /**
+     * This is a work-around for the time being because the user otherwise is not attached to the
+     * session. What we should be using here instead is the CurrentUserDetails
+     */
+    private GeoJsonImportParams reattachedParams() {
+      return params.toBuilder().user(userService.getUser(params.getUser().getUid())).build();
+    }
+  }
 }

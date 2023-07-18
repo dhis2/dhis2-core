@@ -38,13 +38,9 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class FunctionLog10
-    extends AntlrFunctionLog10
-    implements ExpressionItem
-{
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return "log(" + visitor.castStringVisit( ctx.expr( 0 ) ) + ")";
-    }
+public class FunctionLog10 extends AntlrFunctionLog10 implements ExpressionItem {
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return "log(" + visitor.castStringVisit(ctx.expr(0)) + ")";
+  }
 }

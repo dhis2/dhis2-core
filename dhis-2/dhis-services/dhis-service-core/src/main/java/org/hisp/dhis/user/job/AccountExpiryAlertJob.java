@@ -31,10 +31,8 @@ import static java.lang.String.format;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageSender;
@@ -50,88 +48,88 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 /**
- * Sends an email alert to all users that are soon to expire due to an account
- * expire date being set in {@link User#getAccountExpiry()} that is within the
- * next {@link SettingKey#ACCOUNT_EXPIRES_IN_DAYS} interval.
+ * Sends an email alert to all users that are soon to expire due to an account expire date being set
+ * in {@link User#getAccountExpiry()} that is within the next {@link
+ * SettingKey#ACCOUNT_EXPIRES_IN_DAYS} interval.
  *
- * The job only works when enabled via {@link SettingKey#ACCOUNT_EXPIRY_ALERT}.
+ * <p>The job only works when enabled via {@link SettingKey#ACCOUNT_EXPIRY_ALERT}.
  *
  * @author Jan Bernitt
  */
 @Slf4j
 @Component
 @AllArgsConstructor
-public class AccountExpiryAlertJob implements Job
-{
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.ACCOUNT_EXPIRY_ALERT;
+public class AccountExpiryAlertJob implements Job {
+  @Override
+  public JobType getJobType() {
+    return JobType.ACCOUNT_EXPIRY_ALERT;
+  }
+
+  private final UserService userService;
+
+  private final MessageSender emailMessageSender;
+
+  private final SystemSettingManager systemSettingManager;
+
+  @Override
+  public ErrorReport validate() {
+    if (!emailMessageSender.isConfigured()) {
+      return new ErrorReport(
+          AccountExpiryAlertJob.class,
+          ErrorCode.E7010,
+          "EMAIL gateway configuration does not exist");
+    }
+    return null;
+  }
+
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    if (!systemSettingManager.getBoolSetting(SettingKey.ACCOUNT_EXPIRY_ALERT)) {
+      log.info(format("%s aborted. Expiry alerts are disabled", getJobType().name()));
+      return;
     }
 
-    private final UserService userService;
+    progress.startingProcess("Notify expiring account users");
+    int inDays = systemSettingManager.getIntSetting(SettingKey.ACCOUNT_EXPIRES_IN_DAYS);
+    List<UserAccountExpiryInfo> soonExpiring = userService.getExpiringUserAccounts(inDays);
 
-    private final MessageSender emailMessageSender;
-
-    private final SystemSettingManager systemSettingManager;
-
-    @Override
-    public ErrorReport validate()
-    {
-        if ( !emailMessageSender.isConfigured() )
-        {
-            return new ErrorReport( AccountExpiryAlertJob.class, ErrorCode.E7010,
-                "EMAIL gateway configuration does not exist" );
-        }
-        return null;
+    if (soonExpiring.isEmpty()) {
+      progress.completedProcess("No expiring users");
+      return;
     }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        if ( !systemSettingManager.getBoolSetting( SettingKey.ACCOUNT_EXPIRY_ALERT ) )
-        {
-            log.info( format( "%s aborted. Expiry alerts are disabled", getJobType().name() ) );
-            return;
-        }
+    progress.startingStage(
+        "Notify user accounts that expire within next " + inDays + " days",
+        soonExpiring.size(),
+        SKIP_ITEM_OUTLIER);
+    progress.runStage(
+        soonExpiring.stream(),
+        UserAccountExpiryInfo::getUsername,
+        user ->
+            emailMessageSender.sendMessage(
+                "Account Expiry Alert", computeEmailMessage(user), user.getEmail()),
+        AccountExpiryAlertJob::computeStageSummary);
+    progress.completedProcess(null);
+  }
 
-        progress.startingProcess( "Notify expiring account users" );
-        int inDays = systemSettingManager.getIntSetting( SettingKey.ACCOUNT_EXPIRES_IN_DAYS );
-        List<UserAccountExpiryInfo> soonExpiring = userService.getExpiringUserAccounts( inDays );
-
-        if ( soonExpiring.isEmpty() )
-        {
-            progress.completedProcess( "No expiring users" );
-            return;
-        }
-
-        progress.startingStage( "Notify user accounts that expire within next " + inDays + " days",
-            soonExpiring.size(), SKIP_ITEM_OUTLIER );
-        progress.runStage( soonExpiring.stream(), UserAccountExpiryInfo::getUsername,
-            user -> emailMessageSender.sendMessage( "Account Expiry Alert", computeEmailMessage( user ),
-                user.getEmail() ),
-            AccountExpiryAlertJob::computeStageSummary );
-        progress.completedProcess( null );
-    }
-
-    private static String computeEmailMessage( UserAccountExpiryInfo user )
-    {
-        return format( "Dear %s, your account is about to expire on %2$tY-%2$tm-%2$te. "
+  private static String computeEmailMessage(UserAccountExpiryInfo user) {
+    return format(
+        "Dear %s, your account is about to expire on %2$tY-%2$tm-%2$te. "
             + "If your use of the account needs to continue, get in touch with your system administrator.",
-            user.getUsername(), user.getAccountExpiry() );
-    }
+        user.getUsername(), user.getAccountExpiry());
+  }
 
-    private static String computeStageSummary( int successful, int failed )
-    {
-        log.info( format( "%d user accounts have been notified about their expiring accounts", successful ) );
-        if ( failed == 0 )
-        {
-            return null;
-        }
-        String summary = format(
-            "%d user accounts were not notified about their expiring accounts due to errors while sending the email",
-            failed );
-        log.warn( summary );
-        return summary;
+  private static String computeStageSummary(int successful, int failed) {
+    log.info(
+        format("%d user accounts have been notified about their expiring accounts", successful));
+    if (failed == 0) {
+      return null;
     }
+    String summary =
+        format(
+            "%d user accounts were not notified about their expiring accounts due to errors while sending the email",
+            failed);
+    log.warn(summary);
+    return summary;
+  }
 }

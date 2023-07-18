@@ -27,13 +27,10 @@
  */
 package org.hisp.dhis.notification.logging;
 
-/**
- * Created by zubair@dhis2.org on 10.01.18.
- */
-public enum NotificationTriggerEvent
-{
-    PROGRAM,
-    PROGRAM_STAGE,
-    DATA_SET,
-    VALIDATION_RULE
+/** Created by zubair@dhis2.org on 10.01.18. */
+public enum NotificationTriggerEvent {
+  PROGRAM,
+  PROGRAM_STAGE,
+  DATA_SET,
+  VALIDATION_RULE
 }

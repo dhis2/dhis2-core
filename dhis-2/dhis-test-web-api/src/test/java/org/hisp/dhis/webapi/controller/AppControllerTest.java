@@ -41,22 +41,19 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class AppControllerTest extends DhisControllerConvenienceTest
-{
+class AppControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testGetApps()
-    {
-        HttpResponse response = GET( "/apps" );
-        JsonArray apps = response.content( HttpStatus.OK );
-        assertTrue( apps.isArray() );
-    }
+  @Test
+  void testGetApps() {
+    HttpResponse response = GET("/apps");
+    JsonArray apps = response.content(HttpStatus.OK);
+    assertTrue(apps.isArray());
+  }
 
-    @Test
-    void testGetApps_KeyNotFound()
-    {
-        HttpResponse response = GET( "/apps?key=xyz" );
-        assertEquals( HttpStatus.NOT_FOUND, response.status() );
-        assertFalse( response.hasBody() );
-    }
+  @Test
+  void testGetApps_KeyNotFound() {
+    HttpResponse response = GET("/apps?key=xyz");
+    assertEquals(HttpStatus.NOT_FOUND, response.status());
+    assertFalse(response.hasBody());
+  }
 }

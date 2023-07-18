@@ -27,240 +27,213 @@
  */
 package org.hisp.dhis.dxf2.dataset;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdScheme;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-@JacksonXmlRootElement( localName = "completeDataSetRegistrations", namespace = DxfNamespaces.DXF_2_0 )
-public class CompleteDataSetRegistrations
-{
-    protected static final String FIELD_ID_SCHEME = "idScheme";
+@JacksonXmlRootElement(
+    localName = "completeDataSetRegistrations",
+    namespace = DxfNamespaces.DXF_2_0)
+public class CompleteDataSetRegistrations {
+  protected static final String FIELD_ID_SCHEME = "idScheme";
 
-    protected static final String FIELD_DATA_SET_ID_SCHEME = "dataSetIdScheme";
+  protected static final String FIELD_DATA_SET_ID_SCHEME = "dataSetIdScheme";
 
-    protected static final String FIELD_ORG_UNIT_ID_SCHEME = "orgUnitIdScheme";
+  protected static final String FIELD_ORG_UNIT_ID_SCHEME = "orgUnitIdScheme";
 
-    protected static final String FIELD_ATTR_OPT_COMBO_ID_SCHEME = "attributeOptionComboIdScheme";
+  protected static final String FIELD_ATTR_OPT_COMBO_ID_SCHEME = "attributeOptionComboIdScheme";
 
-    protected static final String FIELD_DRY_RUN = "dryRun";
+  protected static final String FIELD_DRY_RUN = "dryRun";
 
-    protected static final String FIELD_IMPORT_STRATEGY = "importStrategy";
+  protected static final String FIELD_IMPORT_STRATEGY = "importStrategy";
 
-    protected static final String FIELD_COMPLETE_DATA_SET_REGISTRATION = "completeDataSetRegistration";
+  protected static final String FIELD_COMPLETE_DATA_SET_REGISTRATION =
+      "completeDataSetRegistration";
 
-    protected static final String FIELD_COMPLETE_DATA_SET_REGISTRATIONS = "completeDataSetRegistrations";
+  protected static final String FIELD_COMPLETE_DATA_SET_REGISTRATIONS =
+      "completeDataSetRegistrations";
 
-    // --------------------------------------------------------------------------
-    // Options
-    // --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Options
+  // --------------------------------------------------------------------------
 
-    protected String idScheme;
+  protected String idScheme;
 
-    protected String dataSetIdScheme;
+  protected String dataSetIdScheme;
 
-    protected String orgUnitIdScheme;
+  protected String orgUnitIdScheme;
 
-    protected String attributeOptionComboIdScheme;
+  protected String attributeOptionComboIdScheme;
 
-    protected Boolean dryRun;
+  protected Boolean dryRun;
 
-    protected String strategy;
+  protected String strategy;
 
-    // --------------------------------------------------------------------------
-    // Properties
-    // --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Properties
+  // --------------------------------------------------------------------------
 
-    protected List<CompleteDataSetRegistration> completeDataSetRegistrations = new ArrayList<>();
+  protected List<CompleteDataSetRegistration> completeDataSetRegistrations = new ArrayList<>();
 
-    // --------------------------------------------------------------------------
-    // Constructors
-    // --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Constructors
+  // --------------------------------------------------------------------------
 
-    public CompleteDataSetRegistrations()
-    {
+  public CompleteDataSetRegistrations() {}
+
+  // --------------------------------------------------------------------------
+  // Logic
+  // --------------------------------------------------------------------------
+
+  private Iterator<CompleteDataSetRegistration> itemIterator;
+
+  private void refreshIterator() {
+    itemIterator = completeDataSetRegistrations.iterator();
+  }
+
+  public boolean hasNextCompleteDataSetRegistration() {
+    if (itemIterator == null) {
+      refreshIterator();
     }
 
-    // --------------------------------------------------------------------------
-    // Logic
-    // --------------------------------------------------------------------------
+    return itemIterator.hasNext();
+  }
 
-    private Iterator<CompleteDataSetRegistration> itemIterator;
-
-    private void refreshIterator()
-    {
-        itemIterator = completeDataSetRegistrations.iterator();
+  public CompleteDataSetRegistration getNextCompleteDataSetRegistration() {
+    if (itemIterator == null) {
+      refreshIterator();
     }
 
-    public boolean hasNextCompleteDataSetRegistration()
-    {
-        if ( itemIterator == null )
-        {
-            refreshIterator();
-        }
+    return itemIterator.next();
+  }
 
-        return itemIterator.hasNext();
-    }
+  public CompleteDataSetRegistration getCompleteDataSetRegistrationInstance() {
+    return new CompleteDataSetRegistration();
+  }
 
-    public CompleteDataSetRegistration getNextCompleteDataSetRegistration()
-    {
-        if ( itemIterator == null )
-        {
-            refreshIterator();
-        }
+  protected void open() {}
 
-        return itemIterator.next();
-    }
+  protected void close() {}
 
-    public CompleteDataSetRegistration getCompleteDataSetRegistrationInstance()
-    {
-        return new CompleteDataSetRegistration();
-    }
+  protected void writeField(String fieldName, String value) {}
 
-    protected void open()
-    {
-    }
+  public IdScheme getIdSchemeProperty() {
+    return IdScheme.from(getIdScheme());
+  }
 
-    protected void close()
-    {
-    }
+  public IdScheme getDataSetIdSchemeProperty() {
+    return IdScheme.from(StringUtils.defaultIfBlank(getDataSetIdScheme(), getIdScheme()));
+  }
 
-    protected void writeField( String fieldName, String value )
-    {
-    }
+  public IdScheme getOrgUnitIdSchemeProperty() {
+    return IdScheme.from(StringUtils.defaultIfBlank(getOrgUnitIdScheme(), getIdScheme()));
+  }
 
-    public IdScheme getIdSchemeProperty()
-    {
-        return IdScheme.from( getIdScheme() );
-    }
+  public IdScheme getAttributeOptionComboIdSchemeProperty() {
+    return IdScheme.from(
+        StringUtils.defaultIfBlank(getAttributeOptionComboIdScheme(), getIdScheme()));
+  }
 
-    public IdScheme getDataSetIdSchemeProperty()
-    {
-        return IdScheme.from( StringUtils.defaultIfBlank( getDataSetIdScheme(), getIdScheme() ) );
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("completeDataSetRegistrations", completeDataSetRegistrations)
+        .add("idScheme", idScheme)
+        .add("dataSetIdScheme", dataSetIdScheme)
+        .add("orgUnitIdScheme", orgUnitIdScheme)
+        .add("attributeOptionComboIdScheme", attributeOptionComboIdScheme)
+        .add("dryRun", dryRun)
+        .add("strategy", strategy)
+        .toString();
+  }
 
-    public IdScheme getOrgUnitIdSchemeProperty()
-    {
-        return IdScheme.from( StringUtils.defaultIfBlank( getOrgUnitIdScheme(), getIdScheme() ) );
-    }
+  // --------------------------------------------------------------------------
+  // Getters and setters
+  // --------------------------------------------------------------------------
 
-    public IdScheme getAttributeOptionComboIdSchemeProperty()
-    {
-        return IdScheme.from( StringUtils.defaultIfBlank( getAttributeOptionComboIdScheme(), getIdScheme() ) );
-    }
+  @JsonProperty
+  @JacksonXmlProperty(localName = "completeDataSetRegistration", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlElementWrapper(
+      localName = "completeDataSetRegistrations",
+      useWrapping = false,
+      namespace = DxfNamespaces.DXF_2_0)
+  public List<CompleteDataSetRegistration> getCompleteDataSetRegistrations() {
+    return completeDataSetRegistrations;
+  }
 
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "completeDataSetRegistrations", completeDataSetRegistrations )
-            .add( "idScheme", idScheme )
-            .add( "dataSetIdScheme", dataSetIdScheme )
-            .add( "orgUnitIdScheme", orgUnitIdScheme )
-            .add( "attributeOptionComboIdScheme", attributeOptionComboIdScheme )
-            .add( "dryRun", dryRun )
-            .add( "strategy", strategy )
-            .toString();
-    }
+  public void setCompleteDataSetRegistrations(
+      List<CompleteDataSetRegistration> completeDataSetRegistrations) {
+    this.completeDataSetRegistrations = completeDataSetRegistrations;
+  }
 
-    // --------------------------------------------------------------------------
-    // Getters and setters
-    // --------------------------------------------------------------------------
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getIdScheme() {
+    return idScheme;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( localName = "completeDataSetRegistration", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlElementWrapper( localName = "completeDataSetRegistrations", useWrapping = false, namespace = DxfNamespaces.DXF_2_0 )
-    public List<CompleteDataSetRegistration> getCompleteDataSetRegistrations()
-    {
-        return completeDataSetRegistrations;
-    }
+  public void setIdScheme(String idScheme) {
+    this.idScheme = idScheme;
+  }
 
-    public void setCompleteDataSetRegistrations( List<CompleteDataSetRegistration> completeDataSetRegistrations )
-    {
-        this.completeDataSetRegistrations = completeDataSetRegistrations;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getDataSetIdScheme() {
+    return dataSetIdScheme;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getIdScheme()
-    {
-        return idScheme;
-    }
+  public void setDataSetIdScheme(String dataSetIdScheme) {
+    this.dataSetIdScheme = dataSetIdScheme;
+  }
 
-    public void setIdScheme( String idScheme )
-    {
-        this.idScheme = idScheme;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getOrgUnitIdScheme() {
+    return orgUnitIdScheme;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getDataSetIdScheme()
-    {
-        return dataSetIdScheme;
-    }
+  public void setOrgUnitIdScheme(String orgUnitIdScheme) {
+    this.orgUnitIdScheme = orgUnitIdScheme;
+  }
 
-    public void setDataSetIdScheme( String dataSetIdScheme )
-    {
-        this.dataSetIdScheme = dataSetIdScheme;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getAttributeOptionComboIdScheme() {
+    return attributeOptionComboIdScheme;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getOrgUnitIdScheme()
-    {
-        return orgUnitIdScheme;
-    }
+  public void setAttributeOptionComboIdScheme(String attributeOptionComboIdScheme) {
+    this.attributeOptionComboIdScheme = attributeOptionComboIdScheme;
+  }
 
-    public void setOrgUnitIdScheme( String orgUnitIdScheme )
-    {
-        this.orgUnitIdScheme = orgUnitIdScheme;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public Boolean getDryRun() {
+    return dryRun;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getAttributeOptionComboIdScheme()
-    {
-        return attributeOptionComboIdScheme;
-    }
+  public void setDryRun(Boolean dryRun) {
+    this.dryRun = dryRun;
+  }
 
-    public void setAttributeOptionComboIdScheme( String attributeOptionComboIdScheme )
-    {
-        this.attributeOptionComboIdScheme = attributeOptionComboIdScheme;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getStrategy() {
+    return strategy;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public Boolean getDryRun()
-    {
-        return dryRun;
-    }
-
-    public void setDryRun( Boolean dryRun )
-    {
-        this.dryRun = dryRun;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getStrategy()
-    {
-        return strategy;
-    }
-
-    public void setStrategy( String strategy )
-    {
-        this.strategy = strategy;
-    }
+  public void setStrategy(String strategy) {
+    this.strategy = strategy;
+  }
 }

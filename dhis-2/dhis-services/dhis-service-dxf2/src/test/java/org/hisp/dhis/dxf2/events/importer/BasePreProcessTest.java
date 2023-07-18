@@ -33,7 +33,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
@@ -47,36 +46,30 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-public abstract class BasePreProcessTest
-{
-    @Mock
-    protected WorkContext workContext;
+@ExtendWith(MockitoExtension.class)
+public abstract class BasePreProcessTest {
+  @Mock protected WorkContext workContext;
 
-    @Mock
-    protected ServiceDelegator serviceDelegator;
+  @Mock protected ServiceDelegator serviceDelegator;
 
-    @Mock
-    protected ProgramInstanceStore programInstanceStore;
+  @Mock protected ProgramInstanceStore programInstanceStore;
 
-    protected Event event;
+  protected Event event;
 
-    protected Program program;
+  protected Program program;
 
-    @BeforeEach
-    public void superSetUp()
-    {
-        event = createBaseEvent();
-        program = createProgram( 'P' );
+  @BeforeEach
+  public void superSetUp() {
+    event = createBaseEvent();
+    program = createProgram('P');
 
-        Map<String, Program> programMap = new HashMap<>();
-        programMap.put( program.getUid(), program );
+    Map<String, Program> programMap = new HashMap<>();
+    programMap.put(program.getUid(), program);
 
-        when( workContext.getProgramsMap() ).thenReturn( programMap );
-        when( workContext.getImportOptions() ).thenReturn( ImportOptions.getDefaultImportOptions() );
-        when( workContext.getServiceDelegator() ).thenReturn( serviceDelegator );
+    when(workContext.getProgramsMap()).thenReturn(programMap);
+    when(workContext.getImportOptions()).thenReturn(ImportOptions.getDefaultImportOptions());
+    when(workContext.getServiceDelegator()).thenReturn(serviceDelegator);
 
-        when( serviceDelegator.getProgramInstanceStore() ).thenReturn( programInstanceStore );
-    }
-
+    when(serviceDelegator.getProgramInstanceStore()).thenReturn(programInstanceStore);
+  }
 }

@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.bundle;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
-
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Program;
@@ -47,41 +46,34 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackerProgramRuleBundleServiceTest extends TrackerTest
-{
+class TrackerProgramRuleBundleServiceTest extends TrackerTest {
 
-    @Autowired
-    private TrackerBundleService trackerBundleService;
+  @Autowired private TrackerBundleService trackerBundleService;
 
-    @Autowired
-    private ProgramRuleService programRuleService;
+  @Autowired private ProgramRuleService programRuleService;
 
-    @Autowired
-    private ProgramRuleActionService programRuleActionService;
+  @Autowired private ProgramRuleActionService programRuleActionService;
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        ObjectBundle bundle = setUpMetadata( "tracker/event_metadata.json" );
-        ProgramRule programRule = createProgramRule( 'A',
-            bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJwr" ) );
-        programRuleService.addProgramRule( programRule );
-        ProgramRuleAction programRuleAction = createProgramRuleAction( 'A', programRule );
-        programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
-        programRuleActionService.addProgramRuleAction( programRuleAction );
-        programRule.getProgramRuleActions().add( programRuleAction );
-        programRuleService.updateProgramRule( programRule );
-    }
+  @Override
+  protected void initTest() throws IOException {
+    ObjectBundle bundle = setUpMetadata("tracker/event_metadata.json");
+    ProgramRule programRule =
+        createProgramRule(
+            'A', bundle.getPreheat().get(PreheatIdentifier.UID, Program.class, "BFcipDERJwr"));
+    programRuleService.addProgramRule(programRule);
+    ProgramRuleAction programRuleAction = createProgramRuleAction('A', programRule);
+    programRuleAction.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
+    programRuleActionService.addProgramRuleAction(programRuleAction);
+    programRule.getProgramRuleActions().add(programRuleAction);
+    programRuleService.updateProgramRule(programRule);
+  }
 
-    @Test
-    void testRunRuleEngineForEventOnBundleCreate()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/event_events_and_enrollment.json" );
-        assertEquals( 8, trackerImportParams.getEvents().size() );
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
-        trackerBundle = trackerBundleService.runRuleEngine( trackerBundle );
-        assertEquals( trackerBundle.getEvents().size(), trackerBundle.getEventRuleEffects().size() );
-    }
+  @Test
+  void testRunRuleEngineForEventOnBundleCreate() throws IOException {
+    TrackerImportParams trackerImportParams = fromJson("tracker/event_events_and_enrollment.json");
+    assertEquals(8, trackerImportParams.getEvents().size());
+    TrackerBundle trackerBundle = trackerBundleService.create(trackerImportParams);
+    trackerBundle = trackerBundleService.runRuleEngine(trackerBundle);
+    assertEquals(trackerBundle.getEvents().size(), trackerBundle.getEventRuleEffects().size());
+  }
 }

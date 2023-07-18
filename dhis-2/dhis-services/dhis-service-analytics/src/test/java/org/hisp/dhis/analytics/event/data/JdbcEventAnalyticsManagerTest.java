@@ -39,65 +39,64 @@ import org.junit.jupiter.api.Test;
 import org.postgresql.util.PSQLException;
 import org.springframework.dao.DataIntegrityViolationException;
 
-class JdbcEventAnalyticsManagerTest
-{
-    @Test
-    void testHandlingDataIntegrityExceptionWhenDivisionByZero()
-    {
-        DataIntegrityViolationException aDivisionByZeroException = mockDataIntegrityExceptionDivisionByZero();
+class JdbcEventAnalyticsManagerTest {
+  @Test
+  void testHandlingDataIntegrityExceptionWhenDivisionByZero() {
+    DataIntegrityViolationException aDivisionByZeroException =
+        mockDataIntegrityExceptionDivisionByZero();
 
-        assertThrows( QueryRuntimeException.class, () -> handle( aDivisionByZeroException ), E7132.getMessage() );
-    }
+    assertThrows(
+        QueryRuntimeException.class, () -> handle(aDivisionByZeroException), E7132.getMessage());
+  }
 
-    @Test
-    void testHandlingAnyOtherDataIntegrityException()
-    {
-        DataIntegrityViolationException anyDataIntegrityException = mockAnyOtherDataIntegrityException();
+  @Test
+  void testHandlingAnyOtherDataIntegrityException() {
+    DataIntegrityViolationException anyDataIntegrityException =
+        mockAnyOtherDataIntegrityException();
 
-        assertThrows( QueryRuntimeException.class, () -> handle( anyDataIntegrityException ), E7133.getMessage() );
-    }
+    assertThrows(
+        QueryRuntimeException.class, () -> handle(anyDataIntegrityException), E7133.getMessage());
+  }
 
-    @Test
-    void testHandlingWhenExceptionIsNull()
-    {
-        DataIntegrityViolationException aNullException = null;
+  @Test
+  void testHandlingWhenExceptionIsNull() {
+    DataIntegrityViolationException aNullException = null;
 
-        assertThrows( QueryRuntimeException.class, () -> handle( aNullException ), E7133.getMessage() );
-    }
+    assertThrows(QueryRuntimeException.class, () -> handle(aNullException), E7133.getMessage());
+  }
 
-    @Test
-    void testHandlingWhenExceptionCauseNull()
-    {
-        DataIntegrityViolationException aNullExceptionCause = new DataIntegrityViolationException( "null", null );
+  @Test
+  void testHandlingWhenExceptionCauseNull() {
+    DataIntegrityViolationException aNullExceptionCause =
+        new DataIntegrityViolationException("null", null);
 
-        assertThrows( QueryRuntimeException.class, () -> handle( aNullExceptionCause ), E7133.getMessage() );
-    }
+    assertThrows(
+        QueryRuntimeException.class, () -> handle(aNullExceptionCause), E7133.getMessage());
+  }
 
-    @Test
-    void testHandlingWhenExceptionCauseIsNotPSQLException()
-    {
-        ArrayIndexOutOfBoundsException aRandomCause = new ArrayIndexOutOfBoundsException();
-        DataIntegrityViolationException aNonPSQLExceptionCause = new DataIntegrityViolationException(
-            "not caused by PSQLException", aRandomCause );
+  @Test
+  void testHandlingWhenExceptionCauseIsNotPSQLException() {
+    ArrayIndexOutOfBoundsException aRandomCause = new ArrayIndexOutOfBoundsException();
+    DataIntegrityViolationException aNonPSQLExceptionCause =
+        new DataIntegrityViolationException("not caused by PSQLException", aRandomCause);
 
-        assertThrows( QueryRuntimeException.class, () -> handle( aNonPSQLExceptionCause ), E7133.getMessage() );
-    }
+    assertThrows(
+        QueryRuntimeException.class, () -> handle(aNonPSQLExceptionCause), E7133.getMessage());
+  }
 
-    private DataIntegrityViolationException mockDataIntegrityExceptionDivisionByZero()
-    {
-        PSQLException psqlException = new PSQLException( "ERROR: division by zero", DIVISION_BY_ZERO );
+  private DataIntegrityViolationException mockDataIntegrityExceptionDivisionByZero() {
+    PSQLException psqlException = new PSQLException("ERROR: division by zero", DIVISION_BY_ZERO);
 
-        return new DataIntegrityViolationException(
-            "ERROR: division by zero; nested exception is org.postgresql.util.PSQLException: ERROR: division by zero",
-            psqlException );
-    }
+    return new DataIntegrityViolationException(
+        "ERROR: division by zero; nested exception is org.postgresql.util.PSQLException: ERROR: division by zero",
+        psqlException);
+  }
 
-    private DataIntegrityViolationException mockAnyOtherDataIntegrityException()
-    {
-        PSQLException psqlException = new PSQLException( "ERROR: bad time format", BAD_DATETIME_FORMAT );
+  private DataIntegrityViolationException mockAnyOtherDataIntegrityException() {
+    PSQLException psqlException = new PSQLException("ERROR: bad time format", BAD_DATETIME_FORMAT);
 
-        return new DataIntegrityViolationException(
-            "ERROR: bad time format; nested exception is org.postgresql.util.PSQLException: ERROR: bad time format",
-            psqlException );
-    }
+    return new DataIntegrityViolationException(
+        "ERROR: bad time format; nested exception is org.postgresql.util.PSQLException: ERROR: bad time format",
+        psqlException);
+  }
 }

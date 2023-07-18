@@ -32,9 +32,8 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class DimensionItemObjectValue
-{
-    private final DimensionalItemObject dimensionalItemObject;
+public class DimensionItemObjectValue {
+  private final DimensionalItemObject dimensionalItemObject;
 
-    private final Double value;
+  private final Double value;
 }

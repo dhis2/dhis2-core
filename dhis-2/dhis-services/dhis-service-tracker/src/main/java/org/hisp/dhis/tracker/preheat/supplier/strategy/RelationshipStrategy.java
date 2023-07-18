@@ -29,11 +29,8 @@ package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -48,27 +45,28 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( value = Relationship.class, mapper = RelationshipMapper.class )
-public class RelationshipStrategy implements ClassBasedSupplierStrategy
-{
-    @Nonnull
-    private final RelationshipStore relationshipStore;
+@StrategyFor(value = Relationship.class, mapper = RelationshipMapper.class)
+public class RelationshipStrategy implements ClassBasedSupplierStrategy {
+  @Nonnull private final RelationshipStore relationshipStore;
 
-    @Override
-    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
-    {
-        List<org.hisp.dhis.relationship.Relationship> relationships = retrieveRelationships( splitList );
+  @Override
+  public void add(
+      TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat) {
+    List<org.hisp.dhis.relationship.Relationship> relationships = retrieveRelationships(splitList);
 
-        preheat.putRelationships(
-            DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), relationships ) );
-    }
+    preheat.putRelationships(
+        DetachUtils.detach(
+            this.getClass().getAnnotation(StrategyFor.class).mapper(), relationships));
+  }
 
-    private List<org.hisp.dhis.relationship.Relationship> retrieveRelationships( List<List<String>> splitList )
-    {
-        List<String> uids = splitList.stream().flatMap( List::stream )
-            .filter( CodeGenerator::isValidUid )
-            .collect( Collectors.toList() );
+  private List<org.hisp.dhis.relationship.Relationship> retrieveRelationships(
+      List<List<String>> splitList) {
+    List<String> uids =
+        splitList.stream()
+            .flatMap(List::stream)
+            .filter(CodeGenerator::isValidUid)
+            .collect(Collectors.toList());
 
-        return relationshipStore.getByUidsIncludeDeleted( uids );
-    }
+    return relationshipStore.getByUidsIncludeDeleted(uids);
+  }
 }

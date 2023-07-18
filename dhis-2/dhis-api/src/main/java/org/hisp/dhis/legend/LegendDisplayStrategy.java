@@ -30,8 +30,7 @@ package org.hisp.dhis.legend;
 /**
  * @author Lars Helge Overland
  */
-public enum LegendDisplayStrategy
-{
-    FIXED,
-    BY_DATA_ITEM
+public enum LegendDisplayStrategy {
+  FIXED,
+  BY_DATA_ITEM
 }

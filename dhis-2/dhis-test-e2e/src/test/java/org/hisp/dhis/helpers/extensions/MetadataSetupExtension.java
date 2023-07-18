@@ -34,7 +34,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.Constants;
@@ -51,104 +50,93 @@ import org.junit.jupiter.api.extension.ExtensionContext;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class MetadataSetupExtension
-    implements BeforeAllCallback, ExtensionContext.Store.CloseableResource
-{
-    private static boolean started = false;
+    implements BeforeAllCallback, ExtensionContext.Store.CloseableResource {
+  private static boolean started = false;
 
-    private static Map<String, String> createdData = new LinkedHashMap<>();
+  private static Map<String, String> createdData = new LinkedHashMap<>();
 
-    private static Logger logger = LogManager.getLogger( MetadataSetupExtension.class.getName() );
+  private static Logger logger = LogManager.getLogger(MetadataSetupExtension.class.getName());
 
-    @Override
-    public void beforeAll( ExtensionContext context )
-    {
-        if ( !started )
-        {
-            started = true;
-            logger.info( "Importing metadata for tests" );
+  @Override
+  public void beforeAll(ExtensionContext context) {
+    if (!started) {
+      started = true;
+      logger.info("Importing metadata for tests");
 
-            // The following line registers a callback hook when the root test
-            // context is shut down
-            context.getRoot().getStore( GLOBAL ).put( "MetadataSetupExtension", this );
+      // The following line registers a callback hook when the root test
+      // context is shut down
+      context.getRoot().getStore(GLOBAL).put("MetadataSetupExtension", this);
 
-            MetadataActions metadataActions = new MetadataActions();
+      MetadataActions metadataActions = new MetadataActions();
 
-            new LoginActions().loginAsDefaultUser();
+      new LoginActions().loginAsDefaultUser();
 
-            String[] files = {
-                "src/test/resources/setup/userGroups.json",
-                "src/test/resources/setup/metadata.json",
-                // importing for the second time to make sure all sharing is set
-                // up correctly - there are bugs in metadata importer
-                "src/test/resources/setup/metadata.json",
-                "src/test/resources/setup/tracker_metadata.json",
-                "src/test/resources/setup/userRoles.json",
-                "src/test/resources/setup/users.json"
-            };
+      String[] files = {
+        "src/test/resources/setup/userGroups.json",
+        "src/test/resources/setup/metadata.json",
+        // importing for the second time to make sure all sharing is set
+        // up correctly - there are bugs in metadata importer
+        "src/test/resources/setup/metadata.json",
+        "src/test/resources/setup/tracker_metadata.json",
+        "src/test/resources/setup/userRoles.json",
+        "src/test/resources/setup/users.json"
+      };
 
-            String queryParams = "async=false";
-            for ( String fileName : files )
-            {
-                metadataActions.importAndValidateMetadata( new File( fileName ), queryParams );
-            }
+      String queryParams = "async=false";
+      for (String fileName : files) {
+        metadataActions.importAndValidateMetadata(new File(fileName), queryParams);
+      }
 
-            setupUsers();
+      setupUsers();
 
-            createdData.putAll( TestRunStorage.getCreatedEntities() );
-            TestRunStorage.removeAllEntities();
-
-        }
+      createdData.putAll(TestRunStorage.getCreatedEntities());
+      TestRunStorage.removeAllEntities();
     }
+  }
 
-    private void setupUsers()
-    {
-        logger.info( "Adding users to the TA user group" );
-        UserActions userActions = new UserActions();
-        String[] users = {
-            TestConfiguration.get().superUserUsername(),
-            TestConfiguration.get().defaultUserUsername(),
-            TestConfiguration.get().adminUserUsername()
-        };
+  private void setupUsers() {
+    logger.info("Adding users to the TA user group");
+    UserActions userActions = new UserActions();
+    String[] users = {
+      TestConfiguration.get().superUserUsername(),
+      TestConfiguration.get().defaultUserUsername(),
+      TestConfiguration.get().adminUserUsername()
+    };
 
-        String userGroupId = Constants.USER_GROUP_ID;
+    String userGroupId = Constants.USER_GROUP_ID;
 
-        for ( String user : users )
-        {
-            String userId = userActions.get( String.format(
-                "?filter=username:eq:%s", user ) )
-                .extractString( "users.id[0]" );
+    for (String user : users) {
+      String userId =
+          userActions
+              .get(String.format("?filter=username:eq:%s", user))
+              .extractString("users.id[0]");
 
-            if ( userId == null )
-            {
-                return;
-            }
-            userActions.addUserToUserGroup( userId, userGroupId );
-            TestRunStorage.removeEntity( "users", userId );
-        }
+      if (userId == null) {
+        return;
+      }
+      userActions.addUserToUserGroup(userId, userGroupId);
+      TestRunStorage.removeEntity("users", userId);
     }
+  }
 
-    private void iterateCreatedData( Consumer<String> stringConsumer )
-    {
-        Iterator<String> iterator = createdData.keySet().iterator();
+  private void iterateCreatedData(Consumer<String> stringConsumer) {
+    Iterator<String> iterator = createdData.keySet().iterator();
 
-        while ( iterator.hasNext() )
-        {
-            String id = iterator.next();
-            stringConsumer.accept( id );
-        }
+    while (iterator.hasNext()) {
+      String id = iterator.next();
+      stringConsumer.accept(id);
     }
+  }
 
-    @Override
-    public void close()
-    {
-        if ( TestConfiguration.get().shouldCleanUp() )
-        {
-            TestCleanUp testCleanUp = new TestCleanUp();
+  @Override
+  public void close() {
+    if (TestConfiguration.get().shouldCleanUp()) {
+      TestCleanUp testCleanUp = new TestCleanUp();
 
-            iterateCreatedData( id -> {
-                testCleanUp.deleteEntity( createdData.get( id ), id );
-            } );
-        }
-
+      iterateCreatedData(
+          id -> {
+            testCleanUp.deleteEntity(createdData.get(id), id);
+          });
     }
+  }
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.RequestInfo;
@@ -40,25 +39,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * Exposes the {@link org.hisp.dhis.common.RequestInfo} information mainly for
- * debugging and testing purposes.
+ * Exposes the {@link org.hisp.dhis.common.RequestInfo} information mainly for debugging and testing
+ * purposes.
  *
  * @author Jan Bernitt
  */
-@OpenApi.Tags( "system" )
+@OpenApi.Tags("system")
 @Controller
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-@RequestMapping( "/request" )
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@RequestMapping("/request")
 @AllArgsConstructor
-public class RequestInfoController
-{
+public class RequestInfoController {
 
-    private final RequestInfoService requestInfoService;
+  private final RequestInfoService requestInfoService;
 
-    @GetMapping
-    @ResponseBody
-    public RequestInfo getCurrentInfo()
-    {
-        return requestInfoService.getCurrentInfo();
-    }
+  @GetMapping
+  @ResponseBody
+  public RequestInfo getCurrentInfo() {
+    return requestInfoService.getCurrentInfo();
+  }
 }

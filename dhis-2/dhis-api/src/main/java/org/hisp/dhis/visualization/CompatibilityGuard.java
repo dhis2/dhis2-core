@@ -30,120 +30,101 @@ package org.hisp.dhis.visualization;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 /**
- * Responsible for maintaining read compatibility for certain Visualization
- * attributes for required use cases, specially when new refactoring affects the
- * existing contract.
+ * Responsible for maintaining read compatibility for certain Visualization attributes for required
+ * use cases, specially when new refactoring affects the existing contract.
  *
  * @author maikel arabori
  */
-public class CompatibilityGuard
-{
-    private CompatibilityGuard()
-    {
+public class CompatibilityGuard {
+  private CompatibilityGuard() {}
+
+  static void keepLegendReadingCompatibility(final Visualization visualization) {
+    if (visualization.getSeriesKey() != null && visualization.getSeriesKey().getLabel() != null) {
+      if (visualization.getFontStyle() == null) {
+        visualization.setFontStyle(new VisualizationFontStyle());
+      }
+
+      visualization
+          .getFontStyle()
+          .setLegend(visualization.getSeriesKey().getLabel().getFontStyle());
     }
+  }
 
-    static void keepLegendReadingCompatibility( final Visualization visualization )
-    {
-        if ( visualization.getSeriesKey() != null && visualization.getSeriesKey().getLabel() != null )
-        {
-            if ( visualization.getFontStyle() == null )
-            {
-                visualization.setFontStyle( new VisualizationFontStyle() );
-            }
+  static void keepAxesReadingCompatibility(final Visualization visualization) {
+    if (isNotEmpty(visualization.getAxes())) {
+      if (visualization.getFontStyle() == null) {
+        visualization.setFontStyle(new VisualizationFontStyle());
+      }
 
-            visualization.getFontStyle().setLegend( visualization.getSeriesKey().getLabel().getFontStyle() );
-        }
+      keepFirstAxisReadCompatible(visualization);
+      keepSecondAxisReadCompatible(visualization);
     }
+  }
 
-    static void keepAxesReadingCompatibility( final Visualization visualization )
-    {
-        if ( isNotEmpty( visualization.getAxes() ) )
-        {
-            if ( visualization.getFontStyle() == null )
-            {
-                visualization.setFontStyle( new VisualizationFontStyle() );
-            }
+  private static void keepSecondAxisReadCompatible(final Visualization visualization) {
+    if (visualization.getAxes().size() > 1) {
+      final AxisV2 secondAxis = visualization.getAxes().get(1);
 
-            keepFirstAxisReadCompatible( visualization );
-            keepSecondAxisReadCompatible( visualization );
-        }
+      if (secondAxis != null && secondAxis.getLabel() != null) {
+        visualization.getFontStyle().setCategoryAxisLabel(secondAxis.getLabel().getFontStyle());
+      }
+
+      if (secondAxis != null && secondAxis.getTitle() != null) {
+        visualization.getFontStyle().setHorizontalAxisTitle(secondAxis.getTitle().getFontStyle());
+        visualization.setDomainAxisLabel(secondAxis.getTitle().getText());
+      }
     }
+  }
 
-    private static void keepSecondAxisReadCompatible( final Visualization visualization )
-    {
-        if ( visualization.getAxes().size() > 1 )
-        {
-            final AxisV2 secondAxis = visualization.getAxes().get( 1 );
+  private static void keepFirstAxisReadCompatible(final Visualization visualization) {
+    final AxisV2 firstAxis = visualization.getAxes().get(0);
 
-            if ( secondAxis != null && secondAxis.getLabel() != null )
-            {
-                visualization.getFontStyle().setCategoryAxisLabel( secondAxis.getLabel().getFontStyle() );
-            }
+    if (firstAxis != null) {
+      if (firstAxis.getLabel() != null) {
+        visualization.getFontStyle().setSeriesAxisLabel(firstAxis.getLabel().getFontStyle());
+      }
 
-            if ( secondAxis != null && secondAxis.getTitle() != null )
-            {
-                visualization.getFontStyle().setHorizontalAxisTitle( secondAxis.getTitle().getFontStyle() );
-                visualization.setDomainAxisLabel( secondAxis.getTitle().getText() );
-            }
-        }
+      if (firstAxis.getTitle() != null) {
+        visualization.getFontStyle().setVerticalAxisTitle(firstAxis.getTitle().getFontStyle());
+        visualization.setRangeAxisLabel(firstAxis.getTitle().getText());
+      }
+
+      if (firstAxis.getBaseLine() != null && firstAxis.getBaseLine().getTitle() != null) {
+        copyBaseLine(visualization, firstAxis);
+      }
+
+      if (firstAxis.getTargetLine() != null && firstAxis.getTargetLine().getTitle() != null) {
+        copyTargetLine(visualization, firstAxis);
+      }
+
+      visualization.setRangeAxisDecimals(firstAxis.getDecimals());
+      visualization.setRangeAxisMaxValue(
+          firstAxis.getMaxValue() != null ? Double.valueOf(firstAxis.getMaxValue()) : null);
+      visualization.setRangeAxisMinValue(
+          firstAxis.getMinValue() != null ? Double.valueOf(firstAxis.getMinValue()) : null);
+      visualization.setRangeAxisSteps(firstAxis.getSteps());
     }
+  }
 
-    private static void keepFirstAxisReadCompatible( final Visualization visualization )
-    {
-        final AxisV2 firstAxis = visualization.getAxes().get( 0 );
+  private static void copyTargetLine(final Visualization visualization, final AxisV2 firstAxis) {
+    visualization
+        .getFontStyle()
+        .setTargetLineLabel(firstAxis.getTargetLine().getTitle().getFontStyle());
+    visualization.setTargetLineLabel(firstAxis.getTargetLine().getTitle().getText());
+    visualization.setTargetLineValue(
+        firstAxis.getTargetLine().getValue() != null
+            ? Double.valueOf(firstAxis.getTargetLine().getValue())
+            : null);
+  }
 
-        if ( firstAxis != null )
-        {
-            if ( firstAxis.getLabel() != null )
-            {
-                visualization.getFontStyle().setSeriesAxisLabel( firstAxis.getLabel().getFontStyle() );
-            }
-
-            if ( firstAxis.getTitle() != null )
-            {
-                visualization.getFontStyle().setVerticalAxisTitle( firstAxis.getTitle().getFontStyle() );
-                visualization.setRangeAxisLabel( firstAxis.getTitle().getText() );
-            }
-
-            if ( firstAxis.getBaseLine() != null && firstAxis.getBaseLine().getTitle() != null )
-            {
-                copyBaseLine( visualization, firstAxis );
-            }
-
-            if ( firstAxis.getTargetLine() != null
-                && firstAxis.getTargetLine().getTitle() != null )
-            {
-                copyTargetLine( visualization, firstAxis );
-            }
-
-            visualization.setRangeAxisDecimals( firstAxis.getDecimals() );
-            visualization.setRangeAxisMaxValue( firstAxis.getMaxValue() != null
-                ? Double.valueOf( firstAxis.getMaxValue() )
-                : null );
-            visualization.setRangeAxisMinValue( firstAxis.getMinValue() != null
-                ? Double.valueOf( firstAxis.getMinValue() )
-                : null );
-            visualization.setRangeAxisSteps( firstAxis.getSteps() );
-        }
-    }
-
-    private static void copyTargetLine( final Visualization visualization, final AxisV2 firstAxis )
-    {
-        visualization.getFontStyle().setTargetLineLabel( firstAxis.getTargetLine().getTitle().getFontStyle() );
-        visualization.setTargetLineLabel( firstAxis.getTargetLine().getTitle().getText() );
-        visualization.setTargetLineValue(
-            firstAxis.getTargetLine().getValue() != null
-                ? Double.valueOf( firstAxis.getTargetLine().getValue() )
-                : null );
-    }
-
-    private static void copyBaseLine( final Visualization visualization, final AxisV2 firstAxis )
-    {
-        visualization.getFontStyle().setBaseLineLabel( firstAxis.getBaseLine().getTitle().getFontStyle() );
-        visualization.setBaseLineLabel( firstAxis.getBaseLine().getTitle().getText() );
-        visualization.setBaseLineValue(
-            firstAxis.getBaseLine().getValue() != null
-                ? Double.valueOf( firstAxis.getBaseLine().getValue() )
-                : null );
-    }
+  private static void copyBaseLine(final Visualization visualization, final AxisV2 firstAxis) {
+    visualization
+        .getFontStyle()
+        .setBaseLineLabel(firstAxis.getBaseLine().getTitle().getFontStyle());
+    visualization.setBaseLineLabel(firstAxis.getBaseLine().getTitle().getText());
+    visualization.setBaseLineValue(
+        firstAxis.getBaseLine().getValue() != null
+            ? Double.valueOf(firstAxis.getBaseLine().getValue())
+            : null);
+  }
 }

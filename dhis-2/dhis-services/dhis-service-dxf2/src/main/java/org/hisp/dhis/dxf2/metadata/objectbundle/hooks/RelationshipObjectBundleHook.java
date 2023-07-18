@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -36,35 +35,31 @@ import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.springframework.stereotype.Component;
 
-@Component( "org.hisp.dhis.dxf2.metadata.objectbundle.hooks.RelationshipObjectBundleHook" )
+@Component("org.hisp.dhis.dxf2.metadata.objectbundle.hooks.RelationshipObjectBundleHook")
 @AllArgsConstructor
-public class RelationshipObjectBundleHook extends AbstractObjectBundleHook<Relationship>
-{
+public class RelationshipObjectBundleHook extends AbstractObjectBundleHook<Relationship> {
 
-    private final TrackedEntityInstanceStore trackedEntityInstanceStore;
+  private final TrackedEntityInstanceStore trackedEntityInstanceStore;
 
-    private final RelationshipTypeService relationshipTypeService;
+  private final RelationshipTypeService relationshipTypeService;
 
-    @Override
-    public void preCreate( Relationship relationship, ObjectBundle bundle )
-    {
-        handleRelationshipItem( relationship.getFrom() );
-        sessionFactory.getCurrentSession().save( relationship.getFrom() );
-        handleRelationshipItem( relationship.getTo() );
-        sessionFactory.getCurrentSession().save( relationship.getTo() );
+  @Override
+  public void preCreate(Relationship relationship, ObjectBundle bundle) {
+    handleRelationshipItem(relationship.getFrom());
+    sessionFactory.getCurrentSession().save(relationship.getFrom());
+    handleRelationshipItem(relationship.getTo());
+    sessionFactory.getCurrentSession().save(relationship.getTo());
 
-        relationship.setRelationshipType(
-            relationshipTypeService.getRelationshipType( relationship.getRelationshipType().getUid() ) );
-        sessionFactory.getCurrentSession().save( relationship.getRelationshipType() );
+    relationship.setRelationshipType(
+        relationshipTypeService.getRelationshipType(relationship.getRelationshipType().getUid()));
+    sessionFactory.getCurrentSession().save(relationship.getRelationshipType());
+  }
+
+  private void handleRelationshipItem(RelationshipItem relationshipItem) {
+    if (relationshipItem.getTrackedEntityInstance() != null) {
+      relationshipItem.setTrackedEntityInstance(
+          trackedEntityInstanceStore.getByUid(
+              relationshipItem.getTrackedEntityInstance().getUid()));
     }
-
-    private void handleRelationshipItem( RelationshipItem relationshipItem )
-    {
-        if ( relationshipItem.getTrackedEntityInstance() != null )
-        {
-            relationshipItem.setTrackedEntityInstance(
-                trackedEntityInstanceStore.getByUid( relationshipItem.getTrackedEntityInstance().getUid() ) );
-        }
-    }
-
+  }
 }

@@ -31,7 +31,6 @@ import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtil
 
 import java.util.List;
 import java.util.function.Consumer;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -43,29 +42,29 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class SchemaCheck implements ObjectValidationCheck
-{
-    @Override
-    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
-        List<T> persistedObjects, List<T> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext context, Consumer<ObjectReport> addReports )
-    {
-        List<T> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
+public class SchemaCheck implements ObjectValidationCheck {
+  @Override
+  public <T extends IdentifiableObject> void check(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects,
+      ImportStrategy importStrategy,
+      ValidationContext context,
+      Consumer<ObjectReport> addReports) {
+    List<T> objects = selectObjects(persistedObjects, nonPersistedObjects, importStrategy);
 
-        if ( objects == null || objects.isEmpty() )
-        {
-            return;
-        }
-
-        for ( T object : objects )
-        {
-            List<ErrorReport> validationErrorReports = context.getSchemaValidator().validate( object );
-
-            if ( !validationErrorReports.isEmpty() )
-            {
-                addReports.accept( createObjectReport( validationErrorReports, object, bundle ) );
-                context.markForRemoval( object );
-            }
-        }
+    if (objects == null || objects.isEmpty()) {
+      return;
     }
+
+    for (T object : objects) {
+      List<ErrorReport> validationErrorReports = context.getSchemaValidator().validate(object);
+
+      if (!validationErrorReports.isEmpty()) {
+        addReports.accept(createObjectReport(validationErrorReports, object, bundle));
+        context.markForRemoval(object);
+      }
+    }
+  }
 }

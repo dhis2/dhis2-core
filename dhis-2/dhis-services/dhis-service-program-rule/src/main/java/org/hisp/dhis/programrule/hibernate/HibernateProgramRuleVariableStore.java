@@ -28,9 +28,7 @@
 package org.hisp.dhis.programrule.hibernate;
 
 import java.util.List;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
@@ -47,52 +45,59 @@ import org.springframework.stereotype.Repository;
 /**
  * @author markusbekken
  */
-@Repository( "org.hisp.dhis.programrule.ProgramRuleVariableStore" )
+@Repository("org.hisp.dhis.programrule.ProgramRuleVariableStore")
 public class HibernateProgramRuleVariableStore
     extends HibernateIdentifiableObjectStore<ProgramRuleVariable>
-    implements ProgramRuleVariableStore
-{
-    public HibernateProgramRuleVariableStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramRuleVariable.class, currentUserService,
-            aclService, false );
-    }
+    implements ProgramRuleVariableStore {
+  public HibernateProgramRuleVariableStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        ProgramRuleVariable.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 
-    @Override
-    public List<ProgramRuleVariable> get( Program program )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<ProgramRuleVariable> get(Program program) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters().addPredicate(root -> builder.equal(root.get("program"), program)));
+  }
 
-    @Override
-    public List<ProgramRuleVariable> getProgramVariables( Program program, DataElement dataElement )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<ProgramRuleVariable> getProgramVariables(Program program, DataElement dataElement) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
-            .addPredicate( root -> builder.equal( root.get( "dataElement" ), dataElement ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("program"), program))
+            .addPredicate(root -> builder.equal(root.get("dataElement"), dataElement)));
+  }
 
-    @Override
-    public List<ProgramRuleVariable> getVariablesWithNoDataElement()
-    {
-        return getQuery(
-            "FROM ProgramRuleVariable prv WHERE prv.sourceType IN ( :dataTypes ) AND prv.dataElement IS NULL" )
-                .setParameter( "dataTypes", ProgramRuleVariableSourceType.getDataTypes() )
-                .getResultList();
-    }
+  @Override
+  public List<ProgramRuleVariable> getVariablesWithNoDataElement() {
+    return getQuery(
+            "FROM ProgramRuleVariable prv WHERE prv.sourceType IN ( :dataTypes ) AND prv.dataElement IS NULL")
+        .setParameter("dataTypes", ProgramRuleVariableSourceType.getDataTypes())
+        .getResultList();
+  }
 
-    @Override
-    public List<ProgramRuleVariable> getVariablesWithNoAttribute()
-    {
-        return getQuery(
-            "FROM ProgramRuleVariable prv WHERE prv.sourceType IN ( :attributeTypes ) AND prv.attribute IS NULL" )
-                .setParameter( "attributeTypes", ProgramRuleVariableSourceType.getAttributeTypes() )
-                .getResultList();
-    }
+  @Override
+  public List<ProgramRuleVariable> getVariablesWithNoAttribute() {
+    return getQuery(
+            "FROM ProgramRuleVariable prv WHERE prv.sourceType IN ( :attributeTypes ) AND prv.attribute IS NULL")
+        .setParameter("attributeTypes", ProgramRuleVariableSourceType.getAttributeTypes())
+        .getResultList();
+  }
 }

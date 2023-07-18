@@ -33,14 +33,11 @@ import java.util.Locale;
 /**
  * @author Lars Helge Overland
  */
-public class LocaleNameComparator
-    implements Comparator<Locale>
-{
-    public static final LocaleNameComparator INSTANCE = new LocaleNameComparator();
+public class LocaleNameComparator implements Comparator<Locale> {
+  public static final LocaleNameComparator INSTANCE = new LocaleNameComparator();
 
-    @Override
-    public int compare( Locale o1, Locale o2 )
-    {
-        return o1.getDisplayName().compareTo( o2.getDisplayName() );
-    }
+  @Override
+  public int compare(Locale o1, Locale o2) {
+    return o1.getDisplayName().compareTo(o2.getDisplayName());
+  }
 }

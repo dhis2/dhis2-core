@@ -28,13 +28,11 @@
 package org.hisp.dhis.fileresource;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.joda.time.DateTime;
 
-public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
-{
-    List<FileResource> getExpiredFileResources( DateTime expires );
+public interface FileResourceStore extends IdentifiableObjectStore<FileResource> {
+  List<FileResource> getExpiredFileResources(DateTime expires);
 
-    List<FileResource> getAllUnProcessedImages();
+  List<FileResource> getAllUnProcessedImages();
 }

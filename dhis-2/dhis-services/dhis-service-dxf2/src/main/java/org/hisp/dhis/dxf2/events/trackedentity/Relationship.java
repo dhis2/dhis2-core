@@ -27,144 +27,131 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity;
 
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Stian Sandvold
  */
-@JacksonXmlRootElement( localName = "relationship", namespace = DxfNamespaces.DXF_2_0 )
-public class Relationship
-{
-    private String relationshipType;
+@JacksonXmlRootElement(localName = "relationship", namespace = DxfNamespaces.DXF_2_0)
+public class Relationship {
+  private String relationshipType;
 
-    private String relationshipName;
+  private String relationshipName;
 
-    private String relationship;
+  private String relationship;
 
-    private boolean bidirectional;
+  private boolean bidirectional;
 
-    private RelationshipItem from;
+  private RelationshipItem from;
 
-    private RelationshipItem to;
+  private RelationshipItem to;
 
-    private String created;
+  private String created;
 
-    private String lastUpdated;
+  private String lastUpdated;
 
-    public Relationship()
-    {
-    }
+  public Relationship() {}
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getRelationshipType()
-    {
-        return relationshipType;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getRelationshipType() {
+    return relationshipType;
+  }
 
-    public void setRelationshipType( String relationshipType )
-    {
-        this.relationshipType = relationshipType;
-    }
+  public void setRelationshipType(String relationshipType) {
+    this.relationshipType = relationshipType;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getRelationship()
-    {
-        return relationship;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getRelationship() {
+    return relationship;
+  }
 
-    public void setRelationship( String relationship )
-    {
-        this.relationship = relationship;
-    }
+  public void setRelationship(String relationship) {
+    this.relationship = relationship;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public RelationshipItem getFrom()
-    {
-        return from;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public RelationshipItem getFrom() {
+    return from;
+  }
 
-    public void setFrom( RelationshipItem from )
-    {
-        this.from = from;
-    }
+  public void setFrom(RelationshipItem from) {
+    this.from = from;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public RelationshipItem getTo()
-    {
-        return to;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public RelationshipItem getTo() {
+    return to;
+  }
 
-    public void setTo( RelationshipItem to )
-    {
-        this.to = to;
-    }
+  public void setTo(RelationshipItem to) {
+    this.to = to;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getRelationshipName()
-    {
-        return relationshipName;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getRelationshipName() {
+    return relationshipName;
+  }
 
-    public void setRelationshipName( String relationshipName )
-    {
-        this.relationshipName = relationshipName;
-    }
+  public void setRelationshipName(String relationshipName) {
+    this.relationshipName = relationshipName;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getCreated()
-    {
-        return created;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getCreated() {
+    return created;
+  }
 
-    public void setCreated( String created )
-    {
-        this.created = created;
-    }
+  public void setCreated(String created) {
+    this.created = created;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getLastUpdated()
-    {
-        return lastUpdated;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getLastUpdated() {
+    return lastUpdated;
+  }
 
-    public void setLastUpdated( String lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
-    }
+  public void setLastUpdated(String lastUpdated) {
+    this.lastUpdated = lastUpdated;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isBidirectional()
-    {
-        return bidirectional;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isBidirectional() {
+    return bidirectional;
+  }
 
-    public void setBidirectional( boolean bidirectional )
-    {
-        this.bidirectional = bidirectional;
-    }
+  public void setBidirectional(boolean bidirectional) {
+    this.bidirectional = bidirectional;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "Relationship{" +
-            "relationshipType='" + relationshipType + '\'' +
-            ", relationshipName='" + relationshipName + '\'' +
-            ", relationship='" + relationship + '\'' +
-            ", from=" + from +
-            ", to=" + to +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "Relationship{"
+        + "relationshipType='"
+        + relationshipType
+        + '\''
+        + ", relationshipName='"
+        + relationshipName
+        + '\''
+        + ", relationship='"
+        + relationship
+        + '\''
+        + ", from="
+        + from
+        + ", to="
+        + to
+        + '}';
+  }
 }

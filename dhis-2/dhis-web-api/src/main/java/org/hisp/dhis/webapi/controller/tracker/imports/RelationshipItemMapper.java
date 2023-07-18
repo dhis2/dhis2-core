@@ -35,11 +35,10 @@ import org.mapstruct.Mapping;
 
 @Mapper
 interface RelationshipItemMapper
-    extends DomainMapper<RelationshipItem, org.hisp.dhis.tracker.domain.RelationshipItem>
-{
-    @Mapping( target = "trackedEntity", source = "trackedEntity.trackedEntity" )
-    @Mapping( target = "enrollment", source = "enrollment.enrollment" )
-    @Mapping( target = "event", source = "event.event" )
-    org.hisp.dhis.tracker.domain.RelationshipItem from( RelationshipItem relationshipItem,
-        @Context TrackerIdSchemeParams idSchemeParams );
+    extends DomainMapper<RelationshipItem, org.hisp.dhis.tracker.domain.RelationshipItem> {
+  @Mapping(target = "trackedEntity", source = "trackedEntity.trackedEntity")
+  @Mapping(target = "enrollment", source = "enrollment.enrollment")
+  @Mapping(target = "event", source = "event.event")
+  org.hisp.dhis.tracker.domain.RelationshipItem from(
+      RelationshipItem relationshipItem, @Context TrackerIdSchemeParams idSchemeParams);
 }

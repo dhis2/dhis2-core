@@ -32,19 +32,18 @@ import org.hisp.dhis.user.User;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
-public interface ProgramTempOwnerService
-{
+public interface ProgramTempOwnerService {
 
-    String ID = ProgramTempOwnerService.class.getName();
+  String ID = ProgramTempOwnerService.class.getName();
 
-    /**
-     * Adds program temp owner
-     *
-     * @param programTempOwner the temp owner details to add
-     */
-    void addProgramTempOwner( ProgramTempOwner programTempOwner );
+  /**
+   * Adds program temp owner
+   *
+   * @param programTempOwner the temp owner details to add
+   */
+  void addProgramTempOwner(ProgramTempOwner programTempOwner);
 
-    int getValidTempOwnerRecordCount( Program program, TrackedEntityInstance entityInstance, User user );
+  int getValidTempOwnerRecordCount(
+      Program program, TrackedEntityInstance entityInstance, User user);
 }

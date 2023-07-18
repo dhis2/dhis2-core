@@ -27,90 +27,76 @@
  */
 package org.hisp.dhis.dxf2.events.enrollment;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.Pager;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.Pager;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "enrollments", namespace = DxfNamespaces.DXF_2_0 )
-public class Enrollments
-{
-    private List<Enrollment> enrollments = new ArrayList<>();
+@JacksonXmlRootElement(localName = "enrollments", namespace = DxfNamespaces.DXF_2_0)
+public class Enrollments {
+  private List<Enrollment> enrollments = new ArrayList<>();
 
-    private Pager pager;
+  private Pager pager;
 
-    public Enrollments()
-    {
+  public Enrollments() {}
+
+  @JsonProperty("enrollments")
+  @JacksonXmlElementWrapper(
+      localName = "enrollments",
+      useWrapping = false,
+      namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "enrollment", namespace = DxfNamespaces.DXF_2_0)
+  public List<Enrollment> getEnrollments() {
+    return enrollments;
+  }
+
+  public void setEnrollments(List<Enrollment> enrollments) {
+    this.enrollments = enrollments;
+  }
+
+  public Pager getPager() {
+    return this.pager;
+  }
+
+  public void setPager(Pager pager) {
+    this.pager = pager;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
 
-    @JsonProperty( "enrollments" )
-    @JacksonXmlElementWrapper( localName = "enrollments", useWrapping = false, namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "enrollment", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Enrollment> getEnrollments()
-    {
-        return enrollments;
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public void setEnrollments( List<Enrollment> enrollments )
-    {
-        this.enrollments = enrollments;
+    Enrollments that = (Enrollments) o;
+
+    if (enrollments != null ? !enrollments.equals(that.enrollments) : that.enrollments != null) {
+      return false;
     }
 
-    public Pager getPager()
-    {
-        return this.pager;
-    }
+    return true;
+  }
 
-    public void setPager( Pager pager )
-    {
-        this.pager = pager;
-    }
+  @Override
+  public int hashCode() {
+    int result = 0;
+    result = 31 * result + (enrollments != null ? enrollments.hashCode() : 0);
+    return result;
+  }
 
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-
-        Enrollments that = (Enrollments) o;
-
-        if ( enrollments != null ? !enrollments.equals( that.enrollments ) : that.enrollments != null )
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        int result = 0;
-        result = 31 * result + (enrollments != null ? enrollments.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "Enrollments{" +
-            "enrollments=" + enrollments +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "Enrollments{" + "enrollments=" + enrollments + '}';
+  }
 }

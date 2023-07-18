@@ -32,11 +32,9 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 /**
  * @author Zubair Asghar
  */
-public class vCompletedDate extends ProgramDateVariable
-{
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        return "completeddate";
-    }
+public class vCompletedDate extends ProgramDateVariable {
+  @Override
+  public Object getSql(CommonExpressionVisitor visitor) {
+    return "completeddate";
+  }
 }

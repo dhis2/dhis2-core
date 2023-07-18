@@ -30,46 +30,39 @@ package org.hisp.dhis.tracker.util;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.util.Objects;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
-public class RelationshipKeySupport
-{
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class RelationshipKeySupport {
 
-    public static boolean hasRelationshipKey( Relationship relationship, RelationshipType relationshipType )
-    {
-        return ObjectUtils.allNotNull(
-            relationshipType,
-            relationship.getFrom(),
-            relationship.getTo() );
-    }
+  public static boolean hasRelationshipKey(
+      Relationship relationship, RelationshipType relationshipType) {
+    return ObjectUtils.allNotNull(relationshipType, relationship.getFrom(), relationship.getTo());
+  }
 
-    private static RelationshipKey.RelationshipItemKey getRelationshipItemKey( RelationshipItem relationshipItem )
-    {
-        if ( Objects.nonNull( relationshipItem ) )
-        {
-            return RelationshipKey.RelationshipItemKey.builder()
-                .trackedEntity( trimToEmpty( relationshipItem.getTrackedEntity() ) )
-                .enrollment( trimToEmpty( relationshipItem.getEnrollment() ) )
-                .event( trimToEmpty( relationshipItem.getEvent() ) )
-                .build();
-        }
-        throw new IllegalStateException( "Unable to determine uid for relationship item" );
+  private static RelationshipKey.RelationshipItemKey getRelationshipItemKey(
+      RelationshipItem relationshipItem) {
+    if (Objects.nonNull(relationshipItem)) {
+      return RelationshipKey.RelationshipItemKey.builder()
+          .trackedEntity(trimToEmpty(relationshipItem.getTrackedEntity()))
+          .enrollment(trimToEmpty(relationshipItem.getEnrollment()))
+          .event(trimToEmpty(relationshipItem.getEvent()))
+          .build();
     }
+    throw new IllegalStateException("Unable to determine uid for relationship item");
+  }
 
-    public static RelationshipKey getRelationshipKey( Relationship relationship, RelationshipType relationshipType )
-    {
-        return RelationshipKey.of(
-            relationshipType.getUid(),
-            getRelationshipItemKey( relationship.getFrom() ),
-            getRelationshipItemKey( relationship.getTo() ) );
-    }
+  public static RelationshipKey getRelationshipKey(
+      Relationship relationship, RelationshipType relationshipType) {
+    return RelationshipKey.of(
+        relationshipType.getUid(),
+        getRelationshipItemKey(relationship.getFrom()),
+        getRelationshipItemKey(relationship.getTo()));
+  }
 }

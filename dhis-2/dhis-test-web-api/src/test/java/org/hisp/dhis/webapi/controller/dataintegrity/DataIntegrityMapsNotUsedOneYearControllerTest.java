@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import java.time.ZonedDateTime;
 import java.util.Date;
-
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datastatistics.DataStatisticsEventStore;
 import org.hisp.dhis.datastatistics.DataStatisticsEventType;
@@ -41,69 +40,63 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Test for maps which have not been viewed in at least a year.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/analytical_objects/maps_not_used_1year.yaml}
+ * Test for maps which have not been viewed in at least a year. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/analytical_objects/maps_not_used_1year.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityMapsNotUsedOneYearControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityMapsNotUsedOneYearControllerTest extends AbstractDataIntegrityIntegrationTest {
 
-    @Autowired
-    private DataStatisticsEventStore dataStatisticsEventStore;
+  @Autowired private DataStatisticsEventStore dataStatisticsEventStore;
 
-    @Autowired
-    private MappingService mappingService;
+  @Autowired private MappingService mappingService;
 
-    private DataStatisticsEvent dse1;
+  private DataStatisticsEvent dse1;
 
-    private static final String check = "maps_not_viewed_one_year";
+  private static final String check = "maps_not_viewed_one_year";
 
-    @Test
-    void testUnusedVisualizationsExist()
-    {
+  @Test
+  void testUnusedVisualizationsExist() {
 
-        Date oneYearAgo = Date.from( ZonedDateTime.now().minusYears( 1 ).minusDays( 1 ).toInstant() );
+    Date oneYearAgo = Date.from(ZonedDateTime.now().minusYears(1).minusDays(1).toInstant());
 
-        dse1 = new DataStatisticsEvent( DataStatisticsEventType.MAP_VIEW, oneYearAgo, "TestUser", BASE_UID );
-        dataStatisticsEventStore.save( dse1 );
+    dse1 =
+        new DataStatisticsEvent(DataStatisticsEventType.MAP_VIEW, oneYearAgo, "TestUser", BASE_UID);
+    dataStatisticsEventStore.save(dse1);
 
-        dbmsManager.clearSession();
+    dbmsManager.clearSession();
 
-        assertNamedMetadataObjectExists( "maps", "MapA" );
-        assertHasDataIntegrityIssues( "maps", check, 100, BASE_UID, "MapA", null, true );
-    }
+    assertNamedMetadataObjectExists("maps", "MapA");
+    assertHasDataIntegrityIssues("maps", check, 100, BASE_UID, "MapA", null, true);
+  }
 
-    @Test
-    void testUsedVisualizationsExist()
-    {
+  @Test
+  void testUsedVisualizationsExist() {
 
-        long millis = System.currentTimeMillis();
-        Date rightNow = new Date( millis );
+    long millis = System.currentTimeMillis();
+    Date rightNow = new Date(millis);
 
-        dse1 = new DataStatisticsEvent( DataStatisticsEventType.MAP_VIEW, rightNow, "TestUser", BASE_UID );
-        dataStatisticsEventStore.save( dse1 );
+    dse1 =
+        new DataStatisticsEvent(DataStatisticsEventType.MAP_VIEW, rightNow, "TestUser", BASE_UID);
+    dataStatisticsEventStore.save(dse1);
 
-        dbmsManager.clearSession();
+    dbmsManager.clearSession();
 
-        assertHasNoDataIntegrityIssues( "maps", check, true );
-    }
+    assertHasNoDataIntegrityIssues("maps", check, true);
+  }
 
-    @Test
-    void testUnusedVisualizationsRuns()
-    {
-        assertHasNoDataIntegrityIssues( "maps", check, false );
-    }
+  @Test
+  void testUnusedVisualizationsRuns() {
+    assertHasNoDataIntegrityIssues("maps", check, false);
+  }
 
-    @BeforeEach
-    void setUp()
-    {
-        /* Simplified setup from MappingServiceTest */
-        MapView mvA = new MapView( "thematic" );
-        Map mpA = new Map( "MapA", null, 0d, 0d, 0 );
-        mpA.setUid( BASE_UID );
-        mpA.getMapViews().add( mvA );
-        mappingService.addMap( mpA );
-
-    }
+  @BeforeEach
+  void setUp() {
+    /* Simplified setup from MappingServiceTest */
+    MapView mvA = new MapView("thematic");
+    Map mpA = new Map("MapA", null, 0d, 0d, 0);
+    mpA.setUid(BASE_UID);
+    mpA.getMapViews().add(mvA);
+    mappingService.addMap(mpA);
+  }
 }

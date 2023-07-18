@@ -30,10 +30,8 @@ package org.hisp.dhis.tracker.validation.validator;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
-
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -45,203 +43,193 @@ import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.tracker.validation.Warning;
 
 /**
- * Seq as in sequence is a {@link Validator} applying a sequence of validators
- * to given input in order until a {@link Validator} fails i.e. adds an error to
- * {@link Reporter}. Using {@link Seq} conveys that the {@link Validator}s are
- * dependent on each other. Use {@link All} if you want to express independence
- * between {@link Validator}s.
+ * Seq as in sequence is a {@link Validator} applying a sequence of validators to given input in
+ * order until a {@link Validator} fails i.e. adds an error to {@link Reporter}. Using {@link Seq}
+ * conveys that the {@link Validator}s are dependent on each other. Use {@link All} if you want to
+ * express independence between {@link Validator}s.
  *
  * @param <T> type of input to be validated
  */
-@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
-public class Seq<T> implements Validator<T>
-{
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class Seq<T> implements Validator<T> {
 
-    private final List<Validator<T>> validators;
+  private final List<Validator<T>> validators;
 
-    public static <T> Seq<T> seq( List<Validator<T>> validators )
-    {
-        return new Seq<>( validators );
+  public static <T> Seq<T> seq(List<Validator<T>> validators) {
+    return new Seq<>(validators);
+  }
+
+  public static <T> Seq<T> seq(Validator<T> v1) {
+    return new Seq<>(List.of(v1));
+  }
+
+  public static <T> Seq<T> seq(Validator<T> v1, Validator<T> v2) {
+    return new Seq<>(List.of(v1, v2));
+  }
+
+  public static <T> Seq<T> seq(Validator<T> v1, Validator<T> v2, Validator<T> v3) {
+    return new Seq<>(List.of(v1, v2, v3));
+  }
+
+  public static <T> Seq<T> seq(Validator<T> v1, Validator<T> v2, Validator<T> v3, Validator<T> v4) {
+    return new Seq<>(List.of(v1, v2, v3, v4));
+  }
+
+  public static <T> Seq<T> seq(
+      Validator<T> v1, Validator<T> v2, Validator<T> v3, Validator<T> v4, Validator<T> v5) {
+    return new Seq<>(List.of(v1, v2, v3, v4, v5));
+  }
+
+  public static <T> Seq<T> seq(
+      Validator<T> v1,
+      Validator<T> v2,
+      Validator<T> v3,
+      Validator<T> v4,
+      Validator<T> v5,
+      Validator<T> v6) {
+    return new Seq<>(List.of(v1, v2, v3, v4, v5, v6));
+  }
+
+  public static <T> Seq<T> seq(
+      Validator<T> v1,
+      Validator<T> v2,
+      Validator<T> v3,
+      Validator<T> v4,
+      Validator<T> v5,
+      Validator<T> v6,
+      Validator<T> v7) {
+    return new Seq<>(List.of(v1, v2, v3, v4, v5, v6, v7));
+  }
+
+  public static <T> Seq<T> seq(
+      Validator<T> v1,
+      Validator<T> v2,
+      Validator<T> v3,
+      Validator<T> v4,
+      Validator<T> v5,
+      Validator<T> v6,
+      Validator<T> v7,
+      Validator<T> v8) {
+    return new Seq<>(List.of(v1, v2, v3, v4, v5, v6, v7, v8));
+  }
+
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, T input) {
+    WrappingReporter wrappedReporter = new WrappingReporter(reporter);
+
+    for (Validator<T> validator : validators) {
+      if ((input instanceof TrackerDto
+              && !validator.needsToRun(bundle.getStrategy((TrackerDto) input)))
+          || (!(input instanceof TrackerDto)
+              && !validator.needsToRun(bundle.getImportStrategy()))) {
+        continue;
+      }
+
+      validator.validate(wrappedReporter, bundle, input);
+
+      if (wrappedReporter.validationFailed) {
+        return; // only apply next validator if previous one was successful
+      }
     }
+  }
 
-    public static <T> Seq<T> seq( Validator<T> v1 )
-    {
-        return new Seq<>( List.of( v1 ) );
-    }
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true; // Seq is used to compose other Validators, so it should always run
+  }
 
-    public static <T> Seq<T> seq( Validator<T> v1, Validator<T> v2 )
-    {
-        return new Seq<>( List.of( v1, v2 ) );
-    }
+  /**
+   * WrappingReporter wraps and delegates to a {@link Reporter} to capture whether a {@link
+   * Validator} added an error. This is needed to know when to stop executing the {@link Validator}
+   * sequence.
+   */
+  private static class WrappingReporter extends Reporter {
 
-    public static <T> Seq<T> seq( Validator<T> v1, Validator<T> v2, Validator<T> v3 )
-    {
-        return new Seq<>( List.of( v1, v2, v3 ) );
-    }
+    private final Reporter original;
 
-    public static <T> Seq<T> seq( Validator<T> v1, Validator<T> v2, Validator<T> v3, Validator<T> v4 )
-    {
-        return new Seq<>( List.of( v1, v2, v3, v4 ) );
-    }
+    private boolean validationFailed = false;
 
-    public static <T> Seq<T> seq( Validator<T> v1, Validator<T> v2, Validator<T> v3, Validator<T> v4,
-        Validator<T> v5 )
-    {
-        return new Seq<>( List.of( v1, v2, v3, v4, v5 ) );
-    }
-
-    public static <T> Seq<T> seq( Validator<T> v1, Validator<T> v2, Validator<T> v3, Validator<T> v4,
-        Validator<T> v5, Validator<T> v6 )
-    {
-        return new Seq<>( List.of( v1, v2, v3, v4, v5, v6 ) );
-    }
-
-    public static <T> Seq<T> seq( Validator<T> v1, Validator<T> v2, Validator<T> v3, Validator<T> v4,
-        Validator<T> v5, Validator<T> v6, Validator<T> v7 )
-    {
-        return new Seq<>( List.of( v1, v2, v3, v4, v5, v6, v7 ) );
-    }
-
-    public static <T> Seq<T> seq( Validator<T> v1, Validator<T> v2, Validator<T> v3, Validator<T> v4,
-        Validator<T> v5, Validator<T> v6, Validator<T> v7, Validator<T> v8 )
-    {
-        return new Seq<>( List.of( v1, v2, v3, v4, v5, v6, v7, v8 ) );
+    WrappingReporter(Reporter original) {
+      super(original.getIdSchemes(), false);
+      this.original = original;
     }
 
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, T input )
-    {
-        WrappingReporter wrappedReporter = new WrappingReporter( reporter );
-
-        for ( Validator<T> validator : validators )
-        {
-            if ( (input instanceof TrackerDto && !validator.needsToRun( bundle.getStrategy( (TrackerDto) input ) ))
-                || (!(input instanceof TrackerDto) && !validator.needsToRun( bundle.getImportStrategy() )) )
-            {
-                continue;
-            }
-
-            validator.validate( wrappedReporter, bundle, input );
-
-            if ( wrappedReporter.validationFailed )
-            {
-                return; // only apply next validator if previous one was successful
-            }
-        }
+    public boolean hasErrors() {
+      return original.hasErrors();
     }
 
     @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true; // Seq is used to compose other Validators, so it should always run
+    public boolean hasErrorReport(Predicate<Error> test) {
+      return original.hasErrorReport(test);
     }
 
-    /**
-     * WrappingReporter wraps and delegates to a {@link Reporter} to capture
-     * whether a {@link Validator} added an error. This is needed to know when
-     * to stop executing the {@link Validator} sequence.
-     */
-    private static class WrappingReporter extends Reporter
-    {
-
-        private final Reporter original;
-
-        private boolean validationFailed = false;
-
-        WrappingReporter( Reporter original )
-        {
-            super( original.getIdSchemes(), false );
-            this.original = original;
-        }
-
-        @Override
-        public boolean hasErrors()
-        {
-            return original.hasErrors();
-        }
-
-        @Override
-        public boolean hasErrorReport( Predicate<Error> test )
-        {
-            return original.hasErrorReport( test );
-        }
-
-        @Override
-        public boolean addErrorIf( BooleanSupplier expression, TrackerDto dto, ValidationCode code, Object... args )
-        {
-            boolean failed = original.addErrorIf( expression, dto, code, args );
-            if ( !validationFailed )
-            {
-                validationFailed = failed;
-            }
-            return validationFailed;
-        }
-
-        @Override
-        public boolean addErrorIfNull( Object object, TrackerDto dto, ValidationCode code, Object... args )
-        {
-            boolean failed = original.addErrorIfNull( object, dto, code, args );
-            if ( !validationFailed )
-            {
-                validationFailed = failed;
-            }
-            return validationFailed;
-        }
-
-        @Override
-        public boolean addError( TrackerDto dto, ValidationCode code, Object... args )
-        {
-            validationFailed = original.addError( dto, code, args );
-            return validationFailed;
-        }
-
-        @Override
-        public boolean addError( Error error )
-        {
-            validationFailed = original.addError( error );
-            return validationFailed;
-        }
-
-        @Override
-        public boolean hasWarnings()
-        {
-            return original.hasWarnings();
-        }
-
-        @Override
-        public boolean hasWarningReport( Predicate<Warning> test )
-        {
-            return original.hasWarningReport( test );
-        }
-
-        @Override
-        public void addWarningIf( BooleanSupplier expression, TrackerDto dto, ValidationCode code, Object... args )
-        {
-            original.addWarningIf( expression, dto, code, args );
-        }
-
-        @Override
-        public void addWarning( TrackerDto dto, ValidationCode code, Object... args )
-        {
-            original.addWarning( dto, code, args );
-        }
-
-        @Override
-        public void addWarning( Warning warning )
-        {
-            original.addWarning( warning );
-        }
-
-        @Override
-        public boolean isInvalid( TrackerDto dto )
-        {
-            return original.isInvalid( dto );
-        }
-
-        @Override
-        public boolean isInvalid( TrackerType trackerType, String uid )
-        {
-            return original.isInvalid( trackerType, uid );
-        }
+    @Override
+    public boolean addErrorIf(
+        BooleanSupplier expression, TrackerDto dto, ValidationCode code, Object... args) {
+      boolean failed = original.addErrorIf(expression, dto, code, args);
+      if (!validationFailed) {
+        validationFailed = failed;
+      }
+      return validationFailed;
     }
+
+    @Override
+    public boolean addErrorIfNull(
+        Object object, TrackerDto dto, ValidationCode code, Object... args) {
+      boolean failed = original.addErrorIfNull(object, dto, code, args);
+      if (!validationFailed) {
+        validationFailed = failed;
+      }
+      return validationFailed;
+    }
+
+    @Override
+    public boolean addError(TrackerDto dto, ValidationCode code, Object... args) {
+      validationFailed = original.addError(dto, code, args);
+      return validationFailed;
+    }
+
+    @Override
+    public boolean addError(Error error) {
+      validationFailed = original.addError(error);
+      return validationFailed;
+    }
+
+    @Override
+    public boolean hasWarnings() {
+      return original.hasWarnings();
+    }
+
+    @Override
+    public boolean hasWarningReport(Predicate<Warning> test) {
+      return original.hasWarningReport(test);
+    }
+
+    @Override
+    public void addWarningIf(
+        BooleanSupplier expression, TrackerDto dto, ValidationCode code, Object... args) {
+      original.addWarningIf(expression, dto, code, args);
+    }
+
+    @Override
+    public void addWarning(TrackerDto dto, ValidationCode code, Object... args) {
+      original.addWarning(dto, code, args);
+    }
+
+    @Override
+    public void addWarning(Warning warning) {
+      original.addWarning(warning);
+    }
+
+    @Override
+    public boolean isInvalid(TrackerDto dto) {
+      return original.isInvalid(dto);
+    }
+
+    @Override
+    public boolean isInvalid(TrackerType trackerType, String uid) {
+      return original.isInvalid(trackerType, uid);
+    }
+  }
 }

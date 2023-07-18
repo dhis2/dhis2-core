@@ -32,9 +32,7 @@ import static org.hisp.dhis.system.util.GeoUtils.replaceUnsafeSvgText;
 import java.awt.*;
 import java.io.OutputStream;
 import java.io.StringReader;
-
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.batik.transcoder.SVGAbstractTranscoder;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
@@ -54,73 +52,71 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@OpenApi.Tags( "system" )
+@OpenApi.Tags("system")
 @Controller
 @RequestMapping
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class SvgConversionController
-{
-    @Autowired
-    private ContextUtils contextUtils;
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class SvgConversionController {
+  @Autowired private ContextUtils contextUtils;
 
-    @OpenApi.Response( byte[].class )
-    @PostMapping( value = "/svg.png", consumes = ContextUtils.CONTENT_TYPE_FORM_ENCODED )
-    public void toPng( @RequestParam String svg, @RequestParam( required = false ) String filename,
-        HttpServletResponse response )
-        throws Exception
-    {
-        String name = filename != null ? (CodecUtils.filenameEncode( filename ) + ".png") : "file.png";
+  @OpenApi.Response(byte[].class)
+  @PostMapping(value = "/svg.png", consumes = ContextUtils.CONTENT_TYPE_FORM_ENCODED)
+  public void toPng(
+      @RequestParam String svg,
+      @RequestParam(required = false) String filename,
+      HttpServletResponse response)
+      throws Exception {
+    String name = filename != null ? (CodecUtils.filenameEncode(filename) + ".png") : "file.png";
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.NO_CACHE, name, true );
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.NO_CACHE, name, true);
 
-        convertToPng( svg, response.getOutputStream() );
-    }
+    convertToPng(svg, response.getOutputStream());
+  }
 
-    @OpenApi.Response( byte[].class )
-    @PostMapping( value = "/svg.pdf", consumes = ContextUtils.CONTENT_TYPE_FORM_ENCODED )
-    public void toPdf( @RequestParam String svg, @RequestParam( required = false ) String filename,
-        HttpServletResponse response )
-        throws Exception
-    {
-        String name = filename != null ? (CodecUtils.filenameEncode( filename ) + ".pdf") : "file.pdf";
+  @OpenApi.Response(byte[].class)
+  @PostMapping(value = "/svg.pdf", consumes = ContextUtils.CONTENT_TYPE_FORM_ENCODED)
+  public void toPdf(
+      @RequestParam String svg,
+      @RequestParam(required = false) String filename,
+      HttpServletResponse response)
+      throws Exception {
+    String name = filename != null ? (CodecUtils.filenameEncode(filename) + ".pdf") : "file.pdf";
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.NO_CACHE, name, true );
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.NO_CACHE, name, true);
 
-        convertToPdf( svg, response.getOutputStream() );
-    }
+    convertToPdf(svg, response.getOutputStream());
+  }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-    private void convertToPng( String svg, OutputStream out )
-        throws TranscoderException
-    {
-        svg = replaceUnsafeSvgText( svg );
+  private void convertToPng(String svg, OutputStream out) throws TranscoderException {
+    svg = replaceUnsafeSvgText(svg);
 
-        PNGTranscoder transcoder = new PNGTranscoder();
-        transcoder.addTranscodingHint( SVGAbstractTranscoder.KEY_ALLOW_EXTERNAL_RESOURCES, false );
-        transcoder.addTranscodingHint( ImageTranscoder.KEY_BACKGROUND_COLOR, Color.WHITE );
+    PNGTranscoder transcoder = new PNGTranscoder();
+    transcoder.addTranscodingHint(SVGAbstractTranscoder.KEY_ALLOW_EXTERNAL_RESOURCES, false);
+    transcoder.addTranscodingHint(ImageTranscoder.KEY_BACKGROUND_COLOR, Color.WHITE);
 
-        TranscoderInput input = new TranscoderInput( new StringReader( svg ) );
+    TranscoderInput input = new TranscoderInput(new StringReader(svg));
 
-        TranscoderOutput output = new TranscoderOutput( out );
+    TranscoderOutput output = new TranscoderOutput(out);
 
-        transcoder.transcode( input, output );
-    }
+    transcoder.transcode(input, output);
+  }
 
-    private void convertToPdf( String svg, OutputStream out )
-        throws TranscoderException
-    {
-        svg = replaceUnsafeSvgText( svg );
+  private void convertToPdf(String svg, OutputStream out) throws TranscoderException {
+    svg = replaceUnsafeSvgText(svg);
 
-        PDFTranscoder transcoder = new PDFTranscoder();
-        transcoder.addTranscodingHint( SVGAbstractTranscoder.KEY_ALLOW_EXTERNAL_RESOURCES, false );
+    PDFTranscoder transcoder = new PDFTranscoder();
+    transcoder.addTranscodingHint(SVGAbstractTranscoder.KEY_ALLOW_EXTERNAL_RESOURCES, false);
 
-        TranscoderInput input = new TranscoderInput( new StringReader( svg ) );
+    TranscoderInput input = new TranscoderInput(new StringReader(svg));
 
-        TranscoderOutput output = new TranscoderOutput( out );
+    TranscoderOutput output = new TranscoderOutput(out);
 
-        transcoder.transcode( input, output );
-    }
+    transcoder.transcode(input, output);
+  }
 }

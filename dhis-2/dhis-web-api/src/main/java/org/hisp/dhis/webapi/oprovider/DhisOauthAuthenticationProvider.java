@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.oprovider;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.SerializationUtils;
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,50 +46,47 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class DhisOauthAuthenticationProvider extends DaoAuthenticationProvider
-{
-    @Autowired
-    public DhisOauthAuthenticationProvider(
-        @Qualifier( "defaultClientDetailsUserDetailsService" ) DefaultClientDetailsUserDetailsService detailsService )
-    {
-        setUserDetailsService( detailsService );
-        setPasswordEncoder( NoOpPasswordEncoder.getInstance() );
+public class DhisOauthAuthenticationProvider extends DaoAuthenticationProvider {
+  @Autowired
+  public DhisOauthAuthenticationProvider(
+      @Qualifier("defaultClientDetailsUserDetailsService")
+          DefaultClientDetailsUserDetailsService detailsService) {
+    setUserDetailsService(detailsService);
+    setPasswordEncoder(NoOpPasswordEncoder.getInstance());
+  }
+
+  @Override
+  public Authentication authenticate(Authentication auth) throws AuthenticationException {
+    log.info(
+        String.format(
+            "DhisOauthAuthenticationProvider authenticate attempt Authentication.getName(): %s",
+            auth.getName()));
+
+    String username = auth.getName();
+
+    UserDetails user = getUserDetailsService().loadUserByUsername(username);
+
+    if (user == null) {
+      throw new BadCredentialsException("Invalid username or password");
     }
 
-    @Override
-    public Authentication authenticate( Authentication auth )
-        throws AuthenticationException
-    {
-        log.info( String.format( "DhisOauthAuthenticationProvider authenticate attempt Authentication.getName(): %s",
-            auth.getName() ) );
+    // -------------------------------------------------------------------------
+    // Delegate authentication downstream, using User as
+    // principal
+    // -------------------------------------------------------------------------
 
-        String username = auth.getName();
+    Authentication result = super.authenticate(auth);
 
-        UserDetails user = getUserDetailsService().loadUserByUsername( username );
+    // Put detached state of the user credentials into the session as user
+    // must not be updated during session execution
+    user = SerializationUtils.clone(user);
 
-        if ( user == null )
-        {
-            throw new BadCredentialsException( "Invalid username or password" );
-        }
+    return new UsernamePasswordAuthenticationToken(
+        user, result.getCredentials(), result.getAuthorities());
+  }
 
-        // -------------------------------------------------------------------------
-        // Delegate authentication downstream, using User as
-        // principal
-        // -------------------------------------------------------------------------
-
-        Authentication result = super.authenticate( auth );
-
-        // Put detached state of the user credentials into the session as user
-        // must not be updated during session execution
-        user = SerializationUtils.clone( user );
-
-        return new UsernamePasswordAuthenticationToken( user, result.getCredentials(),
-            result.getAuthorities() );
-    }
-
-    @Override
-    public boolean supports( Class<?> authentication )
-    {
-        return authentication.equals( UsernamePasswordAuthenticationToken.class );
-    }
+  @Override
+  public boolean supports(Class<?> authentication) {
+    return authentication.equals(UsernamePasswordAuthenticationToken.class);
+  }
 }

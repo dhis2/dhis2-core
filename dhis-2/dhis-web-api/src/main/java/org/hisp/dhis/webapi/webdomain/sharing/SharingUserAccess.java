@@ -33,80 +33,69 @@ import com.google.common.base.MoreObjects;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class SharingUserAccess
-{
-    private String id;
+public class SharingUserAccess {
+  private String id;
 
-    private String name;
+  private String name;
 
-    private String displayName;
+  private String displayName;
 
-    private String username;
+  private String username;
 
-    private String access;
+  private String access;
 
-    public SharingUserAccess()
-    {
-    }
+  public SharingUserAccess() {}
 
-    @JsonProperty
-    public String getId()
-    {
-        return id;
-    }
+  @JsonProperty
+  public String getId() {
+    return id;
+  }
 
-    public void setId( String id )
-    {
-        this.id = id;
-    }
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
+  @JsonProperty
+  public String getName() {
+    return name;
+  }
 
-    public void setName( String name )
-    {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    @JsonProperty
-    public String getDisplayName()
-    {
-        return displayName;
-    }
+  @JsonProperty
+  public String getDisplayName() {
+    return displayName;
+  }
 
-    public void setDisplayName( String displayName )
-    {
-        this.displayName = displayName;
-    }
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
+  }
 
-    @JsonProperty
-    public String getUsername()
-    {
-        return username;
-    }
+  @JsonProperty
+  public String getUsername() {
+    return username;
+  }
 
-    public void setUsername( String username )
-    {
-        this.username = username;
-    }
+  public void setUsername(String username) {
+    this.username = username;
+  }
 
-    @JsonProperty
-    public String getAccess()
-    {
-        return access;
-    }
+  @JsonProperty
+  public String getAccess() {
+    return access;
+  }
 
-    public void setAccess( String access )
-    {
-        this.access = access;
-    }
+  public void setAccess(String access) {
+    this.access = access;
+  }
 
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this ).add( "id", id ).add( "name", name ).add( "access", access )
-            .toString();
-    }
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("id", id)
+        .add("name", name)
+        .add("access", access)
+        .toString();
+  }
 }

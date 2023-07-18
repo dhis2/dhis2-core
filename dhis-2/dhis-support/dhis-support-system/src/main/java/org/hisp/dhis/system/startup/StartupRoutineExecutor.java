@@ -32,23 +32,20 @@ package org.hisp.dhis.system.startup;
  *
  * @author <a href="mailto:torgeilo@gmail.com">Torgeir Lorange Ostby</a>
  */
-public interface StartupRoutineExecutor
-{
-    String ID = StartupRoutineExecutor.class.getName();
+public interface StartupRoutineExecutor {
+  String ID = StartupRoutineExecutor.class.getName();
 
-    /**
-     * Executes the StartupRoutines.
-     *
-     * @throws Exception on execution failure.
-     */
-    void execute()
-        throws Exception;
+  /**
+   * Executes the StartupRoutines.
+   *
+   * @throws Exception on execution failure.
+   */
+  void execute() throws Exception;
 
-    /**
-     * Executes the StartupRoutines for testing.
-     *
-     * @throws Exception on execution failure.
-     */
-    void executeForTesting()
-        throws Exception;
+  /**
+   * Executes the StartupRoutines for testing.
+   *
+   * @throws Exception on execution failure.
+   */
+  void executeForTesting() throws Exception;
 }

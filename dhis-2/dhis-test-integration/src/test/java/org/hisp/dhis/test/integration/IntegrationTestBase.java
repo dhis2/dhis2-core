@@ -38,24 +38,19 @@ import org.springframework.test.context.ContextConfiguration;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@ContextConfiguration( classes = { IntegrationTestConfig.class } )
+@ContextConfiguration(classes = {IntegrationTestConfig.class})
 @IntegrationTest
-@ActiveProfiles( profiles = { "test-postgres" } )
-public abstract class IntegrationTestBase extends BaseSpringTest
-{
-    @BeforeEach
-    public final void before()
-        throws Exception
-    {
-        bindSession();
+@ActiveProfiles(profiles = {"test-postgres"})
+public abstract class IntegrationTestBase extends BaseSpringTest {
+  @BeforeEach
+  public final void before() throws Exception {
+    bindSession();
 
-        integrationTestBefore();
-    }
+    integrationTestBefore();
+  }
 
-    @AfterEach
-    public final void after()
-        throws Exception
-    {
-        nonTransactionalAfter();
-    }
+  @AfterEach
+  public final void after() throws Exception {
+    nonTransactionalAfter();
+  }
 }

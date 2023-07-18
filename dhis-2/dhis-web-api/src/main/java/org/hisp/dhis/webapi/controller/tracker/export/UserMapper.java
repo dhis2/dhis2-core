@@ -32,7 +32,6 @@ import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.mapstruct.Mapper;
 
 @Mapper
-public interface UserMapper extends ViewMapper<UserInfoSnapshot, User>
-{
-    User from( UserInfoSnapshot user );
+public interface UserMapper extends ViewMapper<UserInfoSnapshot, User> {
+  User from(UserInfoSnapshot user);
 }

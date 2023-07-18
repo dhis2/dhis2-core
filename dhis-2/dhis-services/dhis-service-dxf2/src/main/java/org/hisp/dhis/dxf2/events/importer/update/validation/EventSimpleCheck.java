@@ -41,16 +41,13 @@ import org.springframework.stereotype.Component;
  * @author maikel arabori
  */
 @Component
-public class EventSimpleCheck implements Checker
-{
-    @Override
-    public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )
-    {
-        if ( event == null || isEmpty( event.getEvent() ) )
-        {
-            return error( "No event or event ID was supplied" );
-        }
-
-        return success();
+public class EventSimpleCheck implements Checker {
+  @Override
+  public ImportSummary check(final ImmutableEvent event, final WorkContext ctx) {
+    if (event == null || isEmpty(event.getEvent())) {
+      return error("No event or event ID was supplied");
     }
+
+    return success();
+  }
 }

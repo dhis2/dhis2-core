@@ -32,13 +32,12 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class ValidationRuleAction
-{
-    private final String ruleUid;
+public class ValidationRuleAction {
+  private final String ruleUid;
 
-    private final String data;
+  private final String data;
 
-    private final String field;
+  private final String field;
 
-    private final String content;
+  private final String content;
 }

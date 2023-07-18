@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.security.config;
 
 import java.util.List;
-
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.core.convert.converter.Converter;
 
@@ -37,11 +36,9 @@ import org.springframework.core.convert.converter.Converter;
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-class StringToOrderCriteriaListConverter implements Converter<String, List<OrderCriteria>>
-{
-    @Override
-    public List<OrderCriteria> convert( String source )
-    {
-        return OrderCriteria.fromOrderString( source );
-    }
+class StringToOrderCriteriaListConverter implements Converter<String, List<OrderCriteria>> {
+  @Override
+  public List<OrderCriteria> convert(String source) {
+    return OrderCriteria.fromOrderString(source);
+  }
 }

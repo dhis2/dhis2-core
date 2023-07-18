@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,84 +44,70 @@ import org.junit.jupiter.api.Test;
  *
  * @author volsch
  */
-class UserTest
-{
+class UserTest {
 
-    private UserRole userRole1;
+  private UserRole userRole1;
 
-    private UserRole userRole2;
+  private UserRole userRole2;
 
-    private UserRole userRole1Super;
+  private UserRole userRole1Super;
 
-    @BeforeEach
-    void setUp()
-    {
-        userRole1 = new UserRole();
-        userRole1.setUid( "uid1" );
-        userRole1.setAuthorities( new HashSet<>( Arrays.asList( "x1", "x2" ) ) );
-        userRole2 = new UserRole();
-        userRole2.setUid( "uid2" );
-        userRole2.setAuthorities( new HashSet<>( Arrays.asList( "y1", "y2" ) ) );
-        userRole1Super = new UserRole();
-        userRole1Super.setUid( "uid4" );
-        userRole1Super
-            .setAuthorities( new HashSet<>( Arrays.asList( "z1", UserRole.AUTHORITY_ALL ) ) );
-    }
+  @BeforeEach
+  void setUp() {
+    userRole1 = new UserRole();
+    userRole1.setUid("uid1");
+    userRole1.setAuthorities(new HashSet<>(Arrays.asList("x1", "x2")));
+    userRole2 = new UserRole();
+    userRole2.setUid("uid2");
+    userRole2.setAuthorities(new HashSet<>(Arrays.asList("y1", "y2")));
+    userRole1Super = new UserRole();
+    userRole1Super.setUid("uid4");
+    userRole1Super.setAuthorities(new HashSet<>(Arrays.asList("z1", UserRole.AUTHORITY_ALL)));
+  }
 
-    @Test
-    void isSuper()
-    {
-        final User user = new User();
-        user.setUserRoles(
-            new HashSet<>( Arrays.asList( userRole1, userRole1Super, userRole2 ) ) );
-        assertTrue( user.isSuper() );
-        assertTrue( user.isSuper() );
-    }
+  @Test
+  void isSuper() {
+    final User user = new User();
+    user.setUserRoles(new HashSet<>(Arrays.asList(userRole1, userRole1Super, userRole2)));
+    assertTrue(user.isSuper());
+    assertTrue(user.isSuper());
+  }
 
-    @Test
-    void isNotSuper()
-    {
-        final User user = new User();
-        user
-            .setUserRoles( new HashSet<>( Arrays.asList( userRole1, userRole2 ) ) );
-        assertFalse( user.isSuper() );
-        assertFalse( user.isSuper() );
-    }
+  @Test
+  void isNotSuper() {
+    final User user = new User();
+    user.setUserRoles(new HashSet<>(Arrays.asList(userRole1, userRole2)));
+    assertFalse(user.isSuper());
+    assertFalse(user.isSuper());
+  }
 
-    @Test
-    void isSuperChanged()
-    {
-        final User user = new User();
-        user.setUserRoles(
-            new HashSet<>( Arrays.asList( userRole1, userRole1Super, userRole2 ) ) );
-        assertTrue( user.isSuper() );
-        user
-            .setUserRoles( new HashSet<>( Arrays.asList( userRole1, userRole2 ) ) );
-        assertFalse( user.isSuper() );
-    }
+  @Test
+  void isSuperChanged() {
+    final User user = new User();
+    user.setUserRoles(new HashSet<>(Arrays.asList(userRole1, userRole1Super, userRole2)));
+    assertTrue(user.isSuper());
+    user.setUserRoles(new HashSet<>(Arrays.asList(userRole1, userRole2)));
+    assertFalse(user.isSuper());
+  }
 
-    @Test
-    void getAllAuthorities()
-    {
-        final User user = new User();
-        user.setUserRoles( new HashSet<>( Arrays.asList( userRole1, userRole1Super ) ) );
-        Set<String> authorities1 = user.getAllAuthorities();
-        assertThat( authorities1, Matchers.containsInAnyOrder( "x1", "x2", "z1", UserRole.AUTHORITY_ALL ) );
-        Set<String> authorities2 = user.getAllAuthorities();
-        assertEquals( authorities1, authorities2 );
-    }
+  @Test
+  void getAllAuthorities() {
+    final User user = new User();
+    user.setUserRoles(new HashSet<>(Arrays.asList(userRole1, userRole1Super)));
+    Set<String> authorities1 = user.getAllAuthorities();
+    assertThat(authorities1, Matchers.containsInAnyOrder("x1", "x2", "z1", UserRole.AUTHORITY_ALL));
+    Set<String> authorities2 = user.getAllAuthorities();
+    assertEquals(authorities1, authorities2);
+  }
 
-    @Test
-    void getAllAuthoritiesChanged()
-    {
-        final User user = new User();
-        user
-            .setUserRoles( new HashSet<>( Arrays.asList( userRole1, userRole1Super ) ) );
-        Set<String> authorities1 = user.getAllAuthorities();
-        assertThat( authorities1, Matchers.containsInAnyOrder( "x1", "x2", "z1", UserRole.AUTHORITY_ALL ) );
-        user
-            .setUserRoles( new HashSet<>( Arrays.asList( userRole1, userRole2 ) ) );
-        Set<String> authorities2 = user.getAllAuthorities();
-        assertThat( authorities2, Matchers.containsInAnyOrder( "x1", "x2", "y1", "y2" ) );
-    }
+  @Test
+  void getAllAuthoritiesChanged() {
+    final User user = new User();
+    user.setUserRoles(new HashSet<>(Arrays.asList(userRole1, userRole1Super)));
+    Set<String> authorities1 = user.getAllAuthorities();
+    assertThat(authorities1, Matchers.containsInAnyOrder("x1", "x2", "z1", UserRole.AUTHORITY_ALL));
+    user.setUserRoles(new HashSet<>(Arrays.asList(userRole1, userRole2)));
+    Set<String> authorities2 = user.getAllAuthorities();
+    assertThat(authorities2, Matchers.containsInAnyOrder("x1", "x2", "y1", "y2"));
+  }
 }

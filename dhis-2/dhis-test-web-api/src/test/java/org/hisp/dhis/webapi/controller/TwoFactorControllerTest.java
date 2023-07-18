@@ -32,7 +32,6 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
-
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
@@ -46,93 +45,93 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class TwoFactorControllerTest extends DhisControllerConvenienceTest
-{
-    @Test
-    void testQr2FaConflictMustDisableFirst()
-    {
-        assertNull( getCurrentUser().getSecret() );
+class TwoFactorControllerTest extends DhisControllerConvenienceTest {
+  @Test
+  void testQr2FaConflictMustDisableFirst() {
+    assertNull(getCurrentUser().getSecret());
 
-        User user = userService.getUser( CurrentUserUtil.getCurrentUserDetails().getUid() );
-        userService.generateTwoFactorOtpSecretForApproval( user );
+    User user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
+    userService.generateTwoFactorOtpSecretForApproval(user);
 
-        user = userService.getUser( CurrentUserUtil.getCurrentUserDetails().getUid() );
-        assertNotNull( user.getSecret() );
+    user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
+    assertNotNull(user.getSecret());
 
-        String code = getCode( user );
+    String code = getCode(user);
 
-        assertStatus( HttpStatus.OK, POST( "/2fa/enabled", "{'code':'" + code + "'}" ) );
+    assertStatus(HttpStatus.OK, POST("/2fa/enabled", "{'code':'" + code + "'}"));
 
-        user = userService.getUser( CurrentUserUtil.getCurrentUserDetails().getUid() );
-        assertNotNull( user.getSecret() );
-    }
+    user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
+    assertNotNull(user.getSecret());
+  }
 
-    @Test
-    void testEnable2Fa()
-    {
-        User user = makeUser( "X", List.of( "TEST" ) );
-        user.setEmail( "valid.x@email.com" );
-        userService.addUser( user );
-        userService.generateTwoFactorOtpSecretForApproval( user );
+  @Test
+  void testEnable2Fa() {
+    User user = makeUser("X", List.of("TEST"));
+    user.setEmail("valid.x@email.com");
+    userService.addUser(user);
+    userService.generateTwoFactorOtpSecretForApproval(user);
 
-        switchToNewUser( user );
+    switchToNewUser(user);
 
-        String code = getCode( user );
-        assertStatus( HttpStatus.OK, POST( "/2fa/enabled", "{'code':'" + code + "'}" ) );
-    }
+    String code = getCode(user);
+    assertStatus(HttpStatus.OK, POST("/2fa/enabled", "{'code':'" + code + "'}"));
+  }
 
-    @Test
-    void testEnable2FaWrongCode()
-    {
-        User user = makeUser( "X", List.of( "TEST" ) );
-        user.setEmail( "valid.x@email.com" );
-        userService.addUser( user );
-        userService.generateTwoFactorOtpSecretForApproval( user );
+  @Test
+  void testEnable2FaWrongCode() {
+    User user = makeUser("X", List.of("TEST"));
+    user.setEmail("valid.x@email.com");
+    userService.addUser(user);
+    userService.generateTwoFactorOtpSecretForApproval(user);
 
-        switchToNewUser( user );
+    switchToNewUser(user);
 
-        assertEquals( "Invalid 2FA code",
-            POST( "/2fa/enabled", "{'code':'wrong'}" ).error( HttpStatus.Series.CLIENT_ERROR ).getMessage() );
-    }
+    assertEquals(
+        "Invalid 2FA code",
+        POST("/2fa/enabled", "{'code':'wrong'}")
+            .error(HttpStatus.Series.CLIENT_ERROR)
+            .getMessage());
+  }
 
-    @Test
-    void testEnable2FaNotCalledQrFirst()
-    {
-        assertEquals( "User must call the /qrCode endpoint first",
-            POST( "/2fa/enabled", "{'code':'wrong'}" ).error( HttpStatus.Series.CLIENT_ERROR ).getMessage() );
-    }
+  @Test
+  void testEnable2FaNotCalledQrFirst() {
+    assertEquals(
+        "User must call the /qrCode endpoint first",
+        POST("/2fa/enabled", "{'code':'wrong'}")
+            .error(HttpStatus.Series.CLIENT_ERROR)
+            .getMessage());
+  }
 
-    @Test
-    void testDisable2Fa()
-    {
-        User newUser = makeUser( "Y", List.of( "TEST" ) );
-        newUser.setEmail( "valid.y@email.com" );
+  @Test
+  void testDisable2Fa() {
+    User newUser = makeUser("Y", List.of("TEST"));
+    newUser.setEmail("valid.y@email.com");
 
-        userService.addUser( newUser );
-        userService.generateTwoFactorOtpSecretForApproval( newUser );
-        userService.approveTwoFactorSecret( newUser );
+    userService.addUser(newUser);
+    userService.generateTwoFactorOtpSecretForApproval(newUser);
+    userService.approveTwoFactorSecret(newUser);
 
-        switchToNewUser( newUser );
+    switchToNewUser(newUser);
 
-        String code = getCode( newUser );
+    String code = getCode(newUser);
 
-        assertStatus( HttpStatus.OK, POST( "/2fa/disabled", "{'code':'" + code + "'}" ) );
-    }
+    assertStatus(HttpStatus.OK, POST("/2fa/disabled", "{'code':'" + code + "'}"));
+  }
 
-    @Test
-    void testDisable2FaNotEnabled()
-    {
-        assertEquals( "Two factor authentication is not enabled",
-            POST( "/2fa/disabled", "{'code':'wrong'}" ).error( HttpStatus.Series.CLIENT_ERROR ).getMessage() );
-    }
+  @Test
+  void testDisable2FaNotEnabled() {
+    assertEquals(
+        "Two factor authentication is not enabled",
+        POST("/2fa/disabled", "{'code':'wrong'}")
+            .error(HttpStatus.Series.CLIENT_ERROR)
+            .getMessage());
+  }
 
-    private static String replaceApprovalPartOfTheSecret( User user )
-    {
-        return user.getSecret().replace( TWO_FACTOR_CODE_APPROVAL_PREFIX, "" );
-    }
+  private static String replaceApprovalPartOfTheSecret(User user) {
+    return user.getSecret().replace(TWO_FACTOR_CODE_APPROVAL_PREFIX, "");
+  }
 
-    private static String getCode( User newUser )
-    {
-        return new Totp( replaceApprovalPartOfTheSecret( newUser ) ).now();
-    }
+  private static String getCode(User newUser) {
+    return new Totp(replaceApprovalPartOfTheSecret(newUser)).now();
+  }
 }

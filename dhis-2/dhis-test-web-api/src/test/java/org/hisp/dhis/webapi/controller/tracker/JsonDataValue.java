@@ -29,19 +29,13 @@ package org.hisp.dhis.webapi.controller.tracker;
 
 import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * Representation of
- * {@link org.hisp.dhis.webapi.controller.tracker.view.DataValue}.
- */
-public interface JsonDataValue extends JsonObject
-{
-    default String getDataElement()
-    {
-        return getString( "dataElement" ).string();
-    }
+/** Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.DataValue}. */
+public interface JsonDataValue extends JsonObject {
+  default String getDataElement() {
+    return getString("dataElement").string();
+  }
 
-    default String getValue()
-    {
-        return getString( "value" ).string();
-    }
+  default String getValue() {
+    return getString("value").string();
+  }
 }

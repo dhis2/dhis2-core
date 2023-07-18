@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -46,41 +45,34 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackerBundleServiceTest extends TrackerTest
-{
+class TrackerBundleServiceTest extends TrackerTest {
 
-    @Autowired
-    private TrackerBundleService trackerBundleService;
+  @Autowired private TrackerBundleService trackerBundleService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/tracker_basic_metadata.json" );
-    }
+  @Override
+  protected void initTest() throws IOException {
+    setUpMetadata("tracker/tracker_basic_metadata.json");
+  }
 
-    @Test
-    void testVerifyMetadata()
-    {
-        Program program = manager.get( Program.class, "E8o1E9tAppy" );
-        OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, "QfUVllTs6cS" );
-        assertNotNull( program );
-        assertNotNull( organisationUnit );
-        assertFalse( program.getProgramStages().isEmpty() );
-    }
+  @Test
+  void testVerifyMetadata() {
+    Program program = manager.get(Program.class, "E8o1E9tAppy");
+    OrganisationUnit organisationUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cS");
+    assertNotNull(program);
+    assertNotNull(organisationUnit);
+    assertFalse(program.getProgramStages().isEmpty());
+  }
 
-    @Test
-    void testTrackedEntityInstanceImport()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/trackedentity_basic_data.json" );
-        assertEquals( 13, trackerImportParams.getTrackedEntities().size() );
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
-        trackerBundleService.commit( trackerBundle );
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 13, trackedEntityInstances.size() );
-    }
+  @Test
+  void testTrackedEntityInstanceImport() throws IOException {
+    TrackerImportParams trackerImportParams = fromJson("tracker/trackedentity_basic_data.json");
+    assertEquals(13, trackerImportParams.getTrackedEntities().size());
+    TrackerBundle trackerBundle = trackerBundleService.create(trackerImportParams);
+    trackerBundleService.commit(trackerBundle);
+    List<TrackedEntityInstance> trackedEntityInstances =
+        manager.getAll(TrackedEntityInstance.class);
+    assertEquals(13, trackedEntityInstances.size());
+  }
 }

@@ -38,81 +38,111 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link org.hisp.dhis.webapi.controller.sms.SmsGatewayController}
- * using (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.webapi.controller.sms.SmsGatewayController} using (mocked) REST
+ * requests.
  *
  * @author Jan Bernitt
  */
-class SmsGatewayControllerTest extends DhisControllerConvenienceTest
-{
+class SmsGatewayControllerTest extends DhisControllerConvenienceTest {
 
-    private String uid;
+  private String uid;
 
-    @AfterEach
-    void tearDown()
-    {
-        JsonArray gateways = GET( "/gateways" ).content().getArray( "gateways" );
-        for ( JsonObject gateway : gateways.asList( JsonObject.class ) )
-        {
-            assertStatus( HttpStatus.OK, DELETE( "/gateways/" + gateway.getString( "uid" ).string() ) );
-        }
-        assertTrue( GET( "/gateways" ).content().getArray( "gateways" ).isEmpty() );
+  @AfterEach
+  void tearDown() {
+    JsonArray gateways = GET("/gateways").content().getArray("gateways");
+    for (JsonObject gateway : gateways.asList(JsonObject.class)) {
+      assertStatus(HttpStatus.OK, DELETE("/gateways/" + gateway.getString("uid").string()));
     }
+    assertTrue(GET("/gateways").content().getArray("gateways").isEmpty());
+  }
 
-    @Test
-    void testSetDefault()
-    {
-        uid = assertStatus( HttpStatus.OK,
-            POST( "/gateways", "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}" ) );
-        assertWebMessage( "OK", 200, "OK", "test is set to default",
-            PUT( "/gateways/default/" + uid ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testSetDefault() {
+    uid =
+        assertStatus(
+            HttpStatus.OK,
+            POST(
+                "/gateways",
+                "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}"));
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "test is set to default",
+        PUT("/gateways/default/" + uid).content(HttpStatus.OK));
+  }
 
-    @Test
-    void testSetDefault_NoSuchObject()
-    {
-        assertWebMessage( "Not Found", 404, "ERROR", "No gateway found",
-            PUT( "/gateways/default/xyz" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testSetDefault_NoSuchObject() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "No gateway found",
+        PUT("/gateways/default/xyz").content(HttpStatus.NOT_FOUND));
+  }
 
-    @Test
-    void testUpdateGateway()
-    {
-        uid = assertStatus( HttpStatus.OK,
-            POST( "/gateways", "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}" ) );
-        JsonObject gateway = GET( "/gateways/{uid}", uid ).content();
-        assertWebMessage( "OK", 200, "OK", "Gateway with uid: " + uid + " has been updated",
-            PUT( "/gateways/" + uid, gateway.toString() ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testUpdateGateway() {
+    uid =
+        assertStatus(
+            HttpStatus.OK,
+            POST(
+                "/gateways",
+                "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}"));
+    JsonObject gateway = GET("/gateways/{uid}", uid).content();
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Gateway with uid: " + uid + " has been updated",
+        PUT("/gateways/" + uid, gateway.toString()).content(HttpStatus.OK));
+  }
 
-    @Test
-    void testUpdateGateway_NoSuchObject()
-    {
-        assertWebMessage( "Not Found", 404, "ERROR", "No gateway found",
-            PUT( "/gateways/xyz" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testUpdateGateway_NoSuchObject() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "No gateway found",
+        PUT("/gateways/xyz").content(HttpStatus.NOT_FOUND));
+  }
 
-    @Test
-    void testAddGateway()
-    {
-        assertWebMessage( "OK", 200, "OK", "Gateway configuration added",
-            POST( "/gateways", "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}" )
-                .content( HttpStatus.OK ) );
-    }
+  @Test
+  void testAddGateway() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Gateway configuration added",
+        POST("/gateways", "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}")
+            .content(HttpStatus.OK));
+  }
 
-    @Test
-    void testRemoveGateway()
-    {
-        uid = assertStatus( HttpStatus.OK,
-            POST( "/gateways", "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}" ) );
-        assertWebMessage( "OK", 200, "OK", "Gateway removed successfully",
-            DELETE( "/gateways/" + uid ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testRemoveGateway() {
+    uid =
+        assertStatus(
+            HttpStatus.OK,
+            POST(
+                "/gateways",
+                "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}"));
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Gateway removed successfully",
+        DELETE("/gateways/" + uid).content(HttpStatus.OK));
+  }
 
-    @Test
-    void testRemoveGateway_NoSuchObject()
-    {
-        assertWebMessage( "Not Found", 404, "ERROR", "No gateway found with id: xyz",
-            DELETE( "/gateways/xyz" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testRemoveGateway_NoSuchObject() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "No gateway found with id: xyz",
+        DELETE("/gateways/xyz").content(HttpStatus.NOT_FOUND));
+  }
 }

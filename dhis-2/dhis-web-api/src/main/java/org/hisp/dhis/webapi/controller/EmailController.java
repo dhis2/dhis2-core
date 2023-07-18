@@ -33,7 +33,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -58,102 +57,94 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-@OpenApi.Tags( "messaging" )
+@OpenApi.Tags("messaging")
 @Controller
-@RequestMapping( value = EmailController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class EmailController
-{
-    public static final String RESOURCE_PATH = "/email";
+@RequestMapping(value = EmailController.RESOURCE_PATH)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class EmailController {
+  public static final String RESOURCE_PATH = "/email";
 
-    private static final String SMTP_ERROR = "SMTP server not configured";
+  private static final String SMTP_ERROR = "SMTP server not configured";
 
-    // --------------------------------------------------------------------------
-    // Dependencies
-    // --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Dependencies
+  // --------------------------------------------------------------------------
 
-    @Autowired
-    private EmailService emailService;
+  @Autowired private EmailService emailService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+  @Autowired private CurrentUserService currentUserService;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingManager systemSettingManager;
 
-    @PostMapping( "/test" )
-    @ResponseBody
-    public WebMessage sendTestEmail()
-        throws WebMessageException
-    {
-        checkEmailSettings();
+  @PostMapping("/test")
+  @ResponseBody
+  public WebMessage sendTestEmail() throws WebMessageException {
+    checkEmailSettings();
 
-        if ( !currentUserService.getCurrentUser().hasEmail() )
-        {
-            return conflict( "Could not send test email, no email configured for current user" );
-        }
-
-        OutboundMessageResponse emailResponse = emailService.sendTestEmail();
-
-        return emailResponseHandler( emailResponse );
+    if (!currentUserService.getCurrentUser().hasEmail()) {
+      return conflict("Could not send test email, no email configured for current user");
     }
 
-    @PostMapping( value = "/notification", consumes = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage sendSystemNotificationEmail( @RequestBody Email email )
-        throws WebMessageException
-    {
-        checkEmailSettings();
+    OutboundMessageResponse emailResponse = emailService.sendTestEmail();
 
-        boolean systemNotificationEmailValid = systemSettingManager.systemNotificationEmailValid();
+    return emailResponseHandler(emailResponse);
+  }
 
-        if ( !systemNotificationEmailValid )
-        {
-            return conflict( "Could not send email, system notification email address not set or not valid" );
-        }
+  @PostMapping(value = "/notification", consumes = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage sendSystemNotificationEmail(@RequestBody Email email)
+      throws WebMessageException {
+    checkEmailSettings();
 
-        OutboundMessageResponse emailResponse = emailService.sendSystemEmail( email );
+    boolean systemNotificationEmailValid = systemSettingManager.systemNotificationEmailValid();
 
-        return emailResponseHandler( emailResponse );
+    if (!systemNotificationEmailValid) {
+      return conflict(
+          "Could not send email, system notification email address not set or not valid");
     }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SEND_EMAIL')" )
-    @PostMapping( value = "/notification", produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage sendEmailNotification( @RequestParam Set<String> recipients, @RequestParam String message,
-        @RequestParam( defaultValue = "DHIS 2" ) String subject )
-        throws WebMessageException
-    {
-        checkEmailSettings();
+    OutboundMessageResponse emailResponse = emailService.sendSystemEmail(email);
 
-        OutboundMessageResponse emailResponse = emailService.sendEmail( subject, message, recipients );
+    return emailResponseHandler(emailResponse);
+  }
 
-        return emailResponseHandler( emailResponse );
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SEND_EMAIL')")
+  @PostMapping(value = "/notification", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage sendEmailNotification(
+      @RequestParam Set<String> recipients,
+      @RequestParam String message,
+      @RequestParam(defaultValue = "DHIS 2") String subject)
+      throws WebMessageException {
+    checkEmailSettings();
+
+    OutboundMessageResponse emailResponse = emailService.sendEmail(subject, message, recipients);
+
+    return emailResponseHandler(emailResponse);
+  }
+
+  // ---------------------------------------------------------------------
+  // Supportive methods
+  // ---------------------------------------------------------------------
+
+  private WebMessage emailResponseHandler(OutboundMessageResponse emailResponse) {
+    if (emailResponse.isOk()) {
+      String msg =
+          !StringUtils.isEmpty(emailResponse.getDescription())
+              ? emailResponse.getDescription()
+              : EmailResponse.SENT.getResponseMessage();
+      return ok(msg);
     }
-
-    // ---------------------------------------------------------------------
-    // Supportive methods
-    // ---------------------------------------------------------------------
-
-    private WebMessage emailResponseHandler( OutboundMessageResponse emailResponse )
-    {
-        if ( emailResponse.isOk() )
-        {
-            String msg = !StringUtils.isEmpty( emailResponse.getDescription() ) ? emailResponse.getDescription()
-                : EmailResponse.SENT.getResponseMessage();
-            return ok( msg );
-        }
-        String msg = !StringUtils.isEmpty( emailResponse.getDescription() ) ? emailResponse.getDescription()
+    String msg =
+        !StringUtils.isEmpty(emailResponse.getDescription())
+            ? emailResponse.getDescription()
             : EmailResponse.FAILED.getResponseMessage();
-        return error( msg );
-    }
+    return error(msg);
+  }
 
-    private void checkEmailSettings()
-        throws WebMessageException
-    {
-        if ( !emailService.emailConfigured() )
-        {
-            throw new WebMessageException( conflict( SMTP_ERROR ) );
-        }
+  private void checkEmailSettings() throws WebMessageException {
+    if (!emailService.emailConfigured()) {
+      throw new WebMessageException(conflict(SMTP_ERROR));
     }
+  }
 }

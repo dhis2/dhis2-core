@@ -27,122 +27,105 @@
  */
 package org.hisp.dhis.util;
 
+import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.databind.*;
+import com.google.common.collect.*;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
-
 import org.apache.commons.collections4.*;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.sharing.*;
 
-import com.fasterxml.jackson.core.*;
-import com.fasterxml.jackson.databind.*;
-import com.google.common.collect.*;
+public class SharingUtils {
+  private static final ImmutableList<String> LEGACY_SHARING_PROPERTIES =
+      ImmutableList.<String>builder()
+          .add("userAccesses", "userGroupAccesses", "publicAccess", "externalAccess")
+          .build();
 
-public class SharingUtils
-{
-    private static final ImmutableList<String> LEGACY_SHARING_PROPERTIES = ImmutableList.<String> builder().add(
-        "userAccesses", "userGroupAccesses", "publicAccess", "externalAccess" ).build();
+  private static final ObjectMapper FROM_AND_TO_JSON = createMapper();
 
-    private static final ObjectMapper FROM_AND_TO_JSON = createMapper();
+  private SharingUtils() {
+    throw new UnsupportedOperationException("utility");
+  }
 
-    private SharingUtils()
-    {
-        throw new UnsupportedOperationException( "utility" );
+  public static Set<UserGroupAccess> getDtoUserGroupAccesses(
+      Set<org.hisp.dhis.user.UserGroupAccess> dto, Sharing sharing) {
+    if (!CollectionUtils.isEmpty(dto)) {
+      return dto;
     }
 
-    public static Set<UserGroupAccess> getDtoUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> dto,
-        Sharing sharing )
-    {
-        if ( !CollectionUtils.isEmpty( dto ) )
-        {
-            return dto;
-        }
-
-        if ( !sharing.hasUserGroupAccesses() )
-        {
-            return dto;
-        }
-
-        return sharing.getUserGroups().values()
-            .stream().map( org.hisp.dhis.user.sharing.UserGroupAccess::toDtoObject )
-            .collect( Collectors.toSet() );
+    if (!sharing.hasUserGroupAccesses()) {
+      return dto;
     }
 
-    public static Set<org.hisp.dhis.user.UserAccess> getDtoUserAccesses( Set<org.hisp.dhis.user.UserAccess> dto,
-        Sharing sharing )
-    {
-        if ( !CollectionUtils.isEmpty( dto ) )
-        {
-            return dto;
-        }
+    return sharing.getUserGroups().values().stream()
+        .map(org.hisp.dhis.user.sharing.UserGroupAccess::toDtoObject)
+        .collect(Collectors.toSet());
+  }
 
-        if ( !sharing.hasUserAccesses() )
-        {
-            return dto;
-        }
-
-        return sharing.getUsers().values()
-            .stream().map( org.hisp.dhis.user.sharing.UserAccess::toDtoObject )
-            .collect( Collectors.toSet() );
+  public static Set<org.hisp.dhis.user.UserAccess> getDtoUserAccesses(
+      Set<org.hisp.dhis.user.UserAccess> dto, Sharing sharing) {
+    if (!CollectionUtils.isEmpty(dto)) {
+      return dto;
     }
 
-    public static String getDtoPublicAccess( String dto, Sharing sharing )
-    {
-        if ( dto == null )
-        {
-            dto = sharing.getPublicAccess();
-        }
-
-        return dto;
+    if (!sharing.hasUserAccesses()) {
+      return dto;
     }
 
-    public static boolean getDtoExternalAccess( Boolean dto, Sharing sharing )
-    {
-        if ( dto == null )
-        {
-            dto = sharing.isExternal();
-        }
+    return sharing.getUsers().values().stream()
+        .map(org.hisp.dhis.user.sharing.UserAccess::toDtoObject)
+        .collect(Collectors.toSet());
+  }
 
-        return dto;
+  public static String getDtoPublicAccess(String dto, Sharing sharing) {
+    if (dto == null) {
+      dto = sharing.getPublicAccess();
     }
 
-    public static Sharing generateSharingFromIdentifiableObject( IdentifiableObject object )
-    {
-        Sharing sharing = new Sharing();
-        sharing.setOwner( object.getCreatedBy() );
-        sharing.setExternal( object.getExternalAccess() );
-        sharing.setPublicAccess( object.getPublicAccess() );
-        sharing.setDtoUserGroupAccesses( object.getUserGroupAccesses() );
-        sharing.setDtoUserAccesses( object.getUserAccesses() );
-        return sharing;
+    return dto;
+  }
+
+  public static boolean getDtoExternalAccess(Boolean dto, Sharing sharing) {
+    if (dto == null) {
+      dto = sharing.isExternal();
     }
 
-    public static void resetAccessCollections( BaseIdentifiableObject identifiableObject )
-    {
-        identifiableObject.setUserAccesses( Sets.newHashSet() );
-        identifiableObject.setUserGroupAccesses( Sets.newHashSet() );
-    }
+    return dto;
+  }
 
-    public static String withAccess( String jsonb, UnaryOperator<String> accessTransformation )
-        throws JsonProcessingException
-    {
-        Sharing value = FROM_AND_TO_JSON.readValue( jsonb, Sharing.class );
-        return FROM_AND_TO_JSON.writeValueAsString( value.withAccess( accessTransformation ) );
-    }
+  public static Sharing generateSharingFromIdentifiableObject(IdentifiableObject object) {
+    Sharing sharing = new Sharing();
+    sharing.setOwner(object.getCreatedBy());
+    sharing.setExternal(object.getExternalAccess());
+    sharing.setPublicAccess(object.getPublicAccess());
+    sharing.setDtoUserGroupAccesses(object.getUserGroupAccesses());
+    sharing.setDtoUserAccesses(object.getUserAccesses());
+    return sharing;
+  }
 
-    public static boolean isLegacySharingProperty( Property property )
-    {
-        return LEGACY_SHARING_PROPERTIES.contains( property.getFieldName() );
-    }
+  public static void resetAccessCollections(BaseIdentifiableObject identifiableObject) {
+    identifiableObject.setUserAccesses(Sets.newHashSet());
+    identifiableObject.setUserGroupAccesses(Sets.newHashSet());
+  }
 
-    private static ObjectMapper createMapper()
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure( MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true );
-        mapper.configure( SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true );
-        return mapper;
-    }
+  public static String withAccess(String jsonb, UnaryOperator<String> accessTransformation)
+      throws JsonProcessingException {
+    Sharing value = FROM_AND_TO_JSON.readValue(jsonb, Sharing.class);
+    return FROM_AND_TO_JSON.writeValueAsString(value.withAccess(accessTransformation));
+  }
+
+  public static boolean isLegacySharingProperty(Property property) {
+    return LEGACY_SHARING_PROPERTIES.contains(property.getFieldName());
+  }
+
+  private static ObjectMapper createMapper() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
+    mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+    return mapper;
+  }
 }

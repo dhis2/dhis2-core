@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -55,96 +54,99 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class UniquenessCheck implements ObjectValidationCheck
-{
-    @Override
-    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
-        List<T> persistedObjects, List<T> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
-    {
-        List<T> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
+public class UniquenessCheck implements ObjectValidationCheck {
+  @Override
+  public <T extends IdentifiableObject> void check(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects,
+      ImportStrategy importStrategy,
+      ValidationContext ctx,
+      Consumer<ObjectReport> addReports) {
+    List<T> objects = selectObjects(persistedObjects, nonPersistedObjects, importStrategy);
 
-        if ( objects.isEmpty() )
-        {
-            return;
-        }
+    if (objects.isEmpty()) {
+      return;
+    }
 
-        for ( T object : objects )
-        {
-            List<ErrorReport> errorReports;
+    for (T object : objects) {
+      List<ErrorReport> errorReports;
 
-            errorReports = checkUniqueness( object, bundle.getPreheat(), bundle.getPreheatIdentifier(), ctx );
+      errorReports =
+          checkUniqueness(object, bundle.getPreheat(), bundle.getPreheatIdentifier(), ctx);
 
-            if ( !errorReports.isEmpty() )
-            {
-                addReports.accept( createObjectReport( errorReports, object, bundle ) );
-                ctx.markForRemoval( object );
+      if (!errorReports.isEmpty()) {
+        addReports.accept(createObjectReport(errorReports, object, bundle));
+        ctx.markForRemoval(object);
+      }
+    }
+  }
+
+  private List<ErrorReport> checkUniqueness(
+      IdentifiableObject object,
+      Preheat preheat,
+      PreheatIdentifier identifier,
+      ValidationContext ctx) {
+    if (object == null || preheat.isDefault(object)) {
+      return emptyList();
+    }
+
+    @SuppressWarnings("unchecked")
+    Class<? extends IdentifiableObject> objType = HibernateProxyUtils.getRealClass(object);
+    Map<String, Map<Object, String>> uniquenessMap =
+        preheat.getUniquenessMap().computeIfAbsent(objType, key -> new HashMap<>());
+
+    Schema schema = ctx.getSchemaService().getDynamicSchema(objType);
+    List<Property> uniqueProperties =
+        schema.getProperties().stream()
+            .filter(p -> p.isPersisted() && p.isOwner() && p.isUnique() && p.isSimple())
+            .collect(Collectors.toList());
+
+    if (uniqueProperties.isEmpty()) {
+      return emptyList();
+    }
+    return checkUniqueness(object, identifier, uniquenessMap, uniqueProperties);
+  }
+
+  private List<ErrorReport> checkUniqueness(
+      IdentifiableObject object,
+      PreheatIdentifier identifier,
+      Map<String, Map<Object, String>> uniquenessMap,
+      List<Property> uniqueProperties) {
+    List<ErrorReport> errorReports = new ArrayList<>();
+    uniqueProperties.forEach(
+        property -> {
+          Object value = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+
+          if (value != null) {
+            String objectIdentifier =
+                uniquenessMap
+                    .computeIfAbsent(property.getName(), key -> new HashMap<>())
+                    .get(value);
+
+            if (objectIdentifier != null) {
+              if (!identifier.getIdentifier(object).equals(objectIdentifier)) {
+                String identifiersWithName = identifier.getIdentifiersWithName(object);
+
+                ErrorReport errorReport =
+                    new ErrorReport(
+                        HibernateProxyUtils.getRealClass(object),
+                        ErrorCode.E5003,
+                        property.getName(),
+                        value,
+                        identifiersWithName,
+                        objectIdentifier);
+
+                errorReports.add(
+                    errorReport.setMainId(objectIdentifier).setErrorProperty(property.getName()));
+              }
+            } else {
+              uniquenessMap.get(property.getName()).put(value, identifier.getIdentifier(object));
             }
-        }
-    }
+          }
+        });
 
-    private List<ErrorReport> checkUniqueness( IdentifiableObject object, Preheat preheat, PreheatIdentifier identifier,
-        ValidationContext ctx )
-    {
-        if ( object == null || preheat.isDefault( object ) )
-        {
-            return emptyList();
-        }
-
-        @SuppressWarnings( "unchecked" )
-        Class<? extends IdentifiableObject> objType = HibernateProxyUtils.getRealClass( object );
-        Map<String, Map<Object, String>> uniquenessMap = preheat.getUniquenessMap()
-            .computeIfAbsent( objType, key -> new HashMap<>() );
-
-        Schema schema = ctx.getSchemaService().getDynamicSchema( objType );
-        List<Property> uniqueProperties = schema.getProperties().stream()
-            .filter( p -> p.isPersisted() && p.isOwner() && p.isUnique() && p.isSimple() )
-            .collect( Collectors.toList() );
-
-        if ( uniqueProperties.isEmpty() )
-        {
-            return emptyList();
-        }
-        return checkUniqueness( object, identifier, uniquenessMap, uniqueProperties );
-    }
-
-    private List<ErrorReport> checkUniqueness( IdentifiableObject object, PreheatIdentifier identifier,
-        Map<String, Map<Object, String>> uniquenessMap, List<Property> uniqueProperties )
-    {
-        List<ErrorReport> errorReports = new ArrayList<>();
-        uniqueProperties.forEach( property -> {
-            Object value = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
-
-            if ( value != null )
-            {
-                String objectIdentifier = uniquenessMap.computeIfAbsent( property.getName(), key -> new HashMap<>() )
-                    .get( value );
-
-                if ( objectIdentifier != null )
-                {
-                    if ( !identifier.getIdentifier( object ).equals( objectIdentifier ) )
-                    {
-                        String identifiersWithName = identifier.getIdentifiersWithName( object );
-
-                        ErrorReport errorReport = new ErrorReport( HibernateProxyUtils.getRealClass( object ),
-                            ErrorCode.E5003,
-                            property.getName(),
-                            value,
-                            identifiersWithName,
-                            objectIdentifier );
-
-                        errorReports
-                            .add( errorReport.setMainId( objectIdentifier ).setErrorProperty( property.getName() ) );
-                    }
-                }
-                else
-                {
-                    uniquenessMap.get( property.getName() ).put( value, identifier.getIdentifier( object ) );
-                }
-            }
-        } );
-
-        return errorReports;
-    }
-
+    return errorReports;
+  }
 }

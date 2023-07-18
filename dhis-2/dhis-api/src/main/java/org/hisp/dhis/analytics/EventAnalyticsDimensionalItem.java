@@ -34,66 +34,49 @@ import org.hisp.dhis.option.Option;
 /**
  * @author Henning Håkonsen
  */
-public class EventAnalyticsDimensionalItem
-{
-    private String parentUid;
+public class EventAnalyticsDimensionalItem {
+  private String parentUid;
 
-    private Option option;
+  private Option option;
 
-    private DimensionalItemObject dimensionalItemObject;
+  private DimensionalItemObject dimensionalItemObject;
 
-    public EventAnalyticsDimensionalItem( Option option, String parentUid )
-    {
-        this.option = option;
-        this.parentUid = parentUid;
+  public EventAnalyticsDimensionalItem(Option option, String parentUid) {
+    this.option = option;
+    this.parentUid = parentUid;
+  }
+
+  EventAnalyticsDimensionalItem(DimensionalItemObject dimensionalItemObject, String parentUid) {
+    this.dimensionalItemObject = dimensionalItemObject;
+    this.parentUid = parentUid;
+  }
+
+  public String getParentUid() {
+    return parentUid;
+  }
+
+  public Option getOption() {
+    return option;
+  }
+
+  public String getDisplayProperty(DisplayProperty displayProperty) {
+    if (option != null) {
+      return option.getDisplayName();
+    } else {
+      if (displayProperty == DisplayProperty.NAME) {
+        return dimensionalItemObject.getName();
+      } else {
+        return dimensionalItemObject.getShortName();
+      }
     }
+  }
 
-    EventAnalyticsDimensionalItem( DimensionalItemObject dimensionalItemObject, String parentUid )
-    {
-        this.dimensionalItemObject = dimensionalItemObject;
-        this.parentUid = parentUid;
+  @Override
+  public String toString() {
+    if (option != null) {
+      return option.getCode();
+    } else {
+      return dimensionalItemObject.getDimensionItem();
     }
-
-    public String getParentUid()
-    {
-        return parentUid;
-    }
-
-    public Option getOption()
-    {
-        return option;
-    }
-
-    public String getDisplayProperty( DisplayProperty displayProperty )
-    {
-        if ( option != null )
-        {
-            return option.getDisplayName();
-        }
-        else
-        {
-            if ( displayProperty == DisplayProperty.NAME )
-            {
-                return dimensionalItemObject.getName();
-            }
-            else
-            {
-                return dimensionalItemObject.getShortName();
-            }
-        }
-
-    }
-
-    @Override
-    public String toString()
-    {
-        if ( option != null )
-        {
-            return option.getCode();
-        }
-        else
-        {
-            return dimensionalItemObject.getDimensionItem();
-        }
-    }
+  }
 }

@@ -28,25 +28,23 @@
 package org.hisp.dhis.notification;
 
 import java.util.Set;
-
 import org.hisp.dhis.common.DeliveryChannel;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-public interface NotificationTemplate
-{
-    String getSubjectTemplate();
+public interface NotificationTemplate {
+  String getSubjectTemplate();
 
-    String getDisplaySubjectTemplate();
+  String getDisplaySubjectTemplate();
 
-    String getMessageTemplate();
+  String getMessageTemplate();
 
-    String getDisplayMessageTemplate();
+  String getDisplayMessageTemplate();
 
-    Set<DeliveryChannel> getDeliveryChannels();
+  Set<DeliveryChannel> getDeliveryChannels();
 
-    Boolean getNotifyUsersInHierarchyOnly();
+  Boolean getNotifyUsersInHierarchyOnly();
 
-    Boolean getNotifyParentOrganisationUnitOnly();
+  Boolean getNotifyParentOrganisationUnitOnly();
 }

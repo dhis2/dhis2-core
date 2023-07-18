@@ -39,7 +39,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -56,84 +55,79 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class NoteValidatorTest
-{
+@ExtendWith(MockitoExtension.class)
+class NoteValidatorTest {
 
-    // Class under test
-    private NoteValidator validator;
+  // Class under test
+  private NoteValidator validator;
 
-    private Event event;
+  private Event event;
 
-    private final BeanRandomizer rnd = BeanRandomizer.create();
+  private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    private TrackerPreheat preheat;
+  private TrackerPreheat preheat;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    public void setUp()
-    {
-        this.validator = new NoteValidator();
-        event = rnd.nextObject( Event.class );
+  @BeforeEach
+  public void setUp() {
+    this.validator = new NoteValidator();
+    event = rnd.nextObject(Event.class);
 
-        bundle = mock( TrackerBundle.class );
-        preheat = mock( TrackerPreheat.class );
-        when( bundle.getPreheat() ).thenReturn( preheat );
+    bundle = mock(TrackerBundle.class);
+    preheat = mock(TrackerPreheat.class);
+    when(bundle.getPreheat()).thenReturn(preheat);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
-    }
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
+  }
 
-    @Test
-    void testNoteWithExistingUidWarnings()
-    {
-        // Given
-        final Note note = rnd.nextObject( Note.class );
-        when( preheat.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
+  @Test
+  void testNoteWithExistingUidWarnings() {
+    // Given
+    final Note note = rnd.nextObject(Note.class);
+    when(preheat.getNote(note.getNote())).thenReturn(Optional.of(new TrackedEntityComment()));
 
-        event.setNotes( Collections.singletonList( note ) );
+    event.setNotes(Collections.singletonList(note));
 
-        // When
-        validator.validate( reporter, bundle, event );
+    // When
+    validator.validate(reporter, bundle, event);
 
-        // Then
-        assertHasWarning( reporter, event, E1119 );
-        assertIsEmpty( event.getNotes() );
-    }
+    // Then
+    assertHasWarning(reporter, event, E1119);
+    assertIsEmpty(event.getNotes());
+  }
 
-    @Test
-    void testNoteWithExistingUidAndNoTextIsIgnored()
-    {
-        // Given
-        final Note note = rnd.nextObject( Note.class );
-        note.setValue( null );
+  @Test
+  void testNoteWithExistingUidAndNoTextIsIgnored() {
+    // Given
+    final Note note = rnd.nextObject(Note.class);
+    note.setValue(null);
 
-        event.setNotes( Collections.singletonList( note ) );
+    event.setNotes(Collections.singletonList(note));
 
-        // When
-        validator.validate( reporter, bundle, event );
+    // When
+    validator.validate(reporter, bundle, event);
 
-        // Then
-        assertIsEmpty( reporter.getErrors() );
-        assertIsEmpty( event.getNotes() );
-    }
+    // Then
+    assertIsEmpty(reporter.getErrors());
+    assertIsEmpty(event.getNotes());
+  }
 
-    @Test
-    void testNotesAreValidWhenUidDoesNotExist()
-    {
-        // Given
-        final List<Note> notes = rnd.objects( Note.class, 5 ).collect( Collectors.toList() );
+  @Test
+  void testNotesAreValidWhenUidDoesNotExist() {
+    // Given
+    final List<Note> notes = rnd.objects(Note.class, 5).collect(Collectors.toList());
 
-        event.setNotes( notes );
+    event.setNotes(notes);
 
-        // When
-        validator.validate( reporter, bundle, event );
+    // When
+    validator.validate(reporter, bundle, event);
 
-        // Then
-        assertIsEmpty( reporter.getErrors() );
-        assertThat( event.getNotes(), hasSize( 5 ) );
-    }
+    // Then
+    assertIsEmpty(reporter.getErrors());
+    assertThat(event.getNotes(), hasSize(5));
+  }
 }

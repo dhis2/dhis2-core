@@ -27,99 +27,81 @@
  */
 package org.hisp.dhis.patch;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.common.IdentifiableObject;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.common.IdentifiableObject;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "mutation", namespace = DxfNamespaces.DXF_2_0 )
-public class Mutation
-{
-    /**
-     * Full dot separated path of this mutation (e.g a.b.c).
-     */
-    private final String path;
+@JacksonXmlRootElement(localName = "mutation", namespace = DxfNamespaces.DXF_2_0)
+public class Mutation {
+  /** Full dot separated path of this mutation (e.g a.b.c). */
+  private final String path;
 
-    /**
-     * New value for given path.
-     */
-    private final Object value;
+  /** New value for given path. */
+  private final Object value;
 
-    /**
-     * Is the mutation an ADD or DEL, this mainly applies to collections.
-     */
-    private Operation operation = Operation.ADDITION;
+  /** Is the mutation an ADD or DEL, this mainly applies to collections. */
+  private Operation operation = Operation.ADDITION;
 
-    public enum Operation
-    {
-        ADDITION,
-        DELETION
+  public enum Operation {
+    ADDITION,
+    DELETION
+  }
+
+  public Mutation(String path) {
+    this.path = path;
+    this.value = null;
+  }
+
+  public Mutation(String path, Object value) {
+    this.path = path;
+    this.value = value;
+  }
+
+  public Mutation(String path, Object value, Operation operation) {
+    this.path = path;
+    this.value = value;
+    this.operation = operation;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getPath() {
+    return path;
+  }
+
+  public Object getValue() {
+    return value;
+  }
+
+  @JsonProperty("value")
+  @JacksonXmlProperty(localName = "value", namespace = DxfNamespaces.DXF_2_0)
+  public Object getLogValue() {
+    if (IdentifiableObject.class.isInstance(value) && !EmbeddedObject.class.isInstance(value)) {
+      return ((IdentifiableObject) value).getUid();
     }
 
-    public Mutation( String path )
-    {
-        this.path = path;
-        this.value = null;
-    }
+    return value;
+  }
 
-    public Mutation( String path, Object value )
-    {
-        this.path = path;
-        this.value = value;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Operation getOperation() {
+    return operation;
+  }
 
-    public Mutation( String path, Object value, Operation operation )
-    {
-        this.path = path;
-        this.value = value;
-        this.operation = operation;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getPath()
-    {
-        return path;
-    }
-
-    public Object getValue()
-    {
-        return value;
-    }
-
-    @JsonProperty( "value" )
-    @JacksonXmlProperty( localName = "value", namespace = DxfNamespaces.DXF_2_0 )
-    public Object getLogValue()
-    {
-        if ( IdentifiableObject.class.isInstance( value ) && !EmbeddedObject.class.isInstance( value ) )
-        {
-            return ((IdentifiableObject) value).getUid();
-        }
-
-        return value;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Operation getOperation()
-    {
-        return operation;
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "path", path )
-            .add( "operation", operation )
-            .add( "value", getLogValue() )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("path", path)
+        .add("operation", operation)
+        .add("value", getLogValue())
+        .toString();
+  }
 }

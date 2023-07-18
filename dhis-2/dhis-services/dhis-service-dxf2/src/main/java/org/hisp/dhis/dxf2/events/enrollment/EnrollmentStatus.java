@@ -34,60 +34,52 @@ import org.hisp.dhis.program.ProgramStatus;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum EnrollmentStatus
-{
-    ACTIVE( 0, ProgramStatus.ACTIVE ),
-    COMPLETED( 1, ProgramStatus.COMPLETED ),
-    CANCELLED( 2, ProgramStatus.CANCELLED );
+public enum EnrollmentStatus {
+  ACTIVE(0, ProgramStatus.ACTIVE),
+  COMPLETED(1, ProgramStatus.COMPLETED),
+  CANCELLED(2, ProgramStatus.CANCELLED);
 
-    private final int value;
+  private final int value;
 
-    private final ProgramStatus programStatus;
+  private final ProgramStatus programStatus;
 
-    EnrollmentStatus( int value, ProgramStatus programStatus )
-    {
-        this.value = value;
-        this.programStatus = programStatus;
+  EnrollmentStatus(int value, ProgramStatus programStatus) {
+    this.value = value;
+    this.programStatus = programStatus;
+  }
+
+  public int getValue() {
+    return value;
+  }
+
+  public ProgramStatus getProgramStatus() {
+    return programStatus;
+  }
+
+  public static EnrollmentStatus fromProgramStatus(ProgramStatus programStatus) {
+    switch (programStatus) {
+      case ACTIVE:
+        return ACTIVE;
+      case CANCELLED:
+        return CANCELLED;
+      case COMPLETED:
+        return COMPLETED;
     }
 
-    public int getValue()
-    {
-        return value;
-    }
+    throw new IllegalArgumentException("Enum value not found: " + programStatus);
+  }
 
-    public ProgramStatus getProgramStatus()
-    {
-        return programStatus;
+  public static EnrollmentStatus fromStatusString(String status) {
+    switch (status) {
+      case "ACTIVE":
+        return ACTIVE;
+      case "CANCELLED":
+        return CANCELLED;
+      case "COMPLETED":
+        return COMPLETED;
+      default:
+        // Do nothing and fail
     }
-
-    public static EnrollmentStatus fromProgramStatus( ProgramStatus programStatus )
-    {
-        switch ( programStatus )
-        {
-        case ACTIVE:
-            return ACTIVE;
-        case CANCELLED:
-            return CANCELLED;
-        case COMPLETED:
-            return COMPLETED;
-        }
-
-        throw new IllegalArgumentException( "Enum value not found: " + programStatus );
-    }
-
-    public static EnrollmentStatus fromStatusString( String status )
-    {
-        switch ( status )
-        {
-        case "ACTIVE":
-            return ACTIVE;
-        case "CANCELLED":
-            return CANCELLED;
-        case "COMPLETED":
-            return COMPLETED;
-        default:
-            // Do nothing and fail
-        }
-        throw new IllegalArgumentException( "Enum value not found for string: " + status );
-    }
+    throw new IllegalArgumentException("Enum value not found for string: " + status);
+  }
 }

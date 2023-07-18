@@ -38,10 +38,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -74,220 +74,211 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Sets;
+@ExtendWith(MockitoExtension.class)
+class SimpleEventSMSListenerTest extends CompressionSMSListenerTest {
 
-@ExtendWith( MockitoExtension.class )
-class SimpleEventSMSListenerTest extends
-    CompressionSMSListenerTest
-{
+  @Mock private UserService userService;
 
-    @Mock
-    private UserService userService;
+  @Mock private IncomingSmsService incomingSmsService;
 
-    @Mock
-    private IncomingSmsService incomingSmsService;
+  @Mock private MessageSender smsSender;
 
-    @Mock
-    private MessageSender smsSender;
+  @Mock private DataElementService dataElementService;
 
-    @Mock
-    private DataElementService dataElementService;
+  @Mock private TrackedEntityTypeService trackedEntityTypeService;
 
-    @Mock
-    private TrackedEntityTypeService trackedEntityTypeService;
+  @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Mock
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+  @Mock private ProgramService programService;
 
-    @Mock
-    private ProgramService programService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  @Mock private CategoryService categoryService;
 
-    @Mock
-    private CategoryService categoryService;
+  @Mock private ProgramStageInstanceService programStageInstanceService;
 
-    @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+  @Mock private IdentifiableObjectManager identifiableObjectManager;
 
-    @Mock
-    private IdentifiableObjectManager identifiableObjectManager;
+  private User user;
 
-    private User user;
+  private OutboundMessageResponse response = new OutboundMessageResponse();
 
-    private OutboundMessageResponse response = new OutboundMessageResponse();
+  private IncomingSms updatedIncomingSms;
 
-    private IncomingSms updatedIncomingSms;
+  private String message = "";
 
-    private String message = "";
+  // Needed for this test
 
-    // Needed for this test
+  @Mock private ProgramInstanceService programInstanceService;
 
-    @Mock
-    private ProgramInstanceService programInstanceService;
+  private SimpleEventSMSListener subject;
 
-    private SimpleEventSMSListener subject;
+  private IncomingSms incomingSmsSimpleEvent;
 
-    private IncomingSms incomingSmsSimpleEvent;
+  private IncomingSms incomingSmsSimpleEventWithNulls;
 
-    private IncomingSms incomingSmsSimpleEventWithNulls;
+  private IncomingSms incomingSmsSimpleEventNoValues;
 
-    private IncomingSms incomingSmsSimpleEventNoValues;
+  private OrganisationUnit organisationUnit;
 
-    private OrganisationUnit organisationUnit;
+  private CategoryOptionCombo categoryOptionCombo;
 
-    private CategoryOptionCombo categoryOptionCombo;
+  private DataElement dataElement;
 
-    private DataElement dataElement;
+  private Program program;
 
-    private Program program;
+  private ProgramStageInstance programStageInstance;
 
-    private ProgramStageInstance programStageInstance;
+  @BeforeEach
+  public void initTest() throws SmsCompressionException {
+    subject =
+        new SimpleEventSMSListener(
+            incomingSmsService,
+            smsSender,
+            userService,
+            trackedEntityTypeService,
+            trackedEntityAttributeService,
+            programService,
+            organisationUnitService,
+            categoryService,
+            dataElementService,
+            programStageInstanceService,
+            programInstanceService,
+            identifiableObjectManager);
 
-    @BeforeEach
-    public void initTest()
-        throws SmsCompressionException
-    {
-        subject = new SimpleEventSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
-            trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageInstanceService, programInstanceService, identifiableObjectManager );
+    setUpInstances();
 
-        setUpInstances();
+    when(userService.getUser(anyString())).thenReturn(user);
+    when(smsSender.isConfigured()).thenReturn(true);
+    when(smsSender.sendMessage(any(), any(), anyString()))
+        .thenAnswer(
+            invocation -> {
+              message = (String) invocation.getArguments()[1];
+              return response;
+            });
 
-        when( userService.getUser( anyString() ) ).thenReturn( user );
-        when( smsSender.isConfigured() ).thenReturn( true );
-        when( smsSender.sendMessage( any(), any(), anyString() ) ).thenAnswer( invocation -> {
-            message = (String) invocation.getArguments()[1];
-            return response;
-        } );
+    when(organisationUnitService.getOrganisationUnit(anyString())).thenReturn(organisationUnit);
+    when(programService.getProgram(anyString())).thenReturn(program);
+    lenient().when(dataElementService.getDataElement(anyString())).thenReturn(dataElement);
+    when(categoryService.getCategoryOptionCombo(anyString())).thenReturn(categoryOptionCombo);
 
-        when( organisationUnitService.getOrganisationUnit( anyString() ) ).thenReturn( organisationUnit );
-        when( programService.getProgram( anyString() ) ).thenReturn( program );
-        lenient().when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
-        when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
+    doAnswer(
+            invocation -> {
+              updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
+              return updatedIncomingSms;
+            })
+        .when(incomingSmsService)
+        .update(any());
 
-        doAnswer( invocation -> {
-            updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
-            return updatedIncomingSms;
-        } ).when( incomingSmsService ).update( any() );
+    when(programService.hasOrgUnit(any(Program.class), any(OrganisationUnit.class)))
+        .thenReturn(true);
+  }
 
-        when( programService.hasOrgUnit( any( Program.class ), any( OrganisationUnit.class ) ) ).thenReturn( true );
-    }
+  @Test
+  void testSimpleEvent() {
+    subject.receive(incomingSmsSimpleEvent);
 
-    @Test
-    void testSimpleEvent()
-    {
-        subject.receive( incomingSmsSimpleEvent );
+    assertNotNull(updatedIncomingSms);
+    assertTrue(updatedIncomingSms.isParsed());
+    assertEquals(SUCCESS_MESSAGE, message);
 
-        assertNotNull( updatedIncomingSms );
-        assertTrue( updatedIncomingSms.isParsed() );
-        assertEquals( SUCCESS_MESSAGE, message );
+    verify(incomingSmsService, times(1)).update(any());
+  }
 
-        verify( incomingSmsService, times( 1 ) ).update( any() );
-    }
+  @Test
+  void testSimpleEventRepeat() {
+    subject.receive(incomingSmsSimpleEvent);
+    subject.receive(incomingSmsSimpleEvent);
 
-    @Test
-    void testSimpleEventRepeat()
-    {
-        subject.receive( incomingSmsSimpleEvent );
-        subject.receive( incomingSmsSimpleEvent );
+    assertNotNull(updatedIncomingSms);
+    assertTrue(updatedIncomingSms.isParsed());
+    assertEquals(SUCCESS_MESSAGE, message);
 
-        assertNotNull( updatedIncomingSms );
-        assertTrue( updatedIncomingSms.isParsed() );
-        assertEquals( SUCCESS_MESSAGE, message );
+    verify(incomingSmsService, times(2)).update(any());
+  }
 
-        verify( incomingSmsService, times( 2 ) ).update( any() );
-    }
+  @Test
+  void testSimpleEventWithNulls() {
+    subject.receive(incomingSmsSimpleEventWithNulls);
 
-    @Test
-    void testSimpleEventWithNulls()
-    {
-        subject.receive( incomingSmsSimpleEventWithNulls );
+    assertNotNull(updatedIncomingSms);
+    assertTrue(updatedIncomingSms.isParsed());
+    assertEquals(SUCCESS_MESSAGE, message);
 
-        assertNotNull( updatedIncomingSms );
-        assertTrue( updatedIncomingSms.isParsed() );
-        assertEquals( SUCCESS_MESSAGE, message );
+    verify(incomingSmsService, times(1)).update(any());
+  }
 
-        verify( incomingSmsService, times( 1 ) ).update( any() );
-    }
+  @Test
+  void testSimpleEventNoValues() {
+    subject.receive(incomingSmsSimpleEventNoValues);
 
-    @Test
-    void testSimpleEventNoValues()
-    {
-        subject.receive( incomingSmsSimpleEventNoValues );
+    assertNotNull(updatedIncomingSms);
+    assertTrue(updatedIncomingSms.isParsed());
+    assertEquals(NOVALUES_MESSAGE, message);
 
-        assertNotNull( updatedIncomingSms );
-        assertTrue( updatedIncomingSms.isParsed() );
-        assertEquals( NOVALUES_MESSAGE, message );
+    verify(incomingSmsService, times(1)).update(any());
+  }
 
-        verify( incomingSmsService, times( 1 ) ).update( any() );
-    }
+  private void setUpInstances() throws SmsCompressionException {
+    organisationUnit = createOrganisationUnit('O');
+    program = createProgram('P');
+    ProgramStage programStage = createProgramStage('S', program);
 
-    private void setUpInstances()
-        throws SmsCompressionException
-    {
-        organisationUnit = createOrganisationUnit( 'O' );
-        program = createProgram( 'P' );
-        ProgramStage programStage = createProgramStage( 'S', program );
+    user = makeUser("U");
+    user.setPhoneNumber(ORIGINATOR);
+    user.setOrganisationUnits(Sets.newHashSet(organisationUnit));
 
-        user = makeUser( "U" );
-        user.setPhoneNumber( ORIGINATOR );
-        user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+    categoryOptionCombo = createCategoryOptionCombo('C');
+    dataElement = createDataElement('D');
 
-        categoryOptionCombo = createCategoryOptionCombo( 'C' );
-        dataElement = createDataElement( 'D' );
+    program.getOrganisationUnits().add(organisationUnit);
+    HashSet<ProgramStage> stages = new HashSet<>();
+    stages.add(programStage);
+    program.setProgramStages(stages);
 
-        program.getOrganisationUnits().add( organisationUnit );
-        HashSet<ProgramStage> stages = new HashSet<>();
-        stages.add( programStage );
-        program.setProgramStages( stages );
+    programStageInstance = new ProgramStageInstance();
+    programStageInstance.setAutoFields();
 
-        programStageInstance = new ProgramStageInstance();
-        programStageInstance.setAutoFields();
+    incomingSmsSimpleEvent = createSMSFromSubmission(createSimpleEventSubmission());
+    incomingSmsSimpleEventWithNulls =
+        createSMSFromSubmission(createSimpleEventSubmissionWithNulls());
+    incomingSmsSimpleEventNoValues = createSMSFromSubmission(createSimpleEventSubmissionNoValues());
+  }
 
-        incomingSmsSimpleEvent = createSMSFromSubmission( createSimpleEventSubmission() );
-        incomingSmsSimpleEventWithNulls = createSMSFromSubmission( createSimpleEventSubmissionWithNulls() );
-        incomingSmsSimpleEventNoValues = createSMSFromSubmission( createSimpleEventSubmissionNoValues() );
-    }
+  private SimpleEventSmsSubmission createSimpleEventSubmission() {
+    SimpleEventSmsSubmission subm = new SimpleEventSmsSubmission();
 
-    private SimpleEventSmsSubmission createSimpleEventSubmission()
-    {
-        SimpleEventSmsSubmission subm = new SimpleEventSmsSubmission();
+    subm.setUserId(user.getUid());
+    subm.setOrgUnit(organisationUnit.getUid());
+    subm.setEventProgram(program.getUid());
+    subm.setAttributeOptionCombo(categoryOptionCombo.getUid());
+    subm.setEvent(programStageInstance.getUid());
+    subm.setEventStatus(SmsEventStatus.COMPLETED);
+    subm.setEventDate(new Date());
+    subm.setDueDate(new Date());
+    subm.setCoordinates(new GeoPoint(59.9399586f, 10.7195609f));
 
-        subm.setUserId( user.getUid() );
-        subm.setOrgUnit( organisationUnit.getUid() );
-        subm.setEventProgram( program.getUid() );
-        subm.setAttributeOptionCombo( categoryOptionCombo.getUid() );
-        subm.setEvent( programStageInstance.getUid() );
-        subm.setEventStatus( SmsEventStatus.COMPLETED );
-        subm.setEventDate( new Date() );
-        subm.setDueDate( new Date() );
-        subm.setCoordinates( new GeoPoint( 59.9399586f, 10.7195609f ) );
+    ArrayList<SmsDataValue> values = new ArrayList<>();
+    values.add(new SmsDataValue(categoryOptionCombo.getUid(), dataElement.getUid(), "true"));
+    subm.setValues(values);
+    subm.setSubmissionId(1);
 
-        ArrayList<SmsDataValue> values = new ArrayList<>();
-        values.add( new SmsDataValue( categoryOptionCombo.getUid(), dataElement.getUid(), "true" ) );
-        subm.setValues( values );
-        subm.setSubmissionId( 1 );
+    return subm;
+  }
 
-        return subm;
-    }
+  private SimpleEventSmsSubmission createSimpleEventSubmissionWithNulls() {
+    SimpleEventSmsSubmission subm = createSimpleEventSubmission();
+    subm.setEventDate(null);
+    subm.setDueDate(null);
+    subm.setCoordinates(null);
 
-    private SimpleEventSmsSubmission createSimpleEventSubmissionWithNulls()
-    {
-        SimpleEventSmsSubmission subm = createSimpleEventSubmission();
-        subm.setEventDate( null );
-        subm.setDueDate( null );
-        subm.setCoordinates( null );
+    return subm;
+  }
 
-        return subm;
-    }
+  private SimpleEventSmsSubmission createSimpleEventSubmissionNoValues() {
+    SimpleEventSmsSubmission subm = createSimpleEventSubmission();
+    subm.setValues(null);
 
-    private SimpleEventSmsSubmission createSimpleEventSubmissionNoValues()
-    {
-        SimpleEventSmsSubmission subm = createSimpleEventSubmission();
-        subm.setValues( null );
-
-        return subm;
-    }
+    return subm;
+  }
 }
