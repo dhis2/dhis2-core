@@ -29,6 +29,7 @@ package org.hisp.dhis.helpers.file;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriterBuilder;
+import com.opencsv.exceptions.CsvException;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -42,17 +43,15 @@ import org.hisp.dhis.actions.IdGenerator;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class CsvFileReader implements org.hisp.dhis.helpers.file.FileReader {
-  private List<String[]> csvTable;
+  private final List<String[]> csvTable;
 
-  private CSVReader reader;
-
-  public CsvFileReader(File file) throws IOException {
-    reader = new CSVReader(new FileReader(file));
+  public CsvFileReader(File file) throws IOException, CsvException {
+    CSVReader reader = new CSVReader(new FileReader(file));
     csvTable = reader.readAll();
   }
 
   @Override
-  public org.hisp.dhis.helpers.file.FileReader read(File file) throws IOException {
+  public org.hisp.dhis.helpers.file.FileReader read(File file) throws IOException, CsvException {
     return new CsvFileReader(file);
   }
 
