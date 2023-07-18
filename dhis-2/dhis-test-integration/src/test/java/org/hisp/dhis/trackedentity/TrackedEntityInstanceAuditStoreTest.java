@@ -45,6 +45,32 @@ class TrackedEntityInstanceAuditStoreTest extends SingleSetupIntegrationTestBase
 
   @Autowired private TrackedEntityInstanceAuditStore store;
 
+  private final TrackedEntityInstanceAudit teiaA =
+      new TrackedEntityInstanceAudit("WGW7UnVcIIb", "Access", CREATED, "userA", AuditType.CREATE);
+  private final TrackedEntityInstanceAudit teiaB =
+      new TrackedEntityInstanceAudit("WGW7UnVcIIb", "Access", CREATED, "userB", AuditType.UPDATE);
+  private final TrackedEntityInstanceAudit teiaC =
+      new TrackedEntityInstanceAudit("zIAwTY3Drrn", "Access", CREATED, "userA", AuditType.UPDATE);
+  private final TrackedEntityInstanceAudit teiaD =
+      new TrackedEntityInstanceAudit("zIAwTY3Drrn", "Access", CREATED, "userB", AuditType.DELETE);
+
+  @Test
+  void shouldAuditTrackedEntity_whenAddAuditList() {
+    store.addTrackedEntityInstanceAudit(List.of(teiaA, teiaB, teiaC, teiaD));
+
+    TrackedEntityInstanceAuditQueryParams params =
+        new TrackedEntityInstanceAuditQueryParams()
+            .setTrackedEntityInstances(List.of("WGW7UnVcIIb"));
+
+    assertContainsOnly(List.of(teiaA, teiaB), store.getTrackedEntityInstanceAudits(params));
+
+    params =
+        new TrackedEntityInstanceAuditQueryParams()
+            .setTrackedEntityInstances(List.of("zIAwTY3Drrn"));
+
+    assertContainsOnly(List.of(teiaC, teiaD), store.getTrackedEntityInstanceAudits(params));
+  }
+
   @Test
   void testGetAuditsByParams() {
     TrackedEntityInstanceAudit teiaA =
