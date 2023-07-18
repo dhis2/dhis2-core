@@ -35,7 +35,11 @@ import org.apache.commons.lang3.ArrayUtils;
  *
  * @author Jim Grace
  */
-public abstract class VectorFunctionDoubleArray extends VectorFunction {
+public abstract class VectorFunctionDoubleArray extends VectorFunction<Double> {
+  protected VectorFunctionDoubleArray() {
+    super(Double.class);
+  }
+
   @Override
   public final Object aggregate(List<Double> values, List<Double> args) {
     return aggregate(ArrayUtils.toPrimitive(values.toArray(new Double[0])));
