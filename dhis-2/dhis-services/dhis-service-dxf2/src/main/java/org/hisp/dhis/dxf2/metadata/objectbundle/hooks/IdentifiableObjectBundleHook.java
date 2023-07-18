@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import lombok.AllArgsConstructor;
