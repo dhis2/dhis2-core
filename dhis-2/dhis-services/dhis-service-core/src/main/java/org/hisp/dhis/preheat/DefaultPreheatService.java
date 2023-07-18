@@ -337,7 +337,9 @@ public class DefaultPreheatService implements PreheatService
     {
         if ( dashboardItem.getEmbeddedItem() != null )
         {
-            mapItemObjectIDs.computeIfAbsent( dashboardItem.getEmbeddedItem().getClass(), key -> new HashSet<>() )
+            mapItemObjectIDs
+                .computeIfAbsent( HibernateProxyUtils.unproxy( dashboardItem.getEmbeddedItem() ).getClass(),
+                    key -> new HashSet<>() )
                 .add( dashboardItem.getEmbeddedItem().getUid() );
         }
 

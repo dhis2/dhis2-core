@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,47 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.useraccount.action;
+package org.hisp.dhis.security;
 
 import javax.servlet.http.HttpSession;
 
-import org.apache.struts2.ServletActionContext;
-import org.hisp.dhis.configuration.ConfigurationService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.web.session.HttpSessionCreatedEvent;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class IsSelfRegistrationAllowedAction
-    implements Action
+@Component
+@Slf4j
+@RequiredArgsConstructor
+public class DhisHttpSessionEventListener
 {
-    @Autowired
-    private ConfigurationService configurationService;
+    private final DhisConfigurationProvider config;
 
-    private String cspNonce = "";
-
-    public void setCspNonce( String cspNonce )
+    @EventListener
+    public void sessionCreated( HttpSessionCreatedEvent event )
     {
-        this.cspNonce = cspNonce;
-    }
-
-    public String getCspNonce()
-    {
-        return cspNonce;
-    }
-
-    @Override
-    public String execute()
-        throws Exception
-    {
-        HttpSession session = ServletActionContext.getRequest().getSession();
-        String nonce = (String) session.getAttribute( "nonce" );
-        setCspNonce( nonce );
-
-        boolean allowed = configurationService.getConfiguration().selfRegistrationAllowed();
-
-        return allowed ? SUCCESS : ERROR;
+        HttpSession session = event.getSession();
+        try
+        {
+            String property = config.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT );
+            session.setMaxInactiveInterval( Integer.parseInt( property ) );
+        }
+        catch ( Exception e )
+        {
+            session.setMaxInactiveInterval(
+                Integer.parseInt( ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue() ) );
+            log.error( "Could not read session timeout value from config", e );
+        }
     }
 }
