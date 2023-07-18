@@ -35,14 +35,14 @@ import java.util.Collection;
 import org.hisp.dhis.common.OpenApi;
 import org.junit.jupiter.api.Test;
 
-public class PropertyTest {
+class PropertyTest {
   @OpenApi.Property(value = String.class)
   private static class AProperty {}
 
   @JsonProperty private AProperty aProperty;
 
   @Test
-  public void testGetPropertiesGivenOpenApiPropertyAnnotatedClassThatHasValueSet() {
+  void testGetPropertiesGivenOpenApiPropertyAnnotatedClassThatHasValueSet() {
     Collection<Property> properties = Property.getProperties(PropertyTest.class);
     assertEquals(String.class, new ArrayList<>(properties).get(0).getType());
   }
