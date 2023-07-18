@@ -105,54 +105,51 @@ public class HibernateConfig {
     return cacheManager;
   }
 
-    @Bean( "sessionFactory" )
-    @Primary
-    public SessionFactory sessionFactory( @Qualifier( "entityManagerFactory" ) EntityManagerFactory entityManager )
-    {
-        return entityManager.unwrap( SessionFactory.class );
-    }
+  @Bean("sessionFactory")
+  @Primary
+  public SessionFactory sessionFactory(
+      @Qualifier("entityManagerFactory") EntityManagerFactory entityManager) {
+    return entityManager.unwrap(SessionFactory.class);
+  }
 
-    @Bean
-    public DbmsManager dbmsManager( JdbcTemplate jdbcTemplate,
-        EntityManagerFactory entityManagerFactory,
-        DefaultHibernateCacheManager cacheManager )
-    {
-        HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
-        hibernateDbmsManager.setCacheManager( cacheManager );
-        hibernateDbmsManager.setSessionFactory( entityManagerFactory.unwrap( SessionFactory.class ) );
-        hibernateDbmsManager.setJdbcTemplate( jdbcTemplate );
-        return hibernateDbmsManager;
-    }
+  @Bean
+  public DbmsManager dbmsManager(
+      JdbcTemplate jdbcTemplate,
+      EntityManagerFactory entityManagerFactory,
+      DefaultHibernateCacheManager cacheManager) {
+    HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
+    hibernateDbmsManager.setCacheManager(cacheManager);
+    hibernateDbmsManager.setSessionFactory(entityManagerFactory.unwrap(SessionFactory.class));
+    hibernateDbmsManager.setJdbcTemplate(jdbcTemplate);
+    return hibernateDbmsManager;
+  }
 
-    @Bean
-    public BeanFactoryPostProcessor entityManagerBeanDefinitionRegistrarPostProcessor()
-    {
-        return new EntityManagerBeanDefinitionRegistrarPostProcessor();
-    }
+  @Bean
+  public BeanFactoryPostProcessor entityManagerBeanDefinitionRegistrarPostProcessor() {
+    return new EntityManagerBeanDefinitionRegistrarPostProcessor();
+  }
 
-    @Bean( "entityManagerFactory" )
-    @DependsOn( { "flyway" } )
-    public EntityManagerFactory entityManagerFactoryBean( DhisConfigurationProvider config,
-        DataSource dataSource )
-        throws IOException
-    {
-        HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
-        adapter.setDatabasePlatform( config.getProperty( ConfigurationKey.CONNECTION_DIALECT ) );
-        adapter.setGenerateDdl( false );
-        adapter.setShowSql( false );
-        LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
-        factory.setJpaVendorAdapter( adapter );
-        factory.setPersistenceUnitName( "dhis" );
-        factory.setPersistenceProvider( new org.hibernate.jpa.HibernatePersistenceProvider() );
-        factory.setDataSource( dataSource );
-        factory.setPackagesToScan( "org.hisp.dhis" );
-        factory.setSharedCacheMode( SharedCacheMode.ENABLE_SELECTIVE );
-        factory.setValidationMode( ValidationMode.NONE );
-        factory.setJpaProperties( getAdditionalProperties( config ) );
-        factory.setMappingResources( loadResources() );
-        factory.afterPropertiesSet();
-        return factory.getObject();
-    }
+  @Bean("entityManagerFactory")
+  @DependsOn({"flyway"})
+  public EntityManagerFactory entityManagerFactoryBean(
+      DhisConfigurationProvider config, DataSource dataSource) throws IOException {
+    HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
+    adapter.setDatabasePlatform(config.getProperty(ConfigurationKey.CONNECTION_DIALECT));
+    adapter.setGenerateDdl(false);
+    adapter.setShowSql(false);
+    LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+    factory.setJpaVendorAdapter(adapter);
+    factory.setPersistenceUnitName("dhis");
+    factory.setPersistenceProvider(new org.hibernate.jpa.HibernatePersistenceProvider());
+    factory.setDataSource(dataSource);
+    factory.setPackagesToScan("org.hisp.dhis");
+    factory.setSharedCacheMode(SharedCacheMode.ENABLE_SELECTIVE);
+    factory.setValidationMode(ValidationMode.NONE);
+    factory.setJpaProperties(getAdditionalProperties(config));
+    factory.setMappingResources(loadResources());
+    factory.afterPropertiesSet();
+    return factory.getObject();
+  }
 
   /**
    * Returns additional properties to be used by the {@link LocalContainerEntityManagerFactoryBean}
