@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
+import static org.hisp.dhis.tracker.imports.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.imports.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.imports.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.webapi.common.UID;
 import org.junit.jupiter.api.Test;
 
@@ -117,5 +121,65 @@ class RelationshipRequestParamsMapperTest {
     assertEquals(
         "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
         exception.getMessage());
+  }
+
+  @Test
+  void shouldMapCorrectIdentifierWhenTrackedEntityIsSet() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
+
+    RelationshipOperationParams operationParams = mapper.map(requestParams);
+
+    assertEquals("Hq3Kc6HK4OZ", operationParams.getIdentifier());
+  }
+
+  @Test
+  void shouldMapCorrectTypeWhenTrackedEntityIsSet() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
+
+    RelationshipOperationParams operationParams = mapper.map(requestParams);
+
+    assertEquals(TRACKED_ENTITY, operationParams.getType());
+  }
+
+  @Test
+  void shouldMapCorrectIdentifierWhenEnrollmentIsSet() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
+
+    RelationshipOperationParams operationParams = mapper.map(requestParams);
+
+    assertEquals("Hq3Kc6HK4OZ", operationParams.getIdentifier());
+  }
+
+  @Test
+  void shouldMapCorrectTypeWhenEnrollmentIsSet() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
+
+    RelationshipOperationParams operationParams = mapper.map(requestParams);
+
+    assertEquals(ENROLLMENT, operationParams.getType());
+  }
+
+  @Test
+  void shouldMapCorrectIdentifierWhenEventIsSet() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setEvent(UID.of("Hq3Kc6HK4OZ"));
+
+    RelationshipOperationParams operationParams = mapper.map(requestParams);
+
+    assertEquals("Hq3Kc6HK4OZ", operationParams.getIdentifier());
+  }
+
+  @Test
+  void shouldMapCorrectTypeWhenEventIsSet() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setEvent(UID.of("Hq3Kc6HK4OZ"));
+
+    RelationshipOperationParams operationParams = mapper.map(requestParams);
+
+    assertEquals(EVENT, operationParams.getType());
   }
 }

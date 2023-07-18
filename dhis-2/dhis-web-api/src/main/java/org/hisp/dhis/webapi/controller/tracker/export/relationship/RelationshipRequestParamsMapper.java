@@ -28,56 +28,73 @@
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.hisp.dhis.tracker.imports.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.imports.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.imports.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 
+import java.util.Objects;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
+import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.webapi.common.UID;
 import org.springframework.stereotype.Component;
 
 /**
- * Maps query parameters from {@link RelationshipsExportController} stored in {@link
- * LegacyRequestParams} to {@link RelationshipOperationParams} which is used to fetch events from
- * the DB.
+ * Maps operation parameters from {@link RelationshipsExportController} stored in {@link
+ * RequestParams} to {@link RelationshipOperationParams} which is used to fetch relationships from
+ * the service.
  */
 @Component
 @RequiredArgsConstructor
 class RelationshipRequestParamsMapper {
+
+  private static boolean hasMoreThanOneParamNotNull(UID trackedEntity, UID enrollment, UID event) {
+    return Stream.of(trackedEntity, enrollment, event).filter(Objects::nonNull).count() > 1;
+  }
 
   public RelationshipOperationParams map(RequestParams requestParams) throws BadRequestException {
     UID trackedEntity =
         validateDeprecatedParameter(
             "tei", requestParams.getTei(), "trackedEntity", requestParams.getTrackedEntity());
 
-    int count = 0;
-    if (trackedEntity != null) {
-      count++;
-    }
-    if (requestParams.getEnrollment() != null) {
-      count++;
-    }
-    if (requestParams.getEvent() != null) {
-      count++;
-    }
-
-    if (count == 0) {
+    if (ObjectUtils.allNotNull(
+        trackedEntity, requestParams.getEnrollment(), requestParams.getEvent())) {
       throw new BadRequestException(
           "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.");
-    } else if (count > 1) {
+    }
+
+    if (hasMoreThanOneParamNotNull(
+        trackedEntity, requestParams.getEnrollment(), requestParams.getEvent())) {
       throw new BadRequestException(
           "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.");
     }
 
     return RelationshipOperationParams.builder()
-        .trackedEntity(trackedEntity == null ? null : trackedEntity.getValue())
-        .enrollment(
-            requestParams.getEnrollment() == null ? null : requestParams.getEnrollment().getValue())
-        .event(requestParams.getEvent() == null ? null : requestParams.getEvent().getValue())
+        .type(
+            getTrackerType(trackedEntity, requestParams.getEnrollment(), requestParams.getEvent()))
+        .identifier(
+            ObjectUtils.firstNonNull(
+                    trackedEntity, requestParams.getEnrollment(), requestParams.getEvent())
+                .getValue())
         .page(requestParams.getPage())
         .pageSize(requestParams.getPageSize())
         .totalPages(requestParams.isTotalPages())
         .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
         .build();
+  }
+
+  private TrackerType getTrackerType(UID trackedEntity, UID enrollment, UID event) {
+    if (Objects.nonNull(trackedEntity)) {
+      return TRACKED_ENTITY;
+    } else if (Objects.nonNull(enrollment)) {
+      return ENROLLMENT;
+    } else if (Objects.nonNull(event)) {
+      return EVENT;
+    }
+    return null;
   }
 }

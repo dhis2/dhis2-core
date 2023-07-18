@@ -31,6 +31,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import org.hisp.dhis.tracker.imports.TrackerType;
 
 @Getter
 @Builder(toBuilder = true)
@@ -49,11 +50,9 @@ public class RelationshipOperationParams {
 
   private boolean skipPaging;
 
-  private String trackedEntity;
+  private TrackerType type;
 
-  private String enrollment;
-
-  private String event;
+  private String identifier;
 
   public boolean isPaging() {
     return page != null || pageSize != null;
