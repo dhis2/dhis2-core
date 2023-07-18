@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridResponse;
 import org.hisp.dhis.common.OpenApi;
@@ -73,7 +72,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping(value = SqlViewSchemaDescriptor.API_ENDPOINT)
 @RequiredArgsConstructor
-@Slf4j
 public class SqlViewController extends AbstractCrudController<SqlView> {
   private final SqlViewService sqlViewService;
 
