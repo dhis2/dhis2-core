@@ -54,7 +54,6 @@ public class DefaultValidator implements Validator<TrackerBundle> {
   private final RelationshipValidator relationshipValidator;
 
   private Validator<TrackerBundle> bundleValidator() {
-    // @formatter:off
     return all(trackedEntityValidator, enrollmentValidator, eventValidator, relationshipValidator);
   }
 

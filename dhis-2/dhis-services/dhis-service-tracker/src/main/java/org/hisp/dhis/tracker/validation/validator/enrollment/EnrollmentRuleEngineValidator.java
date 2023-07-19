@@ -44,9 +44,7 @@ public class EnrollmentRuleEngineValidator implements Validator<TrackerBundle> {
 
   public EnrollmentRuleEngineValidator(
       RuleEngineValidator ruleValidator, AttributeValidator attributeValidator) {
-    // @formatter:off
     validator = each(TrackerBundle::getEnrollments, all(ruleValidator, attributeValidator));
-    // @formatter:on
   }
 
   @Override
