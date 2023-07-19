@@ -75,8 +75,7 @@ class OptionControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testImportOptionWithoutSortOrder()
-  {
+  void testImportOptionWithoutSortOrder() {
     String id =
         assertStatus(
             HttpStatus.CREATED,
@@ -97,12 +96,9 @@ class OptionControllerTest extends DhisControllerConvenienceTest {
             "{'optionSet': { 'id':'"
                 + id
                 + "'},'id':'BQMei56UBl6','code': 'B', 'name': 'Betta', 'description': 'this-is-b'}"));
-    JsonOptionSet set =
-        GET("/optionSets/{id}", id)
-            .content()
-            .as(JsonOptionSet.class);
-    assertEquals( "Uh4HvjK6zg3", set.getOptions().get(0).getId());
-    assertEquals( "BQMei56UBl6", set.getOptions().get(1).getId());
+    JsonOptionSet set = GET("/optionSets/{id}", id).content().as(JsonOptionSet.class);
+    assertEquals("Uh4HvjK6zg3", set.getOptions().get(0).getId());
+    assertEquals("BQMei56UBl6", set.getOptions().get(1).getId());
   }
 
   @Test
