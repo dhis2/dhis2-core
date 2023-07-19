@@ -161,7 +161,7 @@
     <batik-transcoder.version>1.16</batik-transcoder.version>
     <batik-codec.version>1.14</batik-codec.version>
     <fop.version>2.5</fop.version>
-    <mapstruct.version>1.4.2.Final</mapstruct.version>
+    <mapstruct.version>1.5.5.Final</mapstruct.version>
     <geotools.version>26.2</geotools.version>
     <jts.version>1.16.1</jts.version>
 
