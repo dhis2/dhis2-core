@@ -715,7 +715,8 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     }
 
     // Populate grid.
-    this.populateGridColumnsAndRows(periodDate, user, organisationUnitsAtLevel, organisationUnitsInGroups, format);
+    this.populateGridColumnsAndRows(
+        periodDate, user, organisationUnitsAtLevel, organisationUnitsInGroups, format);
   }
 
   private void initializeChart(
@@ -820,8 +821,8 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   }
 
   /**
-   * Based on the given arguments, this method will populate the current
-   * "gridColumns" and "gridRows" objects. It also sets the title of the grid ("gridTitle").
+   * Based on the given arguments, this method will populate the current "gridColumns" and
+   * "gridRows" objects. It also sets the title of the grid ("gridTitle").
    *
    * @param periodDate the {@link Date} related to the period.
    * @param user the current {@link User}.
@@ -844,7 +845,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
         tableColumns.add(
             getDimensionalObject(
                     dimension,
-                periodDate,
+                    periodDate,
                     user,
                     false,
                     organisationUnitsAtLevel,
@@ -859,7 +860,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
         tableRows.add(
             getDimensionalObject(
                     dimension,
-                periodDate,
+                    periodDate,
                     user,
                     true,
                     organisationUnitsAtLevel,
@@ -874,7 +875,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
         filterItems.addAll(
             getDimensionalObject(
                     filter,
-                periodDate,
+                    periodDate,
                     user,
                     true,
                     organisationUnitsAtLevel,
@@ -1048,11 +1049,13 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   /**
    * Adds the values to the given {@link Grid}, based on the map of values and list of row.
+   *
    * @param grid the {@link Grid}.
    * @param valueMap the map of values.
    * @param rows the list of {@link DimensionalItemObject}.
    */
-  private void addValuesForDimensions(Grid grid, Map<String, Object> valueMap, List<DimensionalItemObject> rows) {
+  private void addValuesForDimensions(
+      Grid grid, Map<String, Object> valueMap, List<DimensionalItemObject> rows) {
     boolean hasValue = false;
 
     for (List<DimensionalItemObject> column : gridColumns) {
@@ -1076,7 +1079,8 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    * @param reportParamColumns if true, the values are added to the grid.
    * @param rows the list of rows necessary to evaluate one of the values.
    */
-  private void addValuesForReport(Grid grid, boolean reportParamColumns, List<DimensionalItemObject> rows) {
+  private void addValuesForReport(
+      Grid grid, boolean reportParamColumns, List<DimensionalItemObject> rows) {
     if (reportParamColumns) {
       grid.addValue(visualizationPeriodName);
       grid.addValue(getParentOrganisationUnitName());
@@ -1091,8 +1095,8 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    * @param displayProperty the current {@link DisplayProperty}.
    * @param rows the rows where the values are living.
    */
-  private static void addValuesForMetadata(Grid grid, DisplayProperty displayProperty,
-      List<DimensionalItemObject> rows) {
+  private static void addValuesForMetadata(
+      Grid grid, DisplayProperty displayProperty, List<DimensionalItemObject> rows) {
     for (DimensionalItemObject object : rows) {
       grid.addValue(object.getDimensionItem());
       grid.addValue(object.getDisplayProperty(displayProperty));
@@ -1142,8 +1146,8 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   }
 
   /**
-   * Adds headers into the given {@link Grid} based on the current list of "rowDimensions".
-   * It also populates the metadata so, it can be used to extract names for the header.
+   * Adds headers into the given {@link Grid} based on the current list of "rowDimensions". It also
+   * populates the metadata so, it can be used to extract names for the header.
    *
    * @param grid the {@link Grid}.
    */
@@ -1179,7 +1183,8 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    * Generates a pretty column name based on the given display property of the argument objects.
    * Null arguments are ignored in the name.
    */
-  public static String getPrettyColumnName(List<DimensionalItemObject> objects, DisplayProperty displayProperty) {
+  public static String getPrettyColumnName(
+      List<DimensionalItemObject> objects, DisplayProperty displayProperty) {
     StringBuilder builder = new StringBuilder();
 
     for (DimensionalItemObject object : objects) {
@@ -1194,8 +1199,9 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    * Generates a column name based on short-names of the argument objects. Null arguments are
    * ignored in the name.
    *
-   * <p>The period column name must be static when on columns, so it can be re-used in reports, hence
-   * the name property is used which will be formatted only when the period dimension is on rows.
+   * <p>The period column name must be static when on columns, so it can be re-used in reports,
+   * hence the name property is used which will be formatted only when the period dimension is on
+   * rows.
    */
   public static String getColumnName(List<DimensionalItemObject> objects) {
     StringBuilder sb = new StringBuilder();

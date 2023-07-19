@@ -123,12 +123,14 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   /** Line and axis labels. */
   protected String domainAxisLabel;
+
   protected String rangeAxisLabel;
   protected String baseLineLabel;
   protected String targetLineLabel;
 
   /** Line and axis values. */
   protected Double targetLineValue;
+
   protected Double baseLineValue;
   protected Double rangeAxisMaxValue;
   protected Double rangeAxisMinValue;
