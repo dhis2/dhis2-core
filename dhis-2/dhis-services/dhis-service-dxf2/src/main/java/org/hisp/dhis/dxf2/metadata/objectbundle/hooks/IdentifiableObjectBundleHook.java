@@ -109,6 +109,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
         .filter(
             p ->
                 p.getKlass().isAssignableFrom(List.class)
+                    && p.getItemKlass() != null
                     && SortableObject.class.isAssignableFrom(p.getItemKlass())
                     && schemaService
                         .getDynamicSchema(p.getItemKlass())
