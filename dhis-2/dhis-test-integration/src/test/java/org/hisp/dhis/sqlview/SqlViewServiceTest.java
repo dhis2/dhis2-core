@@ -292,7 +292,7 @@ class SqlViewServiceTest extends TransactionalIntegrationTest
 
         assertIllegalQueryEx(
             assertThrows( IllegalQueryException.class,
-                () -> sqlViewService.getSqlViewGrid( sqlView, null, null, null, null ) ),
+                () -> sqlViewService.getSqlViewGridReadOnly( sqlView, null, null, null, null ) ),
             ErrorCode.E4311 );
     }
 
@@ -313,7 +313,7 @@ class SqlViewServiceTest extends TransactionalIntegrationTest
         // but we lack sharing to view the result grid
         assertIllegalQueryEx(
             assertThrows( IllegalQueryException.class,
-                () -> sqlViewService.getSqlViewGrid( sqlView, null, null, null, null ) ),
+                () -> sqlViewService.getSqlViewGridReadOnly( sqlView, null, null, null, null ) ),
             ErrorCode.E4312 );
     }
 
@@ -405,7 +405,7 @@ class SqlViewServiceTest extends TransactionalIntegrationTest
             "${_current_user_id} as id, ${ten} as value",
             SqlViewType.QUERY );
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, null, variables, null, null );
+        Grid grid = sqlViewService.getSqlViewGridReadOnly( sqlView, null, variables, null, null );
 
         String username = admin.getUsername();
         long id = admin.getId();

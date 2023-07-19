@@ -44,6 +44,8 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridResponse;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -82,6 +84,8 @@ public class SqlViewController
     private final JobConfigurationService jobConfigurationService;
 
     private final ContextUtils contextUtils;
+
+    private final DhisConfigurationProvider dhisConfig;
 
     // -------------------------------------------------------------------------
     // Get
@@ -205,7 +209,11 @@ public class SqlViewController
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-        return sqlViewService.getSqlViewGrid( sqlView, getCriteria( criteria ), getCriteria( vars ), filters, fields );
+        return dhisConfig.isEnabled(ConfigurationKey.SYSTEM_SQL_VIEW_WRITE_ENABLED)
+            ? sqlViewService.getSqlViewGridWritesAllowed(
+            sqlView, getCriteria(criteria), getCriteria(vars), filters, fields)
+            : sqlViewService.getSqlViewGridReadOnly(
+            sqlView, getCriteria(criteria), getCriteria(vars), filters, fields);
     }
 
     // -------------------------------------------------------------------------

@@ -71,6 +71,11 @@ public enum ConfigurationKey
     SYSTEM_SQL_VIEW_TABLE_PROTECTION( "system.sql_view_table_protection", Constants.ON, false ),
 
     /**
+     * SQL view write enabled, can be 'on', 'off'. (default: off)
+     */
+    SYSTEM_SQL_VIEW_WRITE_ENABLED("system.sql_view_write_enabled", ConfigurationKey.Constants.OFF, false),
+
+    /**
      * Disable server-side program rule execution, can be 'on', 'off'. <br />
      * (default: on)
      */
