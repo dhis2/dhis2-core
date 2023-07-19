@@ -97,11 +97,12 @@ public class OptionSetTests extends ApiTest {
 
   @Test
   public void shouldAddOptions() {
+
+    String createdOptionSet = createOptionSet();
     String option1 = createOption(createdOptionSet);
     String option2 = createOption(createdOptionSet);
 
     ApiResponse response = optionActions.optionSetActions.get(createdOptionSet);
-
     response
         .validate()
         .statusCode(200)
