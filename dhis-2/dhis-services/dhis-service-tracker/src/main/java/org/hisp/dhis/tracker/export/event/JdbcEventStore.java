@@ -366,7 +366,7 @@ public class JdbcEventStore implements EventStore {
                     resultSet.getString("psi_lastupdatedbyuserinfo"), jsonMapper));
 
             event.setCompletedBy(resultSet.getString("psi_completedby"));
-            event.setCompletedDate(resultSet.getDate("psi_completeddate"));
+            event.setCompletedDate(resultSet.getTimestamp("psi_completeddate"));
 
             if (resultSet.getObject("psi_geometry") != null) {
               try {
