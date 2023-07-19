@@ -78,11 +78,9 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.HideEmptyItemStrategy;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.RegressionType;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -97,6 +95,7 @@ import org.springframework.util.Assert;
 
 @JacksonXmlRootElement(localName = "visualization", namespace = DXF_2_0)
 public class Visualization extends BaseAnalyticalObject implements MetadataObject {
+
   public static final String REPORTING_MONTH_COLUMN_NAME = "reporting_month_name";
 
   public static final String PARAM_ORGANISATIONUNIT_COLUMN_NAME = "param_organisationunit_name";
@@ -111,6 +110,9 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   public static final String TOTAL_COLUMN_PRETTY_NAME = "Total";
 
   public static final String EMPTY = "";
+
+  /** Sorting constant that represents "no" sorting. */
+  private static final int NONE = 0;
 
   private static final String ILLEGAL_FILENAME_CHARS_REGEX = "[/\\?%*:|\"'<>.]";
 
@@ -140,26 +142,8 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   /** Dimensions to use as rows. */
   private List<String> rowDimensions = new ArrayList<>();
 
-  /** Dimensions to use as filter. */
-  private List<String> filterDimensions = new ArrayList<>();
-
-  /** Indicates rendering of row totals for the table. */
-  private boolean rowTotals;
-
-  /** Indicates rendering of column totals for the table. */
-  private boolean colTotals;
-
-  /** Indicates rendering of row sub-totals for the table. */
-  private boolean rowSubTotals;
-
-  /** Indicates rendering of column sub-totals for the table. */
-  private boolean colSubTotals;
-
   /** The number type. */
   private NumberType numberType;
-
-  /** The regression type. */
-  private RegressionType regressionType = RegressionType.NONE;
 
   /**
    * List of {@link Series}. Refers to the dimension items in the first dimension of the "columns"
@@ -174,22 +158,8 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   // Display definitions
   // -------------------------------------------------------------------------
 
-  /*
-   * # The display strategy for empty row items.
-   */
-  private HideEmptyItemStrategy hideEmptyRowItems = HideEmptyItemStrategy.NONE;
-
-  /** The display density of the text. */
-  private DisplayDensity displayDensity;
-
-  /** The font size of the text. */
-  private FontSize fontSize;
-
   /** The list of optional axes for this visualization. */
   private List<Axis> optionalAxes = new ArrayList<>();
-
-  /** The legend and legend set definitions. */
-  private LegendDefinitions legendDefinitions;
 
   /** The font style for various components of the visualization. */
   private VisualizationFontStyle fontStyle;
@@ -206,26 +176,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   // Display items for graphics/charts
   // -------------------------------------------------------------------------
 
-  private transient Double targetLineValue;
-
-  private transient Double baseLineValue;
-
-  private transient String baseLineLabel;
-
-  private transient String targetLineLabel;
-
-  private transient Double rangeAxisMaxValue;
-
-  private transient Double rangeAxisMinValue;
-
-  private transient Integer rangeAxisSteps; // Minimum 1
-
-  private transient Integer rangeAxisDecimals;
-
-  private transient String domainAxisLabel;
-
-  private transient String rangeAxisLabel;
-
   private SeriesKey seriesKey;
 
   private List<AxisV2> axes = new ArrayList<>();
@@ -240,9 +190,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   // Flags
   // -------------------------------------------------------------------------
 
-  /** Used by charts to hide or not data/values within the rendered model. */
-  private boolean showData;
-
   /** Apply or not rounding. */
   private boolean skipRounding;
 
@@ -251,21 +198,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    * to pivot and reports.
    */
   private boolean regression;
-
-  /** Indicates whether the visualization contains cumulative values or columns. */
-  private boolean cumulativeValues;
-
-  /** User stacked values or not. Very likely to be applied for graphics/charts. */
-  private boolean percentStackedValues;
-
-  /** Indicates showing organisation unit hierarchy names. */
-  private boolean showHierarchy;
-
-  /** Indicates showing organisation unit hierarchy names. */
-  private boolean showDimensionLabels;
-
-  /** Indicates whether to hide rows with no data values. */
-  private boolean hideEmptyRows;
 
   /** Indicates whether to hide columns with no data values. */
   private boolean hideEmptyColumns;
@@ -276,25 +208,11 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   /** Fixes (or not) the pivot table row headers. */
   private boolean fixRowHeaders;
 
-  /** Show/hide the legend. Very likely to be used by graphics/charts. */
-  private boolean hideLegend;
-
-  /** Show/hide space between columns. */
-  private boolean noSpaceBetweenColumns;
-
   // -------------------------------------------------------------------------
   // Non-persisted attributes, used for internal operation/rendering phase
   // -------------------------------------------------------------------------
 
-  private transient I18nFormat format;
-
   private transient List<Period> relativePeriodsList = new ArrayList<>();
-
-  private transient User relativeUser;
-
-  private transient List<OrganisationUnit> organisationUnitsAtLevel = new ArrayList<>();
-
-  private transient List<OrganisationUnit> organisationUnitsInGroups = new ArrayList<>();
 
   /** The name of the visualization (monthly based). */
   private transient String visualizationPeriodName;
@@ -310,9 +228,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   private transient List<DimensionalObject> rows = new ArrayList<>();
 
   private transient List<DimensionalObject> filters = new ArrayList<>();
-
-  /** Used to return tabular data, mainly related to analytics queries. */
-  private transient Grid dataItemGrid = null;
 
   /** The title for a possible tabulated data. */
   private transient String gridTitle;
@@ -460,17 +375,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   }
 
   @JsonProperty
-  @JacksonXmlElementWrapper(localName = "filterDimensions", namespace = DXF_2_0)
-  @JacksonXmlProperty(localName = "filterDimension", namespace = DXF_2_0)
-  public List<String> getFilterDimensions() {
-    return filterDimensions;
-  }
-
-  public void setFilterDimensions(List<String> filterDimensions) {
-    this.filterDimensions = filterDimensions;
-  }
-
-  @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
   public ReportingParams getReportingParams() {
     return reportingParams;
@@ -498,66 +402,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   public void setRegression(boolean regression) {
     this.regression = regression;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isCumulativeValues() {
-    return cumulativeValues;
-  }
-
-  public void setCumulativeValues(boolean cumulativeValues) {
-    this.cumulativeValues = cumulativeValues;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isRowTotals() {
-    return rowTotals;
-  }
-
-  public void setRowTotals(boolean rowTotals) {
-    this.rowTotals = rowTotals;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isColTotals() {
-    return colTotals;
-  }
-
-  public void setColTotals(boolean colTotals) {
-    this.colTotals = colTotals;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isRowSubTotals() {
-    return rowSubTotals;
-  }
-
-  public void setRowSubTotals(boolean rowSubTotals) {
-    this.rowSubTotals = rowSubTotals;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isColSubTotals() {
-    return colSubTotals;
-  }
-
-  public void setColSubTotals(boolean colSubTotals) {
-    this.colSubTotals = colSubTotals;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isHideEmptyRows() {
-    return hideEmptyRows;
-  }
-
-  public void setHideEmptyRows(boolean hideEmptyRows) {
-    this.hideEmptyRows = hideEmptyRows;
   }
 
   @JsonProperty
@@ -596,18 +440,10 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     return DefaultValue.defaultIfNull(displayDensity);
   }
 
-  public void setDisplayDensity(DisplayDensity displayDensity) {
-    this.displayDensity = displayDensity;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
   public FontSize getFontSize() {
     return DefaultValue.defaultIfNull(fontSize);
-  }
-
-  public void setFontSize(FontSize fontSize) {
-    this.fontSize = fontSize;
   }
 
   @JsonProperty("optionalAxes")
@@ -632,16 +468,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     this.icons = icons;
   }
 
-  @JsonProperty("legend")
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public LegendDefinitions getLegendDefinitions() {
-    return legendDefinitions;
-  }
-
-  public void setLegendDefinitions(LegendDefinitions legendDefinitions) {
-    this.legendDefinitions = legendDefinitions;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
   public NumberType getNumberType() {
@@ -654,37 +480,12 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isShowHierarchy() {
-    return showHierarchy;
-  }
-
-  public void setShowHierarchy(boolean showHierarchy) {
-    this.showHierarchy = showHierarchy;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isShowDimensionLabels() {
-    return showDimensionLabels;
-  }
-
-  public void setShowDimensionLabels(boolean showDimensionLabels) {
-    this.showDimensionLabels = showDimensionLabels;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
   public boolean isSkipRounding() {
     return skipRounding;
   }
 
   public void setSkipRounding(boolean skipRounding) {
     this.skipRounding = skipRounding;
-  }
-
-  @JsonIgnore
-  public I18nFormat getFormat() {
-    return format;
   }
 
   public void setFormat(I18nFormat format) {
@@ -698,38 +499,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   public void setRelativePeriodsList(List<Period> relativePeriodsList) {
     this.relativePeriodsList = relativePeriodsList;
-  }
-
-  @JsonIgnore
-  public User getRelativeUser() {
-    return relativeUser;
-  }
-
-  public void setRelativeUser(User relativeUser) {
-    this.relativeUser = relativeUser;
-  }
-
-  @JsonIgnore
-  public List<OrganisationUnit> getOrganisationUnitsAtLevel() {
-    return organisationUnitsAtLevel;
-  }
-
-  public void setOrganisationUnitsAtLevel(List<OrganisationUnit> organisationUnitsAtLevel) {
-    this.organisationUnitsAtLevel = organisationUnitsAtLevel;
-  }
-
-  @JsonIgnore
-  public List<OrganisationUnit> getOrganisationUnitsInGroups() {
-    return organisationUnitsInGroups;
-  }
-
-  public void setOrganisationUnitsInGroups(List<OrganisationUnit> organisationUnitsInGroups) {
-    this.organisationUnitsInGroups = organisationUnitsInGroups;
-  }
-
-  @JsonIgnore
-  public Grid getDataItemGrid() {
-    return dataItemGrid;
   }
 
   public void setDataItemGrid(Grid dataItemGrid) {
@@ -776,16 +545,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     return this;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public RegressionType getRegressionType() {
-    return regressionType;
-  }
-
-  public void setRegressionType(RegressionType regressionType) {
-    this.regressionType = regressionType;
-  }
-
   @JsonProperty("series")
   @JacksonXmlElementWrapper(localName = "series", namespace = DXF_2_0)
   @JacksonXmlProperty(localName = "seriesItem", namespace = DXF_2_0)
@@ -810,10 +569,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     return getTranslation("domainAxisLabel", getDomainAxisLabel());
   }
 
-  public void setDomainAxisLabel(String domainAxisLabel) {
-    this.domainAxisLabel = domainAxisLabel;
-  }
-
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public String getRangeAxisLabel() {
@@ -827,10 +582,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     return getTranslation("rangeAxisLabel", getRangeAxisLabel());
   }
 
-  public void setRangeAxisLabel(String rangeAxisLabel) {
-    this.rangeAxisLabel = rangeAxisLabel;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
   public VisualizationType getType() {
@@ -841,68 +592,16 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     this.type = type;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isHideLegend() {
-    return hideLegend;
-  }
-
-  public void setHideLegend(boolean hideLegend) {
-    this.hideLegend = hideLegend;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isNoSpaceBetweenColumns() {
-    return noSpaceBetweenColumns;
-  }
-
-  public void setNoSpaceBetweenColumns(boolean noSpaceBetweenColumns) {
-    this.noSpaceBetweenColumns = noSpaceBetweenColumns;
-  }
-
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public String getBaseLineLabel() {
     return baseLineLabel;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Translatable(propertyName = "baseLineLabel")
-  public String getDisplayBaseLineLabel() {
-    return getTranslation("baseLineLabel", getBaseLineLabel());
-  }
-
-  public void setBaseLineLabel(String baseLineLabel) {
-    this.baseLineLabel = baseLineLabel;
-  }
-
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public String getTargetLineLabel() {
     return targetLineLabel;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Translatable(propertyName = "targetLineLabel")
-  public String getDisplayTargetLineLabel() {
-    return getTranslation("targetLineLabel", getTargetLineLabel());
-  }
-
-  public void setTargetLineLabel(String targetLineLabel) {
-    this.targetLineLabel = targetLineLabel;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public HideEmptyItemStrategy getHideEmptyRowItems() {
-    return hideEmptyRowItems;
-  }
-
-  public void setHideEmptyRowItems(HideEmptyItemStrategy hideEmptyRowItems) {
-    this.hideEmptyRowItems = hideEmptyRowItems;
   }
 
   @JsonProperty
@@ -925,25 +624,11 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     this.colorSet = colorSet;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isShowData() {
-    return showData;
-  }
-
-  public void setShowData(boolean showData) {
-    this.showData = showData;
-  }
-
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @JacksonXmlProperty(namespace = DXF_2_0)
   @PropertyRange(min = -Double.MAX_VALUE)
   public Double getTargetLineValue() {
     return targetLineValue;
-  }
-
-  public void setTargetLineValue(Double targetLineValue) {
-    this.targetLineValue = targetLineValue;
   }
 
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -953,29 +638,11 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     return baseLineValue;
   }
 
-  public void setBaseLineValue(Double baseLineValue) {
-    this.baseLineValue = baseLineValue;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isPercentStackedValues() {
-    return percentStackedValues;
-  }
-
-  public void setPercentStackedValues(boolean percentStackedValues) {
-    this.percentStackedValues = percentStackedValues;
-  }
-
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @JacksonXmlProperty(namespace = DXF_2_0)
   @PropertyRange(min = -Double.MAX_VALUE)
   public Double getRangeAxisMaxValue() {
     return rangeAxisMaxValue;
-  }
-
-  public void setRangeAxisMaxValue(Double rangeAxisMaxValue) {
-    this.rangeAxisMaxValue = rangeAxisMaxValue;
   }
 
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -985,28 +652,16 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     return rangeAxisMinValue;
   }
 
-  public void setRangeAxisMinValue(Double rangeAxisMinValue) {
-    this.rangeAxisMinValue = rangeAxisMinValue;
-  }
-
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public Integer getRangeAxisSteps() {
     return rangeAxisSteps;
   }
 
-  public void setRangeAxisSteps(Integer rangeAxisSteps) {
-    this.rangeAxisSteps = rangeAxisSteps;
-  }
-
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public Integer getRangeAxisDecimals() {
     return rangeAxisDecimals;
-  }
-
-  public void setRangeAxisDecimals(Integer rangeAxisDecimals) {
-    this.rangeAxisDecimals = rangeAxisDecimals;
   }
 
   @JsonProperty

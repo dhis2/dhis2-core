@@ -322,8 +322,10 @@ class EventOperationMapperTest {
     // guaranteed
     Map<String, QueryFilter> expectedFilters =
         Map.of(
-            TEA_1_UID, new QueryFilter(QueryOperator.EQ, "2"),
-            TEA_2_UID, new QueryFilter(QueryOperator.LIKE, "foo"));
+            TEA_1_UID,
+            new QueryFilter(QueryOperator.EQ, "2"),
+            TEA_2_UID,
+            new QueryFilter(QueryOperator.LIKE, "foo"));
     assertAll(
         items.stream()
             .map(
@@ -474,8 +476,10 @@ class EventOperationMapperTest {
     // guaranteed
     Map<String, QueryFilter> expectedFilters =
         Map.of(
-            DE_1_UID, new QueryFilter(QueryOperator.EQ, "2"),
-            DE_2_UID, new QueryFilter(QueryOperator.LIKE, "foo"));
+            DE_1_UID,
+            new QueryFilter(QueryOperator.EQ, "2"),
+            DE_2_UID,
+            new QueryFilter(QueryOperator.LIKE, "foo"));
     assertAll(
         items.stream()
             .map(
@@ -552,7 +556,7 @@ class EventOperationMapperTest {
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
-            .orgUnitSelectionMode(DESCENDANTS)
+            .orgUnitMode(DESCENDANTS)
             .build();
 
     EventSearchParams searchParams = mapper.map(requestParams);
@@ -578,7 +582,7 @@ class EventOperationMapperTest {
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
-            .orgUnitSelectionMode(DESCENDANTS)
+            .orgUnitMode(DESCENDANTS)
             .build();
 
     EventSearchParams searchParams = mapper.map(requestParams);
@@ -605,7 +609,7 @@ class EventOperationMapperTest {
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
-            .orgUnitSelectionMode(DESCENDANTS)
+            .orgUnitMode(DESCENDANTS)
             .build();
 
     ForbiddenException exception =
@@ -626,7 +630,7 @@ class EventOperationMapperTest {
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
-            .orgUnitSelectionMode(DESCENDANTS)
+            .orgUnitMode(DESCENDANTS)
             .build();
 
     when(currentUserService.getCurrentUser()).thenReturn(user);
@@ -655,7 +659,7 @@ class EventOperationMapperTest {
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
-            .orgUnitSelectionMode(CHILDREN)
+            .orgUnitMode(CHILDREN)
             .build();
 
     when(aclService.canDataRead(user, program)).thenReturn(true);
@@ -681,7 +685,7 @@ class EventOperationMapperTest {
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
-            .orgUnitSelectionMode(CHILDREN)
+            .orgUnitMode(CHILDREN)
             .build();
 
     when(currentUserService.getCurrentUser()).thenReturn(user);
@@ -709,7 +713,7 @@ class EventOperationMapperTest {
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
-            .orgUnitSelectionMode(CHILDREN)
+            .orgUnitMode(CHILDREN)
             .build();
 
     ForbiddenException exception =
@@ -733,7 +737,7 @@ class EventOperationMapperTest {
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
-            .orgUnitSelectionMode(CHILDREN)
+            .orgUnitMode(CHILDREN)
             .build();
 
     ForbiddenException exception =
@@ -758,7 +762,7 @@ class EventOperationMapperTest {
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
-            .orgUnitSelectionMode(CAPTURE)
+            .orgUnitMode(CAPTURE)
             .build();
 
     EventSearchParams searchParams = mapper.map(requestParams);
@@ -782,7 +786,7 @@ class EventOperationMapperTest {
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
-            .orgUnitSelectionMode(ACCESSIBLE)
+            .orgUnitMode(ACCESSIBLE)
             .build();
 
     EventSearchParams searchParams = mapper.map(requestParams);
@@ -809,7 +813,7 @@ class EventOperationMapperTest {
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
-            .orgUnitSelectionMode(SELECTED)
+            .orgUnitMode(SELECTED)
             .build();
 
     EventSearchParams searchParams = mapper.map(requestParams);
@@ -840,7 +844,7 @@ class EventOperationMapperTest {
 
     EventSearchParams searchParams = mapper.map(requestParams);
 
-    assertEquals(SELECTED, searchParams.getOrgUnitSelectionMode());
+    assertEquals(SELECTED, searchParams.getOrgUnitMode());
     assertContainsOnly(List.of(orgUnit), searchParams.getAccessibleOrgUnits());
   }
 
@@ -860,7 +864,7 @@ class EventOperationMapperTest {
 
     EventSearchParams searchParams = mapper.map(requestParams);
 
-    assertEquals(ACCESSIBLE, searchParams.getOrgUnitSelectionMode());
+    assertEquals(ACCESSIBLE, searchParams.getOrgUnitMode());
     assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
   }
 

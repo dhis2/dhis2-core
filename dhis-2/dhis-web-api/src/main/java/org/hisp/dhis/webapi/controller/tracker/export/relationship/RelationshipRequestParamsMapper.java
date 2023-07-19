@@ -25,66 +25,59 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
+package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
+import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.webapi.common.UID;
 import org.springframework.stereotype.Component;
 
 /**
- * Maps operation parameters from {@link EnrollmentsExportController} stored in {@link
- * RequestParams} to {@link EnrollmentOperationParams} which is used to fetch enrollments from the
- * service.
+ * Maps query parameters from {@link RelationshipsExportController} stored in {@link
+ * LegacyRequestParams} to {@link RelationshipOperationParams} which is used to fetch events from
+ * the DB.
  */
 @Component
 @RequiredArgsConstructor
-class EnrollmentRequestParamsMapper {
-  private final EnrollmentFieldsParamMapper fieldsParamMapper;
+class RelationshipRequestParamsMapper {
 
-  public EnrollmentOperationParams map(RequestParams requestParams) throws BadRequestException {
-    Set<UID> orgUnits =
-        validateDeprecatedUidsParameter(
-            "orgUnit", requestParams.getOrgUnit(), "orgUnits", requestParams.getOrgUnits());
-
-    OrganisationUnitSelectionMode orgUnitMode =
+  public RelationshipOperationParams map(RequestParams requestParams) throws BadRequestException {
+    UID trackedEntity =
         validateDeprecatedParameter(
-            "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
+            "tei", requestParams.getTei(), "trackedEntity", requestParams.getTrackedEntity());
 
-    return EnrollmentOperationParams.builder()
-        .programUid(
-            requestParams.getProgram() != null ? requestParams.getProgram().getValue() : null)
-        .programStatus(requestParams.getProgramStatus())
-        .followUp(requestParams.getFollowUp())
-        .lastUpdated(requestParams.getUpdatedAfter())
-        .lastUpdatedDuration(requestParams.getUpdatedWithin())
-        .programStartDate(requestParams.getEnrolledAfter())
-        .programEndDate(requestParams.getEnrolledBefore())
-        .trackedEntityTypeUid(
-            requestParams.getTrackedEntityType() != null
-                ? requestParams.getTrackedEntityType().getValue()
-                : null)
-        .trackedEntityUid(
-            requestParams.getTrackedEntity() != null
-                ? requestParams.getTrackedEntity().getValue()
-                : null)
-        .orgUnitUids(UID.toValueSet(orgUnits))
-        .orgUnitMode(orgUnitMode)
+    int count = 0;
+    if (trackedEntity != null) {
+      count++;
+    }
+    if (requestParams.getEnrollment() != null) {
+      count++;
+    }
+    if (requestParams.getEvent() != null) {
+      count++;
+    }
+
+    if (count == 0) {
+      throw new BadRequestException(
+          "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.");
+    } else if (count > 1) {
+      throw new BadRequestException(
+          "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.");
+    }
+
+    return RelationshipOperationParams.builder()
+        .trackedEntity(trackedEntity == null ? null : trackedEntity.getValue())
+        .enrollment(
+            requestParams.getEnrollment() == null ? null : requestParams.getEnrollment().getValue())
+        .event(requestParams.getEvent() == null ? null : requestParams.getEvent().getValue())
         .page(requestParams.getPage())
         .pageSize(requestParams.getPageSize())
         .totalPages(requestParams.isTotalPages())
         .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
-        .includeDeleted(requestParams.isIncludeDeleted())
-        .order(toOrderParams(requestParams.getOrder()))
-        .enrollmentParams(fieldsParamMapper.map(requestParams.getFields()))
         .build();
   }
 }

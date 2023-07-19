@@ -25,25 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.parser.expression.function;
+package org.hisp.dhis.tracker.export.trackedentity;
 
-import java.util.Arrays;
 import java.util.List;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
-/**
- * Vector function: median
- *
- * @author Jim Grace
- */
-public class VectorMedian extends VectorFunction<Double> {
-  public VectorMedian() {
-    super(Double.class);
-  }
+@RequiredArgsConstructor(staticName = "of")
+@Getter
+@EqualsAndHashCode
+public class TrackedEntities {
 
-  private static VectorPercentileCont percentileContinuous = new VectorPercentileCont();
+  public static final TrackedEntities EMPTY = new TrackedEntities(List.of(), null);
+  private final List<TrackedEntity> trackedEntities;
+  private final Pager pager;
 
-  @Override
-  public Object aggregate(List<Double> values, List<Double> args) {
-    return percentileContinuous.aggregate(values, Arrays.asList(.5));
+  public static TrackedEntities withoutPagination(List<TrackedEntity> trackedEntities) {
+    return new TrackedEntities(trackedEntities, null);
   }
 }

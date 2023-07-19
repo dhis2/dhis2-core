@@ -81,7 +81,13 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
   @OpenApi.Property({UID.class, OrganisationUnit.class})
   private UID orgUnit;
 
+  /**
+   * @deprecated use {@link #orgUnitMode} instead.
+   */
+  @Deprecated(since = "2.41")
   private OrganisationUnitSelectionMode ouMode;
+
+  private OrganisationUnitSelectionMode orgUnitMode;
 
   private AssignedUserSelectionMode assignedUserMode;
 

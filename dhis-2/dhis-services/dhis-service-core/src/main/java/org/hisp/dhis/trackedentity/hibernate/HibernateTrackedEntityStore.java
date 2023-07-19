@@ -858,7 +858,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
       orgUnits.append("AND (");
 
-      for (OrganisationUnit organisationUnit : params.getOrganisationUnits()) {
+      for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
 
         OrganisationUnit ou = organisationUnitStore.getByUid(organisationUnit.getUid());
         if (ou != null) {
@@ -870,7 +870,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     } else if (!params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ALL)) {
       orgUnits
           .append("AND OU.organisationunitid IN (")
-          .append(getCommaDelimitedString(getIdentifiers(params.getOrganisationUnits())))
+          .append(getCommaDelimitedString(getIdentifiers(params.getOrgUnits())))
           .append(") ");
     }
 

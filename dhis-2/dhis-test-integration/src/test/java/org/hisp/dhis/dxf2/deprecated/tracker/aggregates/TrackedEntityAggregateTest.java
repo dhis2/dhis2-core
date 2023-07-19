@@ -121,7 +121,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
           this.persistTrackedEntity();
         });
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setIncludeAllAttributes(true);
     TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
@@ -182,7 +182,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
           this.persistTrackedEntity();
         });
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.addFilter(
         new QueryItem(
@@ -208,7 +208,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
           this.persistTrackedEntity();
         });
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setLastUpdatedStartDate(Date.from(Instant.now().minus(1, ChronoUnit.DAYS)));
     queryParams.setLastUpdatedEndDate(new Date());
@@ -239,7 +239,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
         });
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
     queryParams.setUserWithAssignedUsers(null, superUser, null);
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setProgram(programA);
     queryParams.setEventStatus(EventStatus.COMPLETED);
     queryParams.setEventStartDate(Date.from(Instant.now().minus(10, ChronoUnit.DAYS)));
@@ -278,7 +278,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
   @Test
   void testIncludeDeletedIsPropagetedFromTeiToEnrollmentsAndEvents() {
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setIncludeDeleted(true);
 
@@ -337,7 +337,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
           this.persistTrackedEntityInstanceWithEnrollment();
         });
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setIncludeAllAttributes(true);
     TrackedEntityInstanceParams params =
@@ -362,7 +362,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
           this.persistTrackedEntityInstanceWithEnrollment();
         });
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setIncludeAllAttributes(true);
     TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
@@ -385,7 +385,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
           this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
         });
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setIncludeAllAttributes(true);
     TrackedEntityInstanceParams params =
@@ -408,7 +408,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
   void testFetchTrackedEntityInstancesWithEventNotes() {
     doInTransaction(this::persistTrackedEntityInstanceWithEnrollmentAndEvents);
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setIncludeAllAttributes(true);
     TrackedEntityInstanceParams params =
@@ -441,7 +441,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
           this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
         });
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setIncludeAllAttributes(true);
     TrackedEntityInstanceParams params =
@@ -470,7 +470,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
     final Date currentTime = new Date();
     doInTransaction(this::persistTrackedEntityInstanceWithEnrollmentAndEvents);
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setIncludeAllAttributes(true);
     TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
@@ -497,7 +497,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
     final Date currentTime = new Date();
     doInTransaction(this::persistTrackedEntityInstanceWithEnrollmentAndEvents);
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setIncludeAllAttributes(true);
     TrackedEntityInstanceParams params =
@@ -553,7 +553,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
     final Date currentTime = new Date();
     doInTransaction(this::persistTrackedEntityInstanceWithEnrollmentAndEvents);
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setIncludeAllAttributes(true);
     TrackedEntityInstanceParams params =
@@ -603,7 +603,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
     doInTransaction(
         () -> this.persistTrackedEntityInstanceWithEnrollmentAndEvents(enrollmentValues));
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setIncludeAllAttributes(true);
     TrackedEntityInstanceParams params =
@@ -632,7 +632,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
           teiUid[1] = t2.getUid();
         });
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setIncludeAllAttributes(true);
     TrackedEntityInstanceParams params =
@@ -662,7 +662,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
           relationshipItemsUid[1] = pi.getUid();
         });
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setIncludeAllAttributes(true);
     TrackedEntityInstanceParams params =
@@ -705,7 +705,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
           relationshipItemsUid[1] = psi.getUid();
         });
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setIncludeAllAttributes(true);
     TrackedEntityInstanceParams params =
@@ -740,7 +740,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
               trackedEntity, programA, organisationUnitA);
         });
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setIncludeAllAttributes(true);
     TrackedEntityInstanceParams params =
