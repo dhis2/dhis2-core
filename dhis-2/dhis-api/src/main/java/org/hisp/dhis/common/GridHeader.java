@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
@@ -65,6 +67,8 @@ public class GridHeader implements Serializable {
   private LegendSet legendSet;
 
   private String programStage;
+
+  private String displayColumn;
 
   private transient RepeatableStageParams repeatableStageParams;
 
@@ -109,7 +113,7 @@ public class GridHeader implements Serializable {
    *
    * @param name formal header name.
    * @param hidden indicates whether header is hidden.
-   * @param meta indicates whether header is meta data.
+   * @param meta indicates whether header is metadata.
    */
   public GridHeader(String name, boolean hidden, boolean meta) {
     this(name);
@@ -181,6 +185,59 @@ public class GridHeader implements Serializable {
     this.repeatableStageParams = repeatableStageParams;
   }
 
+  /**
+   * @param name formal header name.
+   * @param column readable header title. displayColumn the custom display column.
+   * @param displayColumn the custom display column.
+   * @param valueType header value type.
+   * @param hidden indicates whether header is hidden.
+   * @param meta indicates whether header is metadata.
+   * @param optionSet option set.
+   * @param legendSet legend set.
+   */
+  public GridHeader(
+      String name,
+      String column,
+      String displayColumn,
+      ValueType valueType,
+      boolean hidden,
+      boolean meta,
+      OptionSet optionSet,
+      LegendSet legendSet) {
+    this(name, column, valueType, hidden, meta);
+    this.optionSet = optionSet;
+    this.legendSet = legendSet;
+    this.displayColumn = displayColumn;
+  }
+
+  /**
+   * @param name formal header name.
+   * @param column readable header title.
+   * @param displayColumn the custom display column.
+   * @param valueType header value type.
+   * @param hidden indicates whether header is hidden.
+   * @param meta indicates whether header is metadata.
+   * @param optionSet option set.
+   * @param legendSet legend set.
+   * @param programStage program stage.
+   * @param repeatableStageParams params for repeatable program stage.
+   */
+  public GridHeader(
+      String name,
+      String column,
+      String displayColumn,
+      ValueType valueType,
+      boolean hidden,
+      boolean meta,
+      OptionSet optionSet,
+      LegendSet legendSet,
+      String programStage,
+      RepeatableStageParams repeatableStageParams) {
+    this(name, column, displayColumn, valueType, hidden, meta, optionSet, legendSet);
+    this.programStage = programStage;
+    this.repeatableStageParams = repeatableStageParams;
+  }
+
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
@@ -213,6 +270,10 @@ public class GridHeader implements Serializable {
   @JsonProperty
   public String getColumn() {
     return column;
+  }
+
+  public String getDisplayColumn() {
+    return defaultIfEmpty(displayColumn, column);
   }
 
   @JsonProperty

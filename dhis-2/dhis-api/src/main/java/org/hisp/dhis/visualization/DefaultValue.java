@@ -34,15 +34,15 @@ import org.hisp.dhis.common.FontSize;
 /** This is just a support class to hold default values for a few Visualization attributes. */
 public final class DefaultValue {
 
-  public static final DisplayDensity defaultIfNull(final DisplayDensity displayDensity) {
+  public static DisplayDensity defaultIfNull(final DisplayDensity displayDensity) {
     return displayDensity != null ? displayDensity : DisplayDensity.NORMAL;
   }
 
-  public static final FontSize defaultIfNull(final FontSize fontSize) {
+  public static FontSize defaultIfNull(final FontSize fontSize) {
     return fontSize != null ? fontSize : FontSize.NORMAL;
   }
 
-  public static final DigitGroupSeparator defaultIfNull(final DigitGroupSeparator groupSeparator) {
+  public static DigitGroupSeparator defaultIfNull(final DigitGroupSeparator groupSeparator) {
     return groupSeparator != null ? groupSeparator : DigitGroupSeparator.SPACE;
   }
 }

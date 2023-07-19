@@ -167,8 +167,8 @@ public class EnrollmentSupplier extends AbstractSupplier<Map<String, Enrollment>
   private Enrollment getByTeiAndProgram(
       ImportOptions importOptions, Long teiId, Long programId, Event event) {
     final String sql =
-        "select pi.programinstanceid, pi.programid, pi.uid , t.trackedentityid as tei_id, t.uid as tei_uid, "
-            + "ou.uid as tei_ou_uid, ou.path as tei_ou_path from programinstance pi "
+        "select pi.enrollmentid, pi.programid, pi.uid , t.trackedentityid as tei_id, t.uid as tei_uid, "
+            + "ou.uid as tei_ou_uid, ou.path as tei_ou_path from enrollment pi "
             + "join trackedentity t on t.trackedentityid = pi.trackedentityinstanceid "
             + "join organisationunit ou on t.organisationunitid = ou.organisationunitid "
             + "where pi.programid = :programid "
@@ -207,11 +207,11 @@ public class EnrollmentSupplier extends AbstractSupplier<Map<String, Enrollment>
     }
 
     final String sql =
-        "select psi.uid as psi_uid, pi.programinstanceid, pi.programid, pi.uid , t.trackedentityid as tei_id, t.uid as tei_uid, "
-            + "ou.uid as tei_ou_uid, ou.path as tei_ou_path from programinstance pi "
+        "select psi.uid as psi_uid, pi.enrollmentid, pi.programid, pi.uid , t.trackedentityid as tei_id, t.uid as tei_uid, "
+            + "ou.uid as tei_ou_uid, ou.path as tei_ou_path from enrollment pi "
             + "left outer join trackedentity t on pi.trackedentityinstanceid = t.trackedentityid "
             + "left join organisationunit ou on t.organisationunitid = ou.organisationunitid "
-            + "join event psi on pi.programinstanceid = psi.programinstanceid "
+            + "join event psi on pi.enrollmentid = psi.enrollmentid "
             + "where psi.uid in (:ids)";
 
     MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -237,9 +237,9 @@ public class EnrollmentSupplier extends AbstractSupplier<Map<String, Enrollment>
       Set<String> uids) {
 
     final String sql =
-        "select pi.programinstanceid, pi.programid, pi.uid, t.trackedentityid as tei_id, t.uid as tei_uid, "
+        "select pi.enrollmentid, pi.programid, pi.uid, t.trackedentityid as tei_id, t.uid as tei_uid, "
             + "ou.uid as tei_ou_uid, ou.path as tei_ou_path "
-            + "from programinstance pi join trackedentity t on pi.trackedentityinstanceid = t.trackedentityid "
+            + "from enrollment pi join trackedentity t on pi.trackedentityinstanceid = t.trackedentityid "
             + "join organisationunit ou on t.organisationunitid = ou.organisationunitid where pi.uid in (:ids)";
 
     MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -265,7 +265,7 @@ public class EnrollmentSupplier extends AbstractSupplier<Map<String, Enrollment>
   private Enrollment mapFromResultset(ResultSet rs, ImportOptions importOptions, List<Event> events)
       throws SQLException {
     Enrollment pi = new Enrollment();
-    pi.setId(rs.getLong("programinstanceid"));
+    pi.setId(rs.getLong("enrollmentid"));
     pi.setUid(rs.getString("uid"));
     pi.setProgram(
         getProgramById(

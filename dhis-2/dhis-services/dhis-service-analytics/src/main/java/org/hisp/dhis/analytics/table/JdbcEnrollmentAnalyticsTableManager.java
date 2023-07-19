@@ -210,7 +210,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     Program program = partition.getMasterTable().getProgram();
 
     String fromClause =
-        "from programinstance pi "
+        "from enrollment pi "
             + "inner join program pr on pi.programid=pr.programid "
             + "left join trackedentity tei on pi.trackedentityinstanceid=tei.trackedentityid "
             + "and tei.deleted is false "

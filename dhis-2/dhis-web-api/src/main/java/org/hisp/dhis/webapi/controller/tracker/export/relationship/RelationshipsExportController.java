@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -55,6 +54,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
@@ -79,20 +79,23 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 class RelationshipsExportController {
+
   protected static final String RELATIONSHIPS = "relationships";
 
   private static final RelationshipMapper RELATIONSHIP_MAPPER =
       Mappers.getMapper(RelationshipMapper.class);
 
-  @Nonnull private final TrackedEntityService trackedEntityService;
+  private final TrackedEntityService trackedEntityService;
 
-  @Nonnull private final EnrollmentService enrollmentService;
+  private final EnrollmentService enrollmentService;
 
-  @Nonnull private final EventService eventService;
+  private final EventService eventService;
 
-  @Nonnull private final RelationshipService relationshipService;
+  private final RelationshipService relationshipService;
 
-  @Nonnull private final FieldFilterService fieldFilterService;
+  private final RelationshipRequestParamsMapper mapper;
+
+  private final FieldFilterService fieldFilterService;
 
   private Map<Class<?>, Function<String, ?>> objectRetrievers;
 
@@ -103,10 +106,6 @@ class RelationshipsExportController {
               PagingAndSortingCriteriaAdapter,
               List<org.hisp.dhis.relationship.Relationship>>>
       relationshipRetrievers;
-
-  interface CheckedBiFunction<T, U, R> {
-    R apply(T t, U u) throws ForbiddenException, NotFoundException;
-  }
 
   @PostConstruct
   void setupMaps() {
@@ -155,12 +154,16 @@ class RelationshipsExportController {
   @GetMapping
   PagingWrapper<ObjectNode> getRelationships(RequestParams requestParams)
       throws NotFoundException, BadRequestException, ForbiddenException {
+
+    RelationshipOperationParams operationParams = mapper.map(requestParams);
+    LegacyRequestParams legacyRequestParams = map(operationParams);
+
     List<org.hisp.dhis.webapi.controller.tracker.view.Relationship> relationships =
         tryGetRelationshipFrom(
-            requestParams.getIdentifierClass(),
-            requestParams.getIdentifierParam(),
-            requestParams.getIdentifierName(),
-            requestParams);
+            legacyRequestParams.getIdentifierClass(),
+            legacyRequestParams.getIdentifierParam(),
+            legacyRequestParams.getIdentifierName(),
+            legacyRequestParams);
 
     PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
     if (requestParams.isPagingRequest()) {
@@ -169,9 +172,9 @@ class RelationshipsExportController {
       if (requestParams.isTotalPages()) {
         count =
             tryGetRelationshipFrom(
-                    requestParams.getIdentifierClass(),
-                    requestParams.getIdentifierParam(),
-                    requestParams.getIdentifierName(),
+                    legacyRequestParams.getIdentifierClass(),
+                    legacyRequestParams.getIdentifierParam(),
+                    legacyRequestParams.getIdentifierName(),
                     null)
                 .size();
       }
@@ -186,6 +189,16 @@ class RelationshipsExportController {
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(relationships, requestParams.getFields());
     return pagingWrapper.withInstances(objectNodes);
+  }
+
+  // Temporary map method between new and legacy params
+  private LegacyRequestParams map(RelationshipOperationParams requestParams) {
+    LegacyRequestParams legacyRequestParams = new LegacyRequestParams();
+    legacyRequestParams.setTrackedEntity(requestParams.getTrackedEntity());
+    legacyRequestParams.setEnrollment(requestParams.getEnrollment());
+    legacyRequestParams.setEvent(requestParams.getEvent());
+
+    return legacyRequestParams;
   }
 
   @GetMapping("/{uid}")
@@ -232,5 +245,10 @@ class RelationshipsExportController {
             () ->
                 new IllegalArgumentException(
                     "Unable to detect relationship retriever from " + type));
+  }
+
+  interface CheckedBiFunction<T, U, R> {
+
+    R apply(T t, U u) throws ForbiddenException, NotFoundException;
   }
 }
