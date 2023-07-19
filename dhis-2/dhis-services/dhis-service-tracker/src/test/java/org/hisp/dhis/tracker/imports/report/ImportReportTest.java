@@ -35,7 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.tracker.imports.TrackerType;
+import org.hisp.dhis.tracker.TrackerType;
 import org.junit.jupiter.api.Test;
 
 /**

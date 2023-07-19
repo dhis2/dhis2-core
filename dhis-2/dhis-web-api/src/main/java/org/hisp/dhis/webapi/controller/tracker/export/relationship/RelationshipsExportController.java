@@ -28,9 +28,9 @@
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status;
-import static org.hisp.dhis.tracker.imports.TrackerType.ENROLLMENT;
-import static org.hisp.dhis.tracker.imports.TrackerType.EVENT;
-import static org.hisp.dhis.tracker.imports.TrackerType.TRACKED_ENTITY;
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.export.relationship.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -57,9 +57,9 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;

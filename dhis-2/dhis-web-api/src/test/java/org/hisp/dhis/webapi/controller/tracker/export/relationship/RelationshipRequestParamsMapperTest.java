@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
-import static org.hisp.dhis.tracker.imports.TrackerType.ENROLLMENT;
-import static org.hisp.dhis.tracker.imports.TrackerType.EVENT;
-import static org.hisp.dhis.tracker.imports.TrackerType.TRACKED_ENTITY;
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

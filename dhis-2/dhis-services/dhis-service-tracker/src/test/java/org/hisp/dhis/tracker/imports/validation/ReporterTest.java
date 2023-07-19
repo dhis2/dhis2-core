@@ -30,8 +30,8 @@ package org.hisp.dhis.tracker.imports.validation;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.junit.jupiter.api.Test;
 
 class ReporterTest {

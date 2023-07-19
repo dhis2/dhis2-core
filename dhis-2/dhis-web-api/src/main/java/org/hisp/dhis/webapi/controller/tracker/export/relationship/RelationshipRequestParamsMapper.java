@@ -28,9 +28,9 @@
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.tracker.imports.TrackerType.ENROLLMENT;
-import static org.hisp.dhis.tracker.imports.TrackerType.EVENT;
-import static org.hisp.dhis.tracker.imports.TrackerType.TRACKED_ENTITY;
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 
 import java.util.Objects;
@@ -38,8 +38,8 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.webapi.common.UID;
 import org.springframework.stereotype.Component;
 
