@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.eventvisualization;
 
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.join;
@@ -354,7 +353,7 @@ public class EventVisualization extends BaseAnalyticalObject
 
   public void setSorting(List<Sorting> sorting) {
     if (sorting != null) {
-      this.sorting = sorting.stream().distinct().collect(toList());
+      this.sorting = sorting.stream().distinct().toList();
     }
   }
 
@@ -408,9 +407,8 @@ public class EventVisualization extends BaseAnalyticalObject
 
   /** Validates the state of the current list of {@link Sorting} objects (if one is defined). */
   public void validateSortingState() {
-    getColumns();
     List<String> columns = getColumnDimensions();
-    List<Sorting> sortingList = getSorting().stream().toList();
+    List<Sorting> sortingList = getSorting();
 
     sortingList.forEach(
         s -> {
@@ -593,7 +591,7 @@ public class EventVisualization extends BaseAnalyticalObject
    * This attribute and its accessors were replaced by "type", but will remain here for
    * backward-compatibility with EventReport.
    *
-   * @return
+   * @return the current {@link EventDataType}.
    */
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
