@@ -33,6 +33,8 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.p
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseDataElementQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.getOrgUnitMode;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.validateAccessibleOrgUnits;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,6 +51,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -72,6 +75,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -107,6 +111,8 @@ class TrackerEventCriteriaMapper {
 
   private final AclService aclService;
 
+  private final TrackerAccessManager trackerAccessManager;
+
   private final TrackedEntityInstanceService entityInstanceService;
 
   private final TrackedEntityAttributeService attributeService;
@@ -130,6 +136,7 @@ class TrackerEventCriteriaMapper {
 
   public EventSearchParams map(TrackerEventCriteria criteria)
       throws BadRequestException, ForbiddenException {
+
     Program program = applyIfNonEmpty(programService::getProgram, criteria.getProgram());
     validateProgram(criteria.getProgram(), program);
 
@@ -137,12 +144,22 @@ class TrackerEventCriteriaMapper {
         applyIfNonEmpty(programStageService::getProgramStage, criteria.getProgramStage());
     validateProgramStage(criteria.getProgramStage(), programStage);
 
-    OrganisationUnit orgUnit =
-        applyIfNonEmpty(organisationUnitService::getOrganisationUnit, criteria.getOrgUnit());
-    validateOrgUnit(criteria.getOrgUnit(), orgUnit);
-
     User user = currentUserService.getCurrentUser();
     validateUser(user, program, programStage);
+
+    OrganisationUnit requestedOrgUnit =
+        applyIfNonEmpty(organisationUnitService::getOrganisationUnit, criteria.getOrgUnit());
+    validateOrgUnit(criteria.getOrgUnit(), requestedOrgUnit);
+    OrganisationUnitSelectionMode orgUnitMode =
+        getOrgUnitMode(requestedOrgUnit, criteria.getOuMode());
+    List<OrganisationUnit> accessibleOrgUnits =
+        validateAccessibleOrgUnits(
+            user,
+            requestedOrgUnit,
+            orgUnitMode,
+            program,
+            organisationUnitService::getOrganisationUnitWithChildren,
+            trackerAccessManager);
 
     TrackedEntityInstance trackedEntityInstance =
         applyIfNonEmpty(
@@ -187,11 +204,11 @@ class TrackerEventCriteriaMapper {
     return params
         .setProgram(program)
         .setProgramStage(programStage)
-        .setOrgUnit(orgUnit)
+        .setAccessibleOrgUnits(accessibleOrgUnits)
         .setTrackedEntityInstance(trackedEntityInstance)
         .setProgramStatus(criteria.getProgramStatus())
         .setFollowUp(criteria.getFollowUp())
-        .setOrgUnitSelectionMode(criteria.getOuMode())
+        .setOrgUnitSelectionMode(orgUnitMode)
         .setUserWithAssignedUsers(criteria.getAssignedUserMode(), user, assignedUserIds)
         .setStartDate(criteria.getOccurredAfter())
         .setEndDate(criteria.getOccurredBefore())
@@ -246,13 +263,18 @@ class TrackerEventCriteriaMapper {
     }
   }
 
-  private void validateUser(User user, Program pr, ProgramStage ps) throws ForbiddenException {
-    if (pr != null && !user.isSuper() && !aclService.canDataRead(user, pr)) {
-      throw new ForbiddenException("User has no access to program: " + pr.getUid());
+  private void validateUser(User user, Program program, ProgramStage programStage)
+      throws ForbiddenException {
+
+    if (user.isSuper()) {
+      return;
+    }
+    if (program != null && !aclService.canDataRead(user, program)) {
+      throw new ForbiddenException("User has no access to program: " + program.getUid());
     }
 
-    if (ps != null && !user.isSuper() && !aclService.canDataRead(user, ps)) {
-      throw new ForbiddenException("User has no access to program stage: " + ps.getUid());
+    if (programStage != null && !aclService.canDataRead(user, programStage)) {
+      throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
     }
   }
 

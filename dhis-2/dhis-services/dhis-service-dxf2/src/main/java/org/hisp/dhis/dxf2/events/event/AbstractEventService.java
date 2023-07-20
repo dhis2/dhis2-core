@@ -298,8 +298,6 @@ public abstract class AbstractEventService implements EventService {
 
     validate(params, user);
 
-    List<OrganisationUnit> organisationUnits = getOrganisationUnits(params, user);
-
     if (!params.isPaging() && !params.isSkipPaging()) {
       params.setDefaultPaging();
     }
@@ -308,15 +306,15 @@ public abstract class AbstractEventService implements EventService {
     List<Event> eventList = new ArrayList<>();
 
     if (params.isSkipPaging()) {
-      events.setEvents(eventStore.getEvents(params, organisationUnits, emptyMap()));
+      events.setEvents(eventStore.getEvents(params, params.getAccessibleOrgUnits(), emptyMap()));
       return events;
     }
 
     Pager pager;
-    eventList.addAll(eventStore.getEvents(params, organisationUnits, emptyMap()));
+    eventList.addAll(eventStore.getEvents(params, params.getAccessibleOrgUnits(), emptyMap()));
 
     if (params.isTotalPages()) {
-      int count = eventStore.getEventCount(params, organisationUnits);
+      int count = eventStore.getEventCount(params, params.getAccessibleOrgUnits());
       pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
     } else {
       pager = handleLastPageFlag(params, eventList);
@@ -372,8 +370,6 @@ public abstract class AbstractEventService implements EventService {
       throw new IllegalQueryException("Program stage should have at least one data element");
     }
 
-    List<OrganisationUnit> organisationUnits = getOrganisationUnits(params, user);
-
     // ---------------------------------------------------------------------
     // If includeAllDataElements is set to true, return all data elements.
     // If no data element is specified, use those set as display in report.
@@ -423,7 +419,8 @@ public abstract class AbstractEventService implements EventService {
       grid.addHeader(new GridHeader(item.getItem().getUid(), item.getItem().getName()));
     }
 
-    List<Map<String, String>> events = eventStore.getEventsGrid(params, organisationUnits);
+    List<Map<String, String>> events =
+        eventStore.getEventsGrid(params, params.getAccessibleOrgUnits());
 
     // ---------------------------------------------------------------------
     // Grid rows
@@ -447,7 +444,7 @@ public abstract class AbstractEventService implements EventService {
       final Pager pager;
 
       if (params.isTotalPages()) {
-        int count = eventStore.getEventCount(params, organisationUnits);
+        int count = eventStore.getEventCount(params, params.getAccessibleOrgUnits());
         pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
       } else {
         pager = handleLastPageFlag(params, grid);
@@ -531,11 +528,9 @@ public abstract class AbstractEventService implements EventService {
   public EventRows getEventRows(EventSearchParams params) {
     User user = currentUserService.getCurrentUser();
 
-    List<OrganisationUnit> organisationUnits = getOrganisationUnits(params, user);
-
     EventRows eventRows = new EventRows();
 
-    List<EventRow> eventRowList = eventStore.getEventRows(params, organisationUnits);
+    List<EventRow> eventRowList = eventStore.getEventRows(params, params.getAccessibleOrgUnits());
 
     EventContext eventContext = eventServiceContextBuilder.build(eventRowList, user);
 
@@ -876,7 +871,7 @@ public abstract class AbstractEventService implements EventService {
     OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
 
     if (orgUnitSelectionMode == null) {
-      if (params.getOrgUnit() != null) {
+      if (params.getAccessibleOrgUnits() != null) {
         return Collections.emptyList();
       }
 
@@ -910,7 +905,7 @@ public abstract class AbstractEventService implements EventService {
   }
 
   private List<OrganisationUnit> getAllOrgUnits(EventSearchParams params, User user) {
-    if (params.getOrgUnit() != null) {
+    if (params.getAccessibleOrgUnits() != null) {
       return Collections.emptyList();
     }
 
@@ -922,15 +917,15 @@ public abstract class AbstractEventService implements EventService {
   }
 
   private List<OrganisationUnit> getChildrenOrgUnits(EventSearchParams params) {
-    if (params.getOrgUnit() == null) {
+    if (params.getAccessibleOrgUnits() == null) {
       throw new IllegalQueryException("Organisation unit is required to use CHILDREN scope.");
     }
 
-    return Arrays.asList(params.getOrgUnit());
+    return params.getAccessibleOrgUnits();
   }
 
   private List<OrganisationUnit> getSelectedOrgUnits(EventSearchParams params) {
-    if (params.getOrgUnit() == null) {
+    if (params.getAccessibleOrgUnits() == null) {
       throw new IllegalQueryException("Organisation unit is required to use SELECTED scope. ");
     }
 
@@ -938,15 +933,15 @@ public abstract class AbstractEventService implements EventService {
   }
 
   private List<OrganisationUnit> getDescendantOrgUnits(EventSearchParams params) {
-    if (params.getOrgUnit() == null) {
+    if (params.getAccessibleOrgUnits() == null) {
       throw new IllegalQueryException("Organisation unit is required to use DESCENDANTS scope. ");
     }
 
-    return Arrays.asList(params.getOrgUnit());
+    return params.getAccessibleOrgUnits();
   }
 
   private List<OrganisationUnit> getCaptureOrgUnits(EventSearchParams params, User user) {
-    if (params.getOrgUnit() != null) {
+    if (params.getAccessibleOrgUnits() != null) {
       return Collections.emptyList();
     }
 
@@ -954,11 +949,11 @@ public abstract class AbstractEventService implements EventService {
       throw new IllegalQueryException("User is required to use CAPTURE scope.");
     }
 
-    return user.getOrganisationUnits().stream().collect(Collectors.toList());
+    return new ArrayList<>(user.getOrganisationUnits());
   }
 
   private List<OrganisationUnit> getAccessibleOrgUnits(EventSearchParams params, User user) {
-    if (params.getOrgUnit() != null) {
+    if (params.getAccessibleOrgUnits() != null) {
       return Collections.emptyList();
     }
 
@@ -1057,12 +1052,6 @@ public abstract class AbstractEventService implements EventService {
       violation = "Duration is not valid: " + params.getLastUpdatedDuration();
     }
 
-    if (violation == null
-        && params.getOrgUnit() != null
-        && !trackerAccessManager.canAccess(user, params.getProgram(), params.getOrgUnit())) {
-      violation = "User does not have access to orgUnit: " + params.getOrgUnit().getUid();
-    }
-
     if (violation == null && params.getOrgUnitSelectionMode() != null) {
       violation = getOuModeViolation(params, user);
     }
@@ -1097,7 +1086,7 @@ public abstract class AbstractEventService implements EventService {
       case SELECTED:
       case DESCENDANTS:
         violation =
-            params.getOrgUnit() == null
+            params.getAccessibleOrgUnits() == null
                 ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
                 : null;
         break;

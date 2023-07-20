@@ -112,9 +112,9 @@ public class EventSearchParams {
 
   private Boolean followUp;
 
-  private OrganisationUnit orgUnit;
-
   private OrganisationUnitSelectionMode orgUnitSelectionMode;
+
+  private List<OrganisationUnit> accessibleOrgUnits = new ArrayList<>();
 
   private TrackedEntityInstance trackedEntityInstance;
 
@@ -328,15 +328,6 @@ public class EventSearchParams {
     return this;
   }
 
-  public OrganisationUnit getOrgUnit() {
-    return orgUnit;
-  }
-
-  public EventSearchParams setOrgUnit(OrganisationUnit orgUnit) {
-    this.orgUnit = orgUnit;
-    return this;
-  }
-
   public OrganisationUnitSelectionMode getOrgUnitSelectionMode() {
     return orgUnitSelectionMode;
   }
@@ -344,6 +335,15 @@ public class EventSearchParams {
   public EventSearchParams setOrgUnitSelectionMode(
       OrganisationUnitSelectionMode orgUnitSelectionMode) {
     this.orgUnitSelectionMode = orgUnitSelectionMode;
+    return this;
+  }
+
+  public List<OrganisationUnit> getAccessibleOrgUnits() {
+    return accessibleOrgUnits;
+  }
+
+  public EventSearchParams setAccessibleOrgUnits(List<OrganisationUnit> accessibleOrgUnits) {
+    this.accessibleOrgUnits = accessibleOrgUnits;
     return this;
   }
 

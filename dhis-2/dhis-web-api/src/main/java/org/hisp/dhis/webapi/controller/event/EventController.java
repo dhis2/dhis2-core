@@ -100,6 +100,7 @@ import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
@@ -251,7 +252,7 @@ public class EventController {
       Model model,
       HttpServletResponse response,
       HttpServletRequest request)
-      throws WebMessageException {
+      throws WebMessageException, ForbiddenException {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
@@ -638,7 +639,8 @@ public class EventController {
       @RequestParam Map<String, String> parameters,
       Model model,
       HttpServletResponse response,
-      HttpServletRequest request) {
+      HttpServletRequest request)
+      throws ForbiddenException {
     WebOptions options = new WebOptions(parameters);
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
@@ -694,7 +696,7 @@ public class EventController {
       Model model,
       HttpServletResponse response,
       HttpServletRequest request)
-      throws WebMessageException {
+      throws WebMessageException, ForbiddenException {
     WebOptions options = new WebOptions(parameters);
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
@@ -766,7 +768,7 @@ public class EventController {
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
       HttpServletResponse response,
       HttpServletRequest request)
-      throws IOException, WebMessageException {
+      throws IOException, WebMessageException, ForbiddenException {
     EventSearchParams params = requestToSearchParamsMapper.map(eventCriteria);
 
     Events events = eventService.getEvents(params);
@@ -820,7 +822,7 @@ public class EventController {
       @RequestParam Map<String, String> parameters,
       IdSchemes idSchemes,
       Model model)
-      throws WebMessageException {
+      throws WebMessageException, ForbiddenException {
     CategoryOptionCombo attributeOptionCombo =
         inputUtils.getAttributeOptionCombo(attributeCc, attributeCos, true);
 
