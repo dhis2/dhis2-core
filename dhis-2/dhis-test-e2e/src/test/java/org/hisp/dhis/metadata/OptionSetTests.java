@@ -99,8 +99,8 @@ public class OptionSetTests extends ApiTest {
   public void shouldAddOptions() {
 
     String createdOptionSet = createOptionSet();
-    String option1 = createOption(createdOptionSet);
-    String option2 = createOption(createdOptionSet);
+    String option1 = createOption(createdOptionSet, 0);
+    String option2 = createOption(createdOptionSet, 1);
 
     ApiResponse response = optionActions.optionSetActions.get(createdOptionSet);
     response
@@ -177,5 +177,12 @@ public class OptionSetTests extends ApiTest {
         "Option name auto" + DataGenerator.randomString(),
         "Option code auto" + DataGenerator.randomString(),
         optionSetId);
+  }
+
+  private String createOption(String optionSetId, int sortOrder) {
+    return optionActions.createOption(
+        "Option name auto" + DataGenerator.randomString(),
+        "Option code auto" + DataGenerator.randomString(),
+        optionSetId, sortOrder);
   }
 }
