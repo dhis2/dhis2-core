@@ -28,7 +28,9 @@
 package org.hisp.dhis.common;
 
 /**
- * Interface for objects that can be sorted when a List of that object is mapped in Hibernate using {@code <bag name="..." order-by="sort_order">}
+ * Interface for objects that can be sorted when a List of that object is mapped in Hibernate using
+ * {@code <bag name="..." order-by="sort_order">}
+ *
  * <p>The sort order is an integer value that is used to sort the objects in a list.
  */
 public interface SortableObject {

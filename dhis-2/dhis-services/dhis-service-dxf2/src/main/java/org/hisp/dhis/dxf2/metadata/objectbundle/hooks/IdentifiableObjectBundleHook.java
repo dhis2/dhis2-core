@@ -82,7 +82,9 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
   }
 
   /**
-   * This method loops through all sortable List of given object and sets the sortOrder value for each item in the List if it is not already set.
+   * This method loops through all sortable List of given object and sets the sortOrder value for
+   * each item in the List if it is not already set.
+   *
    * @param identifiableObject Object to set sortOrder on
    * @param bundle {@link ObjectBundle}
    * @param schema Schema of given object
@@ -114,7 +116,9 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
   }
 
   /**
-   * Fina all properties of given Schema class that are of type List which contains SortableObjects interface. The property must also have a property called sortOrder.
+   * Fina all properties of given Schema class that are of type List which contains SortableObjects
+   * interface. The property must also have a property called sortOrder.
+   *
    * @param schema Schema class to search for sortable properties
    * @return List of properties that are sortable
    */
