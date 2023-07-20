@@ -385,7 +385,7 @@ public class JdbcEventStore implements EventStore {
 
     final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
-    String sql = buildSql(params, mapSqlParameterSource, organisationUnits, user);
+    String sql = buildSql(params, mapSqlParameterSource, user);
 
     return jdbcTemplate.query(
         sql,
@@ -635,7 +635,7 @@ public class JdbcEventStore implements EventStore {
 
     final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
-    String sql = buildSql(params, mapSqlParameterSource, organisationUnits, user);
+    String sql = buildSql(params, mapSqlParameterSource, user);
 
     return jdbcTemplate.query(
         sql,
@@ -845,7 +845,7 @@ public class JdbcEventStore implements EventStore {
     if (params.hasFilters()) {
       sql = buildGridSql(params, mapSqlParameterSource);
     } else {
-      sql = getEventSelectQuery(params, mapSqlParameterSource, organisationUnits, user);
+      sql = getEventSelectQuery(params, mapSqlParameterSource, user);
     }
 
     sql = sql.replaceFirst("select .*? from", "select count(*) from");
@@ -903,13 +903,10 @@ public class JdbcEventStore implements EventStore {
    * on events.
    */
   private String buildSql(
-      EventSearchParams params,
-      MapSqlParameterSource mapSqlParameterSource,
-      List<OrganisationUnit> organisationUnits,
-      User user) {
+      EventSearchParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
     StringBuilder sqlBuilder = new StringBuilder().append("select * from (");
 
-    sqlBuilder.append(getEventSelectQuery(params, mapSqlParameterSource, organisationUnits, user));
+    sqlBuilder.append(getEventSelectQuery(params, mapSqlParameterSource, user));
 
     sqlBuilder.append(getOrderQuery(params));
 
@@ -1025,10 +1022,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String getEventSelectQuery(
-      EventSearchParams params,
-      MapSqlParameterSource mapSqlParameterSource,
-      List<OrganisationUnit> organisationUnits,
-      User user) {
+      EventSearchParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
     SqlHelper hlp = new SqlHelper();
 
     StringBuilder selectBuilder =
@@ -1071,7 +1065,6 @@ public class JdbcEventStore implements EventStore {
             getFromWhereClause(
                 params,
                 mapSqlParameterSource,
-                organisationUnits,
                 user,
                 hlp,
                 dataElementAndFiltersSql(params, mapSqlParameterSource, hlp, selectBuilder)))
@@ -1094,7 +1087,6 @@ public class JdbcEventStore implements EventStore {
   private StringBuilder getFromWhereClause(
       EventSearchParams params,
       MapSqlParameterSource mapSqlParameterSource,
-      List<OrganisationUnit> organisationUnits,
       User user,
       SqlHelper hlp,
       StringBuilder dataElementAndFiltersSql) {
