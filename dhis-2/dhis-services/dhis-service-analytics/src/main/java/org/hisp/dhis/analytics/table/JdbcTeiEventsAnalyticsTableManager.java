@@ -210,8 +210,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
             .append(" from trackedentity tei ")
             .append(
                 " inner join trackedentitytype tet on tet.trackedentitytypeid = tei.trackedentitytypeid ")
-            .append(
-                " inner join enrollment pi on pi.trackedentityinstanceid = tei.trackedentityid ")
+            .append(" inner join enrollment pi on pi.trackedentityid = tei.trackedentityid ")
             .append(" inner join event psi on psi.enrollmentid = pi.enrollmentid")
             .append(" where psi.lastupdated <= '" + getLongDateString(params.getStartTime()) + "' ")
             .append(" and tet.trackedentitytypeid = " + tet.getId() + " ")
@@ -336,7 +335,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
             " inner join enrollment pi on pi.enrollmentid = psi.enrollmentid"
                 + " and pi.deleted is false")
         .append(
-            " inner join trackedentity tei on tei.trackedentityinstanceid = pi.trackedentityinstanceid"
+            " inner join trackedentity tei on tei.trackedentityid = pi.trackedentityid"
                 + " and tei.deleted is false"
                 + " and tei.trackedentitytypeid = "
                 + partition.getMasterTable().getTrackedEntityType().getId()

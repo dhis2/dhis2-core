@@ -67,8 +67,7 @@ public class TrackedEntityQuery {
           .put(COLUMNS.TYPE_UID, new TableColumn("tet", "uid", "type_uid"))
           .put(COLUMNS.ORGUNIT_UID, new TableColumn("o", "uid", "ou_uid"))
           .put(
-              COLUMNS.TRACKEDENTITYID,
-              new TableColumn("tei", "trackedentityid", "trackedentityid"))
+              COLUMNS.TRACKEDENTITYID, new TableColumn("tei", "trackedentityid", "trackedentityid"))
           .put(
               COLUMNS.POTENTIALDUPLICATE,
               new TableColumn("tei", "potentialduplicate", "potentialduplicate"))

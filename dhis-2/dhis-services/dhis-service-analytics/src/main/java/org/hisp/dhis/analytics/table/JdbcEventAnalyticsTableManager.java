@@ -466,7 +466,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + "inner join programstage ps on psi.programstageid=ps.programstageid "
             + "inner join program pr on pi.programid=pr.programid and pi.deleted is false "
             + "inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid "
-            + "left join trackedentity tei on pi.trackedentityinstanceid=tei.trackedentityid "
+            + "left join trackedentity tei on pi.trackedentityid=tei.trackedentityid "
             + "and tei.deleted is false "
             + "left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid "
             + "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid "
@@ -626,7 +626,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                       + "and l.maplegendsetid="
                       + ls.getId()
                       + " "
-                      + "and av.trackedentityinstanceid=pi.trackedentityinstanceid "
+                      + "and av.trackedentityid=pi.trackedentityid "
                       + "and av.trackedentityattributeid="
                       + attribute.getId()
                       + numericClause
@@ -741,7 +741,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       TrackedEntityAttribute attribute, String fromType, String dataClause) {
     return format(
         "(select %s"
-            + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid "
+            + " from trackedentityattributevalue where trackedentityid=pi.trackedentityid "
             + "and trackedentityattributeid="
             + attribute.getId()
             + dataClause

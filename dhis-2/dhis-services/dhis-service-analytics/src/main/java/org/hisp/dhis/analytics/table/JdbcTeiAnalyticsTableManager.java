@@ -137,7 +137,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> GROUP_BY_COLS =
       List.of(
           new AnalyticsTableColumn(
-              quote("trackedentityinstanceid"), INTEGER, NOT_NULL, "tei.trackedentityinstanceid"),
+              quote("trackedentityid"), INTEGER, NOT_NULL, "tei.trackedentityid"),
           new AnalyticsTableColumn(
               quote("trackedentityinstanceuid"), CHARACTER_11, NOT_NULL, "tei.uid"),
           new AnalyticsTableColumn(quote("created"), TIMESTAMP, "tei.created"),
@@ -266,7 +266,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                         quote(program.getUid()),
                         BOOLEAN,
                         " exists(select 1 from enrollment pi_0"
-                            + " where pi_0.trackedentityinstanceid = tei.trackedentityid"
+                            + " where pi_0.trackedentityid = tei.trackedentityid"
                             + " and pi_0.programid = "
                             + program.getId()
                             + ")")));
@@ -389,7 +389,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                         + "\""
                         + " on \""
                         + tea.getUid()
-                        + "\".trackedentityinstanceid = tei.trackedentityid"
+                        + "\".trackedentityid = tei.trackedentityid"
                         + " and \""
                         + tea.getUid()
                         + "\".trackedentityattributeid = "
@@ -399,7 +399,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         .append(" and tei.lastupdated < '" + getLongDateString(params.getStartTime()) + "'")
         .append(
             " and exists ( select 1 from enrollment pi"
-                + " where pi.trackedentityinstanceid = tei.trackedentityid"
+                + " where pi.trackedentityid = tei.trackedentityid"
                 + " and exists ( select 1 from event psi"
                 + " where psi.enrollmentid = pi.enrollmentid"
                 + " and psi.status in ("
