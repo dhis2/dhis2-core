@@ -158,7 +158,27 @@ public class DefaultSqlViewService implements SqlViewService {
 
   @Override
   @Transactional(readOnly = true)
-  public Grid getSqlViewGrid(
+  public Grid getSqlViewGridReadOnly(
+      SqlView sqlView,
+      Map<String, String> criteria,
+      Map<String, String> variables,
+      List<String> filters,
+      List<String> fields) {
+    return getGridData(sqlView, criteria, variables, filters, fields);
+  }
+
+  @Override
+  @Transactional
+  public Grid getSqlViewGridWritesAllowed(
+      SqlView sqlView,
+      Map<String, String> criteria,
+      Map<String, String> variables,
+      List<String> filters,
+      List<String> fields) {
+    return getGridData(sqlView, criteria, variables, filters, fields);
+  }
+
+  private Grid getGridData(
       SqlView sqlView,
       Map<String, String> criteria,
       Map<String, String> variables,
@@ -179,7 +199,6 @@ public class DefaultSqlViewService implements SqlViewService {
             : getSqlForView(sqlView, criteria, filters, fields);
 
     sqlViewStore.populateSqlViewGrid(grid, sql);
-
     return grid;
   }
 
