@@ -706,7 +706,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
     attributes
         .append("INNER JOIN trackedentityattributevalue Q ")
-        .append("ON Q.trackedentityinstanceid = TEI.trackedentityid ")
+        .append("ON Q.trackedentityid = TEI.trackedentityid ")
         .append("AND Q.trackedentityattributeid IN (")
         .append(getCommaDelimitedString(itemIds))
         .append(") AND (");
@@ -746,7 +746,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
       String col = statementBuilder.columnQuote(queryItem.getItemId());
       String teaId = col + ".trackedentityattributeid";
       String teav = "lower(" + col + ".value)";
-      String teiid = col + ".trackedentityinstanceid";
+      String teiid = col + ".trackedentityid";
 
       attributes
           .append(" INNER JOIN trackedentityattributevalue ")
@@ -796,7 +796,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
           .append(statementBuilder.columnQuote(orderAttribute.getItemId()))
           .append(" ON ")
           .append(statementBuilder.columnQuote(orderAttribute.getItemId()))
-          .append(".trackedentityinstanceid = TEI.trackedentityid ")
+          .append(".trackedentityid = TEI.trackedentityid ")
           .append("AND ")
           .append(statementBuilder.columnQuote(orderAttribute.getItemId()))
           .append(".trackedentityattributeid = ")
@@ -823,7 +823,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
         .append(" INNER JOIN trackedentityprogramowner PO ")
         .append("ON PO.programid = ")
         .append(params.getProgram().getId())
-        .append(" AND PO.trackedentityinstanceid = TEI.trackedentityid ")
+        .append(" AND PO.trackedentityId = TEI.trackedentityid ")
         .toString();
   }
 
@@ -889,7 +889,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
       return new StringBuilder(" INNER JOIN enrollment ")
           .append(PROGRAM_INSTANCE_ALIAS)
           .append(" ON ")
-          .append(PROGRAM_INSTANCE_ALIAS + "." + "trackedentityinstanceid")
+          .append(PROGRAM_INSTANCE_ALIAS + "." + "trackedentityid")
           .append("= TEI.trackedentityid ")
           .toString();
     }
@@ -917,7 +917,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     program
         .append(whereAnd.whereAnd())
         .append("EXISTS (")
-        .append("SELECT PI.trackedentityinstanceid ")
+        .append("SELECT PI.trackedentityid ")
         .append("FROM enrollment PI ");
 
     if (params.hasFilterForEvents()) {
@@ -925,7 +925,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     }
 
     program
-        .append("WHERE PI.trackedentityinstanceid = TEI.trackedentityid ")
+        .append("WHERE PI.trackedentityid = TEI.trackedentityid ")
         .append("AND PI.programid = ")
         .append(params.getProgram().getId())
         .append(SPACE);
@@ -1143,7 +1143,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
       relatedTables
           .append("LEFT JOIN trackedentityattributevalue TEAV ")
-          .append("ON TEAV.trackedentityinstanceid = TEI.trackedentityid ")
+          .append("ON TEAV.trackedentityid = TEI.trackedentityid ")
           .append("AND TEAV.trackedentityattributeid IN (")
           .append(attributeString)
           .append(") ");

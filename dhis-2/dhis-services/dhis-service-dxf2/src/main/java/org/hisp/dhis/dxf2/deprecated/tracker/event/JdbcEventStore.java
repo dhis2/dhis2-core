@@ -936,7 +936,7 @@ public class JdbcEventStore implements EventStore {
           .append(" INNER JOIN trackedentityattributevalue ")
           .append(teaValueCol)
           .append(" ON ")
-          .append(teaValueCol + ".trackedentityinstanceid")
+          .append(teaValueCol + ".trackedentityId")
           .append(" = TEI.trackedentityid ")
           .append(" INNER JOIN trackedentityattribute ")
           .append(teaCol)
@@ -1085,7 +1085,7 @@ public class JdbcEventStore implements EventStore {
     if (checkForOwnership(params)) {
       fromBuilder
           .append(
-              "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) ")
+              "left join trackedentityprogramowner po on (pi.trackedentityid=po.trackedentityId) ")
           .append(
               "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) ")
           .append(
@@ -1096,7 +1096,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     fromBuilder
-        .append("left join trackedentity tei on tei.trackedentityid=pi.trackedentityinstanceid ")
+        .append("left join trackedentity tei on tei.trackedentityid=pi.trackedentityid ")
         .append(
             "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ")
         .append("left join userinfo au on (psi.assigneduserid=au.userinfoid) ");
@@ -1110,12 +1110,12 @@ public class JdbcEventStore implements EventStore {
     fromBuilder.append(dataElementAndFiltersSql);
 
     if (params.getTrackedEntity() != null) {
-      mapSqlParameterSource.addValue("trackedentityinstanceid", params.getTrackedEntity().getId());
+      mapSqlParameterSource.addValue("trackedentityid", params.getTrackedEntity().getId());
 
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" tei.trackedentityinstanceid= ")
-          .append(":trackedentityinstanceid")
+          .append(" tei.trackedentityid= ")
+          .append(":trackedentityid")
           .append(" ");
     }
 
@@ -1476,7 +1476,7 @@ public class JdbcEventStore implements EventStore {
     if (checkForOwnership(params)) {
       sqlBuilder
           .append(
-              "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) ")
+              "left join trackedentityprogramowner po on (pi.trackedentityid=po.trackedentityId) ")
           .append(
               "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) ")
           .append(
@@ -1831,7 +1831,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String getAttributeValueQuery() {
-    return "select pav.trackedentityinstanceid as pav_id, pav.created as pav_created, pav.lastupdated as pav_lastupdated, "
+    return "select pav.trackedentityId as pav_id, pav.created as pav_created, pav.lastupdated as pav_lastupdated, "
         + "pav.value as pav_value, ta.uid as ta_uid, ta.name as ta_name, ta.valuetype as ta_valuetype "
         + "from trackedentityattributevalue pav "
         + "inner join trackedentityattribute ta on pav.trackedentityattributeid=ta.trackedentityattributeid ";

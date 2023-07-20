@@ -226,7 +226,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
     String teiSelect = "(select trackedentityid from trackedentity where deleted is true)";
 
     String enrollmentSelect =
-        "(select enrollmentid from enrollment where trackedentityinstanceid in " + teiSelect + " )";
+        "(select enrollmentid from enrollment where trackedentityid in " + teiSelect + " )";
 
     List<String> deletedTeiUids =
         getDeletionEntities("select uid from trackedentity where deleted is true");
@@ -235,8 +235,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
     }
 
     List<String> associatedEnrollments =
-        getDeletionEntities(
-            "select uid from enrollment where trackedentityinstanceid in " + teiSelect);
+        getDeletionEntities("select uid from enrollment where trackedentityid in " + teiSelect);
 
     List<String> associatedEvents =
         getDeletionEntities("select uid from event where enrollmentid in " + enrollmentSelect);
@@ -249,7 +248,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
         "(select eventid from event where enrollmentid in " + enrollmentSelect + " )";
 
     String teiPmSelect =
-        "(select id from programmessage where trackedentityinstanceid in " + teiSelect + " )";
+        "(select id from programmessage where trackedentityid in " + teiSelect + " )";
     String piPmSelect =
         "(select id from programmessage where enrollmentid in " + enrollmentSelect + " )";
     String eventPmSelect = "(select id from programmessage where eventid in " + eventSelect + " )";
@@ -293,16 +292,15 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from programmessage where enrollmentid in " + enrollmentSelect,
           "delete from event where enrollmentid in " + enrollmentSelect,
           // delete other objects related to obsolete TEIs
-          "delete from programmessage where trackedentityinstanceid in " + teiSelect,
-          "delete from relationshipitem where trackedentityinstanceid in " + teiSelect,
-          "delete from trackedentityattributevalue where trackedentityinstanceid in " + teiSelect,
-          "delete from trackedentityattributevalueaudit where trackedentityinstanceid in "
-              + teiSelect,
-          "delete from trackedentityprogramowner where trackedentityinstanceid in " + teiSelect,
-          "delete from programtempowner where trackedentityinstanceid in " + teiSelect,
-          "delete from programtempownershipaudit where trackedentityinstanceid in " + teiSelect,
-          "delete from programownershiphistory where trackedentityinstanceid in " + teiSelect,
-          "delete from enrollment where trackedentityinstanceid in " + teiSelect,
+          "delete from programmessage where trackedentityid in " + teiSelect,
+          "delete from relationshipitem where trackedentityid in " + teiSelect,
+          "delete from trackedentityattributevalue where trackedentityid in " + teiSelect,
+          "delete from trackedentityattributevalueaudit where trackedentityid in " + teiSelect,
+          "delete from trackedentityprogramowner where trackedentityid in " + teiSelect,
+          "delete from programtempowner where trackedentityid in " + teiSelect,
+          "delete from programtempownershipaudit where trackedentityid in " + teiSelect,
+          "delete from programownershiphistory where trackedentityid in " + teiSelect,
+          "delete from enrollment where trackedentityid in " + teiSelect,
           // finally delete the TEIs
           "delete from trackedentity where deleted is true"
         };

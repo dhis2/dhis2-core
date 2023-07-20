@@ -35,22 +35,22 @@
     <property name="lastUpdatedByUserInfo" type="jbUserInfoSnapshot" column="lastupdatedbyuserinfo"/>
 
     <set name="trackedEntityAttributeValues" inverse="true">
-      <key column="trackedentityinstanceid"/>
+      <key column="trackedentityid"/>
       <one-to-many class="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue"/>
     </set>
 
     <set name="enrollments" inverse="true">
-      <key column="trackedentityinstanceid"/>
+      <key column="trackedentityid"/>
       <one-to-many class="org.hisp.dhis.program.Enrollment"/>
     </set>
 
       <set name="programOwners" inverse="true">
-      <key column="trackedentityinstanceid" />
+      <key column="trackedentityid" />
       <one-to-many class="org.hisp.dhis.trackedentity.TrackedEntityProgramOwner" />
     </set>
 
     <set name="relationshipItems" inverse="true">
-      <key column="trackedentityinstanceid" />
+      <key column="trackedentityid" />
       <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
     </set>
 

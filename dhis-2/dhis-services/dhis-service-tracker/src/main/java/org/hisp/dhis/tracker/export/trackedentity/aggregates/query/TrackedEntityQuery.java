@@ -47,7 +47,7 @@ public class TrackedEntityQuery {
     GEOMETRY,
     TYPE_UID,
     ORGUNIT_UID,
-    TRACKEDENTITYINSTANCEID,
+    TRACKEDENTITYID,
 
     POTENTIALDUPLICATE
   }
@@ -67,7 +67,7 @@ public class TrackedEntityQuery {
           .put(COLUMNS.TYPE_UID, new TableColumn("tet", "uid", "type_uid"))
           .put(COLUMNS.ORGUNIT_UID, new TableColumn("o", "uid", "ou_uid"))
           .put(
-              COLUMNS.TRACKEDENTITYINSTANCEID,
+              COLUMNS.TRACKEDENTITYID,
               new TableColumn("tei", "trackedentityid", "trackedentityid"))
           .put(
               COLUMNS.POTENTIALDUPLICATE,

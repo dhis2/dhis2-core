@@ -53,7 +53,7 @@
     </property>
 
     <many-to-one name="trackedEntity"
-                 class="org.hisp.dhis.trackedentity.TrackedEntity" column="trackedentityinstanceid"
+                 class="org.hisp.dhis.trackedentity.TrackedEntity" column="trackedentityid"
                  foreign-key="fk_programinstance_trackedentityinstanceid" lazy="false" />
 
     <many-to-one name="program" class="org.hisp.dhis.program.Program"

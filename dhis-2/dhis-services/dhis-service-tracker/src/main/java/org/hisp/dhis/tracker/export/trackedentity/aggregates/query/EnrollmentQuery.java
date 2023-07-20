@@ -93,10 +93,10 @@ public class EnrollmentQuery {
     return getSelect()
         + "from enrollment pi "
         + "join program p on pi.programid = p.programid "
-        + "join trackedentity tei on pi.trackedentityinstanceid = tei.trackedentityid "
+        + "join trackedentity tei on pi.trackedentityid = tei.trackedentityid "
         + "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid "
         + "join organisationunit o on tei.organisationunitid = o.organisationunitid "
-        + "where pi.trackedentityinstanceid in (:ids) ";
+        + "where pi.trackedentityid in (:ids) ";
   }
 
   private static String getSelect() {
