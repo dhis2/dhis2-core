@@ -69,7 +69,6 @@ class OptionControllerTest extends DhisControllerConvenienceTest {
     response = GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
     assertEquals(2, response.getObject("options").size());
     assertEquals(1, response.getNumber("options[0].sortOrder").intValue());
-    // sortOrder 20 should be saved as 2.
     assertEquals("Uh4HvjK6zg3", response.getString("options[1].id").string());
     assertEquals(20, response.getNumber("options[1].sortOrder").intValue());
   }
