@@ -63,7 +63,7 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings(strictness = Strictness.LENIENT) // common setup
 @ExtendWith(MockitoExtension.class)
-class EnrollmentRequestParamsMapperTest {
+class EnrollmentOperationParamsMapperTest {
 
   private static final String ORG_UNIT_1_UID = "lW0T2U7gZUi";
 
