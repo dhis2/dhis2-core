@@ -76,6 +76,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.google.api.client.util.Strings;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -594,7 +595,7 @@ public class JdbcEventStore implements EventStore {
 
     final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
-    String sql = buildGridSql(params, mapSqlParameterSource, organisationUnits);
+    String sql = buildGridSql(params, mapSqlParameterSource);
 
     return jdbcTemplate.query(
         sql,
@@ -841,7 +842,7 @@ public class JdbcEventStore implements EventStore {
     MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
     if (params.hasFilters()) {
-      sql = buildGridSql(params, mapSqlParameterSource, organisationUnits);
+      sql = buildGridSql(params, mapSqlParameterSource);
     } else {
       sql = getEventSelectQuery(params, mapSqlParameterSource, organisationUnits, user);
     }
@@ -872,9 +873,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String buildGridSql(
-      EventSearchParams params,
-      MapSqlParameterSource mapSqlParameterSource,
-      List<OrganisationUnit> organisationUnits) {
+      EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
     SqlHelper hlp = new SqlHelper();
 
     StringBuilder selectBuilder =
@@ -1247,7 +1246,7 @@ public class JdbcEventStore implements EventStore {
 
     String orgUnitSql = getOrgUnitSql(params, getOuTableName(params));
 
-    if (orgUnitSql != null) {
+    if (!Strings.isNullOrEmpty(orgUnitSql)) {
       fromBuilder.append(hlp.whereAnd()).append(" (").append(orgUnitSql).append(") ");
     }
 
