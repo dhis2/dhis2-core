@@ -775,7 +775,7 @@ public class JdbcEventStore implements EventStore {
       StringBuilder dataElementAndFiltersSql) {
     StringBuilder fromBuilder =
         new StringBuilder(" from event psi ")
-            .append("inner join programinstance pi on pi.programinstanceid=psi.programinstanceid ")
+            .append("inner join enrollment pi on pi.enrollmentid=psi.enrollmentid ")
             .append("inner join program p on p.programid=pi.programid ")
             .append("inner join programstage ps on ps.programstageid=psi.programstageid ");
 
@@ -1011,9 +1011,9 @@ public class JdbcEventStore implements EventStore {
     }
 
     if (!CollectionUtils.isEmpty(params.getEnrollments())) {
-      mapSqlParameterSource.addValue("programinstance_uid", params.getEnrollments());
+      mapSqlParameterSource.addValue("enrollment_uid", params.getEnrollments());
 
-      fromBuilder.append(hlp.whereAnd()).append(" (pi.uid in (:programinstance_uid)) ");
+      fromBuilder.append(hlp.whereAnd()).append(" (pi.uid in (:enrollment_uid)) ");
     }
 
     return fromBuilder;
@@ -1171,7 +1171,7 @@ public class JdbcEventStore implements EventStore {
         new StringBuilder()
             .append(
                 " from event psi "
-                    + "inner join programinstance pi on pi.programinstanceid = psi.programinstanceid "
+                    + "inner join enrollment pi on pi.enrollmentid = psi.enrollmentid "
                     + "inner join program p on p.programid = pi.programid "
                     + "inner join programstage ps on ps.programstageid = psi.programstageid "
                     + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
@@ -1284,9 +1284,9 @@ public class JdbcEventStore implements EventStore {
     }
 
     if (!CollectionUtils.isEmpty(params.getEnrollments())) {
-      mapSqlParameterSource.addValue("programinstance_uid", params.getEnrollments());
+      mapSqlParameterSource.addValue("enrollment_uid", params.getEnrollments());
 
-      sqlBuilder.append(hlp.whereAnd()).append(" (pi.uid in (:programinstance_uid)) ");
+      sqlBuilder.append(hlp.whereAnd()).append(" (pi.uid in (:enrollment_uid)) ");
     }
 
     sqlBuilder.append(eventStatusSql(params, mapSqlParameterSource, hlp));

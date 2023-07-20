@@ -452,7 +452,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
             List.of(
                 "SELECT TEI.uid AS " + TRACKED_ENTITY_INSTANCE_ID,
                 "TEI.created AS " + CREATED_ID,
-                "TEI.lastUpdated AS " + LAST_UPDATED_ID,
+                "TEI.lastupdated AS " + LAST_UPDATED_ID,
                 "TEI.ou AS " + ORG_UNIT_ID,
                 "TEI.ouname AS " + ORG_UNIT_NAME,
                 "TET.uid AS " + TRACKED_ENTITY_ID,
@@ -527,8 +527,8 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   }
 
   /**
-   * The subquery projection. If we are sorting by attribute, we need to include the value in the
-   * subquery projection.
+   * The sub-query projection. If we are sorting by attribute, we need to include the value in the
+   * sub-query projection.
    *
    * @param params
    * @return a SQL projection
@@ -540,7 +540,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
                 "TEI.trackedentityinstanceid",
                 "TEI.uid",
                 "TEI.created",
-                "TEI.lastUpdated",
+                "TEI.lastupdated",
                 "TEI.inactive",
                 "TEI.trackedentitytypeid",
                 "TEI.potentialduplicate",
@@ -886,7 +886,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
    */
   private String getFromSubQueryJoinEnrollmentConditions(TrackedEntityQueryParams params) {
     if (params.getOrders().stream().anyMatch(p -> ENROLLED_AT.isPropertyEqualTo(p.getField()))) {
-      return new StringBuilder(" INNER JOIN programinstance ")
+      return new StringBuilder(" INNER JOIN enrollment ")
           .append(PROGRAM_INSTANCE_ALIAS)
           .append(" ON ")
           .append(PROGRAM_INSTANCE_ALIAS + "." + "trackedentityinstanceid")
@@ -904,7 +904,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
    *
    * @param whereAnd indicator tracking whether WHERE has been invoked or not
    * @param params
-   * @return an SQL EXISTS clause for programinstance, or empty string if not program is specified.
+   * @return an SQL EXISTS clause for enrollment, or empty string if not program is specified.
    */
   private String getFromSubQueryEnrollmentConditions(
       SqlHelper whereAnd, TrackedEntityQueryParams params) {
@@ -918,7 +918,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
         .append(whereAnd.whereAnd())
         .append("EXISTS (")
         .append("SELECT PI.trackedentityinstanceid ")
-        .append("FROM programinstance PI ");
+        .append("FROM enrollment PI ");
 
     if (params.hasFilterForEvents()) {
       program.append(getFromSubQueryEvent(params));
@@ -986,7 +986,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     StringBuilder events = new StringBuilder();
     SqlHelper whereHlp = new SqlHelper(true);
 
-    events.append("INNER JOIN (").append("SELECT PSI.programinstanceid ").append("FROM event PSI ");
+    events.append("INNER JOIN (").append("SELECT PSI.enrollmentid ").append("FROM event PSI ");
 
     if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
       events
@@ -1083,7 +1083,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
       events.append(whereHlp.whereAnd()).append("PSI.deleted IS FALSE");
     }
 
-    events.append(") PSI ON PSI.programinstanceid = PI.programinstanceid ");
+    events.append(") PSI ON PSI.enrollmentid = PI.enrollmentid ");
 
     return events.toString();
   }
