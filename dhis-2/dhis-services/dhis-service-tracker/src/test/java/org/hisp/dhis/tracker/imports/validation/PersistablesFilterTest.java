@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.tracker.imports.validation;
 
-import static org.hisp.dhis.tracker.imports.TrackerType.ENROLLMENT;
-import static org.hisp.dhis.tracker.imports.TrackerType.EVENT;
-import static org.hisp.dhis.tracker.imports.TrackerType.RELATIONSHIP;
-import static org.hisp.dhis.tracker.imports.TrackerType.TRACKED_ENTITY;
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
+import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.imports.validation.PersistablesFilter.filter;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E5000;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E5001;
@@ -48,8 +48,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;

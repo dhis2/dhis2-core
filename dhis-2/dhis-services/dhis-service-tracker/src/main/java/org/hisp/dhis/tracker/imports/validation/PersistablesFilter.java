@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.tracker.imports.validation;
 
-import static org.hisp.dhis.tracker.imports.TrackerType.ENROLLMENT;
-import static org.hisp.dhis.tracker.imports.TrackerType.EVENT;
-import static org.hisp.dhis.tracker.imports.TrackerType.RELATIONSHIP;
-import static org.hisp.dhis.tracker.imports.TrackerType.TRACKED_ENTITY;
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
+import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -46,8 +46,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
