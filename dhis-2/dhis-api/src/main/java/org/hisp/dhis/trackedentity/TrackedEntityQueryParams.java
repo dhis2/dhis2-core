@@ -969,16 +969,19 @@ public class TrackedEntityQueryParams {
   @Getter
   @AllArgsConstructor
   public enum OrderColumn {
-    TRACKEDENTITY("trackedEntity", "uid", MAIN_QUERY_ALIAS),
-    // Ordering by id is the same as ordering by created date
-    CREATED(CREATED_ID, "trackedentityid", MAIN_QUERY_ALIAS),
-    CREATED_AT("createdAt", "trackedentityid", MAIN_QUERY_ALIAS),
-    CREATED_AT_CLIENT("createdAtClient", "createdAtClient", MAIN_QUERY_ALIAS),
-    UPDATED_AT("updatedAt", "lastUpdated", MAIN_QUERY_ALIAS),
-    UPDATED_AT_CLIENT("updatedAtClient", "lastUpdatedAtClient", MAIN_QUERY_ALIAS),
+    TRACKEDENTITY(
+        "trackedEntity",
+        "uid",
+        MAIN_QUERY_ALIAS), // Ordering by id is the same as ordering by created date
+    // TODO(tracker): remove with old tracker
+    CREATED("created", CREATED_ID, MAIN_QUERY_ALIAS),
+    CREATED_AT("createdAt", CREATED_ID, MAIN_QUERY_ALIAS),
+    CREATED_AT_CLIENT("createdAtClient", "createdatclient", MAIN_QUERY_ALIAS),
+    UPDATED_AT("updatedAt", "lastupdated", MAIN_QUERY_ALIAS),
+    UPDATED_AT_CLIENT("updatedAtClient", "lastupdatedatclient", MAIN_QUERY_ALIAS),
     ENROLLED_AT(
         "enrolledAt",
-        "enrollmentDate",
+        "enrollmentdate",
         PROGRAM_INSTANCE_ALIAS), // this works only for the new endpoint
     // ORGUNIT_NAME( "orgUnitName", MAIN_QUERY_ALIAS+".organisationUnit.name" ),
     INACTIVE(INACTIVE_ID, "inactive", MAIN_QUERY_ALIAS);
