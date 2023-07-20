@@ -81,6 +81,12 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
     handleSortOrder(identifiableObject, bundle, schema);
   }
 
+  /**
+   * This method loops through all sortable List of given object and sets the sortOrder value for each item in the List if it is not already set.
+   * @param identifiableObject Object to set sortOrder on
+   * @param bundle {@link ObjectBundle}
+   * @param schema Schema of given object
+   */
   private void handleSortOrder(
       IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema) {
     findSortableProperty(schema)
@@ -94,26 +100,31 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
                 IdentifiableObject item = collection.get(i);
                 IdentifiableObject preheatedItem =
                     bundle.getPreheat().get(bundle.getPreheatIdentifier(), item);
-                SortableObject sortableItem = (SortableObject) preheatedItem;
-                if (sortableItem.getSortOrder() == null) {
-                  sortableItem.setSortOrder(i);
+                if (preheatedItem == null) {
+                  continue;
                 }
-
-                bundle.getPreheat().put(bundle.getPreheatIdentifier(), item);
+                SortableObject sortableObject = (SortableObject) preheatedItem;
+                if (sortableObject.getSortOrder() == null) {
+                  sortableObject.setSortOrder(i);
+                  bundle.getPreheat().put(bundle.getPreheatIdentifier(), preheatedItem);
+                }
               }
+              bundle.getPreheat().put(bundle.getPreheatIdentifier(), identifiableObject);
             });
   }
 
+  /**
+   * Fina all properties of given Schema class that are of type List which contains SortableObjects interface. The property must also have a property called sortOrder.
+   * @param schema Schema class to search for sortable properties
+   * @return List of properties that are sortable
+   */
   private List<Property> findSortableProperty(Schema schema) {
     return schema.getPersistedProperties().values().stream()
         .filter(
             p ->
                 p.getKlass().isAssignableFrom(List.class)
                     && p.getItemKlass() != null
-                    && SortableObject.class.isAssignableFrom(p.getItemKlass())
-                    && schemaService
-                        .getDynamicSchema(p.getItemKlass())
-                        .hasPersistedProperty("sortOrder"))
+                    && SortableObject.class.isAssignableFrom(p.getItemKlass()))
         .toList();
   }
 
@@ -128,6 +139,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
 
     Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
     handleAttributeValues(object, bundle, schema);
+    handleSortOrder(object, bundle, schema);
   }
 
   private void handleAttributeValues(

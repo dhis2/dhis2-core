@@ -96,9 +96,11 @@ class OptionControllerTest extends DhisControllerConvenienceTest {
             "{'optionSet': { 'id':'"
                 + id
                 + "'},'id':'BQMei56UBl6','code': 'B', 'name': 'Betta', 'description': 'this-is-b'}"));
-    JsonOptionSet set = GET("/optionSets/{id}", id).content().as(JsonOptionSet.class);
+    JsonOptionSet set = GET("/optionSets/{id}?fields=options[id,sortOrder]", id).content().as(JsonOptionSet.class);
     assertEquals("Uh4HvjK6zg3", set.getOptions().get(0).getId());
+    assertEquals(0, set.getOptions().get(0).getSortOrder());
     assertEquals("BQMei56UBl6", set.getOptions().get(1).getId());
+    assertEquals(0, set.getOptions().get(1).getSortOrder());
   }
 
   @Test
