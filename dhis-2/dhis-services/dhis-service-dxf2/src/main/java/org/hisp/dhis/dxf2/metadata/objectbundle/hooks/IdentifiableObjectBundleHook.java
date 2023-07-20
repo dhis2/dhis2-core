@@ -116,7 +116,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
   }
 
   /**
-   * Fina all properties of given Schema class that are of type List which contains SortableObjects
+   * Find all properties of given Schema class that are of type List which contains SortableObjects
    * interface. The property must also have a property called sortOrder.
    *
    * @param schema Schema class to search for sortable properties
