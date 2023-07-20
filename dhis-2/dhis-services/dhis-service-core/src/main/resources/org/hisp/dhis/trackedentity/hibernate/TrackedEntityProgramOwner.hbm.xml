@@ -12,7 +12,7 @@
     </id>
 
     <many-to-one name="trackedEntity"
-                 class="org.hisp.dhis.trackedentity.TrackedEntity" column="trackedentityId"
+                 class="org.hisp.dhis.trackedentity.TrackedEntity" column="trackedentityid"
                  foreign-key="fk_trackedentityprogramowner_trackedentityinstanceid"
                  lazy="false" unique-key="uk_tei_program" />
     <many-to-one name="program" class="org.hisp.dhis.program.Program"

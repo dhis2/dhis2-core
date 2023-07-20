@@ -823,7 +823,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
         .append(" INNER JOIN trackedentityprogramowner PO ")
         .append("ON PO.programid = ")
         .append(params.getProgram().getId())
-        .append(" AND PO.trackedentityId = TEI.trackedentityid ")
+        .append(" AND PO.trackedentityid = TEI.trackedentityid ")
         .toString();
   }
 

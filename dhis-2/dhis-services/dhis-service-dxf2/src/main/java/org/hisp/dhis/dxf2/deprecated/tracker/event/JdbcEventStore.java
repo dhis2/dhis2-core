@@ -936,7 +936,7 @@ public class JdbcEventStore implements EventStore {
           .append(" INNER JOIN trackedentityattributevalue ")
           .append(teaValueCol)
           .append(" ON ")
-          .append(teaValueCol + ".trackedentityId")
+          .append(teaValueCol + ".trackedentityid")
           .append(" = TEI.trackedentityid ")
           .append(" INNER JOIN trackedentityattribute ")
           .append(teaCol)
@@ -1085,7 +1085,7 @@ public class JdbcEventStore implements EventStore {
     if (checkForOwnership(params)) {
       fromBuilder
           .append(
-              "left join trackedentityprogramowner po on (pi.trackedentityid=po.trackedentityId) ")
+              "left join trackedentityprogramowner po on (pi.trackedentityid=po.trackedentityid) ")
           .append(
               "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) ")
           .append(
@@ -1476,7 +1476,7 @@ public class JdbcEventStore implements EventStore {
     if (checkForOwnership(params)) {
       sqlBuilder
           .append(
-              "left join trackedentityprogramowner po on (pi.trackedentityid=po.trackedentityId) ")
+              "left join trackedentityprogramowner po on (pi.trackedentityid=po.trackedentityid) ")
           .append(
               "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) ")
           .append(
@@ -1831,7 +1831,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String getAttributeValueQuery() {
-    return "select pav.trackedentityId as pav_id, pav.created as pav_created, pav.lastupdated as pav_lastupdated, "
+    return "select pav.trackedentityid as pav_id, pav.created as pav_created, pav.lastupdated as pav_lastupdated, "
         + "pav.value as pav_value, ta.uid as ta_uid, ta.name as ta_name, ta.valuetype as ta_valuetype "
         + "from trackedentityattributevalue pav "
         + "inner join trackedentityattribute ta on pav.trackedentityattributeid=ta.trackedentityattributeid ";

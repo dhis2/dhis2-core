@@ -35,16 +35,6 @@ alter table trackedentityaudit rename column trackedentityinstanceauditid to tra
 end if;
 end $$;
 
-do $$
-begin
-  if exists(select 1
-    from information_schema.columns
-    where table_schema != 'information_schema' and table_name='trackedentityaudit' and column_name='trackedentityinstanceauditid')
-  then
-alter table trackedentityaudit rename column trackedentityinstanceauditid to trackedentityauditid;
-end if;
-end $$;
-
 -- rename trackedentityinstancefilter
 
 alter table if exists trackedentityinstancefilter rename to trackedentityfilter;
