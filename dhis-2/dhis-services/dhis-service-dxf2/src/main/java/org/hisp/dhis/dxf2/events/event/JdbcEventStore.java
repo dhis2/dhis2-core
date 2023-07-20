@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events.event;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
@@ -76,7 +77,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.google.api.client.util.Strings;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -1246,7 +1246,7 @@ public class JdbcEventStore implements EventStore {
 
     String orgUnitSql = getOrgUnitSql(params, getOuTableName(params));
 
-    if (!Strings.isNullOrEmpty(orgUnitSql)) {
+    if (!isNullOrEmpty(orgUnitSql)) {
       fromBuilder.append(hlp.whereAnd()).append(" (").append(orgUnitSql).append(") ");
     }
 
