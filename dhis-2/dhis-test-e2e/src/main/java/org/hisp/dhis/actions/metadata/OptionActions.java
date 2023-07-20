@@ -67,7 +67,8 @@ public class OptionActions {
     return optionActions.create(option);
   }
 
-  public String createOption(String optionName, String optionCode, String optionSetId, int sortOrder) {
+  public String createOption(
+      String optionName, String optionCode, String optionSetId, int sortOrder) {
     JsonObject option = new JsonObject();
 
     option.addProperty("name", optionName);

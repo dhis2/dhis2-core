@@ -183,6 +183,7 @@ public class OptionSetTests extends ApiTest {
     return optionActions.createOption(
         "Option name auto" + DataGenerator.randomString(),
         "Option code auto" + DataGenerator.randomString(),
-        optionSetId, sortOrder);
+        optionSetId,
+        sortOrder);
   }
 }
