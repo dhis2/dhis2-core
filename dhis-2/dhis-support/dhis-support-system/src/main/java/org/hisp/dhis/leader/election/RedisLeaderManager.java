@@ -38,6 +38,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
@@ -63,6 +64,8 @@ public class RedisLeaderManager implements LeaderManager {
   private SchedulingManager schedulingManager;
 
   private final StringRedisTemplate redisTemplate;
+
+  private boolean electionDidRun = false;
 
   public RedisLeaderManager(
       Long timeToLiveMinutes,
@@ -102,6 +105,7 @@ public class RedisLeaderManager implements LeaderManager {
               .opsForValue()
               .setIfAbsent(NODE_ID_KEY, nodeId, timeToLiveSeconds, TimeUnit.SECONDS);
         });
+    electionDidRun = true;
     if (isLeader()) {
       renewLeader(progress);
 
@@ -120,6 +124,7 @@ public class RedisLeaderManager implements LeaderManager {
 
   @Override
   public boolean isLeader() {
+    if (!electionDidRun) electLeader(NoopJobProgress.INSTANCE);
     String leaderId = getLeaderNodeUuidFromRedis();
     return nodeUuid.equals(leaderId);
   }
