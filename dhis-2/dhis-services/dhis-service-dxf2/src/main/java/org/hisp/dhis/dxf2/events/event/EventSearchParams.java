@@ -112,7 +112,10 @@ public class EventSearchParams {
 
   private Boolean followUp;
 
-  private OrganisationUnitSelectionMode orgUnitSelectionMode;
+  // TODO Default set to DESCENDANTS to replicate master, but this will need to be fixed in
+  // https://dhis2.atlassian.net/browse/TECH-1588
+  private OrganisationUnitSelectionMode orgUnitSelectionMode =
+      OrganisationUnitSelectionMode.DESCENDANTS;
 
   private List<OrganisationUnit> accessibleOrgUnits = new ArrayList<>();
 
