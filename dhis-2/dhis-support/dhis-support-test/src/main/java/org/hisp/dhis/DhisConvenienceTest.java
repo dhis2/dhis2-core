@@ -47,6 +47,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -89,6 +90,9 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dashboard.design.Column;
+import org.hisp.dhis.dashboard.design.Layout;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -2871,5 +2875,25 @@ public abstract class DhisConvenienceTest {
     relType.setToConstraint(relationshipConstraintTo);
 
     return relType;
+  }
+
+  protected Dashboard createDashboard(char uniqueChar) {
+    Dashboard dashboard = new Dashboard();
+    dashboard.setName("Dashboard " + uniqueChar);
+    dashboard.setUid(CodeGenerator.generateUid());
+    return dashboard;
+  }
+
+  protected Layout createLayoutWithColumns(int numColumns) {
+    Layout layout = new Layout();
+    List<Column> columns = new ArrayList<>();
+    for (int i = 0; i < numColumns; i++) {
+      Column column = new Column();
+      column.setIndex(i);
+      column.setSpan(i);
+      columns.add(column);
+    }
+    layout.setColumns(columns);
+    return layout;
   }
 }
