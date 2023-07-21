@@ -969,10 +969,7 @@ public class TrackedEntityQueryParams {
   @Getter
   @AllArgsConstructor
   public enum OrderColumn {
-    TRACKEDENTITY(
-        "trackedEntity",
-        "uid",
-        MAIN_QUERY_ALIAS), // Ordering by id is the same as ordering by created date
+    TRACKEDENTITY("trackedEntity", "uid", MAIN_QUERY_ALIAS),
     // TODO(tracker): remove with old tracker
     CREATED("created", CREATED_ID, MAIN_QUERY_ALIAS),
     CREATED_AT("createdAt", CREATED_ID, MAIN_QUERY_ALIAS),
