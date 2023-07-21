@@ -15,7 +15,7 @@
       column="programid" foreign-key="fk_programownershiphistory_programid" />
 
     <many-to-one name="trackedEntity"
-                 class="org.hisp.dhis.trackedentity.TrackedEntity" column="trackedentityinstanceid"
+                 class="org.hisp.dhis.trackedentity.TrackedEntity" column="trackedentityid"
                  foreign-key="fk_programownershiphistory_trackedentityinstanceid" />
       
     <many-to-one name="organisationUnit"

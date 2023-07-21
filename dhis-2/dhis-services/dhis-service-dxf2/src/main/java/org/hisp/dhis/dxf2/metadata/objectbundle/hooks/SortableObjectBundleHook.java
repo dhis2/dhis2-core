@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,42 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.report;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.HashMap;
-import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.common.SortableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.springframework.stereotype.Component;
 
-/**
- * The Bundle Report is responsible for aggregating the outcome of the persistence stage of the
- * Tracker Import.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-public class PersistenceReport {
-  public static PersistenceReport emptyReport() {
-    return new PersistenceReport(new HashMap<>());
+@Component
+public class SortableObjectBundleHook extends AbstractObjectBundleHook<SortableObject> {
+
+  @Override
+  public void preCreate(SortableObject sortableObject, ObjectBundle bundle) {
+    if (sortableObject.getSortOrder() == null) {
+      sortableObject.setSortOrder(0);
+    }
   }
 
-  @JsonProperty private Map<TrackerType, TrackerTypeReport> typeReportMap;
-
-  @JsonIgnore
-  public Stats getStats() {
-    Stats stats = new Stats();
-    typeReportMap.values().forEach(tr -> stats.merge(tr.getStats()));
-
-    return stats;
-  }
-
-  public boolean isEmpty() {
-    return typeReportMap.values().stream().allMatch(TrackerTypeReport::isEmpty);
+  @Override
+  public void preUpdate(
+      SortableObject sortableObject, SortableObject persistedObject, ObjectBundle bundle) {
+    if (sortableObject.getSortOrder() == null) {
+      sortableObject.setSortOrder(0);
+    }
   }
 }

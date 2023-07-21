@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,42 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.report;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.HashMap;
-import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.tracker.TrackerType;
+package org.hisp.dhis.common;
 
 /**
- * The Bundle Report is responsible for aggregating the outcome of the persistence stage of the
- * Tracker Import.
+ * Interface for objects that can be sorted when a List of that object is mapped in Hibernate using
+ * {@code <bag name="..." order-by="sort_order">}
  *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * <p>The sort order is an integer value that is used to sort the objects in a list.
  */
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-public class PersistenceReport {
-  public static PersistenceReport emptyReport() {
-    return new PersistenceReport(new HashMap<>());
-  }
+public interface SortableObject {
+  Integer getSortOrder();
 
-  @JsonProperty private Map<TrackerType, TrackerTypeReport> typeReportMap;
-
-  @JsonIgnore
-  public Stats getStats() {
-    Stats stats = new Stats();
-    typeReportMap.values().forEach(tr -> stats.merge(tr.getStats()));
-
-    return stats;
-  }
-
-  public boolean isEmpty() {
-    return typeReportMap.values().stream().allMatch(TrackerTypeReport::isEmpty);
-  }
+  void setSortOrder(Integer sortOrder);
 }
