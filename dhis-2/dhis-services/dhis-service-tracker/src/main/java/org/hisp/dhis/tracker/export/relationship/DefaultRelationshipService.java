@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -68,6 +69,50 @@ public class DefaultRelationshipService implements RelationshipService {
   private final EnrollmentService enrollmentService;
 
   private final EventService eventService;
+
+  @Override
+  public List<Relationship> getRelationships(RelationshipOperationParams params)
+      throws ForbiddenException, NotFoundException {
+    IdentifiableObject object = validate(params);
+
+    if (object == null) {
+      return List.of();
+    }
+
+    if (object instanceof TrackedEntity te) {
+      return getRelationshipsByTrackedEntity(te, params.getPagingAndSortingCriteriaAdapter());
+    }
+
+    if (object instanceof Enrollment en) {
+      return getRelationshipsByEnrollment(en, params.getPagingAndSortingCriteriaAdapter());
+    }
+
+    if (object instanceof Event ev) {
+      return getRelationshipsByEvent(ev, params.getPagingAndSortingCriteriaAdapter());
+    }
+
+    throw new IllegalArgumentException("Unkown type");
+  }
+
+  @Override
+  public int countRelationships(RelationshipOperationParams params)
+      throws ForbiddenException, NotFoundException {
+    IdentifiableObject object = validate(params);
+
+    if (object instanceof TrackedEntity te) {
+      return getRelationshipsByTrackedEntity(te, null).size();
+    }
+
+    if (object instanceof Enrollment en) {
+      return getRelationshipsByEnrollment(en, null).size();
+    }
+
+    if (object instanceof Event ev) {
+      return getRelationshipsByEvent(ev, null).size();
+    }
+
+    throw new IllegalArgumentException("Unkown type");
+  }
 
   @Override
   public Relationship getRelationship(String uid) throws ForbiddenException, NotFoundException {
@@ -143,6 +188,22 @@ public class DefaultRelationshipService implements RelationshipService {
                 r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
             .toList();
     return map(relationships);
+  }
+
+  private IdentifiableObject validate(RelationshipOperationParams params) throws NotFoundException {
+    try {
+
+      return switch (params.getType()) {
+        case TRACKED_ENTITY -> trackedEntityService.getTrackedEntity(
+            params.getIdentifier(), TrackedEntityParams.TRUE, true);
+        case ENROLLMENT -> enrollmentService.getEnrollment(
+            params.getIdentifier(), EnrollmentParams.TRUE, true);
+        case EVENT -> eventService.getEvent(params.getIdentifier(), EventParams.TRUE);
+        case RELATIONSHIP -> null;
+      };
+    } catch (ForbiddenException ex) {
+      return null;
+    }
   }
 
   /** Map to a non-proxied Relationship to prevent hibernate exceptions. */

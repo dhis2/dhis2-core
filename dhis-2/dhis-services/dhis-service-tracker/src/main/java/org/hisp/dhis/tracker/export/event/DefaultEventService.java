@@ -98,6 +98,7 @@ public class DefaultEventService implements EventService {
     }
 
     Event result = new Event();
+    result.setId(event.getId());
     result.setUid(event.getUid());
 
     result.setStatus(event.getStatus());
