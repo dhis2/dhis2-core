@@ -98,8 +98,8 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
                   ListUtils.emptyIfNull(
                       ReflectionUtils.invokeGetterMethod(
                           property.getFieldName(), identifiableObject));
-              for (int i = 0; i < collection.size(); i++) {
-                IdentifiableObject item = collection.get(i);
+              int index = -1;
+              for (IdentifiableObject item : collection) {
                 IdentifiableObject preheatedItem =
                     bundle.getPreheat().get(bundle.getPreheatIdentifier(), item);
                 if (preheatedItem == null) {
@@ -107,8 +107,10 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
                 }
                 SortableObject sortableObject = (SortableObject) preheatedItem;
                 if (sortableObject.getSortOrder() == null) {
-                  sortableObject.setSortOrder(i);
+                  sortableObject.setSortOrder(++index);
                   bundle.getPreheat().put(bundle.getPreheatIdentifier(), preheatedItem);
+                } else {
+                  index = sortableObject.getSortOrder();
                 }
               }
               bundle.getPreheat().put(bundle.getPreheatIdentifier(), identifiableObject);
