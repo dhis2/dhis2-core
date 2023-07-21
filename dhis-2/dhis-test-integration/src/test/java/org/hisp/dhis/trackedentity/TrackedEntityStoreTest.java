@@ -36,8 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -55,8 +53,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -424,26 +420,6 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest {
                     atA, QueryOperator.EW, "em", ValueType.TEXT, AggregationType.NONE, null));
     teis = teiStore.getTrackedEntities(params);
     assertEquals(0, teis.size());
-  }
-
-  @Test
-  void testQueryOrderByIdInsteadOfCreatedDate() {
-    LocalDate now = LocalDate.now();
-    Date today = Date.from(now.atStartOfDay().toInstant(ZoneOffset.UTC));
-    Date tomorrow = Date.from(now.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC));
-    teiA.setCreated(tomorrow);
-    teiB.setCreated(today);
-    teiStore.save(teiA);
-    teiStore.save(teiB);
-    enrollmentService.enrollTrackedEntity(teiB, prA, new Date(), new Date(), ouB);
-    // Get all
-    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    params.setOrders(
-        List.of(new OrderParam(TrackedEntityQueryParams.CREATED_ID, SortDirection.ASC)));
-    List<TrackedEntity> teis = teiStore.getTrackedEntities(params);
-    assertEquals(2, teis.size());
-    assertEquals(teiA.getUid(), teis.get(0).getUid());
-    assertEquals(teiB.getUid(), teis.get(1).getUid());
   }
 
   @Test

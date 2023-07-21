@@ -52,12 +52,12 @@ public class EnrollmentsWithAtLeastOneEventSupplier extends JdbcAbstractPreheatS
   private static final String SQL =
       "select  "
           + COLUMN
-          + " from programinstance "
+          + " from enrollment "
           + "where exists( select eventid "
           + "from event "
-          + "where programinstance.programinstanceid = event.programinstanceid "
-          + "and programinstance.deleted = false) "
-          + "and programinstanceid in (:ids)";
+          + "where enrollment.enrollmentid = event.enrollmentid "
+          + "and enrollment.deleted = false) "
+          + "and enrollmentid in (:ids)";
 
   protected EnrollmentsWithAtLeastOneEventSupplier(JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);

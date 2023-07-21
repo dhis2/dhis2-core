@@ -25,42 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.report;
+package org.hisp.dhis.tracker;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.HashMap;
-import java.util.Map;
-import lombok.AllArgsConstructor;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.tracker.TrackerType;
+import lombok.RequiredArgsConstructor;
 
 /**
- * The Bundle Report is responsible for aggregating the outcome of the persistence stage of the
- * Tracker Import.
- *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
-public class PersistenceReport {
-  public static PersistenceReport emptyReport() {
-    return new PersistenceReport(new HashMap<>());
-  }
+@RequiredArgsConstructor
+public enum TrackerType {
+  TRACKED_ENTITY("trackedEntity", 1),
+  ENROLLMENT("enrollment", 2),
+  EVENT("event", 3),
+  RELATIONSHIP("relationship", 4);
 
-  @JsonProperty private Map<TrackerType, TrackerTypeReport> typeReportMap;
+  private final String name;
 
-  @JsonIgnore
-  public Stats getStats() {
-    Stats stats = new Stats();
-    typeReportMap.values().forEach(tr -> stats.merge(tr.getStats()));
+  private final Integer priority;
 
-    return stats;
-  }
-
-  public boolean isEmpty() {
-    return typeReportMap.values().stream().allMatch(TrackerTypeReport::isEmpty);
+  public static List<TrackerType> getOrderedByPriority() {
+    return Arrays.stream(values())
+        .sorted(Comparator.comparing(TrackerType::getPriority))
+        .collect(Collectors.toList());
   }
 }

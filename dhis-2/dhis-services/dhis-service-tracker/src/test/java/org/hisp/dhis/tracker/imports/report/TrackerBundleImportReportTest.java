@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.report;
 
-import static org.hisp.dhis.tracker.imports.TrackerType.TRACKED_ENTITY;
+import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.imports.report.TimingsStats.COMMIT_OPS;
 import static org.hisp.dhis.tracker.imports.report.TimingsStats.PREHEAT_OPS;
 import static org.hisp.dhis.tracker.imports.report.TimingsStats.PREPARE_REQUEST_OPS;
@@ -48,9 +48,9 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerUserService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
