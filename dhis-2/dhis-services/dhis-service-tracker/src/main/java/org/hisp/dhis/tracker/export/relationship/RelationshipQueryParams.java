@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity;
+package org.hisp.dhis.tracker.export.relationship;
 
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObject;
 
-public interface TrackedEntityService {
+@RequiredArgsConstructor
+@Getter
+public class RelationshipQueryParams {
 
-  TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException;
+  public static final RelationshipQueryParams EMPTY = new RelationshipQueryParams(null);
 
-  TrackedEntity getTrackedEntity(
-      TrackedEntity trackedEntity, TrackedEntityParams params, boolean includeDeleted)
-      throws ForbiddenException;
-
-  TrackedEntity getTrackedEntity(
-      String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException;
-
-  /**
-   * Fetches {@see TrackedEntity}s based on the specified parameters.
-   *
-   * @param operationParams a {@see TrackedEntityOperationParams} instance with the operation
-   *     parameters
-   * @return {@see TrackedEntity}s
-   */
-  TrackedEntities getTrackedEntities(TrackedEntityOperationParams operationParams)
-      throws ForbiddenException, NotFoundException, BadRequestException;
+  private final IdentifiableObject entity;
 }

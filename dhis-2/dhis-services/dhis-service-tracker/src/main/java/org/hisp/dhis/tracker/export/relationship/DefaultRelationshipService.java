@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -70,24 +69,26 @@ public class DefaultRelationshipService implements RelationshipService {
 
   private final EventService eventService;
 
+  private final RelationshipOperationParamsMapper mapper;
+
   @Override
   public List<Relationship> getRelationships(RelationshipOperationParams params)
       throws ForbiddenException, NotFoundException {
-    IdentifiableObject object = validate(params);
+    RelationshipQueryParams queryParams = mapper.map(params);
 
-    if (object == null) {
+    if (queryParams.getEntity() == null) {
       return List.of();
     }
 
-    if (object instanceof TrackedEntity te) {
+    if (queryParams.getEntity() instanceof TrackedEntity te) {
       return getRelationshipsByTrackedEntity(te, params.getPagingAndSortingCriteriaAdapter());
     }
 
-    if (object instanceof Enrollment en) {
+    if (queryParams.getEntity() instanceof Enrollment en) {
       return getRelationshipsByEnrollment(en, params.getPagingAndSortingCriteriaAdapter());
     }
 
-    if (object instanceof Event ev) {
+    if (queryParams.getEntity() instanceof Event ev) {
       return getRelationshipsByEvent(ev, params.getPagingAndSortingCriteriaAdapter());
     }
 
@@ -97,17 +98,21 @@ public class DefaultRelationshipService implements RelationshipService {
   @Override
   public int countRelationships(RelationshipOperationParams params)
       throws ForbiddenException, NotFoundException {
-    IdentifiableObject object = validate(params);
+    RelationshipQueryParams queryParams = mapper.map(params);
 
-    if (object instanceof TrackedEntity te) {
+    if (queryParams.getEntity() == null) {
+      return 0;
+    }
+
+    if (queryParams.getEntity() instanceof TrackedEntity te) {
       return getRelationshipsByTrackedEntity(te, null).size();
     }
 
-    if (object instanceof Enrollment en) {
+    if (queryParams.getEntity() instanceof Enrollment en) {
       return getRelationshipsByEnrollment(en, null).size();
     }
 
-    if (object instanceof Event ev) {
+    if (queryParams.getEntity() instanceof Event ev) {
       return getRelationshipsByEvent(ev, null).size();
     }
 
@@ -153,7 +158,7 @@ public class DefaultRelationshipService implements RelationshipService {
   @Override
   public List<Relationship> getRelationshipsByTrackedEntity(
       TrackedEntity trackedEntity, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter)
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException {
 
     List<Relationship> relationships =
         relationshipStore
@@ -168,8 +173,7 @@ public class DefaultRelationshipService implements RelationshipService {
   @Override
   public List<Relationship> getRelationshipsByEnrollment(
       Enrollment enrollment, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter)
-      throws ForbiddenException, NotFoundException {
-
+      throws ForbiddenException {
     List<Relationship> relationships =
         relationshipStore.getByEnrollment(enrollment, pagingAndSortingCriteriaAdapter).stream()
             .filter(
@@ -181,7 +185,7 @@ public class DefaultRelationshipService implements RelationshipService {
   @Override
   public List<Relationship> getRelationshipsByEvent(
       Event event, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter)
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException {
     List<Relationship> relationships =
         relationshipStore.getByEvent(event, pagingAndSortingCriteriaAdapter).stream()
             .filter(
@@ -190,25 +194,8 @@ public class DefaultRelationshipService implements RelationshipService {
     return map(relationships);
   }
 
-  private IdentifiableObject validate(RelationshipOperationParams params) throws NotFoundException {
-    try {
-
-      return switch (params.getType()) {
-        case TRACKED_ENTITY -> trackedEntityService.getTrackedEntity(
-            params.getIdentifier(), TrackedEntityParams.TRUE, true);
-        case ENROLLMENT -> enrollmentService.getEnrollment(
-            params.getIdentifier(), EnrollmentParams.TRUE, true);
-        case EVENT -> eventService.getEvent(params.getIdentifier(), EventParams.TRUE);
-        case RELATIONSHIP -> null;
-      };
-    } catch (ForbiddenException ex) {
-      return null;
-    }
-  }
-
   /** Map to a non-proxied Relationship to prevent hibernate exceptions. */
-  private List<Relationship> map(List<Relationship> relationships)
-      throws ForbiddenException, NotFoundException {
+  private List<Relationship> map(List<Relationship> relationships) throws ForbiddenException {
     List<Relationship> result = new ArrayList<>(relationships.size());
     for (Relationship relationship : relationships) {
       result.add(map(relationship));
@@ -216,7 +203,7 @@ public class DefaultRelationshipService implements RelationshipService {
     return result;
   }
 
-  private Relationship map(Relationship relationship) throws ForbiddenException, NotFoundException {
+  private Relationship map(Relationship relationship) throws ForbiddenException {
     Relationship result = new Relationship();
     result.setUid(relationship.getUid());
     result.setCreated(relationship.getCreated());
@@ -231,8 +218,7 @@ public class DefaultRelationshipService implements RelationshipService {
     return result;
   }
 
-  private RelationshipItem withNestedEntity(RelationshipItem item)
-      throws ForbiddenException, NotFoundException {
+  private RelationshipItem withNestedEntity(RelationshipItem item) throws ForbiddenException {
     // relationships of relationship items are not mapped to JSON so there is no need to fetch them
     RelationshipItem result = new RelationshipItem();
 
