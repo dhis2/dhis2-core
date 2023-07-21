@@ -42,15 +42,6 @@ instance.url property needs to be: `http://localhost:8080/api`
 
 Run Tomcat and when it's up and running, run the e2e test(s) you are interested in.
 
-#### Troubleshooting
-
-You might get errors while importing data during the test setup, it's quite possibly related to the
-database you are using.
-
-Until we find a better solution, and only if the error code is `E5002`, you can skip the reference
-check in `ReferencesCheck.checkReference` by replacing the following
-condition `if (!(isUserReference && skipSharing))` to `if (false)`
-
 ### Inside Docker
 
 The following describes 2 options for you to run and test DHIS2 using Docker. Refer to [Run DHIS2 in
