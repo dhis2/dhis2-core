@@ -82,8 +82,7 @@ public class RelationshipTypeJoinGenerator {
     String sql = "LEFT JOIN ";
     switch (relationshipEntity) {
       case TRACKED_ENTITY_INSTANCE:
-        return sql
-            + "trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid";
+        return sql + "trackedentity tei on tei.trackedentityid = ri2.trackedentityid";
       case PROGRAM_STAGE_INSTANCE:
         return sql + "event psi on psi.eventid = ri2.eventid";
       case PROGRAM_INSTANCE:
@@ -111,8 +110,8 @@ public class RelationshipTypeJoinGenerator {
   private static String getTei(String alias) {
     return " "
         + alias
-        + ".tei in (select tei.uid from trackedentityinstance tei"
-        + " LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid ";
+        + ".tei in (select tei.uid from trackedentity tei"
+        + " LEFT JOIN relationshipitem ri on tei.trackedentityid = ri.trackedentityid ";
   }
 
   private static String getEnrollment(String alias) {

@@ -469,7 +469,7 @@ class JdbcEventAnalyticsTableManagerTest {
     String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
     String aliasTea1 =
         "(select %s from organisationunit ou where ou.uid = (select value from "
-            + "trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+            + "trackedentityattributevalue where trackedentityid=pi.trackedentityid and "
             + "trackedentityattributeid=%d)) as \"%s\"";
 
     AnalyticsTableUpdateParams params =
@@ -598,7 +598,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
     String ouQuery =
         "(select ou.%s from organisationunit ou where ou.uid = "
-            + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+            + "(select value from trackedentityattributevalue where trackedentityid=pi.trackedentityid and "
             + "trackedentityattributeid=9999)) as \""
             + tea.getUid()
             + "\"";
@@ -885,7 +885,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
     String ouQuery =
         "(select ou.%s from organisationunit ou where ou.uid = "
-            + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+            + "(select value from trackedentityattributevalue where trackedentityid=pi.trackedentityid and "
             + "trackedentityattributeid=9999)) as \""
             + tea.getUid()
             + "\"";

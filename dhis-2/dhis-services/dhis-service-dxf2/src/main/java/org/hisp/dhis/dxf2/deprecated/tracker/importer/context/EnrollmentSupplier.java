@@ -167,13 +167,13 @@ public class EnrollmentSupplier extends AbstractSupplier<Map<String, Enrollment>
   private Enrollment getByTeiAndProgram(
       ImportOptions importOptions, Long teiId, Long programId, Event event) {
     final String sql =
-        "select pi.enrollmentid, pi.programid, pi.uid , t.trackedentityinstanceid as tei_id, t.uid as tei_uid, "
+        "select pi.enrollmentid, pi.programid, pi.uid , t.trackedentityid as tei_id, t.uid as tei_uid, "
             + "ou.uid as tei_ou_uid, ou.path as tei_ou_path from enrollment pi "
-            + "join trackedentityinstance t on t.trackedentityinstanceid = pi.trackedentityinstanceid "
+            + "join trackedentity t on t.trackedentityid = pi.trackedentityid "
             + "join organisationunit ou on t.organisationunitid = ou.organisationunitid "
             + "where pi.programid = :programid "
             + "and pi.status = 'ACTIVE' "
-            + "and pi.trackedentityinstanceid = :teiid";
+            + "and pi.trackedentityid = :teiid";
 
     MapSqlParameterSource parameters = new MapSqlParameterSource();
     parameters.addValue("programid", programId);
@@ -207,9 +207,9 @@ public class EnrollmentSupplier extends AbstractSupplier<Map<String, Enrollment>
     }
 
     final String sql =
-        "select psi.uid as psi_uid, pi.enrollmentid, pi.programid, pi.uid , t.trackedentityinstanceid as tei_id, t.uid as tei_uid, "
+        "select psi.uid as psi_uid, pi.enrollmentid, pi.programid, pi.uid , t.trackedentityid as tei_id, t.uid as tei_uid, "
             + "ou.uid as tei_ou_uid, ou.path as tei_ou_path from enrollment pi "
-            + "left outer join trackedentityinstance t on pi.trackedentityinstanceid = t.trackedentityinstanceid "
+            + "left outer join trackedentity t on pi.trackedentityid = t.trackedentityid "
             + "left join organisationunit ou on t.organisationunitid = ou.organisationunitid "
             + "join event psi on pi.enrollmentid = psi.enrollmentid "
             + "where psi.uid in (:ids)";
@@ -237,9 +237,9 @@ public class EnrollmentSupplier extends AbstractSupplier<Map<String, Enrollment>
       Set<String> uids) {
 
     final String sql =
-        "select pi.enrollmentid, pi.programid, pi.uid, t.trackedentityinstanceid as tei_id, t.uid as tei_uid, "
+        "select pi.enrollmentid, pi.programid, pi.uid, t.trackedentityid as tei_id, t.uid as tei_uid, "
             + "ou.uid as tei_ou_uid, ou.path as tei_ou_path "
-            + "from enrollment pi join trackedentityinstance t on pi.trackedentityinstanceid = t.trackedentityinstanceid "
+            + "from enrollment pi join trackedentity t on pi.trackedentityid = t.trackedentityid "
             + "join organisationunit ou on t.organisationunitid = ou.organisationunitid where pi.uid in (:ids)";
 
     MapSqlParameterSource parameters = new MapSqlParameterSource();

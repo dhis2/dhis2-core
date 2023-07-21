@@ -128,7 +128,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
 
     String ouQuery =
         "(select ou.%s from organisationunit ou where ou.uid = "
-            + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+            + "(select value from trackedentityattributevalue where trackedentityid=pi.trackedentityid and "
             + "trackedentityattributeid=9999)) as \""
             + tea.getUid()
             + "\"";
