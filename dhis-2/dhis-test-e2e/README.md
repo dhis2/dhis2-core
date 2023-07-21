@@ -4,12 +4,18 @@
 
 DHIS2 e2e tests are written and executed using the following libraries and tools
 
- - [REST-assured](http://rest-assured.io) - provides rest client, handles logging and validation
+ - [REST-assured[The header of this page](#same-file-anchors-for-github)http://rest-assured.io) - provides rest client, handles logging and validation
  - [JUnit 5](https://junit.org/junit5/) - runs the e2e tests
  - [Docker Compose](https://docs.docker.com/compose/) - defines and runs DHIS2 multi-container environment
 
 ## Running Tests
 
+You can run tests in three different ways:
+ - [Maven](#maven)
+ - [Docker](#inside-docker)
+ - [IntelliJ](#from-intellij)
+
+### Maven
 All commands in this README assume you are inside the `cd dhis2-e2e-test` directory.
 
 Assuming you have DHIS2 running locally on port `8080` run
@@ -22,6 +28,20 @@ mvn test \
     -Duser.default.password=district \
     -Dtest.track_called_endpoints=true
 ```
+
+### From IntelliJ
+
+Make sure the property instance.url in `dhis-2/dhis-test-e2e/src/main/resources/config.properties` matches the url configured in your local tomcat installation. Then add `/api` at the end.
+
+For instance, if the Tomcat run/debug config has the url: `http://localhost:8080/`, then the instance.url property needs to be: `http://localhost:8080/api`
+
+Run Tomcat and when it's up and running, run the e2e test(s) you are interested in. 
+
+#### Troubleshooting
+
+You might get errors while importing data during the test setup, it's quite possibly related to the database you are using. 
+
+Until we find a better solution, and only if the error code is `E5002`, you can skip the reference check in `ReferencesCheck.checkReference` by replacing the following condition `if (!(isUserReference && skipSharing))` to `if (false)` 
 
 ### Inside Docker
 
