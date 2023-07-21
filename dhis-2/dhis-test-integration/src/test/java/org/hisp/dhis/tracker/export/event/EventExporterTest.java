@@ -327,9 +327,6 @@ class EventExporterTest extends TrackerTest {
     Date date = new Date();
     EventOperationParams params =
         EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .enrollments(Set.of("nxP7UnKhomJ"))
-            .programStageUid(programStage.getUid())
             .events(Set.of("pTzf9KYMk72"))
             .updatedAfter(
                 Date.from(
@@ -355,14 +352,15 @@ class EventExporterTest extends TrackerTest {
         "All dates should include timestamp",
         () ->
             assertEquals(
-                    "2019-01-25T12:10:38.100",
+                "2019-01-25T12:10:38.100",
                 DateUtils.getIso8601NoTz(event.getExecutionDate()),
                 () ->
                     String.format(
-                        "Expected %s to be in %s", event.getExecutionDate(), "2019-01-25T12:10:38.100")),
+                        "Expected %s to be in %s",
+                        event.getExecutionDate(), "2019-01-25T12:10:38.100")),
         () ->
             assertEquals(
-                    "2019-01-28T12:32:38.100",
+                "2019-01-28T12:32:38.100",
                 DateUtils.getIso8601NoTz(event.getDueDate()),
                 () ->
                     String.format(
