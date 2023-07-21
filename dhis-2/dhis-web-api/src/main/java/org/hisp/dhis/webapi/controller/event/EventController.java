@@ -59,6 +59,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
@@ -247,7 +248,7 @@ public class EventController {
       Model model,
       HttpServletResponse response,
       HttpServletRequest request)
-      throws WebMessageException {
+      throws WebMessageException, ForbiddenException {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
@@ -634,7 +635,8 @@ public class EventController {
       @RequestParam Map<String, String> parameters,
       Model model,
       HttpServletResponse response,
-      HttpServletRequest request) {
+      HttpServletRequest request)
+      throws ForbiddenException {
     WebOptions options = new WebOptions(parameters);
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
@@ -690,7 +692,7 @@ public class EventController {
       Model model,
       HttpServletResponse response,
       HttpServletRequest request)
-      throws WebMessageException {
+      throws WebMessageException, ForbiddenException {
     WebOptions options = new WebOptions(parameters);
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
@@ -762,7 +764,7 @@ public class EventController {
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
       HttpServletResponse response,
       HttpServletRequest request)
-      throws IOException, WebMessageException {
+      throws IOException, WebMessageException, ForbiddenException {
     EventSearchParams params = requestToSearchParamsMapper.map(eventCriteria);
 
     Events events = eventService.getEvents(params);
@@ -816,7 +818,7 @@ public class EventController {
       @RequestParam Map<String, String> parameters,
       IdSchemes idSchemes,
       Model model)
-      throws WebMessageException {
+      throws WebMessageException, ForbiddenException {
     CategoryOptionCombo attributeOptionCombo =
         inputUtils.getAttributeOptionCombo(attributeCc, attributeCos, true);
 
