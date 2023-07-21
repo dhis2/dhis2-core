@@ -372,6 +372,7 @@ public class JdbcEventStore implements EventStore {
 
     setAccessiblePrograms(user, params);
 
+    Map<String, Event> eventsByUid = new HashMap<>(params.getPageSizeWithDefault());
     List<Event> events = new ArrayList<>();
     List<Long> relationshipIds = new ArrayList<>();
 
@@ -398,90 +399,106 @@ public class JdbcEventStore implements EventStore {
 
             validateIdentifiersPresence(resultSet, params.getIdSchemes(), true);
 
-            Event event = new Event();
+            Event event;
+            if (eventsByUid.containsKey(psiUid)) {
+              event = eventsByUid.get(psiUid);
+            } else {
+              event = new Event();
+              eventsByUid.put(psiUid, event);
 
-            if (!params.isSkipEventId()) {
-              event.setUid(psiUid);
-              event.setEvent(psiUid);
-            }
-
-            event.setTrackedEntityInstance(resultSet.getString("tei_uid"));
-            event.setStatus(EventStatus.valueOf(resultSet.getString(PSI_STATUS)));
-
-            ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
-
-            event.setProgram(resultSet.getString("p_identifier"));
-            event.setProgramType(programType);
-            event.setProgramStage(resultSet.getString("ps_identifier"));
-            event.setOrgUnit(resultSet.getString("ou_uid"));
-            event.setDeleted(resultSet.getBoolean("psi_deleted"));
-
-            if (programType != ProgramType.WITHOUT_REGISTRATION) {
-              event.setEnrollment(resultSet.getString("pi_uid"));
-              event.setEnrollmentStatus(
-                  EnrollmentStatus.fromProgramStatus(
-                      ProgramStatus.valueOf(resultSet.getString("pi_status"))));
-              event.setFollowup(resultSet.getBoolean("pi_followup"));
-            }
-
-            event.setAttributeOptionCombo(resultSet.getString("coc_identifier"));
-            event.setAttributeCategoryOptions(resultSet.getString("co_uids"));
-            event.setOptionSize(resultSet.getInt("option_size"));
-
-            event.setTrackedEntityInstance(resultSet.getString("tei_uid"));
-
-            event.setStoredBy(resultSet.getString("psi_storedby"));
-            event.setOrgUnitName(resultSet.getString("ou_name"));
-            event.setDueDate(DateUtils.getIso8601NoTz(resultSet.getDate("psi_duedate")));
-            event.setEventDate(DateUtils.getIso8601NoTz(resultSet.getDate("psi_executiondate")));
-            event.setCreated(DateUtils.getIso8601NoTz(resultSet.getDate("psi_created")));
-            event.setCreatedByUserInfo(
-                jsonToUserInfo(resultSet.getString("psi_createdbyuserinfo"), jsonMapper));
-            event.setLastUpdated(DateUtils.getIso8601NoTz(resultSet.getDate("psi_lastupdated")));
-            event.setLastUpdatedByUserInfo(
-                jsonToUserInfo(resultSet.getString("psi_lastupdatedbyuserinfo"), jsonMapper));
-
-            event.setCompletedBy(resultSet.getString("psi_completedby"));
-            event.setCompletedDate(
-                DateUtils.getIso8601NoTz(resultSet.getDate("psi_completeddate")));
-
-            if (resultSet.getObject("psi_geometry") != null) {
-              try {
-                Geometry geom = new WKTReader().read(resultSet.getString("psi_geometry"));
-
-                event.setGeometry(geom);
-              } catch (ParseException e) {
-                log.error("Unable to read geometry for event '" + event.getUid() + "': ", e);
+              if (!params.isSkipEventId()) {
+                event.setUid(psiUid);
+                event.setEvent(psiUid);
               }
-            }
 
-            if (resultSet.getObject("user_assigned") != null) {
-              event.setAssignedUser(resultSet.getString("user_assigned"));
-              event.setAssignedUserUsername(resultSet.getString("user_assigned_username"));
-              event.setAssignedUserDisplayName(resultSet.getString("user_assigned_name"));
-              event.setAssignedUserFirstName(resultSet.getString("user_assigned_first_name"));
-              event.setAssignedUserSurname(resultSet.getString("user_assigned_surname"));
-            }
+              event.setTrackedEntityInstance(resultSet.getString("tei_uid"));
+              event.setStatus(EventStatus.valueOf(resultSet.getString(PSI_STATUS)));
 
-            events.add(event);
+              ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
 
-            if (!StringUtils.isEmpty(resultSet.getString("psi_eventdatavalues"))) {
-              Set<EventDataValue> eventDataValues =
-                  convertEventDataValueJsonIntoSet(resultSet.getString("psi_eventdatavalues"));
+              event.setProgram(resultSet.getString("p_identifier"));
+              event.setProgramType(programType);
+              event.setProgramStage(resultSet.getString("ps_identifier"));
+              event.setOrgUnit(resultSet.getString("ou_uid"));
+              event.setDeleted(resultSet.getBoolean("psi_deleted"));
 
-              for (EventDataValue dv : eventDataValues) {
-                DataValue dataValue = convertEventDataValueIntoDtoDataValue(dv);
+              if (programType != ProgramType.WITHOUT_REGISTRATION) {
+                event.setEnrollment(resultSet.getString("pi_uid"));
+                event.setEnrollmentStatus(
+                    EnrollmentStatus.fromProgramStatus(
+                        ProgramStatus.valueOf(resultSet.getString("pi_status"))));
+                event.setFollowup(resultSet.getBoolean("pi_followup"));
+              }
 
-                if (params.isSynchronizationQuery()) {
-                  dataValue.setSkipSynchronization(
-                      psdesWithSkipSyncTrue.containsKey(resultSet.getString("ps_uid"))
-                          && psdesWithSkipSyncTrue
-                              .get(resultSet.getString("ps_uid"))
-                              .contains(dv.getDataElement()));
+              event.setAttributeOptionCombo(resultSet.getString("coc_identifier"));
+              event.setAttributeCategoryOptions(resultSet.getString("co_uids"));
+              event.setOptionSize(resultSet.getInt("option_size"));
+
+              event.setTrackedEntityInstance(resultSet.getString("tei_uid"));
+
+              event.setStoredBy(resultSet.getString("psi_storedby"));
+              event.setOrgUnitName(resultSet.getString("ou_name"));
+              event.setDueDate(DateUtils.getIso8601NoTz(resultSet.getDate("psi_duedate")));
+              event.setEventDate(DateUtils.getIso8601NoTz(resultSet.getDate("psi_executiondate")));
+              event.setCreated(DateUtils.getIso8601NoTz(resultSet.getDate("psi_created")));
+              event.setCreatedByUserInfo(
+                  jsonToUserInfo(resultSet.getString("psi_createdbyuserinfo"), jsonMapper));
+              event.setLastUpdated(DateUtils.getIso8601NoTz(resultSet.getDate("psi_lastupdated")));
+              event.setLastUpdatedByUserInfo(
+                  jsonToUserInfo(resultSet.getString("psi_lastupdatedbyuserinfo"), jsonMapper));
+
+              event.setCompletedBy(resultSet.getString("psi_completedby"));
+              event.setCompletedDate(
+                  DateUtils.getIso8601NoTz(resultSet.getDate("psi_completeddate")));
+
+              if (resultSet.getObject("psi_geometry") != null) {
+                try {
+                  Geometry geom = new WKTReader().read(resultSet.getString("psi_geometry"));
+
+                  event.setGeometry(geom);
+                } catch (ParseException e) {
+                  log.error("Unable to read geometry for event '" + event.getUid() + "': ", e);
                 }
-
-                event.getDataValues().add(dataValue);
               }
+
+              if (resultSet.getObject("user_assigned") != null) {
+                event.setAssignedUser(resultSet.getString("user_assigned"));
+                event.setAssignedUserUsername(resultSet.getString("user_assigned_username"));
+                event.setAssignedUserDisplayName(resultSet.getString("user_assigned_name"));
+                event.setAssignedUserFirstName(resultSet.getString("user_assigned_first_name"));
+                event.setAssignedUserSurname(resultSet.getString("user_assigned_surname"));
+              }
+
+              if (!StringUtils.isEmpty(resultSet.getString("psi_eventdatavalues"))) {
+                Set<EventDataValue> eventDataValues =
+                    convertEventDataValueJsonIntoSet(resultSet.getString("psi_eventdatavalues"));
+
+                for (EventDataValue dv : eventDataValues) {
+                  DataValue dataValue = convertEventDataValueIntoDtoDataValue(dv);
+
+                  if (params.isSynchronizationQuery()) {
+                    dataValue.setSkipSynchronization(
+                        psdesWithSkipSyncTrue.containsKey(resultSet.getString("ps_uid"))
+                            && psdesWithSkipSyncTrue
+                                .get(resultSet.getString("ps_uid"))
+                                .contains(dv.getDataElement()));
+                  }
+
+                  event.getDataValues().add(dataValue);
+                }
+              }
+
+              if (params.isIncludeRelationships() && resultSet.getObject("psi_rl") != null) {
+                PGobject pGobject = (PGobject) resultSet.getObject("psi_rl");
+
+                if (pGobject != null) {
+                  String value = pGobject.getValue();
+
+                  relationshipIds.addAll(Lists.newArrayList(gson.fromJson(value, Long[].class)));
+                }
+              }
+
+              events.add(event);
             }
 
             if (resultSet.getString("psinote_value") != null
@@ -508,16 +525,6 @@ public class JdbcEventStore implements EventStore {
 
               event.getNotes().add(note);
               notes.add(resultSet.getString("psinote_id"));
-            }
-
-            if (params.isIncludeRelationships() && resultSet.getObject("psi_rl") != null) {
-              PGobject pGobject = (PGobject) resultSet.getObject("psi_rl");
-
-              if (pGobject != null) {
-                String value = pGobject.getValue();
-
-                relationshipIds.addAll(Lists.newArrayList(gson.fromJson(value, Long[].class)));
-              }
             }
           }
 
