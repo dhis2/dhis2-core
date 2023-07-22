@@ -158,7 +158,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWithRelationships() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setEvents(Set.of("pTzf9KYMk72"));
     params.setIncludeRelationships(true);
 
@@ -175,7 +175,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWithNotes() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setEvents(Set.of("pTzf9KYMk72"));
     params.setIncludeRelationships(true);
 
@@ -194,7 +194,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnPaginatedEventsWithNotesGivenNonDefaultPageSize() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setEvents(Set.of("pTzf9KYMk72", "D9PbzJY8bJM"));
     params.addOrders(List.of(new OrderParam("occurredAt", SortDirection.DESC)));
 
@@ -481,7 +481,7 @@ class EventExporterTest extends TrackerTest {
     injectSecurityContext(userService.getUser("o1HMTIzBGo7"));
 
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
+    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
     params.setEvents(Set.of("lumVtWwwy0O", "cadc5eGj0j7"));
 
     Events events = eventService.getEvents(params);
@@ -511,7 +511,7 @@ class EventExporterTest extends TrackerTest {
     injectSecurityContext(userService.getUser("CYVgFNKCaUS"));
 
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
+    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
     params.setEvents(Set.of("lumVtWwwy0O", "cadc5eGj0j7"));
 
     List<String> events = eventsFunction.apply(params);
@@ -1186,7 +1186,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldOrderEventsByMultipleAttributesAndPaginateWhenGivenNonDefaultPageSize() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.addFilterAttributes(List.of(queryItem("toUpdate000"), queryItem("toDelete000")));
     params.addAttributeOrders(
         List.of(
