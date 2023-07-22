@@ -50,7 +50,7 @@ public class TrackedEntityInstanceQuery {
     GEOMETRY,
     TYPE_UID,
     ORGUNIT_UID,
-    TRACKEDENTITYINSTANCEID,
+    TRACKEDENTITYID,
 
     POTENTIALDUPLICATE
   }
@@ -70,8 +70,7 @@ public class TrackedEntityInstanceQuery {
           .put(COLUMNS.TYPE_UID, new TableColumn("tet", "uid", "type_uid"))
           .put(COLUMNS.ORGUNIT_UID, new TableColumn("o", "uid", "ou_uid"))
           .put(
-              COLUMNS.TRACKEDENTITYINSTANCEID,
-              new TableColumn("tei", "trackedentityinstanceid", "trackedentityinstanceid"))
+              COLUMNS.TRACKEDENTITYID, new TableColumn("tei", "trackedentityid", "trackedentityid"))
           .put(
               COLUMNS.POTENTIALDUPLICATE,
               new TableColumn("tei", "potentialduplicate", "potentialduplicate"))
@@ -79,10 +78,10 @@ public class TrackedEntityInstanceQuery {
 
   public static String getQuery() {
     return getSelect()
-        + "FROM trackedentityinstance tei "
+        + "FROM trackedentity tei "
         + "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid "
         + "join organisationunit o on tei.organisationunitid = o.organisationunitid "
-        + "where tei.trackedentityinstanceid in (:ids)";
+        + "where tei.trackedentityid in (:ids)";
   }
 
   private static String getSelect() {

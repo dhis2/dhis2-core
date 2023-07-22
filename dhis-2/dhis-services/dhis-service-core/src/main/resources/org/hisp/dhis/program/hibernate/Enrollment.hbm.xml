@@ -4,11 +4,11 @@
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.program.Enrollment" table="programinstance">
+  <class name="org.hisp.dhis.program.Enrollment" table="enrollment">
 
     <cache usage="read-write" />
 
-    <id name="id" column="programinstanceid">
+    <id name="id" column="enrollmentid">
       <generator class="sequence">
         <param name="sequence_name">programinstance_sequence</param>
       </generator>
@@ -53,31 +53,31 @@
     </property>
 
     <many-to-one name="trackedEntity"
-                 class="org.hisp.dhis.trackedentity.TrackedEntity" column="trackedentityinstanceid"
+                 class="org.hisp.dhis.trackedentity.TrackedEntity" column="trackedentityid"
                  foreign-key="fk_programinstance_trackedentityinstanceid" lazy="false" />
 
     <many-to-one name="program" class="org.hisp.dhis.program.Program"
       column="programid" not-null="true" foreign-key="fk_programinstance_programid" lazy="false" />
 
     <set name="events" order-by="executionDate,duedate" inverse="true">
-      <key column="programinstanceid"/>
+      <key column="enrollmentid"/>
       <one-to-many class="org.hisp.dhis.program.Event"/>
     </set>
 
     <set name="relationshipItems" inverse="true">
-      <key column="programinstanceid" />
+      <key column="enrollmentid" />
       <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
     </set>
 
-    <list name="messageConversations" table="programinstance_messageconversation">
-      <key column="programinstanceid" />
+    <list name="messageConversations" table="enrollment_messageconversation">
+      <key column="enrollmentid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.message.MessageConversation"
         column="messageconversationid" />
     </list>
 
-    <list name="comments" table="programinstancecomments" cascade="all-delete-orphan">
-      <key column="programinstanceid" foreign-key="fk_programinstancecomments_programinstanceid" />
+    <list name="comments" table="enrollmentcomments" cascade="all-delete-orphan">
+      <key column="enrollmentid" foreign-key="fk_programinstancecomments_programinstanceid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" column="trackedentitycommentid"
         unique="true" foreign-key="fk_programinstancecomments_trackedentitycommentid" />

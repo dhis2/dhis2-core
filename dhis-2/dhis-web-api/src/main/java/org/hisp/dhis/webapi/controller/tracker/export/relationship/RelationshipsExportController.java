@@ -28,6 +28,9 @@
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status;
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.export.relationship.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -38,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -55,6 +57,8 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
@@ -79,55 +83,54 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 class RelationshipsExportController {
+
   protected static final String RELATIONSHIPS = "relationships";
 
   private static final RelationshipMapper RELATIONSHIP_MAPPER =
       Mappers.getMapper(RelationshipMapper.class);
 
-  @Nonnull private final TrackedEntityService trackedEntityService;
+  private final TrackedEntityService trackedEntityService;
 
-  @Nonnull private final EnrollmentService enrollmentService;
+  private final EnrollmentService enrollmentService;
 
-  @Nonnull private final EventService eventService;
+  private final EventService eventService;
 
-  @Nonnull private final RelationshipService relationshipService;
+  private final RelationshipService relationshipService;
 
-  @Nonnull private final FieldFilterService fieldFilterService;
+  private final RelationshipRequestParamsMapper mapper;
 
-  private Map<Class<?>, Function<String, ?>> objectRetrievers;
+  private final FieldFilterService fieldFilterService;
+
+  private Map<TrackerType, Function<String, ?>> objectRetrievers;
 
   private Map<
-          Class<?>,
+          TrackerType,
           CheckedBiFunction<
               Object,
               PagingAndSortingCriteriaAdapter,
               List<org.hisp.dhis.relationship.Relationship>>>
       relationshipRetrievers;
 
-  interface CheckedBiFunction<T, U, R> {
-    R apply(T t, U u) throws ForbiddenException, NotFoundException;
-  }
-
   @PostConstruct
   void setupMaps() {
     objectRetrievers =
-        ImmutableMap.<Class<?>, Function<String, ?>>builder()
-            .put(TrackedEntity.class, trackedEntityService::getTrackedEntity)
-            .put(Enrollment.class, enrollmentService::getEnrollment)
-            .put(Event.class, eventService::getEvent)
+        ImmutableMap.<TrackerType, Function<String, ?>>builder()
+            .put(TRACKED_ENTITY, trackedEntityService::getTrackedEntity)
+            .put(ENROLLMENT, enrollmentService::getEnrollment)
+            .put(EVENT, eventService::getEvent)
             .build();
 
     relationshipRetrievers =
         ImmutableMap
-            .<Class<?>,
+            .<TrackerType,
                 CheckedBiFunction<
                     Object,
                     PagingAndSortingCriteriaAdapter,
                     List<org.hisp.dhis.relationship.Relationship>>>
                 builder()
-            .put(TrackedEntity.class, getRelationshipsByTrackedEntity())
-            .put(Enrollment.class, getRelationshipsByEnrollment())
-            .put(Event.class, getRelationshipsByEvent())
+            .put(TRACKED_ENTITY, getRelationshipsByTrackedEntity())
+            .put(ENROLLMENT, getRelationshipsByEnrollment())
+            .put(EVENT, getRelationshipsByEvent())
             .build();
   }
 
@@ -155,12 +158,12 @@ class RelationshipsExportController {
   @GetMapping
   PagingWrapper<ObjectNode> getRelationships(RequestParams requestParams)
       throws NotFoundException, BadRequestException, ForbiddenException {
+
+    RelationshipOperationParams operationParams = mapper.map(requestParams);
+
     List<org.hisp.dhis.webapi.controller.tracker.view.Relationship> relationships =
         tryGetRelationshipFrom(
-            requestParams.getIdentifierClass(),
-            requestParams.getIdentifierParam(),
-            requestParams.getIdentifierName(),
-            requestParams);
+            operationParams.getType(), operationParams.getIdentifier(), requestParams);
 
     PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
     if (requestParams.isPagingRequest()) {
@@ -169,10 +172,7 @@ class RelationshipsExportController {
       if (requestParams.isTotalPages()) {
         count =
             tryGetRelationshipFrom(
-                    requestParams.getIdentifierClass(),
-                    requestParams.getIdentifierParam(),
-                    requestParams.getIdentifierName(),
-                    null)
+                    operationParams.getType(), operationParams.getIdentifier(), requestParams)
                 .size();
       }
 
@@ -201,22 +201,19 @@ class RelationshipsExportController {
   }
 
   private List<Relationship> tryGetRelationshipFrom(
-      Class<?> type,
-      String identifier,
-      String identifierName,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteria)
+      TrackerType type, String identifier, PagingAndSortingCriteriaAdapter pagingAndSortingCriteria)
       throws NotFoundException, ForbiddenException {
     Object object = getObjectRetriever(type).apply(identifier);
     if (object == null) {
       throw new NotFoundException(
-          identifierName + " with id " + identifier + " could not be found.");
+          type.getName() + " with id " + identifier + " could not be found.");
     }
 
     return RELATIONSHIP_MAPPER.fromCollection(
         getRelationshipRetriever(type).apply(object, pagingAndSortingCriteria));
   }
 
-  private Function<String, ?> getObjectRetriever(Class<?> type) {
+  private Function<String, ?> getObjectRetriever(TrackerType type) {
     return Optional.ofNullable(type)
         .map(objectRetrievers::get)
         .orElseThrow(
@@ -225,12 +222,17 @@ class RelationshipsExportController {
 
   private CheckedBiFunction<
           Object, PagingAndSortingCriteriaAdapter, List<org.hisp.dhis.relationship.Relationship>>
-      getRelationshipRetriever(Class<?> type) {
+      getRelationshipRetriever(TrackerType type) {
     return Optional.ofNullable(type)
         .map(relationshipRetrievers::get)
         .orElseThrow(
             () ->
                 new IllegalArgumentException(
                     "Unable to detect relationship retriever from " + type));
+  }
+
+  interface CheckedBiFunction<T, U, R> {
+
+    R apply(T t, U u) throws ForbiddenException, NotFoundException;
   }
 }

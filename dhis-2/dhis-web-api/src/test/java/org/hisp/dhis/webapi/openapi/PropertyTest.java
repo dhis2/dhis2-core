@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports;
+package org.hisp.dhis.webapi.openapi;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Getter
-@RequiredArgsConstructor
-public enum TrackerType {
-  TRACKED_ENTITY("trackedEntity", 1),
-  ENROLLMENT("enrollment", 2),
-  EVENT("event", 3),
-  RELATIONSHIP("relationship", 4);
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.Collection;
+import org.hisp.dhis.common.OpenApi;
+import org.junit.jupiter.api.Test;
 
-  private final String name;
+class PropertyTest {
+  @OpenApi.Property(value = String.class)
+  private static class AProperty {}
 
-  private final Integer priority;
+  @JsonProperty private AProperty aProperty;
 
-  public static List<TrackerType> getOrderedByPriority() {
-    return Arrays.stream(values())
-        .sorted(Comparator.comparing(TrackerType::getPriority))
-        .collect(Collectors.toList());
+  @Test
+  void testGetPropertiesGivenOpenApiPropertyAnnotatedClassThatHasValueSet() {
+    Collection<Property> properties = Property.getProperties(PropertyTest.class);
+    assertEquals(String.class, new ArrayList<>(properties).get(0).getType());
   }
 }

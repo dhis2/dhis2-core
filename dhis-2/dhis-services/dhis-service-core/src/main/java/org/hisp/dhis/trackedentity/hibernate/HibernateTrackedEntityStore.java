@@ -385,7 +385,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     StringBuilder stringBuilder = new StringBuilder(getQuerySelect(params));
 
     if (!isGridQuery) {
-      stringBuilder.append(", TEI.trackedentityinstanceid AS teiid ");
+      stringBuilder.append(", TEI.trackedentityid AS teiid ");
     }
 
     return stringBuilder
@@ -452,7 +452,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
             List.of(
                 "SELECT TEI.uid AS " + TRACKED_ENTITY_INSTANCE_ID,
                 "TEI.created AS " + CREATED_ID,
-                "TEI.lastUpdated AS " + LAST_UPDATED_ID,
+                "TEI.lastupdated AS " + LAST_UPDATED_ID,
                 "TEI.ou AS " + ORG_UNIT_ID,
                 "TEI.ouname AS " + ORG_UNIT_NAME,
                 "TET.uid AS " + TRACKED_ENTITY_ID,
@@ -499,7 +499,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
         new StringBuilder()
             .append("(")
             .append(getFromSubQuerySelect(params))
-            .append(" FROM trackedentityinstance TEI ")
+            .append(" FROM trackedentity TEI ")
 
             // INNER JOIN on constraints
             .append(getFromSubQueryJoinAttributeConditions(params))
@@ -527,8 +527,8 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   }
 
   /**
-   * The subquery projection. If we are sorting by attribute, we need to include the value in the
-   * subquery projection.
+   * The sub-query projection. If we are sorting by attribute, we need to include the value in the
+   * sub-query projection.
    *
    * @param params
    * @return a SQL projection
@@ -537,10 +537,10 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     LinkedHashSet<String> columns =
         new LinkedHashSet<>(
             List.of(
-                "TEI.trackedentityinstanceid",
+                "TEI.trackedentityid",
                 "TEI.uid",
                 "TEI.created",
-                "TEI.lastUpdated",
+                "TEI.lastupdated",
                 "TEI.inactive",
                 "TEI.trackedentitytypeid",
                 "TEI.potentialduplicate",
@@ -706,7 +706,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
     attributes
         .append("INNER JOIN trackedentityattributevalue Q ")
-        .append("ON Q.trackedentityinstanceid = TEI.trackedentityinstanceid ")
+        .append("ON Q.trackedentityid = TEI.trackedentityid ")
         .append("AND Q.trackedentityattributeid IN (")
         .append(getCommaDelimitedString(itemIds))
         .append(") AND (");
@@ -746,7 +746,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
       String col = statementBuilder.columnQuote(queryItem.getItemId());
       String teaId = col + ".trackedentityattributeid";
       String teav = "lower(" + col + ".value)";
-      String teiid = col + ".trackedentityinstanceid";
+      String teiid = col + ".trackedentityid";
 
       attributes
           .append(" INNER JOIN trackedentityattributevalue ")
@@ -757,7 +757,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
           .append(queryItem.getItem().getId())
           .append(" AND ")
           .append(teiid)
-          .append(" = TEI.trackedentityinstanceid ");
+          .append(" = TEI.trackedentityid ");
 
       for (QueryFilter filter : queryItem.getFilters()) {
         String encodedFilter = statementBuilder.encode(filter.getFilter(), false);
@@ -796,7 +796,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
           .append(statementBuilder.columnQuote(orderAttribute.getItemId()))
           .append(" ON ")
           .append(statementBuilder.columnQuote(orderAttribute.getItemId()))
-          .append(".trackedentityinstanceid = TEI.trackedentityinstanceid ")
+          .append(".trackedentityid = TEI.trackedentityid ")
           .append("AND ")
           .append(statementBuilder.columnQuote(orderAttribute.getItemId()))
           .append(".trackedentityattributeid = ")
@@ -823,7 +823,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
         .append(" INNER JOIN trackedentityprogramowner PO ")
         .append("ON PO.programid = ")
         .append(params.getProgram().getId())
-        .append(" AND PO.trackedentityinstanceid = TEI.trackedentityinstanceid ")
+        .append(" AND PO.trackedentityid = TEI.trackedentityid ")
         .toString();
   }
 
@@ -886,11 +886,11 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
    */
   private String getFromSubQueryJoinEnrollmentConditions(TrackedEntityQueryParams params) {
     if (params.getOrders().stream().anyMatch(p -> ENROLLED_AT.isPropertyEqualTo(p.getField()))) {
-      return new StringBuilder(" INNER JOIN programinstance ")
+      return new StringBuilder(" INNER JOIN enrollment ")
           .append(PROGRAM_INSTANCE_ALIAS)
           .append(" ON ")
-          .append(PROGRAM_INSTANCE_ALIAS + "." + "trackedentityinstanceid")
-          .append("= TEI.trackedentityinstanceid ")
+          .append(PROGRAM_INSTANCE_ALIAS + "." + "trackedentityid")
+          .append("= TEI.trackedentityid ")
           .toString();
     }
 
@@ -904,7 +904,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
    *
    * @param whereAnd indicator tracking whether WHERE has been invoked or not
    * @param params
-   * @return an SQL EXISTS clause for programinstance, or empty string if not program is specified.
+   * @return an SQL EXISTS clause for enrollment, or empty string if not program is specified.
    */
   private String getFromSubQueryEnrollmentConditions(
       SqlHelper whereAnd, TrackedEntityQueryParams params) {
@@ -917,15 +917,15 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     program
         .append(whereAnd.whereAnd())
         .append("EXISTS (")
-        .append("SELECT PI.trackedentityinstanceid ")
-        .append("FROM programinstance PI ");
+        .append("SELECT PI.trackedentityid ")
+        .append("FROM enrollment PI ");
 
     if (params.hasFilterForEvents()) {
       program.append(getFromSubQueryEvent(params));
     }
 
     program
-        .append("WHERE PI.trackedentityinstanceid = TEI.trackedentityinstanceid ")
+        .append("WHERE PI.trackedentityid = TEI.trackedentityid ")
         .append("AND PI.programid = ")
         .append(params.getProgram().getId())
         .append(SPACE);
@@ -986,7 +986,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     StringBuilder events = new StringBuilder();
     SqlHelper whereHlp = new SqlHelper(true);
 
-    events.append("INNER JOIN (").append("SELECT PSI.programinstanceid ").append("FROM event PSI ");
+    events.append("INNER JOIN (").append("SELECT PSI.enrollmentid ").append("FROM event PSI ");
 
     if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
       events
@@ -1083,7 +1083,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
       events.append(whereHlp.whereAnd()).append("PSI.deleted IS FALSE");
     }
 
-    events.append(") PSI ON PSI.programinstanceid = PI.programinstanceid ");
+    events.append(") PSI ON PSI.enrollmentid = PI.enrollmentid ");
 
     return events.toString();
   }
@@ -1143,7 +1143,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
       relatedTables
           .append("LEFT JOIN trackedentityattributevalue TEAV ")
-          .append("ON TEAV.trackedentityinstanceid = TEI.trackedentityinstanceid ")
+          .append("ON TEAV.trackedentityid = TEI.trackedentityid ")
           .append("AND TEAV.trackedentityattributeid IN (")
           .append(attributeString)
           .append(") ");
@@ -1171,7 +1171,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
     StringBuilder groupBy =
         new StringBuilder()
-            .append("GROUP BY TEI.trackedentityinstanceid, ")
+            .append("GROUP BY TEI.trackedentityid, ")
             .append("TEI.uid, ")
             .append("TEI.created, ")
             .append("TEI.lastupdated, ")
@@ -1241,7 +1241,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
     if (params.getAttributesAndFilters().stream()
         .noneMatch(qi -> qi.hasFilter() && qi.isUnique())) {
-      return "ORDER BY TEI.trackedentityinstanceid ASC ";
+      return "ORDER BY TEI.trackedentityid ASC ";
     } else {
       return "";
     }
@@ -1323,7 +1323,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     Query<?> query =
         getSession()
             .createNativeQuery(
-                "select count(*) from trackedentityinstance where uid=:uid and deleted is false");
+                "select count(*) from trackedentity where uid=:uid and deleted is false");
     query.setParameter("uid", uid);
     int count = ((Number) query.getSingleResult()).intValue();
 
@@ -1333,7 +1333,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   @Override
   public boolean existsIncludingDeleted(String uid) {
     Query<?> query =
-        getSession().createNativeQuery("select count(*) from trackedentityinstance where uid=:uid");
+        getSession().createNativeQuery("select count(*) from trackedentity where uid=:uid");
     query.setParameter("uid", uid);
     int count = ((Number) query.getSingleResult()).intValue();
 

@@ -51,7 +51,7 @@ public class TeiAttributeQuery {
   public static final Map<COLUMNS, TableColumn> columnMap =
       ImmutableMap.<COLUMNS, TableColumn>builder()
           .put(COLUMNS.TEI_UID, new TableColumn("tei", "uid", "teiuid"))
-          .put(COLUMNS.TEI_ID, new TableColumn("teav", "trackedentityinstanceid", "id"))
+          .put(COLUMNS.TEI_ID, new TableColumn("teav", "trackedentityid", "id"))
           .put(COLUMNS.CREATED, new TableColumn("teav", "created"))
           .put(COLUMNS.UPDATED, new TableColumn("teav", "lastupdated"))
           .put(COLUMNS.STOREDBY, new TableColumn("teav", "storedby"))
@@ -67,8 +67,8 @@ public class TeiAttributeQuery {
     return getSelect()
         + "from trackedentityattributevalue teav "
         + "join trackedentityattribute t on teav.trackedentityattributeid = t.trackedentityattributeid "
-        + "join trackedentityinstance tei on teav.trackedentityinstanceid = tei.trackedentityinstanceid "
-        + "where teav.trackedentityinstanceid in (:ids)";
+        + "join trackedentity tei on teav.trackedentityid = tei.trackedentityid "
+        + "where teav.trackedentityid in (:ids)";
   }
 
   private static String getSelect() {

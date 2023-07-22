@@ -426,7 +426,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .build();
 
     final List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     assertContainsOnly(List.of(trackedEntityA, trackedEntityB), trackedEntities);
   }
@@ -442,7 +442,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .build();
 
     final List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
     assertContainsOnly(
@@ -465,7 +465,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .build();
 
     final List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     assertContainsOnly(List.of(trackedEntityA.getUid()), uids(trackedEntities));
     assertContainsOnly(Set.of(enrollmentA.getUid()), uids(trackedEntities.get(0).getEnrollments()));
@@ -506,7 +506,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .build();
 
     final List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
     assertContainsOnly(
@@ -524,7 +524,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .build();
 
     final List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
     assertContainsOnly(
@@ -541,7 +541,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .programUid(programA.getUid())
             .build();
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
     assertContainsOnly(
@@ -559,7 +560,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .filters(teaA.getUid() + ":eq:M'M")
             .build();
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     assertIsEmpty(trackedEntities);
   }
@@ -575,7 +577,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .lastUpdatedEndDate(new Date())
             .build();
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
 
@@ -588,7 +591,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .lastUpdatedEndDate(new Date())
             .build();
 
-    assertIsEmpty(trackedEntityService.getTrackedEntities(operationParams));
+    assertIsEmpty(trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities());
   }
 
   @Test
@@ -605,27 +608,39 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .eventEndDate(Date.from(Instant.now().plus(10, ChronoUnit.DAYS)));
 
     final List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(builder.eventStatus(EventStatus.COMPLETED).build());
+        trackedEntityService
+            .getTrackedEntities(builder.eventStatus(EventStatus.COMPLETED).build())
+            .getTrackedEntities();
     assertEquals(4, trackedEntities.size());
     // Update status to active
     final List<TrackedEntity> limitedTrackedEntities =
-        trackedEntityService.getTrackedEntities(builder.eventStatus(EventStatus.ACTIVE).build());
+        trackedEntityService
+            .getTrackedEntities(builder.eventStatus(EventStatus.ACTIVE).build())
+            .getTrackedEntities();
     assertIsEmpty(limitedTrackedEntities);
     // Update status to overdue
     final List<TrackedEntity> limitedTrackedEntities2 =
-        trackedEntityService.getTrackedEntities(builder.eventStatus(EventStatus.OVERDUE).build());
+        trackedEntityService
+            .getTrackedEntities(builder.eventStatus(EventStatus.OVERDUE).build())
+            .getTrackedEntities();
     assertIsEmpty(limitedTrackedEntities2);
     // Update status to schedule
     final List<TrackedEntity> limitedTrackedEntities3 =
-        trackedEntityService.getTrackedEntities(builder.eventStatus(EventStatus.OVERDUE).build());
+        trackedEntityService
+            .getTrackedEntities(builder.eventStatus(EventStatus.OVERDUE).build())
+            .getTrackedEntities();
     assertIsEmpty(limitedTrackedEntities3);
     // Update status to schedule
     final List<TrackedEntity> limitedTrackedEntities4 =
-        trackedEntityService.getTrackedEntities(builder.eventStatus(EventStatus.SCHEDULE).build());
+        trackedEntityService
+            .getTrackedEntities(builder.eventStatus(EventStatus.SCHEDULE).build())
+            .getTrackedEntities();
     assertIsEmpty(limitedTrackedEntities4);
     // Update status to visited
     final List<TrackedEntity> limitedTrackedEntities5 =
-        trackedEntityService.getTrackedEntities(builder.eventStatus(EventStatus.VISITED).build());
+        trackedEntityService
+            .getTrackedEntities(builder.eventStatus(EventStatus.VISITED).build())
+            .getTrackedEntities();
     assertIsEmpty(limitedTrackedEntities5);
   }
 
@@ -641,7 +656,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityParams(TrackedEntityParams.TRUE)
             .build();
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
     TrackedEntity trackedEntity = trackedEntities.get(0);
@@ -662,7 +678,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     enrollmentService.deleteEnrollment(enrollmentA);
     eventService.deleteEvent(eventA);
 
-    trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    trackedEntities = trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
     trackedEntity = trackedEntities.get(0);
@@ -695,7 +711,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .includeDeleted(false)
             .trackedEntityParams(TrackedEntityParams.TRUE)
             .build();
-    trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    trackedEntities = trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
     trackedEntity = trackedEntities.get(0);
@@ -721,7 +737,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityParams(params)
             .build();
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     assertContainsOnly(List.of(trackedEntityA.getUid()), uids(trackedEntities));
     assertContainsOnly(
@@ -750,7 +767,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .includeAllAttributes(true)
             .build();
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
     assertIsEmpty(trackedEntities.get(0).getEnrollments());
@@ -770,7 +788,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityParams(params)
             .build();
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
     assertContainsOnly(
@@ -801,7 +820,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityParams(params)
             .build();
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     assertContainsOnly(List.of(trackedEntityA.getUid()), uids(trackedEntities));
     assertContainsOnly(
@@ -826,7 +846,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .includeAllAttributes(true)
             .build();
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     TrackedEntity trackedEntity = trackedEntities.get(0);
     assertAll(
@@ -859,7 +880,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityParams(params)
             .build();
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     List<Enrollment> enrollments = new ArrayList<>(trackedEntities.get(0).getEnrollments());
     Optional<Enrollment> enrollmentOpt =
@@ -904,7 +926,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityParams(params)
             .build();
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     List<Enrollment> enrollments = new ArrayList<>(trackedEntities.get(0).getEnrollments());
     Optional<Enrollment> enrollmentOpt =
@@ -956,7 +979,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityParams(params)
             .build();
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     TrackedEntity trackedEntity = trackedEntities.get(0);
     Optional<RelationshipItem> relOpt =
@@ -982,7 +1006,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityParams(params)
             .build();
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     TrackedEntity trackedEntity = trackedEntities.get(0);
     Optional<RelationshipItem> relOpt =
@@ -1008,7 +1033,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityParams(params)
             .build();
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     TrackedEntity trackedEntity = trackedEntities.get(0);
     Optional<RelationshipItem> relOpt =

@@ -67,6 +67,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -141,12 +142,12 @@ public class JdbcEventStore implements EventStore {
           + " psinote.creator                as psinote_storedby,"
           + " psinote.uid                    as psinote_uid,"
           + " psinote.lastupdated            as psinote_lastupdated,"
-          + " userinfo.userinfoid            as usernote_id,"
-          + " userinfo.code                  as usernote_code,"
-          + " userinfo.uid                   as usernote_uid,"
-          + " userinfo.username              as usernote_username,"
-          + " userinfo.firstname             as userinfo_firstname,"
-          + " userinfo.surname               as userinfo_surname"
+          + " userinfo.userinfoid            as psinote_user_id,"
+          + " userinfo.code                  as psinote_user_code,"
+          + " userinfo.uid                   as psinote_user_uid,"
+          + " userinfo.username              as psinote_user_username,"
+          + " userinfo.firstname             as psinote_user_firstname,"
+          + " userinfo.surname               as psinote_user_surname"
           + " from eventcomments psic"
           + " inner join trackedentitycomment psinote"
           + " on psic.trackedentitycommentid = psinote.trackedentitycommentid"
@@ -282,6 +283,7 @@ public class JdbcEventStore implements EventStore {
 
     setAccessiblePrograms(user, params);
 
+    Map<String, Event> eventsByUid = new HashMap<>(params.getPageSizeWithDefault());
     List<Event> events = new ArrayList<>();
     List<Long> relationshipIds = new ArrayList<>();
 
@@ -308,93 +310,108 @@ public class JdbcEventStore implements EventStore {
 
             validateIdentifiersPresence(resultSet, params.getIdSchemes());
 
-            Event event = new Event();
+            Event event;
+            if (eventsByUid.containsKey(eventUid)) {
+              event = eventsByUid.get(eventUid);
+            } else {
+              event = new Event();
+              eventsByUid.put(eventUid, event);
 
-            if (!params.isSkipEventId()) {
-              event.setUid(eventUid);
-            }
-
-            TrackedEntity tei = new TrackedEntity();
-            tei.setUid(resultSet.getString("tei_uid"));
-            event.setStatus(EventStatus.valueOf(resultSet.getString(EVENT_STATUS)));
-            ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
-            Program program = new Program();
-            program.setUid(resultSet.getString("p_identifier"));
-            program.setProgramType(programType);
-            Enrollment enrollment = new Enrollment();
-            enrollment.setUid(resultSet.getString("pi_uid"));
-            enrollment.setProgram(program);
-            enrollment.setTrackedEntity(tei);
-            OrganisationUnit ou = new OrganisationUnit();
-            ou.setUid(resultSet.getString("ou_uid"));
-            ou.setName(resultSet.getString("ou_name"));
-            ProgramStage ps = new ProgramStage();
-            ps.setUid(resultSet.getString("ps_identifier"));
-            event.setDeleted(resultSet.getBoolean("psi_deleted"));
-
-            enrollment.setStatus(ProgramStatus.valueOf(resultSet.getString("pi_status")));
-            enrollment.setFollowup(resultSet.getBoolean("pi_followup"));
-            event.setEnrollment(enrollment);
-            event.setProgramStage(ps);
-            event.setOrganisationUnit(ou);
-            CategoryOptionCombo coc = new CategoryOptionCombo();
-            coc.setUid(resultSet.getString("coc_identifier"));
-
-            Set<CategoryOption> options =
-                Arrays.stream(resultSet.getString("co_uids").split(";"))
-                    .map(
-                        optionUid -> {
-                          CategoryOption option = new CategoryOption();
-                          option.setUid(optionUid);
-                          return option;
-                        })
-                    .collect(Collectors.toSet());
-            coc.setCategoryOptions(options);
-
-            event.setAttributeOptionCombo(coc);
-
-            event.setStoredBy(resultSet.getString("psi_storedby"));
-            event.setDueDate(resultSet.getDate("psi_duedate"));
-            event.setExecutionDate(resultSet.getDate("psi_executiondate"));
-            event.setCreated(resultSet.getDate("psi_created"));
-            event.setCreatedByUserInfo(
-                EventUtils.jsonToUserInfo(
-                    resultSet.getString("psi_createdbyuserinfo"), jsonMapper));
-            event.setLastUpdated(resultSet.getDate("psi_lastupdated"));
-            event.setLastUpdatedByUserInfo(
-                EventUtils.jsonToUserInfo(
-                    resultSet.getString("psi_lastupdatedbyuserinfo"), jsonMapper));
-
-            event.setCompletedBy(resultSet.getString("psi_completedby"));
-            event.setCompletedDate(resultSet.getDate("psi_completeddate"));
-
-            if (resultSet.getObject("psi_geometry") != null) {
-              try {
-                Geometry geom = new WKTReader().read(resultSet.getString("psi_geometry"));
-
-                event.setGeometry(geom);
-              } catch (ParseException e) {
-                log.error("Unable to read geometry for event '" + event.getUid() + "': ", e);
+              if (!params.isSkipEventId()) {
+                event.setUid(eventUid);
               }
-            }
 
-            if (resultSet.getObject("user_assigned") != null) {
-              User eventUser = new User();
-              eventUser.setUid(resultSet.getString("user_assigned"));
-              eventUser.setUsername(resultSet.getString("user_assigned_username"));
-              eventUser.setName(resultSet.getString("user_assigned_name"));
-              eventUser.setFirstName(resultSet.getString("user_assigned_first_name"));
-              eventUser.setSurname(resultSet.getString("user_assigned_surname"));
-              event.setAssignedUser(eventUser);
-            }
+              TrackedEntity tei = new TrackedEntity();
+              tei.setUid(resultSet.getString("tei_uid"));
+              event.setStatus(EventStatus.valueOf(resultSet.getString(EVENT_STATUS)));
+              ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
+              Program program = new Program();
+              program.setUid(resultSet.getString("p_identifier"));
+              program.setProgramType(programType);
+              Enrollment enrollment = new Enrollment();
+              enrollment.setUid(resultSet.getString("pi_uid"));
+              enrollment.setProgram(program);
+              enrollment.setTrackedEntity(tei);
+              OrganisationUnit ou = new OrganisationUnit();
+              ou.setUid(resultSet.getString("ou_uid"));
+              ou.setName(resultSet.getString("ou_name"));
+              ProgramStage ps = new ProgramStage();
+              ps.setUid(resultSet.getString("ps_identifier"));
+              event.setDeleted(resultSet.getBoolean("psi_deleted"));
 
-            events.add(event);
+              enrollment.setStatus(ProgramStatus.valueOf(resultSet.getString("pi_status")));
+              enrollment.setFollowup(resultSet.getBoolean("pi_followup"));
+              event.setEnrollment(enrollment);
+              event.setProgramStage(ps);
+              event.setOrganisationUnit(ou);
 
-            if (!StringUtils.isEmpty(resultSet.getString("psi_eventdatavalues"))) {
-              Set<EventDataValue> eventDataValues =
-                  convertEventDataValueJsonIntoSet(resultSet.getString("psi_eventdatavalues"));
+              CategoryOptionCombo coc = new CategoryOptionCombo();
+              coc.setUid(resultSet.getString("coc_identifier"));
+              Set<CategoryOption> options =
+                  Arrays.stream(resultSet.getString("co_uids").split(";"))
+                      .map(
+                          optionUid -> {
+                            CategoryOption option = new CategoryOption();
+                            option.setUid(optionUid);
+                            return option;
+                          })
+                      .collect(Collectors.toSet());
+              coc.setCategoryOptions(options);
+              event.setAttributeOptionCombo(coc);
 
-              event.getEventDataValues().addAll(eventDataValues);
+              event.setStoredBy(resultSet.getString("psi_storedby"));
+              event.setDueDate(resultSet.getDate("psi_duedate"));
+              event.setExecutionDate(resultSet.getDate("psi_executiondate"));
+              event.setCreated(resultSet.getDate("psi_created"));
+              event.setCreatedByUserInfo(
+                  EventUtils.jsonToUserInfo(
+                      resultSet.getString("psi_createdbyuserinfo"), jsonMapper));
+              event.setLastUpdated(resultSet.getDate("psi_lastupdated"));
+              event.setLastUpdatedByUserInfo(
+                  EventUtils.jsonToUserInfo(
+                      resultSet.getString("psi_lastupdatedbyuserinfo"), jsonMapper));
+
+              event.setCompletedBy(resultSet.getString("psi_completedby"));
+              event.setCompletedDate(resultSet.getDate("psi_completeddate"));
+
+              if (resultSet.getObject("psi_geometry") != null) {
+                try {
+                  Geometry geom = new WKTReader().read(resultSet.getString("psi_geometry"));
+
+                  event.setGeometry(geom);
+                } catch (ParseException e) {
+                  log.error("Unable to read geometry for event '" + event.getUid() + "': ", e);
+                }
+              }
+
+              if (resultSet.getObject("user_assigned") != null) {
+                User eventUser = new User();
+                eventUser.setUid(resultSet.getString("user_assigned"));
+                eventUser.setUsername(resultSet.getString("user_assigned_username"));
+                eventUser.setName(resultSet.getString("user_assigned_name"));
+                eventUser.setFirstName(resultSet.getString("user_assigned_first_name"));
+                eventUser.setSurname(resultSet.getString("user_assigned_surname"));
+                event.setAssignedUser(eventUser);
+              }
+
+              if (!StringUtils.isEmpty(resultSet.getString("psi_eventdatavalues"))) {
+                Set<EventDataValue> eventDataValues =
+                    convertEventDataValueJsonIntoSet(resultSet.getString("psi_eventdatavalues"));
+
+                event.getEventDataValues().addAll(eventDataValues);
+              }
+
+              if (params.isIncludeRelationships() && resultSet.getObject("psi_rl") != null) {
+                PGobject pGobject = (PGobject) resultSet.getObject("psi_rl");
+
+                if (pGobject != null) {
+                  String value = pGobject.getValue();
+
+                  relationshipIds.addAll(Lists.newArrayList(gson.fromJson(value, Long[].class)));
+                }
+              }
+
+              events.add(event);
             }
 
             if (resultSet.getString("psinote_value") != null
@@ -405,31 +422,21 @@ public class JdbcEventStore implements EventStore {
               note.setCreated(resultSet.getDate("psinote_storeddate"));
               note.setCreator(resultSet.getString("psinote_storedby"));
 
-              if (resultSet.getObject("usernoteupdated_id") != null) {
-                User userNote = new User();
-                userNote.setId(resultSet.getLong("usernoteupdated_id"));
-                userNote.setCode(resultSet.getString("usernoteupdated_code"));
-                userNote.setUid(resultSet.getString("usernoteupdated_uid"));
-                userNote.setUsername(resultSet.getString("usernoteupdated_username"));
-                userNote.setFirstName(resultSet.getString("usernoteupdated_firstname"));
-                userNote.setSurname(resultSet.getString("usernoteupdated_surname"));
-                note.setLastUpdatedBy(userNote);
+              if (resultSet.getObject("psinote_user_id") != null) {
+                User noteLastUpdatedBy = new User();
+                noteLastUpdatedBy.setId(resultSet.getLong("psinote_user_id"));
+                noteLastUpdatedBy.setCode(resultSet.getString("psinote_user_code"));
+                noteLastUpdatedBy.setUid(resultSet.getString("psinote_user_uid"));
+                noteLastUpdatedBy.setUsername(resultSet.getString("psinote_user_username"));
+                noteLastUpdatedBy.setFirstName(resultSet.getString("psinote_user_firstname"));
+                noteLastUpdatedBy.setSurname(resultSet.getString("psinote_user_surname"));
+                note.setLastUpdatedBy(noteLastUpdatedBy);
               }
 
               note.setLastUpdated(resultSet.getDate("psinote_lastupdated"));
 
               event.getComments().add(note);
               notes.add(resultSet.getString("psinote_id"));
-            }
-
-            if (params.isIncludeRelationships() && resultSet.getObject("psi_rl") != null) {
-              PGobject pGobject = (PGobject) resultSet.getObject("psi_rl");
-
-              if (pGobject != null) {
-                String value = pGobject.getValue();
-
-                relationshipIds.addAll(Lists.newArrayList(gson.fromJson(value, Long[].class)));
-              }
             }
           }
 
@@ -633,8 +640,8 @@ public class JdbcEventStore implements EventStore {
           .append(" INNER JOIN trackedentityattributevalue ")
           .append(teaValueCol)
           .append(" ON ")
-          .append(teaValueCol + ".trackedentityinstanceid")
-          .append(" = TEI.trackedentityinstanceid ")
+          .append(teaValueCol + ".trackedentityid")
+          .append(" = TEI.trackedentityid ")
           .append(" INNER JOIN trackedentityattribute ")
           .append(teaCol)
           .append(" ON ")
@@ -743,7 +750,7 @@ public class JdbcEventStore implements EventStore {
             "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, pi.enrollmentdate as pi_enrollmentdate, pi.incidentdate as pi_incidentdate, ")
         .append("p.type as p_type, ps.uid as ps_uid, ou.name as ou_name, ")
         .append(
-            "tei.trackedentityinstanceid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive ")
+            "tei.trackedentityid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive ")
         .append(
             getFromWhereClause(
                 params,
@@ -775,14 +782,14 @@ public class JdbcEventStore implements EventStore {
       StringBuilder dataElementAndFiltersSql) {
     StringBuilder fromBuilder =
         new StringBuilder(" from event psi ")
-            .append("inner join programinstance pi on pi.programinstanceid=psi.programinstanceid ")
+            .append("inner join enrollment pi on pi.enrollmentid=psi.enrollmentid ")
             .append("inner join program p on p.programid=pi.programid ")
             .append("inner join programstage ps on ps.programstageid=psi.programstageid ");
 
     if (checkForOwnership(params)) {
       fromBuilder
           .append(
-              "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) ")
+              "left join trackedentityprogramowner po on (pi.trackedentityid=po.trackedentityid) ")
           .append(
               "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) ")
           .append(
@@ -793,8 +800,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     fromBuilder
-        .append(
-            "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid ")
+        .append("left join trackedentity tei on tei.trackedentityid=pi.trackedentityid ")
         .append(
             "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ")
         .append("left join userinfo au on (psi.assigneduserid=au.userinfoid) ");
@@ -808,12 +814,12 @@ public class JdbcEventStore implements EventStore {
     fromBuilder.append(dataElementAndFiltersSql);
 
     if (params.getTrackedEntity() != null) {
-      mapSqlParameterSource.addValue("trackedentityinstanceid", params.getTrackedEntity().getId());
+      mapSqlParameterSource.addValue("trackedentityid", params.getTrackedEntity().getId());
 
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" tei.trackedentityinstanceid= ")
-          .append(":trackedentityinstanceid")
+          .append(" tei.trackedentityid= ")
+          .append(":trackedentityid")
           .append(" ");
     }
 
@@ -1011,9 +1017,9 @@ public class JdbcEventStore implements EventStore {
     }
 
     if (!CollectionUtils.isEmpty(params.getEnrollments())) {
-      mapSqlParameterSource.addValue("programinstance_uid", params.getEnrollments());
+      mapSqlParameterSource.addValue("enrollment_uid", params.getEnrollments());
 
-      fromBuilder.append(hlp.whereAnd()).append(" (pi.uid in (:programinstance_uid)) ");
+      fromBuilder.append(hlp.whereAnd()).append(" (pi.uid in (:enrollment_uid)) ");
     }
 
     return fromBuilder;
@@ -1171,7 +1177,7 @@ public class JdbcEventStore implements EventStore {
         new StringBuilder()
             .append(
                 " from event psi "
-                    + "inner join programinstance pi on pi.programinstanceid = psi.programinstanceid "
+                    + "inner join enrollment pi on pi.enrollmentid = psi.enrollmentid "
                     + "inner join program p on p.programid = pi.programid "
                     + "inner join programstage ps on ps.programstageid = psi.programstageid "
                     + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
@@ -1180,7 +1186,7 @@ public class JdbcEventStore implements EventStore {
     if (checkForOwnership(params)) {
       sqlBuilder
           .append(
-              "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) ")
+              "left join trackedentityprogramowner po on (pi.trackedentityid=po.trackedentityid) ")
           .append(
               "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) ")
           .append(
@@ -1284,9 +1290,9 @@ public class JdbcEventStore implements EventStore {
     }
 
     if (!CollectionUtils.isEmpty(params.getEnrollments())) {
-      mapSqlParameterSource.addValue("programinstance_uid", params.getEnrollments());
+      mapSqlParameterSource.addValue("enrollment_uid", params.getEnrollments());
 
-      sqlBuilder.append(hlp.whereAnd()).append(" (pi.uid in (:programinstance_uid)) ");
+      sqlBuilder.append(hlp.whereAnd()).append(" (pi.uid in (:enrollment_uid)) ");
     }
 
     sqlBuilder.append(eventStatusSql(params, mapSqlParameterSource, hlp));
@@ -1536,7 +1542,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String getAttributeValueQuery() {
-    return "select pav.trackedentityinstanceid as pav_id, pav.created as pav_created, pav.lastupdated as pav_lastupdated, "
+    return "select pav.trackedentityid as pav_id, pav.created as pav_created, pav.lastupdated as pav_lastupdated, "
         + "pav.value as pav_value, ta.uid as ta_uid, ta.name as ta_name, ta.valuetype as ta_valuetype "
         + "from trackedentityattributevalue pav "
         + "inner join trackedentityattribute ta on pav.trackedentityattributeid=ta.trackedentityattributeid ";

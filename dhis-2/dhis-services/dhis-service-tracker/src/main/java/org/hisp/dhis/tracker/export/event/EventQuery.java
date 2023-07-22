@@ -108,14 +108,14 @@ public class EventQuery {
   public static String getQuery() {
     return getSelect()
         + "from event psi "
-        + "join programinstance pi on psi.programinstanceid = pi.programinstanceid "
-        + "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid "
+        + "join enrollment pi on psi.enrollmentid = pi.programinstanceid "
+        + "join trackedentity tei on pi.trackedentityid = tei.trackedentityid "
         + "join program p on pi.programid = p.programid "
         + "join programstage ps on psi.programstageid = ps.programstageid "
         + "join organisationunit o on psi.organisationunitid = o.organisationunitid "
         + "join categoryoptioncombo coc on psi.attributeoptioncomboid = coc.categoryoptioncomboid "
         + "left join userinfo ui on psi.assigneduserid = ui.userinfoid "
-        + "where pi.programinstanceid in (:ids)";
+        + "where pi.enrollmentid in (:ids)";
   }
 
   private static String getSelect() {

@@ -6,11 +6,11 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.trackedentityfilter.TrackedEntityFilter" table="trackedentityinstancefilter">
+  <class name="org.hisp.dhis.trackedentityfilter.TrackedEntityFilter" table="trackedentityfilter">
 
     <cache usage="read-write" />
 
-    <id name="id" column="trackedentityinstancefilterid">
+    <id name="id" column="trackedentityfilterid">
       <generator class="native" />
     </id>
     &identifiableProperties;
