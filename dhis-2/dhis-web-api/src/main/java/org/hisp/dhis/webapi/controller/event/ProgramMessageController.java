@@ -30,12 +30,9 @@ package org.hisp.dhis.webapi.controller.event;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.OpenApi;
@@ -60,12 +57,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Zubair <rajazubair.asghar@gmail.com> */
+@OpenApi.EntityType(ProgramMessage.class)
 @OpenApi.Tags("tracker")
 @RestController
 @RequestMapping(value = "/messages")
@@ -167,10 +166,7 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
   @OpenApi.Response(status = OpenApi.Response.Status.OK, value = BatchResponseStatus.class)
   @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public BatchResponseStatus saveMessages(HttpServletRequest request, HttpServletResponse response)
-      throws IOException {
-    ProgramMessageBatch batch =
-        renderService.fromJson(request.getInputStream(), ProgramMessageBatch.class);
+  public BatchResponseStatus sendMessages(@RequestBody ProgramMessageBatch batch) {
 
     for (ProgramMessage programMessage : batch.getProgramMessages()) {
       programMessageService.validatePayload(programMessage);
