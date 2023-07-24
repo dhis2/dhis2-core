@@ -588,18 +588,6 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void shouldReturnForbiddenWhenGetRelationshipsWithBothEndsNotAccessible() {
-    TrackedEntity from = trackedEntityNotInSearchScope();
-    TrackedEntity to = trackedEntityNotInSearchScope();
-    relationship(from, to);
-    this.switchContextToUser(user);
-
-    assertEquals(
-        HttpStatus.FORBIDDEN,
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).status());
-  }
-
-  @Test
   void shouldReturnForbiddenWhenGetRelationshipsByNotAccessibleTrackedEntity() {
     TrackedEntity from = trackedEntityNotInSearchScope();
     TrackedEntity to = trackedEntity();

@@ -94,7 +94,7 @@ class RelationshipOperationParamsMapper {
 
     List<String> errors = accessManager.canRead(user, trackedEntity);
     if (!errors.isEmpty()) {
-      throw new ForbiddenException("User has no access to TrackedEntity: " + uid);
+      throw new ForbiddenException(TrackedEntity.class, uid);
     }
 
     return trackedEntity;
@@ -109,7 +109,7 @@ class RelationshipOperationParamsMapper {
 
     List<String> errors = accessManager.canRead(user, enrollment, false);
     if (!errors.isEmpty()) {
-      throw new ForbiddenException("User has no access to Enrollment: " + uid);
+      throw new ForbiddenException(Enrollment.class, uid);
     }
 
     return enrollment;
@@ -123,7 +123,7 @@ class RelationshipOperationParamsMapper {
 
     List<String> errors = accessManager.canRead(user, event, false);
     if (!errors.isEmpty()) {
-      throw new ForbiddenException("User has no access to Event: " + uid);
+      throw new ForbiddenException(Event.class, uid);
     }
 
     return event;

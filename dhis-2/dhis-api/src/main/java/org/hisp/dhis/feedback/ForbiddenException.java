@@ -59,6 +59,10 @@ public final class ForbiddenException extends Exception implements Error {
     this.code = ErrorCode.E1006;
   }
 
+  public ForbiddenException(Class<?> type, String uid) {
+    this("User has no access to " + type.getSimpleName() + ":" + uid);
+  }
+
   public ForbiddenException(ErrorCode code, Object... args) {
     super(MessageFormat.format(code.getMessage(), args));
     this.code = code;

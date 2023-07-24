@@ -120,7 +120,7 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldThrowNotFoundExceptionWhenTrackedEntityIsNotFound() {
+  void shouldThrowWhenTrackedEntityIsNotFound() {
     when(trackedEntityService.getTrackedEntity(TE_UID)).thenReturn(null);
     RelationshipOperationParams params =
         RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(TE_UID).build();
@@ -129,7 +129,7 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldThrowForbiddenExceptionWhenUserHasNoAccessToTrackedEntity() {
+  void shouldThrowWhenUserHasNoAccessToTrackedEntity() {
     when(trackedEntityService.getTrackedEntity(TE_UID)).thenReturn(trackedEntity);
     when(accessManager.canRead(user, trackedEntity)).thenReturn(List.of("error"));
     RelationshipOperationParams params =
@@ -152,7 +152,7 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldThrowNotFoundExceptionWhenEnrollmentIsNotFound() {
+  void shouldThrowWhenEnrollmentIsNotFound() {
     when(enrollmentService.getEnrollment(EN_UID)).thenReturn(null);
     RelationshipOperationParams params =
         RelationshipOperationParams.builder().type(ENROLLMENT).identifier(EN_UID).build();
@@ -161,7 +161,7 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldThrowForbiddenExceptionWhenUserHasNoAccessToEnrollment() {
+  void shouldThrowWhenUserHasNoAccessToEnrollment() {
     when(enrollmentService.getEnrollment(EN_UID)).thenReturn(enrollment);
     when(accessManager.canRead(user, enrollment, false)).thenReturn(List.of("error"));
     RelationshipOperationParams params =
@@ -184,7 +184,7 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldThrowNotFoundExceptionWhenEventIsNotFound() {
+  void shouldThrowWhenEventIsNotFound() {
     when(eventService.getEvent(EV_UID)).thenReturn(null);
     RelationshipOperationParams params =
         RelationshipOperationParams.builder().type(EVENT).identifier(EV_UID).build();
@@ -193,7 +193,7 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldThrowForbiddenExceptionWhenUserHasNoAccessToEvent() {
+  void shouldThrowWhenUserHasNoAccessToEvent() {
     when(eventService.getEvent(EV_UID)).thenReturn(event);
     when(accessManager.canRead(user, event, false)).thenReturn(List.of("error"));
     RelationshipOperationParams params =
