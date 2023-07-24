@@ -145,7 +145,20 @@
           "providedElsewhere": false
         }
       ],
-      "notes": []
+      "notes": [
+        {
+          "note": "SGuCABkhpgn",
+          "storedAt": "2019-01-28T12:10:38.108",
+          "value": "comment value",
+          "storedBy": "admin"
+        },
+        {
+          "note": "DRKO4xUVrpr",
+          "storedAt": "2019-01-28T12:10:38.108",
+          "value": "comment value",
+          "storedBy": "admin"
+        }
+      ]
     },
     {
       "event": "D9PbzJY8bJM",
@@ -311,6 +324,43 @@
       ]
     }
   ],
-  "relationships": [],
+  "relationships": [
+    {
+      "relationship": "oLT07jKRu9e",
+      "relationshipType": "TV9oB9LT3sh",
+      "createdAt": "2018-10-01T12:17:30.163",
+      "updatedAt": "2018-10-01T12:17:30.163",
+      "bidirectional": false,
+      "deleted": false,
+      "from": {
+        "trackedEntity": {
+          "trackedEntity": "QS6w44flWAf"
+        }
+      },
+      "to": {
+        "event": {
+          "event": "pTzf9KYMk72"
+        }
+      }
+    },
+    {
+      "relationship": "yZxjxJli9mO",
+      "relationshipType": "TV9oB9LT3sh",
+      "createdAt": "2018-10-01T12:17:30.163",
+      "updatedAt": "2018-10-01T12:17:30.163",
+      "bidirectional": false,
+      "deleted": false,
+      "from": {
+        "trackedEntity": {
+          "trackedEntity": "dUE514NMOlo"
+        }
+      },
+      "to": {
+        "event": {
+          "event": "pTzf9KYMk72"
+        }
+      }
+    }
+  ],
   "username": "system-process"
 }
