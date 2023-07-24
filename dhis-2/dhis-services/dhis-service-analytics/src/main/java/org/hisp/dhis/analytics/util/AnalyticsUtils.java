@@ -234,6 +234,18 @@ public class AnalyticsUtils {
     }
   }
 
+  /**
+   * Rounds a value. If the given parameters has skip rounding, the value is rounded to {@link
+   * AnalyticsUtils#DECIMALS_NO_ROUNDING}. decimals. If the given number of decimals is specified,
+   * the value is rounded to the given decimals. Otherwise, default rounding is used. If 0 decimals
+   * is explicitly specified, this method returns a long value. Otherwise, a double value is
+   * returned.
+   *
+   * @param params the query parameters.
+   * @param decimals the number of decimals.
+   * @param value the value.
+   * @return a double.
+   */
   public static Number getRoundedValue(DataQueryParams params, Integer decimals, BigDecimal value) {
     return getRoundedValue(params, decimals, value.doubleValue());
   }
