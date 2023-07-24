@@ -76,7 +76,7 @@ class RelationshipOperationParamsMapper {
   private TrackedEntity validateTrackedEntity(String uid) throws NotFoundException {
     TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(uid);
     if (trackedEntity == null) {
-      throw new NotFoundException("Tracked entity is specified but does not exist: " + uid);
+      throw new NotFoundException(TrackedEntity.class, uid);
     }
 
     return trackedEntity;
@@ -85,7 +85,7 @@ class RelationshipOperationParamsMapper {
   private Enrollment validateEnrollment(String uid) throws NotFoundException {
     Enrollment enrollment = enrollmentService.getEnrollment(uid);
     if (enrollment == null) {
-      throw new NotFoundException("Enrollment is specified but does not exist: " + uid);
+      throw new NotFoundException(Enrollment.class, uid);
     }
 
     return enrollment;
@@ -94,7 +94,7 @@ class RelationshipOperationParamsMapper {
   private Event validateEvent(String uid) throws NotFoundException {
     Event event = eventService.getEvent(uid);
     if (event == null) {
-      throw new NotFoundException("Event is specified but does not exist: " + uid);
+      throw new NotFoundException(Event.class, uid);
     }
 
     return event;
