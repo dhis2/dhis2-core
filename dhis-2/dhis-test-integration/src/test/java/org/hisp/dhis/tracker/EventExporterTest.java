@@ -159,7 +159,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWithRelationships() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setEvents(Set.of("pTzf9KYMk72"));
     params.setIncludeRelationships(true);
 
@@ -176,7 +176,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWithNotes() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setEvents(Set.of("pTzf9KYMk72"));
     params.setIncludeRelationships(true);
 
@@ -195,7 +195,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnPaginatedEventsWithNotesGivenNonDefaultPageSize() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setEvents(Set.of("pTzf9KYMk72", "D9PbzJY8bJM"));
     params.addOrders(List.of(new OrderParam("occurredAt", SortDirection.DESC)));
 
