@@ -11,14 +11,6 @@ DHIS2 e2e tests are written and executed using the following libraries and tools
 
 ## Running Tests
 
-e2e tests can be run in three different ways:
-
-- [Maven](#maven)
-- [Docker](#inside-docker)
-- [IntelliJ](#from-intellij)
-
-### Maven
-
 All commands in this README assume you are inside the `cd dhis2-e2e-test` directory.
 
 Assuming you have DHIS2 running locally on port `8080` run
@@ -31,16 +23,6 @@ mvn test \
     -Duser.default.password=district
     -Dtest.track_called_endpoints=true
 ```
-
-### From IntelliJ
-
-Make sure the property instance.url in `dhis-2/dhis-test-e2e/src/main/resources/config.properties`
-matches the url configured in your local tomcat installation. Then add `/api` at the end.
-
-For instance, if the Tomcat run/debug config has the url: `http://localhost:8080/`, then the
-instance.url property needs to be: `http://localhost:8080/api`
-
-Run Tomcat and when it's up and running, run the e2e test(s) you are interested in.
 
 ### Inside Docker
 
