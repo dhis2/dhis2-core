@@ -55,7 +55,8 @@ public class ValidationHooksCheck implements ObjectValidationCheck {
       ImportStrategy importStrategy,
       ValidationContext ctx,
       Consumer<ObjectReport> addReports) {
-    List<T> objects = selectObjects(persistedObjects, nonPersistedObjects, importStrategy);
+    List<T> objects =
+        selectObjectsBasedOnImportStrategy(persistedObjects, nonPersistedObjects, importStrategy);
 
     if (objects == null || objects.isEmpty()) {
       return;
