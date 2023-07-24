@@ -32,13 +32,13 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
@@ -128,7 +128,7 @@ class AclEventExporterTest extends TrackerTest {
     assertFalse(
         events.isEmpty(),
         "Expected to find events when no program specified, ou mode descendants and org units in search scope");
-    assertContainsOnly(
+    assertCollectionsAreSame(
         events.stream().map(Event::getOrgUnit).collect(Collectors.toSet()),
         List.of("uoNW0E3xXUy", "h4w96yEMlzO", "tSsGrtfRzjY"));
   }
@@ -145,7 +145,7 @@ class AclEventExporterTest extends TrackerTest {
     assertFalse(
         events.isEmpty(),
         "Expected to find events when no program specified, ou mode descendants and org units in search scope");
-    assertContainsOnly(
+    assertCollectionsAreSame(
         events.stream().map(Event::getOrgUnit).collect(Collectors.toSet()),
         List.of("uoNW0E3xXUy", "tSsGrtfRzjY"));
   }
@@ -188,7 +188,7 @@ class AclEventExporterTest extends TrackerTest {
     assertFalse(
         events.isEmpty(),
         "Expected to find events when no program specified, ou mode children and org units in search scope");
-    assertContainsOnly(
+    assertCollectionsAreSame(
         events.stream().map(Event::getOrgUnit).collect(Collectors.toSet()),
         List.of("uoNW0E3xXUy", "h4w96yEMlzO"));
   }
@@ -327,5 +327,19 @@ class AclEventExporterTest extends TrackerTest {
     T t = manager.get(type, uid);
     assertNotNull(t, () -> String.format("metadata with uid '%s' should have been created", uid));
     return t;
+  }
+
+  private void assertCollectionsAreSame(Collection<String> expected, Collection<String> actual) {
+    assertTrue(
+        expected.containsAll(actual),
+        "Expected list: " + expected + " does not contain values: " + actual);
+    assertTrue(
+        actual.containsAll(expected),
+        "Actual list: " + actual + " does not contain values: " + expected);
+
+    assertEquals(
+        expected.size(),
+        actual.size(),
+        "List size don't match, expected " + expected.size() + " but found " + actual.size());
   }
 }
