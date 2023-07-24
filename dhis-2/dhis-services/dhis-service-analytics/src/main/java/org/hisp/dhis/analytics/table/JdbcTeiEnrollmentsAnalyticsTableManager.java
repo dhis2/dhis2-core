@@ -238,10 +238,8 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
     }
 
     removeLastComma(sql)
-        .append(" from programinstance pi")
-        .append(
-            " inner join trackedentityinstance tei "
-                + "on pi.trackedentityinstanceid = tei.trackedentityinstanceid")
+        .append(" from enrollment pi")
+        .append(" inner join trackedentity tei " + "on pi.trackedentityid = tei.trackedentityid")
         .append(" and tei.deleted is false ")
         .append(
             " and tei.trackedentitytypeid = "
@@ -253,7 +251,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
             " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
         .append(
             " where exists ( select 1 from event psi where psi.deleted is false"
-                + " and psi.programinstanceid = pi.programinstanceid"
+                + " and psi.enrollmentid = pi.enrollmentid"
                 + " and psi.status in ("
                 + join(",", EXPORTABLE_EVENT_STATUSES)
                 + "))")

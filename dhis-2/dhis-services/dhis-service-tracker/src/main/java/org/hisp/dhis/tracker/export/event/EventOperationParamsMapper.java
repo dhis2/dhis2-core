@@ -28,6 +28,8 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseDataElementQueryItems;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryItem;
@@ -41,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -114,8 +117,13 @@ public class EventOperationParamsMapper {
 
     Program program = validateProgram(operationParams.getProgramUid());
     ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid());
-    OrganisationUnit orgUnit = validateOrgUnit(operationParams.getOrgUnitUid());
-    validateUser(user, program, programStage, operationParams.getOrgUnitUid(), orgUnit);
+    OrganisationUnit requestedOrgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid());
+
+    OrganisationUnitSelectionMode orgUnitMode =
+        getOrgUnitMode(requestedOrgUnit, operationParams.getOrgUnitMode());
+    List<OrganisationUnit> accessibleOrgUnits =
+        validateAccessibleOrgUnits(user, requestedOrgUnit, orgUnitMode, program);
+    validateUser(user, program, programStage);
     TrackedEntity trackedEntity = validateTrackedEntity(operationParams.getTrackedEntityUid());
 
     CategoryOptionCombo attributeOptionCombo =
@@ -128,7 +136,7 @@ public class EventOperationParamsMapper {
 
     validateAttributeOptionCombo(attributeOptionCombo, user);
 
-    validateOrgUnitSelectionMode(operationParams, user, program);
+    validateOrgUnitMode(operationParams, user, program);
 
     Map<String, SortDirection> attributeOrders =
         getAttributesFromOrder(operationParams.getAttributeOrders());
@@ -156,11 +164,11 @@ public class EventOperationParamsMapper {
     return searchParams
         .setProgram(program)
         .setProgramStage(programStage)
-        .setOrgUnit(orgUnit)
+        .setAccessibleOrgUnits(accessibleOrgUnits)
         .setTrackedEntity(trackedEntity)
         .setProgramStatus(operationParams.getProgramStatus())
         .setFollowUp(operationParams.getFollowUp())
-        .setOrgUnitSelectionMode(operationParams.getOrgUnitSelectionMode())
+        .setOrgUnitMode(orgUnitMode)
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(
                 operationParams.getAssignedUserMode(), user, operationParams.getAssignedUsers()))
@@ -193,7 +201,8 @@ public class EventOperationParamsMapper {
         .addAttributeOrders(attributeOrderParams)
         .setEvents(operationParams.getEvents())
         .setEnrollments(operationParams.getEnrollments())
-        .setIncludeDeleted(operationParams.isIncludeDeleted());
+        .setIncludeDeleted(operationParams.isIncludeDeleted())
+        .setIncludeRelationships(operationParams.isIncludeRelationships());
   }
 
   private Program validateProgram(String programUid) throws BadRequestException {
@@ -223,7 +232,7 @@ public class EventOperationParamsMapper {
     return programStage;
   }
 
-  private OrganisationUnit validateOrgUnit(String orgUnitUid) throws BadRequestException {
+  private OrganisationUnit validateRequestedOrgUnit(String orgUnitUid) throws BadRequestException {
     if (orgUnitUid == null) {
       return null;
     }
@@ -236,20 +245,126 @@ public class EventOperationParamsMapper {
     return orgUnit;
   }
 
-  private void validateUser(
-      User user, Program pr, ProgramStage ps, String orgUnitUid, OrganisationUnit orgUnit)
+  private List<OrganisationUnit> validateAccessibleOrgUnits(
+      User user,
+      OrganisationUnit orgUnit,
+      OrganisationUnitSelectionMode orgUnitMode,
+      Program program)
       throws ForbiddenException {
-    if (pr != null && !user.isSuper() && !aclService.canDataRead(user, pr)) {
-      throw new ForbiddenException("User has no access to program: " + pr.getUid());
+    List<OrganisationUnit> accessibleOrgUnits =
+        getUserAccessibleOrgUnits(
+            user,
+            orgUnit,
+            orgUnitMode,
+            program,
+            organisationUnitService::getOrganisationUnitWithChildren);
+
+    if (orgUnit != null && accessibleOrgUnits.isEmpty()) {
+      throw new ForbiddenException("User does not have access to orgUnit: " + orgUnit.getUid());
     }
 
-    if (ps != null && !user.isSuper() && !aclService.canDataRead(user, ps)) {
-      throw new ForbiddenException("User has no access to program stage: " + ps.getUid());
+    return accessibleOrgUnits;
+  }
+
+  private void validateUser(User user, Program program, ProgramStage programStage)
+      throws ForbiddenException {
+    if (user.isSuper()) {
+      return;
+    }
+    if (program != null && !aclService.canDataRead(user, program)) {
+      throw new ForbiddenException("User has no access to program: " + program.getUid());
     }
 
-    if (orgUnitUid != null && !trackerAccessManager.canAccess(user, pr, orgUnit)) {
-      throw new ForbiddenException("User does not have access to orgUnit: " + orgUnit);
+    if (programStage != null && !aclService.canDataRead(user, programStage)) {
+      throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
     }
+  }
+
+  /**
+   * Returns a list of all the org units the user has access to
+   *
+   * @param user the user to check the access of
+   * @param orgUnit parent org unit to get descendants/children of
+   * @param orgUnitDescendants function to retrieve org units, in case ou mode is descendants
+   * @param program the program the user wants to access to
+   * @return a list containing the user accessible organisation units
+   */
+  private List<OrganisationUnit> getUserAccessibleOrgUnits(
+      User user,
+      OrganisationUnit orgUnit,
+      OrganisationUnitSelectionMode orgUnitMode,
+      Program program,
+      Function<String, List<OrganisationUnit>> orgUnitDescendants) {
+
+    return switch (orgUnitMode) {
+      case DESCENDANTS -> orgUnit != null
+          ? getAccessibleDescendants(user, program, orgUnitDescendants.apply(orgUnit.getUid()))
+          : Collections.emptyList();
+      case CHILDREN -> orgUnit != null
+          ? getAccessibleDescendants(
+              user,
+              program,
+              Stream.concat(Stream.of(orgUnit), orgUnit.getChildren().stream()).toList())
+          : Collections.emptyList();
+      case CAPTURE -> user.getOrganisationUnits().stream().toList();
+      case ACCESSIBLE -> getAccessibleOrgUnits(user, program);
+      case SELECTED -> getSelectedOrgUnits(user, program, orgUnit);
+      default -> Collections.emptyList();
+    };
+  }
+
+  private List<OrganisationUnit> getSelectedOrgUnits(
+      User user, Program program, OrganisationUnit orgUnit) {
+    return trackerAccessManager.canAccess(user, program, orgUnit)
+        ? List.of(orgUnit)
+        : Collections.emptyList();
+  }
+
+  private List<OrganisationUnit> getAccessibleOrgUnits(User user, Program program) {
+    return isProgramAccessRestricted(program)
+        ? user.getOrganisationUnits().stream().toList().stream().toList()
+        : user.getTeiSearchOrganisationUnitsWithFallback().stream().toList();
+  }
+
+  /**
+   * Returns the org units whose path is contained in the user search or capture scope org unit. If
+   * there's a match, it means the user org unit is at the same level or above the supplied org
+   * unit.
+   *
+   * @param user the user to check the access of
+   * @param program the program the user wants to access to
+   * @param orgUnits the org units to check if the user has access to
+   * @return a list with the org units the user has access to
+   */
+  private List<OrganisationUnit> getAccessibleDescendants(
+      User user, Program program, List<OrganisationUnit> orgUnits) {
+    if (orgUnits.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    if (isProgramAccessRestricted(program)) {
+      return orgUnits.stream()
+          .filter(
+              availableOrgUnit ->
+                  user.getOrganisationUnits().stream()
+                      .anyMatch(
+                          captureScopeOrgUnit ->
+                              availableOrgUnit.getPath().contains(captureScopeOrgUnit.getPath())))
+          .toList();
+    } else {
+      return orgUnits.stream()
+          .filter(
+              availableOrgUnit ->
+                  user.getTeiSearchOrganisationUnits().stream()
+                      .anyMatch(
+                          searchScopeOrgUnit ->
+                              availableOrgUnit.getPath().contains(searchScopeOrgUnit.getPath())))
+          .toList();
+    }
+  }
+
+  private boolean isProgramAccessRestricted(Program program) {
+    return program != null && (program.isClosed() || program.isProtected());
   }
 
   private TrackedEntity validateTrackedEntity(String trackedEntityUid) throws BadRequestException {
@@ -277,9 +392,9 @@ public class EventOperationParamsMapper {
     }
   }
 
-  private void validateOrgUnitSelectionMode(EventOperationParams params, User user, Program program)
+  private void validateOrgUnitMode(EventOperationParams params, User user, Program program)
       throws BadRequestException {
-    if (params.getOrgUnitSelectionMode() != null) {
+    if (params.getOrgUnitMode() != null) {
       String violation = getOrgUnitModeViolation(params, user, program);
       if (violation != null) {
         throw new BadRequestException(violation);
@@ -288,16 +403,16 @@ public class EventOperationParamsMapper {
   }
 
   private String getOrgUnitModeViolation(EventOperationParams params, User user, Program program) {
-    OrganisationUnitSelectionMode selectedOuMode = params.getOrgUnitSelectionMode();
+    OrganisationUnitSelectionMode orgUnitMode = params.getOrgUnitMode();
 
-    return switch (selectedOuMode) {
-      case ALL -> userCanSearchOuModeALL(user)
+    return switch (orgUnitMode) {
+      case ALL -> userCanSearchOrgUnitModeALL(user)
           ? null
           : "Current user is not authorized to query across all organisation units";
       case ACCESSIBLE -> getAccessibleScopeValidation(user, program);
       case CAPTURE -> getCaptureScopeValidation(user);
       case CHILDREN, SELECTED, DESCENDANTS -> params.getOrgUnitUid() == null
-          ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
+          ? "Organisation unit is required for orgUnitMode: " + params.getOrgUnitMode()
           : null;
     };
   }
@@ -306,7 +421,7 @@ public class EventOperationParamsMapper {
     String violation = null;
 
     if (user == null) {
-      violation = "User is required for ouMode: " + OrganisationUnitSelectionMode.CAPTURE;
+      violation = "User is required for orgUnitMode: " + OrganisationUnitSelectionMode.CAPTURE;
     } else if (user.getOrganisationUnits().isEmpty()) {
       violation = "User needs to be assigned data capture orgunits";
     }
@@ -318,7 +433,7 @@ public class EventOperationParamsMapper {
     String violation;
 
     if (user == null) {
-      return "User is required for ouMode: " + OrganisationUnitSelectionMode.ACCESSIBLE;
+      return "User is required for orgUnitMode: " + OrganisationUnitSelectionMode.ACCESSIBLE;
     }
 
     if (program == null || program.isClosed() || program.isProtected()) {
@@ -336,7 +451,7 @@ public class EventOperationParamsMapper {
     return violation;
   }
 
-  private boolean userCanSearchOuModeALL(User user) {
+  private boolean userCanSearchOrgUnitModeALL(User user) {
     if (user == null) {
       return false;
     }
@@ -442,5 +557,21 @@ public class EventOperationParamsMapper {
     }
 
     return new QueryItem(de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet());
+  }
+
+  /**
+   * Returns the same org unit mode if not null. If null, and an org unit is present, SELECT mode is
+   * used by default, mode ACCESSIBLE is used otherwise.
+   *
+   * @param orgUnit
+   * @param orgUnitMode
+   * @return an org unit mode given the two input params
+   */
+  private OrganisationUnitSelectionMode getOrgUnitMode(
+      OrganisationUnit orgUnit, OrganisationUnitSelectionMode orgUnitMode) {
+    if (orgUnitMode == null) {
+      return orgUnit != null ? SELECTED : ACCESSIBLE;
+    }
+    return orgUnitMode;
   }
 }

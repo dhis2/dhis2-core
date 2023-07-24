@@ -97,7 +97,7 @@ class DefaultTrackedEntityServiceTest {
     when(currentUserService.getCurrentUser()).thenReturn(user);
 
     params = new TrackedEntityQueryParams();
-    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE);
+    params.setOrgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE);
     params.setProgram(new Program("Test program"));
     params.getProgram().setMaxTeiCountToReturn(10);
     params.setTrackedEntityUids(Set.of("1"));

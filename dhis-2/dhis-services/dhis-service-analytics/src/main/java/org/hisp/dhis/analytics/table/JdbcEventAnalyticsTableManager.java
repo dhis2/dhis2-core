@@ -380,7 +380,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String sql =
         "select psi.eventid "
             + "from event psi "
-            + "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid "
+            + "inner join enrollment pi on psi.enrollmentid=pi.enrollmentid "
             + "where pi.programid = "
             + program.getId()
             + " "
@@ -407,7 +407,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               + "where ax.psi in ("
               + "select psi.uid "
               + "from event psi "
-              + "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid "
+              + "inner join enrollment pi on psi.enrollmentid=pi.enrollmentid "
               + "where pi.programid = "
               + table.getProgram().getId()
               + " "
@@ -462,11 +462,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     String fromClause =
         "from event psi "
-            + "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid "
+            + "inner join enrollment pi on psi.enrollmentid=pi.enrollmentid "
             + "inner join programstage ps on psi.programstageid=ps.programstageid "
             + "inner join program pr on pi.programid=pr.programid and pi.deleted is false "
             + "inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid "
-            + "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid "
+            + "left join trackedentity tei on pi.trackedentityid=tei.trackedentityid "
             + "and tei.deleted is false "
             + "left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid "
             + "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid "
@@ -626,7 +626,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                       + "and l.maplegendsetid="
                       + ls.getId()
                       + " "
-                      + "and av.trackedentityinstanceid=pi.trackedentityinstanceid "
+                      + "and av.trackedentityid=pi.trackedentityid "
                       + "and av.trackedentityattributeid="
                       + attribute.getId()
                       + numericClause
@@ -741,7 +741,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       TrackedEntityAttribute attribute, String fromType, String dataClause) {
     return format(
         "(select %s"
-            + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid "
+            + " from trackedentityattributevalue where trackedentityid=pi.trackedentityid "
             + "and trackedentityattributeid="
             + attribute.getId()
             + dataClause
@@ -801,7 +801,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + getDateLinkedToStatus()
             + ") as supportedyear "
             + "from event psi "
-            + "inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
+            + "inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
             + "where psi.lastupdated <= '"
             + getLongDateString(params.getStartTime())
             + "' "

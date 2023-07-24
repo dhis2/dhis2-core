@@ -373,7 +373,7 @@ class EventImportTest extends TransactionalIntegrationTest {
     String lastUpdateDateNew =
         DateUtils.getIso8601NoTz(
             this.jdbcTemplate.queryForObject(
-                "SELECT lastupdated FROM trackedentityinstance WHERE uid IN ('"
+                "SELECT lastupdated FROM trackedentity WHERE uid IN ('"
                     + trackedEntityInstanceMaleA.getTrackedEntityInstance()
                     + "')",
                 Timestamp.class));

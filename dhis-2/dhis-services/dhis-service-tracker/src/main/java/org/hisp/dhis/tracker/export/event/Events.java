@@ -27,102 +27,22 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.program.Event;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@JacksonXmlRootElement(localName = "events", namespace = DxfNamespaces.DXF_2_0)
+@RequiredArgsConstructor(staticName = "of")
+@Getter
+@EqualsAndHashCode
 public class Events {
-  private String program;
 
-  private String enrollment;
+  private final List<Event> events;
+  private final Pager pager;
 
-  private List<Event> events = new ArrayList<>();
-
-  private Map<Object, Object> metaData;
-
-  private Pager pager;
-
-  public Events() {}
-
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  public String getProgram() {
-    return program;
-  }
-
-  public void setProgram(String program) {
-    this.program = program;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  public String getEnrollment() {
-    return enrollment;
-  }
-
-  public void setEnrollment(String enrollment) {
-    this.enrollment = enrollment;
-  }
-
-  @JsonProperty
-  @JacksonXmlElementWrapper(
-      localName = "events",
-      useWrapping = false,
-      namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "event", namespace = DxfNamespaces.DXF_2_0)
-  public List<Event> getEvents() {
-    return events;
-  }
-
-  public void setEvents(List<Event> events) {
-    this.events = events;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Map<Object, Object> getMetaData() {
-    return metaData;
-  }
-
-  @JsonIgnore
-  public void setMetaData(Map<Object, Object> metaData) {
-    this.metaData = metaData;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Pager getPager() {
-    return pager;
-  }
-
-  @JsonIgnore
-  public void setPager(Pager pager) {
-    this.pager = pager;
-  }
-
-  @Override
-  public String toString() {
-    return "Events{"
-        + "program='"
-        + program
-        + '\''
-        + ", enrollment='"
-        + enrollment
-        + '\''
-        + ", events="
-        + events
-        + '}';
+  public static Events withoutPagination(List<Event> events) {
+    return new Events(events, null);
   }
 }

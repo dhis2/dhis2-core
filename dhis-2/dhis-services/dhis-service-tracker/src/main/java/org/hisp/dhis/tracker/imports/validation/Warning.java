@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.imports.validation;
 
 import lombok.Value;
-import org.hisp.dhis.tracker.imports.TrackerType;
+import org.hisp.dhis.tracker.TrackerType;
 
 @Value
 public class Warning implements Validation {

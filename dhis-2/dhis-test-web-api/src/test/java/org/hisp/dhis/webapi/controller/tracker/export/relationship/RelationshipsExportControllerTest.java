@@ -154,7 +154,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     manager.save(trackedEntityTypeAttribute);
 
     trackedEntityType.setTrackedEntityTypeAttributes(List.of(trackedEntityTypeAttribute));
-    manager.save(trackedEntityType);
+    manager.save(trackedEntityType, false);
 
     dataElement = createDataElement('A');
     manager.save(dataElement, false);
@@ -326,7 +326,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   @Test
   void getRelationshipsByEventNotFound() {
     assertStartsWith(
-        "event with id Hq3Kc6HK4OZ",
+        "Event with id Hq3Kc6HK4OZ",
         GET("/tracker/relationships?event=Hq3Kc6HK4OZ").error(HttpStatus.NOT_FOUND).getMessage());
   }
 
@@ -424,7 +424,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   @Test
   void getRelationshipsByEnrollmentNotFound() {
     assertStartsWith(
-        "enrollment with id Hq3Kc6HK4OZ",
+        "Enrollment with id Hq3Kc6HK4OZ",
         GET("/tracker/relationships?enrollment=Hq3Kc6HK4OZ")
             .error(HttpStatus.NOT_FOUND)
             .getMessage());
@@ -549,6 +549,23 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  void shouldRetrieveRelationshipWhenUserHasAccessToRelationship() {
+    TrackedEntity from = trackedEntity();
+    TrackedEntity to = trackedEntity();
+    Relationship r = relationship(from, to);
+
+    JsonList<JsonRelationship> relationships =
+        GET("/tracker/relationships?trackedEntity={tei}", from.getUid())
+            .content(HttpStatus.OK)
+            .getList("instances", JsonRelationship.class);
+
+    JsonObject relationship = assertFirstRelationship(r, relationships);
+    assertHasOnlyMembers(relationship, "relationship", "relationshipType", "from", "to");
+    assertHasOnlyUid(from.getUid(), "trackedEntity", relationship.getObject("from"));
+    assertHasOnlyUid(to.getUid(), "trackedEntity", relationship.getObject("to"));
+  }
+
+  @Test
   void getRelationshipsByTrackedEntityRelationshipsNoAccessToRelationshipType() {
     TrackedEntity from = trackedEntity();
     TrackedEntity to = trackedEntity();
@@ -607,7 +624,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   @Test
   void getRelationshipsByTrackedEntityNotFound() {
     assertStartsWith(
-        "trackedEntity with id Hq3Kc6HK4OZ",
+        "TrackedEntity with id Hq3Kc6HK4OZ",
         GET("/tracker/relationships?trackedEntity=Hq3Kc6HK4OZ")
             .error(HttpStatus.NOT_FOUND)
             .getMessage());
