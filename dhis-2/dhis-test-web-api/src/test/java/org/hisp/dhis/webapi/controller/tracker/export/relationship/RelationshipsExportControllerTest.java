@@ -577,7 +577,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void getRelationshipsByTrackedEntityRelationshipsNoAccessToRelationshipItemTo() {
+  void shouldRetrieveNoRelationshipsWhenUserHasNoAccessToRelationshipItemTo() {
     TrackedEntity from = trackedEntity();
     TrackedEntity to = trackedEntityNotInSearchScope();
     relationship(from, to);
@@ -588,7 +588,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void shouldReturnForbiddenWhenGetRelationshipsByNotAccessibleTrackedEntity() {
+  void shouldReturnForbiddenWhenUserHasNoAccessToRelationshipItemFrom() {
     TrackedEntity from = trackedEntityNotInSearchScope();
     TrackedEntity to = trackedEntity();
     relationship(from, to);
