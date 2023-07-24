@@ -577,7 +577,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void getRelationshipsByTrackedEntityRelationshipsNoAccessToRelationshipItemTo() {
+  void shouldRetrieveNoRelationshipsWhenUserHasNoAccessToRelationshipItemTo() {
     TrackedEntity from = trackedEntity();
     TrackedEntity to = trackedEntityNotInSearchScope();
     relationship(from, to);
@@ -588,37 +588,29 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void getRelationshipsByTrackedEntityRelationshipsNoAccessToBothRelationshipItems() {
-    TrackedEntity from = trackedEntityNotInSearchScope();
-    TrackedEntity to = trackedEntityNotInSearchScope();
-    relationship(from, to);
-    this.switchContextToUser(user);
-
-    assertNoRelationships(
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).content(HttpStatus.OK));
-  }
-
-  @Test
-  void getRelationshipsByTrackedEntityRelationshipsNoAccessToRelationshipItemFrom() {
+  void shouldReturnForbiddenWhenUserHasNoAccessToRelationshipItemFrom() {
     TrackedEntity from = trackedEntityNotInSearchScope();
     TrackedEntity to = trackedEntity();
     relationship(from, to);
     this.switchContextToUser(user);
 
-    assertNoRelationships(
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).content(HttpStatus.OK));
+    assertEquals(
+        HttpStatus.FORBIDDEN,
+        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).status());
   }
 
   @Test
-  void getRelationshipsByTrackedEntityRelationshipsNoAccessToTrackedEntityType() {
+  void
+      shouldReturnForbiddenWhenGetRelationshipsByTrackedEntityWithNotAccessibleTrackedEntityType() {
     TrackedEntityType type = trackedEntityTypeNotAccessible();
     TrackedEntity from = trackedEntity(type);
     TrackedEntity to = trackedEntity(type);
     relationship(from, to);
     this.switchContextToUser(user);
 
-    assertNoRelationships(
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).content(HttpStatus.OK));
+    assertEquals(
+        HttpStatus.FORBIDDEN,
+        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).status());
   }
 
   @Test
