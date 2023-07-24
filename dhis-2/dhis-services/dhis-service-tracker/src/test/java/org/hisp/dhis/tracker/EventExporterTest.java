@@ -48,6 +48,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -111,7 +112,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWithRelationships() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setEvents(Set.of("pTzf9KYMk72"));
     params.setIncludeRelationships(true);
 
@@ -128,7 +129,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWithNotes() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setEvents(Set.of("pTzf9KYMk72"));
     params.setIncludeRelationships(true);
 
@@ -148,7 +149,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnPaginatedEventsWithNotesGivenNonDefaultPageSize() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setEvents(Set.of("pTzf9KYMk72", "D9PbzJY8bJM"));
     params.setOrders(List.of(orderBy("occurredAt", SortDirection.DESC)));
 
@@ -180,7 +181,8 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEvents() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
 
     List<String> events = eventsFunction.apply(params);
 
@@ -191,7 +193,8 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWhenFilteringByEnrollment() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setProgramInstances(Set.of("nxP7UnKhomJ"));
 
     List<String> events = eventsFunction.apply(params);
@@ -202,7 +205,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnNoEventsWhenParamStartDueDateLaterThanEventDueDate() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setDueDateStart(parseDate("2021-02-28T13:05:00.000"));
 
     Events events = eventService.getEvents(params);
@@ -214,7 +217,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenParamStartDueDateEarlierThanEventsDueDate() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setDueDateStart(parseDate("2018-02-28T13:05:00.000"));
 
     List<String> events = eventsFunction.apply(params);
@@ -225,7 +228,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnNoEventsWhenParamEndDueDateEarlierThanEventDueDate() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setDueDateEnd(parseDate("2018-02-28T13:05:00.000"));
 
     Events events = eventService.getEvents(params);
@@ -237,7 +240,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenParamEndDueDateLaterThanEventsDueDate() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setDueDateEnd(parseDate("2021-02-28T13:05:00.000"));
 
     List<String> events = eventsFunction.apply(params);
@@ -252,7 +255,7 @@ class EventExporterTest extends TrackerTest {
     injectSecurityContext(userService.getUser("o1HMTIzBGo7"));
 
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
+    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
     params.setEvents(Set.of("lumVtWwwy0O", "cadc5eGj0j7"));
 
     Events events = eventService.getEvents(params);
@@ -283,7 +286,7 @@ class EventExporterTest extends TrackerTest {
     injectSecurityContext(userService.getUser("CYVgFNKCaUS"));
 
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
+    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
     params.setEvents(Set.of("lumVtWwwy0O", "cadc5eGj0j7"));
 
     List<String> events = eventsFunction.apply(params);
@@ -297,7 +300,7 @@ class EventExporterTest extends TrackerTest {
     Program program = get(Program.class, "iS7eutanDry");
 
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setProgram(program);
 
     params.setOrders(List.of(orderBy("occurredAt", OrderParam.SortDirection.DESC)));
@@ -314,7 +317,7 @@ class EventExporterTest extends TrackerTest {
                 List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"), eventUids(firstPage)));
 
     params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setProgram(program);
 
     params.setOrders(List.of(orderBy("occurredAt", OrderParam.SortDirection.DESC)));
@@ -331,7 +334,7 @@ class EventExporterTest extends TrackerTest {
                 List.of("lumVtWwwy0O", "QRYjLTiJTrA", "cadc5eGj0j7"), eventUids(secondPage)));
 
     params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setProgram(program);
 
     params.setOrders(List.of(orderBy("occurredAt", OrderParam.SortDirection.DESC)));
@@ -352,7 +355,7 @@ class EventExporterTest extends TrackerTest {
     Program program = get(Program.class, "iS7eutanDry");
 
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setProgram(program);
 
     params.setOrders(List.of(orderBy("occurredAt", OrderParam.SortDirection.DESC)));
@@ -371,7 +374,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsGivenCategoryOptionCombo() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
+    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
     params.setCategoryOptionCombo(get(CategoryOptionCombo.class, "cr89ebDZrac"));
 
     Events events = eventService.getEvents(params);
@@ -403,7 +406,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldFailIfCategoryOptionComboOfGivenEventDoesNotHaveAValueForGivenIdScheme() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
+    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
     IdSchemes idSchemes = new IdSchemes();
     idSchemes.setCategoryOptionComboIdScheme("ATTRIBUTE:GOLswS44mh8");
     params.setIdSchemes(idSchemes);
@@ -418,7 +421,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsGivenIdSchemeCode() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
+    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
     params.setCategoryOptionCombo(get(CategoryOptionCombo.class, "cr89ebDZrac"));
     IdSchemes idSchemes = new IdSchemes();
     idSchemes.setProgramIdScheme("code");
@@ -459,7 +462,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsGivenIdSchemeAttribute() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
+    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
     params.setCategoryOptionCombo(get(CategoryOptionCombo.class, "cr89ebDZrac"));
     IdSchemes idSchemes = new IdSchemes();
     idSchemes.setProgramIdScheme("ATTRIBUTE:j45AR9cBQKc");

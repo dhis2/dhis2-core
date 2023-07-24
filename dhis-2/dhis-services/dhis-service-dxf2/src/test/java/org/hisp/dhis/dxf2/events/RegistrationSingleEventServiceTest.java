@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -235,7 +236,7 @@ class RegistrationSingleEventServiceTest extends TransactionalIntegrationTest {
     assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
     EventSearchParams params = new EventSearchParams();
     params.setProgram(programA);
-    params.setOrgUnit(organisationUnitA);
+    params.setAccessibleOrgUnits(List.of(organisationUnitA));
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
     assertEquals(1, eventService.getEvents(params).getEvents().size());
     event =
