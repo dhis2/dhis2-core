@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
@@ -75,7 +76,10 @@ class RelationshipRequestParamsMapper {
             ObjectUtils.firstNonNull(
                     trackedEntity, requestParams.getEnrollment(), requestParams.getEvent())
                 .getValue())
-        .pagingAndSortingCriteriaAdapter(requestParams)
+        .page(requestParams.getPage())
+        .pageSize(requestParams.getPageSize())
+        .totalPages(requestParams.isTotalPages())
+        .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
         .build();
   }
 

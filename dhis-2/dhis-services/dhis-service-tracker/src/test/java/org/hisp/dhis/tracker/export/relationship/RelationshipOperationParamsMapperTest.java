@@ -32,25 +32,20 @@ import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.event.EventParams;
-import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,7 +53,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-// @MockitoSettings(strictness = Strictness.LENIENT) // common setup
 @ExtendWith(MockitoExtension.class)
 class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
 
@@ -97,10 +91,8 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldMapTrackedEntityWhenATrackedEntityIsPassed()
-      throws NotFoundException, ForbiddenException {
-    when(trackedEntityService.getTrackedEntity(TE_UID, TrackedEntityParams.TRUE, true))
-        .thenReturn(trackedEntity);
+  void shouldMapTrackedEntityWhenATrackedEntityIsPassed() throws NotFoundException {
+    when(trackedEntityService.getTrackedEntity(TE_UID)).thenReturn(trackedEntity);
     RelationshipOperationParams params =
         RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(TE_UID).build();
 
@@ -111,10 +103,8 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldThrowNotFoundExceptionWhenTrackedEntityIsNotFound()
-      throws NotFoundException, ForbiddenException {
-    when(trackedEntityService.getTrackedEntity(TE_UID, TrackedEntityParams.TRUE, true))
-        .thenThrow(new NotFoundException(TrackedEntity.class, TE_UID));
+  void shouldThrowNotFoundExceptionWhenTrackedEntityIsNotFound() {
+    when(trackedEntityService.getTrackedEntity(TE_UID)).thenReturn(null);
     RelationshipOperationParams params =
         RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(TE_UID).build();
 
@@ -122,22 +112,8 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldMapToNullWhenUserHasNoAccessToTrackedEntity()
-      throws NotFoundException, ForbiddenException {
-    when(trackedEntityService.getTrackedEntity(TE_UID, TrackedEntityParams.TRUE, true))
-        .thenThrow(new ForbiddenException("User has no access"));
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(TE_UID).build();
-
-    RelationshipQueryParams queryParams = mapper.map(params);
-
-    assertNull(queryParams.getEntity());
-  }
-
-  @Test
-  void shouldMapEnrollmentWhenAEnrollmentIsPassed() throws NotFoundException, ForbiddenException {
-    when(enrollmentService.getEnrollment(EN_UID, EnrollmentParams.TRUE, true))
-        .thenReturn(enrollment);
+  void shouldMapEnrollmentWhenAEnrollmentIsPassed() throws NotFoundException {
+    when(enrollmentService.getEnrollment(EN_UID)).thenReturn(enrollment);
     RelationshipOperationParams params =
         RelationshipOperationParams.builder().type(ENROLLMENT).identifier(EN_UID).build();
 
@@ -148,10 +124,8 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldThrowNotFoundExceptionWhenEnrollmentIsNotFound()
-      throws NotFoundException, ForbiddenException {
-    when(enrollmentService.getEnrollment(EN_UID, EnrollmentParams.TRUE, true))
-        .thenThrow(new NotFoundException(Enrollment.class, EN_UID));
+  void shouldThrowNotFoundExceptionWhenEnrollmentIsNotFound() {
+    when(enrollmentService.getEnrollment(EN_UID)).thenReturn(null);
     RelationshipOperationParams params =
         RelationshipOperationParams.builder().type(ENROLLMENT).identifier(EN_UID).build();
 
@@ -159,21 +133,8 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldMapToNullWhenUserHasNoAccessToEnrollment()
-      throws NotFoundException, ForbiddenException {
-    when(enrollmentService.getEnrollment(EN_UID, EnrollmentParams.TRUE, true))
-        .thenThrow(new ForbiddenException("User has no access"));
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(ENROLLMENT).identifier(EN_UID).build();
-
-    RelationshipQueryParams queryParams = mapper.map(params);
-
-    assertNull(queryParams.getEntity());
-  }
-
-  @Test
-  void shouldMapEventWhenAEventIsPassed() throws NotFoundException, ForbiddenException {
-    when(eventService.getEvent(EV_UID, EventParams.TRUE)).thenReturn(event);
+  void shouldMapEventWhenAEventIsPassed() throws NotFoundException {
+    when(eventService.getEvent(EV_UID)).thenReturn(event);
     RelationshipOperationParams params =
         RelationshipOperationParams.builder().type(EVENT).identifier(EV_UID).build();
 
@@ -184,25 +145,11 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldThrowNotFoundExceptionWhenEventIsNotFound()
-      throws NotFoundException, ForbiddenException {
-    when(eventService.getEvent(EV_UID, EventParams.TRUE))
-        .thenThrow(new NotFoundException(Event.class, EV_UID));
+  void shouldThrowNotFoundExceptionWhenEventIsNotFound() {
+    when(eventService.getEvent(EV_UID)).thenReturn(null);
     RelationshipOperationParams params =
         RelationshipOperationParams.builder().type(EVENT).identifier(EV_UID).build();
 
     assertThrows(NotFoundException.class, () -> mapper.map(params));
-  }
-
-  @Test
-  void shouldMapToNullWhenUserHasNoAccessToEvent() throws NotFoundException, ForbiddenException {
-    when(eventService.getEvent(EV_UID, EventParams.TRUE))
-        .thenThrow(new ForbiddenException("User has no access"));
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(EVENT).identifier(EV_UID).build();
-
-    RelationshipQueryParams queryParams = mapper.map(params);
-
-    assertNull(queryParams.getEntity());
   }
 }

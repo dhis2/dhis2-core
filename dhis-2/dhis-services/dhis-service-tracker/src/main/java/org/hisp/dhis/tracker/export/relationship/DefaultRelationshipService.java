@@ -81,15 +81,15 @@ public class DefaultRelationshipService implements RelationshipService {
     }
 
     if (queryParams.getEntity() instanceof TrackedEntity te) {
-      return getRelationshipsByTrackedEntity(te, params.getPagingAndSortingCriteriaAdapter());
+      return getRelationshipsByTrackedEntity(te, queryParams);
     }
 
     if (queryParams.getEntity() instanceof Enrollment en) {
-      return getRelationshipsByEnrollment(en, params.getPagingAndSortingCriteriaAdapter());
+      return getRelationshipsByEnrollment(en, queryParams);
     }
 
     if (queryParams.getEntity() instanceof Event ev) {
-      return getRelationshipsByEvent(ev, params.getPagingAndSortingCriteriaAdapter());
+      return getRelationshipsByEvent(ev, queryParams);
     }
 
     throw new IllegalArgumentException("Unkown type");

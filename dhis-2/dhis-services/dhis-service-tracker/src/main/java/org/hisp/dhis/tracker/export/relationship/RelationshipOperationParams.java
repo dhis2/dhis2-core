@@ -32,7 +32,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 @Getter
 @Builder(toBuilder = true)
@@ -47,5 +46,11 @@ public class RelationshipOperationParams {
 
   private String identifier;
 
-  private PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter;
+  private Integer page;
+
+  private Integer pageSize;
+
+  private boolean totalPages;
+
+  private boolean skipPaging;
 }

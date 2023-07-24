@@ -27,15 +27,23 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
+import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
-@RequiredArgsConstructor
-@Getter
-public class RelationshipQueryParams {
+@Builder
+public class RelationshipQueryParams extends PagingAndSortingCriteriaAdapter {
 
-  public static final RelationshipQueryParams EMPTY = new RelationshipQueryParams(null);
+  public static final RelationshipQueryParams EMPTY = RelationshipQueryParams.builder().build();
 
-  private final IdentifiableObject entity;
+  @Getter private final IdentifiableObject entity;
+
+  private Integer page;
+
+  private Integer pageSize;
+
+  private boolean totalPages;
+
+  private boolean skipPaging;
 }

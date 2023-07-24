@@ -27,17 +27,15 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
-import static org.hisp.dhis.tracker.export.relationship.RelationshipQueryParams.EMPTY;
-
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.event.EventParams;
-import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,18 +55,48 @@ class RelationshipOperationParamsMapper {
 
   @Transactional(readOnly = true)
   public RelationshipQueryParams map(RelationshipOperationParams params) throws NotFoundException {
-    try {
-      return new RelationshipQueryParams(
-          switch (params.getType()) {
-            case TRACKED_ENTITY -> trackedEntityService.getTrackedEntity(
-                params.getIdentifier(), TrackedEntityParams.TRUE, true);
-            case ENROLLMENT -> enrollmentService.getEnrollment(
-                params.getIdentifier(), EnrollmentParams.TRUE, true);
-            case EVENT -> eventService.getEvent(params.getIdentifier(), EventParams.TRUE);
-            case RELATIONSHIP -> null;
-          });
-    } catch (ForbiddenException ex) {
-      return EMPTY;
+
+    IdentifiableObject entity =
+        switch (params.getType()) {
+          case TRACKED_ENTITY -> validateTrackedEntity(params.getIdentifier());
+          case ENROLLMENT -> validateEnrollment(params.getIdentifier());
+          case EVENT -> validateEvent(params.getIdentifier());
+          case RELATIONSHIP -> throw new IllegalArgumentException("Unsupported type");
+        };
+
+    return RelationshipQueryParams.builder()
+        .entity(entity)
+        .page(params.getPage())
+        .pageSize(params.getPageSize())
+        .totalPages(params.isTotalPages())
+        .skipPaging(params.isSkipPaging())
+        .build();
+  }
+
+  private TrackedEntity validateTrackedEntity(String uid) throws NotFoundException {
+    TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(uid);
+    if (trackedEntity == null) {
+      throw new NotFoundException("Tracked entity is specified but does not exist: " + uid);
     }
+
+    return trackedEntity;
+  }
+
+  private Enrollment validateEnrollment(String uid) throws NotFoundException {
+    Enrollment enrollment = enrollmentService.getEnrollment(uid);
+    if (enrollment == null) {
+      throw new NotFoundException("Enrollment is specified but does not exist: " + uid);
+    }
+
+    return enrollment;
+  }
+
+  private Event validateEvent(String uid) throws NotFoundException {
+    Event event = eventService.getEvent(uid);
+    if (event == null) {
+      throw new NotFoundException("Event is specified but does not exist: " + uid);
+    }
+
+    return event;
   }
 }
