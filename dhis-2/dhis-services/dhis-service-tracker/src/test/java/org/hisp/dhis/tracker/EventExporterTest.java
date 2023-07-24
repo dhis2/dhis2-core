@@ -54,10 +54,14 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
+import org.hisp.dhis.dxf2.events.event.Note;
+import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +79,8 @@ class EventExporterTest extends TrackerTest {
 
   private OrganisationUnit orgUnit;
 
+  private User importUser;
+
   final Function<EventSearchParams, List<String>> eventsFunction =
       (params) ->
           eventService.getEvents(params).getEvents().stream()
@@ -84,10 +90,10 @@ class EventExporterTest extends TrackerTest {
   @Override
   protected void initTest() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
-    User superuser = userService.getUser("M5zQapPyTZI");
+    importUser = userService.getUser("M5zQapPyTZI");
     assertNoImportErrors(
         trackerImportService.importTracker(
-            fromJson("tracker/event_and_enrollment.json", superuser.getUid())));
+            fromJson("tracker/event_and_enrollment.json", importUser.getUid())));
     orgUnit = manager.get(OrganisationUnit.class, "h4w96yEMlzO");
 
     // to test that events are only returned if the user has read access to
@@ -100,6 +106,75 @@ class EventExporterTest extends TrackerTest {
     manager.update(co2);
 
     manager.flush();
+  }
+
+  @Test
+  void shouldReturnEventsWithRelationships() {
+    EventSearchParams params = new EventSearchParams();
+    params.setOrgUnit(orgUnit);
+    params.setEvents(Set.of("pTzf9KYMk72"));
+    params.setIncludeRelationships(true);
+
+    Events events = eventService.getEvents(params);
+
+    assertContainsOnly(eventUids(events), "pTzf9KYMk72");
+    List<String> relationships =
+        events.getEvents().get(0).getRelationships().stream()
+            .map(Relationship::getRelationship)
+            .collect(Collectors.toList());
+    assertContainsOnly(relationships, "oLT07jKRu9e", "yZxjxJli9mO");
+  }
+
+  @Test
+  void shouldReturnEventsWithNotes() {
+    EventSearchParams params = new EventSearchParams();
+    params.setOrgUnit(orgUnit);
+    params.setEvents(Set.of("pTzf9KYMk72"));
+    params.setIncludeRelationships(true);
+
+    Events events = eventService.getEvents(params);
+
+    assertContainsOnly(eventUids(events), "pTzf9KYMk72");
+    List<Note> notes = events.getEvents().get(0).getNotes();
+    assertContainsOnly(
+        notes.stream().map(Note::getNote).collect(Collectors.toList()),
+        "SGuCABkhpgn",
+        "DRKO4xUVrpr");
+    assertAll(
+        () -> assertNote(importUser, "comment value", notes.get(0)),
+        () -> assertNote(importUser, "comment value", notes.get(1)));
+  }
+
+  @Test
+  void shouldReturnPaginatedEventsWithNotesGivenNonDefaultPageSize() {
+    EventSearchParams params = new EventSearchParams();
+    params.setOrgUnit(orgUnit);
+    params.setEvents(Set.of("pTzf9KYMk72", "D9PbzJY8bJM"));
+    params.setOrders(List.of(orderBy("occurredAt", SortDirection.DESC)));
+
+    params.setPage(1);
+    params.setPageSize(1);
+
+    Events firstPage = eventService.getEvents(params);
+
+    assertAll(
+        "first page",
+        () -> assertSlimPager(1, 1, false, firstPage),
+        () -> assertEquals(List.of("D9PbzJY8bJM"), eventUids(firstPage)));
+
+    params.setPage(2);
+
+    Events secondPage = eventService.getEvents(params);
+
+    assertAll(
+        "second (last) page",
+        () -> assertSlimPager(2, 1, true, secondPage),
+        () -> assertEquals(List.of("pTzf9KYMk72"), eventUids(secondPage)));
+
+    params.setPage(2);
+    params.setPageSize(3);
+
+    assertIsEmpty(getEvents(params));
   }
 
   @Test
@@ -217,7 +292,7 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnPublicEventsWithMultipleCategoryOptionsGivenNonDefaultPageSize() {
+  void shouldReturnPaginatedPublicEventsWithMultipleCategoryOptionsGivenNonDefaultPageSize() {
     OrganisationUnit orgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
     Program program = get(Program.class, "iS7eutanDry");
 
@@ -271,7 +346,8 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnEventsWithMultipleCategoryOptionsGivenNonDefaultPageSizeAndTotalPages() {
+  void
+      shouldReturnPaginatedEventsWithMultipleCategoryOptionsGivenNonDefaultPageSizeAndTotalPages() {
     OrganisationUnit orgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
     Program program = get(Program.class, "iS7eutanDry");
 
@@ -431,8 +507,11 @@ class EventExporterTest extends TrackerTest {
     return t;
   }
 
-  private static List<String> eventUids(Events events) {
-    return events.getEvents().stream().map(Event::getEvent).collect(Collectors.toList());
+  private void assertNote(User expectedLastUpdatedBy, String expectedNote, Note actual) {
+    assertEquals(expectedNote, actual.getValue());
+    UserInfoSnapshot lastUpdatedBy = actual.getLastUpdatedBy();
+    assertEquals(expectedLastUpdatedBy.getUid(), lastUpdatedBy.getUid());
+    assertEquals(expectedLastUpdatedBy.getUsername(), lastUpdatedBy.getUsername());
   }
 
   private static void assertSlimPager(int pageNumber, int pageSize, boolean isLast, Events events) {
@@ -457,5 +536,13 @@ class EventExporterTest extends TrackerTest {
         () -> assertEquals(pageNumber, pager.getPage(), "number of current page"),
         () -> assertEquals(pageSize, pager.getPageSize(), "page size"),
         () -> assertEquals(totalCount, pager.getTotal(), "total page count"));
+  }
+
+  private List<String> getEvents(EventSearchParams params) {
+    return eventUids(eventService.getEvents(params));
+  }
+
+  private static List<String> eventUids(Events events) {
+    return events.getEvents().stream().map(Event::getEvent).collect(Collectors.toList());
   }
 }
