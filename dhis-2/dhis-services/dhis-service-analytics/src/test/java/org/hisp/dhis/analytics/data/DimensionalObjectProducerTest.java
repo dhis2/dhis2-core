@@ -425,25 +425,24 @@ class DimensionalObjectProducerTest {
   }
 
   @Test
-  void testDynamicFromWithAllItems()
-  {
+  void testDynamicFromWithAllItems() {
     // given
     String categoryUid = "L6BswcbPGqs";
     String categoryName = "CategoryName";
-    Category category = createCategory( categoryName, categoryUid );
-    List<String> items = List.of( "ALL_ITEMS" );
-    category.setCategoryOptions( List.of( new CategoryOption() ) );
+    Category category = createCategory(categoryName, categoryUid);
+    List<String> items = List.of("ALL_ITEMS");
+    category.setCategoryOptions(List.of(new CategoryOption()));
 
     // when
-    when( idObjectManager.get( DYNAMIC_DIM_CLASSES, UID, categoryUid ) ).thenReturn( category );
-    when( aclService.canDataOrMetadataRead( any(), any( CategoryOption.class ) ) ).thenReturn( true );
+    when(idObjectManager.get(DYNAMIC_DIM_CLASSES, UID, categoryUid)).thenReturn(category);
+    when(aclService.canDataOrMetadataRead(any(), any(CategoryOption.class))).thenReturn(true);
 
-    Optional<BaseDimensionalObject> dimensionalObject = target.getDynamicDimension( categoryUid, items,
-            DisplayProperty.NAME, UID );
+    Optional<BaseDimensionalObject> dimensionalObject =
+        target.getDynamicDimension(categoryUid, items, DisplayProperty.NAME, UID);
 
     // then
-    assertTrue( dimensionalObject.isPresent() );
-    assertFalse( dimensionalObject.get().getItems().isEmpty() );
+    assertTrue(dimensionalObject.isPresent());
+    assertFalse(dimensionalObject.get().getItems().isEmpty());
   }
 
   private void assertKeywordForDimensionalObject(
