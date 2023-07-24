@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -100,4 +101,6 @@ public class Enrollment {
   @JsonProperty @Builder.Default private List<Attribute> attributes = new ArrayList<>();
 
   @JsonProperty @Builder.Default private List<Note> notes = new ArrayList<>();
+
+  @JsonIgnore private int index;
 }

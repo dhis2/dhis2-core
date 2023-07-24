@@ -70,14 +70,11 @@ public class TrackedEntity implements TrackerDto {
 
   @JsonProperty private String storedBy;
 
+  @JsonProperty int index;
   @JsonProperty private User createdBy;
-
   @JsonProperty private User updatedBy;
-
   @JsonProperty @Builder.Default private List<Relationship> relationships = new ArrayList<>();
-
   @JsonProperty @Builder.Default private List<Attribute> attributes = new ArrayList<>();
-
   @JsonProperty @Builder.Default private List<Enrollment> enrollments = new ArrayList<>();
 
   @Override

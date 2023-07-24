@@ -93,14 +93,11 @@ public class Event implements TrackerDto {
 
   @JsonProperty private Geometry geometry;
 
+  @JsonProperty int index;
   @JsonProperty private User assignedUser;
-
   @JsonProperty private User createdBy;
-
   @JsonProperty private User updatedBy;
-
   @JsonProperty @Builder.Default private Set<DataValue> dataValues = new HashSet<>();
-
   @JsonProperty @Builder.Default private List<Note> notes = new ArrayList<>();
 
   @JsonIgnore

@@ -25,48 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.view;
+package org.hisp.dhis.webapi.controller.tracker;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.Instant;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.OpenApi.Shared.Pattern;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.webapi.common.UID;
+import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@OpenApi.Shared(pattern = Pattern.TRACKER)
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Relationship {
-  @OpenApi.Property({UID.class, Relationship.class})
-  @JsonProperty
-  private String relationship;
+/** Web API equivalent of a {@link PersistenceReport}. */
+public interface JsonBundleReport extends JsonObject {
 
-  @JsonProperty private String relationshipName;
+  default JsonTypeReport getTrackedEntities() {
+    JsonMap<JsonTypeReport> typeReportMap = getMap("typeReportMap", JsonTypeReport.class);
+    return typeReportMap.get("TRACKED_ENTITY");
+  }
 
-  @OpenApi.Property({UID.class, RelationshipType.class})
-  @JsonProperty
-  private String relationshipType;
+  default JsonTypeReport getEnrollments() {
+    JsonMap<JsonTypeReport> typeReportMap = getMap("typeReportMap", JsonTypeReport.class);
+    return typeReportMap.get("ENROLLMENT");
+  }
 
-  @JsonProperty private Instant createdAt;
+  default JsonTypeReport getEvents() {
+    JsonMap<JsonTypeReport> typeReportMap = getMap("typeReportMap", JsonTypeReport.class);
+    return typeReportMap.get("EVENT");
+  }
 
-  @JsonProperty private Instant updatedAt;
-
-  @JsonProperty private boolean bidirectional;
-
-  @JsonProperty private RelationshipItem from;
-
-  @JsonProperty private RelationshipItem to;
-
-  @JsonIgnore private int index;
+  default JsonTypeReport getRelationships() {
+    JsonMap<JsonTypeReport> typeReportMap = getMap("typeReportMap", JsonTypeReport.class);
+    return typeReportMap.get("RELATIONSHIP");
+  }
 }

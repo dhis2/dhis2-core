@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -86,4 +87,6 @@ public class TrackedEntity {
   @JsonProperty @Builder.Default private List<Enrollment> enrollments = new ArrayList<>();
 
   @JsonProperty @Builder.Default private List<ProgramOwner> programOwners = new ArrayList<>();
+
+  @JsonIgnore private int index;
 }
