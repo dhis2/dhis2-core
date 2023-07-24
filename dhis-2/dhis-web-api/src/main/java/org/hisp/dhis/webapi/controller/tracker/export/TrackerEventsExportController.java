@@ -55,7 +55,6 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EventFieldsParamMapper;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -96,8 +95,7 @@ public class TrackerEventsExportController {
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public PagingWrapper<ObjectNode> getEvents(
       TrackerEventCriteria eventCriteria,
-      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields)
-      throws BadRequestException {
+      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields) {
     EventSearchParams eventSearchParams = requestToSearchParams.map(eventCriteria);
 
     if (areAllEnrollmentsInvalid(eventCriteria, eventSearchParams)) {
@@ -124,7 +122,7 @@ public class TrackerEventsExportController {
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
       HttpServletRequest request)
-      throws IOException, BadRequestException {
+      throws IOException {
     EventSearchParams eventSearchParams = requestToSearchParams.map(eventCriteria);
 
     if (areAllEnrollmentsInvalid(eventCriteria, eventSearchParams)) {

@@ -278,7 +278,8 @@ class TrackerEventCriteriaMapper {
     }
 
     if (programStage != null && !aclService.canDataRead(user, programStage)) {
-      throw new IllegalQueryException("User has no access to program stage: " + program.getUid());
+      throw new IllegalQueryException(
+          "User has no access to program stage: " + programStage.getUid());
     }
   }
 
