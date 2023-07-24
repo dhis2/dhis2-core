@@ -43,7 +43,7 @@ import org.hisp.dhis.webapi.common.UID;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared(pattern = Pattern.INFO)
+@OpenApi.Shared(pattern = Pattern.TRACKER)
 @Data
 @Builder
 @NoArgsConstructor
