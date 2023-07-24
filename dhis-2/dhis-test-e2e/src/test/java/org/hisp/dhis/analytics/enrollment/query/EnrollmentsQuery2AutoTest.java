@@ -465,9 +465,9 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
             .add("page=1")
             .add("incidentDate=2018")
             .add(
-                "dimension=ou:ImspTQPwCqd,Bpx0589u8y0,rXoaHGAXWy9:GE:3,fM7RZGVndZE:GT:0.2,eo73fim1b2i,tt54DiKuQ9c,A03MvHHogjR.X8zyunlgUfM,cejWyOfXge6:IN:Female,w75KJ2mc4zz")
+                "dimension=ou:ImspTQPwCqd,Bpx0589u8y0,rXoaHGAXWy9:GE:3,fM7RZGVndZE:GT:0.7,eo73fim1b2i,tt54DiKuQ9c,A03MvHHogjR.X8zyunlgUfM,cejWyOfXge6:IN:Female,w75KJ2mc4zz")
             .add("relativePeriodDate=2028-01-01")
-            .add("desc=lastupdated");
+            .add("asc=lastupdated");
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
