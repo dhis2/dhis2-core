@@ -928,6 +928,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     if (Double.class.getName().equals(header.getType()) && !header.hasLegendSet()) {
       Object value = sqlRowSet.getObject(index);
 
+
+
       boolean isDouble = value instanceof Double;
 
       if (value == null || (isDouble && Double.isNaN((Double) value))) {

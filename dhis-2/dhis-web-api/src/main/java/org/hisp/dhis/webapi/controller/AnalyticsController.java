@@ -41,14 +41,12 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.common.AggregateAnalyticsQueryCriteria;
-import org.hisp.dhis.common.DataQueryRequest;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -56,6 +54,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -80,6 +81,8 @@ public class AnalyticsController {
   @Nonnull private final ContextUtils contextUtils;
 
   @Nonnull private final DhisConfigurationProvider configurationProvider;
+
+  @Nonnull private final SystemSettingManager systemSettingManager;
 
   // -------------------------------------------------------------------------
   // Resources
@@ -366,8 +369,12 @@ public class AnalyticsController {
         false,
         params.getLatestEndDate());
 
-    return analyticsService.getAggregatedDataValues(
+    Grid grid = analyticsService.getAggregatedDataValues(
         params, getItemsFromParam(criteria.getColumns()), getItemsFromParam(criteria.getRows()));
+
+    GridUtils.applyAnalyticsSystemSettings(grid, systemSettingManager.getSystemSetting(SettingKey.ANALYSIS_DIGIT_GROUP_SEPARATOR, DigitGroupSeparator.class));
+
+    return grid;
   }
 
   private Grid getGridWithAttachment(
@@ -385,7 +392,6 @@ public class AnalyticsController {
         file,
         true,
         params.getLatestEndDate());
-
     return analyticsService.getAggregatedDataValues(
         params, getItemsFromParam(criteria.getColumns()), getItemsFromParam(criteria.getRows()));
   }

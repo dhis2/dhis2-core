@@ -48,11 +48,10 @@ import java.io.OutputStream;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.JasperCompileManager;
@@ -72,17 +71,11 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.velocity.VelocityContext;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.GridResponse;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.Reference;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.migration.v34.V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
@@ -351,6 +344,35 @@ public class GridUtils {
       rowNumber++;
     }
   }
+
+  public static void applyAnalyticsSystemSettings(Grid grid, DigitGroupSeparator digitGroupSeparator) {
+    if(digitGroupSeparator != DigitGroupSeparator.NONE){
+      applyGroupingSeparator(grid, digitGroupSeparator);
+    }
+  }
+
+  private static void applyGroupingSeparator(Grid grid, DigitGroupSeparator digitGroupSeparator){
+    List<Integer> indexes = new ArrayList<>();
+
+    for(int i = 0; i < grid.getHeaders().size(); i++){
+      GridHeader gridHeader = grid.getHeaders().get(i);
+      if(gridHeader.isNumeric() && !gridHeader.isHidden()){
+        indexes.add(i);
+      }
+    }
+
+    char separator = digitGroupSeparator == DigitGroupSeparator.COMMA ? ',':' ';
+    DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance(Locale.getDefault());
+    DecimalFormatSymbols symbols = formatter.getDecimalFormatSymbols();
+    symbols.setGroupingSeparator(separator);
+    DecimalFormat decimalFormat = new DecimalFormat("#,###.##", symbols);
+    indexes.forEach(index -> {
+      for (List<Object> row: grid.getRows()) {
+        Object value = row.get(index);
+        row.set(index, decimalFormat.format(value));
+      }
+    } );
+    }
 
   /**
    * Returns a {@CellStyle} object with a default number format/mask.
