@@ -51,7 +51,6 @@ import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.ProgramStageInstanceService;
@@ -98,7 +97,7 @@ public class TrackerEventsExportController {
   public PagingWrapper<ObjectNode> getEvents(
       TrackerEventCriteria eventCriteria,
       @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields)
-      throws WebMessageException, BadRequestException {
+      throws BadRequestException {
     EventSearchParams eventSearchParams = requestToSearchParams.map(eventCriteria);
 
     if (areAllEnrollmentsInvalid(eventCriteria, eventSearchParams)) {

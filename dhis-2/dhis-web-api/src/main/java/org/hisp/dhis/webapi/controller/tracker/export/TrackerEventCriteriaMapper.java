@@ -83,7 +83,6 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -136,8 +135,7 @@ class TrackerEventCriteriaMapper {
     }
   }
 
-  public EventSearchParams map(TrackerEventCriteria criteria)
-      throws BadRequestException, ForbiddenException {
+  public EventSearchParams map(TrackerEventCriteria criteria) throws ForbiddenException {
 
     Program program = applyIfNonEmpty(programService::getProgram, criteria.getProgram());
     validateProgram(criteria.getProgram(), program);
