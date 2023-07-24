@@ -102,6 +102,7 @@ public class DefaultEnrollmentService
     }
 
     Enrollment result = new Enrollment();
+    result.setId(enrollment.getId());
     result.setUid(enrollment.getUid());
 
     if (enrollment.getTrackedEntity() != null) {

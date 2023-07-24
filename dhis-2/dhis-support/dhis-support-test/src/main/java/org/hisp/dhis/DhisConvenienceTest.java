@@ -1622,12 +1622,12 @@ public abstract class DhisConvenienceTest {
   }
 
   public static Enrollment createEnrollment(
-      Program program, TrackedEntity tei, OrganisationUnit organisationUnit) {
-    Enrollment enrollment = new Enrollment(program, tei, organisationUnit);
+      Program program, TrackedEntity te, OrganisationUnit organisationUnit) {
+    Enrollment enrollment = new Enrollment(program, te, organisationUnit);
     enrollment.setAutoFields();
 
     enrollment.setProgram(program);
-    enrollment.setTrackedEntity(tei);
+    enrollment.setTrackedEntity(te);
     enrollment.setOrganisationUnit(organisationUnit);
     enrollment.setEnrollmentDate(new Date());
     enrollment.setIncidentDate(new Date());

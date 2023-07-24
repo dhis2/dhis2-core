@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -54,19 +53,15 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
    */
   @Deprecated(since = "2.41")
   @OpenApi.Property({UID.class, TrackedEntity.class})
-  @Setter
   private UID tei;
 
   @OpenApi.Property({UID.class, TrackedEntity.class})
-  @Setter
   private UID trackedEntity;
 
   @OpenApi.Property({UID.class, Enrollment.class})
-  @Setter
   private UID enrollment;
 
   @OpenApi.Property({UID.class, Event.class})
-  @Setter
   private UID event;
 
   @OpenApi.Property(value = String[].class)
