@@ -222,7 +222,8 @@ class EventExporterTest extends TrackerTest {
 
     List<String> events = eventsFunction.apply(params);
 
-    assertContainsOnly(events, "D9PbzJY8bJM", "pTzf9KYMk72");
+    assertContainsOnly(
+        events, "D9PbzJY8bJM", "pTzf9KYMk72", "jxgFyJEMUPf", "JaRDIvcEcEx", "gvULMgNiAfM");
   }
 
   @Test
@@ -245,7 +246,8 @@ class EventExporterTest extends TrackerTest {
 
     List<String> events = eventsFunction.apply(params);
 
-    assertContainsOnly(events, "D9PbzJY8bJM", "pTzf9KYMk72");
+    assertContainsOnly(
+        events, "D9PbzJY8bJM", "pTzf9KYMk72", "jxgFyJEMUPf", "JaRDIvcEcEx", "gvULMgNiAfM");
   }
 
   @Test
