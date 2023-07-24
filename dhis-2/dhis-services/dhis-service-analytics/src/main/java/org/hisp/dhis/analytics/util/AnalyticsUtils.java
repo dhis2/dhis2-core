@@ -43,6 +43,7 @@ import static org.springframework.util.Assert.isTrue;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -231,6 +232,10 @@ public class AnalyticsUtils {
     } else {
       return getRounded(value);
     }
+  }
+
+  public static Number getRoundedValue(DataQueryParams params, Integer decimals, BigDecimal value) {
+    return getRoundedValue(params, decimals, value.doubleValue());
   }
 
   /**
