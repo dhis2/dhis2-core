@@ -1191,7 +1191,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldOrderEventsByMultipleAttributesAndPaginateWhenGivenNonDefaultPageSize() {
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.addFilterAttributes(List.of(queryItem("toUpdate000"), queryItem("toDelete000")));
     params.addAttributeOrders(
         List.of(
