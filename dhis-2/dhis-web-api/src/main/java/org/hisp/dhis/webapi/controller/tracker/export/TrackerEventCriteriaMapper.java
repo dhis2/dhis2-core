@@ -42,7 +42,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
-import javax.ws.rs.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -135,7 +134,7 @@ class TrackerEventCriteriaMapper {
     }
   }
 
-  public EventSearchParams map(TrackerEventCriteria criteria) throws ForbiddenException {
+  public EventSearchParams map(TrackerEventCriteria criteria) {
 
     Program program = applyIfNonEmpty(programService::getProgram, criteria.getProgram());
     validateProgram(criteria.getProgram(), program);
@@ -269,18 +268,17 @@ class TrackerEventCriteriaMapper {
     }
   }
 
-  private void validateUser(User user, Program program, ProgramStage programStage)
-      throws ForbiddenException {
+  private void validateUser(User user, Program program, ProgramStage programStage) {
 
     if (user.isSuper()) {
       return;
     }
     if (program != null && !aclService.canDataRead(user, program)) {
-      throw new ForbiddenException("User has no access to program: " + program.getUid());
+      throw new IllegalQueryException("User has no access to program: " + program.getUid());
     }
 
     if (programStage != null && !aclService.canDataRead(user, programStage)) {
-      throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
+      throw new IllegalQueryException("User has no access to program stage: " + program.getUid());
     }
   }
 

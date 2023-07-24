@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.ws.rs.ForbiddenException;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -54,14 +54,13 @@ public class TrackerEventCriteriaMapperUtils {
       OrganisationUnitSelectionMode orgUnitMode,
       Program program,
       Function<String, List<OrganisationUnit>> orgUnitDescendants,
-      TrackerAccessManager trackerAccessManager)
-      throws ForbiddenException {
+      TrackerAccessManager trackerAccessManager) {
     List<OrganisationUnit> accessibleOrgUnits =
         getUserAccessibleOrgUnits(
             user, orgUnit, orgUnitMode, program, orgUnitDescendants, trackerAccessManager);
 
     if (orgUnit != null && accessibleOrgUnits.isEmpty()) {
-      throw new ForbiddenException("User does not have access to orgUnit: " + orgUnit.getUid());
+      throw new IllegalQueryException("User does not have access to orgUnit: " + orgUnit.getUid());
     }
 
     return accessibleOrgUnits;

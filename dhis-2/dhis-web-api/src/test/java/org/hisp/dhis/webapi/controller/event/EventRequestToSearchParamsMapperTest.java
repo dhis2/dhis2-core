@@ -48,7 +48,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.ws.rs.ForbiddenException;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
@@ -157,7 +157,7 @@ class EventRequestToSearchParamsMapperTest {
   }
 
   @Test
-  void testEventRequestToSearchParamsMapperSuccess() throws ForbiddenException {
+  void testEventRequestToSearchParamsMapperSuccess() {
 
     EventSearchParams eventSearchParams =
         mapper.map(
@@ -199,8 +199,7 @@ class EventRequestToSearchParamsMapperTest {
   }
 
   @Test
-  void shouldMapCaptureScopeOrgUnitWhenProgramProtectedAndOuModeDescendants()
-      throws ForbiddenException {
+  void shouldMapCaptureScopeOrgUnitWhenProgramProtectedAndOuModeDescendants() {
     Program program = new Program();
     program.setAccessLevel(PROTECTED);
     program.setUid(PROGRAM_UID);
@@ -226,7 +225,7 @@ class EventRequestToSearchParamsMapperTest {
   }
 
   @Test
-  void shouldMapSearchScopeOrgUnitWhenProgramOpenAndOuModeDescendants() throws ForbiddenException {
+  void shouldMapSearchScopeOrgUnitWhenProgramOpenAndOuModeDescendants() {
     Program program = new Program();
     program.setAccessLevel(OPEN);
     OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
@@ -268,8 +267,8 @@ class EventRequestToSearchParamsMapperTest {
     eventCriteria.setOrgUnit(orgUnit.getUid());
     eventCriteria.setOuMode(DESCENDANTS);
 
-    ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
+    IllegalQueryException exception =
+        Assertions.assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
@@ -292,15 +291,14 @@ class EventRequestToSearchParamsMapperTest {
     when(organisationUnitService.getOrganisationUnitWithChildren(orgUnitId))
         .thenReturn(orgUnitDescendants);
 
-    ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
+    IllegalQueryException exception =
+        Assertions.assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
 
   @Test
-  void shouldMapCaptureScopeOrgUnitWhenProgramProtectedAndOuModeChildren()
-      throws ForbiddenException {
+  void shouldMapCaptureScopeOrgUnitWhenProgramProtectedAndOuModeChildren() {
     Program program = new Program();
     program.setUid(PROGRAM_UID);
     program.setAccessLevel(PROTECTED);
@@ -325,7 +323,7 @@ class EventRequestToSearchParamsMapperTest {
   }
 
   @Test
-  void shouldMapSearchScopeOrgUnitWhenProgramOpenAndOuModeChildren() throws ForbiddenException {
+  void shouldMapSearchScopeOrgUnitWhenProgramOpenAndOuModeChildren() {
     Program program = new Program();
     program.setAccessLevel(OPEN);
     OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeChild", "searchScopeChildUid");
@@ -363,8 +361,8 @@ class EventRequestToSearchParamsMapperTest {
     eventCriteria.setOrgUnit(orgUnit.getUid());
     eventCriteria.setOuMode(CHILDREN);
 
-    ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
+    IllegalQueryException exception =
+        Assertions.assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
@@ -385,14 +383,14 @@ class EventRequestToSearchParamsMapperTest {
     eventCriteria.setOrgUnit(orgUnit.getUid());
     eventCriteria.setOuMode(CHILDREN);
 
-    ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
+    IllegalQueryException exception =
+        Assertions.assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
 
   @Test
-  void shouldMapCaptureScopeOrgUnitWhenOuModeCapture() throws ForbiddenException {
+  void shouldMapCaptureScopeOrgUnitWhenOuModeCapture() {
     Program program = new Program();
     program.setAccessLevel(OPEN);
     OrganisationUnit captureScopeOrgUnit = createOrgUnit("captureScopeOrgUnit", "uid4");
@@ -413,7 +411,7 @@ class EventRequestToSearchParamsMapperTest {
   }
 
   @Test
-  void shouldMapSearchScopeOrgUnitWhenOuModeAccessible() throws ForbiddenException {
+  void shouldMapSearchScopeOrgUnitWhenOuModeAccessible() {
     Program program = new Program();
     program.setAccessLevel(OPEN);
     OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
@@ -434,7 +432,7 @@ class EventRequestToSearchParamsMapperTest {
   }
 
   @Test
-  void shouldMapRequestedOrgUnitWhenOuModeSelected() throws ForbiddenException {
+  void shouldMapRequestedOrgUnitWhenOuModeSelected() {
     Program program = new Program();
     program.setUid(PROGRAM_UID);
     OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
@@ -458,8 +456,7 @@ class EventRequestToSearchParamsMapperTest {
   }
 
   @Test
-  void shouldMapRequestedOrgUnitAsSelectedWhenOrgUnitProvidedAndNoOrgUnitModeProvided()
-      throws ForbiddenException {
+  void shouldMapRequestedOrgUnitAsSelectedWhenOrgUnitProvidedAndNoOrgUnitModeProvided() {
     Program program = new Program();
     program.setUid(PROGRAM_UID);
     OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
@@ -483,8 +480,7 @@ class EventRequestToSearchParamsMapperTest {
   }
 
   @Test
-  void shouldMapRequestedOrgUnitAsAccessibleWhenNoOrgUnitProvidedAndNoOrgUnitModeProvided()
-      throws ForbiddenException {
+  void shouldMapRequestedOrgUnitAsAccessibleWhenNoOrgUnitProvidedAndNoOrgUnitModeProvided() {
     Program program = new Program();
     program.setAccessLevel(OPEN);
     OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
@@ -518,8 +514,8 @@ class EventRequestToSearchParamsMapperTest {
     eventCriteria.setProgram(program.getUid());
     eventCriteria.setOrgUnit(orgUnit.getUid());
 
-    ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
+    IllegalQueryException exception =
+        Assertions.assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }

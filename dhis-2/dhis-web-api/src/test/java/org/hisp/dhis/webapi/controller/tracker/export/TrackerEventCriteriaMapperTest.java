@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.ws.rs.ForbiddenException;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -244,8 +243,7 @@ class TrackerEventCriteriaMapperTest {
   }
 
   @Test
-  void shouldReturnOrgUnitWhenCorrectOrgUnitMapped()
-      throws ForbiddenException, BadRequestException {
+  void shouldReturnOrgUnitWhenCorrectOrgUnitMapped() {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
     criteria.setOrgUnit(orgUnit.getUid());
 
@@ -270,7 +268,7 @@ class TrackerEventCriteriaMapperTest {
   }
 
   @Test
-  void testMappingTrackedEntity() throws BadRequestException, ForbiddenException {
+  void testMappingTrackedEntity() {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
     criteria.setTrackedEntity("teiuid");
 

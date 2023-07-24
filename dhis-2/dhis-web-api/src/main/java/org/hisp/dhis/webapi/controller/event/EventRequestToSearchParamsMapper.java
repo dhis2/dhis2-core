@@ -42,7 +42,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
-import javax.ws.rs.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -151,8 +150,7 @@ class EventRequestToSearchParamsMapper {
       Set<String> filters,
       Set<String> dataElements,
       boolean includeAllDataElements,
-      boolean includeDeleted)
-      throws ForbiddenException {
+      boolean includeDeleted) {
     return map(
         program,
         programStage,
@@ -222,8 +220,7 @@ class EventRequestToSearchParamsMapper {
       Set<String> filters,
       Set<String> dataElements,
       boolean includeAllDataElements,
-      boolean includeDeleted)
-      throws ForbiddenException {
+      boolean includeDeleted) {
     User user = currentUserService.getCurrentUser();
 
     EventSearchParams params = new EventSearchParams();
@@ -390,7 +387,7 @@ class EventRequestToSearchParamsMapper {
     return new QueryItem(de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet());
   }
 
-  public EventSearchParams map(EventCriteria eventCriteria) throws ForbiddenException {
+  public EventSearchParams map(EventCriteria eventCriteria) {
 
     CategoryOptionCombo attributeOptionCombo =
         inputUtils.getAttributeOptionCombo(
