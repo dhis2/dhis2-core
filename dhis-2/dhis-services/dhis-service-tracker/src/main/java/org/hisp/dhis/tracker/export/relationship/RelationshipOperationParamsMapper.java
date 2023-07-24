@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
@@ -36,6 +38,9 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,14 +58,21 @@ class RelationshipOperationParamsMapper {
 
   private final EventService eventService;
 
+  private final TrackerAccessManager accessManager;
+
+  private final CurrentUserService currentUserService;
+
   @Transactional(readOnly = true)
-  public RelationshipQueryParams map(RelationshipOperationParams params) throws NotFoundException {
+  public RelationshipQueryParams map(RelationshipOperationParams params)
+      throws NotFoundException, ForbiddenException {
+
+    User user = currentUserService.getCurrentUser();
 
     IdentifiableObject entity =
         switch (params.getType()) {
-          case TRACKED_ENTITY -> validateTrackedEntity(params.getIdentifier());
-          case ENROLLMENT -> validateEnrollment(params.getIdentifier());
-          case EVENT -> validateEvent(params.getIdentifier());
+          case TRACKED_ENTITY -> validateTrackedEntity(user, params.getIdentifier());
+          case ENROLLMENT -> validateEnrollment(user, params.getIdentifier());
+          case EVENT -> validateEvent(user, params.getIdentifier());
           case RELATIONSHIP -> throw new IllegalArgumentException("Unsupported type");
         };
 
@@ -73,28 +85,45 @@ class RelationshipOperationParamsMapper {
         .build();
   }
 
-  private TrackedEntity validateTrackedEntity(String uid) throws NotFoundException {
+  private TrackedEntity validateTrackedEntity(User user, String uid)
+      throws NotFoundException, ForbiddenException {
     TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(uid);
     if (trackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
 
+    List<String> errors = accessManager.canRead(user, trackedEntity);
+    if (!errors.isEmpty()) {
+      throw new ForbiddenException("User has no access to TrackedEntity: " + uid);
+    }
+
     return trackedEntity;
   }
 
-  private Enrollment validateEnrollment(String uid) throws NotFoundException {
+  private Enrollment validateEnrollment(User user, String uid)
+      throws NotFoundException, ForbiddenException {
     Enrollment enrollment = enrollmentService.getEnrollment(uid);
     if (enrollment == null) {
       throw new NotFoundException(Enrollment.class, uid);
     }
 
+    List<String> errors = accessManager.canRead(user, enrollment, false);
+    if (!errors.isEmpty()) {
+      throw new ForbiddenException("User has no access to Enrollment: " + uid);
+    }
+
     return enrollment;
   }
 
-  private Event validateEvent(String uid) throws NotFoundException {
+  private Event validateEvent(User user, String uid) throws NotFoundException, ForbiddenException {
     Event event = eventService.getEvent(uid);
     if (event == null) {
       throw new NotFoundException(Event.class, uid);
+    }
+
+    List<String> errors = accessManager.canRead(user, event, false);
+    if (!errors.isEmpty()) {
+      throw new ForbiddenException("User has no access to Event: " + uid);
     }
 
     return event;
