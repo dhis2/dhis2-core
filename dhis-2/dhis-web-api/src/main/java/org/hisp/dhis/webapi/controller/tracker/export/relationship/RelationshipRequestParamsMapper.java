@@ -31,6 +31,8 @@ import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
+import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
+import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 
 import java.util.Objects;
@@ -76,9 +78,9 @@ class RelationshipRequestParamsMapper {
             ObjectUtils.firstNonNull(
                     trackedEntity, requestParams.getEnrollment(), requestParams.getEvent())
                 .getValue())
-        .page(requestParams.getPage())
-        .pageSize(requestParams.getPageSize())
-        .totalPages(requestParams.isTotalPages())
+        .page(Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE))
+        .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
+        .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))
         .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
         .build();
   }

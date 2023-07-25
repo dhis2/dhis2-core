@@ -944,10 +944,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
         if (queryItem.isPresent()) {
           grid.addValue(
-              AnalyticsUtils.getRoundedValue(
-                  params,
-                  ((ProgramIndicator) queryItem.get().getItem()).getDecimals(),
-                  ((BigDecimal) value).doubleValue()));
+              BigDecimal.valueOf(
+                      AnalyticsUtils.getRoundedValue(
+                              params,
+                              ((ProgramIndicator) queryItem.get().getItem()).getDecimals(),
+                              ((BigDecimal) value))
+                          .doubleValue())
+                  .stripTrailingZeros()
+                  .toPlainString());
         } else {
           // toPlainString method prevents scientific notation (3E+2)
           grid.addValue(((BigDecimal) value).stripTrailingZeros().toPlainString());
@@ -957,7 +961,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       }
     } else if (header.getValueType() == ValueType.REFERENCE) {
       String json = sqlRowSet.getString(index);
-
       ObjectMapper mapper = new ObjectMapper();
 
       try {

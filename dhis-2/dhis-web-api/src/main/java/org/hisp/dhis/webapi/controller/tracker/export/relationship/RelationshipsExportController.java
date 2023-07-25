@@ -37,17 +37,14 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
+import org.hisp.dhis.tracker.export.relationship.Relationships;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
@@ -76,12 +73,6 @@ class RelationshipsExportController {
   private static final RelationshipMapper RELATIONSHIP_MAPPER =
       Mappers.getMapper(RelationshipMapper.class);
 
-  private final TrackedEntityService trackedEntityService;
-
-  private final EnrollmentService enrollmentService;
-
-  private final EventService eventService;
-
   private final RelationshipService relationshipService;
 
   private final RelationshipRequestParamsMapper mapper;
@@ -94,27 +85,20 @@ class RelationshipsExportController {
       throws NotFoundException, BadRequestException, ForbiddenException {
 
     RelationshipOperationParams operationParams = mapper.map(requestParams);
-    List<org.hisp.dhis.relationship.Relationship> relationships =
-        relationshipService.getRelationships(operationParams);
+    Relationships relationships = relationshipService.getRelationships(operationParams);
 
     PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
+
     if (requestParams.isPagingRequest()) {
-      long count = 0L;
-
-      if (requestParams.isTotalPages()) {
-        count = relationshipService.countRelationships(operationParams);
-      }
-
-      Pager pager =
-          new Pager(
-              requestParams.getPageWithDefault(), count, requestParams.getPageSizeWithDefault());
-
-      pagingWrapper = pagingWrapper.withPager(PagingWrapper.Pager.fromLegacy(requestParams, pager));
+      pagingWrapper =
+          pagingWrapper.withPager(
+              PagingWrapper.Pager.fromLegacy(requestParams, relationships.getPager()));
     }
 
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(
-            RELATIONSHIP_MAPPER.fromCollection(relationships), requestParams.getFields());
+            RELATIONSHIP_MAPPER.fromCollection(relationships.getRelationships()),
+            requestParams.getFields());
     return pagingWrapper.withInstances(objectNodes);
   }
 
