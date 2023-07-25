@@ -297,6 +297,7 @@ public abstract class AbstractEventService implements EventService {
     User user = currentUserService.getCurrentUser();
 
     validate(params, user);
+    params.handleCurrentUserSelectionMode(user);
 
     if (!params.isPaging() && !params.isSkipPaging()) {
       params.setDefaultPaging();
@@ -367,6 +368,8 @@ public abstract class AbstractEventService implements EventService {
     if (params.getProgramStage().getProgramStageDataElements() == null) {
       throw new IllegalQueryException("Program stage should have at least one data element");
     }
+
+    params.handleCurrentUserSelectionMode(currentUserService.getCurrentUser());
 
     // ---------------------------------------------------------------------
     // If includeAllDataElements is set to true, return all data elements.
