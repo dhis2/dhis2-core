@@ -39,11 +39,11 @@ public class RelationshipQueryParams extends PagingAndSortingCriteriaAdapter {
 
   @Getter private final IdentifiableObject entity;
 
-  private Integer page;
+  @Getter private Integer page;
 
-  private Integer pageSize;
+  @Getter private Integer pageSize;
 
-  private boolean totalPages;
+  @Getter private boolean totalPages;
 
-  private boolean skipPaging;
+  @Getter private Boolean skipPaging;
 }

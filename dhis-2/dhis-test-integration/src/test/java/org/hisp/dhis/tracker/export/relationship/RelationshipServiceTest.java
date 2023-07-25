@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
+import static org.hisp.dhis.tracker.Assertions.assertSlimPager;
+import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -54,8 +59,12 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams.RelationshipOperationParamsBuilder;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -260,6 +269,41 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     assertContainsOnly(
         List.of(accessible.getUid()),
         relationships.stream().map(Relationship::getUid).collect(Collectors.toList()));
+  }
+
+  @Test
+  void shouldReturnPaginatedEnrollmentsGivenNonDefaultPageSize()
+      throws ForbiddenException, NotFoundException {
+    Relationship relationshipA = relationship(teiA, eventA);
+    Relationship relationshipB = relationship(teiA, enrollmentA);
+
+    RelationshipOperationParamsBuilder builder =
+        RelationshipOperationParams.builder()
+            .type(TrackerType.TRACKED_ENTITY)
+            .identifier(teiA.getUid())
+            .order(List.of(OrderCriteria.of("created", SortDirection.ASC)));
+
+    RelationshipOperationParams params = builder.page(1).pageSize(1).build();
+
+    Relationships firstPage = relationshipService.getRelationships(params);
+
+    assertAll(
+        "first page",
+        () -> assertSlimPager(1, 1, false, firstPage.getPager()),
+        () -> assertEquals(List.of(relationshipA.getUid()), uids(firstPage.getRelationships())));
+
+    params = builder.page(2).pageSize(1).build();
+
+    Relationships secondPage = relationshipService.getRelationships(params);
+
+    assertAll(
+        "second (last) page",
+        () -> assertSlimPager(2, 1, true, secondPage.getPager()),
+        () -> assertEquals(List.of(relationshipB.getUid()), uids(secondPage.getRelationships())));
+
+    params = builder.page(3).pageSize(1).build();
+
+    assertIsEmpty(uids(relationshipService.getRelationships(params).getRelationships()));
   }
 
   private Relationship relationship(TrackedEntity from, TrackedEntity to) {
