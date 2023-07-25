@@ -374,7 +374,7 @@ public class JdbcEventStore implements EventStore {
 
     final Gson gson = new Gson();
 
-    String sql = buildSql(params, organisationUnits, user);
+    String sql = buildSql(params, user);
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
     log.debug("Event query SQL: " + sql);
@@ -580,13 +580,12 @@ public class JdbcEventStore implements EventStore {
   }
 
   @Override
-  public List<Map<String, String>> getEventsGrid(
-      EventSearchParams params, List<OrganisationUnit> organisationUnits) {
+  public List<Map<String, String>> getEventsGrid(EventSearchParams params) {
     User user = currentUserService.getCurrentUser();
 
     setAccessiblePrograms(user, params);
 
-    String sql = buildGridSql(params, organisationUnits);
+    String sql = buildGridSql(params);
 
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
@@ -612,15 +611,14 @@ public class JdbcEventStore implements EventStore {
   }
 
   @Override
-  public List<EventRow> getEventRows(
-      EventSearchParams params, List<OrganisationUnit> organisationUnits) {
+  public List<EventRow> getEventRows(EventSearchParams params) {
     User user = currentUserService.getCurrentUser();
 
     setAccessiblePrograms(user, params);
 
     List<EventRow> eventRows = new ArrayList<>();
 
-    String sql = buildSql(params, organisationUnits, user);
+    String sql = buildSql(params, user);
 
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
@@ -824,16 +822,16 @@ public class JdbcEventStore implements EventStore {
   }
 
   @Override
-  public int getEventCount(EventSearchParams params, List<OrganisationUnit> organisationUnits) {
+  public int getEventCount(EventSearchParams params) {
     User user = currentUserService.getCurrentUser();
     setAccessiblePrograms(user, params);
 
     String sql;
 
     if (params.hasFilters()) {
-      sql = buildGridSql(params, organisationUnits);
+      sql = buildGridSql(params);
     } else {
-      sql = getEventSelectQuery(params, organisationUnits, user);
+      sql = getEventSelectQuery(params, user);
     }
 
     sql = sql.replaceFirst("select .*? from", "select count(*) from");
@@ -861,7 +859,7 @@ public class JdbcEventStore implements EventStore {
     return dataValue;
   }
 
-  private String buildGridSql(EventSearchParams params, List<OrganisationUnit> organisationUnits) {
+  private String buildGridSql(EventSearchParams params) {
     SqlHelper hlp = new SqlHelper();
 
     // ---------------------------------------------------------------------
@@ -894,7 +892,7 @@ public class JdbcEventStore implements EventStore {
     // From and where clause
     // ---------------------------------------------------------------------
 
-    sqlBuilder.append(getFromWhereClause(params, hlp, organisationUnits));
+    sqlBuilder.append(getFromWhereClause(params, hlp));
 
     // ---------------------------------------------------------------------
     // Order clause
@@ -916,11 +914,10 @@ public class JdbcEventStore implements EventStore {
    * program stage instance id. The purpose of the separate queries is to be able to page properly
    * on events.
    */
-  private String buildSql(
-      EventSearchParams params, List<OrganisationUnit> organisationUnits, User user) {
+  private String buildSql(EventSearchParams params, User user) {
     StringBuilder sqlBuilder = new StringBuilder().append("select * from (");
 
-    sqlBuilder.append(getEventSelectQuery(params, organisationUnits, user));
+    sqlBuilder.append(getEventSelectQuery(params, user));
 
     sqlBuilder.append(getOrderQuery(params));
 
@@ -947,8 +944,7 @@ public class JdbcEventStore implements EventStore {
     return sqlBuilder.toString();
   }
 
-  private String getEventSelectQuery(
-      EventSearchParams params, List<OrganisationUnit> organisationUnits, User user) {
+  private String getEventSelectQuery(EventSearchParams params, User user) {
     SqlHelper hlp = new SqlHelper();
 
     StringBuilder sqlBuilder =
@@ -1344,8 +1340,7 @@ public class JdbcEventStore implements EventStore {
    * From, join and where clause. For dataElement params, restriction is set in inner join. For
    * query params, restriction is set in where clause.
    */
-  private String getFromWhereClause(
-      EventSearchParams params, SqlHelper hlp, List<OrganisationUnit> organisationUnits) {
+  private String getFromWhereClause(EventSearchParams params, SqlHelper hlp) {
     StringBuilder sqlBuilder =
         new StringBuilder()
             .append(

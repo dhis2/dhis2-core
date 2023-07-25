@@ -314,7 +314,7 @@ public abstract class AbstractEventService implements EventService {
     eventList.addAll(eventStore.getEvents(params, params.getAccessibleOrgUnits(), emptyMap()));
 
     if (params.isTotalPages()) {
-      int count = eventStore.getEventCount(params, params.getAccessibleOrgUnits());
+      int count = eventStore.getEventCount(params);
       pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
     } else {
       pager = handleLastPageFlag(params, eventList);
@@ -417,8 +417,7 @@ public abstract class AbstractEventService implements EventService {
       grid.addHeader(new GridHeader(item.getItem().getUid(), item.getItem().getName()));
     }
 
-    List<Map<String, String>> events =
-        eventStore.getEventsGrid(params, params.getAccessibleOrgUnits());
+    List<Map<String, String>> events = eventStore.getEventsGrid(params);
 
     // ---------------------------------------------------------------------
     // Grid rows
@@ -442,7 +441,7 @@ public abstract class AbstractEventService implements EventService {
       final Pager pager;
 
       if (params.isTotalPages()) {
-        int count = eventStore.getEventCount(params, params.getAccessibleOrgUnits());
+        int count = eventStore.getEventCount(params);
         pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
       } else {
         pager = handleLastPageFlag(params, grid);
@@ -497,7 +496,7 @@ public abstract class AbstractEventService implements EventService {
             .setSynchronizationQuery(true)
             .setSkipChangedBefore(skipChangedBefore);
 
-    return eventStore.getEventCount(params, null);
+    return eventStore.getEventCount(params);
   }
 
   @Override
@@ -528,7 +527,7 @@ public abstract class AbstractEventService implements EventService {
 
     EventRows eventRows = new EventRows();
 
-    List<EventRow> eventRowList = eventStore.getEventRows(params, params.getAccessibleOrgUnits());
+    List<EventRow> eventRowList = eventStore.getEventRows(params);
 
     EventContext eventContext = eventServiceContextBuilder.build(eventRowList, user);
 
