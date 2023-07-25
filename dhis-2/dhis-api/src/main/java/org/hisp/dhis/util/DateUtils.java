@@ -562,6 +562,24 @@ public class DateUtils {
     }
   }
 
+  public static boolean hasTimeStamp(final String dateTimeString) {
+    try {
+      safeParseDateTime(dateTimeString, TIMESTAMP_UTC_TZ_FORMAT);
+      return true;
+    } catch (IllegalArgumentException ex) {
+      return false;
+    }
+  }
+
+  public static boolean hasTimeStamp(final Date date) {
+    try {
+      safeParseDateTime(getLongGmtDateString(date), TIMESTAMP_UTC_TZ_FORMAT);
+      return true;
+    } catch (IllegalArgumentException ex) {
+      return false;
+    }
+  }
+
   /**
    * Returns the number of seconds until the next day at the given hour.
    *

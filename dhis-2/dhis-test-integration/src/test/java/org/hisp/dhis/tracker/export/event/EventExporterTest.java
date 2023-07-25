@@ -39,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.time.ZoneId;
@@ -364,7 +365,13 @@ class EventExporterTest extends TrackerTest {
                 DateUtils.getIso8601NoTz(event.getDueDate()),
                 () ->
                     String.format(
-                        "Expected %s to be in %s", event.getDueDate(), "2019-01-28T12:32:38.100")));
+                        "Expected %s to be in %s", event.getDueDate(), "2019-01-28T12:32:38.100")),
+        () ->
+            assertTrue(
+                DateUtils.hasTimeStamp(event.getCompletedDate()),
+                String.format(
+                    "Supported format is %s but found %s",
+                    "yyyy-MM-dd'T'HH:mm:ss.SSSZ", event.getCompletedDate())));
   }
 
   @Test
