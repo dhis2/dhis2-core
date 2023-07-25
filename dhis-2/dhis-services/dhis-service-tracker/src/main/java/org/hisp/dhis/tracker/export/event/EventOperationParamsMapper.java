@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
@@ -189,7 +188,7 @@ public class EventOperationParamsMapper {
         .setPage(operationParams.getPage())
         .setPageSize(operationParams.getPageSize())
         .setTotalPages(operationParams.isTotalPages())
-        .setSkipPaging(toBooleanDefaultIfNull(operationParams.isSkipPaging(), false))
+        .setSkipPaging(operationParams.isSkipPaging())
         .setSkipEventId(operationParams.getSkipEventId())
         .setIncludeAttributes(false)
         .setIncludeAllDataElements(false)
