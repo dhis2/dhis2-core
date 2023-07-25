@@ -978,7 +978,7 @@ public abstract class AbstractEventService implements EventService {
       case SELECTED:
       case DESCENDANTS:
         violation =
-            params.getAccessibleOrgUnits() == null
+            params.getAccessibleOrgUnits().isEmpty()
                 ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
                 : null;
         break;
