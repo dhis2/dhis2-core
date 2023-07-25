@@ -176,7 +176,7 @@ public class EventExportTests extends TrackerApiTest {
       return;
     }
 
-    response.validateStatus(403);
+    response.validateStatus(409);
   }
 
   Stream<Arguments> shouldUseCorrectScopeWhenNoOu() {
