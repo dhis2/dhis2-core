@@ -272,7 +272,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnPaginatedEnrollmentsGivenNonDefaultPageSize()
+  void shouldReturnPaginatedRelationshipsGivenNonDefaultPageSize()
       throws ForbiddenException, NotFoundException {
     Relationship relationshipA = relationship(teiA, eventA);
     Relationship relationshipB = relationship(teiA, enrollmentA);
