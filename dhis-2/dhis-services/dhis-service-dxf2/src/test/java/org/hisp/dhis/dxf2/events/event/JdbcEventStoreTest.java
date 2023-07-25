@@ -108,7 +108,7 @@ class JdbcEventStoreTest {
     mockRowSet();
     EventSearchParams eventSearchParams = new EventSearchParams();
 
-    List<EventRow> rows = subject.getEventRows(eventSearchParams, new ArrayList<>());
+    List<EventRow> rows = subject.getEventRows(eventSearchParams);
     assertThat(rows, hasSize(1));
     verify(rowSet, times(4)).getString("psi_eventdatavalues");
   }
@@ -118,7 +118,7 @@ class JdbcEventStoreTest {
     mockRowSet();
     EventSearchParams eventSearchParams = new EventSearchParams();
 
-    List<EventRow> rows = subject.getEventRows(eventSearchParams, null);
+    List<EventRow> rows = subject.getEventRows(eventSearchParams);
     assertThat(rows, hasSize(1));
     verify(rowSet, times(4)).getString("psi_eventdatavalues");
   }

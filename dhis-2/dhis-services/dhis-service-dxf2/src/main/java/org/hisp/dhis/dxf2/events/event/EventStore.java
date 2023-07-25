@@ -60,12 +60,11 @@ public interface EventStore {
       List<OrganisationUnit> organisationUnits,
       Map<String, Set<String>> psdesWithSkipSyncTrue);
 
-  List<Map<String, String>> getEventsGrid(
-      EventSearchParams params, List<OrganisationUnit> organisationUnits);
+  List<Map<String, String>> getEventsGrid(EventSearchParams params);
 
-  List<EventRow> getEventRows(EventSearchParams params, List<OrganisationUnit> organisationUnits);
+  List<EventRow> getEventRows(EventSearchParams params);
 
-  int getEventCount(EventSearchParams params, List<OrganisationUnit> organisationUnits);
+  int getEventCount(EventSearchParams params);
 
   /**
    * Delete list of given events to be removed. This operation also remove comments connected to

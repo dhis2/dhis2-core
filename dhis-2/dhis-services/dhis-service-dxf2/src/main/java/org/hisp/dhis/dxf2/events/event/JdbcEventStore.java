@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events.event;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -100,6 +101,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -108,7 +110,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -323,6 +324,10 @@ public class JdbcEventStore implements EventStore {
             + " where uid = ?;";
   }
 
+  private static final String PATH_LIKE = "path LIKE";
+
+  private static final String PATH_EQ = "path =";
+
   // -------------------------------------------------------------------------
   // Dependencies
   // -------------------------------------------------------------------------
@@ -369,7 +374,7 @@ public class JdbcEventStore implements EventStore {
 
     final Gson gson = new Gson();
 
-    String sql = buildSql(params, organisationUnits, user);
+    String sql = buildSql(params, user);
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
     log.debug("Event query SQL: " + sql);
@@ -575,13 +580,12 @@ public class JdbcEventStore implements EventStore {
   }
 
   @Override
-  public List<Map<String, String>> getEventsGrid(
-      EventSearchParams params, List<OrganisationUnit> organisationUnits) {
+  public List<Map<String, String>> getEventsGrid(EventSearchParams params) {
     User user = currentUserService.getCurrentUser();
 
     setAccessiblePrograms(user, params);
 
-    String sql = buildGridSql(params, organisationUnits);
+    String sql = buildGridSql(params);
 
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
@@ -607,15 +611,14 @@ public class JdbcEventStore implements EventStore {
   }
 
   @Override
-  public List<EventRow> getEventRows(
-      EventSearchParams params, List<OrganisationUnit> organisationUnits) {
+  public List<EventRow> getEventRows(EventSearchParams params) {
     User user = currentUserService.getCurrentUser();
 
     setAccessiblePrograms(user, params);
 
     List<EventRow> eventRows = new ArrayList<>();
 
-    String sql = buildSql(params, organisationUnits, user);
+    String sql = buildSql(params, user);
 
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
@@ -819,16 +822,16 @@ public class JdbcEventStore implements EventStore {
   }
 
   @Override
-  public int getEventCount(EventSearchParams params, List<OrganisationUnit> organisationUnits) {
+  public int getEventCount(EventSearchParams params) {
     User user = currentUserService.getCurrentUser();
     setAccessiblePrograms(user, params);
 
     String sql;
 
     if (params.hasFilters()) {
-      sql = buildGridSql(params, organisationUnits);
+      sql = buildGridSql(params);
     } else {
-      sql = getEventSelectQuery(params, organisationUnits, user);
+      sql = getEventSelectQuery(params, user);
     }
 
     sql = sql.replaceFirst("select .*? from", "select count(*) from");
@@ -856,7 +859,7 @@ public class JdbcEventStore implements EventStore {
     return dataValue;
   }
 
-  private String buildGridSql(EventSearchParams params, List<OrganisationUnit> organisationUnits) {
+  private String buildGridSql(EventSearchParams params) {
     SqlHelper hlp = new SqlHelper();
 
     // ---------------------------------------------------------------------
@@ -889,7 +892,7 @@ public class JdbcEventStore implements EventStore {
     // From and where clause
     // ---------------------------------------------------------------------
 
-    sqlBuilder.append(getFromWhereClause(params, hlp, organisationUnits));
+    sqlBuilder.append(getFromWhereClause(params, hlp));
 
     // ---------------------------------------------------------------------
     // Order clause
@@ -911,11 +914,10 @@ public class JdbcEventStore implements EventStore {
    * program stage instance id. The purpose of the separate queries is to be able to page properly
    * on events.
    */
-  private String buildSql(
-      EventSearchParams params, List<OrganisationUnit> organisationUnits, User user) {
+  private String buildSql(EventSearchParams params, User user) {
     StringBuilder sqlBuilder = new StringBuilder().append("select * from (");
 
-    sqlBuilder.append(getEventSelectQuery(params, organisationUnits, user));
+    sqlBuilder.append(getEventSelectQuery(params, user));
 
     sqlBuilder.append(getOrderQuery(params));
 
@@ -942,8 +944,7 @@ public class JdbcEventStore implements EventStore {
     return sqlBuilder.toString();
   }
 
-  private String getEventSelectQuery(
-      EventSearchParams params, List<OrganisationUnit> organisationUnits, User user) {
+  private String getEventSelectQuery(EventSearchParams params, User user) {
     SqlHelper hlp = new SqlHelper();
 
     StringBuilder sqlBuilder =
@@ -1169,8 +1170,10 @@ public class JdbcEventStore implements EventStore {
           .append(" ");
     }
 
-    if (!CollectionUtils.isEmpty(organisationUnits) || params.getOrgUnit() != null) {
-      sqlBuilder.append(hlp.whereAnd()).append(getOrgUnitSql(hlp, params, organisationUnits));
+    String orgUnitSql = getOrgUnitSql(params, getOuTableName(params));
+
+    if (!isNullOrEmpty(orgUnitSql)) {
+      sqlBuilder.append(hlp.whereAnd()).append(" (").append(orgUnitSql).append(") ");
     }
 
     if (params.getStartDate() != null) {
@@ -1283,12 +1286,61 @@ public class JdbcEventStore implements EventStore {
     return sqlBuilder.toString();
   }
 
+  private String getOrgUnitSql(EventSearchParams params, String ouTable) {
+    switch (params.getOrgUnitSelectionMode()) {
+      case SELECTED:
+        return getSelectedOrgUnitPath(params.getAccessibleOrgUnits(), ouTable);
+      case CHILDREN:
+        return getChildrenOrgUnitsPath(params.getAccessibleOrgUnits(), ouTable);
+      case ALL:
+        return null;
+      default:
+        return getOrgUnitsPath(params.getAccessibleOrgUnits(), ouTable);
+    }
+  }
+
+  private String getChildrenOrgUnitsPath(List<OrganisationUnit> orgUnits, String ouTable) {
+    StringJoiner orgUnitSqlJoiner = new StringJoiner(" or ");
+
+    for (OrganisationUnit orgUnit : orgUnits) {
+      orgUnitSqlJoiner.add(
+          ouTable
+              + "."
+              + PATH_LIKE
+              + " '%"
+              + orgUnit.getPath()
+              + "%' "
+              + " and "
+              + ouTable
+              + "."
+              + "hierarchylevel = "
+              + orgUnit.getLevel());
+    }
+
+    return orgUnitSqlJoiner.toString();
+  }
+
+  private String getSelectedOrgUnitPath(List<OrganisationUnit> orgUnits, String ouTable) {
+    return orgUnits.isEmpty()
+        ? null
+        : ouTable + "." + PATH_EQ + " '" + orgUnits.get(0).getPath() + "' ";
+  }
+
+  private String getOrgUnitsPath(List<OrganisationUnit> orgUnits, String ouTable) {
+    StringJoiner orgUnitSqlJoiner = new StringJoiner(" or ");
+
+    for (OrganisationUnit orgUnit : orgUnits) {
+      orgUnitSqlJoiner.add(ouTable + "." + PATH_LIKE + " '%" + orgUnit.getPath() + "%' ");
+    }
+
+    return orgUnitSqlJoiner.toString();
+  }
+
   /**
    * From, join and where clause. For dataElement params, restriction is set in inner join. For
    * query params, restriction is set in where clause.
    */
-  private String getFromWhereClause(
-      EventSearchParams params, SqlHelper hlp, List<OrganisationUnit> organisationUnits) {
+  private String getFromWhereClause(EventSearchParams params, SqlHelper hlp) {
     StringBuilder sqlBuilder =
         new StringBuilder()
             .append(
@@ -1388,8 +1440,10 @@ public class JdbcEventStore implements EventStore {
       sqlBuilder.append(hlp.whereAnd()).append(eventDataValuesWhereSql).append(" ");
     }
 
-    if (!organisationUnits.isEmpty() || params.getOrgUnit() != null) {
-      sqlBuilder.append(hlp.whereAnd()).append(getOrgUnitSql(hlp, params, organisationUnits));
+    String orgUnitSql = getOrgUnitSql(params, getOuTableName(params));
+
+    if (orgUnitSql != null) {
+      sqlBuilder.append(hlp.whereAnd()).append(" (").append(orgUnitSql).append(") ");
     }
 
     if (params.getProgramStage() != null) {
@@ -1957,60 +2011,6 @@ public class JdbcEventStore implements EventStore {
     return batch.stream()
         .sorted(Comparator.comparing(ProgramStageInstance::getUid))
         .collect(toList());
-  }
-
-  private String getOrgUnitSql(
-      SqlHelper hlp, EventSearchParams params, List<OrganisationUnit> organisationUnits) {
-    StringBuilder orgUnitSql = new StringBuilder();
-
-    String ouTable = getOuTableName(params);
-
-    if (params.getOrgUnit() != null && !params.isPathOrganisationUnitMode()) {
-      orgUnitSql.append(ouTable + ".organisationunitid = " + params.getOrgUnit().getId() + " ");
-    } else {
-      SqlHelper orHlp = new SqlHelper(true);
-      String path = ouTable + ".path LIKE '";
-      for (OrganisationUnit organisationUnit : organisationUnits) {
-        if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)) {
-          orgUnitSql
-              .append(orHlp.or())
-              .append(path)
-              .append(organisationUnit.getPath())
-              .append("%' ")
-              .append(hlp.whereAnd())
-              .append(ouTable + ".hierarchylevel > " + organisationUnit.getLevel());
-        } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
-          orgUnitSql
-              .append(orHlp.or())
-              .append(path)
-              .append(organisationUnit.getPath())
-              .append("%' ")
-              .append(hlp.whereAnd())
-              .append(ouTable + ".hierarchylevel = " + (organisationUnit.getLevel() + 1));
-        } else {
-          orgUnitSql
-              .append(orHlp.or())
-              .append(path)
-              .append(organisationUnit.getPath())
-              .append("%' ");
-        }
-      }
-
-      if (!organisationUnits.isEmpty()) {
-        orgUnitSql.insert(0, " (");
-        orgUnitSql.append(") ");
-
-        if (params.isPathOrganisationUnitMode()) {
-          orgUnitSql.insert(0, " (");
-          orgUnitSql
-              .append(orHlp.or())
-              .append(
-                  " ( " + ouTable + ".organisationunitid = " + params.getOrgUnit().getId() + ")) ");
-        }
-      }
-    }
-
-    return orgUnitSql.toString();
   }
 
   private String addDueDateFilters(EventSearchParams params, SqlHelper hlp) {

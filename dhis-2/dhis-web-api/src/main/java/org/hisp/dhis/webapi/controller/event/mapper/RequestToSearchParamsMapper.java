@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller.event.mapper;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.hisp.dhis.webapi.controller.event.mapper.EventParamsMapperUtils.getOrgUnitMode;
+import static org.hisp.dhis.webapi.controller.event.mapper.EventParamsMapperUtils.validateAccessibleOrgUnits;
 
 import java.util.Collections;
 import java.util.Date;
@@ -72,6 +74,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
@@ -105,6 +108,8 @@ public class RequestToSearchParamsMapper {
   private final InputUtils inputUtils;
 
   private final SchemaService schemaService;
+
+  private final TrackerAccessManager trackerAccessManager;
 
   private static final TrackerEventCriteriaMapper TRACKER_EVENT_CRITERIA_MAPPER =
       Mappers.getMapper(TrackerEventCriteriaMapper.class);
@@ -244,6 +249,16 @@ public class RequestToSearchParamsMapper {
       throw new IllegalQueryException("Org unit is specified but does not exist: " + orgUnit);
     }
 
+    OrganisationUnitSelectionMode orgUnitMode = getOrgUnitMode(ou, orgUnitSelectionMode);
+    List<OrganisationUnit> accessibleOrgUnits =
+        validateAccessibleOrgUnits(
+            user,
+            ou,
+            orgUnitMode,
+            pr,
+            organisationUnitService::getOrganisationUnitWithChildren,
+            trackerAccessManager);
+
     if (pr != null && !user.isSuper() && !aclService.canDataRead(user, pr)) {
       throw new IllegalQueryException("User has no access to program: " + pr.getUid());
     }
@@ -318,11 +333,11 @@ public class RequestToSearchParamsMapper {
     return params
         .setProgram(pr)
         .setProgramStage(ps)
-        .setOrgUnit(ou)
+        .setAccessibleOrgUnits(accessibleOrgUnits)
         .setTrackedEntityInstance(tei)
         .setProgramStatus(programStatus)
         .setFollowUp(followUp)
-        .setOrgUnitSelectionMode(orgUnitSelectionMode)
+        .setOrgUnitSelectionMode(orgUnitMode)
         .setAssignedUserSelectionMode(assignedUserSelectionMode)
         .setAssignedUsers(assignedUsers)
         .setStartDate(startDate)
