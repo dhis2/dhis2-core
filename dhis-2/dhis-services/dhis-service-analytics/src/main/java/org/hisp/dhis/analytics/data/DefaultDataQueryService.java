@@ -389,7 +389,7 @@ public class DefaultDataQueryService implements DataQueryService {
       boolean allowNull,
       boolean allowAllPeriodItems,
       IdScheme inputIdScheme) {
-    final boolean allItems = items.isEmpty();
+    final boolean allItems = items.isEmpty() || items.contains("ALL_ITEMS");
     User user = currentUserService.getCurrentUser();
 
     if (DATA_X_DIM_ID.equals(dimension)) {
