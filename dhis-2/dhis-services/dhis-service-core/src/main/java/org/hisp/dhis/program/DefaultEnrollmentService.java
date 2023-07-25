@@ -184,10 +184,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
       params.setOrganisationUnits(organisationUnits);
     }
 
-    if (!params.isPaging() && !params.isSkipPaging()) {
-      params.setDefaultPaging();
-    }
-
     return enrollmentStore.getEnrollments(params);
   }
 
