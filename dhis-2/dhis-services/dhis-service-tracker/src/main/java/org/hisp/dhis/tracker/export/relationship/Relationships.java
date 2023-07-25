@@ -28,34 +28,21 @@
 package org.hisp.dhis.tracker.export.relationship;
 
 import java.util.List;
-import java.util.Optional;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
-public interface RelationshipService {
+@RequiredArgsConstructor(staticName = "of")
+@Getter
+@EqualsAndHashCode
+public class Relationships {
 
-  Relationships getRelationships(RelationshipOperationParams params)
-      throws ForbiddenException, NotFoundException;
+  private final List<Relationship> relationships;
+  private final Pager pager;
 
-  Relationship getRelationship(String id) throws ForbiddenException, NotFoundException;
-
-  Optional<Relationship> findRelationshipByUid(String id)
-      throws ForbiddenException, NotFoundException;
-
-  List<Relationship> getRelationshipsByTrackedEntity(
-      TrackedEntity tei, PagingAndSortingCriteriaAdapter criteria)
-      throws ForbiddenException, NotFoundException;
-
-  List<Relationship> getRelationshipsByEnrollment(
-      Enrollment enrollment, PagingAndSortingCriteriaAdapter criteria)
-      throws ForbiddenException, NotFoundException;
-
-  List<Relationship> getRelationshipsByEvent(
-      Event event, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter)
-      throws ForbiddenException, NotFoundException;
+  public static Relationships withoutPagination(List<Relationship> relationships) {
+    return new Relationships(relationships, null);
+  }
 }
