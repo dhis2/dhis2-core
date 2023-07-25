@@ -523,7 +523,7 @@ public class DimensionalObjectProducer {
       List<String> items,
       DisplayProperty displayProperty,
       IdScheme inputIdScheme) {
-    boolean allItems = items.isEmpty();
+    boolean allItems = items.isEmpty() || items.contains("ALL_ITEMS");
     DimensionalObject dimObject =
         idObjectManager.get(DYNAMIC_DIM_CLASSES, inputIdScheme, dimension);
 
