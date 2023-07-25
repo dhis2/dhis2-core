@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.hisp.dhis.tracker.TrackerTestUtils.assertSlimPager;
+import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -63,8 +66,11 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.EnrollmentOperationParamsBuilder;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -103,14 +109,18 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   private Relationship relationshipA;
 
+  private OrganisationUnit orgUnitA;
+
+  private OrganisationUnit orgUnitB;
+
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
     admin = preCreateInjectAdminUser();
 
-    OrganisationUnit orgUnitA = createOrganisationUnit('A');
+    orgUnitA = createOrganisationUnit('A');
     manager.save(orgUnitA, false);
-    OrganisationUnit orgUnitB = createOrganisationUnit('B');
+    orgUnitB = createOrganisationUnit('B');
     manager.save(orgUnitB, false);
     OrganisationUnit orgUnitC = createOrganisationUnit('C');
     manager.save(orgUnitC, false);
@@ -419,6 +429,38 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     ForbiddenException exception =
         assertThrows(ForbiddenException.class, () -> enrollmentService.getEnrollments(params));
     assertContains("access to tracked entity type", exception.getMessage());
+  }
+
+  @Test
+  void shouldReturnPaginatedEnrollmentsGivenNonDefaultPageSize()
+      throws ForbiddenException, BadRequestException {
+
+    EnrollmentOperationParamsBuilder builder =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnitA.getUid(), orgUnitB.getUid()))
+            .order(List.of(new OrderParam("created", SortDirection.ASC)));
+
+    EnrollmentOperationParams params = builder.page(1).pageSize(1).build();
+
+    Enrollments firstPage = enrollmentService.getEnrollments(params);
+
+    assertAll(
+        "first page",
+        () -> assertSlimPager(1, 1, false, firstPage.getPager()),
+        () -> assertEquals(List.of(enrollmentA.getUid()), uids(firstPage.getEnrollments())));
+
+    params = builder.page(2).pageSize(1).build();
+
+    Enrollments secondPage = enrollmentService.getEnrollments(params);
+
+    assertAll(
+        "second (last) page",
+        () -> assertSlimPager(2, 1, true, secondPage.getPager()),
+        () -> assertEquals(List.of(enrollmentB.getUid()), uids(secondPage.getEnrollments())));
+
+    params = builder.page(3).pageSize(1).build();
+
+    assertIsEmpty(uids(enrollmentService.getEnrollments(params).getEnrollments()));
   }
 
   private static List<String> toUid(Enrollments enrollments) {
