@@ -64,7 +64,7 @@ public class HibernateProgramTempOwnerStore extends HibernateGenericStore<Progra
   public int getValidTempOwnerCount(Program program, TrackedEntity entityInstance, User user) {
     final String sql =
         "select count(1) from programtempowner "
-            + "where programid = ? and trackedentityinstanceid=? and userid=? "
+            + "where programid = ? and trackedentityid=? and userid=? "
             + "and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0";
     return jdbcTemplate.queryForObject(
         sql, new Object[] {program.getId(), entityInstance.getId(), user.getId()}, Integer.class);

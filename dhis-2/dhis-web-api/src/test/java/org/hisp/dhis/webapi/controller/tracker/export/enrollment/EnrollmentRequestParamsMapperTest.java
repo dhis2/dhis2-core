@@ -29,8 +29,10 @@ package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -38,6 +40,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
@@ -107,6 +110,38 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentOperationParams params = mapper.map(requestParams);
 
     assertContainsOnly(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), params.getOrgUnitUids());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
+
+    EnrollmentOperationParams params = mapper.map(requestParams);
+
+    assertEquals(OrganisationUnitSelectionMode.SELECTED, params.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeGivenOuModeParam() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
+
+    EnrollmentOperationParams params = mapper.map(requestParams);
+
+    assertEquals(OrganisationUnitSelectionMode.SELECTED, params.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldThrowIfDeprecatedAndNewOrgUnitModeParameterIsSet() {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
+    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
+
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertStartsWith("Only one parameter of 'ouMode' and 'orgUnitMode'", exception.getMessage());
   }
 
   @Test

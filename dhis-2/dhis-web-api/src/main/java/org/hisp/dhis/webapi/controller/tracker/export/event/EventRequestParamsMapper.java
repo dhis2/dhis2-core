@@ -28,16 +28,20 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidParameter;
+import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
+import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
@@ -60,8 +64,12 @@ class EventRequestParamsMapper {
       JdbcEventStore.QUERY_PARAM_COL_MAP.keySet();
 
   public EventOperationParams map(RequestParams requestParams) throws BadRequestException {
+    OrganisationUnitSelectionMode orgUnitMode =
+        validateDeprecatedParameter(
+            "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
+
     UID attributeCategoryCombo =
-        validateDeprecatedUidParameter(
+        validateDeprecatedParameter(
             "attributeCc",
             requestParams.getAttributeCc(),
             "attributeCategoryCombo",
@@ -104,7 +112,7 @@ class EventRequestParamsMapper {
                 : null)
         .programStatus(requestParams.getProgramStatus())
         .followUp(requestParams.getFollowUp())
-        .orgUnitSelectionMode(requestParams.getOuMode())
+        .orgUnitMode(orgUnitMode)
         .assignedUserMode(requestParams.getAssignedUserMode())
         .assignedUsers(UID.toValueSet(assignedUsers))
         .startDate(requestParams.getOccurredAfter())
@@ -123,9 +131,9 @@ class EventRequestParamsMapper {
             attributeCategoryCombo != null ? attributeCategoryCombo.getValue() : null)
         .attributeCategoryOptions(UID.toValueSet(attributeCategoryOptions))
         .idSchemes(requestParams.getIdSchemes())
-        .page(requestParams.getPage())
-        .pageSize(requestParams.getPageSize())
-        .totalPages(requestParams.isTotalPages())
+        .page(Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE))
+        .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
+        .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))
         .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
         .skipEventId(requestParams.getSkipEventId())
         .includeAttributes(false)

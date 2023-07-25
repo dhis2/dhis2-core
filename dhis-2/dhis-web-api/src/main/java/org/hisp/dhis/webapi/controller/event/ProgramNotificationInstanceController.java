@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 
 import java.util.Date;
 import java.util.List;
@@ -86,11 +86,9 @@ public class ProgramNotificationInstanceController {
       @RequestParam(required = false, defaultValue = "50") int pageSize)
       throws BadRequestException {
     UID enrollmentUid =
-        validateDeprecatedUidParameter(
-            "programInstance", programInstance, "enrollment", enrollment);
+        validateDeprecatedParameter("programInstance", programInstance, "enrollment", enrollment);
     UID eventUid =
-        validateDeprecatedUidParameter(
-            "programStageInstance", programStageInstance, "event", event);
+        validateDeprecatedParameter("programStageInstance", programStageInstance, "event", event);
 
     ProgramNotificationInstanceParam params =
         ProgramNotificationInstanceParam.builder()

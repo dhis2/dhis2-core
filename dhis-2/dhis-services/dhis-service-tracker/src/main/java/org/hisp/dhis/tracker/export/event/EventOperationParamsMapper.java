@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
@@ -120,7 +119,7 @@ public class EventOperationParamsMapper {
     OrganisationUnit requestedOrgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid());
 
     OrganisationUnitSelectionMode orgUnitMode =
-        getOrgUnitMode(requestedOrgUnit, operationParams.getOrgUnitSelectionMode());
+        getOrgUnitMode(requestedOrgUnit, operationParams.getOrgUnitMode());
     List<OrganisationUnit> accessibleOrgUnits =
         validateAccessibleOrgUnits(user, requestedOrgUnit, orgUnitMode, program);
     validateUser(user, program, programStage);
@@ -136,7 +135,7 @@ public class EventOperationParamsMapper {
 
     validateAttributeOptionCombo(attributeOptionCombo, user);
 
-    validateOrgUnitSelectionMode(operationParams, user, program);
+    validateOrgUnitMode(operationParams, user, program);
 
     Map<String, SortDirection> attributeOrders =
         getAttributesFromOrder(operationParams.getAttributeOrders());
@@ -168,7 +167,7 @@ public class EventOperationParamsMapper {
         .setTrackedEntity(trackedEntity)
         .setProgramStatus(operationParams.getProgramStatus())
         .setFollowUp(operationParams.getFollowUp())
-        .setOrgUnitSelectionMode(orgUnitMode)
+        .setOrgUnitMode(orgUnitMode)
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(
                 operationParams.getAssignedUserMode(), user, operationParams.getAssignedUsers()))
@@ -189,7 +188,7 @@ public class EventOperationParamsMapper {
         .setPage(operationParams.getPage())
         .setPageSize(operationParams.getPageSize())
         .setTotalPages(operationParams.isTotalPages())
-        .setSkipPaging(toBooleanDefaultIfNull(operationParams.isSkipPaging(), false))
+        .setSkipPaging(operationParams.isSkipPaging())
         .setSkipEventId(operationParams.getSkipEventId())
         .setIncludeAttributes(false)
         .setIncludeAllDataElements(false)
@@ -201,7 +200,8 @@ public class EventOperationParamsMapper {
         .addAttributeOrders(attributeOrderParams)
         .setEvents(operationParams.getEvents())
         .setEnrollments(operationParams.getEnrollments())
-        .setIncludeDeleted(operationParams.isIncludeDeleted());
+        .setIncludeDeleted(operationParams.isIncludeDeleted())
+        .setIncludeRelationships(operationParams.isIncludeRelationships());
   }
 
   private Program validateProgram(String programUid) throws BadRequestException {
@@ -391,9 +391,9 @@ public class EventOperationParamsMapper {
     }
   }
 
-  private void validateOrgUnitSelectionMode(EventOperationParams params, User user, Program program)
+  private void validateOrgUnitMode(EventOperationParams params, User user, Program program)
       throws BadRequestException {
-    if (params.getOrgUnitSelectionMode() != null) {
+    if (params.getOrgUnitMode() != null) {
       String violation = getOrgUnitModeViolation(params, user, program);
       if (violation != null) {
         throw new BadRequestException(violation);
@@ -402,16 +402,16 @@ public class EventOperationParamsMapper {
   }
 
   private String getOrgUnitModeViolation(EventOperationParams params, User user, Program program) {
-    OrganisationUnitSelectionMode selectedOuMode = params.getOrgUnitSelectionMode();
+    OrganisationUnitSelectionMode orgUnitMode = params.getOrgUnitMode();
 
-    return switch (selectedOuMode) {
-      case ALL -> userCanSearchOuModeALL(user)
+    return switch (orgUnitMode) {
+      case ALL -> userCanSearchOrgUnitModeALL(user)
           ? null
           : "Current user is not authorized to query across all organisation units";
       case ACCESSIBLE -> getAccessibleScopeValidation(user, program);
       case CAPTURE -> getCaptureScopeValidation(user);
       case CHILDREN, SELECTED, DESCENDANTS -> params.getOrgUnitUid() == null
-          ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
+          ? "Organisation unit is required for orgUnitMode: " + params.getOrgUnitMode()
           : null;
     };
   }
@@ -420,7 +420,7 @@ public class EventOperationParamsMapper {
     String violation = null;
 
     if (user == null) {
-      violation = "User is required for ouMode: " + OrganisationUnitSelectionMode.CAPTURE;
+      violation = "User is required for orgUnitMode: " + OrganisationUnitSelectionMode.CAPTURE;
     } else if (user.getOrganisationUnits().isEmpty()) {
       violation = "User needs to be assigned data capture orgunits";
     }
@@ -432,7 +432,7 @@ public class EventOperationParamsMapper {
     String violation;
 
     if (user == null) {
-      return "User is required for ouMode: " + OrganisationUnitSelectionMode.ACCESSIBLE;
+      return "User is required for orgUnitMode: " + OrganisationUnitSelectionMode.ACCESSIBLE;
     }
 
     if (program == null || program.isClosed() || program.isProtected()) {
@@ -450,7 +450,7 @@ public class EventOperationParamsMapper {
     return violation;
   }
 
-  private boolean userCanSearchOuModeALL(User user) {
+  private boolean userCanSearchOrgUnitModeALL(User user) {
     if (user == null) {
       return false;
     }

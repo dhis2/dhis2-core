@@ -272,6 +272,7 @@ public enum ErrorCode {
   E4067("Attribute UID is missing in filter"),
   E4068("No tracked entity attribute found for attribute: `{0}`"),
   E4069("DashboardItem `{0}` object reference `{1}` with id `{2}` not accessible"),
+  E4070("Dashboard `{0}` has a layout with more than 60 columns. `{1}` columns found"),
 
   /* SQL views */
   E4300("SQL query is null"),

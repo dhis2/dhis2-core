@@ -53,14 +53,14 @@ class TrackedEntityQueryTest extends SingleSetupIntegrationTestBase {
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     TrackedEntityType trackedEntityTypeA = createTrackedEntityType('A');
     params.setTrackedEntityType(trackedEntityTypeA);
-    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
+    params.setOrgUnitMode(OrganisationUnitSelectionMode.ALL);
     instanceService.validate(params);
   }
 
   @Test
   void testTeiQueryParamsWithoutEitherProgramOrTrackedEntityType() {
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
+    params.setOrgUnitMode(OrganisationUnitSelectionMode.ALL);
     IllegalQueryException exception =
         assertThrows(IllegalQueryException.class, () -> instanceService.validate(params));
     assertEquals(
