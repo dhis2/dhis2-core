@@ -29,7 +29,9 @@ package org.hisp.dhis.scheduling;
 
 import static java.lang.String.format;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
@@ -46,9 +48,10 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -109,6 +112,15 @@ public interface JobProgress {
   /*
    * Flow Control API:
    */
+
+  /**
+   * OBS! Should only be called after the task is complete and no further progress is tracked.
+   *
+   * @return true, if all processes in this tracking object were successful.
+   */
+  default boolean isSuccessful() {
+    return true;
+  }
 
   /**
    * @return true, if the job got cancelled and requests the processing thread to terminate, else
@@ -539,15 +551,29 @@ public interface JobProgress {
   }
 
   @Getter
+  final class Progress {
+
+    @JsonValue final Deque<Process> sequence;
+
+    public Progress() {
+      this.sequence = new ConcurrentLinkedDeque<>();
+    }
+
+    @JsonCreator
+    public Progress(Deque<Process> sequence) {
+      this.sequence = sequence;
+    }
+  }
+
+  @Getter
+  @NoArgsConstructor
+  @AllArgsConstructor(access = AccessLevel.PROTECTED)
   abstract class Node implements Serializable {
+
     @JsonProperty private String error;
-
     @JsonProperty private String summary;
-
     private Exception cause;
-
     @JsonProperty protected Status status = Status.RUNNING;
-
     @JsonProperty private Date completedTime;
 
     @JsonProperty
@@ -587,23 +613,45 @@ public interface JobProgress {
   }
 
   @Getter
-  @RequiredArgsConstructor
   final class Process extends Node {
     public static Date startedTime(Collection<Process> job, Date defaultValue) {
       return job.isEmpty() ? defaultValue : job.iterator().next().getStartedTime();
     }
 
-    private final Date startedTime = new Date();
-
+    private final Date startedTime;
     @JsonProperty private final String description;
-
-    @JsonProperty private final Deque<Stage> stages = new ConcurrentLinkedDeque<>();
-
+    @JsonProperty private final Deque<Stage> stages;
     @Setter @JsonProperty private String jobId;
-
     @JsonProperty private Date cancelledTime;
-
     @Setter @JsonProperty private String userId;
+
+    public Process(String description) {
+      this.description = description;
+      this.startedTime = new Date();
+      this.stages = new ConcurrentLinkedDeque<>();
+    }
+
+    /** For recreation when de-serializing from string */
+    @JsonCreator
+    public Process(
+        @JsonProperty("error") String error,
+        @JsonProperty("summary") String summary,
+        @JsonProperty("status") Status status,
+        @JsonProperty("startedTime") Date startedTime,
+        @JsonProperty("completedTime") Date completedTime,
+        @JsonProperty("description") String description,
+        @JsonProperty("stages") Deque<Stage> stages,
+        @JsonProperty("jobId") String jobId,
+        @JsonProperty("cancelledTime") Date cancelledTime,
+        @JsonProperty("userId") String userId) {
+      super(error, summary, null, status, completedTime);
+      this.startedTime = startedTime;
+      this.description = description;
+      this.stages = stages;
+      this.jobId = jobId;
+      this.cancelledTime = cancelledTime;
+      this.userId = userId;
+    }
 
     public void cancel() {
       this.cancelledTime = new Date();
@@ -612,9 +660,8 @@ public interface JobProgress {
   }
 
   @Getter
-  @RequiredArgsConstructor
   final class Stage extends Node {
-    private final Date startedTime = new Date();
+    private final Date startedTime;
 
     @JsonProperty private final String description;
 
@@ -625,18 +672,63 @@ public interface JobProgress {
     @JsonProperty private final int totalItems;
 
     @JsonProperty private final FailurePolicy onFailure;
+    @JsonProperty private final Deque<Item> items;
 
-    @JsonProperty private final Deque<Item> items = new ConcurrentLinkedDeque<>();
+    public Stage(String description, int totalItems, FailurePolicy onFailure) {
+      this.description = description;
+      this.totalItems = totalItems;
+      this.onFailure = onFailure;
+      this.startedTime = new Date();
+      this.items = new ConcurrentLinkedDeque<>();
+    }
+
+    @JsonCreator
+    public Stage(
+        @JsonProperty("error") String error,
+        @JsonProperty("summary") String summary,
+        @JsonProperty("status") Status status,
+        @JsonProperty("startedTime") Date startedTime,
+        @JsonProperty("completedTime") Date completedTime,
+        @JsonProperty("description") String description,
+        @JsonProperty("totalItems") int totalItems,
+        @JsonProperty("onFailure") FailurePolicy onFailure,
+        @JsonProperty("items") Deque<Item> items) {
+      super(error, summary, null, status, completedTime);
+      this.description = description;
+      this.totalItems = totalItems;
+      this.onFailure = onFailure;
+      this.items = items;
+      this.startedTime = startedTime;
+    }
   }
 
   @Getter
-  @AllArgsConstructor
   final class Item extends Node {
-    private final Date startedTime = new Date();
+    private final Date startedTime;
 
     @JsonProperty private final String description;
-
     @JsonProperty private final FailurePolicy onFailure;
+
+    public Item(String description, FailurePolicy onFailure) {
+      this.description = description;
+      this.onFailure = onFailure;
+      this.startedTime = new Date();
+    }
+
+    @JsonCreator
+    public Item(
+        @JsonProperty("error") String error,
+        @JsonProperty("summary") String summary,
+        @JsonProperty("status") Status status,
+        @JsonProperty("startedTime") Date startedTime,
+        @JsonProperty("completedTime") Date completedTime,
+        @JsonProperty("description") String description,
+        @JsonProperty("onFailure") FailurePolicy onFailure) {
+      super(error, summary, null, status, completedTime);
+      this.startedTime = startedTime;
+      this.description = description;
+      this.onFailure = onFailure;
+    }
   }
 
   static String getMessage(Exception cause) {

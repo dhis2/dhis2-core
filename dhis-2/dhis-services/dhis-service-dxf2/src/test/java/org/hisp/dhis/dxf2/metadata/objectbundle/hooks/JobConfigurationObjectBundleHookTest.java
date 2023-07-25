@@ -68,7 +68,7 @@ class JobConfigurationObjectBundleHookTest {
   @BeforeEach
   public void setUp() {
     analyticsTableJobConfig = new JobConfiguration();
-    analyticsTableJobConfig.setJobType(JobType.ANALYTICSTABLE_UPDATE);
+    analyticsTableJobConfig.setJobType(JobType.ANALYTICS_TABLE);
     analyticsTableJobConfig.setEnabled(true);
   }
 
@@ -76,11 +76,11 @@ class JobConfigurationObjectBundleHookTest {
   void validateInternalNonConfigurableChangeError() {
     Mockito.when(jobConfigurationService.getJobConfigurationByUid(Mockito.eq("jsdhJSJHD")))
         .thenReturn(analyticsTableJobConfig);
-    Mockito.when(jobService.getJob(Mockito.eq(JobType.ANALYTICSTABLE_UPDATE))).thenReturn(job);
+    Mockito.when(jobService.getJob(Mockito.eq(JobType.ANALYTICS_TABLE))).thenReturn(job);
 
     JobConfiguration jobConfiguration = new JobConfiguration();
     jobConfiguration.setUid("jsdhJSJHD");
-    jobConfiguration.setJobType(JobType.ANALYTICSTABLE_UPDATE);
+    jobConfiguration.setJobType(JobType.ANALYTICS_TABLE);
     jobConfiguration.setCronExpression(CRON_HOURLY);
     jobConfiguration.setEnabled(false);
 
@@ -93,11 +93,11 @@ class JobConfigurationObjectBundleHookTest {
   void validateInternalNonConfigurableChange() {
     Mockito.when(jobConfigurationService.getJobConfigurationByUid(Mockito.eq("jsdhJSJHD")))
         .thenReturn(analyticsTableJobConfig);
-    Mockito.when(jobService.getJob(Mockito.eq(JobType.ANALYTICSTABLE_UPDATE))).thenReturn(job);
+    Mockito.when(jobService.getJob(Mockito.eq(JobType.ANALYTICS_TABLE))).thenReturn(job);
 
     JobConfiguration jobConfiguration = new JobConfiguration();
     jobConfiguration.setUid("jsdhJSJHD");
-    jobConfiguration.setJobType(JobType.ANALYTICSTABLE_UPDATE);
+    jobConfiguration.setJobType(JobType.ANALYTICS_TABLE);
     jobConfiguration.setCronExpression(CRON_HOURLY);
     jobConfiguration.setEnabled(true);
 
@@ -109,12 +109,12 @@ class JobConfigurationObjectBundleHookTest {
   void validateInternalNonConfigurableShownValidationErrorNonE7010() {
     Mockito.when(jobConfigurationService.getJobConfigurationByUid(Mockito.eq("jsdhJSJHD")))
         .thenReturn(analyticsTableJobConfig);
-    Mockito.when(jobService.getJob(Mockito.eq(JobType.ANALYTICSTABLE_UPDATE))).thenReturn(job);
+    Mockito.when(jobService.getJob(Mockito.eq(JobType.ANALYTICS_TABLE))).thenReturn(job);
     Mockito.when(job.validate()).thenReturn(new ErrorReport(Class.class, ErrorCode.E7000));
 
     JobConfiguration jobConfiguration = new JobConfiguration();
     jobConfiguration.setUid("jsdhJSJHD");
-    jobConfiguration.setJobType(JobType.ANALYTICSTABLE_UPDATE);
+    jobConfiguration.setJobType(JobType.ANALYTICS_TABLE);
     jobConfiguration.setCronExpression(CRON_HOURLY);
     jobConfiguration.setEnabled(true);
 
@@ -150,13 +150,13 @@ class JobConfigurationObjectBundleHookTest {
   void validateInternalNonConfigurableShownValidationErrorE7010NoPrevious() {
     Mockito.when(jobConfigurationService.getJobConfigurationByUid(Mockito.eq("jsdhJSJHD")))
         .thenReturn(null);
-    Mockito.when(jobService.getJob(Mockito.eq(JobType.ANALYTICSTABLE_UPDATE))).thenReturn(job);
+    Mockito.when(jobService.getJob(Mockito.eq(JobType.ANALYTICS_TABLE))).thenReturn(job);
     Mockito.when(job.validate()).thenReturn(new ErrorReport(Class.class, ErrorCode.E7010));
 
-    analyticsTableJobConfig.setJobType(JobType.ANALYTICSTABLE_UPDATE);
+    analyticsTableJobConfig.setJobType(JobType.ANALYTICS_TABLE);
     JobConfiguration jobConfiguration = new JobConfiguration();
     jobConfiguration.setUid("jsdhJSJHD");
-    jobConfiguration.setJobType(JobType.ANALYTICSTABLE_UPDATE);
+    jobConfiguration.setJobType(JobType.ANALYTICS_TABLE);
     jobConfiguration.setCronExpression(CRON_HOURLY);
     jobConfiguration.setEnabled(true);
 
@@ -169,12 +169,12 @@ class JobConfigurationObjectBundleHookTest {
   void validateInternalNonConfigurableIgnoredValidationErrorE7010() {
     Mockito.when(jobConfigurationService.getJobConfigurationByUid(Mockito.eq("jsdhJSJHD")))
         .thenReturn(analyticsTableJobConfig);
-    Mockito.when(jobService.getJob(Mockito.eq(JobType.ANALYTICSTABLE_UPDATE))).thenReturn(job);
+    Mockito.when(jobService.getJob(Mockito.eq(JobType.ANALYTICS_TABLE))).thenReturn(job);
     Mockito.when(job.validate()).thenReturn(new ErrorReport(Class.class, ErrorCode.E7010));
 
     JobConfiguration jobConfiguration = new JobConfiguration();
     jobConfiguration.setUid("jsdhJSJHD");
-    jobConfiguration.setJobType(JobType.ANALYTICSTABLE_UPDATE);
+    jobConfiguration.setJobType(JobType.ANALYTICS_TABLE);
     jobConfiguration.setCronExpression(CRON_HOURLY);
     jobConfiguration.setEnabled(true);
 
@@ -187,11 +187,11 @@ class JobConfigurationObjectBundleHookTest {
     String jobConfigUid = "jsdhJSJHD";
     Mockito.when(jobConfigurationService.getJobConfigurationByUid(Mockito.eq(jobConfigUid)))
         .thenReturn(analyticsTableJobConfig);
-    Mockito.when(jobService.getJob(Mockito.eq(JobType.ANALYTICSTABLE_UPDATE))).thenReturn(job);
+    Mockito.when(jobService.getJob(Mockito.eq(JobType.ANALYTICS_TABLE))).thenReturn(job);
 
     JobConfiguration jobConfiguration = new JobConfiguration();
     jobConfiguration.setUid(jobConfigUid);
-    jobConfiguration.setJobType(JobType.ANALYTICSTABLE_UPDATE);
+    jobConfiguration.setJobType(JobType.ANALYTICS_TABLE);
     jobConfiguration.setEnabled(true);
 
     List<ErrorReport> errorReports = hook.validate(jobConfiguration, null);

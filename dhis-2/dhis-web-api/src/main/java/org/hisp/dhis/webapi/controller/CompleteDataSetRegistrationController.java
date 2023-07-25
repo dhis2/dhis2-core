@@ -315,8 +315,7 @@ public class CompleteDataSetRegistrationController {
         new JobConfiguration(
             "inMemoryCompleteDataSetRegistrationImport",
             COMPLETE_DATA_SET_REGISTRATION_IMPORT,
-            currentUserService.getCurrentUser().getUid(),
-            true);
+            currentUserService.getCurrentUser().getUid());
 
     taskExecutor.executeTask(
         new ImportCompleteDataSetRegistrationsTask(

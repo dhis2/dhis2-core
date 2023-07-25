@@ -68,7 +68,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * API for scheduler list and named queues (sequences).
+ * API for scheduler list and named queues (sequences). This is mostly a controller to directly
+ * support the needs of the scheduler app.
  *
  * @author Jan Bernitt
  */
@@ -78,8 +79,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class JobSchedulerController {
-  private final JobConfigurationService jobConfigurationService;
 
+  private final JobConfigurationService jobConfigurationService;
   private final JobQueueService jobQueueService;
 
   @GetMapping

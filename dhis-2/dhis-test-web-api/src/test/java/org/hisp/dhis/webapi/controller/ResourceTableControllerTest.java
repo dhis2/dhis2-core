@@ -27,15 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.WebTestConfiguration.TestSchedulingManager;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -46,19 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class ResourceTableControllerTest extends DhisControllerConvenienceTest {
 
-  @Autowired private SchedulingManager schedulingManager;
-
-  @BeforeEach
-  void setUp() {
-    ((TestSchedulingManager) schedulingManager).setEnabled(false);
-  }
-
-  @AfterEach
-  void tearDown() {
-    TestSchedulingManager testSchedulingManager = (TestSchedulingManager) schedulingManager;
-    testSchedulingManager.setEnabled(true);
-    testSchedulingManager.setRunning(false);
-  }
+  @Autowired private JobSchedulerService jobSchedulerService;
 
   @Test
   void testAnalytics() {
@@ -68,29 +50,6 @@ class ResourceTableControllerTest extends DhisControllerConvenienceTest {
         "OK",
         "Initiated inMemoryAnalyticsJob",
         POST("/resourceTables/analytics").content(HttpStatus.OK));
-  }
-
-  @Test
-  void testAnalytics_SecondRequestWhileRunning() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Initiated inMemoryAnalyticsJob",
-        POST("/resourceTables/analytics").content(HttpStatus.OK));
-
-    // we fake that the first request above would internally still run (in
-    // tests it never starts)
-    ((TestSchedulingManager) schedulingManager).setRunning(true);
-
-    JsonWebMessage message =
-        assertWebMessage(
-            "Conflict",
-            409,
-            "ERROR",
-            "Job of type ANALYTICS_TABLE is already running",
-            POST("/resourceTables/analytics").content(HttpStatus.CONFLICT));
-    assertEquals("FAILED", message.getResponse().getString("jobStatus").string());
   }
 
   @Test

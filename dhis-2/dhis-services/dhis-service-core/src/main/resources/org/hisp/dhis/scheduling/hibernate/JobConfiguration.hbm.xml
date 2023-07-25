@@ -32,6 +32,14 @@
             </type>
         </property>
 
+        <property name="schedulingType" column="schedulingtype" not-null="true" length="12">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.hisp.dhis.scheduling.SchedulingType</param>
+                <param name="useNamed">true</param>
+                <param name="type">12</param>
+            </type>
+        </property>
+
         <property name="jobStatus" column="jobstatus" not-null="true" length="120" >
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">org.hisp.dhis.scheduling.JobStatus</param>
@@ -52,7 +60,9 @@
 
         <property name="lastExecuted" type="timestamp" />
 
-        <property name="lastRuntimeExecution" type="text" />
+        <property name="lastFinished" column="lastfinished" type="timestamp" />
+
+        <property name="lastAlive" column="lastalive" type="timestamp" />
 
         <property name="enabled" not-null="true" type="boolean" />
 

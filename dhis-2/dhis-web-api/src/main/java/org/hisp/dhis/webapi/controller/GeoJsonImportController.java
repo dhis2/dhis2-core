@@ -118,8 +118,7 @@ public class GeoJsonImportController {
       throws IOException {
     if (async) {
       JobConfiguration config =
-          new JobConfiguration(
-              "GeoJSON import", JobType.GEOJSON_IMPORT, params.getUser().getUid(), true);
+          new JobConfiguration("GeoJSON import", JobType.GEOJSON_IMPORT, params.getUser().getUid());
       taskExecutor.execute(new GeoJsonAsyncImporter(params, config, toBufferedInputStream(data)));
       return jobConfigurationReport(config);
     }

@@ -390,10 +390,7 @@ public class EnrollmentController {
   private WebMessage startAsyncImport(ImportOptions importOptions, List<Enrollment> enrollments) {
     JobConfiguration jobId =
         new JobConfiguration(
-            "inMemoryEventImport",
-            ENROLLMENT_IMPORT,
-            currentUserService.getCurrentUser().getUid(),
-            true);
+            "inMemoryEventImport", ENROLLMENT_IMPORT, currentUserService.getCurrentUser().getUid());
     taskExecutor.executeTask(
         new ImportEnrollmentsTask(enrollments, enrollmentService, importOptions, jobId));
 

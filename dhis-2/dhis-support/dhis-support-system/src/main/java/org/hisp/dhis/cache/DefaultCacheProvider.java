@@ -127,7 +127,6 @@ public class DefaultCacheProvider implements CacheProvider {
     oldTrackerSecurityCache,
     securityCache,
     runningJobsInfo,
-    completedJobsInfo,
     jobCancelRequested,
     dataIntegritySummaryCache,
     dataIntegrityDetailsCache
@@ -609,14 +608,6 @@ public class DefaultCacheProvider implements CacheProvider {
     return registerCache(
         this.<V>newBuilder()
             .forRegion(Region.runningJobsInfo.name())
-            .expireAfterWrite(60, SECONDS));
-  }
-
-  @Override
-  public <V> Cache<V> createCompletedJobsInfoCache() {
-    return registerCache(
-        this.<V>newBuilder()
-            .forRegion(Region.completedJobsInfo.name())
             .expireAfterWrite(60, SECONDS));
   }
 

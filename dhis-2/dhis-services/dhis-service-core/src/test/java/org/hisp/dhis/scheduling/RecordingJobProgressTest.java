@@ -48,15 +48,15 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests the processing (in particular the {@link
- * org.hisp.dhis.scheduling.JobProgress.FailurePolicy}) of the {@link ControlledJobProgress}
+ * org.hisp.dhis.scheduling.JobProgress.FailurePolicy}) of the {@link RecordingJobProgress}
  * implementation.
  *
  * @author Jan Bernitt
  */
-class ControlledJobProgressTest {
+class RecordingJobProgressTest {
   private final JobConfiguration config = createJobConfig();
 
-  private final JobProgress progress = new ControlledJobProgress(config);
+  private final JobProgress progress = new RecordingJobProgress(config);
 
   @Test
   void testSkipItem_NoFailures() {

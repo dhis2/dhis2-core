@@ -71,8 +71,7 @@ class JobConfigurationServiceTest extends SingleSetupIntegrationTestBase {
             .findFirst()
             .get();
     assertNotNull(jobType);
-    assertEquals(
-        JobType.CONTINUOUS_ANALYTICS_TABLE.getSchedulingType(), jobType.getSchedulingType());
+    assertEquals(SchedulingType.FIXED_DELAY, jobType.getSchedulingType());
   }
 
   @Test

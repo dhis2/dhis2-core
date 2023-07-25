@@ -27,23 +27,19 @@
  */
 package org.hisp.dhis.webapi.controller.scheduling;
 
-import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -64,20 +60,21 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.Tags("system")
 @RestController
 @RequestMapping(value = JobConfigurationSchemaDescriptor.API_ENDPOINT)
+@RequiredArgsConstructor
 public class JobConfigurationController extends AbstractCrudController<JobConfiguration> {
+
   private final JobConfigurationService jobConfigurationService;
+  private final JobSchedulerService jobSchedulerService;
 
-  private final SchedulingManager schedulingManager;
-
-  public JobConfigurationController(
-      JobConfigurationService jobConfigurationService, SchedulingManager schedulingManager) {
-    this.jobConfigurationService = jobConfigurationService;
-    this.schedulingManager = schedulingManager;
+  @GetMapping("/due")
+  public List<JobConfiguration> getDueJobConfigurations(@RequestParam int seconds) {
+    return jobConfigurationService.getDueJobConfigurations(seconds);
   }
 
-  @GetMapping(params = "dueInSeconds")
-  public List<JobConfiguration> getDueJobConfigurations(@RequestParam int dueInSeconds) {
-    return jobConfigurationService.getDueJobConfigurations(dueInSeconds);
+  @GetMapping("/stale")
+  public List<JobConfiguration> getStaleJobConfigurations(@RequestParam int seconds) {
+    // TODO better use objectList with adding a filter? see OU special methods
+    return jobConfigurationService.getStaleConfigurations(seconds);
   }
 
   @GetMapping(
@@ -96,62 +93,38 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
       value = "{uid}/execute",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public ObjectReport executeJobConfiguration(@PathVariable("uid") String uid)
-      throws NotFoundException {
-    JobConfiguration jobConfiguration = jobConfigurationService.getJobConfigurationByUid(uid);
+      throws NotFoundException, ConflictException {
 
-    if (jobConfiguration == null) {
-      throw new NotFoundException(JobConfiguration.class, uid);
-    }
+    jobSchedulerService.executeNow(uid);
 
-    ObjectReport objectReport = new ObjectReport(JobConfiguration.class, 0);
-
-    boolean success = schedulingManager.executeNow(jobConfiguration);
-
-    if (!success) {
-      objectReport.addErrorReport(
-          new ErrorReport(
-              JobConfiguration.class,
-              new ErrorMessage(ErrorCode.E7006, jobConfiguration.getName())));
-    }
-
-    return objectReport;
+    // OBS! This response is kept for better backwards compatibility
+    return new ObjectReport(JobConfiguration.class, 0);
   }
 
   @Override
   protected void preCreateEntity(JobConfiguration jobConfiguration) throws ConflictException {
-    checkConfigurable(jobConfiguration, "Job %s must be configurable but was not.");
+    checkModifiable(jobConfiguration, "Job %s must be configurable but was not.");
   }
 
   @Override
   protected void preUpdateEntity(JobConfiguration before, JobConfiguration after)
       throws ConflictException {
-    checkConfigurable(before, "Job %s is a system job that cannot be modified.");
-    checkConfigurable(after, "Job %s can not be changed into a system job.");
+    checkModifiable(before, "Job %s is a system job that cannot be modified.");
+    checkModifiable(after, "Job %s can not be changed into a system job.");
   }
 
   @Override
   protected void preDeleteEntity(JobConfiguration jobConfiguration) throws ConflictException {
-    checkConfigurable(jobConfiguration, "Job %s is a system job that cannot be deleted.");
+    checkModifiable(jobConfiguration, "Job %s is a system job that cannot be deleted.");
   }
 
   @Override
   protected void preUpdateItems(JobConfiguration jobConfiguration, IdentifiableObjects items)
       throws ConflictException {
-    checkConfigurable(jobConfiguration, "Job %s is a system job that cannot be modified.");
+    checkModifiable(jobConfiguration, "Job %s is a system job that cannot be modified.");
   }
 
-  @Override
-  protected void postPatchEntity(JsonPatch patch, JobConfiguration jobConfiguration) {
-    if (!jobConfiguration.isEnabled()) {
-      schedulingManager.stop(jobConfiguration);
-    }
-    jobConfigurationService.refreshScheduling(jobConfiguration);
-    if (jobConfiguration.getJobStatus() != DISABLED) {
-      schedulingManager.schedule(jobConfiguration);
-    }
-  }
-
-  private void checkConfigurable(JobConfiguration configuration, String message)
+  private void checkModifiable(JobConfiguration configuration, String message)
       throws ConflictException {
     if (!configuration.isConfigurable()) {
       String identifier = configuration.getUid();

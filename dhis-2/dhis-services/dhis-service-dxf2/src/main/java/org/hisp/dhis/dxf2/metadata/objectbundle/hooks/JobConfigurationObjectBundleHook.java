@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -46,7 +44,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobService;
-import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.scheduling.SchedulingType;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
 
@@ -57,10 +55,8 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<JobConfiguration> {
+
   private final JobConfigurationService jobConfigurationService;
-
-  private final SchedulingManager schedulingManager;
-
   private final JobService jobService;
 
   @Override
@@ -91,39 +87,6 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
   @Override
   public void preCreate(JobConfiguration jobConfiguration, ObjectBundle bundle) {
     setDefaultJobParameters(jobConfiguration);
-  }
-
-  @Override
-  public void preUpdate(
-      JobConfiguration newObject, JobConfiguration persObject, ObjectBundle bundle) {
-    newObject.setLastExecuted(persObject.getLastExecuted());
-    newObject.setLastExecutedStatus(persObject.getLastExecutedStatus());
-    newObject.setLastRuntimeExecution(persObject.getLastRuntimeExecution());
-
-    setDefaultJobParameters(newObject);
-
-    schedulingManager.stop(persObject);
-  }
-
-  @Override
-  public void preDelete(JobConfiguration persistedObject, ObjectBundle bundle) {
-
-    schedulingManager.stop(persistedObject);
-    sessionFactory.getCurrentSession().delete(persistedObject);
-  }
-
-  @Override
-  public void postCreate(JobConfiguration jobConfiguration, ObjectBundle bundle) {
-    if (jobConfiguration.getJobStatus() != DISABLED) {
-      schedulingManager.schedule(jobConfiguration);
-    }
-  }
-
-  @Override
-  public void postUpdate(JobConfiguration jobConfiguration, ObjectBundle bundle) {
-    if (jobConfiguration.getJobStatus() != DISABLED) {
-      schedulingManager.schedule(jobConfiguration);
-    }
   }
 
   // -------------------------------------------------------------------------
@@ -206,7 +169,7 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
 
   private void validateJobConfigurationCronOrFixedDelay(
       Consumer<ErrorReport> addReports, JobConfiguration jobConfiguration) {
-    if (jobConfiguration.getJobType().isCronSchedulingType()) {
+    if (jobConfiguration.getSchedulingType() == SchedulingType.CRON) {
       if (jobConfiguration.getCronExpression() == null) {
         addReports.accept(
             new ErrorReport(JobConfiguration.class, ErrorCode.E7004, jobConfiguration.getUid()));
@@ -215,7 +178,7 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
       }
     }
 
-    if (jobConfiguration.getJobType().isFixedDelaySchedulingType()
+    if (jobConfiguration.getSchedulingType() == SchedulingType.FIXED_DELAY
         && jobConfiguration.getDelay() == null) {
       addReports.accept(
           new ErrorReport(JobConfiguration.class, ErrorCode.E7007, jobConfiguration.getUid()));
@@ -248,7 +211,7 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
    * @param jobConfiguration the {@link JobConfiguration}.
    */
   private void setDefaultJobParameters(JobConfiguration jobConfiguration) {
-    if (!jobConfiguration.isInMemoryJob() && jobConfiguration.getJobParameters() == null) {
+    if (jobConfiguration.getJobParameters() == null) {
       jobConfiguration.setJobParameters(getDefaultJobParameters(jobConfiguration));
     }
   }

@@ -33,7 +33,6 @@ import static org.hisp.dhis.scheduling.JobProgress.getMessage;
 import java.time.Duration;
 import java.util.Deque;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
@@ -42,8 +41,8 @@ import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
- * The {@link ControlledJobProgress} take care of the flow control aspect of {@link JobProgress}
- * API. Additional tracking can be done by wrapping another {@link JobProgress} as {@link #tracker}.
+ * The {@link RecordingJobProgress} take care of the flow control aspect of {@link JobProgress} API.
+ * Additional tracking can be done by wrapping another {@link JobProgress} as {@link #tracker}.
  *
  * <p>The implementation does allow for parallel items but would merge parallel stages or processes.
  * Stages and processes should always be sequential in a main thread.
@@ -51,54 +50,45 @@ import org.hisp.dhis.user.CurrentUserUtil;
  * @author Jan Bernitt
  */
 @Slf4j
-public class ControlledJobProgress implements JobProgress {
+public class RecordingJobProgress implements JobProgress {
+
   private final MessageService messageService;
-
   private final JobConfiguration configuration;
-
   private final JobProgress tracker;
-
   private final boolean abortOnFailure;
+  private final Runnable observer;
 
   private final AtomicBoolean cancellationRequested = new AtomicBoolean();
-
   private final AtomicBoolean abortAfterFailure = new AtomicBoolean();
-
   private final AtomicBoolean skipCurrentStage = new AtomicBoolean();
-
-  private final Deque<Process> processes = new ConcurrentLinkedDeque<>();
-
+  private final Progress progress = new Progress();
   private final AtomicReference<Process> incompleteProcess = new AtomicReference<>();
-
   private final AtomicReference<Stage> incompleteStage = new AtomicReference<>();
-
   private final ThreadLocal<Item> incompleteItem = new ThreadLocal<>();
-
   private final boolean usingErrorNotification;
 
-  private final boolean logInfoAsDebug;
-
-  public ControlledJobProgress(JobConfiguration configuration) {
-    this(null, configuration, NoopJobProgress.INSTANCE, true);
+  public RecordingJobProgress(JobConfiguration configuration) {
+    this(null, configuration, NoopJobProgress.INSTANCE, true, () -> {});
   }
 
-  public ControlledJobProgress(
+  public RecordingJobProgress(
       MessageService messageService,
       JobConfiguration configuration,
       JobProgress tracker,
-      boolean abortOnFailure) {
+      boolean abortOnFailure,
+      Runnable observer) {
     this.messageService = messageService;
     this.configuration = configuration;
     this.tracker = tracker;
     this.abortOnFailure = abortOnFailure;
+    this.observer = observer;
     this.usingErrorNotification =
         messageService != null && configuration.getJobType().isUsingErrorNotification();
-    this.logInfoAsDebug = configuration.getJobType().isDefaultLogLevelDebug();
   }
 
   public void requestCancellation() {
     if (cancellationRequested.compareAndSet(false, true)) {
-      processes.forEach(
+      progress.sequence.forEach(
           p -> {
             p.cancel();
             logWarn(p, "cancelled", "cancellation requested by user");
@@ -106,8 +96,24 @@ public class ControlledJobProgress implements JobProgress {
     }
   }
 
-  public Deque<Process> getProcesses() {
-    return processes;
+  public Progress getProgress() {
+    return progress;
+  }
+
+  @Override
+  public boolean isSuccessful() {
+    autoComplete();
+    return !isCancellationRequested()
+        && progress.sequence.stream().allMatch(p -> p.getStatus() == JobProgress.Status.SUCCESS);
+  }
+
+  public void autoComplete() {
+    Process process = progress.sequence.peekLast();
+    if (process != null && process.getStatus() == Status.RUNNING) {
+      // automatically complete processes that were not cleanly
+      // complected by calling completedProcess at the end of the job
+      completedProcess("(process completed implicitly)");
+    }
   }
 
   @Override
@@ -125,6 +131,7 @@ public class ControlledJobProgress implements JobProgress {
     if (isCancellationRequested()) {
       throw new CancellationException();
     }
+    observer.run();
     tracker.startingProcess(description);
     incompleteProcess.set(null);
     incompleteStage.set(null);
@@ -135,6 +142,7 @@ public class ControlledJobProgress implements JobProgress {
 
   @Override
   public void completedProcess(String summary) {
+    observer.run();
     tracker.completedProcess(summary);
     Process process = getOrAddLastIncompleteProcess();
     process.complete(summary);
@@ -143,8 +151,9 @@ public class ControlledJobProgress implements JobProgress {
 
   @Override
   public void failedProcess(String error) {
+    observer.run();
     tracker.failedProcess(error);
-    Process process = processes.peekLast();
+    Process process = progress.sequence.peekLast();
     if (process == null || process.getCompletedTime() != null) {
       return;
     }
@@ -159,8 +168,9 @@ public class ControlledJobProgress implements JobProgress {
 
   @Override
   public void failedProcess(Exception cause) {
+    observer.run();
     tracker.failedProcess(cause);
-    Process process = processes.peekLast();
+    Process process = progress.sequence.peekLast();
     if (process == null || process.getCompletedTime() != null) {
       return;
     }
@@ -178,6 +188,7 @@ public class ControlledJobProgress implements JobProgress {
 
   @Override
   public void startingStage(String description, int workItems, FailurePolicy onFailure) {
+    observer.run();
     if (isCancellationRequested()) {
       throw new CancellationException();
     }
@@ -190,6 +201,7 @@ public class ControlledJobProgress implements JobProgress {
 
   @Override
   public void completedStage(String summary) {
+    observer.run();
     tracker.completedStage(summary);
     Stage stage = getOrAddLastIncompleteStage();
     stage.complete(summary);
@@ -198,6 +210,7 @@ public class ControlledJobProgress implements JobProgress {
 
   @Override
   public void failedStage(String error) {
+    observer.run();
     tracker.failedStage(error);
     Stage stage = getOrAddLastIncompleteStage();
     stage.completeExceptionally(error, null);
@@ -209,6 +222,7 @@ public class ControlledJobProgress implements JobProgress {
 
   @Override
   public void failedStage(Exception cause) {
+    observer.run();
     cause = cancellationAsAbort(cause);
     tracker.failedStage(cause);
     String message = getMessage(cause);
@@ -223,6 +237,7 @@ public class ControlledJobProgress implements JobProgress {
 
   @Override
   public void startingWorkItem(String description, FailurePolicy onFailure) {
+    observer.run();
     tracker.startingWorkItem(description, onFailure);
     Item item = addItemRecord(getOrAddLastIncompleteStage(), description, onFailure);
     logDebug(item, "started", description);
@@ -230,6 +245,7 @@ public class ControlledJobProgress implements JobProgress {
 
   @Override
   public void completedWorkItem(String summary) {
+    observer.run();
     tracker.completedWorkItem(summary);
     Item item = getOrAddLastIncompleteItem();
     item.complete(summary);
@@ -238,6 +254,7 @@ public class ControlledJobProgress implements JobProgress {
 
   @Override
   public void failedWorkItem(String error) {
+    observer.run();
     tracker.failedWorkItem(error);
     Item item = getOrAddLastIncompleteItem();
     item.completeExceptionally(error, null);
@@ -249,6 +266,7 @@ public class ControlledJobProgress implements JobProgress {
 
   @Override
   public void failedWorkItem(Exception cause) {
+    observer.run();
     tracker.failedWorkItem(cause);
     String message = getMessage(cause);
     Item item = getOrAddLastIncompleteItem();
@@ -282,7 +300,7 @@ public class ControlledJobProgress implements JobProgress {
         && cancellationRequested.compareAndSet(false, true)
         && abortAfterFailure.compareAndSet(false, true)
         && abortProcess) {
-      processes.forEach(
+      progress.sequence.forEach(
           process -> {
             if (!process.isComplete()) {
               process.completeExceptionally(error, cause);
@@ -307,7 +325,7 @@ public class ControlledJobProgress implements JobProgress {
       process.setUserId(user.getUid());
     }
     incompleteProcess.set(process);
-    processes.add(process);
+    progress.sequence.add(process);
     return process;
   }
 
@@ -383,11 +401,7 @@ public class ControlledJobProgress implements JobProgress {
   }
 
   private void logInfo(Node source, String action, String message) {
-    if (logInfoAsDebug) {
-      if (log.isDebugEnabled()) {
-        log.debug(formatLogMessage(source, action, message));
-      }
-    } else if (log.isInfoEnabled()) {
+    if (log.isInfoEnabled()) {
       log.info(formatLogMessage(source, action, message));
     }
   }

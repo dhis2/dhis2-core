@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.scheduling;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.hisp.dhis.scheduling.JobType.values;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -37,11 +36,10 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.time.Clock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -56,9 +54,9 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.scheduling.JobType.Defaults;
 import org.hisp.dhis.schema.Property;
-import org.springframework.scheduling.support.CronTrigger;
-import org.springframework.scheduling.support.SimpleTriggerContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,44 +65,81 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service("jobConfigurationService")
+@Service
 public class DefaultJobConfigurationService implements JobConfigurationService {
 
   private final JobConfigurationStore jobConfigurationStore;
 
   @Override
   @Transactional
-  public long addJobConfiguration(JobConfiguration jobConfiguration) {
-    if (!jobConfiguration.isInMemoryJob()) {
-      jobConfigurationStore.save(jobConfiguration);
-    }
+  public String create(JobConfiguration config) throws ConflictException {
+    jobConfigurationStore.save(config);
+    return config.getUid();
+  }
 
+  @Override
+  @Transactional
+  public int createDefaultJobs() {
+    int created = 0;
+    Set<String> jobIds = jobConfigurationStore.getAllIds();
+    for (JobType t : JobType.values()) {
+      if (t.getDefaults() != null && !jobIds.contains(t.getDefaults().uid())) {
+        createDefaultJob(t);
+        created++;
+      }
+    }
+    return created;
+  }
+
+  @Override
+  @Transactional
+  public void createHeartbeatJob() {
+    JobConfiguration config = jobConfigurationStore.getByUid(JobType.HEARTBEAT.getDefaults().uid());
+    if (config == null) {
+      createDefaultJob(JobType.HEARTBEAT);
+    }
+  }
+
+  private void createDefaultJob(JobType type) {
+    Defaults job = type.getDefaults();
+    JobConfiguration config = new JobConfiguration(job.name(), type, job.cronExpression(), null);
+    config.setDelay(job.delay());
+    config.setUid(job.uid());
+    if (job.delay() != null) config.setSchedulingType(SchedulingType.FIXED_DELAY);
+    jobConfigurationStore.save(config);
+  }
+
+  @Override
+  @Transactional
+  public int updateDisabledJobs() {
+    return jobConfigurationStore.updateDisabledJobs();
+  }
+
+  @Override
+  @Transactional
+  public int deleteFinishedJobs(int ttlSeconds) {
+    // TODO negative TTL => load config value
+    return jobConfigurationStore.deleteFinishedJobs(ttlSeconds);
+  }
+
+  @Override
+  @Transactional
+  public long addJobConfiguration(JobConfiguration jobConfiguration) {
+    jobConfigurationStore.save(jobConfiguration);
     return jobConfiguration.getId();
   }
 
   @Override
   @Transactional
-  public void addJobConfigurations(List<JobConfiguration> jobConfigurations) {
-    jobConfigurations.forEach(this::addJobConfiguration);
-  }
-
-  @Override
-  @Transactional
   public long updateJobConfiguration(JobConfiguration jobConfiguration) {
-    if (!jobConfiguration.isInMemoryJob()) {
-      jobConfigurationStore.update(jobConfiguration);
-    }
-
+    jobConfigurationStore.update(jobConfiguration);
     return jobConfiguration.getId();
   }
 
   @Override
   @Transactional
   public void deleteJobConfiguration(JobConfiguration jobConfiguration) {
-    if (!jobConfiguration.isInMemoryJob()) {
-      JobConfiguration existing = jobConfigurationStore.loadByUid(jobConfiguration.getUid());
-      jobConfigurationStore.delete(existing);
-    }
+    jobConfigurationStore.delete(jobConfigurationStore.loadByUid(jobConfiguration.getUid()));
   }
 
   @Override
@@ -128,37 +163,27 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Override
   @Transactional(readOnly = true)
   public List<JobConfiguration> getJobConfigurations(JobType type) {
-    return jobConfigurationStore.getAll().stream()
-        .filter(config -> config.getJobType() == type)
-        .collect(toUnmodifiableList());
+    return jobConfigurationStore.getJobConfigurations(type);
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds) {
-    long windowMillis = dueInNextSeconds * 1000L;
-    Clock time = Clock.systemDefaultZone();
     Set<String> due = new HashSet<>();
-    long nowMillis = new Date().getTime();
-    for (JobConfigurationTrigger trigger : jobConfigurationStore.getAllTriggers()) {
-      if (trigger.getCronExpression() != null) {
-        Date next =
-            new CronTrigger(trigger.getCronExpression())
-                .nextExecutionTime(new SimpleTriggerContext(time));
-        if (next != null && nowMillis + windowMillis > next.getTime())
-          due.add(trigger.getUid());
-      } else if (trigger.getDelay() != null) {
-        if (trigger.getLastExecuted() == null) {
-         due.add(trigger.getUid());
-        } else {
-          long executeTime = trigger.getLastExecuted().getTime() + (trigger.getDelay() * 1000L);
-          if (executeTime > nowMillis && executeTime < nowMillis + windowMillis) {
-            due.add(trigger.getUid());
-          }
-        }
-      }
+    Instant now = Instant.now();
+    Instant endOfWindow = now.plusSeconds(dueInNextSeconds);
+    for (JobConfiguration trigger : jobConfigurationStore.getAllTriggers()) {
+      Instant dueTime = trigger.nextExecutionTime(now);
+      if (dueTime != null && dueTime.isBefore(endOfWindow)) due.add(trigger.getUid());
     }
     return due.isEmpty() ? List.of() : jobConfigurationStore.getByUid(due);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<JobConfiguration> getStaleConfigurations(int staleForSeconds) {
+    // TODO negative => default
+    return jobConfigurationStore.getStaleConfigurations(staleForSeconds);
   }
 
   @Override
@@ -167,7 +192,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     Map<String, Map<String, Property>> propertyMap = Maps.newHashMap();
 
     for (JobType jobType : values()) {
-      if (!jobType.isConfigurable()) {
+      if (!jobType.isUserDefined()) {
         continue;
       }
 
@@ -185,7 +210,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     List<JobTypeInfo> jobTypes = new ArrayList<>();
 
     for (JobType jobType : values()) {
-      if (!jobType.isConfigurable()) {
+      if (!jobType.isUserDefined()) {
         continue;
       }
 
@@ -199,18 +224,6 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     }
 
     return jobTypes;
-  }
-
-  @Override
-  @Transactional
-  public void refreshScheduling(JobConfiguration jobConfiguration) {
-    if (jobConfiguration.isEnabled()) {
-      jobConfiguration.setJobStatus(JobStatus.SCHEDULED);
-    } else {
-      jobConfiguration.setJobStatus(JobStatus.DISABLED);
-    }
-
-    jobConfigurationStore.update(jobConfiguration);
   }
 
   // -------------------------------------------------------------------------

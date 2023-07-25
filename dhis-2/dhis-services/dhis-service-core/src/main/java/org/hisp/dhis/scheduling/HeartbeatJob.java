@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.startup;
+package org.hisp.dhis.scheduling;
+
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobScheduler;
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.springframework.stereotype.Component;
 
 /**
- * Adapter to start the {@link JobScheduler} as a {@link
- * org.hisp.dhis.system.startup.StartupRoutine}.
+ * Performs small general signal calls to perform updates that need to be maintained every n
+ * seconds.
+ *
+ * <p>The reason this is better placed in this job than to execute it directly with an {@link
+ * java.util.concurrent.ExecutorService} is to have it in sync with the general scheduling loop.
+ *
+ * <p>The second good reason is that using jobs can utilise the {@link JobProgress} tracking to
+ * improve error handling and visibility without making it complicated.
  *
  * @author Jan Bernitt
+ * @since 2.41
  */
+@Component
 @RequiredArgsConstructor
-public class SchedulerStart extends AbstractStartupRoutine {
+public class HeartbeatJob implements Job {
 
-  private final JobScheduler scheduler;
+  private final JobSchedulerService jobSchedulerService;
   private final JobConfigurationService jobConfigurationService;
 
   @Override
-  public void execute() throws Exception {
-    jobConfigurationService.createHeartbeatJob();
-    scheduler.start();
+  public JobType getJobType() {
+    return JobType.HEARTBEAT;
+  }
+
+  @Override
+  public void execute(JobConfiguration config, JobProgress progress) {
+    progress.startingProcess("Heartbeat");
+    progress.startingStage("Synchronize scheduler state in cluster", SKIP_STAGE);
+    progress.runStage(jobSchedulerService::syncCluster);
+    progress.startingStage("Auto spawn default jobs when missing", SKIP_STAGE);
+    progress.runStage(jobConfigurationService::createDefaultJobs);
+    progress.startingStage("Update statue to DISABLED for non enabled jobs", SKIP_STAGE);
+    progress.runStage(jobConfigurationService::updateDisabledJobs);
+    progress.startingStage("Cleanup finished ONCE_ASAP jobs", SKIP_STAGE);
+    progress.runStage(() -> jobConfigurationService.deleteFinishedJobs(-1));
+    progress.completedProcess(null);
   }
 }

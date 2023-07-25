@@ -1191,10 +1191,7 @@ public class EventController {
   private WebMessage startAsyncImport(ImportOptions importOptions, List<Event> events) {
     JobConfiguration jobId =
         new JobConfiguration(
-            "inMemoryEventImport",
-            EVENT_IMPORT,
-            currentUserService.getCurrentUser().getUid(),
-            true);
+            "inMemoryEventImport", EVENT_IMPORT, currentUserService.getCurrentUser().getUid());
     taskExecutor.executeTask(new ImportEventsTask(events, eventService, importOptions, jobId));
 
     return jobConfigurationReport(jobId).setLocation("/system/tasks/" + EVENT_IMPORT);

@@ -144,8 +144,7 @@ public class PdfFormController {
         new JobConfiguration(
             "inMemoryDataValueImport",
             JobType.DATAVALUE_IMPORT,
-            currentUserService.getCurrentUser().getUid(),
-            true);
+            currentUserService.getCurrentUser().getUid());
 
     notifier.clear(jobId);
 

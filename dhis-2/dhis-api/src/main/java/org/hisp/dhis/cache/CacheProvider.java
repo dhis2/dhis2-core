@@ -130,8 +130,6 @@ public interface CacheProvider {
 
   <V> Cache<V> createRunningJobsInfoCache();
 
-  <V> Cache<V> createCompletedJobsInfoCache();
-
   <V> Cache<V> createJobCancelRequestedCache();
 
   <V> Cache<V> createDataIntegritySummaryCache();

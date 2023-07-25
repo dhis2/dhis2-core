@@ -322,10 +322,7 @@ public class DataValueSetController {
 
     JobConfiguration jobId =
         new JobConfiguration(
-            "dataValueImport",
-            DATAVALUE_IMPORT,
-            currentUserService.getCurrentUser().getUid(),
-            true);
+            "dataValueImport", DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid());
     taskExecutor.executeTask(
         new ImportDataValueTask(
             dataValueSetService,

@@ -41,9 +41,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.scheduling.JobConfigurationController}. Since
- * test setup uses a mock for the {@link org.hisp.dhis.scheduling.SchedulingManager} the actual
- * scheduling cannot be tested. This tests focuses on creation including the serialization of job
- * parameters.
+ * test setup does not start the {@link org.hisp.dhis.scheduling.JobScheduler} the actual scheduling
+ * cannot be tested. This tests focuses on creation including the serialization of job parameters.
  *
  * @author Jan Bernitt
  */
