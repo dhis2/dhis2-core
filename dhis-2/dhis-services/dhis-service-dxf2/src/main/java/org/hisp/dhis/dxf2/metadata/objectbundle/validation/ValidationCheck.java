@@ -60,7 +60,7 @@ public interface ValidationCheck {
       ImportStrategy importStrategy,
       ValidationContext context);
 
-  default <T extends IdentifiableObject> List<T> selectObjects(
+  default <T extends IdentifiableObject> List<T> selectObjectsBasedOnImportStrategy(
       List<T> persistedObjects, List<T> nonPersistedObjects, ImportStrategy importStrategy) {
 
     if (importStrategy.isCreateAndUpdate()) {

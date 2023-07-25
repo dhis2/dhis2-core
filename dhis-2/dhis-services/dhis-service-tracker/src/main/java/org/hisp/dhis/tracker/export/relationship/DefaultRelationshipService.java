@@ -69,6 +69,56 @@ public class DefaultRelationshipService implements RelationshipService {
 
   private final EventService eventService;
 
+  private final RelationshipOperationParamsMapper mapper;
+
+  @Override
+  public List<Relationship> getRelationships(RelationshipOperationParams params)
+      throws ForbiddenException, NotFoundException {
+    RelationshipQueryParams queryParams = mapper.map(params);
+
+    if (queryParams.getEntity() == null) {
+      return List.of();
+    }
+
+    if (queryParams.getEntity() instanceof TrackedEntity te) {
+      return getRelationshipsByTrackedEntity(te, queryParams);
+    }
+
+    if (queryParams.getEntity() instanceof Enrollment en) {
+      return getRelationshipsByEnrollment(en, queryParams);
+    }
+
+    if (queryParams.getEntity() instanceof Event ev) {
+      return getRelationshipsByEvent(ev, queryParams);
+    }
+
+    throw new IllegalArgumentException("Unkown type");
+  }
+
+  @Override
+  public int countRelationships(RelationshipOperationParams params)
+      throws ForbiddenException, NotFoundException {
+    RelationshipQueryParams queryParams = mapper.map(params);
+
+    if (queryParams.getEntity() == null) {
+      return 0;
+    }
+
+    if (queryParams.getEntity() instanceof TrackedEntity te) {
+      return getRelationshipsByTrackedEntity(te, null).size();
+    }
+
+    if (queryParams.getEntity() instanceof Enrollment en) {
+      return getRelationshipsByEnrollment(en, null).size();
+    }
+
+    if (queryParams.getEntity() instanceof Event ev) {
+      return getRelationshipsByEvent(ev, null).size();
+    }
+
+    throw new IllegalArgumentException("Unkown type");
+  }
+
   @Override
   public Relationship getRelationship(String uid) throws ForbiddenException, NotFoundException {
     Relationship relationship = relationshipStore.getByUid(uid);
@@ -108,7 +158,7 @@ public class DefaultRelationshipService implements RelationshipService {
   @Override
   public List<Relationship> getRelationshipsByTrackedEntity(
       TrackedEntity trackedEntity, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter)
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException {
 
     List<Relationship> relationships =
         relationshipStore
@@ -123,8 +173,7 @@ public class DefaultRelationshipService implements RelationshipService {
   @Override
   public List<Relationship> getRelationshipsByEnrollment(
       Enrollment enrollment, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter)
-      throws ForbiddenException, NotFoundException {
-
+      throws ForbiddenException {
     List<Relationship> relationships =
         relationshipStore.getByEnrollment(enrollment, pagingAndSortingCriteriaAdapter).stream()
             .filter(
@@ -136,7 +185,7 @@ public class DefaultRelationshipService implements RelationshipService {
   @Override
   public List<Relationship> getRelationshipsByEvent(
       Event event, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter)
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException {
     List<Relationship> relationships =
         relationshipStore.getByEvent(event, pagingAndSortingCriteriaAdapter).stream()
             .filter(
@@ -146,8 +195,7 @@ public class DefaultRelationshipService implements RelationshipService {
   }
 
   /** Map to a non-proxied Relationship to prevent hibernate exceptions. */
-  private List<Relationship> map(List<Relationship> relationships)
-      throws ForbiddenException, NotFoundException {
+  private List<Relationship> map(List<Relationship> relationships) throws ForbiddenException {
     List<Relationship> result = new ArrayList<>(relationships.size());
     for (Relationship relationship : relationships) {
       result.add(map(relationship));
@@ -155,7 +203,7 @@ public class DefaultRelationshipService implements RelationshipService {
     return result;
   }
 
-  private Relationship map(Relationship relationship) throws ForbiddenException, NotFoundException {
+  private Relationship map(Relationship relationship) throws ForbiddenException {
     Relationship result = new Relationship();
     result.setUid(relationship.getUid());
     result.setCreated(relationship.getCreated());
@@ -170,8 +218,7 @@ public class DefaultRelationshipService implements RelationshipService {
     return result;
   }
 
-  private RelationshipItem withNestedEntity(RelationshipItem item)
-      throws ForbiddenException, NotFoundException {
+  private RelationshipItem withNestedEntity(RelationshipItem item) throws ForbiddenException {
     // relationships of relationship items are not mapped to JSON so there is no need to fetch them
     RelationshipItem result = new RelationshipItem();
 

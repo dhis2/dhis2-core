@@ -42,6 +42,10 @@ public class RelationshipOperationParams {
 
   public static final int DEFAULT_PAGE_SIZE = 50;
 
+  private TrackerType type;
+
+  private String identifier;
+
   private Integer page;
 
   private Integer pageSize;
@@ -49,26 +53,4 @@ public class RelationshipOperationParams {
   private boolean totalPages;
 
   private boolean skipPaging;
-
-  private TrackerType type;
-
-  private String identifier;
-
-  public boolean isPaging() {
-    return page != null || pageSize != null;
-  }
-
-  public int getPageWithDefault() {
-    return page != null && page > 0 ? page : DEFAULT_PAGE;
-  }
-
-  public int getPageSizeWithDefault() {
-    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
-  }
-
-  public void setDefaultPaging() {
-    this.page = DEFAULT_PAGE;
-    this.pageSize = DEFAULT_PAGE_SIZE;
-    this.skipPaging = false;
-  }
 }

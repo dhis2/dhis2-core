@@ -52,7 +52,8 @@ public class SchemaCheck implements ObjectValidationCheck {
       ImportStrategy importStrategy,
       ValidationContext context,
       Consumer<ObjectReport> addReports) {
-    List<T> objects = selectObjects(persistedObjects, nonPersistedObjects, importStrategy);
+    List<T> objects =
+        selectObjectsBasedOnImportStrategy(persistedObjects, nonPersistedObjects, importStrategy);
 
     if (objects == null || objects.isEmpty()) {
       return;
