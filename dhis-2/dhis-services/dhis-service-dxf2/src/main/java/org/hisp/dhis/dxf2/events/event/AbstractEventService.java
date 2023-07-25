@@ -360,8 +360,6 @@ public abstract class AbstractEventService implements EventService {
   @Transactional(readOnly = true)
   @Override
   public Grid getEventsGrid(EventSearchParams params) {
-    User user = currentUserService.getCurrentUser();
-
     if (params.getProgramStage() == null || params.getProgramStage().getProgram() == null) {
       throw new IllegalQueryException("Program stage can not be null");
     }
@@ -866,112 +864,6 @@ public abstract class AbstractEventService implements EventService {
   // -------------------------------------------------------------------------
   // HELPERS
   // -------------------------------------------------------------------------
-
-  private List<OrganisationUnit> getOrganisationUnits(EventSearchParams params, User user) {
-    OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
-
-    if (orgUnitSelectionMode == null) {
-      if (params.getAccessibleOrgUnits() != null) {
-        return Collections.emptyList();
-      }
-
-      return getAccessibleOrgUnits(params, user);
-    }
-
-    List<OrganisationUnit> organisationUnits;
-
-    switch (orgUnitSelectionMode) {
-      case ALL:
-        organisationUnits = getAllOrgUnits(params, user);
-        break;
-      case CHILDREN:
-        organisationUnits = getChildrenOrgUnits(params);
-        break;
-      case DESCENDANTS:
-        organisationUnits = getDescendantOrgUnits(params);
-        break;
-      case CAPTURE:
-        organisationUnits = getCaptureOrgUnits(params, user);
-        break;
-      case SELECTED:
-        organisationUnits = getSelectedOrgUnits(params);
-        break;
-      default:
-        organisationUnits = getAccessibleOrgUnits(params, user);
-        break;
-    }
-
-    return organisationUnits;
-  }
-
-  private List<OrganisationUnit> getAllOrgUnits(EventSearchParams params, User user) {
-    if (params.getAccessibleOrgUnits() != null) {
-      return Collections.emptyList();
-    }
-
-    if (!userCanSearchOuModeALL(user)) {
-      throw new IllegalQueryException("User is not authorized to use ALL organisation units. ");
-    }
-
-    return Collections.emptyList();
-  }
-
-  private List<OrganisationUnit> getChildrenOrgUnits(EventSearchParams params) {
-    if (params.getAccessibleOrgUnits() == null) {
-      throw new IllegalQueryException("Organisation unit is required to use CHILDREN scope.");
-    }
-
-    return params.getAccessibleOrgUnits();
-  }
-
-  private List<OrganisationUnit> getSelectedOrgUnits(EventSearchParams params) {
-    if (params.getAccessibleOrgUnits() == null) {
-      throw new IllegalQueryException("Organisation unit is required to use SELECTED scope. ");
-    }
-
-    return Collections.emptyList();
-  }
-
-  private List<OrganisationUnit> getDescendantOrgUnits(EventSearchParams params) {
-    if (params.getAccessibleOrgUnits() == null) {
-      throw new IllegalQueryException("Organisation unit is required to use DESCENDANTS scope. ");
-    }
-
-    return params.getAccessibleOrgUnits();
-  }
-
-  private List<OrganisationUnit> getCaptureOrgUnits(EventSearchParams params, User user) {
-    if (params.getAccessibleOrgUnits() != null) {
-      return Collections.emptyList();
-    }
-
-    if (user == null) {
-      throw new IllegalQueryException("User is required to use CAPTURE scope.");
-    }
-
-    return new ArrayList<>(user.getOrganisationUnits());
-  }
-
-  private List<OrganisationUnit> getAccessibleOrgUnits(EventSearchParams params, User user) {
-    if (params.getAccessibleOrgUnits() != null) {
-      return Collections.emptyList();
-    }
-
-    if (user == null) {
-      throw new IllegalQueryException("User is required to use ACCESSIBLE scope.");
-    }
-
-    params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.ACCESSIBLE);
-
-    if (params.getProgram() == null
-        || params.getProgram().isClosed()
-        || params.getProgram().isProtected()) {
-      return user.getOrganisationUnits().stream().collect(Collectors.toList());
-    }
-
-    return user.getTeiSearchOrganisationUnitsWithFallback().stream().collect(Collectors.toList());
-  }
-
   private void saveTrackedEntityComment(
       ProgramStageInstance programStageInstance, Event event, User user, String storedBy) {
     for (Note note : event.getNotes()) {

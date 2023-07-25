@@ -690,7 +690,7 @@ public class EventController {
       Model model,
       HttpServletResponse response,
       HttpServletRequest request)
-      throws WebMessageException, ForbiddenException {
+      throws ForbiddenException {
     WebOptions options = new WebOptions(parameters);
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
@@ -761,7 +761,7 @@ public class EventController {
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
       HttpServletResponse response,
       HttpServletRequest request)
-      throws IOException, WebMessageException, ForbiddenException {
+      throws IOException, ForbiddenException {
     EventSearchParams params = requestToSearchParamsMapper.map(eventCriteria);
 
     Events events = eventService.getEvents(params);
@@ -809,7 +809,7 @@ public class EventController {
       @RequestParam Map<String, String> parameters,
       IdSchemes idSchemes,
       Model model)
-      throws WebMessageException, ForbiddenException {
+      throws ForbiddenException {
     CategoryOptionCombo attributeOptionCombo =
         inputUtils.getAttributeOptionCombo(attributeCc, attributeCos, true);
 

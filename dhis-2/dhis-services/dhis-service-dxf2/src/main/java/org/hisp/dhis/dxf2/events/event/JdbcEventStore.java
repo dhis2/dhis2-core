@@ -79,6 +79,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.google.api.client.util.Strings;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -1175,7 +1176,7 @@ public class JdbcEventStore implements EventStore {
 
     String orgUnitSql = getOrgUnitSql(params, getOuTableName(params));
 
-    if (orgUnitSql != null) {
+    if (!Strings.isNullOrEmpty(orgUnitSql)) {
       sqlBuilder.append(hlp.whereAnd()).append(" (").append(orgUnitSql).append(") ");
     }
 
