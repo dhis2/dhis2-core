@@ -189,10 +189,10 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * Clears the DB from finished jobs that only should run once. The TTL can be used to keep them
    * for a certain duration after they were finished for observation purposes.
    *
-   * @param ttlSeconds duration after the job finished before it gets cleared
+   * @param ttlMinutes duration in minutes after the job finished before it gets cleared
    * @return the number of finished {@link SchedulingType#ONCE_ASAP} that got removed
    */
-  int deleteFinishedJobs(int ttlSeconds);
+  int deleteFinishedJobs(int ttlMinutes);
 
   /**
    * Jobs that apparently are stuck in {@link JobStatus#RUNNING} are "force reset" to {@link

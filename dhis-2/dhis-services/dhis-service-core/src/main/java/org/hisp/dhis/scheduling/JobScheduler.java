@@ -31,6 +31,7 @@ import static java.lang.System.currentTimeMillis;
 
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -93,7 +94,7 @@ public class JobScheduler implements Runnable {
   @Override
   public void run() {
     try {
-      Instant now = Instant.now();
+      Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS).plusSeconds(1);
       if (service.tryBecomeLeader(TTL_SECONDS)) {
         service.assureAsLeader(TTL_SECONDS);
         service.getDueJobConfigurations(LOOP_SECONDS).forEach(c -> runIfDue(now, c));
@@ -111,13 +112,17 @@ public class JobScheduler implements Runnable {
     }
   }
 
-  private void runDueJob(JobConfiguration config, Instant from) {
+  /**
+   * This is executed on a worker thread.
+   * The start time is the desired time to run.
+   */
+  private void runDueJob(JobConfiguration config, Instant start) {
     String jobId = config.getUid();
     if (!service.tryRun(jobId)) {
       log.debug(
           String.format(
               "Could not start job %s although it should run %s",
-              jobId, from.atZone(ZoneId.systemDefault())));
+              jobId, start.atZone(ZoneId.systemDefault())));
       return;
     }
     try {
@@ -138,12 +143,12 @@ public class JobScheduler implements Runnable {
         JobConfiguration next =
             service.getNextInQueue(config.getQueueName(), config.getQueuePosition());
         if (next != null)
-          runDueJob(next, from); // this is a tail recursion but job queues are not very long
+          runDueJob(next, start); // this is a tail recursion but job queues are not very long
       }
     }
   }
 
-  /** The observing has to outside the service as it will need a DB transaction. */
+  /** The observing has to be outside the service as it will need a DB transaction. */
   private void alive(String jobId, AtomicLong lastAssured) {
     long now = currentTimeMillis();
     if (now - lastAssured.get() > 10_000) {

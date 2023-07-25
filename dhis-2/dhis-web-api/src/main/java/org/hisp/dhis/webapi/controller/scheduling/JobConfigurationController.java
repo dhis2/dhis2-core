@@ -44,12 +44,14 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.JobTypes;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -73,7 +75,6 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
 
   @GetMapping("/stale")
   public List<JobConfiguration> getStaleJobConfigurations(@RequestParam int seconds) {
-    // TODO better use objectList with adding a filter? see OU special methods
     return jobConfigurationService.getStaleConfigurations(seconds);
   }
 
@@ -92,13 +93,19 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   @PostMapping(
       value = "{uid}/execute",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
-  public ObjectReport executeJobConfiguration(@PathVariable("uid") String uid)
+  public ObjectReport executeNow(@PathVariable("uid") String uid)
       throws NotFoundException, ConflictException {
 
     jobSchedulerService.executeNow(uid);
 
     // OBS! This response is kept for better backwards compatibility
     return new ObjectReport(JobConfiguration.class, 0);
+  }
+
+  @PostMapping("{uid}/cancel")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void cancelExecution(@PathVariable("uid") String uid) {
+    jobSchedulerService.requestCancel(uid);
   }
 
   @Override

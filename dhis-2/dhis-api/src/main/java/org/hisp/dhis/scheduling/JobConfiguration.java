@@ -332,7 +332,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
     if (delay == null || delay <= 0) return null;
     // always want to run delay after last start, right ways when never started
     return lastExecuted == null
-        ? since.truncatedTo(ChronoUnit.SECONDS).plusSeconds(1)
+        ? since
         : lastExecuted.toInstant().plusSeconds(delay).truncatedTo(ChronoUnit.SECONDS);
   }
 

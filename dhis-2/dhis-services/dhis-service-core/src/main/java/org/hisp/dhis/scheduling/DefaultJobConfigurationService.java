@@ -117,9 +117,16 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
 
   @Override
   @Transactional
-  public int deleteFinishedJobs(int ttlSeconds) {
-    // TODO negative TTL => load config value
-    return jobConfigurationStore.deleteFinishedJobs(ttlSeconds);
+  public int deleteFinishedJobs(int ttlMinutes) {
+    //TODO TTL <= 0 => load setting
+    return jobConfigurationStore.deleteFinishedJobs(ttlMinutes);
+  }
+
+  @Override
+  @Transactional
+  public int rescheduleStaleJobs(int timeoutMinutes) {
+    //TODO TTL <= 0 => load setting
+    return jobConfigurationStore.rescheduleStaleJobs(timeoutMinutes);
   }
 
   @Override

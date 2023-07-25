@@ -68,10 +68,24 @@ public interface JobConfigurationService {
    * Removes {@link JobConfiguration}s of {@link SchedulingType#ONCE_ASAP} when they have been
    * finished for at least the given time.
    *
-   * @param ttlSeconds minimum duration since matches finished running
+   * @param ttlMinutes minimum duration in minutes since matches finished running
    * @return number of deleted entries
    */
-  int deleteFinishedJobs(int ttlSeconds);
+  int deleteFinishedJobs(int ttlMinutes);
+
+  /**
+   * Jobs that apparently are stuck in {@link JobStatus#RUNNING} are "force reset" to {@link
+   * JobStatus#SCHEDULED}. Such run then counts as {@link JobStatus#FAILED}.
+   *
+   * <p>This will only affect jobs which had updated the {@link JobConfiguration#getLastAlive()} at
+   * least once. This is to protect against aborting a job that does not support alive signals as it
+   * does not yet use the {@link JobProgress} tracking.
+   *
+   * @param timeoutMinutes duration in minutes for which the job has not been updated for it to be
+   *     considered stale and changed back to {@link JobStatus#SCHEDULED}.
+   * @return number of job configurations that were affected
+   */
+  int rescheduleStaleJobs(int timeoutMinutes);
 
   /**
    * Add a job configuration

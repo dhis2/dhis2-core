@@ -60,14 +60,34 @@ public class HeartbeatJob implements Job {
   @Override
   public void execute(JobConfiguration config, JobProgress progress) {
     progress.startingProcess("Heartbeat");
+
     progress.startingStage("Synchronize scheduler state in cluster", SKIP_STAGE);
     progress.runStage(jobSchedulerService::syncCluster);
+
     progress.startingStage("Auto spawn default jobs when missing", SKIP_STAGE);
-    progress.runStage(jobConfigurationService::createDefaultJobs);
+    progress.runStage(
+        0,
+        "%d default jobs were created"::formatted, //
+        jobConfigurationService::createDefaultJobs);
+
     progress.startingStage("Update statue to DISABLED for non enabled jobs", SKIP_STAGE);
-    progress.runStage(jobConfigurationService::updateDisabledJobs);
+    progress.runStage(
+        0,
+        "%d jobs were switched to state DISABLED"::formatted,
+        jobConfigurationService::updateDisabledJobs);
+
     progress.startingStage("Cleanup finished ONCE_ASAP jobs", SKIP_STAGE);
-    progress.runStage(() -> jobConfigurationService.deleteFinishedJobs(-1));
+    progress.runStage(
+        0,
+        "%d jobs were deleted"::formatted, //
+        () -> jobConfigurationService.deleteFinishedJobs(-1));
+
+    progress.startingStage("Reschedule stale jobs", SKIP_STAGE);
+    progress.runStage(
+        0,
+        "%d jobs were rescheduled"::formatted,
+        () -> jobConfigurationService.rescheduleStaleJobs(-1));
+
     progress.completedProcess(null);
   }
 }

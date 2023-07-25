@@ -99,8 +99,10 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public void requestCancel(@Nonnull JobType type) {
-    // TODO cancel the running one
+    String jobId = jobConfigurationStore.getLastRunningId(type);
+    if (jobId != null) requestCancel(jobId);
   }
 
   @Override

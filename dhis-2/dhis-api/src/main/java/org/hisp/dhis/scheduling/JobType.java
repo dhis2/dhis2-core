@@ -112,7 +112,7 @@ public enum JobType {
   /*
   System Jobs
   */
-  HEARTBEAT(every(20, "BFa3YvA1TUx", "Heartbeat")),
+  HEARTBEAT(every(20, "DHIS2rocks1", "Heartbeat")),
   DATA_SET_NOTIFICATION(daily2am("YvAwAmrqAtN", "Dataset notification")),
   CREDENTIALS_EXPIRY_ALERT(daily2am("sHMedQF7VYa", "Credentials expiry alert")),
   DATA_STATISTICS(daily2am("BFa3jDsbtdO", "Data statistics")),

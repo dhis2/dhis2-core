@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static java.lang.Math.max;
 import static java.util.stream.Collectors.toSet;
 
 import java.sql.Timestamp;
@@ -328,7 +329,7 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
-  public int deleteFinishedJobs(int ttlSeconds) {
+  public int deleteFinishedJobs(int ttlMinutes) {
     // language=SQL
     String sql =
         """
@@ -338,16 +339,13 @@ public class HibernateJobConfigurationStore
         and cronexpression is null
         and delay is null
         and lastfinished is not null
-        and lastfinished + :ttl * interval '1 second' > now()
+        and lastfinished + :ttl * interval '1 minute' > now()
         """;
-    return nativeQuery(sql).setParameter("ttl", ttlSeconds).executeUpdate();
+    return nativeQuery(sql).setParameter("ttl", max(1, ttlMinutes)).executeUpdate();
   }
 
   @Override
   public int rescheduleStaleJobs(int timeoutMinutes) {
-    if (timeoutMinutes < 1)
-      throw new IllegalArgumentException(
-          "Timeout must be 1 minute or longer but was: " + timeoutMinutes);
     // language=SQL
     String sql =
         """
@@ -367,7 +365,7 @@ public class HibernateJobConfigurationStore
         and lastalive > lastexecuted
         and extract('epoch' from lastalive - now()) > :timeout
         """;
-    return nativeQuery(sql).setParameter("timeout", timeoutMinutes * 60_000L).executeUpdate();
+    return nativeQuery(sql).setParameter("timeout", max(1, timeoutMinutes) * 60_000L).executeUpdate();
   }
 
   private NativeQuery<?> nativeQuery(String sql) {

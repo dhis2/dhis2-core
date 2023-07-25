@@ -171,7 +171,7 @@ class JobConfigurationSerializationTest {
                 + "      \"userAccesses\": []\n"
                 + "    },",
             JobConfiguration.class);
-    assertEquals(JobStatus.DISABLED, jc.getJobStatus());
+    assertEquals(JobStatus.SCHEDULED, jc.getJobStatus());
     assertEquals("Test Analytic", jc.getName());
     assertEquals("Test Analytic", jc.getDisplayName());
     assertFalse(jc.isEnabled());
