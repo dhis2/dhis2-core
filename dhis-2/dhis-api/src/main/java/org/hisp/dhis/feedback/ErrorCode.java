@@ -420,6 +420,7 @@ public enum ErrorCode {
       "parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]"),
   E7141("parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]"),
   E7142("Program(s) `{0}` are not defined on Tracked Entity Type `{1}`"),
+  E7143("Organisation unit or organisation unit level is not valid"),
 
   /* Event analytics */
   E7200(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
