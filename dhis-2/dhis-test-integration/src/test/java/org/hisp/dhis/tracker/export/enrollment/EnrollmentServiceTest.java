@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static org.hisp.dhis.tracker.TrackerTestUtils.assertSlimPager;
+import static org.hisp.dhis.tracker.Assertions.assertSlimPager;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;

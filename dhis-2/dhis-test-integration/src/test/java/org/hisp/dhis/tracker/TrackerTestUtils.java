@@ -27,35 +27,15 @@
  */
 package org.hisp.dhis.tracker;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.SlimPager;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class TrackerTestUtils {
 
   public static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {
     return identifiableObject.stream().map(BaseIdentifiableObject::getUid).toList();
-  }
-
-  public static void assertSlimPager(int pageNumber, int pageSize, boolean isLast, Pager pager) {
-    assertInstanceOf(SlimPager.class, pager, "SlimPager should be returned if totalPages=false");
-    SlimPager slimPager = (SlimPager) pager;
-    assertAll(
-        "pagination details",
-        () -> assertEquals(pageNumber, slimPager.getPage(), "number of current page"),
-        () -> assertEquals(pageSize, slimPager.getPageSize(), "page size"),
-        () ->
-            assertEquals(
-                isLast,
-                slimPager.isLastPage(),
-                isLast ? "should be the last page" : "should NOT be the last page"));
   }
 }
