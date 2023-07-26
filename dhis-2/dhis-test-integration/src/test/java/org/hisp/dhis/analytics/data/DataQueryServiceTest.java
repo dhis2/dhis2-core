@@ -855,7 +855,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase {
         DataQueryRequest.newBuilder().dimension(dimensionParams).build();
     assertThrowsErrorCode(
         IllegalQueryException.class,
-        ErrorCode.E7124,
+        ErrorCode.E7143,
         () -> dataQueryService.getFromRequest(dataQueryRequest));
   }
 
