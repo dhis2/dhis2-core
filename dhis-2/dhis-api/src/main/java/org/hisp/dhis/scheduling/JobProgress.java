@@ -93,10 +93,10 @@ import lombok.Setter;
  * <h3>Flow-Control</h3>
  *
  * The second part of the {@link JobProgress} is control flow. This is all based on a single method
- * {@link #isCancellationRequested()}. The coordination is cooperative. This means cancellation of
- * the running process might be requested externally at any point or as a consequence of a failing
- * work item. This would flip the state returned by {@link #isCancellationRequested()} which
- * is/should be checked before starting a new stage or work item.
+ * {@link #isCancelled()}. The coordination is cooperative. This means cancellation of the running
+ * process might be requested externally at any point or as a consequence of a failing work item.
+ * This would flip the state returned by {@link #isCancelled()} which is/should be checked before
+ * starting a new stage or work item.
  *
  * <p>A process should only continue starting new work as long as cancellation is not requested.
  * When cancellation is requested ongoing work items are finished and the process exists
@@ -126,7 +126,13 @@ public interface JobProgress {
    * @return true, if the job got cancelled and requests the processing thread to terminate, else
    *     false to continue processing the job
    */
-  boolean isCancellationRequested();
+  default boolean isCancelled() {
+    return false;
+  }
+
+  default boolean isAborted() {
+    return false;
+  }
 
   /**
    * Note that this indication resets to false once another stage is started.
@@ -135,7 +141,7 @@ public interface JobProgress {
    *     case if cancellation was requested.
    */
   default boolean isSkipCurrentStage() {
-    return isCancellationRequested();
+    return isCancelled();
   }
 
   /*
@@ -351,7 +357,7 @@ public interface JobProgress {
    * Automatically complete a stage as failed based on the {@link #isSkipCurrentStage()} state.
    *
    * <p>This completes the stage either with a {@link CancellationException} in case {@link
-   * #isCancellationRequested()} is true, or with just a summary text if it is false.
+   * #isCancelled()} is true, or with just a summary text if it is false.
    *
    * @param summary optional callback to produce a summary
    * @param success number of successful items
@@ -362,7 +368,7 @@ public interface JobProgress {
       BiFunction<Integer, Integer, String> summary, int success, int failed) {
     if (isSkipCurrentStage()) {
       String text = summary == null ? "" : summary.apply(success, failed);
-      if (isCancellationRequested()) {
+      if (isCancelled()) {
         failedStage(new CancellationException("skipped stage, failing item caused abort. " + text));
       } else {
         failedStage("skipped stage. " + text);
@@ -521,9 +527,9 @@ public interface JobProgress {
    * Using a {@link FailurePolicy} allows to customise this behaviour on a stage or item basis.
    *
    * <p>The implementation of {@link FailurePolicy} is done by affecting {@link
-   * #isSkipCurrentStage()} and {@link #isCancellationRequested()} acordingly after the failure
-   * occured and has been tracked using one of the {@link #failedStage(String)} or {@link
-   * #failedWorkItem(String)} methods.
+   * #isSkipCurrentStage()} and {@link #isCancelled()} acordingly after the failure occured and has
+   * been tracked using one of the {@link #failedStage(String)} or {@link #failedWorkItem(String)}
+   * methods.
    */
   enum FailurePolicy {
     /**

@@ -56,11 +56,6 @@ public class NotifierJobProgress implements JobProgress {
   private int stageItem;
 
   @Override
-  public boolean isCancellationRequested() {
-    return false;
-  }
-
-  @Override
   public void startingProcess(String description) {
     String message =
         isNotEmpty(description) ? description : jobId.getJobType() + " process started";

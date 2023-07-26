@@ -108,7 +108,7 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
-  public String getCompletedProgress(@Nonnull String jobId) {
+  public String getProgress(@Nonnull String jobId) {
     // language=SQL
     String sql =
         """
@@ -122,6 +122,13 @@ public class HibernateJobConfigurationStore
   public Set<String> getAllIds() {
     // language=SQL
     String sql = "select uid from jobconfiguration";
+    return getResultSet(nativeQuery(sql), Object::toString);
+  }
+
+  @Override
+  public Set<String> getAllCancelledIds() {
+    // language=SQL
+    String sql = "select uid from jobconfiguration where cancel = true";
     return getResultSet(nativeQuery(sql), Object::toString);
   }
 
@@ -177,15 +184,15 @@ public class HibernateJobConfigurationStore
         select * from jobconfiguration
         where jobstatus = 'RUNNING'
         and (
-          extract('epoch' from lastalive - now()) > :timeout
+          now() > lastalive + :timeout * interval '1 second'
           or (schedulingtype = 'FIXED_DELAY'
             and delay is not null
-            and extract('epoch' from lastexecuted - now()) > 2 * delay)
-          )
+            and now() > lastexecuted + delay * interval '2 second'
+          ))
         """;
     return getSession()
         .createNativeQuery(sql, JobConfiguration.class)
-        .setParameter("timeout", timeoutSeconds * 1000L)
+        .setParameter("timeout", timeoutSeconds)
         .list();
   }
 
@@ -198,19 +205,20 @@ public class HibernateJobConfigurationStore
         from jobconfiguration j1
         where enabled = true
         and jobstatus = 'SCHEDULED'
-        and (queueposition is null or queueposition = 0)
+        and (queueposition is null or queueposition = 0 or schedulingtype = 'ONCE_ASAP')
         """;
     return jdbcTemplate.query(sql, TRIGGER_ROW_MAPPER);
   }
 
   @Override
-  public boolean tryScheduleToRunOutOfOrder(@Nonnull String jobId) {
+  public boolean tryExecuteNow(@Nonnull String jobId) {
     // language=SQL
     String sql =
         """
         update jobconfiguration
         set
-          schedulingtype = 'ONCE_ASAP'
+          schedulingtype = 'ONCE_ASAP',
+          cancel = false
         where enabled = true
         and uid = :id
         and jobstatus = 'SCHEDULED'
@@ -220,7 +228,7 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
-  public boolean tryRun(@Nonnull String jobId) {
+  public boolean tryStart(@Nonnull String jobId) {
     // only flip from SCHEDULED to RUNNING if no other job of same type is RUNNING
     // language=SQL
     String sql =
@@ -229,9 +237,10 @@ public class HibernateJobConfigurationStore
         set
           jobstatus = 'RUNNING',
           lastexecuted = now(),
-          lastalive = now()
-        where enabled = true
-        and uid = :id
+          lastalive = now(),
+          progress = null,
+          cancel = false
+        where uid = :id
         and jobstatus = 'SCHEDULED'
         and enabled = true
         and not exists (
@@ -242,17 +251,47 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
-  public boolean tryStop(@Nonnull String jobId, JobStatus lastExecutedStatus) {
+  public boolean tryCancel(@Nonnull String jobId) {
     // language=SQL
     String sql =
         """
         update jobconfiguration
         set
-          lastexecutedstatus = :status,
+          cancel = case when jobstatus = 'RUNNING' then true else false end,
+          enabled = case
+            when queueposition is null and schedulingtype = 'ONCE_ASAP' and cronexpression is null and delay is null then false
+            else enabled end,
+          schedulingtype = case
+            when cronexpression is not null then 'CRON'
+            when delay is not null then 'FIXED_DELAY'
+            else schedulingtype end,
+          lastexecutedstatus = case
+            when jobstatus = 'RUNNING' then lastexecutedstatus
+            else 'STOPPED' end
+        where uid = :id
+        and (
+          /* scenario 1: cancel a running job by marking it */
+          jobstatus = 'RUNNING' and cancel = false
+          or /* scenario 2: cancel a execute now before it started by reverting back */
+          jobstatus = 'SCHEDULED' and schedulingtype = 'ONCE_ASAP'
+          )
+        """;
+    return nativeQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
+  }
+
+  @Override
+  public boolean tryFinish(@Nonnull String jobId, JobStatus status) {
+    // language=SQL
+    String sql =
+        """
+        update jobconfiguration
+        set
+          lastexecutedstatus = case when cancel = true then 'STOPPED' else :status end,
           lastfinished = now(),
           lastalive = null,
+          cancel = false,
           enabled = case
-            when schedulingtype = 'ONCE_ASAP' and cronexpression is null and delay is null then false
+            when queueposition is null and schedulingtype = 'ONCE_ASAP' and cronexpression is null and delay is null then false
             else enabled end,
           jobstatus = case
             when enabled = false
@@ -267,7 +306,7 @@ public class HibernateJobConfigurationStore
         """;
     return nativeQuery(sql)
             .setParameter("id", jobId)
-            .setParameter("status", lastExecutedStatus.name())
+            .setParameter("status", status.name())
             .executeUpdate()
         > 0;
   }
@@ -282,7 +321,9 @@ public class HibernateJobConfigurationStore
           lastexecutedstatus = 'NOT_STARTED',
           lastexecuted = now(),
           lastfinished = now(),
-          lastalive = null
+          lastalive = null,
+          progress = null,
+          cancel = false
         where queuename = :queue
         and jobstatus = 'SCHEDULED'
         and queueposition > 0
@@ -292,24 +333,14 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
-  public boolean assureRunning(@Nonnull String jobId) {
+  public void updateProgress(@Nonnull String jobId, @CheckForNull String progressJson) {
     // language=SQL
     String sql =
         """
         update jobconfiguration
-        set lastalive = now()
-        where uid = :id and jobstatus = 'RUNNING'
-        """;
-    return nativeQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
-  }
-
-  @Override
-  public void attachProgress(@Nonnull String jobId, @CheckForNull String progressJson) {
-    // language=SQL
-    String sql =
-        """
-        update jobconfiguration
-        set progress = to_jsonb(:json)
+        set
+          progress = to_jsonb(:json),
+          lastalive = case when jobstatus = 'RUNNING' then now() else lastalive end
         where uid = :id
         """;
     nativeQuery(sql).setParameter("id", jobId).setParameter("json", progressJson).executeUpdate();
@@ -338,8 +369,9 @@ public class HibernateJobConfigurationStore
         and enabled = false
         and cronexpression is null
         and delay is null
+        and queueposition is null
         and lastfinished is not null
-        and lastfinished + :ttl * interval '1 minute' > now()
+        and now() > lastfinished + :ttl * interval '1 minute'
         """;
     return nativeQuery(sql).setParameter("ttl", max(1, ttlMinutes)).executeUpdate();
   }
@@ -352,20 +384,21 @@ public class HibernateJobConfigurationStore
         update jobconfiguration
         set
           jobstatus = 'SCHEDULED',
+          cancel = false,
           lastexecutedstatus = 'FAILED',
           lastfinished = now(),
           lastalive = null,
-          progress = null,
           schedulingtype = case
             when cronexpression is not null then 'CRON'
             when delay is not null then 'FIXED_DELAY'
+            when queueposition is not null then 'CRON'
             else schedulingtype end
         where jobstatus = 'RUNNING'
         and enabled = true
         and lastalive > lastexecuted
-        and extract('epoch' from lastalive - now()) > :timeout
+        and now() > lastalive + :timeout * interval '1 minute'
         """;
-    return nativeQuery(sql).setParameter("timeout", max(1, timeoutMinutes) * 60_000L).executeUpdate();
+    return nativeQuery(sql).setParameter("timeout", max(1, timeoutMinutes)).executeUpdate();
   }
 
   private NativeQuery<?> nativeQuery(String sql) {

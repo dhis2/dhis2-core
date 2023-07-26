@@ -172,12 +172,12 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
    */
   public JobConfiguration(
       String name, JobType jobType, String cronExpression, JobParameters jobParameters) {
+    boolean undefinedCronExpression = isUndefinedCronExpression(cronExpression);
     this.name = name;
-    this.cronExpression = cronExpression;
+    this.cronExpression = undefinedCronExpression ? null : cronExpression;
     this.jobType = jobType;
     this.jobParameters = jobParameters;
-    this.schedulingType =
-        isUndefinedCronExpression(cronExpression) ? SchedulingType.ONCE_ASAP : SchedulingType.CRON;
+    this.schedulingType = undefinedCronExpression ? SchedulingType.ONCE_ASAP : SchedulingType.CRON;
   }
 
   // -------------------------------------------------------------------------
@@ -321,10 +321,9 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
 
   private Instant nextCronExecutionTime(@Nonnull Instant since) {
     if (isUndefinedCronExpression(cronExpression)) return null;
-    Date next =
-        new CronTrigger(cronExpression)
-            .nextExecutionTime(
-                new SimpleTriggerContext(Clock.fixed(since, ZoneId.systemDefault())));
+    SimpleTriggerContext context =
+        new SimpleTriggerContext(Clock.fixed(since, ZoneId.systemDefault()));
+    Date next = new CronTrigger(cronExpression).nextExecutionTime(context);
     return next == null ? null : next.toInstant();
   }
 
@@ -337,8 +336,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   }
 
   private Instant nextOnceExecutionTime(@Nonnull Instant since) {
-    // Only run if had not been started
-    return since.truncatedTo(ChronoUnit.SECONDS).plusSeconds(1);
+    return since;
   }
 
   private static boolean isUndefinedCronExpression(String cronExpression) {

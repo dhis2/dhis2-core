@@ -103,7 +103,7 @@ public class RecordingJobProgress implements JobProgress {
   @Override
   public boolean isSuccessful() {
     autoComplete();
-    return !isCancellationRequested()
+    return !isCancelled()
         && progress.sequence.stream().allMatch(p -> p.getStatus() == JobProgress.Status.SUCCESS);
   }
 
@@ -117,18 +117,23 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public boolean isCancellationRequested() {
+  public boolean isCancelled() {
     return cancellationRequested.get();
   }
 
   @Override
+  public boolean isAborted() {
+    return abortAfterFailure.get();
+  }
+
+  @Override
   public boolean isSkipCurrentStage() {
-    return skipCurrentStage.get() || isCancellationRequested();
+    return skipCurrentStage.get() || isCancelled();
   }
 
   @Override
   public void startingProcess(String description) {
-    if (isCancellationRequested()) {
+    if (isCancelled()) {
       throw new CancellationException();
     }
     observer.run();
@@ -189,7 +194,7 @@ public class RecordingJobProgress implements JobProgress {
   @Override
   public void startingStage(String description, int workItems, FailurePolicy onFailure) {
     observer.run();
-    if (isCancellationRequested()) {
+    if (isCancelled()) {
       throw new CancellationException();
     }
     skipCurrentStage.set(false);

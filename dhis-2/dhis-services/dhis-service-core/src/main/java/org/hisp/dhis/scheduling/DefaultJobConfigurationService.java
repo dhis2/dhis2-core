@@ -97,6 +97,9 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     JobConfiguration config = jobConfigurationStore.getByUid(JobType.HEARTBEAT.getDefaults().uid());
     if (config == null) {
       createDefaultJob(JobType.HEARTBEAT);
+    } else if (config.getJobStatus() != JobStatus.SCHEDULED) {
+      config.setJobStatus(JobStatus.SCHEDULED);
+      jobConfigurationStore.update(config);
     }
   }
 
@@ -118,14 +121,14 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Override
   @Transactional
   public int deleteFinishedJobs(int ttlMinutes) {
-    //TODO TTL <= 0 => load setting
+    // TODO TTL <= 0 => load setting
     return jobConfigurationStore.deleteFinishedJobs(ttlMinutes);
   }
 
   @Override
   @Transactional
   public int rescheduleStaleJobs(int timeoutMinutes) {
-    //TODO TTL <= 0 => load setting
+    // TODO TTL <= 0 => load setting
     return jobConfigurationStore.rescheduleStaleJobs(timeoutMinutes);
   }
 

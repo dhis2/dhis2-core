@@ -54,10 +54,11 @@ public interface JobSchedulerService {
    * This is the next step or item in the overall process which checks for cancellation.
    *
    * @param jobId of the job to issue a cluster wide cancel request
+   * @return if cancellation state was accepted
    */
-  void requestCancel(@Nonnull String jobId);
+  boolean requestCancel(@Nonnull String jobId);
 
-  void requestCancel(@Nonnull JobType type);
+  boolean requestCancel(@Nonnull JobType type);
 
   /**
    * Attempts to switch the {@link JobConfiguration#getSchedulingType()} to {@link
@@ -108,12 +109,15 @@ public interface JobSchedulerService {
   */
 
   /**
-   * This will only be called by the current leader node to "pull" cancellation from the cluster and
-   * to share ("push") its current {@link JobProgress} tracking data so other nodes can read it.
+   * Apply cancellation for jobs running on this node that have been marked as cancelled in the DB.
+   *
+   * @return number of jobs that were cancelled as a result (which had not been cancelled before)
    */
-  void syncCluster();
+  int applyCancellation();
 
   JobProgress startRecording(@Nonnull JobConfiguration job, @Nonnull Runnable observer);
 
-  void stopRecording(String jobId);
+  void stopRecording(@Nonnull String jobId);
+
+  void updateProgress(@Nonnull String jobId);
 }

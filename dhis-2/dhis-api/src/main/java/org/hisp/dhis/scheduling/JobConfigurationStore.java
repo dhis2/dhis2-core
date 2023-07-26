@@ -59,16 +59,24 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
   String getLastCompletedId(@Nonnull JobType type);
 
   /**
-   * @param jobId of the job whose last complected progress to fetch
-   * @return the last completed progress raw JSON of the given job or null if it is not available
+   * While a job is running the JSON data is the live data frequently updated during the run. When a
+   * job is finished this is the JSON data of the last run.
+   *
+   * @param jobId of the job for which to fetch the progress data
+   * @return the most recent progress JSON data
    */
   @CheckForNull
-  String getCompletedProgress(@Nonnull String jobId);
+  String getProgress(@Nonnull String jobId);
 
   /**
-   * @return All UIDs of all existing job configurations.
+   * @return UIDs of all existing job configurations.
    */
   Set<String> getAllIds();
+
+  /**
+   * @return UIDs of all jobs that are flagged to be cancelled.
+   */
+  Set<String> getAllCancelledIds();
 
   /**
    * Lists all jobs of a specific type.
@@ -130,7 +138,7 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @param jobId of the job to switch to {@link SchedulingType#ONCE_ASAP}
    * @return true, if the update was successful, otherwise false
    */
-  boolean tryScheduleToRunOutOfOrder(@Nonnull String jobId);
+  boolean tryExecuteNow(@Nonnull String jobId);
 
   /**
    * A successful update means the DB state flipped from {@link JobStatus#SCHEDULED} to {@link
@@ -142,7 +150,20 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @param jobId of the job to switch to {@link JobStatus#RUNNING} state
    * @return true, if update was successful, otherwise false
    */
-  boolean tryRun(@Nonnull String jobId);
+  boolean tryStart(@Nonnull String jobId);
+
+  /**
+   * If the job is already in {@link JobStatus#RUNNING} it is marked as cancelled. The effect takes
+   * place asynchronously as it is cooperative.
+   *
+   * <p>If the job has not started yet, and it was a {@link SchedulingType#ONCE_ASAP} it is reverted
+   * back to its scheduled state. When it had no cron or delay based schedule it gets disabled as if
+   * it had finished a run.
+   *
+   * @param jobId of the job to mark as cancelled
+   * @return true, if the update changed the state of the cancel flag to true, otherwise false
+   */
+  boolean tryCancel(@Nonnull String jobId);
 
   /**
    * A successful update means the DB state flipped from {@link JobStatus#RUNNING} to {@link
@@ -150,11 +171,11 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    *
    * @param jobId of the job to switch to {@link JobStatus#SCHEDULED} or {@link JobStatus#DISABLED}
    *     based on the {@link JobConfiguration#isEnabled()} state
-   * @param lastExecutedStatus the result of the execution to remember as {@link
+   * @param status the result of the execution to remember as {@link
    *     JobConfiguration#getLastExecutedStatus()}
    * @return true, if the update was successful, otherwise false
    */
-  boolean tryStop(@Nonnull String jobId, JobStatus lastExecutedStatus);
+  boolean tryFinish(@Nonnull String jobId, JobStatus status);
 
   /**
    * If this has no effect there either were no further items in the queue or the items were not in
@@ -166,15 +187,7 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    */
   boolean trySkip(@Nonnull String queue);
 
-  /**
-   * If an update is not successful this means the job was no longer in a running state.
-   *
-   * @param jobId of the job that is currently running (it worker calls this as a heart-beat)
-   * @return true, if the update was successful, else false.
-   */
-  boolean assureRunning(@Nonnull String jobId);
-
-  void attachProgress(@Nonnull String jobId, @CheckForNull String progressJson);
+  void updateProgress(@Nonnull String jobId, @CheckForNull String progressJson);
 
   /**
    * Switches {@link JobConfiguration#getJobStatus()} to {@link JobStatus#DISABLED} for any job that

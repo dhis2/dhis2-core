@@ -93,7 +93,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   @Override
   @Transactional
   public boolean tryRun(@Nonnull String jobId) {
-    if (!jobConfigurationStore.tryRun(jobId)) return false;
+    if (!jobConfigurationStore.tryStart(jobId)) return false;
     JobConfiguration job = jobConfigurationStore.getByUid(jobId);
     if (job == null) return false;
     doSafely("start", "MDC.put", () -> MDC.put("sessionId", getSessionId(job)));
@@ -117,15 +117,15 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
 
   @Override
   @Transactional
-  public void assureAsRunning(@Nonnull String jobId) {
-    jobConfigurationStore.assureRunning(jobId);
+  public void updateAsRunning(@Nonnull String jobId) {
+    jobSchedulerService.updateProgress(jobId);
   }
 
   @Override
   @Transactional
-  public boolean completeRun(@Nonnull String jobId) {
+  public boolean finishRunSuccess(@Nonnull String jobId) {
     authenticationService.clearAuthentication();
-    if (!jobConfigurationStore.tryStop(jobId, JobStatus.COMPLETED)) return false;
+    if (!jobConfigurationStore.tryFinish(jobId, JobStatus.COMPLETED)) return false;
     JobConfiguration job = jobConfigurationStore.getByUid(jobId);
     if (job == null) return false;
     doSafely("complete", "stop recording", () -> jobSchedulerService.stopRecording(jobId));
@@ -135,8 +135,8 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
 
   @Override
   @Transactional
-  public void failRun(@Nonnull String jobId, @CheckForNull Exception ex) {
-    if (jobConfigurationStore.tryStop(jobId, JobStatus.FAILED)) {
+  public void finishRunFail(@Nonnull String jobId, @CheckForNull Exception ex) {
+    if (jobConfigurationStore.tryFinish(jobId, JobStatus.FAILED)) {
       JobConfiguration job = jobConfigurationStore.getByUid(jobId);
       if (job == null) return;
       String message = String.format("Job failed: '%s'", job.getName());
@@ -154,8 +154,8 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
 
   @Override
   @Transactional
-  public void cancelRun(@Nonnull String jobId) {
-    if (jobConfigurationStore.tryStop(jobId, JobStatus.STOPPED)) {
+  public void finishRunCancel(@Nonnull String jobId) {
+    if (jobConfigurationStore.tryFinish(jobId, JobStatus.STOPPED)) {
       JobConfiguration job = jobConfigurationStore.getByUid(jobId);
       if (job == null) return;
       String message = String.format("Job cancelled: '%s'", job.getName());

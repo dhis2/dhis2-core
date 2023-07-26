@@ -30,7 +30,6 @@ package org.hisp.dhis.cache;
 import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hisp.dhis.commons.util.SystemUtils.isEnableCacheInTest;
 import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 
@@ -601,22 +600,6 @@ public class DefaultCacheProvider implements CacheProvider {
             .withInitialCapacity((int) getActualSize(SIZE_100))
             .forceInMemory()
             .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_1K))));
-  }
-
-  @Override
-  public <V> Cache<V> createRunningJobsInfoCache() {
-    return registerCache(
-        this.<V>newBuilder()
-            .forRegion(Region.runningJobsInfo.name())
-            .expireAfterWrite(60, SECONDS));
-  }
-
-  @Override
-  public <V> Cache<V> createJobCancelRequestedCache() {
-    return registerCache(
-        this.<V>newBuilder()
-            .forRegion(Region.jobCancelRequested.name())
-            .expireAfterWrite(60, SECONDS));
   }
 
   @Override

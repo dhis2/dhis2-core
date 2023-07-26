@@ -98,7 +98,7 @@ public interface JobSchedulerLoopService {
    *
    * @param jobId of the job being executed at the moment
    */
-  void assureAsRunning(@Nonnull String jobId);
+  void updateAsRunning(@Nonnull String jobId);
 
   /**
    * Called on a successful completion of the job process.
@@ -118,7 +118,7 @@ public interface JobSchedulerLoopService {
    * @param jobId the job that finished running
    * @return true, of the status change was successful, else false
    */
-  boolean completeRun(@Nonnull String jobId);
+  boolean finishRunSuccess(@Nonnull String jobId);
 
   /**
    * Adjusts a job after it failed before completion. The {@link JobConfiguration#getJobStatus()} is
@@ -136,7 +136,7 @@ public interface JobSchedulerLoopService {
    *
    * @param jobId the job that failed before it could complete
    */
-  void failRun(@Nonnull String jobId, @CheckForNull Exception ex);
+  void finishRunFail(@Nonnull String jobId, @CheckForNull Exception ex);
 
   /**
    * Adjusts a job after it has been cancelled. The {@link JobConfiguration#getJobStatus()} is
@@ -154,5 +154,5 @@ public interface JobSchedulerLoopService {
    *
    * @param jobId the job that got cancelled
    */
-  void cancelRun(@Nonnull String jobId);
+  void finishRunCancel(@Nonnull String jobId);
 }

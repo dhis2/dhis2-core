@@ -61,8 +61,9 @@ public class HeartbeatJob implements Job {
   public void execute(JobConfiguration config, JobProgress progress) {
     progress.startingProcess("Heartbeat");
 
-    progress.startingStage("Synchronize scheduler state in cluster", SKIP_STAGE);
-    progress.runStage(jobSchedulerService::syncCluster);
+    progress.startingStage("Apply job cancellation", SKIP_STAGE);
+    progress.runStage(
+        0, "%d jobs were cancelled"::formatted, jobSchedulerService::applyCancellation);
 
     progress.startingStage("Auto spawn default jobs when missing", SKIP_STAGE);
     progress.runStage(

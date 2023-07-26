@@ -70,6 +70,7 @@ public class TestJob implements Job {
     if (stages > 0) {
       for (int stage = 0; stage < stages; stage++) {
         progress.startingStage(format("Stage %d", stage), items, policy);
+        boolean failAtThisStage = failAtStage < 0 || stage == failAtStage;
         if (items > 0) {
           if (params.isFailWithException()) {
             progress.runStage(
@@ -77,20 +78,20 @@ public class TestJob implements Job {
                 item -> "Item " + item,
                 item -> {
                   simulateWorkForDuration(params.getItemDuration());
-                  if (item == failAtItem) throw new RuntimeException(msg);
+                  if (failAtThisStage && item == failAtItem) throw new RuntimeException(msg);
                 });
           } else {
             for (int item = 0; item < items; item++) {
               progress.startingWorkItem(item);
               simulateWorkForDuration(params.getItemDuration());
-              if (item == failAtItem) {
+              if (failAtThisStage && item == failAtItem) {
                 progress.failedWorkItem(msg);
               } else {
                 progress.completedWorkItem(null);
               }
             }
           }
-        } else if (failAtStage == stage) {
+        } else if (failAtThisStage) {
           if (params.isFailWithException()) throw new RuntimeException(msg);
           progress.failedStage(msg);
         } else {

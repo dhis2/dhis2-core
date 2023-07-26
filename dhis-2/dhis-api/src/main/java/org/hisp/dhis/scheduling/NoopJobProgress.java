@@ -42,11 +42,6 @@ public class NoopJobProgress implements JobProgress {
   }
 
   @Override
-  public boolean isCancellationRequested() {
-    return false;
-  }
-
-  @Override
   public void startingProcess(String description) {
     // as the name said we do nothing
   }

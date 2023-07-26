@@ -11,6 +11,7 @@ alter table jobconfiguration
     add column if not exists schedulingtype varchar(12) not null default 'ONCE_ASAP',
     add column if not exists lastalive timestamp,
     add column if not exists lastfinished timestamp,
+    add column if not exists cancel boolean not null default false,
     add column if not exists progress jsonb;
 
 -- fix CRON default for CONTINUOUS_ANALYTICS_TABLE job which is the only one using delay

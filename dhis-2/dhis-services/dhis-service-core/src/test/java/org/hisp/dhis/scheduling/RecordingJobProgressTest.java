@@ -150,17 +150,17 @@ class RecordingJobProgressTest {
     // behaviour
     progress.failedWorkItem("Oh no!");
     assertTrue(progress.isSkipCurrentStage());
-    assertFalse(progress.isCancellationRequested());
+    assertFalse(progress.isCancelled());
 
     // next item is started anyway (skip works cooperatively)
     progress.startingWorkItem("5", FAIL);
     progress.failedWorkItem("And again...");
     assertTrue(progress.isSkipCurrentStage());
-    assertTrue(progress.isCancellationRequested());
+    assertTrue(progress.isCancelled());
   }
 
   private void assertProcessCanContinue() {
-    assertFalse(progress.isCancellationRequested());
+    assertFalse(progress.isCancelled());
     assertDoesNotThrow(
         () -> progress.startingStage("another"),
         "execution should be possible to continue with next stage");
@@ -168,7 +168,7 @@ class RecordingJobProgressTest {
   }
 
   private void assertProcessCanNotContinue() {
-    assertTrue(progress.isCancellationRequested());
+    assertTrue(progress.isCancelled());
     assertThrows(
         CancellationException.class,
         () -> progress.startingStage("another"),

@@ -77,7 +77,7 @@ public class JobScheduler implements Runnable {
 
   private final JobService jobService;
   private final JobSchedulerLoopService service;
-  private final ExecutorService workers = Executors.newWorkStealingPool();
+  private final ExecutorService workers = Executors.newCachedThreadPool();
 
   public void start() {
     long loopTimeMs = LOOP_SECONDS * 1000L;
@@ -112,10 +112,7 @@ public class JobScheduler implements Runnable {
     }
   }
 
-  /**
-   * This is executed on a worker thread.
-   * The start time is the desired time to run.
-   */
+  /** This is executed on a worker thread. The start time is the desired time to run. */
   private void runDueJob(JobConfiguration config, Instant start) {
     String jobId = config.getUid();
     if (!service.tryRun(jobId)) {
@@ -125,21 +122,28 @@ public class JobScheduler implements Runnable {
               jobId, start.atZone(ZoneId.systemDefault())));
       return;
     }
+    JobProgress progress = null;
     try {
       AtomicLong lastAlive = new AtomicLong(currentTimeMillis());
-      JobProgress progress =
-          service.startRun(jobId, config.getExecutedBy(), () -> alive(jobId, lastAlive));
+      progress = service.startRun(jobId, config.getExecutedBy(), () -> alive(jobId, lastAlive));
 
       jobService.getJob(config.getJobType()).execute(config, progress);
 
-      if (progress.isCancellationRequested()) service.cancelRun(jobId);
-      if (!progress.isSuccessful()) service.failRun(jobId, null);
+      if (progress.isCancelled() && !progress.isAborted()) {
+        service.finishRunCancel(jobId);
+      } else if (!progress.isSuccessful()) {
+        service.finishRunFail(jobId, null);
+      }
     } catch (CancellationException ex) {
-      service.cancelRun(jobId);
+      if (progress != null && progress.isAborted()) {
+        service.finishRunFail(jobId, ex);
+      } else {
+        service.finishRunCancel(jobId);
+      }
     } catch (Exception ex) {
-      service.failRun(jobId, ex);
+      service.finishRunFail(jobId, ex);
     } finally {
-      if (service.completeRun(jobId) && config.isUsedInQueue()) {
+      if (service.finishRunSuccess(jobId) && config.isUsedInQueue()) {
         JobConfiguration next =
             service.getNextInQueue(config.getQueueName(), config.getQueuePosition());
         if (next != null)
@@ -153,7 +157,7 @@ public class JobScheduler implements Runnable {
     long now = currentTimeMillis();
     if (now - lastAssured.get() > 10_000) {
       lastAssured.set(now);
-      service.assureAsRunning(jobId);
+      service.updateAsRunning(jobId);
     }
   }
 }
