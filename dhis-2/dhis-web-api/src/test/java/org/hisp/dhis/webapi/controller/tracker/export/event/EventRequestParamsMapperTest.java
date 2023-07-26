@@ -409,9 +409,9 @@ class EventRequestParamsMapperTest {
 
     assertContainsOnly(
         List.of(
-            new OrderParam("createdAt", SortDirection.ASC),
-            new OrderParam("programStage", SortDirection.DESC),
-            new OrderParam("scheduledAt", SortDirection.ASC)),
+            new OrderParam("created", SortDirection.ASC),
+            new OrderParam("programStage.uid", SortDirection.DESC),
+            new OrderParam("dueDate", SortDirection.ASC)),
         params.getOrders());
   }
 

@@ -167,32 +167,36 @@ public class JdbcEventStore implements EventStore {
 
   private static final String AND = " AND ";
 
-  public static final Map<String, String> QUERY_PARAM_COL_MAP =
+  /**
+   * Events can be ordered by given fields which correspond to fields on {@link
+   * org.hisp.dhis.program.Event}. Maps fields to DB columns.
+   */
+  public static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
-          entry(EVENT_ID, "psi_uid"),
-          entry(EVENT_PROGRAM_ID, "p_uid"),
-          entry(EVENT_PROGRAM_STAGE_ID, "ps_uid"),
-          entry(EVENT_ENROLLMENT_ID, "pi_uid"),
-          entry("enrollmentStatus", "pi_status"),
-          entry("enrolledAt", "pi_enrollmentdate"),
-          entry(EVENT_ORG_UNIT_ID, "ou_uid"),
-          entry(EVENT_ORG_UNIT_NAME, "ou_name"),
-          entry("trackedEntity", "tei_uid"),
-          entry(EVENT_OCCURRED_AT_DATE_ID, "psi_executiondate"),
-          entry("followup", "pi_followup"),
-          entry(EVENT_STATUS_ID, EVENT_STATUS),
-          entry(EVENT_SCHEDULE_AT_DATE_ID, "psi_duedate"),
-          entry(EVENT_STORED_BY_ID, "psi_storedby"),
-          entry(EVENT_UPDATED_BY, "psi_lastupdatedbyuserinfo"),
-          entry(EVENT_CREATED_BY_ID, "psi_createdbyuserinfo"),
-          entry(EVENT_CREATED_AT_ID, "psi_created"),
-          entry(EVENT_UPDATED_AT_ID, "psi_lastupdated"),
-          entry(EVENT_COMPLETED_BY_ID, "psi_completedby"),
-          entry(EVENT_ATTRIBUTE_OPTION_COMBO_ID, "psi_aoc"),
-          entry(EVENT_COMPLETED_AT_ID, "psi_completeddate"),
-          entry(EVENT_DELETED, "psi_deleted"),
+          entry("uid", "psi_uid"),
+          entry("enrollment.program.uid", "p_uid"),
+          entry("programStage.uid", "ps_uid"),
+          entry("enrollment.uid", "pi_uid"),
+          entry("enrollment.status", "pi_status"),
+          entry("enrollment.enrollmentDate", "pi_enrollmentdate"),
+          entry("organisationUnit.uid", "ou_uid"),
+          entry("organisationUnit.name", "ou_name"),
+          entry("enrollment.trackedEntity.uid", "tei_uid"),
+          entry("executionDate", "psi_executiondate"),
+          entry("enrollment.followup", "pi_followup"),
+          entry("status", EVENT_STATUS),
+          entry("dueDate", "psi_duedate"),
+          entry("storedBy", "psi_storedby"),
+          entry("lastUpdatedBy", "psi_lastupdatedbyuserinfo"),
+          entry("createdBy", "psi_createdbyuserinfo"),
+          entry("created", "psi_created"),
+          entry("lastUpdated", "psi_lastupdated"),
+          entry("completedBy", "psi_completedby"),
+          entry("attributeOptionCombo.uid", "psi_aoc"),
+          entry("completedDate", "psi_completeddate"),
+          entry("deleted", "psi_deleted"),
           entry("assignedUser", "user_assigned_username"),
-          entry("assignedUserDisplayName", "user_assigned_name"));
+          entry("assignedUser.displayName", "user_assigned_name"));
 
   private static final Map<String, String> COLUMNS_ALIAS_MAP =
       ImmutableMap.<String, String>builder()
@@ -1513,8 +1517,8 @@ public class JdbcEventStore implements EventStore {
     ArrayList<String> orderFields = new ArrayList<>();
 
     for (OrderParam order : params.getOrders()) {
-      if (QUERY_PARAM_COL_MAP.containsKey(order.getField())) {
-        String orderText = QUERY_PARAM_COL_MAP.get(order.getField());
+      if (ORDERABLE_FIELDS.containsKey(order.getField())) {
+        String orderText = ORDERABLE_FIELDS.get(order.getField());
         orderText += " " + (order.getDirection().isAscending() ? "asc" : "desc");
         orderFields.add(orderText);
       } else if (params.getAttributeOrders().contains(order)) {
