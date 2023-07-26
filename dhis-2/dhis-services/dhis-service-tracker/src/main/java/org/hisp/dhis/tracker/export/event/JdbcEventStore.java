@@ -465,6 +465,11 @@ public class JdbcEventStore implements EventStore {
         });
   }
 
+  @Override
+  public boolean canEventsBeOrderedBy(String field) {
+    return ORDERABLE_FIELDS.containsKey(field);
+  }
+
   private String getIdSqlBasedOnIdScheme(
       IdScheme idScheme, String uidSql, String attributeSql, String codeSql) {
     if (idScheme == IdScheme.ID || idScheme == IdScheme.UID) {

@@ -25,22 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Event;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface EventService {
-  Event getEvent(String uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-  Event getEvent(Event event, EventParams eventParams) throws ForbiddenException;
+@ExtendWith(MockitoExtension.class)
+class EventsExportControllerUnitTest {
 
-  Events getEvents(EventOperationParams params) throws BadRequestException, ForbiddenException;
+  @Mock private org.hisp.dhis.tracker.export.event.EventService eventService;
 
-  boolean canEventsBeOrderedBy(String field);
+  @Mock private EventRequestParamsMapper eventParamsMapper;
+
+  @Mock private CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
+
+  @Mock private FieldFilterService fieldFilterService;
+
+  @Mock private EventFieldsParamMapper eventsMapper;
+
+  @Test
+  void shouldFailInstantiatingControllerIfAnyOrderableFieldIsUnsupported() {
+    when(eventService.canEventsBeOrderedBy(any())).thenReturn(false);
+
+    Exception exception =
+        assertThrows(
+            IllegalStateException.class,
+            () ->
+                new EventsExportController(
+                    eventService,
+                    eventParamsMapper,
+                    csvEventService,
+                    fieldFilterService,
+                    eventsMapper));
+
+    assertStartsWith("event controller supports ordering by", exception.getMessage());
+  }
 }
