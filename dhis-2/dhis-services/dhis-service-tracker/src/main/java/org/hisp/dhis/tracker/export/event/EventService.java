@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import java.util.Set;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -41,4 +42,6 @@ public interface EventService {
   Event getEvent(Event event, EventParams eventParams) throws ForbiddenException;
 
   Events getEvents(EventOperationParams params) throws BadRequestException, ForbiddenException;
+
+  Set<String> getOrderableFields();
 }

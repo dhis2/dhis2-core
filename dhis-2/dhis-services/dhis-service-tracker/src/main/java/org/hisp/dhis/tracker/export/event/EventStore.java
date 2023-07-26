@@ -38,5 +38,7 @@ import org.hisp.dhis.program.Event;
 public interface EventStore {
   List<Event> getEvents(EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue);
 
+  Set<String> getOrderableFields();
+
   int getEventCount(EventSearchParams params);
 }
