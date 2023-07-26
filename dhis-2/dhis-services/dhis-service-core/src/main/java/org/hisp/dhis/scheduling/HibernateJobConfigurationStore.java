@@ -327,7 +327,9 @@ public class HibernateJobConfigurationStore
         where queuename = :queue
         and jobstatus = 'SCHEDULED'
         and queueposition > 0
-        and lastexecuted < (select lastexecuted from jobconfiguration where queuename = :queue and queueposition = 0 limit 1)
+        and (
+          lastexecuted is null
+          or lastexecuted < (select lastexecuted from jobconfiguration where queuename = :queue and queueposition = 0 limit 1))
         """;
     return nativeQuery(sql).setParameter("queue", queue).executeUpdate() > 0;
   }

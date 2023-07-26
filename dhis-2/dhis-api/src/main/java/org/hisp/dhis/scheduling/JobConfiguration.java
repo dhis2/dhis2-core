@@ -311,7 +311,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   public Instant nextExecutionTime(Instant now) {
     // for good measure we offset the last time by 1 second
     Instant since = lastExecuted == null ? now : lastExecuted.toInstant().plusSeconds(1);
-    if (isUsedInQueue() && getQueuePosition() > 0) return since;
+    if (isUsedInQueue() && getQueuePosition() > 0) return null;
     return switch (getSchedulingType()) {
       case ONCE_ASAP -> nextOnceExecutionTime(since);
       case FIXED_DELAY -> nextDelayExecutionTime(since);

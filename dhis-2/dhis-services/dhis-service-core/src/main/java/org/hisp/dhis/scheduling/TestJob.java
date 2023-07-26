@@ -60,22 +60,23 @@ public class TestJob implements Job {
     // additional stages (potentially with items)
     int stages = params.getStages() == null ? 1 : params.getStages();
     int items = params.getItems() == null ? 0 : params.getItems();
-    int failAtStage = params.getFailAtStage() == null ? -1 : params.getFailAtStage();
+    int failAtStage = params.getFailAtStage() == null ? -1 : params.getFailAtStage() - 1;
     int failAtItemDefault = items > 0 && failAtStage >= 0 ? 0 : -1;
-    int failAtItem = params.getFailAtItem() == null ? failAtItemDefault : params.getFailAtItem();
+    int failAtItem =
+        params.getFailAtItem() == null ? failAtItemDefault : params.getFailAtItem() - 1;
     String msg =
         params.getFailWithMessage() == null ? "Simulated error" : params.getFailWithMessage();
     FailurePolicy policy =
         params.getFailWithPolicy() == null ? FailurePolicy.PARENT : params.getFailWithPolicy();
     if (stages > 0) {
       for (int stage = 0; stage < stages; stage++) {
-        progress.startingStage(format("Stage %d", stage), items, policy);
-        boolean failAtThisStage = failAtStage < 0 || stage == failAtStage;
+        progress.startingStage(format("Stage %d", stage + 1), items, policy);
+        boolean failAtThisStage = stage == failAtStage;
         if (items > 0) {
           if (params.isFailWithException()) {
             progress.runStage(
                 IntStream.range(0, items).boxed(),
-                item -> "Item " + item,
+                item -> "Item " + (item + 1),
                 item -> {
                   simulateWorkForDuration(params.getItemDuration());
                   if (failAtThisStage && item == failAtItem) throw new RuntimeException(msg);
@@ -95,7 +96,7 @@ public class TestJob implements Job {
           if (params.isFailWithException()) throw new RuntimeException(msg);
           progress.failedStage(msg);
         } else {
-          progress.completedStage(format("Stage %d complete", stage));
+          progress.completedStage(format("Stage %d complete", stage + 1));
         }
       }
     }
