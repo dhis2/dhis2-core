@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 @Getter
 @Builder(toBuilder = true)
@@ -53,4 +55,6 @@ public class RelationshipOperationParams {
   private boolean totalPages;
 
   private boolean skipPaging;
+
+  private List<OrderCriteria> order;
 }

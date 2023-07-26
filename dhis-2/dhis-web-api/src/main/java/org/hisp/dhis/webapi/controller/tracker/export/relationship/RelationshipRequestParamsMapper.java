@@ -82,6 +82,7 @@ class RelationshipRequestParamsMapper {
         .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
         .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))
         .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
+        .order(requestParams.getOrder())
         .build();
   }
 
