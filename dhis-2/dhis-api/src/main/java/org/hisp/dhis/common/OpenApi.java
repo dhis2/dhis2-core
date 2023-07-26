@@ -330,7 +330,8 @@ public @interface OpenApi {
     enum Pattern {
       DEFAULT(""),
       INFO("%sInfo"),
-      TRACKER("Tracker%s");
+      TRACKER("Tracker%s"),
+      DEPRECATED_TRACKER("Deprecated_Tracker%s");
 
       private final String template;
     }
