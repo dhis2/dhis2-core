@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -112,8 +111,7 @@ public class EventUtils {
             ? getAccessibleDescendants(
                 user,
                 program,
-                Stream.concat(Stream.of(orgUnit), orgUnit.getChildren().stream())
-                    .collect(Collectors.toList()))
+                Stream.concat(Stream.of(orgUnit), orgUnit.getChildren().stream()).toList())
             : Collections.emptyList();
       case CAPTURE:
         return new ArrayList<>(user.getOrganisationUnits());
