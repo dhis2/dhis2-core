@@ -484,6 +484,7 @@ public class UserController extends AbstractCrudController<User> {
     userReplica.setUid(CodeGenerator.generateUid());
     userReplica.setCode(null);
     userReplica.setCreated(new Date());
+    userReplica.setCreatedBy( currentUser );
     userReplica.setLdapId(null);
     userReplica.setOpenId(null);
     userReplica.setUsername(username);
