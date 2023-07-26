@@ -634,7 +634,7 @@ public class DefaultDataQueryService implements DataQueryService {
       }
 
       if (orgUnits.isEmpty()) {
-        throwIllegalQueryEx(ErrorCode.E7124, DimensionalObject.ORGUNIT_DIM_ID);
+        throwIllegalQueryEx(ErrorCode.E7143, DimensionalObject.ORGUNIT_DIM_ID);
       }
 
       // Remove duplicates
