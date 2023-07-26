@@ -27,11 +27,26 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.User;
 
 @Slf4j
 public class EventUtils {
@@ -49,5 +64,138 @@ public class EventUtils {
       log.error("Parsing UserInfoSnapshot json string failed. String value: " + userInfoAsString);
       throw new IllegalArgumentException(e);
     }
+  }
+
+  public static List<OrganisationUnit> validateAccessibleOrgUnits(
+      User user,
+      OrganisationUnit orgUnit,
+      OrganisationUnitSelectionMode orgUnitMode,
+      Program program,
+      Function<String, List<OrganisationUnit>> orgUnitDescendants,
+      TrackerAccessManager trackerAccessManager)
+      throws ForbiddenException {
+    List<OrganisationUnit> accessibleOrgUnits =
+        getUserAccessibleOrgUnits(
+            user, orgUnit, orgUnitMode, program, orgUnitDescendants, trackerAccessManager);
+
+    if (orgUnit != null && accessibleOrgUnits.isEmpty()) {
+      throw new ForbiddenException("User does not have access to orgUnit: " + orgUnit.getUid());
+    }
+
+    return accessibleOrgUnits;
+  }
+
+  /**
+   * Returns a list of all the org units the user has access to
+   *
+   * @param user the user to check the access of
+   * @param orgUnit parent org unit to get descendants/children of
+   * @param orgUnitDescendants function to retrieve org units, in case ou mode is descendants
+   * @param program the program the user wants to access to
+   * @return a list containing the user accessible organisation units
+   */
+  private static List<OrganisationUnit> getUserAccessibleOrgUnits(
+      User user,
+      OrganisationUnit orgUnit,
+      OrganisationUnitSelectionMode orgUnitMode,
+      Program program,
+      Function<String, List<OrganisationUnit>> orgUnitDescendants,
+      TrackerAccessManager trackerAccessManager) {
+
+    switch (orgUnitMode) {
+      case DESCENDANTS:
+        return orgUnit != null
+            ? getAccessibleDescendants(user, program, orgUnitDescendants.apply(orgUnit.getUid()))
+            : Collections.emptyList();
+      case CHILDREN:
+        return orgUnit != null
+            ? getAccessibleDescendants(
+                user,
+                program,
+                Stream.concat(Stream.of(orgUnit), orgUnit.getChildren().stream())
+                    .collect(Collectors.toList()))
+            : Collections.emptyList();
+      case CAPTURE:
+        return new ArrayList<>(user.getOrganisationUnits());
+      case ACCESSIBLE:
+        return getAccessibleOrgUnits(user, program);
+      case SELECTED:
+        return getSelectedOrgUnits(user, program, orgUnit, trackerAccessManager);
+      default:
+        return Collections.emptyList();
+    }
+  }
+
+  private static List<OrganisationUnit> getSelectedOrgUnits(
+      User user,
+      Program program,
+      OrganisationUnit orgUnit,
+      TrackerAccessManager trackerAccessManager) {
+    return trackerAccessManager.canAccess(user, program, orgUnit)
+        ? List.of(orgUnit)
+        : Collections.emptyList();
+  }
+
+  private static List<OrganisationUnit> getAccessibleOrgUnits(User user, Program program) {
+    return isProgramAccessRestricted(program)
+        ? new ArrayList<>(user.getOrganisationUnits())
+        : new ArrayList<>(user.getTeiSearchOrganisationUnitsWithFallback());
+  }
+
+  /**
+   * Returns the org units whose path is contained in the user search or capture scope org unit. If
+   * there's a match, it means the user org unit is at the same level or above the supplied org
+   * unit.
+   *
+   * @param user the user to check the access of
+   * @param program the program the user wants to access to
+   * @param orgUnits the org units to check if the user has access to
+   * @return a list with the org units the user has access to
+   */
+  private static List<OrganisationUnit> getAccessibleDescendants(
+      User user, Program program, List<OrganisationUnit> orgUnits) {
+    if (orgUnits.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    if (isProgramAccessRestricted(program)) {
+      return orgUnits.stream()
+          .filter(
+              availableOrgUnit ->
+                  user.getOrganisationUnits().stream()
+                      .anyMatch(
+                          captureScopeOrgUnit ->
+                              availableOrgUnit.getPath().contains(captureScopeOrgUnit.getPath())))
+          .toList();
+    } else {
+      return orgUnits.stream()
+          .filter(
+              availableOrgUnit ->
+                  user.getTeiSearchOrganisationUnits().stream()
+                      .anyMatch(
+                          searchScopeOrgUnit ->
+                              availableOrgUnit.getPath().contains(searchScopeOrgUnit.getPath())))
+          .toList();
+    }
+  }
+
+  private static boolean isProgramAccessRestricted(Program program) {
+    return program != null && (program.isClosed() || program.isProtected());
+  }
+
+  /**
+   * Returns the same org unit mode if not null. If null, and an org unit is present, SELECT mode is
+   * used by default, mode ACCESSIBLE is used otherwise.
+   *
+   * @param orgUnit
+   * @param orgUnitMode
+   * @return an org unit mode given the two input params
+   */
+  public static OrganisationUnitSelectionMode getOrgUnitMode(
+      OrganisationUnit orgUnit, OrganisationUnitSelectionMode orgUnitMode) {
+    if (orgUnitMode == null) {
+      return orgUnit != null ? SELECTED : ACCESSIBLE;
+    }
+    return orgUnitMode;
   }
 }

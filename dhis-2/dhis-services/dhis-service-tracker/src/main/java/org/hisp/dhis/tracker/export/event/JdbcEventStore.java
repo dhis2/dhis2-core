@@ -56,6 +56,7 @@ import static org.hisp.dhis.util.DateUtils.addDays;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
@@ -927,7 +928,7 @@ public class JdbcEventStore implements EventStore {
 
     String orgUnitSql = getOrgUnitSql(params, getOuTableName(params));
 
-    if (orgUnitSql != null) {
+    if (!Strings.isNullOrEmpty(orgUnitSql)) {
       fromBuilder.append(hlp.whereAnd()).append(" (").append(orgUnitSql).append(") ");
     }
 
