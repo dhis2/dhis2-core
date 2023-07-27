@@ -109,8 +109,6 @@ class EventExporterTest extends TrackerTest {
   private TrackedEntity trackedEntity;
   private User importUser;
 
-  private String scheduledAtTimeStamp = "2019-01-28T12:32:38.100";
-
   @Override
   protected void initTest() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
