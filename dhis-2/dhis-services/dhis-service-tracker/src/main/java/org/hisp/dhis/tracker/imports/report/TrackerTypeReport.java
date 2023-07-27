@@ -90,10 +90,7 @@ public class TrackerTypeReport {
   }
 
   private List<Error> getErrorReports() {
-    List<Error> errorReports = new ArrayList<>();
-    entityReport.forEach(entity -> errorReports.addAll(entity.getErrorReports()));
-
-    return errorReports;
+    return entityReport.stream().flatMap(e -> e.getErrorReports().stream()).toList();
   }
 
   public List<TrackerSideEffectDataBundle> getSideEffectDataBundles() {

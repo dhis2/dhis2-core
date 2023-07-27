@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Test;
  */
 class TrackerImportControllerTest extends DhisControllerConvenienceTest {
   @Test
-  void shouldSuccessWhenAllValidParametersArePassed() {
+  void shouldSucceedWhenAllValidParametersArePassed() {
     assertWebMessage(
         "OK",
         200,

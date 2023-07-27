@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
+import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertReportEntities;
 
 import java.util.List;
@@ -36,7 +40,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
@@ -99,14 +102,10 @@ class TrackerImportReportTest extends DhisControllerConvenienceTest {
             .as(JsonImportReport.class);
 
     assertReportEntities(
-        List.of("IybbQIQt6te", "daMwzsKN3te", "FRM97UKN8te"),
-        importReport,
-        TrackerType.TRACKED_ENTITY);
-    assertReportEntities(
-        List.of("IybbQIQt6en", "daMwzsKN3en"), importReport, TrackerType.ENROLLMENT);
-    assertReportEntities(List.of("IybbQIQt6ev", "daMwzsKN3ev"), importReport, TrackerType.EVENT);
-    assertReportEntities(
-        List.of("IybbQIQtrel", "daMwzsKNrel"), importReport, TrackerType.RELATIONSHIP);
+        List.of("IybbQIQt6te", "daMwzsKN3te", "FRM97UKN8te"), TRACKED_ENTITY, importReport);
+    assertReportEntities(List.of("IybbQIQt6en", "daMwzsKN3en"), ENROLLMENT, importReport);
+    assertReportEntities(List.of("IybbQIQt6ev", "daMwzsKN3ev"), EVENT, importReport);
+    assertReportEntities(List.of("IybbQIQtrel", "daMwzsKNrel"), RELATIONSHIP, importReport);
   }
 
   @Test
@@ -122,13 +121,9 @@ class TrackerImportReportTest extends DhisControllerConvenienceTest {
             .as(JsonImportReport.class);
 
     assertReportEntities(
-        List.of("IybbQIQt6te", "daMwzsKN3te", "FRM97UKN8te"),
-        importReport,
-        TrackerType.TRACKED_ENTITY);
-    assertReportEntities(
-        List.of("IybbQIQt6en", "daMwzsKN3en"), importReport, TrackerType.ENROLLMENT);
-    assertReportEntities(List.of("IybbQIQt6ev", "daMwzsKN3ev"), importReport, TrackerType.EVENT);
-    assertReportEntities(
-        List.of("IybbQIQtrel", "daMwzsKNrel"), importReport, TrackerType.RELATIONSHIP);
+        List.of("IybbQIQt6te", "daMwzsKN3te", "FRM97UKN8te"), TRACKED_ENTITY, importReport);
+    assertReportEntities(List.of("IybbQIQt6en", "daMwzsKN3en"), ENROLLMENT, importReport);
+    assertReportEntities(List.of("IybbQIQt6ev", "daMwzsKN3ev"), EVENT, importReport);
+    assertReportEntities(List.of("IybbQIQtrel", "daMwzsKNrel"), RELATIONSHIP, importReport);
   }
 }

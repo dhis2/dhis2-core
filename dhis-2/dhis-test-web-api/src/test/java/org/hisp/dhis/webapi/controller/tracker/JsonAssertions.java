@@ -168,7 +168,7 @@ public class JsonAssertions {
   }
 
   public static void assertReportEntities(
-      List<String> expectedEntityUids, JsonImportReport importReport, TrackerType trackerType) {
+      List<String> expectedEntityUids, TrackerType trackerType, JsonImportReport importReport) {
     JsonTypeReport jsonTypeReport =
         switch (trackerType) {
           case TRACKED_ENTITY -> importReport.getBundleReport().getTrackedEntities();
