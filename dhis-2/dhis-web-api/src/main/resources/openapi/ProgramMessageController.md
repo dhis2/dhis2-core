@@ -44,6 +44,18 @@ Get programMessages after given date
 
 Get programMessages before given date
 
+### `*.parameter.messageStatus`
+
+Get programMessages based on status for example SENT, SCHEDULED etc
+
+### `*.parameter.page`
+
+Number of pages to be loaded
+
+### `*.parameter.pageSize`
+
+Number of records per page
+
 ### `*.parameter.ProgramMessageBatch.programMessages`
 
 Send batch of programMessages
