@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller.deprecated.tracker;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 
@@ -134,6 +136,14 @@ public class TrackedEntityInstanceCriteriaMapper {
 
         params.getFilters().add(it);
       }
+    }
+
+    if (!criteria.getOrgUnits().isEmpty()
+        && (criteria.getOuMode() == ACCESSIBLE || criteria.getOuMode() == CAPTURE)) {
+      throw new IllegalQueryException(
+          String.format(
+              "Org unit mode %s cannot be used with an org unit specified. Please remove the org unit and try again.",
+              criteria.getOuMode()));
     }
 
     for (String orgUnit : criteria.getOrgUnits()) {
