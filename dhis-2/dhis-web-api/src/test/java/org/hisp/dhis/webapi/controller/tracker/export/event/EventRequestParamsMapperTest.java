@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
@@ -429,5 +434,65 @@ class EventRequestParamsMapperTest {
         // contains
         () -> assertContains("unsupportedProperty1", exception.getMessage()),
         () -> assertContains("unsupportedProperty2", exception.getMessage()));
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
+    requestParams.setOrgUnitMode(ACCESSIBLE);
+
+    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertEquals(
+        "Org unit mode ACCESSIBLE cannot be used with an org unit specified. Please remove the org unit and try again.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
+    requestParams.setOrgUnitMode(CAPTURE);
+
+    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertEquals(
+        "Org unit mode CAPTURE cannot be used with an org unit specified. Please remove the org unit and try again.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeSelected() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
+    requestParams.setOrgUnitMode(SELECTED);
+
+    EventOperationParams eventOperationParams = mapper.map(requestParams);
+
+    assertEquals(SELECTED, eventOperationParams.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeDescendants()
+      throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
+    requestParams.setOrgUnitMode(DESCENDANTS);
+
+    EventOperationParams eventOperationParams = mapper.map(requestParams);
+
+    assertEquals(DESCENDANTS, eventOperationParams.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeChildren() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
+    requestParams.setOrgUnitMode(CHILDREN);
+
+    EventOperationParams eventOperationParams = mapper.map(requestParams);
+
+    assertEquals(CHILDREN, eventOperationParams.getOrgUnitMode());
   }
 }

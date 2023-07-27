@@ -27,15 +27,19 @@
  */
 package org.hisp.dhis.webapi.controller.deprecated.tracker;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.not;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.HashSet;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -118,44 +122,78 @@ class EventRequestToSearchParamsMapperTest {
   }
 
   @Test
-  void testEventRequestToSearchParamsMapperSuccess() {
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
+    Exception exception = assertThrows(IllegalQueryException.class, () -> map(ACCESSIBLE));
 
-    EventSearchParams eventSearchParams =
-        requestToSearchParamsMapper.map(
-            "programuid",
-            null,
-            null,
-            null,
-            "orgunituid",
-            OrganisationUnitSelectionMode.ACCESSIBLE,
-            "teiUid",
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            false,
-            false,
-            Collections.emptyList(),
-            Collections.emptyList(),
-            false,
-            new HashSet<>(),
-            new HashSet<>(),
-            null,
-            null,
-            new HashSet<>(),
-            Collections.singleton("UXz7xuGCEhU:GT:100"),
-            new HashSet<>(),
-            false,
-            false); // Then
+    assertEquals(
+        "Org unit mode ACCESSIBLE cannot be used with an org unit specified. Please remove the org unit and try again.",
+        exception.getMessage());
+  }
 
-    assertThat(eventSearchParams, is(not(nullValue())));
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
+    Exception exception = assertThrows(IllegalQueryException.class, () -> map(CAPTURE));
+
+    assertEquals(
+        "Org unit mode CAPTURE cannot be used with an org unit specified. Please remove the org unit and try again.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeSelected() {
+    EventSearchParams eventSearchParams = map(SELECTED);
+
+    assertEquals(SELECTED, eventSearchParams.getOrgUnitSelectionMode());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeDescendants() {
+    EventSearchParams eventSearchParams = map(DESCENDANTS);
+
+    assertEquals(DESCENDANTS, eventSearchParams.getOrgUnitSelectionMode());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeChildren() {
+    EventSearchParams eventSearchParams = map(CHILDREN);
+
+    assertEquals(CHILDREN, eventSearchParams.getOrgUnitSelectionMode());
+  }
+
+  private EventSearchParams map(OrganisationUnitSelectionMode orgUnitMode) {
+    return requestToSearchParamsMapper.map(
+        "programuid",
+        null,
+        null,
+        null,
+        "orgunituid",
+        orgUnitMode,
+        "teiUid",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        false,
+        false,
+        Collections.emptyList(),
+        Collections.emptyList(),
+        false,
+        new HashSet<>(),
+        new HashSet<>(),
+        null,
+        null,
+        new HashSet<>(),
+        Collections.singleton("UXz7xuGCEhU:GT:100"),
+        new HashSet<>(),
+        false,
+        false);
   }
 }
