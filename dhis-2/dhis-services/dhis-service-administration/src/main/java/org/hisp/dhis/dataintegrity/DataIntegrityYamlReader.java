@@ -34,14 +34,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.ValidationMessage;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.jsonschema.JsonSchemaValidator;
+import org.springframework.core.io.AbstractFileResolvingResource;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.UrlResource;
 
 /**
  * Reads {@link DataIntegrityCheck}s from YAML files.
@@ -98,12 +99,20 @@ class DataIntegrityYamlReader {
       DefaultDataIntegrityService.DataIntegrityRecord dataIntegrityRecord) {
     ObjectMapper yaml = new ObjectMapper(new YAMLFactory());
     ListYamlFile file;
-    try {
-      InputStream is =
-          getInputStreamFromResource(
-              dataIntegrityRecord.resourceLocation(), dataIntegrityRecord.yamlFileChecks());
-      if (is == null) return;
 
+    AbstractFileResolvingResource resource =
+        getResourceFromType(
+            dataIntegrityRecord.resourceLocation(), dataIntegrityRecord.yamlFileChecks());
+
+    if (resource == null) {
+      log.warn(
+          "Failed to get resource from location `{}` and with file`{}`",
+          dataIntegrityRecord.resourceLocation(),
+          dataIntegrityRecord.yamlFileChecks());
+      return;
+    }
+
+    try (InputStream is = resource.getInputStream()) {
       file = yaml.readValue(is, ListYamlFile.class);
     } catch (Exception ex) {
       log.warn("Failed to load data integrity check from YAML", ex);
@@ -138,6 +147,7 @@ class DataIntegrityYamlReader {
       String dataIntegrityCheckFile,
       ObjectMapper yaml,
       DefaultDataIntegrityService.DataIntegrityRecord dataIntegrityRecord) {
+
     try {
       String path =
           Path.of(dataIntegrityRecord.yamlFileChecks())
@@ -146,21 +156,32 @@ class DataIntegrityYamlReader {
               .resolve(dataIntegrityCheckFile)
               .toString();
 
-      InputStream is = getInputStreamFromResource(dataIntegrityRecord.resourceLocation(), path);
-      if (is == null) return;
+      AbstractFileResolvingResource resource =
+          getResourceFromType(dataIntegrityRecord.resourceLocation(), path);
 
-      JsonNode jsonNode = yaml.readValue(is, JsonNode.class);
-      Set<ValidationMessage> validationMessages =
-          JsonSchemaValidator.validateDataIntegrityCheck(jsonNode);
-
-      if (validationMessages.isEmpty()) {
-        CheckYamlFile yamlFile = yaml.convertValue(jsonNode, CheckYamlFile.class);
-        acceptDataIntegrityCheck(dataIntegrityRecord, yamlFile);
-      } else {
+      if (resource == null) {
         log.warn(
-            "JsonSchema validation errors found for Data Integrity Check `{}`. Errors: {}",
-            dataIntegrityCheckFile,
-            validationMessages);
+            "Failed to get resource from location `{}` and with file`{}`",
+            dataIntegrityRecord.resourceLocation(),
+            path);
+        return;
+      }
+
+      try (InputStream is = resource.getInputStream()) {
+
+        JsonNode jsonNode = yaml.readValue(is, JsonNode.class);
+        Set<ValidationMessage> validationMessages =
+            JsonSchemaValidator.validateDataIntegrityCheck(jsonNode);
+
+        if (validationMessages.isEmpty()) {
+          CheckYamlFile yamlFile = yaml.convertValue(jsonNode, CheckYamlFile.class);
+          acceptDataIntegrityCheck(dataIntegrityRecord, yamlFile);
+        } else {
+          log.warn(
+              "JsonSchema validation errors found for Data Integrity Check `{}`. Errors: {}",
+              dataIntegrityCheckFile,
+              validationMessages);
+        }
       }
     } catch (Exception ex) {
       log.error(
@@ -206,14 +227,14 @@ class DataIntegrityYamlReader {
                 .build());
   }
 
-  private static InputStream getInputStreamFromResource(
+  private static AbstractFileResolvingResource getResourceFromType(
       ResourceLocation resourceLocation, String filePath) {
-    InputStream is = null;
+    AbstractFileResolvingResource resource = null;
     try {
-      is =
+      resource =
           switch (resourceLocation) {
-            case CLASS_PATH -> new ClassPathResource(filePath).getInputStream();
-            case FILE_SYSTEM -> new FileInputStream(filePath);
+            case CLASS_PATH -> new ClassPathResource(filePath);
+            case FILE_SYSTEM -> new UrlResource("file://" + filePath);
           };
     } catch (Exception ex) {
       log.warn(
@@ -221,7 +242,7 @@ class DataIntegrityYamlReader {
           filePath,
           ex.getMessage());
     }
-    return is;
+    return resource;
   }
 
   private static String trim(String str) {
