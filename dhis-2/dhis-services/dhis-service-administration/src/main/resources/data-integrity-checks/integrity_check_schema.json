@@ -1,5 +1,5 @@
 {
-  "$schema":"http://json-schema.org/draft-04/schema#",
+  "$schema":"http://json-schema.org/draft/2020-12/schema",
   "$id": "https://dhis2.org/metadata-assessment.schema.json",
   "title": "Metadata Assessment",
   "description": "A DHIS2 metadata assessment object",
@@ -7,6 +7,10 @@
   "properties": {
     "name": {
       "description": "A short and unique name which will represent the name of the set of queries in DHIS2",
+      "type": "string"
+    },
+    "description": {
+      "description": "A description giving information about the data integrity check",
       "type": "string"
     },
     "section" : {
@@ -68,16 +72,17 @@
     }
   },
   "required": [
+    "description",
+    "details_id_type",
+    "details_sql",
+    "details_uid",
+    "introduction",
     "name",
+    "recommendation",
     "section",
     "section_order",
-    "summary_uid",
-    "summary_sql",
-    "details_uid",
-    "details_sql",
-    "details_id_type",
     "severity",
-    "introduction",
-    "recommendation"
+    "summary_sql",
+    "summary_uid"
   ]
 }
