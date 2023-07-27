@@ -70,12 +70,12 @@ public class DefaultEventStore extends AbstractStore implements EventStore {
   private static final String ACL_FILTER_SQL =
       "CASE WHEN p.type = 'WITH_REGISTRATION' THEN "
           + "p.trackedentitytypeid in (:trackedEntityTypeIds) else true END "
-          + "AND ev.programstageid in (:programStageIds) AND pi.programid IN (:programIds)";
+          + "AND ev.programstageid in (:programStageIds) AND en.programid IN (:programIds)";
 
   private static final String ACL_FILTER_SQL_NO_PROGRAM_STAGE =
       "CASE WHEN p.type = 'WITH_REGISTRATION' THEN "
           + "p.trackedentitytypeid in (:trackedEntityTypeIds) else true END "
-          + "AND pi.programid IN (:programIds)";
+          + "AND en.programid IN (:programIds)";
 
   private static final String FILTER_OUT_DELETED_EVENTS = "ev.deleted=false";
 

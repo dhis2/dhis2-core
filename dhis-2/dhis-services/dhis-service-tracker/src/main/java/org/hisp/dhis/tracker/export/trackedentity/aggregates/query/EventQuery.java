@@ -59,9 +59,9 @@ public class EventQuery {
     DELETED(new TableColumn("ev", "deleted")),
     GEOMETRY(new Function("ST_AsBinary", "ev", "geometry", "geometry")),
     TEI_UID(new TableColumn("tei", "uid", "tei_uid")),
-    ENROLLMENT_UID(new TableColumn("pi", "uid", "enruid")),
-    ENROLLMENT_FOLLOWUP(new TableColumn("pi", "followup", "enrfollowup")),
-    ENROLLMENT_STATUS(new TableColumn("pi", "status", "enrstatus")),
+    ENROLLMENT_UID(new TableColumn("en", "uid", "enruid")),
+    ENROLLMENT_FOLLOWUP(new TableColumn("en", "followup", "enrfollowup")),
+    ENROLLMENT_STATUS(new TableColumn("en", "status", "enrstatus")),
     PROGRAM_UID(new TableColumn("p", "uid", "prguid")),
     PROGRAM_STAGE_UID(new TableColumn("ps", "uid", "prgstguid")),
     ORGUNIT_UID(new TableColumn("o", "uid", "ou_uid")),
@@ -107,14 +107,14 @@ public class EventQuery {
   public static String getQuery() {
     return getSelect()
         + "from event ev "
-        + "join enrollment pi on ev.enrollmentid = pi.enrollmentid "
-        + "join trackedentity tei on pi.trackedentityid = tei.trackedentityid "
-        + "join program p on pi.programid = p.programid "
+        + "join enrollment en on ev.enrollmentid = en.enrollmentid "
+        + "join trackedentity tei on en.trackedentityid = tei.trackedentityid "
+        + "join program p on en.programid = p.programid "
         + "join programstage ps on ev.programstageid = ps.programstageid "
         + "join organisationunit o on ev.organisationunitid = o.organisationunitid "
         + "join categoryoptioncombo coc on ev.attributeoptioncomboid = coc.categoryoptioncomboid "
         + "left join userinfo ui on ev.assigneduserid = ui.userinfoid "
-        + "where pi.enrollmentid in (:ids)";
+        + "where en.enrollmentid in (:ids)";
   }
 
   private static String getSelect() {

@@ -125,7 +125,7 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
         tei.setUid(uid);
         ri.setTrackedEntity(tei);
         break;
-      case "pi":
+      case "en":
         Enrollment enrollment = new Enrollment();
         enrollment.setUid(uid);
         ri.setEnrollment(enrollment);
@@ -136,7 +136,7 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
         ri.setEvent(event);
         break;
       default:
-        log.warn("Expecting tei|ev|pi as type when fetching a relationship, got: " + type);
+        log.warn("Expecting tei|ev|en as type when fetching a relationship, got: " + type);
     }
 
     return ri;

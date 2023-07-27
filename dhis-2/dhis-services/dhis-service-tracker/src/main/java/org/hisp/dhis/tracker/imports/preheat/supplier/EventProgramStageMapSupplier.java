@@ -55,17 +55,17 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
   private static final String SQL =
       "select distinct ps.uid as "
           + PS_UID
-          + ", pi.uid as "
+          + ", en.uid as "
           + PI_UID
           + " "
-          + " from enrollment as pi "
-          + " join programstage as ps on pi.programid = ps.programid "
-          + " join event as ev on pi.enrollmentid = ev.enrollmentid "
+          + " from enrollment as en "
+          + " join programstage as ps on en.programid = ps.programid "
+          + " join event as ev on en.enrollmentid = ev.enrollmentid "
           + " where ev.deleted = false "
           + " and ev.status != 'SKIPPED' "
           + " and ps.programstageid = ev.programstageid "
           + " and ps.uid in (:programStageUids) "
-          + " and pi.uid in (:enrollmentUids) ";
+          + " and en.uid in (:enrollmentUids) ";
 
   protected EventProgramStageMapSupplier(JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);

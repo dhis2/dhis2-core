@@ -56,11 +56,11 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
 
   private static final String PR_UID_COLUMN_ALIAS = "pruid";
 
-  private static final String PI_UID_COLUMN = "pi.uid";
+  private static final String PI_UID_COLUMN = "en.uid";
 
   private static final String PI_UID_COLUMN_ALIAS = "piuid";
 
-  private static final String PI_STATUS_COLUMN = "pi.status";
+  private static final String PI_STATUS_COLUMN = "en.status";
 
   private static final String PI_STATUS_COLUMN_ALIAS = "status";
 
@@ -85,10 +85,10 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
           + TEI_UID_COLUMN
           + " as "
           + TEI_UID_COLUMN_ALIAS
-          + " from enrollment pi "
-          + " join trackedentity tei on pi.trackedentityid = tei.trackedentityid "
-          + " join program pr on pr.programid = pi.programid "
-          + " where pi.deleted = false "
+          + " from enrollment en "
+          + " join trackedentity tei on en.trackedentityid = tei.trackedentityid "
+          + " join program pr on pr.programid = en.programid "
+          + " where en.deleted = false "
           + " and tei.uid in (:teuids)"
           + " and pr.uid in (:pruids)";
 

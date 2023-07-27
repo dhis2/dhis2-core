@@ -62,9 +62,9 @@ public class TrackerOrgUnitMergeHandler {
         request);
 
     migrate(
-        "update Enrollment pi "
-            + "set pi.organisationUnit = :target "
-            + "where pi.organisationUnit.id in (:sources)",
+        "update Enrollment en "
+            + "set en.organisationUnit = :target "
+            + "where en.organisationUnit.id in (:sources)",
         request);
   }
 

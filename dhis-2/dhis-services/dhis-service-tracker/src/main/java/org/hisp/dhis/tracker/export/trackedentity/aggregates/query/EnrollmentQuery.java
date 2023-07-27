@@ -63,23 +63,23 @@ public class EnrollmentQuery {
   public static final Map<COLUMNS, ? extends QueryElement> columnMap =
       ImmutableMap.<COLUMNS, QueryElement>builder()
           .put(COLUMNS.TEI_UID, new TableColumn("tei", "uid", "tei_uid"))
-          .put(COLUMNS.GEOMETRY, new Function("ST_AsBinary", "pi", "geometry", "geometry"))
-          .put(COLUMNS.ID, new TableColumn("pi", "enrollmentid"))
-          .put(COLUMNS.UID, new TableColumn("pi", "uid"))
-          .put(COLUMNS.CREATED, new TableColumn("pi", "created"))
-          .put(COLUMNS.CREATEDCLIENT, new TableColumn("pi", "createdatclient"))
-          .put(COLUMNS.CREATED_BY, new TableColumn("pi", "createdbyuserinfo"))
-          .put(COLUMNS.UPDATED, new TableColumn("pi", "lastupdated"))
-          .put(COLUMNS.UPDATEDCLIENT, new TableColumn("pi", "lastupdatedatclient"))
-          .put(COLUMNS.LAST_UPDATED_BY, new TableColumn("pi", "lastupdatedbyuserinfo"))
-          .put(COLUMNS.STATUS, new TableColumn("pi", "status"))
-          .put(COLUMNS.ENROLLMENTDATE, new TableColumn("pi", "enrollmentdate"))
-          .put(COLUMNS.INCIDENTDATE, new TableColumn("pi", "incidentdate"))
-          .put(COLUMNS.FOLLOWUP, new TableColumn("pi", "followup"))
-          .put(COLUMNS.COMPLETED, new TableColumn("pi", "enddate"))
-          .put(COLUMNS.COMPLETEDBY, new TableColumn("pi", "completedby"))
-          .put(COLUMNS.STOREDBY, new TableColumn("pi", "storedby"))
-          .put(COLUMNS.DELETED, new TableColumn("pi", "deleted"))
+          .put(COLUMNS.GEOMETRY, new Function("ST_AsBinary", "en", "geometry", "geometry"))
+          .put(COLUMNS.ID, new TableColumn("en", "enrollmentid"))
+          .put(COLUMNS.UID, new TableColumn("en", "uid"))
+          .put(COLUMNS.CREATED, new TableColumn("en", "created"))
+          .put(COLUMNS.CREATEDCLIENT, new TableColumn("en", "createdatclient"))
+          .put(COLUMNS.CREATED_BY, new TableColumn("en", "createdbyuserinfo"))
+          .put(COLUMNS.UPDATED, new TableColumn("en", "lastupdated"))
+          .put(COLUMNS.UPDATEDCLIENT, new TableColumn("en", "lastupdatedatclient"))
+          .put(COLUMNS.LAST_UPDATED_BY, new TableColumn("en", "lastupdatedbyuserinfo"))
+          .put(COLUMNS.STATUS, new TableColumn("en", "status"))
+          .put(COLUMNS.ENROLLMENTDATE, new TableColumn("en", "enrollmentdate"))
+          .put(COLUMNS.INCIDENTDATE, new TableColumn("en", "incidentdate"))
+          .put(COLUMNS.FOLLOWUP, new TableColumn("en", "followup"))
+          .put(COLUMNS.COMPLETED, new TableColumn("en", "enddate"))
+          .put(COLUMNS.COMPLETEDBY, new TableColumn("en", "completedby"))
+          .put(COLUMNS.STOREDBY, new TableColumn("en", "storedby"))
+          .put(COLUMNS.DELETED, new TableColumn("en", "deleted"))
           .put(COLUMNS.PROGRAM_UID, new TableColumn("p", "uid", "program_uid"))
           .put(
               COLUMNS.PROGRAM_FEATURE_TYPE,
@@ -91,12 +91,12 @@ public class EnrollmentQuery {
 
   public static String getQuery() {
     return getSelect()
-        + "from enrollment pi "
-        + "join program p on pi.programid = p.programid "
-        + "join trackedentity tei on pi.trackedentityid = tei.trackedentityid "
+        + "from enrollment en "
+        + "join program p on en.programid = p.programid "
+        + "join trackedentity tei on en.trackedentityid = tei.trackedentityid "
         + "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid "
         + "join organisationunit o on tei.organisationunitid = o.organisationunitid "
-        + "where pi.trackedentityid in (:ids) ";
+        + "where en.trackedentityid in (:ids) ";
   }
 
   private static String getSelect() {

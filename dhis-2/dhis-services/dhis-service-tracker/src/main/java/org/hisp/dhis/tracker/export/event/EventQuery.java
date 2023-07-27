@@ -27,13 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toList;
-
-import com.google.common.collect.ImmutableList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -60,9 +53,9 @@ public class EventQuery {
     DELETED(new TableColumn("ev", "deleted")),
     GEOMETRY(new Function("ST_AsBinary", "ev", "geometry", "geometry")),
     TEI_UID(new TableColumn("tei", "uid", "tei_uid")),
-    ENROLLMENT_UID(new TableColumn("pi", "uid", "enruid")),
-    ENROLLMENT_FOLLOWUP(new TableColumn("pi", "followup", "enrfollowup")),
-    ENROLLMENT_STATUS(new TableColumn("pi", "status", "enrstatus")),
+    ENROLLMENT_UID(new TableColumn("en", "uid", "enruid")),
+    ENROLLMENT_FOLLOWUP(new TableColumn("en", "followup", "enrfollowup")),
+    ENROLLMENT_STATUS(new TableColumn("en", "status", "enrstatus")),
     PROGRAM_UID(new TableColumn("p", "uid", "prguid")),
     PROGRAM_STAGE_UID(new TableColumn("ps", "uid", "prgstguid")),
     ORGUNIT_UID(new TableColumn("o", "uid", "ou_uid")),
@@ -94,33 +87,5 @@ public class EventQuery {
       throw new IllegalArgumentException(
           "getColumnName can only be invoked on TableColumn or Function");
     }
-  }
-
-  private static final Collection<QueryElement> QUERY_ELEMENTS;
-
-  static {
-    QUERY_ELEMENTS =
-        Arrays.stream(COLUMNS.values())
-            .map(COLUMNS::getQueryElement)
-            .collect(collectingAndThen(toList(), ImmutableList::copyOf));
-  }
-
-  public static String getQuery() {
-    return getSelect()
-        + "from event ev "
-        + "join enrollment pi on ev.enrollmentid = pi.programinstanceid "
-        + "join trackedentity tei on pi.trackedentityid = tei.trackedentityid "
-        + "join program p on pi.programid = p.programid "
-        + "join programstage ps on ev.programstageid = ps.programstageid "
-        + "join organisationunit o on ev.organisationunitid = o.organisationunitid "
-        + "join categoryoptioncombo coc on ev.attributeoptioncomboid = coc.categoryoptioncomboid "
-        + "left join userinfo ui on ev.assigneduserid = ui.userinfoid "
-        + "where pi.enrollmentid in (:ids)";
-  }
-
-  private static String getSelect() {
-    return "SELECT "
-        + QUERY_ELEMENTS.stream().map(QueryElement::useInSelect).collect(Collectors.joining(", "))
-        + " ";
   }
 }

@@ -53,14 +53,14 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
   private static final String GET_ATTRIBUTES = ProgramAttributeQuery.getQuery();
 
   private static final String GET_NOTES_SQL =
-      "select pi.uid as key, tec.uid, tec.commenttext, "
+      "select en.uid as key, tec.uid, tec.commenttext, "
           + "tec.creator, tec.created "
-          + "from trackedentitycomment tec join enrollmentcomments pic "
-          + "on tec.trackedentitycommentid = pic.trackedentitycommentid "
-          + "join enrollment pi on pic.enrollmentid = pi.enrollmentid "
-          + "where pic.enrollmentid in (:ids)";
+          + "from trackedentitycomment tec join enrollmentcomments enc "
+          + "on tec.trackedentitycommentid = enc.trackedentitycommentid "
+          + "join enrollment en on enc.enrollmentid = en.enrollmentid "
+          + "where enc.enrollmentid in (:ids)";
 
-  private static final String FILTER_OUT_DELETED_ENROLLMENTS = "pi.deleted=false";
+  private static final String FILTER_OUT_DELETED_ENROLLMENTS = "en.deleted=false";
 
   public DefaultEnrollmentStore(@Qualifier("readOnlyJdbcTemplate") JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
@@ -88,7 +88,7 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
         getQuery(
             GET_ENROLLMENT_SQL_BY_TEI,
             ctx,
-            " pi.programid IN (:programIds)",
+            " en.programid IN (:programIds)",
             FILTER_OUT_DELETED_ENROLLMENTS),
         createIdsParam(ids).addValue("programIds", ctx.getPrograms()),
         handler);

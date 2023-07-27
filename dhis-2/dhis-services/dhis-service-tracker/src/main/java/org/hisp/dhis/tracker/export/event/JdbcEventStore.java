@@ -172,14 +172,14 @@ public class JdbcEventStore implements EventStore {
           entry(EVENT_ID, "ev_uid"),
           entry(EVENT_PROGRAM_ID, "p_uid"),
           entry(EVENT_PROGRAM_STAGE_ID, "ps_uid"),
-          entry(EVENT_ENROLLMENT_ID, "pi_uid"),
-          entry("enrollmentStatus", "pi_status"),
-          entry("enrolledAt", "pi_enrollmentdate"),
+          entry(EVENT_ENROLLMENT_ID, "en_uid"),
+          entry("enrollmentStatus", "en_status"),
+          entry("enrolledAt", "en_enrollmentdate"),
           entry(EVENT_ORG_UNIT_ID, "ou_uid"),
           entry(EVENT_ORG_UNIT_NAME, "ou_name"),
           entry("trackedEntity", "tei_uid"),
           entry(EVENT_OCCURRED_AT_DATE_ID, "ev_executiondate"),
-          entry("followup", "pi_followup"),
+          entry("followup", "en_followup"),
           entry(EVENT_STATUS_ID, EVENT_STATUS),
           entry(EVENT_SCHEDULE_AT_DATE_ID, "ev_duedate"),
           entry(EVENT_STORED_BY_ID, "ev_storedby"),
@@ -216,7 +216,7 @@ public class JdbcEventStore implements EventStore {
           .put("ou.uid", EVENT_ORG_UNIT_ID)
           .put("ou.name", EVENT_ORG_UNIT_NAME)
           .put(EventQuery.COLUMNS.STATUS.getQueryElement().useInSelect(), EVENT_STATUS_ID)
-          .put("pi.uid", EVENT_ENROLLMENT_ID)
+          .put("en.uid", EVENT_ENROLLMENT_ID)
           .put("ps.uid", EVENT_PROGRAM_STAGE_ID)
           .put("p.uid", EVENT_PROGRAM_ID)
           .put("coc.uid", EVENT_ATTRIBUTE_OPTION_COMBO_ID)
@@ -329,7 +329,7 @@ public class JdbcEventStore implements EventStore {
               program.setUid(resultSet.getString("p_identifier"));
               program.setProgramType(programType);
               Enrollment enrollment = new Enrollment();
-              enrollment.setUid(resultSet.getString("pi_uid"));
+              enrollment.setUid(resultSet.getString("en_uid"));
               enrollment.setProgram(program);
               enrollment.setTrackedEntity(tei);
               OrganisationUnit ou = new OrganisationUnit();
@@ -339,8 +339,8 @@ public class JdbcEventStore implements EventStore {
               ps.setUid(resultSet.getString("ps_identifier"));
               event.setDeleted(resultSet.getBoolean("ev_deleted"));
 
-              enrollment.setStatus(ProgramStatus.valueOf(resultSet.getString("pi_status")));
-              enrollment.setFollowup(resultSet.getBoolean("pi_followup"));
+              enrollment.setStatus(ProgramStatus.valueOf(resultSet.getString("en_status")));
+              enrollment.setFollowup(resultSet.getBoolean("en_followup"));
               event.setEnrollment(enrollment);
               event.setProgramStage(ps);
               event.setOrganisationUnit(ou);
@@ -747,7 +747,7 @@ public class JdbcEventStore implements EventStore {
 
     return selectBuilder
         .append(
-            "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, pi.enrollmentdate as pi_enrollmentdate, pi.incidentdate as pi_incidentdate, ")
+            "en.uid as en_uid, en.status as en_status, en.followup as en_followup, en.enrollmentdate as en_enrollmentdate, en.incidentdate as en_incidentdate, ")
         .append("p.type as p_type, ps.uid as ps_uid, ou.name as ou_name, ")
         .append(
             "tei.trackedentityid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive ")
@@ -782,14 +782,14 @@ public class JdbcEventStore implements EventStore {
       StringBuilder dataElementAndFiltersSql) {
     StringBuilder fromBuilder =
         new StringBuilder(" from event ev ")
-            .append("inner join enrollment pi on pi.enrollmentid=ev.enrollmentid ")
-            .append("inner join program p on p.programid=pi.programid ")
+            .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
+            .append("inner join program p on p.programid=en.programid ")
             .append("inner join programstage ps on ps.programstageid=ev.programstageid ");
 
     if (checkForOwnership(params)) {
       fromBuilder
           .append(
-              "left join trackedentityprogramowner po on (pi.trackedentityid=po.trackedentityid) ")
+              "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid) ")
           .append(
               "inner join organisationunit evou on (coalesce(po.organisationunitid, ev.organisationunitid)=evou.organisationunitid) ")
           .append(
@@ -800,7 +800,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     fromBuilder
-        .append("left join trackedentity tei on tei.trackedentityid=pi.trackedentityid ")
+        .append("left join trackedentity tei on tei.trackedentityid=en.trackedentityid ")
         .append(
             "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ")
         .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
@@ -842,7 +842,7 @@ public class JdbcEventStore implements EventStore {
     if (params.getProgramStatus() != null) {
       mapSqlParameterSource.addValue("program_status", params.getProgramStatus().name());
 
-      fromBuilder.append(hlp.whereAnd()).append(" pi.status = ").append(":program_status ");
+      fromBuilder.append(hlp.whereAnd()).append(" en.status = ").append(":program_status ");
     }
 
     if (params.getEnrollmentEnrolledBefore() != null) {
@@ -850,7 +850,7 @@ public class JdbcEventStore implements EventStore {
           "enrollmentEnrolledBefore", params.getEnrollmentEnrolledBefore(), Types.TIMESTAMP);
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" (pi.enrollmentdate <= :enrollmentEnrolledBefore ) ");
+          .append(" (en.enrollmentdate <= :enrollmentEnrolledBefore ) ");
     }
 
     if (params.getEnrollmentEnrolledAfter() != null) {
@@ -858,7 +858,7 @@ public class JdbcEventStore implements EventStore {
           "enrollmentEnrolledAfter", params.getEnrollmentEnrolledAfter(), Types.TIMESTAMP);
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" (pi.enrollmentdate >= :enrollmentEnrolledAfter ) ");
+          .append(" (en.enrollmentdate >= :enrollmentEnrolledAfter ) ");
     }
 
     if (params.getEnrollmentOccurredBefore() != null) {
@@ -866,13 +866,13 @@ public class JdbcEventStore implements EventStore {
           "enrollmentOccurredBefore", params.getEnrollmentOccurredBefore(), Types.TIMESTAMP);
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" (pi.incidentdate <= :enrollmentOccurredBefore ) ");
+          .append(" (en.incidentdate <= :enrollmentOccurredBefore ) ");
     }
 
     if (params.getEnrollmentOccurredAfter() != null) {
       mapSqlParameterSource.addValue(
           "enrollmentOccurredAfter", params.getEnrollmentOccurredAfter(), Types.TIMESTAMP);
-      fromBuilder.append(hlp.whereAnd()).append(" (pi.incidentdate >= :enrollmentOccurredAfter ) ");
+      fromBuilder.append(hlp.whereAnd()).append(" (en.incidentdate >= :enrollmentOccurredAfter ) ");
     }
 
     if (params.getScheduleAtStartDate() != null) {
@@ -895,7 +895,7 @@ public class JdbcEventStore implements EventStore {
     if (params.getFollowUp() != null) {
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" pi.followup is ")
+          .append(" en.followup is ")
           .append(Boolean.TRUE.equals(params.getFollowUp()) ? "true" : "false")
           .append(" ");
     }
@@ -1019,7 +1019,7 @@ public class JdbcEventStore implements EventStore {
     if (!CollectionUtils.isEmpty(params.getEnrollments())) {
       mapSqlParameterSource.addValue("enrollment_uid", params.getEnrollments());
 
-      fromBuilder.append(hlp.whereAnd()).append(" (pi.uid in (:enrollment_uid)) ");
+      fromBuilder.append(hlp.whereAnd()).append(" (en.uid in (:enrollment_uid)) ");
     }
 
     return fromBuilder;
@@ -1177,8 +1177,8 @@ public class JdbcEventStore implements EventStore {
         new StringBuilder()
             .append(
                 " from event ev "
-                    + "inner join enrollment pi on pi.enrollmentid = ev.enrollmentid "
-                    + "inner join program p on p.programid = pi.programid "
+                    + "inner join enrollment en on en.enrollmentid = ev.enrollmentid "
+                    + "inner join program p on p.programid = en.programid "
                     + "inner join programstage ps on ps.programstageid = ev.programstageid "
                     + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = ev.attributeoptioncomboid "
                     + "left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
@@ -1186,7 +1186,7 @@ public class JdbcEventStore implements EventStore {
     if (checkForOwnership(params)) {
       sqlBuilder
           .append(
-              "left join trackedentityprogramowner po on (pi.trackedentityid=po.trackedentityid) ")
+              "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid) ")
           .append(
               "inner join organisationunit evou on (coalesce(po.organisationunitid, ev.organisationunitid)=evou.organisationunitid) ")
           .append(
@@ -1292,7 +1292,7 @@ public class JdbcEventStore implements EventStore {
     if (!CollectionUtils.isEmpty(params.getEnrollments())) {
       mapSqlParameterSource.addValue("enrollment_uid", params.getEnrollments());
 
-      sqlBuilder.append(hlp.whereAnd()).append(" (pi.uid in (:enrollment_uid)) ");
+      sqlBuilder.append(hlp.whereAnd()).append(" (en.uid in (:enrollment_uid)) ");
     }
 
     sqlBuilder.append(eventStatusSql(params, mapSqlParameterSource, hlp));
