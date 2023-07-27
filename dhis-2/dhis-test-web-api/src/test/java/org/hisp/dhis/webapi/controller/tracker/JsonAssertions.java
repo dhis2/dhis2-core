@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -43,6 +44,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.TrackerType;
 
 public class JsonAssertions {
 
@@ -163,5 +165,20 @@ public class JsonAssertions {
     assertTrue(
         actual.containsAll(toValue, expected),
         () -> String.format("expected %s instead got %s", expected, actual));
+  }
+
+  public static void assertReportEntities(
+      List<String> expectedEntityUids, JsonImportReport importReport, TrackerType trackerType) {
+    JsonTypeReport jsonTypeReport =
+        switch (trackerType) {
+          case TRACKED_ENTITY -> importReport.getBundleReport().getTrackedEntities();
+          case ENROLLMENT -> importReport.getBundleReport().getEnrollments();
+          case EVENT -> importReport.getBundleReport().getEvents();
+          case RELATIONSHIP -> importReport.getBundleReport().getRelationships();
+        };
+
+    List<String> reportEntityUids =
+        jsonTypeReport.getEntityReport().stream().map(JsonEntity::getUid).toList();
+    assertEquals(expectedEntityUids, reportEntityUids);
   }
 }

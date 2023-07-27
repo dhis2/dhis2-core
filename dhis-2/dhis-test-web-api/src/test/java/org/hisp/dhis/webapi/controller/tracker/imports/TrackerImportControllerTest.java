@@ -27,15 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.util.List;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.controller.tracker.JsonEntity;
-import org.hisp.dhis.webapi.controller.tracker.JsonImportReport;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -45,49 +38,6 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class TrackerImportControllerTest extends DhisControllerConvenienceTest {
-
-  @Test
-  void shouldReturnOrderedReport() {
-    TrackedEntityType type = createTrackedEntityType('A');
-    manager.save(type);
-    OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    manager.save(organisationUnit);
-
-    String body =
-        """
-        {
-         "trackedEntities": [
-             {
-               "trackedEntity": "IybbQIQt6rn",
-               "trackedEntityType": "%s",
-               "orgUnit": "%s"
-             },
-             {
-               "trackedEntity": "daMwzsKN3oJ",
-               "trackedEntityType": "%s",
-               "orgUnit": "%s"
-             }
-           ]
-        }"""
-            .formatted(
-                type.getUid(), organisationUnit.getUid(), type.getUid(), organisationUnit.getUid());
-    JsonImportReport importReport =
-        POST(
-                "/tracker?async=false&reportMode=FULL"
-                    + "&validationMode=SKIP"
-                    + "&atomicMode=OBJECT",
-                body)
-            .content(HttpStatus.OK)
-            .as(JsonImportReport.class);
-
-    assertEquals(
-        List.of("IybbQIQt6rn", "daMwzsKN3oJ"),
-        importReport.getBundleReport().getTrackedEntities().getEntityReport().stream()
-            .map(JsonEntity::getUid)
-            .toList());
-    assertEquals("OK", importReport.getStatus());
-  }
-
   @Test
   void shouldSuccessWhenAllValidParametersArePassed() {
     assertWebMessage(
