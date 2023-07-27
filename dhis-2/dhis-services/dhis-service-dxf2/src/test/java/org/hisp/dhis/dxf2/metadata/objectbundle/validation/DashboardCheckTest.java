@@ -83,7 +83,7 @@ class DashboardCheckTest extends DhisConvenienceTest {
 
     TypeReport check =
         dashboardCheck.check(null, Dashboard.class, List.of(), List.of(dashboard), strategy, null);
-    
+
     ErrorReport errorReport = check.getFirstObjectReport().getErrorReports().get(0);
 
     assertEquals(1, check.getErrorReportsCount());

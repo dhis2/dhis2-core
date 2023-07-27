@@ -91,9 +91,9 @@ public final class DataIntegrityCheck implements Serializable {
    * Method that takes in a name of a {@link DataIntegrityCheck} and converts it to an acronym of
    * its name using the first letter from each word e.g. my_data_integrity_check -> MDIC
    */
-  public static String getCodeFromName(@Nonnull String fullName){
+  public static String getCodeFromName(@Nonnull String fullName) {
     return Stream.of(fullName.split("_"))
-            .map(word -> String.valueOf(word.charAt(0)).toUpperCase())
-            .collect(joining());
+        .map(word -> String.valueOf(word.charAt(0)).toUpperCase())
+        .collect(joining());
   }
 }

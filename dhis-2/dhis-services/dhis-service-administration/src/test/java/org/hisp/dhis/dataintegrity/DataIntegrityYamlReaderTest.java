@@ -151,7 +151,8 @@ class DataIntegrityYamlReaderTest {
   @Test
   void testWithInvalidYamlFormat() {
     List<DataIntegrityCheck> checks = new ArrayList<>();
-    readYaml(checks, "test-data-integrity-checks.yaml", "test-data-integrity-checks.yaml", FILE_SYSTEM);
+    readYaml(
+        checks, "test-data-integrity-checks.yaml", "test-data-integrity-checks.yaml", FILE_SYSTEM);
     assertEquals(0, checks.size());
   }
 

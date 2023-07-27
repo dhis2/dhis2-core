@@ -612,14 +612,8 @@ class DataIntegrityServiceTest {
   @Test
   void testGetDataIntegrityChecks_ReadDataIntegrityYamlFilesOnClassPath() {
     when(i18nManager.getI18n(DataIntegrityService.class)).thenReturn(i18n);
-    when(i18n.getString(
-            anyString(),
-            anyString()))
-            .thenReturn("default");
-    when(i18n.getString(
-            contains("severity"),
-            eq("WARNING")))
-        .thenReturn("WARNING");
+    when(i18n.getString(anyString(), anyString())).thenReturn("default");
+    when(i18n.getString(contains("severity"), eq("WARNING"))).thenReturn("WARNING");
     Collection<DataIntegrityCheck> dataIntegrityChecks = subject.getDataIntegrityChecks();
     assertFalse(dataIntegrityChecks.isEmpty());
   }
