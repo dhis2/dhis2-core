@@ -294,8 +294,8 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         "OK",
         "User replica created",
         POST(
-            "/users/" + peter.getUid() + "/replica",
-            "{'username':'peter2','password':'Saf€sEcre1'}")
+                "/users/" + peter.getUid() + "/replica",
+                "{'username':'peter2','password':'Saf€sEcre1'}")
             .content());
   }
 
@@ -313,8 +313,8 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         "OK",
         "User replica created",
         POST(
-            "/users/" + peter.getUid() + "/replica",
-            "{'username':'" + replicatedUsername + "','password':'Saf€sEcre1'}")
+                "/users/" + peter.getUid() + "/replica",
+                "{'username':'" + replicatedUsername + "','password':'Saf€sEcre1'}")
             .content());
 
     User replicatedUser = userService.getUserByUsername(replicatedUsername);
