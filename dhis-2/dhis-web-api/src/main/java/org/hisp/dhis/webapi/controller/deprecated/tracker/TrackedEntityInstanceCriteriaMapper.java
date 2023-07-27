@@ -38,6 +38,7 @@ import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toO
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.ObjectUtils;
@@ -138,13 +139,7 @@ public class TrackedEntityInstanceCriteriaMapper {
       }
     }
 
-    if (!criteria.getOrgUnits().isEmpty()
-        && (criteria.getOuMode() == ACCESSIBLE || criteria.getOuMode() == CAPTURE)) {
-      throw new IllegalQueryException(
-          String.format(
-              "Org unit mode %s cannot be used with an org unit specified. Please remove the org unit and try again.",
-              criteria.getOuMode()));
-    }
+    validateOrgUnitParams(criteria.getOrgUnits(), criteria.getOuMode());
 
     for (String orgUnit : criteria.getOrgUnits()) {
       OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(orgUnit);
@@ -336,6 +331,15 @@ public class TrackedEntityInstanceCriteriaMapper {
           throw new IllegalQueryException("Invalid order property: " + orderParam.getField());
         }
       }
+    }
+  }
+
+  private void validateOrgUnitParams(Set<String> orgUnits, OrganisationUnitSelectionMode ouMode) {
+    if (!orgUnits.isEmpty() && (ouMode == ACCESSIBLE || ouMode == CAPTURE)) {
+      throw new IllegalQueryException(
+          String.format(
+              "Org unit mode %s cannot be used with an org unit specified. Please remove the org unit and try again.",
+              ouMode));
     }
   }
 }
