@@ -47,8 +47,7 @@ import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.webapi.common.UID;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
+import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -64,12 +63,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Zubair <rajazubair.asghar@gmail.com> */
-@OpenApi.EntityType(ProgramMessage.class)
 @OpenApi.Tags("tracker")
 @RestController
 @RequestMapping(value = "/messages")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class ProgramMessageController extends AbstractCrudController<ProgramMessage> {
+public class ProgramMessageController extends AbstractFullReadOnlyController<ProgramMessage> {
   // -------------------------------------------------------------------------
   // Dependencies
   // -------------------------------------------------------------------------
@@ -87,7 +85,6 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
   // -------------------------------------------------------------------------
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
-  @OpenApi.Response(status = OpenApi.Response.Status.OK, value = OpenApiExport.ListResponse.class)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public List<ProgramMessage> getProgramMessages(
@@ -96,12 +93,11 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
       @OpenApi.Param({UID.class, Enrollment.class}) @RequestParam(required = false) UID enrollment,
       @Deprecated(since = "2.41") @RequestParam(required = false) UID programStageInstance,
       @OpenApi.Param({UID.class, Event.class}) @RequestParam(required = false) UID event,
-      @OpenApi.Param(value = String.class) @RequestParam(required = false)
-          ProgramMessageStatus messageStatus,
-      @OpenApi.Param(value = Date.class) @RequestParam(required = false) Date afterDate,
-      @OpenApi.Param(value = Date.class) @RequestParam(required = false) Date beforeDate,
-      @OpenApi.Param(value = Integer.class) @RequestParam(required = false) Integer page,
-      @OpenApi.Param(value = Integer.class) @RequestParam(required = false) Integer pageSize)
+      @RequestParam(required = false) ProgramMessageStatus messageStatus,
+      @RequestParam(required = false) Date afterDate,
+      @RequestParam(required = false) Date beforeDate,
+      @RequestParam(required = false) Integer page,
+      @RequestParam(required = false) Integer pageSize)
       throws BadRequestException, ConflictException {
     UID enrollmentUid =
         validateDeprecatedParameter("programInstance", programInstance, "enrollment", enrollment);
@@ -127,7 +123,6 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
   }
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
-  @OpenApi.Response(status = OpenApi.Response.Status.OK, value = OpenApiExport.ListResponse.class)
   @GetMapping(value = "/scheduled/sent", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public List<ProgramMessage> getScheduledSentMessage(
@@ -135,9 +130,9 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
       @OpenApi.Param({UID.class, Enrollment.class}) @RequestParam(required = false) UID enrollment,
       @Deprecated(since = "2.41") @RequestParam(required = false) UID programStageInstance,
       @OpenApi.Param({UID.class, Event.class}) @RequestParam(required = false) UID event,
-      @OpenApi.Param(value = Date.class) @RequestParam(required = false) Date afterDate,
-      @OpenApi.Param(value = Integer.class) @RequestParam(required = false) Integer page,
-      @OpenApi.Param(value = Integer.class) @RequestParam(required = false) Integer pageSize)
+      @RequestParam(required = false) Date afterDate,
+      @RequestParam(required = false) Integer page,
+      @RequestParam(required = false) Integer pageSize)
       throws BadRequestException {
     UID enrollmentUid =
         validateDeprecatedParameter("programInstance", programInstance, "enrollment", enrollment);
@@ -163,7 +158,6 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
   // -------------------------------------------------------------------------
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS') or hasRole('F_SEND_EMAIL')")
-  @OpenApi.Response(status = OpenApi.Response.Status.OK, value = BatchResponseStatus.class)
   @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public BatchResponseStatus sendMessages(@RequestBody ProgramMessageBatch batch) {

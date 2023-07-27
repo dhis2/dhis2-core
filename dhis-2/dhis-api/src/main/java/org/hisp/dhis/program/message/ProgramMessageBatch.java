@@ -39,11 +39,11 @@ import org.hisp.dhis.common.OpenApi;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@OpenApi.Shared(name = "ProgramMessageBatch")
+@OpenApi.Shared
 @JacksonXmlRootElement(localName = "programMessageBatch", namespace = DxfNamespaces.DXF_2_0)
 public class ProgramMessageBatch {
 
-  @OpenApi.Property({List.class, ProgramMessage.class})
+  @OpenApi.Property(value = ProgramMessage[].class)
   private List<ProgramMessage> programMessages = new ArrayList<>();
 
   public ProgramMessageBatch() {}
