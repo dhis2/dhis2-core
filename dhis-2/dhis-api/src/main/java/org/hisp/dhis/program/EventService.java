@@ -151,7 +151,7 @@ public interface EventService {
 
   /**
    * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for
-   * the upcoming create/save changes. DOES PERSIST the changes to the PSI object.
+   * the upcoming create/save changes. DOES PERSIST the changes to the Event object.
    *
    * @param event the Event that EventDataValues belong to
    * @param dataElementEventDataValueMap the map of DataElements and related EventDataValues to

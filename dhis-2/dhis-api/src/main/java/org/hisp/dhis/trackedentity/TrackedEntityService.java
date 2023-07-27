@@ -233,7 +233,7 @@ public interface TrackedEntityService {
   /**
    * Checks for the existence of a TEI by UID. Deleted values are not taken into account.
    *
-   * @param uid PSI UID to check for
+   * @param uid Event UID to check for
    * @return true/false depending on result
    */
   boolean trackedEntityExists(String uid);
@@ -241,7 +241,7 @@ public interface TrackedEntityService {
   /**
    * Checks for the existence of a TEI by UID. Takes into account also the deleted values.
    *
-   * @param uid PSI UID to check for
+   * @param uid Event UID to check for
    * @return true/false depending on result
    */
   boolean trackedEntityExistsIncludingDeleted(String uid);

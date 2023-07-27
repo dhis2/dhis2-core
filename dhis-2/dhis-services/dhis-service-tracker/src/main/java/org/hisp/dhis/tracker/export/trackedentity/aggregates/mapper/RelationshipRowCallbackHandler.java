@@ -96,12 +96,12 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
 
   /**
    * The SQL query that generates the ResultSet used by this {@see RowCallbackHandler} fetches both
-   * sides of a relationship: since each side can be a Tracked Entity Instance, a Enrollment or a
-   * Program Stage Instance, the query adds a "hint" to the final result to help this Handler to
-   * correctly associate the type to the left or right side of the relationship. The "typeWithUid"
-   * variable contains the UID of the object and a string representing the type. E.g.
+   * sides of a relationship: since each side can be a Tracked Entity Instance, a Enrollment or an
+   * Event, the query adds a "hint" to the final result to help this Handler to correctly associate
+   * the type to the left or right side of the relationship. The "typeWithUid" variable contains the
+   * UID of the object and a string representing the type. E.g.
    *
-   * <p>tei|dj3382832 psi|332983893
+   * <p>tei|dj3382832 ev|332983893
    *
    * <p>This function parses the string and extract the type and the uid, in order to instantiate
    * the appropriate object and assign it to the {@see RelationshipItem}
@@ -130,13 +130,13 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
         enrollment.setUid(uid);
         ri.setEnrollment(enrollment);
         break;
-      case "psi":
+      case "ev":
         Event event = new Event();
         event.setUid(uid);
         ri.setEvent(event);
         break;
       default:
-        log.warn("Expecting tei|psi|pi as type when fetching a relationship, got: " + type);
+        log.warn("Expecting tei|ev|pi as type when fetching a relationship, got: " + type);
     }
 
     return ri;

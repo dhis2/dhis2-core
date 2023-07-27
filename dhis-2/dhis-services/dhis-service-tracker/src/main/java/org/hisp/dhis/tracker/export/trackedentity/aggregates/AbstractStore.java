@@ -57,18 +57,18 @@ abstract class AbstractStore {
           + "where ri.relationshipitemid = r.to_relationshipitemid) , (select 'pi|' || pi.uid "
           + "from enrollment pi "
           + "join relationshipitem ri on pi.enrollmentid = ri.enrollmentid "
-          + "where ri.relationshipitemid = r.to_relationshipitemid), (select 'psi|' || psi.uid "
-          + "from event psi "
-          + "join relationshipitem ri on psi.eventid = ri.eventid "
+          + "where ri.relationshipitemid = r.to_relationshipitemid), (select 'ev|' || ev.uid "
+          + "from event ev "
+          + "join relationshipitem ri on ev.eventid = ri.eventid "
           + "where ri.relationshipitemid = r.to_relationshipitemid)) to_uid, "
           + "coalesce((select 'tei|' || tei.uid from trackedentity tei "
           + "join relationshipitem ri on tei.trackedentityid = ri.trackedentityid "
           + "where ri.relationshipitemid = r.from_relationshipitemid) , (select 'pi|' || pi.uid "
           + "from enrollment pi "
           + "join relationshipitem ri on pi.enrollmentid = ri.enrollmentid "
-          + "where ri.relationshipitemid = r.from_relationshipitemid), (select 'psi|' || psi.uid "
-          + "from event psi "
-          + "join relationshipitem ri on psi.eventid = ri.eventid "
+          + "where ri.relationshipitemid = r.from_relationshipitemid), (select 'ev|' || ev.uid "
+          + "from event ev "
+          + "join relationshipitem ri on ev.eventid = ri.eventid "
           + "where ri.relationshipitemid = r.from_relationshipitemid)) from_uid "
           + "from relationship r join relationshiptype rst on r.relationshiptypeid = rst.relationshiptypeid "
           + "where r.relationshipid in (:ids)";
@@ -109,7 +109,7 @@ abstract class AbstractStore {
     }
     // Get all the relationship ids that have at least one relationship item
     // having
-    // the ids in the tei|pi|psi column (depending on the subclass)
+    // the ids in the tei|pi|ev column (depending on the subclass)
 
     List<Long> relationshipIds =
         getRelationshipIds(getRelationshipsHavingIdSQL.toString(), createIdsParam(ids));
