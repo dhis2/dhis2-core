@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 @Getter
 @Builder(toBuilder = true)
@@ -42,6 +44,10 @@ public class RelationshipOperationParams {
 
   public static final int DEFAULT_PAGE_SIZE = 50;
 
+  private TrackerType type;
+
+  private String identifier;
+
   private Integer page;
 
   private Integer pageSize;
@@ -50,25 +56,5 @@ public class RelationshipOperationParams {
 
   private boolean skipPaging;
 
-  private TrackerType type;
-
-  private String identifier;
-
-  public boolean isPaging() {
-    return page != null || pageSize != null;
-  }
-
-  public int getPageWithDefault() {
-    return page != null && page > 0 ? page : DEFAULT_PAGE;
-  }
-
-  public int getPageSizeWithDefault() {
-    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
-  }
-
-  public void setDefaultPaging() {
-    this.page = DEFAULT_PAGE;
-    this.pageSize = DEFAULT_PAGE_SIZE;
-    this.skipPaging = false;
-  }
+  private List<OrderCriteria> order;
 }
