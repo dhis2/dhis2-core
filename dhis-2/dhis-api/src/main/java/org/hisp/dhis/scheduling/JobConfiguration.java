@@ -44,6 +44,7 @@ import lombok.ToString;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.SecondaryMetadataObject;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
@@ -144,10 +145,20 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   /**
    * The name of the queue this job belongs to or null if it is a stand-alone job. If set the {@link
    * #queuePosition} is also set to 0 or more.
+   *
+   * <p>This property is read-only for the {@link JobConfiguration} API as it is only changed using
+   * {@link JobQueueService}.
    */
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private String queueName;
 
-  /** Position of this job in the queue named by {@link #queueName} starting from zero. */
+  /**
+   * Position of this job in the queue named by {@link #queueName} starting from zero.
+   *
+   * <p>This property is read-only for the {@link JobConfiguration} API as it is only changed using
+   * {@link JobQueueService}.
+   */
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private Integer queuePosition;
 
   public JobConfiguration() {}
@@ -227,6 +238,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
       defaultImpl = java.lang.Void.class)
   @JsonSubTypes(
       value = {
+        @JsonSubTypes.Type(value = ImportOptions.class, name = "DATAVALUE_IMPORT"),
         @JsonSubTypes.Type(value = AnalyticsJobParameters.class, name = "ANALYTICS_TABLE"),
         @JsonSubTypes.Type(
             value = ContinuousAnalyticsJobParameters.class,

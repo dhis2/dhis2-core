@@ -24,7 +24,7 @@
         
         <property name="delay" />
 
-        <property name="jobType" column="jobtype" not-null="true" length="120">
+        <property name="jobType" column="jobtype" not-null="true" length="120" update="false">
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">org.hisp.dhis.scheduling.JobType</param>
                 <param name="useNamed">true</param>
@@ -32,7 +32,7 @@
             </type>
         </property>
 
-        <property name="schedulingType" column="schedulingtype" not-null="true" length="12">
+        <property name="schedulingType" column="schedulingtype" not-null="true" length="12" update="false">
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">org.hisp.dhis.scheduling.SchedulingType</param>
                 <param name="useNamed">true</param>
@@ -40,7 +40,7 @@
             </type>
         </property>
 
-        <property name="jobStatus" column="jobstatus" not-null="true" length="120" >
+        <property name="jobStatus" column="jobstatus" not-null="true" length="120" update="false">
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">org.hisp.dhis.scheduling.JobStatus</param>
                 <param name="useNamed">true</param>
@@ -48,7 +48,7 @@
             </type>
         </property>
 
-        <property name="lastExecutedStatus" column="lastexecutedstatus" not-null="true" length="120" >
+        <property name="lastExecutedStatus" column="lastexecutedstatus" not-null="true" length="120" update="false">
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">org.hisp.dhis.scheduling.JobStatus</param>
                 <param name="useNamed">true</param>
@@ -58,11 +58,11 @@
 
         <property name="executedBy" column="executedby" length="11" />
 
-        <property name="lastExecuted" type="timestamp" />
+        <property name="lastExecuted" type="timestamp" update="false" insert="false"/>
 
-        <property name="lastFinished" column="lastfinished" type="timestamp" />
+        <property name="lastFinished" column="lastfinished" type="timestamp" update="false" insert="false" />
 
-        <property name="lastAlive" column="lastalive" type="timestamp" />
+        <property name="lastAlive" column="lastalive" type="timestamp" update="false" insert="false" />
 
         <property name="enabled" not-null="true" type="boolean" />
 

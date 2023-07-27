@@ -38,6 +38,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -51,6 +52,7 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Jan Bernitt
  */
+@Slf4j
 @Repository
 public class HibernateJobConfigurationStore
     extends HibernateIdentifiableObjectStore<JobConfiguration> implements JobConfigurationStore {
@@ -219,8 +221,8 @@ public class HibernateJobConfigurationStore
         set
           schedulingtype = 'ONCE_ASAP',
           cancel = false
-        where enabled = true
-        and uid = :id
+        where uid = :id
+        and enabled = true
         and jobstatus = 'SCHEDULED'
         and schedulingtype != 'ONCE_ASAP'
         """;
@@ -247,6 +249,7 @@ public class HibernateJobConfigurationStore
           select 1 from jobconfiguration j2 where j2.jobtype = j1.jobtype and j2.jobstatus = 'RUNNING'
         )
         """;
+    // TODO flip back schedulingType to non ONCE_ASAP already on start?
     return nativeQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
   }
 
@@ -375,7 +378,19 @@ public class HibernateJobConfigurationStore
         and lastfinished is not null
         and now() > lastfinished + :ttl * interval '1 minute'
         """;
-    return nativeQuery(sql).setParameter("ttl", max(1, ttlMinutes)).executeUpdate();
+    int deletedCount = nativeQuery(sql).setParameter("ttl", max(1, ttlMinutes)).executeUpdate();
+    if (deletedCount == 0) return 0;
+    // jobs have the same UID as their respective FR
+    // so if no job exists with the same UID the FR is not assigned
+    sql =
+        """
+        update fileresource fr
+        set isassigned = false
+        where domain = 'JOB_DATA'
+        and uid not in (select uid from jobconfiguration where schedulingtype = 'ONCE_ASAP')
+        """;
+    nativeQuery(sql).executeUpdate();
+    return deletedCount;
   }
 
   @Override

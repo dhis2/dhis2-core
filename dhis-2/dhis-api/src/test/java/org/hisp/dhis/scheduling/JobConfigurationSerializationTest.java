@@ -33,11 +33,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.junit.jupiter.api.Test;
 
@@ -192,5 +194,14 @@ class JobConfigurationSerializationTest {
     assertThat(
         ((AnalyticsJobParameters) jc.getJobParameters()).getSkipPrograms(),
         Matchers.hasItems(UID1, UID2));
+  }
+
+  @Test
+  void testImportOptionsJobParameters() throws JsonProcessingException {
+    ObjectMapper mapper = new ObjectMapper();
+    ImportOptions expected = new ImportOptions();
+    ImportOptions actual =
+        mapper.readValue(mapper.writeValueAsString(expected), ImportOptions.class);
+    assertNotNull(actual);
   }
 }

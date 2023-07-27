@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.scheduling;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.schema.Property;
+import org.springframework.util.MimeType;
 
 /**
  * Simple service for {@link JobConfiguration} objects.
@@ -41,6 +43,9 @@ import org.hisp.dhis.schema.Property;
 public interface JobConfigurationService {
 
   String create(JobConfiguration config) throws ConflictException;
+
+  String create(JobConfiguration config, MimeType contentType, InputStream content)
+      throws ConflictException;
 
   /**
    * Creates the default {@link JobConfiguration} for all {@link JobType}s which have a {@link

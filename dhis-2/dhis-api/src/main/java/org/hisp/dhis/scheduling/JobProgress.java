@@ -406,6 +406,10 @@ public interface JobProgress {
         });
   }
 
+  default <T> T runStage(Callable<T> work) {
+    return runStage(null, work);
+  }
+
   /**
    * @see #runStage(Object, Function, Callable)
    */

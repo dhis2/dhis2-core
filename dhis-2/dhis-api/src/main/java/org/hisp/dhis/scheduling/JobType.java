@@ -38,6 +38,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Getter;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
@@ -102,7 +103,7 @@ public enum JobType {
   COMPLETE_DATA_SET_REGISTRATION_IMPORT(),
   DATAVALUE_IMPORT_INTERNAL(),
   METADATA_IMPORT(),
-  DATAVALUE_IMPORT(),
+  DATAVALUE_IMPORT(ImportOptions.class),
   GEOJSON_IMPORT(),
   EVENT_IMPORT(),
   ENROLLMENT_IMPORT(),

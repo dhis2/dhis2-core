@@ -31,12 +31,21 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import org.hisp.dhis.jsontree.JsonBuilder;
+import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonJobConfiguration;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -227,6 +236,108 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
         param.getArray("constants").stringValues());
   }
 
+  private static final Map<String, Object> MINIMAL_CONFIG =
+      Map.of(
+          "name",
+          "test",
+          "jobType",
+          JobType.DATA_INTEGRITY,
+          "cronExpression",
+          "0 0 12 ? * MON-FRI");
+
+  @Test
+  void testLastExecutedIsIgnored_Create() {
+    JsonJobConfiguration config =
+        createExpectSuccess(MINIMAL_CONFIG, Map.of("lastExecuted", new Date()));
+
+    assertNull(config.getLastExecuted());
+  }
+
+  @Test
+  void testLastExecutedIsIgnored_Update() {
+    JsonJobConfiguration config =
+        createExpectSuccess(MINIMAL_CONFIG, Map.of("lastExecuted", new Date()));
+    JsonNode withLastExecuted =
+        config.node().addMembers(obj -> obj.addMember("lastExecuted", toJson(new Date())));
+    String jobId = config.getId();
+    assertStatus(
+        HttpStatus.OK, PUT("/jobConfigurations/" + jobId, withLastExecuted.getDeclaration()));
+    config = getJsonJobConfiguration(jobId);
+    assertNull(config.getLastExecuted());
+  }
+
+  @Test
+  void testLastAliveIsReadOnly_Create() {}
+
+  @Test
+  void testLastAliveIsReadOnly_Update() {}
+
+  @Test
+  void testLastFinishedIsReadOnly_Create() {}
+
+  @Test
+  void testLastFinishedIsReadOnly_Update() {}
+
+  @Test
+  void testLastExecutedStatusIsReadOnly_Create() {}
+
+  @Test
+  void testLastExecutedStatusIsReadOnly_Update() {}
+
+  @Test
+  void testJobStatusIsReadOnly_Create() {}
+
+  @Test
+  void testJobStatusIsReadOnly_Update() {}
+
+  @Test
+  void testSchedulingTypeCron_Create() {}
+
+  @Test
+  void testSchedulingTypeCron_CreateWithDelay() {}
+
+  @Test
+  void testSchedulingTypeFixedDelay_Create() {}
+
+  @Test
+  void testSchedulingTypeFixedDelay_CreateWithCronExpression() {}
+
+  @Test
+  void testSchedulingTypeIsReadOnly_Update() {}
+
+  @Test
+  void testJobTypeIsReadOnly_Update() {}
+
+  @Test
+  void testQueueNameIsReadOnly_Create() {}
+
+  @Test
+  void testQueueNameIsReadOnly_Update() {}
+
+  @Test
+  void testQueuePositionIsReadOnly_Create() {}
+
+  @Test
+  void testQueuePositionIsReadOnly_Update() {}
+
+  private JsonJobConfiguration createExpectSuccess(
+      Map<String, Object> minimal, Map<String, Object> extra) {
+    JsonNode json =
+        JsonBuilder.createObject(
+            obj -> {
+              minimal.forEach((name, value) -> obj.addMember(name, toJson(value)));
+              extra.forEach((name, value) -> obj.addMember(name, toJson(value)));
+            });
+
+    String jobId =
+        assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json.getDeclaration()));
+    return getJsonJobConfiguration(jobId);
+  }
+
+  private JsonJobConfiguration getJsonJobConfiguration(String jobId) {
+    return GET("/jobConfigurations/{id}", jobId).content().as(JsonJobConfiguration.class);
+  }
+
   private JsonObject assertJobConfigurationExists(String jobId, String expectedJobType) {
     JsonObject jobConfiguration = GET("/jobConfigurations/{id}", jobId).content();
     assertEquals(jobId, jobConfiguration.getString("id").string());
@@ -235,5 +346,13 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
     assertTrue(jobConfiguration.getBoolean("enabled").booleanValue());
     assertEquals(expectedJobType, jobConfiguration.getString("jobType").string());
     return jobConfiguration.getObject("jobParameters");
+  }
+
+  private static JsonNode toJson(Object value) {
+    try {
+      return JsonNode.of(new ObjectMapper().writeValueAsString(value));
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

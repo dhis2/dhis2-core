@@ -41,12 +41,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.stripFormatCompressionExte
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
@@ -57,10 +52,7 @@ import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -71,18 +63,21 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.node.Provider;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -98,15 +93,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping(value = "/dataValueSets")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataValueSetController {
+
   private final DataValueSetService dataValueSetService;
-
   private final AdxDataService adxDataService;
-
   private final CurrentUserService currentUserService;
-
-  private final AsyncTaskExecutor taskExecutor;
-
-  private final SessionFactory sessionFactory;
+  private final JobConfigurationService jobConfigurationService;
 
   // -------------------------------------------------------------------------
   // Get
@@ -234,9 +225,9 @@ public class DataValueSetController {
   @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
   @ResponseBody
   public WebMessage postDxf2DataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException {
+      throws IOException, ConflictException {
     if (importOptions.isAsync()) {
-      return startAsyncImport(importOptions, ImportDataValueTask.FORMAT_XML, request);
+      return startAsyncImport(importOptions, MediaType.APPLICATION_XML, request);
     }
     ImportSummary summary =
         dataValueSetService.importDataValueSetXml(request.getInputStream(), importOptions);
@@ -249,9 +240,9 @@ public class DataValueSetController {
   @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
   @ResponseBody
   public WebMessage postAdxDataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException {
+      throws IOException, ConflictException {
     if (importOptions.isAsync()) {
-      return startAsyncImport(importOptions, ImportDataValueTask.FORMAT_ADX, request);
+      return startAsyncImport(importOptions, MimeType.valueOf("application/adx+xml"), request);
     }
     ImportSummary summary =
         adxDataService.saveDataValueSet(request.getInputStream(), importOptions, null);
@@ -264,9 +255,9 @@ public class DataValueSetController {
   @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
   @ResponseBody
   public WebMessage postJsonDataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException {
+      throws IOException, ConflictException {
     if (importOptions.isAsync()) {
-      return startAsyncImport(importOptions, ImportDataValueTask.FORMAT_JSON, request);
+      return startAsyncImport(importOptions, MediaType.APPLICATION_JSON, request);
     }
     ImportSummary summary =
         dataValueSetService.importDataValueSetJson(request.getInputStream(), importOptions);
@@ -279,9 +270,9 @@ public class DataValueSetController {
   @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
   @ResponseBody
   public WebMessage postCsvDataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException {
+      throws IOException, ConflictException {
     if (importOptions.isAsync()) {
-      return startAsyncImport(importOptions, ImportDataValueTask.FORMAT_CSV, request);
+      return startAsyncImport(importOptions, MimeType.valueOf("application/csv"), request);
     }
     ImportSummary summary =
         dataValueSetService.importDataValueSetCsv(request.getInputStream(), importOptions);
@@ -294,9 +285,9 @@ public class DataValueSetController {
   @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
   @ResponseBody
   public WebMessage postPdfDataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException {
+      throws IOException, ConflictException {
     if (importOptions.isAsync()) {
-      return startAsyncImport(importOptions, ImportDataValueTask.FORMAT_PDF, request);
+      return startAsyncImport(importOptions, MediaType.APPLICATION_PDF, request);
     }
     ImportSummary summary =
         dataValueSetService.importDataValueSetPdf(request.getInputStream(), importOptions);
@@ -309,50 +300,16 @@ public class DataValueSetController {
   // Supportive methods
   // -------------------------------------------------------------------------
 
-  /**
-   * Starts an asynchronous import task.
-   *
-   * @param importOptions the ImportOptions.
-   * @param format the resource representation format.
-   * @param request the HttpRequest.
-   */
+  /** Starts an asynchronous import task. */
   private WebMessage startAsyncImport(
-      ImportOptions importOptions, String format, HttpServletRequest request) throws IOException {
-    InputStream inputStream = saveTmp(request.getInputStream());
-
-    JobConfiguration jobId =
+      ImportOptions importOptions, MimeType mimeType, HttpServletRequest request)
+      throws ConflictException, IOException {
+    JobConfiguration config =
         new JobConfiguration(
             "dataValueImport", DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid());
-    taskExecutor.executeTask(
-        new ImportDataValueTask(
-            dataValueSetService,
-            adxDataService,
-            sessionFactory,
-            inputStream,
-            importOptions,
-            jobId,
-            format));
-
-    return jobConfigurationReport(jobId).setLocation("/system/tasks/" + DATAVALUE_IMPORT);
-  }
-
-  /**
-   * Writes the input stream to a temporary file, and returns a new input stream connected to the
-   * file.
-   *
-   * @param in the InputStream.
-   * @return an InputStream.
-   */
-  private InputStream saveTmp(InputStream in) throws IOException {
-    File tmpFile = File.createTempFile("dvs", null);
-
-    tmpFile.deleteOnExit();
-
-    try (FileOutputStream out = new FileOutputStream(tmpFile)) {
-      IOUtils.copy(in, out);
-    }
-
-    return new BufferedInputStream(new FileInputStream(tmpFile));
+    config.setJobParameters(importOptions);
+    jobConfigurationService.create(config, mimeType, request.getInputStream());
+    return jobConfigurationReport(config).setLocation("/system/tasks/" + DATAVALUE_IMPORT);
   }
 
   /**

@@ -29,6 +29,8 @@ package org.hisp.dhis.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 class IdSchemesTest {
@@ -50,5 +52,25 @@ class IdSchemesTest {
     assertEquals(IdentifiableProperty.ATTRIBUTE, schemeA.getIdentifiableProperty());
     assertEquals("abcdefghijA", schemeA.getAttribute());
     assertEquals(IdentifiableProperty.CODE, schemeB.getIdentifiableProperty());
+  }
+
+  @Test
+  void testSerializeIdSchemes() throws JsonProcessingException {
+    // language=JSON
+    String expected =
+        """
+        {"idScheme":{"type":"UID"},"dataElementIdScheme":{"type":"UID"},"dataElementGroupIdScheme":{"type":"UID"},"categoryOptionComboIdScheme":{"type":"UID"},"categoryOptionIdScheme":{"type":"UID"},"categoryIdScheme":{"type":"UID"},"orgUnitIdScheme":{"type":"UID"},"orgUnitGroupIdScheme":{"type":"UID"},"programIdScheme":{"type":"UID"},"programStageIdScheme":{"type":"UID"},"trackedEntityIdScheme":{"type":"UID"},"trackedEntityAttributeIdScheme":{"type":"UID"},"dataSetIdScheme":{"type":"UID"},"attributeOptionComboIdScheme":{"type":"UID"},"programStageInstanceIdScheme":{"type":"UID"}}""";
+    assertEquals(expected, new ObjectMapper().writeValueAsString(new IdSchemes()));
+  }
+
+  @Test
+  void testDeserializeIdSchemes() throws JsonProcessingException {
+    IdSchemes expected = new IdSchemes();
+    expected.setProgramIdScheme("CODE");
+
+    ObjectMapper mapper = new ObjectMapper();
+    IdSchemes actual = mapper.readValue(mapper.writeValueAsString(expected), IdSchemes.class);
+    assertEquals(expected, actual);
+    assertEquals(IdentifiableProperty.CODE, actual.getProgramIdScheme().getIdentifiableProperty());
   }
 }

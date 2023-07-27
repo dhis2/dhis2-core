@@ -89,6 +89,13 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
     setDefaultJobParameters(jobConfiguration);
   }
 
+  @Override
+  public void preUpdate(
+      JobConfiguration newObject, JobConfiguration persObject, ObjectBundle bundle) {
+
+    setDefaultJobParameters(newObject);
+  }
+
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
