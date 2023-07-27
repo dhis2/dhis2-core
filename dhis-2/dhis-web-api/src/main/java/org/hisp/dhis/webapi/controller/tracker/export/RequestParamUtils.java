@@ -30,10 +30,10 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.webapi.common.UID;
 
 /**
  * RequestParamUtils are functions used to parse and transform tracker request parameters. This

@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.common;
 
 import java.beans.PropertyEditorSupport;
+import org.hisp.dhis.common.UID;
 
 public class UIDParamEditor extends PropertyEditorSupport {
   @Override
