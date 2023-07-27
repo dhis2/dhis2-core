@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
-import static org.hisp.dhis.common.OpenApi.Shared.Pattern.TRACKER;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -41,6 +39,7 @@ import java.util.Set;
 import org.hisp.dhis.common.BaseLinkableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Relationship;
 import org.hisp.dhis.event.EventStatus;
@@ -53,7 +52,7 @@ import org.locationtech.jts.geom.Geometry;
  * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
  *     "old" tracker. Make sure to plan migrating to new tracker.
  */
-@OpenApi.Shared(pattern = TRACKER)
+@OpenApi.Shared(pattern = Pattern.DEPRECATED_TRACKER)
 @Deprecated(since = "2.41")
 @JacksonXmlRootElement(localName = "event", namespace = DxfNamespaces.DXF_2_0)
 public class Event extends BaseLinkableObject {

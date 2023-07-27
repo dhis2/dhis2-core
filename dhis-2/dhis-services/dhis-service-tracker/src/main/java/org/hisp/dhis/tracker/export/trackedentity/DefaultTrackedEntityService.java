@@ -185,6 +185,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     TrackedEntity result = new TrackedEntity();
+    result.setId(trackedEntity.getId());
     result.setUid(trackedEntity.getUid());
     result.setOrganisationUnit(trackedEntity.getOrganisationUnit());
     result.setTrackedEntityType(trackedEntity.getTrackedEntityType());

@@ -39,7 +39,7 @@ public interface TrackedEntityService {
 
   TrackedEntity getTrackedEntity(
       TrackedEntity trackedEntity, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException;
+      throws ForbiddenException;
 
   TrackedEntity getTrackedEntity(
       String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)

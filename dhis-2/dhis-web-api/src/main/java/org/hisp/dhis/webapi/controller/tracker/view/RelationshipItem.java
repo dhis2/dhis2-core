@@ -46,7 +46,7 @@ import org.locationtech.jts.geom.Geometry;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared(pattern = Pattern.INFO)
+@OpenApi.Shared(pattern = Pattern.TRACKER)
 @Data
 @Builder
 @NoArgsConstructor
@@ -59,7 +59,7 @@ public class RelationshipItem {
   @OpenApi.Shared(value = false)
   public static class TrackedEntity {
     @JsonProperty
-    @OpenApi.Property({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class})
+    @OpenApi.Property({UID.class, TrackedEntity.class})
     private String trackedEntity;
 
     @JsonProperty private String trackedEntityType;

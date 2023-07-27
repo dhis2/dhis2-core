@@ -86,7 +86,8 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
       ValidationContext ctx,
       Consumer<ObjectReport> addReports) {
     Schema schema = ctx.getSchemaService().getDynamicSchema(klass);
-    List<T> objects = selectObjects(persistedObjects, nonPersistedObjects, importStrategy);
+    List<T> objects =
+        selectObjectsBasedOnImportStrategy(persistedObjects, nonPersistedObjects, importStrategy);
 
     if (objects.isEmpty() || !schema.hasPersistedProperty("attributeValues")) {
       return;

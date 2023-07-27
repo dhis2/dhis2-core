@@ -55,7 +55,7 @@ public class AnalyticsSetupExtension implements BeforeAllCallback {
   private static final Logger logger = getLogger(AnalyticsSetupExtension.class.getName());
 
   /** Max limit, in minutes, until the process is timed-out. */
-  private static final long TIMEOUT = minutes(15);
+  private static final long TIMEOUT = minutes(25);
 
   private static AtomicBoolean run = new AtomicBoolean(false);
 

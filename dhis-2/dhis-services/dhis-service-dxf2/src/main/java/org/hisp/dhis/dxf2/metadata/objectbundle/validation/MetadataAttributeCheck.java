@@ -72,7 +72,8 @@ public class MetadataAttributeCheck implements ObjectValidationCheck {
       ValidationContext ctx,
       Consumer<ObjectReport> addReports) {
     Schema schema = ctx.getSchemaService().getDynamicSchema(klass);
-    List<T> objects = selectObjects(persistedObjects, nonPersistedObjects, importStrategy);
+    List<T> objects =
+        selectObjectsBasedOnImportStrategy(persistedObjects, nonPersistedObjects, importStrategy);
 
     if (objects.isEmpty()
         || !schema.hasPersistedProperty(BaseIdentifiableObject_.ATTRIBUTE_VALUES)) {

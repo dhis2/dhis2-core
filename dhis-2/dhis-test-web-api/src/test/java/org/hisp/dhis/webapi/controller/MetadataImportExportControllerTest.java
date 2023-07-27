@@ -44,6 +44,7 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
@@ -393,5 +394,62 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonObject> categories = response.getList("categories", JsonObject.class);
     assertNotNull(categories);
     assertFalse(categories.stream().anyMatch(JsonValue::isNull));
+  }
+
+  @Test
+  void testImportDashboardWithInvalidLayout_UpdateFlow() {
+    JsonImportSummary createReport =
+        POST("/metadata", WebClient.Body("dashboard/import_dashboard_with_valid_layout.json"))
+            .content(HttpStatus.OK)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals("OK", createReport.getStatus());
+    assertEquals(1, createReport.getStats().getCreated());
+    assertEquals(0, createReport.getStats().getIgnored());
+    assertEquals(0, createReport.getStats().getUpdated());
+    assertEquals(1, createReport.getStats().getTotal());
+
+    JsonImportSummary updateReport =
+        POST("/metadata", WebClient.Body("dashboard/import_dashboard_with_invalid_layout.json"))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals("ERROR", updateReport.getStatus());
+    assertEquals(0, updateReport.getStats().getCreated());
+    assertEquals(2, updateReport.getStats().getIgnored());
+    assertEquals(0, updateReport.getStats().getUpdated());
+    assertEquals(2, updateReport.getStats().getTotal());
+  }
+
+  @Test
+  void testImportDashboardWithValidLayout_CreateFlow() {
+    JsonImportSummary report =
+        POST("/metadata", WebClient.Body("dashboard/import_dashboard_with_valid_layout.json"))
+            .content(HttpStatus.OK)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals("OK", report.getStatus());
+    assertEquals(1, report.getStats().getCreated());
+    assertEquals(0, report.getStats().getIgnored());
+    assertEquals(0, report.getStats().getUpdated());
+    assertEquals(1, report.getStats().getTotal());
+  }
+
+  @Test
+  void testImportDashboardWithInvalidLayout_CreateFlow() {
+    JsonImportSummary report =
+        POST("/metadata", WebClient.Body("dashboard/import_dashboard_with_invalid_layout.json"))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(0, report.getStats().getCreated());
+    assertEquals(2, report.getStats().getIgnored());
+    assertEquals(0, report.getStats().getUpdated());
+    assertEquals(2, report.getStats().getTotal());
   }
 }
