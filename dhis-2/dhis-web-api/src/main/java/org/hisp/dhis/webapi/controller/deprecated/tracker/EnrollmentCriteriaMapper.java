@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.deprecated.tracker;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 
 import java.util.Date;
@@ -121,6 +123,13 @@ public class EnrollmentCriteriaMapper {
     }
 
     if (ou != null) {
+      if (!ou.isEmpty() && (ouMode == ACCESSIBLE || ouMode == CAPTURE)) {
+        throw new IllegalQueryException(
+            String.format(
+                "Org unit mode %s cannot be used with an org unit specified. Please remove the org unit and try again.",
+                ouMode));
+      }
+
       for (String orgUnit : ou) {
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(orgUnit);
 

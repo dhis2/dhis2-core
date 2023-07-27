@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.deprecated.tracker;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -81,6 +85,8 @@ class EnrollmentCriteriaMapperTest {
 
   private static final String TRACKED_ENTITY = "trackedEntity";
 
+  private static final Set<String> ORG_UNITS = Set.of(ORG_UNIT1);
+
   private Program program;
 
   private OrganisationUnit organisationUnit;
@@ -112,7 +118,6 @@ class EnrollmentCriteriaMapperTest {
   @Test
   void shouldMapCorrectlyWhenOrgUnitExistsAndUserInScope()
       throws IllegalQueryException, ForbiddenException {
-    Set<String> orgUnits = Set.of(ORG_UNIT1);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(organisationUnitService.getOrganisationUnit(ORG_UNIT1)).thenReturn(organisationUnit);
     when(trackerAccessManager.canAccess(user, program, organisationUnit)).thenReturn(true);
@@ -121,7 +126,7 @@ class EnrollmentCriteriaMapperTest {
 
     EnrollmentQueryParams params =
         mapper.getFromUrl(
-            orgUnits,
+            ORG_UNITS,
             DESCENDANTS,
             null,
             "lastUpdated",
@@ -146,7 +151,6 @@ class EnrollmentCriteriaMapperTest {
 
   @Test
   void shouldThrowExceptionWhenOrgUnitDoesNotExist() {
-    Set<String> orgUnits = Set.of(ORG_UNIT1);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
 
     Exception exception =
@@ -154,7 +158,7 @@ class EnrollmentCriteriaMapperTest {
             IllegalQueryException.class,
             () ->
                 mapper.getFromUrl(
-                    orgUnits,
+                    ORG_UNITS,
                     DESCENDANTS,
                     null,
                     "lastUpdated",
@@ -176,7 +180,6 @@ class EnrollmentCriteriaMapperTest {
 
   @Test
   void shouldThrowExceptionWhenOrgUnitNotInScope() {
-    Set<String> orgUnits = Set.of(ORG_UNIT1);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(organisationUnitService.getOrganisationUnit(ORG_UNIT1)).thenReturn(organisationUnit);
     when(trackerAccessManager.canAccess(user, program, organisationUnit)).thenReturn(false);
@@ -186,7 +189,7 @@ class EnrollmentCriteriaMapperTest {
             ForbiddenException.class,
             () ->
                 mapper.getFromUrl(
-                    orgUnits,
+                    ORG_UNITS,
                     DESCENDANTS,
                     null,
                     "lastUpdated",
@@ -205,5 +208,163 @@ class EnrollmentCriteriaMapperTest {
                     null));
     assertEquals(
         "User does not have access to organisation unit: " + ORG_UNIT1, exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
+    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+
+    Exception exception =
+        assertThrows(
+            IllegalQueryException.class,
+            () ->
+                mapper.getFromUrl(
+                    ORG_UNITS,
+                    ACCESSIBLE,
+                    null,
+                    "lastUpdated",
+                    PROGRAM_UID,
+                    ProgramStatus.ACTIVE,
+                    null,
+                    null,
+                    ENTITY_TYPE,
+                    TRACKED_ENTITY,
+                    false,
+                    1,
+                    1,
+                    false,
+                    false,
+                    false,
+                    null));
+
+    assertEquals(
+        "Org unit mode ACCESSIBLE cannot be used with an org unit specified. Please remove the org unit and try again.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
+    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+
+    Exception exception =
+        assertThrows(
+            IllegalQueryException.class,
+            () ->
+                mapper.getFromUrl(
+                    ORG_UNITS,
+                    CAPTURE,
+                    null,
+                    "lastUpdated",
+                    PROGRAM_UID,
+                    ProgramStatus.ACTIVE,
+                    null,
+                    null,
+                    ENTITY_TYPE,
+                    TRACKED_ENTITY,
+                    false,
+                    1,
+                    1,
+                    false,
+                    false,
+                    false,
+                    null));
+
+    assertEquals(
+        "Org unit mode CAPTURE cannot be used with an org unit specified. Please remove the org unit and try again.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeSelected() throws ForbiddenException {
+    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(organisationUnitService.getOrganisationUnit(ORG_UNIT1)).thenReturn(organisationUnit);
+    when(trackerAccessManager.canAccess(user, program, organisationUnit)).thenReturn(true);
+    when(trackedEntityTypeService.getTrackedEntityType(ENTITY_TYPE)).thenReturn(trackedEntityType);
+    when(trackedEntityService.getTrackedEntity(TRACKED_ENTITY)).thenReturn(trackedEntity);
+
+    EnrollmentQueryParams enrollmentQueryParams =
+        mapper.getFromUrl(
+            ORG_UNITS,
+            SELECTED,
+            null,
+            "lastUpdated",
+            PROGRAM_UID,
+            ProgramStatus.ACTIVE,
+            null,
+            null,
+            ENTITY_TYPE,
+            TRACKED_ENTITY,
+            false,
+            1,
+            1,
+            false,
+            false,
+            false,
+            null);
+
+    assertEquals(SELECTED, enrollmentQueryParams.getOrganisationUnitMode());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeDescendants()
+      throws ForbiddenException {
+    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(organisationUnitService.getOrganisationUnit(ORG_UNIT1)).thenReturn(organisationUnit);
+    when(trackerAccessManager.canAccess(user, program, organisationUnit)).thenReturn(true);
+    when(trackedEntityTypeService.getTrackedEntityType(ENTITY_TYPE)).thenReturn(trackedEntityType);
+    when(trackedEntityService.getTrackedEntity(TRACKED_ENTITY)).thenReturn(trackedEntity);
+
+    EnrollmentQueryParams enrollmentQueryParams =
+        mapper.getFromUrl(
+            ORG_UNITS,
+            DESCENDANTS,
+            null,
+            "lastUpdated",
+            PROGRAM_UID,
+            ProgramStatus.ACTIVE,
+            null,
+            null,
+            ENTITY_TYPE,
+            TRACKED_ENTITY,
+            false,
+            1,
+            1,
+            false,
+            false,
+            false,
+            null);
+
+    assertEquals(DESCENDANTS, enrollmentQueryParams.getOrganisationUnitMode());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeChildren() throws ForbiddenException {
+    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(organisationUnitService.getOrganisationUnit(ORG_UNIT1)).thenReturn(organisationUnit);
+    when(trackerAccessManager.canAccess(user, program, organisationUnit)).thenReturn(true);
+    when(trackedEntityTypeService.getTrackedEntityType(ENTITY_TYPE)).thenReturn(trackedEntityType);
+    when(trackedEntityService.getTrackedEntity(TRACKED_ENTITY)).thenReturn(trackedEntity);
+
+    EnrollmentQueryParams enrollmentQueryParams =
+        mapper.getFromUrl(
+            ORG_UNITS,
+            CHILDREN,
+            null,
+            "lastUpdated",
+            PROGRAM_UID,
+            ProgramStatus.ACTIVE,
+            null,
+            null,
+            ENTITY_TYPE,
+            TRACKED_ENTITY,
+            false,
+            1,
+            1,
+            false,
+            false,
+            false,
+            null);
+
+    assertEquals(CHILDREN, enrollmentQueryParams.getOrganisationUnitMode());
   }
 }
