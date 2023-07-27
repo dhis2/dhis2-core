@@ -1048,11 +1048,11 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   private final Consumer<DataIntegrityCheck> addToChecks =
       check -> {
         String checkCode = DataIntegrityCheck.getCodeFromName(check.getName());
-        Set<String> collect =
+        Set<String> checkCodes =
             checksByName.keySet().stream()
                 .map(DataIntegrityCheck::getCodeFromName)
                 .collect(Collectors.toSet());
-        if (!collect.contains(checkCode)) {
+        if (!checkCodes.contains(checkCode)) {
           DataIntegrityCheck dataIntegrityCheck = checksByName.putIfAbsent(check.getName(), check);
           if (dataIntegrityCheck != null) {
             log.warn(

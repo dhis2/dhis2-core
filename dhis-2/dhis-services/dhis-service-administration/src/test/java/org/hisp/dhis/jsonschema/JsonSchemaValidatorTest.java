@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.networknt.schema.ValidationMessage;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
@@ -103,9 +104,9 @@ class JsonSchemaValidatorTest {
   }
 
   private JsonNode getJsonNodeFromFile(String file) {
-    try {
-      return mapper.readTree(
-          new ClassPathResource("test-data-integrity-checks/" + file).getInputStream());
+    try (InputStream is =
+        new ClassPathResource("test-data-integrity-checks/" + file).getInputStream()) {
+      return mapper.readTree(is);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

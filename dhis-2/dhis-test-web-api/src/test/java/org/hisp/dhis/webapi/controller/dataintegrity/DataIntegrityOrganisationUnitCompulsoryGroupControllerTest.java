@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Test for organisation units which are not part of a compulsory organisation unit group set. {@see
- * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/custom_orgunit_check.yaml}
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/compulsory_orgunit_groups.yaml}
  *
  * @author Jason P. Pickering
  */

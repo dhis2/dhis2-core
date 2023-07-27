@@ -33,6 +33,7 @@ import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
@@ -49,10 +50,8 @@ public class JsonSchemaValidator {
   static {
     JsonSchemaFactory schemaFactory =
         JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012);
-    try {
-      dataIntegritySchema =
-          schemaFactory.getSchema(
-              new ClassPathResource(DATA_INTEGRITY_CHECK_SCHEMA).getInputStream());
+    try (InputStream is = new ClassPathResource(DATA_INTEGRITY_CHECK_SCHEMA).getInputStream()) {
+      dataIntegritySchema = schemaFactory.getSchema(is);
     } catch (IOException e) {
       log.error(
           "Error loading data integrity check schema at class path location {}. Error message: {}",
