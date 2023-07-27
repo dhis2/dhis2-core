@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.controller.deprecated.tracker;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.tracker.export.event.EventUtils.getOrgUnitMode;
-import static org.hisp.dhis.tracker.export.event.EventUtils.validateAccessibleOrgUnits;
+import static org.hisp.dhis.webapi.controller.deprecated.tracker.EventUtils.getOrgUnitMode;
+import static org.hisp.dhis.webapi.controller.deprecated.tracker.EventUtils.validateAccessibleOrgUnits;
 
 import java.util.Collections;
 import java.util.Date;
