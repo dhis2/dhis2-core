@@ -86,12 +86,6 @@ class DataIntegrityYamlReader {
 
     @JsonProperty String recommendation;
 
-    @JsonProperty("details_uid")
-    String detailsID;
-
-    @JsonProperty("summary_uid")
-    String summaryID;
-
     @JsonProperty DataIntegritySeverity severity;
   }
 
@@ -218,8 +212,6 @@ class DataIntegrityYamlReader {
                 .sectionOrder(yamlFile.sectionOrder)
                 .severity(yamlFile.severity)
                 .isSlow(yamlFile.isSlow)
-                .detailsID(yamlFile.detailsID)
-                .summaryID(yamlFile.summaryID)
                 .runSummaryCheck(
                     dataIntegrityRecord.sqlToSummary().apply(sanitiseSQL(yamlFile.summarySql)))
                 .runDetailsCheck(

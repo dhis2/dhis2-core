@@ -78,20 +78,18 @@ class JsonSchemaValidatorTest {
     JsonNode jsonNode = getJsonNodeFromFile("check_without_10_required_fields.yaml");
     Set<ValidationMessage> validationMessages =
         JsonSchemaValidator.validateDataIntegrityCheck(jsonNode);
-    assertEquals(10, validationMessages.size());
+    assertEquals(8, validationMessages.size());
     assertContainsValidationMessages(
         validationMessages,
         Set.of(
             "$.details_id_type: is missing but it is required",
             "$.details_sql: is missing but it is required",
-            "$.details_uid: is missing but it is required",
             "$.introduction: is missing but it is required",
             "$.recommendation: is missing but it is required",
             "$.section: is missing but it is required",
             "$.section_order: is missing but it is required",
             "$.severity: is missing but it is required",
-            "$.summary_sql: is missing but it is required",
-            "$.summary_uid: is missing but it is required"));
+            "$.summary_sql: is missing but it is required"));
   }
 
   private void assertContainsValidationMessages(

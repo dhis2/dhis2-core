@@ -28,7 +28,6 @@
 package org.hisp.dhis.dataintegrity;
 
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.ResourceLocation.CLASS_PATH;
 import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.ResourceLocation.FILE_SYSTEM;
 import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.readDataIntegrityYaml;
@@ -81,20 +80,6 @@ class DataIntegrityYamlReaderTest {
     Predicate<String> IS_NOT_CAPS = Pattern.compile(regEx).asPredicate().negate();
     List<String> badCodes = codeList.stream().filter(IS_NOT_CAPS).toList();
     assertEquals(0, badCodes.size());
-
-    // Assert that all checks have details ID and are unique and UIDish
-    List<String> detailsIDs = checks.stream().map(DataIntegrityCheck::getDetailsID).toList();
-    assertEquals(detailsIDs.size(), Set.copyOf(detailsIDs).size());
-
-    List<String> badDetailsUIDs = detailsIDs.stream().filter(e -> !isValidUid(e)).toList();
-    assertEquals(0, badDetailsUIDs.size());
-
-    // Assert that all checks have summary ID and are unique and are UIDish
-    List<String> summaryIDs = checks.stream().map(DataIntegrityCheck::getSummaryID).toList();
-
-    assertEquals(summaryIDs.size(), Set.copyOf(summaryIDs).size());
-    List<String> badSummaryUIDs = summaryIDs.stream().filter(e -> !isValidUid(e)).toList();
-    assertEquals(0, badSummaryUIDs.size());
 
     DataIntegrityCheck check = checks.get(0);
     assertEquals("categories_no_options", check.getName());

@@ -1,11 +1,9 @@
 ---
-summary_uid: dXSwsjWqY00
 name: test_description_missing
 section: test
 section_order: 1
 summary_sql: >-
   SQL here
-details_uid: wovrWdNIu00
 details_sql: >-
   SQL here
 details_id_type: test
