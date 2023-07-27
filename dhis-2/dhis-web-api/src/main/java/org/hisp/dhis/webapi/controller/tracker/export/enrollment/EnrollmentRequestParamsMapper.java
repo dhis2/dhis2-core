@@ -38,9 +38,9 @@ import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
-import org.hisp.dhis.webapi.common.UID;
 import org.springframework.stereotype.Component;
 
 /**
