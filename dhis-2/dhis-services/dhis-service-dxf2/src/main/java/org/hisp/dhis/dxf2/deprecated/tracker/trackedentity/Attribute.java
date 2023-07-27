@@ -27,14 +27,13 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity;
 
-import static org.hisp.dhis.common.OpenApi.Shared.Pattern.TRACKER;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 import org.hisp.dhis.common.ValueType;
 
 /**
@@ -42,7 +41,7 @@ import org.hisp.dhis.common.ValueType;
  * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
  *     "old" tracker. Make sure to plan migrating to new tracker.
  */
-@OpenApi.Shared(pattern = TRACKER)
+@OpenApi.Shared(pattern = Pattern.DEPRECATED_TRACKER)
 @Deprecated(since = "2.41")
 @JacksonXmlRootElement(localName = "attribute", namespace = DxfNamespaces.DXF_2_0)
 public class Attribute {

@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -38,6 +39,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.function.Supplier;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
@@ -274,6 +277,20 @@ public class Assertions {
     assertNotNull(report);
     assertFalse(
         report.hasErrors(), errorMessage("Expected no validation errors, instead got:\n", report));
+  }
+
+  public static void assertSlimPager(int pageNumber, int pageSize, boolean isLast, Pager pager) {
+    assertInstanceOf(SlimPager.class, pager, "SlimPager should be returned if totalPages=false");
+    SlimPager slimPager = (SlimPager) pager;
+    assertAll(
+        "pagination details",
+        () -> assertEquals(pageNumber, slimPager.getPage(), "number of current page"),
+        () -> assertEquals(pageSize, slimPager.getPageSize(), "page size"),
+        () ->
+            assertEquals(
+                isLast,
+                slimPager.isLastPage(),
+                isLast ? "should be the last page" : "should NOT be the last page"));
   }
 
   private static Supplier<String> errorMessage(String errorTitle, ValidationReport report) {
