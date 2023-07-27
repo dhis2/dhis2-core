@@ -52,6 +52,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApprovalAudit;
 import org.hisp.dhis.dataapproval.DataApprovalAuditQueryParams;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
@@ -93,7 +94,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudi
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.HeaderUtils;

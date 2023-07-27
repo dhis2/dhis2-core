@@ -33,6 +33,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -41,7 +42,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;

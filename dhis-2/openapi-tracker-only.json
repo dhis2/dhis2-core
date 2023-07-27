@@ -1,0 +1,3767 @@
+{
+
+  "openapi":"3.0.0",
+  "info":{
+
+    "title":"DHIS2 API - tracker-only",
+    "version":"2.40",
+    "license":{
+
+      "name":"BSD 3-Clause \"New\" or \"Revised\" License",
+      "url":"https://raw.githubusercontent.com/dhis2/dhis2-core/master/LICENSE"
+
+    },
+    "contact":{
+
+
+    }
+
+  },
+  "tags":[
+
+  {
+
+    "name":"synthetic",
+    "description":"Marks Endpoints that have been merged from more than one method.  \nThis means there is no 1:1 relation between the REST endpoint described by OpenAPI  \nand the Java controller methods that implement them."
+
+  },
+  {
+
+    "name":"tracker",
+    "description":"Groups endpoints that are tracker related."
+
+  }
+
+  ],
+  "servers":[
+
+  {
+
+    "url":"https://play.dhis2.org/dev/api"
+
+  }
+
+  ],
+  "security":[
+
+  {
+
+    "basicAuth":[
+
+
+    ]
+
+  }
+
+  ],
+  "paths":{
+
+    "/messages":{
+
+      "get":{
+
+        "description":"Get programMessages matching given query criteria.",
+        "operationId":"ProgramMessage.getProgramMessages+getObjectList+getObjectListCsv",
+        "tags":[
+
+        "tracker",
+        "synthetic"
+
+        ],
+        "parameters":[
+
+        {
+
+          "name":"afterDate",
+          "in":"query",
+          "description":"Get programMessages after given date",
+          "required":false,
+          "schema":{
+
+            "type":"string",
+            "format":"date-time"
+
+          }
+
+        },
+        {
+
+          "name":"beforeDate",
+          "in":"query",
+          "description":"Get programMessages before given date",
+          "required":false,
+          "schema":{
+
+            "type":"string",
+            "format":"date-time"
+
+          }
+
+        },
+        {
+
+          "name":"enrollment",
+          "in":"query",
+          "description":"Get programMessages for given enrollment",
+          "required":false,
+          "schema":{
+
+            "type":"string",
+            "format":"uid",
+            "pattern":"^[0-9a-zA-Z]{11}$",
+            "minLength":11,
+            "maxLength":11,
+            "example":"h9qA2Xb1CV0",
+            "description":"A UID for an Enrollment object  \n(Java name `org.hisp.dhis.webapi.controller.tracker.view.Enrollment`)"
+
+          }
+
+        },
+        {
+
+          "name":"event",
+          "in":"query",
+          "description":"Get programMessages for given event",
+          "required":false,
+          "schema":{
+
+            "type":"string",
+            "format":"uid",
+            "pattern":"^[0-9a-zA-Z]{11}$",
+            "minLength":11,
+            "maxLength":11,
+            "example":"cc1uN0fb9Qi",
+            "description":"A UID for an Event object  \n(Java name `org.hisp.dhis.webapi.controller.tracker.view.Event`)"
+
+          }
+
+        },
+        {
+
+          "name":"messageStatus",
+          "in":"query",
+          "description":"Get programMessages based on status for example SENT, SCHEDULED etc",
+          "required":false,
+          "schema":{
+
+            "type":"string",
+            "enum":[
+
+            "SENT",
+            "FAILED",
+            "SCHEDULED",
+            "OUTBOUND"
+
+            ]
+
+          }
+
+        },
+        {
+
+          "name":"ou",
+          "in":"query",
+          "description":"Get programMessages for given set of OrganisationUnits",
+          "required":false,
+          "schema":{
+
+            "type":"array",
+            "items":{
+
+              "type":"string"
+
+            }
+
+          }
+
+        },
+        {
+
+          "name":"page",
+          "in":"query",
+          "description":"Number of pages to be loaded",
+          "required":false,
+          "schema":{
+
+            "type":"integer",
+            "format":"int32"
+
+          }
+
+        },
+        {
+
+          "name":"pageSize",
+          "in":"query",
+          "description":"Number of records per page",
+          "required":false,
+          "schema":{
+
+            "type":"integer",
+            "format":"int32"
+
+          }
+
+        },
+        {
+
+          "name":"programInstance",
+          "in":"query",
+          "description":"[no description yet]",
+          "required":false,
+          "schema":{
+
+            "type":"string",
+            "format":"uid",
+            "pattern":"^[a-zA-Z][a-zA-Z0-9]{10}$"
+
+          }
+
+        },
+        {
+
+          "name":"programStageInstance",
+          "in":"query",
+          "description":"[no description yet]",
+          "required":false,
+          "schema":{
+
+            "type":"string",
+            "format":"uid",
+            "pattern":"^[a-zA-Z][a-zA-Z0-9]{10}$"
+
+          }
+
+        }
+
+        ],
+        "responses":{
+
+          "200":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "type":"array",
+                  "items":{
+
+                    "$ref":"#/components/schemas/ProgramMessage"
+
+                  }
+
+                }
+
+              },
+              "application/text":{
+
+                "schema":{
+
+                  "type":"string"
+
+                }
+
+              },
+              "text/csv":{
+
+                "schema":{
+
+                  "type":"string"
+
+                }
+
+              }
+
+            }
+
+          },
+          "400":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              },
+              "application/text":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              },
+              "text/csv":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              }
+
+            }
+
+          },
+          "403":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              },
+              "application/text":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              },
+              "text/csv":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              }
+
+            }
+
+          },
+          "404":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/text":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              },
+              "text/csv":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              }
+
+            }
+
+          },
+          "409":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              },
+              "application/text":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              },
+              "text/csv":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              }
+
+            }
+
+          }
+
+        }
+
+      },
+      "post":{
+
+        "description":"Send event or enrollment messages.",
+        "operationId":"ProgramMessage.sendMessages",
+        "tags":[
+
+        "tracker"
+
+        ],
+        "requestBody":{
+
+          "description":"[no description yet]",
+          "required":true,
+          "content":{
+
+            "application/json":{
+
+              "schema":{
+
+                "$ref":"#/components/schemas/ProgramMessageBatch"
+
+              }
+
+            }
+
+          }
+
+        },
+        "responses":{
+
+          "200":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/BatchResponseStatus"
+
+                }
+
+              }
+
+            }
+
+          }
+
+        }
+
+      }
+
+    },
+    "/messages/gist":{
+
+      "get":{
+
+        "description":"[no description yet]",
+        "operationId":"ProgramMessage.getObjectListGist+getObjectListGistAsCsv",
+        "tags":[
+
+        "tracker",
+        "synthetic"
+
+        ],
+        "parameters":[
+
+        {
+
+          "$ref":"#/components/parameters/GistParams.absoluteUrls"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.auto"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.describe"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.fields"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.filter"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.headless"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.inverse"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.locale"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.order"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.page"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.pageListName"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.pageSize"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.references"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.rootJunction"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.total"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.translate"
+
+        }
+
+        ],
+        "responses":{
+
+          "200":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "oneOf":[
+
+                  {
+
+                    "type":"object",
+                    "properties":{
+
+                      "pager":{
+
+                        "$ref":"#/components/schemas/GistPager"
+
+                      },
+                      "messages":{
+
+                        "type":"array",
+                        "items":{
+
+                          "type":"object"
+
+                        }
+
+                      }
+
+                    }
+
+                  },
+                  {
+
+                    "type":"array",
+                    "items":{
+
+                      "type":"object"
+
+                    }
+
+                  }
+
+                  ]
+
+                }
+
+              },
+              "text/csv":{
+
+                "schema":{
+
+                  "type":"string"
+
+                }
+
+              }
+
+            }
+
+          }
+
+        }
+
+      }
+
+    },
+    "/messages/gist.csv":{
+
+      "get":{
+
+        "description":"[no description yet]",
+        "operationId":"ProgramMessage.getObjectListGistAsCsv",
+        "tags":[
+
+        "tracker"
+
+        ],
+        "parameters":[
+
+        {
+
+          "$ref":"#/components/parameters/GistParams.absoluteUrls"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.auto"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.describe"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.fields"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.filter"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.headless"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.inverse"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.locale"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.order"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.page"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.pageListName"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.pageSize"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.references"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.rootJunction"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.total"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.translate"
+
+        }
+
+        ],
+        "responses":{
+
+          "200":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "text/csv":{
+
+                "schema":{
+
+                  "type":"string"
+
+                }
+
+              }
+
+            }
+
+          }
+
+        }
+
+      }
+
+    },
+    "/messages/scheduled/sent":{
+
+      "get":{
+
+        "description":"Get all of those scheduled messages which were sent successfully.",
+        "operationId":"ProgramMessage.getScheduledSentMessage",
+        "tags":[
+
+        "tracker"
+
+        ],
+        "parameters":[
+
+        {
+
+          "name":"afterDate",
+          "in":"query",
+          "description":"Get programMessages after given date",
+          "required":false,
+          "schema":{
+
+            "type":"string",
+            "format":"date-time"
+
+          }
+
+        },
+        {
+
+          "name":"enrollment",
+          "in":"query",
+          "description":"Get programMessages for given enrollment",
+          "required":false,
+          "schema":{
+
+            "type":"string",
+            "format":"uid",
+            "pattern":"^[0-9a-zA-Z]{11}$",
+            "minLength":11,
+            "maxLength":11,
+            "example":"h9qA2Xb1CV0",
+            "description":"A UID for an Enrollment object  \n(Java name `org.hisp.dhis.webapi.controller.tracker.view.Enrollment`)"
+
+          }
+
+        },
+        {
+
+          "name":"event",
+          "in":"query",
+          "description":"Get programMessages for given event",
+          "required":false,
+          "schema":{
+
+            "type":"string",
+            "format":"uid",
+            "pattern":"^[0-9a-zA-Z]{11}$",
+            "minLength":11,
+            "maxLength":11,
+            "example":"cc1uN0fb9Qi",
+            "description":"A UID for an Event object  \n(Java name `org.hisp.dhis.webapi.controller.tracker.view.Event`)"
+
+          }
+
+        },
+        {
+
+          "name":"page",
+          "in":"query",
+          "description":"Number of pages to be loaded",
+          "required":false,
+          "schema":{
+
+            "type":"integer",
+            "format":"int32"
+
+          }
+
+        },
+        {
+
+          "name":"pageSize",
+          "in":"query",
+          "description":"Number of records per page",
+          "required":false,
+          "schema":{
+
+            "type":"integer",
+            "format":"int32"
+
+          }
+
+        },
+        {
+
+          "name":"programInstance",
+          "in":"query",
+          "description":"[no description yet]",
+          "required":false,
+          "schema":{
+
+            "type":"string",
+            "format":"uid",
+            "pattern":"^[a-zA-Z][a-zA-Z0-9]{10}$"
+
+          }
+
+        },
+        {
+
+          "name":"programStageInstance",
+          "in":"query",
+          "description":"[no description yet]",
+          "required":false,
+          "schema":{
+
+            "type":"string",
+            "format":"uid",
+            "pattern":"^[a-zA-Z][a-zA-Z0-9]{10}$"
+
+          }
+
+        }
+
+        ],
+        "responses":{
+
+          "200":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "type":"array",
+                  "items":{
+
+                    "$ref":"#/components/schemas/ProgramMessage"
+
+                  }
+
+                }
+
+              }
+
+            }
+
+          },
+          "400":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              }
+
+            }
+
+          }
+
+        }
+
+      }
+
+    },
+    "/messages/{uid}":{
+
+      "get":{
+
+        "description":"Get programMessages for given uid.",
+        "operationId":"ProgramMessage.getObject",
+        "tags":[
+
+        "tracker"
+
+        ],
+        "parameters":[
+
+        {
+
+          "name":"fields",
+          "in":"query",
+          "description":"[no description yet]",
+          "required":false,
+          "schema":{
+
+            "type":"array",
+            "items":{
+
+              "type":"string"
+
+            }
+
+          }
+
+        },
+        {
+
+          "name":"filter",
+          "in":"query",
+          "description":"[no description yet]",
+          "required":false,
+          "schema":{
+
+            "type":"array",
+            "items":{
+
+              "type":"string"
+
+            }
+
+          }
+
+        },
+        {
+
+          "$ref":"#/components/parameters/WebOptions.page"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/WebOptions.pageSize"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/WebOptions.paging"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/WebOptions.rootJunction"
+
+        },
+        {
+
+          "name":"uid",
+          "in":"path",
+          "description":"[no description yet]",
+          "required":true,
+          "schema":{
+
+            "type":"string",
+            "format":"uid",
+            "pattern":"^[0-9a-zA-Z]{11}$",
+            "minLength":11,
+            "maxLength":11,
+            "example":"wh0wU9fW8Yb",
+            "description":"A UID for an ProgramMessage object  \n(Java name `org.hisp.dhis.program.message.ProgramMessage`)"
+
+          }
+
+        }
+
+        ],
+        "responses":{
+
+          "200":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/ProgramMessage"
+
+                }
+
+              }
+
+            }
+
+          },
+          "403":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              }
+
+            }
+
+          },
+          "404":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              }
+
+            }
+
+          }
+
+        }
+
+      }
+
+    },
+    "/messages/{uid}/gist":{
+
+      "get":{
+
+        "description":"[no description yet]",
+        "operationId":"ProgramMessage.getObjectGist+getObjectGistAsCsv",
+        "tags":[
+
+        "tracker",
+        "synthetic"
+
+        ],
+        "parameters":[
+
+        {
+
+          "$ref":"#/components/parameters/GistParams.absoluteUrls"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.auto"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.describe"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.fields"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.filter"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.headless"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.inverse"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.locale"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.order"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.page"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.pageListName"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.pageSize"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.references"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.rootJunction"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.total"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.translate"
+
+        },
+        {
+
+          "name":"uid",
+          "in":"path",
+          "description":"[no description yet]",
+          "required":true,
+          "schema":{
+
+            "type":"string",
+            "format":"uid",
+            "pattern":"^[0-9a-zA-Z]{11}$",
+            "minLength":11,
+            "maxLength":11,
+            "example":"wh0wU9fW8Yb",
+            "description":"A UID for an ProgramMessage object  \n(Java name `org.hisp.dhis.program.message.ProgramMessage`)"
+
+          }
+
+        }
+
+        ],
+        "responses":{
+
+          "200":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "type":"object"
+
+                }
+
+              },
+              "text/csv":{
+
+                "schema":{
+
+                  "type":"string"
+
+                }
+
+              }
+
+            }
+
+          },
+          "404":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              }
+
+            }
+
+          }
+
+        }
+
+      }
+
+    },
+    "/messages/{uid}/gist.csv":{
+
+      "get":{
+
+        "description":"[no description yet]",
+        "operationId":"ProgramMessage.getObjectGistAsCsv",
+        "tags":[
+
+        "tracker"
+
+        ],
+        "parameters":[
+
+        {
+
+          "$ref":"#/components/parameters/GistParams.absoluteUrls"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.auto"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.describe"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.fields"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.filter"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.headless"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.inverse"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.locale"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.order"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.page"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.pageListName"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.pageSize"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.references"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.rootJunction"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.total"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.translate"
+
+        },
+        {
+
+          "name":"uid",
+          "in":"path",
+          "description":"[no description yet]",
+          "required":true,
+          "schema":{
+
+            "type":"string",
+            "format":"uid",
+            "pattern":"^[0-9a-zA-Z]{11}$",
+            "minLength":11,
+            "maxLength":11,
+            "example":"wh0wU9fW8Yb",
+            "description":"A UID for an ProgramMessage object  \n(Java name `org.hisp.dhis.program.message.ProgramMessage`)"
+
+          }
+
+        }
+
+        ],
+        "responses":{
+
+          "200":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "text/csv":{
+
+                "schema":{
+
+                  "type":"string"
+
+                }
+
+              }
+
+            }
+
+          }
+
+        }
+
+      }
+
+    },
+    "/messages/{uid}/{property}":{
+
+      "get":{
+
+        "description":"[no description yet]",
+        "operationId":"ProgramMessage.getObjectProperty",
+        "tags":[
+
+        "tracker"
+
+        ],
+        "parameters":[
+
+        {
+
+          "name":"fields",
+          "in":"query",
+          "description":"[no description yet]",
+          "required":false,
+          "schema":{
+
+            "type":"array",
+            "items":{
+
+              "type":"string"
+
+            }
+
+          }
+
+        },
+        {
+
+          "$ref":"#/components/parameters/TranslateParams.locale"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/WebOptions.page"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/WebOptions.pageSize"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/WebOptions.paging"
+
+        },
+        {
+
+          "name":"property",
+          "in":"path",
+          "description":"[no description yet]",
+          "required":true,
+          "schema":{
+
+            "type":"string",
+            "enum":[
+
+            "access",
+            "attributeValues",
+            "code",
+            "created",
+            "createdBy",
+            "deliveryChannels",
+            "displayName",
+            "enrollment",
+            "event",
+            "favorite",
+            "favorites",
+            "href",
+            "id",
+            "lastUpdated",
+            "lastUpdatedBy",
+            "messageStatus",
+            "name",
+            "notificationTemplate",
+            "processedDate",
+            "recipients",
+            "sharing",
+            "storeCopy",
+            "subject",
+            "text",
+            "translations",
+            "user"
+
+            ]
+
+          }
+
+        },
+        {
+
+          "$ref":"#/components/parameters/WebOptions.rootJunction"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/TranslateParams.translate"
+
+        },
+        {
+
+          "name":"uid",
+          "in":"path",
+          "description":"[no description yet]",
+          "required":true,
+          "schema":{
+
+            "type":"string",
+            "format":"uid",
+            "pattern":"^[0-9a-zA-Z]{11}$",
+            "minLength":11,
+            "maxLength":11,
+            "example":"wh0wU9fW8Yb",
+            "description":"A UID for an ProgramMessage object  \n(Java name `org.hisp.dhis.program.message.ProgramMessage`)"
+
+          }
+
+        }
+
+        ],
+        "responses":{
+
+          "200":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "type":"object"
+
+                }
+
+              }
+
+            }
+
+          },
+          "403":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              }
+
+            }
+
+          },
+          "404":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              }
+
+            }
+
+          }
+
+        }
+
+      }
+
+    },
+    "/messages/{uid}/{property}/gist":{
+
+      "get":{
+
+        "description":"[no description yet]",
+        "operationId":"ProgramMessage.getObjectPropertyGist+getObjectPropertyGistAsCsv",
+        "tags":[
+
+        "tracker",
+        "synthetic"
+
+        ],
+        "parameters":[
+
+        {
+
+          "$ref":"#/components/parameters/GistParams.absoluteUrls"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.auto"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.describe"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.fields"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.filter"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.headless"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.inverse"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.locale"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.order"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.page"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.pageListName"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.pageSize"
+
+        },
+        {
+
+          "name":"property",
+          "in":"path",
+          "description":"[no description yet]",
+          "required":true,
+          "schema":{
+
+            "type":"string",
+            "enum":[
+
+            "access",
+            "attributeValues",
+            "code",
+            "created",
+            "createdBy",
+            "deliveryChannels",
+            "displayName",
+            "enrollment",
+            "event",
+            "favorite",
+            "favorites",
+            "href",
+            "id",
+            "lastUpdated",
+            "lastUpdatedBy",
+            "messageStatus",
+            "name",
+            "notificationTemplate",
+            "processedDate",
+            "recipients",
+            "sharing",
+            "storeCopy",
+            "subject",
+            "text",
+            "translations",
+            "user"
+
+            ]
+
+          }
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.references"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.rootJunction"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.total"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.translate"
+
+        },
+        {
+
+          "name":"uid",
+          "in":"path",
+          "description":"[no description yet]",
+          "required":true,
+          "schema":{
+
+            "type":"string",
+            "format":"uid",
+            "pattern":"^[0-9a-zA-Z]{11}$",
+            "minLength":11,
+            "maxLength":11,
+            "example":"wh0wU9fW8Yb",
+            "description":"A UID for an ProgramMessage object  \n(Java name `org.hisp.dhis.program.message.ProgramMessage`)"
+
+          }
+
+        }
+
+        ],
+        "responses":{
+
+          "200":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "oneOf":[
+
+                  {
+
+                    "type":"object"
+
+                  },
+                  {
+
+                    "type":"array",
+                    "items":{
+
+
+                    }
+
+                  }
+
+                  ]
+
+                }
+
+              },
+              "text/csv":{
+
+                "schema":{
+
+                  "type":"string"
+
+                }
+
+              }
+
+            }
+
+          },
+          "400":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              },
+              "text/csv":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              }
+
+            }
+
+          },
+          "404":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "application/json":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              }
+
+            }
+
+          }
+
+        }
+
+      }
+
+    },
+    "/messages/{uid}/{property}/gist.csv":{
+
+      "get":{
+
+        "description":"[no description yet]",
+        "operationId":"ProgramMessage.getObjectPropertyGistAsCsv",
+        "tags":[
+
+        "tracker"
+
+        ],
+        "parameters":[
+
+        {
+
+          "$ref":"#/components/parameters/GistParams.absoluteUrls"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.auto"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.describe"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.fields"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.filter"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.headless"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.inverse"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.locale"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.order"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.page"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.pageListName"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.pageSize"
+
+        },
+        {
+
+          "name":"property",
+          "in":"path",
+          "description":"[no description yet]",
+          "required":true,
+          "schema":{
+
+            "type":"string",
+            "enum":[
+
+            "access",
+            "attributeValues",
+            "code",
+            "created",
+            "createdBy",
+            "deliveryChannels",
+            "displayName",
+            "enrollment",
+            "event",
+            "favorite",
+            "favorites",
+            "href",
+            "id",
+            "lastUpdated",
+            "lastUpdatedBy",
+            "messageStatus",
+            "name",
+            "notificationTemplate",
+            "processedDate",
+            "recipients",
+            "sharing",
+            "storeCopy",
+            "subject",
+            "text",
+            "translations",
+            "user"
+
+            ]
+
+          }
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.references"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.rootJunction"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.total"
+
+        },
+        {
+
+          "$ref":"#/components/parameters/GistParams.translate"
+
+        },
+        {
+
+          "name":"uid",
+          "in":"path",
+          "description":"[no description yet]",
+          "required":true,
+          "schema":{
+
+            "type":"string",
+            "format":"uid",
+            "pattern":"^[0-9a-zA-Z]{11}$",
+            "minLength":11,
+            "maxLength":11,
+            "example":"wh0wU9fW8Yb",
+            "description":"A UID for an ProgramMessage object  \n(Java name `org.hisp.dhis.program.message.ProgramMessage`)"
+
+          }
+
+        }
+
+        ],
+        "responses":{
+
+          "200":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "text/csv":{
+
+                "schema":{
+
+                  "type":"string"
+
+                }
+
+              }
+
+            }
+
+          },
+          "400":{
+
+            "description":"[no description yet]",
+            "content":{
+
+              "text/csv":{
+
+                "schema":{
+
+                  "$ref":"#/components/schemas/WebMessage"
+
+                }
+
+              }
+
+            }
+
+          }
+
+        }
+
+      }
+
+    }
+
+  },
+  "components":{
+
+    "securitySchemes":{
+
+      "basicAuth":{
+
+        "type":"http",
+        "scheme":"basic"
+
+      }
+
+    },
+    "schemas":{
+
+      "Access":{
+
+        "type":"object",
+        "properties":{
+
+          "data":{
+
+            "$ref":"#/components/schemas/AccessData"
+
+          },
+          "delete":{
+
+            "type":"boolean"
+
+          },
+          "externalize":{
+
+            "type":"boolean"
+
+          },
+          "manage":{
+
+            "type":"boolean"
+
+          },
+          "read":{
+
+            "type":"boolean"
+
+          },
+          "update":{
+
+            "type":"boolean"
+
+          },
+          "write":{
+
+            "type":"boolean"
+
+          }
+
+        }
+
+      },
+      "AccessData":{
+
+        "type":"object",
+        "properties":{
+
+          "read":{
+
+            "type":"boolean"
+
+          },
+          "write":{
+
+            "type":"boolean"
+
+          }
+
+        }
+
+      },
+      "AttributeValue":{
+
+        "type":"object",
+        "properties":{
+
+          "attribute":{
+
+            "type":"object",
+            "required":[
+
+            "id"
+
+            ],
+            "properties":{
+
+              "id":{
+
+                "type":"string",
+                "format":"uid",
+                "pattern":"^[0-9a-zA-Z]{11}$",
+                "minLength":11,
+                "maxLength":11,
+                "example":"ce5CG4iu357"
+
+              }
+
+            },
+            "description":"A UID reference to a Attribute  \n(Java name `org.hisp.dhis.attribute.Attribute`)"
+
+          },
+          "value":{
+
+            "type":"string"
+
+          }
+
+        }
+
+      },
+      "BatchResponseStatus":{
+
+        "type":"object",
+        "properties":{
+
+          "summaries":{
+
+            "type":"array",
+            "items":{
+
+              "$ref":"#/components/schemas/OutboundMessageResponseSummary"
+
+            }
+
+          }
+
+        }
+
+      },
+      "GistPager":{
+
+        "type":"object",
+        "required":[
+
+        "pageSize",
+        "page"
+
+        ],
+        "properties":{
+
+          "nextPage":{
+
+            "type":"string"
+
+          },
+          "page":{
+
+            "type":"integer",
+            "format":"int32"
+
+          },
+          "pageCount":{
+
+            "type":"integer",
+            "format":"int32"
+
+          },
+          "pageSize":{
+
+            "type":"integer",
+            "format":"int32"
+
+          },
+          "prevPage":{
+
+            "type":"string"
+
+          },
+          "total":{
+
+            "type":"integer",
+            "format":"int32"
+
+          }
+
+        }
+
+      },
+      "OutboundMessageResponseSummary":{
+
+        "type":"object",
+        "required":[
+
+        "total",
+        "pending",
+        "failed",
+        "batchType",
+        "sent",
+        "status"
+
+        ],
+        "properties":{
+
+          "batchType":{
+
+            "type":"string",
+            "enum":[
+
+            "SMS",
+            "EMAIL",
+            "HTTP"
+
+            ]
+
+          },
+          "errorMessage":{
+
+            "type":"string"
+
+          },
+          "failed":{
+
+            "type":"integer",
+            "format":"int32"
+
+          },
+          "pending":{
+
+            "type":"integer",
+            "format":"int32"
+
+          },
+          "responseMessage":{
+
+            "type":"string"
+
+          },
+          "sent":{
+
+            "type":"integer",
+            "format":"int32"
+
+          },
+          "status":{
+
+            "type":"string",
+            "enum":[
+
+            "COMPLETED",
+            "FAILED",
+            "PENDING",
+            "ABORTED"
+
+            ]
+
+          },
+          "total":{
+
+            "type":"integer",
+            "format":"int32"
+
+          }
+
+        }
+
+      },
+      "Pager":{
+
+        "type":"object",
+        "required":[
+
+        "pageCount",
+        "total",
+        "pageSize",
+        "page"
+
+        ],
+        "properties":{
+
+          "nextPage":{
+
+            "type":"string"
+
+          },
+          "page":{
+
+            "type":"integer",
+            "format":"int32"
+
+          },
+          "pageCount":{
+
+            "type":"integer",
+            "format":"int32"
+
+          },
+          "pageSize":{
+
+            "type":"integer",
+            "format":"int32"
+
+          },
+          "prevPage":{
+
+            "type":"string"
+
+          },
+          "total":{
+
+            "type":"integer",
+            "format":"int64"
+
+          }
+
+        }
+
+      },
+      "ProgramMessage":{
+
+        "type":"object",
+        "required":[
+
+        "messageStatus"
+
+        ],
+        "properties":{
+
+          "access":{
+
+            "$ref":"#/components/schemas/Access"
+
+          },
+          "attributeValues":{
+
+            "type":"array",
+            "items":{
+
+              "$ref":"#/components/schemas/AttributeValue"
+
+            }
+
+          },
+          "code":{
+
+            "type":"string"
+
+          },
+          "created":{
+
+            "type":"string",
+            "format":"date-time"
+
+          },
+          "createdBy":{
+
+            "type":"object",
+            "required":[
+
+            "id"
+
+            ],
+            "properties":{
+
+              "id":{
+
+                "type":"string",
+                "format":"uid",
+                "pattern":"^[0-9a-zA-Z]{11}$",
+                "minLength":11,
+                "maxLength":11,
+                "example":"r87xh9Xn8ON"
+
+              }
+
+            },
+            "description":"A UID reference to a User  \n(Java name `org.hisp.dhis.user.User`)"
+
+          },
+          "deliveryChannels":{
+
+            "type":"array",
+            "items":{
+
+              "type":"string",
+              "enum":[
+
+              "SMS",
+              "EMAIL",
+              "HTTP"
+
+              ]
+
+            }
+
+          },
+          "displayName":{
+
+            "type":"string"
+
+          },
+          "enrollment":{
+
+            "type":"object",
+            "required":[
+
+            "id"
+
+            ],
+            "properties":{
+
+              "id":{
+
+                "type":"string",
+                "format":"uid",
+                "pattern":"^[0-9a-zA-Z]{11}$",
+                "minLength":11,
+                "maxLength":11,
+                "example":"h9qA2Xb1CV0"
+
+              }
+
+            },
+            "description":"A UID reference to a Enrollment  \n(Java name `org.hisp.dhis.program.Enrollment`)"
+
+          },
+          "event":{
+
+            "type":"object",
+            "required":[
+
+            "id"
+
+            ],
+            "properties":{
+
+              "id":{
+
+                "type":"string",
+                "format":"uid",
+                "pattern":"^[0-9a-zA-Z]{11}$",
+                "minLength":11,
+                "maxLength":11,
+                "example":"cc1uN0fb9Qi"
+
+              }
+
+            },
+            "description":"A UID reference to a Event  \n(Java name `org.hisp.dhis.program.Event`)"
+
+          },
+          "favorite":{
+
+            "type":"boolean"
+
+          },
+          "favorites":{
+
+            "type":"array",
+            "items":{
+
+              "type":"string"
+
+            }
+
+          },
+          "href":{
+
+            "type":"string"
+
+          },
+          "id":{
+
+            "type":"string"
+
+          },
+          "lastUpdated":{
+
+            "type":"string",
+            "format":"date-time"
+
+          },
+          "lastUpdatedBy":{
+
+            "type":"object",
+            "required":[
+
+            "id"
+
+            ],
+            "properties":{
+
+              "id":{
+
+                "type":"string",
+                "format":"uid",
+                "pattern":"^[0-9a-zA-Z]{11}$",
+                "minLength":11,
+                "maxLength":11,
+                "example":"r87xh9Xn8ON"
+
+              }
+
+            },
+            "description":"A UID reference to a User  \n(Java name `org.hisp.dhis.user.User`)"
+
+          },
+          "messageStatus":{
+
+            "type":"string",
+            "enum":[
+
+            "SENT",
+            "FAILED",
+            "SCHEDULED",
+            "OUTBOUND"
+
+            ]
+
+          },
+          "name":{
+
+            "type":"string"
+
+          },
+          "notificationTemplate":{
+
+            "type":"string"
+
+          },
+          "processedDate":{
+
+            "type":"string",
+            "format":"date-time"
+
+          },
+          "recipients":{
+
+            "$ref":"#/components/schemas/ProgramMessageRecipients"
+
+          },
+          "sharing":{
+
+            "$ref":"#/components/schemas/Sharing"
+
+          },
+          "storeCopy":{
+
+            "type":"boolean"
+
+          },
+          "subject":{
+
+            "type":"string"
+
+          },
+          "text":{
+
+            "type":"string"
+
+          },
+          "translations":{
+
+            "type":"array",
+            "items":{
+
+              "$ref":"#/components/schemas/Translation"
+
+            }
+
+          },
+          "user":{
+
+            "type":"object",
+            "required":[
+
+            "id"
+
+            ],
+            "properties":{
+
+              "id":{
+
+                "type":"string",
+                "format":"uid",
+                "pattern":"^[0-9a-zA-Z]{11}$",
+                "minLength":11,
+                "maxLength":11,
+                "example":"r87xh9Xn8ON"
+
+              }
+
+            },
+            "description":"A UID reference to a User  \n(Java name `org.hisp.dhis.user.User`)"
+
+          }
+
+        }
+
+      },
+      "ProgramMessageBatch":{
+
+        "type":"object",
+        "properties":{
+
+          "programMessages":{
+
+            "type":"array",
+            "items":{
+
+              "type":"object",
+              "required":[
+
+              "id"
+
+              ],
+              "properties":{
+
+                "id":{
+
+                  "type":"string",
+                  "format":"uid",
+                  "pattern":"^[0-9a-zA-Z]{11}$",
+                  "minLength":11,
+                  "maxLength":11,
+                  "example":"wh0wU9fW8Yb"
+
+                }
+
+              },
+              "description":"A UID reference to a ProgramMessage  \n(Java name `org.hisp.dhis.program.message.ProgramMessage`)"
+
+            }
+
+          }
+
+        }
+
+      },
+      "ProgramMessageRecipients":{
+
+        "type":"object",
+        "properties":{
+
+          "emailAddresses":{
+
+            "type":"array",
+            "items":{
+
+              "type":"string"
+
+            }
+
+          },
+          "organisationUnit":{
+
+            "type":"object",
+            "required":[
+
+            "id"
+
+            ],
+            "properties":{
+
+              "id":{
+
+                "type":"string",
+                "format":"uid",
+                "pattern":"^[0-9a-zA-Z]{11}$",
+                "minLength":11,
+                "maxLength":11,
+                "example":"xj2sS1ni0Q9"
+
+              }
+
+            },
+            "description":"A UID reference to a OrganisationUnit  \n(Java name `org.hisp.dhis.organisationunit.OrganisationUnit`)"
+
+          },
+          "phoneNumbers":{
+
+            "type":"array",
+            "items":{
+
+              "type":"string"
+
+            }
+
+          },
+          "trackedEntity":{
+
+            "type":"object",
+            "required":[
+
+            "id"
+
+            ],
+            "properties":{
+
+              "id":{
+
+                "type":"string",
+                "format":"uid",
+                "pattern":"^[0-9a-zA-Z]{11}$",
+                "minLength":11,
+                "maxLength":11,
+                "example":"zg9rM85NF00"
+
+              }
+
+            },
+            "description":"A UID reference to a TrackedEntity  \n(Java name `org.hisp.dhis.trackedentity.TrackedEntity`)"
+
+          }
+
+        }
+
+      },
+      "Sharing":{
+
+        "type":"object",
+        "properties":{
+
+          "external":{
+
+            "type":"boolean"
+
+          },
+          "owner":{
+
+            "type":"string"
+
+          },
+          "public":{
+
+            "type":"string"
+
+          },
+          "userGroups":{
+
+            "type":"object",
+            "additionalProperties":{
+
+              "$ref":"#/components/schemas/UserGroupAccess"
+
+            }
+
+          },
+          "users":{
+
+            "type":"object",
+            "additionalProperties":{
+
+              "$ref":"#/components/schemas/UserAccess"
+
+            }
+
+          }
+
+        }
+
+      },
+      "Translation":{
+
+        "type":"object",
+        "properties":{
+
+          "locale":{
+
+            "type":"string"
+
+          },
+          "property":{
+
+            "type":"string"
+
+          },
+          "value":{
+
+            "type":"string"
+
+          }
+
+        }
+
+      },
+      "UserAccess":{
+
+        "type":"object",
+        "properties":{
+
+          "access":{
+
+            "type":"string"
+
+          },
+          "displayName":{
+
+            "type":"string"
+
+          },
+          "id":{
+
+            "type":"string"
+
+          }
+
+        }
+
+      },
+      "UserGroupAccess":{
+
+        "type":"object",
+        "properties":{
+
+          "access":{
+
+            "type":"string"
+
+          },
+          "displayName":{
+
+            "type":"string"
+
+          },
+          "id":{
+
+            "type":"string"
+
+          }
+
+        }
+
+      },
+      "WebMessage":{
+
+        "type":"object",
+        "required":[
+
+        "errorCode",
+        "status"
+
+        ],
+        "properties":{
+
+          "code":{
+
+            "type":"integer",
+            "format":"int32"
+
+          },
+          "devMessage":{
+
+            "type":"string"
+
+          },
+          "errorCode":{
+
+            "type":"string",
+            "enum":[
+
+            "E1000",
+            "E1001",
+            "E1002",
+            "E1003",
+            "E1004",
+            "E1005",
+            "E1006",
+            "E1100",
+            "E1101",
+            "E1102",
+            "E1103",
+            "E1104",
+            "E1105",
+            "E1106",
+            "E1107",
+            "E1108",
+            "E1109",
+            "E1110",
+            "E1111",
+            "E1112",
+            "E1113",
+            "E1114",
+            "E1115",
+            "E1116",
+            "E1117",
+            "E1118",
+            "E1119",
+            "E1120",
+            "E1500",
+            "E1501",
+            "E1502",
+            "E1503",
+            "E1504",
+            "E1510",
+            "E1511",
+            "E1512",
+            "E1513",
+            "E1514",
+            "E1515",
+            "E1516",
+            "E1520",
+            "E1521",
+            "E1522",
+            "E1523",
+            "E2000",
+            "E2001",
+            "E2002",
+            "E2003",
+            "E2004",
+            "E2005",
+            "E2006",
+            "E2007",
+            "E2008",
+            "E2009",
+            "E2010",
+            "E2011",
+            "E2012",
+            "E2013",
+            "E2014",
+            "E2015",
+            "E2016",
+            "E2017",
+            "E2018",
+            "E2019",
+            "E2020",
+            "E2021",
+            "E2022",
+            "E2023",
+            "E2024",
+            "E2025",
+            "E2026",
+            "E2027",
+            "E2028",
+            "E2029",
+            "E2030",
+            "E2031",
+            "E2032",
+            "E2033",
+            "E2034",
+            "E2035",
+            "E2036",
+            "E2037",
+            "E2038",
+            "E2039",
+            "E2040",
+            "E2041",
+            "E2042",
+            "E2043",
+            "E2044",
+            "E2200",
+            "E2201",
+            "E2202",
+            "E2203",
+            "E2204",
+            "E2205",
+            "E2206",
+            "E2207",
+            "E2208",
+            "E2300",
+            "E2301",
+            "E3000",
+            "E3001",
+            "E3002",
+            "E3003",
+            "E3004",
+            "E3005",
+            "E3006",
+            "E3008",
+            "E3009",
+            "E3010",
+            "E3011",
+            "E3012",
+            "E3013",
+            "E3014",
+            "E3015",
+            "E3016",
+            "E3017",
+            "E3018",
+            "E3019",
+            "E3020",
+            "E3021",
+            "E3022",
+            "E3023",
+            "E3024",
+            "E3025",
+            "E3026",
+            "E3027",
+            "E3028",
+            "E3029",
+            "E3030",
+            "E3031",
+            "E3032",
+            "E3040",
+            "E4000",
+            "E4001",
+            "E4002",
+            "E4003",
+            "E4004",
+            "E4005",
+            "E4006",
+            "E4007",
+            "E4008",
+            "E4009",
+            "E4010",
+            "E4011",
+            "E4012",
+            "E4013",
+            "E4014",
+            "E4015",
+            "E4016",
+            "E4017",
+            "E4018",
+            "E4019",
+            "E4020",
+            "E4021",
+            "E4022",
+            "E4023",
+            "E4024",
+            "E4025",
+            "E4026",
+            "E4027",
+            "E4028",
+            "E4029",
+            "E4030",
+            "E4031",
+            "E4032",
+            "E4033",
+            "E4034",
+            "E4035",
+            "E4036",
+            "E4037",
+            "E4038",
+            "E4039",
+            "E4040",
+            "E4041",
+            "E4042",
+            "E4043",
+            "E4044",
+            "E4045",
+            "E4046",
+            "E4047",
+            "E4048",
+            "E4049",
+            "E4054",
+            "E4056",
+            "E4055",
+            "E4050",
+            "E4051",
+            "E4052",
+            "E4053",
+            "E4057",
+            "E4058",
+            "E4060",
+            "E4061",
+            "E4062",
+            "E4063",
+            "E4064",
+            "E4065",
+            "E4066",
+            "E4067",
+            "E4068",
+            "E4069",
+            "E4070",
+            "E4300",
+            "E4301",
+            "E4302",
+            "E4303",
+            "E4304",
+            "E4305",
+            "E4306",
+            "E4307",
+            "E4308",
+            "E4309",
+            "E4310",
+            "E4311",
+            "E4312",
+            "E4313",
+            "E4314",
+            "E4315",
+            "E5000",
+            "E5001",
+            "E5002",
+            "E5003",
+            "E5004",
+            "E5005",
+            "E5006",
+            "E5007",
+            "E5008",
+            "E6000",
+            "E6001",
+            "E6002",
+            "E6003",
+            "E6004",
+            "E6005",
+            "E6006",
+            "E6007",
+            "E6008",
+            "E6009",
+            "E6010",
+            "E6011",
+            "E6012",
+            "E6013",
+            "E6014",
+            "E6015",
+            "E6016",
+            "E6017",
+            "E6018",
+            "E6019",
+            "E6020",
+            "E6021",
+            "E6100",
+            "E6101",
+            "E6200",
+            "E6201",
+            "E6202",
+            "E6203",
+            "E6204",
+            "E6205",
+            "E6206",
+            "E6207",
+            "E6208",
+            "E6209",
+            "E6210",
+            "E6211",
+            "E6300",
+            "E6301",
+            "E6302",
+            "E6303",
+            "E6304",
+            "E6305",
+            "E7000",
+            "E7003",
+            "E7004",
+            "E7005",
+            "E7006",
+            "E7007",
+            "E7010",
+            "E7020",
+            "E7021",
+            "E7022",
+            "E7023",
+            "E7024",
+            "E7100",
+            "E7101",
+            "E7102",
+            "E7103",
+            "E7104",
+            "E7105",
+            "E7106",
+            "E7107",
+            "E7108",
+            "E7109",
+            "E7110",
+            "E7111",
+            "E7112",
+            "E7113",
+            "E7114",
+            "E7115",
+            "E7116",
+            "E7117",
+            "E7118",
+            "E7119",
+            "E7120",
+            "E7121",
+            "E7122",
+            "E7123",
+            "E7124",
+            "E7125",
+            "E7126",
+            "E7127",
+            "E7128",
+            "E7129",
+            "E7130",
+            "E7131",
+            "E7132",
+            "E7133",
+            "E7134",
+            "E7135",
+            "E7136",
+            "E7137",
+            "E7138",
+            "E7139",
+            "E7140",
+            "E7141",
+            "E7142",
+            "E7143",
+            "E7200",
+            "E7201",
+            "E7202",
+            "E7203",
+            "E7204",
+            "E7205",
+            "E7206",
+            "E7207",
+            "E7208",
+            "E7209",
+            "E7210",
+            "E7211",
+            "E7212",
+            "E7213",
+            "E7214",
+            "E7215",
+            "E7216",
+            "E7217",
+            "E7218",
+            "E7219",
+            "E7220",
+            "E7221",
+            "E7222",
+            "E7223",
+            "E7224",
+            "E7225",
+            "E7226",
+            "E7227",
+            "E7228",
+            "E7229",
+            "E7230",
+            "E7231",
+            "E7232",
+            "E7234",
+            "E7235",
+            "E7236",
+            "E7237",
+            "E7238",
+            "E7250",
+            "E7300",
+            "E7301",
+            "E7400",
+            "E7500",
+            "E7501",
+            "E7502",
+            "E7503",
+            "E7600",
+            "E7601",
+            "E7602",
+            "E7603",
+            "E7604",
+            "E7610",
+            "E7611",
+            "E7612",
+            "E7613",
+            "E7614",
+            "E7615",
+            "E7616",
+            "E7617",
+            "E7618",
+            "E7619",
+            "E7620",
+            "E7621",
+            "E7630",
+            "E7631",
+            "E7632",
+            "E7633",
+            "E7634",
+            "E7635",
+            "E7636",
+            "E7637",
+            "E7638",
+            "E7639",
+            "E7640",
+            "E7641",
+            "E7642",
+            "E7643",
+            "E7644",
+            "E7645",
+            "E7650",
+            "E7651",
+            "E7652",
+            "E7653",
+            "E7700",
+            "E7701",
+            "E7702",
+            "E7703",
+            "E7704",
+            "E7705",
+            "E7706",
+            "E7707",
+            "E7708",
+            "E7709",
+            "E7710",
+            "E7711",
+            "E7712"
+
+            ]
+
+          },
+          "httpStatus":{
+
+            "type":"string"
+
+          },
+          "httpStatusCode":{
+
+            "type":"integer",
+            "format":"int32"
+
+          },
+          "message":{
+
+            "type":"string"
+
+          },
+          "response":{
+
+            "$ref":"#/components/schemas/WebMessage"
+
+          },
+          "status":{
+
+            "type":"string",
+            "enum":[
+
+            "OK",
+            "WARNING",
+            "ERROR"
+
+            ]
+
+          }
+
+        }
+
+      },
+      "PropertyNames_ProgramMessage":{
+
+        "type":"string",
+        "enum":[
+
+        "access",
+        "attributeValues",
+        "code",
+        "created",
+        "createdBy",
+        "deliveryChannels",
+        "displayName",
+        "enrollment",
+        "event",
+        "favorite",
+        "favorites",
+        "href",
+        "id",
+        "lastUpdated",
+        "lastUpdatedBy",
+        "messageStatus",
+        "name",
+        "notificationTemplate",
+        "processedDate",
+        "recipients",
+        "sharing",
+        "storeCopy",
+        "subject",
+        "text",
+        "translations",
+        "user"
+
+        ]
+
+      },
+      "UID_Enrollment":{
+
+        "type":"string",
+        "format":"uid",
+        "pattern":"^[0-9a-zA-Z]{11}$",
+        "minLength":11,
+        "maxLength":11,
+        "example":"h9qA2Xb1CV0",
+        "description":"A UID for an Enrollment object  \n(Java name `org.hisp.dhis.webapi.controller.tracker.view.Enrollment`)"
+
+      },
+      "UID_Event":{
+
+        "type":"string",
+        "format":"uid",
+        "pattern":"^[0-9a-zA-Z]{11}$",
+        "minLength":11,
+        "maxLength":11,
+        "example":"cc1uN0fb9Qi",
+        "description":"A UID for an Event object  \n(Java name `org.hisp.dhis.webapi.controller.tracker.view.Event`)"
+
+      },
+      "UID_ProgramMessage":{
+
+        "type":"string",
+        "format":"uid",
+        "pattern":"^[0-9a-zA-Z]{11}$",
+        "minLength":11,
+        "maxLength":11,
+        "example":"wh0wU9fW8Yb",
+        "description":"A UID for an ProgramMessage object  \n(Java name `org.hisp.dhis.program.message.ProgramMessage`)"
+
+      }
+
+    },
+    "parameters":{
+
+      "GistParams.absoluteUrls":{
+
+        "name":"absoluteUrls",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"boolean"
+
+        }
+
+      },
+      "GistParams.auto":{
+
+        "name":"auto",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"string",
+          "enum":[
+
+          "XL",
+          "L",
+          "M",
+          "S",
+          "XS"
+
+          ]
+
+        }
+
+      },
+      "GistParams.describe":{
+
+        "name":"describe",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"boolean"
+
+        }
+
+      },
+      "GistParams.fields":{
+
+        "name":"fields",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"string"
+
+        }
+
+      },
+      "GistParams.filter":{
+
+        "name":"filter",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"string"
+
+        }
+
+      },
+      "GistParams.headless":{
+
+        "name":"headless",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"boolean"
+
+        }
+
+      },
+      "GistParams.inverse":{
+
+        "name":"inverse",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"boolean"
+
+        }
+
+      },
+      "GistParams.locale":{
+
+        "name":"locale",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"string"
+
+        }
+
+      },
+      "GistParams.order":{
+
+        "name":"order",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"string"
+
+        }
+
+      },
+      "GistParams.page":{
+
+        "name":"page",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"integer",
+          "format":"int32"
+
+        }
+
+      },
+      "GistParams.pageListName":{
+
+        "name":"pageListName",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"string"
+
+        }
+
+      },
+      "GistParams.pageSize":{
+
+        "name":"pageSize",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"integer",
+          "format":"int32"
+
+        }
+
+      },
+      "GistParams.references":{
+
+        "name":"references",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"boolean"
+
+        }
+
+      },
+      "GistParams.rootJunction":{
+
+        "name":"rootJunction",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"string",
+          "enum":[
+
+          "AND",
+          "OR"
+
+          ]
+
+        }
+
+      },
+      "GistParams.total":{
+
+        "name":"total",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"boolean"
+
+        }
+
+      },
+      "GistParams.translate":{
+
+        "name":"translate",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"boolean"
+
+        }
+
+      },
+      "OrderParams.orders":{
+
+        "name":"orders",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"array",
+          "items":{
+
+            "type":"string"
+
+          }
+
+        }
+
+      },
+      "TranslateParams.locale":{
+
+        "name":"locale",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"string"
+
+        }
+
+      },
+      "TranslateParams.translate":{
+
+        "name":"translate",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"boolean"
+
+        }
+
+      },
+      "WebOptions.page":{
+
+        "name":"page",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"integer",
+          "format":"int32"
+
+        }
+
+      },
+      "WebOptions.pageSize":{
+
+        "name":"pageSize",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"integer",
+          "format":"int32"
+
+        }
+
+      },
+      "WebOptions.paging":{
+
+        "name":"paging",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"boolean"
+
+        }
+
+      },
+      "WebOptions.rootJunction":{
+
+        "name":"rootJunction",
+        "in":"query",
+        "description":"[no description yet]",
+        "required":false,
+        "schema":{
+
+          "type":"string",
+          "enum":[
+
+          "AND",
+          "OR"
+
+          ]
+
+        }
+
+      }
+
+    }
+
+  }
+
+}
