@@ -294,9 +294,32 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         "OK",
         "User replica created",
         POST(
-                "/users/" + peter.getUid() + "/replica",
-                "{'username':'peter2','password':'Saf€sEcre1'}")
+            "/users/" + peter.getUid() + "/replica",
+            "{'username':'peter2','password':'Saf€sEcre1'}")
             .content());
+  }
+
+  @Test
+  void testReplicateUserCreatedByUpdated() throws JsonProcessingException {
+    User newUser = createUserWithAuth("test", "ALL");
+
+    switchToNewUser(newUser);
+
+    String replicatedUsername = "peter2";
+
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "User replica created",
+        POST(
+            "/users/" + peter.getUid() + "/replica",
+            "{'username':'" + replicatedUsername + "','password':'Saf€sEcre1'}")
+            .content());
+
+    User replicatedUser = userService.getUserByUsername(replicatedUsername);
+
+    assertEquals(newUser.getUsername(), replicatedUser.getCreatedBy().getUsername());
   }
 
   @Test
