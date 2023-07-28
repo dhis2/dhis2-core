@@ -126,7 +126,7 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testReplicateUserCreatedByUpdated()
+    public void testReplicateUserCreatedByUpdated()
         throws JsonProcessingException
     {
         User newUser = createUser( "test", "ALL" );
