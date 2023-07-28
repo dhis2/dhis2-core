@@ -36,7 +36,6 @@ import static org.hamcrest.Matchers.lessThan;
 import static org.hisp.dhis.util.DateUtils.dateIsValid;
 import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
 import static org.hisp.dhis.util.DateUtils.getMediumDate;
-import static org.hisp.dhis.util.DateUtils.hasTimeStamp;
 import static org.hisp.dhis.util.DateUtils.minusOneDay;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
@@ -108,16 +107,6 @@ class DateUtilsTest {
     assertFalse(dateTimeIsValid("2000-01-01"));
     assertFalse(dateTimeIsValid("01-01-2000"));
     assertFalse(dateTimeIsValid("abcd"));
-  }
-
-  @Test
-  void testHasTimeStamp() {
-    assertTrue(hasTimeStamp("2022-01-25T12:10:38.123Z"));
-    assertTrue(hasTimeStamp("2022-02-25T12:10:38.13Z"));
-    assertTrue(hasTimeStamp("2022-04-25T12:10:38.1Z"));
-    assertFalse(hasTimeStamp("2022-01-25T12:10:38"));
-    assertFalse(hasTimeStamp("2022-01-25T12"));
-    assertFalse(hasTimeStamp("2022-01-25T"));
   }
 
   @Test
