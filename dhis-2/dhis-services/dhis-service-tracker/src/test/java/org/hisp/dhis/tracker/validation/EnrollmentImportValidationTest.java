@@ -155,8 +155,7 @@ class EnrollmentImportValidationTest extends AbstractImportValidationTest {
             .getBundleReport()
             .getTypeReportMap()
             .get(TrackerType.ENROLLMENT)
-            .getObjectReportMap()
-            .values()
+            .getObjectReports()
             .size());
     assertEquals(0, trackerImportReport.getValidationReport().getErrors().size());
     assertThat(

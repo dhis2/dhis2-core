@@ -135,7 +135,6 @@ class TrackerBundleImportReportTest extends DhisSpringTest {
     trackerErrorReports.add(errorReport1);
     trackerErrorReports.add(errorReport2);
     trackerObjectReport.getErrorReports().addAll(trackerErrorReports);
-    trackerObjectReport.setIndex(0);
     trackerObjectReport.setUid("BltTZV9HvEZ");
     typeReport.addObjectReport(trackerObjectReport);
     typeReport.getStats().setCreated(1);
@@ -218,11 +217,8 @@ class TrackerBundleImportReportTest extends DhisSpringTest {
         serializedReportTrackerTypeReport.getTrackerType(),
         deserializedReportTrackerTypeReport.getTrackerType());
     assertEquals(
-        serializedReportTrackerTypeReport.getObjectReportMap(),
-        deserializedReportTrackerTypeReport.getObjectReportMap());
-    assertEquals(
-        serializedReportTrackerTypeReport.getObjectReports(),
-        deserializedReportTrackerTypeReport.getObjectReports());
+        serializedReportTrackerTypeReport.getEntityReport(),
+        deserializedReportTrackerTypeReport.getEntityReport());
     assertEquals(
         serializedReportTrackerTypeReport.getStats(),
         deserializedReportTrackerTypeReport.getStats());
@@ -317,7 +313,7 @@ class TrackerBundleImportReportTest extends DhisSpringTest {
   private TrackerBundleReport createBundleReport() {
     TrackerBundleReport bundleReport = new TrackerBundleReport();
     TrackerTypeReport typeReport = new TrackerTypeReport(TRACKED_ENTITY);
-    TrackerObjectReport objectReport = new TrackerObjectReport(TRACKED_ENTITY, "TEI_UID", 1);
+    TrackerObjectReport objectReport = new TrackerObjectReport(TRACKED_ENTITY, "TEI_UID");
     typeReport.addObjectReport(objectReport);
     typeReport.getStats().incCreated();
     bundleReport.getTypeReportMap().put(TRACKED_ENTITY, typeReport);

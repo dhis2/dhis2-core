@@ -39,7 +39,7 @@ import org.springframework.http.HttpStatus;
  */
 class TrackerImportControllerTest extends DhisControllerConvenienceTest {
   @Test
-  void shouldReturnBadRequestWhenAllValidParametersArePassed() {
+  void shouldSucceedWhenAllValidParametersArePassed() {
     assertWebMessage(
         "OK",
         200,
