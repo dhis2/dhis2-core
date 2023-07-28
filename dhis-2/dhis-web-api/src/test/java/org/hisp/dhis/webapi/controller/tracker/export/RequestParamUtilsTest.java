@@ -198,7 +198,7 @@ class RequestParamUtilsTest {
   }
 
   @Test
-  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeSelected() {
+  void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeSelected() {
     assertDoesNotThrow(() -> validateOrgUnitParams(Set.of(UID.of(orgUnit.getUid())), SELECTED));
   }
 
