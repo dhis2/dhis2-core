@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-summary_uid: OHKuZ5NgqT0
 name: program_rules_message_no_template
 description: Program rules actions which should send or schedule a message without a message template.
 section: Program rules
@@ -39,7 +38,6 @@ summary_sql: >-
     SELECT COUNT(*) as value,
     100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM programrule),0) as percent
     FROM program_rules_no_message_template;
-details_uid: HRsnqw2VoaS
 details_sql: >-
     SELECT uid,name from programrule where programruleid IN (
     SELECT programruleid from programruleaction WHERE
