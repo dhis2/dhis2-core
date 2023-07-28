@@ -31,16 +31,18 @@ import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
+import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
+import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 
 import java.util.Objects;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
-import org.hisp.dhis.webapi.common.UID;
 import org.springframework.stereotype.Component;
 
 /**
@@ -76,10 +78,11 @@ class RelationshipRequestParamsMapper {
             ObjectUtils.firstNonNull(
                     trackedEntity, requestParams.getEnrollment(), requestParams.getEvent())
                 .getValue())
-        .page(requestParams.getPage())
-        .pageSize(requestParams.getPageSize())
-        .totalPages(requestParams.isTotalPages())
+        .page(Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE))
+        .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
+        .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))
         .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
+        .order(requestParams.getOrder())
         .build();
   }
 

@@ -214,8 +214,8 @@ class TrackerBundleImportReportTest {
         serializedReportTrackerTypeReport.getTrackerType(),
         deserializedReportTrackerTypeReport.getTrackerType());
     assertEquals(
-        serializedReportTrackerTypeReport.getEntityReportMap(),
-        deserializedReportTrackerTypeReport.getEntityReportMap());
+        serializedReportTrackerTypeReport.getEntityReport(),
+        deserializedReportTrackerTypeReport.getEntityReport());
     assertEquals(
         serializedReportTrackerTypeReport.getEntityReport(),
         deserializedReportTrackerTypeReport.getEntityReport());

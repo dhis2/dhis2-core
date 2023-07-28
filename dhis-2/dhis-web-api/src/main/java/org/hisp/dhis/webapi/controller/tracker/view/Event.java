@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -39,14 +40,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Shared.Pattern;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.webapi.common.UID;
 import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared(pattern = Pattern.INFO)
+@OpenApi.Shared(pattern = Pattern.TRACKER)
 @Data
 @Builder
 @NoArgsConstructor
@@ -113,4 +114,6 @@ public class Event {
   @JsonProperty @Builder.Default private Set<DataValue> dataValues = new HashSet<>();
 
   @JsonProperty @Builder.Default private List<Note> notes = new ArrayList<>();
+
+  @JsonIgnore private int index;
 }

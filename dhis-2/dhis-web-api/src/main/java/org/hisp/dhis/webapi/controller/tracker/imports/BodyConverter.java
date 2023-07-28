@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
@@ -98,34 +99,53 @@ class BodyConverter extends StdConverter<Body, Body> {
     Map<String, Enrollment> enrollmentHashMap = new HashMap<>();
     Map<String, Event> eventHashMap = new HashMap<>();
     Map<String, Relationship> relationshipHashMap = new HashMap<>();
+    AtomicInteger indexCounter = new AtomicInteger();
 
     // Extract all enrollments and relationships, and set parent reference.
     for (TrackedEntity te : body.getTrackedEntities()) {
+      te.setIndex(indexCounter.getAndIncrement());
       updateTrackedEntityReferences(te);
       trackedEntityMap.put(te.getTrackedEntity(), te);
 
       extractEnrollments(te)
-          .forEach(enrollment -> enrollmentHashMap.put(enrollment.getEnrollment(), enrollment));
+          .forEach(
+              enrollment -> {
+                enrollment.setIndex(indexCounter.getAndIncrement());
+                enrollmentHashMap.put(enrollment.getEnrollment(), enrollment);
+              });
 
       extractRelationships(te)
           .forEach(
-              relationship ->
-                  relationshipHashMap.put(relationship.getRelationship(), relationship));
+              relationship -> {
+                relationship.setIndex(indexCounter.getAndIncrement());
+                relationshipHashMap.put(relationship.getRelationship(), relationship);
+              });
     }
 
     // Set UID for all enrollments and notes
     body.getEnrollments().stream()
         .map(enrollment -> updateEnrollmentReferences(enrollment, enrollment.getTrackedEntity()))
-        .forEach(enrollment -> enrollmentHashMap.put(enrollment.getEnrollment(), enrollment));
+        .forEach(
+            enrollment -> {
+              enrollment.setIndex(indexCounter.getAndIncrement());
+              enrollmentHashMap.put(enrollment.getEnrollment(), enrollment);
+            });
 
     // Extract all events and relationships, and set parent references
     for (Enrollment enrollment : enrollmentHashMap.values()) {
-      extractEvents(enrollment).forEach(event -> eventHashMap.put(event.getEvent(), event));
+      extractEvents(enrollment)
+          .forEach(
+              event -> {
+                event.setIndex(indexCounter.getAndIncrement());
+                eventHashMap.put(event.getEvent(), event);
+              });
 
       extractRelationships(enrollment)
           .forEach(
-              relationship ->
-                  relationshipHashMap.put(relationship.getRelationship(), relationship));
+              relationship -> {
+                relationship.setIndex(indexCounter.getAndIncrement());
+                relationshipHashMap.put(relationship.getRelationship(), relationship);
+              });
 
       enrollment.setNotes(
           enrollment.getNotes().stream()
@@ -137,14 +157,20 @@ class BodyConverter extends StdConverter<Body, Body> {
     // Set UID for all events and notes
     body.getEvents().stream()
         .map(event -> updateEventReferences(event, event.getEnrollment()))
-        .forEach(event -> eventHashMap.put(event.getEvent(), event));
+        .forEach(
+            event -> {
+              event.setIndex(indexCounter.getAndIncrement());
+              eventHashMap.put(event.getEvent(), event);
+            });
 
     // Extract all relationships
     for (Event event : eventHashMap.values()) {
       extractRelationships(event)
           .forEach(
-              relationship ->
-                  relationshipHashMap.put(relationship.getRelationship(), relationship));
+              relationship -> {
+                relationship.setIndex(indexCounter.getAndIncrement());
+                relationshipHashMap.put(relationship.getRelationship(), relationship);
+              });
 
       event.setNotes(
           event.getNotes().stream()
@@ -157,7 +183,10 @@ class BodyConverter extends StdConverter<Body, Body> {
     body.getRelationships().stream()
         .map(this::updateRelationshipReferences)
         .forEach(
-            relationship -> relationshipHashMap.put(relationship.getRelationship(), relationship));
+            relationship -> {
+              relationship.setIndex(indexCounter.getAndIncrement());
+              relationshipHashMap.put(relationship.getRelationship(), relationship);
+            });
 
     return Body.builder()
         .trackedEntities(new ArrayList<>(trackedEntityMap.values()))
@@ -176,9 +205,7 @@ class BodyConverter extends StdConverter<Body, Body> {
    */
   private List<Relationship> extractRelationships(TrackedEntity trackedEntity) {
     List<Relationship> relationships =
-        trackedEntity.getRelationships().stream()
-            .map(this::updateRelationshipReferences)
-            .collect(Collectors.toList());
+        trackedEntity.getRelationships().stream().map(this::updateRelationshipReferences).toList();
 
     trackedEntity.setRelationships(new ArrayList<>());
 
@@ -252,7 +279,7 @@ class BodyConverter extends StdConverter<Body, Body> {
             .map(
                 enrollment ->
                     updateEnrollmentReferences(enrollment, trackedEntity.getTrackedEntity()))
-            .collect(Collectors.toList());
+            .toList();
 
     trackedEntity.setEnrollments(new ArrayList<>());
 

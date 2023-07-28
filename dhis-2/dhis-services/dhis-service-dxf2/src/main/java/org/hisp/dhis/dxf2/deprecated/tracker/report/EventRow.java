@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.common.BaseLinkableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.DataValue;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Note;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Attribute;
@@ -42,6 +44,7 @@ import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Attribute;
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
+@OpenApi.Shared(pattern = Pattern.DEPRECATED_TRACKER)
 @JacksonXmlRootElement(localName = "eventRow", namespace = DxfNamespaces.DXF_2_0)
 public class EventRow extends BaseLinkableObject {
   private String trackedEntityInstance;

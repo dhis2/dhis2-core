@@ -412,7 +412,6 @@ public class RelationshipsTests extends TrackerApiTest {
             .addObject("from", relationshipItem("trackedEntity", "invalid-tei"))
             .addObject("to", relationshipItem("trackedEntity", "more-invalid"))
             .wrapIntoArray("relationships");
-    System.out.println(object.toString());
 
     trackerImportExportActions
         .postAndGetJobReport(object)

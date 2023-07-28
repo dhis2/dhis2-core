@@ -223,7 +223,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest {
   void testGetRoundedValueDouble() {
     DataQueryParams paramsA = DataQueryParams.newBuilder().build();
     DataQueryParams paramsB = DataQueryParams.newBuilder().withSkipRounding(true).build();
-    assertEquals(null, AnalyticsUtils.getRoundedValue(paramsA, null, null));
+    assertEquals(null, AnalyticsUtils.getRoundedValue(paramsA, null, (Double) null));
     assertEquals(3d, AnalyticsUtils.getRoundedValue(paramsA, null, 3d).doubleValue(), 0.01);
     assertEquals(3.1, AnalyticsUtils.getRoundedValue(paramsA, null, 3.123).doubleValue(), 0.01);
     assertEquals(3.1, AnalyticsUtils.getRoundedValue(paramsA, 1, 3.123).doubleValue(), 0.01);

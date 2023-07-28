@@ -39,10 +39,7 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 
 public interface RelationshipService {
 
-  List<Relationship> getRelationships(RelationshipOperationParams params)
-      throws ForbiddenException, NotFoundException;
-
-  int countRelationships(RelationshipOperationParams params)
+  Relationships getRelationships(RelationshipOperationParams params)
       throws ForbiddenException, NotFoundException;
 
   Relationship getRelationship(String id) throws ForbiddenException, NotFoundException;

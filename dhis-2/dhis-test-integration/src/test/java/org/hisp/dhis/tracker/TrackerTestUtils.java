@@ -25,52 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.common;
+package org.hisp.dhis.tracker;
 
-import static java.util.stream.Collectors.toUnmodifiableSet;
-
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.UidObject;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 
-/** UID represents an alphanumeric string of 11 characters starting with a letter. */
-@Getter
-@EqualsAndHashCode
-public final class UID {
-  private static final String VALID_UID_FORMAT =
-      "UID must be an alphanumeric string of 11 characters starting with a letter.";
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class TrackerTestUtils {
 
-  private final String value;
-
-  private UID(String value) {
-    if (!CodeGenerator.isValidUid(value)) {
-      throw new IllegalArgumentException(VALID_UID_FORMAT);
-    }
-    this.value = value;
-  }
-
-  @Override
-  public String toString() {
-    return value;
-  }
-
-  public static UID of(String value) {
-    return new UID(value);
-  }
-
-  public static UID of(UidObject object) {
-    return new UID(object.getUid());
-  }
-
-  public static Set<String> toValueSet(Collection<UID> uids) {
-    return uids.stream().map(UID::getValue).collect(toUnmodifiableSet());
-  }
-
-  public static List<String> toValueList(Collection<UID> uids) {
-    return uids.stream().map(UID::getValue).toList();
+  public static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {
+    return identifiableObject.stream().map(BaseIdentifiableObject::getUid).toList();
   }
 }

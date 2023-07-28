@@ -38,14 +38,18 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -53,8 +57,8 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
+import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.event.Events;
-import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
@@ -75,7 +79,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = RESOURCE_PATH + "/" + EventsExportController.EVENTS)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequiredArgsConstructor
 class EventsExportController {
   protected static final String EVENTS = "events";
 
@@ -91,6 +94,45 @@ class EventsExportController {
   @Nonnull private final FieldFilterService fieldFilterService;
 
   private final EventFieldsParamMapper eventsMapper;
+
+  public EventsExportController(
+      EventService eventService,
+      EventRequestParamsMapper eventParamsMapper,
+      CsvService<Event> csvEventService,
+      FieldFilterService fieldFilterService,
+      EventFieldsParamMapper eventsMapper) {
+    this.eventService = eventService;
+    this.eventParamsMapper = eventParamsMapper;
+    this.csvEventService = csvEventService;
+    this.fieldFilterService = fieldFilterService;
+    this.eventsMapper = eventsMapper;
+
+    assertUserOrderableFieldsAreSupported();
+  }
+
+  /**
+   * Ensures that all fields advocated by {@link
+   * org.hisp.dhis.webapi.controller.tracker.export.event} as orderable are in fact orderable by the
+   * service. Web is responsible for mapping from the language users use (our API) to our internal
+   * representation used in our services. This is to prevent web and service (store) from getting
+   * out of sync.
+   */
+  private void assertUserOrderableFieldsAreSupported() {
+    Set<String> orderableFields = eventService.getOrderableFields();
+    Set<String> unsupportedFields = new HashSet<>(EventMapper.ORDERABLE_FIELDS.values());
+    unsupportedFields.removeAll(orderableFields);
+    if (!unsupportedFields.isEmpty()) {
+      Set<String> unsupportedFieldNames =
+          EventMapper.ORDERABLE_FIELDS.entrySet().stream()
+              .filter(e -> unsupportedFields.contains(e.getValue()))
+              .map(Entry::getKey)
+              .collect(Collectors.toSet());
+      throw new IllegalStateException(
+          "event controller supports ordering by "
+              + String.join(", ", unsupportedFieldNames)
+              + " while event service does not.");
+    }
+  }
 
   @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
   @GetMapping(produces = APPLICATION_JSON_VALUE)

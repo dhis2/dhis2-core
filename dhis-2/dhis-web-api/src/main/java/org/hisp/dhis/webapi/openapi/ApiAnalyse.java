@@ -116,7 +116,7 @@ final class ApiAnalyse {
 
   static {
     register(UID.class, SchemaGenerators.UID);
-    register(org.hisp.dhis.webapi.common.UID.class, SchemaGenerators.UID);
+    register(org.hisp.dhis.common.UID.class, SchemaGenerators.UID);
     register(Api.PropertyNames.class, SchemaGenerators.PROPERTY_NAMES);
   }
 

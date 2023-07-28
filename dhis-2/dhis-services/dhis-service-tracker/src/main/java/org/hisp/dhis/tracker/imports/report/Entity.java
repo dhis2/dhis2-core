@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.report;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,13 +40,10 @@ import org.hisp.dhis.tracker.TrackerType;
  */
 @Data
 public class Entity {
-  /** Type of object this {@link Entity} represents. */
   @JsonProperty private final TrackerType trackerType;
 
-  /** Index into list. */
-  @JsonProperty private Integer index;
+  @JsonIgnore private int index;
 
-  /** UID of entity (if object is id object). */
   @JsonProperty private String uid;
 
   private List<Error> errorReports = new ArrayList<>();
@@ -54,7 +52,7 @@ public class Entity {
     this.trackerType = trackerType;
   }
 
-  public Entity(TrackerType trackerType, String uid, Integer index) {
+  public Entity(TrackerType trackerType, String uid, int index) {
     this.trackerType = trackerType;
     this.uid = uid;
     this.index = index;
@@ -64,7 +62,7 @@ public class Entity {
   public Entity(
       @JsonProperty("trackerType") TrackerType trackerType,
       @JsonProperty("uid") String uid,
-      @JsonProperty("index") Integer index,
+      @JsonProperty("index") int index,
       @JsonProperty("errorReports") List<Error> errorReports) {
     this.trackerType = trackerType;
     this.uid = uid;

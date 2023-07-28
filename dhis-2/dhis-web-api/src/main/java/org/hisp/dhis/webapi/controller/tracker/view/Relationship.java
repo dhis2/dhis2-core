@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -35,13 +36,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Shared.Pattern;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.webapi.common.UID;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared(pattern = Pattern.INFO)
+@OpenApi.Shared(pattern = Pattern.TRACKER)
 @Data
 @Builder
 @NoArgsConstructor
@@ -66,4 +67,6 @@ public class Relationship {
   @JsonProperty private RelationshipItem from;
 
   @JsonProperty private RelationshipItem to;
+
+  @JsonIgnore private int index;
 }
