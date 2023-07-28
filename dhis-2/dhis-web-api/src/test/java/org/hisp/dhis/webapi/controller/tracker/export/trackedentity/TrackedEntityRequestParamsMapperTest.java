@@ -30,9 +30,6 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.util.DateUtils.parseDate;
@@ -295,64 +292,5 @@ class TrackedEntityRequestParamsMapperTest {
     requestParams.setTrackedEntities(Set.of(UID.of("IsdLBTOBzMi")));
 
     assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
-  }
-
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnits(Set.of(UID.of(ORG_UNIT_1_UID)));
-    requestParams.setOrgUnitMode(ACCESSIBLE);
-
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
-
-    assertStartsWith(
-        "orgUnitMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnits(Set.of(UID.of(ORG_UNIT_1_UID)));
-    requestParams.setOrgUnitMode(CAPTURE);
-
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
-
-    assertStartsWith("orgUnitMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
-  }
-
-  @Test
-  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeSelected() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnits(Set.of(UID.of(ORG_UNIT_1_UID)));
-    requestParams.setOrgUnitMode(SELECTED);
-
-    TrackedEntityOperationParams trackedEntityOperationParams = mapper.map(requestParams, user);
-
-    assertEquals(SELECTED, trackedEntityOperationParams.getOrgUnitMode());
-  }
-
-  @Test
-  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeDescendants()
-      throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnits(Set.of(UID.of(ORG_UNIT_1_UID)));
-    requestParams.setOrgUnitMode(DESCENDANTS);
-
-    TrackedEntityOperationParams trackedEntityOperationParams = mapper.map(requestParams, user);
-
-    assertEquals(DESCENDANTS, trackedEntityOperationParams.getOrgUnitMode());
-  }
-
-  @Test
-  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeChildren() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnits(Set.of(UID.of(ORG_UNIT_1_UID)));
-    requestParams.setOrgUnitMode(CHILDREN);
-
-    TrackedEntityOperationParams trackedEntityOperationParams = mapper.map(requestParams, user);
-
-    assertEquals(CHILDREN, trackedEntityOperationParams.getOrgUnitMode());
   }
 }

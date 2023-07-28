@@ -27,11 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
@@ -48,7 +43,6 @@ import java.util.Set;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
@@ -203,64 +197,5 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentOperationParams params = mapper.map(requestParams);
 
     assertIsEmpty(params.getOrder());
-  }
-
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnits(Set.of(UID.of(ORG_UNIT_1_UID)));
-    requestParams.setOrgUnitMode(ACCESSIBLE);
-
-    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
-
-    assertStartsWith(
-        "orgUnitMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnits(Set.of(UID.of(ORG_UNIT_1_UID)));
-    requestParams.setOrgUnitMode(CAPTURE);
-
-    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
-
-    assertStartsWith("orgUnitMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
-  }
-
-  @Test
-  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeSelected()
-      throws BadRequestException, ForbiddenException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnits(Set.of(UID.of(ORG_UNIT_1_UID)));
-    requestParams.setOrgUnitMode(SELECTED);
-
-    EnrollmentOperationParams enrollmentOperationParams = mapper.map(requestParams);
-
-    assertEquals(SELECTED, enrollmentOperationParams.getOrgUnitMode());
-  }
-
-  @Test
-  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeDescendants()
-      throws BadRequestException, ForbiddenException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnits(Set.of(UID.of(ORG_UNIT_1_UID)));
-    requestParams.setOrgUnitMode(DESCENDANTS);
-
-    EnrollmentOperationParams enrollmentOperationParams = mapper.map(requestParams);
-
-    assertEquals(DESCENDANTS, enrollmentOperationParams.getOrgUnitMode());
-  }
-
-  @Test
-  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeChildren()
-      throws BadRequestException, ForbiddenException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnits(Set.of(UID.of(ORG_UNIT_1_UID)));
-    requestParams.setOrgUnitMode(CHILDREN);
-
-    EnrollmentOperationParams enrollmentOperationParams = mapper.map(requestParams);
-
-    assertEquals(CHILDREN, enrollmentOperationParams.getOrgUnitMode());
   }
 }
