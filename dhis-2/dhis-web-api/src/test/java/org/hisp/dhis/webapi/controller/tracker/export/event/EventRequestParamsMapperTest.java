@@ -34,6 +34,7 @@ import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -43,6 +44,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -400,7 +402,7 @@ class EventRequestParamsMapperTest {
   }
 
   @Test
-  void shouldMapOrderParameterToOrderCriteriaWhenFieldsAreSortable() throws BadRequestException {
+  void shouldMapOrderParameterToOrderCriteriaWhenFieldsAreOrderable() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
     requestParams.setOrder(
         OrderCriteria.fromOrderString("createdAt:asc,programStage:desc,scheduledAt:asc"));
@@ -409,25 +411,45 @@ class EventRequestParamsMapperTest {
 
     assertContainsOnly(
         List.of(
-            new OrderParam("createdAt", SortDirection.ASC),
-            new OrderParam("programStage", SortDirection.DESC),
-            new OrderParam("scheduledAt", SortDirection.ASC)),
+            new OrderParam("created", SortDirection.ASC),
+            new OrderParam("programStage.uid", SortDirection.DESC),
+            new OrderParam("dueDate", SortDirection.ASC)),
         params.getOrders());
   }
 
   @Test
-  void shouldThrowWhenOrderParameterContainsUnsupportedField() {
+  void shouldThrowWhenOrderParameterContainsInvalidOrderComponents() {
+    String invalidUID = "Cogn34Del";
+    assertFalse(CodeGenerator.isValidUid(invalidUID));
+
     RequestParams requestParams = new RequestParams();
     requestParams.setOrder(
         OrderCriteria.fromOrderString(
-            "unsupportedProperty1:asc,enrolledAt:asc,unsupportedProperty2:desc"));
+            "unsupportedProperty1:asc,enrolledAt:asc,"
+                + invalidUID
+                + ",unsupportedProperty2:desc"));
 
     Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
     assertAll(
-        () -> assertStartsWith("Order by property `", exception.getMessage()),
-        // order of properties might not always be the same; therefore using
-        // contains
+        () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
+        // order of fields might not always be the same; therefore using contains
+        () -> assertContains(invalidUID, exception.getMessage()),
         () -> assertContains("unsupportedProperty1", exception.getMessage()),
         () -> assertContains("unsupportedProperty2", exception.getMessage()));
+  }
+
+  @Test
+  void shouldThrowWhenOrderParameterContainsRepeatedOrderComponents() {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrder(
+        OrderCriteria.fromOrderString(
+            "zGlzbfreTOH,createdAt:asc,enrolledAt:asc,enrolledAt,zGlzbfreTOH"));
+
+    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+    assertAll(
+        () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
+        // order of fields might not always be the same; therefore using contains
+        () -> assertContains("enrolledAt", exception.getMessage()),
+        () -> assertContains("zGlzbfreTOH", exception.getMessage()));
   }
 }

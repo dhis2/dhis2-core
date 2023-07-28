@@ -191,7 +191,7 @@ class EventExporterTest extends TrackerTest {
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
             .events(Set.of("pTzf9KYMk72", "D9PbzJY8bJM"))
-            .orders(List.of(new OrderParam("occurredAt", SortDirection.DESC)));
+            .orders(List.of(new OrderParam("executionDate", SortDirection.DESC)));
 
     EventOperationParams params = paramsBuilder.page(1).pageSize(1).build();
 
@@ -441,7 +441,7 @@ class EventExporterTest extends TrackerTest {
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
             .programUid(program.getUid())
-            .orders(List.of(new OrderParam("occurredAt", SortDirection.DESC)));
+            .orders(List.of(new OrderParam("executionDate", SortDirection.DESC)));
 
     EventOperationParams params = paramsBuilder.page(1).pageSize(3).build();
 
@@ -480,7 +480,7 @@ class EventExporterTest extends TrackerTest {
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
             .programUid(program.getUid())
-            .orders(List.of(new OrderParam("occurredAt", SortDirection.DESC)))
+            .orders(List.of(new OrderParam("executionDate", SortDirection.DESC)))
             .page(1)
             .pageSize(2)
             .totalPages(true)
@@ -1149,7 +1149,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .orders(List.of(new OrderParam("enrolledAt", SortDirection.DESC)))
+            .orders(List.of(new OrderParam("enrollment.enrollmentDate", SortDirection.DESC)))
             .build();
 
     List<String> enrollments =
@@ -1165,7 +1165,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .orders(List.of(new OrderParam("enrolledAt", SortDirection.ASC)))
+            .orders(List.of(new OrderParam("enrollment.enrollmentDate", SortDirection.ASC)))
             .build();
 
     List<String> enrollments =
@@ -1181,7 +1181,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .orders(List.of(new OrderParam("occurredAt", SortDirection.DESC)))
+            .orders(List.of(new OrderParam("executionDate", SortDirection.DESC)))
             .build();
 
     Events events = eventService.getEvents(params);
@@ -1194,7 +1194,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .orders(List.of(new OrderParam("occurredAt", SortDirection.ASC)))
+            .orders(List.of(new OrderParam("executionDate", SortDirection.ASC)))
             .build();
 
     Events events = eventService.getEvents(params);
@@ -1269,7 +1269,7 @@ class EventExporterTest extends TrackerTest {
             .orders(
                 List.of(
                     new OrderParam("toUpdate000", SortDirection.ASC),
-                    new OrderParam("enrolledAt", SortDirection.ASC)))
+                    new OrderParam("enrollment.enrollmentDate", SortDirection.ASC)))
             .build();
 
     List<String> trackedEntities =
@@ -1290,7 +1290,7 @@ class EventExporterTest extends TrackerTest {
             .attributeOrders(List.of(OrderCriteria.of("toUpdate000", SortDirection.DESC)))
             .orders(
                 List.of(
-                    new OrderParam("enrolledAt", SortDirection.DESC),
+                    new OrderParam("enrollment.enrollmentDate", SortDirection.DESC),
                     new OrderParam("toUpdate000", SortDirection.DESC)))
             .build();
 
@@ -1312,7 +1312,7 @@ class EventExporterTest extends TrackerTest {
                 List.of(
                     new OrderParam("dueDate", SortDirection.DESC),
                     new OrderParam("DATAEL00006", SortDirection.DESC),
-                    new OrderParam("enrolledAt", SortDirection.DESC)))
+                    new OrderParam("enrollment.enrollmentDate", SortDirection.DESC)))
             .build();
 
     List<String> trackedEntities =
@@ -1331,7 +1331,7 @@ class EventExporterTest extends TrackerTest {
             .orgUnitUid(orgUnit.getUid())
             .orders(
                 List.of(
-                    new OrderParam("enrolledAt", SortDirection.DESC),
+                    new OrderParam("enrollment.enrollmentDate", SortDirection.DESC),
                     new OrderParam("DATAEL00006", SortDirection.DESC)))
             .build();
 
