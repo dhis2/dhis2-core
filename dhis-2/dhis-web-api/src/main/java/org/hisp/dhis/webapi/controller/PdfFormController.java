@@ -52,6 +52,8 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -105,7 +107,8 @@ public class PdfFormController {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PdfWriter writer = PdfWriter.getInstance(document, baos);
 
-    PdfFormFontSettings pdfFormFontSettings = new PdfFormFontSettings();
+    PdfFormFontSettings pdfFormFontSettings =
+        new PdfFormFontSettings(CurrentUserUtil.getUserSetting(UserSettingKey.DB_LOCALE));
 
     PdfDataEntryFormUtil.setDefaultFooterOnDocument(
         document,
