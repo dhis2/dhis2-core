@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  summary_uid: ubUZycuJ8VM
   name: category_option_combos_disjoint
   description: Category option combinations with disjoint associations.
   section: Categories
@@ -46,7 +45,6 @@
     SELECT COUNT(*) as value,
     100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM categoryoptioncombo), 0)  as percent
     FROM cocs_disjoint_associations;
-  details_uid: VFqTzfnhQoy
   details_sql: >-
       SELECT DISTINCT d.uid, d.name, e.name as comment from
       categoryoptioncombos_categoryoptions a

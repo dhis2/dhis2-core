@@ -43,18 +43,21 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgramRuleVariableWithDat
 import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.issueName;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.clearInvocations;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -72,6 +75,8 @@ import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.external.location.DefaultLocationManager;
+import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -100,6 +105,7 @@ import org.hisp.dhis.validation.ValidationRuleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -112,6 +118,15 @@ class DataIntegrityServiceTest {
   private static final String INVALID_EXPRESSION = "INVALID_EXPRESSION";
 
   @Mock private I18nManager i18nManager;
+
+  @Mock private I18n i18n;
+  @Mock private DefaultLocationManager locationManager;
+
+  @Mock private SchemaService schemaService;
+
+  @Mock private CacheProvider cacheProvider;
+
+  @Mock private DataIntegrityStore dataIntegrityStore;
 
   @Mock private DataElementService dataElementService;
 
@@ -145,7 +160,7 @@ class DataIntegrityServiceTest {
 
   @Mock private ProgramRuleActionService programRuleActionService;
 
-  private DefaultDataIntegrityService subject;
+  @InjectMocks private DefaultDataIntegrityService subject;
 
   private DataElementGroup elementGroupA;
 
@@ -197,26 +212,6 @@ class DataIntegrityServiceTest {
 
   @BeforeEach
   public void setUp() {
-    subject =
-        new DefaultDataIntegrityService(
-            i18nManager,
-            programRuleService,
-            programRuleActionService,
-            programRuleVariableService,
-            dataElementService,
-            indicatorService,
-            dataSetService,
-            organisationUnitService,
-            organisationUnitGroupService,
-            validationRuleService,
-            expressionService,
-            dataEntryFormService,
-            categoryService,
-            periodService,
-            programIndicatorService,
-            mock(CacheProvider.class),
-            mock(DataIntegrityStore.class),
-            mock(SchemaService.class));
     setUpFixtures();
   }
 
@@ -612,6 +607,15 @@ class DataIntegrityServiceTest {
 
     verify(expressionService, times(0)).getExpressionDescription(anyString(), any());
     assertTrue(issues.isEmpty());
+  }
+
+  @Test
+  void testGetDataIntegrityChecks_ReadDataIntegrityYamlFilesOnClassPath() {
+    when(i18nManager.getI18n(DataIntegrityService.class)).thenReturn(i18n);
+    when(i18n.getString(anyString(), anyString())).thenReturn("default");
+    when(i18n.getString(contains("severity"), eq("WARNING"))).thenReturn("WARNING");
+    Collection<DataIntegrityCheck> dataIntegrityChecks = subject.getDataIntegrityChecks();
+    assertFalse(dataIntegrityChecks.isEmpty());
   }
 
   private Map<String, DataElement> createRandomDataElements(int quantity, String uidSeed) {

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Shared.Pattern;
-import org.hisp.dhis.webapi.common.UID;
+import org.hisp.dhis.common.UID;
 import org.locationtech.jts.geom.Geometry;
 
 /**
@@ -86,4 +87,6 @@ public class TrackedEntity {
   @JsonProperty @Builder.Default private List<Enrollment> enrollments = new ArrayList<>();
 
   @JsonProperty @Builder.Default private List<ProgramOwner> programOwners = new ArrayList<>();
+
+  @JsonIgnore private int index;
 }

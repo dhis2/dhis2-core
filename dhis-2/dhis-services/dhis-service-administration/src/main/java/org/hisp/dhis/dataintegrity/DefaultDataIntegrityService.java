@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,13 @@ import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toUnmodifiableList;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static java.util.stream.StreamSupport.stream;
 import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
 import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.toIssue;
 import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.toRefsList;
+import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.ResourceLocation.CLASS_PATH;
+import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.ResourceLocation.FILE_SYSTEM;
 import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.readDataIntegrityYaml;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
@@ -59,6 +59,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -68,6 +69,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -84,6 +86,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
+import org.hisp.dhis.external.location.DefaultLocationManager;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
@@ -124,6 +127,8 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   private static final String FORMULA_SEPARATOR = "#";
 
   private final I18nManager i18nManager;
+
+  private final DefaultLocationManager locationManager;
 
   private final ProgramRuleService programRuleService;
 
@@ -182,7 +187,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     return items
         .map(DataIntegrityIssue::toIssue)
         .sorted(DefaultDataIntegrityService::alphabeticalOrder)
-        .collect(toUnmodifiableList());
+        .toList();
   }
 
   private static <T extends IdentifiableObject> List<DataIntegrityIssue> toIssueList(
@@ -190,7 +195,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     return items
         .map(e -> DataIntegrityIssue.toIssue(e, toRefs.apply(e)))
         .sorted(DefaultDataIntegrityService::alphabeticalOrder)
-        .collect(toUnmodifiableList());
+        .toList();
   }
 
   @Nonnull
@@ -419,9 +424,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
                 null,
                 group.getKey(),
                 null,
-                group.getValue().stream()
-                    .map(p -> p.toString() + ":" + p.getUid())
-                    .collect(toUnmodifiableList())));
+                group.getValue().stream().map(p -> p.toString() + ":" + p.getUid()).toList()));
       }
     }
     return issues;
@@ -720,7 +723,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   private List<DataIntegrityIssue> getInvalidProgramIndicators(
       Function<ProgramIndicator, String> property, Predicate<ProgramIndicator> filter) {
     List<ProgramIndicator> programIndicators =
-        programIndicatorService.getAllProgramIndicators().stream().filter(filter).collect(toList());
+        programIndicatorService.getAllProgramIndicators().stream().filter(filter).toList();
 
     List<DataIntegrityIssue> issues = new ArrayList<>();
     for (ProgramIndicator programIndicator : programIndicators) {
@@ -826,7 +829,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       List<DataIntegrityIssue> groupBy(Function<V, K> property, Collection<V> values) {
     return values.stream().collect(groupingBy(property)).entrySet().stream()
         .map(e -> DataIntegrityIssue.toIssue(e.getKey(), e.getValue()))
-        .collect(toUnmodifiableList());
+        .toList();
   }
 
   /*
@@ -843,7 +846,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     ensureConfigurationsAreLoaded();
     return checks.isEmpty()
         ? unmodifiableCollection(checksByName.values())
-        : expandChecks(checks).stream().map(checksByName::get).collect(toList());
+        : expandChecks(checks).stream().map(checksByName::get).toList();
   }
 
   @Nonnull
@@ -964,7 +967,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   private Set<String> expandChecks(Set<String> names) {
     ensureConfigurationsAreLoaded();
 
-    if (names == null || names.isEmpty()) {
+    if (CollectionUtils.isEmpty(names)) {
       return getDefaultChecks();
     }
     Set<String> expanded = new LinkedHashSet<>();
@@ -1004,15 +1007,71 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       // programmatic checks
       initIntegrityChecks();
 
-      // YAML based checks
-      I18n i18n = i18nManager.getI18n(DataIntegrityService.class);
-      readDataIntegrityYaml(
-          "data-integrity-checks.yaml",
-          check -> checksByName.put(check.getName(), check),
-          (property, defaultValue) ->
-              i18n.getString(format("data_integrity.%s", property), defaultValue),
-          sql -> check -> dataIntegrityStore.querySummary(check, sql),
-          sql -> check -> dataIntegrityStore.queryDetails(check, sql));
+      // load system-packaged data integrity checks
+      loadChecks(CLASS_PATH, "data-integrity-checks.yaml", "data-integrity-checks");
+
+      // load user-packaged custom data integrity checks
+      String dhis2Home = locationManager.getExternalDirectoryPath();
+      loadChecks(
+          FILE_SYSTEM,
+          dhis2Home + "/custom-data-integrity-checks.yaml",
+          dhis2Home + "/custom-data-integrity-checks");
     }
   }
+
+  private void loadChecks(
+      DataIntegrityYamlReader.ResourceLocation resourceLocation,
+      String yamlFileChecks,
+      String checksDir) {
+    I18n i18n = i18nManager.getI18n(DataIntegrityService.class);
+    readDataIntegrityYaml(
+        new DataIntegrityRecord(
+            resourceLocation,
+            yamlFileChecks,
+            checksDir,
+            addToChecks,
+            (property, defaultValue) ->
+                i18n.getString(format("data_integrity.%s", property), defaultValue),
+            sql -> check -> dataIntegrityStore.querySummary(check, sql),
+            sql -> check -> dataIntegrityStore.queryDetails(check, sql)));
+  }
+
+  /**
+   * Consumer that adds a {@link DataIntegrityCheck} to a map. It only adds the {@link
+   * DataIntegrityCheck} to the map if:
+   *
+   * <ol>
+   *   <li>the {@link DataIntegrityCheck} code is unique
+   *   <li>the map does not already have a key with the same {@link DataIntegrityCheck} name
+   * </ol>
+   */
+  private final Consumer<DataIntegrityCheck> addToChecks =
+      check -> {
+        String checkCode = DataIntegrityCheck.getCodeFromName(check.getName());
+        Set<String> checkCodes =
+            checksByName.keySet().stream()
+                .map(DataIntegrityCheck::getCodeFromName)
+                .collect(Collectors.toSet());
+        if (!checkCodes.contains(checkCode)) {
+          DataIntegrityCheck dataIntegrityCheck = checksByName.putIfAbsent(check.getName(), check);
+          if (dataIntegrityCheck != null) {
+            log.warn(
+                "Data Integrity Check `{}` not added as a check with that name already exists",
+                check.getName());
+          }
+        } else
+          log.warn(
+              "Data Integrity Check `{}` not added as a check with the code `{}` already exists",
+              check.getName(),
+              check.getCode());
+      };
+
+  record DataIntegrityRecord(
+      DataIntegrityYamlReader.ResourceLocation resourceLocation,
+      String yamlFileChecks,
+      String checksDir,
+      Consumer<DataIntegrityCheck> adder,
+      BinaryOperator<String> info,
+      Function<String, Function<DataIntegrityCheck, DataIntegritySummary>> sqlToSummary,
+      Function<String, Function<DataIntegrityCheck, DataIntegrityDetails>> sqlToDetails) {}
 }
