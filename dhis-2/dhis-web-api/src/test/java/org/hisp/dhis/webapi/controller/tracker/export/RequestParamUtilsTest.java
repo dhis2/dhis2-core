@@ -203,12 +203,12 @@ class RequestParamUtilsTest {
   }
 
   @Test
-  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeDescendants() {
+  void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeDescendants() {
     assertDoesNotThrow(() -> validateOrgUnitParams(Set.of(UID.of(orgUnit.getUid())), DESCENDANTS));
   }
 
   @Test
-  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeChildren() {
+  void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeChildren() {
     assertDoesNotThrow(() -> validateOrgUnitParams(Set.of(UID.of(orgUnit.getUid())), CHILDREN));
   }
 }
