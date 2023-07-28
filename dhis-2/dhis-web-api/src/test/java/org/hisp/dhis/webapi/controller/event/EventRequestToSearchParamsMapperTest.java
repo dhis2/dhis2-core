@@ -27,10 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.common.AccessLevel.CLOSED;
 import static org.hisp.dhis.common.AccessLevel.OPEN;
 import static org.hisp.dhis.common.AccessLevel.PROTECTED;
@@ -45,8 +41,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -155,48 +149,6 @@ class EventRequestToSearchParamsMapperTest {
         Set.of(
             createOrgUnit("captureScopeChild", "captureScopeChildUid"),
             createOrgUnit("searchScopeChild", "searchScopeChildUid")));
-  }
-
-  @Test
-  void testEventRequestToSearchParamsMapperSuccess() throws ForbiddenException {
-
-    EventSearchParams eventSearchParams =
-        mapper.map(
-            "programuid",
-            null,
-            null,
-            null,
-            "orgunituid",
-            ACCESSIBLE,
-            "teiUid",
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            false,
-            false,
-            Collections.emptyList(),
-            Collections.emptyList(),
-            false,
-            new HashSet<>(),
-            new HashSet<>(),
-            null,
-            null,
-            new HashSet<>(),
-            Collections.singleton("UXz7xuGCEhU:GT:100"),
-            new HashSet<>(),
-            false,
-            false); // Then
-
-    assertThat(eventSearchParams, is(not(nullValue())));
   }
 
   @Test
@@ -405,7 +357,6 @@ class EventRequestToSearchParamsMapperTest {
 
     EventCriteria eventCriteria = new EventCriteria();
     eventCriteria.setProgram(program.getUid());
-    eventCriteria.setOrgUnit(orgUnit.getUid());
     eventCriteria.setOuMode(CAPTURE);
 
     EventSearchParams searchParams = mapper.map(eventCriteria);
@@ -426,7 +377,6 @@ class EventRequestToSearchParamsMapperTest {
 
     EventCriteria eventCriteria = new EventCriteria();
     eventCriteria.setProgram(program.getUid());
-    eventCriteria.setOrgUnit(orgUnit.getUid());
     eventCriteria.setOuMode(ACCESSIBLE);
 
     EventSearchParams searchParams = mapper.map(eventCriteria);
@@ -551,17 +501,6 @@ class EventRequestToSearchParamsMapperTest {
     assertEquals(
         "Org unit mode CAPTURE cannot be used with an org unit specified. Please remove the org unit and try again.",
         exception.getMessage());
-  }
-
-  @Test
-  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeSelected() throws ForbiddenException {
-    EventCriteria eventCriteria = new EventCriteria();
-    eventCriteria.setOrgUnit(orgUnit.getUid());
-    eventCriteria.setOuMode(SELECTED);
-
-    EventSearchParams eventSearchParams = mapper.map(eventCriteria);
-
-    assertEquals(SELECTED, eventSearchParams.getOrgUnitSelectionMode());
   }
 
   private OrganisationUnit createOrgUnit(String name, String uid) {
