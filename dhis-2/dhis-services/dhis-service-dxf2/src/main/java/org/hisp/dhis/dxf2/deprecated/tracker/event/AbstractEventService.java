@@ -975,12 +975,6 @@ public abstract class AbstractEventService
       violation = "Duration is not valid: " + params.getLastUpdatedDuration();
     }
 
-    if (violation == null
-        && params.getOrgUnit() != null
-        && !trackerAccessManager.canAccess(user, params.getProgram(), params.getOrgUnit())) {
-      violation = "User does not have access to orgUnit: " + params.getOrgUnit().getUid();
-    }
-
     if (violation == null && params.getOrgUnitSelectionMode() != null) {
       violation = getOuModeViolation(params, user);
     }
@@ -995,35 +989,16 @@ public abstract class AbstractEventService
   private String getOuModeViolation(EventSearchParams params, User user) {
     OrganisationUnitSelectionMode selectedOuMode = params.getOrgUnitSelectionMode();
 
-    String violation = null;
-
-    switch (selectedOuMode) {
-      case ALL:
-        violation =
-            userCanSearchOuModeALL(user)
-                ? null
-                : "Current user is not authorized to query across all organisation units";
-        break;
-      case ACCESSIBLE:
-        violation = getAccessibleScopeValidation(user, params);
-        break;
-      case CAPTURE:
-        violation = getCaptureScopeValidation(user);
-        break;
-      case CHILDREN:
-      case SELECTED:
-      case DESCENDANTS:
-        violation =
-            params.getOrgUnit() == null
-                ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
-                : null;
-        break;
-      default:
-        violation = "Invalid ouMode:  " + params.getOrgUnitSelectionMode();
-        break;
-    }
-
-    return violation;
+    return switch (selectedOuMode) {
+      case ALL -> userCanSearchOuModeALL(user)
+          ? null
+          : "Current user is not authorized to query across all organisation units";
+      case ACCESSIBLE -> getAccessibleScopeValidation(user, params);
+      case CAPTURE -> getCaptureScopeValidation(user);
+      case CHILDREN, SELECTED, DESCENDANTS -> params.getAccessibleOrgUnits().isEmpty()
+          ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
+          : null;
+    };
   }
 
   private String getCaptureScopeValidation(User user) {
