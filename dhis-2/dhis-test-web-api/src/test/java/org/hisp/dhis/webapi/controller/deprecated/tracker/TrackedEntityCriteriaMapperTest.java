@@ -36,6 +36,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -333,9 +334,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
     Exception exception =
         assertThrows(IllegalQueryException.class, () -> trackedEntityCriteriaMapper.map(criteria));
 
-    assertEquals(
-        "Org unit mode ACCESSIBLE cannot be used with an org unit specified. Please remove the org unit and try again.",
-        exception.getMessage());
+    assertStartsWith("ouMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
   }
 
   @Test
@@ -347,9 +346,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
     Exception exception =
         assertThrows(IllegalQueryException.class, () -> trackedEntityCriteriaMapper.map(criteria));
 
-    assertEquals(
-        "Org unit mode CAPTURE cannot be used with an org unit specified. Please remove the org unit and try again.",
-        exception.getMessage());
+    assertStartsWith("ouMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
   }
 
   @Test

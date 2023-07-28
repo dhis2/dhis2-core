@@ -306,9 +306,8 @@ class TrackedEntityRequestParamsMapperTest {
     Exception exception =
         assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
 
-    assertEquals(
-        "Org unit mode ACCESSIBLE cannot be used with an org unit specified. Please remove the org unit and try again.",
-        exception.getMessage());
+    assertStartsWith(
+        "orgUnitMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
   }
 
   @Test
@@ -320,9 +319,7 @@ class TrackedEntityRequestParamsMapperTest {
     Exception exception =
         assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
 
-    assertEquals(
-        "Org unit mode CAPTURE cannot be used with an org unit specified. Please remove the org unit and try again.",
-        exception.getMessage());
+    assertStartsWith("orgUnitMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
   }
 
   @Test
