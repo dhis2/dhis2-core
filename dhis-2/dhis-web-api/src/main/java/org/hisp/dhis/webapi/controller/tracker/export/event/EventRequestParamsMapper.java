@@ -35,19 +35,20 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.v
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
-import org.hisp.dhis.tracker.export.event.JdbcEventStore;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -60,8 +61,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 class EventRequestParamsMapper {
-  private static final Set<String> SORTABLE_PROPERTIES =
-      JdbcEventStore.QUERY_PARAM_COL_MAP.keySet();
+  private static final Set<String> ORDERABLE_FIELD_NAMES = EventMapper.ORDERABLE_FIELDS.keySet();
 
   public EventOperationParams map(RequestParams requestParams) throws BadRequestException {
     OrganisationUnitSelectionMode orgUnitMode =
@@ -160,22 +160,54 @@ class EventRequestParamsMapper {
     }
     validateOrderParams(order);
 
-    return OrderParamsHelper.toOrderParams(order);
+    return OrderParamsHelper.toOrderParams(
+        order.stream()
+            .map(
+                orderCriteria -> {
+                  if (EventMapper.ORDERABLE_FIELDS.containsKey(orderCriteria.getField())) {
+                    return OrderCriteria.of(
+                        EventMapper.ORDERABLE_FIELDS.get(orderCriteria.getField()),
+                        orderCriteria.getDirection());
+                  }
+
+                  return orderCriteria;
+                })
+            .toList());
   }
 
   private void validateOrderParams(List<OrderCriteria> order) throws BadRequestException {
-    Set<String> requestProperties =
-        order.stream()
-            .map(OrderCriteria::getField)
-            .filter(field -> !CodeGenerator.isValidUid(field))
+    Set<String> invalidOrderComponents =
+        order.stream().map(OrderCriteria::getField).collect(Collectors.toSet());
+    invalidOrderComponents.removeAll(ORDERABLE_FIELD_NAMES);
+    Set<String> uids =
+        invalidOrderComponents.stream()
+            .filter(CodeGenerator::isValidUid)
             .collect(Collectors.toSet());
+    invalidOrderComponents.removeAll(uids);
 
-    requestProperties.removeAll(SORTABLE_PROPERTIES);
-    if (!requestProperties.isEmpty()) {
+    if (!invalidOrderComponents.isEmpty()) {
       throw new BadRequestException(
           String.format(
-              "Order by property `%s` is not supported. Supported are `%s`",
-              String.join(", ", requestProperties), String.join(", ", SORTABLE_PROPERTIES)));
+              "order parameter is invalid. `%s` are either unsupported fields and/or invalid UID(s). Supported are data element and attribute UIDs and fields `%s`",
+              String.join(", ", invalidOrderComponents),
+              String.join(", ", ORDERABLE_FIELD_NAMES.stream().sorted().toList())));
+    }
+
+    Set<String> duplicateOrderComponents =
+        order.stream()
+            .map(OrderCriteria::getField)
+            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+            .entrySet()
+            .stream()
+            .filter(e -> e.getValue() > 1)
+            .map(Entry::getKey)
+            .collect(Collectors.toSet());
+
+    if (!duplicateOrderComponents.isEmpty()) {
+      throw new BadRequestException(
+          String.format(
+              "order parameter is invalid. `%s` are repeated. Data element and attribute UIDs and fields should only be specified once.",
+              String.join(", ", duplicateOrderComponents)));
     }
   }
 

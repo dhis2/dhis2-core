@@ -84,7 +84,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class EventOperationMapperTest {
+class EventOperationParamsMapperTest {
   private static final String DE_1_UID = "OBzmpRP6YUh";
 
   private static final String DE_2_UID = "KSd4PejqBf9";

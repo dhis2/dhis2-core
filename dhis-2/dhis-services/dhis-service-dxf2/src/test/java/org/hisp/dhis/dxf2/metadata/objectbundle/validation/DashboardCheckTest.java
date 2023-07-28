@@ -84,8 +84,6 @@ class DashboardCheckTest extends DhisConvenienceTest {
     TypeReport check =
         dashboardCheck.check(null, Dashboard.class, List.of(), List.of(dashboard), strategy, null);
 
-    System.out.println(check);
-
     ErrorReport errorReport = check.getFirstObjectReport().getErrorReports().get(0);
 
     assertEquals(1, check.getErrorReportsCount());
@@ -110,8 +108,6 @@ class DashboardCheckTest extends DhisConvenienceTest {
 
     TypeReport check =
         dashboardCheck.check(null, Dashboard.class, List.of(dashboard), List.of(), strategy, null);
-
-    System.out.println(check);
 
     ErrorReport errorReport = check.getFirstObjectReport().getErrorReports().get(0);
 

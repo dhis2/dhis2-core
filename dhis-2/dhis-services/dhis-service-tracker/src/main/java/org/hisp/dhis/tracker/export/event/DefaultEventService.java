@@ -198,6 +198,11 @@ public class DefaultEventService implements EventService {
     return Events.of(eventList, pager);
   }
 
+  @Override
+  public Set<String> getOrderableFields() {
+    return eventStore.getOrderableFields();
+  }
+
   /**
    * This method will apply the logic related to the parameter 'totalPages=false'. This works in
    * conjunction with the method: {@link EventStore#getEvents(EventSearchParams,
