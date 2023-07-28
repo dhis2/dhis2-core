@@ -99,7 +99,6 @@ class EnrollmentCriteriaMapperTest {
   private TrackedEntityInstance trackedEntityInstance;
 
   private Set<String> orgUnits = new HashSet<>();
-  ;
 
   @BeforeEach
   void setUp() {
