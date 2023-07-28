@@ -90,7 +90,7 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings(strictness = Strictness.LENIENT) // common setup
 @ExtendWith(MockitoExtension.class)
-class OperationParamsMapperTest {
+class TrackedEntityOperationParamsMapperTest {
   public static final String TEA_1_UID = "TvjwTPToKHO";
 
   public static final String TEA_2_UID = "cy2oRh2sNr6";

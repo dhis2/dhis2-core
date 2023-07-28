@@ -29,7 +29,6 @@ name: indicators_duplicated_terms
 description: Indicators with the same terms.
 section: Indicators
 section_order: 7
-summary_uid: gsOyEd4aHT6
 summary_sql: >-
     WITH duplicated_indicators as (
     SELECT unnest(indicatorids) from (
@@ -47,7 +46,6 @@ summary_sql: >-
     SELECT COUNT(*) as count,
     100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM indicator), 0) as percent
     from duplicated_indicators;
-details_uid: oqHwQcfFw1W
 details_sql: >-
     WITH duplicated_indicators as (
     SELECT a.indicatorid,

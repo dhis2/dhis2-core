@@ -70,6 +70,8 @@ public class TrackedEntity implements TrackerDto {
 
   @JsonProperty private String storedBy;
 
+  @JsonProperty int index;
+
   @JsonProperty private User createdBy;
 
   @JsonProperty private User updatedBy;

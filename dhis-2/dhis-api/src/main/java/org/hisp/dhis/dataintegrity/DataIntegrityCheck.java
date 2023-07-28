@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -59,6 +60,8 @@ public final class DataIntegrityCheck implements Serializable {
 
   @JsonProperty private final String section;
 
+  @JsonProperty private final int sectionOrder;
+
   @JsonProperty private final DataIntegritySeverity severity;
 
   @JsonProperty private final String description;
@@ -73,16 +76,20 @@ public final class DataIntegrityCheck implements Serializable {
 
   @JsonProperty
   public String getCode() {
-    return Stream.of(name.split("_"))
-        .map(f -> String.valueOf(f.charAt(0)).toUpperCase())
-        .collect(joining());
+    return getCodeFromName(name);
   }
-
-  private final String detailsID;
-
-  private final String summaryID;
 
   private final transient Function<DataIntegrityCheck, DataIntegritySummary> runSummaryCheck;
 
   private final transient Function<DataIntegrityCheck, DataIntegrityDetails> runDetailsCheck;
+
+  /**
+   * Method that takes in a name of a {@link DataIntegrityCheck} and converts it to an acronym of
+   * its name using the first letter from each word e.g. my_data_integrity_check -> MDIC
+   */
+  public static String getCodeFromName(@Nonnull String fullName) {
+    return Stream.of(fullName.split("_"))
+        .map(word -> String.valueOf(word.charAt(0)).toUpperCase())
+        .collect(joining());
+  }
 }

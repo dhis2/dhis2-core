@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-summary_uid: vDNdEyvMhS9
 name: program_rules_no_action
 description: Program rules with no action.
 section: Program rules
@@ -37,7 +36,6 @@ summary_sql: >-
     SELECT COUNT(*) as value,
     100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM programrule),0) as percent
     FROM program_rules_no_action;
-details_uid: oafNmCH85US
 details_sql: >-
      SELECT uid,name from programrule where programruleid
      NOT IN (SELECT DISTINCT programruleid from programruleaction);
