@@ -126,10 +126,12 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testReplicateUserCreatedByUpdated() throws JsonProcessingException {
-        User newUser = createUser("test", "ALL");
+    void testReplicateUserCreatedByUpdated()
+        throws JsonProcessingException
+    {
+        User newUser = createUser( "test", "ALL" );
 
-        switchContextToUser(newUser);
+        switchContextToUser( newUser );
 
         String replicatedUsername = "peter2";
 
@@ -140,12 +142,12 @@ public class UserControllerTest extends DhisControllerConvenienceTest
             "User replica created",
             POST(
                 "/users/" + peter.getUid() + "/replica",
-                "{'username':'" + replicatedUsername + "','password':'Saf€sEcre1'}")
-                .content());
+                "{'username':'" + replicatedUsername + "','password':'Saf€sEcre1'}" )
+                    .content() );
 
-        User replicatedUser = userService.getUserByUsername(replicatedUsername);
+        User replicatedUser = userService.getUserByUsername( replicatedUsername );
 
-        assertEquals(newUser.getUsername(), replicatedUser.getCreatedBy().getUsername());
+        assertEquals( newUser.getUsername(), replicatedUser.getCreatedBy().getUsername() );
     }
 
     @Test
