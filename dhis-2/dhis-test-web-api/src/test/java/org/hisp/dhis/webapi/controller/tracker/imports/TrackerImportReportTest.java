@@ -126,4 +126,24 @@ class TrackerImportReportTest extends DhisControllerConvenienceTest {
     assertReportEntities(List.of("IybbQIQt6ev", "daMwzsKN3ev"), EVENT, importReport);
     assertReportEntities(List.of("IybbQIQtrel", "daMwzsKNrel"), RELATIONSHIP, importReport);
   }
+
+  @Test
+  void
+      shouldReturnOrderedEntitiesInReportWhenNestedPayloadWithRepeatedRelationshipsImportIsSuccessful() {
+    JsonImportReport importReport =
+        POST(
+                "/tracker?async=false&reportMode=FULL"
+                    + "&validationMode=SKIP"
+                    + "&atomicMode=OBJECT"
+                    + "&skipRuleEngine=true",
+                WebClient.Body("tracker/import_nested_payload_repeated_relationships.json"))
+            .content(HttpStatus.OK)
+            .as(JsonImportReport.class);
+
+    assertReportEntities(
+        List.of("IybbQIQt6te", "daMwzsKN3te", "FRM97UKN8te"), TRACKED_ENTITY, importReport);
+    assertReportEntities(List.of("IybbQIQt6en", "daMwzsKN3en"), ENROLLMENT, importReport);
+    assertReportEntities(List.of("IybbQIQt6ev", "daMwzsKN3ev"), EVENT, importReport);
+    assertReportEntities(List.of("IybbQIQtrel", "daMwzsKNrel"), RELATIONSHIP, importReport);
+  }
 }

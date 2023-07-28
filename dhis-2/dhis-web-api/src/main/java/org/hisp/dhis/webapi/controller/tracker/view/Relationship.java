@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -67,6 +66,4 @@ public class Relationship {
   @JsonProperty private RelationshipItem from;
 
   @JsonProperty private RelationshipItem to;
-
-  @JsonIgnore private int index;
 }

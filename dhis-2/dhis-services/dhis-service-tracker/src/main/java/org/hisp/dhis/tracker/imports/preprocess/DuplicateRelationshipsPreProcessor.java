@@ -123,12 +123,20 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor {
     // sort the Relationship Items
     bundle.getRelationships().stream()
         .filter(validRelationship)
-        .forEach(rel -> map.put(rel.getRelationship(), hash(rel, bundle)));
+        .forEach(
+            rel -> {
+              String hash = hash(rel, bundle);
+              if (!map.containsKey(rel.getRelationship()) && !map.containsValue(hash)) {
+                map.put(rel.getRelationship(), hash);
+              }
+            });
 
     // Remove duplicated Relationships from the bundle, if any
     bundle
         .getRelationships()
         .removeIf(rel -> validRelationship.test(rel) && !map.containsKey(rel.getRelationship()));
+
+    bundle.setRelationships(bundle.getRelationships().stream().distinct().toList());
   }
 
   private String hash(Relationship rel, TrackerBundle bundle) {

@@ -103,7 +103,7 @@ public abstract class AbstractTrackerPersister<
 
     for (T trackerDto : dtos) {
 
-      Entity objectReport = new Entity(getType(), trackerDto.getUid(), trackerDto.getIndex());
+      Entity objectReport = new Entity(getType(), trackerDto.getUid());
 
       try {
         //
