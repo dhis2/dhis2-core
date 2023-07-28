@@ -184,14 +184,14 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     User user = params.getUser();
     trackedEntities =
         trackedEntities.stream()
-            .filter((tei) -> aclService.canDataRead(user, tei.getTrackedEntityType()))
+            .filter((te) -> aclService.canDataRead(user, te.getTrackedEntityType()))
             .collect(Collectors.toList());
 
     // Avoiding NullPointerException
     String accessedBy = user != null ? user.getUsername() : currentUserService.getCurrentUsername();
 
-    for (TrackedEntity tei : trackedEntities) {
-      addTrackedEntityAudit(tei, accessedBy, AuditType.SEARCH);
+    for (TrackedEntity te : trackedEntities) {
+      addTrackedEntityAudit(te, accessedBy, AuditType.SEARCH);
     }
 
     return trackedEntities;
@@ -343,9 +343,9 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
           && params.hasProgram()
           && (params.getProgram().getAccessLevel().equals(AccessLevel.PROTECTED)
               || params.getProgram().getAccessLevel().equals(AccessLevel.CLOSED))) {
-        TrackedEntity tei = trackedEntityStore.getByUid(entity.get(TRACKED_ENTITY_INSTANCE_ID));
+        TrackedEntity te = trackedEntityStore.getByUid(entity.get(TRACKED_ENTITY_INSTANCE_ID));
 
-        if (!trackerOwnershipAccessManager.hasAccess(params.getUser(), tei, params.getProgram())) {
+        if (!trackerOwnershipAccessManager.hasAccess(params.getUser(), te, params.getProgram())) {
           continue;
         }
       }
@@ -791,28 +791,28 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   @Transactional(readOnly = true)
   public TrackedEntity getTrackedEntity(long id) {
-    TrackedEntity tei = trackedEntityStore.get(id);
+    TrackedEntity te = trackedEntityStore.get(id);
 
-    addTrackedEntityAudit(tei, currentUserService.getCurrentUsername(), AuditType.READ);
+    addTrackedEntityAudit(te, currentUserService.getCurrentUsername(), AuditType.READ);
 
-    return tei;
+    return te;
   }
 
   @Override
   @Transactional
   public TrackedEntity getTrackedEntity(String uid) {
-    TrackedEntity tei = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(tei, currentUserService.getCurrentUsername(), AuditType.READ);
+    TrackedEntity te = trackedEntityStore.getByUid(uid);
+    addTrackedEntityAudit(te, currentUserService.getCurrentUsername(), AuditType.READ);
 
-    return tei;
+    return te;
   }
 
   @Override
   public TrackedEntity getTrackedEntity(String uid, User user) {
-    TrackedEntity tei = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(tei, User.username(user), AuditType.READ);
+    TrackedEntity te = trackedEntityStore.getByUid(uid);
+    addTrackedEntityAudit(te, User.username(user), AuditType.READ);
 
-    return tei;
+    return te;
   }
 
   @Override

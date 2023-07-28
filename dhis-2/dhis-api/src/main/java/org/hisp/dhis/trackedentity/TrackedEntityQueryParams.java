@@ -91,7 +91,7 @@ public class TrackedEntityQueryParams {
 
   public static final int DEFAULT_PAGE_SIZE = 50;
 
-  public static final String MAIN_QUERY_ALIAS = "TEI";
+  public static final String MAIN_QUERY_ALIAS = "TE";
 
   public static final String PROGRAM_INSTANCE_ALIAS = "pi";
 
@@ -153,7 +153,7 @@ public class TrackedEntityQueryParams {
 
   private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
-  /** Set of tei uids to explicitly select. */
+  /** Set of te uids to explicitly select. */
   private Set<String> trackedEntityUids = new HashSet<>();
 
   /** ProgramStage to be used in conjunction with eventstatus. */
@@ -183,13 +183,13 @@ public class TrackedEntityQueryParams {
   /** Indicates whether paging should be skipped. */
   private boolean skipPaging;
 
-  /** Indicates if there is a maximum tei retrieval limit. 0 no limit. */
+  /** Indicates if there is a maximum te retrieval limit. 0 no limit. */
   private int maxTeiLimit;
 
   /** Indicates whether to include soft-deleted elements. Default to false */
   private boolean includeDeleted = false;
 
-  /** Indicates whether to include all TEI attributes */
+  /** Indicates whether to include all TE attributes */
   private boolean includeAllAttributes;
 
   /**
@@ -205,12 +205,12 @@ public class TrackedEntityQueryParams {
   private Date skipChangedBefore;
 
   /**
-   * Potential Duplicate query parameter value. If null, we don't check whether a TEI is a
+   * Potential Duplicate query parameter value. If null, we don't check whether a TE is a
    * potentialDuplicate or not
    */
   private Boolean potentialDuplicate;
 
-  /** TEI order params */
+  /** TE order params */
   private List<OrderParam> orders = new ArrayList<>();
 
   // -------------------------------------------------------------------------
@@ -867,7 +867,7 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public int getMaxTeiLimit() {
+  public int getMaxTeLimit() {
     return maxTeiLimit;
   }
 

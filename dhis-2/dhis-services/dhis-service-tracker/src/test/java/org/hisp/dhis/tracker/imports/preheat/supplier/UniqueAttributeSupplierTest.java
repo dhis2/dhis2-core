@@ -195,7 +195,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
     this.supplier.preheatAdd(importParams, preheat);
 
     assertThat(preheat.getUniqueAttributeValues(), hasSize(1));
-    assertThat(preheat.getUniqueAttributeValues().get(0).getTeiUid(), is(TEI_UID));
+    assertThat(preheat.getUniqueAttributeValues().get(0).getTeUid(), is(TEI_UID));
   }
 
   private List<org.hisp.dhis.tracker.imports.domain.TrackedEntity>

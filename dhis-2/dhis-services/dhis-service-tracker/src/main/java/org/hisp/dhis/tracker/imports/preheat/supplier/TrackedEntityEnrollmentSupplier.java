@@ -64,9 +64,9 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
 
   private static final String PI_STATUS_COLUMN_ALIAS = "status";
 
-  private static final String TEI_UID_COLUMN = "tei.uid";
+  private static final String TE_UID_COLUMN = "te.uid";
 
-  private static final String TEI_UID_COLUMN_ALIAS = "teiuid";
+  private static final String TE_UID_COLUMN_ALIAS = "teuid";
 
   private static final String SQL =
       "select  "
@@ -82,14 +82,14 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
           + " as "
           + PI_STATUS_COLUMN_ALIAS
           + ", "
-          + TEI_UID_COLUMN
+          + TE_UID_COLUMN
           + " as "
-          + TEI_UID_COLUMN_ALIAS
+          + TE_UID_COLUMN_ALIAS
           + " from enrollment en "
-          + " join trackedentity tei on en.trackedentityid = tei.trackedentityid "
+          + " join trackedentity te on en.trackedentityid = te.trackedentityid "
           + " join program pr on pr.programid = en.programid "
           + " where en.deleted = false "
-          + " and tei.uid in (:teuids)"
+          + " and te.uid in (:teuids)"
           + " and pr.uid in (:pruids)";
 
   protected TrackedEntityEnrollmentSupplier(JdbcTemplate jdbcTemplate) {
@@ -108,16 +108,16 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
             .map(IdentifiableObject::getUid)
             .collect(Collectors.toList());
 
-    List<List<String>> teiList =
+    List<List<String>> trackedEntities =
         Lists.partition(new ArrayList<>(trackedEntityList), Constant.SPLIT_LIST_PARTITION_SIZE);
 
-    if (programList.isEmpty() || teiList.isEmpty()) return;
+    if (programList.isEmpty() || trackedEntities.isEmpty()) return;
 
     Map<String, List<Enrollment>> trackedEntityToEnrollmentMap = new HashMap<>();
 
     if (params.getEnrollments().isEmpty()) return;
 
-    for (List<String> trackedEntityListSubList : teiList) {
+    for (List<String> trackedEntityListSubList : trackedEntities) {
       queryTeiAndAddToMap(trackedEntityToEnrollmentMap, trackedEntityListSubList, programList);
     }
 
@@ -136,7 +136,7 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
         SQL,
         parameters,
         resultSet -> {
-          String tei = resultSet.getString(TEI_UID_COLUMN_ALIAS);
+          String te = resultSet.getString(TE_UID_COLUMN_ALIAS);
 
           Enrollment newPi = new Enrollment();
           newPi.setUid(resultSet.getString(PI_UID_COLUMN_ALIAS));
@@ -147,11 +147,11 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
           newPi.setProgram(program);
 
           List<Enrollment> piList =
-              trackedEntityToEnrollmentMap.getOrDefault(tei, new ArrayList<>());
+              trackedEntityToEnrollmentMap.getOrDefault(te, new ArrayList<>());
 
           piList.add(newPi);
 
-          trackedEntityToEnrollmentMap.put(tei, piList);
+          trackedEntityToEnrollmentMap.put(te, piList);
         });
   }
 }

@@ -177,7 +177,7 @@ public class JdbcEventStore implements EventStore {
           entry("enrolledAt", "en_enrollmentdate"),
           entry(EVENT_ORG_UNIT_ID, "ou_uid"),
           entry(EVENT_ORG_UNIT_NAME, "ou_name"),
-          entry("trackedEntity", "tei_uid"),
+          entry("trackedEntity", "te_uid"),
           entry(EVENT_OCCURRED_AT_DATE_ID, "ev_executiondate"),
           entry("followup", "en_followup"),
           entry(EVENT_STATUS_ID, EVENT_STATUS),
@@ -321,8 +321,8 @@ public class JdbcEventStore implements EventStore {
                 event.setUid(eventUid);
               }
 
-              TrackedEntity tei = new TrackedEntity();
-              tei.setUid(resultSet.getString("tei_uid"));
+              TrackedEntity te = new TrackedEntity();
+              te.setUid(resultSet.getString("te_uid"));
               event.setStatus(EventStatus.valueOf(resultSet.getString(EVENT_STATUS)));
               ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
               Program program = new Program();
@@ -331,7 +331,7 @@ public class JdbcEventStore implements EventStore {
               Enrollment enrollment = new Enrollment();
               enrollment.setUid(resultSet.getString("en_uid"));
               enrollment.setProgram(program);
-              enrollment.setTrackedEntity(tei);
+              enrollment.setTrackedEntity(te);
               OrganisationUnit ou = new OrganisationUnit();
               ou.setUid(resultSet.getString("ou_uid"));
               ou.setName(resultSet.getString("ou_name"));
@@ -607,7 +607,7 @@ public class JdbcEventStore implements EventStore {
     if (params.isIncludeAttributes()) {
       sqlBuilder.append(getAttributeValueQuery());
 
-      sqlBuilder.append(") as att on event.tei_id=att.pav_id left join (");
+      sqlBuilder.append(") as att on event.te_id=att.pav_id left join (");
     }
 
     sqlBuilder.append(EVENT_COMMENT_QUERY);
@@ -641,7 +641,7 @@ public class JdbcEventStore implements EventStore {
           .append(teaValueCol)
           .append(" ON ")
           .append(teaValueCol + ".trackedentityid")
-          .append(" = TEI.trackedentityid ")
+          .append(" = TE.trackedentityid ")
           .append(" INNER JOIN trackedentityattribute ")
           .append(teaCol)
           .append(" ON ")
@@ -750,7 +750,7 @@ public class JdbcEventStore implements EventStore {
             "en.uid as en_uid, en.status as en_status, en.followup as en_followup, en.enrollmentdate as en_enrollmentdate, en.incidentdate as en_incidentdate, ")
         .append("p.type as p_type, ps.uid as ps_uid, ou.name as ou_name, ")
         .append(
-            "tei.trackedentityid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive ")
+            "te.trackedentityid as te_id, te.uid as te_uid, teou.uid as te_ou, teou.name as te_ou_name, te.created as te_created, te.inactive as te_inactive ")
         .append(
             getFromWhereClause(
                 params,
@@ -800,9 +800,9 @@ public class JdbcEventStore implements EventStore {
     }
 
     fromBuilder
-        .append("left join trackedentity tei on tei.trackedentityid=en.trackedentityid ")
+        .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
         .append(
-            "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ")
+            "left join organisationunit teou on (te.organisationunitid=teou.organisationunitid) ")
         .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
     if (!params.getFilterAttributes().isEmpty()) {
@@ -818,7 +818,7 @@ public class JdbcEventStore implements EventStore {
 
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" tei.trackedentityid= ")
+          .append(" te.trackedentityid= ")
           .append(":trackedentityid")
           .append(" ");
     }

@@ -66,8 +66,8 @@ public class TrackedEntityPersister
       Session session,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
-      TrackedEntity tei) {
-    handleTrackedEntityAttributeValues(session, preheat, trackerDto.getAttributes(), tei);
+      TrackedEntity te) {
+    handleTrackedEntityAttributeValues(session, preheat, trackerDto.getAttributes(), te);
   }
 
   @Override
@@ -75,13 +75,13 @@ public class TrackedEntityPersister
       Session session,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
-      TrackedEntity tei) {
-    // DO NOTHING - TEI HAVE NO DATA VALUES
+      TrackedEntity te) {
+    // DO NOTHING - TE HAVE NO DATA VALUES
   }
 
   @Override
   protected void persistComments(TrackerPreheat preheat, TrackedEntity trackedEntity) {
-    // DO NOTHING - TEI HAVE NO COMMENTS
+    // DO NOTHING - TE HAVE NO COMMENTS
   }
 
   @Override

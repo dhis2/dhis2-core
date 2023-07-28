@@ -99,7 +99,7 @@ class TrackedEntityFieldsParamMapper {
         new TrackedEntityEnrollmentParams(
             fieldFilterService.filterIncludes(TrackedEntity.class, fields, FIELD_ENROLLMENTS),
             enrollmentParams);
-    params = params.withTeiEnrollmentParams(teiEnrollmentParams);
+    params = params.withTeEnrollmentParams(teiEnrollmentParams);
     return params;
   }
 }

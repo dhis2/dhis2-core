@@ -35,7 +35,7 @@ import java.util.Map;
  */
 public class EnrollmentQuery {
   public enum COLUMNS {
-    TEI_UID,
+    TE_UID,
     ID,
     UID,
     CREATED,
@@ -55,14 +55,14 @@ public class EnrollmentQuery {
     DELETED,
     PROGRAM_UID,
     PROGRAM_FEATURE_TYPE,
-    TEI_TYPE_UID,
+    TE_TYPE_UID,
     ORGUNIT_UID,
     ORGUNIT_NAME
   }
 
   public static final Map<COLUMNS, ? extends QueryElement> columnMap =
       ImmutableMap.<COLUMNS, QueryElement>builder()
-          .put(COLUMNS.TEI_UID, new TableColumn("tei", "uid", "tei_uid"))
+          .put(COLUMNS.TE_UID, new TableColumn("te", "uid", "te_uid"))
           .put(COLUMNS.GEOMETRY, new Function("ST_AsBinary", "en", "geometry", "geometry"))
           .put(COLUMNS.ID, new TableColumn("en", "enrollmentid"))
           .put(COLUMNS.UID, new TableColumn("en", "uid"))
@@ -84,7 +84,7 @@ public class EnrollmentQuery {
           .put(
               COLUMNS.PROGRAM_FEATURE_TYPE,
               new TableColumn("p", "featuretype", "program_feature_type"))
-          .put(COLUMNS.TEI_TYPE_UID, new TableColumn("tet", "uid", "type_uid"))
+          .put(COLUMNS.TE_TYPE_UID, new TableColumn("tet", "uid", "type_uid"))
           .put(COLUMNS.ORGUNIT_UID, new TableColumn("o", "uid", "ou_uid"))
           .put(COLUMNS.ORGUNIT_NAME, new TableColumn("o", "name", "ou_name"))
           .build();
@@ -93,9 +93,9 @@ public class EnrollmentQuery {
     return getSelect()
         + "from enrollment en "
         + "join program p on en.programid = p.programid "
-        + "join trackedentity tei on en.trackedentityid = tei.trackedentityid "
-        + "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid "
-        + "join organisationunit o on tei.organisationunitid = o.organisationunitid "
+        + "join trackedentity te on en.trackedentityid = te.trackedentityid "
+        + "join trackedentitytype tet on te.trackedentitytypeid = tet.trackedentitytypeid "
+        + "join organisationunit o on te.organisationunitid = o.organisationunitid "
         + "where en.trackedentityid in (:ids) ";
   }
 

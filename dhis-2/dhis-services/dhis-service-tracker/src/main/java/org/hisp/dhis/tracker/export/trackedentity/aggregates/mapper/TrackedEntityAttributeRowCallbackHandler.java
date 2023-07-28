@@ -30,8 +30,8 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeiAttributeQuery;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeiAttributeQuery.COLUMNS;
+import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery;
+import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery.COLUMNS;
 
 /**
  * @author Luciano Fiandesio
@@ -45,6 +45,6 @@ public class TrackedEntityAttributeRowCallbackHandler
 
   @Override
   String getKeyColumn() {
-    return TeiAttributeQuery.getColumnName(COLUMNS.TEI_UID);
+    return TeAttributeQuery.getColumnName(COLUMNS.TE_UID);
   }
 }

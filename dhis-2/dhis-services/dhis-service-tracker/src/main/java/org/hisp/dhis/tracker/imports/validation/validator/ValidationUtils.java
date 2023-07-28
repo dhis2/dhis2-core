@@ -152,9 +152,9 @@ public class ValidationUtils {
             });
   }
 
-  public static boolean trackedEntityExists(TrackerBundle bundle, String teiUid) {
-    return bundle.getPreheat().getTrackedEntity(teiUid) != null
-        || bundle.findTrackedEntityByUid(teiUid).isPresent();
+  public static boolean trackedEntityExists(TrackerBundle bundle, String teUid) {
+    return bundle.getPreheat().getTrackedEntity(teUid) != null
+        || bundle.findTrackedEntityByUid(teUid).isPresent();
   }
 
   public static boolean enrollmentExist(TrackerBundle bundle, String enrollmentUid) {

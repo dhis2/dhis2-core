@@ -51,7 +51,7 @@ public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment> {
 
   @Override
   String getKeyColumn() {
-    return "tei_uid";
+    return "te_uid";
   }
 
   private Enrollment getEnrollment(ResultSet rs) throws SQLException {
@@ -63,9 +63,9 @@ public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment> {
         .ifPresent(enrollment::setGeometry);
 
     TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setUid(rs.getString(EnrollmentQuery.getColumnName(COLUMNS.TEI_UID)));
+    trackedEntity.setUid(rs.getString(EnrollmentQuery.getColumnName(COLUMNS.TE_UID)));
     TrackedEntityType trackedEntityType = new TrackedEntityType();
-    trackedEntityType.setUid(rs.getString(EnrollmentQuery.getColumnName(COLUMNS.TEI_TYPE_UID)));
+    trackedEntityType.setUid(rs.getString(EnrollmentQuery.getColumnName(COLUMNS.TE_TYPE_UID)));
     trackedEntity.setTrackedEntityType(trackedEntityType);
     enrollment.setTrackedEntity(trackedEntity);
 

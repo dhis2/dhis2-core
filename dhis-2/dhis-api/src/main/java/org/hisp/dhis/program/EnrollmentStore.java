@@ -169,11 +169,11 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    *        or (programid = 726 and trackedentityid = 17 and status = 'ACTIVE')
    * }</pre>
    *
-   * @param programTeiPair a List of Pair, where the left side is a {@see Program} and the right
-   *     side is a {@see TrackedEntity}
+   * @param programTePair a List of Pair, where the left side is a {@see Program} and the right side
+   *     is a {@see TrackedEntity}
    * @param programStatus filter on the status of all the Program
    * @return a List of {@see Enrollment}
    */
   List<Enrollment> getByProgramAndTrackedEntity(
-      List<Pair<Program, TrackedEntity>> programTeiPair, ProgramStatus programStatus);
+      List<Pair<Program, TrackedEntity>> programTePair, ProgramStatus programStatus);
 }

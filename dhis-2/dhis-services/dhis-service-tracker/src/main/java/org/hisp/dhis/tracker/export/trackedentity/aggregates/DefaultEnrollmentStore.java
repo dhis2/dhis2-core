@@ -48,7 +48,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("org.hisp.dhis.tracker.trackedentity.aggregates.EnrollmentStore")
 public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentStore {
-  private static final String GET_ENROLLMENT_SQL_BY_TEI = EnrollmentQuery.getQuery();
+  private static final String GET_ENROLLMENT_SQL_BY_TE = EnrollmentQuery.getQuery();
 
   private static final String GET_ATTRIBUTES = ProgramAttributeQuery.getQuery();
 
@@ -69,11 +69,11 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
   @Override
   public Multimap<String, Enrollment> getEnrollmentsByTrackedEntityIds(
       List<Long> ids, Context ctx) {
-    List<List<Long>> teiIds = Lists.partition(ids, PARITITION_SIZE);
+    List<List<Long>> teIds = Lists.partition(ids, PARITITION_SIZE);
 
     Multimap<String, Enrollment> enrollmentMultimap = ArrayListMultimap.create();
 
-    teiIds.forEach(
+    teIds.forEach(
         partition ->
             enrollmentMultimap.putAll(getEnrollmentsByTrackedEntityIdsPartitioned(partition, ctx)));
 
@@ -86,7 +86,7 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
 
     jdbcTemplate.query(
         getQuery(
-            GET_ENROLLMENT_SQL_BY_TEI,
+            GET_ENROLLMENT_SQL_BY_TE,
             ctx,
             " en.programid IN (:programIds)",
             FILTER_OUT_DELETED_ENROLLMENTS),

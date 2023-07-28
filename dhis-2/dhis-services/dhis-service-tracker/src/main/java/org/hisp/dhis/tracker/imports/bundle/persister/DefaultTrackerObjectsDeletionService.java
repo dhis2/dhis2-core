@@ -56,7 +56,7 @@ import org.springframework.stereotype.Service;
 public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeletionService {
   private final EnrollmentService enrollmentService;
 
-  private final TrackedEntityService teiService;
+  private final TrackedEntityService teService;
 
   private final EventService eventService;
 
@@ -91,11 +91,11 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       deleteEvents(trackerBundle);
 
-      TrackedEntity tei = enrollment.getTrackedEntity();
-      tei.getEnrollments().remove(enrollment);
+      TrackedEntity te = enrollment.getTrackedEntity();
+      te.getEnrollments().remove(enrollment);
 
       enrollmentService.deleteEnrollment(enrollment);
-      teiService.updateTrackedEntity(tei);
+      teService.updateTrackedEntity(te);
 
       typeReport.getStats().incDeleted();
       typeReport.addEntity(objectReport);
@@ -122,7 +122,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       eventService.deleteEvent(event);
 
       if (event.getProgramStage().getProgram().isRegistration()) {
-        teiService.updateTrackedEntity(event.getEnrollment().getTrackedEntity());
+        teService.updateTrackedEntity(event.getEnrollment().getTrackedEntity());
 
         enrollment.getEvents().remove(event);
         enrollmentService.updateEnrollment(enrollment);
@@ -147,7 +147,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid, idx);
 
-      TrackedEntity daoEntityInstance = teiService.getTrackedEntity(uid);
+      TrackedEntity daoEntityInstance = teService.getTrackedEntity(uid);
 
       Set<Enrollment> daoEnrollments = daoEntityInstance.getEnrollments();
 
@@ -161,7 +161,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       deleteEnrollments(trackerBundle);
 
-      teiService.deleteTrackedEntity(daoEntityInstance);
+      teService.deleteTrackedEntity(daoEntityInstance);
 
       typeReport.getStats().incDeleted();
       typeReport.addEntity(objectReport);

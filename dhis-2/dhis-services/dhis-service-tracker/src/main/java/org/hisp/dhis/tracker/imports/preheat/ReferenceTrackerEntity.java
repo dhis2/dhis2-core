@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ReferenceTrackerEntity {
   /**
-   * Reference uid: this correspond to the UID of a TEI, PS or event from the tracker import payload
+   * Reference uid: this correspond to the UID of a TE, PS or event from the tracker import payload
    */
   private final String uid;
 

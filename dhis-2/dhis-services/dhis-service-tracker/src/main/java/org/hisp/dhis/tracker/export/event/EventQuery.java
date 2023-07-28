@@ -52,7 +52,7 @@ public class EventQuery {
     LAST_UPDATED_BY(new TableColumn("ev", "lastupdatedbyuserinfo")),
     DELETED(new TableColumn("ev", "deleted")),
     GEOMETRY(new Function("ST_AsBinary", "ev", "geometry", "geometry")),
-    TEI_UID(new TableColumn("tei", "uid", "tei_uid")),
+    TE_UID(new TableColumn("te", "uid", "te_uid")),
     ENROLLMENT_UID(new TableColumn("en", "uid", "enruid")),
     ENROLLMENT_FOLLOWUP(new TableColumn("en", "followup", "enrfollowup")),
     ENROLLMENT_STATUS(new TableColumn("en", "status", "enrstatus")),

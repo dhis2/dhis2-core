@@ -417,7 +417,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
     eventPublisher.publishEvent(new EnrollmentEvaluationEvent(this, enrollment.getId()));
 
     // -----------------------------------------------------------------
-    // Update Enrollment and TEI
+    // Update Enrollment and TE
     // -----------------------------------------------------------------
 
     updateEnrollment(enrollment);
@@ -480,9 +480,9 @@ public class DefaultEnrollmentService implements EnrollmentService {
   public void incompleteEnrollmentStatus(Enrollment enrollment) {
     Program program = enrollment.getProgram();
 
-    TrackedEntity tei = enrollment.getTrackedEntity();
+    TrackedEntity te = enrollment.getTrackedEntity();
 
-    if (getEnrollments(tei, program, ProgramStatus.ACTIVE).size() > 0) {
+    if (getEnrollments(te, program, ProgramStatus.ACTIVE).size() > 0) {
       log.warn("Program has another active enrollment going on. Not possible to incomplete");
 
       throw new IllegalQueryException(

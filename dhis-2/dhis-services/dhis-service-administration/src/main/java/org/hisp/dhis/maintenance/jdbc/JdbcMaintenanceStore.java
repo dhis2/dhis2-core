@@ -223,19 +223,19 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
 
   @Override
   public int deleteSoftDeletedTrackedEntities() {
-    String teiSelect = "(select trackedentityid from trackedentity where deleted is true)";
+    String teSelect = "(select trackedentityid from trackedentity where deleted is true)";
 
     String enrollmentSelect =
-        "(select enrollmentid from enrollment where trackedentityid in " + teiSelect + " )";
+        "(select enrollmentid from enrollment where trackedentityid in " + teSelect + " )";
 
-    List<String> deletedTeiUids =
+    List<String> deletedteUids =
         getDeletionEntities("select uid from trackedentity where deleted is true");
-    if (deletedTeiUids.isEmpty()) {
+    if (deletedteUids.isEmpty()) {
       return 0;
     }
 
     List<String> associatedEnrollments =
-        getDeletionEntities("select uid from enrollment where trackedentityid in " + teiSelect);
+        getDeletionEntities("select uid from enrollment where trackedentityid in " + teSelect);
 
     List<String> associatedEvents =
         getDeletionEntities("select uid from event where enrollmentid in " + enrollmentSelect);
@@ -247,27 +247,27 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
     String eventSelect =
         "(select eventid from event where enrollmentid in " + enrollmentSelect + " )";
 
-    String teiPmSelect =
-        "(select id from programmessage where trackedentityid in " + teiSelect + " )";
+    String tePmSelect =
+        "(select id from programmessage where trackedentityid in " + teSelect + " )";
     String piPmSelect =
         "(select id from programmessage where enrollmentid in " + enrollmentSelect + " )";
     String eventPmSelect = "(select id from programmessage where eventid in " + eventSelect + " )";
 
     /*
      * Delete event values, event audits, event comments, events, enrollment
-     * comments, enrollments, tei attribtue values, tei attribtue value
-     * audits, teis
+     * comments, enrollments, te attribtue values, te attribtue value
+     * audits, tes
      *
      */
     String[] sqlStmts =
         new String[] {
-          // delete objects related to any message related to obsolete TEIs
+          // delete objects related to any message related to obsolete tracked entities
           "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in "
-              + teiPmSelect,
+              + tePmSelect,
           "delete from programmessage_emailaddresses where programmessageemailaddressid in "
-              + teiPmSelect,
+              + tePmSelect,
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
-              + teiPmSelect,
+              + tePmSelect,
           // delete objects related to any message related to obsolete enrollments
           "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in "
               + piPmSelect,
@@ -291,17 +291,17 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           // delete other objects related to obsolete enrollments
           "delete from programmessage where enrollmentid in " + enrollmentSelect,
           "delete from event where enrollmentid in " + enrollmentSelect,
-          // delete other objects related to obsolete TEIs
-          "delete from programmessage where trackedentityid in " + teiSelect,
-          "delete from relationshipitem where trackedentityid in " + teiSelect,
-          "delete from trackedentityattributevalue where trackedentityid in " + teiSelect,
-          "delete from trackedentityattributevalueaudit where trackedentityid in " + teiSelect,
-          "delete from trackedentityprogramowner where trackedentityid in " + teiSelect,
-          "delete from programtempowner where trackedentityid in " + teiSelect,
-          "delete from programtempownershipaudit where trackedentityid in " + teiSelect,
-          "delete from programownershiphistory where trackedentityid in " + teiSelect,
-          "delete from enrollment where trackedentityid in " + teiSelect,
-          // finally delete the TEIs
+          // delete other objects related to obsolete tracked entitites
+          "delete from programmessage where trackedentityid in " + teSelect,
+          "delete from relationshipitem where trackedentityid in " + teSelect,
+          "delete from trackedentityattributevalue where trackedentityid in " + teSelect,
+          "delete from trackedentityattributevalueaudit where trackedentityid in " + teSelect,
+          "delete from trackedentityprogramowner where trackedentityid in " + teSelect,
+          "delete from programtempowner where trackedentityid in " + teSelect,
+          "delete from programtempownershipaudit where trackedentityid in " + teSelect,
+          "delete from programownershiphistory where trackedentityid in " + teSelect,
+          "delete from enrollment where trackedentityid in " + teSelect,
+          // finally delete the tracked entities
           "delete from trackedentity where deleted is true"
         };
 
@@ -310,7 +310,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
     if (result > 0) {
       auditHardDeletedEntity(associatedEvents, Event.class);
       auditHardDeletedEntity(associatedEnrollments, Enrollment.class);
-      auditHardDeletedEntity(deletedTeiUids, TrackedEntity.class);
+      auditHardDeletedEntity(deletedteUids, TrackedEntity.class);
     }
 
     return result;

@@ -418,10 +418,10 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
 
   @Override
   public List<Enrollment> getByProgramAndTrackedEntity(
-      List<Pair<Program, TrackedEntity>> programTeiPair, ProgramStatus programStatus) {
-    checkNotNull(programTeiPair);
+      List<Pair<Program, TrackedEntity>> programTePair, ProgramStatus programStatus) {
+    checkNotNull(programTePair);
 
-    if (programTeiPair.isEmpty()) {
+    if (programTePair.isEmpty()) {
       return new ArrayList<>();
     }
 
@@ -435,7 +435,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
     // TODO we may have potentially thousands of events here, so, it's
     // better to
     // partition the list
-    for (Pair<Program, TrackedEntity> pair : programTeiPair) {
+    for (Pair<Program, TrackedEntity> pair : programTePair) {
       predicates.add(
           cb.and(
               cb.equal(enrollment.get("program"), pair.getLeft()),

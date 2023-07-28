@@ -87,9 +87,9 @@ public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment> {
         bundle.findTrackedEntityByUid(enrollment.getTrackedEntity());
 
     if (trackedEntity.isPresent()) {
-      List<Attribute> teiAttributes = trackedEntity.get().getAttributes();
+      List<Attribute> teAttributes = trackedEntity.get().getAttributes();
       Optional<Attribute> optionalAttribute =
-          teiAttributes.stream().filter(at -> at.getAttribute().isEqualTo(attribute)).findAny();
+          teAttributes.stream().filter(at -> at.getAttribute().isEqualTo(attribute)).findAny();
       if (optionalAttribute.isPresent()) {
         optionalAttribute.get().setValue(value);
         return;

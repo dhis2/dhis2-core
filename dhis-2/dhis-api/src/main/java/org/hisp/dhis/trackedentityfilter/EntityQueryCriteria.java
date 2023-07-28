@@ -42,7 +42,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.programstagefilter.DateFilterPeriod;
 
 /**
- * Represents the filtering/sorting criteria to be used when querying teis.
+ * Represents the filtering/sorting criteria to be used when querying te.
  *
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
@@ -79,7 +79,7 @@ public class EntityQueryCriteria implements Serializable {
   /** Property indicating explicit tracked entity uids to be used when listing events. */
   private Set<String> trackedEntities;
 
-  /** The trackedEntityType to be used when querying tei. */
+  /** The trackedEntityType to be used when querying te. */
   private String trackedEntityType;
 
   /** Property indicating which event status types to filter */
@@ -88,10 +88,10 @@ public class EntityQueryCriteria implements Serializable {
   /** Property indicating which enrollment status types to filter */
   private ProgramStatus enrollmentStatus;
 
-  /** Property to filter teis based on event created dates */
+  /** Property to filter te based on event created dates */
   private DateFilterPeriod eventDate;
 
-  /** Property to filter teis based on last updated dates */
+  /** Property to filter te based on last updated dates */
   private DateFilterPeriod lastUpdatedDate;
 
   /** Property to filter events based on enrollment incident dates */

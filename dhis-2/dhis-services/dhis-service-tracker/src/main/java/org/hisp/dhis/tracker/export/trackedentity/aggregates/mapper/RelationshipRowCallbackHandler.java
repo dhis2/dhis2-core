@@ -101,7 +101,7 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
    * the type to the left or right side of the relationship. The "typeWithUid" variable contains the
    * UID of the object and a string representing the type. E.g.
    *
-   * <p>tei|dj3382832 ev|332983893
+   * <p>te|dj3382832 ev|332983893
    *
    * <p>This function parses the string and extract the type and the uid, in order to instantiate
    * the appropriate object and assign it to the {@see RelationshipItem}
@@ -120,10 +120,10 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
     final String uid = typeWithUid.split("\\|")[1];
 
     switch (type) {
-      case "tei":
-        TrackedEntity tei = new TrackedEntity();
-        tei.setUid(uid);
-        ri.setTrackedEntity(tei);
+      case "te":
+        TrackedEntity te = new TrackedEntity();
+        te.setUid(uid);
+        ri.setTrackedEntity(te);
         break;
       case "en":
         Enrollment enrollment = new Enrollment();
@@ -136,7 +136,7 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
         ri.setEvent(event);
         break;
       default:
-        log.warn("Expecting tei|ev|en as type when fetching a relationship, got: " + type);
+        log.warn("Expecting te|ev|en as type when fetching a relationship, got: " + type);
     }
 
     return ri;

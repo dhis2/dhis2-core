@@ -44,7 +44,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 @EqualsAndHashCode
 public class UniqueAttributeValue {
 
-  private String teiUid;
+  private String teUid;
 
   private MetadataIdentifier attribute;
 

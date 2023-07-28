@@ -36,12 +36,12 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 
 /**
- * This interface is responsible for retrieving tracked entities (TEI). The query methods accepts a
+ * This interface is responsible for retrieving tracked entities (TE). The query methods accepts a
  * TrackedEntityQueryParams object which encapsulates all arguments.
  *
  * <p>
  *
- * <p>The TEIs are returned as a Grid object, which is a two-dimensional list with headers. The TEI
+ * <p>The TEIs are returned as a Grid object, which is a two-dimensional list with headers. The TE
  * attribute values are returned in the same order as specified in the arguments. The grid has a set
  * of columns which are always present starting at index 0, followed by attributes specified for the
  * query. All values in the grid are of type String. The order is:
@@ -67,11 +67,11 @@ import org.hisp.dhis.user.User;
  * params.addFilter( new QueryItem( weight, QueryOperator.GT, "2500", true ) );
  * params.addOrganistionUnit( unit );
  *
- * Grid instances = teiService.getTrackedEntityGrid( params );
+ * Grid instances = teService.getTrackedEntityGrid( params );
  *
  * for ( List&lt;Object&gt; row : instances.getRows() )
  * {
- *     String tei = row.get( 0 );
+ *     String te = row.get( 0 );
  *     String ou = row.get( 3 );
  *     String gender = row.get( 5 );
  *     String age = row.get( 6 );
@@ -122,7 +122,7 @@ public interface TrackedEntityService {
    * @param skipAccessValidation If true, access validation is skipped. Should be set to true only
    *     for internal tasks (e.g. currently used by synchronization job)
    * @param skipSearchScopeValidation if true, search scope validation is skipped.
-   * @return List of TEI IDs matching the params
+   * @return List of TE IDs matching the params
    */
   List<Long> getTrackedEntityIds(
       TrackedEntityQueryParams params,
@@ -231,7 +231,7 @@ public interface TrackedEntityService {
   TrackedEntity getTrackedEntity(String uid, User user);
 
   /**
-   * Checks for the existence of a TEI by UID. Deleted values are not taken into account.
+   * Checks for the existence of a TE by UID. Deleted values are not taken into account.
    *
    * @param uid Event UID to check for
    * @return true/false depending on result
@@ -239,7 +239,7 @@ public interface TrackedEntityService {
   boolean trackedEntityExists(String uid);
 
   /**
-   * Checks for the existence of a TEI by UID. Takes into account also the deleted values.
+   * Checks for the existence of a TE by UID. Takes into account also the deleted values.
    *
    * @param uid Event UID to check for
    * @return true/false depending on result
@@ -249,7 +249,7 @@ public interface TrackedEntityService {
   /**
    * Returns UIDs of existing tracked entities (including deleted) from the provided UIDs
    *
-   * @param uids TEI UIDs to check
+   * @param uids TE UIDs to check
    * @return Set containing UIDs of existing TEIs (including deleted)
    */
   List<String> getTrackedEntitiesUidsIncludingDeleted(List<String> uids);

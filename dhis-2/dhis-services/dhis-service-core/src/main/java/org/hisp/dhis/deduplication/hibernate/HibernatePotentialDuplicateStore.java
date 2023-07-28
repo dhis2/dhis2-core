@@ -166,12 +166,12 @@ public class HibernatePotentialDuplicateStore
 
     predicateList.add(root.get("status").in(getInStatusValue(query.getStatus())));
 
-    if (!query.getTeis().isEmpty()) {
+    if (!query.getTrackedEntities().isEmpty()) {
       predicateList.add(
           builder.and(
               builder.or(
-                  root.get("original").in(query.getTeis()),
-                  root.get("duplicate").in(query.getTeis()))));
+                  root.get("original").in(query.getTrackedEntities()),
+                  root.get("duplicate").in(query.getTrackedEntities()))));
     }
 
     return predicateList.toArray(new Predicate[0]);
@@ -198,7 +198,7 @@ public class HibernatePotentialDuplicateStore
         getSession()
             .createNativeQuery(
                 "select count(potentialduplicateid) from potentialduplicate pd "
-                    + "where (pd.teia = :original and pd.teib = :duplicate) or (pd.teia = :duplicate and pd.teib = :original)");
+                    + "where (pd.original = :original and pd.duplicate = :duplicate) or (pd.original = :duplicate and pd.duplicate = :original)");
 
     query.setParameter("original", potentialDuplicate.getOriginal());
     query.setParameter("duplicate", potentialDuplicate.getDuplicate());

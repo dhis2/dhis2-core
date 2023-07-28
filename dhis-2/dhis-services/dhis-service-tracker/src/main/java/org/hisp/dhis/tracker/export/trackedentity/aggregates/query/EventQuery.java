@@ -58,7 +58,7 @@ public class EventQuery {
     LAST_UPDATED_BY(new TableColumn("ev", "lastupdatedbyuserinfo")),
     DELETED(new TableColumn("ev", "deleted")),
     GEOMETRY(new Function("ST_AsBinary", "ev", "geometry", "geometry")),
-    TEI_UID(new TableColumn("tei", "uid", "tei_uid")),
+    TE_UID(new TableColumn("te", "uid", "te_uid")),
     ENROLLMENT_UID(new TableColumn("en", "uid", "enruid")),
     ENROLLMENT_FOLLOWUP(new TableColumn("en", "followup", "enrfollowup")),
     ENROLLMENT_STATUS(new TableColumn("en", "status", "enrstatus")),
@@ -108,7 +108,7 @@ public class EventQuery {
     return getSelect()
         + "from event ev "
         + "join enrollment en on ev.enrollmentid = en.enrollmentid "
-        + "join trackedentity tei on en.trackedentityid = tei.trackedentityid "
+        + "join trackedentity te on en.trackedentityid = te.trackedentityid "
         + "join program p on en.programid = p.programid "
         + "join programstage ps on ev.programstageid = ps.programstageid "
         + "join organisationunit o on ev.organisationunitid = o.organisationunitid "

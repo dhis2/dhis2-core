@@ -51,7 +51,7 @@ public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntit
   int getTrackedEntityCountForGridWithMaxTeiLimit(TrackedEntityQueryParams params);
 
   /**
-   * Checks for the existence of a TEI by UID. Deleted TEIs are not taken into account.
+   * Checks for the existence of a TE by UID. Deleted TEIs are not taken into account.
    *
    * @param uid Event UID to check for.
    * @return true/false depending on result.
@@ -59,7 +59,7 @@ public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntit
   boolean exists(String uid);
 
   /**
-   * Checks for the existence of a TEI by UID. Takes into account also the deleted TEIs.
+   * Checks for the existence of a TE by UID. Takes into account also the deleted TEIs.
    *
    * @param uid Event UID to check for.
    * @return true/false depending on result.
@@ -69,7 +69,7 @@ public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntit
   /**
    * Returns UIDs of existing TrackedEntity(including deleted) from the provided UIDs
    *
-   * @param uids TEI UIDs to check
+   * @param uids TE UIDs to check
    * @return List containing UIDs of existing TEIs (including deleted)
    */
   List<String> getUidsIncludingDeleted(List<String> uids);

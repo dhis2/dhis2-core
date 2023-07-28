@@ -55,11 +55,11 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor {
    * <pre>
    * case 1:
    *
-   * REL 1 --- TEI A
-   *       --- TEI B
+   * REL 1 --- TE A
+   *       --- TE B
    *
-   * REL 2 --- TEI A
-   *       --- TEI B
+   * REL 2 --- TE A
+   *       --- TE B
    *
    * TYPE  --- bi = false
    *
@@ -67,11 +67,11 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor {
    *
    * case 2:
    *
-   * REL 1 --- TEI A
-   *       --- TEI B
+   * REL 1 --- TE A
+   *       --- TE B
    *
-   * REL 2 --- TEI B
-   *       --- TEI A
+   * REL 2 --- TE B
+   *       --- TE A
    *
    * TYPE  --- bi = false
    *
@@ -79,11 +79,11 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor {
    *
    * case 3:
    *
-   * REL 1 --- TEI A
-   *       --- TEI B
+   * REL 1 --- TE A
+   *       --- TE B
    *
-   * REL 2 --- TEI B
-   *       --- TEI A
+   * REL 2 --- TE B
+   *       --- TE A
    *
    * TYPE  --- bi = true
    *
@@ -92,11 +92,11 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor {
    *
    * case 4:
    *
-   * REL 1 --- TEI A
-   *       --- TEI B
+   * REL 1 --- TE A
+   *       --- TE B
    *
-   * REL 2 --- TEI A
-   *       --- TEI B
+   * REL 2 --- TE A
+   *       --- TE B
    *
    * TYPE  --- bi = true
    *

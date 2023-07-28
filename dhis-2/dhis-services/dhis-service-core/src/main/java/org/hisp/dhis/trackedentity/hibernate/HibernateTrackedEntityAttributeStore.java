@@ -119,7 +119,7 @@ public class HibernateTrackedEntityAttributeStore
 
     SqlHelper hlp = new SqlHelper(true);
 
-    String hql = "select tei.uid from TrackedEntity tei ";
+    String hql = "select te.uid from TrackedEntity te ";
 
     if (params.hasOrganisationUnits()) {
       String orgUnitUids =
@@ -127,7 +127,7 @@ public class HibernateTrackedEntityAttributeStore
               .map(OrganisationUnit::getUid)
               .collect(Collectors.joining(", ", "'", "'"));
 
-      hql += "inner join tei.organisationUnit as ou ";
+      hql += "inner join te.organisationUnit as ou ";
       hql += hlp.whereAnd() + " ou.uid in (" + orgUnitUids + ") ";
     }
 
@@ -139,7 +139,7 @@ public class HibernateTrackedEntityAttributeStore
 
         hql +=
             hlp.whereAnd()
-                + " exists (from TrackedEntityAttributeValue teav where teav.trackedEntity=tei";
+                + " exists (from TrackedEntityAttributeValue teav where teav.trackedEntity=te";
         hql += " and teav.attribute.uid='" + item.getItemId() + "'";
 
         if (item.isNumeric()) {
@@ -151,7 +151,7 @@ public class HibernateTrackedEntityAttributeStore
     }
 
     if (!params.isIncludeDeleted()) {
-      hql += hlp.whereAnd() + " tei.deleted is false";
+      hql += hlp.whereAnd() + " te.deleted is false";
     }
 
     Query<String> query = getTypedQuery(hql);
