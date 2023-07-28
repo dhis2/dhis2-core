@@ -46,7 +46,8 @@ import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonImportReport;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Tests {@link ImportReport} behavior through {@link TrackerImportController} using (mocked) REST
@@ -89,54 +90,21 @@ class TrackerImportReportTest extends DhisControllerConvenienceTest {
     manager.save(relType);
   }
 
-  @Test
-  void shouldReturnOrderedEntitiesInReportWhenFlatPayloadImportIsSuccessful() {
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "import_flatten_payload.json",
+        "import_nested_payload.json",
+        "import_nested_payload_repeated_relationships.json"
+      })
+  void shouldReturnOrderedEntitiesInReportWhenImportIsSuccessful(String fileName) {
     JsonImportReport importReport =
         POST(
                 "/tracker?async=false&reportMode=FULL"
                     + "&validationMode=SKIP"
                     + "&atomicMode=OBJECT"
                     + "&skipRuleEngine=true",
-                WebClient.Body("tracker/import_flatten_payload.json"))
-            .content(HttpStatus.OK)
-            .as(JsonImportReport.class);
-
-    assertReportEntities(
-        List.of("IybbQIQt6te", "daMwzsKN3te", "FRM97UKN8te"), TRACKED_ENTITY, importReport);
-    assertReportEntities(List.of("IybbQIQt6en", "daMwzsKN3en"), ENROLLMENT, importReport);
-    assertReportEntities(List.of("IybbQIQt6ev", "daMwzsKN3ev"), EVENT, importReport);
-    assertReportEntities(List.of("IybbQIQtrel", "daMwzsKNrel"), RELATIONSHIP, importReport);
-  }
-
-  @Test
-  void shouldReturnOrderedEntitiesInReportWhenNestedPayloadImportIsSuccessful() {
-    JsonImportReport importReport =
-        POST(
-                "/tracker?async=false&reportMode=FULL"
-                    + "&validationMode=SKIP"
-                    + "&atomicMode=OBJECT"
-                    + "&skipRuleEngine=true",
-                WebClient.Body("tracker/import_nested_payload.json"))
-            .content(HttpStatus.OK)
-            .as(JsonImportReport.class);
-
-    assertReportEntities(
-        List.of("IybbQIQt6te", "daMwzsKN3te", "FRM97UKN8te"), TRACKED_ENTITY, importReport);
-    assertReportEntities(List.of("IybbQIQt6en", "daMwzsKN3en"), ENROLLMENT, importReport);
-    assertReportEntities(List.of("IybbQIQt6ev", "daMwzsKN3ev"), EVENT, importReport);
-    assertReportEntities(List.of("IybbQIQtrel", "daMwzsKNrel"), RELATIONSHIP, importReport);
-  }
-
-  @Test
-  void
-      shouldReturnOrderedEntitiesInReportWhenNestedPayloadWithRepeatedRelationshipsImportIsSuccessful() {
-    JsonImportReport importReport =
-        POST(
-                "/tracker?async=false&reportMode=FULL"
-                    + "&validationMode=SKIP"
-                    + "&atomicMode=OBJECT"
-                    + "&skipRuleEngine=true",
-                WebClient.Body("tracker/import_nested_payload_repeated_relationships.json"))
+                WebClient.Body("tracker/" + fileName))
             .content(HttpStatus.OK)
             .as(JsonImportReport.class);
 
