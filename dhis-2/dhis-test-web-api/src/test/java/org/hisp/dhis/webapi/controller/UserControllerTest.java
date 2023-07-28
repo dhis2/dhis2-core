@@ -234,9 +234,9 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testReplicateUserCreatedByUpdated() throws JsonProcessingException {
-    User newUser = createUserWithAuth("test", "ALL");
+    User newUser = createUser("test", "ALL");
 
-    switchToNewUser(newUser);
+    switchContextToUser(newUser);
 
     String replicatedUsername = "peter2";
 
