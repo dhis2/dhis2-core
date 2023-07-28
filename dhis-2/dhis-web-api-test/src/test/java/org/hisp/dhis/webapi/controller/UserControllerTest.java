@@ -53,6 +53,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.UserController}.
@@ -122,6 +123,29 @@ public class UserControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "Created", 201, "OK", "User replica created",
             POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'Saf€sEcre1'}" )
                 .content() );
+    }
+
+    @Test
+    void testReplicateUserCreatedByUpdated() throws JsonProcessingException {
+        User newUser = createUser("test", "ALL");
+
+        switchContextToUser(newUser);
+
+        String replicatedUsername = "peter2";
+
+        assertWebMessage(
+            "Created",
+            201,
+            "OK",
+            "User replica created",
+            POST(
+                "/users/" + peter.getUid() + "/replica",
+                "{'username':'" + replicatedUsername + "','password':'Saf€sEcre1'}")
+                .content());
+
+        User replicatedUser = userService.getUserByUsername(replicatedUsername);
+
+        assertEquals(newUser.getUsername(), replicatedUser.getCreatedBy().getUsername());
     }
 
     @Test
