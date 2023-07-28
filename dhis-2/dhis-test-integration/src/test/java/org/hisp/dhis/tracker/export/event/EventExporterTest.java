@@ -69,6 +69,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -162,7 +163,9 @@ class EventExporterTest extends TrackerTest {
 
     assertContainsOnly(List.of("pTzf9KYMk72"), uids(events));
     List<Relationship> relationships =
-        events.get(0).getRelationshipItems().stream().map(i -> i.getRelationship()).toList();
+        events.get(0).getRelationshipItems().stream()
+            .map(RelationshipItem::getRelationship)
+            .toList();
     assertContainsOnly(List.of("oLT07jKRu9e", "yZxjxJli9mO"), uids(relationships));
   }
 
