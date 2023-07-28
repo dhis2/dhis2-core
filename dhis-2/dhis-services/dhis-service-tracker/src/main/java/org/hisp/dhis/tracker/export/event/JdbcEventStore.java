@@ -52,6 +52,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -67,10 +68,10 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
@@ -90,11 +91,12 @@ import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.tracker.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
@@ -541,18 +543,16 @@ public class JdbcEventStore implements EventStore {
   /**
    * Generates a single INNER JOIN for each attribute we are searching on. We can search by a range
    * of operators. All searching is using lower() since attribute values are case-insensitive.
-   *
-   * @param attributes
-   * @param filterItems
    */
   private void joinAttributeValueWithoutQueryParameter(
-      StringBuilder attributes, List<QueryItem> filterItems) {
-    for (QueryItem queryItem : filterItems) {
-      String teaValueCol = statementBuilder.columnQuote(queryItem.getItemId());
-      String teaCol = statementBuilder.columnQuote(queryItem.getItemId() + "ATT");
+      StringBuilder sql, Map<TrackedEntityAttribute, List<QueryFilter>> attributes) {
+    for (Entry<TrackedEntityAttribute, List<QueryFilter>> queryItem : attributes.entrySet()) {
+      TrackedEntityAttribute tea = queryItem.getKey();
+      String teaUid = tea.getUid();
+      String teaValueCol = statementBuilder.columnQuote(teaUid);
+      String teaCol = statementBuilder.columnQuote(teaUid + "ATT");
 
-      attributes
-          .append(" INNER JOIN trackedentityattributevalue ")
+      sql.append(" INNER JOIN trackedentityattributevalue ")
           .append(teaValueCol)
           .append(" ON ")
           .append(teaValueCol + ".trackedentityid")
@@ -566,61 +566,62 @@ public class JdbcEventStore implements EventStore {
           .append(AND)
           .append(teaCol + ".UID")
           .append(EQUALS)
-          .append(statementBuilder.encode(queryItem.getItem().getUid(), true));
+          .append(statementBuilder.encode(teaUid, true));
 
-      attributes.append(getAttributeFilterQuery(queryItem, teaCol, teaValueCol));
+      sql.append(
+          getAttributeFilterQuery(
+              queryItem.getValue(), teaCol, teaValueCol, tea.getValueType().isNumeric()));
     }
   }
 
-  private String getAttributeFilterQuery(QueryItem queryItem, String teaCol, String teaValueCol) {
-    StringBuilder query = new StringBuilder();
+  private String getAttributeFilterQuery(
+      List<QueryFilter> filters, String teaCol, String teaValueCol, boolean isNumericTea) {
 
-    if (!queryItem.getFilters().isEmpty()) {
-      query.append(AND);
+    if (filters.isEmpty()) {
+      return "";
+    }
 
-      // In SQL the order of expressions linked by AND is not
-      // guaranteed.
-      // So when casting to number we need to be sure that the value
-      // to cast is really a number.
-      if (queryItem.isNumeric()) {
-        query
-            .append(" CASE WHEN ")
-            .append(lower(teaCol + ".valueType"))
-            .append(" in (")
-            .append(
-                NUMERIC_TYPES.stream()
-                    .map(Enum::name)
-                    .map(StringUtils::lowerCase)
-                    .map(SqlUtils::singleQuote)
-                    .collect(Collectors.joining(",")))
-            .append(")")
-            .append(" THEN ");
-      }
+    StringBuilder query = new StringBuilder(AND);
+    // In SQL the order of expressions linked by AND is not
+    // guaranteed.
+    // So when casting to number we need to be sure that the value
+    // to cast is really a number.
+    if (isNumericTea) {
+      query
+          .append(" CASE WHEN ")
+          .append(lower(teaCol + ".valueType"))
+          .append(" in (")
+          .append(
+              NUMERIC_TYPES.stream()
+                  .map(Enum::name)
+                  .map(StringUtils::lowerCase)
+                  .map(SqlUtils::singleQuote)
+                  .collect(Collectors.joining(",")))
+          .append(")")
+          .append(" THEN ");
+    }
 
-      List<String> filterStrings = new ArrayList<>();
-      for (QueryFilter filter : queryItem.getFilters()) {
-        StringBuilder filterString = new StringBuilder();
-        final String queryCol =
-            queryItem.isNumeric()
-                ? castToNumber(teaValueCol + ".value")
-                : lower(teaValueCol + ".value");
-        final Object encodedFilter =
-            queryItem.isNumeric()
-                ? Double.valueOf(filter.getFilter())
-                : StringUtils.lowerCase(filter.getSqlFilter(filter.getFilter()));
-        filterString
-            .append(queryCol)
-            .append(SPACE)
-            .append(filter.getSqlOperator())
-            .append(SPACE)
-            .append(encodedFilter);
-        filterStrings.add(filterString.toString());
-      }
-      query.append(String.join(AND, filterStrings));
+    List<String> filterStrings = new ArrayList<>();
+    for (QueryFilter filter : filters) {
+      StringBuilder filterString = new StringBuilder();
+      final String queryCol =
+          isNumericTea ? castToNumber(teaValueCol + ".value") : lower(teaValueCol + ".value");
+      final Object encodedFilter =
+          isNumericTea
+              ? Double.valueOf(filter.getFilter())
+              : StringUtils.lowerCase(filter.getSqlFilter(filter.getFilter()));
+      filterString
+          .append(queryCol)
+          .append(SPACE)
+          .append(filter.getSqlOperator())
+          .append(SPACE)
+          .append(encodedFilter);
+      filterStrings.add(filterString.toString());
+    }
+    query.append(String.join(AND, filterStrings));
 
-      if (queryItem.isNumeric()) {
-        query.append(" END ");
-      }
+    if (isNumericTea) {
+      query.append(" END ");
     }
 
     return query.toString();
@@ -652,12 +653,13 @@ public class JdbcEventStore implements EventStore {
             .append("coc_agg.co_uids AS co_uids, ")
             .append("coc_agg.co_count AS option_size, ");
 
-    for (OrderParam orderParam : params.getAttributeOrders()) {
-      selectBuilder
-          .append(quote(orderParam.getField()))
-          .append(".value AS ")
-          .append(orderParam.getField())
-          .append("_value, ");
+    for (Order order : params.getOrder()) {
+      if (order.getField() instanceof TrackedEntityAttribute tea)
+        selectBuilder
+            .append(quote(tea.getUid()))
+            .append(".value AS ")
+            .append(tea.getUid())
+            .append("_value, ");
     }
 
     return selectBuilder
@@ -720,8 +722,8 @@ public class JdbcEventStore implements EventStore {
             "left join organisationunit teou on (te.organisationunitid=teou.organisationunitid) ")
         .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
-    if (!params.getFilterAttributes().isEmpty()) {
-      joinAttributeValueWithoutQueryParameter(fromBuilder, params.getFilterAttributes());
+    if (!params.getAttributes().isEmpty()) {
+      joinAttributeValueWithoutQueryParameter(fromBuilder, params.getAttributes());
     }
 
     fromBuilder.append(getCategoryOptionComboQuery(user));
@@ -878,7 +880,9 @@ public class JdbcEventStore implements EventStore {
 
     fromBuilder.append(eventStatusSql(params, mapSqlParameterSource, hlp));
 
-    if (params.getEvents() != null && !params.getEvents().isEmpty() && !params.hasFilters()) {
+    if (params.getEvents() != null
+        && !params.getEvents().isEmpty()
+        && !params.hasDataElementFilter()) {
       mapSqlParameterSource.addValue("ev_uid", params.getEvents());
 
       fromBuilder.append(hlp.whereAnd()).append(" (ev.uid in (").append(":ev_uid").append(")) ");
@@ -965,25 +969,30 @@ public class JdbcEventStore implements EventStore {
     StringBuilder eventDataValuesWhereSql = new StringBuilder();
     Set<String> joinedColumns = new HashSet<>();
 
-    for (QueryItem item : params.getDataElementsAndFilters()) {
+    for (Entry<DataElement, List<QueryFilter>> item : params.getDataElements().entrySet()) {
       ++filterCount;
 
-      final String itemId = item.getItemId();
+      DataElement de = item.getKey();
+      List<QueryFilter> filters = item.getValue();
+      final String deUid = de.getUid();
 
-      final String dataValueValueSql = "ev.eventdatavalues #>> '{" + itemId + ", value}'";
+      final String dataValueValueSql = "ev.eventdatavalues #>> '{" + deUid + ", value}'";
 
       selectBuilder
           .append(", ")
-          .append(item.isNumeric() ? castToNumber(dataValueValueSql) : lower(dataValueValueSql))
+          .append(
+              de.getValueType().isNumeric()
+                  ? castToNumber(dataValueValueSql)
+                  : lower(dataValueValueSql))
           .append(" as ")
-          .append(itemId);
+          .append(deUid);
 
       String optValueTableAs = "opt_" + filterCount;
 
-      if (!joinedColumns.contains(itemId) && item.hasOptionSet() && item.hasFilter()) {
+      if (!joinedColumns.contains(deUid) && de.hasOptionSet() && !filters.isEmpty()) {
         String optSetBind = "optset_" + filterCount;
 
-        mapSqlParameterSource.addValue(optSetBind, item.getOptionSet().getId());
+        mapSqlParameterSource.addValue(optSetBind, de.getOptionSet().getId());
 
         optionValueJoinBuilder
             .append("inner join optionvalue as ")
@@ -1000,20 +1009,22 @@ public class JdbcEventStore implements EventStore {
             .append(optSetBind)
             .append(" ");
 
-        joinedColumns.add(itemId);
+        joinedColumns.add(deUid);
       }
 
-      if (item.hasFilter()) {
-        for (QueryFilter filter : item.getFilters()) {
+      if (!filters.isEmpty()) {
+        for (QueryFilter filter : filters) {
           ++filterCount;
 
           final String queryCol =
-              item.isNumeric() ? castToNumber(dataValueValueSql) : lower(dataValueValueSql);
+              de.getValueType().isNumeric()
+                  ? castToNumber(dataValueValueSql)
+                  : lower(dataValueValueSql);
 
           String bindParameter = "parameter_" + filterCount;
-          int itemType = item.isNumeric() ? Types.NUMERIC : Types.VARCHAR;
+          int itemType = de.getValueType().isNumeric() ? Types.NUMERIC : Types.VARCHAR;
 
-          if (!item.hasOptionSet()) {
+          if (!de.hasOptionSet()) {
             eventDataValuesWhereSql.append(hlp.whereAnd());
 
             if (QueryOperator.IN.getValue().equalsIgnoreCase(filter.getSqlOperator())) {
@@ -1231,15 +1242,26 @@ public class JdbcEventStore implements EventStore {
   private String getOrderQuery(EventSearchParams params) {
     ArrayList<String> orderFields = new ArrayList<>();
 
-    for (OrderParam order : params.getOrders()) {
-      if (ORDERABLE_FIELDS.containsKey(order.getField())) {
-        String orderText = ORDERABLE_FIELDS.get(order.getField());
-        orderText += " " + (order.getDirection().isAscending() ? "asc" : "desc");
-        orderFields.add(orderText);
-      } else if (params.getAttributeOrders().contains(order)) {
-        orderFields.add(order.getField() + "_value " + order.getDirection());
-      } else if (params.getGridOrders().contains(order)) {
-        orderFields.add(getDataElementsOrder(params.getDataElements(), order));
+    for (Order order : params.getOrder()) {
+      if (order.getField() instanceof String field) {
+        if (!ORDERABLE_FIELDS.containsKey(field)) {
+          throw new IllegalArgumentException(
+              String.format(
+                  "Cannot order by '%s'. Supported are data elements, tracked entity attributes and fields '%s'.",
+                  field, String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
+        }
+
+        orderFields.add(ORDERABLE_FIELDS.get(field) + " " + order.getDirection());
+      } else if (order.getField() instanceof TrackedEntityAttribute tea) {
+        orderFields.add(tea.getUid() + "_value " + order.getDirection());
+      } else if (order.getField() instanceof DataElement de) {
+        orderFields.add(de.getUid() + " " + order.getDirection());
+      } else {
+        throw new IllegalArgumentException(
+            String.format(
+                "Cannot order by '%s'. Supported are data elements, tracked entity attributes and fields '%s'.",
+                order.getField(),
+                String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
       }
     }
 
@@ -1248,16 +1270,6 @@ public class JdbcEventStore implements EventStore {
     } else {
       return "order by ev_lastupdated desc ";
     }
-  }
-
-  private String getDataElementsOrder(Set<QueryItem> dataElements, OrderParam order) {
-    for (QueryItem item : dataElements) {
-      if (order.getField().equals(item.getItemId())) {
-        return order.getField() + " " + order.getDirection();
-      }
-    }
-
-    return "";
   }
 
   private String getAttributeValueQuery() {
