@@ -113,7 +113,7 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor {
     for (Relationship relationship : bundle.getRelationships()) {
       RelationshipType relationshipType =
           bundle.getPreheat().getRelationshipType(relationship.getRelationshipType());
-      if (relationshipType == null
+      if (isInvalidRelationship(relationship, relationshipType)
           || !isDuplicate(relationship, relationshipType, distinctRelationships)) {
         distinctRelationships.add(relationship);
       }
@@ -128,17 +128,19 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor {
       List<Relationship> distinctRelationships) {
     List<RelationshipKey> relationshipKeys =
         distinctRelationships.stream().map(r -> getRelationshipKey(r, relationshipType)).toList();
-    if (hasRelationshipKey(relationship, relationshipType)) {
-      RelationshipKey relationshipKey = getRelationshipKey(relationship, relationshipType);
+    RelationshipKey relationshipKey = getRelationshipKey(relationship, relationshipType);
 
-      RelationshipKey inverseKey = null;
-      if (relationshipType.isBidirectional()) {
-        inverseKey = relationshipKey.inverseKey();
-      }
-      return Stream.of(relationshipKey, inverseKey)
-          .filter(Objects::nonNull)
-          .anyMatch(relationshipKeys::contains);
+    RelationshipKey inverseKey = null;
+    if (relationshipType.isBidirectional()) {
+      inverseKey = relationshipKey.inverseKey();
     }
-    return false;
+    return Stream.of(relationshipKey, inverseKey)
+        .filter(Objects::nonNull)
+        .anyMatch(relationshipKeys::contains);
+  }
+
+  public boolean isInvalidRelationship(
+      Relationship relationship, RelationshipType relationshipType) {
+    return relationshipType == null || !hasRelationshipKey(relationship, relationshipType);
   }
 }
