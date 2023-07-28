@@ -501,6 +501,7 @@ public class UserController
         credentialsReplica.setUid( CodeGenerator.generateUid() );
         credentialsReplica.setCode( null );
         credentialsReplica.setCreated( new Date() );
+        credentialsReplica.setCreatedBy(currentUser);
         credentialsReplica.setLdapId( null );
         credentialsReplica.setOpenId( null );
         credentialsReplica.setLastLogin( null );
