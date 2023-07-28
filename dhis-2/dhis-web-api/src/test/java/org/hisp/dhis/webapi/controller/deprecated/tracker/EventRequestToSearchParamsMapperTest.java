@@ -27,10 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.deprecated.tracker;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.common.AccessLevel.CLOSED;
 import static org.hisp.dhis.common.AccessLevel.OPEN;
 import static org.hisp.dhis.common.AccessLevel.PROTECTED;
@@ -39,20 +35,19 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.HashSet;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams;
@@ -173,28 +168,8 @@ class EventRequestToSearchParamsMapperTest {
     assertStartsWith("ouMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
   }
 
-  @Test
-  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeSelected() {
-    EventSearchParams eventSearchParams = map(SELECTED);
-
-    assertEquals(SELECTED, eventSearchParams.getOrgUnitSelectionMode());
-  }
-
-  @Test
-  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeDescendants() {
-    EventSearchParams eventSearchParams = map(DESCENDANTS);
-
-    assertEquals(DESCENDANTS, eventSearchParams.getOrgUnitSelectionMode());
-  }
-
-  @Test
-  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeChildren() {
-    EventSearchParams eventSearchParams = map(CHILDREN);
-
-    assertEquals(CHILDREN, eventSearchParams.getOrgUnitSelectionMode());
-  }
-
-  private EventSearchParams map(OrganisationUnitSelectionMode orgUnitMode) {
+  private EventSearchParams map(OrganisationUnitSelectionMode orgUnitMode)
+      throws ForbiddenException {
     return requestToSearchParamsMapper.map(
         "programuid",
         null,
@@ -230,7 +205,6 @@ class EventRequestToSearchParamsMapperTest {
         false,
         false);
   }
-
 
   @Test
   void shouldMapCaptureScopeOrgUnitWhenProgramProtectedAndOuModeDescendants()
@@ -442,7 +416,6 @@ class EventRequestToSearchParamsMapperTest {
 
     EventCriteria eventCriteria = new EventCriteria();
     eventCriteria.setProgram(program.getUid());
-    eventCriteria.setOrgUnit(orgUnit.getUid());
     eventCriteria.setOuMode(CAPTURE);
 
     EventSearchParams searchParams = requestToSearchParamsMapper.map(eventCriteria);
@@ -463,7 +436,6 @@ class EventRequestToSearchParamsMapperTest {
 
     EventCriteria eventCriteria = new EventCriteria();
     eventCriteria.setProgram(program.getUid());
-    eventCriteria.setOrgUnit(orgUnit.getUid());
     eventCriteria.setOuMode(ACCESSIBLE);
 
     EventSearchParams searchParams = requestToSearchParamsMapper.map(eventCriteria);
