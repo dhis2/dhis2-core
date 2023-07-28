@@ -83,10 +83,15 @@ public class Enrollment implements TrackerDto {
   @JsonProperty private User updatedBy;
 
   @JsonProperty int index;
+
   @JsonProperty private Geometry geometry;
+
   @JsonProperty @Builder.Default private List<Event> events = new ArrayList<>();
+
   @JsonProperty @Builder.Default private List<Relationship> relationships = new ArrayList<>();
+
   @JsonProperty @Builder.Default private List<Attribute> attributes = new ArrayList<>();
+
   @JsonProperty @Builder.Default private List<Note> notes = new ArrayList<>();
 
   @Override
