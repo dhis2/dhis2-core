@@ -44,9 +44,6 @@ public class TrackerObjectReport {
   /** Type of object this {@link TrackerObjectReport} represents. */
   @JsonProperty private final TrackerType trackerType;
 
-  /** Index into list. */
-  @JsonProperty private Integer index;
-
   /** UID of object (if object is id object). */
   @JsonProperty private String uid;
 
@@ -56,21 +53,18 @@ public class TrackerObjectReport {
     this.trackerType = trackerType;
   }
 
-  public TrackerObjectReport(TrackerType trackerType, String uid, Integer index) {
+  public TrackerObjectReport(TrackerType trackerType, String uid) {
     this.trackerType = trackerType;
     this.uid = uid;
-    this.index = index;
   }
 
   @JsonCreator
   public TrackerObjectReport(
       @JsonProperty("trackerType") TrackerType trackerType,
       @JsonProperty("uid") String uid,
-      @JsonProperty("index") Integer index,
       @JsonProperty("errorReports") List<TrackerErrorReport> errorReports) {
     this.trackerType = trackerType;
     this.uid = uid;
-    this.index = index;
     if (errorReports != null) {
       List<TrackerErrorReport> errorCodeReportList;
       for (TrackerErrorReport errorReport : errorReports) {
