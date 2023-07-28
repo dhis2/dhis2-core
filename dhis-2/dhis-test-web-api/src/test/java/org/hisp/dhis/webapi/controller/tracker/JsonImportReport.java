@@ -25,55 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.report;
+package org.hisp.dhis.webapi.controller.tracker;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.Data;
-import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.webapi.json.domain.JsonStats;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Data
-public class Entity {
-  @JsonProperty private final TrackerType trackerType;
-
-  @JsonIgnore private int index;
-
-  @JsonProperty private String uid;
-
-  private List<Error> errorReports = new ArrayList<>();
-
-  public Entity(TrackerType trackerType) {
-    this.trackerType = trackerType;
+/** Web API equivalent of an {@link ImportReport}. */
+public interface JsonImportReport extends JsonObject {
+  default String getMessage() {
+    return getString("message").string();
   }
 
-  public Entity(TrackerType trackerType, String uid, int index) {
-    this.trackerType = trackerType;
-    this.uid = uid;
-    this.index = index;
+  default String getStatus() {
+    return getString("status").string();
   }
 
-  @JsonCreator
-  public Entity(
-      @JsonProperty("trackerType") TrackerType trackerType,
-      @JsonProperty("uid") String uid,
-      @JsonProperty("index") int index,
-      @JsonProperty("errorReports") List<Error> errorReports) {
-    this.trackerType = trackerType;
-    this.uid = uid;
-    this.index = index;
-    if (errorReports != null) {
-      this.errorReports = errorReports;
-    }
+  default JsonStats getStats() {
+    return get("stats", JsonStats.class);
   }
 
-  @JsonProperty
-  public List<Error> getErrorReports() {
-    return this.errorReports;
+  default JsonBundleReport getBundleReport() {
+    return get("bundleReport", JsonBundleReport.class);
   }
 }

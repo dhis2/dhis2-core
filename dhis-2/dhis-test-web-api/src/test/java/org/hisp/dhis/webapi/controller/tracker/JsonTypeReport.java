@@ -25,55 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.report;
+package org.hisp.dhis.webapi.controller.tracker;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.Data;
-import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Data
-public class Entity {
-  @JsonProperty private final TrackerType trackerType;
+/** Web API equivalent of a {@link TrackerTypeReport}. */
+public interface JsonTypeReport extends JsonObject {
 
-  @JsonIgnore private int index;
-
-  @JsonProperty private String uid;
-
-  private List<Error> errorReports = new ArrayList<>();
-
-  public Entity(TrackerType trackerType) {
-    this.trackerType = trackerType;
-  }
-
-  public Entity(TrackerType trackerType, String uid, int index) {
-    this.trackerType = trackerType;
-    this.uid = uid;
-    this.index = index;
-  }
-
-  @JsonCreator
-  public Entity(
-      @JsonProperty("trackerType") TrackerType trackerType,
-      @JsonProperty("uid") String uid,
-      @JsonProperty("index") int index,
-      @JsonProperty("errorReports") List<Error> errorReports) {
-    this.trackerType = trackerType;
-    this.uid = uid;
-    this.index = index;
-    if (errorReports != null) {
-      this.errorReports = errorReports;
-    }
-  }
-
-  @JsonProperty
-  public List<Error> getErrorReports() {
-    return this.errorReports;
+  default JsonList<JsonEntity> getEntityReport() {
+    return getList("objectReports", JsonEntity.class);
   }
 }
