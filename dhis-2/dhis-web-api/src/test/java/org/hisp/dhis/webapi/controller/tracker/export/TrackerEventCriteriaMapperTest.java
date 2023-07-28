@@ -993,7 +993,6 @@ class TrackerEventCriteriaMapperTest {
 
     TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
     eventCriteria.setProgram(program.getUid());
-    eventCriteria.setOrgUnit(orgUnit.getUid());
     eventCriteria.setOuMode(CAPTURE);
 
     EventSearchParams searchParams = mapper.map(eventCriteria);
@@ -1015,7 +1014,6 @@ class TrackerEventCriteriaMapperTest {
 
     TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
     eventCriteria.setProgram(program.getUid());
-    eventCriteria.setOrgUnit(orgUnit.getUid());
     eventCriteria.setOuMode(ACCESSIBLE);
 
     EventSearchParams searchParams = mapper.map(eventCriteria);
@@ -1113,6 +1111,32 @@ class TrackerEventCriteriaMapperTest {
         Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
+    TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+    eventCriteria.setOrgUnit(orgUnit.getUid());
+    eventCriteria.setOuMode(ACCESSIBLE);
+
+    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(eventCriteria));
+
+    assertEquals(
+        "Org unit mode ACCESSIBLE cannot be used with an org unit specified. Please remove the org unit and try again.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
+    TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+    eventCriteria.setOrgUnit(orgUnit.getUid());
+    eventCriteria.setOuMode(CAPTURE);
+
+    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(eventCriteria));
+
+    assertEquals(
+        "Org unit mode CAPTURE cannot be used with an org unit specified. Please remove the org unit and try again.",
+        exception.getMessage());
   }
 
   private OrganisationUnit createOrgUnit(String name, String uid) {

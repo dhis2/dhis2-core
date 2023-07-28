@@ -41,6 +41,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -48,6 +49,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
@@ -66,7 +68,6 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -269,7 +270,7 @@ class EventRequestToSearchParamsMapperTest {
     eventCriteria.setOuMode(DESCENDANTS);
 
     ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
+        assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
@@ -293,7 +294,7 @@ class EventRequestToSearchParamsMapperTest {
         .thenReturn(orgUnitDescendants);
 
     ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
+        assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
@@ -364,7 +365,7 @@ class EventRequestToSearchParamsMapperTest {
     eventCriteria.setOuMode(CHILDREN);
 
     ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
+        assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
@@ -386,7 +387,7 @@ class EventRequestToSearchParamsMapperTest {
     eventCriteria.setOuMode(CHILDREN);
 
     ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
+        assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
@@ -519,9 +520,48 @@ class EventRequestToSearchParamsMapperTest {
     eventCriteria.setOrgUnit(orgUnit.getUid());
 
     ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
+        assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
+    EventCriteria eventCriteria = new EventCriteria();
+    eventCriteria.setOrgUnit(orgUnit.getUid());
+    eventCriteria.setOuMode(ACCESSIBLE);
+
+    Exception exception =
+        assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
+
+    assertEquals(
+        "Org unit mode ACCESSIBLE cannot be used with an org unit specified. Please remove the org unit and try again.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
+    EventCriteria eventCriteria = new EventCriteria();
+    eventCriteria.setOrgUnit(orgUnit.getUid());
+    eventCriteria.setOuMode(CAPTURE);
+
+    Exception exception =
+        assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
+
+    assertEquals(
+        "Org unit mode CAPTURE cannot be used with an org unit specified. Please remove the org unit and try again.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeSelected() throws ForbiddenException {
+    EventCriteria eventCriteria = new EventCriteria();
+    eventCriteria.setOrgUnit(orgUnit.getUid());
+    eventCriteria.setOuMode(SELECTED);
+
+    EventSearchParams eventSearchParams = mapper.map(eventCriteria);
+
+    assertEquals(SELECTED, eventSearchParams.getOrgUnitSelectionMode());
   }
 
   private OrganisationUnit createOrgUnit(String name, String uid) {
