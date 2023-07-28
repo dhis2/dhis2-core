@@ -115,9 +115,12 @@ public class EventSearchParams {
 
   private Boolean followUp;
 
-  private OrganisationUnit orgUnit;
+  private List<OrganisationUnit> accessibleOrgUnits = new ArrayList<>();
 
-  private OrganisationUnitSelectionMode orgUnitSelectionMode;
+  // TODO Default set to DESCENDANTS to replicate master, but this will need to be fixed in
+  // https://dhis2.atlassian.net/browse/TECH-1588
+  private OrganisationUnitSelectionMode orgUnitSelectionMode =
+      OrganisationUnitSelectionMode.DESCENDANTS;
 
   private TrackedEntity trackedEntity;
 
@@ -331,12 +334,12 @@ public class EventSearchParams {
     return this;
   }
 
-  public OrganisationUnit getOrgUnit() {
-    return orgUnit;
+  public List<OrganisationUnit> getAccessibleOrgUnits() {
+    return accessibleOrgUnits;
   }
 
-  public EventSearchParams setOrgUnit(OrganisationUnit orgUnit) {
-    this.orgUnit = orgUnit;
+  public EventSearchParams setAccessibleOrgUnits(List<OrganisationUnit> accessibleOrgUnits) {
+    this.accessibleOrgUnits = accessibleOrgUnits;
     return this;
   }
 
