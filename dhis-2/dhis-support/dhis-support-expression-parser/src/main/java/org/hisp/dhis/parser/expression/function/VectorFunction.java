@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.parser.expression.function;
 
-import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
 import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
 import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
@@ -37,11 +37,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import org.hisp.dhis.common.DimensionalItemId;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.expression.ExpressionInfo;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
@@ -49,11 +48,21 @@ import org.hisp.dhis.parser.expression.ExpressionState;
 import org.hisp.dhis.period.Period;
 
 /**
- * Aggregates a vector of samples (base class).
+ * Aggregates a vector of samples (base class) of a given type.
  *
  * @author Jim Grace
  */
-public abstract class VectorFunction implements ExpressionItem {
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
+public abstract class VectorFunction<T> implements ExpressionItem {
+
+  /**
+   * This is the class of the type argument from any subclass that defines the type. At the time of
+   * this writing Java does not provide an easy way to find this class by introspection. It is
+   * possible but involves quite a bit of code. The easiest way is to have each of the subclasses
+   * pass the class of the type argument when creating an instance of a given type.
+   */
+  private final Class<T> typeClass;
+
   @Override
   public Object getExpressionInfo(ExprContext ctx, CommonExpressionVisitor visitor) {
     // ItemIds in all but last expr (if any) are from current period.
@@ -62,36 +71,37 @@ public abstract class VectorFunction implements ExpressionItem {
       visitor.visitExpr(ctx.expr().get(i));
     }
 
-    // ItemIds in the last (or only) expr are from sampled periods.
-
-    ExpressionInfo info = visitor.getInfo();
-
-    Set<DimensionalItemId> savedItemIds = info.getItemIds();
-    info.setItemIds(info.getSampleItemIds());
-
-    Object result = visitor.visitExpr(ctx.expr().get(ctx.expr().size() - 1));
-
-    info.setSampleItemIds(info.getItemIds());
-    info.setItemIds(savedItemIds);
-
-    return castDouble(result);
+    return visitor.visitSamples(ctx.expr().get(ctx.expr().size() - 1));
   }
 
   @Override
   public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
-    List<Double> args = new ArrayList<>();
+    List<T> args = new ArrayList<>();
 
     // All but last expr (if any) are from current period.
 
     for (int i = 0; i < ctx.expr().size() - 1; i++) {
-      args.add(castDouble(visitor.visitExpr(ctx.expr().get(i))));
+      args.add(castToType(visitor.visitExpr(ctx.expr().get(i))));
     }
 
     // Last (or only) expr is from sampled periods.
 
     ExprContext lastExpr = ctx.expr().get(ctx.expr().size() - 1);
 
-    List<Double> values = getSampleValues(lastExpr, visitor);
+    return compute(lastExpr, visitor, args);
+  }
+
+  /**
+   * Computes a vector (aggregation) function. This is exposed to enable other functions to call an
+   * aggregation function if needed for their calculation.
+   *
+   * @param expr the expression as argument to the vector function
+   * @param visitor the tree visitor
+   * @param args any other function args (if any)
+   * @return the vector function value
+   */
+  public Object compute(ExprContext expr, CommonExpressionVisitor visitor, List<T> args) {
+    List<T> values = getSampleValues(expr, visitor);
 
     return vectorHandleNulls(aggregate(values, args), visitor);
   }
@@ -116,7 +126,7 @@ public abstract class VectorFunction implements ExpressionItem {
    * @param args the arguments (if any) for aggregating the values.
    * @return the aggregated value.
    */
-  public abstract Object aggregate(List<Double> values, List<Double> args);
+  public abstract Object aggregate(List<T> values, List<T> args);
 
   /**
    * Gets a list of sample values to aggregate.
@@ -131,13 +141,13 @@ public abstract class VectorFunction implements ExpressionItem {
    * in the main expression is incremented. This means that if the vector is empty, it counts as a
    * missing value in the main expression.
    */
-  private List<Double> getSampleValues(ExprContext ctx, CommonExpressionVisitor visitor) {
+  private List<T> getSampleValues(ExprContext ctx, CommonExpressionVisitor visitor) {
     ExpressionState state = visitor.getState();
 
     int savedItemsFound = state.getItemsFound();
     int savedItemValuesFound = state.getItemValuesFound();
 
-    List<Double> values = visitSampledPeriods(ctx, visitor);
+    List<T> values = visitSampledPeriods(ctx, visitor);
 
     if (state.getItemsFound() > 0) {
       savedItemsFound++;
@@ -154,11 +164,11 @@ public abstract class VectorFunction implements ExpressionItem {
   }
 
   /** Visits each of the sample periods and compiles a list of the double values produced. */
-  private List<Double> visitSampledPeriods(ExprContext ctx, CommonExpressionVisitor visitor) {
+  private List<T> visitSampledPeriods(ExprContext ctx, CommonExpressionVisitor visitor) {
     ExpressionParams params = visitor.getParams();
     ExpressionState state = visitor.getState();
 
-    List<Double> values = new ArrayList<>();
+    List<T> values = new ArrayList<>();
 
     for (Period p : params.getSamplePeriods()) {
       state.setItemsFound(0);
@@ -167,7 +177,7 @@ public abstract class VectorFunction implements ExpressionItem {
       Map<DimensionalItemObject, Object> valueMap =
           firstNonNull(params.getPeriodValueMap().get(p), Collections.emptyMap());
 
-      Double value = visitWithValueMap(ctx, visitor, valueMap);
+      T value = visitWithValueMap(ctx, visitor, valueMap);
 
       if ((params.getMissingValueStrategy() == SKIP_IF_ANY_VALUE_MISSING
               && state.getItemValuesFound() < state.getItemsFound())
@@ -186,7 +196,7 @@ public abstract class VectorFunction implements ExpressionItem {
   }
 
   /** Visits a subtree with an explicit valueMap. */
-  private Double visitWithValueMap(
+  private T visitWithValueMap(
       ExprContext ctx,
       CommonExpressionVisitor visitor,
       Map<DimensionalItemObject, Object> valueMap) {
@@ -196,10 +206,16 @@ public abstract class VectorFunction implements ExpressionItem {
 
     visitor.setParams(params);
 
-    Double value = castDouble(visitor.visit(ctx));
+    T value = castToType(visitor.visit(ctx));
 
     visitor.setParams(savedParams);
 
     return value;
+  }
+
+  /** Casts to the type class. */
+  @SuppressWarnings("unchecked")
+  private T castToType(Object object) {
+    return (T) castClass(typeClass, object);
   }
 }
