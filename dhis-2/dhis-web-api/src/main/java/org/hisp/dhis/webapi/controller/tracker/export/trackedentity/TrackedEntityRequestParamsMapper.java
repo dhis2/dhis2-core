@@ -28,13 +28,12 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryFilter;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrgUnitParams;
 
 import java.util.List;
 import java.util.Objects;
@@ -142,17 +141,5 @@ class TrackedEntityRequestParamsMapper {
         .orders(requestParams.getOrder())
         .trackedEntityParams(fieldsParamMapper.map(fields))
         .build();
-  }
-
-  private void validateOrgUnitParams(Set<UID> orgUnits, OrganisationUnitSelectionMode orgUnitMode)
-      throws BadRequestException {
-    if (orgUnits != null
-        && !orgUnits.isEmpty()
-        && (orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE)) {
-      throw new BadRequestException(
-          String.format(
-              "Org unit mode %s cannot be used with an org unit specified. Please remove the org unit and try again.",
-              orgUnitMode));
-    }
   }
 }

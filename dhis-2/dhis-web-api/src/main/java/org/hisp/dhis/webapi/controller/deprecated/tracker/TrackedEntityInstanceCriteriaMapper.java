@@ -338,7 +338,7 @@ public class TrackedEntityInstanceCriteriaMapper {
     if (!orgUnits.isEmpty() && (ouMode == ACCESSIBLE || ouMode == CAPTURE)) {
       throw new IllegalQueryException(
           String.format(
-              "Org unit mode %s cannot be used with an org unit specified. Please remove the org unit and try again.",
+              "ouMode %s cannot be used with orgUnits. Please remove the ou parameter and try again.",
               ouMode));
     }
   }

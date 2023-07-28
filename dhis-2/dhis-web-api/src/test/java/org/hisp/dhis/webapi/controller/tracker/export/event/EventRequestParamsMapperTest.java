@@ -444,6 +444,21 @@ class EventRequestParamsMapperTest {
   }
 
   @Test
+  void shouldThrowWhenOrderParameterContainsRepeatedOrderComponents() {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrder(
+        OrderCriteria.fromOrderString(
+            "zGlzbfreTOH,createdAt:asc,enrolledAt:asc,enrolledAt,zGlzbfreTOH"));
+
+    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+    assertAll(
+        () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
+        // order of fields might not always be the same; therefore using contains
+        () -> assertContains("enrolledAt", exception.getMessage()),
+        () -> assertContains("zGlzbfreTOH", exception.getMessage()));
+  }
+
+  @Test
   void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
     RequestParams requestParams = new RequestParams();
     requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
@@ -451,9 +466,8 @@ class EventRequestParamsMapperTest {
 
     Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
 
-    assertEquals(
-        "Org unit mode ACCESSIBLE cannot be used with an org unit specified. Please remove the org unit and try again.",
-        exception.getMessage());
+    assertStartsWith(
+        "orgUnitMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
   }
 
   @Test
@@ -464,9 +478,7 @@ class EventRequestParamsMapperTest {
 
     Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
 
-    assertEquals(
-        "Org unit mode CAPTURE cannot be used with an org unit specified. Please remove the org unit and try again.",
-        exception.getMessage());
+    assertStartsWith("orgUnitMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
   }
 
   @Test
@@ -501,19 +513,5 @@ class EventRequestParamsMapperTest {
     EventOperationParams eventOperationParams = mapper.map(requestParams);
 
     assertEquals(CHILDREN, eventOperationParams.getOrgUnitMode());
-
-  @Test
-  void shouldThrowWhenOrderParameterContainsRepeatedOrderComponents() {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrder(
-        OrderCriteria.fromOrderString(
-            "zGlzbfreTOH,createdAt:asc,enrolledAt:asc,enrolledAt,zGlzbfreTOH"));
-
-    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
-    assertAll(
-        () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
-        // order of fields might not always be the same; therefore using contains
-        () -> assertContains("enrolledAt", exception.getMessage()),
-        () -> assertContains("zGlzbfreTOH", exception.getMessage()));
   }
 }

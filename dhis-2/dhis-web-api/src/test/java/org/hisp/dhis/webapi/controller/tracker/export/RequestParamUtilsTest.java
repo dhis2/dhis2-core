@@ -27,9 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryItem;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrgUnitParams;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -37,10 +45,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.OperationParamUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +63,8 @@ class RequestParamUtilsTest {
   private static final String TEA_1_UID = "TvjwTPToKHO";
 
   private static final String TEA_2_UID = "cy2oRh2sNr6";
+
+  private static final OrganisationUnit orgUnit = new OrganisationUnit();
 
   private Map<String, TrackedEntityAttribute> attributes;
 
@@ -161,5 +174,41 @@ class RequestParamUtilsTest {
     TrackedEntityAttribute tea = new TrackedEntityAttribute();
     tea.setUid(uid);
     return tea;
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> validateOrgUnitParams(Set.of(UID.of(orgUnit.getUid())), ACCESSIBLE));
+
+    assertStartsWith(
+        "orgUnitMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> validateOrgUnitParams(Set.of(UID.of(orgUnit.getUid())), CAPTURE));
+
+    assertStartsWith("orgUnitMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeSelected() {
+    assertDoesNotThrow(() -> validateOrgUnitParams(Set.of(UID.of(orgUnit.getUid())), SELECTED));
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeDescendants() {
+    assertDoesNotThrow(() -> validateOrgUnitParams(Set.of(UID.of(orgUnit.getUid())), DESCENDANTS));
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeChildren() {
+    assertDoesNotThrow(() -> validateOrgUnitParams(Set.of(UID.of(orgUnit.getUid())), CHILDREN));
   }
 }
