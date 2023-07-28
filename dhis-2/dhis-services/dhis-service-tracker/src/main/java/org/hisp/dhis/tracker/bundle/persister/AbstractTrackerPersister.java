@@ -101,13 +101,8 @@ public abstract class AbstractTrackerPersister<
 
     Set<String> updatedTeiList = bundle.getUpdatedTeis();
 
-    for (int idx = 0; idx < dtos.size(); idx++) {
-      //
-      // Create the Report for the entity being persisted
-      //
-      final T trackerDto = dtos.get(idx);
-
-      Entity objectReport = new Entity(getType(), trackerDto.getUid(), idx);
+    for (T trackerDto : dtos) {
+      Entity objectReport = new Entity(getType(), trackerDto.getUid());
 
       try {
         //

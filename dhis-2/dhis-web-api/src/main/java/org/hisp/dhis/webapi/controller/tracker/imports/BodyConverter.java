@@ -29,9 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import com.fasterxml.jackson.databind.util.StdConverter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
@@ -94,38 +92,31 @@ class BodyConverter extends StdConverter<Body, Body> {
    */
   @Override
   public Body convert(Body body) {
-    Map<String, TrackedEntity> trackedEntityMap = new HashMap<>();
-    Map<String, Enrollment> enrollmentHashMap = new HashMap<>();
-    Map<String, Event> eventHashMap = new HashMap<>();
-    Map<String, Relationship> relationshipHashMap = new HashMap<>();
+    List<TrackedEntity> trackedEntities = new ArrayList<>();
+    List<Enrollment> enrollments = new ArrayList<>();
+    List<Event> events = new ArrayList<>();
+    List<Relationship> relationships = new ArrayList<>();
 
     // Extract all enrollments and relationships, and set parent reference.
     for (TrackedEntity te : body.getTrackedEntities()) {
       updateTrackedEntityReferences(te);
-      trackedEntityMap.put(te.getTrackedEntity(), te);
+      trackedEntities.add(te);
 
-      extractEnrollments(te)
-          .forEach(enrollment -> enrollmentHashMap.put(enrollment.getEnrollment(), enrollment));
+      enrollments.addAll(extractEnrollments(te));
 
-      extractRelationships(te)
-          .forEach(
-              relationship ->
-                  relationshipHashMap.put(relationship.getRelationship(), relationship));
+      relationships.addAll(extractRelationships(te));
     }
 
     // Set UID for all enrollments and notes
     body.getEnrollments().stream()
         .map(enrollment -> updateEnrollmentReferences(enrollment, enrollment.getTrackedEntity()))
-        .forEach(enrollment -> enrollmentHashMap.put(enrollment.getEnrollment(), enrollment));
+        .forEach(enrollments::add);
 
     // Extract all events and relationships, and set parent references
-    for (Enrollment enrollment : enrollmentHashMap.values()) {
-      extractEvents(enrollment).forEach(event -> eventHashMap.put(event.getEvent(), event));
+    for (Enrollment enrollment : enrollments) {
+      events.addAll(extractEvents(enrollment));
 
-      extractRelationships(enrollment)
-          .forEach(
-              relationship ->
-                  relationshipHashMap.put(relationship.getRelationship(), relationship));
+      relationships.addAll(extractRelationships(enrollment));
 
       enrollment.setNotes(
           enrollment.getNotes().stream()
@@ -137,14 +128,11 @@ class BodyConverter extends StdConverter<Body, Body> {
     // Set UID for all events and notes
     body.getEvents().stream()
         .map(event -> updateEventReferences(event, event.getEnrollment()))
-        .forEach(event -> eventHashMap.put(event.getEvent(), event));
+        .forEach(events::add);
 
     // Extract all relationships
-    for (Event event : eventHashMap.values()) {
-      extractRelationships(event)
-          .forEach(
-              relationship ->
-                  relationshipHashMap.put(relationship.getRelationship(), relationship));
+    for (Event event : events) {
+      relationships.addAll(extractRelationships(event));
 
       event.setNotes(
           event.getNotes().stream()
@@ -156,14 +144,13 @@ class BodyConverter extends StdConverter<Body, Body> {
     // Set UID for all relationships
     body.getRelationships().stream()
         .map(this::updateRelationshipReferences)
-        .forEach(
-            relationship -> relationshipHashMap.put(relationship.getRelationship(), relationship));
+        .forEach(relationships::add);
 
     return Body.builder()
-        .trackedEntities(new ArrayList<>(trackedEntityMap.values()))
-        .enrollments(new ArrayList<>(enrollmentHashMap.values()))
-        .events(new ArrayList<>(eventHashMap.values()))
-        .relationships(new ArrayList<>(relationshipHashMap.values()))
+        .trackedEntities(trackedEntities)
+        .enrollments(enrollments)
+        .events(events)
+        .relationships(relationships)
         .build();
   }
 
@@ -309,11 +296,9 @@ class BodyConverter extends StdConverter<Body, Body> {
    * Updates uid of references in a trackedEntity
    *
    * @param trackedEntity the trackedEntity to check and update references for
-   * @return
    */
-  private TrackedEntity updateTrackedEntityReferences(TrackedEntity trackedEntity) {
+  private void updateTrackedEntityReferences(TrackedEntity trackedEntity) {
     trackedEntity.setTrackedEntity(updateReference(trackedEntity.getTrackedEntity()));
-    return trackedEntity;
   }
 
   /**

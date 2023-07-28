@@ -75,10 +75,10 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
     List<Enrollment> enrollments = bundle.getEnrollments();
 
-    for (int idx = 0; idx < enrollments.size(); idx++) {
-      String uid = enrollments.get(idx).getEnrollment();
+    for (Enrollment enrollment : enrollments) {
+      String uid = enrollment.getEnrollment();
 
-      Entity objectReport = new Entity(TrackerType.ENROLLMENT, uid, idx);
+      Entity objectReport = new Entity(TrackerType.ENROLLMENT, uid);
 
       ProgramInstance programInstance = programInstanceService.getProgramInstance(uid);
 
@@ -113,10 +113,10 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
     List<Event> events = bundle.getEvents();
 
-    for (int idx = 0; idx < events.size(); idx++) {
-      String uid = events.get(idx).getEvent();
+    for (Event event : events) {
+      String uid = event.getEvent();
 
-      Entity objectReport = new Entity(TrackerType.EVENT, uid, idx);
+      Entity objectReport = new Entity(TrackerType.EVENT, uid);
 
       ProgramStageInstance programStageInstance =
           programStageInstanceService.getProgramStageInstance(uid);
@@ -146,10 +146,10 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
     List<TrackedEntity> trackedEntities = bundle.getTrackedEntities();
 
-    for (int idx = 0; idx < trackedEntities.size(); idx++) {
-      String uid = trackedEntities.get(idx).getTrackedEntity();
+    for (TrackedEntity trackedEntity : trackedEntities) {
+      String uid = trackedEntity.getTrackedEntity();
 
-      Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid, idx);
+      Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid);
 
       org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance =
           teiService.getTrackedEntityInstance(uid);
@@ -183,10 +183,10 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
     List<Relationship> relationships = bundle.getRelationships();
 
-    for (int idx = 0; idx < relationships.size(); idx++) {
-      String uid = relationships.get(idx).getRelationship();
+    for (Relationship rel : relationships) {
+      String uid = rel.getRelationship();
 
-      Entity objectReport = new Entity(TrackerType.RELATIONSHIP, uid, idx);
+      Entity objectReport = new Entity(TrackerType.RELATIONSHIP, uid);
 
       org.hisp.dhis.relationship.Relationship relationship =
           relationshipService.getRelationship(uid);
