@@ -405,8 +405,6 @@
       "storedBy": "admin",
       "followup": false,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
@@ -418,7 +416,6 @@
         }
       ],
       "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
       "dataValues": [
         {
           "dataElement": {
@@ -492,9 +489,6 @@
       "storedBy": "admin",
       "followup": false,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T00:00:00.000",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
@@ -506,7 +500,6 @@
         }
       ],
       "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
       "dataValues": [
         {
           "dataElement": {

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static org.hisp.dhis.tracker.Assertions.assertHasTimeStamp;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
@@ -39,7 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.time.ZoneId;
@@ -323,23 +323,8 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWithDatesIncludingTimeStamp()
       throws ForbiddenException, BadRequestException {
-    Date date = new Date();
     EventOperationParams params =
-        EventOperationParams.builder()
-            .events(Set.of("pTzf9KYMk72"))
-            .updatedAfter(
-                Date.from(
-                    date.toInstant()
-                        .minus(1, ChronoUnit.DAYS)
-                        .atZone(ZoneId.systemDefault())
-                        .toInstant()))
-            .updatedBefore(
-                Date.from(
-                    date.toInstant()
-                        .plus(1, ChronoUnit.DAYS)
-                        .atZone(ZoneId.systemDefault())
-                        .toInstant()))
-            .build();
+        EventOperationParams.builder().events(Set.of("pTzf9KYMk72")).build();
 
     Events events = eventService.getEvents(params);
 
@@ -364,12 +349,7 @@ class EventExporterTest extends TrackerTest {
                 () ->
                     String.format(
                         "Expected %s to be in %s", event.getDueDate(), "2019-01-28T12:32:38.100")),
-        () ->
-            assertTrue(
-                DateUtils.hasTimeStamp(event.getCompletedDate()),
-                String.format(
-                    "Supported format is %s but found %s",
-                    "yyyy-MM-dd'T'HH:mm:ss.SSSZ", event.getCompletedDate())));
+        () -> assertHasTimeStamp(event.getCompletedDate()));
   }
 
   @Test
