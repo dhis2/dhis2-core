@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrgUnitParams;
 
 import java.util.List;
 import java.util.Objects;
@@ -78,6 +79,11 @@ class TrackedEntityRequestParamsMapper {
     OrganisationUnitSelectionMode orgUnitMode =
         validateDeprecatedParameter(
             "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
+
+    validateOrgUnitParams(orgUnitUids, orgUnitMode);
+
+    // TODO Default set to DESCENDANTS to replicate master, but this will need to be fixed in
+    // https://dhis2.atlassian.net/browse/TECH-1588
     if (orgUnitMode == null) {
       orgUnitMode = OrganisationUnitSelectionMode.DESCENDANTS;
     }

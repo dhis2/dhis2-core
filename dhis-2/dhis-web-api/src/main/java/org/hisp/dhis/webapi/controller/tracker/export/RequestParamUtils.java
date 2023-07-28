@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -135,5 +139,23 @@ public class RequestParamUtils {
 
   private static Stream<String> parseUidString(String input) {
     return CollectionUtils.emptyIfNull(TextUtils.splitToSet(input, TextUtils.SEMICOLON)).stream();
+  }
+
+  /**
+   * Validates that no org unit is present if the ou mode is ACCESSIBLE or CAPTURE. If it is, an
+   * exception will be thrown.
+   *
+   * @param orgUnits
+   * @param orgUnitMode
+   * @throws BadRequestException
+   */
+  public static void validateOrgUnitParams(
+      Set<UID> orgUnits, OrganisationUnitSelectionMode orgUnitMode) throws BadRequestException {
+    if (!orgUnits.isEmpty() && (orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE)) {
+      throw new BadRequestException(
+          String.format(
+              "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
+              orgUnitMode));
+    }
   }
 }
