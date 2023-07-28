@@ -247,7 +247,7 @@ class EventRequestToSearchParamsMapper {
         && (orgUnitSelectionMode == ACCESSIBLE || orgUnitSelectionMode == CAPTURE)) {
       throw new IllegalQueryException(
           String.format(
-              "Org unit mode %s cannot be used with an org unit specified. Please remove the org unit and try again.",
+              "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
               orgUnitSelectionMode));
     }
 

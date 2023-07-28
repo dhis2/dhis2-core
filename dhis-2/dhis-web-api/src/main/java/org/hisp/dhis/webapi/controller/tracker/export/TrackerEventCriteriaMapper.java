@@ -452,7 +452,7 @@ class TrackerEventCriteriaMapper {
     if (orgUnit != null && (orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE)) {
       throw new BadRequestException(
           String.format(
-              "Org unit mode %s cannot be used with an org unit specified. Please remove the org unit and try again.",
+              "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
               orgUnitMode));
     }
   }
