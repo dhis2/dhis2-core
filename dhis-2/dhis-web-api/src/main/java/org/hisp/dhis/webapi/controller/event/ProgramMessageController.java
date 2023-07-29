@@ -89,9 +89,15 @@ public class ProgramMessageController extends AbstractFullReadOnlyController<Pro
   @ResponseBody
   public List<ProgramMessage> getProgramMessages(
       @RequestParam(required = false) Set<String> ou,
-      @Deprecated(since = "2.41") @RequestParam(required = false) UID programInstance,
+      @OpenApi.Param(value = Enrollment.class)
+          @Deprecated(since = "2.41")
+          @RequestParam(required = false)
+          UID programInstance,
       @OpenApi.Param({UID.class, Enrollment.class}) @RequestParam(required = false) UID enrollment,
-      @Deprecated(since = "2.41") @RequestParam(required = false) UID programStageInstance,
+      @OpenApi.Param(value = Event.class)
+          @Deprecated(since = "2.41")
+          @RequestParam(required = false)
+          UID programStageInstance,
       @OpenApi.Param({UID.class, Event.class}) @RequestParam(required = false) UID event,
       @RequestParam(required = false) ProgramMessageStatus messageStatus,
       @RequestParam(required = false) Date afterDate,
@@ -126,9 +132,15 @@ public class ProgramMessageController extends AbstractFullReadOnlyController<Pro
   @GetMapping(value = "/scheduled/sent", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public List<ProgramMessage> getScheduledSentMessage(
-      @Deprecated(since = "2.41") @RequestParam(required = false) UID programInstance,
+      @OpenApi.Param(value = Enrollment.class)
+          @Deprecated(since = "2.41")
+          @RequestParam(required = false)
+          UID programInstance,
       @OpenApi.Param({UID.class, Enrollment.class}) @RequestParam(required = false) UID enrollment,
-      @Deprecated(since = "2.41") @RequestParam(required = false) UID programStageInstance,
+      @OpenApi.Param(value = Event.class)
+          @Deprecated(since = "2.41")
+          @RequestParam(required = false)
+          UID programStageInstance,
       @OpenApi.Param({UID.class, Event.class}) @RequestParam(required = false) UID event,
       @RequestParam(required = false) Date afterDate,
       @RequestParam(required = false) Integer page,
