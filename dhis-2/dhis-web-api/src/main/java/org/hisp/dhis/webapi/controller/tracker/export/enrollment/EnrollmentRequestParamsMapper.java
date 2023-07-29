@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrgUnitParams;
 
 import java.util.Objects;
 import java.util.Set;
@@ -61,6 +62,8 @@ class EnrollmentRequestParamsMapper {
     OrganisationUnitSelectionMode orgUnitMode =
         validateDeprecatedParameter(
             "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
+
+    validateOrgUnitParams(orgUnits, orgUnitMode);
 
     return EnrollmentOperationParams.builder()
         .programUid(
