@@ -28,8 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
@@ -98,8 +96,6 @@ class EventRequestParamsMapper {
             requestParams.getAssignedUsers());
 
     validateUpdateDurationParams(requestParams);
-
-    validateOrgUnitParams(requestParams.getOrgUnit(), orgUnitMode);
 
     return EventOperationParams.builder()
         .programUid(
@@ -226,18 +222,6 @@ class EventRequestParamsMapper {
     if (requestParams.getUpdatedWithin() != null
         && DateUtils.getDuration(requestParams.getUpdatedWithin()) == null) {
       throw new BadRequestException("Duration is not valid: " + requestParams.getUpdatedWithin());
-    }
-  }
-
-  // TODO Use RequestParamUtils.validateOrgUnitParams as soon /events accepts a list of org units
-  // UIDs
-  private void validateOrgUnitParams(UID orgUnit, OrganisationUnitSelectionMode orgUnitMode)
-      throws BadRequestException {
-    if (orgUnit != null && (orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE)) {
-      throw new BadRequestException(
-          String.format(
-              "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
-              orgUnitMode));
     }
   }
 }

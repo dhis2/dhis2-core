@@ -993,8 +993,12 @@ public abstract class AbstractEventService
       case ALL -> userCanSearchOuModeALL(user)
           ? null
           : "Current user is not authorized to query across all organisation units";
-      case ACCESSIBLE -> getAccessibleScopeValidation(user, params);
-      case CAPTURE -> getCaptureScopeValidation(user);
+      case ACCESSIBLE -> !params.getAccessibleOrgUnits().isEmpty()
+          ? "orgUnitMode ACCESSIBLE cannot be used with orgUnits. Please remove the orgUnit parameter and try again."
+          : getAccessibleScopeValidation(user, params);
+      case CAPTURE -> !params.getAccessibleOrgUnits().isEmpty()
+          ? "orgUnitMode CAPTURE cannot be used with orgUnits. Please remove the orgUnit parameter and try again."
+          : getCaptureScopeValidation(user);
       case CHILDREN, SELECTED, DESCENDANTS -> params.getAccessibleOrgUnits().isEmpty()
           ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
           : null;

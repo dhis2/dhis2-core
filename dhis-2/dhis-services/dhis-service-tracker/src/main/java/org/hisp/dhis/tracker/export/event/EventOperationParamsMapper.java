@@ -118,6 +118,7 @@ public class EventOperationParamsMapper {
     ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid());
     OrganisationUnit requestedOrgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid());
 
+    validateOrgUnitMode(operationParams, user, program);
     OrganisationUnitSelectionMode orgUnitMode =
         getOrgUnitMode(requestedOrgUnit, operationParams.getOrgUnitMode());
     List<OrganisationUnit> accessibleOrgUnits =
@@ -140,8 +141,6 @@ public class EventOperationParamsMapper {
             true);
 
     validateAttributeOptionCombo(attributeOptionCombo, user);
-
-    validateOrgUnitMode(operationParams, user, program);
 
     Map<String, SortDirection> attributeOrders =
         getAttributesFromOrder(operationParams.getAttributeOrders());
@@ -306,8 +305,12 @@ public class EventOperationParamsMapper {
       case ALL -> userCanSearchOrgUnitModeALL(user)
           ? null
           : "Current user is not authorized to query across all organisation units";
-      case ACCESSIBLE -> getAccessibleScopeValidation(user, program);
-      case CAPTURE -> getCaptureScopeValidation(user);
+      case ACCESSIBLE -> params.getOrgUnitUid() != null
+          ? "orgUnitMode ACCESSIBLE cannot be used with orgUnits. Please remove the orgUnit parameter and try again."
+          : getAccessibleScopeValidation(user, program);
+      case CAPTURE -> params.getOrgUnitUid() != null
+          ? "orgUnitMode CAPTURE cannot be used with orgUnits. Please remove the orgUnit parameter and try again."
+          : getCaptureScopeValidation(user);
       case CHILDREN, SELECTED, DESCENDANTS -> params.getOrgUnitUid() == null
           ? "Organisation unit is required for orgUnitMode: " + params.getOrgUnitMode()
           : null;

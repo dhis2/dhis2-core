@@ -756,14 +756,9 @@ class EventOperationParamsMapperTest {
     user.setOrganisationUnits(Set.of(captureScopeOrgUnit));
 
     when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
 
     EventOperationParams requestParams =
-        EventOperationParams.builder()
-            .programUid(program.getUid())
-            .orgUnitUid(orgUnit.getUid())
-            .orgUnitMode(CAPTURE)
-            .build();
+        EventOperationParams.builder().programUid(program.getUid()).orgUnitMode(CAPTURE).build();
 
     EventSearchParams searchParams = mapper.map(requestParams);
 
@@ -780,14 +775,9 @@ class EventOperationParamsMapperTest {
     user.setOrganisationUnits(Set.of(searchScopeOrgUnit));
 
     when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
 
     EventOperationParams requestParams =
-        EventOperationParams.builder()
-            .programUid(program.getUid())
-            .orgUnitUid(orgUnit.getUid())
-            .orgUnitMode(ACCESSIBLE)
-            .build();
+        EventOperationParams.builder().programUid(program.getUid()).orgUnitMode(ACCESSIBLE).build();
 
     EventSearchParams searchParams = mapper.map(requestParams);
 
@@ -866,6 +856,31 @@ class EventOperationParamsMapperTest {
 
     assertEquals(ACCESSIBLE, searchParams.getOrgUnitMode());
     assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
+    EventOperationParams eventOperationParams =
+        EventOperationParams.builder().orgUnitUid(orgUnit.getUid()).orgUnitMode(ACCESSIBLE).build();
+    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
+
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(eventOperationParams));
+
+    assertStartsWith(
+        "orgUnitMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
+    EventOperationParams eventOperationParams =
+        EventOperationParams.builder().orgUnitUid(orgUnit.getUid()).orgUnitMode(CAPTURE).build();
+    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
+
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(eventOperationParams));
+
+    assertStartsWith("orgUnitMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
   }
 
   private OrganisationUnit createOrgUnit(String name, String uid) {
