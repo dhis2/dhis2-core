@@ -81,7 +81,6 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SlimPager;
@@ -121,7 +120,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -944,55 +942,11 @@ public abstract class AbstractEventService implements EventService {
       violation = "Duration is not valid: " + params.getLastUpdatedDuration();
     }
 
-    if (violation == null && params.getOrgUnitSelectionMode() != null) {
-      violation = getOuModeViolation(params, user);
-    }
-
     if (violation != null) {
       log.warn("Validation failed: " + violation);
 
       throw new IllegalQueryException(violation);
     }
-  }
-
-  private String getOuModeViolation(EventSearchParams params, User user) {
-    OrganisationUnitSelectionMode selectedOuMode = params.getOrgUnitSelectionMode();
-
-    String violation = null;
-
-    switch (selectedOuMode) {
-      case ALL:
-        violation =
-            userCanSearchOuModeALL(user)
-                ? null
-                : "Current user is not authorized to query across all organisation units";
-        break;
-      case ACCESSIBLE:
-      case CAPTURE:
-        if (user == null) {
-          violation = "User is required for ouMode: " + params.getOrgUnitSelectionMode();
-        }
-        if (!params.getAccessibleOrgUnits().isEmpty()) {
-          violation =
-              String.format(
-                  "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
-                  selectedOuMode);
-        }
-        break;
-      case CHILDREN:
-      case SELECTED:
-      case DESCENDANTS:
-        violation =
-            params.getAccessibleOrgUnits().isEmpty()
-                ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
-                : null;
-        break;
-      default:
-        violation = "Invalid ouMode:  " + params.getOrgUnitSelectionMode();
-        break;
-    }
-
-    return violation;
   }
 
   /**
@@ -1076,14 +1030,5 @@ public abstract class AbstractEventService implements EventService {
     }
 
     importOptions.setUser(userService.getUser(importOptions.getUser().getId()));
-  }
-
-  private boolean userCanSearchOuModeALL(User user) {
-    if (user == null) {
-      return false;
-    }
-
-    return user.isSuper()
-        || user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
   }
 }
