@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -171,15 +172,15 @@ public class GridUtils
     /**
      * Writes a PDF representation of the given Grid to the given OutputStream.
      */
-    public static void toPdf( Grid grid, OutputStream out )
+    public static void toPdf( Locale locale, Grid grid, OutputStream out )
     {
         if ( isNonEmptyGrid( grid ) )
         {
             Document document = openDocument( out );
 
-            toPdfInternal( grid, document, 0F );
+      toPdfInternal(grid, document, locale, 0F);
 
-            addPdfTimestamp( document, true );
+      addPdfTimestamp( locale, document, true);
 
             closeDocument( document );
         }
@@ -189,7 +190,7 @@ public class GridUtils
      * Writes a PDF representation of the given list of Grids to the given
      * OutputStream.
      */
-    public static void toPdf( List<Grid> grids, OutputStream out )
+    public static void toPdf( Locale locale, List<Grid> grids, OutputStream out )
     {
         if ( hasNonEmptyGrid( grids ) )
         {
@@ -197,16 +198,16 @@ public class GridUtils
 
             for ( Grid grid : grids )
             {
-                toPdfInternal( grid, document, 40F );
+                toPdfInternal( grid, document, locale, 40F );
             }
 
-            addPdfTimestamp( document, false );
+      addPdfTimestamp( locale, document, false );
 
             closeDocument( document );
         }
     }
 
-    private static void toPdfInternal( Grid grid, Document document, float spacing )
+    private static void toPdfInternal( Grid grid, Document document, Locale locale, float spacing )
     {
         if ( grid == null || grid.getVisibleWidth() == 0 )
         {
@@ -220,17 +221,17 @@ public class GridUtils
         table.setKeepTogether( false );
         table.setSpacingAfter( spacing );
 
-        table.addCell( resetPaddings( getTitleCell( grid.getTitle(), grid.getVisibleWidth() ), 0, 30, 0, 0 ) );
+        table.addCell( resetPaddings( getTitleCell( locale, grid.getTitle(), grid.getVisibleWidth() ), 0, 30, 0, 0 ) );
 
         if ( StringUtils.isNotEmpty( grid.getSubtitle() ) )
         {
-            table.addCell( getSubtitleCell( grid.getSubtitle(), grid.getVisibleWidth() ) );
+            table.addCell( getSubtitleCell( locale, grid.getSubtitle(), grid.getVisibleWidth() ) );
             table.addCell( getEmptyCell( grid.getVisibleWidth(), 30 ) );
         }
 
         for ( GridHeader header : grid.getVisibleHeaders() )
         {
-            table.addCell( getItalicCell( header.getColumn() ) );
+            table.addCell( getItalicCell( locale, header.getColumn() ) );
         }
 
         table.addCell( getEmptyCell( grid.getVisibleWidth(), 10 ) );
@@ -239,18 +240,18 @@ public class GridUtils
         {
             for ( Object col : row )
             {
-                table.addCell( getTextCell( maybeFormat( col ) ) );
+                table.addCell( getTextCell( locale, maybeFormat( col ) ) );
             }
         }
 
         addTableToDocument( document, table );
     }
 
-    private static void addPdfTimestamp( Document document, boolean paddingTop )
+    private static void addPdfTimestamp( Locale locale, Document document, boolean paddingTop )
     {
         PdfPTable table = new PdfPTable( 1 );
         table.addCell( getEmptyCell( 1, (paddingTop ? 30 : 0) ) );
-        table.addCell( getTextCell( getGeneratedString() ) );
+        table.addCell( getTextCell( locale, getGeneratedString() ) );
         addTableToDocument( document, table );
     }
 

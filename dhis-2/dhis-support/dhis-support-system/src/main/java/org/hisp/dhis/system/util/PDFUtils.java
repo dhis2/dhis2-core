@@ -42,6 +42,8 @@ import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
+import java.io.OutputStream;
+import java.util.Locale;
 
 /**
  * @author Lars Helge Overland
@@ -50,6 +52,16 @@ import com.lowagie.text.pdf.PdfWriter;
 public class PDFUtils
 {
     private static final String EMPTY = "";
+
+    private static final String UBUNTU_BOLD_FONT = "fonts/ubuntu-bold.ttf";
+
+    private static final String UBUNTU_ITALIC_FONT = "fonts/ubuntu-italic.ttf";
+
+    private static final String UBUNTU_FONT = "fonts/ubuntu.ttf";
+
+    public static final String ARABIC_FONT_CODE = "ar";
+
+    public static final String ARABIC_FONT = "fonts/NotoNaskhArabic-Regular.ttf";
 
     /**
      * Creates a document.
@@ -191,36 +203,36 @@ public class PDFUtils
         return cell;
     }
 
-    public static PdfPCell getTitleCell( String text, int colspan )
+    public static PdfPCell getTitleCell( Locale locale, String text, int colspan )
     {
-        return getCell( text, colspan, getBoldFont( 16 ), ALIGN_CENTER );
+        return getCell( text, colspan, getBoldFont( locale, 16 ), ALIGN_CENTER );
     }
 
-    public static PdfPCell getSubtitleCell( String text, int colspan )
+    public static PdfPCell getSubtitleCell( Locale locale, String text, int colspan )
     {
-        return getCell( text, colspan, getItalicFont( 12 ), ALIGN_CENTER );
+        return getCell( text, colspan, getItalicFont( locale, 12 ), ALIGN_CENTER );
     }
 
-    public static PdfPCell getHeaderCell( String text, int colspan )
+    public static PdfPCell getHeaderCell( Locale locale, String text, int colspan )
     {
-        return getCell( text, colspan, getFont( 12 ), ALIGN_LEFT );
+        return getCell( text, colspan, getFont( locale, 12 ), ALIGN_LEFT );
     }
 
-    public static PdfPCell getTextCell( String text )
+    public static PdfPCell getTextCell( Locale locale, String text )
     {
-        return getCell( text, 1, getFont( 9 ), ALIGN_LEFT );
+        return getCell( text, 1, getFont( locale, 9 ), ALIGN_LEFT );
     }
 
-    public static PdfPCell getTextCell( Object object )
+    public static PdfPCell getTextCell( Locale locale, Object object )
     {
         String text = object != null ? String.valueOf( object ) : EMPTY;
 
-        return getCell( text, 1, getFont( 9 ), ALIGN_LEFT );
+        return getCell( text, 1, getFont( locale, 9 ), ALIGN_LEFT );
     }
 
-    public static PdfPCell getItalicCell( String text )
+    public static PdfPCell getItalicCell( Locale locale, String text )
     {
-        return getCell( text, 1, getItalicFont( 9 ), ALIGN_LEFT );
+        return getCell( text, 1, getItalicFont( locale, 9 ), ALIGN_LEFT );
     }
 
     public static PdfPCell resetPaddings( PdfPCell cell, float top, float bottom, float left, float right )
@@ -255,19 +267,19 @@ public class PDFUtils
     // Font methods
     // -------------------------------------------------------------------------
 
-    public static Font getFont( float size )
+    public static Font getFont( Locale locale, float size )
     {
-        return getFont( "ubuntu.ttf", size );
+        return getFont( ARABIC_FONT_CODE.equals(locale.getLanguage()) ? ARABIC_FONT : UBUNTU_FONT, size );
     }
 
-    public static Font getBoldFont( float size )
+    public static Font getBoldFont( Locale locale, float size )
     {
-        return getFont( "ubuntu-bold.ttf", size );
+        return getFont( ARABIC_FONT_CODE.equals(locale.getLanguage()) ? ARABIC_FONT : UBUNTU_BOLD_FONT, size );
     }
 
-    public static Font getItalicFont( float size )
+    public static Font getItalicFont( Locale locale, float size )
     {
-        return getFont( "ubuntu-italic.ttf", size );
+        return getFont( ARABIC_FONT_CODE.equals(locale.getLanguage()) ? ARABIC_FONT : UBUNTU_ITALIC_FONT, size );
     }
 
     private static Font getFont( String fontPath, float size )

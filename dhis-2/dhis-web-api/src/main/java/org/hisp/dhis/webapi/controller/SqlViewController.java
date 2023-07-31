@@ -40,6 +40,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridResponse;
+import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.node.NodeService;
@@ -49,6 +50,7 @@ import org.hisp.dhis.sqlview.SqlViewQuery;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -205,7 +207,7 @@ public class SqlViewController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, sqlView.getCacheStrategy() );
 
-        GridUtils.toPdf( grid, response.getOutputStream() );
+        GridUtils.toPdf( UserContext.getUserSetting( UserSettingKey.DB_LOCALE ), grid, response.getOutputStream() );
     }
 
     // -------------------------------------------------------------------------

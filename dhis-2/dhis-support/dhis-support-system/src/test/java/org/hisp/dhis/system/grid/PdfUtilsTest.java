@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.view;
+package org.hisp.dhis.system.grid;
 
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import com.lowagie.text.Font;
 import java.util.Locale;
+import org.hisp.dhis.system.util.PDFUtils;
+import org.junit.jupiter.api.Test;
 
-import javax.servlet.http.HttpServletResponse;
+class PdfUtilsTest {
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.system.grid.GridUtils;
-import org.hisp.dhis.webapi.utils.ContextUtils;
+  @Test
+  void testGetArabicFont() {
+    Font font = PDFUtils.getFont(new Locale("ar"), 10);
+    assertNotNull(font);
+    assertEquals("NotoNaskhArabic", font.getBaseFont().getPostscriptFontName());
+  }
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class PdfGridView extends AbstractGridView
-{
-    private Locale locale;
-
-    public PdfGridView( Locale locale )
-    {
-        setContentType( ContextUtils.CONTENT_TYPE_PDF );
-        this.locale = locale;
-    }
-
-    @Override
-    protected void renderGrids( List<Grid> grids, HttpServletResponse response )
-        throws Exception
-    {
-        GridUtils.toPdf( locale, grids, response.getOutputStream() );
-    }
+  @Test
+  void testGetNoneArabicFont() {
+    Font font = PDFUtils.getFont(new Locale("en"), 10);
+    assertNotNull(font);
+    assertEquals("Ubuntu-Regular", font.getBaseFont().getPostscriptFontName());
+  }
 }
