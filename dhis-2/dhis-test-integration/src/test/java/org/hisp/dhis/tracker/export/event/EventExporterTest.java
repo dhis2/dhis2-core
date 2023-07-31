@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static org.hisp.dhis.tracker.Assertions.assertHasTimeStamp;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -77,6 +79,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -318,6 +321,38 @@ class EventExporterTest extends TrackerTest {
     List<String> events = getEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void testExportEventsWithDatesIncludingTimeStamp()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        EventOperationParams.builder().events(Set.of("pTzf9KYMk72")).build();
+
+    Events events = eventService.getEvents(params);
+
+    assertNotEmpty(events.getEvents());
+
+    Event event = events.getEvents().get(0);
+
+    assertAll(
+        "All dates should include timestamp",
+        () ->
+            assertEquals(
+                "2019-01-25T12:10:38.100",
+                DateUtils.getIso8601NoTz(event.getExecutionDate()),
+                () ->
+                    String.format(
+                        "Expected %s to be in %s",
+                        event.getExecutionDate(), "2019-01-25T12:10:38.100")),
+        () ->
+            assertEquals(
+                "2019-01-28T12:32:38.100",
+                DateUtils.getIso8601NoTz(event.getDueDate()),
+                () ->
+                    String.format(
+                        "Expected %s to be in %s", event.getDueDate(), "2019-01-28T12:32:38.100")),
+        () -> assertHasTimeStamp(event.getCompletedDate()));
   }
 
   @Test

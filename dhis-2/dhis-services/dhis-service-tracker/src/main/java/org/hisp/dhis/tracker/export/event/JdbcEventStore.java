@@ -292,19 +292,19 @@ public class JdbcEventStore implements EventStore {
               event.setAttributeOptionCombo(coc);
 
               event.setStoredBy(resultSet.getString("psi_storedby"));
-              event.setDueDate(resultSet.getDate("psi_duedate"));
-              event.setExecutionDate(resultSet.getDate("psi_executiondate"));
-              event.setCreated(resultSet.getDate("psi_created"));
+              event.setDueDate(resultSet.getTimestamp("psi_duedate"));
+              event.setExecutionDate(resultSet.getTimestamp("psi_executiondate"));
+              event.setCreated(resultSet.getTimestamp("psi_created"));
               event.setCreatedByUserInfo(
                   EventUtils.jsonToUserInfo(
                       resultSet.getString("psi_createdbyuserinfo"), jsonMapper));
-              event.setLastUpdated(resultSet.getDate("psi_lastupdated"));
+              event.setLastUpdated(resultSet.getTimestamp("psi_lastupdated"));
               event.setLastUpdatedByUserInfo(
                   EventUtils.jsonToUserInfo(
                       resultSet.getString("psi_lastupdatedbyuserinfo"), jsonMapper));
 
               event.setCompletedBy(resultSet.getString("psi_completedby"));
-              event.setCompletedDate(resultSet.getDate("psi_completeddate"));
+              event.setCompletedDate(resultSet.getTimestamp("psi_completeddate"));
 
               if (resultSet.getObject("psi_geometry") != null) {
                 try {
