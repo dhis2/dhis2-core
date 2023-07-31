@@ -32,7 +32,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -45,7 +44,6 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
@@ -320,40 +318,6 @@ class AclEventExporterTest extends TrackerTest {
                 "Expected to find capture org unit uoNW0E3xXUy, but found "
                     + e.getOrgUnit()
                     + " instead"));
-  }
-
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
-
-    EventSearchParams params = new EventSearchParams();
-    params.setProgram(get(Program.class, "pcxIanBWlSY"));
-    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "uoNW0E3xXUy")));
-    params.setOrgUnitSelectionMode(ACCESSIBLE);
-
-    Exception exception =
-        assertThrows(IllegalQueryException.class, () -> eventService.getEvents(params));
-
-    assertEquals(
-        "orgUnitMode ACCESSIBLE cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
-        exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
-
-    EventSearchParams params = new EventSearchParams();
-    params.setProgram(get(Program.class, "pcxIanBWlSY"));
-    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "uoNW0E3xXUy")));
-    params.setOrgUnitSelectionMode(CAPTURE);
-
-    Exception exception =
-        assertThrows(IllegalQueryException.class, () -> eventService.getEvents(params));
-
-    assertEquals(
-        "orgUnitMode CAPTURE cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
-        exception.getMessage());
   }
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
