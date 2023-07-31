@@ -100,8 +100,8 @@
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
     <nimbus.jose.jwt.version>9.31</nimbus.jose.jwt.version>
-    <com.google.zxing.core.version>3.5.1</com.google.zxing.core.version>
-    <com.google.zxing.javase.version>3.5.1</com.google.zxing.javase.version>
+    <com.google.zxing.core.version>3.5.2</com.google.zxing.core.version>
+    <com.google.zxing.javase.version>3.5.2</com.google.zxing.javase.version>
 
     <!-- Spring -->
     <spring.version>5.3.29</spring.version>
@@ -115,7 +115,7 @@
     <lettuce.version>6.2.5.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.21.0</flyway-core.version>
+    <flyway-core.version>9.21.1</flyway-core.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -164,8 +164,8 @@
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis.version>2.29.0</artemis.version>
-    <netty-all.version>4.1.95.Final</netty-all.version>
+    <artemis.version>2.30.0</artemis.version>
+    <netty-all.version>4.1.96.Final</netty-all.version>
     <classgraph.version>4.8.161</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -188,7 +188,7 @@
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
-    <commons-lang3.version>3.12.0</commons-lang3.version>
+    <commons-lang3.version>3.13.0</commons-lang3.version>
     <commons-text.version>1.10.0</commons-text.version>
     <commons-fileupload.version>1.5</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>

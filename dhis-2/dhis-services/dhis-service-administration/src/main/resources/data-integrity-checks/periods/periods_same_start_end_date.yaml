@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  summary_uid: gXmkRzMFQ37
   name: periods_same_start_end_date
   description: Periods with the same start and end dates
   section: Periods
@@ -42,7 +41,6 @@
     SELECT COUNT(*) as value,
     100.0* COUNT(*) / NULLIF( (SELECT COUNT(*) FROM period), 0)  as percent
     FROM bad_periods;
-  details_uid: v12ImzFZQCd
   details_sql: >-
     select pt.name as uid,
     CAST( p1.startdate as text) as name 

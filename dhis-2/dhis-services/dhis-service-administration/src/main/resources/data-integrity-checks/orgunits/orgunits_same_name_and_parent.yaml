@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-summary_uid: fiXDbSVLunS
 name: orgunits_same_name_and_parent
 description: Organisation units should not have the same name and parent.
 section: Organisation units
@@ -49,7 +48,6 @@ summary_sql: >-
   COUNT(*) as value,
   100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM organisationunit), 0) as percent
   from orgunits_same_name_and_parent;
-details_uid: Nxb5qywdMYj
 details_sql: >-
   SELECT d.uid,d.name,e.name as comment
   from (

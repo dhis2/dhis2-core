@@ -134,7 +134,6 @@ class TrackerBundleImportReportTest {
     TrackerTypeReport typeReport = new TrackerTypeReport(TRACKED_ENTITY);
     Entity entity = new Entity(TRACKED_ENTITY);
 
-    entity.setIndex(0);
     entity.setUid("BltTZV9HvEZ");
     typeReport.addEntity(entity);
     typeReport.getStats().setCreated(1);
@@ -214,8 +213,8 @@ class TrackerBundleImportReportTest {
         serializedReportTrackerTypeReport.getTrackerType(),
         deserializedReportTrackerTypeReport.getTrackerType());
     assertEquals(
-        serializedReportTrackerTypeReport.getEntityReportMap(),
-        deserializedReportTrackerTypeReport.getEntityReportMap());
+        serializedReportTrackerTypeReport.getEntityReport(),
+        deserializedReportTrackerTypeReport.getEntityReport());
     assertEquals(
         serializedReportTrackerTypeReport.getEntityReport(),
         deserializedReportTrackerTypeReport.getEntityReport());
@@ -314,7 +313,7 @@ class TrackerBundleImportReportTest {
   private PersistenceReport createBundleReport() {
     PersistenceReport persistenceReport = PersistenceReport.emptyReport();
     TrackerTypeReport typeReport = new TrackerTypeReport(TRACKED_ENTITY);
-    Entity objectReport = new Entity(TRACKED_ENTITY, "TEI_UID", 1);
+    Entity objectReport = new Entity(TRACKED_ENTITY, "TEI_UID");
     typeReport.addEntity(objectReport);
     typeReport.getStats().incCreated();
     persistenceReport.getTypeReportMap().put(TRACKED_ENTITY, typeReport);
