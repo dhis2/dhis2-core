@@ -135,6 +135,14 @@ class SpringBindingTest {
                         "Value 'INVALID' is not valid for parameter booleanValue. Invalid boolean value [INVALID]")));
   }
 
+  @Test
+  void shouldReturnADefaultValueWhenDefaultParameterIsNotPassed() throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT + "/default").param("booleanValue", "true"))
+        .andExpect(content().string(containsString("OK")))
+        .andExpect(content().string(containsString("3")));
+  }
+
   @Controller
   private class BindingController extends CrudControllerAdvice {
     @GetMapping(value = ENDPOINT)
@@ -145,6 +153,11 @@ class SpringBindingTest {
     @GetMapping(value = ENDPOINT + "/criteria")
     public @ResponseBody WebMessage getValue(Criteria criteria) {
       return ok(criteria.toString());
+    }
+
+    @GetMapping(value = ENDPOINT + "/default")
+    public @ResponseBody WebMessage getDefault(Criteria criteria) {
+      return ok(criteria.getDefaultValue().toString());
     }
   }
 
@@ -160,6 +173,8 @@ class SpringBindingTest {
     private Integer integerNumber;
 
     private Boolean booleanValue;
+
+    private Integer defaultValue = 3;
   }
 
   private enum SimpleEnum {
