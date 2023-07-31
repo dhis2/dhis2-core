@@ -336,8 +336,8 @@ class AclEventExporterTest extends TrackerTest {
         assertThrows(IllegalQueryException.class, () -> eventService.getEvents(params));
 
     assertEquals(
-        exception.getMessage(),
-        "orgUnitMode ACCESSIBLE cannot be used with orgUnits. Please remove the orgUnit parameter and try again.");
+        "orgUnitMode ACCESSIBLE cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
+        exception.getMessage());
   }
 
   @Test
@@ -353,8 +353,8 @@ class AclEventExporterTest extends TrackerTest {
         assertThrows(IllegalQueryException.class, () -> eventService.getEvents(params));
 
     assertEquals(
-        exception.getMessage(),
-        "orgUnitMode CAPTURE cannot be used with orgUnits. Please remove the orgUnit parameter and try again.");
+        "orgUnitMode CAPTURE cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
+        exception.getMessage());
   }
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
