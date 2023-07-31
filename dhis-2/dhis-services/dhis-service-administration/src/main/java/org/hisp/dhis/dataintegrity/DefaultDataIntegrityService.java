@@ -87,6 +87,7 @@ import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.external.location.DefaultLocationManager;
+import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
@@ -1011,11 +1012,16 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       loadChecks(CLASS_PATH, "data-integrity-checks.yaml", "data-integrity-checks");
 
       // load user-packaged custom data integrity checks
-      String dhis2Home = locationManager.getExternalDirectoryPath();
-      loadChecks(
-          FILE_SYSTEM,
-          dhis2Home + "/custom-data-integrity-checks.yaml",
-          dhis2Home + "/custom-data-integrity-checks");
+      try {
+        String dhis2Home = locationManager.getExternalDirectoryPath();
+        loadChecks(
+            FILE_SYSTEM,
+            dhis2Home + "/custom-data-integrity-checks.yaml",
+            dhis2Home + "/custom-data-integrity-checks");
+      } catch (LocationManagerException ex) {
+        log.warn(
+            "Could not get DHIS2_HOME external directory. No custom data integrity checks loaded.");
+      }
     }
   }
 
