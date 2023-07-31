@@ -57,6 +57,8 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.visualization.ChartService;
 import org.hisp.dhis.visualization.PlotData;
@@ -167,7 +169,8 @@ public class VisualizationDataController {
         filename,
         false);
 
-    GridUtils.toPdf(grid, response.getOutputStream());
+    GridUtils.toPdf(
+        CurrentUserUtil.getUserSetting(UserSettingKey.DB_LOCALE), grid, response.getOutputStream());
   }
 
   @GetMapping(value = "/visualizations/{uid}/data.xls")
