@@ -290,11 +290,7 @@ class AclEventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder()
-            .programUid("pcxIanBWlSY")
-            .orgUnitUid("uoNW0E3xXUy")
-            .orgUnitMode(ACCESSIBLE)
-            .build();
+        EventOperationParams.builder().programUid("pcxIanBWlSY").orgUnitMode(ACCESSIBLE).build();
 
     List<Event> events = eventService.getEvents(params).getEvents();
 
@@ -336,11 +332,7 @@ class AclEventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder()
-            .programUid("pcxIanBWlSY")
-            .orgUnitUid("uoNW0E3xXUy")
-            .orgUnitMode(CAPTURE)
-            .build();
+        EventOperationParams.builder().programUid("pcxIanBWlSY").orgUnitMode(CAPTURE).build();
 
     List<Event> events = eventService.getEvents(params).getEvents();
 
