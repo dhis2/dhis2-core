@@ -56,11 +56,12 @@ class IdSchemesTest {
 
   @Test
   void testSerializeIdSchemes() throws JsonProcessingException {
+    IdSchemes original = new IdSchemes();
+    original.setProgramIdScheme("CODE");
     // language=JSON
-    String expected =
-        """
-        {"idScheme":{"type":"UID"},"dataElementIdScheme":{"type":"UID"},"dataElementGroupIdScheme":{"type":"UID"},"categoryOptionComboIdScheme":{"type":"UID"},"categoryOptionIdScheme":{"type":"UID"},"categoryIdScheme":{"type":"UID"},"orgUnitIdScheme":{"type":"UID"},"orgUnitGroupIdScheme":{"type":"UID"},"programIdScheme":{"type":"UID"},"programStageIdScheme":{"type":"UID"},"trackedEntityIdScheme":{"type":"UID"},"trackedEntityAttributeIdScheme":{"type":"UID"},"dataSetIdScheme":{"type":"UID"},"attributeOptionComboIdScheme":{"type":"UID"},"programStageInstanceIdScheme":{"type":"UID"}}""";
-    assertEquals(expected, new ObjectMapper().writeValueAsString(new IdSchemes()));
+    String expected = """
+        {"programIdScheme":{"type":"CODE"}}""";
+    assertEquals(expected, new ObjectMapper().writeValueAsString(original));
   }
 
   @Test

@@ -29,6 +29,8 @@ package org.hisp.dhis.common;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import lombok.EqualsAndHashCode;
@@ -43,6 +45,7 @@ import org.hisp.dhis.util.ObjectUtils;
  */
 @ToString
 @EqualsAndHashCode
+@JsonInclude(Include.NON_NULL)
 @JsonAutoDetect(setterVisibility = Visibility.NONE, getterVisibility = Visibility.NONE)
 public class IdSchemes implements Serializable {
   public static final IdScheme DEFAULT_ID_SCHEME = IdScheme.UID;
