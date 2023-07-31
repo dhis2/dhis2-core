@@ -508,5 +508,10 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
     assertThat(response.get("sorting").toString(), containsString("ASC"));
 
     assertStatus(OK, PUT("/eventVisualizations/" + uid, body));
+
+    // Ensures the sorting remains set.
+    response = GET("/eventVisualizations/" + uid + getParams).content();
+    assertThat(response.get("sorting").toString(), containsString("pe"));
+    assertThat(response.get("sorting").toString(), containsString("ASC"));
   }
 }
