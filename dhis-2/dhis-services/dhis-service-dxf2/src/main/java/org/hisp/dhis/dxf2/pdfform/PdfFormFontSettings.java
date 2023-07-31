@@ -29,9 +29,12 @@ package org.hisp.dhis.dxf2.pdfform;
 
 import java.awt.*;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import com.lowagie.text.Font;
+import com.lowagie.text.FontFactory;
+import com.lowagie.text.pdf.BaseFont;
 
 /**
  * @author James Chang
@@ -61,15 +64,19 @@ public class PdfFormFontSettings
 
     private static final String FONTFAMILY = "HELVETICA";
 
+    private static final String ARABIC_FONT = "fonts/NotoNaskhArabic-Regular.ttf";
+
+    private static final String ARABIC_FONT_CODE = "ar";
+
     private final Map<Integer, Font> fontTypeMap = new HashMap<>();
 
-    public PdfFormFontSettings()
+    public PdfFormFontSettings( Locale locale )
     {
-        fontTypeMap.put( FONTTYPE_BODY, createFont( FONTTYPE_BODY ) );
-        fontTypeMap.put( FONTTYPE_TITLE, createFont( FONTTYPE_TITLE ) );
-        fontTypeMap.put( FONTTYPE_DESCRIPTION, createFont( FONTTYPE_DESCRIPTION ) );
-        fontTypeMap.put( FONTTYPE_SECTIONHEADER, createFont( FONTTYPE_SECTIONHEADER ) );
-        fontTypeMap.put( FONTTYPE_FOOTER, createFont( FONTTYPE_FOOTER ) );
+        fontTypeMap.put( FONTTYPE_BODY, createFont( locale, FONTTYPE_BODY ) );
+        fontTypeMap.put( FONTTYPE_TITLE, createFont( locale, FONTTYPE_TITLE ) );
+        fontTypeMap.put( FONTTYPE_DESCRIPTION, createFont( locale, FONTTYPE_DESCRIPTION ) );
+        fontTypeMap.put( FONTTYPE_SECTIONHEADER, createFont( locale, FONTTYPE_SECTIONHEADER ) );
+        fontTypeMap.put( FONTTYPE_FOOTER, createFont( locale, FONTTYPE_FOOTER ) );
     }
 
     public void setFont( int fontType, Font font )
@@ -82,10 +89,11 @@ public class PdfFormFontSettings
         return fontTypeMap.get( fontType );
     }
 
-    private Font createFont( int fontType )
+    private Font createFont( Locale locale, int fontType )
     {
-        Font font = new Font();
-        font.setFamily( FONTFAMILY );
+        Font font = ARABIC_FONT_CODE.equals( locale.getLanguage() )
+            ? FontFactory.getFont( ARABIC_FONT, BaseFont.IDENTITY_H, true )
+            : FontFactory.getFont( FONTFAMILY, FontFactory.defaultEncoding, true );
 
         switch ( fontType )
         {
