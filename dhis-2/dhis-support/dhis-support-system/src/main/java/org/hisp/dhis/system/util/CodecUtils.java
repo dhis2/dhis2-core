@@ -32,6 +32,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
+import org.apache.commons.codec.digest.DigestUtils;
+
 /**
  * Utility class for encoding and decoding operations.
  *
@@ -94,5 +96,17 @@ public class CodecUtils
         {
             throw new RuntimeException( e );
         }
+    }
+
+    /**
+     * Calculates the MD5 digest and returns the value as a 32 character hex
+     * string. Returns null if input is null.
+     *
+     * @param value the value to digest.
+     * @return MD5 digest as a hex string.
+     */
+    public static String md5Hex( String value )
+    {
+        return value != null ? DigestUtils.md5Hex( value ) : null;
     }
 }
