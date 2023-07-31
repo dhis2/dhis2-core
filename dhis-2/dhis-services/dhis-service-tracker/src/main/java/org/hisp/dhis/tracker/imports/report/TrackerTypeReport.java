@@ -31,7 +31,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import lombok.Data;
 import org.hisp.dhis.tracker.TrackerType;
@@ -69,7 +68,7 @@ public class TrackerTypeReport {
 
   @JsonProperty("objectReports")
   public List<Entity> getEntityReport() {
-    return entityReport.stream().sorted(Comparator.comparingInt(Entity::getIndex)).toList();
+    return entityReport;
   }
 
   // -----------------------------------------------------------------------------------

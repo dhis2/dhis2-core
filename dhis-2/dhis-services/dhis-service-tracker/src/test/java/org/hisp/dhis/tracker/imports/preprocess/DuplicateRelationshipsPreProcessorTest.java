@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.imports.preprocess;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.CodeGenerator;
@@ -104,13 +105,44 @@ class DuplicateRelationshipsPreProcessorTest {
    * - one is removed
    */
   @Test
-  void test_on_identical_rels_1_is_removed() {
+  void shouldRemoveRelationshipFromBundleWhenThereAreTwoIdenticalRelationships() {
     String relType = REL_TYPE_NONBIDIRECTIONAL_UID;
     String fromTeUid = CodeGenerator.generateUid();
     String toTeUid = CodeGenerator.generateUid();
+    String relUid = CodeGenerator.generateUid();
+
     Relationship relationship1 =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(relUid)
+            .relationshipType(MetadataIdentifier.ofUid(relType))
+            .from(trackedEntityRelationshipItem(fromTeUid))
+            .to(trackedEntityRelationshipItem(toTeUid))
+            .build();
+    Relationship relationship2 =
+        Relationship.builder()
+            .relationship(relUid)
+            .relationshipType(MetadataIdentifier.ofUid(relType))
+            .from(trackedEntityRelationshipItem(fromTeUid))
+            .to(trackedEntityRelationshipItem(toTeUid))
+            .build();
+    TrackerBundle bundle =
+        TrackerBundle.builder()
+            .preheat(this.preheat)
+            .relationships(Lists.newArrayList(relationship1, relationship2))
+            .build();
+    preProcessor.process(bundle);
+    assertThat(bundle.getRelationships(), hasSize(1));
+  }
+
+  @Test
+  void shouldRemoveRelationshipFromBundleWhenThereAreTwoIdenticalRelationshipsWithDifferentUids() {
+    String relType = REL_TYPE_NONBIDIRECTIONAL_UID;
+    String fromTeUid = CodeGenerator.generateUid();
+    String toTeUid = CodeGenerator.generateUid();
+    String relationship1Uid = CodeGenerator.generateUid();
+    Relationship relationship1 =
+        Relationship.builder()
+            .relationship(relationship1Uid)
             .relationshipType(MetadataIdentifier.ofUid(relType))
             .from(trackedEntityRelationshipItem(fromTeUid))
             .to(trackedEntityRelationshipItem(toTeUid))
@@ -129,6 +161,7 @@ class DuplicateRelationshipsPreProcessorTest {
             .build();
     preProcessor.process(bundle);
     assertThat(bundle.getRelationships(), hasSize(1));
+    assertEquals(relationship1Uid, bundle.getRelationships().get(0).getRelationship());
   }
 
   /*

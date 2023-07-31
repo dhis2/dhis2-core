@@ -38,6 +38,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.util.ContextUtils;
 
 /**
@@ -116,9 +118,9 @@ public class GridPdfResult implements Result {
     // ---------------------------------------------------------------------
 
     if (grid != null) {
-      GridUtils.toPdf(grid, out);
+      GridUtils.toPdf(CurrentUserUtil.getUserSetting(UserSettingKey.DB_LOCALE), grid, out);
     } else {
-      GridUtils.toPdf(grids, out);
+      GridUtils.toPdf(CurrentUserUtil.getUserSetting(UserSettingKey.DB_LOCALE), grids, out);
     }
   }
 }
