@@ -303,7 +303,7 @@ public class JdbcEventStore implements EventStore {
               event.setLastUpdatedByUserInfo(
                   EventUtils.jsonToUserInfo(
                       resultSet.getString("ev_lastupdatedbyuserinfo"), jsonMapper));
-
+              
               event.setCompletedBy(resultSet.getString("ev_completedby"));
               event.setCompletedDate(resultSet.getDate("ev_completeddate"));
 
