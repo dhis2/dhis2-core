@@ -33,6 +33,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.web.HttpStatus.BAD_REQUEST;
 import static org.hisp.dhis.web.HttpStatus.CONFLICT;
 import static org.hisp.dhis.web.HttpStatus.CREATED;
+import static org.hisp.dhis.web.HttpStatus.OK;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -480,5 +481,32 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
     assertEquals(
         "Sorting must have a valid dimension and a direction",
         response.error(CONFLICT).getMessage());
+  }
+
+  @Test
+  void testPutSortingObject() {
+    // Given
+    String dimension = "pe";
+    String sorting = "'sorting': [{'dimension': '" + dimension + "', 'direction':'ASC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': '"
+            + dimension
+            + "'}],"
+            + sorting
+            + "}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    String getParams = "?fields=:all,columns[:all,items,sorting]";
+    JsonObject response = GET("/eventVisualizations/" + uid + getParams).content();
+
+    assertThat(response.get("sorting").toString(), containsString("pe"));
+    assertThat(response.get("sorting").toString(), containsString("ASC"));
+
+    assertStatus(OK, PUT("/eventVisualizations/" + uid, body));
   }
 }
