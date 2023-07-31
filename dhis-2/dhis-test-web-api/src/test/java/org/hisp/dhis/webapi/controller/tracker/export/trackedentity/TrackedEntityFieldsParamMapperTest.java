@@ -173,7 +173,7 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest {
   }
 
   static Stream<Arguments> mapEnrollmentsAndEvents() {
-    // events is a child of enrollments not TEI
+    // events is a child of enrollments not TE
     return Stream.of(
         arguments("*,!enrollments", false, false),
         arguments("!events", false, false),
@@ -228,13 +228,13 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest {
   @ParameterizedTest
   void shouldSetCorrectRelationshipsWhenMixedRelationshipFields(
       String fields,
-      boolean expectTeiRelationship,
+      boolean expectteRelationship,
       boolean expectEnrollmentRelationship,
       boolean expectEventRelationships) {
 
     TrackedEntityParams params = map(fields);
 
-    assertEquals(expectTeiRelationship, params.isIncludeRelationships());
+    assertEquals(expectteRelationship, params.isIncludeRelationships());
     assertEquals(
         expectEnrollmentRelationship, params.getEnrollmentParams().isIncludeRelationships());
     assertEquals(expectEventRelationships, params.getEventParams().isIncludeRelationships());

@@ -104,7 +104,7 @@ class UpdatableFieldsValidatorTest {
 
   @Test
   void verifyTrackedEntityValidationSuccess() {
-    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = validTei();
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = validTe();
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -113,7 +113,7 @@ class UpdatableFieldsValidatorTest {
 
   @Test
   void verifyTrackedEntityValidationFailsWhenUpdateTrackedEntityType() {
-    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = validTei();
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = validTe();
     trackedEntity.setTrackedEntityType(MetadataIdentifier.ofUid("NewTrackedEntityTypeId"));
 
     validator.validate(reporter, bundle, trackedEntity);
@@ -121,7 +121,7 @@ class UpdatableFieldsValidatorTest {
     assertHasError(reporter, trackedEntity, E1126);
   }
 
-  private org.hisp.dhis.tracker.imports.domain.TrackedEntity validTei() {
+  private org.hisp.dhis.tracker.imports.domain.TrackedEntity validTe() {
     return org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
         .trackedEntity(TRACKED_ENTITY_ID)
         .trackedEntityType(MetadataIdentifier.ofUid(TRACKED_ENTITY_TYPE_ID))
