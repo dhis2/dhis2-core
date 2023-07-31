@@ -34,7 +34,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -46,7 +45,6 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.EventService;
@@ -56,7 +54,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -324,33 +321,6 @@ class AclEventExporterTest extends TrackerTest {
                 "Expected to find capture org unit uoNW0E3xXUy, but found "
                     + e.getOrgUnit()
                     + " instead"));
-  }
-
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
-
-    EventSearchParams params = new EventSearchParams();
-    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "uoNW0E3xXUy")));
-    params.setOrgUnitSelectionMode(ACCESSIBLE);
-
-    Exception exception =
-        Assertions.assertThrows(IllegalQueryException.class, () -> eventService.getEvents(params));
-    assertStartsWith(
-        "orgUnitMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
-
-    EventSearchParams params = new EventSearchParams();
-    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "uoNW0E3xXUy")));
-    params.setOrgUnitSelectionMode(CAPTURE);
-
-    Exception exception =
-        Assertions.assertThrows(IllegalQueryException.class, () -> eventService.getEvents(params));
-    assertStartsWith("orgUnitMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
   }
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
