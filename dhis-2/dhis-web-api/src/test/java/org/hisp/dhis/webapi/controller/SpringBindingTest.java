@@ -143,6 +143,14 @@ class SpringBindingTest {
         .andExpect(content().string(containsString("3")));
   }
 
+  @Test
+  void shouldReturnPassedValueWhenDefaultParameterIsPassed() throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT + "/default").param("defaultValue", "0"))
+        .andExpect(content().string(containsString("OK")))
+        .andExpect(content().string(containsString("0")));
+  }
+
   @Controller
   private class BindingController extends CrudControllerAdvice {
     @GetMapping(value = ENDPOINT)
