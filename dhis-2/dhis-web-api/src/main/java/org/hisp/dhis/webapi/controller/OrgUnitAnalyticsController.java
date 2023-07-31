@@ -34,8 +34,10 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,6 +114,7 @@ public class OrgUnitAnalyticsController {
     contextUtils.configureResponse(
         response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING);
     Grid grid = analyticsService.getOrgUnitData(params);
-    GridUtils.toPdf(grid, response.getOutputStream());
+    GridUtils.toPdf(
+        UserContext.getUserSetting(UserSettingKey.DB_LOCALE), grid, response.getOutputStream());
   }
 }

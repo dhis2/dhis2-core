@@ -41,6 +41,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -56,6 +57,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.visualization.ChartService;
 import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.visualization.Visualization;
@@ -165,7 +167,8 @@ public class VisualizationDataController {
         filename,
         false);
 
-    GridUtils.toPdf(grid, response.getOutputStream());
+    GridUtils.toPdf(
+        UserContext.getUserSetting(UserSettingKey.DB_LOCALE), grid, response.getOutputStream());
   }
 
   @GetMapping(value = "/visualizations/{uid}/data.xls")
