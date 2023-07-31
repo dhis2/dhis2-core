@@ -972,10 +972,15 @@ public abstract class AbstractEventService implements EventService {
         break;
       case ACCESSIBLE:
       case CAPTURE:
-        violation =
-            user == null
-                ? "User is required for ouMode: " + params.getOrgUnitSelectionMode()
-                : null;
+        if (user == null) {
+          violation = "User is required for ouMode: " + params.getOrgUnitSelectionMode();
+        }
+        if (!params.getAccessibleOrgUnits().isEmpty()) {
+          violation =
+              String.format(
+                  "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
+                  selectedOuMode);
+        }
         break;
       case CHILDREN:
       case SELECTED:
