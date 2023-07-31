@@ -37,6 +37,7 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -45,6 +46,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
@@ -261,7 +263,6 @@ class AclEventExporterTest extends TrackerTest {
 
     EventSearchParams params = new EventSearchParams();
     params.setProgram(get(Program.class, "pcxIanBWlSY"));
-    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "uoNW0E3xXUy")));
     params.setOrgUnitSelectionMode(ACCESSIBLE);
 
     List<Event> events = eventService.getEvents(params).getEvents();
@@ -284,7 +285,6 @@ class AclEventExporterTest extends TrackerTest {
 
     EventSearchParams params = new EventSearchParams();
     params.setProgram(get(Program.class, program.getUid()));
-    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "h4w96yEMlzO")));
     params.setOrgUnitSelectionMode(ACCESSIBLE);
 
     List<Event> events = eventService.getEvents(params).getEvents();
@@ -307,7 +307,6 @@ class AclEventExporterTest extends TrackerTest {
 
     EventSearchParams params = new EventSearchParams();
     params.setProgram(get(Program.class, "pcxIanBWlSY"));
-    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "uoNW0E3xXUy")));
     params.setOrgUnitSelectionMode(CAPTURE);
 
     List<Event> events = eventService.getEvents(params).getEvents();
@@ -322,6 +321,40 @@ class AclEventExporterTest extends TrackerTest {
                 "Expected to find capture org unit uoNW0E3xXUy, but found "
                     + e.getOrgUnit()
                     + " instead"));
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
+    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+
+    EventSearchParams params = new EventSearchParams();
+    params.setProgram(get(Program.class, "pcxIanBWlSY"));
+    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "uoNW0E3xXUy")));
+    params.setOrgUnitSelectionMode(ACCESSIBLE);
+
+    Exception exception =
+        assertThrows(IllegalQueryException.class, () -> eventService.getEvents(params));
+
+    assertEquals(
+        exception.getMessage(),
+        "orgUnitMode ACCESSIBLE cannot be used with orgUnits. Please remove the orgUnit parameter and try again.");
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
+    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+
+    EventSearchParams params = new EventSearchParams();
+    params.setProgram(get(Program.class, "pcxIanBWlSY"));
+    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "uoNW0E3xXUy")));
+    params.setOrgUnitSelectionMode(CAPTURE);
+
+    Exception exception =
+        assertThrows(IllegalQueryException.class, () -> eventService.getEvents(params));
+
+    assertEquals(
+        exception.getMessage(),
+        "orgUnitMode CAPTURE cannot be used with orgUnits. Please remove the orgUnit parameter and try again.");
   }
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {

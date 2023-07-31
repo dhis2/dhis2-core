@@ -28,8 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
@@ -148,8 +146,6 @@ class TrackerEventCriteriaMapper {
 
     User user = currentUserService.getCurrentUser();
     validateUser(user, program, programStage);
-
-    validateOrgUnitParams(criteria.getOrgUnit(), criteria.getOuMode());
 
     OrganisationUnit requestedOrgUnit =
         applyIfNonEmpty(organisationUnitService::getOrganisationUnit, criteria.getOrgUnit());
@@ -445,15 +441,5 @@ class TrackerEventCriteriaMapper {
     return orders.entrySet().stream()
         .map(e -> new OrderParam(e.getKey(), e.getValue()))
         .collect(Collectors.toList());
-  }
-
-  private void validateOrgUnitParams(String orgUnit, OrganisationUnitSelectionMode orgUnitMode)
-      throws BadRequestException {
-    if (orgUnit != null && (orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE)) {
-      throw new BadRequestException(
-          String.format(
-              "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
-              orgUnitMode));
-    }
   }
 }

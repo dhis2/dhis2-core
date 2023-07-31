@@ -1113,29 +1113,6 @@ class TrackerEventCriteriaMapperTest {
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
 
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
-    TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-    eventCriteria.setOrgUnit(orgUnit.getUid());
-    eventCriteria.setOuMode(ACCESSIBLE);
-
-    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(eventCriteria));
-
-    assertStartsWith(
-        "orgUnitMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
-    TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-    eventCriteria.setOrgUnit(orgUnit.getUid());
-    eventCriteria.setOuMode(CAPTURE);
-
-    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(eventCriteria));
-
-    assertStartsWith("orgUnitMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
-  }
-
   private OrganisationUnit createOrgUnit(String name, String uid) {
     OrganisationUnit orgUnit = new OrganisationUnit(name);
     orgUnit.setUid(uid);
