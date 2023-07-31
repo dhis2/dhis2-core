@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller.deprecated.tracker;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.webapi.controller.deprecated.tracker.EventUtils.getOrgUnitMode;
 import static org.hisp.dhis.webapi.controller.deprecated.tracker.EventUtils.validateAccessibleOrgUnits;
 
@@ -238,6 +240,14 @@ class EventRequestToSearchParamsMapper {
     if (!StringUtils.isEmpty(programStage) && ps == null) {
       throw new IllegalQueryException(
           "Program stage is specified but does not exist: " + programStage);
+    }
+
+    if (orgUnit != null
+        && (orgUnitSelectionMode == ACCESSIBLE || orgUnitSelectionMode == CAPTURE)) {
+      throw new IllegalQueryException(
+          String.format(
+              "ouMode %s cannot be used with orgUnits. Please remove the ou parameter and try again.",
+              orgUnitSelectionMode));
     }
 
     OrganisationUnit requestedOrgUnit = organisationUnitService.getOrganisationUnit(orgUnit);
