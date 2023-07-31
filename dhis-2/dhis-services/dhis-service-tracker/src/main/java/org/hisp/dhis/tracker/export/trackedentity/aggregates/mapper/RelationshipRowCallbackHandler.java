@@ -96,10 +96,10 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
 
   /**
    * The SQL query that generates the ResultSet used by this {@see RowCallbackHandler} fetches both
-   * sides of a relationship: since each side can be a Tracked Entity Instance, a Enrollment or an
-   * Event, the query adds a "hint" to the final result to help this Handler to correctly associate
-   * the type to the left or right side of the relationship. The "typeWithUid" variable contains the
-   * UID of the object and a string representing the type. E.g.
+   * sides of a relationship: since each side can be a Tracked Entity, an Enrollment or an Event,
+   * the query adds a "hint" to the final result to help this Handler to correctly associate the
+   * type to the left or right side of the relationship. The "typeWithUid" variable contains the UID
+   * of the object and a string representing the type. E.g.
    *
    * <p>te|dj3382832 ev|332983893
    *

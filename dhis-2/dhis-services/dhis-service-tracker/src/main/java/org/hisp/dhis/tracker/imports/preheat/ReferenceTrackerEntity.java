@@ -40,7 +40,7 @@ public class ReferenceTrackerEntity {
 
   /**
    * Reference uid of the parent object of this Reference. This is only populated if uid references
-   * a ProgramStage or a Program Stage Instance
+   * a ProgramStage or an Event
    */
   private final String parentUid;
 

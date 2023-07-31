@@ -228,9 +228,9 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
     String enrollmentSelect =
         "(select enrollmentid from enrollment where trackedentityid in " + teSelect + " )";
 
-    List<String> deletedteUids =
+    List<String> deletedTeUids =
         getDeletionEntities("select uid from trackedentity where deleted is true");
-    if (deletedteUids.isEmpty()) {
+    if (deletedTeUids.isEmpty()) {
       return 0;
     }
 
@@ -255,7 +255,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
 
     /*
      * Delete event values, event audits, event comments, events, enrollment
-     * comments, enrollments, te attribtue values, te attribtue value
+     * comments, enrollments, te attribute values, te attribute value
      * audits, tes
      *
      */
@@ -310,7 +310,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
     if (result > 0) {
       auditHardDeletedEntity(associatedEvents, Event.class);
       auditHardDeletedEntity(associatedEnrollments, Enrollment.class);
-      auditHardDeletedEntity(deletedteUids, TrackedEntity.class);
+      auditHardDeletedEntity(deletedTeUids, TrackedEntity.class);
     }
 
     return result;

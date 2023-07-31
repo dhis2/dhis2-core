@@ -95,11 +95,11 @@ class TrackedEntityFieldsParamMapper {
                 TrackedEntity.class, fields, "enrollments.relationships"),
             fieldFilterService.filterIncludes(
                 TrackedEntity.class, fields, "enrollments.attributes"));
-    TrackedEntityEnrollmentParams teiEnrollmentParams =
+    TrackedEntityEnrollmentParams teEnrollmentParams =
         new TrackedEntityEnrollmentParams(
             fieldFilterService.filterIncludes(TrackedEntity.class, fields, FIELD_ENROLLMENTS),
             enrollmentParams);
-    params = params.withTeEnrollmentParams(teiEnrollmentParams);
+    params = params.withTeEnrollmentParams(teEnrollmentParams);
     return params;
   }
 }

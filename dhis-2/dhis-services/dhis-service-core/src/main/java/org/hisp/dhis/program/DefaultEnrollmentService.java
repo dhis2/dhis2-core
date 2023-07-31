@@ -331,7 +331,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
     if (program.getTrackedEntityType() != null
         && !program.getTrackedEntityType().equals(trackedEntity.getTrackedEntityType())) {
       throw new IllegalQueryException(
-          "Tracked entity instance must have same tracked entity as program: " + program.getUid());
+          "Tracked entity must have same tracked entity as program: " + program.getUid());
     }
 
     Enrollment enrollment = new Enrollment();
@@ -426,7 +426,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
   @Transactional
   public void completeEnrollmentStatus(Enrollment enrollment) {
     // -----------------------------------------------------------------
-    // Update program-instance
+    // Update enrollment
     // -----------------------------------------------------------------
 
     enrollment.setStatus(ProgramStatus.COMPLETED);
@@ -446,13 +446,13 @@ public class DefaultEnrollmentService implements EnrollmentService {
   @Transactional
   public void cancelEnrollmentStatus(Enrollment enrollment) {
     // ---------------------------------------------------------------------
-    // Set status of the program-instance
+    // Set status of the enrollment
     // ---------------------------------------------------------------------
     enrollment.setStatus(ProgramStatus.CANCELLED);
     updateEnrollment(enrollment);
 
     // ---------------------------------------------------------------------
-    // Set statuses of the program-stage-instances
+    // Set statuses of the event
     // ---------------------------------------------------------------------
 
     for (Event event : enrollment.getEvents()) {
@@ -486,7 +486,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
     }
 
     // -----------------------------------------------------------------
-    // Update program-instance
+    // Update enrollment
     // -----------------------------------------------------------------
 
     enrollment.setStatus(ProgramStatus.ACTIVE);

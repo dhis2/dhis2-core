@@ -252,7 +252,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
     String violation = null;
 
     if (!params.hasEnrollment() && !params.hasEvent()) {
-      violation = "Enrollment or program stage instance must be provided";
+      violation = "Enrollment or event must be provided";
     }
 
     if (violation != null) {
@@ -278,7 +278,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
     }
 
     if (message.getEnrollment() == null && message.getEvent() == null) {
-      violation = "Enrollment or program stage instance must be specified";
+      violation = "Enrollment or event must be specified";
     }
 
     if (recipients.getTrackedEntity() != null

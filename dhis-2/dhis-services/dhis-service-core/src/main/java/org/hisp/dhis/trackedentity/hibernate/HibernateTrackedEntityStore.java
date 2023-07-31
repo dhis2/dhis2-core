@@ -45,7 +45,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.f
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.POTENTIAL_DUPLICATE;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.PROGRAM_INSTANCE_ALIAS;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_INSTANCE_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_TYPE_ID;
 import static org.hisp.dhis.util.DateUtils.addDays;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
@@ -114,9 +114,9 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
   private static final String LIMIT = "LIMIT";
 
-  private static final String PSI_EXECUTIONDATE = "PSI.executiondate";
+  private static final String EV_EXECUTIONDATE = "EV.executiondate";
 
-  private static final String PSI_DUEDATE = "PSI.duedate";
+  private static final String EV_DUEDATE = "EV.duedate";
 
   private static final String IS_NULL = "IS NULL";
 
@@ -128,7 +128,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
   private static final String EQUALS = " = ";
 
-  private static final String PSI_STATUS = "PSI.status";
+  private static final String EV_STATUS = "EV.status";
 
   private static final String UID_VALUE_SEPARATOR = ":";
 
@@ -202,7 +202,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   @Override
   public List<Long> getTrackedEntityIds(TrackedEntityQueryParams params) {
     String sql = getQuery(params, false);
-    log.debug("Tracked entity instance query SQL: " + sql);
+    log.debug("Tracked entity query SQL: " + sql);
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
     checkMaxTeiCountReached(params, rowSet);
@@ -210,7 +210,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     List<Long> ids = new ArrayList<>();
 
     while (rowSet.next()) {
-      ids.add(rowSet.getLong("ted"));
+      ids.add(rowSet.getLong("teId"));
     }
 
     return ids;
@@ -226,7 +226,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   @Override
   public List<Map<String, String>> getTrackedEntitiesGrid(TrackedEntityQueryParams params) {
     String sql = getQuery(params, true);
-    log.debug("Tracked entity instance query SQL: " + sql);
+    log.debug("Tracked entity query SQL: " + sql);
 
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
@@ -237,12 +237,12 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     while (rowSet.next()) {
       final Map<String, String> map = new HashMap<>();
 
-      map.put(TRACKED_ENTITY_INSTANCE_ID, rowSet.getString(TRACKED_ENTITY_INSTANCE_ID));
+      map.put(TRACKED_ENTITY_ID, rowSet.getString(TRACKED_ENTITY_ID));
       map.put(CREATED_ID, rowSet.getString(CREATED_ID));
       map.put(LAST_UPDATED_ID, rowSet.getString(LAST_UPDATED_ID));
       map.put(ORG_UNIT_ID, rowSet.getString(ORG_UNIT_ID));
       map.put(ORG_UNIT_NAME, rowSet.getString(ORG_UNIT_NAME));
-      map.put(TRACKED_ENTITY_ID, rowSet.getString(TRACKED_ENTITY_ID));
+      map.put(TRACKED_ENTITY_TYPE_ID, rowSet.getString(TRACKED_ENTITY_TYPE_ID));
       map.put(INACTIVE_ID, rowSet.getString(INACTIVE_ID));
       map.put(POTENTIAL_DUPLICATE, rowSet.getString(POTENTIAL_DUPLICATE));
 
@@ -307,7 +307,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     // Query
     // ---------------------------------------------------------------------
 
-    log.debug("Tracked entity instance count SQL: " + sql);
+    log.debug("Tracked entity count SQL: " + sql);
 
     return jdbcTemplate.queryForObject(sql, Integer.class);
   }
@@ -316,7 +316,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   public int getTrackedEntityCountForGridWithMaxTeiLimit(TrackedEntityQueryParams params) {
     String sql = getCountQueryWithMaxTeiLimit(params);
 
-    log.debug("Tracked entity instance count SQL: " + sql);
+    log.debug("Tracked entity count SQL: " + sql);
 
     return jdbcTemplate.queryForObject(sql, Integer.class);
   }
@@ -384,7 +384,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     StringBuilder stringBuilder = new StringBuilder(getQuerySelect(params));
 
     if (!isGridQuery) {
-      stringBuilder.append(", TE.trackedentityid AS ted ");
+      stringBuilder.append(", TE.trackedentityid AS teId ");
     }
 
     return stringBuilder
@@ -449,12 +449,12 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     LinkedHashSet<String> select =
         new LinkedHashSet<>(
             List.of(
-                "SELECT TE.uid AS " + TRACKED_ENTITY_INSTANCE_ID,
+                "SELECT TE.uid AS " + TRACKED_ENTITY_ID,
                 "TE.created AS " + CREATED_ID,
                 "TE.lastupdated AS " + LAST_UPDATED_ID,
                 "TE.ou AS " + ORG_UNIT_ID,
                 "TE.ouname AS " + ORG_UNIT_NAME,
-                "TET.uid AS " + TRACKED_ENTITY_ID,
+                "TET.uid AS " + TRACKED_ENTITY_TYPE_ID,
                 "TE.inactive AS " + INACTIVE_ID,
                 "TE.potentialduplicate AS " + POTENTIAL_DUPLICATE,
                 params.isIncludeDeleted() ? "TE.deleted AS " + DELETED : "",
@@ -897,9 +897,9 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   }
 
   /**
-   * Generates an EXISTS condition for enrollment (and program stage instance if specified). The
-   * EXIST will allow us to filter by enrollments with a low overhead. This condition only applies
-   * when a program is specified.
+   * Generates an EXISTS condition for enrollment (and event if specified). The EXIST will allow us
+   * to filter by enrollments with a low overhead. This condition only applies when a program is
+   * specified.
    *
    * @param whereAnd indicator tracking whether WHERE has been invoked or not
    * @param params
@@ -916,57 +916,57 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     program
         .append(whereAnd.whereAnd())
         .append("EXISTS (")
-        .append("SELECT PI.trackedentityid ")
-        .append("FROM enrollment PI ");
+        .append("SELECT EN.trackedentityid ")
+        .append("FROM enrollment EN ");
 
     if (params.hasFilterForEvents()) {
       program.append(getFromSubQueryEvent(params));
     }
 
     program
-        .append("WHERE PI.trackedentityid = TE.trackedentityid ")
-        .append("AND PI.programid = ")
+        .append("WHERE EN.trackedentityid = TE.trackedentityid ")
+        .append("AND EN.programid = ")
         .append(params.getProgram().getId())
         .append(SPACE);
 
     if (params.hasProgramStatus()) {
-      program.append("AND PI.status = '").append(params.getProgramStatus()).append("' ");
+      program.append("AND EN.status = '").append(params.getProgramStatus()).append("' ");
     }
 
     if (params.hasFollowUp()) {
-      program.append("AND PI.followup IS ").append(params.getFollowUp()).append(SPACE);
+      program.append("AND EN.followup IS ").append(params.getFollowUp()).append(SPACE);
     }
 
     if (params.hasProgramEnrollmentStartDate()) {
       program
-          .append("AND PI.enrollmentdate >= '")
+          .append("AND EN.enrollmentdate >= '")
           .append(getMediumDateString(params.getProgramEnrollmentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramEnrollmentEndDate()) {
       program
-          .append("AND PI.enrollmentdate <= '")
+          .append("AND EN.enrollmentdate <= '")
           .append(getMediumDateString(params.getProgramEnrollmentEndDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentStartDate()) {
       program
-          .append("AND PI.incidentdate >= '")
+          .append("AND EN.incidentdate >= '")
           .append(getMediumDateString(params.getProgramIncidentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentEndDate()) {
       program
-          .append("AND PI.incidentdate <= '")
+          .append("AND EN.incidentdate <= '")
           .append(getMediumDateString(params.getProgramIncidentEndDate()))
           .append("' ");
     }
 
     if (!params.isIncludeDeleted()) {
-      program.append("AND PI.deleted is false ");
+      program.append("AND EN.deleted is false ");
     }
 
     program.append(") ");
@@ -985,7 +985,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     StringBuilder events = new StringBuilder();
     SqlHelper whereHlp = new SqlHelper(true);
 
-    events.append("INNER JOIN (").append("SELECT PSI.enrollmentid ").append("FROM event PSI ");
+    events.append("INNER JOIN (").append("SELECT EV.enrollmentid ").append("FROM event EV ");
 
     if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
       events
@@ -995,7 +995,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
           .append("WHERE uid IN (")
           .append(encodeAndQuote(params.getAssignedUserQueryParam().getAssignedUsers()))
           .append(") ")
-          .append(") AU ON AU.userid = PSI.assigneduserid");
+          .append(") AU ON AU.userid = EV.assigneduserid");
     }
 
     if (params.hasEventStatus()) {
@@ -1004,9 +1004,9 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
       if (params.isEventStatus(EventStatus.COMPLETED)) {
         events
-            .append(getQueryDateConditionBetween(whereHlp, PSI_EXECUTIONDATE, start, end))
+            .append(getQueryDateConditionBetween(whereHlp, EV_EXECUTIONDATE, start, end))
             .append(whereHlp.whereAnd())
-            .append(PSI_STATUS)
+            .append(EV_STATUS)
             .append(EQUALS)
             .append(SINGLE_QUOTE)
             .append(EventStatus.COMPLETED.name())
@@ -1015,9 +1015,9 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
       } else if (params.isEventStatus(EventStatus.VISITED)
           || params.isEventStatus(EventStatus.ACTIVE)) {
         events
-            .append(getQueryDateConditionBetween(whereHlp, PSI_EXECUTIONDATE, start, end))
+            .append(getQueryDateConditionBetween(whereHlp, EV_EXECUTIONDATE, start, end))
             .append(whereHlp.whereAnd())
-            .append(PSI_STATUS)
+            .append(EV_STATUS)
             .append(EQUALS)
             .append(SINGLE_QUOTE)
             .append(EventStatus.ACTIVE.name())
@@ -1025,35 +1025,35 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
             .append(SPACE);
       } else if (params.isEventStatus(EventStatus.SCHEDULE)) {
         events
-            .append(getQueryDateConditionBetween(whereHlp, PSI_DUEDATE, start, end))
+            .append(getQueryDateConditionBetween(whereHlp, EV_DUEDATE, start, end))
             .append(whereHlp.whereAnd())
-            .append(PSI_STATUS)
+            .append(EV_STATUS)
             .append(SPACE)
             .append(IS_NOT_NULL)
             .append(whereHlp.whereAnd())
-            .append(PSI_EXECUTIONDATE)
+            .append(EV_EXECUTIONDATE)
             .append(SPACE)
             .append(IS_NULL)
             .append(whereHlp.whereAnd())
-            .append("date(now()) <= date(PSI.duedate) ");
+            .append("date(now()) <= date(EV.duedate) ");
       } else if (params.isEventStatus(EventStatus.OVERDUE)) {
         events
-            .append(getQueryDateConditionBetween(whereHlp, PSI_DUEDATE, start, end))
+            .append(getQueryDateConditionBetween(whereHlp, EV_DUEDATE, start, end))
             .append(whereHlp.whereAnd())
-            .append(PSI_STATUS)
+            .append(EV_STATUS)
             .append(SPACE)
             .append(IS_NOT_NULL)
             .append(whereHlp.whereAnd())
-            .append(PSI_EXECUTIONDATE)
+            .append(EV_EXECUTIONDATE)
             .append(SPACE)
             .append(IS_NULL)
             .append(whereHlp.whereAnd())
-            .append("date(now()) > date(PSI.duedate) ");
+            .append("date(now()) > date(EV.duedate) ");
       } else if (params.isEventStatus(EventStatus.SKIPPED)) {
         events
-            .append(getQueryDateConditionBetween(whereHlp, PSI_DUEDATE, start, end))
+            .append(getQueryDateConditionBetween(whereHlp, EV_DUEDATE, start, end))
             .append(whereHlp.whereAnd())
-            .append(PSI_STATUS)
+            .append(EV_STATUS)
             .append(EQUALS)
             .append(SINGLE_QUOTE)
             .append(EventStatus.SKIPPED.name())
@@ -1065,24 +1065,24 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     if (params.hasProgramStage()) {
       events
           .append(whereHlp.whereAnd())
-          .append("PSI.programstageid = ")
+          .append("EV.programstageid = ")
           .append(params.getProgramStage().getId())
           .append(SPACE);
     }
 
     if (AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode()) {
-      events.append(whereHlp.whereAnd()).append("PSI.assigneduserid IS NULL ");
+      events.append(whereHlp.whereAnd()).append("EV.assigneduserid IS NULL ");
     }
 
     if (AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode()) {
-      events.append(whereHlp.whereAnd()).append("PSI.assigneduserid IS NOT NULL ");
+      events.append(whereHlp.whereAnd()).append("EV.assigneduserid IS NOT NULL ");
     }
 
     if (!params.isIncludeDeleted()) {
-      events.append(whereHlp.whereAnd()).append("PSI.deleted IS FALSE");
+      events.append(whereHlp.whereAnd()).append("EV.deleted IS FALSE");
     }
 
-    events.append(") PSI ON PSI.enrollmentid = PI.enrollmentid ");
+    events.append(") EV ON EV.enrollmentid = EN.enrollmentid ");
 
     return events.toString();
   }

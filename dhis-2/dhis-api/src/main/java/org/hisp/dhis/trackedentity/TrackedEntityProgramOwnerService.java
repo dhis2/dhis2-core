@@ -37,66 +37,66 @@ public interface TrackedEntityProgramOwnerService {
   String ID = TrackedEntityProgramOwnerService.class.getName();
 
   /**
-   * Assign an orgUnit as the owner for a tracked entity instance for the given program. If another
-   * owner already exist then this method would fail.
+   * Assign an orgUnit as the owner for a tracked entity for the given program. If another owner
+   * already exist then this method would fail.
    *
-   * @param teUid The Uid of the tracked entity instance
+   * @param teUid The Uid of the tracked entity
    * @param programUid The program Uid
    * @param orgUnitUid The organisation units Uid
    */
   void createTrackedEntityProgramOwner(String teUid, String programUid, String orgUnitUid);
 
   /**
-   * Update the owner ou for a tracked entity instance for the given program. If no owner previously
-   * exist, then this method will fail.
+   * Update the owner ou for a tracked entity for the given program. If no owner previously exist,
+   * then this method will fail.
    *
-   * @param teUid The tracked entity instance Uid
+   * @param teUid The tracked entity Uid
    * @param programUid The program Uid
    * @param orgUnitUid The organisation Unit Uid
    */
   void updateTrackedEntityProgramOwner(String teUid, String programUid, String orgUnitUid);
 
   /**
-   * Assign an orgUnit as the owner for a tracked entity instance for the given program. If another
-   * owner already exist then this method would fail.
+   * Assign an orgUnit as the owner for a tracked entity for the given program. If another owner
+   * already exist then this method would fail.
    *
-   * @param teId The Id of the tracked entity instance
+   * @param teId The Id of the tracked entity
    * @param programId The program Id
    * @param orgUnitId The organisation units Id
    */
   void createTrackedEntityProgramOwner(long teId, long programId, long orgUnitId);
 
   /**
-   * Update the owner ou for a tracked entity instance for the given program. If no owner previously
-   * exist, then this method will fail.
+   * Update the owner ou for a tracked entity for the given program. If no owner previously exist,
+   * then this method will fail.
    *
-   * @param teId The tracked entity instance Id
+   * @param teId The tracked entity Id
    * @param programId The program Id
    * @param orgUnitId The organisation Unit Id
    */
   void updateTrackedEntityProgramOwner(long teId, long programId, long orgUnitId);
 
   /**
-   * Get the program owner details for a tracked entity instance.
+   * Get the program owner details for a tracked entity.
    *
-   * @param teId The tracked entity instance Id
+   * @param teId The tracked entity Id
    * @param programId The program Id
    * @return The TrackedEntityProgramOwner object
    */
   TrackedEntityProgramOwner getTrackedEntityProgramOwner(long teId, long programId);
 
   /**
-   * Get the program owner details for a tracked entity instance.
+   * Get the program owner details for a tracked entity.
    *
-   * @param teUid The tracked entity instance Uid
+   * @param teUid The tracked entity Uid
    * @param programUid The program Uid
    * @return The TrackedEntityProgramOwner object
    */
   TrackedEntityProgramOwner getTrackedEntityProgramOwner(String teUid, String programUid);
 
   /**
-   * Assign an orgUnit as the owner for a tracked entity instance for the given program. If another
-   * owner already exist then it would be overwritten.
+   * Assign an orgUnit as the owner for a tracked entity for the given program. If another owner
+   * already exist then it would be overwritten.
    *
    * @param teUid
    * @param programUid
@@ -105,8 +105,8 @@ public interface TrackedEntityProgramOwnerService {
   void createOrUpdateTrackedEntityProgramOwner(String teUid, String programUid, String orgUnitUid);
 
   /**
-   * Assign an orgUnit as the owner for a tracked entity instance for the given program. If another
-   * owner already exist then it would be overwritten.
+   * Assign an orgUnit as the owner for a tracked entity for the given program. If another owner
+   * already exist then it would be overwritten.
    *
    * @param teUid
    * @param programUid
@@ -115,8 +115,8 @@ public interface TrackedEntityProgramOwnerService {
   void createOrUpdateTrackedEntityProgramOwner(long teUid, long programUid, long orgUnitUid);
 
   /**
-   * Assign an orgUnit as the owner for a tracked entity instance for the given program. If another
-   * owner already exist then it would be overwritten.
+   * Assign an orgUnit as the owner for a tracked entity for the given program. If another owner
+   * already exist then it would be overwritten.
    *
    * @param entityInstance
    * @param program
@@ -126,8 +126,8 @@ public interface TrackedEntityProgramOwnerService {
       TrackedEntity entityInstance, Program program, OrganisationUnit ou);
 
   /**
-   * Update the owner ou for a tracked entity instance for the given program. If no owner previously
-   * exist, then this method will fail.
+   * Update the owner ou for a tracked entity for the given program. If no owner previously exist,
+   * then this method will fail.
    *
    * @param entityInstance
    * @param program
@@ -137,8 +137,8 @@ public interface TrackedEntityProgramOwnerService {
       TrackedEntity entityInstance, Program program, OrganisationUnit ou);
 
   /**
-   * Create a new program owner ou for a tracked entity instance. If an owner previously exist, then
-   * this method will fail.
+   * Create a new program owner ou for a tracked entity. If an owner previously exist, then this
+   * method will fail.
    *
    * @param entityInstance
    * @param program

@@ -61,7 +61,7 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
  * @author Lars Helge Overland
  */
 public class TrackedEntityQueryParams {
-  public static final String TRACKED_ENTITY_INSTANCE_ID = "instance";
+  public static final String TRACKED_ENTITY_ID = "instance";
 
   public static final String CREATED_ID = "created";
 
@@ -71,11 +71,7 @@ public class TrackedEntityQueryParams {
 
   public static final String ORG_UNIT_NAME = "ouname";
 
-  public static final String TRACKED_ENTITY_ID = "te";
-
-  public static final String TRACKED_ENTITY_ATTRIBUTE_ID = "teattribute";
-
-  public static final String TRACKED_ENTITY_ATTRIBUTE_VALUE_ID = "tevalue";
+  public static final String TRACKED_ENTITY_TYPE_ID = "te";
 
   public static final String INACTIVE_ID = "inactive";
 
@@ -184,7 +180,7 @@ public class TrackedEntityQueryParams {
   private boolean skipPaging;
 
   /** Indicates if there is a maximum te retrieval limit. 0 no limit. */
-  private int maxTeiLimit;
+  private int maxTeLimit;
 
   /** Indicates whether to include soft-deleted elements. Default to false */
   private boolean includeDeleted = false;
@@ -868,11 +864,11 @@ public class TrackedEntityQueryParams {
   }
 
   public int getMaxTeLimit() {
-    return maxTeiLimit;
+    return maxTeLimit;
   }
 
-  public TrackedEntityQueryParams setMaxTeiLimit(int maxTeiLimit) {
-    this.maxTeiLimit = maxTeiLimit;
+  public TrackedEntityQueryParams setMaxTeLimit(int maxTeLimit) {
+    this.maxTeLimit = maxTeLimit;
     return this;
   }
 

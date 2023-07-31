@@ -337,7 +337,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   /**
    * Check if the user has temporary access for a specific te-program combination
    *
-   * @param entityInstance The tracked entity instance object
+   * @param entityInstance The tracked entity object
    * @param program The program object
    * @param user The user object against which the check has to be performed
    * @return true if the user has temporary access, false otherwise

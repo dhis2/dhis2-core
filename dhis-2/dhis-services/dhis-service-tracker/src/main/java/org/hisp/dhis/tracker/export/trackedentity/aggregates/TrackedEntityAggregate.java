@@ -314,7 +314,7 @@ public class TrackedEntityAggregate implements Aggregate {
   /**
    * Fetch security related information and add them to the {@see Context}
    *
-   * <p>- all Tracked Entity Instance Types this user has READ access to
+   * <p>- all Tracked Entity Types this user has READ access to
    *
    * <p>- all Programs Type this user has READ access to
    *

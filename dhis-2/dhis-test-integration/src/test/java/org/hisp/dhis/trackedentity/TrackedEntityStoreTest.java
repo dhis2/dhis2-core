@@ -444,10 +444,8 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest {
     assertEquals(4, trackedEntitites.size());
     trackedEntitites.forEach(
         teiMap -> {
-          if (teiMap.get(TrackedEntityQueryParams.TRACKED_ENTITY_INSTANCE_ID).equals(teiA.getUid())
-              || teiMap
-                  .get(TrackedEntityQueryParams.TRACKED_ENTITY_INSTANCE_ID)
-                  .equals(teiB.getUid())) {
+          if (teiMap.get(TrackedEntityQueryParams.TRACKED_ENTITY_ID).equals(teiA.getUid())
+              || teiMap.get(TrackedEntityQueryParams.TRACKED_ENTITY_ID).equals(teiB.getUid())) {
             assertTrue(
                 Boolean.parseBoolean(teiMap.get(TrackedEntityQueryParams.POTENTIAL_DUPLICATE)));
           } else {
