@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,49 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.report;
+package org.hisp.dhis.system.grid;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.Data;
-import org.hisp.dhis.tracker.TrackerType;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Data
-public class Entity {
-  @JsonProperty private final TrackerType trackerType;
+import com.lowagie.text.Font;
+import java.util.Locale;
+import org.hisp.dhis.system.util.PDFUtils;
+import org.junit.jupiter.api.Test;
 
-  @JsonProperty private String uid;
+class PdfUtilsTest {
 
-  private List<Error> errorReports = new ArrayList<>();
-
-  public Entity(TrackerType trackerType) {
-    this.trackerType = trackerType;
+  @Test
+  void testGetArabicFont() {
+    Font font = PDFUtils.getFont(new Locale("ar"), 10);
+    assertNotNull(font);
+    assertEquals("NotoNaskhArabic", font.getBaseFont().getPostscriptFontName());
   }
 
-  public Entity(TrackerType trackerType, String uid) {
-    this.trackerType = trackerType;
-    this.uid = uid;
-  }
-
-  @JsonCreator
-  public Entity(
-      @JsonProperty("trackerType") TrackerType trackerType,
-      @JsonProperty("uid") String uid,
-      @JsonProperty("errorReports") List<Error> errorReports) {
-    this.trackerType = trackerType;
-    this.uid = uid;
-    if (errorReports != null) {
-      this.errorReports = errorReports;
-    }
-  }
-
-  @JsonProperty
-  public List<Error> getErrorReports() {
-    return this.errorReports;
+  @Test
+  void testGetNoneArabicFont() {
+    Font font = PDFUtils.getFont(new Locale("en"), 10);
+    assertNotNull(font);
+    assertEquals("Ubuntu-Regular", font.getBaseFont().getPostscriptFontName());
   }
 }
