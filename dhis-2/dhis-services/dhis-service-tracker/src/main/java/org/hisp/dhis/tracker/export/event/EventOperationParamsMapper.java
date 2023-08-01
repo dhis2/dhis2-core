@@ -305,15 +305,9 @@ public class EventOperationParamsMapper {
       case ALL -> userCanSearchOrgUnitModeALL(user)
           ? null
           : "Current user is not authorized to query across all organisation units";
-      case ACCESSIBLE -> params.getOrgUnitUid() != null
-          ? "orgUnitMode ACCESSIBLE cannot be used with orgUnits. Please remove the orgUnit parameter and try again."
-          : getAccessibleScopeValidation(user, program);
-      case CAPTURE -> params.getOrgUnitUid() != null
-          ? "orgUnitMode CAPTURE cannot be used with orgUnits. Please remove the orgUnit parameter and try again."
-          : getCaptureScopeValidation(user);
-      case CHILDREN, SELECTED, DESCENDANTS -> params.getOrgUnitUid() == null
-          ? "Organisation unit is required for orgUnitMode: " + params.getOrgUnitMode()
-          : null;
+      case ACCESSIBLE -> getAccessibleScopeValidation(user, program);
+      case CAPTURE -> getCaptureScopeValidation(user);
+      default -> null;
     };
   }
 
@@ -511,27 +505,18 @@ public class EventOperationParamsMapper {
       Function<String, List<OrganisationUnit>> orgUnitDescendants,
       TrackerAccessManager trackerAccessManager) {
 
-    switch (orgUnitMode) {
-      case DESCENDANTS:
-        return orgUnit != null
-            ? getAccessibleDescendants(user, program, orgUnitDescendants.apply(orgUnit.getUid()))
-            : Collections.emptyList();
-      case CHILDREN:
-        return orgUnit != null
-            ? getAccessibleDescendants(
-                user,
-                program,
-                Stream.concat(Stream.of(orgUnit), orgUnit.getChildren().stream()).toList())
-            : Collections.emptyList();
-      case CAPTURE:
-        return new ArrayList<>(user.getOrganisationUnits());
-      case ACCESSIBLE:
-        return getAccessibleOrgUnits(user, program);
-      case SELECTED:
-        return getSelectedOrgUnits(user, program, orgUnit, trackerAccessManager);
-      default:
-        return Collections.emptyList();
-    }
+    return switch (orgUnitMode) {
+      case DESCENDANTS -> getAccessibleDescendants(
+          user, program, orgUnitDescendants.apply(orgUnit.getUid()));
+      case CHILDREN -> getAccessibleDescendants(
+          user,
+          program,
+          Stream.concat(Stream.of(orgUnit), orgUnit.getChildren().stream()).toList());
+      case CAPTURE -> new ArrayList<>(user.getOrganisationUnits());
+      case ACCESSIBLE -> getAccessibleOrgUnits(user, program);
+      case SELECTED -> getSelectedOrgUnits(user, program, orgUnit, trackerAccessManager);
+      default -> Collections.emptyList();
+    };
   }
 
   private static List<OrganisationUnit> getSelectedOrgUnits(

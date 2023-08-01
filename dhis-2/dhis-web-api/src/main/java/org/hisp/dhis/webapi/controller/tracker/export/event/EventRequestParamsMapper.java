@@ -28,6 +28,11 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
@@ -67,6 +72,10 @@ class EventRequestParamsMapper {
     OrganisationUnitSelectionMode orgUnitMode =
         validateDeprecatedParameter(
             "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
+
+    if (requestParams.getOrgUnitMode() != null) {
+      validateOrgUnitMode(requestParams);
+    }
 
     UID attributeCategoryCombo =
         validateDeprecatedParameter(
@@ -222,6 +231,26 @@ class EventRequestParamsMapper {
     if (requestParams.getUpdatedWithin() != null
         && DateUtils.getDuration(requestParams.getUpdatedWithin()) == null) {
       throw new BadRequestException("Duration is not valid: " + requestParams.getUpdatedWithin());
+    }
+  }
+
+  private void validateOrgUnitMode(RequestParams params) throws BadRequestException {
+    if ((params.getOrgUnitMode().equals(ACCESSIBLE) || params.getOrgUnitMode().equals(CAPTURE))
+        && params.getOrgUnit() != null) {
+      throw new BadRequestException(
+          String.format(
+              "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
+              params.getOrgUnitMode()));
+    }
+
+    if ((params.getOrgUnitMode().equals(CHILDREN)
+            || params.getOrgUnitMode().equals(SELECTED)
+            || params.getOrgUnitMode().equals(DESCENDANTS))
+        && params.getOrgUnit() == null) {
+      throw new BadRequestException(
+          String.format(
+              "orgUnit is required for orgUnitMode: %s. Please add an orgUnit or use a different orgUnitMode.",
+              params.getOrgUnitMode()));
     }
   }
 }

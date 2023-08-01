@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
@@ -173,6 +175,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
     requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
 
     EventOperationParams params = mapper.map(requestParams);
@@ -451,5 +454,62 @@ class EventRequestParamsMapperTest {
         // order of fields might not always be the same; therefore using contains
         () -> assertContains("enrolledAt", exception.getMessage()),
         () -> assertContains("zGlzbfreTOH", exception.getMessage()));
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
+    requestParams.setOrgUnitMode(ACCESSIBLE);
+
+    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
+
+    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertStartsWith(
+        "orgUnitMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
+    requestParams.setOrgUnitMode(CAPTURE);
+
+    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
+
+    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertStartsWith("orgUnitMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeSelected() {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
+
+    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertStartsWith("orgUnit is required for orgUnitMode: SELECTED", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeChildren() {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.CHILDREN);
+
+    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertStartsWith("orgUnit is required for orgUnitMode: CHILDREN", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeDescendants() {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+
+    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertStartsWith("orgUnit is required for orgUnitMode: DESCENDANTS", exception.getMessage());
   }
 }
