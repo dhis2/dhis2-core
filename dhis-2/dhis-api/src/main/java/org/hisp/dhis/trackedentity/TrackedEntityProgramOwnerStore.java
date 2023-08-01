@@ -38,30 +38,30 @@ public interface TrackedEntityProgramOwnerStore extends GenericStore<TrackedEnti
   String ID = TrackedEntityProgramOwnerStore.class.getName();
 
   /**
-   * Get tracked entity program owner entity for the tei-program combination.
+   * Get tracked entity program owner entity for the te-program combination.
    *
-   * @param teiId The tracked entity instance id.
+   * @param teId The tracked entity instance id.
    * @param programId the program id
    * @return matching tracked entity program owner entity
    */
-  TrackedEntityProgramOwner getTrackedEntityProgramOwner(long teiId, long programId);
+  TrackedEntityProgramOwner getTrackedEntityProgramOwner(long teId, long programId);
 
   /**
-   * Get all Tracked entity program owner entities for the list of teis.
+   * Get all Tracked entity program owner entities for the list of tracked entities.
    *
-   * @param teiIds The list of tracked entity instance ids.
+   * @param teIds The list of tracked entity instance ids.
    * @return matching tracked entity program owner entities.
    */
-  List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners(List<Long> teiIds);
+  List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners(List<Long> teIds);
 
   /**
-   * Get all Tracked entity program owner entities for the list of teis and program.
+   * Get all Tracked entity program owner entities for the list of te and program.
    *
-   * @param teiIds The list of tracked entity instance ids.
+   * @param teIds The list of tracked entity instance ids.
    * @param programId The program id
    * @return matching tracked entity program owner entities.
    */
-  List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners(List<Long> teiIds, long programId);
+  List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners(List<Long> teIds, long programId);
 
-  List<TrackedEntityProgramOwnerOrgUnit> getTrackedEntityProgramOwnerOrgUnits(Set<Long> teiIds);
+  List<TrackedEntityProgramOwnerOrgUnit> getTrackedEntityProgramOwnerOrgUnits(Set<Long> teIds);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
+package org.hisp.dhis.tracker;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import lombok.Value;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 /**
- * @author Ameen Mohamed
+ * Tracker exporter APIs allow ordering by different types. For example events can be ordered by
+ * field names, {@link DataElement} and {@link TrackedEntityAttribute}. It is crucial for the order
+ * values to stay in one collection as their order needs to be kept as provided by the user. We
+ * cannot come up with a type-safe type that captures the above order features and that can be used
+ * in a generic collection such as a List (see typesafe heterogeneous container). We therefore use
+ * {@link Order} with a field of type {@link Object}. We get compile time type safety via methods
+ * such as {@link org.hisp.dhis.tracker.export.event.EventSearchParams#orderBy(DataElement,
+ * SortDirection)}. This allows us to advocate the types that can be ordered by while storing the
+ * order in a single {@code List} of {@link Order}. Runtime type checks are then used to ensure
+ * users (and developers) get meaningful error messages in case they order by unsupported fields or
+ * types.
  */
-public class OwnedTeiMapper extends AbstractMapper<String> {
-
-  @Override
-  String getItem(ResultSet rs) throws SQLException {
-    return rs.getString("pgm_uid");
-  }
-
-  @Override
-  String getKeyColumn() {
-    return "tei_uid";
-  }
+@Value
+public class Order {
+  Object field;
+  SortDirection direction;
 }

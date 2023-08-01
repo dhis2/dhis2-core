@@ -25,41 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
+package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
 
-import java.util.List;
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityStore;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.preheat.mappers.TrackedEntityMapper;
-import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
-import org.springframework.stereotype.Component;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
- * @author Luciano Fiandesio
+ * @author Ameen Mohamed
  */
-@RequiredArgsConstructor
-@Component
-@StrategyFor(
-    value = org.hisp.dhis.tracker.imports.domain.TrackedEntity.class,
-    mapper = TrackedEntityMapper.class)
-public class TrackerEntityStrategy implements ClassBasedSupplierStrategy {
-  @Nonnull private TrackedEntityStore trackedEntityStore;
+public class OwnedTeMapper extends AbstractMapper<String> {
 
   @Override
-  public void add(
-      TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat) {
-    for (List<String> ids : splitList) {
-      // Fetch all Tracked Entity present in the payload
-      List<TrackedEntity> trackedEntities = trackedEntityStore.getIncludingDeleted(ids);
+  String getItem(ResultSet rs) throws SQLException {
+    return rs.getString("pgm_uid");
+  }
 
-      // Add to preheat
-      preheat.putTrackedEntities(
-          DetachUtils.detach(
-              this.getClass().getAnnotation(StrategyFor.class).mapper(), trackedEntities));
-    }
+  @Override
+  String getKeyColumn() {
+    return "te_uid";
   }
 }

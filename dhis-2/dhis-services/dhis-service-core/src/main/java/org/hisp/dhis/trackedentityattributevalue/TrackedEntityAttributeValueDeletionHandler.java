@@ -55,9 +55,9 @@ public class TrackedEntityAttributeValueDeletionHandler extends DeletionHandler 
     whenVetoing(TrackedEntityAttribute.class, this::allowDeleteTrackedEntityAttribute);
   }
 
-  private void deleteTrackedEntity(TrackedEntity instance) {
+  private void deleteTrackedEntity(TrackedEntity trackedEntity) {
     Collection<TrackedEntityAttributeValue> attributeValues =
-        attributeValueService.getTrackedEntityAttributeValues(instance);
+        attributeValueService.getTrackedEntityAttributeValues(trackedEntity);
 
     for (TrackedEntityAttributeValue attributeValue : attributeValues) {
       attributeValueService.deleteTrackedEntityAttributeValue(attributeValue);

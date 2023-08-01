@@ -41,11 +41,12 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.tracker.Order;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 @Getter
 @Builder(toBuilder = true)
@@ -118,9 +119,17 @@ public class EventOperationParams {
 
   private boolean includeRelationships;
 
-  @Builder.Default private List<OrderParam> orders = new ArrayList<>();
-
-  @Builder.Default private List<OrderCriteria> attributeOrders = new ArrayList<>();
+  /**
+   * Events can be ordered by field names (given as {@link String}), data element (given as {@link
+   * UID}) and tracked entity attribute (given as {@link UID}). It is crucial for the order values
+   * to stay in one collection as their order needs to be kept as provided by the user. We cannot
+   * come up with a type-safe type that captures the above order features and that can be used in a
+   * generic collection such as a List (see typesafe heterogeneous container). We therefore provide
+   * {@link EventOperationParamsBuilder#orderBy(String, SortDirection)} and {@link
+   * EventOperationParamsBuilder#orderBy(UID, SortDirection)} to advocate the types that can be
+   * ordered by while storing the order in a single List of {@link Order}.
+   */
+  private List<Order> order;
 
   private boolean includeAttributes;
 
@@ -131,10 +140,10 @@ public class EventOperationParams {
   private Boolean skipEventId;
 
   /** Comma separated list of data element filters */
-  private String filters;
+  private String dataElementFilters;
 
   /** Comma separated list of attribute filters */
-  private String filterAttributes;
+  private String attributeFilters;
 
   private boolean includeDeleted;
 
@@ -149,9 +158,28 @@ public class EventOperationParams {
 
   private Set<String> enrollments;
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
+  public static class EventOperationParamsBuilder {
+
+    private List<Order> order = new ArrayList<>();
+
+    // Do not remove this unused method. This hides the order field from the builder which Lombok
+    // does not support. The repeated order field and private order method prevent access to order
+    // via the builder.
+    // Order should be added via the orderBy builder methods.
+    private EventOperationParamsBuilder order(List<Order> order) {
+      return this;
+    }
+
+    public EventOperationParamsBuilder orderBy(String field, SortDirection direction) {
+      this.order.add(new Order(field, direction));
+      return this;
+    }
+
+    public EventOperationParamsBuilder orderBy(UID uid, SortDirection direction) {
+      this.order.add(new Order(uid, direction));
+      return this;
+    }
+  }
 
   public boolean isPaging() {
     return page != null || pageSize != null;

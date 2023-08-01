@@ -30,15 +30,18 @@ package org.hisp.dhis.tracker.export.event;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -46,7 +49,9 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.Order;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 /**
  * @author Lars Helge Overland
@@ -112,11 +117,18 @@ public class EventSearchParams {
 
   private boolean includeRelationships;
 
-  private final List<OrderParam> orders = new ArrayList<>();
-
-  private final List<OrderParam> gridOrders = new ArrayList<>();
-
-  private final List<OrderParam> attributeOrders = new ArrayList<>();
+  /**
+   * Events can be ordered by field names (given as {@link String}), data elements (given as {@link
+   * DataElement}) and tracked entity attributes (given as {@link TrackedEntityAttribute}). It is
+   * crucial for the order values to stay in one collection as their order needs to be kept as
+   * provided by the user. We cannot come up with a type-safe type that captures the above order
+   * features and that can be used in a generic collection such as a {@link List} (see typesafe
+   * heterogeneous container). We therefore provide {@link #orderBy(String, SortDirection)}, {@link
+   * #orderBy(DataElement, SortDirection)} and {@link #orderBy(TrackedEntityAttribute,
+   * SortDirection)} to advocate the types that can be ordered by while storing the order in a
+   * single List of {@link Order}.
+   */
+  private final List<Order> order = new ArrayList<>();
 
   private boolean includeAttributes;
 
@@ -126,13 +138,20 @@ public class EventSearchParams {
 
   private Boolean skipEventId;
 
-  /** Filters for the response. */
-  private final List<QueryItem> filters = new ArrayList<>();
+  /**
+   * Each attribute will affect the final SQL query. Some attributes are filtered on, while
+   * attributes added via {@link #orderBy(TrackedEntityAttribute, SortDirection)} will be ordered
+   * by.
+   */
+  private final Map<TrackedEntityAttribute, List<QueryFilter>> attributes = new HashMap<>();
 
-  private final List<QueryItem> filterAttributes = new ArrayList<>();
+  /**
+   * Each data element will affect the final SQL query. Some data elements are filtered on, while
+   * data elements added via {@link #orderBy(DataElement, SortDirection)} will be ordered by.
+   */
+  private final Map<DataElement, List<QueryFilter>> dataElements = new HashMap<>();
 
-  /** DataElements to be included in the response. Can be used to filter response. */
-  private Set<QueryItem> dataElements = new HashSet<>();
+  private boolean hasDataElementFilter;
 
   private boolean includeDeleted;
 
@@ -205,33 +224,18 @@ public class EventSearchParams {
     return updatedAtDuration != null;
   }
 
-  /** Indicates whether this search params contain any filters. */
-  public boolean hasFilters() {
-    return !filters.isEmpty();
+  /**
+   * Returns true if any data element filter has been added using {@link
+   * #addDataElementFilter(DataElement, QueryFilter)}.
+   */
+  public boolean hasDataElementFilter() {
+    return this.hasDataElementFilter;
   }
 
   /** Null-safe check for skip event ID parameter. */
   public boolean isSkipEventId() {
     return skipEventId != null && skipEventId;
   }
-
-  /** Returns a list of dataElements and filters combined. */
-  public List<QueryItem> getDataElementsAndFilters() {
-    List<QueryItem> items = new ArrayList<>();
-    items.addAll(filters);
-
-    for (QueryItem de : dataElements) {
-      if (!items.contains(de)) {
-        items.add(de);
-      }
-    }
-
-    return items;
-  }
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
 
   public Program getProgram() {
     return program;
@@ -488,30 +492,27 @@ public class EventSearchParams {
     return this;
   }
 
-  public List<OrderParam> getOrders() {
-    return Collections.unmodifiableList(this.orders);
+  public List<Order> getOrder() {
+    return Collections.unmodifiableList(this.order);
   }
 
-  public EventSearchParams addOrders(List<OrderParam> orders) {
-    this.orders.addAll(orders);
+  /** Order by an event field of the given {@code field} name in given sort {@code direction}. */
+  public EventSearchParams orderBy(String field, SortDirection direction) {
+    this.order.add(new Order(field, direction));
     return this;
   }
 
-  public List<OrderParam> getGridOrders() {
-    return Collections.unmodifiableList(this.gridOrders);
-  }
-
-  public EventSearchParams addGridOrders(List<OrderParam> gridOrders) {
-    this.gridOrders.addAll(gridOrders);
+  /** Order by the given data element {@code de} in given sort {@code direction}. */
+  public EventSearchParams orderBy(DataElement de, SortDirection direction) {
+    this.order.add(new Order(de, direction));
+    this.dataElements.putIfAbsent(de, new ArrayList<>());
     return this;
   }
 
-  public List<OrderParam> getAttributeOrders() {
-    return Collections.unmodifiableList(this.attributeOrders);
-  }
-
-  public EventSearchParams addAttributeOrders(List<OrderParam> attributeOrders) {
-    this.attributeOrders.addAll(attributeOrders);
+  /** Order by the given tracked entity attribute {@code tea} in given sort {@code direction}. */
+  public EventSearchParams orderBy(TrackedEntityAttribute tea, SortDirection direction) {
+    this.order.add(new Order(tea, direction));
+    this.attributes.putIfAbsent(tea, new ArrayList<>());
     return this;
   }
 
@@ -542,31 +543,29 @@ public class EventSearchParams {
     return this;
   }
 
-  public List<QueryItem> getFilters() {
-    return Collections.unmodifiableList(this.filters);
+  public Map<TrackedEntityAttribute, List<QueryFilter>> getAttributes() {
+    return this.attributes;
   }
 
-  public EventSearchParams addFilter(QueryItem item) {
-    this.filters.add(item);
+  public Map<DataElement, List<QueryFilter>> getDataElements() {
+    return this.dataElements;
+  }
+
+  public EventSearchParams addAttributeFilter(TrackedEntityAttribute tea, QueryFilter filter) {
+    this.attributes.putIfAbsent(tea, new ArrayList<>());
+    this.attributes.get(tea).add(filter);
     return this;
   }
 
-  public EventSearchParams addFilters(List<QueryItem> items) {
-    this.filters.addAll(items);
+  public EventSearchParams addAttribute(TrackedEntityAttribute tea) {
+    this.attributes.putIfAbsent(tea, new ArrayList<>());
     return this;
   }
 
-  public List<QueryItem> getFilterAttributes() {
-    return Collections.unmodifiableList(this.filterAttributes);
-  }
-
-  public EventSearchParams addFilterAttributes(List<QueryItem> item) {
-    this.filterAttributes.addAll(item);
-    return this;
-  }
-
-  public EventSearchParams addFilterAttributes(QueryItem item) {
-    this.filterAttributes.add(item);
+  public EventSearchParams addDataElementFilter(DataElement de, QueryFilter filter) {
+    this.dataElements.putIfAbsent(de, new ArrayList<>());
+    this.dataElements.get(de).add(filter);
+    this.hasDataElementFilter = true;
     return this;
   }
 
@@ -577,15 +576,6 @@ public class EventSearchParams {
 
   public boolean isIncludeDeleted() {
     return this.includeDeleted;
-  }
-
-  public Set<QueryItem> getDataElements() {
-    return dataElements;
-  }
-
-  public EventSearchParams addDataElements(Set<QueryItem> des) {
-    dataElements.addAll(des);
-    return this;
   }
 
   public Set<String> getAccessiblePrograms() {

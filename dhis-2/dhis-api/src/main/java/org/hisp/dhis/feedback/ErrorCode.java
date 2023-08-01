@@ -468,7 +468,7 @@ public enum ErrorCode {
   E7237("Sorting must have a valid dimension and a direction"),
   E7238("Sorting dimension ‘{0}’ is not a column"),
 
-  /* TEI analytics */
+  /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),
 
   /* Org unit analytics */

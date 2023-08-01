@@ -250,7 +250,7 @@ class AttributeValidatorTest {
 
   @Test
   void shouldFailValidationWhenValueIsNullAndAttributeIsNotMandatoryAndAttributeNotExistsInTei() {
-    // given 1 attribute has null value and does not exists in Tei
+    // given 1 attribute has null value and does not exists in Te
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))

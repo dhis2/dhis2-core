@@ -100,7 +100,7 @@ public class EventRowCallbackHandler extends AbstractMapper<Event> {
     enrollment.setStatus(
         ProgramStatus.valueOf(rs.getString(EventQuery.getColumnName(COLUMNS.ENROLLMENT_STATUS))));
     TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setUid(rs.getString(EventQuery.getColumnName(COLUMNS.TEI_UID)));
+    trackedEntity.setUid(rs.getString(EventQuery.getColumnName(COLUMNS.TE_UID)));
     enrollment.setTrackedEntity(trackedEntity);
     event.setEnrollment(enrollment);
 
