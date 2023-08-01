@@ -70,7 +70,6 @@ class EventRequestParamsMapper {
     OrganisationUnitSelectionMode orgUnitMode =
         validateDeprecatedParameter(
             "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
-    validateOrgUnitParams(requestParams.getOrgUnit(), orgUnitMode);
 
     if (requestParams.getOrgUnitMode() != null) {
       validateOrgUnitMode(requestParams);
