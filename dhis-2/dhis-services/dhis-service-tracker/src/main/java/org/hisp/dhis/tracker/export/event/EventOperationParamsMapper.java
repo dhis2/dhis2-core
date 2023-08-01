@@ -143,8 +143,8 @@ public class EventOperationParamsMapper {
             operationParams.getDataElementFilters(), this::dataElementToQueryItem);
     mapDataElementFilters(searchParams, dataElementFilters);
 
-    List<QueryItem> attributeFilters = parseFilterAttributes(operationParams.getAttributeFilters());
-    validateFilterAttributes(attributeFilters);
+    List<QueryItem> attributeFilters = parseAttributeFilters(operationParams.getAttributeFilters());
+    validateAttributeFilters(attributeFilters);
     mapAttributeFilters(searchParams, attributeFilters);
 
     mapOrderParam(searchParams, operationParams.getOrder());
@@ -334,19 +334,20 @@ public class EventOperationParamsMapper {
         || user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
   }
 
-  private List<QueryItem> parseFilterAttributes(String filterAttributes)
+  private List<QueryItem> parseAttributeFilters(String attributeFilters)
       throws BadRequestException {
     Map<String, TrackedEntityAttribute> attributes =
         attributeService.getAllTrackedEntityAttributes().stream()
             .collect(Collectors.toMap(TrackedEntityAttribute::getUid, att -> att));
 
-    return parseAttributeQueryItems(filterAttributes, attributes);
+    return parseAttributeQueryItems(attributeFilters, attributes);
   }
 
-  private void validateFilterAttributes(List<QueryItem> queryItems) throws BadRequestException {
+  private void validateAttributeFilters(List<QueryItem> attributeFilters)
+      throws BadRequestException {
     Set<String> attributes = new HashSet<>();
     Set<String> duplicates = new HashSet<>();
-    for (QueryItem item : queryItems) {
+    for (QueryItem item : attributeFilters) {
       if (!attributes.add(item.getItemId())) {
         duplicates.add(item.getItemId());
       }
