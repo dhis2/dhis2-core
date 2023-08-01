@@ -39,7 +39,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 @EqualsAndHashCode
 public class TrackedEntities {
 
-  public static final TrackedEntities EMPTY = new TrackedEntities(List.of(), null);
   private final List<TrackedEntity> trackedEntities;
   private final Pager pager;
 
