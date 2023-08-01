@@ -138,7 +138,7 @@ class SpringBindingTest {
   @Test
   void shouldReturnADefaultValueWhenDefaultParameterIsNotPassed() throws Exception {
     mockMvc
-        .perform(get(ENDPOINT + "/default").param("booleanValue", "true"))
+        .perform(get(ENDPOINT + "/default"))
         .andExpect(content().string(containsString("OK")))
         .andExpect(content().string(containsString("3")));
   }
