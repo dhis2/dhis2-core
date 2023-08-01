@@ -112,14 +112,15 @@ public class EventOperationParamsMapper {
     ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid());
     OrganisationUnit requestedOrgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid());
 
-    validateOrgUnitMode(operationParams, user, program);
-    OrganisationUnitSelectionMode orgUnitMode =
-        getOrgUnitMode(requestedOrgUnit, operationParams.getOrgUnitMode());
+    if (operationParams.getOrgUnitMode() != null) {
+      validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
+    }
+
     List<OrganisationUnit> accessibleOrgUnits =
         validateAccessibleOrgUnits(
             user,
             requestedOrgUnit,
-            orgUnitMode,
+            operationParams.getOrgUnitMode(),
             program,
             organisationUnitService::getOrganisationUnitWithChildren,
             trackerAccessManager);
@@ -155,7 +156,7 @@ public class EventOperationParamsMapper {
         .setTrackedEntity(trackedEntity)
         .setProgramStatus(operationParams.getProgramStatus())
         .setFollowUp(operationParams.getFollowUp())
-        .setOrgUnitMode(orgUnitMode)
+        .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(
                 operationParams.getAssignedUserMode(), user, operationParams.getAssignedUsers()))
@@ -265,19 +266,19 @@ public class EventOperationParamsMapper {
     }
   }
 
-  private void validateOrgUnitMode(EventOperationParams params, User user, Program program)
+  private void validateOrgUnitMode(
+      OrganisationUnitSelectionMode orgUnitMode, User user, Program program)
       throws BadRequestException {
-    if (params.getOrgUnitMode() != null) {
-      String violation = getOrgUnitModeViolation(params, user, program);
+    if (orgUnitMode != null) {
+      String violation = getOrgUnitModeViolation(orgUnitMode, user, program);
       if (violation != null) {
         throw new BadRequestException(violation);
       }
     }
   }
 
-  private String getOrgUnitModeViolation(EventOperationParams params, User user, Program program) {
-    OrganisationUnitSelectionMode orgUnitMode = params.getOrgUnitMode();
-
+  private String getOrgUnitModeViolation(
+      OrganisationUnitSelectionMode orgUnitMode, User user, Program program) {
     return switch (orgUnitMode) {
       case ALL -> userCanSearchOrgUnitModeALL(user)
           ? null
@@ -366,22 +367,6 @@ public class EventOperationParamsMapper {
     }
 
     return new QueryItem(de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet());
-  }
-
-  /**
-   * Returns the same org unit mode if not null. If null, and an org unit is present, SELECT mode is
-   * used by default, mode ACCESSIBLE is used otherwise.
-   *
-   * @param orgUnit
-   * @param orgUnitMode
-   * @return an org unit mode given the two input params
-   */
-  private OrganisationUnitSelectionMode getOrgUnitMode(
-      OrganisationUnit orgUnit, OrganisationUnitSelectionMode orgUnitMode) {
-    if (orgUnitMode == null) {
-      return orgUnit != null ? SELECTED : ACCESSIBLE;
-    }
-    return orgUnitMode;
   }
 
   private List<OrganisationUnit> validateAccessibleOrgUnits(

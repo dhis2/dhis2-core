@@ -248,12 +248,11 @@ class EventRequestToSearchParamsMapper {
       throw new IllegalQueryException("Org unit is specified but does not exist: " + orgUnit);
     }
 
-    if (orgUnitSelectionMode != null) {
-      validateOrgUnitMode(orgUnitSelectionMode, orgUnit, user, pr);
-    }
-
     OrganisationUnitSelectionMode orgUnitMode =
         getOrgUnitMode(requestedOrgUnit, orgUnitSelectionMode);
+
+    validateOrgUnitMode(orgUnitSelectionMode, orgUnit, user, pr);
+
     List<OrganisationUnit> accessibleOrgUnits =
         validateAccessibleOrgUnits(
             user,

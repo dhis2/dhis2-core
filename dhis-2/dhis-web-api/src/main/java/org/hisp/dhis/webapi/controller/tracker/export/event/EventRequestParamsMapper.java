@@ -68,11 +68,16 @@ class EventRequestParamsMapper {
 
   public EventOperationParams map(RequestParams requestParams) throws BadRequestException {
     OrganisationUnitSelectionMode orgUnitMode =
-        validateDeprecatedParameter(
-            "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
+        getOrgUnitMode(
+            requestParams.getOrgUnit(),
+            validateDeprecatedParameter(
+                "ouMode",
+                requestParams.getOuMode(),
+                "orgUnitMode",
+                requestParams.getOrgUnitMode()));
 
-    if (requestParams.getOrgUnitMode() != null) {
-      validateOrgUnitMode(requestParams);
+    if (orgUnitMode != null) {
+      validateOrgUnitMode(requestParams.getOrgUnit(), orgUnitMode);
     }
 
     UID attributeCategoryCombo =
@@ -231,23 +236,39 @@ class EventRequestParamsMapper {
     }
   }
 
-  private void validateOrgUnitMode(RequestParams params) throws BadRequestException {
-    if ((params.getOrgUnitMode().equals(ACCESSIBLE) || params.getOrgUnitMode().equals(CAPTURE))
-        && params.getOrgUnit() != null) {
+  private void validateOrgUnitMode(UID orgUnit, OrganisationUnitSelectionMode orgUnitMode)
+      throws BadRequestException {
+    if ((orgUnitMode.equals(ACCESSIBLE) || orgUnitMode.equals(CAPTURE)) && orgUnit != null) {
       throw new BadRequestException(
           String.format(
               "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
-              params.getOrgUnitMode()));
+              orgUnitMode));
     }
 
-    if ((params.getOrgUnitMode().equals(CHILDREN)
-            || params.getOrgUnitMode().equals(SELECTED)
-            || params.getOrgUnitMode().equals(DESCENDANTS))
-        && params.getOrgUnit() == null) {
+    if ((orgUnitMode.equals(CHILDREN)
+            || orgUnitMode.equals(SELECTED)
+            || orgUnitMode.equals(DESCENDANTS))
+        && orgUnit == null) {
       throw new BadRequestException(
           String.format(
               "orgUnit is required for orgUnitMode: %s. Please add an orgUnit or use a different orgUnitMode.",
-              params.getOrgUnitMode()));
+              orgUnitMode));
     }
+  }
+
+  /**
+   * Returns the same org unit mode if not null. If null, and an org unit is present, SELECT mode is
+   * used by default, mode ACCESSIBLE is used otherwise.
+   *
+   * @param orgUnit
+   * @param orgUnitMode
+   * @return an org unit mode given the two input params
+   */
+  private OrganisationUnitSelectionMode getOrgUnitMode(
+      UID orgUnit, OrganisationUnitSelectionMode orgUnitMode) {
+    if (orgUnitMode == null) {
+      return orgUnit != null ? SELECTED : ACCESSIBLE;
+    }
+    return orgUnitMode;
   }
 }
