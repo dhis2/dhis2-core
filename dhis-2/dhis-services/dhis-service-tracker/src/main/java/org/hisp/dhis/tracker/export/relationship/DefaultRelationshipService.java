@@ -226,7 +226,7 @@ public class DefaultRelationshipService implements RelationshipService {
     // attribute values
     // for tracked entity type attributes from enrollment.trackedEntity. Enrollment attributes are
     // actually
-    // owned by the TEI and cannot be set on the Enrollment. When returning enrollments in our API
+    // owned by the TE and cannot be set on the Enrollment. When returning enrollments in our API
     // an enrollment
     // should only have the program tracked entity attributes.
     if (item.getTrackedEntity() != null) {

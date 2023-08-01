@@ -51,19 +51,19 @@ public class StrategyPreProcessor implements BundlePreProcessor {
   }
 
   public void preProcessTrackedEntities(TrackerBundle bundle) {
-    for (org.hisp.dhis.tracker.imports.domain.TrackedEntity tei : bundle.getTrackedEntities()) {
+    for (org.hisp.dhis.tracker.imports.domain.TrackedEntity te : bundle.getTrackedEntities()) {
       TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-      TrackedEntity existingTei = bundle.getPreheat().getTrackedEntity(tei.getTrackedEntity());
+      TrackedEntity existingTei = bundle.getPreheat().getTrackedEntity(te.getTrackedEntity());
 
       if (importStrategy.isCreateAndUpdate()) {
         if (existingTei == null) {
-          bundle.setStrategy(tei, TrackerImportStrategy.CREATE);
+          bundle.setStrategy(te, TrackerImportStrategy.CREATE);
         } else {
-          bundle.setStrategy(tei, TrackerImportStrategy.UPDATE);
+          bundle.setStrategy(te, TrackerImportStrategy.UPDATE);
         }
       } else {
-        bundle.setStrategy(tei, importStrategy);
+        bundle.setStrategy(te, importStrategy);
       }
     }
   }

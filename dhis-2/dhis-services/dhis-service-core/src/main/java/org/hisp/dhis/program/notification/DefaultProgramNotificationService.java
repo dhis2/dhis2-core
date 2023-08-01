@@ -532,7 +532,7 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
   private ProgramMessageRecipients resolveRecipients(
       ProgramNotificationTemplate template,
       OrganisationUnit ou,
-      TrackedEntity tei,
+      TrackedEntity te,
       Enrollment enrollment) {
     ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
@@ -541,7 +541,7 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
     if (recipientType == ProgramNotificationRecipient.ORGANISATION_UNIT_CONTACT) {
       recipients.setOrganisationUnit(ou);
     } else if (recipientType == ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE) {
-      recipients.setTrackedEntity(tei);
+      recipients.setTrackedEntity(te);
     } else if (recipientType == ProgramNotificationRecipient.PROGRAM_ATTRIBUTE
         && template.getRecipientProgramAttribute() != null) {
       List<String> recipientList =

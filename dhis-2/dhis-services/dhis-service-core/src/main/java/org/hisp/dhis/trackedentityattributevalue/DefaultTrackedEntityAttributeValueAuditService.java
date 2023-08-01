@@ -66,10 +66,10 @@ public class DefaultTrackedEntityAttributeValueAuditService
 
   private List<TrackedEntityAttributeValueAudit> aclFilter(
       List<TrackedEntityAttributeValueAudit> trackedEntityAttributeValueAudits) {
-    // Fetch all the Tracked Entity Instance Attributes this user has access
+    // Fetch all the Tracked Entity Attributes this user has access
     // to (only store UIDs). Not a very efficient solution, but at the
     // moment
-    // we do not have ACL API to check TEI attributes.
+    // we do not have ACL API to check TE attributes.
 
     Set<String> allUserReadableTrackedEntityAttributes =
         trackedEntityAttributeService

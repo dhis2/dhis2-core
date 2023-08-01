@@ -448,7 +448,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void getRelationshipsByTei() {
+  void getRelationshipsByTe() {
     TrackedEntity to = trackedEntity();
     Enrollment from = enrollment(to);
     Relationship r = relationship(from, to);
@@ -503,11 +503,11 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
         relationships.get(0).getFrom().getEnrollment().getAttributes();
     assertContainsAll(List.of(tea2.getUid()), enrollmentAttr, JsonAttribute::getAttribute);
     assertContainsAll(List.of("24"), enrollmentAttr, JsonAttribute::getValue);
-    JsonList<JsonAttribute> teiAttributes =
+    JsonList<JsonAttribute> teAttributes =
         relationships.get(0).getTo().getTrackedEntity().getAttributes();
     assertContainsAll(
-        List.of(tea.getUid(), tea2.getUid()), teiAttributes, JsonAttribute::getAttribute);
-    assertContainsAll(List.of("12", "24"), teiAttributes, JsonAttribute::getValue);
+        List.of(tea.getUid(), tea2.getUid()), teAttributes, JsonAttribute::getAttribute);
+    assertContainsAll(List.of("12", "24"), teAttributes, JsonAttribute::getValue);
   }
 
   @Test
@@ -532,7 +532,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void getRelationshipsByTrackedEntityRelationshipTeiToTei() {
+  void getRelationshipsByTrackedEntityRelationshipTeToTe() {
     TrackedEntity from = trackedEntity();
     TrackedEntity to = trackedEntity();
     Relationship r = relationship(from, to);
@@ -643,47 +643,47 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   private TrackedEntity trackedEntity() {
-    TrackedEntity tei = trackedEntity(orgUnit);
-    manager.save(tei, false);
-    return tei;
+    TrackedEntity te = trackedEntity(orgUnit);
+    manager.save(te, false);
+    return te;
   }
 
   private TrackedEntity trackedEntityNotInSearchScope() {
-    TrackedEntity tei = trackedEntity(anotherOrgUnit);
-    manager.save(tei, false);
-    return tei;
+    TrackedEntity te = trackedEntity(anotherOrgUnit);
+    manager.save(te, false);
+    return te;
   }
 
   private TrackedEntity trackedEntity(TrackedEntityType trackedEntityType) {
-    TrackedEntity tei = trackedEntity(orgUnit, trackedEntityType);
-    manager.save(tei, false);
-    return tei;
+    TrackedEntity te = trackedEntity(orgUnit, trackedEntityType);
+    manager.save(te, false);
+    return te;
   }
 
   private TrackedEntity trackedEntity(OrganisationUnit orgUnit) {
-    TrackedEntity tei = trackedEntity(orgUnit, trackedEntityType);
-    manager.save(tei, false);
-    return tei;
+    TrackedEntity te = trackedEntity(orgUnit, trackedEntityType);
+    manager.save(te, false);
+    return te;
   }
 
   private TrackedEntity trackedEntity(
       OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity tei = createTrackedEntity(orgUnit);
-    tei.setTrackedEntityType(trackedEntityType);
-    tei.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    tei.getSharing().setOwner(owner);
-    return tei;
+    TrackedEntity te = createTrackedEntity(orgUnit);
+    te.setTrackedEntityType(trackedEntityType);
+    te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    te.getSharing().setOwner(owner);
+    return te;
   }
 
-  private Enrollment enrollment(TrackedEntity tei) {
-    Enrollment enrollment = new Enrollment(program, tei, orgUnit);
+  private Enrollment enrollment(TrackedEntity te) {
+    Enrollment enrollment = new Enrollment(program, te, orgUnit);
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
     enrollment.setIncidentDate(new Date());
     enrollment.setStatus(ProgramStatus.COMPLETED);
     manager.save(enrollment, false);
-    tei.setEnrollments(Set.of(enrollment));
-    manager.save(tei, false);
+    te.setEnrollments(Set.of(enrollment));
+    manager.save(te, false);
     return enrollment;
   }
 
@@ -846,8 +846,8 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   private TrackedEntityAttributeValue attributeValue(
-      TrackedEntityAttribute tea, TrackedEntity tei, String value) {
-    return new TrackedEntityAttributeValue(tea, tei, value);
+      TrackedEntityAttribute tea, TrackedEntity te, String value) {
+    return new TrackedEntityAttributeValue(tea, te, value);
   }
 
   private TrackedEntityComment note(String note, String value, String storedBy) {
