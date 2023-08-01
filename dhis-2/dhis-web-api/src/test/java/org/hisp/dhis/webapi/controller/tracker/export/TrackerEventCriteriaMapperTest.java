@@ -993,7 +993,6 @@ class TrackerEventCriteriaMapperTest {
 
     TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
     eventCriteria.setProgram(program.getUid());
-    eventCriteria.setOrgUnit(orgUnit.getUid());
     eventCriteria.setOuMode(CAPTURE);
 
     EventSearchParams searchParams = mapper.map(eventCriteria);
@@ -1015,7 +1014,6 @@ class TrackerEventCriteriaMapperTest {
 
     TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
     eventCriteria.setProgram(program.getUid());
-    eventCriteria.setOrgUnit(orgUnit.getUid());
     eventCriteria.setOuMode(ACCESSIBLE);
 
     EventSearchParams searchParams = mapper.map(eventCriteria);
