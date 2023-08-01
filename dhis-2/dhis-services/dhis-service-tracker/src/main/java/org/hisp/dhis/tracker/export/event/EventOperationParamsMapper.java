@@ -341,7 +341,7 @@ public class EventOperationParamsMapper {
     } else {
       violation =
           user.getTeiSearchOrganisationUnitsWithFallback().isEmpty()
-              ? "User needs to be assigned either TEI search, data view or data capture org units"
+              ? "User needs to be assigned either TE search, data view or data capture org units"
               : null;
     }
 

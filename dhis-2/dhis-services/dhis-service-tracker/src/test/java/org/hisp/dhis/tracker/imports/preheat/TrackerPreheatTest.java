@@ -363,9 +363,9 @@ class TrackerPreheatTest extends DhisConvenienceTest {
   void testExistsTrackedEntity() {
     assertFalse(preheat.exists(TrackerType.TRACKED_ENTITY, "uid"));
 
-    TrackedEntity tei = new TrackedEntity();
-    tei.setUid("uid");
-    preheat.putTrackedEntities(List.of(tei));
+    TrackedEntity te = new TrackedEntity();
+    te.setUid("uid");
+    preheat.putTrackedEntities(List.of(te));
 
     assertTrue(preheat.exists(TrackerType.TRACKED_ENTITY, "uid"));
     assertTrue(

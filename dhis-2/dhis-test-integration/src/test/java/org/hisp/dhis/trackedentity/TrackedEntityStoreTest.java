@@ -201,27 +201,27 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest {
     enrollmentService.enrollTrackedEntity(teiE, prA, new Date(), new Date(), ouB);
     // Get all
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    List<TrackedEntity> teis = teiStore.getTrackedEntities(params);
-    assertEquals(6, teis.size());
+    List<TrackedEntity> trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(6, trackedEntitites.size());
     // Filter by attribute with EQ
     params =
         new TrackedEntityQueryParams()
             .addFilter(
                 new QueryItem(
                     atA, QueryOperator.EQ, "Male", ValueType.TEXT, AggregationType.NONE, null));
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(2, teis.size());
-    assertTrue(teis.contains(teiD));
-    assertTrue(teis.contains(teiE));
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(2, trackedEntitites.size());
+    assertTrue(trackedEntitites.contains(teiD));
+    assertTrue(trackedEntitites.contains(teiE));
     // Filter by attribute with EQ
     params =
         new TrackedEntityQueryParams()
             .addFilter(
                 new QueryItem(
                     atA, QueryOperator.EQ, "Female", ValueType.TEXT, AggregationType.NONE, null));
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(1, teis.size());
-    assertTrue(teis.contains(teiF));
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(1, trackedEntitites.size());
+    assertTrue(trackedEntitites.contains(teiF));
 
     // Filter by attribute with STARTS
     params =
@@ -229,26 +229,26 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest {
             .addFilter(
                 new QueryItem(
                     atA, QueryOperator.SW, "ma", ValueType.TEXT, AggregationType.NONE, null));
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(2, teis.size());
-    assertTrue(teis.contains(teiD));
-    assertTrue(teis.contains(teiE));
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(2, trackedEntitites.size());
+    assertTrue(trackedEntitites.contains(teiD));
+    assertTrue(trackedEntitites.contains(teiE));
 
     params =
         new TrackedEntityQueryParams()
             .addFilter(
                 new QueryItem(
                     atA, QueryOperator.SW, "al", ValueType.TEXT, AggregationType.NONE, null));
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(0, teis.size());
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(0, trackedEntitites.size());
 
     params =
         new TrackedEntityQueryParams()
             .addFilter(
                 new QueryItem(
                     atA, QueryOperator.SW, "ale", ValueType.TEXT, AggregationType.NONE, null));
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(0, teis.size());
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(0, trackedEntitites.size());
 
     // Filter by attribute with ENDS
     params =
@@ -256,64 +256,64 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest {
             .addFilter(
                 new QueryItem(
                     atA, QueryOperator.EW, "emale", ValueType.TEXT, AggregationType.NONE, null));
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(1, teis.size());
-    assertTrue(teis.contains(teiF));
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(1, trackedEntitites.size());
+    assertTrue(trackedEntitites.contains(teiF));
 
     params =
         new TrackedEntityQueryParams()
             .addFilter(
                 new QueryItem(
                     atA, QueryOperator.EW, "male", ValueType.TEXT, AggregationType.NONE, null));
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(3, teis.size());
-    assertTrue(teis.contains(teiD));
-    assertTrue(teis.contains(teiE));
-    assertTrue(teis.contains(teiF));
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(3, trackedEntitites.size());
+    assertTrue(trackedEntitites.contains(teiD));
+    assertTrue(trackedEntitites.contains(teiE));
+    assertTrue(trackedEntitites.contains(teiF));
 
     params =
         new TrackedEntityQueryParams()
             .addFilter(
                 new QueryItem(
                     atA, QueryOperator.EW, "fem", ValueType.TEXT, AggregationType.NONE, null));
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(0, teis.size());
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(0, trackedEntitites.size());
 
     params =
         new TrackedEntityQueryParams()
             .addFilter(
                 new QueryItem(
                     atA, QueryOperator.EW, "em", ValueType.TEXT, AggregationType.NONE, null));
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(0, teis.size());
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(0, trackedEntitites.size());
 
     // Filter by selected org units
     params =
         new TrackedEntityQueryParams()
             .addOrganisationUnit(ouB)
             .setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(2, teis.size());
-    assertTrue(teis.contains(teiB));
-    assertTrue(teis.contains(teiC));
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(2, trackedEntitites.size());
+    assertTrue(trackedEntitites.contains(teiB));
+    assertTrue(trackedEntitites.contains(teiC));
     // Filter by descendants org units
     params =
         new TrackedEntityQueryParams()
             .addOrganisationUnit(ouB)
             .setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(5, teis.size());
-    assertTrue(teis.contains(teiB));
-    assertTrue(teis.contains(teiC));
-    assertTrue(teis.contains(teiD));
-    assertTrue(teis.contains(teiE));
-    assertTrue(teis.contains(teiF));
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(5, trackedEntitites.size());
+    assertTrue(trackedEntitites.contains(teiB));
+    assertTrue(trackedEntitites.contains(teiC));
+    assertTrue(trackedEntitites.contains(teiD));
+    assertTrue(trackedEntitites.contains(teiE));
+    assertTrue(trackedEntitites.contains(teiF));
     // Filter by program enrollment
     params = new TrackedEntityQueryParams().setProgram(prA);
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(2, teis.size());
-    assertTrue(teis.contains(teiB));
-    assertTrue(teis.contains(teiE));
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(2, trackedEntitites.size());
+    assertTrue(trackedEntitites.contains(teiB));
+    assertTrue(trackedEntitites.contains(teiE));
   }
 
   @Test
@@ -333,8 +333,8 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest {
     enrollmentService.enrollTrackedEntity(teiB, prA, new Date(), new Date(), ouB);
     enrollmentService.enrollTrackedEntity(teiE, prA, new Date(), new Date(), ouB);
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    List<TrackedEntity> teis = teiStore.getTrackedEntities(params);
-    assertEquals(6, teis.size());
+    List<TrackedEntity> trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(6, trackedEntitites.size());
 
     // Filter by attribute with STARTS
     params =
@@ -342,26 +342,26 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest {
             .addFilter(
                 new QueryItem(
                     atA, QueryOperator.SW, "ma", ValueType.TEXT, AggregationType.NONE, null));
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(2, teis.size());
-    assertTrue(teis.contains(teiD));
-    assertTrue(teis.contains(teiE));
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(2, trackedEntitites.size());
+    assertTrue(trackedEntitites.contains(teiD));
+    assertTrue(trackedEntitites.contains(teiE));
 
     params =
         new TrackedEntityQueryParams()
             .addFilter(
                 new QueryItem(
                     atA, QueryOperator.SW, "al", ValueType.TEXT, AggregationType.NONE, null));
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(0, teis.size());
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(0, trackedEntitites.size());
 
     params =
         new TrackedEntityQueryParams()
             .addFilter(
                 new QueryItem(
                     atA, QueryOperator.SW, "ale", ValueType.TEXT, AggregationType.NONE, null));
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(0, teis.size());
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(0, trackedEntitites.size());
   }
 
   @Test
@@ -381,8 +381,8 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest {
     enrollmentService.enrollTrackedEntity(teiB, prA, new Date(), new Date(), ouB);
     enrollmentService.enrollTrackedEntity(teiE, prA, new Date(), new Date(), ouB);
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    List<TrackedEntity> teis = teiStore.getTrackedEntities(params);
-    assertEquals(6, teis.size());
+    List<TrackedEntity> trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(6, trackedEntitites.size());
 
     // Filter by attribute with ENDS
     params =
@@ -390,36 +390,36 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest {
             .addFilter(
                 new QueryItem(
                     atA, QueryOperator.EW, "emale", ValueType.TEXT, AggregationType.NONE, null));
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(1, teis.size());
-    assertTrue(teis.contains(teiF));
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(1, trackedEntitites.size());
+    assertTrue(trackedEntitites.contains(teiF));
 
     params =
         new TrackedEntityQueryParams()
             .addFilter(
                 new QueryItem(
                     atA, QueryOperator.EW, "male", ValueType.TEXT, AggregationType.NONE, null));
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(3, teis.size());
-    assertTrue(teis.contains(teiD));
-    assertTrue(teis.contains(teiE));
-    assertTrue(teis.contains(teiF));
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(3, trackedEntitites.size());
+    assertTrue(trackedEntitites.contains(teiD));
+    assertTrue(trackedEntitites.contains(teiE));
+    assertTrue(trackedEntitites.contains(teiF));
 
     params =
         new TrackedEntityQueryParams()
             .addFilter(
                 new QueryItem(
                     atA, QueryOperator.EW, "fem", ValueType.TEXT, AggregationType.NONE, null));
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(0, teis.size());
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(0, trackedEntitites.size());
 
     params =
         new TrackedEntityQueryParams()
             .addFilter(
                 new QueryItem(
                     atA, QueryOperator.EW, "em", ValueType.TEXT, AggregationType.NONE, null));
-    teis = teiStore.getTrackedEntities(params);
-    assertEquals(0, teis.size());
+    trackedEntitites = teiStore.getTrackedEntities(params);
+    assertEquals(0, trackedEntitites.size());
   }
 
   @Test
@@ -440,14 +440,12 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest {
     // Get all
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setTrackedEntityType(trackedEntityTypeA);
-    List<Map<String, String>> teis = teiStore.getTrackedEntitiesGrid(params);
-    assertEquals(4, teis.size());
-    teis.forEach(
+    List<Map<String, String>> trackedEntitites = teiStore.getTrackedEntitiesGrid(params);
+    assertEquals(4, trackedEntitites.size());
+    trackedEntitites.forEach(
         teiMap -> {
-          if (teiMap.get(TrackedEntityQueryParams.TRACKED_ENTITY_INSTANCE_ID).equals(teiA.getUid())
-              || teiMap
-                  .get(TrackedEntityQueryParams.TRACKED_ENTITY_INSTANCE_ID)
-                  .equals(teiB.getUid())) {
+          if (teiMap.get(TrackedEntityQueryParams.TRACKED_ENTITY_ID).equals(teiA.getUid())
+              || teiMap.get(TrackedEntityQueryParams.TRACKED_ENTITY_ID).equals(teiB.getUid())) {
             assertTrue(
                 Boolean.parseBoolean(teiMap.get(TrackedEntityQueryParams.POTENTIAL_DUPLICATE)));
           } else {

@@ -64,7 +64,7 @@ public class DefaultAclStore implements AclStore {
           + USER_GROUP_SQL_PARAM_NAME
           + ") = true";
 
-  private static final String GET_TEI_TYPE_ACL =
+  private static final String GET_TE_TYPE_ACL =
       "SELECT trackedentitytypeid FROM trackedentitytype "
           + " WHERE "
           + PUBLIC_ACCESS_CONDITION
@@ -99,7 +99,7 @@ public class DefaultAclStore implements AclStore {
 
   @Override
   public List<Long> getAccessibleTrackedEntityTypes(String userUID, List<String> userGroupUIDs) {
-    return executeAclQuery(userUID, userGroupUIDs, GET_TEI_TYPE_ACL, "trackedentitytypeid");
+    return executeAclQuery(userUID, userGroupUIDs, GET_TE_TYPE_ACL, "trackedentitytypeid");
   }
 
   @Override

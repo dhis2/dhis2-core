@@ -63,9 +63,9 @@ class Context {
   /** A List of Relationship ID to which the user has READ ONLY access */
   List<Long> relationshipTypes;
 
-  /** The tei params to specify depth of tei graph */
+  /** The te params to specify depth of te graph */
   TrackedEntityParams params;
 
-  /** The query parameters to filter teis */
+  /** The query parameters to filter tracked entities */
   TrackedEntityQueryParams queryParams;
 }

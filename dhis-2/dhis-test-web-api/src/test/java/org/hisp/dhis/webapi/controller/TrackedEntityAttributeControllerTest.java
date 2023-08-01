@@ -60,7 +60,7 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
 
   private Program program;
 
-  private TrackedEntity tei;
+  private TrackedEntity te;
 
   private Enrollment enrollment;
 
@@ -138,11 +138,11 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
     program.getProgramAttributes().add(pteaB);
     manager.update(program);
 
-    tei = createTrackedEntity(orgUnit);
-    tei.setTrackedEntityType(trackedEntityType);
-    manager.save(tei);
+    te = createTrackedEntity(orgUnit);
+    te.setTrackedEntityType(trackedEntityType);
+    manager.save(te);
 
-    enrollment = new Enrollment(program, tei, orgUnit);
+    enrollment = new Enrollment(program, te, orgUnit);
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
     enrollment.setIncidentDate(new Date());

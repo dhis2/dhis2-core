@@ -84,8 +84,8 @@ public interface TrackedEntityFilterService {
   /**
    * Validate the trackedEntityFilter
    *
-   * @param teiFilter
+   * @param teFilter
    * @return list of errors for each validation failures
    */
-  List<String> validate(TrackedEntityFilter teiFilter);
+  List<String> validate(TrackedEntityFilter teFilter);
 }

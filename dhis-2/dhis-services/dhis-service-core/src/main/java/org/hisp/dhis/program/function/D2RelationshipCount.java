@@ -79,7 +79,7 @@ public class D2RelationshipCount extends ProgramExpressionItem {
     return "(select count(*) from relationship r"
         + relationshipIdConstraint
         + " join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid"
-        + " join trackedentity tei on rifrom.trackedentityid = tei.trackedentityid and tei.uid = ax.tei"
+        + " join trackedentity te on rifrom.trackedentityid = te.trackedentityid and te.uid = ax.te"
         + " where r.deleted is false)";
   }
 }
