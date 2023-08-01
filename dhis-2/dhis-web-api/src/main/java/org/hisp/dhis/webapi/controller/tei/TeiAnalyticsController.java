@@ -41,6 +41,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -128,7 +129,7 @@ class TeiAnalyticsController {
       TeiQueryRequest teiQueryRequest,
       CommonQueryRequest commonQueryRequest,
       HttpServletResponse response)
-      throws Exception {
+      throws IOException {
     prepareForDownload(response, CONTENT_TYPE_XML, "tei.xml");
     toXml(
         getGrid(
@@ -145,7 +146,7 @@ class TeiAnalyticsController {
       TeiQueryRequest teiQueryRequest,
       CommonQueryRequest commonQueryRequest,
       HttpServletResponse response)
-      throws Exception {
+      throws IOException {
     prepareForDownload(response, CONTENT_TYPE_EXCEL, "tei.xls");
     toXls(
         getGrid(
@@ -162,7 +163,7 @@ class TeiAnalyticsController {
       TeiQueryRequest teiQueryRequest,
       CommonQueryRequest commonQueryRequest,
       HttpServletResponse response)
-      throws Exception {
+      throws IOException {
     prepareForDownload(response, CONTENT_TYPE_CSV, "tei.csv");
     toCsv(
         getGrid(
@@ -179,7 +180,7 @@ class TeiAnalyticsController {
       TeiQueryRequest teiQueryRequest,
       CommonQueryRequest commonQueryRequest,
       HttpServletResponse response)
-      throws Exception {
+      throws IOException {
     prepareForDownload(response, CONTENT_TYPE_HTML, "tei.html");
     toHtml(
         getGrid(
@@ -196,7 +197,7 @@ class TeiAnalyticsController {
       TeiQueryRequest teiQueryRequest,
       CommonQueryRequest commonQueryRequest,
       HttpServletResponse response)
-      throws Exception {
+      throws IOException {
     prepareForDownload(response, CONTENT_TYPE_HTML, "tei.html");
     toHtmlCss(
         getGrid(
