@@ -53,7 +53,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class JobScheduler implements Runnable {
+public class JobScheduler implements Runnable, JobRunner {
 
   /**
    * <b>Why 20 seconds loops?</b> Goal is a smooth execution of jobs with minute precision for the
@@ -110,6 +110,11 @@ public class JobScheduler implements Runnable {
     if (dueTime != null && !dueTime.isAfter(now)) {
       workers.submit(() -> runDueJob(config, dueTime));
     }
+  }
+
+  @Override
+  public void runDueJob(JobConfiguration config) {
+    runDueJob(config, Instant.now().truncatedTo(ChronoUnit.SECONDS));
   }
 
   /** This is executed on a worker thread. The start time is the desired time to run. */

@@ -39,6 +39,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobProgress.Progress;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
@@ -106,6 +107,11 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void cancelExecution(@PathVariable("uid") String uid) {
     jobSchedulerService.requestCancel(uid);
+  }
+
+  @GetMapping("{uid}/progress")
+  public Progress getProgress(@PathVariable("uid") String uid) {
+    return jobSchedulerService.getProgress(uid);
   }
 
   @Override

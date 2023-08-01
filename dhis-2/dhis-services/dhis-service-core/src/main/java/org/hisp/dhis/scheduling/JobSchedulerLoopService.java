@@ -155,4 +155,11 @@ public interface JobSchedulerLoopService {
    * @param jobId the job that got cancelled
    */
   void finishRunCancel(@Nonnull String jobId);
+
+  /**
+   * Apply cancellation for jobs running on this node that have been marked as cancelled in the DB.
+   *
+   * @return number of jobs that were cancelled as a result (which had not been cancelled before)
+   */
+  int applyCancellation();
 }

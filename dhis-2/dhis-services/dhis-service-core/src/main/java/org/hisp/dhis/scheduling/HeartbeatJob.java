@@ -49,7 +49,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class HeartbeatJob implements Job {
 
-  private final JobSchedulerService jobSchedulerService;
+  private final JobSchedulerLoopService jobSchedulerService;
   private final JobConfigurationService jobConfigurationService;
 
   @Override

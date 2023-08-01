@@ -33,8 +33,6 @@ package org.hisp.dhis.system.startup;
  * @author <a href="mailto:torgeilo@gmail.com">Torgeir Lorange Ostby</a>
  */
 public interface StartupRoutineExecutor {
-  String ID = StartupRoutineExecutor.class.getName();
-
   /**
    * Executes the StartupRoutines.
    *

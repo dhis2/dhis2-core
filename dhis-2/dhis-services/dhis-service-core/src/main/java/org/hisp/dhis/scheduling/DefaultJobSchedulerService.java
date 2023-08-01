@@ -29,17 +29,14 @@ package org.hisp.dhis.scheduling;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
-import org.hisp.dhis.system.notification.Notifier;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,30 +49,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultJobSchedulerService implements JobSchedulerService {
 
-  private final Notifier notifier;
-  private final MessageService messages;
   private final JobConfigurationStore jobConfigurationStore;
+  private final JobRunner jobRunner;
+  private final Environment environment;
   private final ObjectMapper jsonMapper;
-
-  /**
-   * Set of currently running jobs on this node. We use a map to use CAS operation {@link
-   * Map#putIfAbsent(Object, Object)} to "atomically" start or abort execution.
-   */
-  private final Map<String, RecordingJobProgress> recordingsById = new ConcurrentHashMap<>();
-
-  @Override
-  @Transactional(readOnly = true)
-  public int applyCancellation() {
-    int c = 0;
-    for (String jobId : jobConfigurationStore.getAllCancelledIds()) {
-      RecordingJobProgress progress = recordingsById.get(jobId);
-      if (progress != null && !progress.isCancelled()) {
-        progress.requestCancellation();
-        c++;
-      }
-    }
-    return c;
-  }
 
   @Override
   @Transactional
@@ -100,6 +77,12 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
         throw new ConflictException("Job is already running.");
       if (job.getSchedulingType() == SchedulingType.ONCE_ASAP)
         throw new ConflictException("Job is already scheduled for immediate execution.");
+    } else {
+      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
+      if (Set.of(environment.getActiveProfiles()).contains("test")) {
+        jobRunner.runDueJob(job);
+      }
     }
   }
 
@@ -123,71 +106,32 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
   }
 
   @Override
-  public Progress getRunningProgress(@Nonnull String jobId) {
-    RecordingJobProgress progress = recordingsById.get(jobId);
-    return progress == null ? null : progress.getProgress();
+  @Transactional(readOnly = true)
+  public Progress getProgress(@Nonnull String jobId) {
+    String json = jobConfigurationStore.getProgress(jobId);
+    return json == null ? null : mapToProgress(json);
   }
 
   @Override
   @Transactional(readOnly = true)
   public Progress getRunningProgress(@Nonnull JobType type) {
     String jobId = jobConfigurationStore.getLastRunningId(type);
-    return jobId == null ? null : getRunningProgress(jobId);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Progress getCompletedProgress(@Nonnull String jobId) {
-    String json = jobConfigurationStore.getProgress(jobId);
-    if (json == null) return null;
-    try {
-      return jsonMapper.readValue(json, Progress.class);
-    } catch (JsonProcessingException ex) {
-      log.error("Failed to map job progress", ex);
-      return null;
-    }
+    return jobId == null ? null : getProgress(jobId);
   }
 
   @Override
   @Transactional(readOnly = true)
   public Progress getCompletedProgress(@Nonnull JobType type) {
     String jobId = jobConfigurationStore.getLastCompletedId(type);
-    return jobId == null ? null : getCompletedProgress(jobId);
+    return jobId == null ? null : getProgress(jobId);
   }
 
-  @Override
-  public JobProgress startRecording(@Nonnull JobConfiguration job, @Nonnull Runnable observer) {
-    JobProgress tracker =
-        job.getJobType().isUsingNotifications()
-            ? new NotifierJobProgress(notifier, job)
-            : NoopJobProgress.INSTANCE;
-    RecordingJobProgress progress =
-        new RecordingJobProgress(messages, job, tracker, true, observer);
-    recordingsById.put(job.getUid(), progress);
-    return progress;
-  }
-
-  @Override
-  @Transactional
-  public void stopRecording(@Nonnull String jobId) {
-    RecordingJobProgress job = recordingsById.get(jobId);
-    if (job != null) {
-      job.autoComplete();
-      updateProgress(jobId);
-      recordingsById.remove(jobId);
-    }
-  }
-
-  @Override
-  @Transactional
-  public void updateProgress(@Nonnull String jobId) {
-    RecordingJobProgress job = recordingsById.get(jobId);
-    if (job == null) return;
+  private Progress mapToProgress(@Nonnull String json) {
     try {
-      jobConfigurationStore.updateProgress(jobId, jsonMapper.writeValueAsString(job.getProgress()));
+      return jsonMapper.readValue(json, Progress.class);
     } catch (JsonProcessingException ex) {
-      jobConfigurationStore.updateProgress(jobId, null);
-      log.error("Failed to attach progress json", ex);
+      log.error("Failed to map job progress", ex);
+      return null;
     }
   }
 }

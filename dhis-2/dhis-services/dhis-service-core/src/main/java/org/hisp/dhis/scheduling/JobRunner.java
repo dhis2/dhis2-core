@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.utils;
-
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.system.startup.StartupRoutineExecutor;
-import org.springframework.context.ApplicationContext;
+package org.hisp.dhis.scheduling;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Motivation of this separate API is purely to decouple and allow for composition of services via
+ * spring.
+ *
+ * <p>The {@link JobSchedulerService#executeNow(String)} needs access to synchronously run a job in
+ * a test setup. This is when it wants to call {@link #runDueJob(JobConfiguration)} directly.
+ * Whereas otherwise, in a production setup, this method is never called directly but the {@link
+ * JobScheduler} will internally run the jobs when they are due from its scheduling loop.
+ *
+ * @author Jan Bernitt
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class TestUtils {
-  public static void executeStartupRoutines(ApplicationContext applicationContext) {
-    try {
-      applicationContext.getBean(StartupRoutineExecutor.class).executeForTesting();
-    } catch (Exception ex) {
-      throw new RuntimeException(ex);
-    }
-  }
+public interface JobRunner {
+
+  void runDueJob(JobConfiguration config);
 }

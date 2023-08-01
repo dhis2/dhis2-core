@@ -32,7 +32,11 @@ import static org.hisp.dhis.eventhook.EventUtils.schedulerCompleted;
 import static org.hisp.dhis.eventhook.EventUtils.schedulerFailed;
 import static org.hisp.dhis.eventhook.EventUtils.schedulerStart;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +46,7 @@ import org.hisp.dhis.eventhook.EventHookPublisher;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.AuthenticationService;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
@@ -63,8 +68,29 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   private final JobConfigurationService jobConfigurationService;
   private final EventHookPublisher events;
   private final MessageService messages;
+  private final Notifier notifier;
   private final AuthenticationService authenticationService;
-  private final JobSchedulerService jobSchedulerService;
+  private final ObjectMapper jsonMapper;
+
+  /**
+   * Set of currently running jobs on this node. We use a map to use CAS operation {@link
+   * Map#putIfAbsent(Object, Object)} to "atomically" start or abort execution.
+   */
+  private final Map<String, RecordingJobProgress> recordingsById = new ConcurrentHashMap<>();
+
+  @Override
+  @Transactional(readOnly = true)
+  public int applyCancellation() {
+    int c = 0;
+    for (String jobId : jobConfigurationStore.getAllCancelledIds()) {
+      RecordingJobProgress progress = recordingsById.get(jobId);
+      if (progress != null && !progress.isCancelled()) {
+        progress.requestCancellation();
+        c++;
+      }
+    }
+    return c;
+  }
 
   @Override
   public boolean tryBecomeLeader(int ttlSeconds) {
@@ -112,13 +138,13 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
     authenticationService.obtainAuthentication(user);
     JobConfiguration job = jobConfigurationStore.getByUid(jobId);
     if (job == null) return NoopJobProgress.INSTANCE;
-    return jobSchedulerService.startRecording(job, observer);
+    return startRecording(job, observer);
   }
 
   @Override
   @Transactional
   public void updateAsRunning(@Nonnull String jobId) {
-    jobSchedulerService.updateProgress(jobId);
+    updateProgress(jobId);
   }
 
   @Override
@@ -128,7 +154,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
     if (!jobConfigurationStore.tryFinish(jobId, JobStatus.COMPLETED)) return false;
     JobConfiguration job = jobConfigurationStore.getByUid(jobId);
     if (job == null) return false;
-    doSafely("complete", "stop recording", () -> jobSchedulerService.stopRecording(jobId));
+    doSafely("complete", "stop recording", () -> stopRecording(jobId));
     doSafely("complete", "publishEvent", () -> events.publishEvent(schedulerCompleted(job)));
     return true;
   }
@@ -140,7 +166,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
       JobConfiguration job = jobConfigurationStore.getByUid(jobId);
       if (job == null) return;
       String message = String.format("Job failed: '%s'", job.getName());
-      doSafely("fail", "stop recording", () -> jobSchedulerService.stopRecording(jobId));
+      doSafely("fail", "stop recording", () -> stopRecording(jobId));
       doSafely("fail", "log.error", () -> logError(message, ex));
       doSafely("fail", "MDC.remove", () -> MDC.remove("sessionId"));
       doSafely("fail", "publishEvent", () -> events.publishEvent(schedulerFailed(job)));
@@ -159,7 +185,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
       JobConfiguration job = jobConfigurationStore.getByUid(jobId);
       if (job == null) return;
       String message = String.format("Job cancelled: '%s'", job.getName());
-      doSafely("cancel", "stop recording", () -> jobSchedulerService.stopRecording(jobId));
+      doSafely("cancel", "stop recording", () -> stopRecording(jobId));
       doSafely("cancel", "log.error", () -> logError(message, null));
       doSafely("cancel", "MDC.remove", () -> MDC.remove("sessionId"));
       doSafely("cancel", "publishEvent", () -> events.publishEvent(schedulerFailed(job)));
@@ -187,6 +213,37 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
       log.error(DebugUtils.getStackTrace(ex));
     } else {
       log.error(message);
+    }
+  }
+
+  private JobProgress startRecording(@Nonnull JobConfiguration job, @Nonnull Runnable observer) {
+    JobProgress tracker =
+        job.getJobType().isUsingNotifications()
+            ? new NotifierJobProgress(notifier, job)
+            : NoopJobProgress.INSTANCE;
+    RecordingJobProgress progress =
+        new RecordingJobProgress(messages, job, tracker, true, observer);
+    recordingsById.put(job.getUid(), progress);
+    return progress;
+  }
+
+  private void stopRecording(@Nonnull String jobId) {
+    RecordingJobProgress job = recordingsById.get(jobId);
+    if (job != null) {
+      job.autoComplete();
+      updateProgress(jobId);
+      recordingsById.remove(jobId);
+    }
+  }
+
+  private void updateProgress(@Nonnull String jobId) {
+    RecordingJobProgress job = recordingsById.get(jobId);
+    if (job == null) return;
+    try {
+      jobConfigurationStore.updateProgress(jobId, jsonMapper.writeValueAsString(job.getProgress()));
+    } catch (JsonProcessingException ex) {
+      jobConfigurationStore.updateProgress(jobId, null);
+      log.error("Failed to attach progress json", ex);
     }
   }
 }

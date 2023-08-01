@@ -42,24 +42,6 @@ import org.hisp.dhis.scheduling.JobProgress.Progress;
  */
 public interface JobSchedulerService {
 
-  /*
-  API used by REST API and other services
-   */
-
-  /**
-   * Request cancellation for job of given type. If no job of that type is currently running the
-   * operation has no effect.
-   *
-   * <p>Cancellation is cooperative abort. The job will abort at the next possible "safe-point".
-   * This is the next step or item in the overall process which checks for cancellation.
-   *
-   * @param jobId of the job to issue a cluster wide cancel request
-   * @return if cancellation state was accepted
-   */
-  boolean requestCancel(@Nonnull String jobId);
-
-  boolean requestCancel(@Nonnull JobType type);
-
   /**
    * Attempts to switch the {@link JobConfiguration#getSchedulingType()} to {@link
    * SchedulingType#ONCE_ASAP} for the given job.
@@ -74,6 +56,20 @@ public interface JobSchedulerService {
    *     job is already running or is disabled
    */
   void executeNow(@Nonnull String jobId) throws ConflictException, NotFoundException;
+
+  /**
+   * Request cancellation for job of given type. If no job of that type is currently running the
+   * operation has no effect.
+   *
+   * <p>Cancellation is cooperative abort. The job will abort at the next possible "safe-point".
+   * This is the next step or item in the overall process which checks for cancellation.
+   *
+   * @param jobId of the job to issue a cluster wide cancel request
+   * @return if cancellation state was accepted
+   */
+  boolean requestCancel(@Nonnull String jobId);
+
+  boolean requestCancel(@Nonnull JobType type);
 
   /**
    * Check if this job configuration is currently running
@@ -93,31 +89,11 @@ public interface JobSchedulerService {
   Set<JobType> getCompletedTypes();
 
   @CheckForNull
-  Progress getRunningProgress(@Nonnull String jobId);
+  Progress getProgress(@Nonnull String jobId);
 
   @CheckForNull
   Progress getRunningProgress(@Nonnull JobType type);
 
   @CheckForNull
-  Progress getCompletedProgress(@Nonnull String jobId);
-
-  @CheckForNull
   Progress getCompletedProgress(@Nonnull JobType type);
-
-  /*
-  API used by the leader node only
-  */
-
-  /**
-   * Apply cancellation for jobs running on this node that have been marked as cancelled in the DB.
-   *
-   * @return number of jobs that were cancelled as a result (which had not been cancelled before)
-   */
-  int applyCancellation();
-
-  JobProgress startRecording(@Nonnull JobConfiguration job, @Nonnull Runnable observer);
-
-  void stopRecording(@Nonnull String jobId);
-
-  void updateProgress(@Nonnull String jobId);
 }
