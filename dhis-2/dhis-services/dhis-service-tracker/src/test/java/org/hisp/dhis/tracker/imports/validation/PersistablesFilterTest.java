@@ -865,11 +865,6 @@ class PersistablesFilterTest {
       public String getUid() {
         return uid;
       }
-
-      @Override
-      public int getIndex() {
-        return 0;
-      }
     };
   }
 }

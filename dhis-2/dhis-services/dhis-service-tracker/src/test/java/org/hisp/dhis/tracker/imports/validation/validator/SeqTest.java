@@ -263,11 +263,6 @@ class SeqTest {
       public TrackerType getTrackerType() {
         return TrackerType.TRACKED_ENTITY;
       }
-
-      @Override
-      public int getIndex() {
-        return 0;
-      }
     };
   }
 
