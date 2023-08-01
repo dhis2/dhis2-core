@@ -40,7 +40,9 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -66,7 +68,6 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -165,7 +166,7 @@ class EventRequestToSearchParamsMapperTest {
             null,
             null,
             null,
-            "orgunituid",
+            null,
             ACCESSIBLE,
             "teiUid",
             null,
@@ -268,7 +269,7 @@ class EventRequestToSearchParamsMapperTest {
     eventCriteria.setOuMode(DESCENDANTS);
 
     IllegalQueryException exception =
-        Assertions.assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
+        assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
@@ -292,7 +293,7 @@ class EventRequestToSearchParamsMapperTest {
         .thenReturn(orgUnitDescendants);
 
     IllegalQueryException exception =
-        Assertions.assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
+        assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
@@ -362,7 +363,7 @@ class EventRequestToSearchParamsMapperTest {
     eventCriteria.setOuMode(CHILDREN);
 
     IllegalQueryException exception =
-        Assertions.assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
+        assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
@@ -384,7 +385,7 @@ class EventRequestToSearchParamsMapperTest {
     eventCriteria.setOuMode(CHILDREN);
 
     IllegalQueryException exception =
-        Assertions.assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
+        assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
@@ -402,7 +403,6 @@ class EventRequestToSearchParamsMapperTest {
 
     EventCriteria eventCriteria = new EventCriteria();
     eventCriteria.setProgram(program.getUid());
-    eventCriteria.setOrgUnit(orgUnit.getUid());
     eventCriteria.setOuMode(CAPTURE);
 
     EventSearchParams searchParams = mapper.map(eventCriteria);
@@ -423,7 +423,6 @@ class EventRequestToSearchParamsMapperTest {
 
     EventCriteria eventCriteria = new EventCriteria();
     eventCriteria.setProgram(program.getUid());
-    eventCriteria.setOrgUnit(orgUnit.getUid());
     eventCriteria.setOuMode(ACCESSIBLE);
 
     EventSearchParams searchParams = mapper.map(eventCriteria);
@@ -515,9 +514,31 @@ class EventRequestToSearchParamsMapperTest {
     eventCriteria.setOrgUnit(orgUnit.getUid());
 
     IllegalQueryException exception =
-        Assertions.assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
+        assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
+    EventCriteria eventCriteria = new EventCriteria();
+    eventCriteria.setOrgUnit(orgUnit.getUid());
+    eventCriteria.setOuMode(ACCESSIBLE);
+    Exception exception =
+        assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
+
+    assertStartsWith("ouMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
+    EventCriteria eventCriteria = new EventCriteria();
+    eventCriteria.setOrgUnit(orgUnit.getUid());
+    eventCriteria.setOuMode(CAPTURE);
+    Exception exception =
+        assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
+
+    assertStartsWith("ouMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
   }
 
   private OrganisationUnit createOrgUnit(String name, String uid) {
