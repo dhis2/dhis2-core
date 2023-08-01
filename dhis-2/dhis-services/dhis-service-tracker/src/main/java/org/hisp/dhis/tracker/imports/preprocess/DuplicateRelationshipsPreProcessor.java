@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.tracker.imports.preprocess;
 
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import static org.hisp.dhis.tracker.imports.util.RelationshipKeySupport.getRelationshipKey;
+import static org.hisp.dhis.tracker.imports.util.RelationshipKeySupport.hasRelationshipKey;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
-import org.apache.commons.collections4.BidiMap;
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
-import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
@@ -48,30 +50,31 @@ import org.springframework.stereotype.Component;
 public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor {
 
   /**
-   * Process the bundle's relationships collection and remove relationships that are duplicated.
+   * Process the bundle's relationships collection and remove relationships that are duplicated. to
+   * preserve the order, always the second one to appear is removed.
    *
-   * <p>There are 5 cases (all cases assume the same relationship type):
+   * <p>There are 4 cases (all cases assume the same relationship type):
    *
    * <pre>
    * case 1:
    *
-   * REL 1 --- TEI A
-   *       --- TEI B
+   * REL 1 --- TE A
+   *       --- TE B
    *
-   * REL 2 --- TEI A
-   *       --- TEI B
+   * REL 2 --- TE A
+   *       --- TE B
    *
    * TYPE  --- bi = false
    *
-   * result:  REL 1 or REL 2 has to be removed (does not matter which one)
+   * result:  REL 2 has to be removed
    *
    * case 2:
    *
-   * REL 1 --- TEI A
-   *       --- TEI B
+   * REL 1 --- TE A
+   *       --- TE B
    *
-   * REL 2 --- TEI B
-   *       --- TEI A
+   * REL 2 --- TE B
+   *       --- TE A
    *
    * TYPE  --- bi = false
    *
@@ -79,70 +82,65 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor {
    *
    * case 3:
    *
-   * REL 1 --- TEI A
-   *       --- TEI B
+   * REL 1 --- TE A
+   *       --- TE B
    *
-   * REL 2 --- TEI B
-   *       --- TEI A
+   * REL 2 --- TE B
+   *       --- TE A
    *
    * TYPE  --- bi = true
    *
-   * result:  REL 1 or REL 2 has to be removed (does not matter which one)
+   * result:  REL 2 has to be removed
    *
    *
    * case 4:
    *
-   * REL 1 --- TEI A
-   *       --- TEI B
+   * REL 1 --- TE A
+   *       --- TE B
    *
-   * REL 2 --- TEI A
-   *       --- TEI B
+   * REL 2 --- TE A
+   *       --- TE B
    *
    * TYPE  --- bi = true
    *
-   * result:  REL 1 or REL 2 has to be removed (does not matter which one)
+   * result:  REL 2 has to be removed
    *
    * </pre>
    */
   @Override
   public void process(TrackerBundle bundle) {
-    Predicate<Relationship> validRelationship =
-        rel ->
-            StringUtils.isNotEmpty(rel.getRelationship())
-                && rel.getRelationshipType().isNotBlank()
-                && rel.getFrom() != null
-                && rel.getTo() != null
-                && bundle.getPreheat().getRelationshipType(rel.getRelationshipType()) != null;
+    List<Relationship> distinctRelationships = new ArrayList<>();
+    for (Relationship relationship : bundle.getRelationships()) {
+      RelationshipType relationshipType =
+          bundle.getPreheat().getRelationshipType(relationship.getRelationshipType());
+      if (isInvalidRelationship(relationship, relationshipType)
+          || !isDuplicate(relationship, relationshipType, distinctRelationships)) {
+        distinctRelationships.add(relationship);
+      }
+    }
 
-    // Create a map where both key and value must be unique
-    BidiMap<String, String> map = new DualHashBidiMap<>();
-
-    // Add a pseudo hash of all relationships to the map. If the
-    // relationship is
-    // bidirectional, first
-    // sort the Relationship Items
-    bundle.getRelationships().stream()
-        .filter(validRelationship)
-        .forEach(rel -> map.put(rel.getRelationship(), hash(rel, bundle)));
-
-    // Remove duplicated Relationships from the bundle, if any
-    bundle
-        .getRelationships()
-        .removeIf(rel -> validRelationship.test(rel) && !map.containsKey(rel.getRelationship()));
+    bundle.setRelationships(distinctRelationships);
   }
 
-  private String hash(Relationship rel, TrackerBundle bundle) {
-    RelationshipType relationshipType =
-        bundle.getPreheat().getRelationshipType(rel.getRelationshipType());
-    return rel.getRelationshipType()
-        + "-"
-        + (relationshipType.isBidirectional() ? sortItems(rel) : rel.getFrom() + "-" + rel.getTo())
-        + relationshipType.isBidirectional();
+  public boolean isDuplicate(
+      Relationship relationship,
+      RelationshipType relationshipType,
+      List<Relationship> distinctRelationships) {
+    List<RelationshipKey> relationshipKeys =
+        distinctRelationships.stream().map(r -> getRelationshipKey(r, relationshipType)).toList();
+    RelationshipKey relationshipKey = getRelationshipKey(relationship, relationshipType);
+
+    RelationshipKey inverseKey = null;
+    if (relationshipType.isBidirectional()) {
+      inverseKey = relationshipKey.inverseKey();
+    }
+    return Stream.of(relationshipKey, inverseKey)
+        .filter(Objects::nonNull)
+        .anyMatch(relationshipKeys::contains);
   }
 
-  private String sortItems(Relationship rel) {
-    return Stream.of(rel.getFrom().toString(), rel.getTo().toString())
-        .sorted()
-        .collect(Collectors.joining("-"));
+  public boolean isInvalidRelationship(
+      Relationship relationship, RelationshipType relationshipType) {
+    return relationshipType == null || !hasRelationshipKey(relationship, relationshipType);
   }
 }

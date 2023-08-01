@@ -34,6 +34,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -57,11 +58,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
 
-  private static final String TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE = "xLmPUYJX8Ks";
+  private static final String TE_TO_ENROLLMENT_RELATIONSHIP_TYPE = "xLmPUYJX8Ks";
 
-  private static final String TEI_TO_EVENT_RELATIONSHIP_TYPE = "TV9oB9LT3sh";
+  private static final String TE_TO_EVENT_RELATIONSHIP_TYPE = "TV9oB9LT3sh";
 
-  private static final String TEI = "TEI_UID";
+  private static final String TE = CodeGenerator.generateUid();
 
   private static final String ENROLLMENT = "ENROLLMENT_UID";
 
@@ -71,11 +72,11 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
 
   private static final String RELATIONSHIP_B = "RELATIONSHIP_B_UID";
 
-  private RelationshipType teiToEnrollment;
+  private RelationshipType teToEnrollment;
 
-  private RelationshipType teiToEvent;
+  private RelationshipType teToEvent;
 
-  private TrackedEntity tei;
+  private TrackedEntity trackedEntity;
 
   private Enrollment enrollment;
 
@@ -90,18 +91,18 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
   protected void setupTest() {
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     Program program = createProgram('A');
-    TrackedEntityType teiType = createTrackedEntityType('A');
+    TrackedEntityType teType = createTrackedEntityType('A');
 
-    teiToEnrollment = createTeiToEnrollmentRelationshipType('A', program, teiType, false);
-    teiToEnrollment.setUid(TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE);
+    teToEnrollment = createTeToEnrollmentRelationshipType('A', program, teType, false);
+    teToEnrollment.setUid(TE_TO_ENROLLMENT_RELATIONSHIP_TYPE);
 
-    teiToEvent = createTeiToEventRelationshipType('B', program, teiType, false);
-    teiToEvent.setUid(TEI_TO_EVENT_RELATIONSHIP_TYPE);
+    teToEvent = createTeToEventRelationshipType('B', program, teType, false);
+    teToEvent.setUid(TE_TO_EVENT_RELATIONSHIP_TYPE);
 
-    tei = createTrackedEntity(organisationUnit);
-    tei.setTrackedEntityType(teiType);
-    tei.setUid(TEI);
-    enrollment = createEnrollment(program, tei, organisationUnit);
+    trackedEntity = createTrackedEntity(organisationUnit);
+    trackedEntity.setTrackedEntityType(teType);
+    trackedEntity.setUid(TE);
+    enrollment = createEnrollment(program, trackedEntity, organisationUnit);
     enrollment.setUid(ENROLLMENT);
     event = createEvent(createProgramStage('A', program), enrollment, organisationUnit);
     event.setUid(EVENT);
@@ -113,11 +114,11 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
   void testConverterFromRelationships() {
     when(preheat.getRelationship(RELATIONSHIP_A)).thenReturn(relationshipAFromDB());
     when(preheat.getRelationship(RELATIONSHIP_B)).thenReturn(relationshipBFromDB());
-    when(preheat.getRelationshipType(MetadataIdentifier.ofUid(TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE)))
-        .thenReturn(teiToEnrollment);
-    when(preheat.getRelationshipType(MetadataIdentifier.ofUid(TEI_TO_EVENT_RELATIONSHIP_TYPE)))
-        .thenReturn(teiToEvent);
-    when(preheat.getTrackedEntity(TEI)).thenReturn(tei);
+    when(preheat.getRelationshipType(MetadataIdentifier.ofUid(TE_TO_ENROLLMENT_RELATIONSHIP_TYPE)))
+        .thenReturn(teToEnrollment);
+    when(preheat.getRelationshipType(MetadataIdentifier.ofUid(TE_TO_EVENT_RELATIONSHIP_TYPE)))
+        .thenReturn(teToEvent);
+    when(preheat.getTrackedEntity(TE)).thenReturn(trackedEntity);
     when(preheat.getEnrollment(ENROLLMENT)).thenReturn(enrollment);
     when(preheat.getEvent(EVENT)).thenReturn(event);
 
@@ -127,13 +128,13 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
     assertEquals(2, from.size());
     from.forEach(
         relationship -> {
-          if (TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals(
+          if (TE_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals(
               relationship.getRelationshipType().getUid())) {
-            assertEquals(TEI, relationship.getFrom().getTrackedEntity().getUid());
+            assertEquals(TE, relationship.getFrom().getTrackedEntity().getUid());
             assertEquals(ENROLLMENT, relationship.getTo().getEnrollment().getUid());
-          } else if (TEI_TO_EVENT_RELATIONSHIP_TYPE.equals(
+          } else if (TE_TO_EVENT_RELATIONSHIP_TYPE.equals(
               relationship.getRelationshipType().getUid())) {
-            assertEquals(TEI, relationship.getFrom().getTrackedEntity().getUid());
+            assertEquals(TE, relationship.getFrom().getTrackedEntity().getUid());
             assertEquals(EVENT, relationship.getTo().getEvent().getUid());
           } else {
             fail("Unexpected relationshipType found.");
@@ -151,13 +152,13 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
     assertEquals(2, to.size());
     to.forEach(
         relationship -> {
-          if (TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals(
+          if (TE_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals(
               relationship.getRelationshipType().getIdentifier())) {
-            assertEquals(TEI, relationship.getFrom().getTrackedEntity());
+            assertEquals(TE, relationship.getFrom().getTrackedEntity());
             assertEquals(ENROLLMENT, relationship.getTo().getEnrollment());
-          } else if (TEI_TO_EVENT_RELATIONSHIP_TYPE.equals(
+          } else if (TE_TO_EVENT_RELATIONSHIP_TYPE.equals(
               relationship.getRelationshipType().getIdentifier())) {
-            assertEquals(TEI, relationship.getFrom().getTrackedEntity());
+            assertEquals(TE, relationship.getFrom().getTrackedEntity());
             assertEquals(EVENT, relationship.getTo().getEvent());
           } else {
             fail("Unexpected relationshipType found.");
@@ -170,8 +171,8 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
   private Relationship relationshipA() {
     return Relationship.builder()
         .relationship(RELATIONSHIP_A)
-        .relationshipType(MetadataIdentifier.ofUid(TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE))
-        .from(RelationshipItem.builder().trackedEntity(TEI).build())
+        .relationshipType(MetadataIdentifier.ofUid(TE_TO_ENROLLMENT_RELATIONSHIP_TYPE))
+        .from(RelationshipItem.builder().trackedEntity(TE).build())
         .to(RelationshipItem.builder().enrollment(ENROLLMENT).build())
         .build();
   }
@@ -179,17 +180,17 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
   private Relationship relationshipB() {
     return Relationship.builder()
         .relationship(RELATIONSHIP_B)
-        .relationshipType(MetadataIdentifier.ofUid(TEI_TO_EVENT_RELATIONSHIP_TYPE))
-        .from(RelationshipItem.builder().trackedEntity(TEI).build())
+        .relationshipType(MetadataIdentifier.ofUid(TE_TO_EVENT_RELATIONSHIP_TYPE))
+        .from(RelationshipItem.builder().trackedEntity(TE).build())
         .to(RelationshipItem.builder().event(EVENT).build())
         .build();
   }
 
   private org.hisp.dhis.relationship.Relationship relationshipAFromDB() {
-    return createTeiToEnrollmentRelationship(tei, enrollment, teiToEnrollment);
+    return createTeToEnrollmentRelationship(trackedEntity, enrollment, teToEnrollment);
   }
 
   private org.hisp.dhis.relationship.Relationship relationshipBFromDB() {
-    return createTeiToEventRelationship(tei, event, teiToEvent);
+    return createTeToEventRelationship(trackedEntity, event, teToEvent);
   }
 }

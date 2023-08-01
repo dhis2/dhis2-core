@@ -54,7 +54,7 @@ class TrackerEntityStrategyTest {
   @Mock private TrackerPreheat preheat;
 
   @Test
-  void verifyStrategyAddRightTeisToPreheat() {
+  void verifyStrategyAddRightTeToPreheat() {
     final List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities =
         trackedEntities();
     final TrackerImportParams params =
@@ -65,11 +65,11 @@ class TrackerEntityStrategyTest {
     List<List<String>> splitUids = new ArrayList<>();
     splitUids.add(uids);
 
-    TrackedEntity teiA = new TrackedEntity();
-    teiA.setUid("TEIA");
-    TrackedEntity teiB = new TrackedEntity();
-    teiB.setUid("TEIB");
-    List<TrackedEntity> dbTrackedEntities = List.of(teiA, teiB);
+    TrackedEntity teA = new TrackedEntity();
+    teA.setUid("TEIA");
+    TrackedEntity teB = new TrackedEntity();
+    teB.setUid("TEIB");
+    List<TrackedEntity> dbTrackedEntities = List.of(teA, teB);
     when(trackedEntityStore.getIncludingDeleted(uids)).thenReturn(dbTrackedEntities);
     strategy.add(params, splitUids, preheat);
 

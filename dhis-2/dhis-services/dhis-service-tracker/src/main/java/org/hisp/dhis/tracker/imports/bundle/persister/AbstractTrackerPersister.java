@@ -101,13 +101,9 @@ public abstract class AbstractTrackerPersister<
 
     Set<String> updatedTeiList = bundle.getUpdatedTeis();
 
-    for (int idx = 0; idx < dtos.size(); idx++) {
-      //
-      // Create the Report for the entity being persisted
-      //
-      final T trackerDto = dtos.get(idx);
+    for (T trackerDto : dtos) {
 
-      Entity objectReport = new Entity(getType(), trackerDto.getUid(), idx);
+      Entity objectReport = new Entity(getType(), trackerDto.getUid());
 
       try {
         //
@@ -385,7 +381,7 @@ public abstract class AbstractTrackerPersister<
 
     if (isNew) {
       session.persist(trackedEntityAttributeValue);
-      // In case it's a newly created attribute we'll add it back to TEI,
+      // In case it's a newly created attribute we'll add it back to TE,
       // so it can end up in preheat
       trackedEntity.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
       auditType = AuditType.CREATE;

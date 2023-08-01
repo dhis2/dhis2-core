@@ -63,11 +63,11 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
 
   private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
-  private static final String TEI_TYPE_ID = "TEI_TYPE_ID";
+  private static final String TE_TYPE_ID = "TEI_TYPE_ID";
 
-  private static final String ANOTHER_TEI_TYPE_ID = "ANOTHER_TEI_TYPE_ID";
+  private static final String ANOTHER_TE_TYPE_ID = "ANOTHER_TEI_TYPE_ID";
 
-  private static final String TEI_ID = "TEI_ID";
+  private static final String TE_ID = "TEI_ID";
 
   private DataRelationsValidator validator;
 
@@ -91,19 +91,19 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
   void verifyValidationSuccessForEnrollment() {
     OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
-    TrackedEntityType teiType = trackedEntityType(TEI_TYPE_ID);
+    TrackedEntityType teType = trackedEntityType(TE_TYPE_ID);
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID)))
-        .thenReturn(programWithRegistration(PROGRAM_UID, orgUnit, teiType));
+        .thenReturn(programWithRegistration(PROGRAM_UID, orgUnit, teType));
     when(preheat.getProgramWithOrgUnitsMap())
         .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
-    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(trackedEntity(TEI_TYPE_ID, teiType, orgUnit));
+    when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity(TE_TYPE_ID, teType, orgUnit));
 
     Enrollment enrollment =
         Enrollment.builder()
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
             .enrollment(CodeGenerator.generateUid())
-            .trackedEntity(TEI_ID)
+            .trackedEntity(TE_ID)
             .build();
 
     validator.validate(reporter, bundle, enrollment);
@@ -161,19 +161,19 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
     OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID)))
-        .thenReturn(programWithRegistration(PROGRAM_UID, orgUnit, trackedEntityType(TEI_TYPE_ID)));
+        .thenReturn(programWithRegistration(PROGRAM_UID, orgUnit, trackedEntityType(TE_TYPE_ID)));
     when(preheat.getProgramWithOrgUnitsMap())
         .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
-    TrackedEntityType anotherTrackedEntityType = trackedEntityType(TEI_ID, 'B');
-    when(preheat.getTrackedEntity(TEI_ID))
-        .thenReturn(trackedEntity(TEI_ID, anotherTrackedEntityType, orgUnit));
+    TrackedEntityType anotherTrackedEntityType = trackedEntityType(TE_ID, 'B');
+    when(preheat.getTrackedEntity(TE_ID))
+        .thenReturn(trackedEntity(TE_ID, anotherTrackedEntityType, orgUnit));
 
     Enrollment enrollment =
         Enrollment.builder()
             .enrollment(CodeGenerator.generateUid())
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TEI_ID)
+            .trackedEntity(TE_ID)
             .build();
 
     validator.validate(reporter, bundle, enrollment);
@@ -182,19 +182,19 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
   }
 
   @Test
-  void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatchAndTEIIsInPayload() {
+  void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatchAndTeIsInPayload() {
     OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID)))
-        .thenReturn(programWithRegistration(PROGRAM_UID, orgUnit, trackedEntityType(TEI_TYPE_ID)));
+        .thenReturn(programWithRegistration(PROGRAM_UID, orgUnit, trackedEntityType(TE_TYPE_ID)));
     when(preheat.getProgramWithOrgUnitsMap())
         .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
-    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(null);
+    when(preheat.getTrackedEntity(TE_ID)).thenReturn(null);
 
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-            .trackedEntity(TEI_ID)
-            .trackedEntityType(MetadataIdentifier.ofUid(ANOTHER_TEI_TYPE_ID))
+            .trackedEntity(TE_ID)
+            .trackedEntityType(MetadataIdentifier.ofUid(ANOTHER_TE_TYPE_ID))
             .build();
     bundle.setTrackedEntities(Collections.singletonList(trackedEntity));
 
@@ -203,7 +203,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
             .enrollment(CodeGenerator.generateUid())
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TEI_ID)
+            .trackedEntity(TE_ID)
             .build();
 
     validator.validate(reporter, bundle, enrollment);
@@ -218,8 +218,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
   }
 
   private Program programWithRegistration(String uid, OrganisationUnit orgUnit) {
-    return program(
-        uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, trackedEntityType(TEI_TYPE_ID));
+    return program(uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, trackedEntityType(TE_TYPE_ID));
   }
 
   // Note : parameters that always have the same value are kept to
@@ -227,13 +226,13 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
   // test. Without having to navigate to the
   // helpers.
   private Program programWithRegistration(
-      String uid, OrganisationUnit orgUnit, TrackedEntityType teiType) {
-    return program(uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, teiType);
+      String uid, OrganisationUnit orgUnit, TrackedEntityType teType) {
+    return program(uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, teType);
   }
 
   private Program programWithoutRegistration(String uid, OrganisationUnit orgUnit) {
     return program(
-        uid, ProgramType.WITHOUT_REGISTRATION, 'B', orgUnit, trackedEntityType(TEI_TYPE_ID));
+        uid, ProgramType.WITHOUT_REGISTRATION, 'B', orgUnit, trackedEntityType(TE_TYPE_ID));
   }
 
   private Program program(
@@ -241,12 +240,12 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
       ProgramType type,
       char uniqueCharacter,
       OrganisationUnit orgUnit,
-      TrackedEntityType teiType) {
+      TrackedEntityType teType) {
     Program program = createProgram(uniqueCharacter);
     program.setUid(uid);
     program.setProgramType(type);
     program.setOrganisationUnits(Sets.newHashSet(orgUnit));
-    program.setTrackedEntityType(teiType);
+    program.setTrackedEntityType(teType);
     return program;
   }
 
@@ -262,9 +261,9 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
 
   private TrackedEntity trackedEntity(
       String uid, TrackedEntityType type, OrganisationUnit orgUnit) {
-    TrackedEntity tei = createTrackedEntity(orgUnit);
-    tei.setUid(uid);
-    tei.setTrackedEntityType(type);
-    return tei;
+    TrackedEntity te = createTrackedEntity(orgUnit);
+    te.setUid(uid);
+    te.setTrackedEntityType(type);
+    return te;
   }
 }

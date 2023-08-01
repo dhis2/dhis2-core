@@ -56,7 +56,7 @@ import org.springframework.stereotype.Service;
 public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeletionService {
   private final EnrollmentService enrollmentService;
 
-  private final TrackedEntityService teiService;
+  private final TrackedEntityService teService;
 
   private final EventService eventService;
 
@@ -72,10 +72,10 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
     List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = bundle.getEnrollments();
 
-    for (int idx = 0; idx < enrollments.size(); idx++) {
-      String uid = enrollments.get(idx).getEnrollment();
+    for (org.hisp.dhis.tracker.imports.domain.Enrollment value : enrollments) {
+      String uid = value.getEnrollment();
 
-      Entity objectReport = new Entity(TrackerType.ENROLLMENT, uid, idx);
+      Entity objectReport = new Entity(TrackerType.ENROLLMENT, uid);
 
       Enrollment enrollment = enrollmentService.getEnrollment(uid);
 
@@ -91,11 +91,11 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       deleteEvents(trackerBundle);
 
-      TrackedEntity tei = enrollment.getTrackedEntity();
-      tei.getEnrollments().remove(enrollment);
+      TrackedEntity te = enrollment.getTrackedEntity();
+      te.getEnrollments().remove(enrollment);
 
       enrollmentService.deleteEnrollment(enrollment);
-      teiService.updateTrackedEntity(tei);
+      teService.updateTrackedEntity(te);
 
       typeReport.getStats().incDeleted();
       typeReport.addEntity(objectReport);
@@ -110,10 +110,10 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
     List<org.hisp.dhis.tracker.imports.domain.Event> events = bundle.getEvents();
 
-    for (int idx = 0; idx < events.size(); idx++) {
-      String uid = events.get(idx).getEvent();
+    for (org.hisp.dhis.tracker.imports.domain.Event value : events) {
+      String uid = value.getEvent();
 
-      Entity objectReport = new Entity(TrackerType.EVENT, uid, idx);
+      Entity objectReport = new Entity(TrackerType.EVENT, uid);
 
       Event event = eventService.getEvent(uid);
 
@@ -122,7 +122,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       eventService.deleteEvent(event);
 
       if (event.getProgramStage().getProgram().isRegistration()) {
-        teiService.updateTrackedEntity(event.getEnrollment().getTrackedEntity());
+        teService.updateTrackedEntity(event.getEnrollment().getTrackedEntity());
 
         enrollment.getEvents().remove(event);
         enrollmentService.updateEnrollment(enrollment);
@@ -142,12 +142,12 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities =
         bundle.getTrackedEntities();
 
-    for (int idx = 0; idx < trackedEntities.size(); idx++) {
-      String uid = trackedEntities.get(idx).getTrackedEntity();
+    for (org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity : trackedEntities) {
+      String uid = trackedEntity.getTrackedEntity();
 
-      Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid, idx);
+      Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid);
 
-      TrackedEntity daoEntityInstance = teiService.getTrackedEntity(uid);
+      TrackedEntity daoEntityInstance = teService.getTrackedEntity(uid);
 
       Set<Enrollment> daoEnrollments = daoEntityInstance.getEnrollments();
 
@@ -161,7 +161,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       deleteEnrollments(trackerBundle);
 
-      teiService.deleteTrackedEntity(daoEntityInstance);
+      teService.deleteTrackedEntity(daoEntityInstance);
 
       typeReport.getStats().incDeleted();
       typeReport.addEntity(objectReport);
@@ -176,10 +176,10 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
     List<Relationship> relationships = bundle.getRelationships();
 
-    for (int idx = 0; idx < relationships.size(); idx++) {
-      String uid = relationships.get(idx).getRelationship();
+    for (Relationship value : relationships) {
+      String uid = value.getRelationship();
 
-      Entity objectReport = new Entity(TrackerType.RELATIONSHIP, uid, idx);
+      Entity objectReport = new Entity(TrackerType.RELATIONSHIP, uid);
 
       org.hisp.dhis.relationship.Relationship relationship =
           relationshipService.getRelationship(uid);

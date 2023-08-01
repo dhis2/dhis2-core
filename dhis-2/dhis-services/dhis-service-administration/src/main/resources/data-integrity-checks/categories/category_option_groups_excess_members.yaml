@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-summary_uid: hFeGvP851tv
 name: category_options_excess_groupset_membership
 description: Category options which belong to multiple groups in a category option group set.
 section: Categories
@@ -57,7 +56,6 @@ summary_sql: >-
   SELECT COUNT(*),
   100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM dataelementcategoryoption), 0) as percent
   FROM cos_multiple_groups;
-details_uid: ARXenW2aL62
 details_sql: >-
   SELECT x.uid,x.name, x.cogs_name || ' :{'||
   string_agg(x.cog_name,',') || '}' as comment from (

@@ -44,8 +44,6 @@ severity: WARNING
 introduction: >
     Categories should always have at least one category option.
 section_order: 1
-summary_uid: YbexVajxsCD
-details_uid: ePVVKF1llbU
 recommendation: >
     Any categories without category options should either be removed from the
     system if they are not in use. Otherwise, appropriate category options

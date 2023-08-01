@@ -56,17 +56,17 @@ public class SmsDeliveryChannelStrategy extends DeliveryChannelStrategy {
 
     OrganisationUnit orgUnit = getOrganisationUnit(message);
 
-    TrackedEntity tei = getTrackedEntity(message);
+    TrackedEntity te = getTrackedEntity(message);
 
     if (orgUnit != null) {
       message.getRecipients().getPhoneNumbers().add(getOrganisationUnitRecipient(orgUnit));
     }
 
-    if (tei != null) {
+    if (te != null) {
       message
           .getRecipients()
           .getPhoneNumbers()
-          .add(getTrackedEntityRecipient(tei, ValueType.PHONE_NUMBER));
+          .add(getTrackedEntityRecipient(te, ValueType.PHONE_NUMBER));
     }
 
     return message;

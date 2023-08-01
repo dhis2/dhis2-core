@@ -56,6 +56,8 @@ import org.hisp.dhis.sqlview.SqlViewQuery;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -167,7 +169,8 @@ public class SqlViewController extends AbstractCrudController<SqlView> {
       throws NotFoundException, IOException {
     Grid grid = querySQLView(uid, criteria, vars, response, ContextUtils.CONTENT_TYPE_PDF);
 
-    GridUtils.toPdf(grid, response.getOutputStream());
+    GridUtils.toPdf(
+        CurrentUserUtil.getUserSetting(UserSettingKey.DB_LOCALE), grid, response.getOutputStream());
   }
 
   private Grid querySQLView(

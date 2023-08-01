@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static org.hisp.dhis.tracker.Assertions.assertHasTimeStamp;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -69,6 +71,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -76,6 +79,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -162,7 +166,9 @@ class EventExporterTest extends TrackerTest {
 
     assertContainsOnly(List.of("pTzf9KYMk72"), uids(events));
     List<Relationship> relationships =
-        events.get(0).getRelationshipItems().stream().map(i -> i.getRelationship()).toList();
+        events.get(0).getRelationshipItems().stream()
+            .map(RelationshipItem::getRelationship)
+            .toList();
     assertContainsOnly(List.of("oLT07jKRu9e", "yZxjxJli9mO"), uids(relationships));
   }
 
@@ -191,7 +197,7 @@ class EventExporterTest extends TrackerTest {
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
             .events(Set.of("pTzf9KYMk72", "D9PbzJY8bJM"))
-            .orders(List.of(new OrderParam("occurredAt", SortDirection.DESC)));
+            .orders(List.of(new OrderParam("executionDate", SortDirection.DESC)));
 
     EventOperationParams params = paramsBuilder.page(1).pageSize(1).build();
 
@@ -318,6 +324,38 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
+  void testExportEventsWithDatesIncludingTimeStamp()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        EventOperationParams.builder().events(Set.of("pTzf9KYMk72")).build();
+
+    Events events = eventService.getEvents(params);
+
+    assertNotEmpty(events.getEvents());
+
+    Event event = events.getEvents().get(0);
+
+    assertAll(
+        "All dates should include timestamp",
+        () ->
+            assertEquals(
+                "2019-01-25T12:10:38.100",
+                DateUtils.getIso8601NoTz(event.getExecutionDate()),
+                () ->
+                    String.format(
+                        "Expected %s to be in %s",
+                        event.getExecutionDate(), "2019-01-25T12:10:38.100")),
+        () ->
+            assertEquals(
+                "2019-01-28T12:32:38.100",
+                DateUtils.getIso8601NoTz(event.getDueDate()),
+                () ->
+                    String.format(
+                        "Expected %s to be in %s", event.getDueDate(), "2019-01-28T12:32:38.100")),
+        () -> assertHasTimeStamp(event.getCompletedDate()));
+  }
+
+  @Test
   void testExportEventsWhenFilteringByDataElementsLike()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement("DATAEL00001");
@@ -441,7 +479,7 @@ class EventExporterTest extends TrackerTest {
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
             .programUid(program.getUid())
-            .orders(List.of(new OrderParam("occurredAt", SortDirection.DESC)));
+            .orders(List.of(new OrderParam("executionDate", SortDirection.DESC)));
 
     EventOperationParams params = paramsBuilder.page(1).pageSize(3).build();
 
@@ -480,7 +518,7 @@ class EventExporterTest extends TrackerTest {
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
             .programUid(program.getUid())
-            .orders(List.of(new OrderParam("occurredAt", SortDirection.DESC)))
+            .orders(List.of(new OrderParam("executionDate", SortDirection.DESC)))
             .page(1)
             .pageSize(2)
             .totalPages(true)
@@ -1149,7 +1187,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .orders(List.of(new OrderParam("enrolledAt", SortDirection.DESC)))
+            .orders(List.of(new OrderParam("enrollment.enrollmentDate", SortDirection.DESC)))
             .build();
 
     List<String> enrollments =
@@ -1165,7 +1203,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .orders(List.of(new OrderParam("enrolledAt", SortDirection.ASC)))
+            .orders(List.of(new OrderParam("enrollment.enrollmentDate", SortDirection.ASC)))
             .build();
 
     List<String> enrollments =
@@ -1181,7 +1219,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .orders(List.of(new OrderParam("occurredAt", SortDirection.DESC)))
+            .orders(List.of(new OrderParam("executionDate", SortDirection.DESC)))
             .build();
 
     Events events = eventService.getEvents(params);
@@ -1194,7 +1232,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .orders(List.of(new OrderParam("occurredAt", SortDirection.ASC)))
+            .orders(List.of(new OrderParam("executionDate", SortDirection.ASC)))
             .build();
 
     Events events = eventService.getEvents(params);
@@ -1269,7 +1307,7 @@ class EventExporterTest extends TrackerTest {
             .orders(
                 List.of(
                     new OrderParam("toUpdate000", SortDirection.ASC),
-                    new OrderParam("enrolledAt", SortDirection.ASC)))
+                    new OrderParam("enrollment.enrollmentDate", SortDirection.ASC)))
             .build();
 
     List<String> trackedEntities =
@@ -1290,7 +1328,7 @@ class EventExporterTest extends TrackerTest {
             .attributeOrders(List.of(OrderCriteria.of("toUpdate000", SortDirection.DESC)))
             .orders(
                 List.of(
-                    new OrderParam("enrolledAt", SortDirection.DESC),
+                    new OrderParam("enrollment.enrollmentDate", SortDirection.DESC),
                     new OrderParam("toUpdate000", SortDirection.DESC)))
             .build();
 
@@ -1312,7 +1350,7 @@ class EventExporterTest extends TrackerTest {
                 List.of(
                     new OrderParam("dueDate", SortDirection.DESC),
                     new OrderParam("DATAEL00006", SortDirection.DESC),
-                    new OrderParam("enrolledAt", SortDirection.DESC)))
+                    new OrderParam("enrollment.enrollmentDate", SortDirection.DESC)))
             .build();
 
     List<String> trackedEntities =
@@ -1331,7 +1369,7 @@ class EventExporterTest extends TrackerTest {
             .orgUnitUid(orgUnit.getUid())
             .orders(
                 List.of(
-                    new OrderParam("enrolledAt", SortDirection.DESC),
+                    new OrderParam("enrollment.enrollmentDate", SortDirection.DESC),
                     new OrderParam("DATAEL00006", SortDirection.DESC)))
             .build();
 

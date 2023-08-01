@@ -18,20 +18,20 @@
     <log4j.version>2.20.0</log4j.version>
     <rest-assured.version>5.3.1</rest-assured.version>
     <jackson.version>2.15.2</jackson.version>
-    <guava.version>32.1.1-jre</guava.version>
+    <guava.version>32.1.2-jre</guava.version>
     <json-tree.version>0.9.0</json-tree.version>
     <epam-reportportal.version>5.1.8</epam-reportportal.version>
     <javafaker.version>1.0.2</javafaker.version>
     <opencsv.version>5.8</opencsv.version>
     <owner.version>1.0.12</owner.version>
     <commons-collections4.version>4.4</commons-collections4.version>
-    <commons-lang3.version>3.12.0</commons-lang3.version>
+    <commons-lang3.version>3.13.0</commons-lang3.version>
     <json-path.version>2.8.0</json-path.version>
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
     <lombok.version>1.18.28</lombok.version>
     <allure.version>2.23.0</allure.version>
-    <selenium-java.version>4.10.0</selenium-java.version>
+    <selenium-java.version>4.11.0</selenium-java.version>
     <slf4j-simple.version>2.0.7</slf4j-simple.version>
   </properties>
 
