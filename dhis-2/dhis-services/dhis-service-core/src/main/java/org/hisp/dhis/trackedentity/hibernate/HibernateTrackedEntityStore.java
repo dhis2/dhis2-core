@@ -1271,7 +1271,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   private String getFromSubQueryLimitAndOffset(TrackedEntityQueryParams params) {
     StringBuilder limitOffset = new StringBuilder();
     int limit = params.getMaxTeLimit();
-    int teQueryLimit = systemSettingManager.getIntSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT);
+    int teQueryLimit = systemSettingManager.getIntSetting(SettingKey.TE_MAX_LIMIT);
 
     if (limit == 0 && !params.isPaging()) {
       if (teQueryLimit > 0) {
