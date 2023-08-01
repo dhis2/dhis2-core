@@ -29,17 +29,13 @@ package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
-import static org.hisp.dhis.tracker.export.OperationParamUtils.parseDataElementQueryItems;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +43,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -97,8 +92,6 @@ public class EventOperationParamsMapper {
 
   private final CurrentUserService currentUserService;
 
-  private final TrackedEntityAttributeService attributeService;
-
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
   private final DataElementService dataElementService;
@@ -138,15 +131,9 @@ public class EventOperationParamsMapper {
     validateOrgUnitMode(operationParams, user, program);
 
     EventSearchParams searchParams = new EventSearchParams();
-    List<QueryItem> dataElementFilters =
-        parseDataElementQueryItems(
-            operationParams.getDataElementFilters(), this::dataElementToQueryItem);
-    mapDataElementFilters(searchParams, dataElementFilters);
 
-    List<QueryItem> attributeFilters = parseAttributeFilters(operationParams.getAttributeFilters());
-    validateAttributeFilters(attributeFilters);
-    mapAttributeFilters(searchParams, attributeFilters);
-
+    mapDataElementFilters(searchParams, operationParams.getDataElementFilters());
+    mapAttributeFilters(searchParams, operationParams.getAttributeFilters());
     mapOrderParam(searchParams, operationParams.getOrder());
 
     return searchParams
@@ -334,43 +321,6 @@ public class EventOperationParamsMapper {
         || user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
   }
 
-  private List<QueryItem> parseAttributeFilters(String attributeFilters)
-      throws BadRequestException {
-    Map<String, TrackedEntityAttribute> attributes =
-        attributeService.getAllTrackedEntityAttributes().stream()
-            .collect(Collectors.toMap(TrackedEntityAttribute::getUid, att -> att));
-
-    return parseAttributeQueryItems(attributeFilters, attributes);
-  }
-
-  private void validateAttributeFilters(List<QueryItem> attributeFilters)
-      throws BadRequestException {
-    Set<String> attributes = new HashSet<>();
-    Set<String> duplicates = new HashSet<>();
-    for (QueryItem item : attributeFilters) {
-      if (!attributes.add(item.getItemId())) {
-        duplicates.add(item.getItemId());
-      }
-    }
-
-    if (!duplicates.isEmpty()) {
-      throw new BadRequestException(
-          String.format(
-              "filterAttributes contains duplicate tracked entity attribute (TEA): %s. Multiple filters for the same TEA can be specified like 'uid:gt:2:lt:10'",
-              String.join(", ", duplicates)));
-    }
-  }
-
-  private QueryItem dataElementToQueryItem(String item) throws BadRequestException {
-    DataElement de = dataElementService.getDataElement(item);
-
-    if (de == null) {
-      throw new BadRequestException("Data element does not exist: " + item);
-    }
-
-    return new QueryItem(de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet());
-  }
-
   /**
    * Returns the same org unit mode if not null. If null, and an org unit is present, SELECT mode is
    * used by default, mode ACCESSIBLE is used otherwise.
@@ -503,22 +453,43 @@ public class EventOperationParamsMapper {
     return program != null && (program.isClosed() || program.isProtected());
   }
 
-  private void mapDataElementFilters(EventSearchParams params, List<QueryItem> dataElementFilters) {
-    for (QueryItem item : dataElementFilters) {
-      for (QueryFilter filter : item.getFilters()) {
-        params.addDataElementFilter((DataElement) item.getItem(), filter);
+  private void mapDataElementFilters(
+      EventSearchParams params, Map<String, List<QueryFilter>> dataElementFilters)
+      throws BadRequestException {
+    for (Entry<String, List<QueryFilter>> dataElementFilter : dataElementFilters.entrySet()) {
+      DataElement de = dataElementService.getDataElement(dataElementFilter.getKey());
+      if (de == null) {
+        throw new BadRequestException(
+            String.format(
+                "filter is invalid. Data element '%s' does not exist.",
+                dataElementFilter.getKey()));
+      }
+
+      for (QueryFilter filter : dataElementFilter.getValue()) {
+        params.filterBy(de, filter);
       }
     }
   }
 
-  private void mapAttributeFilters(EventSearchParams params, List<QueryItem> attributeFilters) {
-    for (QueryItem item : attributeFilters) {
-      if (item.getFilters().isEmpty()) {
-        params.addAttribute((TrackedEntityAttribute) item.getItem());
+  private void mapAttributeFilters(
+      EventSearchParams params, Map<String, List<QueryFilter>> attributeFilters)
+      throws BadRequestException {
+    for (Map.Entry<String, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
+      TrackedEntityAttribute tea =
+          trackedEntityAttributeService.getTrackedEntityAttribute(attributeFilter.getKey());
+      if (tea == null) {
+        throw new BadRequestException(
+            String.format(
+                "attribute filters are invalid. Tracked entity attribute '%s' does not exist.",
+                attributeFilter.getKey()));
       }
 
-      for (QueryFilter filter : item.getFilters()) {
-        params.addAttributeFilter((TrackedEntityAttribute) item.getItem(), filter);
+      if (attributeFilter.getValue().isEmpty()) {
+        params.filterBy(tea);
+      }
+
+      for (QueryFilter filter : attributeFilter.getValue()) {
+        params.filterBy(tea, filter);
       }
     }
   }

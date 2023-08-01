@@ -32,10 +32,13 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
@@ -45,6 +48,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -88,6 +92,11 @@ class EventRequestParamsMapper {
             "event", requestParams.getEvent(), "events", requestParams.getEvents());
 
     validateFilter(requestParams.getFilter(), eventUids);
+    Map<String, List<QueryFilter>> dataElementFilters = new HashMap<>();
+    parseFilters(dataElementFilters, requestParams.getFilter());
+
+    Map<String, List<QueryFilter>> attributeFilters = new HashMap<>();
+    parseFilters(attributeFilters, requestParams.getFilterAttributes());
 
     Set<UID> assignedUsers =
         validateDeprecatedUidsParameter(
@@ -141,8 +150,8 @@ class EventRequestParamsMapper {
             .skipEventId(requestParams.getSkipEventId())
             .includeAttributes(false)
             .includeAllDataElements(false)
-            .dataElementFilters(requestParams.getFilter())
-            .attributeFilters(requestParams.getFilterAttributes())
+            .dataElementFilters(dataElementFilters)
+            .attributeFilters(attributeFilters)
             .events(UID.toValueSet(eventUids))
             .enrollments(UID.toValueSet(requestParams.getEnrollments()))
             .includeDeleted(requestParams.isIncludeDeleted());
