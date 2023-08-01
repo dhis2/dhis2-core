@@ -241,7 +241,7 @@ public abstract class DhisConvenienceTest {
 
   protected static final String BASE_PR_UID = "prabcdefgh";
 
-  protected static final String BASE_TEI_UID = "teibcdefgh";
+  protected static final String BASE_TE_UID = "teibcdefgh";
 
   protected static final String BASE_PREDICTOR_GROUP_UID = "predictorg";
 
@@ -1923,19 +1923,19 @@ public abstract class DhisConvenienceTest {
     eventConstraint.setProgram(program);
     eventConstraint.setTrackedEntityType(trackedEntityType);
     eventConstraint.setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
-    RelationshipConstraint teiConstraint = new RelationshipConstraint();
-    teiConstraint.setProgram(program);
-    teiConstraint.setTrackedEntityType(trackedEntityType);
-    teiConstraint.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    RelationshipConstraint teConstraint = new RelationshipConstraint();
+    teConstraint.setProgram(program);
+    teConstraint.setTrackedEntityType(trackedEntityType);
+    teConstraint.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     RelationshipType relationshipType = createRelationshipType(uniqueCharacter);
     relationshipType.setName("Malaria case linked to person");
     relationshipType.setBidirectional(true);
     relationshipType.setFromConstraint(eventConstraint);
-    relationshipType.setToConstraint(teiConstraint);
+    relationshipType.setToConstraint(teConstraint);
     return relationshipType;
   }
 
-  public static Relationship createTeiToTeiRelationship(
+  public static Relationship createTeToTeRelationship(
       TrackedEntity from, TrackedEntity to, RelationshipType relationshipType) {
     Relationship relationship = new Relationship();
     RelationshipItem riFrom = new RelationshipItem();
@@ -1955,7 +1955,7 @@ public abstract class DhisConvenienceTest {
     return relationship;
   }
 
-  public static Relationship createTeiToEnrollmentRelationship(
+  public static Relationship createTeToEnrollmentRelationship(
       TrackedEntity from, Enrollment to, RelationshipType relationshipType) {
     Relationship relationship = new Relationship();
     RelationshipItem riFrom = new RelationshipItem();
@@ -1975,7 +1975,7 @@ public abstract class DhisConvenienceTest {
     return relationship;
   }
 
-  public static Relationship createTeiToEventRelationship(
+  public static Relationship createTeToEventRelationship(
       TrackedEntity from, Event to, RelationshipType relationshipType) {
     Relationship relationship = new Relationship();
     RelationshipItem riFrom = new RelationshipItem();
@@ -2000,61 +2000,61 @@ public abstract class DhisConvenienceTest {
       Program program,
       TrackedEntityType trackedEntityType,
       boolean isBidirectional) {
-    RelationshipConstraint teiConstraintA = new RelationshipConstraint();
-    teiConstraintA.setProgram(program);
-    teiConstraintA.setTrackedEntityType(trackedEntityType);
-    teiConstraintA.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
-    RelationshipConstraint teiConstraintB = new RelationshipConstraint();
-    teiConstraintB.setProgram(program);
-    teiConstraintB.setTrackedEntityType(trackedEntityType);
-    teiConstraintB.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    RelationshipConstraint teConstraintA = new RelationshipConstraint();
+    teConstraintA.setProgram(program);
+    teConstraintA.setTrackedEntityType(trackedEntityType);
+    teConstraintA.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    RelationshipConstraint teConstraintB = new RelationshipConstraint();
+    teConstraintB.setProgram(program);
+    teConstraintB.setTrackedEntityType(trackedEntityType);
+    teConstraintB.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     RelationshipType relationshipType = createRelationshipType(uniqueCharacter);
     relationshipType.setName("Person_to_person_" + uniqueCharacter);
     relationshipType.setBidirectional(isBidirectional);
-    relationshipType.setFromConstraint(teiConstraintA);
-    relationshipType.setToConstraint(teiConstraintB);
+    relationshipType.setFromConstraint(teConstraintA);
+    relationshipType.setToConstraint(teConstraintB);
     return relationshipType;
   }
 
-  public static RelationshipType createTeiToEnrollmentRelationshipType(
+  public static RelationshipType createTeToEnrollmentRelationshipType(
       char uniqueCharacter,
       Program program,
       TrackedEntityType trackedEntityType,
       boolean isBidirectional) {
-    RelationshipConstraint teiConstraintA = new RelationshipConstraint();
-    teiConstraintA.setProgram(program);
-    teiConstraintA.setTrackedEntityType(trackedEntityType);
-    teiConstraintA.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
-    RelationshipConstraint teiConstraintB = new RelationshipConstraint();
-    teiConstraintB.setProgram(program);
-    teiConstraintB.setTrackedEntityType(trackedEntityType);
-    teiConstraintB.setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
+    RelationshipConstraint teConstraintA = new RelationshipConstraint();
+    teConstraintA.setProgram(program);
+    teConstraintA.setTrackedEntityType(trackedEntityType);
+    teConstraintA.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    RelationshipConstraint teConstraintB = new RelationshipConstraint();
+    teConstraintB.setProgram(program);
+    teConstraintB.setTrackedEntityType(trackedEntityType);
+    teConstraintB.setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
     RelationshipType relationshipType = createRelationshipType(uniqueCharacter);
     relationshipType.setName("Tei_to_enrollment_" + uniqueCharacter);
     relationshipType.setBidirectional(isBidirectional);
-    relationshipType.setFromConstraint(teiConstraintA);
-    relationshipType.setToConstraint(teiConstraintB);
+    relationshipType.setFromConstraint(teConstraintA);
+    relationshipType.setToConstraint(teConstraintB);
     return relationshipType;
   }
 
-  public static RelationshipType createTeiToEventRelationshipType(
+  public static RelationshipType createTeToEventRelationshipType(
       char uniqueCharacter,
       Program program,
       TrackedEntityType trackedEntityType,
       boolean isBidirectional) {
-    RelationshipConstraint teiConstraintA = new RelationshipConstraint();
-    teiConstraintA.setProgram(program);
-    teiConstraintA.setTrackedEntityType(trackedEntityType);
-    teiConstraintA.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
-    RelationshipConstraint teiConstraintB = new RelationshipConstraint();
-    teiConstraintB.setProgram(program);
-    teiConstraintB.setTrackedEntityType(trackedEntityType);
-    teiConstraintB.setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
+    RelationshipConstraint teConstraintA = new RelationshipConstraint();
+    teConstraintA.setProgram(program);
+    teConstraintA.setTrackedEntityType(trackedEntityType);
+    teConstraintA.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    RelationshipConstraint teConstraintB = new RelationshipConstraint();
+    teConstraintB.setProgram(program);
+    teConstraintB.setTrackedEntityType(trackedEntityType);
+    teConstraintB.setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
     RelationshipType relationshipType = createRelationshipType(uniqueCharacter);
     relationshipType.setName("Tei_to_event_" + uniqueCharacter);
     relationshipType.setBidirectional(isBidirectional);
-    relationshipType.setFromConstraint(teiConstraintA);
-    relationshipType.setToConstraint(teiConstraintB);
+    relationshipType.setFromConstraint(teConstraintA);
+    relationshipType.setToConstraint(teConstraintB);
     return relationshipType;
   }
 
@@ -2109,7 +2109,7 @@ public abstract class DhisConvenienceTest {
     TrackedEntity trackedEntity = new TrackedEntity();
     trackedEntity.setAutoFields();
     trackedEntity.setOrganisationUnit(organisationUnit);
-    trackedEntity.setUid(BASE_TEI_UID + uniqueChar);
+    trackedEntity.setUid(BASE_TE_UID + uniqueChar);
 
     return trackedEntity;
   }

@@ -119,11 +119,11 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       }
     }
 
-    String teiUid = getTeiUidFromEvent(bundle, event, program);
+    String teUid = getTeiUidFromEvent(bundle, event, program);
 
     CategoryOptionCombo categoryOptionCombo =
         bundle.getPreheat().getCategoryOptionCombo(event.getAttributeOptionCombo());
-    OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit(preheat, teiUid, program);
+    OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit(preheat, teUid, program);
     // Check acting user is allowed to change existing/write event
     if (strategy.isUpdateOrDelete()) {
       TrackedEntity entityInstance = preheatEvent.getEnrollment().getTrackedEntity();
@@ -142,7 +142,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
           user,
           categoryOptionCombo,
           programStage,
-          teiUid,
+          teUid,
           organisationUnit,
           ownerOrgUnit,
           program,
@@ -157,7 +157,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       User actingUser,
       CategoryOptionCombo categoryOptionCombo,
       ProgramStage programStage,
-      String teiUid,
+      String teUid,
       OrganisationUnit organisationUnit,
       OrganisationUnit ownerOrgUnit,
       Program program,
@@ -181,7 +181,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
         ownerOrgUnit,
         categoryOptionCombo,
         // TODO: Calculate correct `isCreateableInSearchScope` value
-        teiUid,
+        teUid,
         isCreatableInSearchScope);
   }
 
@@ -190,7 +190,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.Event event,
       Event preheatEvent,
-      String teiUid,
+      String teUid,
       OrganisationUnit ownerOrgUnit) {
     TrackerImportStrategy strategy = bundle.getStrategy(event);
     User user = bundle.getUser();
@@ -207,7 +207,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
         preheatEvent.getOrganisationUnit(),
         ownerOrgUnit,
         preheatEvent.getAttributeOptionCombo(),
-        teiUid,
+        teUid,
         preheatEvent.isCreatableInSearchScope());
 
     if (strategy.isUpdate()
@@ -237,9 +237,9 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
   }
 
   private OrganisationUnit getOwnerOrganisationUnit(
-      TrackerPreheat preheat, String teiUid, Program program) {
+      TrackerPreheat preheat, String teUid, Program program) {
     Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner =
-        preheat.getProgramOwner().get(teiUid);
+        preheat.getProgramOwner().get(teUid);
     if (programOwner == null || programOwner.get(program.getUid()) == null) {
       return null;
     } else {

@@ -102,15 +102,15 @@ class DeduplicationMvcTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  private static final String teiA = CodeGenerator.generateUid();
+  private static final String original = CodeGenerator.generateUid();
 
-  private static final String teiB = CodeGenerator.generateUid();
+  private static final String duplicate = CodeGenerator.generateUid();
 
   @BeforeEach
   void setUp() {
     deduplicationMergeParams =
         DeduplicationMergeParams.builder()
-            .potentialDuplicate(new PotentialDuplicate(teiA, teiB))
+            .potentialDuplicate(new PotentialDuplicate(original, duplicate))
             .original(trackedEntityA)
             .duplicate(trackedEntityB)
             .mergeObject(MergeObject.builder().build())
@@ -126,10 +126,10 @@ class DeduplicationMvcTest {
     when(trackerAccessManager.canRead(any(User.class), any(TrackedEntity.class)))
         .thenReturn(Collections.emptyList());
     when(currentUserService.getCurrentUser()).thenReturn(new User());
-    when(trackedEntityService.getTrackedEntity(teiA)).thenReturn(trackedEntityA);
-    when(trackedEntityService.getTrackedEntity(teiB)).thenReturn(trackedEntityB);
+    when(trackedEntityService.getTrackedEntity(original)).thenReturn(trackedEntityA);
+    when(trackedEntityService.getTrackedEntity(duplicate)).thenReturn(trackedEntityB);
 
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
     mockMvc
         .perform(
             post(ENDPOINT)
@@ -146,9 +146,9 @@ class DeduplicationMvcTest {
     when(trackerAccessManager.canRead(any(User.class), any(TrackedEntity.class)))
         .thenReturn(List.of("error"));
     when(currentUserService.getCurrentUser()).thenReturn(new User());
-    when(trackedEntityService.getTrackedEntity(teiA)).thenReturn(trackedEntityA);
+    when(trackedEntityService.getTrackedEntity(original)).thenReturn(trackedEntityA);
 
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
     mockMvc
         .perform(
             post(ENDPOINT)
@@ -162,7 +162,7 @@ class DeduplicationMvcTest {
 
   @Test
   void shouldThrowBadRequestExceptionWhenPostAndTeiDoNotExists() throws Exception {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, null);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, null);
     mockMvc
         .perform(
             post(ENDPOINT)
@@ -178,7 +178,7 @@ class DeduplicationMvcTest {
   void shouldThrowBadRequestExceptionWhenPutAndPotentialDuplicateIsAlreadyMerged()
       throws Exception {
     String uid = "uid";
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
     potentialDuplicate.setStatus(DeduplicationStatus.MERGED);
     when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
     mockMvc
@@ -196,7 +196,7 @@ class DeduplicationMvcTest {
   @Test
   void shouldThrowBadRequestExceptionWhenPutPotentialDuplicateToMergedStatus() throws Exception {
     String uid = "uid";
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
     when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
     mockMvc
         .perform(
@@ -213,7 +213,7 @@ class DeduplicationMvcTest {
   @Test
   void shouldUpdatePotentialDuplicateWhenPotentialDuplicateExists() throws Exception {
     String uid = "uid";
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
     when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
     mockMvc
         .perform(
@@ -234,7 +234,7 @@ class DeduplicationMvcTest {
 
   @Test
   void shouldGetPotentialDuplicateByIdWhenPotentialDuplicateExists() throws Exception {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
     String uid = "uid";
     when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
     mockMvc
@@ -265,11 +265,11 @@ class DeduplicationMvcTest {
 
   @Test
   void shouldAutoMergePotentialDuplicateWhenUserHasAccessAndMergeIsOk() throws Exception {
-    when(trackedEntityService.getTrackedEntity(teiA)).thenReturn(trackedEntityA);
-    when(trackedEntityService.getTrackedEntity(teiB)).thenReturn(trackedEntityB);
+    when(trackedEntityService.getTrackedEntity(original)).thenReturn(trackedEntityA);
+    when(trackedEntityService.getTrackedEntity(duplicate)).thenReturn(trackedEntityB);
 
     String uid = "uid";
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
     when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
     MergeObject mergeObject = MergeObject.builder().build();
     mockMvc
@@ -286,11 +286,11 @@ class DeduplicationMvcTest {
 
   @Test
   void shouldManualMergePotentialDuplicateWhenUserHasAccessAndMergeIsOk() throws Exception {
-    when(trackedEntityService.getTrackedEntity(teiA)).thenReturn(trackedEntityA);
-    when(trackedEntityService.getTrackedEntity(teiB)).thenReturn(trackedEntityB);
+    when(trackedEntityService.getTrackedEntity(original)).thenReturn(trackedEntityA);
+    when(trackedEntityService.getTrackedEntity(duplicate)).thenReturn(trackedEntityB);
 
     String uid = "uid";
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
     when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
     MergeObject mergeObject = MergeObject.builder().build();
     mockMvc
@@ -307,11 +307,11 @@ class DeduplicationMvcTest {
 
   @Test
   void shouldThrowForbiddenExceptionWhenAutoMergingIsForbidden() throws Exception {
-    when(trackedEntityService.getTrackedEntity(teiA)).thenReturn(trackedEntityA);
-    when(trackedEntityService.getTrackedEntity(teiB)).thenReturn(trackedEntityB);
+    when(trackedEntityService.getTrackedEntity(original)).thenReturn(trackedEntityA);
+    when(trackedEntityService.getTrackedEntity(duplicate)).thenReturn(trackedEntityB);
 
     String uid = "uid";
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
     when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
     doThrow(new PotentialDuplicateForbiddenException("Forbidden"))
         .when(deduplicationService)
@@ -334,11 +334,11 @@ class DeduplicationMvcTest {
 
   @Test
   void shouldThrowConflictExceptionWhenAutoMergeHasConflicts() throws Exception {
-    when(trackedEntityService.getTrackedEntity(teiA)).thenReturn(trackedEntityA);
-    when(trackedEntityService.getTrackedEntity(teiB)).thenReturn(trackedEntityB);
+    when(trackedEntityService.getTrackedEntity(original)).thenReturn(trackedEntityA);
+    when(trackedEntityService.getTrackedEntity(duplicate)).thenReturn(trackedEntityB);
 
     String uid = "uid";
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
     when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
     doThrow(new PotentialDuplicateConflictException("Conflict"))
         .when(deduplicationService)

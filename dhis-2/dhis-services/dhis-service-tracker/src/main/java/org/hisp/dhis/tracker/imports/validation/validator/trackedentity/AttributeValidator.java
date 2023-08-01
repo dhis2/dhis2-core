@@ -81,12 +81,12 @@ class AttributeValidator
     TrackedEntityType trackedEntityType =
         bundle.getPreheat().getTrackedEntityType(trackedEntity.getTrackedEntityType());
 
-    TrackedEntity tei = bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
+    TrackedEntity te = bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
     OrganisationUnit organisationUnit =
         bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit());
 
     validateMandatoryAttributes(reporter, bundle, trackedEntity, trackedEntityType);
-    validateAttributes(reporter, bundle, trackedEntity, tei, organisationUnit, trackedEntityType);
+    validateAttributes(reporter, bundle, trackedEntity, te, organisationUnit, trackedEntityType);
   }
 
   private void validateMandatoryAttributes(
@@ -123,7 +123,7 @@ class AttributeValidator
       Reporter reporter,
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
-      TrackedEntity tei,
+      TrackedEntity te,
       OrganisationUnit orgUnit,
       TrackedEntityType trackedEntityType) {
     checkNotNull(trackedEntity, TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL);
@@ -131,10 +131,10 @@ class AttributeValidator
 
     TrackerPreheat preheat = bundle.getPreheat();
     Map<MetadataIdentifier, TrackedEntityAttributeValue> valueMap = new HashMap<>();
-    if (tei != null) {
+    if (te != null) {
       TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
       valueMap =
-          tei.getTrackedEntityAttributeValues().stream()
+          te.getTrackedEntityAttributeValues().stream()
               .collect(
                   Collectors.toMap(v -> idSchemes.toMetadataIdentifier(v.getAttribute()), v -> v));
     }
@@ -178,7 +178,7 @@ class AttributeValidator
       validateOptionSet(reporter, trackedEntity, tea, attribute.getValue());
 
       validateAttributeUniqueness(
-          reporter, preheat, trackedEntity, attribute.getValue(), tea, tei, orgUnit);
+          reporter, preheat, trackedEntity, attribute.getValue(), tea, te, orgUnit);
 
       validateFileNotAlreadyAssigned(reporter, bundle, trackedEntity, attribute, valueMap);
     }
