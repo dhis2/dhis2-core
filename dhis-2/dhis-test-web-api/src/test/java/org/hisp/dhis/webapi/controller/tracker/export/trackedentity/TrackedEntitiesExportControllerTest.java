@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -206,6 +207,23 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
         GET("/tracker/trackedEntities?filter=" + TEA_UID + ":eq:test," + TEA_UID + ":gt:test2")
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());
+  }
+
+  @Test
+  void shouldReturnEmptyListWhenGettingTrackedEntitiesWithNoMatchingParams() {
+
+    LocalDate futureDate = LocalDate.now().plusYears(1);
+    JsonList<JsonTrackedEntity> instances =
+        GET("/tracker/trackedEntities?trackedEntityType="
+                + trackedEntityType.getUid()
+                + "&ouMode=ALL"
+                + "&trackedEntities=AbjwFr5o9IT"
+                + "&updatedAfter="
+                + futureDate)
+            .content(HttpStatus.OK)
+            .getList("instances", JsonTrackedEntity.class);
+
+    assertEquals(0, instances.size());
   }
 
   @Test

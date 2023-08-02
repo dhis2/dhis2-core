@@ -298,10 +298,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     TrackedEntityQueryParams queryParams = mapper.map(operationParams);
     final List<Long> ids = teService.getTrackedEntityIds(queryParams, false, false);
 
-    if (ids.isEmpty()) {
-      return TrackedEntities.EMPTY;
-    }
-
     List<TrackedEntity> trackedEntities =
         this.trackedEntityAggregate.find(
             ids, operationParams.getTrackedEntityParams(), queryParams);
