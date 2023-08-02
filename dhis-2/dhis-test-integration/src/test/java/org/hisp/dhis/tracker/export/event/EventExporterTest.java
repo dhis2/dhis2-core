@@ -1076,12 +1076,9 @@ class EventExporterTest extends TrackerTest {
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .build();
 
-    List<String> trackedEntities =
-        eventService.getEvents(params).getEvents().stream()
-            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
-            .collect(Collectors.toList());
+    List<String> events = getEvents(params);
 
-    assertEquals(List.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
+    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
   @Test
@@ -1092,12 +1089,9 @@ class EventExporterTest extends TrackerTest {
             .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
             .build();
 
-    List<String> trackedEntities =
-        eventService.getEvents(params).getEvents().stream()
-            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
-            .collect(Collectors.toList());
+    List<String> events = getEvents(params);
 
-    assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
+    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
   }
 
   @Test
@@ -1109,12 +1103,9 @@ class EventExporterTest extends TrackerTest {
             .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
             .build();
 
-    List<String> trackedEntities =
-        eventService.getEvents(params).getEvents().stream()
-            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
-            .collect(Collectors.toList());
+    List<String> events = getEvents(params);
 
-    assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
+    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
   }
 
   @Test
@@ -1193,12 +1184,9 @@ class EventExporterTest extends TrackerTest {
             .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .build();
 
-    List<String> enrollments =
-        eventService.getEvents(params).getEvents().stream()
-            .map(event -> event.getEnrollment().getUid())
-            .collect(Collectors.toList());
+    List<String> events = getEvents(params);
 
-    assertEquals(List.of("TvctPPhpD8z", "nxP7UnKhomJ"), enrollments);
+    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
   @Test
@@ -1209,12 +1197,9 @@ class EventExporterTest extends TrackerTest {
             .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
             .build();
 
-    List<String> enrollments =
-        eventService.getEvents(params).getEvents().stream()
-            .map(event -> event.getEnrollment().getUid())
-            .collect(Collectors.toList());
+    List<String> events = getEvents(params);
 
-    assertEquals(List.of("nxP7UnKhomJ", "TvctPPhpD8z"), enrollments);
+    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
   }
 
   @Test
@@ -1225,9 +1210,9 @@ class EventExporterTest extends TrackerTest {
             .orderBy("executionDate", SortDirection.DESC)
             .build();
 
-    Events events = eventService.getEvents(params);
+    List<String> events = getEvents(params);
 
-    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), eventUids(events));
+    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
   @Test
@@ -1238,9 +1223,9 @@ class EventExporterTest extends TrackerTest {
             .orderBy("executionDate", SortDirection.ASC)
             .build();
 
-    Events events = eventService.getEvents(params);
+    List<String> events = getEvents(params);
 
-    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), eventUids(events));
+    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
   }
 
   @Test
@@ -1309,12 +1294,9 @@ class EventExporterTest extends TrackerTest {
             .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
             .build();
 
-    List<String> trackedEntities =
-        eventService.getEvents(params).getEvents().stream()
-            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
-            .collect(Collectors.toList());
+    List<String> events = getEvents(params);
 
-    assertEquals(List.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
+    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
   @Test
@@ -1327,12 +1309,9 @@ class EventExporterTest extends TrackerTest {
             .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
             .build();
 
-    List<String> trackedEntities =
-        eventService.getEvents(params).getEvents().stream()
-            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
-            .collect(Collectors.toList());
+    List<String> events = getEvents(params);
 
-    assertEquals(List.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
+    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
   @Test
@@ -1346,12 +1325,9 @@ class EventExporterTest extends TrackerTest {
             .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .build();
 
-    List<String> trackedEntities =
-        eventService.getEvents(params).getEvents().stream()
-            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
-            .collect(Collectors.toList());
+    List<String> events = getEvents(params);
 
-    assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
+    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
   }
 
   @Test
@@ -1364,12 +1340,9 @@ class EventExporterTest extends TrackerTest {
             .orderBy(UID.of("DATAEL00006"), SortDirection.DESC)
             .build();
 
-    List<String> trackedEntities =
-        eventService.getEvents(params).getEvents().stream()
-            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
-            .collect(Collectors.toList());
+    List<String> events = getEvents(params);
 
-    assertEquals(List.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
+    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
   private void assertNote(
