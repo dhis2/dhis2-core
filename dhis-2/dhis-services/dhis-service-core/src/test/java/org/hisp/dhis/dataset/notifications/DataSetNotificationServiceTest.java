@@ -169,7 +169,7 @@ class DataSetNotificationServiceTest extends DhisConvenienceTest {
   @Captor private ArgumentCaptor<DataSetNotificationTemplate> templateCaptor;
 
   @Captor private ArgumentCaptor<ArrayList<ProgramMessage>> programMessageCaptor;
-  
+
   private DataSetNotificationService subject;
 
   @BeforeEach

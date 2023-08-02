@@ -498,9 +498,9 @@ public class DefaultMessageService implements MessageService {
   }
 
   /**
-   * Method to remove a trailing '/' if it's the last char.
-   * This step is done as the baseUrl value is taken from the dhis.conf file which
-   * may/may not have a trailing '/' depending on the user.
+   * Method to remove a trailing '/' if it's the last char. This step is done as the baseUrl value
+   * is taken from the dhis.conf file which may/may not have a trailing '/' depending on the user.
+   *
    * @param baseUrl base url
    * @return base url with no trailing '/'
    */
