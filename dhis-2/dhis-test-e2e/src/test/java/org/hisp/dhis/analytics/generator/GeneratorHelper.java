@@ -197,11 +197,9 @@ public class GeneratorHelper {
       rowsAssertion
           .append(
               jsonArray.stream()
-                  .map(
-                      v ->
-                          "\""
-                              + v.toString().replace(System.getProperty("line.separator"), "\\n")
-                              + "\"")
+                  .map(Object::toString)
+                  .map(v -> v.replace(System.getProperty("line.separator"), "\\n"))
+                  .map(v -> "\"" + v + "\"")
                   .collect(joining(",")))
           .append("));\n");
     }
