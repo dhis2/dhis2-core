@@ -96,17 +96,17 @@ public class JsonAssertions {
 
   public static void assertTrackedEntityWithinRelationshipItem(
       TrackedEntity expected, JsonRelationshipItem actual) {
-    JsonRelationshipItem.JsonTrackedEntity jsonTEI = actual.getTrackedEntity();
-    assertFalse(jsonTEI.isEmpty(), "trackedEntity should not be empty");
-    assertEquals(expected.getUid(), jsonTEI.getTrackedEntity(), "trackedEntity UID");
+    JsonRelationshipItem.JsonTrackedEntity jsonTe = actual.getTrackedEntity();
+    assertFalse(jsonTe.isEmpty(), "trackedEntity should not be empty");
+    assertEquals(expected.getUid(), jsonTe.getTrackedEntity(), "trackedEntity UID");
     assertEquals(
         expected.getTrackedEntityType().getUid(),
-        jsonTEI.getTrackedEntityType(),
+        jsonTe.getTrackedEntityType(),
         "trackedEntityType UID");
-    assertEquals(expected.getOrganisationUnit().getUid(), jsonTEI.getOrgUnit(), "orgUnit UID");
-    assertTrue(jsonTEI.getAttributes().isEmpty(), "attributes should be empty");
+    assertEquals(expected.getOrganisationUnit().getUid(), jsonTe.getOrgUnit(), "orgUnit UID");
+    assertTrue(jsonTe.getAttributes().isEmpty(), "attributes should be empty");
     assertFalse(
-        jsonTEI.has("relationships"), "relationships is not returned within relationship items");
+        jsonTe.has("relationships"), "relationships is not returned within relationship items");
   }
 
   public static void assertHasOnlyUid(String expectedUid, String member, JsonObject json) {

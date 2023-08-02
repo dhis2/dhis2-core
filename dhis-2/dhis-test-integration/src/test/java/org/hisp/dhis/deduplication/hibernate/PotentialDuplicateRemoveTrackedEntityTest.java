@@ -110,11 +110,11 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
     trackedEntityService.addTrackedEntity(control2);
     RelationshipType relationshipType = createRelationshipType('A');
     relationshipTypeService.addRelationshipType(relationshipType);
-    Relationship relationship1 = createTeiToTeiRelationship(original, control1, relationshipType);
-    Relationship relationship2 = createTeiToTeiRelationship(control2, control1, relationshipType);
-    Relationship relationship3 = createTeiToTeiRelationship(duplicate, control2, relationshipType);
-    Relationship relationship4 = createTeiToTeiRelationship(control1, duplicate, relationshipType);
-    Relationship relationship5 = createTeiToTeiRelationship(control1, original, relationshipType);
+    Relationship relationship1 = createTeToTeRelationship(original, control1, relationshipType);
+    Relationship relationship2 = createTeToTeRelationship(control2, control1, relationshipType);
+    Relationship relationship3 = createTeToTeRelationship(duplicate, control2, relationshipType);
+    Relationship relationship4 = createTeToTeRelationship(control1, duplicate, relationshipType);
+    Relationship relationship5 = createTeToTeRelationship(control1, original, relationshipType);
     long relationShip1 = relationshipService.addRelationship(relationship1);
     long relationShip2 = relationshipService.addRelationship(relationship2);
     long relationShip3 = relationshipService.addRelationship(relationship3);

@@ -33,10 +33,10 @@ import java.util.Map;
 /**
  * @author Luciano Fiandesio
  */
-public class TeiAttributeQuery {
+public class TeAttributeQuery {
   public enum COLUMNS {
-    TEI_UID,
-    TEI_ID,
+    TE_UID,
+    TE_ID,
     CREATED,
     UPDATED,
     VALUE,
@@ -50,8 +50,8 @@ public class TeiAttributeQuery {
 
   public static final Map<COLUMNS, TableColumn> columnMap =
       ImmutableMap.<COLUMNS, TableColumn>builder()
-          .put(COLUMNS.TEI_UID, new TableColumn("tei", "uid", "teiuid"))
-          .put(COLUMNS.TEI_ID, new TableColumn("teav", "trackedentityid", "id"))
+          .put(COLUMNS.TE_UID, new TableColumn("te", "uid", "teuid"))
+          .put(COLUMNS.TE_ID, new TableColumn("teav", "trackedentityid", "id"))
           .put(COLUMNS.CREATED, new TableColumn("teav", "created"))
           .put(COLUMNS.UPDATED, new TableColumn("teav", "lastupdated"))
           .put(COLUMNS.STOREDBY, new TableColumn("teav", "storedby"))
@@ -67,7 +67,7 @@ public class TeiAttributeQuery {
     return getSelect()
         + "from trackedentityattributevalue teav "
         + "join trackedentityattribute t on teav.trackedentityattributeid = t.trackedentityattributeid "
-        + "join trackedentity tei on teav.trackedentityid = tei.trackedentityid "
+        + "join trackedentity te on teav.trackedentityid = te.trackedentityid "
         + "where teav.trackedentityid in (:ids)";
   }
 

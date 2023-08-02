@@ -83,7 +83,7 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
  *       given entity. In case a non existing entity is updated it is expected to already be flagged
  *       in the {@code invalidEntities}.
  *   <li>Existence is only checked in relation to a parent or child. During {@link
- *       TrackerImportStrategy#UPDATE} a valid enrollment can be updated if its parent the TEI is
+ *       TrackerImportStrategy#UPDATE} a valid enrollment can be updated if its parent the TE is
  *       invalid but exists. Same applies to {@link TrackerImportStrategy#DELETE} as you cannot
  *       delete an entity that does not yet exist.
  *   <li>An {@link Event} in an event program does not have an {@link Event#getEnrollment()}

@@ -74,9 +74,9 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
   private static final String ATTRIBUTE_CODE = "AttributeCode";
 
-  private static final String TEI_ATTRIBUTE_OLD_VALUE = "10.0";
+  private static final String TE_ATTRIBUTE_OLD_VALUE = "10.0";
 
-  private static final String TEI_ATTRIBUTE_NEW_VALUE = "24.0";
+  private static final String TE_ATTRIBUTE_NEW_VALUE = "24.0";
 
   private static TrackedEntityAttribute attributeA;
 
@@ -112,7 +112,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
         new AssignAttributeExecutor(
             systemSettingManager,
             "",
-            TEI_ATTRIBUTE_NEW_VALUE,
+            TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_ID,
             enrollmentWithAttributeNOTSet.getAttributes());
 
@@ -121,7 +121,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
     Optional<Attribute> attribute = findAttributeByUid(bundle, SECOND_ENROLLMENT_ID, ATTRIBUTE_ID);
 
-    assertAttributeWasAssignedAndWarningIsPresent(TEI_ATTRIBUTE_NEW_VALUE, attribute, warning);
+    assertAttributeWasAssignedAndWarningIsPresent(TE_ATTRIBUTE_NEW_VALUE, attribute, warning);
   }
 
   @Test
@@ -134,7 +134,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
         new AssignAttributeExecutor(
             systemSettingManager,
             "",
-            TEI_ATTRIBUTE_NEW_VALUE,
+            TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_ID,
             enrollmentWithAttributeSet.getAttributes());
 
@@ -143,7 +143,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
     Optional<Attribute> attribute = findAttributeByUid(bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_ID);
 
-    assertAttributeWasNotAssignedAndErrorIsPresent(TEI_ATTRIBUTE_OLD_VALUE, attribute, error);
+    assertAttributeWasNotAssignedAndErrorIsPresent(TE_ATTRIBUTE_OLD_VALUE, attribute, error);
   }
 
   @Test
@@ -159,7 +159,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
         new AssignAttributeExecutor(
             systemSettingManager,
             "",
-            TEI_ATTRIBUTE_NEW_VALUE,
+            TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_ID,
             enrollmentWithAttributeSet.getAttributes());
 
@@ -169,7 +169,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
     Optional<Attribute> attribute =
         findAttributeByCode(bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_CODE);
 
-    assertAttributeWasNotAssignedAndErrorIsPresent(TEI_ATTRIBUTE_OLD_VALUE, attribute, error);
+    assertAttributeWasNotAssignedAndErrorIsPresent(TE_ATTRIBUTE_OLD_VALUE, attribute, error);
   }
 
   @Test
@@ -184,20 +184,20 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
         new AssignAttributeExecutor(
             systemSettingManager,
             "",
-            TEI_ATTRIBUTE_NEW_VALUE,
+            TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_ID,
             getTrackedEntitiesWithAttributeSet().getAttributes());
 
     Optional<ProgramRuleIssue> error =
         executor.executeRuleAction(bundle, enrollmentWithAttributeNOTSet);
 
-    Optional<Attribute> teiAttribute =
+    Optional<Attribute> teAttribute =
         findTeiAttributeByUid(bundle, TRACKED_ENTITY_ID, ATTRIBUTE_ID);
     Optional<Attribute> enrollmentAttribute =
         findAttributeByUid(bundle, SECOND_ENROLLMENT_ID, ATTRIBUTE_ID);
 
     assertFalse(enrollmentAttribute.isPresent());
-    assertAttributeWasNotAssignedAndErrorIsPresent(TEI_ATTRIBUTE_OLD_VALUE, teiAttribute, error);
+    assertAttributeWasNotAssignedAndErrorIsPresent(TE_ATTRIBUTE_OLD_VALUE, teAttribute, error);
   }
 
   @Test
@@ -215,20 +215,20 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
         new AssignAttributeExecutor(
             systemSettingManager,
             "",
-            TEI_ATTRIBUTE_NEW_VALUE,
+            TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_ID,
             enrollmentWithAttributeNOTSet.getAttributes());
 
     Optional<ProgramRuleIssue> warning =
         executor.executeRuleAction(bundle, enrollmentWithAttributeNOTSet);
 
-    Optional<Attribute> teiAttribute =
+    Optional<Attribute> teAttribute =
         findTeiAttributeByUid(bundle, TRACKED_ENTITY_ID, ATTRIBUTE_ID);
     Optional<Attribute> enrollmentAttribute =
         findAttributeByUid(bundle, SECOND_ENROLLMENT_ID, ATTRIBUTE_ID);
 
     assertFalse(enrollmentAttribute.isPresent());
-    assertAttributeWasAssignedAndWarningIsPresent(TEI_ATTRIBUTE_NEW_VALUE, teiAttribute, warning);
+    assertAttributeWasAssignedAndWarningIsPresent(TE_ATTRIBUTE_NEW_VALUE, teAttribute, warning);
   }
 
   @Test
@@ -241,7 +241,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
         new AssignAttributeExecutor(
             systemSettingManager,
             "",
-            TEI_ATTRIBUTE_NEW_VALUE,
+            TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_ID,
             enrollmentWithAttributeSetSameValue.getAttributes());
 
@@ -250,7 +250,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
     Optional<Attribute> attribute = findAttributeByUid(bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_ID);
 
-    assertAttributeWasAssignedAndWarningIsPresent(TEI_ATTRIBUTE_NEW_VALUE, attribute, warning);
+    assertAttributeWasAssignedAndWarningIsPresent(TE_ATTRIBUTE_NEW_VALUE, attribute, warning);
   }
 
   @Test
@@ -266,7 +266,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
         new AssignAttributeExecutor(
             systemSettingManager,
             "",
-            TEI_ATTRIBUTE_NEW_VALUE,
+            TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_ID,
             enrollmentWithAttributeSet.getAttributes());
 
@@ -275,13 +275,13 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
     Optional<Attribute> attribute = findAttributeByUid(bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_ID);
 
-    assertAttributeWasAssignedAndWarningIsPresent(TEI_ATTRIBUTE_NEW_VALUE, attribute, warning);
+    assertAttributeWasAssignedAndWarningIsPresent(TE_ATTRIBUTE_NEW_VALUE, attribute, warning);
   }
 
   private Optional<Attribute> findTeiAttributeByUid(
-      TrackerBundle bundle, String teiUid, String attributeUid) {
-    TrackedEntity tei = bundle.findTrackedEntityByUid(teiUid).get();
-    return tei.getAttributes().stream()
+      TrackerBundle bundle, String teUid, String attributeUid) {
+    TrackedEntity te = bundle.findTrackedEntityByUid(teUid).get();
+    return te.getAttributes().stream()
         .filter(at -> at.getAttribute().equals(MetadataIdentifier.ofUid(attributeUid)))
         .findAny();
   }
@@ -370,7 +370,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
     Attribute attribute =
         Attribute.builder()
             .attribute(idSchemes.toMetadataIdentifier(attributeA))
-            .value(TEI_ATTRIBUTE_OLD_VALUE)
+            .value(TE_ATTRIBUTE_OLD_VALUE)
             .build();
     return List.of(attribute);
   }
@@ -379,7 +379,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(ATTRIBUTE_ID))
-            .value(TEI_ATTRIBUTE_OLD_VALUE)
+            .value(TE_ATTRIBUTE_OLD_VALUE)
             .build();
     return List.of(attribute);
   }
@@ -388,7 +388,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(ATTRIBUTE_ID))
-            .value(TEI_ATTRIBUTE_NEW_VALUE)
+            .value(TE_ATTRIBUTE_NEW_VALUE)
             .build();
     return List.of(attribute);
   }

@@ -48,7 +48,7 @@ public interface RelationshipService {
       throws ForbiddenException, NotFoundException;
 
   List<Relationship> getRelationshipsByTrackedEntity(
-      TrackedEntity tei, PagingAndSortingCriteriaAdapter criteria)
+      TrackedEntity te, PagingAndSortingCriteriaAdapter criteria)
       throws ForbiddenException, NotFoundException;
 
   List<Relationship> getRelationshipsByEnrollment(

@@ -83,7 +83,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
 
   private Program program;
 
-  private TrackedEntity tei;
+  private TrackedEntity te;
 
   private Enrollment enrollment;
 
@@ -126,29 +126,29 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
     tea.getSharing().setOwner(owner);
     manager.save(tea, false);
 
-    tei = createTrackedEntity(orgUnit);
-    tei.setTrackedEntityType(trackedEntityType);
-    manager.save(tei);
+    te = createTrackedEntity(orgUnit);
+    te.setTrackedEntityType(trackedEntityType);
+    manager.save(te);
 
     trackedEntityAttributeValue = new TrackedEntityAttributeValue();
     trackedEntityAttributeValue.setAttribute(tea);
-    trackedEntityAttributeValue.setTrackedEntity(tei);
+    trackedEntityAttributeValue.setTrackedEntity(te);
     trackedEntityAttributeValue.setStoredBy("user");
     trackedEntityAttributeValue.setValue(ATTRIBUTE_VALUE);
-    tei.setTrackedEntityAttributeValues(Set.of(trackedEntityAttributeValue));
-    manager.update(tei);
+    te.setTrackedEntityAttributeValues(Set.of(trackedEntityAttributeValue));
+    manager.update(te);
 
     program.setProgramAttributes(List.of(createProgramTrackedEntityAttribute(program, tea)));
 
     programStage = createProgramStage('A', program);
     manager.save(programStage);
 
-    enrollment = enrollment(tei);
+    enrollment = enrollment(te);
     event = event();
     enrollment.setEvents(Set.of(event));
     manager.update(enrollment);
 
-    manager.save(relationship(enrollment, tei));
+    manager.save(relationship(enrollment, te));
   }
 
   @Test
@@ -246,7 +246,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
     JsonEvent event = events.get(0);
     assertEquals(this.event.getUid(), event.getEvent());
     assertEquals(enrollment.getUid(), event.getEnrollment());
-    assertEquals(tei.getUid(), event.getTrackedEntity());
+    assertEquals(te.getUid(), event.getTrackedEntity());
     assertEquals(dataElement.getUid(), event.getDataValues().get(0).getDataElement());
     assertEquals(eventDataValue.getValue(), event.getDataValues().get(0).getValue());
     assertEquals(program.getUid(), event.getProgram());
@@ -334,7 +334,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
   private void assertDefaultResponse(JsonEnrollment enrollment) {
     assertFalse(enrollment.isEmpty());
     assertEquals(this.enrollment.getUid(), enrollment.getEnrollment());
-    assertEquals(tei.getUid(), enrollment.getTrackedEntity());
+    assertEquals(te.getUid(), enrollment.getTrackedEntity());
     assertEquals(program.getUid(), enrollment.getProgram());
     assertEquals("COMPLETED", enrollment.getStatus());
     assertEquals(orgUnit.getUid(), enrollment.getOrgUnit());
@@ -352,16 +352,16 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
     assertHasNoMember(enrollment, "attributes");
   }
 
-  private Enrollment enrollment(TrackedEntity tei) {
-    Enrollment enrollment = new Enrollment(program, tei, orgUnit);
+  private Enrollment enrollment(TrackedEntity te) {
+    Enrollment enrollment = new Enrollment(program, te, orgUnit);
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
     enrollment.setIncidentDate(new Date());
     enrollment.setStatus(ProgramStatus.COMPLETED);
     enrollment.setFollowup(true);
     manager.save(enrollment, false);
-    tei.setEnrollments(Set.of(enrollment));
-    manager.save(tei, false);
+    te.setEnrollments(Set.of(enrollment));
+    manager.save(te, false);
     return enrollment;
   }
 

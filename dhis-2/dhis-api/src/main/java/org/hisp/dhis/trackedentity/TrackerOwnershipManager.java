@@ -80,7 +80,7 @@ public interface TrackerOwnershipManager {
       User user, String entityInstance, OrganisationUnit organisationUnit, Program program);
 
   /**
-   * Grant temporary ownership for a user for a specific tei-program combination
+   * Grant temporary ownership for a user for a specific te-program combination
    *
    * @param entityInstance The tracked entity instance object
    * @param program The program object

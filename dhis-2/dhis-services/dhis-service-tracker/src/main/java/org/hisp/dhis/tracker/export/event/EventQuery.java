@@ -27,13 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toList;
-
-import com.google.common.collect.ImmutableList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -43,26 +36,26 @@ import lombok.RequiredArgsConstructor;
 public class EventQuery {
   @RequiredArgsConstructor
   public enum COLUMNS {
-    ID(new TableColumn("psi", "eventid")),
-    UID(new TableColumn("psi", "uid")),
-    STATUS(new TableColumn("psi", "status")),
-    EXECUTION_DATE(new TableColumn("psi", "executiondate")),
-    DUE_DATE(new TableColumn("psi", "duedate")),
-    STOREDBY(new TableColumn("psi", "storedby")),
-    COMPLETEDBY(new TableColumn("psi", "completedby")),
-    COMPLETEDDATE(new TableColumn("psi", "completeddate")),
-    CREATED_BY(new TableColumn("psi", "createdbyuserinfo")),
-    CREATED(new TableColumn("psi", "created")),
-    CREATEDCLIENT(new TableColumn("psi", "createdatclient")),
-    UPDATED(new TableColumn("psi", "lastupdated")),
-    UPDATEDCLIENT(new TableColumn("psi", "lastupdatedatclient")),
-    LAST_UPDATED_BY(new TableColumn("psi", "lastupdatedbyuserinfo")),
-    DELETED(new TableColumn("psi", "deleted")),
-    GEOMETRY(new Function("ST_AsBinary", "psi", "geometry", "geometry")),
-    TEI_UID(new TableColumn("tei", "uid", "tei_uid")),
-    ENROLLMENT_UID(new TableColumn("pi", "uid", "enruid")),
-    ENROLLMENT_FOLLOWUP(new TableColumn("pi", "followup", "enrfollowup")),
-    ENROLLMENT_STATUS(new TableColumn("pi", "status", "enrstatus")),
+    ID(new TableColumn("ev", "eventid")),
+    UID(new TableColumn("ev", "uid")),
+    STATUS(new TableColumn("ev", "status")),
+    EXECUTION_DATE(new TableColumn("ev", "executiondate")),
+    DUE_DATE(new TableColumn("ev", "duedate")),
+    STOREDBY(new TableColumn("ev", "storedby")),
+    COMPLETEDBY(new TableColumn("ev", "completedby")),
+    COMPLETEDDATE(new TableColumn("ev", "completeddate")),
+    CREATED_BY(new TableColumn("ev", "createdbyuserinfo")),
+    CREATED(new TableColumn("ev", "created")),
+    CREATEDCLIENT(new TableColumn("ev", "createdatclient")),
+    UPDATED(new TableColumn("ev", "lastupdated")),
+    UPDATEDCLIENT(new TableColumn("ev", "lastupdatedatclient")),
+    LAST_UPDATED_BY(new TableColumn("ev", "lastupdatedbyuserinfo")),
+    DELETED(new TableColumn("ev", "deleted")),
+    GEOMETRY(new Function("ST_AsBinary", "ev", "geometry", "geometry")),
+    TE_UID(new TableColumn("te", "uid", "te_uid")),
+    ENROLLMENT_UID(new TableColumn("en", "uid", "enruid")),
+    ENROLLMENT_FOLLOWUP(new TableColumn("en", "followup", "enrfollowup")),
+    ENROLLMENT_STATUS(new TableColumn("en", "status", "enrstatus")),
     PROGRAM_UID(new TableColumn("p", "uid", "prguid")),
     PROGRAM_STAGE_UID(new TableColumn("ps", "uid", "prgstguid")),
     ORGUNIT_UID(new TableColumn("o", "uid", "ou_uid")),
@@ -94,33 +87,5 @@ public class EventQuery {
       throw new IllegalArgumentException(
           "getColumnName can only be invoked on TableColumn or Function");
     }
-  }
-
-  private static final Collection<QueryElement> QUERY_ELEMENTS;
-
-  static {
-    QUERY_ELEMENTS =
-        Arrays.stream(COLUMNS.values())
-            .map(COLUMNS::getQueryElement)
-            .collect(collectingAndThen(toList(), ImmutableList::copyOf));
-  }
-
-  public static String getQuery() {
-    return getSelect()
-        + "from event psi "
-        + "join enrollment pi on psi.enrollmentid = pi.programinstanceid "
-        + "join trackedentity tei on pi.trackedentityid = tei.trackedentityid "
-        + "join program p on pi.programid = p.programid "
-        + "join programstage ps on psi.programstageid = ps.programstageid "
-        + "join organisationunit o on psi.organisationunitid = o.organisationunitid "
-        + "join categoryoptioncombo coc on psi.attributeoptioncomboid = coc.categoryoptioncomboid "
-        + "left join userinfo ui on psi.assigneduserid = ui.userinfoid "
-        + "where pi.enrollmentid in (:ids)";
-  }
-
-  private static String getSelect() {
-    return "SELECT "
-        + QUERY_ELEMENTS.stream().map(QueryElement::useInSelect).collect(Collectors.joining(", "))
-        + " ";
   }
 }

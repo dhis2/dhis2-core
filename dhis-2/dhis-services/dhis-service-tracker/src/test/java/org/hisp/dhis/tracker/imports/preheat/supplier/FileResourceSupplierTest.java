@@ -77,7 +77,7 @@ class FileResourceSupplierTest extends DhisConvenienceTest {
   }
 
   @Test
-  void testSupplierAddsFileResourcesReferencedByTEIAttributes() {
+  void testSupplierAddsFileResourcesReferencedByTeAttributes() {
     preheat.put(
         TrackerIdSchemeParam.UID,
         List.of(teaNumericAttribute("numeric"), teaFileResource("hQKI6KcEu5t")));
@@ -99,7 +99,7 @@ class FileResourceSupplierTest extends DhisConvenienceTest {
   }
 
   @Test
-  void testSupplierDoesNotAddFileResourceIfTEIAttributeValueIsEmpty() {
+  void testSupplierDoesNotAddFileResourceIfTeAttributeValueIsEmpty() {
     preheat.put(TrackerIdSchemeParam.UID, List.of(teaFileResource("hQKI6KcEu5t")));
 
     TrackerImportParams params =

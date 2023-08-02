@@ -62,7 +62,7 @@ public class HibernateEventFilterStore extends HibernateIdentifiableObjectStore<
 
   @Override
   public List<EventFilter> getByProgram(String program) {
-    String hql = "from EventFilter psif where psif.program =:program";
+    String hql = "from EventFilter evf where evf.program =:program";
     return getQuery(hql).setParameter("program", program).getResultList();
   }
 }

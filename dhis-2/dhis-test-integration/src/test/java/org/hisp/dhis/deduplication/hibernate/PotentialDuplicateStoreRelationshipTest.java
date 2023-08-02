@@ -95,10 +95,10 @@ class PotentialDuplicateStoreRelationshipTest extends IntegrationTestBase {
 
   @Test
   void moveSingleBiDirectionalRelationship() {
-    Relationship bi1 = createTeiToTeiRelationship(original, extra2, relationshipTypeBiDirectional);
-    Relationship bi2 = createTeiToTeiRelationship(duplicate, extra1, relationshipTypeBiDirectional);
-    Relationship bi3 = createTeiToTeiRelationship(duplicate, extra2, relationshipTypeBiDirectional);
-    Relationship bi4 = createTeiToTeiRelationship(extra1, extra2, relationshipTypeBiDirectional);
+    Relationship bi1 = createTeToTeRelationship(original, extra2, relationshipTypeBiDirectional);
+    Relationship bi2 = createTeToTeRelationship(duplicate, extra1, relationshipTypeBiDirectional);
+    Relationship bi3 = createTeToTeRelationship(duplicate, extra2, relationshipTypeBiDirectional);
+    Relationship bi4 = createTeToTeRelationship(extra1, extra2, relationshipTypeBiDirectional);
     relationshipService.addRelationship(bi1);
     relationshipService.addRelationship(bi2);
     relationshipService.addRelationship(bi3);
@@ -134,13 +134,10 @@ class PotentialDuplicateStoreRelationshipTest extends IntegrationTestBase {
 
   @Test
   void moveSingleUniDirectionalRelationship() {
-    Relationship uni1 =
-        createTeiToTeiRelationship(original, extra2, relationshipTypeUniDirectional);
-    Relationship uni2 =
-        createTeiToTeiRelationship(duplicate, extra1, relationshipTypeUniDirectional);
-    Relationship uni3 =
-        createTeiToTeiRelationship(extra2, duplicate, relationshipTypeUniDirectional);
-    Relationship uni4 = createTeiToTeiRelationship(extra1, extra2, relationshipTypeUniDirectional);
+    Relationship uni1 = createTeToTeRelationship(original, extra2, relationshipTypeUniDirectional);
+    Relationship uni2 = createTeToTeRelationship(duplicate, extra1, relationshipTypeUniDirectional);
+    Relationship uni3 = createTeToTeRelationship(extra2, duplicate, relationshipTypeUniDirectional);
+    Relationship uni4 = createTeToTeRelationship(extra1, extra2, relationshipTypeUniDirectional);
     relationshipService.addRelationship(uni1);
     relationshipService.addRelationship(uni2);
     relationshipService.addRelationship(uni3);
@@ -171,13 +168,10 @@ class PotentialDuplicateStoreRelationshipTest extends IntegrationTestBase {
 
   @Test
   void moveMultipleRelationship() {
-    Relationship uni1 =
-        createTeiToTeiRelationship(original, extra2, relationshipTypeUniDirectional);
-    Relationship uni2 =
-        createTeiToTeiRelationship(duplicate, extra1, relationshipTypeUniDirectional);
-    Relationship bi1 =
-        createTeiToTeiRelationship(extra2, duplicate, relationshipTypeUniDirectional);
-    Relationship bi2 = createTeiToTeiRelationship(extra1, extra2, relationshipTypeUniDirectional);
+    Relationship uni1 = createTeToTeRelationship(original, extra2, relationshipTypeUniDirectional);
+    Relationship uni2 = createTeToTeRelationship(duplicate, extra1, relationshipTypeUniDirectional);
+    Relationship bi1 = createTeToTeRelationship(extra2, duplicate, relationshipTypeUniDirectional);
+    Relationship bi2 = createTeToTeRelationship(extra1, extra2, relationshipTypeUniDirectional);
     relationshipService.addRelationship(uni1);
     relationshipService.addRelationship(uni2);
     relationshipService.addRelationship(bi1);
