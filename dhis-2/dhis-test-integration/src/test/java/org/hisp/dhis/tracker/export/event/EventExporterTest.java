@@ -44,11 +44,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdSchemes;
@@ -1069,7 +1071,25 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void testOrderEventsOnAttributeAsc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEventsOnPrimaryKeyDescByDefault() throws ForbiddenException, BadRequestException {
+    Event d9PbzJY8bJM = get(Event.class, "D9PbzJY8bJM");
+    Event pTzf9KYMk72 = get(Event.class, "pTzf9KYMk72");
+    List<String> expected =
+        Stream.of(d9PbzJY8bJM, pTzf9KYMk72)
+            .sorted(Comparator.comparing(Event::getId).reversed())
+            .map(Event::getUid)
+            .toList();
+
+    EventOperationParams params =
+        EventOperationParams.builder().orgUnitUid(orgUnit.getUid()).build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(expected, events);
+  }
+
+  @Test
+  void shouldOrderEventsByAttributeAsc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
@@ -1082,7 +1102,7 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void testOrderEventsOnAttributeDesc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEventsByAttributeDesc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
@@ -1095,7 +1115,7 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void testOrderEventsOnMultipleAttributesDesc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEventsByMultipleAttributesDesc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
@@ -1109,7 +1129,7 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void testOrderEventsOnMultipleAttributesAsc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEventsByMultipleAttributesAsc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
@@ -1357,7 +1377,11 @@ class EventExporterTest extends TrackerTest {
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
     T t = manager.get(type, uid);
-    assertNotNull(t, () -> String.format("metadata with uid '%s' should have been created", uid));
+    assertNotNull(
+        t,
+        () ->
+            String.format(
+                "'%s' with uid '%s' should have been created", type.getSimpleName(), uid));
     return t;
   }
 

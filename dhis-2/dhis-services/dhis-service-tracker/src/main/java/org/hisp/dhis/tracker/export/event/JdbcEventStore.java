@@ -113,6 +113,8 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.tracker.export.event.EventStore")
 @RequiredArgsConstructor
 public class JdbcEventStore implements EventStore {
+  private static final String DEFAULT_ORDER = "ev_id desc";
+
   private static final String RELATIONSHIP_IDS_QUERY =
       " left join (select ri.eventid as ri_ev_id, json_agg(ri.relationshipid) as ev_rl FROM relationshipitem ri"
           + " GROUP by ri_ev_id)  as fgh on fgh.ri_ev_id=event.ev_id ";
@@ -1268,7 +1270,7 @@ public class JdbcEventStore implements EventStore {
     if (!orderFields.isEmpty()) {
       return "order by " + StringUtils.join(orderFields, ',') + " ";
     } else {
-      return "order by ev_lastupdated desc ";
+      return "order by " + DEFAULT_ORDER + " ";
     }
   }
 
