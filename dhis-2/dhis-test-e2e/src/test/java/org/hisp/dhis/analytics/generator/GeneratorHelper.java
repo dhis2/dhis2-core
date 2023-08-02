@@ -219,7 +219,6 @@ public class GeneratorHelper {
                       .replace("\\/", "/")
                       .replace(System.getProperty("line.separator"), "\\n")
                   + "\";")
-          // .append(".replaceAll(\" \", \"\");\n")
           .append("String actualMetaData = ")
           .append("new JSONObject((Map)response.extract(\"metaData\")).toString();\n")
           .append("assertEquals(expectedMetaData, actualMetaData, false);\n")
