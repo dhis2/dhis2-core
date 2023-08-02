@@ -36,7 +36,6 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.p
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -92,11 +91,9 @@ class EventRequestParamsMapper {
             "event", requestParams.getEvent(), "events", requestParams.getEvents());
 
     validateFilter(requestParams.getFilter(), eventUids);
-    Map<String, List<QueryFilter>> dataElementFilters = new HashMap<>();
-    parseFilters(dataElementFilters, requestParams.getFilter());
-
-    Map<String, List<QueryFilter>> attributeFilters = new HashMap<>();
-    parseFilters(attributeFilters, requestParams.getFilterAttributes());
+    Map<String, List<QueryFilter>> dataElementFilters = parseFilters(requestParams.getFilter());
+    Map<String, List<QueryFilter>> attributeFilters =
+        parseFilters(requestParams.getFilterAttributes());
 
     Set<UID> assignedUsers =
         validateDeprecatedUidsParameter(

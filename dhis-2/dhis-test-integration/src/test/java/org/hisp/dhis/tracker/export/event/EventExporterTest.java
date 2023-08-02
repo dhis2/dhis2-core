@@ -1076,7 +1076,7 @@ class EventExporterTest extends TrackerTest {
     Event pTzf9KYMk72 = get(Event.class, "pTzf9KYMk72");
     List<String> expected =
         Stream.of(d9PbzJY8bJM, pTzf9KYMk72)
-            .sorted(Comparator.comparing(Event::getId).reversed())
+            .sorted(Comparator.comparing(Event::getId).reversed()) // reversed = desc
             .map(Event::getUid)
             .toList();
 
