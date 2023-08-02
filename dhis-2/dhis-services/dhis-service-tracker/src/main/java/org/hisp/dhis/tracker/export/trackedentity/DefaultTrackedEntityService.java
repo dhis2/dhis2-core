@@ -298,23 +298,19 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     TrackedEntityQueryParams queryParams = mapper.map(operationParams);
     final List<Long> ids = teService.getTrackedEntityIds(queryParams, false, false);
 
-    List<TrackedEntity> trackedEntities = List.of();
-    if (!ids.isEmpty()) {
+    List<TrackedEntity> trackedEntities =
+        this.trackedEntityAggregate.find(
+            ids, operationParams.getTrackedEntityParams(), queryParams);
 
-      trackedEntities =
-          this.trackedEntityAggregate.find(
-              ids, operationParams.getTrackedEntityParams(), queryParams);
+    mapRelationshipItems(
+        trackedEntities,
+        operationParams.getTrackedEntityParams(),
+        operationParams.isIncludeDeleted());
 
-      mapRelationshipItems(
-          trackedEntities,
-          operationParams.getTrackedEntityParams(),
-          operationParams.isIncludeDeleted());
+    addSearchAudit(trackedEntities, queryParams.getUser());
 
-      addSearchAudit(trackedEntities, queryParams.getUser());
-
-      if (operationParams.isSkipPaging()) {
-        return TrackedEntities.withoutPagination(trackedEntities);
-      }
+    if (operationParams.isSkipPaging()) {
+      return TrackedEntities.withoutPagination(trackedEntities);
     }
 
     Pager pager;
