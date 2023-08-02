@@ -72,14 +72,6 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
 
   private Program program;
 
-  private Enrollment enrollment1;
-
-  private Enrollment enrollment2;
-
-  private Enrollment enrollment3;
-
-  private Enrollment enrollment4;
-
   private TrackedEntity tei1;
 
   private TrackedEntity tei2;
@@ -88,12 +80,18 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
 
   private TrackedEntity tei4;
 
-  private TrackedEntityType teiType;
-
   private User user;
 
   @Override
   protected void setUpTest() throws Exception {
+
+    Enrollment enrollment1;
+    Enrollment enrollment2;
+    Enrollment enrollment3;
+    Enrollment enrollment4;
+
+    TrackedEntityType teiType;
+
     userService = _userService;
     user = createAndInjectAdminUser();
 
