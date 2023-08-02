@@ -35,10 +35,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
@@ -46,6 +49,7 @@ import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.OperationParamUtils;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 /**
  * RequestParamUtils are functions used to parse and transform tracker request parameters. This
@@ -164,6 +168,56 @@ public class RequestParamUtils {
           String.format(
               "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
               orgUnitMode));
+    }
+  }
+
+  /**
+   * Validate the {@code order} request parameter in tracker exporters. Allowed order values are
+   * {@code supportedFieldNames} and UIDs which represent {@code uidMeaning}. Every field name or
+   * UID can be specified at most once.
+   */
+  public static void validateOrderParams(
+      Set<String> supportedFieldNames, String uidMeaning, List<OrderCriteria> order)
+      throws BadRequestException {
+    if (order == null || order.isEmpty()) {
+      return;
+    }
+
+    Set<String> invalidOrderComponents =
+        order.stream().map(OrderCriteria::getField).collect(Collectors.toSet());
+    invalidOrderComponents.removeAll(supportedFieldNames);
+    Set<String> uids =
+        invalidOrderComponents.stream()
+            .filter(CodeGenerator::isValidUid)
+            .collect(Collectors.toSet());
+    invalidOrderComponents.removeAll(uids);
+
+    if (!invalidOrderComponents.isEmpty()) {
+      throw new BadRequestException(
+          String.format(
+              "order parameter is invalid. '%s' are either unsupported fields and/or invalid UID(s). Supported are %s UIDs and fields '%s'. All of which can at most be specified once.",
+              String.join(", ", invalidOrderComponents),
+              uidMeaning,
+              String.join(", ", supportedFieldNames.stream().sorted().toList())));
+    }
+
+    Set<String> duplicateOrderComponents =
+        order.stream()
+            .map(OrderCriteria::getField)
+            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+            .entrySet()
+            .stream()
+            .filter(e -> e.getValue() > 1)
+            .map(Entry::getKey)
+            .collect(Collectors.toSet());
+
+    if (!duplicateOrderComponents.isEmpty()) {
+      throw new BadRequestException(
+          String.format(
+              "order parameter is invalid. '%s' are repeated. Supported are %s UIDs and fields '%s'. All of which can at most be specified once.",
+              String.join(", ", duplicateOrderComponents),
+              uidMeaning,
+              String.join(", ", supportedFieldNames.stream().sorted().toList())));
     }
   }
 

@@ -33,9 +33,11 @@ import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.util.DateUtils.parseDate;
+import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -111,7 +113,7 @@ class TrackedEntityRequestParamsMapperTest {
     requestParams.setIncludeDeleted(true);
     requestParams.setIncludeAllAttributes(true);
     requestParams.setOrder(
-        Collections.singletonList(OrderCriteria.of("created", SortDirection.ASC)));
+        Collections.singletonList(OrderCriteria.of("createdAt", SortDirection.ASC)));
 
     final TrackedEntityOperationParams params = mapper.map(requestParams, user);
 
@@ -140,7 +142,7 @@ class TrackedEntityRequestParamsMapperTest {
     assertTrue(
         params.getOrders().stream()
             .anyMatch(
-                orderParam -> orderParam.equals(OrderCriteria.of("created", SortDirection.ASC))));
+                orderParam -> orderParam.equals(OrderCriteria.of("createdAt", SortDirection.ASC))));
   }
 
   @Test
@@ -292,5 +294,17 @@ class TrackedEntityRequestParamsMapperTest {
     requestParams.setTrackedEntities(Set.of(UID.of("IsdLBTOBzMi")));
 
     assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
+  }
+
+  @Test
+  void shouldFailGivenInvalidOrderFieldName() {
+    requestParams.setOrder(
+        OrderCriteria.fromOrderString("unsupportedProperty1:asc,enrolledAt:asc"));
+
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
+    assertAll(
+        () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
+        () -> assertContains("unsupportedProperty1", exception.getMessage()));
   }
 }

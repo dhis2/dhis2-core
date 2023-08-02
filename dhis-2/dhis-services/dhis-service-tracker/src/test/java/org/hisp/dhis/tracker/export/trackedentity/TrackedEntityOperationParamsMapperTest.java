@@ -584,17 +584,6 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void testMappingOrderParamsGivenInvalidField() {
-    OrderCriteria order1 = OrderCriteria.of("invalid", SortDirection.DESC);
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder().orders(List.of(order1)).build();
-
-    BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
-    assertEquals("Invalid order property: invalid", e.getMessage());
-  }
-
-  @Test
   void shouldCreateCriteriaFiltersWithFirstOperatorWhenMultipleValidOperandAreNotValid()
       throws BadRequestException, ForbiddenException {
     TrackedEntityOperationParams operationParams =
