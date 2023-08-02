@@ -597,7 +597,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
 
     // Dates
     assertEquals(enrollment.getLastUpdated(), enrollment.getLastUpdatedAtClient());
-    assertEquals(enrollment.getCreatedAtClient(), enrollment.getLastUpdatedAtClient());
+    assertEquals(enrollment.getCreated(), enrollment.getCreatedAtClient());
 
     long enrollmentDate = enrollment.getEnrollmentDate().getTime();
     long created = parseDate(enrollment.getCreated()).getTime();
