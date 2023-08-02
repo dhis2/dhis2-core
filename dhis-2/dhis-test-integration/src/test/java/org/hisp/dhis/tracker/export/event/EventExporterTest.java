@@ -1089,6 +1089,30 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldOrderEventsByEnrollmentProgramUIDAsc() throws ForbiddenException, BadRequestException {
+    Event pTzf9KYMk72 =
+        get(Event.class, "pTzf9KYMk72"); // enrolled in program BFcipDERJnf with registration
+    Event QRYjLTiJTrA =
+        get(Event.class, "QRYjLTiJTrA"); // enrolled in program BFcipDERJne without registration
+    List<String> expected =
+        Stream.of(pTzf9KYMk72, QRYjLTiJTrA)
+            .sorted(Comparator.comparing(event -> event.getEnrollment().getProgram().getUid()))
+            .map(Event::getUid)
+            .toList();
+    System.out.println(expected);
+
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .events(Set.of("pTzf9KYMk72", "QRYjLTiJTrA"))
+            .orderBy("enrollment.program.uid", SortDirection.ASC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(expected, events);
+  }
+
+  @Test
   void shouldOrderEventsByAttributeAsc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         EventOperationParams.builder()

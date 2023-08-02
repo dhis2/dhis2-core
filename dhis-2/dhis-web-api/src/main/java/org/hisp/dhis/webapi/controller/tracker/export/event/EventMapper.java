@@ -74,12 +74,7 @@ public interface EventMapper
           entry("occurredAt", "executionDate"),
           entry("orgUnit", "organisationUnit.uid"),
           entry("orgUnitName", "organisationUnit.name"),
-          entry(
-              "program",
-              "enrollment.program.uid"), // TODO(TECH-1606) this is what we do in the export. I
-          // assume we
-          // can also get the program via event.programStage.program
-          // right? Which one is more accurate
+          entry("program", "enrollment.program.uid"),
           entry("programStage", "programStage.uid"),
           entry("scheduledAt", "dueDate"),
           entry("status", "status"),
