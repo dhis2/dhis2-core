@@ -110,7 +110,7 @@ public class TrackedEntityOperationParams {
   @Getter @Builder.Default
   private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
-  /** Set of tei uids to explicitly select. */
+  /** Set of te uids to explicitly select. */
   @Builder.Default private Set<String> trackedEntityUids = new HashSet<>();
 
   /** ProgramStage to be used in conjunction with eventstatus. */
@@ -140,13 +140,13 @@ public class TrackedEntityOperationParams {
   /** Indicates whether paging should be skipped. */
   private boolean skipPaging;
 
-  /** Indicates if there is a maximum tei retrieval limit. 0 no limit. */
+  /** Indicates if there is a maximum te retrieval limit. 0 no limit. */
   private int maxTeiLimit;
 
   /** Indicates whether to include soft-deleted elements. Default to false */
   @Builder.Default private boolean includeDeleted = false;
 
-  /** Indicates whether to include all TEI attributes */
+  /** Indicates whether to include all te attributes */
   private boolean includeAllAttributes;
 
   /**
@@ -162,12 +162,12 @@ public class TrackedEntityOperationParams {
   private Date skipChangedBefore;
 
   /**
-   * Potential Duplicate query parameter value. If null, we don't check whether a TEI is a
+   * Potential Duplicate query parameter value. If null, we don't check whether a TE is a
    * potentialDuplicate or not
    */
   private Boolean potentialDuplicate;
 
-  /** TEI order params */
+  /** TE order params */
   @Builder.Default private List<OrderCriteria> orders = new ArrayList<>();
 
   private User user;

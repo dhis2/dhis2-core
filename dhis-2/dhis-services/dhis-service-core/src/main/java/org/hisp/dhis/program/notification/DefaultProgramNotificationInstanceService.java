@@ -74,7 +74,7 @@ public class DefaultProgramNotificationInstanceService
     if (params.hasEvent()) {
       if (!eventService.eventExists(params.getEvent().getUid())) {
         throw new IllegalQueryException(
-            String.format("Program stage instance %s does not exist", params.getEvent().getUid()));
+            String.format("Event %s does not exist", params.getEvent().getUid()));
       }
     }
   }

@@ -87,7 +87,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultTrackedEntityService implements TrackedEntityService {
 
-  private final org.hisp.dhis.trackedentity.TrackedEntityService teiService;
+  private final org.hisp.dhis.trackedentity.TrackedEntityService teService;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -113,7 +113,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   public TrackedEntity getTrackedEntity(
       String uid, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
-    TrackedEntity daoTrackedEntity = teiService.getTrackedEntity(uid);
+    TrackedEntity daoTrackedEntity = teService.getTrackedEntity(uid);
     if (daoTrackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
@@ -150,7 +150,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       if (params.isIncludeProgramOwners()) {
         Set<TrackedEntityProgramOwner> filteredProgramOwners =
             trackedEntity.getProgramOwners().stream()
-                .filter(tei -> tei.getProgram().getUid().equals(programIdentifier))
+                .filter(te -> te.getProgram().getUid().equals(programIdentifier))
                 .collect(Collectors.toSet());
         trackedEntity.setProgramOwners(filteredProgramOwners);
       }
@@ -267,8 +267,8 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
     if (item.getTrackedEntity() != null) {
       if (trackedEntity.getUid().equals(item.getTrackedEntity().getUid())) {
-        // only fetch the TEI if we do not already have access to it. meaning the TEI owns the item
-        // this is just mapping the TEI
+        // only fetch the TE if we do not already have access to it. meaning the TE owns the item
+        // this is just mapping the TE
         result.setTrackedEntity(trackedEntity);
       } else {
         result.setTrackedEntity(
@@ -296,11 +296,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   public TrackedEntities getTrackedEntities(TrackedEntityOperationParams operationParams)
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityQueryParams queryParams = mapper.map(operationParams);
-    final List<Long> ids = teiService.getTrackedEntityIds(queryParams, false, false);
-
-    if (ids.isEmpty()) {
-      return TrackedEntities.EMPTY;
-    }
+    final List<Long> ids = teService.getTrackedEntityIds(queryParams, false, false);
 
     List<TrackedEntity> trackedEntities =
         this.trackedEntityAggregate.find(
@@ -320,7 +316,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     Pager pager;
 
     if (operationParams.isTotalPages()) {
-      int count = teiService.getTrackedEntityCount(queryParams, true, true);
+      int count = teService.getTrackedEntityCount(queryParams, true, true);
       pager =
           new Pager(queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault());
     } else {
@@ -431,9 +427,9 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     List<TrackedEntityAudit> auditable =
         trackedEntities.stream()
             .filter(Objects::nonNull)
-            .filter(tei -> tei.getTrackedEntityType() != null)
-            .filter(tei -> tetMap.get(tei.getTrackedEntityType().getUid()).isAllowAuditLog())
-            .map(tei -> new TrackedEntityAudit(tei.getUid(), accessedBy, AuditType.SEARCH))
+            .filter(te -> te.getTrackedEntityType() != null)
+            .filter(te -> tetMap.get(te.getTrackedEntityType().getUid()).isAllowAuditLog())
+            .map(te -> new TrackedEntityAudit(te.getUid(), accessedBy, AuditType.SEARCH))
             .toList();
 
     if (!auditable.isEmpty()) {

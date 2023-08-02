@@ -109,7 +109,8 @@ class DataIntegrityYamlReader {
     try (InputStream is = resource.getInputStream()) {
       file = yaml.readValue(is, ListYamlFile.class);
     } catch (Exception ex) {
-      log.warn("Failed to load data integrity check from YAML", ex);
+      log.warn(
+          "Failed to load data integrity check from YAML. Error message `{}`", ex.getMessage());
       return;
     }
 

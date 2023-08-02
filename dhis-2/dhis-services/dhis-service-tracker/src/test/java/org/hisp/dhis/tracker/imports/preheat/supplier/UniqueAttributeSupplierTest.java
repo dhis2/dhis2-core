@@ -39,6 +39,7 @@ import java.util.Map;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -66,9 +67,9 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
 
   private static final String UNIQUE_VALUE = "unique value";
 
-  private static final String TEI_UID = "TEI UID";
+  private static final String TE_UID = CodeGenerator.generateUid();
 
-  private static final String ANOTHER_TEI_UID = "ANOTHER_TEI_UID";
+  private static final String ANOTHER_TE_UID = CodeGenerator.generateUid();
 
   @InjectMocks private UniqueAttributesSupplier supplier;
 
@@ -82,7 +83,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
 
   private TrackedEntityAttribute uniqueAttribute;
 
-  private TrackedEntity tei;
+  private TrackedEntity trackedEntity;
 
   private Enrollment enrollment;
 
@@ -97,12 +98,13 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
     Program program = createProgram('A');
     Attribute attribute = createAttribute('A');
     AttributeValue attributeValue = createAttributeValue(attribute, UNIQUE_VALUE);
-    tei = createTrackedEntity('A', orgUnit);
-    tei.setUid(TEI_UID);
-    tei.setAttributeValues(Collections.singleton(attributeValue));
-    enrollment = createEnrollment(program, tei, orgUnit);
+    trackedEntity = createTrackedEntity('A', orgUnit);
+    trackedEntity.setUid(TE_UID);
+    trackedEntity.setAttributeValues(Collections.singleton(attributeValue));
+    enrollment = createEnrollment(program, trackedEntity, orgUnit);
     enrollment.setAttributeValues(Collections.singleton(attributeValue));
-    trackedEntityAttributeValue = createTrackedEntityAttributeValue('A', tei, uniqueAttribute);
+    trackedEntityAttributeValue =
+        createTrackedEntityAttributeValue('A', trackedEntity, uniqueAttribute);
   }
 
   @Test
@@ -116,13 +118,13 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
   }
 
   @Test
-  void verifySupplierWhenTEIAndEnrollmentHaveTheSameUniqueAttribute() {
+  void verifySupplierWhenTeAndEnrollmentHaveTheSameUniqueAttribute() {
     when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
         .thenReturn(Collections.singletonList(uniqueAttribute));
     TrackerImportParams importParams =
         TrackerImportParams.builder()
             .trackedEntities(Collections.singletonList(trackedEntity()))
-            .enrollments(Collections.singletonList(enrollment(TEI_UID)))
+            .enrollments(Collections.singletonList(enrollment(TE_UID)))
             .build();
 
     this.supplier.preheatAdd(importParams, preheat);
@@ -131,7 +133,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
   }
 
   @Test
-  void verifySupplierWhenTwoTEIsHaveAttributeWithSameUniqueValue() {
+  void verifySupplierWhenTwoTesHaveAttributeWithSameUniqueValue() {
     when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
         .thenReturn(Collections.singletonList(uniqueAttribute));
     TrackerImportParams importParams =
@@ -143,13 +145,13 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
   }
 
   @Test
-  void verifySupplierWhenTEIAndEnrollmentFromAnotherTEIHaveAttributeWithSameUniqueValue() {
+  void verifySupplierWhenTeAndEnrollmentFromAnotherTeHaveAttributeWithSameUniqueValue() {
     when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
         .thenReturn(Collections.singletonList(uniqueAttribute));
     TrackerImportParams importParams =
         TrackerImportParams.builder()
             .trackedEntities(Collections.singletonList(trackedEntity()))
-            .enrollments(Collections.singletonList(enrollment(ANOTHER_TEI_UID)))
+            .enrollments(Collections.singletonList(enrollment(ANOTHER_TE_UID)))
             .build();
 
     this.supplier.preheatAdd(importParams, preheat);
@@ -158,7 +160,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
   }
 
   @Test
-  void verifySupplierWhenTEIinPayloadAndDBHaveTheSameUniqueAttribute() {
+  void verifySupplierWhenTeinPayloadAndDBHaveTheSameUniqueAttribute() {
     when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
         .thenReturn(Collections.singletonList(uniqueAttribute));
     Map<TrackedEntityAttribute, List<String>> trackedEntityAttributeListMap =
@@ -178,7 +180,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
   }
 
   @Test
-  void verifySupplierWhenTEIinPayloadAndAnotherTEIInDBHaveTheSameUniqueAttribute() {
+  void verifySupplierWhenTeinPayloadAndAnotherTeInDBHaveTheSameUniqueAttribute() {
     when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
         .thenReturn(Collections.singletonList(uniqueAttribute));
     Map<TrackedEntityAttribute, List<String>> trackedEntityAttributeListMap =
@@ -195,7 +197,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
     this.supplier.preheatAdd(importParams, preheat);
 
     assertThat(preheat.getUniqueAttributeValues(), hasSize(1));
-    assertThat(preheat.getUniqueAttributeValues().get(0).getTeiUid(), is(TEI_UID));
+    assertThat(preheat.getUniqueAttributeValues().get(0).getTeUid(), is(TE_UID));
   }
 
   private List<org.hisp.dhis.tracker.imports.domain.TrackedEntity>
@@ -203,7 +205,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
     return Lists.newArrayList(
         trackedEntity(),
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-            .trackedEntity(ANOTHER_TEI_UID)
+            .trackedEntity(ANOTHER_TE_UID)
             .attributes(Collections.singletonList(uniqueAttribute()))
             .build());
   }
@@ -211,7 +213,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity() {
 
     return org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-        .trackedEntity(TEI_UID)
+        .trackedEntity(TE_UID)
         .attributes(Collections.singletonList(uniqueAttribute()))
         .build();
   }
@@ -219,14 +221,14 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity anotherTrackedEntity() {
 
     return org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-        .trackedEntity(ANOTHER_TEI_UID)
+        .trackedEntity(ANOTHER_TE_UID)
         .attributes(Collections.singletonList(uniqueAttribute()))
         .build();
   }
 
-  private org.hisp.dhis.tracker.imports.domain.Enrollment enrollment(String teiUid) {
+  private org.hisp.dhis.tracker.imports.domain.Enrollment enrollment(String teUid) {
     return org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-        .trackedEntity(teiUid)
+        .trackedEntity(teUid)
         .enrollment("ENROLLMENT")
         .attributes(Collections.singletonList(uniqueAttribute()))
         .build();

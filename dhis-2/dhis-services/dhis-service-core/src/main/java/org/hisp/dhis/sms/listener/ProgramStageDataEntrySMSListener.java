@@ -67,12 +67,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("org.hisp.dhis.sms.listener.ProgramStageDataEntrySMSListener")
 @Transactional
 public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
-  private static final String MORE_THAN_ONE_TEI =
+  private static final String MORE_THAN_ONE_TE =
       "More than one tracked entity found for given phone number";
 
   private static final String NO_OU_FOUND = "No organisation unit found";
 
-  private static final String NO_TEI_EXIST = "No tracked entity exists with given phone number";
+  private static final String NO_TE_EXIST = "No tracked entity exists with given phone number";
 
   private final TrackedEntityService trackedEntityService;
 
@@ -118,13 +118,13 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
       IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {
     Set<OrganisationUnit> ous = getOrganisationUnits(sms);
 
-    List<TrackedEntity> teis = getTrackedEntityByPhoneNumber(sms, smsCommand, ous);
+    List<TrackedEntity> trackedEntities = getTrackedEntityByPhoneNumber(sms, smsCommand, ous);
 
-    if (!validate(teis, ous, sms)) {
+    if (!validate(trackedEntities, ous, sms)) {
       return;
     }
 
-    registerProgramStage(teis.iterator().next(), sms, smsCommand, parsedMessage, ous);
+    registerProgramStage(trackedEntities.iterator().next(), sms, smsCommand, parsedMessage, ous);
   }
 
   @Override
@@ -134,14 +134,14 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
   }
 
   private void registerProgramStage(
-      TrackedEntity tei,
+      TrackedEntity te,
       IncomingSms sms,
       SMSCommand smsCommand,
       Map<String, String> keyValue,
       Set<OrganisationUnit> ous) {
     List<Enrollment> enrollments =
         new ArrayList<>(
-            enrollmentService.getEnrollments(tei, smsCommand.getProgram(), ProgramStatus.ACTIVE));
+            enrollmentService.getEnrollments(te, smsCommand.getProgram(), ProgramStatus.ACTIVE));
 
     register(enrollments, keyValue, smsCommand, sms, ous);
   }
@@ -153,13 +153,16 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
             .filter(attr -> attr.getValueType().equals(ValueType.PHONE_NUMBER))
             .collect(Collectors.toList());
 
-    List<TrackedEntity> teis = new ArrayList<>();
+    List<TrackedEntity> trackedEntities = new ArrayList<>();
 
     attributes.parallelStream()
         .map(attr -> getParams(attr, sms, command.getProgram(), ous))
-        .forEach(param -> teis.addAll(trackedEntityService.getTrackedEntities(param, false, true)));
+        .forEach(
+            param ->
+                trackedEntities.addAll(
+                    trackedEntityService.getTrackedEntities(param, false, true)));
 
-    return teis;
+    return trackedEntities;
   }
 
   private boolean hasMoreThanOneEntity(List<TrackedEntity> trackedEntities) {
@@ -188,14 +191,15 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
     return params;
   }
 
-  private boolean validate(List<TrackedEntity> teis, Set<OrganisationUnit> ous, IncomingSms sms) {
-    if (teis == null || teis.isEmpty()) {
-      sendFeedback(NO_TEI_EXIST, sms.getOriginator(), ERROR);
+  private boolean validate(
+      List<TrackedEntity> trackedEntities, Set<OrganisationUnit> ous, IncomingSms sms) {
+    if (trackedEntities == null || trackedEntities.isEmpty()) {
+      sendFeedback(NO_TE_EXIST, sms.getOriginator(), ERROR);
       return false;
     }
 
-    if (hasMoreThanOneEntity(teis)) {
-      sendFeedback(MORE_THAN_ONE_TEI, sms.getOriginator(), ERROR);
+    if (hasMoreThanOneEntity(trackedEntities)) {
+      sendFeedback(MORE_THAN_ONE_TE, sms.getOriginator(), ERROR);
       return false;
     }
 

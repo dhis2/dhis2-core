@@ -69,13 +69,6 @@
       <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
     </set>
 
-    <list name="messageConversations" table="enrollment_messageconversation">
-      <key column="enrollmentid" />
-      <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.message.MessageConversation"
-        column="messageconversationid" />
-    </list>
-
     <list name="comments" table="enrollmentcomments" cascade="all-delete-orphan">
       <key column="enrollmentid" foreign-key="fk_programinstancecomments_programinstanceid" />
       <list-index column="sort_order" base="1" />

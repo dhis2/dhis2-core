@@ -93,14 +93,15 @@ public class DefaultTrackedEntityAttributeValueService
   @Override
   @Transactional(readOnly = true)
   public TrackedEntityAttributeValue getTrackedEntityAttributeValue(
-      TrackedEntity instance, TrackedEntityAttribute attribute) {
-    return attributeValueStore.get(instance, attribute);
+      TrackedEntity trackedEntity, TrackedEntityAttribute attribute) {
+    return attributeValueStore.get(trackedEntity, attribute);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(TrackedEntity instance) {
-    return attributeValueStore.get(instance);
+  public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
+      TrackedEntity trackedEntity) {
+    return attributeValueStore.get(trackedEntity);
   }
 
   @Override

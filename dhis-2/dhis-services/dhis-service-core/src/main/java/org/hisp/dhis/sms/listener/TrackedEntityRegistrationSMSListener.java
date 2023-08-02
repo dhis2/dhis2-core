@@ -157,12 +157,12 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
       sendFeedback("No TrackedEntityAttribute found", senderPhoneNumber, WARNING);
     }
 
-    TrackedEntity tei = trackedEntityService.getTrackedEntity(trackedEntityId);
+    TrackedEntity te = trackedEntityService.getTrackedEntity(trackedEntityId);
 
-    enrollmentService.enrollTrackedEntity(tei, smsCommand.getProgram(), new Date(), date, orgUnit);
+    enrollmentService.enrollTrackedEntity(te, smsCommand.getProgram(), new Date(), date, orgUnit);
 
     sendFeedback(
-        StringUtils.defaultIfBlank(smsCommand.getSuccessMessage(), SUCCESS_MESSAGE + tei.getUid()),
+        StringUtils.defaultIfBlank(smsCommand.getSuccessMessage(), SUCCESS_MESSAGE + te.getUid()),
         senderPhoneNumber,
         INFO);
 

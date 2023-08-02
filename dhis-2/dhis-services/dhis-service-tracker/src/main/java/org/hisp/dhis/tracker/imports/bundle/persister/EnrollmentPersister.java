@@ -95,7 +95,7 @@ public class EnrollmentPersister
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       Enrollment enrollmentToPersist) {
-    // DO NOTHING - TEI HAVE NO DATA VALUES
+    // DO NOTHING - TE HAVE NO DATA VALUES
   }
 
   @Override

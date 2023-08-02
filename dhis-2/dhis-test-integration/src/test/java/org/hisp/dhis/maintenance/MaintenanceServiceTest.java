@@ -433,7 +433,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
   @Test
   void testDeleteSoftDeletedRelationship() {
     Relationship relationship =
-        createTeiToTeiRelationship(trackedEntity, entityInstanceB, relationshipType);
+        createTeToTeRelationship(trackedEntity, entityInstanceB, relationshipType);
     relationshipService.addRelationship(relationship);
     assertNotNull(relationshipService.getRelationship(relationship.getUid()));
 

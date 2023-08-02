@@ -34,13 +34,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ReferenceTrackerEntity {
   /**
-   * Reference uid: this correspond to the UID of a TEI, PS or event from the tracker import payload
+   * Reference uid: this correspond to the UID of a TE, PS or event from the tracker import payload
    */
   private final String uid;
 
   /**
    * Reference uid of the parent object of this Reference. This is only populated if uid references
-   * a ProgramStage or a Program Stage Instance
+   * a ProgramStage or an Event
    */
   private final String parentUid;
 
