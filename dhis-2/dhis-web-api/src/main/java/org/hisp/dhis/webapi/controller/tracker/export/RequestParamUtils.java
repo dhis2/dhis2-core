@@ -32,6 +32,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -170,16 +171,20 @@ public class RequestParamUtils {
    * Parse given {@code input} string representing a filter for an object referenced by a UID like a
    * tracked entity attribute or data element. Refer to {@link #parseSanitizedFilters(Map, String)}}
    * for details on the expected input format.
+   *
+   * @return filters by UIDs
    */
-  public static void parseFilters(Map<String, List<QueryFilter>> result, String input)
+  public static Map<String, List<QueryFilter>> parseFilters(String input)
       throws BadRequestException {
+    Map<String, List<QueryFilter>> result = new HashMap<>();
     if (StringUtils.isBlank(input)) {
-      return;
+      return result;
     }
 
     for (String uidOperatorValue : OperationParamUtils.filterList(input)) {
       parseSanitizedFilters(result, uidOperatorValue);
     }
+    return result;
   }
 
   /**

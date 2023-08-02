@@ -45,7 +45,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -167,9 +166,8 @@ class RequestParamUtilsTest {
 
   @Test
   void shouldParseFilters() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters = new HashMap<>();
-
-    parseFilters(filters, TEA_1_UID + ":lt:20:gt:10," + TEA_2_UID + ":like:foo");
+    Map<String, List<QueryFilter>> filters =
+        parseFilters(TEA_1_UID + ":lt:20:gt:10," + TEA_2_UID + ":like:foo");
 
     assertEquals(
         Map.of(
@@ -183,9 +181,8 @@ class RequestParamUtilsTest {
 
   @Test
   void shouldParseFiltersGivenRepeatedUID() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters = new HashMap<>();
-
-    parseFilters(filters, TEA_1_UID + ":lt:20," + TEA_2_UID + ":like:foo," + TEA_1_UID + ":gt:10");
+    Map<String, List<QueryFilter>> filters =
+        parseFilters(TEA_1_UID + ":lt:20," + TEA_2_UID + ":like:foo," + TEA_1_UID + ":gt:10");
 
     assertEquals(
         Map.of(
@@ -199,46 +196,36 @@ class RequestParamUtilsTest {
 
   @Test
   void shouldParseFiltersOnlyContainingAnIdentifier() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters = new HashMap<>();
-
-    parseFilters(filters, TEA_1_UID);
+    Map<String, List<QueryFilter>> filters = parseFilters(TEA_1_UID);
 
     assertEquals(Map.of(TEA_1_UID, List.of()), filters);
   }
 
   @Test
   void shouldParseFiltersWithIdentifierAndTrailingColon() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters = new HashMap<>();
-
-    parseFilters(filters, TEA_1_UID + ":");
+    Map<String, List<QueryFilter>> filters = parseFilters(TEA_1_UID + ":");
 
     assertEquals(Map.of(TEA_1_UID, List.of()), filters);
   }
 
   @Test
   void shouldParseFiltersGivenBlankInput() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters = new HashMap<>();
-
-    parseFilters(filters, " ");
+    Map<String, List<QueryFilter>> filters = parseFilters(" ");
 
     assertTrue(filters.isEmpty());
   }
 
   @Test
   void shouldFailParsingFiltersMissingAValue() {
-    Map<String, List<QueryFilter>> filters = new HashMap<>();
-
     Exception exception =
-        assertThrows(BadRequestException.class, () -> parseFilters(filters, TEA_1_UID + ":lt"));
+        assertThrows(BadRequestException.class, () -> parseFilters(TEA_1_UID + ":lt"));
     assertEquals("Query item or filter is invalid: " + TEA_1_UID + ":lt", exception.getMessage());
   }
 
   @Test
   void shouldFailParsingFiltersWithMissingValueAndTrailingColon() {
-    Map<String, List<QueryFilter>> filters = new HashMap<>();
-
     Exception exception =
-        assertThrows(BadRequestException.class, () -> parseFilters(filters, TEA_1_UID + ":lt:"));
+        assertThrows(BadRequestException.class, () -> parseFilters(TEA_1_UID + ":lt:"));
     assertEquals("Query item or filter is invalid: " + TEA_1_UID + ":lt:", exception.getMessage());
   }
 
