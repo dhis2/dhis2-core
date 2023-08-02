@@ -59,6 +59,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SlimPager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -80,9 +81,7 @@ import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationPar
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -197,7 +196,7 @@ class EventExporterTest extends TrackerTest {
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
             .events(Set.of("pTzf9KYMk72", "D9PbzJY8bJM"))
-            .orders(List.of(new OrderParam("executionDate", SortDirection.DESC)));
+            .orderBy("executionDate", SortDirection.DESC);
 
     EventOperationParams params = paramsBuilder.page(1).pageSize(1).build();
 
@@ -364,7 +363,7 @@ class EventExporterTest extends TrackerTest {
             .orgUnitUid(orgUnit.getUid())
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
-            .filters("DATAEL00001:like:%val%")
+            .dataElementFilters("DATAEL00001:like:%val%")
             .build();
 
     List<String> events = getEvents(params);
@@ -385,7 +384,7 @@ class EventExporterTest extends TrackerTest {
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
             .programStatus(ProgramStatus.ACTIVE)
-            .filters(dataElement.getUid() + ":like:%val%")
+            .dataElementFilters(dataElement.getUid() + ":like:%val%")
             .build();
 
     List<String> events = getEvents(params);
@@ -404,7 +403,7 @@ class EventExporterTest extends TrackerTest {
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
             .programType(ProgramType.WITH_REGISTRATION)
-            .filters(dataElement.getUid() + ":like:%val%")
+            .dataElementFilters(dataElement.getUid() + ":like:%val%")
             .build();
 
     List<String> events = getEvents(params);
@@ -422,7 +421,7 @@ class EventExporterTest extends TrackerTest {
             .orgUnitUid(orgUnit.getUid())
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
-            .filters(dataElement.getUid() + ":like:%value00001%")
+            .dataElementFilters(dataElement.getUid() + ":like:%value00001%")
             .build();
 
     List<String> events = getEvents(params);
@@ -440,7 +439,7 @@ class EventExporterTest extends TrackerTest {
             .orgUnitUid(orgUnit.getUid())
             .enrollments(Set.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
-            .filters(datael00001.getUid() + ":in:value00001;value00002")
+            .dataElementFilters(datael00001.getUid() + ":in:value00001;value00002")
             .build();
 
     List<String> events = getEvents(params);
@@ -461,7 +460,7 @@ class EventExporterTest extends TrackerTest {
             .programUid(program.getUid())
             .attributeCategoryCombo("bjDvmb4bfuf")
             .attributeCategoryOptions(Set.of("xYerKDKCefk"))
-            .filters(dataElement.getUid() + ":eq:value00001")
+            .dataElementFilters(dataElement.getUid() + ":eq:value00001")
             .build();
 
     List<String> events = getEvents(params);
@@ -479,7 +478,7 @@ class EventExporterTest extends TrackerTest {
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
             .programUid(program.getUid())
-            .orders(List.of(new OrderParam("executionDate", SortDirection.DESC)));
+            .orderBy("executionDate", SortDirection.DESC);
 
     EventOperationParams params = paramsBuilder.page(1).pageSize(3).build();
 
@@ -518,7 +517,7 @@ class EventExporterTest extends TrackerTest {
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
             .programUid(program.getUid())
-            .orders(List.of(new OrderParam("executionDate", SortDirection.DESC)))
+            .orderBy("executionDate", SortDirection.DESC)
             .page(1)
             .pageSize(2)
             .totalPages(true)
@@ -703,7 +702,7 @@ class EventExporterTest extends TrackerTest {
             .programUid(program.getUid())
             .attributeCategoryCombo("bjDvmb4bfuf")
             .attributeCategoryOptions(Set.of("xYerKDKCefk"))
-            .filters(dataElement.getUid() + ":eq:value00002")
+            .dataElementFilters(dataElement.getUid() + ":eq:value00002")
             .build();
 
     List<String> events = getEvents(params);
@@ -720,7 +719,7 @@ class EventExporterTest extends TrackerTest {
             .orgUnitUid(orgUnit.getUid())
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
-            .filters(dataElement.getUid() + ":eq:option1")
+            .dataElementFilters(dataElement.getUid() + ":eq:option1")
             .build();
 
     List<String> events = getEvents(params);
@@ -737,7 +736,7 @@ class EventExporterTest extends TrackerTest {
             .orgUnitUid(orgUnit.getUid())
             .enrollments(Set.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
-            .filters(dataElement.getUid() + ":in:option1;option2")
+            .dataElementFilters(dataElement.getUid() + ":in:option1;option2")
             .build();
 
     List<String> events = getEvents(params);
@@ -754,7 +753,7 @@ class EventExporterTest extends TrackerTest {
             .orgUnitUid(orgUnit.getUid())
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
-            .filters(dataElement.getUid() + ":like:%opt%")
+            .dataElementFilters(dataElement.getUid() + ":like:%opt%")
             .build();
 
     List<String> events = getEvents(params);
@@ -776,7 +775,7 @@ class EventExporterTest extends TrackerTest {
             .orgUnitUid(orgUnit.getUid())
             .enrollments(Set.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
-            .filters(dataElement.getUid() + ":lt:77:gt:8")
+            .dataElementFilters(dataElement.getUid() + ":lt:77:gt:8")
             .build();
 
     List<String> events = getEvents(params);
@@ -976,7 +975,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .filterAttributes("numericAttr:lt:77:gt:8")
+            .attributeFilters("numericAttr:lt:77:gt:8")
             .build();
 
     List<String> trackedEntities =
@@ -992,7 +991,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .filterAttributes("toUpdate000:eq:summer day")
+            .attributeFilters("toUpdate000:eq:summer day")
             .build();
 
     List<String> trackedEntities =
@@ -1009,7 +1008,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .filterAttributes("toUpdate000:eq:rainy day,notUpdated0:eq:winter day")
+            .attributeFilters("toUpdate000:eq:rainy day,notUpdated0:eq:winter day")
             .build();
 
     List<String> trackedEntities =
@@ -1029,7 +1028,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .filterAttributes("toUpdate000:like:day:like:in")
+            .attributeFilters("toUpdate000:like:day:like:in")
             .build();
 
     List<String> trackedEntities =
@@ -1045,9 +1044,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .filterAttributes("toUpdate000")
-            .attributeOrders(List.of(OrderCriteria.of("toUpdate000", SortDirection.ASC)))
-            .orders(List.of(new OrderParam("toUpdate000", SortDirection.ASC)))
+            .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .build();
 
     List<String> trackedEntities =
@@ -1063,9 +1060,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .filterAttributes("toUpdate000")
-            .attributeOrders(List.of(OrderCriteria.of("toUpdate000", SortDirection.DESC)))
-            .orders(List.of(new OrderParam("toUpdate000", SortDirection.DESC)))
+            .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
             .build();
 
     List<String> trackedEntities =
@@ -1081,15 +1076,8 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .filterAttributes("toUpdate000,toDelete000")
-            .attributeOrders(
-                List.of(
-                    OrderCriteria.of("toDelete000", SortDirection.DESC),
-                    OrderCriteria.of("toUpdate000", SortDirection.DESC)))
-            .orders(
-                List.of(
-                    new OrderParam("toDelete000", SortDirection.DESC),
-                    new OrderParam("toUpdate000", SortDirection.DESC)))
+            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
+            .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
             .build();
 
     List<String> trackedEntities =
@@ -1105,15 +1093,8 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .filterAttributes("toUpdate000,toDelete000")
-            .attributeOrders(
-                List.of(
-                    OrderCriteria.of("toDelete000", SortDirection.DESC),
-                    OrderCriteria.of("toUpdate000", SortDirection.ASC)))
-            .orders(
-                List.of(
-                    new OrderParam("toDelete000", SortDirection.DESC),
-                    new OrderParam("toUpdate000", SortDirection.ASC)))
+            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
+            .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .build();
 
     List<Event> events = eventService.getEvents(params).getEvents();
@@ -1132,15 +1113,8 @@ class EventExporterTest extends TrackerTest {
     EventOperationParamsBuilder paramsBuilder =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .filterAttributes("toUpdate000,toDelete000")
-            .attributeOrders(
-                List.of(
-                    OrderCriteria.of("toDelete000", SortDirection.DESC),
-                    OrderCriteria.of("toUpdate000", SortDirection.ASC)))
-            .orders(
-                List.of(
-                    new OrderParam("toDelete000", SortDirection.DESC),
-                    new OrderParam("toUpdate000", SortDirection.ASC)));
+            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
+            .orderBy(UID.of("toUpdate000"), SortDirection.ASC);
 
     EventOperationParams params = paramsBuilder.page(1).pageSize(1).build();
 
@@ -1187,7 +1161,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .orders(List.of(new OrderParam("enrollment.enrollmentDate", SortDirection.DESC)))
+            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .build();
 
     List<String> enrollments =
@@ -1203,7 +1177,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .orders(List.of(new OrderParam("enrollment.enrollmentDate", SortDirection.ASC)))
+            .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
             .build();
 
     List<String> enrollments =
@@ -1219,7 +1193,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .orders(List.of(new OrderParam("executionDate", SortDirection.DESC)))
+            .orderBy("executionDate", SortDirection.DESC)
             .build();
 
     Events events = eventService.getEvents(params);
@@ -1232,7 +1206,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .orders(List.of(new OrderParam("executionDate", SortDirection.ASC)))
+            .orderBy("executionDate", SortDirection.ASC)
             .build();
 
     Events events = eventService.getEvents(params);
@@ -1302,12 +1276,8 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .filterAttributes("toUpdate000")
-            .attributeOrders(List.of(OrderCriteria.of("toUpdate000", SortDirection.ASC)))
-            .orders(
-                List.of(
-                    new OrderParam("toUpdate000", SortDirection.ASC),
-                    new OrderParam("enrollment.enrollmentDate", SortDirection.ASC)))
+            .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
+            .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
             .build();
 
     List<String> trackedEntities =
@@ -1324,12 +1294,8 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .filterAttributes("toUpdate000")
-            .attributeOrders(List.of(OrderCriteria.of("toUpdate000", SortDirection.DESC)))
-            .orders(
-                List.of(
-                    new OrderParam("enrollment.enrollmentDate", SortDirection.DESC),
-                    new OrderParam("toUpdate000", SortDirection.DESC)))
+            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
+            .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
             .build();
 
     List<String> trackedEntities =
@@ -1346,11 +1312,9 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .orders(
-                List.of(
-                    new OrderParam("dueDate", SortDirection.DESC),
-                    new OrderParam("DATAEL00006", SortDirection.DESC),
-                    new OrderParam("enrollment.enrollmentDate", SortDirection.DESC)))
+            .orderBy("dueDate", SortDirection.DESC)
+            .orderBy(UID.of("DATAEL00006"), SortDirection.DESC)
+            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .build();
 
     List<String> trackedEntities =
@@ -1367,10 +1331,8 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .orders(
-                List.of(
-                    new OrderParam("enrollment.enrollmentDate", SortDirection.DESC),
-                    new OrderParam("DATAEL00006", SortDirection.DESC)))
+            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
+            .orderBy(UID.of("DATAEL00006"), SortDirection.DESC)
             .build();
 
     List<String> trackedEntities =

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.eventvisualization;
 
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.join;
@@ -353,7 +354,7 @@ public class EventVisualization extends BaseAnalyticalObject
 
   public void setSorting(List<Sorting> sorting) {
     if (sorting != null) {
-      this.sorting = sorting.stream().distinct().toList();
+      this.sorting = sorting.stream().distinct().collect(toList());
     }
   }
 

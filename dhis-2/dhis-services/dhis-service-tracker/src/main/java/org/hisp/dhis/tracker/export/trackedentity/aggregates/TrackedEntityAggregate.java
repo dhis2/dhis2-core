@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.*;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -113,6 +113,10 @@ public class TrackedEntityAggregate implements Aggregate {
    */
   public List<TrackedEntity> find(
       List<Long> ids, TrackedEntityParams params, TrackedEntityQueryParams queryParams) {
+    if (ids.isEmpty()) {
+      return Collections.emptyList();
+    }
+
     final Optional<User> user = Optional.ofNullable(currentUserService.getCurrentUser());
 
     user.ifPresent(
