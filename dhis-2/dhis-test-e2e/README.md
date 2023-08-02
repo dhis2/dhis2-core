@@ -162,25 +162,28 @@ We have the capability to auto-generate analytics e2e tests.
 The class located at `src/test/java/org/hisp/dhis/analytics/generator/Main.java`
 can be executed in order to generate e2e tests based on the URL(s) present in `src/test/java/org/hisp/dhis/analytics/generator/test-urls.txt`
 
-There are a few different generators that can be used. The correct generator to use depends on your URL(s).
-Your should define the generator at `src/test/java/org/hisp/dhis/analytics/generator/Generator.java`.
-Currently, the supported generators are:
+There are a few different generators that can be used. The correct generator to use depends on the URL(s) to be tested.
+The respective generator implementation should be set at `src/test/java/org/hisp/dhis/analytics/generator/TestGenerator.java`.
+Currently, the supported generators are (along with their respective accepted URL format):
 
 ```
 AnalyticsAggregatedTestGenerator.java -> /analytics?
-EnrollmentQueryTestGenerator.java -> /analytics/enrollments/query/
-EventAggregatedTestGenerator.java -> /analytics/events/aggregate/
-EventQueryTestGenerator.java -> /analytics/events/query/
+EnrollmentQueryTestGenerator.java -> /analytics/enrollments/query/{program}.json?
+EventAggregatedTestGenerator.java -> /analytics/events/aggregate/{program}.json?
+EventQueryTestGenerator.java -> /analytics/events/query/{program}.json?
+TeiQueryTestGenerator.java -> /analytics/trackedEntities/query/{trackedEntityType}.json?
 ```
 
 ### How to generate the test(s)
 1. Add the URL(s) into `test-urls.txt` (check inside the file for examples)
-2. Define the generator implementation to use, in `TestGenHelper.java`
+2. Define the generator implementation to use, in `TestGenerator.java`
 3. Go to the class `Main.java` and run it from your IDE
 4. Check the generated file(s) at the root level
 
-_**NOTE**_: You need to ensure that the URL you have defined is pointing to a DHIS2 instance
+_**NOTE**_: You need to ensure that the URL(s) you have defined is pointing to a DHIS2 instance
 that is up and running. The tests are based on the request/response of each URL.
 
-**Important**: This generator only support "happy" paths at the moment. In order to test validation
-errors or invalid requests, one should implement them programmatically.
+**Important**: This generator only supports "happy" paths at the moment. In order to test validation
+errors or invalid requests, one should implement them programmatically. Also, if multiple URL(s) are defined
+in the `test-urls.txt` file, they all have to have the same format - remember that the implementation of the generator
+must match the URL(s) format expected.

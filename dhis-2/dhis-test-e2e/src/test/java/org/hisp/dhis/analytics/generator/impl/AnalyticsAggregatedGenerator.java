@@ -27,41 +27,38 @@
  */
 package org.hisp.dhis.analytics.generator.impl;
 
-import org.hisp.dhis.analytics.generator.TestGenerator;
+import org.hisp.dhis.analytics.generator.Generator;
 
-/**
- * Set of behaviour and settings required by the test generation of "/analytics/events/aggregate"
- * endpoint.
- */
-public class EventAggregatedTestGenerator implements TestGenerator {
+/** Set of behaviour and settings required by the test generation of "/analytics?" endpoint. */
+public class AnalyticsAggregatedGenerator implements Generator {
   @Override
   public int getMaxTestsPerClass() {
-    return 4;
+    return 6;
   }
 
   @Override
   public String getAction() {
-    return "aggregate";
+    return "analytics";
   }
 
   @Override
   public String getClassNamePrefix() {
-    return "EventsAggregate";
+    return "AnalyticsQueryDv";
   }
 
   @Override
   public String getActionDeclaration() {
-    return "private final AnalyticsEventActions actions = new AnalyticsEventActions();";
+    return "private final RestApiActions actions = new RestApiActions(\"" + getAction() + "\");";
   }
 
   @Override
   public String getPackage() {
-    return "org.hisp.dhis.analytics.event.aggregate";
+    return "org.hisp.dhis.analytics.aggregate";
   }
 
   @Override
   public String getTopClassComment() {
-    return "Groups e2e tests for \"/events/aggregate\" endpoint.";
+    return "Groups e2e tests for \"/analytics\" aggregate endpoint.";
   }
 
   @Override

@@ -27,11 +27,67 @@
  */
 package org.hisp.dhis.analytics.generator;
 
-import org.hisp.dhis.analytics.generator.impl.AnalyticsAggregatedTestGenerator;
+/** Provides basic methods required by test generator implementers. */
+public interface Generator {
+  /**
+   * Defines the numbers of methods that each generated class will have. Classes, with a very large
+   * amount of lines, are not allowed by the JVM.
+   *
+   * @return the numbers of test methods per class.
+   */
+  int getMaxTestsPerClass();
 
-/** This class simply hold the generator implementation to be used during the code generation. */
-public class Generator {
-  static TestGenerator get() {
-    return new AnalyticsAggregatedTestGenerator();
+  /**
+   * The action used for the respective suite of tests. ie:
+   *
+   * <p>"aggregate", "query", etc.
+   *
+   * @return the action.
+   */
+  String getAction();
+
+  /**
+   * Just a prefix for the generated class.
+   *
+   * @return the class prefix.
+   */
+  String getClassNamePrefix();
+
+  /**
+   * The default file where the input tests wil be read from.
+   *
+   * @return the file name.
+   */
+  default String getFile() {
+    return "test-urls.txt";
   }
+
+  /**
+   * Just a comment to be added to the generated class at class level.
+   *
+   * @return the class comment.
+   */
+  String getTopClassComment();
+
+  /**
+   * The declaration of the test action. ie:
+   *
+   * <p>private final AnalyticsEnrollmentsActions actions = new AnalyticsEnrollmentsActions();
+   *
+   * @return the action to be used in the respective test class.
+   */
+  String getActionDeclaration();
+
+  /**
+   * The package where the test will live.
+   *
+   * @return the full package.
+   */
+  String getPackage();
+
+  /** If "true", the request URL must not skip the metadata. */
+  boolean assertMetaData();
+
+  /** If "true", this will assert rows in the exact order based on the index. */
+  boolean assertRowIndex();
 }

@@ -55,7 +55,7 @@ import org.apache.http.client.fluent.Request;
 /** Helper class that provides auxiliary methods for the test generation. */
 public class GeneratorHelper {
   /** Sets the generator implementation to be executed. */
-  static final TestGenerator GEN = Generator.get();
+  static final Generator GEN = TestGenerator.get();
 
   /** Test generation parameters. */
   static final int MAX_TESTS_PER_CLASS = GEN.getMaxTestsPerClass();
@@ -137,34 +137,42 @@ public class GeneratorHelper {
     String testDeclaration = "@Test\n public void " + name + "() throws JSONException {\n";
 
     StringBuilder params = buildTestParams(url);
-    String program = getProgram(url);
+    String dimensionUid = getTargetDim(url);
 
     String testTarget = "\n// When \nApiResponse response = actions.get(params);\n";
 
-    if (isNotBlank(program)) {
+    // If a target dimension is present, it should be used as part of the action call.
+    if (isNotBlank(dimensionUid)) {
       testTarget =
           "\n// When\n ApiResponse response = actions."
               + ACTION
               + "().get(\""
-              + program
+              + dimensionUid
               + "\", JSON, JSON, params);\n";
     }
 
-    ReadContext ctx = JsonPath.parse(getResponseValues(url));
+    String response = getResponse(url);
 
-    String headersAssertion = buildHeadersAssertion(ctx);
-    String responseAssertions = buildResponseAssertion(ctx);
-    String metaDataAssertion = buildMetaDataAssertion(ctx);
-    String rowsAssertion = buildRowsAssertion(ctx);
+    if (isNotBlank(response)) {
+      ReadContext ctx = JsonPath.parse(getResponse(url));
 
-    return testDeclaration
-        + params
-        + testTarget
-        + responseAssertions
-        + metaDataAssertion
-        + headersAssertion
-        + rowsAssertion
-        + "}";
+      String headersAssertion = buildHeadersAssertion(ctx);
+      String responseAssertions = buildResponseAssertion(ctx);
+      String metaDataAssertion = buildMetaDataAssertion(ctx);
+      String rowsAssertion = buildRowsAssertion(ctx);
+
+      return testDeclaration
+          + params
+          + testTarget
+          + responseAssertions
+          + metaDataAssertion
+          + headersAssertion
+          + rowsAssertion
+          + "}";
+    } else {
+      System.err.println("## No Response. Check the URL requested.");
+      return EMPTY;
+    }
   }
 
   /**
@@ -306,11 +314,17 @@ public class GeneratorHelper {
     return urlMap;
   }
 
-  private static String getProgram(String url) {
+  private static String getTargetDim(String url) {
     return substringAfterLast(substringBetween(url, "/", ".json"), "/");
   }
 
-  private static String getResponseValues(String url) {
+  /**
+   * This method will authenticate and send a request based on the given "url".
+   *
+   * @param url the URL to query.
+   * @return the HTTP response for the request.
+   */
+  private static String getResponse(String url) {
     String auth = "admin:district";
     byte[] encodedAuth = encodeBase64(auth.getBytes(ISO_8859_1));
     String authHeader = "Basic " + new String(encodedAuth);

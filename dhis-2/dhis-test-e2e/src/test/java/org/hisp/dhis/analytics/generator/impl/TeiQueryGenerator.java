@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.analytics.generator.impl;
 
-import org.hisp.dhis.analytics.generator.TestGenerator;
+import org.hisp.dhis.analytics.generator.Generator;
 
 /**
- * Set of behaviour and settings required by the test generation of "/analytics/events/query"
- * endpoint.
+ * Set of behaviour and settings required by the test generation of
+ * "/analytics/trackedEntities/query/{trackedEntityType}?" endpoint.
  */
-public class EventQueryTestGenerator implements TestGenerator {
+public class TeiQueryGenerator implements Generator {
   @Override
   public int getMaxTestsPerClass() {
     return 4;
@@ -46,22 +46,22 @@ public class EventQueryTestGenerator implements TestGenerator {
 
   @Override
   public String getClassNamePrefix() {
-    return "EventsQuery";
+    return "TeiQuery";
   }
 
   @Override
   public String getActionDeclaration() {
-    return "private final AnalyticsEventActions actions = new AnalyticsEventActions();";
+    return "private AnalyticsTeiActions actions = new AnalyticsTeiActions();";
   }
 
   @Override
   public String getPackage() {
-    return "org.hisp.dhis.analytics.event.query";
+    return "org.hisp.dhis.analytics.tei";
   }
 
   @Override
   public String getTopClassComment() {
-    return "Groups e2e tests for \"/events/query\" endpoint.";
+    return "Groups e2e tests for \"/trackedEntities/query\" endpoint.";
   }
 
   @Override

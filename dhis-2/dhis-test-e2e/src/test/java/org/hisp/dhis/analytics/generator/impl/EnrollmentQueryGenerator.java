@@ -27,38 +27,41 @@
  */
 package org.hisp.dhis.analytics.generator.impl;
 
-import org.hisp.dhis.analytics.generator.TestGenerator;
+import org.hisp.dhis.analytics.generator.Generator;
 
-/** Set of behaviour and settings required by the test generation of "/analytics" endpoint. */
-public class AnalyticsAggregatedTestGenerator implements TestGenerator {
+/**
+ * Set of behaviour and settings required by the test generation of
+ * "/analytics/enrollments/query/{program}?" endpoint.
+ */
+public class EnrollmentQueryGenerator implements Generator {
   @Override
   public int getMaxTestsPerClass() {
-    return 6;
+    return 4;
   }
 
   @Override
   public String getAction() {
-    return "analytics";
+    return "query";
   }
 
   @Override
   public String getClassNamePrefix() {
-    return "AnalyticsQueryDv";
+    return "EnrollmentsQuery";
   }
 
   @Override
   public String getActionDeclaration() {
-    return "private final RestApiActions actions = new RestApiActions(\"" + getAction() + "\");";
+    return "private final AnalyticsEnrollmentsActions actions = new AnalyticsEnrollmentsActions();";
   }
 
   @Override
   public String getPackage() {
-    return "org.hisp.dhis.analytics.aggregate";
+    return "org.hisp.dhis.analytics.enrollment.query";
   }
 
   @Override
   public String getTopClassComment() {
-    return "Groups e2e tests for \"/analytics\" aggregate endpoint.";
+    return "Groups e2e tests for \"/enrollments/query\" endpoint.";
   }
 
   @Override
@@ -68,6 +71,6 @@ public class AnalyticsAggregatedTestGenerator implements TestGenerator {
 
   @Override
   public boolean assertRowIndex() {
-    return false;
+    return true;
   }
 }

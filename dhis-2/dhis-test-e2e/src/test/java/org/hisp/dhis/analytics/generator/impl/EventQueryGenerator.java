@@ -25,13 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.generator;
+package org.hisp.dhis.analytics.generator.impl;
 
-import org.hisp.dhis.analytics.generator.impl.TeiQueryGenerator;
+import org.hisp.dhis.analytics.generator.Generator;
 
-/** This class simply hold the generator implementation to be used during the code generation. */
-public class TestGenerator {
-  static Generator get() {
-    return new TeiQueryGenerator();
+/**
+ * Set of behaviour and settings required by the test generation of
+ * "/analytics/events/query/{program}?" endpoint.
+ */
+public class EventQueryGenerator implements Generator {
+  @Override
+  public int getMaxTestsPerClass() {
+    return 4;
+  }
+
+  @Override
+  public String getAction() {
+    return "query";
+  }
+
+  @Override
+  public String getClassNamePrefix() {
+    return "EventsQuery";
+  }
+
+  @Override
+  public String getActionDeclaration() {
+    return "private final AnalyticsEventActions actions = new AnalyticsEventActions();";
+  }
+
+  @Override
+  public String getPackage() {
+    return "org.hisp.dhis.analytics.event.query";
+  }
+
+  @Override
+  public String getTopClassComment() {
+    return "Groups e2e tests for \"/events/query\" endpoint.";
+  }
+
+  @Override
+  public boolean assertMetaData() {
+    return true;
+  }
+
+  @Override
+  public boolean assertRowIndex() {
+    return true;
   }
 }
