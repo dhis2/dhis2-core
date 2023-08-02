@@ -70,7 +70,7 @@ class EventSearchParamsTest extends DhisConvenienceTest {
     EventSearchParams params = new EventSearchParams();
 
     QueryFilter filter = new QueryFilter(QueryOperator.EQ, "summer day");
-    params.addAttributeFilter(tea1, filter);
+    params.filterBy(tea1, filter);
 
     assertEquals(Map.of(tea1, List.of(filter)), params.getAttributes());
 
@@ -95,7 +95,7 @@ class EventSearchParamsTest extends DhisConvenienceTest {
     EventSearchParams params = new EventSearchParams();
 
     QueryFilter filter = new QueryFilter(QueryOperator.EQ, "summer day");
-    params.addDataElementFilter(de1, filter);
+    params.filterBy(de1, filter);
 
     assertTrue(params.hasDataElementFilter());
     assertEquals(Map.of(de1, List.of(filter)), params.getDataElements());

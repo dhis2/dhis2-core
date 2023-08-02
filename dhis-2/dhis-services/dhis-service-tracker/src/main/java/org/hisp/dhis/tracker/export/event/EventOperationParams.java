@@ -30,8 +30,10 @@ package org.hisp.dhis.tracker.export.event;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -41,6 +43,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
@@ -139,11 +142,11 @@ public class EventOperationParams {
 
   private Boolean skipEventId;
 
-  /** Comma separated list of data element filters */
-  private String dataElementFilters;
+  /** Data element filters per data element UID. */
+  @Builder.Default private Map<String, List<QueryFilter>> dataElementFilters = new HashMap<>();
 
-  /** Comma separated list of attribute filters */
-  private String attributeFilters;
+  /** Tracked entity attribute filters per attribute UID. */
+  @Builder.Default private Map<String, List<QueryFilter>> attributeFilters = new HashMap<>();
 
   private boolean includeDeleted;
 

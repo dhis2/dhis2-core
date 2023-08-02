@@ -46,9 +46,9 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdSchemes;
@@ -60,7 +60,6 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -74,7 +73,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
@@ -363,7 +361,8 @@ class EventExporterTest extends TrackerTest {
             .orgUnitUid(orgUnit.getUid())
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
-            .dataElementFilters("DATAEL00001:like:%val%")
+            .dataElementFilters(
+                Map.of("DATAEL00001", List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -384,7 +383,8 @@ class EventExporterTest extends TrackerTest {
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
             .programStatus(ProgramStatus.ACTIVE)
-            .dataElementFilters(dataElement.getUid() + ":like:%val%")
+            .dataElementFilters(
+                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -403,7 +403,8 @@ class EventExporterTest extends TrackerTest {
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
             .programType(ProgramType.WITH_REGISTRATION)
-            .dataElementFilters(dataElement.getUid() + ":like:%val%")
+            .dataElementFilters(
+                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -421,7 +422,10 @@ class EventExporterTest extends TrackerTest {
             .orgUnitUid(orgUnit.getUid())
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
-            .dataElementFilters(dataElement.getUid() + ":like:%value00001%")
+            .dataElementFilters(
+                Map.of(
+                    dataElement.getUid(),
+                    List.of(new QueryFilter(QueryOperator.LIKE, "%value00001%"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -439,7 +443,10 @@ class EventExporterTest extends TrackerTest {
             .orgUnitUid(orgUnit.getUid())
             .enrollments(Set.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
-            .dataElementFilters(datael00001.getUid() + ":in:value00001;value00002")
+            .dataElementFilters(
+                Map.of(
+                    datael00001.getUid(),
+                    List.of(new QueryFilter(QueryOperator.IN, "value00001;value00002"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -460,7 +467,9 @@ class EventExporterTest extends TrackerTest {
             .programUid(program.getUid())
             .attributeCategoryCombo("bjDvmb4bfuf")
             .attributeCategoryOptions(Set.of("xYerKDKCefk"))
-            .dataElementFilters(dataElement.getUid() + ":eq:value00001")
+            .dataElementFilters(
+                Map.of(
+                    dataElement.getUid(), List.of(new QueryFilter(QueryOperator.EQ, "value00001"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -702,7 +711,9 @@ class EventExporterTest extends TrackerTest {
             .programUid(program.getUid())
             .attributeCategoryCombo("bjDvmb4bfuf")
             .attributeCategoryOptions(Set.of("xYerKDKCefk"))
-            .dataElementFilters(dataElement.getUid() + ":eq:value00002")
+            .dataElementFilters(
+                Map.of(
+                    dataElement.getUid(), List.of(new QueryFilter(QueryOperator.EQ, "value00002"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -719,7 +730,8 @@ class EventExporterTest extends TrackerTest {
             .orgUnitUid(orgUnit.getUid())
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
-            .dataElementFilters(dataElement.getUid() + ":eq:option1")
+            .dataElementFilters(
+                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.EQ, "option1"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -736,7 +748,10 @@ class EventExporterTest extends TrackerTest {
             .orgUnitUid(orgUnit.getUid())
             .enrollments(Set.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
-            .dataElementFilters(dataElement.getUid() + ":in:option1;option2")
+            .dataElementFilters(
+                Map.of(
+                    dataElement.getUid(),
+                    List.of(new QueryFilter(QueryOperator.IN, "option1;option2"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -753,7 +768,8 @@ class EventExporterTest extends TrackerTest {
             .orgUnitUid(orgUnit.getUid())
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
-            .dataElementFilters(dataElement.getUid() + ":like:%opt%")
+            .dataElementFilters(
+                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "%opt%"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -765,17 +781,17 @@ class EventExporterTest extends TrackerTest {
   void testExportEventsWhenFilteringByNumericDataElements()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement("DATAEL00006");
-    QueryItem queryItem =
-        new QueryItem(
-            dataElement, null, dataElement.getValueType(), null, dataElement.getOptionSet());
-    queryItem.addFilter(new QueryFilter(QueryOperator.LT, "77"));
-    queryItem.addFilter(new QueryFilter(QueryOperator.GT, "8"));
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
             .enrollments(Set.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
-            .dataElementFilters(dataElement.getUid() + ":lt:77:gt:8")
+            .dataElementFilters(
+                Map.of(
+                    dataElement.getUid(),
+                    List.of(
+                        new QueryFilter(QueryOperator.LT, "77"),
+                        new QueryFilter(QueryOperator.GT, "8"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -975,7 +991,12 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .attributeFilters("numericAttr:lt:77:gt:8")
+            .attributeFilters(
+                Map.of(
+                    "numericAttr",
+                    List.of(
+                        new QueryFilter(QueryOperator.LT, "77"),
+                        new QueryFilter(QueryOperator.GT, "8"))))
             .build();
 
     List<String> trackedEntities =
@@ -991,7 +1012,8 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .attributeFilters("toUpdate000:eq:summer day")
+            .attributeFilters(
+                Map.of("toUpdate000", List.of(new QueryFilter(QueryOperator.EQ, "summer day"))))
             .build();
 
     List<String> trackedEntities =
@@ -1008,7 +1030,12 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .attributeFilters("toUpdate000:eq:rainy day,notUpdated0:eq:winter day")
+            .attributeFilters(
+                Map.of(
+                    "toUpdate000",
+                    List.of(new QueryFilter(QueryOperator.EQ, "rainy day")),
+                    "notUpdated0",
+                    List.of(new QueryFilter(QueryOperator.EQ, "winter day"))))
             .build();
 
     List<String> trackedEntities =
@@ -1022,13 +1049,15 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testEnrollmentFilterAttributesWithMultipleFiltersOnTheSameAttribute()
       throws ForbiddenException, BadRequestException {
-    QueryItem item = queryItem("toUpdate000", QueryOperator.LIKE, "day");
-    item.addFilter(new QueryFilter(QueryOperator.LIKE, "in"));
-
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid(orgUnit.getUid())
-            .attributeFilters("toUpdate000:like:day:like:in")
+            .attributeFilters(
+                Map.of(
+                    "toUpdate000",
+                    List.of(
+                        new QueryFilter(QueryOperator.LIKE, "day"),
+                        new QueryFilter(QueryOperator.LIKE, "in"))))
             .build();
 
     List<String> trackedEntities =
@@ -1351,25 +1380,6 @@ class EventExporterTest extends TrackerTest {
 
   private DataElement dataElement(String uid) {
     return dataElementService.getDataElement(uid);
-  }
-
-  private static QueryItem queryItem(String teaUid, QueryOperator operator, String filter) {
-    QueryItem item = queryItem(teaUid);
-    item.addFilter(new QueryFilter(operator, filter));
-    return item;
-  }
-
-  private static QueryItem queryItem(String teaUid) {
-    return queryItem(teaUid, ValueType.TEXT);
-  }
-
-  private static QueryItem queryItem(String teaUid, ValueType valueType) {
-    TrackedEntityAttribute at = new TrackedEntityAttribute();
-    at.setUid(teaUid);
-    at.setValueType(valueType);
-    at.setAggregationType(AggregationType.NONE);
-    return new QueryItem(
-        at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique());
   }
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
