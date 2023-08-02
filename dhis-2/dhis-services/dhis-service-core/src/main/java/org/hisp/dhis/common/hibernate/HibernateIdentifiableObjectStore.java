@@ -122,8 +122,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     String username = user != null ? user.getUsername() : "system-process";
 
     object.setAutoFields();
-
-    object.setAutoFields();
     object.setLastUpdatedBy(user);
 
     if (clearSharing) {
