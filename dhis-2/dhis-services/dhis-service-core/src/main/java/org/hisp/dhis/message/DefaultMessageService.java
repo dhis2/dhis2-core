@@ -497,6 +497,13 @@ public class DefaultMessageService implements MessageService {
     return expectedBaseUrlFormat + MESSAGE_PATH + messageType + "/" + uid;
   }
 
+  /**
+   * Method to remove a trailing '/' if it's the last char.
+   * This step is done as the baseUrl value is taken from the dhis.conf file which
+   * may/may not have a trailing '/' depending on the user.
+   * @param baseUrl base url
+   * @return base url with no trailing '/'
+   */
   private String removeAnyTrailingSlash(@Nonnull String baseUrl) {
     return baseUrl.endsWith("/") ? StringUtils.chop(baseUrl) : baseUrl;
   }

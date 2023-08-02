@@ -138,6 +138,7 @@ class DataSetNotificationServiceTest extends DhisConvenienceTest {
   @Mock private UserSettingService userSettingService;
 
   @Mock private SystemSettingManager systemSettingManager;
+
   @Mock private DhisConfigurationProvider configurationProvider;
 
   @Spy
@@ -168,9 +169,7 @@ class DataSetNotificationServiceTest extends DhisConvenienceTest {
   @Captor private ArgumentCaptor<DataSetNotificationTemplate> templateCaptor;
 
   @Captor private ArgumentCaptor<ArrayList<ProgramMessage>> programMessageCaptor;
-
-  //  @Captor private ArgumentCaptor<MessageConversationParams> conversationParams;
-
+  
   private DataSetNotificationService subject;
 
   @BeforeEach
