@@ -65,7 +65,7 @@ public class OperationParamUtils {
    * Negative lookahead to avoid wrong split when filter value contains colon. It skips colon
    * escaped by slash
    */
-  private static final Pattern FILTER_ITEM_SPLIT =
+  public static final Pattern FILTER_ITEM_SPLIT =
       Pattern.compile("(?<!" + ESCAPE + ")" + DIMENSION_NAME_SEP);
 
   private static final String COMMA_STRING = Character.toString(COMMA_SEPARATOR);
@@ -167,7 +167,7 @@ public class OperationParamUtils {
     return operatorValueQueryFilter(operatorValue[0], operatorValue[1], filter);
   }
 
-  private static QueryFilter operatorValueQueryFilter(String operator, String value, String filter)
+  public static QueryFilter operatorValueQueryFilter(String operator, String value, String filter)
       throws BadRequestException {
     if (StringUtils.isEmpty(operator) || StringUtils.isEmpty(value)) {
       throw new BadRequestException("Query item or filter is invalid: " + filter);
@@ -192,31 +192,6 @@ public class OperationParamUtils {
   }
 
   /**
-   * Parse request parameter to filter data elements using UID, operator and values. Refer to {@link
-   * #parseQueryItem(String, CheckedFunction)} for details on the expected item format.
-   *
-   * @param filterItem query item strings each composed of UID, operator and value
-   * @param uidToQueryItem function to translate the data element UID to a QueryItem
-   * @return query items each of a data element with attached query filters
-   */
-  public static List<QueryItem> parseDataElementQueryItems(
-      String filterItem, CheckedFunction<String, QueryItem> uidToQueryItem)
-      throws BadRequestException {
-    if (StringUtils.isEmpty(filterItem)) {
-      return List.of();
-    }
-
-    List<String> uidOperatorValues = filterList(filterItem);
-
-    List<QueryItem> itemList = new ArrayList<>();
-    for (String uidOperatorValue : uidOperatorValues) {
-      itemList.add(parseQueryItem(uidOperatorValue, uidToQueryItem));
-    }
-
-    return itemList;
-  }
-
-  /**
    * Given an attribute filter list, first, it removes the escape chars in order to be able to split
    * by comma and collect the filter list. Then, it recreates the original filters by restoring the
    * escapes chars if any.
@@ -224,7 +199,7 @@ public class OperationParamUtils {
    * @param filterItem
    * @return a filter list split by comma
    */
-  private static List<String> filterList(String filterItem) {
+  public static List<String> filterList(String filterItem) {
     Map<Integer, Boolean> escapesToRestore = new HashMap<>();
 
     StringBuilder filterListToEscape = new StringBuilder(filterItem);

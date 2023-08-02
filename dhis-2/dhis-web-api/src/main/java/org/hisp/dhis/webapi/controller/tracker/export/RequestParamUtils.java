@@ -27,17 +27,25 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.tracker.export.OperationParamUtils;
 
 /**
  * RequestParamUtils are functions used to parse and transform tracker request parameters. This
@@ -156,6 +164,67 @@ public class RequestParamUtils {
           String.format(
               "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
               orgUnitMode));
+    }
+  }
+
+  /**
+   * Parse given {@code input} string representing a filter for an object referenced by a UID like a
+   * tracked entity attribute or data element. Refer to {@link #parseSanitizedFilters(Map, String)}}
+   * for details on the expected input format.
+   *
+   * @return filters by UIDs
+   */
+  public static Map<String, List<QueryFilter>> parseFilters(String input)
+      throws BadRequestException {
+    Map<String, List<QueryFilter>> result = new HashMap<>();
+    if (StringUtils.isBlank(input)) {
+      return result;
+    }
+
+    for (String uidOperatorValue : OperationParamUtils.filterList(input)) {
+      parseSanitizedFilters(result, uidOperatorValue);
+    }
+    return result;
+  }
+
+  /**
+   * Accumulate {@link QueryFilter}s per UID by parsing given input string of format
+   * {uid}:{operator}:{value}[:{operator}:{value}]. Only the UID is mandatory. Multiple
+   * operator:value pairs are allowed. A {@link QueryFilter} for each operator:value pair is added
+   * to the corresponding UID.
+   *
+   * @throws BadRequestException filter is neither multiple nor single operator:value format
+   */
+  private static void parseSanitizedFilters(Map<String, List<QueryFilter>> result, String input)
+      throws BadRequestException {
+    int uidIndex = input.indexOf(DIMENSION_NAME_SEP) + 1;
+
+    if (uidIndex == 0 || input.length() == uidIndex) {
+      String uid = input.replace(DIMENSION_NAME_SEP, "");
+      result.putIfAbsent(uid, new ArrayList<>());
+      return;
+    }
+
+    String uid = input.substring(0, uidIndex - 1);
+    result.putIfAbsent(uid, new ArrayList<>());
+
+    String[] filters = OperationParamUtils.FILTER_ITEM_SPLIT.split(input.substring(uidIndex));
+
+    // single operator
+    if (filters.length == 2) {
+      result
+          .get(uid)
+          .add(OperationParamUtils.operatorValueQueryFilter(filters[0], filters[1], input));
+    }
+    // multiple operator
+    else if (filters.length == 4) {
+      for (int i = 0; i < filters.length; i += 2) {
+        result
+            .get(uid)
+            .add(OperationParamUtils.operatorValueQueryFilter(filters[i], filters[i + 1], input));
+      }
+    } else {
+      throw new BadRequestException("Query item or filter is invalid: " + input);
     }
   }
 }

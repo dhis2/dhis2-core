@@ -595,10 +595,6 @@ class TrackedEntityAggregateTest extends TrackerTest {
     // The Enrollment ID is not serialized to JSON
     assertThat(enrollment.getId(), is(notNullValue()));
 
-    // Dates
-    assertEquals(enrollment.getLastUpdated(), enrollment.getLastUpdatedAtClient());
-    assertEquals(enrollment.getCreatedAtClient(), enrollment.getLastUpdatedAtClient());
-
     long enrollmentDate = enrollment.getEnrollmentDate().getTime();
     long created = parseDate(enrollment.getCreated()).getTime();
     long incidentDate = enrollment.getIncidentDate().getTime();

@@ -225,8 +225,8 @@ public class EventSearchParams {
   }
 
   /**
-   * Returns true if any data element filter has been added using {@link
-   * #addDataElementFilter(DataElement, QueryFilter)}.
+   * Returns true if any data element filter has been added using {@link #filterBy(DataElement,
+   * QueryFilter)}.
    */
   public boolean hasDataElementFilter() {
     return this.hasDataElementFilter;
@@ -551,18 +551,18 @@ public class EventSearchParams {
     return this.dataElements;
   }
 
-  public EventSearchParams addAttributeFilter(TrackedEntityAttribute tea, QueryFilter filter) {
+  public EventSearchParams filterBy(TrackedEntityAttribute tea, QueryFilter filter) {
     this.attributes.putIfAbsent(tea, new ArrayList<>());
     this.attributes.get(tea).add(filter);
     return this;
   }
 
-  public EventSearchParams addAttribute(TrackedEntityAttribute tea) {
+  public EventSearchParams filterBy(TrackedEntityAttribute tea) {
     this.attributes.putIfAbsent(tea, new ArrayList<>());
     return this;
   }
 
-  public EventSearchParams addDataElementFilter(DataElement de, QueryFilter filter) {
+  public EventSearchParams filterBy(DataElement de, QueryFilter filter) {
     this.dataElements.putIfAbsent(de, new ArrayList<>());
     this.dataElements.get(de).add(filter);
     this.hasDataElementFilter = true;
