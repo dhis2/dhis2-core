@@ -140,8 +140,7 @@ class DataSetNotificationServiceTest extends DhisConvenienceTest {
 
   @Mock private DhisConfigurationProvider configurationProvider;
 
-  @Mock
-  private List<MessageSender> messageSenders;
+  @Mock private List<MessageSender> messageSenders;
 
   @InjectMocks private DefaultMessageService internalMessageService;
 
