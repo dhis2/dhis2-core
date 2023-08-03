@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.message;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.util.TextUtils.LN;
+import static org.hisp.dhis.commons.util.TextUtils.removeAnyTrailingSlash;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -73,7 +75,7 @@ public class DefaultMessageService implements MessageService {
 
   private static final String MESSAGE_EMAIL_FOOTER_TEMPLATE = "message_email_footer";
 
-  private static final String MESSAGE_PATH = "/dhis-web-messaging/readMessage.action";
+  private static final String MESSAGE_PATH = "/dhis-web-messaging/#/";
 
   // -------------------------------------------------------------------------
   // Dependencies
@@ -214,7 +216,7 @@ public class DefaultMessageService implements MessageService {
 
     params.getRecipients().stream()
         .filter(r -> !r.equals(params.getSender()))
-        .forEach((recipient) -> conversation.addUserMessage(new UserMessage(recipient, false)));
+        .forEach(recipient -> conversation.addUserMessage(new UserMessage(recipient, false)));
 
     if (params.getSender() != null) {
       conversation.addUserMessage(new UserMessage(params.getSender(), true));
@@ -510,9 +512,16 @@ public class DefaultMessageService implements MessageService {
 
     locale = ObjectUtils.firstNonNull(locale, LocaleManager.DEFAULT_LOCALE);
 
-    values.put("responseUrl", baseUrl + MESSAGE_PATH + "?id=" + conversation.getUid());
+    values.put(
+        "responseUrl", constructUrl(baseUrl, conversation.getMessageType(), conversation.getUid()));
     values.put("i18n", i18nManager.getI18n(locale));
 
     return new VelocityManager().render(values, MESSAGE_EMAIL_FOOTER_TEMPLATE);
+  }
+
+  private Object constructUrl(
+      @Nonnull String baseUrl, @Nonnull MessageType messageType, @Nonnull String uid) {
+    String expectedBaseUrlFormat = removeAnyTrailingSlash(baseUrl);
+    return expectedBaseUrlFormat + MESSAGE_PATH + messageType + "/" + uid;
   }
 }
