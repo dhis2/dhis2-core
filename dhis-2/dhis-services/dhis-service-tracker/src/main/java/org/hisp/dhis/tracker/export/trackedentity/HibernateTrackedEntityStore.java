@@ -95,6 +95,7 @@ import org.springframework.stereotype.Repository;
 class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<TrackedEntity>
     implements TrackedEntityStore {
 
+  private static final String DEFAULT_ORDER = "TE.trackedentityid ASC";
   private static final String OFFSET = "OFFSET";
 
   private static final String LIMIT = "LIMIT";
@@ -115,10 +116,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private static final String EV_STATUS = "EV.status";
 
-  private static final String UID_VALUE_SEPARATOR = ":";
-
-  private static final String UID_VALUE_PAIR_SEPARATOR = ";@//@;";
-  public static final String SELECT_COUNT_INSTANCE_FROM = "SELECT count(instance) FROM ( ";
+  private static final String SELECT_COUNT_INSTANCE_FROM = "SELECT count(instance) FROM ( ";
 
   // -------------------------------------------------------------------------
   // Dependencies
@@ -130,7 +128,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private final SystemSettingManager systemSettingManager;
 
-  // TODO too many arguments in constructor. This needs to be refactored.
   public HibernateTrackedEntityStore(
       SessionFactory sessionFactory,
       JdbcTemplate jdbcTemplate,
@@ -196,14 +193,14 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   @Override
-  public int getTrackedEntityCountForGrid(TrackedEntityQueryParams params) {
+  public int getTrackedEntityCount(TrackedEntityQueryParams params) {
     String sql = getCountQuery(params);
     log.debug("Tracked entity count SQL: " + sql);
     return jdbcTemplate.queryForObject(sql, Integer.class);
   }
 
   @Override
-  public int getTrackedEntityCountForGridWithMaxTeiLimit(TrackedEntityQueryParams params) {
+  public int getTrackedEntityCountForWithMaxTeiLimit(TrackedEntityQueryParams params) {
     String sql = getCountQueryWithMaxTeiLimit(params);
     log.debug("Tracked entity count SQL: " + sql);
     return jdbcTemplate.queryForObject(sql, Integer.class);
@@ -244,17 +241,17 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * indicates the te must be enrolled in that program. Since the relation between te and
    * enrollments are not 1:1, but 1:many, we use exists to avoid duplicate rows of te, allowing us
    * to avoid grouping the result before we order and limit. This saves a lot of time. NOTE: Within
-   * the program_constraint, we also have a subquery to deal with any event-related constraints.
+   * the program_constraint, we also have a sub-query to deal with any event-related constraints.
    * These can either be constraints on any static properties, or user assignment. For user
    * assignment, we also join with the userinfo table. For events, we have an index (status,
    * executiondate) which speeds up the lookup significantly order: Order is used both in the
-   * subquery and the main query. The sort depends on the params (see more info on the related
-   * method). We order the subquery to make sure we get correct results before we limit. We order
+   * sub-query and the main query. The sort depends on the params (see more info on the related
+   * method). We order the sub-query to make sure we get correct results before we limit. We order
    * the main query since the aggregation mixes up the order, so to return a consistent order, we
    * order again. limit_offset: The limit and offset is set based on a combination of params:
    * program and tet can have a maxte limit, which only applies during a search outside the users
    * capture scope. If applied, it will throw an error if the number of results exceeds the limit.
-   * Otherwise we use paging. If no paging is set, there is no limit. additional_information: Here
+   * Otherwise, we use paging. If no paging is set, there is no limit. additional_information: Here
    * we do a left join with any relevant information needed for the result: tet name, any attributes
    * to project, etc. We left join, since we don't want to reduce the results, just add information.
    * main_groupby: The purpose of this group by, is to aggregate any attributes added in
@@ -274,10 +271,9 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return stringBuilder
         .append(", TE.trackedentityid AS teId ")
         .append("FROM ")
-        .append(getFromSubQuery(params, false, false))
+        .append(getFromSubQuery(params, false))
         .append(getQueryRelatedTables(params))
-        .append(getQueryGroupBy(params))
-        .append(getQueryOrderBy(false, params, false))
+        .append(getQueryOrderBy(params, false))
         .toString();
   }
 
@@ -292,9 +288,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return SELECT_COUNT_INSTANCE_FROM
         + getQuerySelect(params)
         + "FROM "
-        + getFromSubQuery(params, true, true)
+        + getFromSubQuery(params, true)
         + getQueryRelatedTables(params)
-        + getQueryGroupBy(params)
         + " ) tecount";
   }
 
@@ -309,9 +304,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return SELECT_COUNT_INSTANCE_FROM
         + getQuerySelect(params)
         + "FROM "
-        + getFromSubQuery(params, true, true)
+        + getFromSubQuery(params, true)
         + getQueryRelatedTables(params)
-        + getQueryGroupBy(params)
         + (params.getProgram().getMaxTeiCountToReturn() > 0
             ? getLimitClause(params.getProgram().getMaxTeiCountToReturn() + 1)
             : "")
@@ -319,8 +313,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /**
-   * Generates the projection of the main query. Includes two optional columns, deleted and
-   * tea_values
+   * Generates the projection of the main query
    *
    * @return an SQL projection
    */
@@ -336,14 +329,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
                 "TET.uid AS " + TRACKED_ENTITY_TYPE_ID,
                 "TE.inactive AS " + INACTIVE_ID,
                 "TE.potentialduplicate AS " + POTENTIAL_DUPLICATE,
-                params.isIncludeDeleted() ? "TE.deleted AS " + DELETED : "",
-                params.hasAttributes()
-                    ? "string_agg(TEA.uid || '"
-                        + UID_VALUE_SEPARATOR
-                        + "' || TEAV.value, '"
-                        + UID_VALUE_PAIR_SEPARATOR
-                        + "') AS tea_values"
-                    : ""));
+                params.isIncludeDeleted() ? "TE.deleted AS " + DELETED : ""));
 
     params.getOrders().stream()
         .map(o -> findColumn(o.getField()))
@@ -354,13 +340,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /**
-   * Generates the SQL of the subquery, used to find the correct subset of tracked entity instances
-   * to return. Orchestrates all the different segments of the SQL into a complete subquery.
+   * Generates the SQL of the sub-query, used to find the correct subset of tracked entity instances
+   * to return. Orchestrates all the different segments of the SQL into a complete sub-query.
    *
-   * @return an SQL subquery
+   * @return an SQL sub-query
    */
-  private String getFromSubQuery(
-      TrackedEntityQueryParams params, boolean isCountQuery, boolean isGridQuery) {
+  private String getFromSubQuery(TrackedEntityQueryParams params, boolean isCountQuery) {
     SqlHelper whereAnd = new SqlHelper(true);
     StringBuilder fromSubQuery =
         new StringBuilder()
@@ -384,7 +369,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     if (!isCountQuery) {
       // SORT
       fromSubQuery
-          .append(getQueryOrderBy(true, params, isGridQuery))
+          .append(getQueryOrderBy(params, true))
 
           // LIMIT, OFFSET
           .append(getFromSubQueryLimitAndOffset(params));
@@ -444,10 +429,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /**
-   * Generates the WHERE-clause of the subquery SQL related to tracked entity instances.
+   * Generates the WHERE-clause of the sub-query SQL related to tracked entity instances.
    *
    * @param whereAnd tracking if where has been invoked or not
-   * @return a SQL segment for the WHERE clause used in the subquery
+   * @return a SQL segment for the WHERE clause used in the sub-query
    */
   private String getFromSubQueryTrackedEntityConditions(
       SqlHelper whereAnd, TrackedEntityQueryParams params) {
@@ -539,7 +524,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   /**
    * Generates a single INNER JOIN for searching for an attribute by query strings. Searches are
-   * done using lower() expression, since attribute values are case insensitive. The query search is
+   * done using lower() expression, since attribute values are case-insensitive. The query search is
    * extremely slow compared to alternatives. A query string (Can be multiple) has to match at least
    * 1 attribute value for each attribute we have access to. We use Regex to search, allowing both
    * exact match and with wildcards (EQ or LIKE).
@@ -587,7 +572,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   /**
    * Generates a single INNER JOIN for each attribute we are searching on. We can search by a range
-   * of operators. All searching is using lower() since attribute values are case insensitive.
+   * of operators. All searching is using lower() since attribute values are case-insensitive.
    */
   private String joinAttributeValueWithoutQueryParameter(TrackedEntityQueryParams params) {
     StringBuilder attributes = new StringBuilder();
@@ -632,7 +617,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   /**
    * Generates the LEFT JOINs used for attributes we are ordering by (If any). We use LEFT JOIN to
    * avoid removing any rows if there is no value for a given attribute and te. The result of this
-   * LEFT JOIN is used in the subquery projection, and ordering in the subquery and main query.
+   * LEFT JOIN is used in the sub-query projection, and ordering in the sub-query and main query.
    *
    * @return a SQL LEFT JOIN for attributes used for ordering, or empty string if not attributes is
    *     used in order.
@@ -962,7 +947,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   /**
    * Generates SQL for LEFT JOINing relevant tables with the tracked entities we have in our result.
-   * After the subquery, we know which tracked entities we are returning, but these LEFT JOINs will
+   * After the sub-query, we know which tracked entities we are returning, but these LEFT JOINs will
    * add any extra information we need. For example attribute values, tet uid, tea uid, etc.
    *
    * @return a SQL with several LEFT JOINS, one for each relevant table to retrieve information
@@ -998,97 +983,56 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return relatedTables.toString();
   }
 
-  /**
-   * Generates the GROUP BY clause of the query. This is only needed when we are projecting any
-   * attributes. If any attributes are present we are aggregating them into a string. In case we are
-   * ordering by an attribute, we also need to include that column in the group by.
-   *
-   * @return a SQL GROUP BY clause, or empty string if no attributes are specified.
-   */
-  private String getQueryGroupBy(TrackedEntityQueryParams params) {
-    if (params.getAttributes().isEmpty()) {
-      return "";
-    }
-
-    StringBuilder groupBy =
-        new StringBuilder()
-            .append("GROUP BY TE.trackedentityid, ")
-            .append("TE.uid, ")
-            .append("TE.created, ")
-            .append("TE.lastupdated, ")
-            .append("TE.ou, ")
-            .append("TE.ouname, ")
-            .append("TET.uid, ")
-            .append("TE.potentialduplicate, ")
-            .append("TE.inactive ")
-            .append(params.isIncludeDeleted() ? ", TE.deleted " : "");
-
-    for (QueryItem queryItem : sortableAttributesAndFilters(params)) {
-      groupBy
-          .append(", TE.")
-          .append(statementBuilder.columnQuote(queryItem.getItemId()))
-          .append(SPACE);
-    }
-
-    return groupBy.toString();
-  }
-
   private String getLimitClause(int limit) {
     return "LIMIT " + limit;
   }
 
   /**
-   * Generates the ORDER BY clause. This clause is used both in the subquery and main query. When
-   * using it in the subquery, we want to make sure we get the right tracked entities. When we order
-   * in the main query, it's to make sure we return the results in the correct order, since order
-   * might be mixed after GROUP BY.
+   * Generates the ORDER BY clause. This clause is used both in the sub-query and main query. When
+   * using it in the sub-query, we want to make sure we get the right tracked entities. When we
+   * order in the main query, it's to make sure we return the results in the correct order, since
+   * order might be mixed after GROUP BY.
    *
-   * @param innerOrder indicates whether this is the subquery order by or main query order by
-   * @param isGridQuery indicates whether this is used for grid query or not.
+   * @param innerOrder indicates whether this is the sub-query order by or main query order by
    * @return a SQL ORDER BY clause.
    */
-  private String getQueryOrderBy(
-      boolean innerOrder, TrackedEntityQueryParams params, boolean isGridQuery) {
-    if (!isGridQuery || !params.getAttributes().isEmpty()) {
-      List<String> orderFields = new ArrayList<>();
-      Set<QueryItem> sortableAttributesAndFilters = sortableAttributesAndFilters(params);
+  private String getQueryOrderBy(TrackedEntityQueryParams params, boolean innerOrder) {
+    List<String> orderFields = new ArrayList<>();
+    for (OrderParam order : params.getOrders()) {
+      Optional<TrackedEntityQueryParams.OrderColumn> orderColumn = findColumn(order.getField());
 
-      for (OrderParam order : params.getOrders()) {
-        Optional<TrackedEntityQueryParams.OrderColumn> orderColumn = findColumn(order.getField());
+      if (orderColumn.isPresent()) {
+        String orderField =
+            innerOrder
+                ? orderColumn.get().getSqlColumnWithTableAlias()
+                : orderColumn.get().getSqlColumnWithMainTable();
 
-        if (orderColumn.isPresent()) {
-          String orderField =
-              innerOrder
-                  ? orderColumn.get().getSqlColumnWithTableAlias()
-                  : orderColumn.get().getSqlColumnWithMainTable();
+        orderFields.add(orderField + SPACE + order.getDirection());
+      } else if (sortableAttributesAndFilters(params).stream()
+          .anyMatch(i -> i.getItem().getUid().equals(order.getField()))) {
+        String orderField =
+            innerOrder
+                ? statementBuilder.columnQuote(order.getField()) + ".value "
+                : MAIN_QUERY_ALIAS + "." + statementBuilder.columnQuote(order.getField());
 
-          orderFields.add(orderField + SPACE + order.getDirection());
-        } else if (sortableAttributesAndFilters.stream()
-            .anyMatch(i -> i.getItem().getUid().equals(order.getField()))) {
-          String orderField =
-              innerOrder
-                  ? statementBuilder.columnQuote(order.getField()) + ".value "
-                  : MAIN_QUERY_ALIAS + "." + statementBuilder.columnQuote(order.getField());
-
-          orderFields.add(orderField + SPACE + order.getDirection());
-        }
+        orderFields.add(orderField + SPACE + order.getDirection());
       }
+    }
 
-      if (!orderFields.isEmpty()) {
-        return "ORDER BY " + StringUtils.join(orderFields, ',') + SPACE;
-      }
+    if (!orderFields.isEmpty()) {
+      return "ORDER BY " + StringUtils.join(orderFields, ',') + SPACE;
     }
 
     if (params.getAttributesAndFilters().stream()
         .noneMatch(qi -> qi.hasFilter() && qi.isUnique())) {
-      return "ORDER BY TE.trackedentityid ASC ";
-    } else {
-      return "";
+      return "ORDER BY " + DEFAULT_ORDER + " ";
     }
+
+    return "";
   }
 
   /**
-   * Generates the LIMIT and OFFSET part of the subquery. The limit is decided by several factors:
+   * Generates the LIMIT and OFFSET part of the sub-query. The limit is decided by several factors:
    * 1. maxtelimit in a TET or Program 2. PageSize and Offset 3. No paging
    * (TRACKER_TRACKED_ENTITY_QUERY_LIMIT will apply in this case)
    *
@@ -1099,12 +1043,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    *
    * <p>If we have maxtelimit and paging on, we set the limit to maxtelimit.
    *
-   * <p>If we dont have maxtelimit, and paging on, we set normal paging parameters
+   * <p>If we don't have maxtelimit, and paging on, we set normal paging parameters
    *
-   * <p>If neither maxtelimit or paging is set, we have no limit set by the user, so system will set
-   * the limit to TRACKED_ENTITY_MAX_LIMIT which can be configured in system settings.
+   * <p>If neither maxtelimit nor paging is set, we have no limit set by the user, so system will
+   * set the limit to TRACKED_ENTITY_MAX_LIMIT which can be configured in system settings.
    *
-   * <p>The limit is set in the subquery, so the latter joins have fewer rows to consider.
+   * <p>The limit is set in the sub-query, so the latter joins have fewer rows to consider.
    *
    * @return a SQL LIMIT and OFFSET clause, or empty string if no LIMIT can be deducted.
    */

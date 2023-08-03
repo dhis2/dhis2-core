@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -74,10 +73,6 @@ public class TrackedEntityQueryParams {
   public static final String INACTIVE_ID = "inactive";
 
   public static final String DELETED = "deleted";
-
-  public static final String META_DATA_NAMES_KEY = "names";
-
-  public static final String PAGER_META_KEY = "pager";
 
   public static final String POTENTIAL_DUPLICATE = "potentialduplicate";
 
@@ -240,35 +235,6 @@ public class TrackedEntityQueryParams {
   public TrackedEntityQueryParams addOrganisationUnit(OrganisationUnit unit) {
     this.orgUnits.add(unit);
     return this;
-  }
-
-  /**
-   * Performs a set of operations on this params.
-   *
-   * <ul>
-   *   <li>If a query item is specified as an attribute item as well as a filter item, the filter
-   *       item will be removed. In that case, if the attribute item does not have any filters and
-   *       the filter item has one or more filters, these will be applied to the attribute item.
-   * </ul>
-   */
-  public void conform() {
-    Iterator<QueryItem> filterIter = filters.iterator();
-
-    while (filterIter.hasNext()) {
-      QueryItem filter = filterIter.next();
-
-      int index = attributes.indexOf(filter); // Filter present as attr
-
-      if (index >= 0) {
-        QueryItem attribute = attributes.get(index);
-
-        if (!attribute.hasFilter() && filter.hasFilter()) {
-          attribute.getFilters().addAll(filter.getFilters());
-        }
-
-        filterIter.remove();
-      }
-    }
   }
 
   /**
@@ -498,11 +464,6 @@ public class TrackedEntityQueryParams {
   /** Indicates whether this parameters specifies an event end date. */
   public boolean hasEventEndDate() {
     return eventEndDate != null;
-  }
-
-  /** Indicates whether this parameters specifies a user. */
-  public boolean hasUser() {
-    return user != null;
   }
 
   /** Check whether we are filtering for potential duplicate property. */

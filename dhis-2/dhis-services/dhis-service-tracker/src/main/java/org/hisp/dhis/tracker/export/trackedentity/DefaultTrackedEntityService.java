@@ -702,7 +702,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   private void checkIfMaxTeiLimitIsReached(TrackedEntityQueryParams params, int maxTeiLimit) {
     if (maxTeiLimit > 0) {
-      int teCount = trackedEntityStore.getTrackedEntityCountForGridWithMaxTeiLimit(params);
+      int teCount = trackedEntityStore.getTrackedEntityCountForWithMaxTeiLimit(params);
 
       if (teCount > maxTeiLimit) {
         throw new IllegalQueryException("maxteicountreached");
@@ -726,7 +726,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
     // using countForGrid here to leverage the better performant rewritten
     // sql query
-    return trackedEntityStore.getTrackedEntityCountForGrid(params);
+    return trackedEntityStore.getTrackedEntityCount(params);
   }
 
   /**
