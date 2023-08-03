@@ -39,7 +39,6 @@ import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -52,7 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
@@ -537,55 +535,15 @@ class EventRequestParamsMapperTest {
   }
 
   @Test
-  void shouldFailGivenInvalidOrderComponents() {
-    String invalidUID = "Cogn34Del";
-    assertFalse(CodeGenerator.isValidUid(invalidUID));
-
+  void shouldFailGivenInvalidOrderFieldName() {
     RequestParams requestParams = new RequestParams();
     requestParams.setOrder(
-        OrderCriteria.fromOrderString(
-            "unsupportedProperty1:asc,enrolledAt:asc,"
-                + invalidUID
-                + ",unsupportedProperty2:desc"));
+        OrderCriteria.fromOrderString("unsupportedProperty1:asc,enrolledAt:asc"));
 
     Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
     assertAll(
         () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
-        // order of fields might not always be the same; therefore using contains
-        () -> assertContains(invalidUID, exception.getMessage()),
-        () -> assertContains("unsupportedProperty1", exception.getMessage()),
-        () -> assertContains("unsupportedProperty2", exception.getMessage()));
-  }
-
-  @Test
-  void shouldMapGivenInvalidOrderNameWhichIsAValidUIDToUID() throws BadRequestException {
-    // This test case shows that some field names are valid UIDs. We can thus not rule out all
-    // invalid field names and UIDs at this stage as we do not have access to data element/attribute
-    // services. Such invalid order values will be caught in the
-    // service (mapper).
-    assertTrue(CodeGenerator.isValidUid("lastUpdated"));
-
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrder(OrderCriteria.fromOrderString("lastUpdated:desc"));
-
-    EventOperationParams params = mapper.map(requestParams);
-
-    assertEquals(List.of(new Order(UID.of("lastUpdated"), SortDirection.DESC)), params.getOrder());
-  }
-
-  @Test
-  void shouldFailWhenOrderParameterContainsRepeatedOrderComponents() {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrder(
-        OrderCriteria.fromOrderString(
-            "zGlzbfreTOH,createdAt:asc,enrolledAt:asc,enrolledAt,zGlzbfreTOH"));
-
-    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
-    assertAll(
-        () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
-        // order of fields might not always be the same; therefore using contains
-        () -> assertContains("enrolledAt", exception.getMessage()),
-        () -> assertContains("zGlzbfreTOH", exception.getMessage()));
+        () -> assertContains("unsupportedProperty1", exception.getMessage()));
   }
 
   @Test

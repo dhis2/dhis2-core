@@ -35,17 +35,14 @@ import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrderParams;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
@@ -103,7 +100,8 @@ class EventRequestParamsMapper {
             requestParams.getAssignedUsers());
 
     validateUpdateDurationParams(requestParams);
-    validateOrderParams(requestParams.getOrder());
+    validateOrderParams(
+        ORDERABLE_FIELD_NAMES, "data element and attribute", requestParams.getOrder());
 
     EventOperationParamsBuilder builder =
         EventOperationParams.builder()
@@ -160,46 +158,6 @@ class EventRequestParamsMapper {
   private static void validateFilter(String filter, Set<UID> eventIds) throws BadRequestException {
     if (!CollectionUtils.isEmpty(eventIds) && !StringUtils.isEmpty(filter)) {
       throw new BadRequestException("Event UIDs and filters can not be specified at the same time");
-    }
-  }
-
-  private void validateOrderParams(List<OrderCriteria> order) throws BadRequestException {
-    if (order == null || order.isEmpty()) {
-      return;
-    }
-
-    Set<String> invalidOrderComponents =
-        order.stream().map(OrderCriteria::getField).collect(Collectors.toSet());
-    invalidOrderComponents.removeAll(ORDERABLE_FIELD_NAMES);
-    Set<String> uids =
-        invalidOrderComponents.stream()
-            .filter(CodeGenerator::isValidUid)
-            .collect(Collectors.toSet());
-    invalidOrderComponents.removeAll(uids);
-
-    if (!invalidOrderComponents.isEmpty()) {
-      throw new BadRequestException(
-          String.format(
-              "order parameter is invalid. `%s` are either unsupported fields and/or invalid UID(s). Supported are data element and attribute UIDs and fields `%s`",
-              String.join(", ", invalidOrderComponents),
-              String.join(", ", ORDERABLE_FIELD_NAMES.stream().sorted().toList())));
-    }
-
-    Set<String> duplicateOrderComponents =
-        order.stream()
-            .map(OrderCriteria::getField)
-            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
-            .entrySet()
-            .stream()
-            .filter(e -> e.getValue() > 1)
-            .map(Entry::getKey)
-            .collect(Collectors.toSet());
-
-    if (!duplicateOrderComponents.isEmpty()) {
-      throw new BadRequestException(
-          String.format(
-              "order parameter is invalid. `%s` are repeated. Data element and attribute UIDs and fields should only be specified once.",
-              String.join(", ", duplicateOrderComponents)));
     }
   }
 
