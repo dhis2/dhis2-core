@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi;
 
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -36,12 +37,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A helper to build jackson {@link ObjectNode} and {@link ArrayNode}s from java collections and
@@ -49,6 +51,7 @@ import java.util.Objects;
  *
  * @author Jan Bernitt
  */
+@Slf4j
 public final class JsonBuilder {
   public enum Preference {
     SKIP_NULL_MEMBERS,
@@ -122,7 +125,7 @@ public final class JsonBuilder {
 
   private JsonNode toElement(Object e) {
     if (e instanceof Object[]) {
-      return jackson.valueToTree(cleanValue(((Object[]) e)[0]));
+      return toJsonNode(((Object[]) e)[0]);
     } else if (e instanceof Collection && ((Collection<?>) e).size() == 1) {
       return jackson.valueToTree(((Collection<?>) e).iterator().next());
     }
@@ -135,41 +138,76 @@ public final class JsonBuilder {
 
   public ObjectNode toObject(List<String> fields, Collection<?> values) {
     ObjectNode obj = jackson.createObjectNode();
-    Map<String, ObjectNode> memberObjectsByName = new HashMap<>();
     Iterator<?> iter = values.iterator();
     for (String field : fields) {
       Object value = iter.hasNext() ? iter.next() : null;
-      addMember(obj, field, value, memberObjectsByName);
+      addMember(obj, field, value);
     }
     return obj;
   }
 
-  private void addMember(
-      ObjectNode obj, String name, Object value, Map<String, ObjectNode> memberObjectsByName) {
+  private void addMember(ObjectNode obj, String name, Object value) {
     if (!skipValue(value)) {
-      JsonNode node = jackson.valueToTree(cleanValue(value));
       if (name.contains(".")) {
-        String member = name.substring(0, name.indexOf('.'));
-        ObjectNode memberNode =
-            memberObjectsByName.computeIfAbsent(member, key -> jackson.createObjectNode());
-        obj.set(member, memberNode);
-        memberNode.set(name.substring(name.indexOf('.') + 1), node);
-      } else {
-        if (memberObjectsByName.containsKey(name) && node.isObject()) {
-          ObjectNode memberNode = memberObjectsByName.get(name);
-          memberNode.setAll((ObjectNode) node);
+        String parentName = name.substring(0, name.indexOf('.'));
+        String childName = name.substring(name.indexOf('.') + 1);
+        JsonNode parent = obj.get(parentName);
+        if (parent == null)
+          parent =
+              value instanceof Object[] ? jackson.createArrayNode() : jackson.createObjectNode();
+        obj.set(parentName, parent);
+        if (parent instanceof ArrayNode) {
+          ArrayNode arr = (ArrayNode) parent;
+          if (value instanceof Object[]) {
+            Object[] values = (Object[]) value;
+            for (int i = 0; i < values.length; i++) {
+              JsonNode child = arr.get(i);
+              if (child == null) {
+                child = jackson.createObjectNode();
+                arr.add(child);
+              }
+              if (child instanceof ObjectNode) {
+                addMemberToObject((ObjectNode) child, childName, toJsonNode(values[i]));
+              } else if (child instanceof ArrayNode) {
+                ((ArrayNode) child).add(toJsonNode(values[i]));
+              } else {
+                arr.set(i, toJsonNode(values[i])); // override
+              }
+            }
+          } else {
+            arr.add(toJsonNode(value));
+          }
+        } else if (parent instanceof ObjectNode) {
+          ((ObjectNode) parent).set(childName, toJsonNode(value));
         } else {
-          obj.set(name, node);
+          addMemberToObject(obj, name, toJsonNode(value));
         }
+      } else {
+        addMemberToObject(obj, name, toJsonNode(value));
       }
+    }
+  }
+
+  private static void addMemberToObject(ObjectNode obj, String name, JsonNode node) {
+    JsonNode memberNode = obj.get(name);
+    if (memberNode != null) {
+      if (node.isObject() && memberNode.isObject()) {
+        ((ObjectNode) memberNode).setAll((ObjectNode) node);
+      } else {
+        log.warn(
+            format(
+                "Cannot join properties of same name: %s, %s",
+                memberNode.toPrettyString(), node.toPrettyString()));
+      }
+    } else {
+      obj.set(name, node);
     }
   }
 
   public ObjectNode toObject(Map<String, ?> members) {
     ObjectNode obj = jackson.createObjectNode();
-    Map<String, ObjectNode> memberObjectsByName = new HashMap<>();
     for (Entry<String, ?> member : members.entrySet()) {
-      addMember(obj, member.getKey(), member.getValue(), memberObjectsByName);
+      addMember(obj, member.getKey(), member.getValue());
     }
     return obj;
   }
@@ -192,5 +230,27 @@ public final class JsonBuilder {
       return ((Object[]) value).length == 0 && is(Preference.SKIP_EMPTY_ARRAYS);
     }
     return false;
+  }
+
+  private JsonNode toJsonNode(Object value) {
+    if (value instanceof org.hisp.dhis.jsontree.JsonNode[]) {
+      org.hisp.dhis.jsontree.JsonNode[] nodes = (org.hisp.dhis.jsontree.JsonNode[]) value;
+      ArrayNode arr = jackson.createArrayNode();
+      Stream.of(nodes).forEach(node -> arr.add(readNode(node.getDeclaration())));
+      return arr;
+    }
+    if (value instanceof org.hisp.dhis.jsontree.JsonNode) {
+      org.hisp.dhis.jsontree.JsonNode node = (org.hisp.dhis.jsontree.JsonNode) value;
+      return readNode(node.getDeclaration());
+    }
+    return jackson.valueToTree(cleanValue(value));
+  }
+
+  private JsonNode readNode(String json) {
+    try {
+      return jackson.readTree(json);
+    } catch (Exception ex) {
+      throw new IllegalArgumentException(ex);
+    }
   }
 }

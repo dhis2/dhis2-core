@@ -25,25 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.parser.expression.function;
+package org.hisp.dhis.gist;
 
-import java.util.Arrays;
-import java.util.List;
+import lombok.Data;
+import org.hisp.dhis.query.Junction;
 
 /**
- * Vector function: median
+ * Web API input params for {@link GistQuery}.
  *
- * @author Jim Grace
+ * @author Jan Bernitt
  */
-public class VectorMedian extends VectorFunction<Double> {
-  public VectorMedian() {
-    super(Double.class);
-  }
+@Data
+public final class GistParams {
+  String locale = "";
 
-  private static VectorPercentileCont percentileContinuous = new VectorPercentileCont();
+  GistAutoType auto;
 
-  @Override
-  public Object aggregate(List<Double> values, List<Double> args) {
-    return percentileContinuous.aggregate(values, Arrays.asList(.5));
+  int page = 1;
+
+  int pageSize = 50;
+
+  /**
+   * The name of the property in the response object that holds the list of response objects when a
+   * paged response is used.
+   */
+  String pageListName;
+
+  boolean translate = true;
+
+  boolean inverse = false;
+
+  boolean total = false;
+
+  boolean absoluteUrls = false;
+
+  boolean headless = false;
+
+  boolean describe = false;
+
+  boolean references = true;
+
+  Junction.Type rootJunction = Junction.Type.AND;
+
+  String fields;
+
+  String filter;
+
+  String order;
+
+  public GistAutoType getAuto(GistAutoType defaultValue) {
+    return auto == null ? defaultValue : auto;
   }
 }

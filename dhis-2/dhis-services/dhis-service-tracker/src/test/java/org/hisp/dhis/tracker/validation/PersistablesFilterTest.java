@@ -67,17 +67,19 @@ class PersistablesFilterTest {
   @Test
   void testCreateAndUpdateValidEntitiesCanBePersisted() {
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .enrollment("t1zaUjKgT3p")
-            .event("Qck4PQ7TMun")
-            .trackedEntity("QxGbKYwChDM")
-            .enrollment("Ok4Fe5moc3N")
-            .event("Ox1qBWsnVwE")
-            .event("jNyGqnwryNi")
-            .relationship("Te3IC6TpnBB", trackedEntity("xK7H53f4Hc2"), trackedEntity("QxGbKYwChDM"))
-            .build();
+    Setup setup = new Setup.Builder()
+        .trackedEntity( "xK7H53f4Hc2" )
+            .enrollment( "t1zaUjKgT3p" )
+                .event( "Qck4PQ7TMun" )
+        .trackedEntity( "QxGbKYwChDM" )
+            .enrollment( "Ok4Fe5moc3N" )
+                .event( "Ox1qBWsnVwE" )
+                .event( "jNyGqnwryNi" )
+        .relationship("Te3IC6TpnBB",
+            trackedEntity("xK7H53f4Hc2"),
+            trackedEntity("QxGbKYwChDM") )
+        .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.CREATE_AND_UPDATE);
@@ -95,18 +97,16 @@ class PersistablesFilterTest {
   @Test
   void testCreateAndUpdateValidEntitiesReferencingParentsNotInPayload() {
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .isInDB()
-            .isNotInPayload()
-            .enrollment("t1zaUjKgT3p")
-            .enrollment("Ok4Fe5moc3N")
-            .isInDB()
-            .isNotInPayload()
-            .event("Ox1qBWsnVwE")
-            .relationship("Te3IC6TpnBB", trackedEntity("xK7H53f4Hc2"), enrollment("Ok4Fe5moc3N"))
+    Setup setup = new Setup.Builder()
+            .trackedEntity( "xK7H53f4Hc2" ).isInDB().isNotInPayload()
+                .enrollment( "t1zaUjKgT3p")
+            .enrollment( "Ok4Fe5moc3N").isInDB().isNotInPayload()
+                .event( "Ox1qBWsnVwE" )
+            .relationship("Te3IC6TpnBB",
+                    trackedEntity("xK7H53f4Hc2"),
+                    enrollment("Ok4Fe5moc3N") )
             .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.CREATE_AND_UPDATE);
@@ -122,15 +122,12 @@ class PersistablesFilterTest {
   @Test
   void testCreateAndUpdateValidEntitiesCanBePersistedIfTheyExist() {
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .isInDB()
-            .enrollment("t1zaUjKgT3p")
-            .isInDB()
-            .event("Qck4PQ7TMun")
-            .isInDB()
-            .build();
+    Setup setup = new Setup.Builder()
+        .trackedEntity( "xK7H53f4Hc2" ).isInDB()
+        .enrollment( "t1zaUjKgT3p" ).isInDB()
+        .event( "Qck4PQ7TMun" ).isInDB()
+        .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.CREATE_AND_UPDATE);
@@ -145,13 +142,11 @@ class PersistablesFilterTest {
   @Test
   void testCreateAndUpdateValidEnrollmentOfInvalidTeiCanBeUpdatedIfTeiExists() {
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .isNotValid()
-            .isInDB()
-            .enrollment("t1zaUjKgT3p")
-            .build();
+    Setup setup = new Setup.Builder()
+        .trackedEntity( "xK7H53f4Hc2" ).isNotValid().isInDB()
+            .enrollment( "t1zaUjKgT3p" )
+        .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.CREATE_AND_UPDATE);
@@ -165,12 +160,11 @@ class PersistablesFilterTest {
   @Test
   void testCreateAndUpdateValidEnrollmentOfInvalidTeiCannotBeUpdatedIfTeiDoesNotExist() {
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .isNotValid()
-            .enrollment("t1zaUjKgT3p")
-            .build();
+    Setup setup = new Setup.Builder()
+        .trackedEntity( "xK7H53f4Hc2" ).isNotValid()
+            .enrollment( "t1zaUjKgT3p" )
+        .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.CREATE_AND_UPDATE);
@@ -190,14 +184,12 @@ class PersistablesFilterTest {
   @Test
   void testCreateAndUpdateValidEventOfInvalidEnrollmentCanBeUpdatedIfEnrollmentExists() {
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .enrollment("t1zaUjKgT3p")
-            .isNotValid()
-            .isInDB()
-            .event("Qck4PQ7TMun")
-            .build();
+    Setup setup = new Setup.Builder()
+        .trackedEntity( "xK7H53f4Hc2" )
+            .enrollment( "t1zaUjKgT3p" ).isNotValid().isInDB()
+                .event( "Qck4PQ7TMun" )
+        .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.CREATE_AND_UPDATE);
@@ -212,13 +204,12 @@ class PersistablesFilterTest {
   @Test
   void testCreateAndUpdateValidEventOfInvalidEnrollmentCannotBeCreatedIfEnrollmentDoesNotExist() {
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .enrollment("t1zaUjKgT3p")
-            .isNotValid()
-            .event("Qck4PQ7TMun")
-            .build();
+    Setup setup = new Setup.Builder()
+        .trackedEntity( "xK7H53f4Hc2" )
+            .enrollment( "t1zaUjKgT3p" ).isNotValid()
+                .event( "Qck4PQ7TMun" )
+        .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.CREATE_AND_UPDATE);
@@ -235,13 +226,12 @@ class PersistablesFilterTest {
   @Test
   void testCreateAndUpdateInvalidEventOfValidEnrollmentCannotBePersisted() {
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .enrollment("t1zaUjKgT3p")
-            .event("Qck4PQ7TMun")
-            .isNotValid()
-            .build();
+    Setup setup = new Setup.Builder()
+        .trackedEntity( "xK7H53f4Hc2" )
+            .enrollment( "t1zaUjKgT3p" )
+                .event( "Qck4PQ7TMun" ).isNotValid()
+        .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.CREATE_AND_UPDATE);
@@ -256,13 +246,15 @@ class PersistablesFilterTest {
   @Test
   void testCreateAndUpdateInvalidRelationshipCannotBePersisted() {
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .trackedEntity("QxGbKYwChDM")
-            .relationship("Te3IC6TpnBB", trackedEntity("xK7H53f4Hc2"), trackedEntity("QxGbKYwChDM"))
-            .isNotValid()
+    Setup setup = new Setup.Builder()
+            .trackedEntity( "xK7H53f4Hc2" )
+            .trackedEntity( "QxGbKYwChDM" )
+            .relationship("Te3IC6TpnBB",
+                    trackedEntity("xK7H53f4Hc2"),
+                    trackedEntity("QxGbKYwChDM")
+                ).isNotValid()
             .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.CREATE_AND_UPDATE);
@@ -276,14 +268,14 @@ class PersistablesFilterTest {
   @Test
   void testCreateAndUpdateValidRelationshipWithInvalidButExistingFrom() {
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .isNotValid()
-            .isInDB()
-            .trackedEntity("QxGbKYwChDM")
-            .relationship("Te3IC6TpnBB", trackedEntity("xK7H53f4Hc2"), trackedEntity("QxGbKYwChDM"))
-            .build();
+    Setup setup = new Setup.Builder()
+        .trackedEntity( "xK7H53f4Hc2" ).isNotValid().isInDB()
+        .trackedEntity( "QxGbKYwChDM" )
+        .relationship("Te3IC6TpnBB",
+            trackedEntity("xK7H53f4Hc2"),
+            trackedEntity("QxGbKYwChDM") )
+        .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.CREATE_AND_UPDATE);
@@ -297,13 +289,14 @@ class PersistablesFilterTest {
   @Test
   void testCreateAndUpdateValidRelationshipWithInvalidFromCannotBeCreated() {
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .enrollment("QxGbKYwChDM")
-            .isNotValid()
-            .relationship("Te3IC6TpnBB", enrollment("QxGbKYwChDM"), trackedEntity("xK7H53f4Hc2"))
+    Setup setup = new Setup.Builder()
+            .trackedEntity( "xK7H53f4Hc2" )
+                .enrollment( "QxGbKYwChDM" ).isNotValid()
+            .relationship("Te3IC6TpnBB",
+                enrollment("QxGbKYwChDM"),
+                trackedEntity("xK7H53f4Hc2") )
             .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.CREATE_AND_UPDATE);
@@ -323,14 +316,15 @@ class PersistablesFilterTest {
   @Test
   void testCreateAndUpdateValidRelationshipWithInvalidToCannotBeCreated() {
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .enrollment("QxGbKYwChDM")
-            .event("QxGbKYwChDM")
-            .isNotValid()
-            .relationship("Te3IC6TpnBB", trackedEntity("xK7H53f4Hc2"), event("QxGbKYwChDM"))
+    Setup setup = new Setup.Builder()
+            .trackedEntity( "xK7H53f4Hc2" )
+                .enrollment( "QxGbKYwChDM" )
+                    .event( "QxGbKYwChDM" ).isNotValid()
+            .relationship("Te3IC6TpnBB",
+                trackedEntity("xK7H53f4Hc2"),
+                event("QxGbKYwChDM") )
             .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.CREATE_AND_UPDATE);
@@ -356,15 +350,15 @@ class PersistablesFilterTest {
     // persisted.
 
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .isNotValid()
-            .enrollment("t1zaUjKgT3p")
-            .isNotValid()
-            .relationship("Te3IC6TpnBB", trackedEntity("xK7H53f4Hc2"), enrollment("t1zaUjKgT3p"))
-            .isNotValid()
-            .build();
+    Setup setup = new Setup.Builder()
+        .trackedEntity( "xK7H53f4Hc2" ).isNotValid()
+        .enrollment( "t1zaUjKgT3p" ).isNotValid()
+        .relationship("Te3IC6TpnBB",
+            trackedEntity("xK7H53f4Hc2"),
+            enrollment("t1zaUjKgT3p")
+        ).isNotValid()
+        .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.CREATE_AND_UPDATE);
@@ -379,17 +373,19 @@ class PersistablesFilterTest {
   @Test
   void testDeleteValidEntitiesCanBeDeleted() {
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .enrollment("t1zaUjKgT3p")
-            .event("Qck4PQ7TMun")
-            .trackedEntity("QxGbKYwChDM")
-            .enrollment("Ok4Fe5moc3N")
-            .event("Ox1qBWsnVwE")
-            .event("jNyGqnwryNi")
-            .relationship("Te3IC6TpnBB", trackedEntity("xK7H53f4Hc2"), trackedEntity("QxGbKYwChDM"))
+    Setup setup = new Setup.Builder()
+            .trackedEntity( "xK7H53f4Hc2" )
+                .enrollment( "t1zaUjKgT3p" )
+                    .event( "Qck4PQ7TMun" )
+            .trackedEntity( "QxGbKYwChDM" )
+                .enrollment( "Ok4Fe5moc3N" )
+                    .event( "Ox1qBWsnVwE" )
+                    .event( "jNyGqnwryNi" )
+            .relationship("Te3IC6TpnBB",
+                trackedEntity("xK7H53f4Hc2"),
+                trackedEntity("QxGbKYwChDM") )
             .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.DELETE);
@@ -407,14 +403,13 @@ class PersistablesFilterTest {
   @Test
   void testDeleteInvalidTrackedEntityCannotBeDeletedButItsChildrenCan() {
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .isNotValid()
-            .enrollment("t1zaUjKgT3p")
-            .event("Qck4PQ7TMun")
-            .event("Ox1qBWsnVwE")
+    Setup setup = new Setup.Builder()
+            .trackedEntity( "xK7H53f4Hc2" ).isNotValid()
+                .enrollment( "t1zaUjKgT3p" )
+                    .event( "Qck4PQ7TMun" )
+                    .event( "Ox1qBWsnVwE" )
             .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.DELETE);
@@ -434,15 +429,15 @@ class PersistablesFilterTest {
     // persisted.
 
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .isNotValid()
-            .enrollment("t1zaUjKgT3p")
-            .isNotValid()
-            .relationship("Te3IC6TpnBB", trackedEntity("xK7H53f4Hc2"), enrollment("t1zaUjKgT3p"))
-            .isNotValid()
+    Setup setup = new Setup.Builder()
+            .trackedEntity( "xK7H53f4Hc2" ).isNotValid()
+                .enrollment( "t1zaUjKgT3p" ).isNotValid()
+            .relationship("Te3IC6TpnBB",
+                    trackedEntity("xK7H53f4Hc2"),
+                    enrollment("t1zaUjKgT3p")
+                ).isNotValid()
             .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.DELETE);
@@ -457,16 +452,18 @@ class PersistablesFilterTest {
   @Test
   void testDeleteInvalidRelationshipPreventsDeletionOfTrackedEntityAndEvent() {
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .enrollment("t1zaUjKgT3p")
-            .event("Qck4PQ7TMun")
-            .trackedEntity("QxGbKYwChDM")
-            .enrollment("Ok4Fe5moc3N")
-            .relationship("Te3IC6TpnBB", trackedEntity("xK7H53f4Hc2"), event("Qck4PQ7TMun"))
-            .isNotValid()
+    Setup setup = new Setup.Builder()
+            .trackedEntity( "xK7H53f4Hc2" )
+                .enrollment( "t1zaUjKgT3p" )
+                    .event( "Qck4PQ7TMun" )
+            .trackedEntity( "QxGbKYwChDM" )
+                .enrollment( "Ok4Fe5moc3N" )
+            .relationship("Te3IC6TpnBB",
+                    trackedEntity("xK7H53f4Hc2"),
+                    event("Qck4PQ7TMun")
+                ).isNotValid()
             .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.DELETE);
@@ -498,16 +495,18 @@ class PersistablesFilterTest {
   @Test
   void testDeleteInvalidRelationshipPreventsDeletionOfEnrollmentAndEvent() {
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .enrollment("t1zaUjKgT3p")
-            .event("QxGbKYwChDM")
-            .event("Ox1qBWsnVwE")
-            .enrollment("Ok4Fe5moc3N")
-            .relationship("Te3IC6TpnBB", event("QxGbKYwChDM"), enrollment("t1zaUjKgT3p"))
-            .isNotValid()
+    Setup setup = new Setup.Builder()
+            .trackedEntity( "xK7H53f4Hc2" )
+                .enrollment( "t1zaUjKgT3p" )
+                    .event( "QxGbKYwChDM" )
+                    .event( "Ox1qBWsnVwE" )
+                .enrollment( "Ok4Fe5moc3N" )
+            .relationship("Te3IC6TpnBB",
+                    event("QxGbKYwChDM"),
+                    enrollment("t1zaUjKgT3p")
+                ).isNotValid()
             .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.DELETE);
@@ -536,14 +535,15 @@ class PersistablesFilterTest {
   @Test
   void testDeleteValidRelationshipWithInvalidFrom() {
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("QxGbKYwChDM")
-            .trackedEntity("xK7H53f4Hc2")
-            .enrollment("t1zaUjKgT3p")
-            .isNotValid()
-            .relationship("Te3IC6TpnBB", enrollment("t1zaUjKgT3p"), trackedEntity("QxGbKYwChDM"))
+    Setup setup = new Setup.Builder()
+            .trackedEntity( "QxGbKYwChDM" )
+            .trackedEntity( "xK7H53f4Hc2" )
+                .enrollment( "t1zaUjKgT3p" ).isNotValid()
+            .relationship("Te3IC6TpnBB",
+                    enrollment("t1zaUjKgT3p"),
+                    trackedEntity("QxGbKYwChDM") )
             .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.DELETE);
@@ -557,18 +557,16 @@ class PersistablesFilterTest {
   @Test
   void testDeleteValidEntitiesReferencingParentsNotInPayload() {
     // @formatter:off
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .isInDB()
-            .isNotInPayload()
-            .enrollment("t1zaUjKgT3p")
-            .enrollment("Ok4Fe5moc3N")
-            .isInDB()
-            .isNotInPayload()
-            .event("Ox1qBWsnVwE")
-            .relationship("Te3IC6TpnBB", trackedEntity("xK7H53f4Hc2"), enrollment("Ok4Fe5moc3N"))
+    Setup setup = new Setup.Builder()
+            .trackedEntity( "xK7H53f4Hc2").isInDB().isNotInPayload()
+            .enrollment( "t1zaUjKgT3p")
+            .enrollment( "Ok4Fe5moc3N").isInDB().isNotInPayload()
+            .event( "Ox1qBWsnVwE" )
+            .relationship("Te3IC6TpnBB",
+                    trackedEntity("xK7H53f4Hc2"),
+                    enrollment("Ok4Fe5moc3N") )
             .build();
+    // @formatter:on
 
     PersistablesFilter.Result persistable =
         filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.DELETE);
