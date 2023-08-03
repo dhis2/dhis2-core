@@ -25,47 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates;
+package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.List;
-import lombok.Builder;
-import lombok.Value;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
-/**
- * @author Luciano Fiandesio
- */
-@Value
-@Builder(toBuilder = true)
-class Context {
-  /** returns true if user is Super User */
-  boolean superUser;
+interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntity> {
+  String ID = TrackedEntityStore.class.getName();
 
-  /** The current user id */
-  Long userId;
+  List<Long> getTrackedEntityIds(TrackedEntityQueryParams params);
 
-  /** The current user uid */
-  String userUid;
+  int getTrackedEntityCountForGrid(TrackedEntityQueryParams params);
 
-  /** A list of group ID to which the user belongs */
-  List<String> userGroups;
-
-  /** A List of Tracked Entity Types ID to which the user has READ ONLY access */
-  List<Long> trackedEntityTypes;
-
-  /** A List of Programs ID to which the user has READ ONLY access */
-  List<Long> programs;
-
-  /** A List of Program Stages ID to which the user has READ ONLY access */
-  List<Long> programStages;
-
-  /** A List of Relationship ID to which the user has READ ONLY access */
-  List<Long> relationshipTypes;
-
-  /** The te params to specify depth of te graph */
-  TrackedEntityParams params;
-
-  /** The query parameters to filter tracked entities */
-  TrackedEntityQueryParams queryParams;
+  int getTrackedEntityCountForGridWithMaxTeiLimit(TrackedEntityQueryParams params);
 }
