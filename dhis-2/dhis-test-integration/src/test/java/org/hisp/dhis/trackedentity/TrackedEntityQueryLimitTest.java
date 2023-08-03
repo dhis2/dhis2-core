@@ -140,7 +140,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testConfiguredPositiveMaxTeiLimit() {
-    systemSettingManager.saveSystemSetting(SettingKey.TE_MAX_LIMIT, 3);
+    systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, 3);
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setProgram(program);
     params.setOrgUnits(Set.of(orgUnitA));
@@ -156,7 +156,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testConfiguredNegativeMaxTeiLimit() {
-    systemSettingManager.saveSystemSetting(SettingKey.TE_MAX_LIMIT, -1);
+    systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, -1);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setProgram(program);
@@ -186,7 +186,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testDisabledMaxTeiLimit() {
-    systemSettingManager.saveSystemSetting(SettingKey.TE_MAX_LIMIT, 0);
+    systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, 0);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setProgram(program);

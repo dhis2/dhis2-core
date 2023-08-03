@@ -1271,7 +1271,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   private String getFromSubQueryLimitAndOffset(TrackedEntityQueryParams params) {
     StringBuilder limitOffset = new StringBuilder();
     int limit = params.getMaxTeLimit();
-    int teQueryLimit = systemSettingManager.getIntSetting(SettingKey.TE_MAX_LIMIT);
+    int teQueryLimit = resolveTEMaxLimit();
 
     if (limit == 0 && !params.isPaging()) {
       if (teQueryLimit > 0) {
@@ -1444,5 +1444,31 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
   private boolean skipOwnershipCheck(TrackedEntityQueryParams params) {
     return params.getUser() != null && params.getUser().isSuper();
+  }
+
+  // TODO This has to be removed once SettingKey.TrackedEntityInstanceMaxLimit is removed
+  private int resolveTEMaxLimit() {
+    Integer deprecatedTeiMaxLimit =
+            systemSettingManager.getIntegerSetting(SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT);
+    Integer newTeiMaxLimit = systemSettingManager.getIntegerSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT);
+
+    if (isSet(deprecatedTeiMaxLimit) && isSet(newTeiMaxLimit)) {
+      throw new IllegalQueryException(
+              String.format(
+                      "Both keys %s and %s cannot be present at the same time",
+                      SettingKey.TRACKED_ENTITY_MAX_LIMIT.getName(), SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT.getName()));
+    }
+
+    // both settings are disabled
+    if (!isSet(deprecatedTeiMaxLimit) && !isSet(newTeiMaxLimit)) {
+      return -1;
+    }
+
+    return isSet(newTeiMaxLimit) ? newTeiMaxLimit : deprecatedTeiMaxLimit;
+  }
+
+  private boolean isSet( Integer i )
+  {
+    return i > 0;
   }
 }
