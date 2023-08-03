@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
