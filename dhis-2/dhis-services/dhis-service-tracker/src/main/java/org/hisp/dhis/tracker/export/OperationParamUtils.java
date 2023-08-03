@@ -87,7 +87,7 @@ public class OperationParamUtils {
       String filterItem, Map<String, TrackedEntityAttribute> attributes)
       throws BadRequestException {
     if (StringUtils.isEmpty(filterItem)) {
-      return List.of();
+      return new ArrayList<>();
     }
 
     List<String> uidOperatorValues = filterList(filterItem);
