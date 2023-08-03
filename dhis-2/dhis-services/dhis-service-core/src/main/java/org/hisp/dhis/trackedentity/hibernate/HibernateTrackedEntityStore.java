@@ -1271,7 +1271,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   private String getFromSubQueryLimitAndOffset(TrackedEntityQueryParams params) {
     StringBuilder limitOffset = new StringBuilder();
     int limit = params.getMaxTeLimit();
-    int teQueryLimit = resolveTEMaxLimit();
+    int teQueryLimit = resolveTrackedEntityMaxLimit();
 
     if (limit == 0 && !params.isPaging()) {
       if (teQueryLimit > 0) {
@@ -1447,16 +1447,20 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   }
 
   // TODO This has to be removed once SettingKey.TrackedEntityInstanceMaxLimit is removed
-  private int resolveTEMaxLimit() {
-    Integer deprecatedTeiMaxLimit =
-            systemSettingManager.getIntegerSetting(SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT);
-    Integer newTeiMaxLimit = systemSettingManager.getIntegerSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT);
+  private int resolveTrackedEntityMaxLimit() {
+    int deprecatedTeiMaxLimit =
+        systemSettingManager.getIntegerSetting(SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT);
+    int newTeiMaxLimit =
+        systemSettingManager.getIntegerSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT);
 
-    if (isSet(deprecatedTeiMaxLimit) && isSet(newTeiMaxLimit)) {
+    if (isSet(deprecatedTeiMaxLimit)
+        && isSet(newTeiMaxLimit)
+        && deprecatedTeiMaxLimit != newTeiMaxLimit) {
       throw new IllegalQueryException(
-              String.format(
-                      "Both keys %s and %s cannot be present at the same time",
-                      SettingKey.TRACKED_ENTITY_MAX_LIMIT.getName(), SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT.getName()));
+          String.format(
+              "Both keys %s and %s cannot be present at the same time",
+              SettingKey.TRACKED_ENTITY_MAX_LIMIT.getName(),
+              SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT.getName()));
     }
 
     // both settings are disabled
@@ -1467,8 +1471,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     return isSet(newTeiMaxLimit) ? newTeiMaxLimit : deprecatedTeiMaxLimit;
   }
 
-  private boolean isSet( Integer i )
-  {
+  private boolean isSet(Integer i) {
     return i > 0;
   }
 }
