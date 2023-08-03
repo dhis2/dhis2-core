@@ -33,19 +33,26 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryItem;
+import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria.fromOrderString;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseFilters;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrgUnitParams;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -74,6 +81,74 @@ class RequestParamUtilsTest {
         Map.of(
             TEA_1_UID, trackedEntityAttribute(TEA_1_UID),
             TEA_2_UID, trackedEntityAttribute(TEA_2_UID));
+  }
+
+  @Test
+  void shouldPassOrderParamsValidationWhenGivenOrderIsOrderable() throws BadRequestException {
+    Set<String> supportedFieldNames = Set.of("createdAt", "scheduledAt");
+
+    validateOrderParams(supportedFieldNames, "", fromOrderString("createdAt:asc,scheduledAt:asc"));
+  }
+
+  @Test
+  void shouldFailOrderParamsValidationWhenGivenInvalidOrderComponents() {
+    Set<String> supportedFieldNames = Set.of("enrolledAt");
+    String invalidUID = "Cogn34Del";
+    assertFalse(CodeGenerator.isValidUid(invalidUID));
+
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () ->
+                validateOrderParams(
+                    supportedFieldNames,
+                    "data element and attribute",
+                    fromOrderString(
+                        "unsupportedProperty1:asc,enrolledAt:asc,"
+                            + invalidUID
+                            + ",unsupportedProperty2:desc")));
+    assertAll(
+        () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
+        () ->
+            assertContains(
+                "Supported are data element and attribute UIDs and fields", exception.getMessage()),
+        // order of fields might not always be the same; therefore using contains
+        () -> assertContains(invalidUID, exception.getMessage()),
+        () -> assertContains("unsupportedProperty1", exception.getMessage()),
+        () -> assertContains("unsupportedProperty2", exception.getMessage()));
+  }
+
+  @Test
+  void shouldPassOrderParamsValidationWhenGivenInvalidOrderNameWhichIsAValidUID()
+      throws BadRequestException {
+    Set<String> supportedFieldNames = Set.of("enrolledAt");
+    // This test case shows that some field names are valid UIDs. We can thus not rule out all
+    // invalid field names and UIDs at this stage as we do not have access to data element/attribute
+    // services. Such invalid order values will be caught in the service (mapper).
+    assertTrue(CodeGenerator.isValidUid("lastUpdated"));
+
+    validateOrderParams(supportedFieldNames, "", fromOrderString("lastUpdated:desc"));
+  }
+
+  @Test
+  void shouldFailOrderParamsValidationWhenGivenRepeatedOrderComponents() {
+    Set<String> supportedFieldNames = Set.of("createdAt", "enrolledAt");
+
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () ->
+                validateOrderParams(
+                    supportedFieldNames,
+                    "",
+                    fromOrderString(
+                        "zGlzbfreTOH,createdAt:asc,enrolledAt:asc,enrolledAt,zGlzbfreTOH")));
+
+    assertAll(
+        () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
+        // order of fields might not always be the same; therefore using contains
+        () -> assertContains("enrolledAt", exception.getMessage()),
+        () -> assertContains("zGlzbfreTOH", exception.getMessage()));
   }
 
   @Test
@@ -160,6 +235,71 @@ class RequestParamUtilsTest {
             BadRequestException.class,
             () -> OperationParamUtils.parseAttributeQueryItems(param, attributes));
     assertEquals("Attribute does not exist: JM5zWuf1mkb", exception.getMessage());
+  }
+
+  @Test
+  void shouldParseFilters() throws BadRequestException {
+    Map<String, List<QueryFilter>> filters =
+        parseFilters(TEA_1_UID + ":lt:20:gt:10," + TEA_2_UID + ":like:foo");
+
+    assertEquals(
+        Map.of(
+            TEA_1_UID,
+            List.of(
+                new QueryFilter(QueryOperator.LT, "20"), new QueryFilter(QueryOperator.GT, "10")),
+            TEA_2_UID,
+            List.of(new QueryFilter(QueryOperator.LIKE, "foo"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFiltersGivenRepeatedUID() throws BadRequestException {
+    Map<String, List<QueryFilter>> filters =
+        parseFilters(TEA_1_UID + ":lt:20," + TEA_2_UID + ":like:foo," + TEA_1_UID + ":gt:10");
+
+    assertEquals(
+        Map.of(
+            TEA_1_UID,
+            List.of(
+                new QueryFilter(QueryOperator.LT, "20"), new QueryFilter(QueryOperator.GT, "10")),
+            TEA_2_UID,
+            List.of(new QueryFilter(QueryOperator.LIKE, "foo"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFiltersOnlyContainingAnIdentifier() throws BadRequestException {
+    Map<String, List<QueryFilter>> filters = parseFilters(TEA_1_UID);
+
+    assertEquals(Map.of(TEA_1_UID, List.of()), filters);
+  }
+
+  @Test
+  void shouldParseFiltersWithIdentifierAndTrailingColon() throws BadRequestException {
+    Map<String, List<QueryFilter>> filters = parseFilters(TEA_1_UID + ":");
+
+    assertEquals(Map.of(TEA_1_UID, List.of()), filters);
+  }
+
+  @Test
+  void shouldParseFiltersGivenBlankInput() throws BadRequestException {
+    Map<String, List<QueryFilter>> filters = parseFilters(" ");
+
+    assertTrue(filters.isEmpty());
+  }
+
+  @Test
+  void shouldFailParsingFiltersMissingAValue() {
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> parseFilters(TEA_1_UID + ":lt"));
+    assertEquals("Query item or filter is invalid: " + TEA_1_UID + ":lt", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailParsingFiltersWithMissingValueAndTrailingColon() {
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> parseFilters(TEA_1_UID + ":lt:"));
+    assertEquals("Query item or filter is invalid: " + TEA_1_UID + ":lt:", exception.getMessage());
   }
 
   @Test

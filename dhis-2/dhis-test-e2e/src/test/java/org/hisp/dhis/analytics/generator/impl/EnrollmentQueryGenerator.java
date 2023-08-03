@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity;
+package org.hisp.dhis.analytics.generator.impl;
 
-import java.util.List;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.analytics.generator.Generator;
 
-@RequiredArgsConstructor(staticName = "of")
-@Getter
-@EqualsAndHashCode
-public class TrackedEntities {
+/**
+ * Set of behaviour and settings required by the test generation of
+ * "/analytics/enrollments/query/{program}?" endpoint.
+ */
+public class EnrollmentQueryGenerator implements Generator {
+  @Override
+  public int getMaxTestsPerClass() {
+    return 4;
+  }
 
-  private final List<TrackedEntity> trackedEntities;
-  private final Pager pager;
+  @Override
+  public String getAction() {
+    return "query";
+  }
 
-  public static TrackedEntities withoutPagination(List<TrackedEntity> trackedEntities) {
-    return new TrackedEntities(trackedEntities, null);
+  @Override
+  public String getClassNamePrefix() {
+    return "EnrollmentsQuery";
+  }
+
+  @Override
+  public String getActionDeclaration() {
+    return "private final AnalyticsEnrollmentsActions actions = new AnalyticsEnrollmentsActions();";
+  }
+
+  @Override
+  public String getPackage() {
+    return "org.hisp.dhis.analytics.enrollment.query";
+  }
+
+  @Override
+  public String getTopClassComment() {
+    return "Groups e2e tests for \"/enrollments/query\" endpoint.";
+  }
+
+  @Override
+  public boolean assertMetaData() {
+    return true;
+  }
+
+  @Override
+  public boolean assertRowIndex() {
+    return true;
   }
 }

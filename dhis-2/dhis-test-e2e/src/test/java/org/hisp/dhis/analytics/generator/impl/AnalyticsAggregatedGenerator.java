@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity;
+package org.hisp.dhis.analytics.generator.impl;
 
-import java.util.List;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.analytics.generator.Generator;
 
-@RequiredArgsConstructor(staticName = "of")
-@Getter
-@EqualsAndHashCode
-public class TrackedEntities {
+/** Set of behaviour and settings required by the test generation of "/analytics?" endpoint. */
+public class AnalyticsAggregatedGenerator implements Generator {
+  @Override
+  public int getMaxTestsPerClass() {
+    return 6;
+  }
 
-  private final List<TrackedEntity> trackedEntities;
-  private final Pager pager;
+  @Override
+  public String getAction() {
+    return "analytics";
+  }
 
-  public static TrackedEntities withoutPagination(List<TrackedEntity> trackedEntities) {
-    return new TrackedEntities(trackedEntities, null);
+  @Override
+  public String getClassNamePrefix() {
+    return "AnalyticsQueryDv";
+  }
+
+  @Override
+  public String getActionDeclaration() {
+    return "private final RestApiActions actions = new RestApiActions(\"" + getAction() + "\");";
+  }
+
+  @Override
+  public String getPackage() {
+    return "org.hisp.dhis.analytics.aggregate";
+  }
+
+  @Override
+  public String getTopClassComment() {
+    return "Groups e2e tests for \"/analytics\" aggregate endpoint.";
+  }
+
+  @Override
+  public boolean assertMetaData() {
+    return true;
+  }
+
+  @Override
+  public boolean assertRowIndex() {
+    return false;
   }
 }

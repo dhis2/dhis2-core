@@ -51,13 +51,6 @@
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
       foreign-key="fk_programstageinstance_organisationunitid" index="programstageinstance_organisationunitid" />
 
-    <list name="messageConversations" table="event_messageconversation">
-      <key column="eventid" />
-      <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.message.MessageConversation"
-        column="messageconversationid" />
-    </list>
-
     <property name="status" column="status" type="org.hisp.dhis.program.EventStatusUserType" not-null="true" />
 
     <property name="completedBy" />

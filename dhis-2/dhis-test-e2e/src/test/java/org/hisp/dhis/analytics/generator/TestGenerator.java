@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity;
+package org.hisp.dhis.analytics.generator;
 
-import java.util.List;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.analytics.generator.impl.TeiQueryGenerator;
 
-@RequiredArgsConstructor(staticName = "of")
-@Getter
-@EqualsAndHashCode
-public class TrackedEntities {
-
-  private final List<TrackedEntity> trackedEntities;
-  private final Pager pager;
-
-  public static TrackedEntities withoutPagination(List<TrackedEntity> trackedEntities) {
-    return new TrackedEntities(trackedEntities, null);
+/** This class simply hold the generator implementation to be used during the code generation. */
+public class TestGenerator {
+  static Generator get() {
+    return new TeiQueryGenerator();
   }
 }

@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
+import static java.util.Map.entry;
+
+import java.util.Map;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.ProgramOwnerMapper;
@@ -49,6 +52,21 @@ import org.mapstruct.Mapping;
     })
 interface TrackedEntityMapper
     extends ViewMapper<TrackedEntity, org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> {
+
+  /**
+   * Tracked entities can be ordered by given fields which correspond to fields on {@link
+   * org.hisp.dhis.trackedentity.TrackedEntity}.
+   */
+  Map<String, String> ORDERABLE_FIELDS =
+      Map.ofEntries(
+          entry("trackedEntity", "uid"),
+          entry("createdAt", "created"),
+          entry("createdAtClient", "createdAtClient"),
+          entry("updatedAt", "lastUpdated"),
+          entry("updatedAtClient", "lastUpdatedAtClient"),
+          entry("enrolledAt", "enrollment.enrollmentDate"),
+          entry("inactive", "inactive"));
+
   @Mapping(target = "trackedEntity", source = "uid")
   @Mapping(target = "trackedEntityType", source = "trackedEntityType.uid")
   @Mapping(target = "createdAt", source = "created")
