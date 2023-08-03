@@ -274,18 +274,19 @@ class EventOperationParamsMapperTest {
 
   @Test
   void testMappingAssignedUser() throws BadRequestException, ForbiddenException {
-    EventOperationParams requestParams =
+    EventOperationParams operationParams =
         eventBuilder
             .assignedUsers(Set.of("IsdLBTOBzMi", "l5ab8q5skbB"))
             .assignedUserMode(AssignedUserSelectionMode.PROVIDED)
             .build();
 
-    EventSearchParams params = mapper.map(requestParams);
+    EventSearchParams searchParams = mapper.map(operationParams);
 
     assertContainsOnly(
         Set.of("IsdLBTOBzMi", "l5ab8q5skbB"),
-        params.getAssignedUserQueryParam().getAssignedUsers());
-    assertEquals(AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode());
+        searchParams.getAssignedUserQueryParam().getAssignedUsers());
+    assertEquals(
+        AssignedUserSelectionMode.PROVIDED, searchParams.getAssignedUserQueryParam().getMode());
   }
 
   @Test
@@ -297,18 +298,17 @@ class EventOperationParamsMapperTest {
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_2_UID)).thenReturn(tea2);
 
-    EventOperationParams requestParams =
-        EventOperationParams.builder()
+    EventOperationParams operationParams =
+        eventBuilder
             .attributeFilters(
                 Map.of(
                     TEA_1_UID,
                     List.of(new QueryFilter(QueryOperator.EQ, "2")),
                     TEA_2_UID,
                     List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
-            .orgUnitMode(SELECTED)
             .build();
 
-    EventSearchParams searchParams = mapper.map(requestParams);
+    EventSearchParams searchParams = mapper.map(operationParams);
 
     Map<TrackedEntityAttribute, List<QueryFilter>> attributes = searchParams.getAttributes();
     assertNotNull(attributes);
@@ -324,12 +324,13 @@ class EventOperationParamsMapperTest {
   @Test
   void shouldFailWhenAttributeInGivenAttributeFilterDoesNotExist() {
     String filterName = "filter";
-    EventOperationParams requestParams =
+    EventOperationParams operationParams =
         eventBuilder.attributeFilters(Map.of(filterName, List.of())).build();
 
     when(trackedEntityAttributeService.getTrackedEntityAttribute(filterName)).thenReturn(null);
 
-    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
 
     assertContains(
         "Tracked entity attribute '" + filterName + "' does not exist", exception.getMessage());
@@ -409,7 +410,7 @@ class EventOperationParamsMapperTest {
     de2.setUid(DE_2_UID);
     when(dataElementService.getDataElement(DE_2_UID)).thenReturn(de2);
 
-    EventOperationParams requestParams =
+    EventOperationParams operationParams =
         eventBuilder
             .dataElementFilters(
                 Map.of(
@@ -419,9 +420,9 @@ class EventOperationParamsMapperTest {
                     List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
             .build();
 
-    EventSearchParams params = mapper.map(requestParams);
+    EventSearchParams searchParams = mapper.map(operationParams);
 
-    Map<DataElement, List<QueryFilter>> dataElements = params.getDataElements();
+    Map<DataElement, List<QueryFilter>> dataElements = searchParams.getDataElements();
     assertNotNull(dataElements);
     Map<DataElement, List<QueryFilter>> expected =
         Map.of(
@@ -435,12 +436,13 @@ class EventOperationParamsMapperTest {
   @Test
   void shouldFailWhenDataElementInGivenDataElementFilterDoesNotExist() {
     String filterName = "filter";
-    EventOperationParams requestParams =
+    EventOperationParams operationParams =
         eventBuilder.dataElementFilters(Map.of(filterName, List.of())).build();
 
     when(dataElementService.getDataElement(filterName)).thenReturn(null);
 
-    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
 
     assertContains("Data element '" + filterName + "' does not exist", exception.getMessage());
   }
@@ -462,14 +464,14 @@ class EventOperationParamsMapperTest {
     when(organisationUnitService.getOrganisationUnitWithChildren(orgUnitId))
         .thenReturn(orgUnitDescendants);
 
-    EventOperationParams requestParams =
+    EventOperationParams operationParams =
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
             .orgUnitMode(DESCENDANTS)
             .build();
 
-    EventSearchParams searchParams = mapper.map(requestParams);
+    EventSearchParams searchParams = mapper.map(operationParams);
 
     assertContainsOnly(List.of(captureScopeOrgUnit), searchParams.getAccessibleOrgUnits());
   }
@@ -488,14 +490,14 @@ class EventOperationParamsMapperTest {
     when(organisationUnitService.getOrganisationUnitWithChildren(orgUnitId))
         .thenReturn(orgUnitDescendants);
 
-    EventOperationParams requestParams =
+    EventOperationParams operationParams =
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
             .orgUnitMode(DESCENDANTS)
             .build();
 
-    EventSearchParams searchParams = mapper.map(requestParams);
+    EventSearchParams searchParams = mapper.map(operationParams);
 
     assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
   }
@@ -515,7 +517,7 @@ class EventOperationParamsMapperTest {
     when(organisationUnitService.getOrganisationUnitWithChildren(orgUnitId))
         .thenReturn(orgUnitDescendants);
 
-    EventOperationParams requestParams =
+    EventOperationParams operationParams =
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
@@ -523,7 +525,7 @@ class EventOperationParamsMapperTest {
             .build();
 
     ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(requestParams));
+        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
@@ -536,7 +538,7 @@ class EventOperationParamsMapperTest {
     User user = new User();
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
 
-    EventOperationParams requestParams =
+    EventOperationParams operationParams =
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
@@ -549,7 +551,7 @@ class EventOperationParamsMapperTest {
         .thenReturn(orgUnitDescendants);
 
     ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(requestParams));
+        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
@@ -565,7 +567,7 @@ class EventOperationParamsMapperTest {
     User user = new User();
     user.setOrganisationUnits(Set.of(captureScopeOrgUnit));
 
-    EventOperationParams requestParams =
+    EventOperationParams operationParams =
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
@@ -577,7 +579,7 @@ class EventOperationParamsMapperTest {
     when(currentUserService.getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
 
-    EventSearchParams searchParams = mapper.map(requestParams);
+    EventSearchParams searchParams = mapper.map(operationParams);
 
     assertContainsOnly(List.of(captureScopeOrgUnit), searchParams.getAccessibleOrgUnits());
   }
@@ -591,7 +593,7 @@ class EventOperationParamsMapperTest {
     User user = new User();
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
 
-    EventOperationParams requestParams =
+    EventOperationParams operationParams =
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
@@ -601,7 +603,7 @@ class EventOperationParamsMapperTest {
     when(currentUserService.getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
 
-    EventSearchParams searchParams = mapper.map(requestParams);
+    EventSearchParams searchParams = mapper.map(operationParams);
 
     assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
   }
@@ -619,7 +621,7 @@ class EventOperationParamsMapperTest {
     when(currentUserService.getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
 
-    EventOperationParams requestParams =
+    EventOperationParams operationParams =
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
@@ -627,7 +629,7 @@ class EventOperationParamsMapperTest {
             .build();
 
     ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(requestParams));
+        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
@@ -643,7 +645,7 @@ class EventOperationParamsMapperTest {
     when(currentUserService.getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
 
-    EventOperationParams requestParams =
+    EventOperationParams operationParams =
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
@@ -651,7 +653,7 @@ class EventOperationParamsMapperTest {
             .build();
 
     ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(requestParams));
+        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
@@ -667,10 +669,10 @@ class EventOperationParamsMapperTest {
 
     when(currentUserService.getCurrentUser()).thenReturn(user);
 
-    EventOperationParams requestParams =
+    EventOperationParams operationParams =
         EventOperationParams.builder().programUid(program.getUid()).orgUnitMode(CAPTURE).build();
 
-    EventSearchParams searchParams = mapper.map(requestParams);
+    EventSearchParams searchParams = mapper.map(operationParams);
 
     assertContainsOnly(List.of(captureScopeOrgUnit), searchParams.getAccessibleOrgUnits());
   }
@@ -686,9 +688,9 @@ class EventOperationParamsMapperTest {
 
     when(currentUserService.getCurrentUser()).thenReturn(user);
 
-    EventOperationParams requestParams = eventBuilder.programUid(program.getUid()).build();
+    EventOperationParams operationParams = eventBuilder.programUid(program.getUid()).build();
 
-    EventSearchParams searchParams = mapper.map(requestParams);
+    EventSearchParams searchParams = mapper.map(operationParams);
 
     assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
   }
@@ -708,43 +710,15 @@ class EventOperationParamsMapperTest {
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
     when(trackerAccessManager.canAccess(user, program, orgUnit)).thenReturn(true);
 
-    EventOperationParams requestParams =
+    EventOperationParams operationParams =
         EventOperationParams.builder()
             .programUid(program.getUid())
             .orgUnitUid(orgUnit.getUid())
             .orgUnitMode(SELECTED)
             .build();
 
-    EventSearchParams searchParams = mapper.map(requestParams);
+    EventSearchParams searchParams = mapper.map(operationParams);
 
-    assertContainsOnly(List.of(orgUnit), searchParams.getAccessibleOrgUnits());
-  }
-
-  @Test
-  void shouldMapRequestedOrgUnitAsSelectedWhenOrgUnitProvidedAndNoOrgUnitModeProvided()
-      throws ForbiddenException, BadRequestException {
-    Program program = new Program();
-    program.setUid(PROGRAM_UID);
-    OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
-    User user = new User();
-    user.setOrganisationUnits(Set.of(searchScopeOrgUnit));
-
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
-    when(trackerAccessManager.canAccess(user, program, orgUnit)).thenReturn(true);
-
-    EventOperationParams requestParams =
-        EventOperationParams.builder()
-            .programUid(program.getUid())
-            .orgUnitUid(orgUnit.getUid())
-            .orgUnitMode(SELECTED)
-            .build();
-
-    EventSearchParams searchParams = mapper.map(requestParams);
-
-    assertEquals(SELECTED, searchParams.getOrgUnitMode());
     assertContainsOnly(List.of(orgUnit), searchParams.getAccessibleOrgUnits());
   }
 
@@ -759,9 +733,9 @@ class EventOperationParamsMapperTest {
 
     when(currentUserService.getCurrentUser()).thenReturn(user);
 
-    EventOperationParams requestParams = eventBuilder.programUid(program.getUid()).build();
+    EventOperationParams operationParams = eventBuilder.programUid(program.getUid()).build();
 
-    EventSearchParams searchParams = mapper.map(requestParams);
+    EventSearchParams searchParams = mapper.map(operationParams);
 
     assertEquals(ACCESSIBLE, searchParams.getOrgUnitMode());
     assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
