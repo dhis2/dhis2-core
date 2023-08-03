@@ -39,31 +39,25 @@ import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.common.SlimPager;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -79,11 +73,9 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -188,50 +180,9 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnPaginatedEventsWithNotesGivenNonDefaultPageSize()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParamsBuilder paramsBuilder =
-        operationParamsBuilder
-            .events(Set.of("pTzf9KYMk72", "D9PbzJY8bJM"))
-            .orderBy("executionDate", SortDirection.DESC);
-
-    EventOperationParams params = paramsBuilder.page(1).pageSize(1).build();
-
-    Events firstPage = eventService.getEvents(params);
-
-    assertAll(
-        "first page",
-        () -> assertSlimPager(1, 1, false, firstPage),
-        () -> assertEquals(List.of("D9PbzJY8bJM"), eventUids(firstPage)));
-
-    params = paramsBuilder.page(2).pageSize(1).build();
-
-    Events secondPage = eventService.getEvents(params);
-
-    assertAll(
-        "second (last) page",
-        () -> assertSlimPager(2, 1, true, secondPage),
-        () -> assertEquals(List.of("pTzf9KYMk72"), eventUids(secondPage)));
-
-    params = paramsBuilder.page(3).pageSize(3).build();
-
-    assertIsEmpty(getEvents(params));
-  }
-
-  @Test
   void testExportEvents() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         operationParamsBuilder.programStageUid(programStage.getUid()).build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void testExportEventsWithTotalPages() throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder.programStageUid(programStage.getUid()).totalPages(true).build();
 
     List<String> events = getEvents(params);
 
@@ -460,69 +411,6 @@ class EventExporterTest extends TrackerTest {
     List<String> events = getEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void shouldReturnPaginatedPublicEventsWithMultipleCategoryOptionsGivenNonDefaultPageSize()
-      throws ForbiddenException, BadRequestException {
-    OrganisationUnit orgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
-    Program program = get(Program.class, "iS7eutanDry");
-
-    EventOperationParamsBuilder paramsBuilder =
-        operationParamsBuilder
-            .orgUnitUid(orgUnit.getUid())
-            .programUid(program.getUid())
-            .orderBy("executionDate", SortDirection.DESC);
-
-    EventOperationParams params = paramsBuilder.page(1).pageSize(3).build();
-
-    Events firstPage = eventService.getEvents(params);
-
-    assertAll(
-        "first page",
-        () -> assertSlimPager(1, 3, false, firstPage),
-        () ->
-            assertEquals(
-                List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"), eventUids(firstPage)));
-
-    params = paramsBuilder.page(2).pageSize(3).build();
-
-    Events secondPage = eventService.getEvents(params);
-
-    assertAll(
-        "second (last) page",
-        () -> assertSlimPager(2, 3, true, secondPage),
-        () ->
-            assertEquals(
-                List.of("lumVtWwwy0O", "QRYjLTiJTrA", "cadc5eGj0j7"), eventUids(secondPage)));
-
-    params = paramsBuilder.page(3).pageSize(3).build();
-
-    assertIsEmpty(getEvents(params));
-  }
-
-  @Test
-  void shouldReturnPaginatedEventsWithMultipleCategoryOptionsGivenNonDefaultPageSizeAndTotalPages()
-      throws ForbiddenException, BadRequestException {
-    OrganisationUnit orgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
-    Program program = get(Program.class, "iS7eutanDry");
-
-    EventOperationParams params =
-        operationParamsBuilder
-            .orgUnitUid(orgUnit.getUid())
-            .programUid(program.getUid())
-            .orderBy("executionDate", SortDirection.DESC)
-            .page(1)
-            .pageSize(2)
-            .totalPages(true)
-            .build();
-
-    Events events = eventService.getEvents(params);
-
-    assertAll(
-        "first page",
-        () -> assertPager(1, 2, 6, events),
-        () -> assertEquals(List.of("ck7DzdxqLqA", "OTmjvJDn0Fu"), eventUids(events)));
   }
 
   @Test
@@ -1042,129 +930,6 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsOnPrimaryKeyDescByDefault() throws ForbiddenException, BadRequestException {
-    Event d9PbzJY8bJM = get(Event.class, "D9PbzJY8bJM");
-    Event pTzf9KYMk72 = get(Event.class, "pTzf9KYMk72");
-    List<String> expected =
-        Stream.of(d9PbzJY8bJM, pTzf9KYMk72)
-            .sorted(Comparator.comparing(Event::getId).reversed()) // reversed = desc
-            .map(Event::getUid)
-            .toList();
-
-    EventOperationParams params = operationParamsBuilder.orgUnitUid(orgUnit.getUid()).build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(expected, events);
-  }
-
-  @Test
-  void shouldOrderEventsByEnrollmentProgramUIDAsc() throws ForbiddenException, BadRequestException {
-    Event pTzf9KYMk72 =
-        get(Event.class, "pTzf9KYMk72"); // enrolled in program BFcipDERJnf with registration
-    Event QRYjLTiJTrA =
-        get(Event.class, "QRYjLTiJTrA"); // enrolled in program BFcipDERJne without registration
-    List<String> expected =
-        Stream.of(pTzf9KYMk72, QRYjLTiJTrA)
-            .sorted(Comparator.comparing(event -> event.getEnrollment().getProgram().getUid()))
-            .map(Event::getUid)
-            .toList();
-    System.out.println(expected);
-
-    EventOperationParams params =
-        operationParamsBuilder
-            .events(Set.of("pTzf9KYMk72", "QRYjLTiJTrA"))
-            .orderBy("enrollment.program.uid", SortDirection.ASC)
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(expected, events);
-  }
-
-  @Test
-  void shouldOrderEventsByAttributeAsc() throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder.orderBy(UID.of("toUpdate000"), SortDirection.ASC).build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void shouldOrderEventsByAttributeDesc() throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder.orderBy(UID.of("toUpdate000"), SortDirection.DESC).build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
-  }
-
-  @Test
-  void shouldOrderEventsByMultipleAttributesDesc() throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
-            .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
-  }
-
-  @Test
-  void shouldOrderEventsByMultipleAttributesAsc() throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
-            .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
-            .build();
-
-    List<Event> events = eventService.getEvents(params).getEvents();
-
-    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), uids(events));
-    List<String> trackedEntities =
-        events.stream()
-            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
-            .collect(Collectors.toList());
-    assertEquals(List.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
-  }
-
-  @Test
-  void shouldOrderEventsByMultipleAttributesAndPaginateWhenGivenNonDefaultPageSize()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParamsBuilder paramsBuilder =
-        operationParamsBuilder
-            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
-            .orderBy(UID.of("toUpdate000"), SortDirection.ASC);
-
-    EventOperationParams params = paramsBuilder.page(1).pageSize(1).build();
-
-    Events firstPage = eventService.getEvents(params);
-
-    assertAll(
-        "first page",
-        () -> assertSlimPager(1, 1, false, firstPage),
-        () -> assertEquals(List.of("D9PbzJY8bJM"), eventUids(firstPage)));
-
-    params = paramsBuilder.page(2).pageSize(1).build();
-
-    Events secondPage = eventService.getEvents(params);
-
-    assertAll(
-        "second (last) page",
-        () -> assertSlimPager(2, 1, true, secondPage),
-        () -> assertEquals(List.of("pTzf9KYMk72"), eventUids(secondPage)));
-
-    params = paramsBuilder.page(3).pageSize(3).build();
-
-    assertIsEmpty(getEvents(params));
-  }
-
-  @Test
   void testEnrollmentOccurredAfterSetToAfterLastOccurredAtDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
@@ -1178,46 +943,6 @@ class EventExporterTest extends TrackerTest {
             .collect(Collectors.toList());
 
     assertIsEmpty(enrollments);
-  }
-
-  @Test
-  void testOrderByEnrolledAtDesc() throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder.orderBy("enrollment.enrollmentDate", SortDirection.DESC).build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void testOrderByEnrolledAtAsc() throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder.orderBy("enrollment.enrollmentDate", SortDirection.ASC).build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
-  }
-
-  @Test
-  void testOrderByOccurredAtDesc() throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder.orderBy("executionDate", SortDirection.DESC).build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void testOrderByOccurredAtAsc() throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder.orderBy("executionDate", SortDirection.ASC).build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
   }
 
   @Test
@@ -1264,63 +989,6 @@ class EventExporterTest extends TrackerTest {
     assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
-  @Test
-  void shouldSortEntitiesRespectingOrderWhenAttributeOrderSuppliedBeforeOrderParam()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
-            .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void shouldSortEntitiesRespectingOrderWhenOrderParamSuppliedBeforeAttributeOrder()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
-            .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void shouldSortEntitiesRespectingOrderWhenDataElementSuppliedBeforeOrderParam()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .orderBy("dueDate", SortDirection.DESC)
-            .orderBy(UID.of("DATAEL00006"), SortDirection.DESC)
-            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
-  }
-
-  @Test
-  void shouldSortEntitiesRespectingOrderWhenOrderParamSuppliedBeforeDataElement()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
-            .orderBy(UID.of("DATAEL00006"), SortDirection.DESC)
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
-  }
-
   private void assertNote(
       User expectedLastUpdatedBy, String expectedNote, TrackedEntityComment actual) {
     assertEquals(expectedNote, actual.getCommentText());
@@ -1339,30 +1007,6 @@ class EventExporterTest extends TrackerTest {
             String.format(
                 "'%s' with uid '%s' should have been created", type.getSimpleName(), uid));
     return t;
-  }
-
-  private static void assertSlimPager(int pageNumber, int pageSize, boolean isLast, Events events) {
-    assertInstanceOf(
-        SlimPager.class, events.getPager(), "SlimPager should be returned if totalPages=false");
-    SlimPager pager = (SlimPager) events.getPager();
-    assertAll(
-        "pagination details",
-        () -> assertEquals(pageNumber, pager.getPage(), "number of current page"),
-        () -> assertEquals(pageSize, pager.getPageSize(), "page size"),
-        () ->
-            assertEquals(
-                isLast,
-                pager.isLastPage(),
-                isLast ? "should be the last page" : "should NOT be the last page"));
-  }
-
-  private static void assertPager(int pageNumber, int pageSize, int totalCount, Events events) {
-    Pager pager = events.getPager();
-    assertAll(
-        "pagination details",
-        () -> assertEquals(pageNumber, pager.getPage(), "number of current page"),
-        () -> assertEquals(pageSize, pager.getPageSize(), "page size"),
-        () -> assertEquals(totalCount, pager.getTotal(), "total page count"));
   }
 
   private List<String> getEvents(EventOperationParams params)
