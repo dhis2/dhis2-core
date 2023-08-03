@@ -251,7 +251,7 @@ class EventRequestToSearchParamsMapper {
     OrganisationUnitSelectionMode orgUnitMode =
         getOrgUnitMode(requestedOrgUnit, orgUnitSelectionMode);
 
-    validateOrgUnitMode(orgUnitSelectionMode, orgUnit, user, pr);
+    validateOrgUnitMode(orgUnitMode, orgUnit, user, pr);
 
     List<OrganisationUnit> accessibleOrgUnits =
         validateAccessibleOrgUnits(

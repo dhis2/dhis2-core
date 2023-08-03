@@ -112,9 +112,7 @@ public class EventOperationParamsMapper {
     ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid());
     OrganisationUnit requestedOrgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid());
 
-    if (operationParams.getOrgUnitMode() != null) {
-      validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
-    }
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
 
     List<OrganisationUnit> accessibleOrgUnits =
         validateAccessibleOrgUnits(
@@ -269,11 +267,10 @@ public class EventOperationParamsMapper {
   private void validateOrgUnitMode(
       OrganisationUnitSelectionMode orgUnitMode, User user, Program program)
       throws BadRequestException {
-    if (orgUnitMode != null) {
-      String violation = getOrgUnitModeViolation(orgUnitMode, user, program);
-      if (violation != null) {
-        throw new BadRequestException(violation);
-      }
+
+    String violation = getOrgUnitModeViolation(orgUnitMode, user, program);
+    if (violation != null) {
+      throw new BadRequestException(violation);
     }
   }
 

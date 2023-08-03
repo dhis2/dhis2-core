@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.Assertions.assertHasTimeStamp;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.util.DateUtils.parseDate;
@@ -109,6 +111,8 @@ class EventExporterTest extends TrackerTest {
   private TrackedEntity trackedEntity;
   private User importUser;
 
+  private EventOperationParams.EventOperationParamsBuilder operationParamsBuilder;
+
   @Override
   protected void initTest() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
@@ -134,14 +138,16 @@ class EventExporterTest extends TrackerTest {
     // needed as some tests are run using another user (injectSecurityContext) while most tests
     // expect to be run by admin
     injectAdminUser();
+
+    operationParamsBuilder = EventOperationParams.builder();
+    operationParamsBuilder.orgUnitUid(orgUnit.getUid()).orgUnitMode(SELECTED);
   }
 
   @Test
   void shouldExportEventAndMapAssignedUserWhenAssignedUserIsNotNull()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .trackedEntityUid(trackedEntity.getUid())
             .enrollments(Set.of("TvctPPhpD8z"))
             .build();
@@ -155,11 +161,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWithRelationships() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .events(Set.of("pTzf9KYMk72"))
-            .includeRelationships(true)
-            .build();
+        operationParamsBuilder.events(Set.of("pTzf9KYMk72")).includeRelationships(true).build();
 
     List<Event> events = eventService.getEvents(params).getEvents();
 
@@ -173,11 +175,7 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnEventsWithNotes() throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .events(Set.of("pTzf9KYMk72"))
-            .build();
+    EventOperationParams params = operationParamsBuilder.events(Set.of("pTzf9KYMk72")).build();
 
     List<Event> events = eventService.getEvents(params).getEvents();
 
@@ -193,8 +191,7 @@ class EventExporterTest extends TrackerTest {
   void shouldReturnPaginatedEventsWithNotesGivenNonDefaultPageSize()
       throws ForbiddenException, BadRequestException {
     EventOperationParamsBuilder paramsBuilder =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .events(Set.of("pTzf9KYMk72", "D9PbzJY8bJM"))
             .orderBy("executionDate", SortDirection.DESC);
 
@@ -224,10 +221,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEvents() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .programStageUid(programStage.getUid())
-            .build();
+        operationParamsBuilder.programStageUid(programStage.getUid()).build();
 
     List<String> events = getEvents(params);
 
@@ -237,11 +231,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWithTotalPages() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .programStageUid(programStage.getUid())
-            .totalPages(true)
-            .build();
+        operationParamsBuilder.programStageUid(programStage.getUid()).totalPages(true).build();
 
     List<String> events = getEvents(params);
 
@@ -251,8 +241,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWhenFilteringByEnrollment() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .trackedEntityUid(trackedEntity.getUid())
             .enrollments(Set.of("TvctPPhpD8z"))
             .build();
@@ -266,8 +255,7 @@ class EventExporterTest extends TrackerTest {
   void testExportEventsWithExecutionAndUpdateDates()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollments(Set.of("TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
             .startDate(getDate(2018, 1, 1))
@@ -283,8 +271,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWithLastUpdateDuration() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollments(Set.of("TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
             .updatedWithin("1d")
@@ -299,8 +286,7 @@ class EventExporterTest extends TrackerTest {
   void testExportEventsWithLastUpdateDates() throws ForbiddenException, BadRequestException {
     Date date = new Date();
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollments(Set.of("TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
             .updatedAfter(
@@ -326,7 +312,10 @@ class EventExporterTest extends TrackerTest {
   void testExportEventsWithDatesIncludingTimeStamp()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder().events(Set.of("pTzf9KYMk72")).build();
+        EventOperationParams.builder()
+            .orgUnitMode(ACCESSIBLE)
+            .events(Set.of("pTzf9KYMk72"))
+            .build();
 
     Events events = eventService.getEvents(params);
 
@@ -359,8 +348,7 @@ class EventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement("DATAEL00001");
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
             .dataElementFilters("DATAEL00001:like:%val%")
@@ -379,8 +367,7 @@ class EventExporterTest extends TrackerTest {
     DataElement dataElement = dataElement("DATAEL00001");
 
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
             .programStatus(ProgramStatus.ACTIVE)
@@ -398,8 +385,7 @@ class EventExporterTest extends TrackerTest {
     DataElement dataElement = dataElement("DATAEL00001");
 
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
             .programType(ProgramType.WITH_REGISTRATION)
@@ -417,8 +403,7 @@ class EventExporterTest extends TrackerTest {
     DataElement dataElement = dataElement("DATAEL00001");
 
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
             .dataElementFilters(dataElement.getUid() + ":like:%value00001%")
@@ -435,8 +420,7 @@ class EventExporterTest extends TrackerTest {
     DataElement datael00001 = dataElement("DATAEL00001");
 
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollments(Set.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
             .dataElementFilters(datael00001.getUid() + ":in:value00001;value00002")
@@ -453,8 +437,7 @@ class EventExporterTest extends TrackerTest {
     DataElement dataElement = dataElement("DATAEL00001");
 
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
             .programUid(program.getUid())
@@ -475,7 +458,7 @@ class EventExporterTest extends TrackerTest {
     Program program = get(Program.class, "iS7eutanDry");
 
     EventOperationParamsBuilder paramsBuilder =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .programUid(program.getUid())
             .orderBy("executionDate", SortDirection.DESC);
@@ -514,7 +497,7 @@ class EventExporterTest extends TrackerTest {
     Program program = get(Program.class, "iS7eutanDry");
 
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .programUid(program.getUid())
             .orderBy("executionDate", SortDirection.DESC)
@@ -536,6 +519,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid("DiszpKrYNg8")
+            .orgUnitMode(SELECTED)
             .attributeCategoryCombo("O4VaNks6tta")
             .attributeCategoryOptions(Set.of("xwZ2u3WyQR0", "M58XdOfhiJ7"))
             .build();
@@ -571,6 +555,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid("DiszpKrYNg8")
+            .orgUnitMode(SELECTED)
             .idSchemes(idSchemes)
             .events(Set.of("kWjSezkXHVp"))
             .build();
@@ -592,6 +577,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid("DiszpKrYNg8")
+            .orgUnitMode(SELECTED)
             .idSchemes(idSchemes)
             .attributeCategoryCombo("O4VaNks6tta")
             .attributeCategoryOptions(Set.of("xwZ2u3WyQR0", "M58XdOfhiJ7"))
@@ -642,6 +628,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid("DiszpKrYNg8")
+            .orgUnitMode(SELECTED)
             .idSchemes(idSchemes)
             .attributeCategoryCombo("O4VaNks6tta")
             .attributeCategoryOptions(Set.of("xwZ2u3WyQR0", "M58XdOfhiJ7"))
@@ -695,8 +682,7 @@ class EventExporterTest extends TrackerTest {
     DataElement dataElement = dataElement("DATAEL00002");
 
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollments(Set.of("TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
             .programUid(program.getUid())
@@ -715,8 +701,7 @@ class EventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement("DATAEL00005");
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
             .dataElementFilters(dataElement.getUid() + ":eq:option1")
@@ -732,8 +717,7 @@ class EventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement("DATAEL00005");
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollments(Set.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
             .dataElementFilters(dataElement.getUid() + ":in:option1;option2")
@@ -749,8 +733,7 @@ class EventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement("DATAEL00005");
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
             .dataElementFilters(dataElement.getUid() + ":like:%opt%")
@@ -771,8 +754,7 @@ class EventExporterTest extends TrackerTest {
     queryItem.addFilter(new QueryFilter(QueryOperator.LT, "77"));
     queryItem.addFilter(new QueryFilter(QueryOperator.GT, "8"));
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollments(Set.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
             .dataElementFilters(dataElement.getUid() + ":lt:77:gt:8")
@@ -787,8 +769,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentEnrolledBeforeSetToBeforeFirstEnrolledAtDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollmentEnrolledBefore(parseDate("2021-02-27T12:05:00.000"))
             .build();
 
@@ -804,8 +785,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentEnrolledBeforeEqualToFirstEnrolledAtDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollmentEnrolledBefore(parseDate("2021-02-28T12:05:00.000"))
             .build();
 
@@ -821,8 +801,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentEnrolledBeforeSetToAfterFirstEnrolledAtDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollmentEnrolledBefore(parseDate("2021-02-28T13:05:00.000"))
             .build();
 
@@ -838,8 +817,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentEnrolledAfterSetToBeforeLastEnrolledAtDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollmentEnrolledAfter(parseDate("2021-03-27T12:05:00.000"))
             .build();
 
@@ -855,8 +833,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentEnrolledAfterEqualToLastEnrolledAtDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollmentEnrolledAfter(parseDate("2021-03-28T12:05:00.000"))
             .build();
 
@@ -872,8 +849,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentEnrolledAfterSetToAfterLastEnrolledAtDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollmentEnrolledAfter(parseDate("2021-03-28T13:05:00.000"))
             .build();
 
@@ -889,8 +865,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentOccurredBeforeSetToBeforeFirstOccurredAtDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollmentOccurredBefore(parseDate("2021-02-27T12:05:00.000"))
             .build();
 
@@ -906,8 +881,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentOccurredBeforeEqualToFirstOccurredAtDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollmentOccurredBefore(parseDate("2021-02-28T12:05:00.000"))
             .build();
 
@@ -923,8 +897,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentOccurredBeforeSetToAfterFirstOccurredAtDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollmentOccurredBefore(parseDate("2021-02-28T13:05:00.000"))
             .build();
 
@@ -940,8 +913,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentOccurredAfterSetToBeforeLastOccurredAtDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollmentOccurredAfter(parseDate("2021-03-27T12:05:00.000"))
             .build();
 
@@ -957,8 +929,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentOccurredAfterEqualToLastOccurredAtDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollmentOccurredAfter(parseDate("2021-03-28T12:05:00.000"))
             .build();
 
@@ -973,10 +944,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testEnrollmentFilterNumericAttributes() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .attributeFilters("numericAttr:lt:77:gt:8")
-            .build();
+        operationParamsBuilder.attributeFilters("numericAttr:lt:77:gt:8").build();
 
     List<String> trackedEntities =
         eventService.getEvents(params).getEvents().stream()
@@ -989,10 +957,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testEnrollmentFilterAttributes() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .attributeFilters("toUpdate000:eq:summer day")
-            .build();
+        operationParamsBuilder.attributeFilters("toUpdate000:eq:summer day").build();
 
     List<String> trackedEntities =
         eventService.getEvents(params).getEvents().stream()
@@ -1006,8 +971,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentFilterAttributesWithMultipleFiltersOnDifferentAttributes()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .attributeFilters("toUpdate000:eq:rainy day,notUpdated0:eq:winter day")
             .build();
 
@@ -1026,10 +990,7 @@ class EventExporterTest extends TrackerTest {
     item.addFilter(new QueryFilter(QueryOperator.LIKE, "in"));
 
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .attributeFilters("toUpdate000:like:day:like:in")
-            .build();
+        operationParamsBuilder.attributeFilters("toUpdate000:like:day:like:in").build();
 
     List<String> trackedEntities =
         eventService.getEvents(params).getEvents().stream()
@@ -1042,10 +1003,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testOrderEventsOnAttributeAsc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
-            .build();
+        operationParamsBuilder.orderBy(UID.of("toUpdate000"), SortDirection.ASC).build();
 
     List<String> trackedEntities =
         eventService.getEvents(params).getEvents().stream()
@@ -1058,10 +1016,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testOrderEventsOnAttributeDesc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
-            .build();
+        operationParamsBuilder.orderBy(UID.of("toUpdate000"), SortDirection.DESC).build();
 
     List<String> trackedEntities =
         eventService.getEvents(params).getEvents().stream()
@@ -1074,8 +1029,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testOrderEventsOnMultipleAttributesDesc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
             .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
             .build();
@@ -1091,8 +1045,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testOrderEventsOnMultipleAttributesAsc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .build();
@@ -1111,8 +1064,7 @@ class EventExporterTest extends TrackerTest {
   void shouldOrderEventsByMultipleAttributesAndPaginateWhenGivenNonDefaultPageSize()
       throws ForbiddenException, BadRequestException {
     EventOperationParamsBuilder paramsBuilder =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC);
 
@@ -1143,8 +1095,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentOccurredAfterSetToAfterLastOccurredAtDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .enrollmentOccurredAfter(parseDate("2021-03-28T13:05:00.000"))
             .build();
 
@@ -1159,10 +1110,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testOrderByEnrolledAtDesc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
-            .build();
+        operationParamsBuilder.orderBy("enrollment.enrollmentDate", SortDirection.DESC).build();
 
     List<String> enrollments =
         eventService.getEvents(params).getEvents().stream()
@@ -1175,10 +1123,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testOrderByEnrolledAtAsc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
-            .build();
+        operationParamsBuilder.orderBy("enrollment.enrollmentDate", SortDirection.ASC).build();
 
     List<String> enrollments =
         eventService.getEvents(params).getEvents().stream()
@@ -1191,10 +1136,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testOrderByOccurredAtDesc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .orderBy("executionDate", SortDirection.DESC)
-            .build();
+        operationParamsBuilder.orderBy("executionDate", SortDirection.DESC).build();
 
     Events events = eventService.getEvents(params);
 
@@ -1204,10 +1146,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testOrderByOccurredAtAsc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .orderBy("executionDate", SortDirection.ASC)
-            .build();
+        operationParamsBuilder.orderBy("executionDate", SortDirection.ASC).build();
 
     Events events = eventService.getEvents(params);
 
@@ -1218,10 +1157,7 @@ class EventExporterTest extends TrackerTest {
   void shouldReturnNoEventsWhenParamStartDueDateLaterThanEventDueDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .scheduledAfter(parseDate("2021-02-28T13:05:00.000"))
-            .build();
+        operationParamsBuilder.scheduledAfter(parseDate("2021-02-28T13:05:00.000")).build();
 
     List<String> events = getEvents(params);
 
@@ -1232,10 +1168,7 @@ class EventExporterTest extends TrackerTest {
   void shouldReturnEventsWhenParamStartDueDateEarlierThanEventsDueDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .scheduledAfter(parseDate("2018-02-28T13:05:00.000"))
-            .build();
+        operationParamsBuilder.scheduledAfter(parseDate("2018-02-28T13:05:00.000")).build();
 
     List<String> events = getEvents(params);
 
@@ -1246,10 +1179,7 @@ class EventExporterTest extends TrackerTest {
   void shouldReturnNoEventsWhenParamEndDueDateEarlierThanEventDueDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .scheduledBefore(parseDate("2018-02-28T13:05:00.000"))
-            .build();
+        operationParamsBuilder.scheduledBefore(parseDate("2018-02-28T13:05:00.000")).build();
 
     List<String> events = getEvents(params);
 
@@ -1260,10 +1190,7 @@ class EventExporterTest extends TrackerTest {
   void shouldReturnEventsWhenParamEndDueDateLaterThanEventsDueDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .scheduledBefore(parseDate("2021-02-28T13:05:00.000"))
-            .build();
+        operationParamsBuilder.scheduledBefore(parseDate("2021-02-28T13:05:00.000")).build();
 
     List<String> events = getEvents(params);
 
@@ -1274,8 +1201,7 @@ class EventExporterTest extends TrackerTest {
   void shouldSortEntitiesRespectingOrderWhenAttributeOrderSuppliedBeforeOrderParam()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
             .build();
@@ -1292,8 +1218,7 @@ class EventExporterTest extends TrackerTest {
   void shouldSortEntitiesRespectingOrderWhenOrderParamSuppliedBeforeAttributeOrder()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
             .build();
@@ -1310,8 +1235,7 @@ class EventExporterTest extends TrackerTest {
   void shouldSortEntitiesRespectingOrderWhenDataElementSuppliedBeforeOrderParam()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .orderBy("dueDate", SortDirection.DESC)
             .orderBy(UID.of("DATAEL00006"), SortDirection.DESC)
             .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
@@ -1329,8 +1253,7 @@ class EventExporterTest extends TrackerTest {
   void shouldSortEntitiesRespectingOrderWhenOrderParamSuppliedBeforeDataElement()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
+        operationParamsBuilder
             .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .orderBy(UID.of("DATAEL00006"), SortDirection.DESC)
             .build();

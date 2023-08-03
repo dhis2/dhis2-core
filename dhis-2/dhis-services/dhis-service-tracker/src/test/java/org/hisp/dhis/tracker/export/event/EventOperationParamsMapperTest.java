@@ -124,6 +124,9 @@ class EventOperationParamsMapperTest {
 
   private final String orgUnitId = "orgUnitId";
 
+  private EventOperationParams.EventOperationParamsBuilder eventBuilder =
+      EventOperationParams.builder();
+
   private final List<OrganisationUnit> orgUnitDescendants =
       List.of(
           createOrgUnit("orgUnit1", "uid1"),
@@ -142,6 +145,8 @@ class EventOperationParamsMapperTest {
     user = new User();
     user.setOrganisationUnits(Set.of(orgUnit));
     when(currentUserService.getCurrentUser()).thenReturn(user);
+
+    eventBuilder = eventBuilder.orgUnitMode(ACCESSIBLE);
   }
 
   @Test
@@ -149,10 +154,7 @@ class EventOperationParamsMapperTest {
     programStage = new ProgramStage();
     programStage.setUid("PlZSBEN7iZd");
     EventOperationParams eventOperationParams =
-        EventOperationParams.builder()
-            .programStageUid(programStage.getUid())
-            .orgUnitMode(ACCESSIBLE)
-            .build();
+        eventBuilder.programStageUid(programStage.getUid()).build();
 
     when(aclService.canDataRead(user, programStage)).thenReturn(false);
     when(programStageService.getProgramStage("PlZSBEN7iZd")).thenReturn(programStage);
@@ -168,11 +170,7 @@ class EventOperationParamsMapperTest {
     programStage = new ProgramStage();
     programStage.setUid("PlZSBEN7iZd");
     EventOperationParams eventOperationParams =
-        EventOperationParams.builder()
-            .programStageUid(programStage.getUid())
-            .trackedEntityUid("qnR1RK4cTIZ")
-            .orgUnitMode(ACCESSIBLE)
-            .build();
+        eventBuilder.programStageUid(programStage.getUid()).trackedEntityUid("qnR1RK4cTIZ").build();
 
     when(programStageService.getProgramStage("PlZSBEN7iZd")).thenReturn(programStage);
     when(aclService.canDataRead(user, programStage)).thenReturn(true);
@@ -190,8 +188,7 @@ class EventOperationParamsMapperTest {
   void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgram() {
     Program program = new Program();
     program.setUid(PROGRAM_UID);
-    EventOperationParams eventOperationParams =
-        EventOperationParams.builder().programUid(program.getUid()).orgUnitMode(ACCESSIBLE).build();
+    EventOperationParams eventOperationParams = eventBuilder.programUid(program.getUid()).build();
 
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(false);
@@ -238,10 +235,9 @@ class EventOperationParamsMapperTest {
   void
       shouldFailWithForbiddenExceptionWhenUserHasNoAccessToCategoryComboGivenAttributeCategoryOptions() {
     EventOperationParams eventOperationParams =
-        EventOperationParams.builder()
+        eventBuilder
             .attributeCategoryCombo("NeU85luyD4w")
             .attributeCategoryOptions(Set.of("tqrzUqNMHib", "bT6OSf4qnnk"))
-            .orgUnitMode(ACCESSIBLE)
             .build();
     CategoryOptionCombo combo = new CategoryOptionCombo();
     combo.setUid("uid");
@@ -262,10 +258,9 @@ class EventOperationParamsMapperTest {
   void shouldMapGivenAttributeCategoryOptionsWhenUserHasAccessToCategoryCombo()
       throws BadRequestException, ForbiddenException {
     EventOperationParams operationParams =
-        EventOperationParams.builder()
+        eventBuilder
             .attributeCategoryCombo("NeU85luyD4w")
             .attributeCategoryOptions(Set.of("tqrzUqNMHib", "bT6OSf4qnnk"))
-            .orgUnitMode(ACCESSIBLE)
             .build();
     CategoryOptionCombo combo = new CategoryOptionCombo();
     combo.setUid("uid");
@@ -284,10 +279,9 @@ class EventOperationParamsMapperTest {
   @Test
   void testMappingAssignedUser() throws BadRequestException, ForbiddenException {
     EventOperationParams requestParams =
-        EventOperationParams.builder()
+        eventBuilder
             .assignedUsers(Set.of("IsdLBTOBzMi", "l5ab8q5skbB"))
             .assignedUserMode(AssignedUserSelectionMode.PROVIDED)
-            .orgUnitMode(ACCESSIBLE)
             .build();
 
     EventSearchParams params = mapper.map(requestParams);
@@ -332,10 +326,7 @@ class EventOperationParamsMapperTest {
     tea1.setUid(TEA_1_UID);
     when(trackedEntityAttributeService.getAllTrackedEntityAttributes()).thenReturn(List.of(tea1));
     EventOperationParams operationParams =
-        EventOperationParams.builder()
-            .attributeFilters(TEA_1_UID + ":gt:10:lt:20")
-            .orgUnitMode(ACCESSIBLE)
-            .build();
+        eventBuilder.attributeFilters(TEA_1_UID + ":gt:10:lt:20").build();
 
     EventSearchParams searchParams = mapper.map(operationParams);
 
@@ -354,8 +345,7 @@ class EventOperationParamsMapperTest {
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID);
     when(trackedEntityAttributeService.getAllTrackedEntityAttributes()).thenReturn(List.of(tea1));
-    EventOperationParams operationParams =
-        EventOperationParams.builder().attributeFilters(TEA_1_UID).orgUnitMode(ACCESSIBLE).build();
+    EventOperationParams operationParams = eventBuilder.attributeFilters(TEA_1_UID).build();
 
     EventSearchParams params = mapper.map(operationParams);
 
@@ -374,13 +364,12 @@ class EventOperationParamsMapperTest {
     when(trackedEntityAttributeService.getAllTrackedEntityAttributes())
         .thenReturn(List.of(tea1, tea2));
     EventOperationParams operationParams =
-        EventOperationParams.builder()
+        eventBuilder
             .attributeFilters(
                 "TvjwTPToKHO:lt:20,"
                     + "cy2oRh2sNr6:lt:20,"
                     + "TvjwTPToKHO:gt:30,"
                     + "cy2oRh2sNr6:gt:30")
-            .orgUnitMode(ACCESSIBLE)
             .build();
 
     Exception exception =
@@ -409,13 +398,12 @@ class EventOperationParamsMapperTest {
     when(dataElementService.getDataElement(TEA_1_UID)).thenReturn(null);
 
     EventOperationParams operationParams =
-        EventOperationParams.builder()
+        eventBuilder
             .orderBy("created", SortDirection.ASC)
             .orderBy(UID.of(TEA_1_UID), SortDirection.ASC)
             .orderBy("programStage.uid", SortDirection.DESC)
             .orderBy(UID.of(DE_1_UID), SortDirection.DESC)
             .orderBy("dueDate", SortDirection.ASC)
-            .orgUnitMode(ACCESSIBLE)
             .build();
 
     EventSearchParams params = mapper.map(operationParams);
@@ -442,10 +430,7 @@ class EventOperationParamsMapperTest {
     when(dataElementService.getDataElement(TEA_1_UID)).thenReturn(null);
 
     EventOperationParams operationParams =
-        EventOperationParams.builder()
-            .orderBy(UID.of(TEA_1_UID), SortDirection.ASC)
-            .orgUnitMode(ACCESSIBLE)
-            .build();
+        eventBuilder.orderBy(UID.of(TEA_1_UID), SortDirection.ASC).build();
 
     Exception exception =
         assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
@@ -460,10 +445,7 @@ class EventOperationParamsMapperTest {
     assertTrue(CodeGenerator.isValidUid("lastUpdated"));
 
     EventOperationParams operationParams =
-        EventOperationParams.builder()
-            .orderBy(UID.of("lastUpdated"), SortDirection.ASC)
-            .orgUnitMode(ACCESSIBLE)
-            .build();
+        eventBuilder.orderBy(UID.of("lastUpdated"), SortDirection.ASC).build();
 
     Exception exception =
         assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
@@ -480,10 +462,7 @@ class EventOperationParamsMapperTest {
     when(dataElementService.getDataElement(DE_2_UID)).thenReturn(de2);
 
     EventOperationParams requestParams =
-        EventOperationParams.builder()
-            .dataElementFilters(DE_1_UID + ":eq:2," + DE_2_UID + ":like:foo")
-            .orgUnitMode(ACCESSIBLE)
-            .build();
+        eventBuilder.dataElementFilters(DE_1_UID + ":eq:2," + DE_2_UID + ":like:foo").build();
     EventSearchParams params = mapper.map(requestParams);
 
     Map<DataElement, List<QueryFilter>> dataElements = params.getDataElements();
@@ -505,10 +484,7 @@ class EventOperationParamsMapperTest {
     when(dataElementService.getDataElement(DE_1_UID)).thenReturn(de1);
 
     EventOperationParams requestParams =
-        EventOperationParams.builder()
-            .dataElementFilters(DE_1_UID + ":gt:10:lt:20")
-            .orgUnitMode(ACCESSIBLE)
-            .build();
+        eventBuilder.dataElementFilters(DE_1_UID + ":gt:10:lt:20").build();
 
     EventSearchParams params = mapper.map(requestParams);
 
@@ -525,11 +501,7 @@ class EventOperationParamsMapperTest {
   @Test
   void shouldFailWhenDataElementInGivenDataElementFilterDoesNotExist() {
     String filterName = "filter";
-    EventOperationParams requestParams =
-        EventOperationParams.builder()
-            .dataElementFilters(filterName)
-            .orgUnitMode(ACCESSIBLE)
-            .build();
+    EventOperationParams requestParams = eventBuilder.dataElementFilters(filterName).build();
 
     when(dataElementService.getDataElement(filterName)).thenReturn(null);
 
@@ -779,8 +751,7 @@ class EventOperationParamsMapperTest {
 
     when(currentUserService.getCurrentUser()).thenReturn(user);
 
-    EventOperationParams requestParams =
-        EventOperationParams.builder().programUid(program.getUid()).orgUnitMode(ACCESSIBLE).build();
+    EventOperationParams requestParams = eventBuilder.programUid(program.getUid()).build();
 
     EventSearchParams searchParams = mapper.map(requestParams);
 
@@ -853,8 +824,7 @@ class EventOperationParamsMapperTest {
 
     when(currentUserService.getCurrentUser()).thenReturn(user);
 
-    EventOperationParams requestParams =
-        EventOperationParams.builder().programUid(program.getUid()).orgUnitMode(ACCESSIBLE).build();
+    EventOperationParams requestParams = eventBuilder.programUid(program.getUid()).build();
 
     EventSearchParams searchParams = mapper.map(requestParams);
 

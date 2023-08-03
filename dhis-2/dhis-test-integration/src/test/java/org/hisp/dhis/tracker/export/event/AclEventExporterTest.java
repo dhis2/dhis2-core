@@ -328,7 +328,7 @@ class AclEventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnEventsWhenProgramOpenOuModeCapture()
+  void shouldReturnEventsWhenProgramClosedOuModeCapture()
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
@@ -349,32 +349,7 @@ class AclEventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnSelectedOrgUnitEventsWhenNoOuModeSpecifiedAndUserHasAccessToOrgUnit()
-      throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
-        EventOperationParams.builder()
-            .programUid("pcxIanBWlSY")
-            .orgUnitUid("uoNW0E3xXUy")
-            .orgUnitMode(SELECTED)
-            .build();
-
-    List<Event> events = eventService.getEvents(params).getEvents();
-
-    assertFalse(
-        events.isEmpty(), "Expected to find selected org unit events when ou mode not specified");
-    events.forEach(
-        e ->
-            assertEquals(
-                "uoNW0E3xXUy",
-                e.getOrganisationUnit().getUid(),
-                "Expected to find accessible org unit uoNW0E3xXUy, but found "
-                    + e.getOrganisationUnit().getUid()
-                    + " instead"));
-  }
-
-  @Test
-  void shouldReturnAccessibleOrgUnitEventsWhenNoOuModeNorOrgUnitSpecifiedAndUserHasAccessToOrgUnit()
+  void shouldReturnAccessibleOrgUnitEventsWhenNoOrgUnitSpecified()
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
@@ -384,43 +359,7 @@ class AclEventExporterTest extends TrackerTest {
 
     assertFalse(
         events.isEmpty(),
-        "Expected to find accessible org unit events when ou mode nor org unit specified");
-    events.forEach(
-        e ->
-            assertEquals(
-                "uoNW0E3xXUy",
-                e.getOrganisationUnit().getUid(),
-                "Expected to find accessible org unit uoNW0E3xXUy, but found "
-                    + e.getOrganisationUnit().getUid()
-                    + " instead"));
-  }
-
-  @Test
-  void shouldFailWhenNoOuModeSpecifiedAndUserHasNoAccessToOrgUnit() {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
-        EventOperationParams.builder()
-            .programUid("pcxIanBWlSY")
-            .orgUnitUid("DiszpKrYNg8")
-            .orgUnitMode(SELECTED)
-            .build();
-
-    ForbiddenException exception =
-        assertThrows(ForbiddenException.class, () -> eventService.getEvents(params));
-    assertEquals("User does not have access to orgUnit: DiszpKrYNg8", exception.getMessage());
-  }
-
-  @Test
-  void shouldReturnAccessibleOrgUnitEventsWhenNoOrgUnitSpecifiedNorOuModeSpecified()
-      throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
-        EventOperationParams.builder().programUid("pcxIanBWlSY").orgUnitMode(ACCESSIBLE).build();
-
-    List<Event> events = eventService.getEvents(params).getEvents();
-
-    assertFalse(
-        events.isEmpty(), "Expected to find accessible org unit events when ou mode not specified");
+        "Expected to find accessible org unit events when org unit not specified");
     events.forEach(
         e ->
             assertEquals(

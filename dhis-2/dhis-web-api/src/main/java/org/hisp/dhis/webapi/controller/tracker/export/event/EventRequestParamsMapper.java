@@ -76,9 +76,7 @@ class EventRequestParamsMapper {
                 "orgUnitMode",
                 requestParams.getOrgUnitMode()));
 
-    if (orgUnitMode != null) {
-      validateOrgUnitMode(requestParams.getOrgUnit(), orgUnitMode);
-    }
+    validateOrgUnitMode(requestParams.getOrgUnit(), orgUnitMode);
 
     UID attributeCategoryCombo =
         validateDeprecatedParameter(
@@ -238,7 +236,7 @@ class EventRequestParamsMapper {
 
   private void validateOrgUnitMode(UID orgUnit, OrganisationUnitSelectionMode orgUnitMode)
       throws BadRequestException {
-    if ((orgUnitMode.equals(ACCESSIBLE) || orgUnitMode.equals(CAPTURE)) && orgUnit != null) {
+    if ((orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE) && orgUnit != null) {
       throw new BadRequestException(
           String.format(
               "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
