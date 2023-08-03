@@ -56,7 +56,7 @@ public interface EventMapper
    * Events can be ordered by given fields which correspond to fields on {@link
    * org.hisp.dhis.program.Event}.
    */
-  static final Map<String, String> ORDERABLE_FIELDS =
+  Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
           entry("assignedUser", "assignedUser"),
           entry("assignedUserDisplayName", "assignedUser.displayName"),
