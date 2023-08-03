@@ -96,32 +96,28 @@ public class DataOrgUnitMergeHandler {
     // @formatter:off
     return String.format(
         // Delete existing target data values
-        "delete from datavalue where sourceid = :target_id; "
-            +
-            // Insert target data values for last modified source data values
-            "with dv_rank as ( "
-            +
+        "delete from datavalue where sourceid = :target_id; " +
+        // Insert target data values for last modified source data values
+        "with dv_rank as ( " +
             // Window over data value sources ranked by last modification
-            "select dv.*, row_number() over ("
-            + "partition by dv.dataelementid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid "
-            + "order by dv.lastupdated desc, dv.created desc) as lastupdated_rank "
-            + "from datavalue dv "
-            + "where dv.sourceid in (:source_ids) "
-            + "and dv.deleted is false"
-            + ") "
-            +
-            // Insert target data values
-            "insert into datavalue ("
-            + "dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, "
-            + "value, storedby, created, lastupdated, comment, followup, deleted) "
-            + "select dataelementid, periodid, %s, categoryoptioncomboid, attributeoptioncomboid, "
-            + "value, storedby, created, lastupdated, comment, followup, false "
-            + "from dv_rank "
-            + "where dv_rank.lastupdated_rank = 1; "
-            +
-            // Delete source data values
-            "delete from datavalue where sourceid in (:source_ids);",
-        request.getTarget().getId());
+            "select dv.*, row_number() over (" +
+                "partition by dv.dataelementid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid " +
+                "order by dv.lastupdated desc, dv.created desc) as lastupdated_rank " +
+            "from datavalue dv " +
+            "where dv.sourceid in (:source_ids) " +
+            "and dv.deleted is false" +
+        ") " +
+        // Insert target data values
+        "insert into datavalue (" +
+            "dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, " +
+            "value, storedby, created, lastupdated, comment, followup, deleted) " +
+        "select dataelementid, periodid, %s, categoryoptioncomboid, attributeoptioncomboid, " +
+            "value, storedby, created, lastupdated, comment, followup, false " +
+        "from dv_rank " +
+        "where dv_rank.lastupdated_rank = 1; " +
+        // Delete source data values
+        "delete from datavalue where sourceid in (:source_ids);",
+        request.getTarget().getId() );
     // @formatter:on
   }
 
@@ -149,7 +145,7 @@ public class DataOrgUnitMergeHandler {
   }
 
   private String getMergeDataApprovalsLastUpdatedSql(OrgUnitMergeRequest request) {
-    // @formatter:offT
+    // @formatter:off
     return String.format(
         // Delete existing target data approvals
         "delete from dataapproval where organisationunitid = :target_id; "

@@ -64,12 +64,13 @@ public class RedisLeaderManager implements LeaderManager {
   public RedisLeaderManager(
       Long timeToLiveMinutes,
       StringRedisTemplate redisTemplate,
-      DhisConfigurationProvider dhisConfigurationProbider) {
-    this.nodeId = dhisConfigurationProbider.getProperty(ConfigurationKey.NODE_ID);
+      DhisConfigurationProvider dhisConfigurationProvider) {
+    this.nodeId = dhisConfigurationProvider.getProperty(ConfigurationKey.NODE_ID);
     this.nodeUuid = UUID.randomUUID().toString();
     log.info(
-        "Setting up redis based leader manager with NodeUuid:%s and NodeID:%s",
-        this.nodeUuid, this.nodeId);
+        "Setting up redis based leader manager with NodeUuid:{} and NodeID:{}",
+        this.nodeUuid,
+        this.nodeId);
     this.timeToLiveSeconds = timeToLiveMinutes * 60;
     this.redisTemplate = redisTemplate;
   }
@@ -99,7 +100,6 @@ public class RedisLeaderManager implements LeaderManager {
           this.nodeUuid, calendar.getTime().toString());
       JobConfiguration leaderRenewalJobConfiguration =
           new JobConfiguration(CLUSTER_LEADER_RENEWAL, JobType.LEADER_RENEWAL, null, true);
-      leaderRenewalJobConfiguration.setLeaderOnlyJob(true);
       schedulingManager.scheduleWithStartTime(leaderRenewalJobConfiguration, calendar.getTime());
     }
   }

@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryFilter;
@@ -330,7 +331,120 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldOrderEntitiesByIdWhenParamCreatedAtSupplied() {
+  void shouldOrderEntitiesByCreatedInAscOrder() {
+    entityInstanceA1.setCreated(DateTime.now().plusDays(1).toDate());
+    entityInstanceB1.setCreated(DateTime.now().toDate());
+    entityInstanceC1.setCreated(DateTime.now().minusDays(1).toDate());
+    entityInstanceD1.setCreated(DateTime.now().plusDays(2).toDate());
+    addEntityInstances();
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+    params.setOrganisationUnits(Set.of(organisationUnit));
+    params.setOrders(
+        List.of(
+            OrderParam.builder().field("created").direction(OrderParam.SortDirection.ASC).build()));
+
+    List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
+
+    assertEquals(
+        List.of(
+            entityInstanceC1.getId(),
+            entityInstanceB1.getId(),
+            entityInstanceA1.getId(),
+            entityInstanceD1.getId()),
+        teiIdList);
+  }
+
+  @Test
+  void shouldOrderEntitiesByCreatedInDescOrder() {
+    entityInstanceA1.setCreated(DateTime.now().plusDays(1).toDate());
+    entityInstanceB1.setCreated(DateTime.now().toDate());
+    entityInstanceC1.setCreated(DateTime.now().minusDays(1).toDate());
+    entityInstanceD1.setCreated(DateTime.now().plusDays(2).toDate());
+    addEntityInstances();
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+
+    params.setOrganisationUnits(Set.of(organisationUnit));
+    params.setOrders(
+        List.of(
+            OrderParam.builder()
+                .field("created")
+                .direction(OrderParam.SortDirection.DESC)
+                .build()));
+
+    List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
+
+    assertEquals(
+        List.of(
+            entityInstanceD1.getId(),
+            entityInstanceA1.getId(),
+            entityInstanceB1.getId(),
+            entityInstanceC1.getId()),
+        teiIdList);
+  }
+
+  @Test
+  void shouldOrderGridEntitiesByCreatedInAscOrder() {
+    User user = createUser("attributeFilterUser");
+    user.setOrganisationUnits(Sets.newHashSet(organisationUnit));
+    CurrentUserService currentUserService = new MockCurrentUserService(user);
+    ReflectionTestUtils.setField(entityInstanceService, "currentUserService", currentUserService);
+    filtH.setDisplayInListNoProgram(true);
+    attributeService.addTrackedEntityAttribute(filtH);
+
+    entityInstanceA1.setCreated(DateTime.now().plusDays(1).toDate());
+    entityInstanceB1.setCreated(DateTime.now().toDate());
+    initializeEntityInstance(entityInstanceA1);
+    initializeEntityInstance(entityInstanceB1);
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+    params.setOrganisationUnits(Sets.newHashSet(organisationUnit));
+    params.setTrackedEntityType(trackedEntityType);
+    params.setOrders(
+        List.of(
+            OrderParam.builder().field("created").direction(OrderParam.SortDirection.ASC).build()));
+    params.setQuery(new QueryFilter(QueryOperator.LIKE, ATTRIBUTE_VALUE));
+
+    Grid grid = entityInstanceService.getTrackedEntityInstancesGrid(params);
+    List<Object> uids = grid.getRows().stream().map(l -> l.get(0)).collect(Collectors.toList());
+
+    assertEquals(List.of("UID-B1", "UID-A1"), uids);
+  }
+
+  @Test
+  void shouldOrderGridEntitiesByCreatedInDescOrder() {
+    User user = createUser("attributeFilterUser");
+    user.setOrganisationUnits(Sets.newHashSet(organisationUnit));
+    CurrentUserService currentUserService = new MockCurrentUserService(user);
+    ReflectionTestUtils.setField(entityInstanceService, "currentUserService", currentUserService);
+    filtH.setDisplayInListNoProgram(true);
+    attributeService.addTrackedEntityAttribute(filtH);
+
+    entityInstanceA1.setCreated(DateTime.now().plusDays(1).toDate());
+    entityInstanceB1.setCreated(DateTime.now().toDate());
+    initializeEntityInstance(entityInstanceA1);
+    initializeEntityInstance(entityInstanceB1);
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+    params.setOrganisationUnits(Sets.newHashSet(organisationUnit));
+    params.setTrackedEntityType(trackedEntityType);
+    params.setOrders(
+        List.of(
+            OrderParam.builder()
+                .field("created")
+                .direction(OrderParam.SortDirection.DESC)
+                .build()));
+    params.setQuery(new QueryFilter(QueryOperator.LIKE, ATTRIBUTE_VALUE));
+
+    Grid grid = entityInstanceService.getTrackedEntityInstancesGrid(params);
+    List<Object> uids = grid.getRows().stream().map(l -> l.get(0)).collect(Collectors.toList());
+
+    assertEquals(List.of("UID-A1", "UID-B1"), uids);
+  }
+
+  @Test
+  void shouldOrderEntitiesByCreatedAtInAscOrder() {
     entityInstanceA1.setCreated(DateTime.now().plusDays(1).toDate());
     entityInstanceB1.setCreated(DateTime.now().toDate());
     entityInstanceC1.setCreated(DateTime.now().minusDays(1).toDate());
@@ -350,28 +464,62 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
 
     assertEquals(
         List.of(
-            entityInstanceA1.getId(),
-            entityInstanceB1.getId(),
             entityInstanceC1.getId(),
+            entityInstanceB1.getId(),
+            entityInstanceA1.getId(),
             entityInstanceD1.getId()),
         teiIdList);
   }
 
   @Test
-  void shouldOrderEntitiesByIdWhenParamUpdatedAtSupplied() {
+  void shouldOrderEntitiesByCreatedAtInDescOrder() {
     entityInstanceA1.setLastUpdated(DateTime.now().plusDays(1).toDate());
     entityInstanceB1.setLastUpdated(DateTime.now().toDate());
     entityInstanceC1.setLastUpdated(DateTime.now().minusDays(1).toDate());
     entityInstanceD1.setLastUpdated(DateTime.now().plusDays(2).toDate());
-
+    entityInstanceA1.setCreated(DateTime.now().plusDays(1).toDate());
+    entityInstanceB1.setCreated(DateTime.now().toDate());
+    entityInstanceC1.setCreated(DateTime.now().minusDays(1).toDate());
+    entityInstanceD1.setCreated(DateTime.now().plusDays(2).toDate());
     addEntityInstances();
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+
+    params.setOrganisationUnits(Set.of(organisationUnit));
+    params.setOrders(
+        List.of(
+            OrderParam.builder()
+                .field("createdAt")
+                .direction(OrderParam.SortDirection.DESC)
+                .build()));
+
+    List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
+
+    assertEquals(
+        List.of(
+            entityInstanceD1.getId(),
+            entityInstanceA1.getId(),
+            entityInstanceB1.getId(),
+            entityInstanceC1.getId()),
+        teiIdList);
+  }
+
+  @Test
+  void shouldOrderEntitiesByLastUpdatedInAscOrder() {
+    addEntityInstances();
+    // lastupdated is automatically set by the store; update entities in a certain order and expect
+    // that to be returned
+    entityInstanceService.updateTrackedEntityInstance(entityInstanceD1);
+    entityInstanceService.updateTrackedEntityInstance(entityInstanceB1);
+    entityInstanceService.updateTrackedEntityInstance(entityInstanceC1);
+    entityInstanceService.updateTrackedEntityInstance(entityInstanceA1);
 
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
     params.setOrganisationUnits(Sets.newHashSet(organisationUnit));
     params.setOrders(
         List.of(
             OrderParam.builder()
-                .field("updatedAt")
+                .field("lastUpdated")
                 .direction(OrderParam.SortDirection.ASC)
                 .build()));
 
@@ -379,15 +527,46 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
 
     assertEquals(
         List.of(
-            entityInstanceA1.getId(),
+            entityInstanceD1.getId(),
             entityInstanceB1.getId(),
             entityInstanceC1.getId(),
+            entityInstanceA1.getId()),
+        teiIdList);
+  }
+
+  @Test
+  void shouldOrderEntitiesByLastUpdatedInDescOrder() {
+    addEntityInstances();
+    // lastupdated is automatically set by the store; update entities in a certain order and expect
+    // that to be returned
+    entityInstanceService.updateTrackedEntityInstance(entityInstanceD1);
+    entityInstanceService.updateTrackedEntityInstance(entityInstanceB1);
+    entityInstanceService.updateTrackedEntityInstance(entityInstanceC1);
+    entityInstanceService.updateTrackedEntityInstance(entityInstanceA1);
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+
+    params.setOrganisationUnits(Set.of(organisationUnit));
+    params.setOrders(
+        List.of(
+            OrderParam.builder()
+                .field("lastUpdated")
+                .direction(OrderParam.SortDirection.DESC)
+                .build()));
+
+    List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
+
+    assertEquals(
+        List.of(
+            entityInstanceA1.getId(),
+            entityInstanceC1.getId(),
+            entityInstanceB1.getId(),
             entityInstanceD1.getId()),
         teiIdList);
   }
 
   @Test
-  void shouldOrderEntitiesByIdWhenParamTrackedEntitySupplied() {
+  void shouldOrderEntitiesByTrackedEntityUidInDescOrder() {
     addEntityInstances();
 
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
@@ -411,7 +590,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldOrderEntitiesByLastUpdatedAtClientWhenParamUpdatedAtClientSupplied() {
+  void shouldOrderEntitiesByUpdatedAtClientInDescOrder() {
     entityInstanceA1.setLastUpdatedAtClient(DateTime.now().plusDays(1).toDate());
     entityInstanceB1.setLastUpdatedAtClient(DateTime.now().toDate());
     entityInstanceC1.setLastUpdatedAtClient(DateTime.now().minusDays(1).toDate());
@@ -439,7 +618,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldOrderEntitiesByEnrollmentDateWhenParamEnrolledAtSupplied() {
+  void shouldOrderEntitiesByEnrolledAtDateInDescOrder() {
     addEntityInstances();
     programInstanceService.addProgramInstance(programInstance);
     addEnrollment(entityInstanceB1, DateTime.now().plusDays(2).toDate(), 'B');
@@ -501,7 +680,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldSortEntitiesByIdWhenNoOrderParamProvided() {
+  void shouldOrderEntitiesByDefaultUsingTrackedEntityIdInAscOrderWhenNoOrderParamProvided() {
     addEntityInstances();
 
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
@@ -649,69 +828,6 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
             entityInstanceC1.getId(),
             entityInstanceB1.getId()),
         teiIdList);
-  }
-
-  @Test
-  void shouldSortGridByTrackedEntityInstanceIdAscendingWhenParamCreatedAscendingProvided() {
-    User user = createUser("attributeFilterUser");
-    user.setOrganisationUnits(Sets.newHashSet(organisationUnit));
-    CurrentUserService currentUserService = new MockCurrentUserService(user);
-    ReflectionTestUtils.setField(entityInstanceService, "currentUserService", currentUserService);
-    filtH.setDisplayInListNoProgram(true);
-    attributeService.addTrackedEntityAttribute(filtH);
-
-    initializeEntityInstance(entityInstanceA1);
-    initializeEntityInstance(entityInstanceB1);
-
-    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-    params.setOrganisationUnits(Sets.newHashSet(organisationUnit));
-    params.setTrackedEntityType(trackedEntityType);
-    params.setOrders(
-        List.of(
-            OrderParam.builder().field("created").direction(OrderParam.SortDirection.ASC).build()));
-    params.setQuery(new QueryFilter(QueryOperator.LIKE, ATTRIBUTE_VALUE));
-
-    Grid grid = entityInstanceService.getTrackedEntityInstancesGrid(params);
-
-    assertEquals(
-        2,
-        grid.getRows().size(),
-        "Expected to find 2 rows in the grid, but found " + grid.getRows().size() + " instead");
-    assertEquals("UID-A1", grid.getRows().get(0).get(0));
-    assertEquals("UID-B1", grid.getRows().get(1).get(0));
-  }
-
-  @Test
-  void shouldSortGridByTrackedEntityInstanceIdDescendingWhenParamCreatedDescendingProvided() {
-    User user = createUser("attributeFilterUser");
-    user.setOrganisationUnits(Sets.newHashSet(organisationUnit));
-    CurrentUserService currentUserService = new MockCurrentUserService(user);
-    ReflectionTestUtils.setField(entityInstanceService, "currentUserService", currentUserService);
-    filtH.setDisplayInListNoProgram(true);
-    attributeService.addTrackedEntityAttribute(filtH);
-
-    initializeEntityInstance(entityInstanceA1);
-    initializeEntityInstance(entityInstanceB1);
-
-    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-    params.setOrganisationUnits(Sets.newHashSet(organisationUnit));
-    params.setTrackedEntityType(trackedEntityType);
-    params.setOrders(
-        List.of(
-            OrderParam.builder()
-                .field("created")
-                .direction(OrderParam.SortDirection.DESC)
-                .build()));
-    params.setQuery(new QueryFilter(QueryOperator.LIKE, ATTRIBUTE_VALUE));
-
-    Grid grid = entityInstanceService.getTrackedEntityInstancesGrid(params);
-
-    assertEquals(
-        2,
-        grid.getRows().size(),
-        "Expected to find 2 rows in the grid, but found " + grid.getRows().size() + " instead");
-    assertEquals("UID-B1", grid.getRows().get(0).get(0));
-    assertEquals("UID-A1", grid.getRows().get(1).get(0));
   }
 
   private void initializeEntityInstance(TrackedEntityInstance entityInstance) {

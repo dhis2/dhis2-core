@@ -46,8 +46,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.NamedParams;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 
 /**
@@ -70,7 +70,7 @@ public final class GistQuery {
    * Fields allow {@code property[sub,sub]} syntax where a comma occurs as part of the property
    * name. These commas need to be ignored when splitting a {@code fields} parameter list.
    */
-  private static final String FIELD_SPLIT = ",(?![^\\[\\]]*\\]|[^\\(\\)]*\\))";
+  static final String FIELD_SPLIT = ",(?![^\\[\\]]*\\]|[^\\(\\)]*\\)|([a-zA-Z0-9]+,?)+\\))";
 
   /** Query properties about the owner of the collection property. */
   @Getter
@@ -171,26 +171,37 @@ public final class GistQuery {
     return filters.size() > 1 && filters.stream().anyMatch(f -> f.getGroup() >= 0);
   }
 
-  public GistQuery with(NamedParams params) {
-    int page = abs(params.getInt("page", 1));
-    int size = Math.min(1000, abs(params.getInt("pageSize", 50)));
+  public GistQuery with(GistParams params) {
+    int page = abs(params.getPage());
+    int size = Math.min(1000, abs(params.getPageSize()));
     return toBuilder()
         .pageSize(size)
         .pageOffset(Math.max(0, page - 1) * size)
-        .translate(params.getBoolean("translate", true))
-        .inverse(params.getBoolean("inverse", false))
-        .total(params.getBoolean("total", false))
-        .absoluteUrls(params.getBoolean("absoluteUrls", false))
-        .headless(params.getBoolean("headless", false))
-        .describe(params.getBoolean("describe", false))
-        .references(params.getBoolean("references", true))
-        .anyFilter(params.getString("rootJunction", "AND").equalsIgnoreCase("OR"))
+        .translate(params.isTranslate())
+        .inverse(params.isInverse())
+        .total(params.isTotal())
+        .absoluteUrls(params.isAbsoluteUrls())
+        .headless(params.isHeadless())
+        .describe(params.isDescribe())
+        .references(params.isReferences())
+        .anyFilter(params.getRootJunction() == Junction.Type.OR)
         .fields(
-            params.getStrings("fields", FIELD_SPLIT).stream().map(Field::parse).collect(toList()))
+            getStrings(params.getFields(), FIELD_SPLIT).stream()
+                .map(Field::parse)
+                .collect(toList()))
         .filters(
-            params.getStrings("filter", FIELD_SPLIT).stream().map(Filter::parse).collect(toList()))
-        .orders(params.getStrings("order").stream().map(Order::parse).collect(toList()))
+            getStrings(params.getFilter(), FIELD_SPLIT).stream()
+                .map(Filter::parse)
+                .collect(toList()))
+        .orders(getStrings(params.getOrder(), ",").stream().map(Order::parse).collect(toList()))
         .build();
+  }
+
+  private static List<String> getStrings(String value, String splitRegex) {
+    if (value == null || value.isEmpty()) {
+      return emptyList();
+    }
+    return asList(value.split(splitRegex));
   }
 
   public GistQuery withOwner(Owner owner) {

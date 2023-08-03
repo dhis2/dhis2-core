@@ -182,7 +182,9 @@ public class EventExportTests extends TrackerApiTest {
   Stream<Arguments> shouldUseCorrectScopeWhenNoOu() {
     return Stream.of(
         Arguments.of(
-            "should use capture scope when no ou, no program", null, Arrays.asList(captureOu)),
+            "should use search scope when no ou, no program",
+            null,
+            Arrays.asList(captureOu, searchOu, dataReadOu)),
         Arguments.of(
             "should use capture scope when no ou, closed program",
             closedProgramId,

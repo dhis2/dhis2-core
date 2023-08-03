@@ -35,6 +35,7 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonTypedAccess;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -116,6 +117,6 @@ class DomainJsonResponseTest {
   }
 
   private JsonResponse createJSON(String content) {
-    return new JsonResponse(content.replace('\'', '"'));
+    return new JsonResponse(content.replace('\'', '"'), JsonTypedAccess.GLOBAL);
   }
 }

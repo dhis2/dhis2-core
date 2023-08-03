@@ -425,7 +425,7 @@ public class HibernateTrackedEntityInstanceStore
             List.of(
                 "SELECT TEI.uid AS " + TRACKED_ENTITY_INSTANCE_ID,
                 "TEI.created AS " + CREATED_ID,
-                "TEI.lastUpdated AS " + LAST_UPDATED_ID,
+                "TEI.lastupdated AS " + LAST_UPDATED_ID,
                 "TEI.ou AS " + ORG_UNIT_ID,
                 "TEI.ouname AS " + ORG_UNIT_NAME,
                 "TET.uid AS " + TRACKED_ENTITY_ID,
@@ -502,8 +502,8 @@ public class HibernateTrackedEntityInstanceStore
   }
 
   /**
-   * The subquery projection. If we are sorting by attribute, we need to include the value in the
-   * subquery projection.
+   * The sub-query projection. If we are sorting by attribute, we need to include the value in the
+   * sub-query projection.
    *
    * @param params
    * @return a SQL projection
@@ -515,7 +515,7 @@ public class HibernateTrackedEntityInstanceStore
                 "TEI.trackedentityinstanceid",
                 "TEI.uid",
                 "TEI.created",
-                "TEI.lastUpdated",
+                "TEI.lastupdated",
                 "TEI.inactive",
                 "TEI.trackedentitytypeid",
                 "TEI.potentialduplicate",

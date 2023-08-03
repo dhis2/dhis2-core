@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,25 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.parser.expression.function;
+package org.hisp.dhis.dxf2.dataset;
 
-import java.util.Arrays;
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-/**
- * Vector function: median
- *
- * @author Jim Grace
- */
-public class VectorMedian extends VectorFunction<Double> {
-  public VectorMedian() {
-    super(Double.class);
+import com.lowagie.text.Font;
+import com.lowagie.text.FontFactory;
+import java.util.Locale;
+import org.hisp.dhis.dxf2.pdfform.PdfFormFontSettings;
+import org.junit.jupiter.api.Test;
+
+class PdfFormFontSettingsTest {
+
+  @Test
+  void testArabicFont() {
+    PdfFormFontSettings pdfFormFontSettings = new PdfFormFontSettings(new Locale("ar"));
+    Font font = pdfFormFontSettings.getFont(PdfFormFontSettings.FONTTYPE_BODY);
+    assertNotNull(font.getBaseFont());
+    assertEquals("NotoNaskhArabic", font.getBaseFont().getPostscriptFontName());
   }
 
-  private static VectorPercentileCont percentileContinuous = new VectorPercentileCont();
-
-  @Override
-  public Object aggregate(List<Double> values, List<Double> args) {
-    return percentileContinuous.aggregate(values, Arrays.asList(.5));
+  @Test
+  void testNonArabicFont() {
+    PdfFormFontSettings pdfFormFontSettings = new PdfFormFontSettings(new Locale("en"));
+    Font font = pdfFormFontSettings.getFont(PdfFormFontSettings.FONTTYPE_BODY);
+    assertNotNull(font.getBaseFont());
+    assertEquals(FontFactory.HELVETICA, font.getBaseFont().getPostscriptFontName());
   }
 }
