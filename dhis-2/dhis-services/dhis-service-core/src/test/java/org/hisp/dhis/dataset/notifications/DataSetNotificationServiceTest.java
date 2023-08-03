@@ -81,7 +81,6 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -143,10 +142,7 @@ class DataSetNotificationServiceTest extends DhisConvenienceTest {
 
   @Mock private DhisConfigurationProvider configurationProvider;
 
-  @Spy
-  private List<MessageSender> messageSenders =
-      List.of(
-          new EmailMessageSender(systemSettingManager, userSettingService, configurationProvider));
+  @Mock private List<MessageSender> messageSenders;
 
   @Mock private ProgramMessageService externalMessageService;
 
