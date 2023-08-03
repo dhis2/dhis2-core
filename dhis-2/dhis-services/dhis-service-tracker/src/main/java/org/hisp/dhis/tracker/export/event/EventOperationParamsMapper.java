@@ -316,43 +316,6 @@ public class EventOperationParamsMapper {
         || user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
   }
 
-  private List<QueryItem> parseAttributeFilters(String attributeFilters)
-      throws BadRequestException {
-    Map<String, TrackedEntityAttribute> attributes =
-        attributeService.getAllTrackedEntityAttributes().stream()
-            .collect(Collectors.toMap(TrackedEntityAttribute::getUid, att -> att));
-
-    return parseAttributeQueryItems(attributeFilters, attributes);
-  }
-
-  private void validateAttributeFilters(List<QueryItem> attributeFilters)
-      throws BadRequestException {
-    Set<String> attributes = new HashSet<>();
-    Set<String> duplicates = new HashSet<>();
-    for (QueryItem item : attributeFilters) {
-      if (!attributes.add(item.getItemId())) {
-        duplicates.add(item.getItemId());
-      }
-    }
-
-    if (!duplicates.isEmpty()) {
-      throw new BadRequestException(
-          String.format(
-              "filterAttributes contains duplicate tracked entity attribute (TEA): %s. Multiple filters for the same TEA can be specified like 'uid:gt:2:lt:10'",
-              String.join(", ", duplicates)));
-    }
-  }
-
-  private QueryItem dataElementToQueryItem(String item) throws BadRequestException {
-    DataElement de = dataElementService.getDataElement(item);
-
-    if (de == null) {
-      throw new BadRequestException("Data element does not exist: " + item);
-    }
-
-    return new QueryItem(de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet());
-  }
-
   private List<OrganisationUnit> validateAccessibleOrgUnits(
       User user,
       OrganisationUnit orgUnit,

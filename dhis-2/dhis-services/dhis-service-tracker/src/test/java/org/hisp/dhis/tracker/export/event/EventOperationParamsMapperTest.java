@@ -325,9 +325,11 @@ class EventOperationParamsMapperTest {
   void shouldFailWhenAttributeInGivenAttributeFilterDoesNotExist() {
     String filterName = "filter";
     EventOperationParams requestParams =
-        EventOperationParams.builder().attributeFilters(Map.of(filterName, List.of())).build();
+        eventBuilder.attributeFilters(Map.of(filterName, List.of())).build();
 
     when(trackedEntityAttributeService.getTrackedEntityAttribute(filterName)).thenReturn(null);
+
+    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
 
     assertContains(
         "Tracked entity attribute '" + filterName + "' does not exist", exception.getMessage());
@@ -408,7 +410,8 @@ class EventOperationParamsMapperTest {
     when(dataElementService.getDataElement(DE_2_UID)).thenReturn(de2);
 
     EventOperationParams requestParams =
-        eventBuilder            .dataElementFilters(
+        eventBuilder
+            .dataElementFilters(
                 Map.of(
                     DE_1_UID,
                     List.of(new QueryFilter(QueryOperator.EQ, "2")),

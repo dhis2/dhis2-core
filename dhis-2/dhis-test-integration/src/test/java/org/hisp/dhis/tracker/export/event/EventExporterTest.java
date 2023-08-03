@@ -983,7 +983,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testEnrollmentFilterAttributes() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-    operationParamsBuilder
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .attributeFilters(
                 Map.of("toUpdate000", List.of(new QueryFilter(QueryOperator.EQ, "summer day"))))
@@ -1001,7 +1001,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentFilterAttributesWithMultipleFiltersOnDifferentAttributes()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-    operationParamsBuilder
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .attributeFilters(
                 Map.of(
@@ -1023,7 +1023,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentFilterAttributesWithMultipleFiltersOnTheSameAttribute()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-operationParamsBuilder
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .attributeFilters(
                 Map.of(
@@ -1051,8 +1051,7 @@ operationParamsBuilder
             .map(Event::getUid)
             .toList();
 
-    EventOperationParams params =
-        EventOperationParams.builder().orgUnitUid(orgUnit.getUid()).build();
+    EventOperationParams params = operationParamsBuilder.orgUnitUid(orgUnit.getUid()).build();
 
     List<String> events = getEvents(params);
 
@@ -1073,7 +1072,7 @@ operationParamsBuilder
     System.out.println(expected);
 
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .events(Set.of("pTzf9KYMk72", "QRYjLTiJTrA"))
             .orderBy("enrollment.program.uid", SortDirection.ASC)
             .build();
