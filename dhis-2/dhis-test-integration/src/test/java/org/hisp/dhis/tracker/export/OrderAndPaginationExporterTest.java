@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.export;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
@@ -88,6 +90,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   private TrackedEntityType trackedEntityType;
 
+  private EventOperationParamsBuilder operationParamsBuilder;
+
   @Override
   protected void initTest() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
@@ -107,6 +111,9 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     // needed as some tests are run using another user (injectSecurityContext) while most tests
     // expect to be run by admin
     injectAdminUser();
+
+    operationParamsBuilder = EventOperationParams.builder();
+    operationParamsBuilder.orgUnitMode(SELECTED);
   }
 
   @Test
@@ -286,7 +293,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   void shouldReturnPaginatedEventsWithNotesGivenNonDefaultPageSize()
       throws ForbiddenException, BadRequestException {
     EventOperationParamsBuilder paramsBuilder =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .events(Set.of("pTzf9KYMk72", "D9PbzJY8bJM"))
             .orderBy("executionDate", SortDirection.DESC);
@@ -317,7 +324,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWithTotalPages() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .programStageUid(programStage.getUid())
             .totalPages(true)
@@ -335,7 +342,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Program program = get(Program.class, "iS7eutanDry");
 
     EventOperationParamsBuilder paramsBuilder =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .programUid(program.getUid())
             .orderBy("executionDate", SortDirection.DESC);
@@ -374,7 +381,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Program program = get(Program.class, "iS7eutanDry");
 
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .programUid(program.getUid())
             .orderBy("executionDate", SortDirection.DESC)
@@ -401,8 +408,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .map(Event::getUid)
             .toList();
 
-    EventOperationParams params =
-        EventOperationParams.builder().orgUnitUid(orgUnit.getUid()).build();
+    EventOperationParams params = operationParamsBuilder.orgUnitUid(orgUnit.getUid()).build();
 
     List<String> events = getEvents(params);
 
@@ -424,6 +430,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     EventOperationParams params =
         EventOperationParams.builder()
+            .orgUnitMode(ACCESSIBLE)
             .events(Set.of("pTzf9KYMk72", "QRYjLTiJTrA"))
             .orderBy("enrollment.program.uid", SortDirection.ASC)
             .build();
@@ -436,7 +443,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @Test
   void shouldOrderEventsByAttributeAsc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .build();
@@ -449,7 +456,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @Test
   void shouldOrderEventsByAttributeDesc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
             .build();
@@ -462,7 +469,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @Test
   void shouldOrderEventsByMultipleAttributesDesc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
             .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
@@ -476,7 +483,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @Test
   void shouldOrderEventsByMultipleAttributesAsc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
@@ -496,7 +503,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   void shouldOrderEventsByMultipleAttributesAndPaginateWhenGivenNonDefaultPageSize()
       throws ForbiddenException, BadRequestException {
     EventOperationParamsBuilder paramsBuilder =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC);
@@ -527,7 +534,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @Test
   void shouldOrderEventsByEnrolledAtDesc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .build();
@@ -540,7 +547,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @Test
   void shouldOrderEventsByEnrolledAtAsc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
             .build();
@@ -553,7 +560,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @Test
   void shouldOrderEventsByOccurredAtDesc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .orderBy("executionDate", SortDirection.DESC)
             .build();
@@ -566,7 +573,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @Test
   void shouldOrderEventsByOccurredAtAsc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .orderBy("executionDate", SortDirection.ASC)
             .build();
@@ -580,7 +587,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   void shouldOrderEventsRespectingOrderWhenAttributeOrderSuppliedBeforeOrderParam()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
@@ -595,7 +602,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   void shouldOrderEventsRespectingOrderWhenOrderParamSuppliedBeforeAttributeOrder()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
@@ -610,7 +617,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   void shouldOrderEventsRespectingOrderWhenDataElementSuppliedBeforeOrderParam()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .orderBy("dueDate", SortDirection.DESC)
             .orderBy(UID.of("DATAEL00006"), SortDirection.DESC)
@@ -626,7 +633,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   void shouldOrderEventsRespectingOrderWhenOrderParamSuppliedBeforeDataElement()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .orderBy(UID.of("DATAEL00006"), SortDirection.DESC)
