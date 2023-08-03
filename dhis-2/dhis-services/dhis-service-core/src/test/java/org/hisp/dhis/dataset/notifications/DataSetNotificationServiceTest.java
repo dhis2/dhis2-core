@@ -52,7 +52,6 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.DefaultMessageService;
 import org.hisp.dhis.message.EmailMessageSender;
@@ -306,10 +305,6 @@ class DataSetNotificationServiceTest extends DhisConvenienceTest {
     CompleteDataSetRegistration registration = new CompleteDataSetRegistration();
     registration.setSource(organisationUnitA);
     when(dsntService.getCompleteNotifications(any())).thenReturn(emailTemplates);
-
-    I18nFormat format = Mockito.mock(I18nFormat.class);
-    when(i18nManager.getI18nFormat()).thenReturn(format);
-    when(format.formatPeriod(any())).thenReturn("2000-1-1");
 
     when(renderer.render(
             any(CompleteDataSetRegistration.class), any(DataSetNotificationTemplate.class)))
