@@ -57,6 +57,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentif
 import static org.hisp.dhis.common.IdentifiableProperty.UID;
 import static org.hisp.dhis.commons.collection.ListUtils.sort;
 import static org.hisp.dhis.feedback.ErrorCode.E7124;
+import static org.hisp.dhis.feedback.ErrorCode.E7143;
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_ORGUNIT_GROUP;
@@ -412,7 +413,7 @@ public class DimensionalObjectProducer {
     }
 
     if (orgUnitAtLevels.isEmpty()) {
-      throwIllegalQueryEx(E7124, ORGUNIT_DIM_ID);
+      throwIllegalQueryEx(E7143, ORGUNIT_DIM_ID);
     }
 
     // Remove duplicates
@@ -523,7 +524,7 @@ public class DimensionalObjectProducer {
       List<String> items,
       DisplayProperty displayProperty,
       IdScheme inputIdScheme) {
-    boolean allItems = items.isEmpty();
+    boolean allItems = items.isEmpty() || items.contains("ALL_ITEMS");
     DimensionalObject dimObject =
         idObjectManager.get(DYNAMIC_DIM_CLASSES, inputIdScheme, dimension);
 

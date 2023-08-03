@@ -409,6 +409,7 @@ public enum ErrorCode {
   E7134("Cannot retrieve total value for data elements with skip total category combination"),
   E7135("Date time is not parsable: `{0}`"),
   E7136("Program is not specified"),
+  E7143("Organisation unit or organisation unit level is not valid"),
 
   /* Event analytics */
   E7200(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),

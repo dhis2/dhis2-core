@@ -81,7 +81,6 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SlimPager;
@@ -121,7 +120,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -298,8 +296,6 @@ public abstract class AbstractEventService implements EventService {
 
     validate(params, user);
 
-    List<OrganisationUnit> organisationUnits = getOrganisationUnits(params, user);
-
     if (!params.isPaging() && !params.isSkipPaging()) {
       params.setDefaultPaging();
     }
@@ -308,15 +304,15 @@ public abstract class AbstractEventService implements EventService {
     List<Event> eventList = new ArrayList<>();
 
     if (params.isSkipPaging()) {
-      events.setEvents(eventStore.getEvents(params, organisationUnits, emptyMap()));
+      events.setEvents(eventStore.getEvents(params, params.getAccessibleOrgUnits(), emptyMap()));
       return events;
     }
 
     Pager pager;
-    eventList.addAll(eventStore.getEvents(params, organisationUnits, emptyMap()));
+    eventList.addAll(eventStore.getEvents(params, params.getAccessibleOrgUnits(), emptyMap()));
 
     if (params.isTotalPages()) {
-      int count = eventStore.getEventCount(params, organisationUnits);
+      int count = eventStore.getEventCount(params, params.getAccessibleOrgUnits());
       pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
     } else {
       pager = handleLastPageFlag(params, eventList);
@@ -362,8 +358,6 @@ public abstract class AbstractEventService implements EventService {
   @Transactional(readOnly = true)
   @Override
   public Grid getEventsGrid(EventSearchParams params) {
-    User user = currentUserService.getCurrentUser();
-
     if (params.getProgramStage() == null || params.getProgramStage().getProgram() == null) {
       throw new IllegalQueryException("Program stage can not be null");
     }
@@ -371,8 +365,6 @@ public abstract class AbstractEventService implements EventService {
     if (params.getProgramStage().getProgramStageDataElements() == null) {
       throw new IllegalQueryException("Program stage should have at least one data element");
     }
-
-    List<OrganisationUnit> organisationUnits = getOrganisationUnits(params, user);
 
     // ---------------------------------------------------------------------
     // If includeAllDataElements is set to true, return all data elements.
@@ -423,7 +415,8 @@ public abstract class AbstractEventService implements EventService {
       grid.addHeader(new GridHeader(item.getItem().getUid(), item.getItem().getName()));
     }
 
-    List<Map<String, String>> events = eventStore.getEventsGrid(params, organisationUnits);
+    List<Map<String, String>> events =
+        eventStore.getEventsGrid(params, params.getAccessibleOrgUnits());
 
     // ---------------------------------------------------------------------
     // Grid rows
@@ -447,7 +440,7 @@ public abstract class AbstractEventService implements EventService {
       final Pager pager;
 
       if (params.isTotalPages()) {
-        int count = eventStore.getEventCount(params, organisationUnits);
+        int count = eventStore.getEventCount(params, params.getAccessibleOrgUnits());
         pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
       } else {
         pager = handleLastPageFlag(params, grid);
@@ -531,11 +524,9 @@ public abstract class AbstractEventService implements EventService {
   public EventRows getEventRows(EventSearchParams params) {
     User user = currentUserService.getCurrentUser();
 
-    List<OrganisationUnit> organisationUnits = getOrganisationUnits(params, user);
-
     EventRows eventRows = new EventRows();
 
-    List<EventRow> eventRowList = eventStore.getEventRows(params, organisationUnits);
+    List<EventRow> eventRowList = eventStore.getEventRows(params, params.getAccessibleOrgUnits());
 
     EventContext eventContext = eventServiceContextBuilder.build(eventRowList, user);
 
@@ -871,112 +862,6 @@ public abstract class AbstractEventService implements EventService {
   // -------------------------------------------------------------------------
   // HELPERS
   // -------------------------------------------------------------------------
-
-  private List<OrganisationUnit> getOrganisationUnits(EventSearchParams params, User user) {
-    OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
-
-    if (orgUnitSelectionMode == null) {
-      if (params.getOrgUnit() != null) {
-        return Collections.emptyList();
-      }
-
-      return getAccessibleOrgUnits(params, user);
-    }
-
-    List<OrganisationUnit> organisationUnits;
-
-    switch (orgUnitSelectionMode) {
-      case ALL:
-        organisationUnits = getAllOrgUnits(params, user);
-        break;
-      case CHILDREN:
-        organisationUnits = getChildrenOrgUnits(params);
-        break;
-      case DESCENDANTS:
-        organisationUnits = getDescendantOrgUnits(params);
-        break;
-      case CAPTURE:
-        organisationUnits = getCaptureOrgUnits(params, user);
-        break;
-      case SELECTED:
-        organisationUnits = getSelectedOrgUnits(params);
-        break;
-      default:
-        organisationUnits = getAccessibleOrgUnits(params, user);
-        break;
-    }
-
-    return organisationUnits;
-  }
-
-  private List<OrganisationUnit> getAllOrgUnits(EventSearchParams params, User user) {
-    if (params.getOrgUnit() != null) {
-      return Collections.emptyList();
-    }
-
-    if (!userCanSearchOuModeALL(user)) {
-      throw new IllegalQueryException("User is not authorized to use ALL organisation units. ");
-    }
-
-    return Collections.emptyList();
-  }
-
-  private List<OrganisationUnit> getChildrenOrgUnits(EventSearchParams params) {
-    if (params.getOrgUnit() == null) {
-      throw new IllegalQueryException("Organisation unit is required to use CHILDREN scope.");
-    }
-
-    return Arrays.asList(params.getOrgUnit());
-  }
-
-  private List<OrganisationUnit> getSelectedOrgUnits(EventSearchParams params) {
-    if (params.getOrgUnit() == null) {
-      throw new IllegalQueryException("Organisation unit is required to use SELECTED scope. ");
-    }
-
-    return Collections.emptyList();
-  }
-
-  private List<OrganisationUnit> getDescendantOrgUnits(EventSearchParams params) {
-    if (params.getOrgUnit() == null) {
-      throw new IllegalQueryException("Organisation unit is required to use DESCENDANTS scope. ");
-    }
-
-    return Arrays.asList(params.getOrgUnit());
-  }
-
-  private List<OrganisationUnit> getCaptureOrgUnits(EventSearchParams params, User user) {
-    if (params.getOrgUnit() != null) {
-      return Collections.emptyList();
-    }
-
-    if (user == null) {
-      throw new IllegalQueryException("User is required to use CAPTURE scope.");
-    }
-
-    return user.getOrganisationUnits().stream().collect(Collectors.toList());
-  }
-
-  private List<OrganisationUnit> getAccessibleOrgUnits(EventSearchParams params, User user) {
-    if (params.getOrgUnit() != null) {
-      return Collections.emptyList();
-    }
-
-    if (user == null) {
-      throw new IllegalQueryException("User is required to use ACCESSIBLE scope.");
-    }
-
-    params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.ACCESSIBLE);
-
-    if (params.getProgram() == null
-        || params.getProgram().isClosed()
-        || params.getProgram().isProtected()) {
-      return user.getOrganisationUnits().stream().collect(Collectors.toList());
-    }
-
-    return user.getTeiSearchOrganisationUnitsWithFallback().stream().collect(Collectors.toList());
-  }
-
   private void saveTrackedEntityComment(
       ProgramStageInstance programStageInstance, Event event, User user, String storedBy) {
     for (Note note : event.getNotes()) {
@@ -1057,56 +942,11 @@ public abstract class AbstractEventService implements EventService {
       violation = "Duration is not valid: " + params.getLastUpdatedDuration();
     }
 
-    if (violation == null
-        && params.getOrgUnit() != null
-        && !trackerAccessManager.canAccess(user, params.getProgram(), params.getOrgUnit())) {
-      violation = "User does not have access to orgUnit: " + params.getOrgUnit().getUid();
-    }
-
-    if (violation == null && params.getOrgUnitSelectionMode() != null) {
-      violation = getOuModeViolation(params, user);
-    }
-
     if (violation != null) {
       log.warn("Validation failed: " + violation);
 
       throw new IllegalQueryException(violation);
     }
-  }
-
-  private String getOuModeViolation(EventSearchParams params, User user) {
-    OrganisationUnitSelectionMode selectedOuMode = params.getOrgUnitSelectionMode();
-
-    String violation = null;
-
-    switch (selectedOuMode) {
-      case ALL:
-        violation =
-            userCanSearchOuModeALL(user)
-                ? null
-                : "Current user is not authorized to query across all organisation units";
-        break;
-      case ACCESSIBLE:
-      case CAPTURE:
-        violation =
-            user == null
-                ? "User is required for ouMode: " + params.getOrgUnitSelectionMode()
-                : null;
-        break;
-      case CHILDREN:
-      case SELECTED:
-      case DESCENDANTS:
-        violation =
-            params.getOrgUnit() == null
-                ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
-                : null;
-        break;
-      default:
-        violation = "Invalid ouMode:  " + params.getOrgUnitSelectionMode();
-        break;
-    }
-
-    return violation;
   }
 
   /**
@@ -1190,14 +1030,5 @@ public abstract class AbstractEventService implements EventService {
     }
 
     importOptions.setUser(userService.getUser(importOptions.getUser().getId()));
-  }
-
-  private boolean userCanSearchOuModeALL(User user) {
-    if (user == null) {
-      return false;
-    }
-
-    return user.isSuper()
-        || user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
   }
 }
