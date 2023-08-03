@@ -150,6 +150,7 @@ class EventRequestParamsMapper {
             .events(UID.toValueSet(eventUids))
             .enrollments(UID.toValueSet(requestParams.getEnrollments()))
             .includeDeleted(requestParams.isIncludeDeleted());
+
     mapOrderParam(builder, requestParams.getOrder());
 
     return builder.build();

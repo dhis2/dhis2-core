@@ -39,7 +39,6 @@ import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -93,7 +92,6 @@ import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggreg
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -376,31 +374,23 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   /**
-   * This method handles any dynamic sort order columns in the params. These have to be added to the
-   * attribute list if neither are present in the attribute list nor the filter list.
+   * Attributes that are ordered by are added to the attribute list if neither are present in the
+   * attribute list nor the filter list.
    *
    * <p>For example, if attributes or filters don't have a specific trackedentityattribute uid, but
    * sorting has been requested for that tea uid, then we need to add them to the attribute list.
-   *
-   * @param params The TEIQueryParams object
    */
   private void handleSortAttributes(TrackedEntityQueryParams params) {
     List<TrackedEntityAttribute> sortAttributes =
-        params.getOrders().stream()
-            .map(OrderParam::getField)
-            .filter(this::isDynamicColumn)
-            .map(trackedEntityAttributeService::getTrackedEntityAttribute)
+        params.getOrder().stream()
+            .filter(o -> o.getField() instanceof TrackedEntityAttribute)
+            .map(o -> (TrackedEntityAttribute) o.getField())
             .collect(Collectors.toList());
 
     params.addAttributesIfNotExist(
         QueryItem.getQueryItems(sortAttributes).stream()
             .filter(sAtt -> !params.getFilters().contains(sAtt))
             .collect(Collectors.toList()));
-  }
-
-  public boolean isDynamicColumn(String propName) {
-    return Arrays.stream(TrackedEntityQueryParams.OrderColumn.values())
-        .noneMatch(orderColumn -> orderColumn.getPropName().equals(propName));
   }
 
   public void decideAccess(TrackedEntityQueryParams params) {

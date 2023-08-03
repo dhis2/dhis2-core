@@ -68,7 +68,6 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,7 +117,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orders(List.of(OrderCriteria.of("numericAttr", SortDirection.ASC)));
+            .orderBy(UID.of("numericAttr"), SortDirection.ASC);
 
     TrackedEntityOperationParams params = builder.page(1).pageSize(3).build();
 
@@ -164,7 +163,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orders(List.of(OrderCriteria.of("numericAttr", SortDirection.ASC)));
+            .orderBy(UID.of("numericAttr"), SortDirection.ASC);
 
     TrackedEntityOperationParams params = builder.page(1).pageSize(3).totalPages(true).build();
 
@@ -233,7 +232,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orders(List.of(OrderCriteria.of("created", SortDirection.ASC)))
+            .orderBy("created", SortDirection.ASC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -257,7 +256,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orders(List.of(OrderCriteria.of("created", SortDirection.DESC)))
+            .orderBy("created", SortDirection.DESC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -273,7 +272,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orders(List.of(OrderCriteria.of("enrolledAt", SortDirection.ASC)))
+            .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -289,7 +288,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orders(List.of(OrderCriteria.of("enrolledAt", SortDirection.DESC)))
+            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -305,10 +304,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orders(
-                List.of(
-                    OrderCriteria.of("toDelete000", SortDirection.ASC),
-                    OrderCriteria.of("enrolledAt", SortDirection.ASC)))
+            .orderBy(UID.of("toDelete000"), SortDirection.ASC)
+            .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -324,7 +321,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orders(List.of(OrderCriteria.of("toUpdate000", SortDirection.ASC)))
+            .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -340,7 +337,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orders(List.of(OrderCriteria.of("toUpdate000", SortDirection.DESC)))
+            .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -355,7 +352,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orders(List.of(OrderCriteria.of("toUpdate000", SortDirection.ASC)))
+            .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .filters("numericAttr:lt:75")
             .build();
 
@@ -371,7 +368,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orders(List.of(OrderCriteria.of("numericAttr", SortDirection.DESC)))
+            .orderBy(UID.of("numericAttr"), SortDirection.DESC)
             .filters("numericAttr:lt:75")
             .build();
 
@@ -390,7 +387,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .trackedEntityUids(
                 Set.of(
                     "dUE514NMOlo", "QS6w44flWAf")) // TE QS6w44flWAf without attribute notUpdated0
-            .orders(List.of(OrderCriteria.of("notUpdated0", SortDirection.DESC)))
+            .orderBy(UID.of("notUpdated0"), SortDirection.DESC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -409,10 +406,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orders(
-                List.of(
-                    OrderCriteria.of("toDelete000", SortDirection.DESC),
-                    OrderCriteria.of("numericAttr", SortDirection.ASC)))
+            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
+            .orderBy(UID.of("numericAttr"), SortDirection.ASC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -428,10 +423,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orders(
-                List.of(
-                    OrderCriteria.of("toDelete000", SortDirection.DESC),
-                    OrderCriteria.of("numericAttr", SortDirection.DESC)))
+            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
+            .orderBy(UID.of("numericAttr"), SortDirection.DESC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);

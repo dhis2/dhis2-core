@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
-import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -45,6 +44,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -57,8 +57,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -108,9 +108,10 @@ class TrackedEntityOperationParamsMapper {
 
     validateDuplicatedAttributeFilters(filters);
 
-    List<OrderParam> orderParams = toOrderParams(operationParams.getOrders());
-
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+
+    mapOrderParam(params, operationParams.getOrder());
+
     params
         .setQuery(queryFilter)
         .setProgram(program)
@@ -142,8 +143,7 @@ class TrackedEntityOperationParamsMapper {
         .setSkipPaging(operationParams.isSkipPaging())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setIncludeAllAttributes(operationParams.isIncludeAllAttributes())
-        .setPotentialDuplicate(operationParams.getPotentialDuplicate())
-        .setOrders(orderParams);
+        .setPotentialDuplicate(operationParams.getPotentialDuplicate());
 
     return params;
   }
@@ -263,5 +263,33 @@ class TrackedEntityOperationParamsMapper {
         .filter(ps -> ps.getUid().equals(programStage))
         .findFirst()
         .orElse(null);
+  }
+
+  private void mapOrderParam(TrackedEntityQueryParams params, List<Order> orders)
+      throws BadRequestException {
+    if (orders == null || orders.isEmpty()) {
+      return;
+    }
+
+    for (Order order : orders) {
+      if (order.getField() instanceof String field) {
+        params.orderBy(field, order.getDirection());
+      } else if (order.getField() instanceof UID uid) {
+        TrackedEntityAttribute tea = attributeService.getTrackedEntityAttribute(uid.getValue());
+        if (tea == null) {
+          throw new BadRequestException(
+              "Cannot order by '"
+                  + uid.getValue()
+                  + "' as its not a tracked entity attribute. Tracked entities can be ordered by fields and tracked entity attributes.");
+        }
+
+        params.orderBy(tea, order.getDirection());
+      } else {
+        throw new IllegalArgumentException(
+            "Cannot order by '"
+                + order.getField()
+                + "'. Tracked entities can be ordered by fields and tracked entity attributes.");
+      }
+    }
   }
 }

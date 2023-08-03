@@ -47,7 +47,9 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
 
 /**
@@ -103,49 +105,68 @@ class TrackedEntityRequestParamsMapper {
             requestParams.getTrackedEntities());
     validateOrderParams(ORDERABLE_FIELD_NAMES, "attribute", requestParams.getOrder());
 
-    return TrackedEntityOperationParams.builder()
-        .query(queryFilter)
-        .programUid(
-            requestParams.getProgram() == null ? null : requestParams.getProgram().getValue())
-        .programStageUid(
-            requestParams.getProgramStage() == null
-                ? null
-                : requestParams.getProgramStage().getValue())
-        .programStatus(requestParams.getProgramStatus())
-        .followUp(requestParams.getFollowUp())
-        .lastUpdatedStartDate(requestParams.getUpdatedAfter())
-        .lastUpdatedEndDate(requestParams.getUpdatedBefore())
-        .lastUpdatedDuration(requestParams.getUpdatedWithin())
-        .programEnrollmentStartDate(requestParams.getEnrollmentEnrolledAfter())
-        .programEnrollmentEndDate(requestParams.getEnrollmentEnrolledBefore())
-        .programIncidentStartDate(requestParams.getEnrollmentOccurredAfter())
-        .programIncidentEndDate(requestParams.getEnrollmentOccurredBefore())
-        .trackedEntityTypeUid(
-            requestParams.getTrackedEntityType() == null
-                ? null
-                : requestParams.getTrackedEntityType().getValue())
-        .organisationUnits(UID.toValueSet(orgUnitUids))
-        .orgUnitMode(orgUnitMode)
-        .eventStatus(requestParams.getEventStatus())
-        .eventStartDate(requestParams.getEventOccurredAfter())
-        .eventEndDate(requestParams.getEventOccurredBefore())
-        .assignedUserQueryParam(
-            new AssignedUserQueryParam(
-                requestParams.getAssignedUserMode(), user, UID.toValueSet(assignedUsers)))
-        .user(user)
-        .trackedEntityUids(UID.toValueSet(trackedEntities))
-        .attributes(requestParams.getAttribute())
-        .filters(requestParams.getFilter())
-        .skipMeta(requestParams.isSkipMeta())
-        .page(Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE))
-        .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
-        .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))
-        .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
-        .includeDeleted(requestParams.isIncludeDeleted())
-        .includeAllAttributes(requestParams.isIncludeAllAttributes())
-        .potentialDuplicate(requestParams.getPotentialDuplicate())
-        .orders(requestParams.getOrder())
-        .trackedEntityParams(fieldsParamMapper.map(fields))
-        .build();
+    TrackedEntityOperationParamsBuilder builder =
+        TrackedEntityOperationParams.builder()
+            .query(queryFilter)
+            .programUid(
+                requestParams.getProgram() == null ? null : requestParams.getProgram().getValue())
+            .programStageUid(
+                requestParams.getProgramStage() == null
+                    ? null
+                    : requestParams.getProgramStage().getValue())
+            .programStatus(requestParams.getProgramStatus())
+            .followUp(requestParams.getFollowUp())
+            .lastUpdatedStartDate(requestParams.getUpdatedAfter())
+            .lastUpdatedEndDate(requestParams.getUpdatedBefore())
+            .lastUpdatedDuration(requestParams.getUpdatedWithin())
+            .programEnrollmentStartDate(requestParams.getEnrollmentEnrolledAfter())
+            .programEnrollmentEndDate(requestParams.getEnrollmentEnrolledBefore())
+            .programIncidentStartDate(requestParams.getEnrollmentOccurredAfter())
+            .programIncidentEndDate(requestParams.getEnrollmentOccurredBefore())
+            .trackedEntityTypeUid(
+                requestParams.getTrackedEntityType() == null
+                    ? null
+                    : requestParams.getTrackedEntityType().getValue())
+            .organisationUnits(UID.toValueSet(orgUnitUids))
+            .orgUnitMode(orgUnitMode)
+            .eventStatus(requestParams.getEventStatus())
+            .eventStartDate(requestParams.getEventOccurredAfter())
+            .eventEndDate(requestParams.getEventOccurredBefore())
+            .assignedUserQueryParam(
+                new AssignedUserQueryParam(
+                    requestParams.getAssignedUserMode(), user, UID.toValueSet(assignedUsers)))
+            .user(user)
+            .trackedEntityUids(UID.toValueSet(trackedEntities))
+            .attributes(requestParams.getAttribute())
+            .filters(requestParams.getFilter())
+            .skipMeta(requestParams.isSkipMeta())
+            .page(Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE))
+            .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
+            .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))
+            .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
+            .includeDeleted(requestParams.isIncludeDeleted())
+            .includeAllAttributes(requestParams.isIncludeAllAttributes())
+            .potentialDuplicate(requestParams.getPotentialDuplicate())
+            .trackedEntityParams(fieldsParamMapper.map(fields));
+
+    mapOrderParam(builder, requestParams.getOrder());
+
+    return builder.build();
+  }
+
+  private void mapOrderParam(
+      TrackedEntityOperationParamsBuilder builder, List<OrderCriteria> orders) {
+    if (orders == null || orders.isEmpty()) {
+      return;
+    }
+
+    for (OrderCriteria order : orders) {
+      if (TrackedEntityMapper.ORDERABLE_FIELDS.containsKey(order.getField())) {
+        builder.orderBy(
+            TrackedEntityMapper.ORDERABLE_FIELDS.get(order.getField()), order.getDirection());
+      } else {
+        builder.orderBy(UID.of(order.getField()), order.getDirection());
+      }
+    }
   }
 }
