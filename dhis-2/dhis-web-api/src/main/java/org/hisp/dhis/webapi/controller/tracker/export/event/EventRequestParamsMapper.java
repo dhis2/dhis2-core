@@ -207,9 +207,9 @@ class EventRequestParamsMapper {
               orgUnitMode));
     }
 
-    if ((orgUnitMode.equals(CHILDREN)
-            || orgUnitMode.equals(SELECTED)
-            || orgUnitMode.equals(DESCENDANTS))
+    if ((orgUnitMode == CHILDREN
+            || orgUnitMode == SELECTED
+            || orgUnitMode == DESCENDANTS)
         && orgUnit == null) {
       throw new BadRequestException(
           String.format(
