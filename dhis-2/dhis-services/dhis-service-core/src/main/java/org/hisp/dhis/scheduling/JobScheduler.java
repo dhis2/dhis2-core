@@ -36,6 +36,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,6 +76,12 @@ public class JobScheduler implements Runnable, JobRunner {
    */
   private static final int TTL_SECONDS = LOOP_SECONDS * 3 / 2;
 
+  /**
+   * Remember if the scheduling loop has been started. This is so during tests the "execute now" can
+   * manually issue the run based on the scheduler not being active.
+   */
+  private final AtomicBoolean scheduling = new AtomicBoolean();
+
   private final JobService jobService;
   private final JobSchedulerLoopService service;
   private final ExecutorService workers = Executors.newCachedThreadPool();
@@ -84,6 +91,12 @@ public class JobScheduler implements Runnable, JobRunner {
     long alignment = currentTimeMillis() % loopTimeMs;
     Executors.newSingleThreadScheduledExecutor()
         .scheduleAtFixedRate(this, alignment, loopTimeMs, TimeUnit.MILLISECONDS);
+    scheduling.set(true);
+  }
+
+  @Override
+  public boolean isScheduling() {
+    return scheduling.get();
   }
 
   /**

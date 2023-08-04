@@ -40,5 +40,7 @@ package org.hisp.dhis.scheduling;
  */
 public interface JobRunner {
 
+  boolean isScheduling();
+
   void runDueJob(JobConfiguration config);
 }

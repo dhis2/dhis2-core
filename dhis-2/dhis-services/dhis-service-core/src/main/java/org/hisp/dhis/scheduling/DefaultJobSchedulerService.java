@@ -36,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,7 +50,6 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
 
   private final JobConfigurationStore jobConfigurationStore;
   private final JobRunner jobRunner;
-  private final Environment environment;
   private final ObjectMapper jsonMapper;
 
   @Override
@@ -70,6 +68,13 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
   @Override
   @Transactional
   public void executeNow(@Nonnull String jobId) throws NotFoundException, ConflictException {
+    if (!jobRunner.isScheduling()) {
+      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
+      // run "execute now" request directly when scheduling is not active (tests)
+      jobRunner.runDueJob(job);
+      return;
+    }
     if (!jobConfigurationStore.tryExecuteNow(jobId)) {
       JobConfiguration job = jobConfigurationStore.getByUid(jobId);
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
@@ -77,12 +82,6 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
         throw new ConflictException("Job is already running.");
       if (job.getSchedulingType() == SchedulingType.ONCE_ASAP)
         throw new ConflictException("Job is already scheduled for immediate execution.");
-    } else {
-      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
-      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
-      if (Set.of(environment.getActiveProfiles()).contains("test")) {
-        jobRunner.runDueJob(job);
-      }
     }
   }
 

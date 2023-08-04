@@ -83,6 +83,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Override
   @Transactional
   public String create(JobConfiguration config) throws ConflictException {
+    config.setAutoFields();
     jobConfigurationStore.save(config);
     return config.getUid();
   }

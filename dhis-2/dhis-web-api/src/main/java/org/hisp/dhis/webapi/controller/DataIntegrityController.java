@@ -105,7 +105,6 @@ public class DataIntegrityController {
     JobConfiguration config =
         new JobConfiguration(description, JobType.DATA_INTEGRITY, null, params);
     config.setExecutedBy(currentUser.getUid());
-    config.setAutoFields();
     jobSchedulerService.executeNow(jobConfigurationService.create(config));
 
     return jobConfigurationReport(config);
