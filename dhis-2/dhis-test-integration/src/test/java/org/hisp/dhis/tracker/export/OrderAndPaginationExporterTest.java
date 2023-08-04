@@ -626,7 +626,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   void shouldOrderEventsByAttributeAndFilterOutEventsWithATrackedEntityWithoutThatAttribute()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .events(
                 Set.of(
@@ -823,7 +823,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   void shouldOrderEventsByDataElementAndNotFilterOutEventsWithoutThatDataElement()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .events(
                 Set.of(
