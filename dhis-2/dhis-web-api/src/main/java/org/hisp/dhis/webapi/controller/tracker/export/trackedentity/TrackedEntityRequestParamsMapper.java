@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrgUnitParams;
 
 import java.util.List;
@@ -56,6 +57,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 class TrackedEntityRequestParamsMapper {
+
+  private static final Set<String> ORDERABLE_FIELD_NAMES =
+      TrackedEntityMapper.ORDERABLE_FIELDS.keySet();
+
   private final TrackedEntityFieldsParamMapper fieldsParamMapper;
 
   public TrackedEntityOperationParams map(RequestParams requestParams, User user)
@@ -96,6 +101,7 @@ class TrackedEntityRequestParamsMapper {
             requestParams.getTrackedEntity(),
             "trackedEntities",
             requestParams.getTrackedEntities());
+    validateOrderParams(ORDERABLE_FIELD_NAMES, "attribute", requestParams.getOrder());
 
     return TrackedEntityOperationParams.builder()
         .query(queryFilter)

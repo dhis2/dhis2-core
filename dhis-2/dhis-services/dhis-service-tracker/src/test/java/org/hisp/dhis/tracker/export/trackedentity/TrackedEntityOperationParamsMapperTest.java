@@ -68,7 +68,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -581,17 +580,6 @@ class TrackedEntityOperationParamsMapperTest {
     TrackedEntityQueryParams params = mapper.map(operationParams);
 
     assertIsEmpty(params.getOrders());
-  }
-
-  @Test
-  void testMappingOrderParamsGivenInvalidField() {
-    OrderCriteria order1 = OrderCriteria.of("invalid", SortDirection.DESC);
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder().orders(List.of(order1)).build();
-
-    BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
-    assertEquals("Invalid order property: invalid", e.getMessage());
   }
 
   @Test

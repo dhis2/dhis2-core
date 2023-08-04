@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,47 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates;
+package org.hisp.dhis.analytics.generator.impl;
 
-import java.util.List;
-import lombok.Builder;
-import lombok.Value;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.analytics.generator.Generator;
 
 /**
- * @author Luciano Fiandesio
+ * Set of behaviour and settings required by the test generation of
+ * "/analytics/events/aggregate/{program}?" endpoint.
  */
-@Value
-@Builder(toBuilder = true)
-class Context {
-  /** returns true if user is Super User */
-  boolean superUser;
+public class EventAggregatedGenerator implements Generator {
+  @Override
+  public int getMaxTestsPerClass() {
+    return 4;
+  }
 
-  /** The current user id */
-  Long userId;
+  @Override
+  public String getAction() {
+    return "aggregate";
+  }
 
-  /** The current user uid */
-  String userUid;
+  @Override
+  public String getClassNamePrefix() {
+    return "EventsAggregate";
+  }
 
-  /** A list of group ID to which the user belongs */
-  List<String> userGroups;
+  @Override
+  public String getActionDeclaration() {
+    return "private final AnalyticsEventActions actions = new AnalyticsEventActions();";
+  }
 
-  /** A List of Tracked Entity Types ID to which the user has READ ONLY access */
-  List<Long> trackedEntityTypes;
+  @Override
+  public String getPackage() {
+    return "org.hisp.dhis.analytics.event.aggregate";
+  }
 
-  /** A List of Programs ID to which the user has READ ONLY access */
-  List<Long> programs;
+  @Override
+  public String getTopClassComment() {
+    return "Groups e2e tests for \"/events/aggregate\" endpoint.";
+  }
 
-  /** A List of Program Stages ID to which the user has READ ONLY access */
-  List<Long> programStages;
+  @Override
+  public boolean assertMetaData() {
+    return true;
+  }
 
-  /** A List of Relationship ID to which the user has READ ONLY access */
-  List<Long> relationshipTypes;
-
-  /** The te params to specify depth of te graph */
-  TrackedEntityParams params;
-
-  /** The query parameters to filter tracked entities */
-  TrackedEntityQueryParams queryParams;
+  @Override
+  public boolean assertRowIndex() {
+    return false;
+  }
 }

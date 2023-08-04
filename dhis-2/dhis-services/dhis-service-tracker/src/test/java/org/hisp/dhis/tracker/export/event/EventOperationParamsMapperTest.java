@@ -37,7 +37,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -45,7 +44,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -266,8 +264,6 @@ class EventOperationParamsMapperTest {
             "NeU85luyD4w", Set.of("tqrzUqNMHib", "bT6OSf4qnnk"), true))
         .thenReturn(combo);
     when(aclService.canDataRead(any(User.class), any(CategoryOptionCombo.class))).thenReturn(true);
-    when(trackedEntityAttributeService.getAllTrackedEntityAttributes())
-        .thenReturn(Collections.emptyList());
 
     EventSearchParams searchParams = mapper.map(operationParams);
 
@@ -296,11 +292,17 @@ class EventOperationParamsMapperTest {
     tea1.setUid(TEA_1_UID);
     TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
     tea2.setUid(TEA_2_UID);
-    when(trackedEntityAttributeService.getAllTrackedEntityAttributes())
-        .thenReturn(List.of(tea1, tea2));
+    when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
+    when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_2_UID)).thenReturn(tea2);
+
     EventOperationParams requestParams =
         EventOperationParams.builder()
-            .attributeFilters(TEA_1_UID + ":eq:2," + TEA_2_UID + ":like:foo")
+            .attributeFilters(
+                Map.of(
+                    TEA_1_UID,
+                    List.of(new QueryFilter(QueryOperator.EQ, "2")),
+                    TEA_2_UID,
+                    List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
             .build();
 
     EventSearchParams searchParams = mapper.map(requestParams);
@@ -317,77 +319,23 @@ class EventOperationParamsMapperTest {
   }
 
   @Test
-  void shouldMapAttributeFiltersWhenAttributeHasMultipleFilters()
-      throws BadRequestException, ForbiddenException {
-    TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
-    tea1.setUid(TEA_1_UID);
-    when(trackedEntityAttributeService.getAllTrackedEntityAttributes()).thenReturn(List.of(tea1));
-    EventOperationParams operationParams =
-        EventOperationParams.builder().attributeFilters(TEA_1_UID + ":gt:10:lt:20").build();
+  void shouldFailWhenAttributeInGivenAttributeFilterDoesNotExist() {
+    String filterName = "filter";
+    EventOperationParams requestParams =
+        EventOperationParams.builder().attributeFilters(Map.of(filterName, List.of())).build();
 
-    EventSearchParams searchParams = mapper.map(operationParams);
+    when(trackedEntityAttributeService.getTrackedEntityAttribute(filterName)).thenReturn(null);
 
-    Map<TrackedEntityAttribute, List<QueryFilter>> attributes = searchParams.getAttributes();
-    assertNotNull(attributes);
-    Map<TrackedEntityAttribute, List<QueryFilter>> expected =
-        Map.of(
-            tea1,
-            List.of(
-                new QueryFilter(QueryOperator.GT, "10"), new QueryFilter(QueryOperator.LT, "20")));
-    assertEquals(expected, attributes);
-  }
+    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
 
-  @Test
-  void shouldMapAttributeFiltersWhenOnlyGivenUID() throws BadRequestException, ForbiddenException {
-    TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
-    tea1.setUid(TEA_1_UID);
-    when(trackedEntityAttributeService.getAllTrackedEntityAttributes()).thenReturn(List.of(tea1));
-    EventOperationParams operationParams =
-        EventOperationParams.builder().attributeFilters(TEA_1_UID).build();
-
-    EventSearchParams params = mapper.map(operationParams);
-
-    Map<TrackedEntityAttribute, List<QueryFilter>> attributes = params.getAttributes();
-    assertNotNull(attributes);
-    Map<TrackedEntityAttribute, List<QueryFilter>> expected = Map.of(tea1, List.of());
-    assertEquals(expected, attributes);
-  }
-
-  @Test
-  void shouldFailToMapAttributeFiltersWhenUIDIsDuplicated() {
-    TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
-    tea1.setUid(TEA_1_UID);
-    TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
-    tea2.setUid(TEA_2_UID);
-    when(trackedEntityAttributeService.getAllTrackedEntityAttributes())
-        .thenReturn(List.of(tea1, tea2));
-    EventOperationParams operationParams =
-        EventOperationParams.builder()
-            .attributeFilters(
-                "TvjwTPToKHO:lt:20,"
-                    + "cy2oRh2sNr6:lt:20,"
-                    + "TvjwTPToKHO:gt:30,"
-                    + "cy2oRh2sNr6:gt:30")
-            .build();
-
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
-    assertAll(
-        () ->
-            assertStartsWith(
-                "filterAttributes contains duplicate tracked entity attribute",
-                exception.getMessage()),
-        // order of TEA UIDs might not always be the same; therefore using
-        // contains
-        () -> assertContains(TEA_1_UID, exception.getMessage()),
-        () -> assertContains(TEA_2_UID, exception.getMessage()));
+    assertContains(
+        "Tracked entity attribute '" + filterName + "' does not exist", exception.getMessage());
   }
 
   @Test
   void shouldMapOrderInGivenOrder() throws BadRequestException, ForbiddenException {
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID);
-    when(trackedEntityAttributeService.getAllTrackedEntityAttributes()).thenReturn(List.of(tea1));
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
 
     DataElement de1 = new DataElement();
@@ -420,7 +368,6 @@ class EventOperationParamsMapperTest {
   void shouldFailToMapOrderIfUIDIsNeitherDataElementNorAttribute() {
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID);
-    when(trackedEntityAttributeService.getAllTrackedEntityAttributes()).thenReturn(List.of(tea1));
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(null);
 
     DataElement de1 = new DataElement();
@@ -461,7 +408,12 @@ class EventOperationParamsMapperTest {
 
     EventOperationParams requestParams =
         EventOperationParams.builder()
-            .dataElementFilters(DE_1_UID + ":eq:2," + DE_2_UID + ":like:foo")
+            .dataElementFilters(
+                Map.of(
+                    DE_1_UID,
+                    List.of(new QueryFilter(QueryOperator.EQ, "2")),
+                    DE_2_UID,
+                    List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
             .build();
     EventSearchParams params = mapper.map(requestParams);
 
@@ -477,38 +429,16 @@ class EventOperationParamsMapperTest {
   }
 
   @Test
-  void shouldMapDataElementFiltersWhenDataElementHasMultipleFilters()
-      throws BadRequestException, ForbiddenException {
-    DataElement de1 = new DataElement();
-    de1.setUid(DE_1_UID);
-    when(dataElementService.getDataElement(DE_1_UID)).thenReturn(de1);
-
-    EventOperationParams requestParams =
-        EventOperationParams.builder().dataElementFilters(DE_1_UID + ":gt:10:lt:20").build();
-
-    EventSearchParams params = mapper.map(requestParams);
-
-    Map<DataElement, List<QueryFilter>> dataElements = params.getDataElements();
-    assertNotNull(dataElements);
-    Map<DataElement, List<QueryFilter>> expected =
-        Map.of(
-            de1,
-            List.of(
-                new QueryFilter(QueryOperator.GT, "10"), new QueryFilter(QueryOperator.LT, "20")));
-    assertEquals(expected, dataElements);
-  }
-
-  @Test
   void shouldFailWhenDataElementInGivenDataElementFilterDoesNotExist() {
     String filterName = "filter";
     EventOperationParams requestParams =
-        EventOperationParams.builder().dataElementFilters(filterName).build();
+        EventOperationParams.builder().dataElementFilters(Map.of(filterName, List.of())).build();
 
     when(dataElementService.getDataElement(filterName)).thenReturn(null);
 
     Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
 
-    assertEquals("Data element does not exist: " + filterName, exception.getMessage());
+    assertContains("Data element '" + filterName + "' does not exist", exception.getMessage());
   }
 
   @Test

@@ -39,7 +39,7 @@ import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -48,10 +48,12 @@ import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -408,6 +410,113 @@ class EventRequestParamsMapperTest {
   }
 
   @Test
+  void shouldMapDataElementFilters() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setFilter(DE_1_UID + ":eq:2," + DE_2_UID + ":like:foo");
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    Map<String, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+    assertNotNull(dataElementFilters);
+    Map<String, List<QueryFilter>> expected =
+        Map.of(
+            DE_1_UID,
+            List.of(new QueryFilter(QueryOperator.EQ, "2")),
+            DE_2_UID,
+            List.of(new QueryFilter(QueryOperator.LIKE, "foo")));
+    assertEquals(expected, dataElementFilters);
+  }
+
+  @Test
+  void shouldMapDataElementFiltersWhenDataElementHasMultipleFilters() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setFilter(DE_1_UID + ":gt:10:lt:20");
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    Map<String, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+    assertNotNull(dataElementFilters);
+    Map<String, List<QueryFilter>> expected =
+        Map.of(
+            DE_1_UID,
+            List.of(
+                new QueryFilter(QueryOperator.GT, "10"), new QueryFilter(QueryOperator.LT, "20")));
+    assertEquals(expected, dataElementFilters);
+  }
+
+  @Test
+  void shouldMapDataElementFiltersToDefaultIfNoneSet() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    Map<String, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+
+    assertNotNull(dataElementFilters);
+    assertTrue(dataElementFilters.isEmpty());
+  }
+
+  @Test
+  void shouldMapAttributeFilters() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setFilterAttributes(TEA_1_UID + ":eq:2," + TEA_2_UID + ":like:foo");
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    Map<String, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+    assertNotNull(attributeFilters);
+    Map<String, List<QueryFilter>> expected =
+        Map.of(
+            TEA_1_UID,
+            List.of(new QueryFilter(QueryOperator.EQ, "2")),
+            TEA_2_UID,
+            List.of(new QueryFilter(QueryOperator.LIKE, "foo")));
+    assertEquals(expected, attributeFilters);
+  }
+
+  @Test
+  void shouldMapAttributeFiltersWhenAttributeHasMultipleFilters() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setFilterAttributes(TEA_1_UID + ":gt:10:lt:20");
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    Map<String, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+    assertNotNull(attributeFilters);
+    Map<String, List<QueryFilter>> expected =
+        Map.of(
+            TEA_1_UID,
+            List.of(
+                new QueryFilter(QueryOperator.GT, "10"), new QueryFilter(QueryOperator.LT, "20")));
+    assertEquals(expected, attributeFilters);
+  }
+
+  @Test
+  void shouldMapAttributeFiltersWhenOnlyGivenUID() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setFilterAttributes(TEA_1_UID);
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    Map<String, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+    assertNotNull(attributeFilters);
+    Map<String, List<QueryFilter>> expected = Map.of(TEA_1_UID, List.of());
+    assertEquals(expected, attributeFilters);
+  }
+
+  @Test
+  void shouldMapAttributeFiltersToDefaultIfNoneSet() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    Map<String, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+
+    assertNotNull(attributeFilters);
+    assertTrue(attributeFilters.isEmpty());
+  }
+
+  @Test
   void shouldMapOrderParameterInGivenOrderWhenFieldsAreOrderable() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
     requestParams.setOrder(
@@ -426,55 +535,15 @@ class EventRequestParamsMapperTest {
   }
 
   @Test
-  void shouldFailGivenInvalidOrderComponents() {
-    String invalidUID = "Cogn34Del";
-    assertFalse(CodeGenerator.isValidUid(invalidUID));
-
+  void shouldFailGivenInvalidOrderFieldName() {
     RequestParams requestParams = new RequestParams();
     requestParams.setOrder(
-        OrderCriteria.fromOrderString(
-            "unsupportedProperty1:asc,enrolledAt:asc,"
-                + invalidUID
-                + ",unsupportedProperty2:desc"));
+        OrderCriteria.fromOrderString("unsupportedProperty1:asc,enrolledAt:asc"));
 
     Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
     assertAll(
         () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
-        // order of fields might not always be the same; therefore using contains
-        () -> assertContains(invalidUID, exception.getMessage()),
-        () -> assertContains("unsupportedProperty1", exception.getMessage()),
-        () -> assertContains("unsupportedProperty2", exception.getMessage()));
-  }
-
-  @Test
-  void shouldMapGivenInvalidOrderNameWhichIsAValidUIDToUID() throws BadRequestException {
-    // This test case shows that some field names are valid UIDs. We can thus not rule out all
-    // invalid field names and UIDs at this stage as we do not have access to data element/attribute
-    // services. Such invalid order values will be caught in the
-    // service (mapper).
-    assertTrue(CodeGenerator.isValidUid("lastUpdated"));
-
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrder(OrderCriteria.fromOrderString("lastUpdated:desc"));
-
-    EventOperationParams params = mapper.map(requestParams);
-
-    assertEquals(List.of(new Order(UID.of("lastUpdated"), SortDirection.DESC)), params.getOrder());
-  }
-
-  @Test
-  void shouldFailWhenOrderParameterContainsRepeatedOrderComponents() {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrder(
-        OrderCriteria.fromOrderString(
-            "zGlzbfreTOH,createdAt:asc,enrolledAt:asc,enrolledAt,zGlzbfreTOH"));
-
-    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
-    assertAll(
-        () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
-        // order of fields might not always be the same; therefore using contains
-        () -> assertContains("enrolledAt", exception.getMessage()),
-        () -> assertContains("zGlzbfreTOH", exception.getMessage()));
+        () -> assertContains("unsupportedProperty1", exception.getMessage()));
   }
 
   @Test

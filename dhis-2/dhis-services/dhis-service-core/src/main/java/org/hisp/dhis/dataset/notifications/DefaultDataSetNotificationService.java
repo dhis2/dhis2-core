@@ -231,8 +231,7 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
 
   private MessageBatch createBatchForCompletionNotifications(
       CompleteDataSetRegistration registration, Collection<DataSetNotificationTemplate> templates) {
-    return createMessageBatch(
-        templates.stream().map(t -> Map.of(registration, t)).collect(toList()));
+    return createMessageBatch(templates.stream().map(t -> Map.of(registration, t)).toList());
   }
 
   private String createSubjectString(DataSetNotificationTemplate template) {

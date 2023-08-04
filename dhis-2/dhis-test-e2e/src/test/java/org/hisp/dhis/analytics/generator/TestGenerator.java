@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,47 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates;
+package org.hisp.dhis.analytics.generator;
 
-import java.util.List;
-import lombok.Builder;
-import lombok.Value;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.analytics.generator.impl.TeiQueryGenerator;
 
-/**
- * @author Luciano Fiandesio
- */
-@Value
-@Builder(toBuilder = true)
-class Context {
-  /** returns true if user is Super User */
-  boolean superUser;
-
-  /** The current user id */
-  Long userId;
-
-  /** The current user uid */
-  String userUid;
-
-  /** A list of group ID to which the user belongs */
-  List<String> userGroups;
-
-  /** A List of Tracked Entity Types ID to which the user has READ ONLY access */
-  List<Long> trackedEntityTypes;
-
-  /** A List of Programs ID to which the user has READ ONLY access */
-  List<Long> programs;
-
-  /** A List of Program Stages ID to which the user has READ ONLY access */
-  List<Long> programStages;
-
-  /** A List of Relationship ID to which the user has READ ONLY access */
-  List<Long> relationshipTypes;
-
-  /** The te params to specify depth of te graph */
-  TrackedEntityParams params;
-
-  /** The query parameters to filter tracked entities */
-  TrackedEntityQueryParams queryParams;
+/** This class simply hold the generator implementation to be used during the code generation. */
+public class TestGenerator {
+  static Generator get() {
+    return new TeiQueryGenerator();
+  }
 }

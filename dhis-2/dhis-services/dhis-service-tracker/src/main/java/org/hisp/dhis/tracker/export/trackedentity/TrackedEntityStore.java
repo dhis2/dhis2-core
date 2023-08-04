@@ -25,53 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.aggregate;
+package org.hisp.dhis.tracker.export.trackedentity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@Accessors(chain = true)
-public class SourceRequest implements Serializable {
-  /** Name of source request, max 50 characters. */
-  @JsonProperty private String name;
+interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntity> {
+  String ID = TrackedEntityStore.class.getName();
 
-  /** Optional UID reference to a visualization. */
-  @JsonProperty private String visualization;
+  List<Long> getTrackedEntityIds(TrackedEntityQueryParams params);
 
-  /** Data dimension item identifiers. */
-  @JsonProperty private List<String> dx = new ArrayList<>();
+  int getTrackedEntityCountForGrid(TrackedEntityQueryParams params);
 
-  /** ISO period identifiers. */
-  @JsonProperty private List<String> pe = new ArrayList<>();
-
-  /** Org unit identifiers. */
-  @JsonProperty private List<String> ou = new ArrayList<>();
-
-  /** Request filters. */
-  @JsonProperty private List<Filter> filters = new ArrayList<>();
-
-  /** Aggregation type. */
-  @JsonProperty private AggregationType aggregationType;
-
-  /** Input identifier scheme. */
-  @JsonProperty private String inputIdScheme;
-
-  /** Output data element identifier scheme. */
-  @JsonProperty private String outputDataElementIdScheme;
-
-  /** Output org unit identifier scheme. */
-  @JsonProperty private String outputOrgUnitIdScheme;
-
-  /** Output identifier scheme. */
-  @JsonProperty private String outputIdScheme;
+  int getTrackedEntityCountForGridWithMaxTeiLimit(TrackedEntityQueryParams params);
 }

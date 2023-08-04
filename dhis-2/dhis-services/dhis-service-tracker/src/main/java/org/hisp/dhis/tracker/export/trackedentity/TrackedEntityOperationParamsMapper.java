@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 
@@ -55,7 +54,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -111,7 +109,6 @@ class TrackedEntityOperationParamsMapper {
     validateDuplicatedAttributeFilters(filters);
 
     List<OrderParam> orderParams = toOrderParams(operationParams.getOrders());
-    validateOrderParams(orderParams, attributes);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params
@@ -266,18 +263,5 @@ class TrackedEntityOperationParamsMapper {
         .filter(ps -> ps.getUid().equals(programStage))
         .findFirst()
         .orElse(null);
-  }
-
-  private void validateOrderParams(
-      List<OrderParam> orderParams, Map<String, TrackedEntityAttribute> attributes)
-      throws BadRequestException {
-    if (orderParams != null && !orderParams.isEmpty()) {
-      for (OrderParam orderParam : orderParams) {
-        if (findColumn(orderParam.getField()).isEmpty()
-            && !attributes.containsKey(orderParam.getField())) {
-          throw new BadRequestException("Invalid order property: " + orderParam.getField());
-        }
-      }
-    }
   }
 }
