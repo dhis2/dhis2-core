@@ -63,7 +63,9 @@ import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.event.Events;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntities;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
@@ -114,6 +116,89 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     eventParamsBuilder = EventOperationParams.builder();
     eventParamsBuilder.orgUnitMode(SELECTED);
+  }
+
+  @Test
+  void shouldReturnPaginatedTrackedEntitiesGivenNonDefaultPageSize()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParamsBuilder builder =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .orders(List.of(OrderCriteria.of("numericAttr", SortDirection.ASC)));
+
+    TrackedEntityOperationParams params = builder.page(1).pageSize(3).build();
+
+    TrackedEntities firstPage = trackedEntityService.getTrackedEntities(params);
+
+    assertAll(
+        "first page",
+        // TODO(tracker): fix in TECH-1601. I assume this was recently introduced (only on master)
+        // when
+        // handleLastPageFlag was copied from the event service which works in conjunction with the
+        // event store
+        // that fetches pageSize + 1 when totalCount=false. This split of logic between
+        // service/store is
+        // error prone and hard to follow. We will fix/refactor it for all entities so this is
+        // purely a concern
+        // of the store.
+        () -> assertSlimPager(1, 3, true, firstPage.getPager()),
+        () ->
+            assertEquals(
+                List.of("dUE514NMOlo", "mHWCacsGYYn", "QS6w44flWAf"),
+                uids(firstPage.getTrackedEntities())));
+
+    params = builder.page(2).pageSize(3).build();
+
+    TrackedEntities secondPage = trackedEntityService.getTrackedEntities(params);
+
+    assertAll(
+        "second (last) page",
+        () -> assertSlimPager(2, 3, true, secondPage.getPager()),
+        () ->
+            assertEquals(
+                List.of("QesgJkTyTCk", "guVNoAerxWo"), uids(secondPage.getTrackedEntities())));
+
+    params = builder.page(3).pageSize(3).build();
+
+    assertIsEmpty(getTrackedEntities(params));
+  }
+
+  @Test
+  void shouldReturnPaginatedTrackedEntitiesGivenNonDefaultPageSizeAndTotalPages()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParamsBuilder builder =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .orders(List.of(OrderCriteria.of("numericAttr", SortDirection.ASC)));
+
+    TrackedEntityOperationParams params = builder.page(1).pageSize(3).totalPages(true).build();
+
+    TrackedEntities firstPage = trackedEntityService.getTrackedEntities(params);
+
+    assertAll(
+        "first page",
+        () -> assertPager(1, 3, 5, firstPage.getPager()),
+        () ->
+            assertEquals(
+                List.of("dUE514NMOlo", "mHWCacsGYYn", "QS6w44flWAf"),
+                uids(firstPage.getTrackedEntities())));
+
+    params = builder.page(2).pageSize(3).totalPages(true).build();
+
+    TrackedEntities secondPage = trackedEntityService.getTrackedEntities(params);
+
+    assertAll(
+        "second (last) page",
+        () -> assertPager(2, 3, 5, secondPage.getPager()),
+        () ->
+            assertEquals(
+                List.of("QesgJkTyTCk", "guVNoAerxWo"), uids(secondPage.getTrackedEntities())));
+
+    params = builder.page(3).pageSize(3).totalPages(true).build();
+
+    assertIsEmpty(getTrackedEntities(params));
   }
 
   @Test
@@ -220,6 +305,25 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldOrderTrackedEntitiesByFieldAndAttribute()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .orders(
+                List.of(
+                    OrderCriteria.of("toDelete000", SortDirection.ASC),
+                    OrderCriteria.of("enrolledAt", SortDirection.ASC)))
+            .build();
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
+  }
+
+  @Test
   void shouldOrderTrackedEntitiesByAttributeAsc()
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntityOperationParams params =
@@ -248,6 +352,59 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     List<String> trackedEntities = getTrackedEntities(params);
 
+    assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
+  }
+
+  @Test
+  void shouldOrderTrackedEntitiesByAttributeWhenFiltered()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .orders(List.of(OrderCriteria.of("toUpdate000", SortDirection.ASC)))
+            .filters("numericAttr:lt:75")
+            .build();
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(List.of("dUE514NMOlo", "mHWCacsGYYn"), trackedEntities);
+  }
+
+  @Test
+  void shouldOrderTrackedEntitiesByAttributeWhenFilteredOnSameAttribute()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .orders(List.of(OrderCriteria.of("numericAttr", SortDirection.DESC)))
+            .filters("numericAttr:lt:75")
+            .build();
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(List.of("mHWCacsGYYn", "dUE514NMOlo"), trackedEntities);
+  }
+
+  @Test
+  void shouldOrderTrackedEntitiesByAttributeAndNotFilterOutATrackedEntityWithoutThatAttribute()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .trackedEntityUids(
+                Set.of(
+                    "dUE514NMOlo", "QS6w44flWAf")) // TE QS6w44flWAf without attribute notUpdated0
+            .orders(List.of(OrderCriteria.of("notUpdated0", SortDirection.DESC)))
+            .build();
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    // https://www.postgresql.org/docs/current/queries-order.html
+    // By default, null values sort as if larger than any non-null value
+    // => TE QS6w44flWAf without attribute notUpdated0 will come first when DESC
     assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
   }
 
@@ -304,7 +461,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     assertAll(
         "first page",
-        () -> assertSlimPager(1, 1, false, firstPage),
+        () -> assertSlimPager(1, 1, false, firstPage.getPager()),
         () -> assertEquals(List.of("D9PbzJY8bJM"), eventUids(firstPage)));
 
     params = paramsBuilder.page(2).pageSize(1).build();
@@ -313,7 +470,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     assertAll(
         "second (last) page",
-        () -> assertSlimPager(2, 1, true, secondPage),
+        () -> assertSlimPager(2, 1, true, secondPage.getPager()),
         () -> assertEquals(List.of("pTzf9KYMk72"), eventUids(secondPage)));
 
     params = paramsBuilder.page(3).pageSize(3).build();
@@ -322,7 +479,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnEventsWithTotalPages() throws ForbiddenException, BadRequestException {
+  void shouldReturnPaginatedEventsWithTotalPages() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -353,7 +510,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     assertAll(
         "first page",
-        () -> assertSlimPager(1, 3, false, firstPage),
+        () -> assertSlimPager(1, 3, false, firstPage.getPager()),
         () ->
             assertEquals(
                 List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"), eventUids(firstPage)));
@@ -364,7 +521,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     assertAll(
         "second (last) page",
-        () -> assertSlimPager(2, 3, true, secondPage),
+        () -> assertSlimPager(2, 3, true, secondPage.getPager()),
         () ->
             assertEquals(
                 List.of("lumVtWwwy0O", "QRYjLTiJTrA", "cadc5eGj0j7"), eventUids(secondPage)));
@@ -394,7 +551,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     assertAll(
         "first page",
-        () -> assertPager(1, 2, 6, events),
+        () -> assertPager(1, 2, 6, events.getPager()),
         () -> assertEquals(List.of("ck7DzdxqLqA", "OTmjvJDn0Fu"), eventUids(events)));
   }
 
@@ -426,7 +583,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .sorted(Comparator.comparing(event -> event.getEnrollment().getProgram().getUid()))
             .map(Event::getUid)
             .toList();
-    System.out.println(expected);
 
     EventOperationParams params =
         EventOperationParams.builder()
@@ -467,6 +623,25 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldOrderEventsByAttributeAndFilterOutEventsWithATrackedEntityWithoutThatAttribute()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .orgUnitUid(orgUnit.getUid())
+            .events(
+                Set.of(
+                    "pTzf9KYMk72",
+                    "D9PbzJY8bJM")) // EV pTzf9KYMk72 => TE QS6w44flWAf without attribute
+            // notUpdated0
+            .orderBy(UID.of("notUpdated0"), SortDirection.ASC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
   void shouldOrderEventsByMultipleAttributesDesc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         eventParamsBuilder
@@ -500,7 +675,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByMultipleAttributesAndPaginateWhenGivenNonDefaultPageSize()
+  void shouldReturnPaginatedEventsOrderedByMultipleAttributesWhenGivenNonDefaultPageSize()
       throws ForbiddenException, BadRequestException {
     EventOperationParamsBuilder paramsBuilder =
         eventParamsBuilder
@@ -514,7 +689,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     assertAll(
         "first page",
-        () -> assertSlimPager(1, 1, false, firstPage),
+        () -> assertSlimPager(1, 1, false, firstPage.getPager()),
         () -> assertEquals(List.of("D9PbzJY8bJM"), eventUids(firstPage)));
 
     params = paramsBuilder.page(2).pageSize(1).build();
@@ -523,7 +698,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     assertAll(
         "second (last) page",
-        () -> assertSlimPager(2, 1, true, secondPage),
+        () -> assertSlimPager(2, 1, true, secondPage.getPager()),
         () -> assertEquals(List.of("pTzf9KYMk72"), eventUids(secondPage)));
 
     params = paramsBuilder.page(3).pageSize(3).build();
@@ -644,6 +819,28 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
+  @Test
+  void shouldOrderEventsByDataElementAndNotFilterOutEventsWithoutThatDataElement()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .orgUnitUid(orgUnit.getUid())
+            .events(
+                Set.of(
+                    "pTzf9KYMk72", // EV pTzf9KYMk72 without data element DATAEL00002
+                    "D9PbzJY8bJM"))
+            // notUpdated0
+            .orderBy(UID.of("DATAEL00002"), SortDirection.DESC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    // https://www.postgresql.org/docs/current/queries-order.html
+    // By default, null values sort as if larger than any non-null value
+    // => EV pTzf9KYMk72 without data element DATAEL00002 will come first when DESC
+    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
+  }
+
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
     T t = manager.get(type, uid);
     assertNotNull(
@@ -654,28 +851,26 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     return t;
   }
 
-  private static void assertSlimPager(int pageNumber, int pageSize, boolean isLast, Events events) {
-    assertInstanceOf(
-        SlimPager.class, events.getPager(), "SlimPager should be returned if totalPages=false");
-    SlimPager pager = (SlimPager) events.getPager();
+  private static void assertSlimPager(int pageNumber, int pageSize, boolean isLast, Pager pager) {
+    assertInstanceOf(SlimPager.class, pager, "SlimPager should be returned if totalPages=false");
+    SlimPager slimPager = (SlimPager) pager;
     assertAll(
         "pagination details",
-        () -> assertEquals(pageNumber, pager.getPage(), "number of current page"),
-        () -> assertEquals(pageSize, pager.getPageSize(), "page size"),
+        () -> assertEquals(pageNumber, slimPager.getPage(), "number of current page"),
+        () -> assertEquals(pageSize, slimPager.getPageSize(), "page size"),
         () ->
             assertEquals(
                 isLast,
-                pager.isLastPage(),
+                slimPager.isLastPage(),
                 isLast ? "should be the last page" : "should NOT be the last page"));
   }
 
-  private static void assertPager(int pageNumber, int pageSize, int totalCount, Events events) {
-    Pager pager = events.getPager();
+  private static void assertPager(int pageNumber, int pageSize, int totalCount, Pager pager) {
     assertAll(
         "pagination details",
         () -> assertEquals(pageNumber, pager.getPage(), "number of current page"),
         () -> assertEquals(pageSize, pager.getPageSize(), "page size"),
-        () -> assertEquals(totalCount, pager.getTotal(), "total page count"));
+        () -> assertEquals(totalCount, pager.getTotal(), "total count of items"));
   }
 
   private List<String> getTrackedEntities(TrackedEntityOperationParams params)
