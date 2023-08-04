@@ -29,6 +29,7 @@ package org.hisp.dhis.dataset.notifications;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.times;
@@ -39,17 +40,23 @@ import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.message.DefaultMessageService;
+import org.hisp.dhis.message.EmailMessageSender;
+import org.hisp.dhis.message.MessageConversationStore;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -62,12 +69,17 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageService;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserSettingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -115,7 +127,21 @@ class DataSetNotificationServiceTest extends DhisConvenienceTest {
 
   @Mock private DataSetNotificationTemplateService dsntService;
 
-  @Mock private MessageService internalMessageService;
+  @InjectMocks private DefaultMessageService internalMessageService;
+
+  @Mock private MessageConversationStore messageConversationStore;
+
+  @Mock private CurrentUserService currentUserService;
+
+  @Mock private ConfigurationService configurationService;
+
+  @Mock private UserSettingService userSettingService;
+
+  @Mock private SystemSettingManager systemSettingManager;
+
+  @Mock private DhisConfigurationProvider configurationProvider;
+
+  @Mock private List<MessageSender> messageSenders;
 
   @Mock private ProgramMessageService externalMessageService;
 
@@ -136,6 +162,8 @@ class DataSetNotificationServiceTest extends DhisConvenienceTest {
   @Captor private ArgumentCaptor<DataSetNotificationTemplate> templateCaptor;
 
   @Captor private ArgumentCaptor<ArrayList<ProgramMessage>> programMessageCaptor;
+
+  @Mock private EmailMessageSender emailMessageSender;
 
   private DataSetNotificationService subject;
 
@@ -258,5 +286,47 @@ class DataSetNotificationServiceTest extends DhisConvenienceTest {
             .getRecipients()
             .getPhoneNumbers()
             .contains(PHONE_NUMBER));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void sendCompleteDataSetNotificationsTest() {
+    // setup
+    List<DataSetNotificationTemplate> emailTemplates = new ArrayList<>();
+    DataSetNotificationTemplate emailTemplateInternal = new DataSetNotificationTemplate();
+    emailTemplateInternal.setDataSetNotificationTrigger(
+        DataSetNotificationTrigger.DATA_SET_COMPLETION);
+    emailTemplateInternal.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL));
+    emailTemplateInternal.setNotificationRecipient(DataSetNotificationRecipient.USER_GROUP);
+    emailTemplateInternal.getDataSets().add(dataSetA);
+
+    emailTemplates.add(emailTemplateInternal);
+
+    CompleteDataSetRegistration registration = new CompleteDataSetRegistration();
+    registration.setSource(organisationUnitA);
+    when(dsntService.getCompleteNotifications(any())).thenReturn(emailTemplates);
+
+    when(renderer.render(
+            any(CompleteDataSetRegistration.class), any(DataSetNotificationTemplate.class)))
+        .thenReturn(notificationMessage);
+
+    when(configurationProvider.getServerBaseUrl()).thenReturn("https://dhis2.org");
+
+    // mock an email sender so its args can be inspected
+    Iterator<MessageSender> itr = Mockito.mock(Iterator.class);
+    when(messageSenders.iterator()).thenReturn(itr);
+    when(itr.hasNext()).thenReturn(true, false);
+    when(itr.next()).thenReturn(emailMessageSender);
+
+    ArgumentCaptor<String> footerCaptor = ArgumentCaptor.forClass(String.class);
+
+    // condition
+    subject.sendCompleteDataSetNotifications(registration);
+
+    // checks
+    verify(emailMessageSender)
+        .sendMessageAsync(any(), any(), footerCaptor.capture(), any(), any(), anyBoolean());
+    String footer = footerCaptor.getValue();
+    assertTrue(footer.contains("https://dhis2.org/dhis-web-messaging/#/SYSTEM/"));
   }
 }
