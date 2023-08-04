@@ -63,7 +63,6 @@ import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.Collection;
