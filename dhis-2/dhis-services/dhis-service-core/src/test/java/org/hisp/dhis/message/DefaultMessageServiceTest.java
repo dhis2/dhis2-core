@@ -102,7 +102,7 @@ class DefaultMessageServiceTest {
 
     ArgumentCaptor<String> footerCaptor = ArgumentCaptor.forClass(String.class);
 
-    // condition
+    // condition trigger
     messageService.sendMessage(msgParams);
 
     // checks
