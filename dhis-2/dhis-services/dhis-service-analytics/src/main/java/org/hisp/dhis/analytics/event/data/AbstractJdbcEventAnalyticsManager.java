@@ -64,6 +64,8 @@ import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.Date;
@@ -899,6 +901,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         grid.addValue(EMPTY);
       } else if (isDouble && !Double.isNaN((Double) value)) {
         addGridDoubleTypeValue((Double) value, grid, header, params);
+      } else if (value instanceof BigDecimal) {
+        // toPlainString method prevents scientific notation (3E+2)
+        grid.addValue(((BigDecimal) value).stripTrailingZeros().toPlainString());
       } else {
         grid.addValue(StringUtils.trimToNull(sqlRowSet.getString(index)));
       }
