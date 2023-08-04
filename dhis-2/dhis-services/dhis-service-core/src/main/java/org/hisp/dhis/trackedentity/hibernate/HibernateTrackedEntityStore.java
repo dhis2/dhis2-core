@@ -1446,7 +1446,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     return params.getUser() != null && params.getUser().isSuper();
   }
 
-  // TODO This has to be removed once SettingKey.TrackedEntityInstanceMaxLimit is removed
+  // TODO(tracker): remove once SettingKey.TrackedEntityInstanceMaxLimit is removed
   private int resolveTrackedEntityMaxLimit() {
     int deprecatedTeiMaxLimit =
         systemSettingManager.getIntegerSetting(SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT);
