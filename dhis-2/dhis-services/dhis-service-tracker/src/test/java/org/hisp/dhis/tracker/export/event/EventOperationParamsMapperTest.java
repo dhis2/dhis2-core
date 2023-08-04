@@ -144,6 +144,8 @@ class EventOperationParamsMapperTest {
     user.setOrganisationUnits(Set.of(orgUnit));
     when(currentUserService.getCurrentUser()).thenReturn(user);
 
+    // By default set to ACCESSIBLE for tests that don't set an orgUnit. The orgUnitMode needs to be
+    // set because its validation is in the EventRequestParamsMapper.
     eventBuilder = eventBuilder.orgUnitMode(ACCESSIBLE);
   }
 
