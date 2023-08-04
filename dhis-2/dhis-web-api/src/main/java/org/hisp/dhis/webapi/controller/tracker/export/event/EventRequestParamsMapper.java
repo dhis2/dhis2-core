@@ -30,6 +30,9 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseFilters;
@@ -65,9 +68,15 @@ class EventRequestParamsMapper {
 
   public EventOperationParams map(RequestParams requestParams) throws BadRequestException {
     OrganisationUnitSelectionMode orgUnitMode =
-        validateDeprecatedParameter(
-            "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
-    validateOrgUnitParams(requestParams.getOrgUnit(), orgUnitMode);
+        getOrgUnitMode(
+            requestParams.getOrgUnit(),
+            validateDeprecatedParameter(
+                "ouMode",
+                requestParams.getOuMode(),
+                "orgUnitMode",
+                requestParams.getOrgUnitMode()));
+
+    validateOrgUnitMode(requestParams.getOrgUnit(), orgUnitMode);
 
     UID attributeCategoryCombo =
         validateDeprecatedParameter(
@@ -190,15 +199,37 @@ class EventRequestParamsMapper {
     }
   }
 
-  // TODO Use RequestParamUtils.validateOrgUnitParams as soon /events accepts a list of org units
-  // UIDs
-  private void validateOrgUnitParams(UID orgUnit, OrganisationUnitSelectionMode orgUnitMode)
+  private void validateOrgUnitMode(UID orgUnit, OrganisationUnitSelectionMode orgUnitMode)
       throws BadRequestException {
-    if (orgUnit != null && (orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE)) {
+    if ((orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE) && orgUnit != null) {
       throw new BadRequestException(
           String.format(
               "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
               orgUnitMode));
     }
+
+    if ((orgUnitMode == CHILDREN || orgUnitMode == SELECTED || orgUnitMode == DESCENDANTS)
+        && orgUnit == null) {
+      throw new BadRequestException(
+          String.format(
+              "orgUnit is required for orgUnitMode: %s. Please add an orgUnit or use a different orgUnitMode.",
+              orgUnitMode));
+    }
+  }
+
+  /**
+   * Returns the same org unit mode if not null. If null, and an org unit is present, SELECT mode is
+   * used by default, mode ACCESSIBLE is used otherwise.
+   *
+   * @param orgUnit
+   * @param orgUnitMode
+   * @return an org unit mode given the two input params
+   */
+  private OrganisationUnitSelectionMode getOrgUnitMode(
+      UID orgUnit, OrganisationUnitSelectionMode orgUnitMode) {
+    if (orgUnitMode == null) {
+      return orgUnit != null ? SELECTED : ACCESSIBLE;
+    }
+    return orgUnitMode;
   }
 }
