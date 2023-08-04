@@ -29,18 +29,14 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
@@ -53,36 +49,18 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
+@ToString
 public class TrackedEntityQueryParams {
-  public static final String TRACKED_ENTITY_ID = "instance";
-
-  public static final String CREATED_ID = "created";
-
-  public static final String LAST_UPDATED_ID = "lastupdated";
-
-  public static final String ORG_UNIT_ID = "ou";
-
-  public static final String ORG_UNIT_NAME = "ouname";
-
-  public static final String TRACKED_ENTITY_TYPE_ID = "te";
-
-  public static final String INACTIVE_ID = "inactive";
-
-  public static final String DELETED = "deleted";
-
-  public static final String POTENTIAL_DUPLICATE = "potentialduplicate";
 
   public static final int DEFAULT_PAGE = 1;
 
   public static final int DEFAULT_PAGE_SIZE = 50;
-
-  public static final String MAIN_QUERY_ALIAS = "TE";
-
-  public static final String PROGRAM_INSTANCE_ALIAS = "pi";
 
   /** Query value, will apply to all relevant attributes. */
   private QueryFilter query;
@@ -157,7 +135,7 @@ public class TrackedEntityQueryParams {
   /** End date for event for the given program. */
   private Date eventEndDate;
 
-  /** Indicates whether not to include meta data in the response. */
+  /** Indicates whether not to include metadata in the response. */
   private boolean skipMeta;
 
   /** Page number. */
@@ -199,8 +177,7 @@ public class TrackedEntityQueryParams {
    */
   private Boolean potentialDuplicate;
 
-  /** TE order params */
-  private List<OrderParam> orders = new ArrayList<>();
+  private final List<Order> order = new ArrayList<>();
 
   // -------------------------------------------------------------------------
   // Transient properties
@@ -419,27 +396,27 @@ public class TrackedEntityQueryParams {
     return programEnrollmentEndDate != null;
   }
 
-  /** Indicates whether this parameters specifies a program incident start date. */
+  /** Indicates whether these parameters specify a program incident start date. */
   public boolean hasProgramIncidentStartDate() {
     return programIncidentStartDate != null;
   }
 
-  /** Indicates whether this parameters specifies a program incident end date. */
+  /** Indicates whether these parameters specify a program incident end date. */
   public boolean hasProgramIncidentEndDate() {
     return programIncidentEndDate != null;
   }
 
-  /** Indicates whether this parameters specifies a tracked entity. */
+  /** Indicates whether these parameters specify a tracked entity. */
   public boolean hasTrackedEntityType() {
     return trackedEntityType != null;
   }
 
-  /** Indicates whether this parameters is of the given organisation unit mode. */
+  /** Indicates whether these parameters are of the given organisation unit mode. */
   public boolean isOrganisationUnitMode(OrganisationUnitSelectionMode mode) {
     return orgUnitMode != null && orgUnitMode.equals(mode);
   }
 
-  /** Indicates whether this parameters specifies a programStage. */
+  /** Indicates whether these parameters specify a programStage. */
   public boolean hasProgramStage() {
     return programStage != null;
   }
@@ -456,12 +433,12 @@ public class TrackedEntityQueryParams {
     return this.eventStatus != null && this.eventStatus.equals(eventStatus);
   }
 
-  /** Indicates whether this parameters specifies an event start date. */
+  /** Indicates whether these parameters specify an event start date. */
   public boolean hasEventStartDate() {
     return eventStartDate != null;
   }
 
-  /** Indicates whether this parameters specifies an event end date. */
+  /** Indicates whether these parameters specify an event end date. */
   public boolean hasEventEndDate() {
     return eventEndDate != null;
   }
@@ -516,53 +493,6 @@ public class TrackedEntityQueryParams {
   public int getOffset() {
     return (getPageWithDefault() - 1) * getPageSizeWithDefault();
   }
-
-  // -------------------------------------------------------------------------
-  // toString
-  // -------------------------------------------------------------------------
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("query", query)
-        .add("attributes", attributes)
-        .add("filters", filters)
-        .add("orgUnits", orgUnits)
-        .add("program", program)
-        .add("programStatus", programStatus)
-        .add("followUp", followUp)
-        .add("lastUpdatedStartDate", lastUpdatedStartDate)
-        .add("lastUpdatedEndDate", lastUpdatedEndDate)
-        .add("lastUpdatedDuration", lastUpdatedDuration)
-        .add("programEnrollmentStartDate", programEnrollmentStartDate)
-        .add("programEnrollmentEndDate", programEnrollmentEndDate)
-        .add("programIncidentStartDate", programIncidentStartDate)
-        .add("programIncidentEndDate", programIncidentEndDate)
-        .add("trackedEntityType", trackedEntityType)
-        .add("orgUnitMode", orgUnitMode)
-        .add("assignedUserQueryParam", assignedUserQueryParam)
-        .add("eventStatus", eventStatus)
-        .add("eventStartDate", eventStartDate)
-        .add("eventEndDate", eventEndDate)
-        .add("skipMeta", skipMeta)
-        .add("page", page)
-        .add("pageSize", pageSize)
-        .add("totalPages", totalPages)
-        .add("skipPaging", skipPaging)
-        .add("includeDeleted", includeDeleted)
-        .add("includeAllAttributes", includeAllAttributes)
-        .add("internalSearch", internalSearch)
-        .add("synchronizationQuery", synchronizationQuery)
-        .add("skipChangedBefore", skipChangedBefore)
-        .add("orders", orders)
-        .add("user", user)
-        .add("potentialDuplicate", potentialDuplicate)
-        .toString();
-  }
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
 
   public QueryFilter getQuery() {
     return query;
@@ -853,39 +783,32 @@ public class TrackedEntityQueryParams {
     return internalSearch;
   }
 
-  public TrackedEntityQueryParams setInternalSearch(boolean internalSearch) {
-    this.internalSearch = internalSearch;
-    return this;
-  }
-
   public boolean isSynchronizationQuery() {
     return synchronizationQuery;
-  }
-
-  public TrackedEntityQueryParams setSynchronizationQuery(boolean synchronizationQuery) {
-    this.synchronizationQuery = synchronizationQuery;
-    return this;
   }
 
   public Date getSkipChangedBefore() {
     return skipChangedBefore;
   }
 
-  public TrackedEntityQueryParams setSkipChangedBefore(Date skipChangedBefore) {
-    this.skipChangedBefore = skipChangedBefore;
-    return this;
-  }
-
   public User getUser() {
     return user;
   }
 
-  public List<OrderParam> getOrders() {
-    return orders;
+  /** Order by an event field of the given {@code field} name in given sort {@code direction}. */
+  public TrackedEntityQueryParams orderBy(String field, SortDirection direction) {
+    this.order.add(new Order(field, direction));
+    return this;
   }
 
-  public void setOrders(List<OrderParam> orders) {
-    this.orders = orders;
+  /** Order by the given tracked entity attribute {@code tea} in given sort {@code direction}. */
+  public TrackedEntityQueryParams orderBy(TrackedEntityAttribute tea, SortDirection direction) {
+    this.order.add(new Order(tea, direction));
+    return this;
+  }
+
+  public List<Order> getOrder() {
+    return order;
   }
 
   public Set<String> getTrackedEntityUids() {
@@ -897,81 +820,11 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  /**
-   * Set assigned user selection mode, assigned users and the current user for the query. Non-empty
-   * assigned users are only allowed with mode PROVIDED (or null).
-   *
-   * @param mode assigned user mode
-   * @param current current user with which query is made
-   * @param assignedUsers assigned user uids
-   * @return this
-   */
-  public TrackedEntityQueryParams setUserWithAssignedUsers(
-      AssignedUserSelectionMode mode, User current, Set<String> assignedUsers) {
-    this.assignedUserQueryParam = new AssignedUserQueryParam(mode, current, assignedUsers);
-    this.user = current;
-    return this;
-  }
-
   public List<TrackedEntityType> getTrackedEntityTypes() {
     return trackedEntityTypes;
   }
 
   public void setTrackedEntityTypes(List<TrackedEntityType> trackedEntityTypes) {
     this.trackedEntityTypes = trackedEntityTypes;
-  }
-
-  @Getter
-  @AllArgsConstructor
-  public enum OrderColumn {
-    TRACKEDENTITY("trackedEntity", "uid", MAIN_QUERY_ALIAS),
-    // TODO(tracker): remove with old tracker
-    CREATED("created", CREATED_ID, MAIN_QUERY_ALIAS),
-    CREATED_AT("createdAt", CREATED_ID, MAIN_QUERY_ALIAS),
-    CREATED_AT_CLIENT("createdAtClient", "createdatclient", MAIN_QUERY_ALIAS),
-    UPDATED_AT("updatedAt", "lastupdated", MAIN_QUERY_ALIAS),
-    UPDATED_AT_CLIENT("updatedAtClient", "lastupdatedatclient", MAIN_QUERY_ALIAS),
-    ENROLLED_AT(
-        "enrolledAt",
-        "enrollmentdate",
-        PROGRAM_INSTANCE_ALIAS), // this works only for the new endpoint
-    // ORGUNIT_NAME( "orgUnitName", MAIN_QUERY_ALIAS+".organisationUnit.name" ),
-    INACTIVE(INACTIVE_ID, "inactive", MAIN_QUERY_ALIAS);
-
-    private final String propName;
-
-    private final String column;
-
-    private final String tableAlias;
-
-    public boolean isPropertyEqualTo(String property) {
-      return propName.equalsIgnoreCase(property);
-    }
-
-    /**
-     * @param property
-     * @return an Optional of an OrderColumn matching by property name
-     */
-    public static Optional<OrderColumn> findColumn(String property) {
-      return Arrays.stream(values())
-          .filter(orderColumn -> orderColumn.getPropName().equals(property))
-          .findFirst();
-    }
-
-    /**
-     * @return a Sql string composed by the actual table alias and column. In use for the inner
-     *     query select fields and order by
-     */
-    public String getSqlColumnWithTableAlias() {
-      return tableAlias + "." + column;
-    }
-
-    /**
-     * @return a Sql string composed by the main query alias and column. In use for the outer query
-     *     select fields and order by
-     */
-    public String getSqlColumnWithMainTable() {
-      return MAIN_QUERY_ALIAS + "." + column;
-    }
   }
 }
