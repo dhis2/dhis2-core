@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -155,12 +154,14 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
     params.setSkipPaging(true);
 
     assertThrows(
-        IllegalQueryException.class,
+        IllegalStateException.class,
         () -> trackedEntityService.getTrackedEntityIds(params, false, false),
         String.format(
-            "Both settings %s and %s cannot be set at the same time",
+            "Only one parameter of '%s' and '%s' must be specified. Prefer '%s' as '%s' will be removed.",
+            SettingKey.TRACKED_ENTITY_MAX_LIMIT.getName(),
             SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT.getName(),
-            SettingKey.TRACKED_ENTITY_MAX_LIMIT.getName()));
+            SettingKey.TRACKED_ENTITY_MAX_LIMIT.getName(),
+            SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT.getName()));
   }
 
   @Test
