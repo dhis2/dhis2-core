@@ -252,22 +252,19 @@ public class EventOperationParamsMapper {
       OrganisationUnitSelectionMode orgUnitMode, User user, Program program)
       throws BadRequestException {
 
-    String violation = getOrgUnitModeViolation(orgUnitMode, user, program);
+    String violation =
+        switch (orgUnitMode) {
+          case ALL -> userCanSearchOrgUnitModeALL(user)
+              ? null
+              : "Current user is not authorized to query across all organisation units";
+          case ACCESSIBLE -> getAccessibleScopeValidation(user, program);
+          case CAPTURE -> getCaptureScopeValidation(user);
+          default -> null;
+        };
+
     if (violation != null) {
       throw new BadRequestException(violation);
     }
-  }
-
-  private String getOrgUnitModeViolation(
-      OrganisationUnitSelectionMode orgUnitMode, User user, Program program) {
-    return switch (orgUnitMode) {
-      case ALL -> userCanSearchOrgUnitModeALL(user)
-          ? null
-          : "Current user is not authorized to query across all organisation units";
-      case ACCESSIBLE -> getAccessibleScopeValidation(user, program);
-      case CAPTURE -> getCaptureScopeValidation(user);
-      default -> null;
-    };
   }
 
   private String getCaptureScopeValidation(User user) {
