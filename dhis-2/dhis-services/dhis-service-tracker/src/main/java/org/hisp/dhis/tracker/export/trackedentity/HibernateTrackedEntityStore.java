@@ -106,7 +106,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private static final String PROGRAM_INSTANCE_ALIAS = "en";
 
-  private static final String DEFAULT_ORDER = "TE.te_id ASC";
+  private static final String DEFAULT_ORDER = "TE.trackedentityid desc";
 
   private static final String OFFSET = "OFFSET";
 
@@ -132,7 +132,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private static final String EV_STATUS = "EV.status";
 
-  private static final String SELECT_COUNT_INSTANCE_FROM = "SELECT count(te_id) FROM ( ";
+  private static final String SELECT_COUNT_INSTANCE_FROM = "SELECT count(trackedentityid) FROM ( ";
 
   /**
    * Tracked entities can be ordered by given fields which correspond to fields on {@link
@@ -192,7 +192,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     List<Long> ids = new ArrayList<>();
 
     while (rowSet.next()) {
-      ids.add(rowSet.getLong("te_id"));
+      ids.add(rowSet.getLong("trackedentityid"));
     }
 
     return ids;
@@ -341,7 +341,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     LinkedHashSet<String> select =
         new LinkedHashSet<>(
             List.of(
-                "te_id",
+                "TE.trackedentityid",
                 "te_uid",
                 "te_created",
                 "te_lastupdated",
@@ -415,7 +415,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     LinkedHashSet<String> columns =
         new LinkedHashSet<>(
             List.of(
-                "TE.trackedentityid as te_id",
+                "TE.trackedentityid as trackedentityid",
                 "TE.trackedentitytypeid as te_type_id",
                 "TE.uid as te_uid",
                 "TE.created as te_created",
@@ -1013,7 +1013,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
       relatedTables
           .append("LEFT JOIN trackedentityattributevalue TEAV ")
-          .append("ON TEAV.trackedentityid = TE.te_id ")
+          .append("ON TEAV.trackedentityid = TE.trackedentityid ")
           .append("AND TEAV.trackedentityattributeid IN (")
           .append(attributeString)
           .append(") ");
@@ -1073,6 +1073,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
     if (params.getAttributesAndFilters().stream()
         .noneMatch(qi -> qi.hasFilter() && qi.isUnique())) {
+      // TODO(ivo) in an inner query it should use TE.trackedentityid and not the alias
       return "ORDER BY " + DEFAULT_ORDER + " ";
     }
 

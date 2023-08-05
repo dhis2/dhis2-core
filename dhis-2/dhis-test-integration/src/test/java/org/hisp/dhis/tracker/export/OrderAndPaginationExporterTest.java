@@ -201,13 +201,13 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderTrackedEntitiesByPrimaryKeyAscByDefault()
+  void shouldOrderTrackedEntitiesByPrimaryKeyDescByDefault()
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntity QS6w44flWAf = get(TrackedEntity.class, "QS6w44flWAf");
     TrackedEntity dUE514NMOlo = get(TrackedEntity.class, "dUE514NMOlo");
     List<String> expected =
         Stream.of(QS6w44flWAf, dUE514NMOlo)
-            .sorted(Comparator.comparing(TrackedEntity::getId)) // asc
+            .sorted(Comparator.comparing(TrackedEntity::getId).reversed()) // reversed = desc
             .map(TrackedEntity::getUid)
             .toList();
 
