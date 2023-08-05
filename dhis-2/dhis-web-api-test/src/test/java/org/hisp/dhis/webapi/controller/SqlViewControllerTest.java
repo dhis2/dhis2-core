@@ -145,42 +145,45 @@ class SqlViewControllerTest extends DhisControllerConvenienceTest
     }
 
     /**
-     * This test is purely to check the correct control flow is followed based on the value of the
-     * config property SYSTEM_SQL_VIEW_WRITE_ENABLED
+     * This test is purely to check the correct control flow is followed based
+     * on the value of the config property SYSTEM_SQL_VIEW_WRITE_ENABLED
      */
     @Test
-    void testCorrectServiceMethodCalledWhenSqlViewWritesEnabled() throws NotFoundException {
+    void testCorrectServiceMethodCalledWhenSqlViewWritesEnabled()
+        throws NotFoundException
+    {
         SqlViewQuery query = new SqlViewQuery();
-        query.setCriteria(Set.of("select", "createatable();"));
+        query.setCriteria( Set.of( "select", "createatable();" ) );
 
-        when(sqlViewService.getSqlViewByUid("123")).thenReturn(new SqlView());
-        when(contextService.getParameterValues("filter")).thenReturn(List.of());
-        when(config.isEnabled(ConfigurationKey.SYSTEM_SQL_VIEW_WRITE_ENABLED)).thenReturn(true);
-        when(sqlViewService.getSqlViewGridWritesAllowed(any(), any(), any(), any(), any()))
-            .thenReturn(new ListGrid());
+        when( sqlViewService.getSqlViewByUid("123") ).thenReturn(new SqlView() );
+        when( contextService.getParameterValues("filter") ).thenReturn( List.of() );
+        when( config.isEnabled( ConfigurationKey.SYSTEM_SQL_VIEW_WRITE_ENABLED ) ).thenReturn( true );
+        when( sqlViewService.getSqlViewGridWritesAllowed( any(), any(), any(), any(), any() ) )
+            .thenReturn( new ListGrid() );
 
-        controller.getViewJson("123", query, null);
-        verify(sqlViewService, times(1)).getSqlViewGridWritesAllowed(any(), any(), any(), any(), any());
-        verify(sqlViewService, never()).getSqlViewGridReadOnly(any(), any(), any(), any(), any());
+        controller.getViewJson( "123", query, null );
+        verify( sqlViewService, times( 1 ) ).getSqlViewGridWritesAllowed( any(), any(), any(), any(), any() );
+        verify( sqlViewService, never() ).getSqlViewGridReadOnly( any(), any(), any(), any(), any() );
     }
 
     /**
-     * This test is purely to check the correct control flow is followed based on the value of the
-     * config property SYSTEM_SQL_VIEW_WRITE_ENABLED
+     * This test is purely to check the correct control flow is followed based
+     * on the value of the config property SYSTEM_SQL_VIEW_WRITE_ENABLED
      */
     @Test
-    void testCorrectServiceMethodCalledWhenSqlViewWritesDisabled() throws NotFoundException {
+    void testCorrectServiceMethodCalledWhenSqlViewWritesDisabled()
+        throws NotFoundException
+    {
         SqlViewQuery query = new SqlViewQuery();
-        query.setCriteria(Set.of("select", "createatable();"));
+        query.setCriteria( Set.of( "select", "createatable();" ) );
 
-        when(sqlViewService.getSqlViewByUid("123")).thenReturn(new SqlView());
-        when(contextService.getParameterValues("filter")).thenReturn(List.of());
-        when(config.isEnabled(ConfigurationKey.SYSTEM_SQL_VIEW_WRITE_ENABLED)).thenReturn(false);
-        when(sqlViewService.getSqlViewGridReadOnly(any(), any(), any(), any(), any()))
-            .thenReturn(new ListGrid());
+        when( sqlViewService.getSqlViewByUid( "123" ) ).thenReturn( new SqlView() );
+        when( contextService.getParameterValues( "filter" ) ).thenReturn( List.of() );
+        when( config.isEnabled( ConfigurationKey.SYSTEM_SQL_VIEW_WRITE_ENABLED ) ).thenReturn( false );
+        when( sqlViewService.getSqlViewGridReadOnly( any(), any(), any(), any(), any() ) ).thenReturn( new ListGrid() );
 
-        controller.getViewJson("123", query, null);
-        verify(sqlViewService, times(1)).getSqlViewGridReadOnly(any(), any(), any(), any(), any());
-        verify(sqlViewService, never()).getSqlViewGridWritesAllowed(any(), any(), any(), any(), any());
+        controller.getViewJson( "123", query, null );
+        verify( sqlViewService, times( 1 ) ).getSqlViewGridReadOnly( any(), any(), any(), any(), any() );
+        verify( sqlViewService, never() ).getSqlViewGridWritesAllowed( any(), any(), any(), any(), any() );
     }
 }
