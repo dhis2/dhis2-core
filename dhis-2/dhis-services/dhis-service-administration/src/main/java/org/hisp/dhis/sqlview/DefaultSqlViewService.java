@@ -201,7 +201,8 @@ public class DefaultSqlViewService
         Map<String, String> criteria,
         Map<String, String> variables,
         List<String> filters,
-        List<String> fields ) {
+        List<String> fields )
+    {
         canAccess( sqlView );
         validateSqlView( sqlView, criteria, variables );
 
@@ -212,13 +213,11 @@ public class DefaultSqlViewService
         log.info( String.format( "Retrieving data for SQL view: '%s'",
             sqlView.getUid() ) );
 
-        String sql =
-            sqlView.isQuery()
-                ? getSqlForQuery( sqlView, criteria, variables, filters,
-                    fields )
-                : getSqlForView( sqlView, criteria, filters, fields );
+        String sql = sqlView.isQuery()
+            ? getSqlForQuery( sqlView, criteria, variables, filters, fields )
+            : getSqlForView( sqlView, criteria, filters, fields );
 
-        sqlViewStore.populateSqlViewGrid(grid, sql);
+        sqlViewStore.populateSqlViewGrid( grid, sql );
         return grid;
     }
 
