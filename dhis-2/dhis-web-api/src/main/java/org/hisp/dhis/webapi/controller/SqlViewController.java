@@ -209,11 +209,11 @@ public class SqlViewController
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-        return dhisConfig.isEnabled(ConfigurationKey.SYSTEM_SQL_VIEW_WRITE_ENABLED)
+        return dhisConfig.isEnabled( ConfigurationKey.SYSTEM_SQL_VIEW_WRITE_ENABLED )
             ? sqlViewService.getSqlViewGridWritesAllowed(
-            sqlView, getCriteria(criteria), getCriteria(vars), filters, fields)
+                sqlView, getCriteria( criteria ), getCriteria( vars ), filters, fields )
             : sqlViewService.getSqlViewGridReadOnly(
-            sqlView, getCriteria(criteria), getCriteria(vars), filters, fields);
+                sqlView, getCriteria( criteria ), getCriteria( vars ), filters, fields );
     }
 
     // -------------------------------------------------------------------------
