@@ -37,6 +37,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
+
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -62,21 +63,27 @@ import org.mockito.junit.jupiter.MockitoExtension;
  *
  * @author Jan Bernitt
  */
-@ExtendWith(MockitoExtension.class)
+@ExtendWith( MockitoExtension.class )
 class SqlViewControllerTest extends DhisControllerConvenienceTest
 {
 
-    @Mock private SqlViewService sqlViewService;
+    @Mock
+    private SqlViewService sqlViewService;
 
-    @Mock private JobConfigurationService jobConfigurationService;
+    @Mock
+    private JobConfigurationService jobConfigurationService;
 
-    @Mock private ContextUtils contextUtils;
+    @Mock
+    private ContextUtils contextUtils;
 
-    @Mock private ContextService contextService;
+    @Mock
+    private ContextService contextService;
 
-    @Mock private DhisConfigurationProvider config;
+    @Mock
+    private DhisConfigurationProvider config;
 
-    @InjectMocks private SqlViewController controller;
+    @InjectMocks
+    private SqlViewController controller;
 
     @Test
     void testExecuteView_NoSuchView()
@@ -155,8 +162,8 @@ class SqlViewControllerTest extends DhisControllerConvenienceTest
         SqlViewQuery query = new SqlViewQuery();
         query.setCriteria( Set.of( "select", "createatable();" ) );
 
-        when( sqlViewService.getSqlViewByUid("123") ).thenReturn(new SqlView() );
-        when( contextService.getParameterValues("filter") ).thenReturn( List.of() );
+        when( sqlViewService.getSqlViewByUid( "123" ) ).thenReturn( new SqlView() );
+        when( contextService.getParameterValues( "filter" ) ).thenReturn( List.of() );
         when( config.isEnabled( ConfigurationKey.SYSTEM_SQL_VIEW_WRITE_ENABLED ) ).thenReturn( true );
         when( sqlViewService.getSqlViewGridWritesAllowed( any(), any(), any(), any(), any() ) )
             .thenReturn( new ListGrid() );
