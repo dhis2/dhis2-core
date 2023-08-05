@@ -73,7 +73,7 @@ public enum ConfigurationKey
     /**
      * SQL view write enabled, can be 'on', 'off'. (default: off)
      */
-    SYSTEM_SQL_VIEW_WRITE_ENABLED("system.sql_view_write_enabled", ConfigurationKey.Constants.OFF, false),
+    SYSTEM_SQL_VIEW_WRITE_ENABLED( "system.sql_view_write_enabled", ConfigurationKey.Constants.OFF, false ),
 
     /**
      * Disable server-side program rule execution, can be 'on', 'off'. <br />
