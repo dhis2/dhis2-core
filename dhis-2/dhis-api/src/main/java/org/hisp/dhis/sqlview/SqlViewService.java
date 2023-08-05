@@ -77,14 +77,15 @@ public interface SqlViewService
     void dropViewTable( SqlView sqlView );
 
     /**
-     * Returns the SQL view as a grid. Checks if the SQL query is valid. This method is intended for
-     * use with SQL Views that only require read permission.
+     * Returns the SQL view as a grid. Checks if the SQL query is valid. This
+     * method is intended for use with SQL Views that only require read
+     * permission.
      *
      * @param sqlView the SQL view to render.
-     * @param criteria the criteria on the format key:value, will be applied as criteria on the SQL
-     *     result set.
-     * @param variables the variables on the format key:value, will be substituted with variables
-     *     inside the SQL view.
+     * @param criteria the criteria on the format key:value, will be applied as
+     *        criteria on the SQL result set.
+     * @param variables the variables on the format key:value, will be
+     *        substituted with variables inside the SQL view.
      * @return a grid.
      * @throws {@link IllegalQueryException} if the SQL query is invalid.
      */
@@ -96,14 +97,14 @@ public interface SqlViewService
         List<String> fields );
 
     /**
-     * Returns the SQL view as a grid. Checks if the SQL query is valid. This method is intended for
-     * use with SQL Views that require write permission.
+     * Returns the SQL view as a grid. Checks if the SQL query is valid. This
+     * method is intended for use with SQL Views that require write permission.
      *
      * @param sqlView the SQL view to render.
-     * @param criteria the criteria on the format key:value, will be applied as criteria on the SQL
-     *     result set.
-     * @param variables the variables on the format key:value, will be substituted with variables
-     *     inside the SQL view.
+     * @param criteria the criteria on the format key:value, will be applied as
+     *        criteria on the SQL result set.
+     * @param variables the variables on the format key:value, will be
+     *        substituted with variables inside the SQL view.
      * @return a grid.
      * @throws {@link IllegalQueryException} if the SQL query is invalid.
      */
