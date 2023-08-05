@@ -356,8 +356,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       params.addFiltersIfNotExist(QueryItem.getQueryItems(attributes));
     }
 
-    handleSortAttributes(params);
-
     decideAccess(params);
 
     // AccessValidation should be skipped only and only if it is internal
@@ -371,26 +369,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     return trackedEntityStore.getTrackedEntityIds(params);
-  }
-
-  /**
-   * Attributes that are ordered by are added to the attribute list if neither are present in the
-   * attribute list nor the filter list.
-   *
-   * <p>For example, if attributes or filters don't have a specific trackedentityattribute uid, but
-   * sorting has been requested for that tea uid, then we need to add them to the attribute list.
-   */
-  private void handleSortAttributes(TrackedEntityQueryParams params) {
-    List<TrackedEntityAttribute> sortAttributes =
-        params.getOrder().stream()
-            .filter(o -> o.getField() instanceof TrackedEntityAttribute)
-            .map(o -> (TrackedEntityAttribute) o.getField())
-            .collect(Collectors.toList());
-
-    params.addAttributesIfNotExist(
-        QueryItem.getQueryItems(sortAttributes).stream()
-            .filter(sAtt -> !params.getFilters().contains(sAtt))
-            .collect(Collectors.toList()));
   }
 
   public void decideAccess(TrackedEntityQueryParams params) {
@@ -550,7 +528,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       List<String> uniqueAttributeIds =
           trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
               .map(TrackedEntityAttribute::getUid)
-              .collect(Collectors.toList());
+              .toList();
 
       for (String att : params.getAttributeAndFilterIds()) {
         if (!uniqueAttributeIds.contains(att)) {
@@ -587,7 +565,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
           searchableAttributeIds.addAll(
               trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
                   .map(TrackedEntityAttribute::getUid)
-                  .collect(Collectors.toList()));
+                  .toList());
         }
 
         List<String> violatingAttributes = new ArrayList<>();

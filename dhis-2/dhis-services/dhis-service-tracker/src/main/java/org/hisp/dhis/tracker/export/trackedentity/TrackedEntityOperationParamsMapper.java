@@ -101,14 +101,15 @@ class TrackedEntityOperationParamsMapper {
         attributeService.getAllTrackedEntityAttributes().stream()
             .collect(Collectors.toMap(TrackedEntityAttribute::getUid, att -> att));
 
+    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+
     List<QueryItem> attributeItems =
         parseAttributeQueryItems(operationParams.getAttributes(), attributes);
+    params.setAttributes(attributeItems);
 
     List<QueryItem> filters = parseAttributeQueryItems(operationParams.getFilters(), attributes);
-
     validateDuplicatedAttributeFilters(filters);
-
-    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+    params.setFilters(filters);
 
     mapOrderParam(params, operationParams.getOrder());
 
@@ -134,8 +135,6 @@ class TrackedEntityOperationParamsMapper {
         .setAssignedUserQueryParam(operationParams.getAssignedUserQueryParam())
         .setUser(user)
         .setTrackedEntityUids(operationParams.getTrackedEntityUids())
-        .setAttributes(attributeItems)
-        .setFilters(filters)
         .setSkipMeta(operationParams.isSkipMeta())
         .setPage(operationParams.getPage())
         .setPageSize(operationParams.getPageSize())

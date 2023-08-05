@@ -192,22 +192,6 @@ public class TrackedEntityQueryParams {
 
   public TrackedEntityQueryParams() {}
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  /** Adds a query item as attribute to the parameters. */
-  public TrackedEntityQueryParams addAttribute(QueryItem attribute) {
-    this.attributes.add(attribute);
-    return this;
-  }
-
-  /** Adds a query item as filter to the parameters. */
-  public TrackedEntityQueryParams addFilter(QueryItem filter) {
-    this.filters.add(filter);
-    return this;
-  }
-
   /** Adds an organisation unit to the parameters. */
   public TrackedEntityQueryParams addOrganisationUnit(OrganisationUnit unit) {
     this.orgUnits.add(unit);
@@ -801,9 +785,17 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  /** Order by the given tracked entity attribute {@code tea} in given sort {@code direction}. */
+  /**
+   * Order by the given tracked entity attribute {@code tea} in given sort {@code direction}.
+   * Attributes are added to the attribute list if neither are present in the attribute list nor the
+   * filter list.
+   */
   public TrackedEntityQueryParams orderBy(TrackedEntityAttribute tea, SortDirection direction) {
     this.order.add(new Order(tea, direction));
+    this.addAttributesIfNotExist(
+        QueryItem.getQueryItems(List.of(tea)).stream()
+            .filter(sAtt -> !this.getFilters().contains(sAtt))
+            .collect(Collectors.toList()));
     return this;
   }
 
