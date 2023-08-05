@@ -38,20 +38,16 @@ import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
@@ -108,13 +104,17 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private static final String MAIN_QUERY_ALIAS = "TE";
 
-  private static final String PROGRAM_INSTANCE_ALIAS = "pi";
+  private static final String PROGRAM_INSTANCE_ALIAS = "en";
 
-  private static final String DEFAULT_ORDER = "TE.trackedentityid ASC";
+  private static final String DEFAULT_ORDER = "TE.te_id ASC";
 
   private static final String OFFSET = "OFFSET";
 
   private static final String LIMIT = "LIMIT";
+
+  private static final String ENROLLMENT_DATE_ALIAS = "en_enrollmentdate";
+
+  private static final String ENROLLMENT_DATE_KEY = "enrollment.enrollmentDate";
 
   private static final String EV_EXECUTIONDATE = "EV.executiondate";
 
@@ -132,7 +132,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private static final String EV_STATUS = "EV.status";
 
-  private static final String SELECT_COUNT_INSTANCE_FROM = "SELECT count(instance) FROM ( ";
+  private static final String SELECT_COUNT_INSTANCE_FROM = "SELECT count(te_id) FROM ( ";
 
   /**
    * Tracked entities can be ordered by given fields which correspond to fields on {@link
@@ -140,13 +140,13 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    */
   private static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
-          entry("uid", "uid"),
-          entry("created", "created"),
-          entry("createdAtClient", "createdAtClient"),
-          entry("lastUpdated", "lastUpdated"),
-          entry("lastUpdatedAtClient", "lastUpdatedAtClient"),
-          entry("enrollment.enrollmentDate", "enrollment.enrollmentDate"),
-          entry("inactive", "inactive"));
+          entry("uid", "te_uid"),
+          entry("created", "te_created"),
+          entry("createdAtClient", "te_createdatclient"),
+          entry("lastUpdated", "te_lastupdated"),
+          entry("lastUpdatedAtClient", "te_lastupdatedatclient"),
+          entry(ENROLLMENT_DATE_KEY, ENROLLMENT_DATE_ALIAS),
+          entry("inactive", "te_inactive"));
 
   private final OrganisationUnitStore organisationUnitStore;
 
@@ -192,7 +192,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     List<Long> ids = new ArrayList<>();
 
     while (rowSet.next()) {
-      ids.add(rowSet.getLong("teId"));
+      ids.add(rowSet.getLong("te_id"));
     }
 
     return ids;
@@ -289,9 +289,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     StringBuilder stringBuilder = new StringBuilder(getQuerySelect(params));
-
     return stringBuilder
-        .append(", TE.trackedentityid AS teId ")
         .append("FROM ")
         .append(getFromSubQuery(params, false))
         .append(getQueryRelatedTables(params))
@@ -343,27 +341,30 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     LinkedHashSet<String> select =
         new LinkedHashSet<>(
             List.of(
-                "SELECT TE.uid AS " + TRACKED_ENTITY_ID,
-                "TE.created AS " + CREATED_ID,
-                "TE.lastupdated AS " + LAST_UPDATED_ID,
-                "TE.ou AS " + ORG_UNIT_ID,
-                "TE.ouname AS " + ORG_UNIT_NAME,
-                "TET.uid AS " + TRACKED_ENTITY_TYPE_ID,
-                "TE.inactive AS " + INACTIVE_ID,
-                "TE.potentialduplicate AS " + POTENTIAL_DUPLICATE,
-                params.isIncludeDeleted() ? "TE.deleted AS " + DELETED : ""));
+                "te_id",
+                "te_uid",
+                "te_created",
+                "te_lastupdated",
+                "te_inactive",
+                "te_potentialduplicate",
+                "te_deleted",
+                "orgunit_uid",
+                "orgunit_name",
+                "te_type_id"));
 
-    List<String> fieldNames =
-        params.getOrder().stream()
-            .filter(o -> o.getField() instanceof String)
-            .map(o -> (String) o.getField())
-            .collect(Collectors.toList());
-    fieldNames.stream()
-        .map(OrderColumn::findColumn)
-        .filter(Optional::isPresent)
-        .forEach(c -> select.add(c.get().getSqlColumnWithMainTable()));
+    // all orderable fields are already in the select. Only when ordering by enrollment date do we
+    // need to add a column, so we can order by it
+    for (Order order : params.getOrder()) {
+      if (order.getField() instanceof String field) {
+        if (ENROLLMENT_DATE_KEY.equals(field)) {
+          select.add(ENROLLMENT_DATE_ALIAS);
+        }
+      }
+    }
 
-    return select.stream().filter(c -> !c.isEmpty()).collect(Collectors.joining(", ")) + SPACE;
+    return "select "
+        + select.stream().filter(c -> !c.isEmpty()).collect(Collectors.joining(", "))
+        + SPACE;
   }
 
   /**
@@ -414,16 +415,16 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     LinkedHashSet<String> columns =
         new LinkedHashSet<>(
             List.of(
-                "TE.trackedentityid",
-                "TE.uid",
-                "TE.created",
-                "TE.lastupdated",
-                "TE.inactive",
-                "TE.trackedentitytypeid",
-                "TE.potentialduplicate",
-                "TE.deleted",
-                "OU.uid as ou",
-                "OU.name as ouname "));
+                "TE.trackedentityid as te_id",
+                "TE.trackedentitytypeid as te_type_id",
+                "TE.uid as te_uid",
+                "TE.created as te_created",
+                "TE.lastupdated as te_lastupdated",
+                "TE.inactive as te_inactive",
+                "TE.potentialduplicate as te_potentialduplicate",
+                "TE.deleted as te_deleted",
+                "OU.uid as orgunit_uid",
+                "OU.name as orgunit_name "));
 
     for (Order order : params.getOrder()) {
       if (order.getField() instanceof String field) {
@@ -434,8 +435,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
                   field, String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
         }
 
-        Optional<OrderColumn> orderColumn = OrderColumn.findColumn(field);
-        columns.add(orderColumn.get().getSqlColumnWithTableAlias());
+        // all orderable fields are already in the select
+        if (ENROLLMENT_DATE_KEY.equals(field)) {
+          columns.add("en.enrollmentdate as " + ENROLLMENT_DATE_ALIAS);
+        }
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
         if (sortableAttributesAndFilters(params).stream()
             .anyMatch(i -> i.getItem().getUid().equals(tea.getUid()))) {
@@ -462,7 +465,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         params.getOrder().stream()
             .filter(o -> o.getField() instanceof TrackedEntityAttribute)
             .map(o -> ((TrackedEntityAttribute) o.getField()).getUid())
-            .collect(Collectors.toList());
+            .toList();
     return params.getAttributesAndFilters().stream()
         .filter(queryItem -> ordersIdentifier.contains(queryItem.getItemId()))
         .collect(Collectors.toSet());
@@ -618,9 +621,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     StringBuilder attributes = new StringBuilder();
 
     List<QueryItem> filterItems =
-        params.getAttributesAndFilters().stream()
-            .filter(QueryItem::hasFilter)
-            .collect(Collectors.toList());
+        params.getAttributesAndFilters().stream().filter(QueryItem::hasFilter).toList();
 
     for (QueryItem queryItem : filterItems) {
       String col = statementBuilder.columnQuote(queryItem.getItemId());
@@ -761,7 +762,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private String getFromSubQueryJoinEnrollmentConditions(TrackedEntityQueryParams params) {
     if (params.getOrder().stream()
         .filter(o -> o.getField() instanceof String)
-        .anyMatch(p -> OrderColumn.ENROLLED_AT.isPropertyEqualTo((String) p.getField()))) {
+        .anyMatch(p -> ENROLLMENT_DATE_KEY.equals(p.getField()))) {
       return " INNER JOIN enrollment "
           + PROGRAM_INSTANCE_ALIAS
           + " ON "
@@ -1000,7 +1001,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     StringBuilder relatedTables = new StringBuilder();
 
     relatedTables.append(
-        "LEFT JOIN trackedentitytype TET ON TET.trackedentitytypeid = TE.trackedentitytypeid ");
+        "LEFT JOIN trackedentitytype TET ON TET.trackedentitytypeid = TE.te_type_id ");
 
     if (!attributes.isEmpty()) {
       String attributeString =
@@ -1012,7 +1013,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
       relatedTables
           .append("LEFT JOIN trackedentityattributevalue TEAV ")
-          .append("ON TEAV.trackedentityid = TE.trackedentityid ")
+          .append("ON TEAV.trackedentityid = TE.te_id ")
           .append("AND TEAV.trackedentityattributeid IN (")
           .append(attributeString)
           .append(") ");
@@ -1049,12 +1050,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
                   field, String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
         }
 
-        Optional<OrderColumn> orderColumn = OrderColumn.findColumn(field);
-        String orderField =
-            innerOrder
-                ? orderColumn.get().getSqlColumnWithTableAlias()
-                : orderColumn.get().getSqlColumnWithMainTable();
-        orderFields.add(orderField + SPACE + order.getDirection());
+        orderFields.add(ORDERABLE_FIELDS.get(field) + " " + order.getDirection());
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
         String orderField =
             innerOrder
@@ -1166,53 +1162,5 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private boolean skipOwnershipCheck(TrackedEntityQueryParams params) {
     return params.getUser() != null && params.getUser().isSuper();
-  }
-
-  @Getter
-  @AllArgsConstructor
-  private enum OrderColumn {
-    TRACKEDENTITY("uid", "uid", MAIN_QUERY_ALIAS),
-    CREATED("created", CREATED_ID, MAIN_QUERY_ALIAS),
-    CREATED_AT_CLIENT("createdAtClient", "createdatclient", MAIN_QUERY_ALIAS),
-    UPDATED_AT("lastUpdated", "lastupdated", MAIN_QUERY_ALIAS),
-    UPDATED_AT_CLIENT("lastUpdatedAtClient", "lastupdatedatclient", MAIN_QUERY_ALIAS),
-    ENROLLED_AT("enrollment.enrollmentDate", "enrollmentdate", PROGRAM_INSTANCE_ALIAS),
-    // ORGUNIT_NAME( "orgUnitName", MAIN_QUERY_ALIAS+".organisationUnit.name" ),
-    INACTIVE(INACTIVE_ID, "inactive", MAIN_QUERY_ALIAS);
-
-    private final String propName;
-
-    private final String column;
-
-    private final String tableAlias;
-
-    public boolean isPropertyEqualTo(String property) {
-      return propName.equalsIgnoreCase(property);
-    }
-
-    /**
-     * @return an Optional of an OrderColumn matching by property name
-     */
-    public static Optional<OrderColumn> findColumn(String property) {
-      return Arrays.stream(values())
-          .filter(orderColumn -> orderColumn.getPropName().equals(property))
-          .findFirst();
-    }
-
-    /**
-     * @return a Sql string composed by the actual table alias and column. In use for the inner
-     *     query select fields and order by
-     */
-    public String getSqlColumnWithTableAlias() {
-      return tableAlias + "." + column;
-    }
-
-    /**
-     * @return a Sql string composed by the main query alias and column. In use for the outer query
-     *     select fields and order by
-     */
-    public String getSqlColumnWithMainTable() {
-      return MAIN_QUERY_ALIAS + "." + column;
-    }
   }
 }
