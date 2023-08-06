@@ -795,7 +795,7 @@ public class TrackedEntityQueryParams {
     this.addAttributesIfNotExist(
         QueryItem.getQueryItems(List.of(tea)).stream()
             .filter(sAtt -> !this.getFilters().contains(sAtt))
-            .collect(Collectors.toList()));
+            .toList());
     return this;
   }
 
