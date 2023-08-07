@@ -30,6 +30,8 @@ package org.hisp.dhis.tracker.export;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.tracker.Assertions.assertSlimPager;
+import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -59,6 +61,10 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.EnrollmentOperationParamsBuilder;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.enrollment.Enrollments;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.tracker.export.event.EventService;
@@ -78,6 +84,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Autowired private TrackedEntityService trackedEntityService;
+
+  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private EventService eventService;
 
@@ -451,6 +459,64 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     List<String> trackedEntities = getTrackedEntities(params);
 
     assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnPaginatedEnrollmentsGivenNonDefaultPageSize()
+      throws ForbiddenException, BadRequestException {
+
+    EnrollmentOperationParamsBuilder builder =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orderBy("enrollmentDate", SortDirection.ASC);
+
+    EnrollmentOperationParams params = builder.page(1).pageSize(1).build();
+
+    Enrollments firstPage = enrollmentService.getEnrollments(params);
+
+    assertAll(
+        "first page",
+        () -> assertSlimPager(1, 1, false, firstPage.getPager()),
+        () -> assertEquals(List.of("nxP7UnKhomJ"), uids(firstPage.getEnrollments())));
+
+    params = builder.page(2).pageSize(1).build();
+
+    Enrollments secondPage = enrollmentService.getEnrollments(params);
+
+    assertAll(
+        "second (last) page",
+        () -> assertSlimPager(2, 1, true, secondPage.getPager()),
+        () -> assertEquals(List.of("TvctPPhpD8z"), uids(secondPage.getEnrollments())));
+
+    params = builder.page(3).pageSize(1).build();
+
+    assertIsEmpty(uids(enrollmentService.getEnrollments(params).getEnrollments()));
+  }
+
+  @Test
+  void shouldOrderEnrollmentsByEnrolledAtAsc() throws ForbiddenException, BadRequestException {
+    EnrollmentOperationParams params =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orderBy("enrollmentDate", SortDirection.ASC)
+            .build();
+
+    List<String> enrollments = getEnrollments(params);
+
+    assertEquals(List.of("nxP7UnKhomJ", "TvctPPhpD8z"), enrollments);
+  }
+
+  @Test
+  void shouldOrderEnrollmentsByOccurredAtDesc() throws ForbiddenException, BadRequestException {
+    EnrollmentOperationParams params =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orderBy("enrollmentDate", SortDirection.DESC)
+            .build();
+
+    List<String> enrollments = getEnrollments(params);
+
+    assertEquals(List.of("TvctPPhpD8z", "nxP7UnKhomJ"), enrollments);
   }
 
   @Test
@@ -883,6 +949,11 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   private List<String> getTrackedEntities(TrackedEntityOperationParams params)
       throws ForbiddenException, BadRequestException, NotFoundException {
     return uids(trackedEntityService.getTrackedEntities(params).getTrackedEntities());
+  }
+
+  private List<String> getEnrollments(EnrollmentOperationParams params)
+      throws ForbiddenException, BadRequestException {
+    return uids(enrollmentService.getEnrollments(params).getEnrollments());
   }
 
   private List<String> getEvents(EventOperationParams params)

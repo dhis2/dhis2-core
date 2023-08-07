@@ -105,6 +105,23 @@ Get enrollments updated after given date.
 
 Get enrollments updated since given ISO-8601 duration.
 
+### `*.parameter.EnrollmentRequestParams.order`
+
+`<propertyName1:sortDirection>[,<propertyName2:sortDirection>...]`
+
+Get enrollments in given order. Enrollments can be ordered by the following case-sensitive
+properties
+
+* `completedAt`
+* `createdAt`
+* `createdAtClient`
+* `enrolledAt`
+* `updatedAt`
+* `updatedAtClient`
+
+Valid `sortDirection`s are `asc` and `desc`. `sortDirection` is case-insensitive. `sortDirection`
+defaults to `asc` for properties without explicit `sortDirection` as in `order=enrolledAt`.
+
 ### `*.parameter.EnrollmentRequestParams.fields`
 
 Get only the specified fields in the JSON response. This query parameter allows you to remove

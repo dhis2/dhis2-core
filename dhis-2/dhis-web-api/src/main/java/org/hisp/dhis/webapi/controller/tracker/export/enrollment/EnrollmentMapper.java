@@ -57,7 +57,14 @@ public interface EnrollmentMapper
    * Enrollments can be ordered by given fields which correspond to fields on {@link
    * org.hisp.dhis.program.Enrollment}.
    */
-  Map<String, String> ORDERABLE_FIELDS = Map.ofEntries( entry("enrolledAt", "enrollmentDate"));
+  Map<String, String> ORDERABLE_FIELDS =
+      Map.ofEntries(
+          entry("completedAt", "endDate"),
+          entry("createdAt", "created"),
+          entry("createdAtClient", "createdAtClient"),
+          entry("enrolledAt", "enrollmentDate"),
+          entry("updatedAt", "lastUpdated"),
+          entry("updatedAtClient", "lastUpdatedAtClient"));
 
   @Mapping(target = "enrollment", source = "uid")
   @Mapping(target = "createdAt", source = "created")

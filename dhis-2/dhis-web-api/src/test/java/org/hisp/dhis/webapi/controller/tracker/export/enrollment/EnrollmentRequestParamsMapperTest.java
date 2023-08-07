@@ -46,9 +46,9 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
@@ -177,26 +177,17 @@ class EnrollmentRequestParamsMapperTest {
   }
 
   @Test
-  void testMappingOrderParams() throws BadRequestException {
+  void shouldMapOrderParameterInGivenOrderWhenFieldsAreOrderable() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
-    OrderCriteria order1 = OrderCriteria.of("enrolledAt", SortDirection.ASC);
-    requestParams.setOrder(List.of(order1));
+    requestParams.setOrder(OrderCriteria.fromOrderString("enrolledAt:desc,createdAt:asc"));
 
     EnrollmentOperationParams params = mapper.map(requestParams);
 
     assertEquals(
         List.of(
-            new OrderParam("enrolledAt", SortDirection.ASC)),
+            new Order("enrollmentDate", SortDirection.DESC),
+            new Order("created", SortDirection.ASC)),
         params.getOrder());
-  }
-
-  @Test
-  void testMappingOrderParamsNoOrder() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-
-    EnrollmentOperationParams params = mapper.map(requestParams);
-
-    assertIsEmpty(params.getOrder());
   }
 
   @Test
@@ -209,5 +200,14 @@ class EnrollmentRequestParamsMapperTest {
     assertAll(
         () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
         () -> assertContains("unsupportedProperty1", exception.getMessage()));
+  }
+
+  @Test
+  void testMappingOrderParamsNoOrder() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+
+    EnrollmentOperationParams params = mapper.map(requestParams);
+
+    assertIsEmpty(params.getOrder());
   }
 }

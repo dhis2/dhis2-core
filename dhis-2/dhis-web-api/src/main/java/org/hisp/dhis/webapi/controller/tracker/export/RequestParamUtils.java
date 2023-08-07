@@ -223,9 +223,10 @@ public class RequestParamUtils {
 
   /**
    * Validate the {@code order} request parameter in tracker exporters. Allowed order values are
-   * {@code supportedFieldNames}. Every field name can be specified at most once. If the endpoint supports field names and UIDs use {@link #validateOrderParams(Set, String, List)}.
+   * {@code supportedFieldNames}. Every field name can be specified at most once. If the endpoint
+   * supports field names and UIDs use {@link #validateOrderParams(Set, String, List)}.
    */
-  public static void validateOrderParams( Set<String> supportedFieldNames, List<OrderCriteria> order)
+  public static void validateOrderParams(Set<String> supportedFieldNames, List<OrderCriteria> order)
       throws BadRequestException {
     if (order == null || order.isEmpty()) {
       return;

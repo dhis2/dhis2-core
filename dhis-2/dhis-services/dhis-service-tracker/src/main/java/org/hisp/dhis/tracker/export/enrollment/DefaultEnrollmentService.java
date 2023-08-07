@@ -69,7 +69,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.export.enrollment.EnrollmentService")
-public class DefaultEnrollmentService
+class DefaultEnrollmentService
     implements org.hisp.dhis.tracker.export.enrollment.EnrollmentService {
   private final EnrollmentStore enrollmentStore;
 
