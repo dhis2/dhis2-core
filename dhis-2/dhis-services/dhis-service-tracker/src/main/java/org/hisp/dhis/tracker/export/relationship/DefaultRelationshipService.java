@@ -62,7 +62,7 @@ public class DefaultRelationshipService implements RelationshipService {
 
   private final TrackerAccessManager trackerAccessManager;
 
-  private final org.hisp.dhis.relationship.RelationshipStore relationshipStore;
+  private final RelationshipStore relationshipStore;
 
   private final RelationshipOperationParamsMapper mapper;
 
@@ -124,7 +124,7 @@ public class DefaultRelationshipService implements RelationshipService {
   }
 
   @Override
-  public Optional<Relationship> findRelationshipByUid(String uid) throws ForbiddenException {
+  public Optional<Relationship> findRelationshipByUid(String uid) {
     Relationship relationship = relationshipStore.getByUid(uid);
 
     if (relationship == null) {
