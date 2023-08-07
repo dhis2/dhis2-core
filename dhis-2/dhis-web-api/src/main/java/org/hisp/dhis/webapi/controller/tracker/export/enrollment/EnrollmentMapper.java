@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
+import static java.util.Map.entry;
+
+import java.util.Map;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
@@ -49,6 +52,13 @@ import org.mapstruct.Mapping;
     })
 public interface EnrollmentMapper
     extends ViewMapper<Enrollment, org.hisp.dhis.webapi.controller.tracker.view.Enrollment> {
+
+  /**
+   * Enrollments can be ordered by given fields which correspond to fields on {@link
+   * org.hisp.dhis.program.Enrollment}.
+   */
+  Map<String, String> ORDERABLE_FIELDS = Map.ofEntries( entry("enrolledAt", "enrollmentDate"));
+
   @Mapping(target = "enrollment", source = "uid")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "createdAtClient", source = "createdAtClient")

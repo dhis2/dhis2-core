@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
+import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.RequestParams.DEFAULT_FIELDS_PARAM;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -177,16 +179,14 @@ class EnrollmentRequestParamsMapperTest {
   @Test
   void testMappingOrderParams() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
-    OrderCriteria order1 = OrderCriteria.of("field1", SortDirection.ASC);
-    OrderCriteria order2 = OrderCriteria.of("field2", SortDirection.DESC);
-    requestParams.setOrder(List.of(order1, order2));
+    OrderCriteria order1 = OrderCriteria.of("enrolledAt", SortDirection.ASC);
+    requestParams.setOrder(List.of(order1));
 
     EnrollmentOperationParams params = mapper.map(requestParams);
 
     assertEquals(
         List.of(
-            new OrderParam("field1", SortDirection.ASC),
-            new OrderParam("field2", SortDirection.DESC)),
+            new OrderParam("enrolledAt", SortDirection.ASC)),
         params.getOrder());
   }
 
@@ -197,5 +197,17 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentOperationParams params = mapper.map(requestParams);
 
     assertIsEmpty(params.getOrder());
+  }
+
+  @Test
+  void shouldFailGivenInvalidOrderFieldName() {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrder(
+        OrderCriteria.fromOrderString("unsupportedProperty1:asc,enrolledAt:asc"));
+
+    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+    assertAll(
+        () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
+        () -> assertContains("unsupportedProperty1", exception.getMessage()));
   }
 }

@@ -222,6 +222,47 @@ public class RequestParamUtils {
   }
 
   /**
+   * Validate the {@code order} request parameter in tracker exporters. Allowed order values are
+   * {@code supportedFieldNames}. Every field name can be specified at most once. If the endpoint supports field names and UIDs use {@link #validateOrderParams(Set, String, List)}.
+   */
+  public static void validateOrderParams( Set<String> supportedFieldNames, List<OrderCriteria> order)
+      throws BadRequestException {
+    if (order == null || order.isEmpty()) {
+      return;
+    }
+
+    Set<String> invalidOrderComponents =
+        order.stream().map(OrderCriteria::getField).collect(Collectors.toSet());
+    invalidOrderComponents.removeAll(supportedFieldNames);
+
+    if (!invalidOrderComponents.isEmpty()) {
+      throw new BadRequestException(
+          String.format(
+              "order parameter is invalid. '%s' are either unsupported fields. Supported are fields '%s'. All of which can at most be specified once.",
+              String.join(", ", invalidOrderComponents),
+              String.join(", ", supportedFieldNames.stream().sorted().toList())));
+    }
+
+    Set<String> duplicateOrderComponents =
+        order.stream()
+            .map(OrderCriteria::getField)
+            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+            .entrySet()
+            .stream()
+            .filter(e -> e.getValue() > 1)
+            .map(Entry::getKey)
+            .collect(Collectors.toSet());
+
+    if (!duplicateOrderComponents.isEmpty()) {
+      throw new BadRequestException(
+          String.format(
+              "order parameter is invalid. '%s' are repeated. Supported are fields '%s'. All of which can at most be specified once.",
+              String.join(", ", duplicateOrderComponents),
+              String.join(", ", supportedFieldNames.stream().sorted().toList())));
+    }
+  }
+
+  /**
    * Parse given {@code input} string representing a filter for an object referenced by a UID like a
    * tracked entity attribute or data element. Refer to {@link #parseSanitizedFilters(Map, String)}}
    * for details on the expected input format.

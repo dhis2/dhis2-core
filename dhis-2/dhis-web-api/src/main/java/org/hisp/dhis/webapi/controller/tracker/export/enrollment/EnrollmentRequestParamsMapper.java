@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrgUnitParams;
 
 import java.util.Objects;
@@ -52,6 +53,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 class EnrollmentRequestParamsMapper {
+  private static final Set<String> ORDERABLE_FIELD_NAMES = EnrollmentMapper.ORDERABLE_FIELDS.keySet();
+
   private final EnrollmentFieldsParamMapper fieldsParamMapper;
 
   public EnrollmentOperationParams map(RequestParams requestParams) throws BadRequestException {
@@ -64,6 +67,9 @@ class EnrollmentRequestParamsMapper {
             "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
 
     validateOrgUnitParams(orgUnits, orgUnitMode);
+
+    validateOrderParams(
+        ORDERABLE_FIELD_NAMES, "", requestParams.getOrder());
 
     return EnrollmentOperationParams.builder()
         .programUid(
