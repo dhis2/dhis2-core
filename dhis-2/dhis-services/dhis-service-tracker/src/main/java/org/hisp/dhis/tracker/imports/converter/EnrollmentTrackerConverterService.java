@@ -159,10 +159,10 @@ public class EnrollmentTrackerConverterService
 
     if (!Objects.equal(previousStatus, dbEnrollment.getStatus())) {
       if (dbEnrollment.isCompleted()) {
-        dbEnrollment.setEndDate(new Date());
+        dbEnrollment.setEndDate(now);
         dbEnrollment.setCompletedBy(preheat.getUsername());
       } else if (dbEnrollment.getStatus().equals(ProgramStatus.CANCELLED)) {
-        dbEnrollment.setEndDate(new Date());
+        dbEnrollment.setEndDate(now);
       }
     }
 

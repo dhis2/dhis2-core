@@ -72,8 +72,6 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
     comment.setCommentText(note.getValue());
 
     comment.setLastUpdatedBy(preheat.getUser());
-    comment.setCreated(new Date());
-    comment.setLastUpdated(new Date());
     comment.setCreator(note.getStoredBy());
     return comment;
   }
