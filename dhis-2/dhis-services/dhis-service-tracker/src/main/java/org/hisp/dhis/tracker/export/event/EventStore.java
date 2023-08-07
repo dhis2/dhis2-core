@@ -36,9 +36,9 @@ import org.hisp.dhis.program.Event;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface EventStore {
-  List<Event> getEvents(EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue);
+  List<Event> getEvents(EventQueryParams params, Map<String, Set<String>> psdesWithSkipSyncTrue);
 
   Set<String> getOrderableFields();
 
-  int getEventCount(EventSearchParams params);
+  int getEventCount(EventQueryParams params);
 }
