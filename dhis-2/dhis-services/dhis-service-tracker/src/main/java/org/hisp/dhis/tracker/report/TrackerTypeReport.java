@@ -31,9 +31,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import lombok.Data;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
@@ -49,7 +47,7 @@ public class TrackerTypeReport {
 
   @JsonIgnore private List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
 
-  private Map<Integer, TrackerObjectReport> objectReportMap = new HashMap<>();
+  private List<TrackerObjectReport> objectReports = new ArrayList<>();
 
   public TrackerTypeReport(TrackerType trackerType) {
     this.trackerType = trackerType;
@@ -65,17 +63,12 @@ public class TrackerTypeReport {
     this.trackerType = trackerType;
     this.stats = stats;
     this.sideEffectDataBundles = sideEffectDataBundles;
-
-    if (objectReports != null) {
-      for (TrackerObjectReport objectReport : objectReports) {
-        this.objectReportMap.put(objectReport.getIndex(), objectReport);
-      }
-    }
+    this.objectReports = objectReports;
   }
 
-  @JsonProperty
-  public List<TrackerObjectReport> getObjectReports() {
-    return new ArrayList<>(objectReportMap.values());
+  @JsonProperty("objectReports")
+  public List<TrackerObjectReport> getEntityReport() {
+    return objectReports;
   }
 
   // -----------------------------------------------------------------------------------
@@ -92,20 +85,14 @@ public class TrackerTypeReport {
   }
 
   public void addObjectReport(TrackerObjectReport objectReport) {
-    this.objectReportMap.put(objectReport.getIndex(), objectReport);
+    this.objectReports.add(objectReport);
   }
 
   private List<TrackerErrorReport> getErrorReports() {
     List<TrackerErrorReport> errorReports = new ArrayList<>();
-    objectReportMap
-        .values()
-        .forEach(objectReport -> errorReports.addAll(objectReport.getErrorReports()));
+    objectReports.forEach(objectReport -> errorReports.addAll(objectReport.getErrorReports()));
 
     return errorReports;
-  }
-
-  public Map<Integer, TrackerObjectReport> getObjectReportMap() {
-    return objectReportMap;
   }
 
   public List<TrackerSideEffectDataBundle> getSideEffectDataBundles() {
