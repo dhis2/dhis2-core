@@ -148,10 +148,6 @@
               <enabled>true</enabled>
             </upToDateChecking>
             <java>
-              <toggleOffOn>
-                <off>@formatter:off</off>
-                <on>@formatter:on</on>
-              </toggleOffOn>
               <googleJavaFormat/>
               <trimTrailingWhitespace/>
               <licenseHeader>
