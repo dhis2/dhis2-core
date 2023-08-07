@@ -40,7 +40,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -68,8 +67,6 @@ class EnrollmentOperationParamsMapperTest {
   private static final String ORG_UNIT_1_UID = "lW0T2U7gZUi";
 
   private static final String ORG_UNIT_2_UID = "TK4KA0IIWqa";
-
-  private static final String NOT_PRESENT_ORG_UNIT_UID = "TK4KA0IIWde";
 
   private static final String PROGRAM_UID = "XhBYIraw7sv";
 
