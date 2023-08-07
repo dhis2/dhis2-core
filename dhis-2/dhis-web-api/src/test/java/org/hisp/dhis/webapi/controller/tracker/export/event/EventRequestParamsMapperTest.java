@@ -28,9 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
@@ -69,7 +66,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.tracker.Order;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -78,6 +75,8 @@ import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -181,28 +180,19 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
+    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
+    requestParams.setOrgUnitMode(SELECTED);
 
     EventOperationParams params = mapper.map(requestParams);
 
-    assertEquals(OrganisationUnitSelectionMode.SELECTED, params.getOrgUnitMode());
-  }
-
-  @Test
-  void shouldMapOrgUnitModeGivenOuModeParam() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
-
-    EventOperationParams params = mapper.map(requestParams);
-
-    assertEquals(OrganisationUnitSelectionMode.SELECTED, params.getOrgUnitMode());
+    assertEquals(SELECTED, params.getOrgUnitMode());
   }
 
   @Test
   void shouldFailIfDeprecatedAndNewOrgUnitModeParameterIsSet() {
     RequestParams requestParams = new RequestParams();
-    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
-    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
+    requestParams.setOuMode(SELECTED);
+    requestParams.setOrgUnitMode(SELECTED);
 
     BadRequestException exception =
         assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
@@ -547,59 +537,54 @@ class EventRequestParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
+  void shouldMapSelectedOrgUnitModeWhenOrgUnitModeNotProvided() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnit(UID.of(orgUnit));
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    assertEquals(SELECTED, params.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldMapAccessibleOrgUnitModeWhenOrgUnitModeNorOrgUnitProvided()
+      throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    assertEquals(ACCESSIBLE, params.getOrgUnitMode());
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"ACCESSIBLE", "CAPTURE"})
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCannotHaveOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
+
     RequestParams requestParams = new RequestParams();
     requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
-    requestParams.setOrgUnitMode(ACCESSIBLE);
+    requestParams.setOrgUnitMode(orgUnitMode);
 
     Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
 
     assertStartsWith(
-        "orgUnitMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
+        "orgUnitMode " + orgUnitMode + " cannot be used with orgUnits.", exception.getMessage());
   }
 
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN"})
+  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeNeedsOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
     RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
-    requestParams.setOrgUnitMode(CAPTURE);
+    requestParams.setOrgUnitMode(orgUnitMode);
 
     Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
 
-    assertStartsWith("orgUnitMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
-  }
-
-  @Test
-  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeSelected() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
-    requestParams.setOrgUnitMode(SELECTED);
-
-    EventOperationParams eventOperationParams = mapper.map(requestParams);
-
-    assertEquals(SELECTED, eventOperationParams.getOrgUnitMode());
-  }
-
-  @Test
-  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeDescendants()
-      throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
-    requestParams.setOrgUnitMode(DESCENDANTS);
-
-    EventOperationParams eventOperationParams = mapper.map(requestParams);
-
-    assertEquals(DESCENDANTS, eventOperationParams.getOrgUnitMode());
-  }
-
-  @Test
-  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeChildren() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
-    requestParams.setOrgUnitMode(CHILDREN);
-
-    EventOperationParams eventOperationParams = mapper.map(requestParams);
-
-    assertEquals(CHILDREN, eventOperationParams.getOrgUnitMode());
+    assertStartsWith("orgUnit is required for orgUnitMode: " + orgUnitMode, exception.getMessage());
   }
 }

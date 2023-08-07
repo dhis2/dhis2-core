@@ -25,18 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity;
+package org.hisp.dhis.tracker.export.relationship;
 
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
-interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntity> {
-  String ID = TrackedEntityStore.class.getName();
+public interface RelationshipStore extends IdentifiableObjectStore<Relationship> {
+  String ID = RelationshipStore.class.getName();
 
-  List<Long> getTrackedEntityIds(TrackedEntityQueryParams params);
+  List<Relationship> getByTrackedEntity(
+      TrackedEntity trackedEntity, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
 
-  int getTrackedEntityCount(TrackedEntityQueryParams params);
+  List<Relationship> getByEnrollment(
+      Enrollment enrollment, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
 
-  int getTrackedEntityCountWithMaxTrackedEntityLimit(TrackedEntityQueryParams params);
+  List<Relationship> getByEvent(
+      Event event, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
 }

@@ -35,7 +35,6 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,7 +44,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -53,10 +51,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -71,12 +71,11 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -203,7 +202,6 @@ class TrackedEntityOperationParamsMapperTest {
             .skipPaging(false)
             .includeDeleted(true)
             .includeAllAttributes(true)
-            .orders(Collections.singletonList(OrderCriteria.of("created", SortDirection.ASC)))
             .build();
 
     final TrackedEntityQueryParams params = mapper.map(operationParams);
@@ -231,10 +229,6 @@ class TrackedEntityOperationParamsMapperTest {
         params.getAssignedUserQueryParam().getMode(), is(AssignedUserSelectionMode.PROVIDED));
     assertThat(params.isIncludeDeleted(), is(true));
     assertThat(params.isIncludeAllAttributes(), is(true));
-    assertTrue(
-        params.getOrders().stream()
-            .anyMatch(
-                orderParam -> orderParam.equals(new OrderParam("created", SortDirection.ASC))));
   }
 
   @Test
@@ -558,28 +552,59 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void testMappingOrderParams() throws BadRequestException, ForbiddenException {
-    OrderCriteria order1 = OrderCriteria.of("trackedEntity", SortDirection.ASC);
-    OrderCriteria order2 = OrderCriteria.of("createdAt", SortDirection.DESC);
+  void shouldMapOrderInGivenOrder() throws BadRequestException, ForbiddenException {
+    TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
+    tea1.setUid(TEA_1_UID);
+    when(attributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
+
     TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder().orders(List.of(order1, order2)).build();
+        TrackedEntityOperationParams.builder()
+            .orderBy("created", SortDirection.ASC)
+            .orderBy(UID.of(TEA_1_UID), SortDirection.ASC)
+            .orderBy("createdAtClient", SortDirection.DESC)
+            .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams);
 
     assertEquals(
         List.of(
-            new OrderParam("trackedEntity", SortDirection.ASC),
-            new OrderParam("createdAt", SortDirection.DESC)),
-        params.getOrders());
+            new Order("created", SortDirection.ASC),
+            new Order(tea1, SortDirection.ASC),
+            new Order("createdAtClient", SortDirection.DESC)),
+        params.getOrder());
   }
 
   @Test
-  void testMappingOrderParamsNoOrder() throws BadRequestException, ForbiddenException {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder().programUid(PROGRAM_UID).build();
-    TrackedEntityQueryParams params = mapper.map(operationParams);
+  void shouldFailToMapOrderIfUIDIsNotAnAttribute() {
+    TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
+    tea1.setUid(TEA_1_UID);
+    when(attributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(null);
 
-    assertIsEmpty(params.getOrders());
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orderBy(UID.of(TEA_1_UID), SortDirection.ASC)
+            .build();
+
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
+    assertStartsWith("Cannot order by '" + TEA_1_UID, exception.getMessage());
+  }
+
+  @Test
+  void shouldFailToMapGivenInvalidOrderNameWhichIsAValidUID() {
+    // This test case shows that some field names are valid UIDs. Previous stages (web) can thus not
+    // rule out all
+    // invalid field names and UIDs. Such invalid order values will be caught in this mapper.
+    assertTrue(CodeGenerator.isValidUid("lastUpdated"));
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orderBy(UID.of("lastUpdated"), SortDirection.ASC)
+            .build();
+
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
+    assertStartsWith("Cannot order by 'lastUpdated'", exception.getMessage());
   }
 
   @Test

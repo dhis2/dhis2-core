@@ -25,18 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity;
+package org.hisp.dhis.tracker.export.enrollment;
 
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.program.Enrollment;
 
-interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntity> {
-  String ID = TrackedEntityStore.class.getName();
+interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
+  String ID = EnrollmentStore.class.getName();
 
-  List<Long> getTrackedEntityIds(TrackedEntityQueryParams params);
+  /**
+   * Count all enrollments by enrollment query params.
+   *
+   * @param params EnrollmentQueryParams to use
+   * @return Count of matching enrollments
+   */
+  int countEnrollments(EnrollmentQueryParams params);
 
-  int getTrackedEntityCount(TrackedEntityQueryParams params);
-
-  int getTrackedEntityCountWithMaxTrackedEntityLimit(TrackedEntityQueryParams params);
+  /**
+   * Get all enrollments by enrollment query params.
+   *
+   * @param params EnrollmentQueryParams to use
+   * @return Enrollments matching params
+   */
+  List<Enrollment> getEnrollments(EnrollmentQueryParams params);
 }

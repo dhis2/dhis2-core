@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -61,7 +58,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.tracker.Order;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -105,13 +102,13 @@ public class EventOperationParamsMapper {
     ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid());
     OrganisationUnit requestedOrgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid());
 
-    OrganisationUnitSelectionMode orgUnitMode =
-        getOrgUnitMode(requestedOrgUnit, operationParams.getOrgUnitMode());
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
+
     List<OrganisationUnit> accessibleOrgUnits =
         validateAccessibleOrgUnits(
             user,
             requestedOrgUnit,
-            orgUnitMode,
+            operationParams.getOrgUnitMode(),
             program,
             organisationUnitService::getOrganisationUnitWithChildren,
             trackerAccessManager);
@@ -128,8 +125,6 @@ public class EventOperationParamsMapper {
 
     validateAttributeOptionCombo(attributeOptionCombo, user);
 
-    validateOrgUnitMode(operationParams, user, program);
-
     EventSearchParams searchParams = new EventSearchParams();
 
     mapDataElementFilters(searchParams, operationParams.getDataElementFilters());
@@ -143,7 +138,7 @@ public class EventOperationParamsMapper {
         .setTrackedEntity(trackedEntity)
         .setProgramStatus(operationParams.getProgramStatus())
         .setFollowUp(operationParams.getFollowUp())
-        .setOrgUnitMode(orgUnitMode)
+        .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(
                 operationParams.getAssignedUserMode(), user, operationParams.getAssignedUsers()))
@@ -253,29 +248,23 @@ public class EventOperationParamsMapper {
     }
   }
 
-  private void validateOrgUnitMode(EventOperationParams params, User user, Program program)
+  private void validateOrgUnitMode(
+      OrganisationUnitSelectionMode orgUnitMode, User user, Program program)
       throws BadRequestException {
-    if (params.getOrgUnitMode() != null) {
-      String violation = getOrgUnitModeViolation(params, user, program);
-      if (violation != null) {
-        throw new BadRequestException(violation);
-      }
+
+    String violation =
+        switch (orgUnitMode) {
+          case ALL -> userCanSearchOrgUnitModeALL(user)
+              ? null
+              : "Current user is not authorized to query across all organisation units";
+          case ACCESSIBLE -> getAccessibleScopeValidation(user, program);
+          case CAPTURE -> getCaptureScopeValidation(user);
+          default -> null;
+        };
+
+    if (violation != null) {
+      throw new BadRequestException(violation);
     }
-  }
-
-  private String getOrgUnitModeViolation(EventOperationParams params, User user, Program program) {
-    OrganisationUnitSelectionMode orgUnitMode = params.getOrgUnitMode();
-
-    return switch (orgUnitMode) {
-      case ALL -> userCanSearchOrgUnitModeALL(user)
-          ? null
-          : "Current user is not authorized to query across all organisation units";
-      case ACCESSIBLE -> getAccessibleScopeValidation(user, program);
-      case CAPTURE -> getCaptureScopeValidation(user);
-      case CHILDREN, SELECTED, DESCENDANTS -> params.getOrgUnitUid() == null
-          ? "Organisation unit is required for orgUnitMode: " + params.getOrgUnitMode()
-          : null;
-    };
   }
 
   private String getCaptureScopeValidation(User user) {
@@ -321,22 +310,6 @@ public class EventOperationParamsMapper {
         || user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
   }
 
-  /**
-   * Returns the same org unit mode if not null. If null, and an org unit is present, SELECT mode is
-   * used by default, mode ACCESSIBLE is used otherwise.
-   *
-   * @param orgUnit
-   * @param orgUnitMode
-   * @return an org unit mode given the two input params
-   */
-  private OrganisationUnitSelectionMode getOrgUnitMode(
-      OrganisationUnit orgUnit, OrganisationUnitSelectionMode orgUnitMode) {
-    if (orgUnitMode == null) {
-      return orgUnit != null ? SELECTED : ACCESSIBLE;
-    }
-    return orgUnitMode;
-  }
-
   private List<OrganisationUnit> validateAccessibleOrgUnits(
       User user,
       OrganisationUnit orgUnit,
@@ -373,27 +346,18 @@ public class EventOperationParamsMapper {
       Function<String, List<OrganisationUnit>> orgUnitDescendants,
       TrackerAccessManager trackerAccessManager) {
 
-    switch (orgUnitMode) {
-      case DESCENDANTS:
-        return orgUnit != null
-            ? getAccessibleDescendants(user, program, orgUnitDescendants.apply(orgUnit.getUid()))
-            : Collections.emptyList();
-      case CHILDREN:
-        return orgUnit != null
-            ? getAccessibleDescendants(
-                user,
-                program,
-                Stream.concat(Stream.of(orgUnit), orgUnit.getChildren().stream()).toList())
-            : Collections.emptyList();
-      case CAPTURE:
-        return new ArrayList<>(user.getOrganisationUnits());
-      case ACCESSIBLE:
-        return getAccessibleOrgUnits(user, program);
-      case SELECTED:
-        return getSelectedOrgUnits(user, program, orgUnit, trackerAccessManager);
-      default:
-        return Collections.emptyList();
-    }
+    return switch (orgUnitMode) {
+      case DESCENDANTS -> getAccessibleDescendants(
+          user, program, orgUnitDescendants.apply(orgUnit.getUid()));
+      case CHILDREN -> getAccessibleDescendants(
+          user,
+          program,
+          Stream.concat(Stream.of(orgUnit), orgUnit.getChildren().stream()).toList());
+      case CAPTURE -> new ArrayList<>(user.getOrganisationUnits());
+      case ACCESSIBLE -> getAccessibleOrgUnits(user, program);
+      case SELECTED -> getSelectedOrgUnits(user, program, orgUnit, trackerAccessManager);
+      default -> Collections.emptyList();
+    };
   }
 
   private static List<OrganisationUnit> getSelectedOrgUnits(

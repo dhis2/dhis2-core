@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.export;
 
 import lombok.Value;
 import org.hisp.dhis.dataelement.DataElement;
@@ -39,11 +39,10 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
  * cannot come up with a type-safe type that captures the above order features and that can be used
  * in a generic collection such as a List (see typesafe heterogeneous container). We therefore use
  * {@link Order} with a field of type {@link Object}. We get compile time type safety via methods
- * such as {@link org.hisp.dhis.tracker.export.event.EventSearchParams#orderBy(DataElement,
- * SortDirection)}. This allows us to advocate the types that can be ordered by while storing the
- * order in a single {@code List} of {@link Order}. Runtime type checks are then used to ensure
- * users (and developers) get meaningful error messages in case they order by unsupported fields or
- * types.
+ * such as {@code orderBy(DataElement, SortDirection)}. This allows us to advocate the types that
+ * can be ordered by while storing the order in a single {@code List} of {@link Order}. Runtime type
+ * checks are then used to ensure users (and developers) get meaningful error messages in case they
+ * order by unsupported fields or types.
  */
 @Value
 public class Order {

@@ -567,6 +567,94 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
+  void shouldReturnTrackedEntityIfGivenFilterMatches()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .filters(teaA.getUid() + ":eq:A")
+            .build();
+
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyCollectionIfGivenFilterDoesNotMatch()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .filters(teaA.getUid() + ":eq:Z")
+            .build();
+
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+
+    assertIsEmpty(trackedEntities);
+  }
+
+  @Test
+  void shouldReturnTrackedEntitiesGivenFilterOfOnlyUidEvenIfTrackedEntityDoesNotHaveGivenAttribute()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitB.getUid()))
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .filters(teaA.getUid())
+            .build();
+
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+
+    // A filter with only a UID does not cause any join on attributes, so it does not actually
+    // filter TEs from the response in contrast to /tracker/events?filterAttribute=uid
+    assertContainsOnly(List.of(trackedEntityA, trackedEntityB), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnTrackedEntitiesEvenIfTrackedEntityDoesNotHaveGivenAttribute()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitB.getUid()))
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .attributes(teaA.getUid())
+            .build();
+
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+
+    // 'attributes' causes a left join on attributes table, so it does not actually filter
+    // TEs from the response in contrast to /tracker/events?filterAttribute=uid
+    assertContainsOnly(List.of(trackedEntityA, trackedEntityB), trackedEntities);
+  }
+
+  @Test
+  void
+      shouldReturnTrackedEntitiesEvenIfTrackedEntityDoesNotHaveGivenAttributeAndFilterUsingOnlyUID()
+          throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitB.getUid()))
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .filters(teaA.getUid())
+            .attributes(teaA.getUid())
+            .build();
+
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+
+    // 'attributes' causes a left join on attributes table, so it does not actually filter
+    // TEs from the response in contrast to /tracker/events?filterAttribute=uid
+    assertContainsOnly(List.of(trackedEntityA, trackedEntityB), trackedEntities);
+  }
+
+  @Test
   void shouldReturnTrackedEntityWithLastUpdatedParameter()
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityOperationParams operationParams =
