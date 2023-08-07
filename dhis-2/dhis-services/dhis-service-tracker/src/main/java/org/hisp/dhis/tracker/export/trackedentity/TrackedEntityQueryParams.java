@@ -56,7 +56,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 @ToString
-public class TrackedEntityQueryParams {
+class TrackedEntityQueryParams {
 
   public static final int DEFAULT_PAGE = 1;
 
