@@ -272,6 +272,6 @@ public final class WebMessageUtils {
     if (StringUtils.isNotBlank(sqlState) && (sqlState.equals("42P01"))) {
       return ErrorCode.E7144;
     }
-    return ErrorCode.E7143;
+    return ErrorCode.E7145;
   }
 }
