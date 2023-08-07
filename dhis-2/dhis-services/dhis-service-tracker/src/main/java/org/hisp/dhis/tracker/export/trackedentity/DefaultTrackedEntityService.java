@@ -847,4 +847,9 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
     return new SlimPager(originalPage, originalPageSize, isLastPage);
   }
+
+  @Override
+  public Set<String> getOrderableFields() {
+    return trackedEntityStore.getOrderableFields();
+  }
 }

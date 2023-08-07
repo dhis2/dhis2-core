@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 
@@ -35,6 +36,14 @@ interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntity> {
   String ID = TrackedEntityStore.class.getName();
 
   List<Long> getTrackedEntityIds(TrackedEntityQueryParams params);
+
+  /**
+   * Fields the {@link #getTrackedEntityIds(TrackedEntityQueryParams)})} can order tracked entities
+   * by. Ordering by fields other than these is considered a programmer error. Validation of user
+   * provided field names should occur before calling {@link
+   * #getTrackedEntityIds(TrackedEntityQueryParams)}.
+   */
+  Set<String> getOrderableFields();
 
   int getTrackedEntityCount(TrackedEntityQueryParams params);
 

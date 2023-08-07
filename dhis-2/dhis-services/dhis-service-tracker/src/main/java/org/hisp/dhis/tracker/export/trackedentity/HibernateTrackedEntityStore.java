@@ -180,6 +180,11 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return ids;
   }
 
+  @Override
+  public Set<String> getOrderableFields() {
+    return ORDERABLE_FIELDS.keySet();
+  }
+
   private String encodeAndQuote(Collection<String> elements) {
     return getQuotedCommaDelimitedString(
         elements.stream()

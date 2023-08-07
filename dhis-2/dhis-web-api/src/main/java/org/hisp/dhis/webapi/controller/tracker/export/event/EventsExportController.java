@@ -84,12 +84,11 @@ class EventsExportController {
 
   private static final EventMapper EVENTS_MAPPER = Mappers.getMapper(EventMapper.class);
 
-  @Nonnull private final org.hisp.dhis.tracker.export.event.EventService eventService;
+  @Nonnull private final EventService eventService;
 
   @Nonnull private final EventRequestParamsMapper eventParamsMapper;
 
-  @Nonnull
-  private final CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
+  @Nonnull private final CsvService<Event> csvEventService;
 
   @Nonnull private final FieldFilterService fieldFilterService;
 
