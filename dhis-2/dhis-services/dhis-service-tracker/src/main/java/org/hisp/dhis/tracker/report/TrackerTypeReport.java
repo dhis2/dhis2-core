@@ -31,9 +31,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import lombok.Data;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
@@ -49,7 +47,7 @@ public class TrackerTypeReport {
 
   @JsonIgnore private List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
 
-  private Map<Integer, Entity> entityReport = new HashMap<>();
+  private List<Entity> entityReport = new ArrayList<>();
 
   public TrackerTypeReport(TrackerType trackerType) {
     this.trackerType = trackerType;
@@ -65,17 +63,12 @@ public class TrackerTypeReport {
     this.trackerType = trackerType;
     this.stats = stats;
     this.sideEffectDataBundles = sideEffectDataBundles;
-
-    if (entityReport != null) {
-      for (Entity entity : entityReport) {
-        this.entityReport.put(entity.getIndex(), entity);
-      }
-    }
+    this.entityReport = entityReport;
   }
 
   @JsonProperty("objectReports")
   public List<Entity> getEntityReport() {
-    return new ArrayList<>(entityReport.values());
+    return entityReport;
   }
 
   // -----------------------------------------------------------------------------------
@@ -92,18 +85,14 @@ public class TrackerTypeReport {
   }
 
   public void addEntity(Entity entity) {
-    this.entityReport.put(entity.getIndex(), entity);
+    this.entityReport.add(entity);
   }
 
   private List<Error> getErrorReports() {
     List<Error> errorReports = new ArrayList<>();
-    entityReport.values().forEach(entity -> errorReports.addAll(entity.getErrorReports()));
+    entityReport.forEach(entity -> errorReports.addAll(entity.getErrorReports()));
 
     return errorReports;
-  }
-
-  public Map<Integer, Entity> getEntityReportMap() {
-    return entityReport;
   }
 
   public List<TrackerSideEffectDataBundle> getSideEffectDataBundles() {
