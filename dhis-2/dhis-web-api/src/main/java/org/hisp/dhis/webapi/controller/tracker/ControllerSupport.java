@@ -49,8 +49,8 @@ public class ControllerSupport {
    */
   public static void assertUserOrderableFieldsAreSupported(
       String entityName,
-      Set<String> fieldsSupportedByService,
-      Map<String, String> fieldsAdvocatedByWeb) {
+      Map<String, String> fieldsAdvocatedByWeb,
+      Set<String> fieldsSupportedByService) {
     Set<String> unsupportedFields = new HashSet<>(fieldsAdvocatedByWeb.values());
     unsupportedFields.removeAll(fieldsSupportedByService);
     if (!unsupportedFields.isEmpty()) {

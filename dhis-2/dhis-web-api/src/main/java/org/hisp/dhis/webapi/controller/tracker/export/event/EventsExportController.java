@@ -103,7 +103,7 @@ class EventsExportController {
     this.eventsMapper = eventsMapper;
 
     assertUserOrderableFieldsAreSupported(
-        "event", eventService.getOrderableFields(), EVENTS_MAPPER.ORDERABLE_FIELDS);
+        "event", EventMapper.ORDERABLE_FIELDS, eventService.getOrderableFields());
   }
 
   @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)

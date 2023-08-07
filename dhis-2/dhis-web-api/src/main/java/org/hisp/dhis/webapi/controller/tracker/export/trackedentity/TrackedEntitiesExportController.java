@@ -123,8 +123,8 @@ class TrackedEntitiesExportController {
 
     assertUserOrderableFieldsAreSupported(
         "tracked entity",
-        trackedEntityService.getOrderableFields(),
-        TrackedEntityMapper.ORDERABLE_FIELDS);
+        TrackedEntityMapper.ORDERABLE_FIELDS,
+        trackedEntityService.getOrderableFields());
   }
 
   @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
