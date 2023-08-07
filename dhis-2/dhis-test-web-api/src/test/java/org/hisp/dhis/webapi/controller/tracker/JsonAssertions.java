@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -193,6 +195,14 @@ public class JsonAssertions {
         jsonTypeReport.getEntityReport().stream()
             .map(JsonEntity::getUid)
             .collect(Collectors.toList());
-    assertEquals(expectedEntityUids, reportEntityUids);
+    List<Integer> reportEntityIndexes =
+        jsonTypeReport.getEntityReport().stream()
+            .map(JsonEntity::getIndex)
+            .collect(Collectors.toList());
+    List<Integer> expectedIndexes =
+        IntStream.range(0, expectedEntityUids.size()).boxed().collect(Collectors.toList());
+    assertAll(
+        () -> assertEquals(expectedEntityUids, reportEntityUids),
+        () -> assertEquals(expectedIndexes, reportEntityIndexes));
   }
 }
