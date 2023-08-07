@@ -40,4 +40,8 @@ public interface JsonEntity extends JsonObject {
   default String getUid() {
     return getString("uid").string();
   }
+
+  default Integer getIndex() {
+    return getNumber("index").intValue();
+  }
 }
