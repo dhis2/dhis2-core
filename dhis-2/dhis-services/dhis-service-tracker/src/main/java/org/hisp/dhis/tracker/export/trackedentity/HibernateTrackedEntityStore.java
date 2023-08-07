@@ -506,15 +506,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(SINGLE_QUOTE);
       }
     }
-    if (params.isSynchronizationQuery()) {
-      trackedEntity.append(whereAnd.whereAnd()).append(" TE.lastupdated >= TE.lastsynchronized ");
-      if (params.getSkipChangedBefore() != null) {
-        trackedEntity
-            .append(" AND TE.lastupdated >= '")
-            .append(getMediumDateString(params.getSkipChangedBefore()))
-            .append(SINGLE_QUOTE);
-      }
-    }
 
     if (!params.isIncludeDeleted()) {
       trackedEntity.append(whereAnd.whereAnd()).append("TE.deleted IS FALSE ");
