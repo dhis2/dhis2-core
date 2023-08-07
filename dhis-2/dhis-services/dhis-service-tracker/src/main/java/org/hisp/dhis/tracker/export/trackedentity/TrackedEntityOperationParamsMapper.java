@@ -28,6 +28,8 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidation.validateAccessibleOrgUnits;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidation.validateOrgUnitMode;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -41,7 +43,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.UID;
@@ -88,12 +89,19 @@ class TrackedEntityOperationParamsMapper {
         validateTrackedEntityType(operationParams.getTrackedEntityTypeUid());
 
     User user = operationParams.getUser();
-    Set<OrganisationUnit> orgUnits =
-        validateOrgUnits(
+    Set<OrganisationUnit> requestedOrgUnits =
+        validateRequestedOrgUnit(operationParams.getOrganisationUnits());
+
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
+
+    Set<OrganisationUnit> accessibleOrgUnits =
+        validateAccessibleOrgUnits(
             user,
-            operationParams.getOrganisationUnits(),
+            requestedOrgUnits,
+            operationParams.getOrgUnitMode(),
             program,
-            operationParams.getOrgUnitMode());
+            organisationUnitService::getOrganisationUnitWithChildren,
+            trackerAccessManager);
 
     QueryFilter queryFilter = operationParams.getQuery();
 
@@ -127,7 +135,7 @@ class TrackedEntityOperationParamsMapper {
         .setProgramIncidentStartDate(operationParams.getProgramIncidentStartDate())
         .setProgramIncidentEndDate(operationParams.getProgramIncidentEndDate())
         .setTrackedEntityType(trackedEntityType)
-        .addOrgUnits(orgUnits)
+        .setAccessibleOrgUnits(accessibleOrgUnits)
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setEventStatus(operationParams.getEventStatus())
         .setEventStartDate(operationParams.getEventStartDate())
@@ -186,9 +194,8 @@ class TrackedEntityOperationParamsMapper {
         .collect(Collectors.toSet());
   }
 
-  private Set<OrganisationUnit> validateOrgUnits(
-      User user, Set<String> orgUnitIds, Program program, OrganisationUnitSelectionMode orgUnitMode)
-      throws BadRequestException, ForbiddenException {
+  private Set<OrganisationUnit> validateRequestedOrgUnit(Set<String> orgUnitIds)
+      throws BadRequestException {
     Set<OrganisationUnit> orgUnits = new HashSet<>();
     for (String orgUnitUid : orgUnitIds) {
       OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid);
@@ -197,16 +204,7 @@ class TrackedEntityOperationParamsMapper {
         throw new BadRequestException("Organisation unit does not exist: " + orgUnitUid);
       }
 
-      if (!trackerAccessManager.canAccess(user, program, orgUnit)) {
-        throw new ForbiddenException(
-            "User does not have access to organisation unit: " + orgUnitUid);
-      }
-
       orgUnits.add(orgUnit);
-    }
-
-    if (orgUnitMode == OrganisationUnitSelectionMode.CAPTURE && user != null) {
-      orgUnits.addAll(user.getOrganisationUnits());
     }
 
     return orgUnits;

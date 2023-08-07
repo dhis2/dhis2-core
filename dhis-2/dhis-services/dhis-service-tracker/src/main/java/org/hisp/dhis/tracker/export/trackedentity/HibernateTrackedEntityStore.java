@@ -692,8 +692,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private String getFromSubQueryJoinOrgUnitConditions(TrackedEntityQueryParams params) {
     StringBuilder orgUnits = new StringBuilder();
 
-    params.handleOrganisationUnits();
-
     orgUnits
         .append(" INNER JOIN organisationunit OU ")
         .append("ON OU.organisationunitid = ")
@@ -711,7 +709,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
       orgUnits.append("AND (");
 
-      for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
+      for (OrganisationUnit organisationUnit : params.getAccessibleOrgUnits()) {
 
         OrganisationUnit ou = organisationUnitStore.getByUid(organisationUnit.getUid());
         if (ou != null) {
@@ -723,7 +721,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     } else if (!params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ALL)) {
       orgUnits
           .append("AND OU.organisationunitid IN (")
-          .append(getCommaDelimitedString(getIdentifiers(params.getOrgUnits())))
+          .append(getCommaDelimitedString(getIdentifiers(params.getAccessibleOrgUnits())))
           .append(") ");
     }
 
