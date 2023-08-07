@@ -78,7 +78,8 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (Enrollment enrollment : enrollments) {
       String uid = enrollment.getEnrollment();
 
-      Entity objectReport = new Entity(TrackerType.ENROLLMENT, uid);
+      Entity objectReport =
+          new Entity(TrackerType.ENROLLMENT, uid, enrollments.indexOf(enrollment));
 
       ProgramInstance programInstance = programInstanceService.getProgramInstance(uid);
 
@@ -116,7 +117,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (Event event : events) {
       String uid = event.getEvent();
 
-      Entity objectReport = new Entity(TrackerType.EVENT, uid);
+      Entity objectReport = new Entity(TrackerType.EVENT, uid, events.indexOf(event));
 
       ProgramStageInstance programStageInstance =
           programStageInstanceService.getProgramStageInstance(uid);
@@ -149,7 +150,8 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (TrackedEntity trackedEntity : trackedEntities) {
       String uid = trackedEntity.getTrackedEntity();
 
-      Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid);
+      Entity objectReport =
+          new Entity(TrackerType.TRACKED_ENTITY, uid, trackedEntities.indexOf(trackedEntity));
 
       org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance =
           teiService.getTrackedEntityInstance(uid);
@@ -186,7 +188,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (Relationship rel : relationships) {
       String uid = rel.getRelationship();
 
-      Entity objectReport = new Entity(TrackerType.RELATIONSHIP, uid);
+      Entity objectReport = new Entity(TrackerType.RELATIONSHIP, uid, relationships.indexOf(rel));
 
       org.hisp.dhis.relationship.Relationship relationship =
           relationshipService.getRelationship(uid);
