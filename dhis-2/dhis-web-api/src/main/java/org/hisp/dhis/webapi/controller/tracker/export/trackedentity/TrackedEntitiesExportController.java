@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
-import static java.util.Map.*;
 import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.trackedentity.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
@@ -40,14 +40,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -103,13 +99,13 @@ class TrackedEntitiesExportController {
   private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER =
       Mappers.getMapper(TrackedEntityMapper.class);
 
-  @Nonnull private final TrackedEntityService trackedEntityService;
+  private final TrackedEntityService trackedEntityService;
 
-  @Nonnull private final TrackedEntityRequestParamsMapper paramsMapper;
+  private final TrackedEntityRequestParamsMapper paramsMapper;
 
-  @Nonnull private final CsvService<TrackedEntity> csvEventService;
+  private final CsvService<TrackedEntity> csvEventService;
 
-  @Nonnull private final FieldFilterService fieldFilterService;
+  private final FieldFilterService fieldFilterService;
 
   private final TrackedEntityFieldsParamMapper fieldsMapper;
 
@@ -125,31 +121,10 @@ class TrackedEntitiesExportController {
     this.fieldFilterService = fieldFilterService;
     this.fieldsMapper = fieldsMapper;
 
-    assertUserOrderableFieldsAreSupported();
-  }
-
-  /**
-   * Ensures that all fields advocated by {@link
-   * org.hisp.dhis.webapi.controller.tracker.export.trackedentity} as orderable are in fact
-   * orderable by the service. Web is responsible for mapping from the language users use (our API)
-   * to our internal representation used in our services. This is to prevent web and service (store)
-   * from getting out of sync.
-   */
-  private void assertUserOrderableFieldsAreSupported() {
-    Set<String> orderableFields = trackedEntityService.getOrderableFields();
-    Set<String> unsupportedFields = new HashSet<>(TrackedEntityMapper.ORDERABLE_FIELDS.values());
-    unsupportedFields.removeAll(orderableFields);
-    if (!unsupportedFields.isEmpty()) {
-      Set<String> unsupportedFieldNames =
-          TrackedEntityMapper.ORDERABLE_FIELDS.entrySet().stream()
-              .filter(e -> unsupportedFields.contains(e.getValue()))
-              .map(Entry::getKey)
-              .collect(Collectors.toSet());
-      throw new IllegalStateException(
-          "tracked entity controller supports ordering by "
-              + String.join(", ", unsupportedFieldNames)
-              + " while tracked entity service does not.");
-    }
+    assertUserOrderableFieldsAreSupported(
+        "tracked entity",
+        trackedEntityService.getOrderableFields(),
+        TrackedEntityMapper.ORDERABLE_FIELDS);
   }
 
   @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
