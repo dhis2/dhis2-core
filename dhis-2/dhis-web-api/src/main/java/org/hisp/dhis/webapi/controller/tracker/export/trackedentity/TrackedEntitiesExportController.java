@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.trackedentity.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
@@ -43,10 +44,8 @@ import java.util.List;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -83,7 +82,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = RESOURCE_PATH + "/" + TrackedEntitiesExportController.TRACKED_ENTITIES)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequiredArgsConstructor
 class TrackedEntitiesExportController {
 
   protected static final String TRACKED_ENTITIES = "trackedEntities";
@@ -92,7 +90,7 @@ class TrackedEntitiesExportController {
    * Fields we need to fetch from the DB to fulfill requests for CSV. CSV cannot be filtered using
    * the {@link FieldFilterService} so <code>fields</code> query parameter is ignored when CSV is
    * requested. Make sure this is kept in sync with the columns we promise to return in the CSV. See
-   * {@link org.hisp.dhis.webapi.controller.tracker.export.trackedentity.CsvTrackedEntity}.
+   * {@link CsvTrackedEntity}.
    */
   private static final List<FieldPath> CSV_FIELDS =
       FieldFilterParser.parse(
@@ -101,15 +99,33 @@ class TrackedEntitiesExportController {
   private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER =
       Mappers.getMapper(TrackedEntityMapper.class);
 
-  @Nonnull private final TrackedEntityRequestParamsMapper paramsMapper;
+  private final TrackedEntityService trackedEntityService;
 
-  @Nonnull private final TrackedEntityService trackedEntityService;
+  private final TrackedEntityRequestParamsMapper paramsMapper;
 
-  @Nonnull private final FieldFilterService fieldFilterService;
+  private final CsvService<TrackedEntity> csvEventService;
 
-  @Nonnull private final CsvService<TrackedEntity> csvEventService;
+  private final FieldFilterService fieldFilterService;
 
   private final TrackedEntityFieldsParamMapper fieldsMapper;
+
+  public TrackedEntitiesExportController(
+      TrackedEntityService trackedEntityService,
+      TrackedEntityRequestParamsMapper paramsMapper,
+      CsvService<TrackedEntity> csvEventService,
+      FieldFilterService fieldFilterService,
+      TrackedEntityFieldsParamMapper fieldsMapper) {
+    this.trackedEntityService = trackedEntityService;
+    this.paramsMapper = paramsMapper;
+    this.csvEventService = csvEventService;
+    this.fieldFilterService = fieldFilterService;
+    this.fieldsMapper = fieldsMapper;
+
+    assertUserOrderableFieldsAreSupported(
+        "tracked entity",
+        TrackedEntityMapper.ORDERABLE_FIELDS,
+        trackedEntityService.getOrderableFields());
+  }
 
   @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
