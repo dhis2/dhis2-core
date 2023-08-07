@@ -162,7 +162,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
   // using the one from payload
   // if they are present in both places
   private List<TrackedEntityAttributeValue> getAttributes(
-      String enrollmentUid, String teiUid, TrackerBundle bundle, TrackerPreheat preheat) {
+      String enrollmentUid, String teUid, TrackerBundle bundle, TrackerPreheat preheat) {
     List<TrackedEntityAttributeValue> attributeValues =
         bundle
             .findEnrollmentByUid(enrollmentUid)
@@ -172,12 +172,12 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
     List<TrackedEntityAttributeValue> payloadAttributeValues =
         bundle
-            .findTrackedEntityByUid(teiUid)
-            .map(tei -> attributeValueTrackerConverterService.from(preheat, tei.getAttributes()))
+            .findTrackedEntityByUid(teUid)
+            .map(te -> attributeValueTrackerConverterService.from(preheat, te.getAttributes()))
             .orElse(Collections.emptyList());
     attributeValues.addAll(payloadAttributeValues);
 
-    TrackedEntity trackedEntity = preheat.getTrackedEntity(teiUid);
+    TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
 
     if (trackedEntity != null) {
       List<String> payloadAttributeValuesIds =

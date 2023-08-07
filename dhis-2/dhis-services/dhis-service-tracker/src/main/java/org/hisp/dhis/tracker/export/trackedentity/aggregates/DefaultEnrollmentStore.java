@@ -48,19 +48,19 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("org.hisp.dhis.tracker.trackedentity.aggregates.EnrollmentStore")
 public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentStore {
-  private static final String GET_ENROLLMENT_SQL_BY_TEI = EnrollmentQuery.getQuery();
+  private static final String GET_ENROLLMENT_SQL_BY_TE = EnrollmentQuery.getQuery();
 
   private static final String GET_ATTRIBUTES = ProgramAttributeQuery.getQuery();
 
   private static final String GET_NOTES_SQL =
-      "select pi.uid as key, tec.uid, tec.commenttext, "
+      "select en.uid as key, tec.uid, tec.commenttext, "
           + "tec.creator, tec.created "
-          + "from trackedentitycomment tec join programinstancecomments pic "
-          + "on tec.trackedentitycommentid = pic.trackedentitycommentid "
-          + "join programinstance pi on pic.programinstanceid = pi.programinstanceid "
-          + "where pic.programinstanceid in (:ids)";
+          + "from trackedentitycomment tec join enrollmentcomments enc "
+          + "on tec.trackedentitycommentid = enc.trackedentitycommentid "
+          + "join enrollment en on enc.enrollmentid = en.enrollmentid "
+          + "where enc.enrollmentid in (:ids)";
 
-  private static final String FILTER_OUT_DELETED_ENROLLMENTS = "pi.deleted=false";
+  private static final String FILTER_OUT_DELETED_ENROLLMENTS = "en.deleted=false";
 
   public DefaultEnrollmentStore(@Qualifier("readOnlyJdbcTemplate") JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
@@ -69,11 +69,11 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
   @Override
   public Multimap<String, Enrollment> getEnrollmentsByTrackedEntityIds(
       List<Long> ids, Context ctx) {
-    List<List<Long>> teiIds = Lists.partition(ids, PARITITION_SIZE);
+    List<List<Long>> teIds = Lists.partition(ids, PARITITION_SIZE);
 
     Multimap<String, Enrollment> enrollmentMultimap = ArrayListMultimap.create();
 
-    teiIds.forEach(
+    teIds.forEach(
         partition ->
             enrollmentMultimap.putAll(getEnrollmentsByTrackedEntityIdsPartitioned(partition, ctx)));
 
@@ -86,9 +86,9 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
 
     jdbcTemplate.query(
         getQuery(
-            GET_ENROLLMENT_SQL_BY_TEI,
+            GET_ENROLLMENT_SQL_BY_TE,
             ctx,
-            " pi.programid IN (:programIds)",
+            " en.programid IN (:programIds)",
             FILTER_OUT_DELETED_ENROLLMENTS),
         createIdsParam(ids).addValue("programIds", ctx.getPrograms()),
         handler);
@@ -116,6 +116,6 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
 
   @Override
   String getRelationshipEntityColumn() {
-    return "programinstanceid";
+    return "enrollmentid";
   }
 }

@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.*;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -58,9 +58,9 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
-import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -88,7 +88,7 @@ public class TrackedEntityAggregate implements Aggregate {
 
   @Nonnull private final CacheProvider cacheProvider;
 
-  private Cache<Set<TrackedEntityAttribute>> teiAttributesCache;
+  private Cache<Set<TrackedEntityAttribute>> teAttributesCache;
 
   private Cache<Map<Program, Set<TrackedEntityAttribute>>> programTeiAttributesCache;
 
@@ -98,7 +98,7 @@ public class TrackedEntityAggregate implements Aggregate {
 
   @PostConstruct
   protected void init() {
-    teiAttributesCache = cacheProvider.createTeiAttributesCache();
+    teAttributesCache = cacheProvider.createTeiAttributesCache();
     programTeiAttributesCache = cacheProvider.createProgramTeiAttributesCache();
     userGroupUIDCache = cacheProvider.createUserGroupUIDCache();
     securityCache = cacheProvider.createSecurityCache();
@@ -113,6 +113,10 @@ public class TrackedEntityAggregate implements Aggregate {
    */
   public List<TrackedEntity> find(
       List<Long> ids, TrackedEntityParams params, TrackedEntityQueryParams queryParams) {
+    if (ids.isEmpty()) {
+      return Collections.emptyList();
+    }
+
     final Optional<User> user = Optional.ofNullable(currentUserService.getCurrentUser());
 
     user.ifPresent(
@@ -190,7 +194,7 @@ public class TrackedEntityAggregate implements Aggregate {
     /*
      * Async Fetch TrackedEntities by id
      */
-    final CompletableFuture<Map<String, TrackedEntity>> teisAsync =
+    final CompletableFuture<Map<String, TrackedEntity>> trackedEntitiesAsync =
         supplyAsync(() -> trackedEntityStore.getTrackedEntities(ids, ctx), getPool());
 
     /*
@@ -210,10 +214,15 @@ public class TrackedEntityAggregate implements Aggregate {
     /*
      * Execute all queries and merge the results
      */
-    return allOf(teisAsync, attributesAsync, relationshipsAsync, enrollmentsAsync, ownedTeiAsync)
+    return allOf(
+            trackedEntitiesAsync,
+            attributesAsync,
+            relationshipsAsync,
+            enrollmentsAsync,
+            ownedTeiAsync)
         .thenApplyAsync(
             fn -> {
-              Map<String, TrackedEntity> teis = teisAsync.join();
+              Map<String, TrackedEntity> trackedEntities = trackedEntitiesAsync.join();
 
               Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
               Multimap<String, RelationshipItem> relationships = relationshipsAsync.join();
@@ -221,21 +230,21 @@ public class TrackedEntityAggregate implements Aggregate {
               Multimap<String, TrackedEntityProgramOwner> programOwners = programOwnersAsync.join();
               Multimap<String, String> ownedTeis = ownedTeiAsync.join();
 
-              Stream<String> teiUidStream = teis.keySet().parallelStream();
+              Stream<String> teUidStream = trackedEntities.keySet().parallelStream();
 
               if (user.isPresent() && queryParams.hasProgram()) {
-                teiUidStream = teiUidStream.filter(ownedTeis::containsKey);
+                teUidStream = teUidStream.filter(ownedTeis::containsKey);
               }
 
-              return teiUidStream
+              return teUidStream
                   .map(
                       uid -> {
-                        TrackedEntity tei = teis.get(uid);
-                        tei.setTrackedEntityAttributeValues(
+                        TrackedEntity te = trackedEntities.get(uid);
+                        te.setTrackedEntityAttributeValues(
                             filterAttributes(
                                 attributes.get(uid),
                                 ownedTeis.get(uid),
-                                teiAttributesCache.get(
+                                teAttributesCache.get(
                                     "ALL_ATTRIBUTES",
                                     s ->
                                         trackedEntityAttributeService
@@ -246,11 +255,11 @@ public class TrackedEntityAggregate implements Aggregate {
                                         trackedEntityAttributeService
                                             .getTrackedEntityAttributesByProgram()),
                                 ctx));
-                        tei.setRelationshipItems(new HashSet<>(relationships.get(uid)));
-                        tei.setEnrollments(
+                        te.setRelationshipItems(new HashSet<>(relationships.get(uid)));
+                        te.setEnrollments(
                             filterEnrollments(enrollments.get(uid), ownedTeis.get(uid), ctx));
-                        tei.setProgramOwners(new HashSet<>(programOwners.get(uid)));
-                        return tei;
+                        te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
+                        return te;
                       })
                   .collect(Collectors.toList());
             },
@@ -309,7 +318,7 @@ public class TrackedEntityAggregate implements Aggregate {
   /**
    * Fetch security related information and add them to the {@see Context}
    *
-   * <p>- all Tracked Entity Instance Types this user has READ access to
+   * <p>- all Tracked Entity Types this user has READ access to
    *
    * <p>- all Programs Type this user has READ access to
    *

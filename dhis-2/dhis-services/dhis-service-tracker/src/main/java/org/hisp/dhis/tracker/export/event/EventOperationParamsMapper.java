@@ -27,31 +27,20 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
-import static org.hisp.dhis.tracker.export.OperationParamUtils.parseDataElementQueryItems;
-import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryItem;
-
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.Map.Entry;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -69,11 +58,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -102,14 +89,10 @@ public class EventOperationParamsMapper {
 
   private final CurrentUserService currentUserService;
 
-  private final TrackedEntityAttributeService attributeService;
-
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
   private final DataElementService dataElementService;
 
-  // For now this maps to EventSearchParams. We should create a new EventQueryParams class that
-  // should be used in the persistence layer
   @Transactional(readOnly = true)
   public EventSearchParams map(EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
@@ -119,10 +102,16 @@ public class EventOperationParamsMapper {
     ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid());
     OrganisationUnit requestedOrgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid());
 
-    OrganisationUnitSelectionMode orgUnitMode =
-        getOrgUnitMode(requestedOrgUnit, operationParams.getOrgUnitMode());
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
+
     List<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(user, requestedOrgUnit, orgUnitMode, program);
+        validateAccessibleOrgUnits(
+            user,
+            requestedOrgUnit,
+            operationParams.getOrgUnitMode(),
+            program,
+            organisationUnitService::getOrganisationUnitWithChildren,
+            trackerAccessManager);
     validateUser(user, program, programStage);
     TrackedEntity trackedEntity = validateTrackedEntity(operationParams.getTrackedEntityUid());
 
@@ -136,30 +125,11 @@ public class EventOperationParamsMapper {
 
     validateAttributeOptionCombo(attributeOptionCombo, user);
 
-    validateOrgUnitMode(operationParams, user, program);
-
-    Map<String, SortDirection> attributeOrders =
-        getAttributesFromOrder(operationParams.getAttributeOrders());
-    List<OrderParam> attributeOrderParams = mapToOrderParams(attributeOrders);
-
-    List<QueryItem> filterAttributes =
-        parseFilterAttributes(operationParams.getFilterAttributes(), attributeOrderParams);
-    validateFilterAttributes(filterAttributes);
-
-    Map<String, SortDirection> dataElementOrders =
-        getDataElementsFromOrder(operationParams.getOrders());
-
-    List<QueryItem> dataElements = new ArrayList<>();
-    for (String order : dataElementOrders.keySet()) {
-      dataElements.add(parseQueryItem(order, this::dataElementToQueryItem));
-    }
-
-    List<OrderParam> dataElementOrderParams = mapToOrderParams(dataElementOrders);
-
-    List<QueryItem> filters =
-        parseDataElementQueryItems(operationParams.getFilters(), this::dataElementToQueryItem);
-
     EventSearchParams searchParams = new EventSearchParams();
+
+    mapDataElementFilters(searchParams, operationParams.getDataElementFilters());
+    mapAttributeFilters(searchParams, operationParams.getAttributeFilters());
+    mapOrderParam(searchParams, operationParams.getOrder());
 
     return searchParams
         .setProgram(program)
@@ -168,7 +138,7 @@ public class EventOperationParamsMapper {
         .setTrackedEntity(trackedEntity)
         .setProgramStatus(operationParams.getProgramStatus())
         .setFollowUp(operationParams.getFollowUp())
-        .setOrgUnitMode(orgUnitMode)
+        .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(
                 operationParams.getAssignedUserMode(), user, operationParams.getAssignedUsers()))
@@ -189,19 +159,14 @@ public class EventOperationParamsMapper {
         .setPage(operationParams.getPage())
         .setPageSize(operationParams.getPageSize())
         .setTotalPages(operationParams.isTotalPages())
-        .setSkipPaging(toBooleanDefaultIfNull(operationParams.isSkipPaging(), false))
+        .setSkipPaging(operationParams.isSkipPaging())
         .setSkipEventId(operationParams.getSkipEventId())
         .setIncludeAttributes(false)
         .setIncludeAllDataElements(false)
-        .addDataElements(new LinkedHashSet<>(dataElements))
-        .addFilters(filters)
-        .addFilterAttributes(filterAttributes)
-        .addOrders(operationParams.getOrders())
-        .addGridOrders(dataElementOrderParams)
-        .addAttributeOrders(attributeOrderParams)
         .setEvents(operationParams.getEvents())
         .setEnrollments(operationParams.getEnrollments())
-        .setIncludeDeleted(operationParams.isIncludeDeleted());
+        .setIncludeDeleted(operationParams.isIncludeDeleted())
+        .setIncludeRelationships(operationParams.isIncludeRelationships());
   }
 
   private Program validateProgram(String programUid) throws BadRequestException {
@@ -244,27 +209,6 @@ public class EventOperationParamsMapper {
     return orgUnit;
   }
 
-  private List<OrganisationUnit> validateAccessibleOrgUnits(
-      User user,
-      OrganisationUnit orgUnit,
-      OrganisationUnitSelectionMode orgUnitMode,
-      Program program)
-      throws ForbiddenException {
-    List<OrganisationUnit> accessibleOrgUnits =
-        getUserAccessibleOrgUnits(
-            user,
-            orgUnit,
-            orgUnitMode,
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren);
-
-    if (orgUnit != null && accessibleOrgUnits.isEmpty()) {
-      throw new ForbiddenException("User does not have access to orgUnit: " + orgUnit.getUid());
-    }
-
-    return accessibleOrgUnits;
-  }
-
   private void validateUser(User user, Program program, ProgramStage programStage)
       throws ForbiddenException {
     if (user.isSuper()) {
@@ -277,93 +221,6 @@ public class EventOperationParamsMapper {
     if (programStage != null && !aclService.canDataRead(user, programStage)) {
       throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
     }
-  }
-
-  /**
-   * Returns a list of all the org units the user has access to
-   *
-   * @param user the user to check the access of
-   * @param orgUnit parent org unit to get descendants/children of
-   * @param orgUnitDescendants function to retrieve org units, in case ou mode is descendants
-   * @param program the program the user wants to access to
-   * @return a list containing the user accessible organisation units
-   */
-  private List<OrganisationUnit> getUserAccessibleOrgUnits(
-      User user,
-      OrganisationUnit orgUnit,
-      OrganisationUnitSelectionMode orgUnitMode,
-      Program program,
-      Function<String, List<OrganisationUnit>> orgUnitDescendants) {
-
-    return switch (orgUnitMode) {
-      case DESCENDANTS -> orgUnit != null
-          ? getAccessibleDescendants(user, program, orgUnitDescendants.apply(orgUnit.getUid()))
-          : Collections.emptyList();
-      case CHILDREN -> orgUnit != null
-          ? getAccessibleDescendants(
-              user,
-              program,
-              Stream.concat(Stream.of(orgUnit), orgUnit.getChildren().stream()).toList())
-          : Collections.emptyList();
-      case CAPTURE -> user.getOrganisationUnits().stream().toList();
-      case ACCESSIBLE -> getAccessibleOrgUnits(user, program);
-      case SELECTED -> getSelectedOrgUnits(user, program, orgUnit);
-      default -> Collections.emptyList();
-    };
-  }
-
-  private List<OrganisationUnit> getSelectedOrgUnits(
-      User user, Program program, OrganisationUnit orgUnit) {
-    return trackerAccessManager.canAccess(user, program, orgUnit)
-        ? List.of(orgUnit)
-        : Collections.emptyList();
-  }
-
-  private List<OrganisationUnit> getAccessibleOrgUnits(User user, Program program) {
-    return isProgramAccessRestricted(program)
-        ? user.getOrganisationUnits().stream().toList().stream().toList()
-        : user.getTeiSearchOrganisationUnitsWithFallback().stream().toList();
-  }
-
-  /**
-   * Returns the org units whose path is contained in the user search or capture scope org unit. If
-   * there's a match, it means the user org unit is at the same level or above the supplied org
-   * unit.
-   *
-   * @param user the user to check the access of
-   * @param program the program the user wants to access to
-   * @param orgUnits the org units to check if the user has access to
-   * @return a list with the org units the user has access to
-   */
-  private List<OrganisationUnit> getAccessibleDescendants(
-      User user, Program program, List<OrganisationUnit> orgUnits) {
-    if (orgUnits.isEmpty()) {
-      return Collections.emptyList();
-    }
-
-    if (isProgramAccessRestricted(program)) {
-      return orgUnits.stream()
-          .filter(
-              availableOrgUnit ->
-                  user.getOrganisationUnits().stream()
-                      .anyMatch(
-                          captureScopeOrgUnit ->
-                              availableOrgUnit.getPath().contains(captureScopeOrgUnit.getPath())))
-          .toList();
-    } else {
-      return orgUnits.stream()
-          .filter(
-              availableOrgUnit ->
-                  user.getTeiSearchOrganisationUnits().stream()
-                      .anyMatch(
-                          searchScopeOrgUnit ->
-                              availableOrgUnit.getPath().contains(searchScopeOrgUnit.getPath())))
-          .toList();
-    }
-  }
-
-  private boolean isProgramAccessRestricted(Program program) {
-    return program != null && (program.isClosed() || program.isProtected());
   }
 
   private TrackedEntity validateTrackedEntity(String trackedEntityUid) throws BadRequestException {
@@ -391,29 +248,23 @@ public class EventOperationParamsMapper {
     }
   }
 
-  private void validateOrgUnitMode(EventOperationParams params, User user, Program program)
+  private void validateOrgUnitMode(
+      OrganisationUnitSelectionMode orgUnitMode, User user, Program program)
       throws BadRequestException {
-    if (params.getOrgUnitMode() != null) {
-      String violation = getOrgUnitModeViolation(params, user, program);
-      if (violation != null) {
-        throw new BadRequestException(violation);
-      }
+
+    String violation =
+        switch (orgUnitMode) {
+          case ALL -> userCanSearchOrgUnitModeALL(user)
+              ? null
+              : "Current user is not authorized to query across all organisation units";
+          case ACCESSIBLE -> getAccessibleScopeValidation(user, program);
+          case CAPTURE -> getCaptureScopeValidation(user);
+          default -> null;
+        };
+
+    if (violation != null) {
+      throw new BadRequestException(violation);
     }
-  }
-
-  private String getOrgUnitModeViolation(EventOperationParams params, User user, Program program) {
-    OrganisationUnitSelectionMode orgUnitMode = params.getOrgUnitMode();
-
-    return switch (orgUnitMode) {
-      case ALL -> userCanSearchOrgUnitModeALL(user)
-          ? null
-          : "Current user is not authorized to query across all organisation units";
-      case ACCESSIBLE -> getAccessibleScopeValidation(user, program);
-      case CAPTURE -> getCaptureScopeValidation(user);
-      case CHILDREN, SELECTED, DESCENDANTS -> params.getOrgUnitUid() == null
-          ? "Organisation unit is required for orgUnitMode: " + params.getOrgUnitMode()
-          : null;
-    };
   }
 
   private String getCaptureScopeValidation(User user) {
@@ -443,7 +294,7 @@ public class EventOperationParamsMapper {
     } else {
       violation =
           user.getTeiSearchOrganisationUnitsWithFallback().isEmpty()
-              ? "User needs to be assigned either TEI search, data view or data capture org units"
+              ? "User needs to be assigned either TE search, data view or data capture org units"
               : null;
     }
 
@@ -459,118 +310,186 @@ public class EventOperationParamsMapper {
         || user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
   }
 
-  private List<QueryItem> parseFilterAttributes(
-      String filterAttributes, List<OrderParam> attributeOrderParams) throws BadRequestException {
-    Map<String, TrackedEntityAttribute> attributes =
-        attributeService.getAllTrackedEntityAttributes().stream()
-            .collect(Collectors.toMap(TrackedEntityAttribute::getUid, att -> att));
+  private List<OrganisationUnit> validateAccessibleOrgUnits(
+      User user,
+      OrganisationUnit orgUnit,
+      OrganisationUnitSelectionMode orgUnitMode,
+      Program program,
+      java.util.function.Function<String, List<OrganisationUnit>> orgUnitDescendants,
+      TrackerAccessManager trackerAccessManager)
+      throws ForbiddenException {
+    List<OrganisationUnit> accessibleOrgUnits =
+        getUserAccessibleOrgUnits(
+            user, orgUnit, orgUnitMode, program, orgUnitDescendants, trackerAccessManager);
 
-    List<QueryItem> filterItems = parseAttributeQueryItems(filterAttributes, attributes);
-    List<QueryItem> orderItems =
-        attributeQueryItemsFromOrder(filterItems, attributes, attributeOrderParams);
-
-    return Stream.concat(filterItems.stream(), orderItems.stream()).toList();
-  }
-
-  private List<QueryItem> attributeQueryItemsFromOrder(
-      List<QueryItem> filterAttributes,
-      Map<String, TrackedEntityAttribute> attributes,
-      List<OrderParam> attributeOrderParams) {
-    return attributeOrderParams.stream()
-        .map(OrderParam::getField)
-        .filter(att -> !containsAttributeFilter(filterAttributes, att))
-        .map(attributes::get)
-        .map(
-            at ->
-                new QueryItem(
-                    at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet()))
-        .toList();
-  }
-
-  private boolean containsAttributeFilter(List<QueryItem> attributeFilters, String attributeUid) {
-    for (QueryItem item : attributeFilters) {
-      if (Objects.equals(item.getItem().getUid(), attributeUid)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private void validateFilterAttributes(List<QueryItem> queryItems) throws BadRequestException {
-    Set<String> attributes = new HashSet<>();
-    Set<String> duplicates = new HashSet<>();
-    for (QueryItem item : queryItems) {
-      if (!attributes.add(item.getItemId())) {
-        duplicates.add(item.getItemId());
-      }
+    if (orgUnit != null && accessibleOrgUnits.isEmpty()) {
+      throw new ForbiddenException("User does not have access to orgUnit: " + orgUnit.getUid());
     }
 
-    if (!duplicates.isEmpty()) {
-      throw new BadRequestException(
-          String.format(
-              "filterAttributes contains duplicate tracked entity attribute (TEA): %s. Multiple filters for the same TEA can be specified like 'uid:gt:2:lt:10'",
-              String.join(", ", duplicates)));
-    }
-  }
-
-  private Map<String, SortDirection> getAttributesFromOrder(List<OrderCriteria> allOrders) {
-    if (allOrders == null) {
-      return Collections.emptyMap();
-    }
-
-    Map<String, SortDirection> attributes = new HashMap<>();
-    for (OrderCriteria orderCriteria : allOrders) {
-      TrackedEntityAttribute attribute =
-          trackedEntityAttributeService.getTrackedEntityAttribute(orderCriteria.getField());
-      if (attribute != null) {
-        attributes.put(orderCriteria.getField(), orderCriteria.getDirection());
-      }
-    }
-    return attributes;
-  }
-
-  private List<OrderParam> mapToOrderParams(Map<String, SortDirection> orders) {
-    return orders.entrySet().stream().map(e -> new OrderParam(e.getKey(), e.getValue())).toList();
-  }
-
-  private Map<String, SortDirection> getDataElementsFromOrder(List<OrderParam> allOrders) {
-    if (allOrders == null) {
-      return Collections.emptyMap();
-    }
-
-    Map<String, SortDirection> dataElements = new HashMap<>();
-    for (OrderParam orderParam : allOrders) {
-      DataElement de = dataElementService.getDataElement(orderParam.getField());
-      if (de != null) {
-        dataElements.put(orderParam.getField(), orderParam.getDirection());
-      }
-    }
-    return dataElements;
-  }
-
-  private QueryItem dataElementToQueryItem(String item) throws BadRequestException {
-    DataElement de = dataElementService.getDataElement(item);
-
-    if (de == null) {
-      throw new BadRequestException("Data element does not exist: " + item);
-    }
-
-    return new QueryItem(de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet());
+    return accessibleOrgUnits;
   }
 
   /**
-   * Returns the same org unit mode if not null. If null, and an org unit is present, SELECT mode is
-   * used by default, mode ACCESSIBLE is used otherwise.
+   * Returns a list of all the org units the user has access to
    *
-   * @param orgUnit
-   * @param orgUnitMode
-   * @return an org unit mode given the two input params
+   * @param user the user to check the access of
+   * @param orgUnit parent org unit to get descendants/children of
+   * @param orgUnitDescendants function to retrieve org units, in case ou mode is descendants
+   * @param program the program the user wants to access to
+   * @return a list containing the user accessible organisation units
    */
-  private OrganisationUnitSelectionMode getOrgUnitMode(
-      OrganisationUnit orgUnit, OrganisationUnitSelectionMode orgUnitMode) {
-    if (orgUnitMode == null) {
-      return orgUnit != null ? SELECTED : ACCESSIBLE;
+  private static List<OrganisationUnit> getUserAccessibleOrgUnits(
+      User user,
+      OrganisationUnit orgUnit,
+      OrganisationUnitSelectionMode orgUnitMode,
+      Program program,
+      Function<String, List<OrganisationUnit>> orgUnitDescendants,
+      TrackerAccessManager trackerAccessManager) {
+
+    return switch (orgUnitMode) {
+      case DESCENDANTS -> getAccessibleDescendants(
+          user, program, orgUnitDescendants.apply(orgUnit.getUid()));
+      case CHILDREN -> getAccessibleDescendants(
+          user,
+          program,
+          Stream.concat(Stream.of(orgUnit), orgUnit.getChildren().stream()).toList());
+      case CAPTURE -> new ArrayList<>(user.getOrganisationUnits());
+      case ACCESSIBLE -> getAccessibleOrgUnits(user, program);
+      case SELECTED -> getSelectedOrgUnits(user, program, orgUnit, trackerAccessManager);
+      default -> Collections.emptyList();
+    };
+  }
+
+  private static List<OrganisationUnit> getSelectedOrgUnits(
+      User user,
+      Program program,
+      OrganisationUnit orgUnit,
+      TrackerAccessManager trackerAccessManager) {
+    return trackerAccessManager.canAccess(user, program, orgUnit)
+        ? List.of(orgUnit)
+        : Collections.emptyList();
+  }
+
+  private static List<OrganisationUnit> getAccessibleOrgUnits(User user, Program program) {
+    return isProgramAccessRestricted(program)
+        ? new ArrayList<>(user.getOrganisationUnits())
+        : new ArrayList<>(user.getTeiSearchOrganisationUnitsWithFallback());
+  }
+
+  /**
+   * Returns the org units whose path is contained in the user search or capture scope org unit. If
+   * there's a match, it means the user org unit is at the same level or above the supplied org
+   * unit.
+   *
+   * @param user the user to check the access of
+   * @param program the program the user wants to access to
+   * @param orgUnits the org units to check if the user has access to
+   * @return a list with the org units the user has access to
+   */
+  private static List<OrganisationUnit> getAccessibleDescendants(
+      User user, Program program, List<OrganisationUnit> orgUnits) {
+    if (orgUnits.isEmpty()) {
+      return Collections.emptyList();
     }
-    return orgUnitMode;
+
+    if (isProgramAccessRestricted(program)) {
+      return orgUnits.stream()
+          .filter(
+              availableOrgUnit ->
+                  user.getOrganisationUnits().stream()
+                      .anyMatch(
+                          captureScopeOrgUnit ->
+                              availableOrgUnit.getPath().contains(captureScopeOrgUnit.getPath())))
+          .toList();
+    } else {
+      return orgUnits.stream()
+          .filter(
+              availableOrgUnit ->
+                  user.getTeiSearchOrganisationUnits().stream()
+                      .anyMatch(
+                          searchScopeOrgUnit ->
+                              availableOrgUnit.getPath().contains(searchScopeOrgUnit.getPath())))
+          .toList();
+    }
+  }
+
+  private static boolean isProgramAccessRestricted(Program program) {
+    return program != null && (program.isClosed() || program.isProtected());
+  }
+
+  private void mapDataElementFilters(
+      EventSearchParams params, Map<String, List<QueryFilter>> dataElementFilters)
+      throws BadRequestException {
+    for (Entry<String, List<QueryFilter>> dataElementFilter : dataElementFilters.entrySet()) {
+      DataElement de = dataElementService.getDataElement(dataElementFilter.getKey());
+      if (de == null) {
+        throw new BadRequestException(
+            String.format(
+                "filter is invalid. Data element '%s' does not exist.",
+                dataElementFilter.getKey()));
+      }
+
+      for (QueryFilter filter : dataElementFilter.getValue()) {
+        params.filterBy(de, filter);
+      }
+    }
+  }
+
+  private void mapAttributeFilters(
+      EventSearchParams params, Map<String, List<QueryFilter>> attributeFilters)
+      throws BadRequestException {
+    for (Map.Entry<String, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
+      TrackedEntityAttribute tea =
+          trackedEntityAttributeService.getTrackedEntityAttribute(attributeFilter.getKey());
+      if (tea == null) {
+        throw new BadRequestException(
+            String.format(
+                "attribute filters are invalid. Tracked entity attribute '%s' does not exist.",
+                attributeFilter.getKey()));
+      }
+
+      if (attributeFilter.getValue().isEmpty()) {
+        params.filterBy(tea);
+      }
+
+      for (QueryFilter filter : attributeFilter.getValue()) {
+        params.filterBy(tea, filter);
+      }
+    }
+  }
+
+  private void mapOrderParam(EventSearchParams params, List<Order> orders)
+      throws BadRequestException {
+    if (orders == null || orders.isEmpty()) {
+      return;
+    }
+
+    for (Order order : orders) {
+      if (order.getField() instanceof String field) {
+        params.orderBy(field, order.getDirection());
+      } else if (order.getField() instanceof UID uid) {
+        DataElement de = dataElementService.getDataElement(uid.getValue());
+        if (de != null) {
+          params.orderBy(de, order.getDirection());
+          continue;
+        }
+
+        TrackedEntityAttribute tea =
+            trackedEntityAttributeService.getTrackedEntityAttribute(uid.getValue());
+        if (tea == null) {
+          throw new BadRequestException(
+              "Cannot order by '"
+                  + uid.getValue()
+                  + "' as its neither a data element nor a tracked entity attribute. Events can be ordered by event fields, data elements and tracked entity attributes.");
+        }
+
+        params.orderBy(tea, order.getDirection());
+      } else {
+        throw new IllegalArgumentException(
+            "Cannot order by '"
+                + order.getField()
+                + "'. Events can be ordered by event fields, data elements and tracked entity attributes.");
+      }
+    }
   }
 }

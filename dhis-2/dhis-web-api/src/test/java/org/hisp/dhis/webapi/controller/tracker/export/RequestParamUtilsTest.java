@@ -27,20 +27,38 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryItem;
+import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria.fromOrderString;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseFilters;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrderParams;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrgUnitParams;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.OperationParamUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,6 +71,8 @@ class RequestParamUtilsTest {
 
   private static final String TEA_2_UID = "cy2oRh2sNr6";
 
+  private static final OrganisationUnit orgUnit = new OrganisationUnit();
+
   private Map<String, TrackedEntityAttribute> attributes;
 
   @BeforeEach
@@ -61,6 +81,74 @@ class RequestParamUtilsTest {
         Map.of(
             TEA_1_UID, trackedEntityAttribute(TEA_1_UID),
             TEA_2_UID, trackedEntityAttribute(TEA_2_UID));
+  }
+
+  @Test
+  void shouldPassOrderParamsValidationWhenGivenOrderIsOrderable() throws BadRequestException {
+    Set<String> supportedFieldNames = Set.of("createdAt", "scheduledAt");
+
+    validateOrderParams(supportedFieldNames, "", fromOrderString("createdAt:asc,scheduledAt:asc"));
+  }
+
+  @Test
+  void shouldFailOrderParamsValidationWhenGivenInvalidOrderComponents() {
+    Set<String> supportedFieldNames = Set.of("enrolledAt");
+    String invalidUID = "Cogn34Del";
+    assertFalse(CodeGenerator.isValidUid(invalidUID));
+
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () ->
+                validateOrderParams(
+                    supportedFieldNames,
+                    "data element and attribute",
+                    fromOrderString(
+                        "unsupportedProperty1:asc,enrolledAt:asc,"
+                            + invalidUID
+                            + ",unsupportedProperty2:desc")));
+    assertAll(
+        () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
+        () ->
+            assertContains(
+                "Supported are data element and attribute UIDs and fields", exception.getMessage()),
+        // order of fields might not always be the same; therefore using contains
+        () -> assertContains(invalidUID, exception.getMessage()),
+        () -> assertContains("unsupportedProperty1", exception.getMessage()),
+        () -> assertContains("unsupportedProperty2", exception.getMessage()));
+  }
+
+  @Test
+  void shouldPassOrderParamsValidationWhenGivenInvalidOrderNameWhichIsAValidUID()
+      throws BadRequestException {
+    Set<String> supportedFieldNames = Set.of("enrolledAt");
+    // This test case shows that some field names are valid UIDs. We can thus not rule out all
+    // invalid field names and UIDs at this stage as we do not have access to data element/attribute
+    // services. Such invalid order values will be caught in the service (mapper).
+    assertTrue(CodeGenerator.isValidUid("lastUpdated"));
+
+    validateOrderParams(supportedFieldNames, "", fromOrderString("lastUpdated:desc"));
+  }
+
+  @Test
+  void shouldFailOrderParamsValidationWhenGivenRepeatedOrderComponents() {
+    Set<String> supportedFieldNames = Set.of("createdAt", "enrolledAt");
+
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () ->
+                validateOrderParams(
+                    supportedFieldNames,
+                    "",
+                    fromOrderString(
+                        "zGlzbfreTOH,createdAt:asc,enrolledAt:asc,enrolledAt,zGlzbfreTOH")));
+
+    assertAll(
+        () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
+        // order of fields might not always be the same; therefore using contains
+        () -> assertContains("enrolledAt", exception.getMessage()),
+        () -> assertContains("zGlzbfreTOH", exception.getMessage()));
   }
 
   @Test
@@ -150,6 +238,71 @@ class RequestParamUtilsTest {
   }
 
   @Test
+  void shouldParseFilters() throws BadRequestException {
+    Map<String, List<QueryFilter>> filters =
+        parseFilters(TEA_1_UID + ":lt:20:gt:10," + TEA_2_UID + ":like:foo");
+
+    assertEquals(
+        Map.of(
+            TEA_1_UID,
+            List.of(
+                new QueryFilter(QueryOperator.LT, "20"), new QueryFilter(QueryOperator.GT, "10")),
+            TEA_2_UID,
+            List.of(new QueryFilter(QueryOperator.LIKE, "foo"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFiltersGivenRepeatedUID() throws BadRequestException {
+    Map<String, List<QueryFilter>> filters =
+        parseFilters(TEA_1_UID + ":lt:20," + TEA_2_UID + ":like:foo," + TEA_1_UID + ":gt:10");
+
+    assertEquals(
+        Map.of(
+            TEA_1_UID,
+            List.of(
+                new QueryFilter(QueryOperator.LT, "20"), new QueryFilter(QueryOperator.GT, "10")),
+            TEA_2_UID,
+            List.of(new QueryFilter(QueryOperator.LIKE, "foo"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFiltersOnlyContainingAnIdentifier() throws BadRequestException {
+    Map<String, List<QueryFilter>> filters = parseFilters(TEA_1_UID);
+
+    assertEquals(Map.of(TEA_1_UID, List.of()), filters);
+  }
+
+  @Test
+  void shouldParseFiltersWithIdentifierAndTrailingColon() throws BadRequestException {
+    Map<String, List<QueryFilter>> filters = parseFilters(TEA_1_UID + ":");
+
+    assertEquals(Map.of(TEA_1_UID, List.of()), filters);
+  }
+
+  @Test
+  void shouldParseFiltersGivenBlankInput() throws BadRequestException {
+    Map<String, List<QueryFilter>> filters = parseFilters(" ");
+
+    assertTrue(filters.isEmpty());
+  }
+
+  @Test
+  void shouldFailParsingFiltersMissingAValue() {
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> parseFilters(TEA_1_UID + ":lt"));
+    assertEquals("Query item or filter is invalid: " + TEA_1_UID + ":lt", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailParsingFiltersWithMissingValueAndTrailingColon() {
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> parseFilters(TEA_1_UID + ":lt:"));
+    assertEquals("Query item or filter is invalid: " + TEA_1_UID + ":lt:", exception.getMessage());
+  }
+
+  @Test
   void shouldCreateQueryFiltersWhenQueryHasOperatorAndValueWithDelimiter()
       throws BadRequestException {
     assertEquals(
@@ -161,5 +314,41 @@ class RequestParamUtilsTest {
     TrackedEntityAttribute tea = new TrackedEntityAttribute();
     tea.setUid(uid);
     return tea;
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> validateOrgUnitParams(Set.of(UID.of(orgUnit.getUid())), ACCESSIBLE));
+
+    assertStartsWith(
+        "orgUnitMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> validateOrgUnitParams(Set.of(UID.of(orgUnit.getUid())), CAPTURE));
+
+    assertStartsWith("orgUnitMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
+  }
+
+  @Test
+  void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeSelected() {
+    assertDoesNotThrow(() -> validateOrgUnitParams(Set.of(UID.of(orgUnit.getUid())), SELECTED));
+  }
+
+  @Test
+  void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeDescendants() {
+    assertDoesNotThrow(() -> validateOrgUnitParams(Set.of(UID.of(orgUnit.getUid())), DESCENDANTS));
+  }
+
+  @Test
+  void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeChildren() {
+    assertDoesNotThrow(() -> validateOrgUnitParams(Set.of(UID.of(orgUnit.getUid())), CHILDREN));
   }
 }

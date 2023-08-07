@@ -27,19 +27,19 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import java.util.List;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 
 public interface TrackedEntityService {
+
   TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
   TrackedEntity getTrackedEntity(
       TrackedEntity trackedEntity, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException;
+      throws ForbiddenException;
 
   TrackedEntity getTrackedEntity(
       String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
@@ -52,12 +52,6 @@ public interface TrackedEntityService {
    *     parameters
    * @return {@see TrackedEntity}s
    */
-  List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
+  TrackedEntities getTrackedEntities(TrackedEntityOperationParams operationParams)
       throws ForbiddenException, NotFoundException, BadRequestException;
-
-  int getTrackedEntityCount(
-      TrackedEntityOperationParams operationParams,
-      boolean skipAccessValidation,
-      boolean skipSearchScopeValidation)
-      throws ForbiddenException, BadRequestException;
 }

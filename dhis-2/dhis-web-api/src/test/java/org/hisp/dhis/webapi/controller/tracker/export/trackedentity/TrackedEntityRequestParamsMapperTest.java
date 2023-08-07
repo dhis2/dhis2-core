@@ -30,27 +30,29 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.util.DateUtils.parseDate;
+import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,6 +69,8 @@ class TrackedEntityRequestParamsMapperTest {
   private static final String PROGRAM_STAGE_UID = "RpCr2u2pFqw";
 
   private static final String TRACKED_ENTITY_TYPE_UID = "Dp8baZYrLtr";
+
+  private static final String ORG_UNIT_1_UID = "lW0T2U7gZUi";
 
   @Mock private TrackedEntityFieldsParamMapper fieldsParamMapper;
 
@@ -86,7 +90,7 @@ class TrackedEntityRequestParamsMapperTest {
   @Test
   void testMapping() throws BadRequestException {
     requestParams.setQuery("query-test");
-    requestParams.setOuMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    requestParams.setOuMode(DESCENDANTS);
     requestParams.setProgramStatus(ProgramStatus.ACTIVE);
     requestParams.setProgram(UID.of(PROGRAM_UID));
     requestParams.setProgramStage(UID.of(PROGRAM_STAGE_UID));
@@ -107,8 +111,6 @@ class TrackedEntityRequestParamsMapperTest {
     requestParams.setSkipPaging(false);
     requestParams.setIncludeDeleted(true);
     requestParams.setIncludeAllAttributes(true);
-    requestParams.setOrder(
-        Collections.singletonList(OrderCriteria.of("created", SortDirection.ASC)));
 
     final TrackedEntityOperationParams params = mapper.map(requestParams, user);
 
@@ -134,30 +136,26 @@ class TrackedEntityRequestParamsMapperTest {
         params.getAssignedUserQueryParam().getMode(), is(AssignedUserSelectionMode.PROVIDED));
     assertThat(params.isIncludeDeleted(), is(true));
     assertThat(params.isIncludeAllAttributes(), is(true));
-    assertTrue(
-        params.getOrders().stream()
-            .anyMatch(
-                orderParam -> orderParam.equals(OrderCriteria.of("created", SortDirection.ASC))));
   }
 
   @Test
   void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
+    requestParams.setOrgUnitMode(SELECTED);
 
     TrackedEntityOperationParams params = mapper.map(requestParams, null);
 
-    assertEquals(OrganisationUnitSelectionMode.SELECTED, params.getOrgUnitMode());
+    assertEquals(SELECTED, params.getOrgUnitMode());
   }
 
   @Test
   void shouldMapOrgUnitModeGivenOuModeParam() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
-    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
+    requestParams.setOuMode(SELECTED);
 
     TrackedEntityOperationParams params = mapper.map(requestParams, null);
 
-    assertEquals(OrganisationUnitSelectionMode.SELECTED, params.getOrgUnitMode());
+    assertEquals(SELECTED, params.getOrgUnitMode());
   }
 
   @Test
@@ -166,14 +164,14 @@ class TrackedEntityRequestParamsMapperTest {
 
     TrackedEntityOperationParams params = mapper.map(requestParams, null);
 
-    assertEquals(OrganisationUnitSelectionMode.DESCENDANTS, params.getOrgUnitMode());
+    assertEquals(DESCENDANTS, params.getOrgUnitMode());
   }
 
   @Test
   void shouldThrowIfDeprecatedAndNewOrgUnitModeParameterIsSet() {
     RequestParams requestParams = new RequestParams();
-    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
-    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
+    requestParams.setOuMode(SELECTED);
+    requestParams.setOrgUnitMode(SELECTED);
 
     BadRequestException exception =
         assertThrows(BadRequestException.class, () -> mapper.map(requestParams, null));
@@ -258,24 +256,6 @@ class TrackedEntityRequestParamsMapperTest {
   }
 
   @Test
-  void testMappingOrderParams() throws BadRequestException {
-    OrderCriteria order1 = OrderCriteria.of("trackedEntity", SortDirection.ASC);
-    OrderCriteria order2 = OrderCriteria.of("createdAt", SortDirection.DESC);
-    requestParams.setOrder(List.of(order1, order2));
-
-    TrackedEntityOperationParams params = mapper.map(requestParams, user);
-
-    assertEquals(List.of(order1, order2), params.getOrders());
-  }
-
-  @Test
-  void testMappingOrderParamsNoOrder() throws BadRequestException {
-    TrackedEntityOperationParams params = mapper.map(requestParams, user);
-
-    assertIsEmpty(params.getOrders());
-  }
-
-  @Test
   void shouldFailIfGivenOrgUnitAndOrgUnits() {
     requestParams.setOrgUnit("IsdLBTOBzMi");
     requestParams.setOrgUnits(Set.of(UID.of("IsdLBTOBzMi")));
@@ -289,5 +269,40 @@ class TrackedEntityRequestParamsMapperTest {
     requestParams.setTrackedEntities(Set.of(UID.of("IsdLBTOBzMi")));
 
     assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
+  }
+
+  @Test
+  void shouldMapOrderParameterInGivenOrderWhenFieldsAreOrderable() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrder(
+        OrderCriteria.fromOrderString("createdAt:asc,zGlzbfreTOH,enrolledAt:desc"));
+
+    TrackedEntityOperationParams params = mapper.map(requestParams, user);
+
+    assertEquals(
+        List.of(
+            new Order("created", SortDirection.ASC),
+            new Order(UID.of("zGlzbfreTOH"), SortDirection.ASC),
+            new Order("enrollment.enrollmentDate", SortDirection.DESC)),
+        params.getOrder());
+  }
+
+  @Test
+  void testMappingOrderParamsNoOrder() throws BadRequestException {
+    TrackedEntityOperationParams params = mapper.map(requestParams, user);
+
+    assertIsEmpty(params.getOrder());
+  }
+
+  @Test
+  void shouldFailGivenInvalidOrderFieldName() {
+    requestParams.setOrder(
+        OrderCriteria.fromOrderString("unsupportedProperty1:asc,enrolledAt:asc"));
+
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
+    assertAll(
+        () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
+        () -> assertContains("unsupportedProperty1", exception.getMessage()));
   }
 }

@@ -79,9 +79,9 @@ public class HibernateTrackedEntityAuditStore extends HibernateGenericStore<Trac
   @Override
   public void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudit) {
     final String sql =
-        "INSERT INTO trackedentityinstanceaudit ("
-            + "trackedentityinstanceauditid, "
-            + "trackedentityinstance, "
+        "INSERT INTO trackedentityaudit ("
+            + "trackedentityauditid, "
+            + "trackedentity, "
             + "created, "
             + "accessedby, "
             + "audittype, "

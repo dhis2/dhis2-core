@@ -62,7 +62,7 @@ public class TrackedEntityType extends BaseNameableObject implements MetadataObj
    */
   private int minAttributesRequiredToSearch = 1;
 
-  /** Property indicating maximum number of TEI to return after search */
+  /** Property indicating maximum number of TE to return after search */
   private int maxTeiCountToReturn = 0;
 
   /** Property indicating whether to allow (read) audit log or not */

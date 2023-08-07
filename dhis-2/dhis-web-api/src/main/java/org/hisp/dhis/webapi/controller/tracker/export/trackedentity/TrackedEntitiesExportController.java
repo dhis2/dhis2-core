@@ -49,7 +49,7 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -57,12 +57,12 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntities;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
@@ -85,6 +85,7 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 class TrackedEntitiesExportController {
+
   protected static final String TRACKED_ENTITIES = "trackedEntities";
 
   /**
@@ -117,28 +118,20 @@ class TrackedEntitiesExportController {
       throws BadRequestException, ForbiddenException, NotFoundException {
     TrackedEntityOperationParams operationParams = paramsMapper.map(requestParams, currentUser);
 
-    List<TrackedEntity> trackedEntities =
-        TRACKED_ENTITY_MAPPER.fromCollection(
-            trackedEntityService.getTrackedEntities(operationParams));
+    TrackedEntities trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
     if (requestParams.isPagingRequest()) {
-      long count = 0L;
-
-      if (requestParams.isTotalPages()) {
-        count = trackedEntityService.getTrackedEntityCount(operationParams, true, true);
-      }
-
-      Pager pager =
-          new Pager(
-              requestParams.getPageWithDefault(), count, requestParams.getPageSizeWithDefault());
-
-      pagingWrapper = pagingWrapper.withPager(PagingWrapper.Pager.fromLegacy(requestParams, pager));
+      pagingWrapper =
+          pagingWrapper.withPager(
+              PagingWrapper.Pager.fromLegacy(requestParams, trackedEntities.getPager()));
     }
 
     List<ObjectNode> objectNodes =
-        fieldFilterService.toObjectNodes(trackedEntities, requestParams.getFields());
+        fieldFilterService.toObjectNodes(
+            TRACKED_ENTITY_MAPPER.fromCollection(trackedEntities.getTrackedEntities()),
+            requestParams.getFields());
     return pagingWrapper.withInstances(objectNodes);
   }
 
@@ -161,7 +154,7 @@ class TrackedEntitiesExportController {
 
     List<TrackedEntity> trackedEntities =
         TRACKED_ENTITY_MAPPER.fromCollection(
-            trackedEntityService.getTrackedEntities(operationParams));
+            trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities());
 
     OutputStream outputStream = response.getOutputStream();
 

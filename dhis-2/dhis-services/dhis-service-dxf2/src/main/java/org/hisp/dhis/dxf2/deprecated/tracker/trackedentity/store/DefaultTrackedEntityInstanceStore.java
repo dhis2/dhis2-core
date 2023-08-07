@@ -69,30 +69,30 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore
           + "from trackedentityprogramowner teop "
           + "join program p on teop.programid = p.programid "
           + "join organisationunit o on teop.organisationunitid = o.organisationunitid "
-          + "join trackedentityinstance tei on teop.trackedentityinstanceid = tei.trackedentityinstanceid "
-          + "where teop.trackedentityinstanceid in (:ids)";
+          + "join trackedentity tei on teop.trackedentityid = tei.trackedentityid "
+          + "where teop.trackedentityid in (:ids)";
 
   private static final String GET_OWNERSHIP_DATA_FOR_TEIS_FOR_ALL_PROGRAM =
-      "SELECT tei.uid as tei_uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, p.accesslevel,p.uid as pgm_uid "
+      "SELECT tei.uid as tei_uid,tpo.trackedentityid, tpo.programid, tpo.organisationunitid, p.accesslevel,p.uid as pgm_uid "
           + "FROM trackedentityprogramowner TPO "
           + "LEFT JOIN program P on P.programid = TPO.programid "
           + "LEFT JOIN organisationunit OU on OU.organisationunitid = TPO.organisationunitid "
-          + "LEFT JOIN trackedentityinstance TEI on TEI.trackedentityinstanceid = tpo.trackedentityinstanceid "
-          + "WHERE TPO.trackedentityinstanceid in (:ids) "
+          + "LEFT JOIN trackedentity TEI on TEI.trackedentityid = tpo.trackedentityid "
+          + "WHERE TPO.trackedentityid in (:ids) "
           + "AND p.programid in (SELECT programid FROM program) "
-          + "GROUP BY tei.uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, ou.path, p.accesslevel,p.uid "
+          + "GROUP BY tei.uid,tpo.trackedentityid, tpo.programid, tpo.organisationunitid, ou.path, p.accesslevel,p.uid "
           + "HAVING (P.accesslevel in ('OPEN', 'AUDITED') AND (EXISTS(SELECT SS.organisationunitid FROM userteisearchorgunits SS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = SS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')) OR EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')))) "
           + "OR (P.accesslevel in ('CLOSED', 'PROTECTED') AND EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')));";
 
   private static final String GET_OWNERSHIP_DATA_FOR_TEIS_FOR_SPECIFIC_PROGRAM =
-      "SELECT tei.uid as tei_uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, p.accesslevel,p.uid as pgm_uid "
+      "SELECT tei.uid as tei_uid,tpo.trackedentityid, tpo.programid, tpo.organisationunitid, p.accesslevel,p.uid as pgm_uid "
           + "FROM trackedentityprogramowner TPO "
           + "LEFT JOIN program P on P.programid = TPO.programid "
           + "LEFT JOIN organisationunit OU on OU.organisationunitid = TPO.organisationunitid "
-          + "LEFT JOIN trackedentityinstance TEI on TEI.trackedentityinstanceid = tpo.trackedentityinstanceid "
-          + "WHERE TPO.trackedentityinstanceid in (:ids) "
+          + "LEFT JOIN trackedentity TEI on TEI.trackedentityid = tpo.trackedentityid "
+          + "WHERE TPO.trackedentityid in (:ids) "
           + "AND p.uid = :programUid "
-          + "GROUP BY tei.uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, ou.path, p.accesslevel,p.uid "
+          + "GROUP BY tei.uid,tpo.trackedentityid, tpo.programid, tpo.organisationunitid, ou.path, p.accesslevel,p.uid "
           + "HAVING (P.accesslevel in ('OPEN', 'AUDITED') AND (EXISTS(SELECT SS.organisationunitid FROM userteisearchorgunits SS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = SS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')) OR EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')))) "
           + "OR (P.accesslevel in ('CLOSED', 'PROTECTED') AND EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')));";
 
@@ -105,7 +105,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore
 
   @Override
   String getRelationshipEntityColumn() {
-    return "trackedentityinstanceid";
+    return "trackedentityid";
   }
 
   @Override
@@ -134,7 +134,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore
         getQuery(
             GET_TEIS_SQL, ctx, "tei.trackedentitytypeid in (:teiTypeIds)", FILTER_OUT_DELETED_TEIS);
     jdbcTemplate.query(
-        applySortOrder(sql, StringUtils.join(ids, ","), "trackedentityinstanceid"),
+        applySortOrder(sql, StringUtils.join(ids, ","), "trackedentityid"),
         createIdsParam(ids).addValue("teiTypeIds", ctx.getTrackedEntityTypes()),
         handler);
 
@@ -197,7 +197,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore
     List<TrackedEntityOuInfo> instances = new ArrayList<>();
 
     String sql =
-        "select tei.trackedentityinstanceid teiid, tei.uid teiuid, tei.organisationunitid teiorgunit from trackedentityinstance tei where tei.uid in (:uids)";
+        "select tei.trackedentityid teiid, tei.uid teiuid, tei.organisationunitid teiorgunit from trackedentity tei where tei.uid in (:uids)";
 
     for (List<String> partition : uidPartitions) {
       MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -224,10 +224,10 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore
         """
               select te.uid teuid, p.uid programuid, ou.uid orgunituid
                 from trackedentityprogramowner tepo
-                join trackedentityinstance te on tepo.trackedentityinstanceid = te.trackedentityinstanceid
+                join trackedentity te on tepo.trackedentityid = te.trackedentityid
                 join program p on tepo.programid = p.programid
                 join organisationunit ou on te.organisationunitid = ou.organisationunitid
-                where tepo.trackedentityinstanceid in (:teiIds) and tepo.programid = :programId
+                where tepo.trackedentityid in (:teiIds) and tepo.programid = :programId
             """;
     for (List<Long> partition : teiIdsPartitions) {
       MapSqlParameterSource parameters =

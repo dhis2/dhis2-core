@@ -55,10 +55,10 @@ import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.user.User;
@@ -417,7 +417,7 @@ class EventImportValidationTest extends TrackerTest {
   private Event getEventFromReport(ImportReport importReport) {
     final Map<TrackerType, TrackerTypeReport> typeReportMap =
         importReport.getPersistenceReport().getTypeReportMap();
-    String newEvent = typeReportMap.get(TrackerType.EVENT).getEntityReportMap().get(0).getUid();
+    String newEvent = typeReportMap.get(TrackerType.EVENT).getEntityReport().get(0).getUid();
     return programStageServiceInstance.getEvent(newEvent);
   }
 }

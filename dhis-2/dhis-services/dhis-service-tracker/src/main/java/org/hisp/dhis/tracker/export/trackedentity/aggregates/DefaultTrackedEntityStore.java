@@ -38,11 +38,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.OwnedTeiMapper;
+import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.OwnedTeMapper;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.ProgramOwnerRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.TrackedEntityAttributeRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.TrackedEntityRowCallbackHandler;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeiAttributeQuery;
+import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TrackedEntityQuery;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -55,43 +55,43 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public class DefaultTrackedEntityStore extends AbstractStore implements TrackedEntityStore {
-  private static final String GET_TEIS_SQL = TrackedEntityQuery.getQuery();
+  private static final String GET_TE_SQL = TrackedEntityQuery.getQuery();
 
-  private static final String GET_TEI_ATTRIBUTES = TeiAttributeQuery.getQuery();
+  private static final String GET_TE_ATTRIBUTES = TeAttributeQuery.getQuery();
 
   private static final String GET_PROGRAM_OWNERS =
-      "select tei.uid as key, p.uid as prguid, o.uid as ouuid "
+      "select te.uid as key, p.uid as prguid, o.uid as ouuid "
           + "from trackedentityprogramowner teop "
           + "join program p on teop.programid = p.programid "
           + "join organisationunit o on teop.organisationunitid = o.organisationunitid "
-          + "join trackedentityinstance tei on teop.trackedentityinstanceid = tei.trackedentityinstanceid "
-          + "where teop.trackedentityinstanceid in (:ids)";
+          + "join trackedentity te on teop.trackedentityid = te.trackedentityid "
+          + "where teop.trackedentityid in (:ids)";
 
-  private static final String GET_OWNERSHIP_DATA_FOR_TEIS_FOR_ALL_PROGRAM =
-      "SELECT tei.uid as tei_uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, p.accesslevel,p.uid as pgm_uid "
+  private static final String GET_OWNERSHIP_DATA_FOR_TE_FOR_ALL_PROGRAM =
+      "SELECT te.uid as te_uid,tpo.trackedentityid, tpo.programid, tpo.organisationunitid, p.accesslevel,p.uid as pgm_uid "
           + "FROM trackedentityprogramowner TPO "
           + "LEFT JOIN program P on P.programid = TPO.programid "
           + "LEFT JOIN organisationunit OU on OU.organisationunitid = TPO.organisationunitid "
-          + "LEFT JOIN trackedentityinstance TEI on TEI.trackedentityinstanceid = tpo.trackedentityinstanceid "
-          + "WHERE TPO.trackedentityinstanceid in (:ids) "
+          + "LEFT JOIN trackedentity TE on TE.trackedentityid = tpo.trackedentityid "
+          + "WHERE TPO.trackedentityid in (:ids) "
           + "AND p.programid in (SELECT programid FROM program) "
-          + "GROUP BY tei.uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, ou.path, p.accesslevel,p.uid "
+          + "GROUP BY te.uid,tpo.trackedentityid, tpo.programid, tpo.organisationunitid, ou.path, p.accesslevel,p.uid "
           + "HAVING (P.accesslevel in ('OPEN', 'AUDITED') AND (EXISTS(SELECT SS.organisationunitid FROM userteisearchorgunits SS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = SS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')) OR EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')))) "
           + "OR (P.accesslevel in ('CLOSED', 'PROTECTED') AND EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')));";
 
-  private static final String GET_OWNERSHIP_DATA_FOR_TEIS_FOR_SPECIFIC_PROGRAM =
-      "SELECT tei.uid as tei_uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, p.accesslevel,p.uid as pgm_uid "
+  private static final String GET_OWNERSHIP_DATA_FOR_TE_FOR_SPECIFIC_PROGRAM =
+      "SELECT te.uid as te_uid,tpo.trackedentityid, tpo.programid, tpo.organisationunitid, p.accesslevel,p.uid as pgm_uid "
           + "FROM trackedentityprogramowner TPO "
           + "LEFT JOIN program P on P.programid = TPO.programid "
           + "LEFT JOIN organisationunit OU on OU.organisationunitid = TPO.organisationunitid "
-          + "LEFT JOIN trackedentityinstance TEI on TEI.trackedentityinstanceid = tpo.trackedentityinstanceid "
-          + "WHERE TPO.trackedentityinstanceid in (:ids) "
+          + "LEFT JOIN trackedentity TE on TE.trackedentityid = tpo.trackedentityid "
+          + "WHERE TPO.trackedentityid in (:ids) "
           + "AND p.uid = :programUid "
-          + "GROUP BY tei.uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, ou.path, p.accesslevel,p.uid "
+          + "GROUP BY te.uid,tpo.trackedentityid, tpo.programid, tpo.organisationunitid, ou.path, p.accesslevel,p.uid "
           + "HAVING (P.accesslevel in ('OPEN', 'AUDITED') AND (EXISTS(SELECT SS.organisationunitid FROM userteisearchorgunits SS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = SS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')) OR EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')))) "
           + "OR (P.accesslevel in ('CLOSED', 'PROTECTED') AND EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')));";
 
-  private static final String FILTER_OUT_DELETED_TEIS = "tei.deleted=false";
+  private static final String FILTER_OUT_DELETED_TE = "te.deleted=false";
 
   public DefaultTrackedEntityStore(@Qualifier("readOnlyJdbcTemplate") JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
@@ -99,7 +99,7 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
 
   @Override
   String getRelationshipEntityColumn() {
-    return "trackedentityinstanceid";
+    return "trackedentityid";
   }
 
   @Override
@@ -123,11 +123,10 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
     }
 
     String sql =
-        getQuery(
-            GET_TEIS_SQL, ctx, "tei.trackedentitytypeid in (:teiTypeIds)", FILTER_OUT_DELETED_TEIS);
+        getQuery(GET_TE_SQL, ctx, "te.trackedentitytypeid in (:teTypeIds)", FILTER_OUT_DELETED_TE);
     jdbcTemplate.query(
         applySortOrder(sql, StringUtils.join(ids, ",")),
-        createIdsParam(ids).addValue("teiTypeIds", ctx.getTrackedEntityTypes()),
+        createIdsParam(ids).addValue("teTypeIds", ctx.getTrackedEntityTypes()),
         handler);
 
     return handler.getItems();
@@ -135,7 +134,7 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
 
   @Override
   public Multimap<String, TrackedEntityAttributeValue> getAttributes(List<Long> ids) {
-    return fetch(GET_TEI_ATTRIBUTES, new TrackedEntityAttributeRowCallbackHandler(), ids);
+    return fetch(GET_TE_ATTRIBUTES, new TrackedEntityAttributeRowCallbackHandler(), ids);
   }
 
   @Override
@@ -145,32 +144,32 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
 
   @Override
   public Multimap<String, String> getOwnedTeis(List<Long> ids, Context ctx) {
-    List<List<Long>> teiIds = Lists.partition(ids, PARITITION_SIZE);
+    List<List<Long>> teds = Lists.partition(ids, PARITITION_SIZE);
 
     Multimap<String, String> ownedTeisMultiMap = ArrayListMultimap.create();
 
-    teiIds.forEach(partition -> ownedTeisMultiMap.putAll(getOwnedTeisPartitioned(partition, ctx)));
+    teds.forEach(partition -> ownedTeisMultiMap.putAll(getOwnedTeisPartitioned(partition, ctx)));
 
     return ownedTeisMultiMap;
   }
 
   private Multimap<String, String> getOwnedTeisPartitioned(List<Long> ids, Context ctx) {
-    OwnedTeiMapper handler = new OwnedTeiMapper();
+    OwnedTeMapper handler = new OwnedTeMapper();
 
     MapSqlParameterSource paramSource = createIdsParam(ids).addValue("userInfoId", ctx.getUserId());
 
     boolean checkForOwnership =
         ctx.getQueryParams().isIncludeAllAttributes()
             || ctx.getParams().isIncludeEnrollments()
-            || ctx.getParams().getTeiEnrollmentParams().isIncludeEvents();
+            || ctx.getParams().getTeEnrollmentParams().isIncludeEvents();
 
     String sql;
 
     if (ctx.getQueryParams().hasProgram()) {
-      sql = GET_OWNERSHIP_DATA_FOR_TEIS_FOR_SPECIFIC_PROGRAM;
+      sql = GET_OWNERSHIP_DATA_FOR_TE_FOR_SPECIFIC_PROGRAM;
       paramSource.addValue("programUid", ctx.getQueryParams().getProgram().getUid());
     } else if (checkForOwnership) {
-      sql = GET_OWNERSHIP_DATA_FOR_TEIS_FOR_ALL_PROGRAM;
+      sql = GET_OWNERSHIP_DATA_FOR_TE_FOR_ALL_PROGRAM;
     } else {
       return ArrayListMultimap.create();
     }

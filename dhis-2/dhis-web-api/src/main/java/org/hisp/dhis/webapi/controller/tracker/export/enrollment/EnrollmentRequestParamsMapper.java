@@ -28,16 +28,20 @@
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
+import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrgUnitParams;
 
+import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
-import org.hisp.dhis.webapi.common.UID;
 import org.springframework.stereotype.Component;
 
 /**
@@ -59,6 +63,8 @@ class EnrollmentRequestParamsMapper {
         validateDeprecatedParameter(
             "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
 
+    validateOrgUnitParams(orgUnits, orgUnitMode);
+
     return EnrollmentOperationParams.builder()
         .programUid(
             requestParams.getProgram() != null ? requestParams.getProgram().getValue() : null)
@@ -78,9 +84,9 @@ class EnrollmentRequestParamsMapper {
                 : null)
         .orgUnitUids(UID.toValueSet(orgUnits))
         .orgUnitMode(orgUnitMode)
-        .page(requestParams.getPage())
-        .pageSize(requestParams.getPageSize())
-        .totalPages(requestParams.isTotalPages())
+        .page(Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE))
+        .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
+        .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))
         .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
         .includeDeleted(requestParams.isIncludeDeleted())
         .order(toOrderParams(requestParams.getOrder()))

@@ -82,12 +82,11 @@ public class RelationshipTypeJoinGenerator {
     String sql = "LEFT JOIN ";
     switch (relationshipEntity) {
       case TRACKED_ENTITY_INSTANCE:
-        return sql
-            + "trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid";
+        return sql + "trackedentity tei on tei.trackedentityid = ri2.trackedentityid";
       case PROGRAM_STAGE_INSTANCE:
         return sql + "event psi on psi.eventid = ri2.eventid";
       case PROGRAM_INSTANCE:
-        return sql + "programinstance pi on pi.programinstanceid = ri2.programinstanceid";
+        return sql + "enrollment pi on pi.enrollmentid = ri2.enrollmentid";
       default:
         throw new IllegalQueryException(
             new ErrorMessage(ErrorCode.E7227, relationshipEntity.name()));
@@ -111,15 +110,15 @@ public class RelationshipTypeJoinGenerator {
   private static String getTei(String alias) {
     return " "
         + alias
-        + ".tei in (select tei.uid from trackedentityinstance tei"
-        + " LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid ";
+        + ".tei in (select tei.uid from trackedentity tei"
+        + " LEFT JOIN relationshipitem ri on tei.trackedentityid = ri.trackedentityid ";
   }
 
   private static String getEnrollment(String alias) {
     return " "
         + alias
-        + ".pi in (select pi.uid from programinstance pi"
-        + " LEFT JOIN relationshipitem ri on pi.programinstanceid = ri.programinstanceid ";
+        + ".pi in (select pi.uid from enrollment pi"
+        + " LEFT JOIN relationshipitem ri on pi.enrollmentid = ri.enrollmentid ";
   }
 
   private static String getEvent(String alias) {

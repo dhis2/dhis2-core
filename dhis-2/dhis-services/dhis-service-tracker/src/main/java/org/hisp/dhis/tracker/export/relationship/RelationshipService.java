@@ -38,13 +38,17 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 public interface RelationshipService {
+
+  Relationships getRelationships(RelationshipOperationParams params)
+      throws ForbiddenException, NotFoundException;
+
   Relationship getRelationship(String id) throws ForbiddenException, NotFoundException;
 
   Optional<Relationship> findRelationshipByUid(String id)
       throws ForbiddenException, NotFoundException;
 
   List<Relationship> getRelationshipsByTrackedEntity(
-      TrackedEntity tei, PagingAndSortingCriteriaAdapter criteria)
+      TrackedEntity te, PagingAndSortingCriteriaAdapter criteria)
       throws ForbiddenException, NotFoundException;
 
   List<Relationship> getRelationshipsByEnrollment(

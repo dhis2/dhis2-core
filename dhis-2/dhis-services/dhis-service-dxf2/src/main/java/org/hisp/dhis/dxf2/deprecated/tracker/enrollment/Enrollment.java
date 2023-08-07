@@ -38,6 +38,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Note;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Attribute;
@@ -50,6 +52,7 @@ import org.locationtech.jts.geom.Geometry;
  * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
  *     "old" tracker. Make sure to plan migrating to new tracker.
  */
+@OpenApi.Shared(pattern = Pattern.DEPRECATED_TRACKER)
 @Deprecated(since = "2.41")
 @JacksonXmlRootElement(localName = "enrollment", namespace = DxfNamespaces.DXF_2_0)
 public class Enrollment {

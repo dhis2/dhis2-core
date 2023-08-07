@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
@@ -34,16 +36,22 @@ import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -58,16 +66,17 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.common.UID;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -171,28 +180,19 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
+    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
+    requestParams.setOrgUnitMode(SELECTED);
 
     EventOperationParams params = mapper.map(requestParams);
 
-    assertEquals(OrganisationUnitSelectionMode.SELECTED, params.getOrgUnitMode());
+    assertEquals(SELECTED, params.getOrgUnitMode());
   }
 
   @Test
-  void shouldMapOrgUnitModeGivenOuModeParam() throws BadRequestException {
+  void shouldFailIfDeprecatedAndNewOrgUnitModeParameterIsSet() {
     RequestParams requestParams = new RequestParams();
-    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
-
-    EventOperationParams params = mapper.map(requestParams);
-
-    assertEquals(OrganisationUnitSelectionMode.SELECTED, params.getOrgUnitMode());
-  }
-
-  @Test
-  void shouldThrowIfDeprecatedAndNewOrgUnitModeParameterIsSet() {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
-    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
+    requestParams.setOuMode(SELECTED);
+    requestParams.setOrgUnitMode(SELECTED);
 
     BadRequestException exception =
         assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
@@ -400,34 +400,191 @@ class EventRequestParamsMapperTest {
   }
 
   @Test
-  void shouldMapOrderParameterToOrderCriteriaWhenFieldsAreSortable() throws BadRequestException {
+  void shouldMapDataElementFilters() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
-    requestParams.setOrder(
-        OrderCriteria.fromOrderString("createdAt:asc,programStage:desc,scheduledAt:asc"));
+    requestParams.setFilter(DE_1_UID + ":eq:2," + DE_2_UID + ":like:foo");
 
     EventOperationParams params = mapper.map(requestParams);
 
-    assertContainsOnly(
-        List.of(
-            new OrderParam("createdAt", SortDirection.ASC),
-            new OrderParam("programStage", SortDirection.DESC),
-            new OrderParam("scheduledAt", SortDirection.ASC)),
-        params.getOrders());
+    Map<String, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+    assertNotNull(dataElementFilters);
+    Map<String, List<QueryFilter>> expected =
+        Map.of(
+            DE_1_UID,
+            List.of(new QueryFilter(QueryOperator.EQ, "2")),
+            DE_2_UID,
+            List.of(new QueryFilter(QueryOperator.LIKE, "foo")));
+    assertEquals(expected, dataElementFilters);
   }
 
   @Test
-  void shouldThrowWhenOrderParameterContainsUnsupportedField() {
+  void shouldMapDataElementFiltersWhenDataElementHasMultipleFilters() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setFilter(DE_1_UID + ":gt:10:lt:20");
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    Map<String, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+    assertNotNull(dataElementFilters);
+    Map<String, List<QueryFilter>> expected =
+        Map.of(
+            DE_1_UID,
+            List.of(
+                new QueryFilter(QueryOperator.GT, "10"), new QueryFilter(QueryOperator.LT, "20")));
+    assertEquals(expected, dataElementFilters);
+  }
+
+  @Test
+  void shouldMapDataElementFiltersToDefaultIfNoneSet() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    Map<String, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+
+    assertNotNull(dataElementFilters);
+    assertTrue(dataElementFilters.isEmpty());
+  }
+
+  @Test
+  void shouldMapAttributeFilters() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setFilterAttributes(TEA_1_UID + ":eq:2," + TEA_2_UID + ":like:foo");
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    Map<String, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+    assertNotNull(attributeFilters);
+    Map<String, List<QueryFilter>> expected =
+        Map.of(
+            TEA_1_UID,
+            List.of(new QueryFilter(QueryOperator.EQ, "2")),
+            TEA_2_UID,
+            List.of(new QueryFilter(QueryOperator.LIKE, "foo")));
+    assertEquals(expected, attributeFilters);
+  }
+
+  @Test
+  void shouldMapAttributeFiltersWhenAttributeHasMultipleFilters() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setFilterAttributes(TEA_1_UID + ":gt:10:lt:20");
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    Map<String, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+    assertNotNull(attributeFilters);
+    Map<String, List<QueryFilter>> expected =
+        Map.of(
+            TEA_1_UID,
+            List.of(
+                new QueryFilter(QueryOperator.GT, "10"), new QueryFilter(QueryOperator.LT, "20")));
+    assertEquals(expected, attributeFilters);
+  }
+
+  @Test
+  void shouldMapAttributeFiltersWhenOnlyGivenUID() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setFilterAttributes(TEA_1_UID);
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    Map<String, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+    assertNotNull(attributeFilters);
+    Map<String, List<QueryFilter>> expected = Map.of(TEA_1_UID, List.of());
+    assertEquals(expected, attributeFilters);
+  }
+
+  @Test
+  void shouldMapAttributeFiltersToDefaultIfNoneSet() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    Map<String, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+
+    assertNotNull(attributeFilters);
+    assertTrue(attributeFilters.isEmpty());
+  }
+
+  @Test
+  void shouldMapOrderParameterInGivenOrderWhenFieldsAreOrderable() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
     requestParams.setOrder(
         OrderCriteria.fromOrderString(
-            "unsupportedProperty1:asc,enrolledAt:asc,unsupportedProperty2:desc"));
+            "createdAt:asc,zGlzbfreTOH,programStage:desc,scheduledAt:asc"));
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    assertEquals(
+        List.of(
+            new Order("created", SortDirection.ASC),
+            new Order(UID.of("zGlzbfreTOH"), SortDirection.ASC),
+            new Order("programStage.uid", SortDirection.DESC),
+            new Order("dueDate", SortDirection.ASC)),
+        params.getOrder());
+  }
+
+  @Test
+  void shouldFailGivenInvalidOrderFieldName() {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrder(
+        OrderCriteria.fromOrderString("unsupportedProperty1:asc,enrolledAt:asc"));
 
     Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
     assertAll(
-        () -> assertStartsWith("Order by property `", exception.getMessage()),
-        // order of properties might not always be the same; therefore using
-        // contains
-        () -> assertContains("unsupportedProperty1", exception.getMessage()),
-        () -> assertContains("unsupportedProperty2", exception.getMessage()));
+        () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
+        () -> assertContains("unsupportedProperty1", exception.getMessage()));
+  }
+
+  @Test
+  void shouldMapSelectedOrgUnitModeWhenOrgUnitModeNotProvided() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnit(UID.of(orgUnit));
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    assertEquals(SELECTED, params.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldMapAccessibleOrgUnitModeWhenOrgUnitModeNorOrgUnitProvided()
+      throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+
+    EventOperationParams params = mapper.map(requestParams);
+
+    assertEquals(ACCESSIBLE, params.getOrgUnitMode());
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"ACCESSIBLE", "CAPTURE"})
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCannotHaveOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
+
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
+    requestParams.setOrgUnitMode(orgUnitMode);
+
+    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertStartsWith(
+        "orgUnitMode " + orgUnitMode + " cannot be used with orgUnits.", exception.getMessage());
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN"})
+  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeNeedsOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnitMode(orgUnitMode);
+
+    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertStartsWith("orgUnit is required for orgUnitMode: " + orgUnitMode, exception.getMessage());
   }
 }

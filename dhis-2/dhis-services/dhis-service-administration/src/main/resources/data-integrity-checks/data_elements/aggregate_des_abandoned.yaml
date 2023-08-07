@@ -29,7 +29,6 @@
   description: Aggregate data elements that have not been changed in last 100 days and do not have any data values.
   section: Data elements (aggregate)
   section_order: 5
-  summary_uid: HA8SfI5Ww6L
   summary_sql: >-
     SELECT COUNT(*) as value,
      100*COUNT(*) / NULLIF( ( select COUNT(*) from dataelement where domaintype = 'AGGREGATE'), 0) as percent
@@ -37,7 +36,6 @@
     and dataelementid
     not in (select dataelementid from datavalue group by dataelementid)
     and AGE( now(), lastupdated) > INTERVAL '100 days';
-  details_uid: eBfvtecrvqU
   details_sql: >-
     select uid,name,lastupdated from dataelement
     where domaintype = 'AGGREGATE'

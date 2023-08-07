@@ -290,11 +290,7 @@ class AclEventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder()
-            .programUid("pcxIanBWlSY")
-            .orgUnitUid("uoNW0E3xXUy")
-            .orgUnitMode(ACCESSIBLE)
-            .build();
+        EventOperationParams.builder().programUid("pcxIanBWlSY").orgUnitMode(ACCESSIBLE).build();
 
     List<Event> events = eventService.getEvents(params).getEvents();
 
@@ -332,15 +328,11 @@ class AclEventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnEventsWhenProgramOpenOuModeCapture()
+  void shouldReturnEventsWhenProgramClosedOuModeCapture()
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder()
-            .programUid("pcxIanBWlSY")
-            .orgUnitUid("uoNW0E3xXUy")
-            .orgUnitMode(CAPTURE)
-            .build();
+        EventOperationParams.builder().programUid("pcxIanBWlSY").orgUnitMode(CAPTURE).build();
 
     List<Event> events = eventService.getEvents(params).getEvents();
 
@@ -357,47 +349,17 @@ class AclEventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnSelectedOrgUnitEventsWhenNoOuModeSpecifiedAndUserHasAccessToOrgUnit()
+  void shouldReturnAccessibleOrgUnitEventsWhenNoOrgUnitSpecified()
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder().programUid("pcxIanBWlSY").orgUnitUid("uoNW0E3xXUy").build();
+        EventOperationParams.builder().programUid("pcxIanBWlSY").orgUnitMode(ACCESSIBLE).build();
 
     List<Event> events = eventService.getEvents(params).getEvents();
 
     assertFalse(
-        events.isEmpty(), "Expected to find selected org unit events when ou mode not specified");
-    events.forEach(
-        e ->
-            assertEquals(
-                "uoNW0E3xXUy",
-                e.getOrganisationUnit().getUid(),
-                "Expected to find accessible org unit uoNW0E3xXUy, but found "
-                    + e.getOrganisationUnit().getUid()
-                    + " instead"));
-  }
-
-  @Test
-  void shouldFailWhenNoOuModeSpecifiedAndUserHasNoAccessToOrgUnit() {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
-        EventOperationParams.builder().programUid("pcxIanBWlSY").orgUnitUid("DiszpKrYNg8").build();
-
-    ForbiddenException exception =
-        assertThrows(ForbiddenException.class, () -> eventService.getEvents(params));
-    assertEquals("User does not have access to orgUnit: DiszpKrYNg8", exception.getMessage());
-  }
-
-  @Test
-  void shouldReturnAccessibleOrgUnitEventsWhenNoOrgUnitSpecifiedNorOuModeSpecified()
-      throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params = EventOperationParams.builder().programUid("pcxIanBWlSY").build();
-
-    List<Event> events = eventService.getEvents(params).getEvents();
-
-    assertFalse(
-        events.isEmpty(), "Expected to find accessible org unit events when ou mode not specified");
+        events.isEmpty(),
+        "Expected to find accessible org unit events when org unit not specified");
     events.forEach(
         e ->
             assertEquals(
@@ -418,6 +380,7 @@ class AclEventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid("DiszpKrYNg8")
+            .orgUnitMode(SELECTED)
             .events(Set.of("lumVtWwwy0O", "cadc5eGj0j7"))
             .build();
 
@@ -451,6 +414,7 @@ class AclEventExporterTest extends TrackerTest {
     EventOperationParams params =
         EventOperationParams.builder()
             .orgUnitUid("DiszpKrYNg8")
+            .orgUnitMode(SELECTED)
             .events(Set.of("lumVtWwwy0O", "cadc5eGj0j7"))
             .build();
 

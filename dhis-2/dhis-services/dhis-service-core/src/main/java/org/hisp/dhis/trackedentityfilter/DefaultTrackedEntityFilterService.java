@@ -95,18 +95,18 @@ public class DefaultTrackedEntityFilterService implements TrackedEntityFilterSer
   }
 
   @Override
-  public List<String> validate(TrackedEntityFilter teiFilter) {
+  public List<String> validate(TrackedEntityFilter teFilter) {
     List<String> errors = new ArrayList<>();
 
-    if (teiFilter.getProgram() != null && !StringUtils.isEmpty(teiFilter.getProgram().getUid())) {
-      Program pr = programService.getProgram(teiFilter.getProgram().getUid());
+    if (teFilter.getProgram() != null && !StringUtils.isEmpty(teFilter.getProgram().getUid())) {
+      Program pr = programService.getProgram(teFilter.getProgram().getUid());
 
       if (pr == null) {
-        errors.add("Program is specified but does not exist: " + teiFilter.getProgram().getUid());
+        errors.add("Program is specified but does not exist: " + teFilter.getProgram().getUid());
       }
     }
 
-    EntityQueryCriteria eqc = teiFilter.getEntityQueryCriteria();
+    EntityQueryCriteria eqc = teFilter.getEntityQueryCriteria();
 
     if (eqc == null) {
       return errors;

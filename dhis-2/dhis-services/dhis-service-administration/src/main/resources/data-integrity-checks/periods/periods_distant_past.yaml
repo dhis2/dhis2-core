@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  summary_uid: VICKLpREFYv
   name: periods_distant_past
   description: Periods which are in the distant past.
   section: Periods
@@ -36,7 +35,6 @@
     SELECT COUNT(*) as value,
     100.0*  COUNT(*) / NULLIF( (SELECT COUNT(*) FROM period) , 0) as percent
     FROM periods_distant_past;
-  details_uid: wvhK31GYedI
   details_sql: >-
     SELECT NULL as uid, to_char(startdate, 'YYYY-MM-DD') || '-' || to_char(enddate, 'YYYY-MM-DD') as name
     from period where AGE(now(),enddate) >= INTERVAL '30 year';

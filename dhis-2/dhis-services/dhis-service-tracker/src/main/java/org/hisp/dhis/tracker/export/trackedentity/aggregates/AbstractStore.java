@@ -52,23 +52,23 @@ abstract class AbstractStore {
   private static final String GET_RELATIONSHIP_BY_RELATIONSHIP_ID =
       "select "
           + "r.uid as rel_uid, r.created, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi, "
-          + "coalesce((select 'tei|' || tei.uid from trackedentityinstance tei "
-          + "join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
-          + "where ri.relationshipitemid = r.to_relationshipitemid) , (select 'pi|' || pi.uid "
-          + "from programinstance pi "
-          + "join relationshipitem ri on pi.programinstanceid = ri.programinstanceid "
-          + "where ri.relationshipitemid = r.to_relationshipitemid), (select 'psi|' || psi.uid "
-          + "from event psi "
-          + "join relationshipitem ri on psi.eventid = ri.eventid "
+          + "coalesce((select 'te|' || te.uid from trackedentity te "
+          + "join relationshipitem ri on te.trackedentityid = ri.trackedentityid "
+          + "where ri.relationshipitemid = r.to_relationshipitemid) , (select 'en|' || en.uid "
+          + "from enrollment en "
+          + "join relationshipitem ri on en.enrollmentid = ri.enrollmentid "
+          + "where ri.relationshipitemid = r.to_relationshipitemid), (select 'ev|' || ev.uid "
+          + "from event ev "
+          + "join relationshipitem ri on ev.eventid = ri.eventid "
           + "where ri.relationshipitemid = r.to_relationshipitemid)) to_uid, "
-          + "coalesce((select 'tei|' || tei.uid from trackedentityinstance tei "
-          + "join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
-          + "where ri.relationshipitemid = r.from_relationshipitemid) , (select 'pi|' || pi.uid "
-          + "from programinstance pi "
-          + "join relationshipitem ri on pi.programinstanceid = ri.programinstanceid "
-          + "where ri.relationshipitemid = r.from_relationshipitemid), (select 'psi|' || psi.uid "
-          + "from event psi "
-          + "join relationshipitem ri on psi.eventid = ri.eventid "
+          + "coalesce((select 'te|' || te.uid from trackedentity te "
+          + "join relationshipitem ri on te.trackedentityid = ri.trackedentityid "
+          + "where ri.relationshipitemid = r.from_relationshipitemid) , (select 'en|' || en.uid "
+          + "from enrollment en "
+          + "join relationshipitem ri on en.enrollmentid = ri.enrollmentid "
+          + "where ri.relationshipitemid = r.from_relationshipitemid), (select 'ev|' || ev.uid "
+          + "from event ev "
+          + "join relationshipitem ri on ev.eventid = ri.eventid "
           + "where ri.relationshipitemid = r.from_relationshipitemid)) from_uid "
           + "from relationship r join relationshiptype rst on r.relationshiptypeid = rst.relationshiptypeid "
           + "where r.relationshipid in (:ids)";
@@ -109,7 +109,7 @@ abstract class AbstractStore {
     }
     // Get all the relationship ids that have at least one relationship item
     // having
-    // the ids in the tei|pi|psi column (depending on the subclass)
+    // the ids in the te|en|ev column (depending on the subclass)
 
     List<Long> relationshipIds =
         getRelationshipIds(getRelationshipsHavingIdSQL.toString(), createIdsParam(ids));
@@ -147,7 +147,7 @@ abstract class AbstractStore {
   }
 
   protected String applySortOrder(String sql, String sortOrderIds) {
-    String trackedentityid = "trackedentityinstanceid";
+    String trackedentityid = "trackedentityid";
     return "select * from ("
         + sql
         + ") as t JOIN unnest('{"

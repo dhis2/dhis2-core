@@ -34,7 +34,7 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 
 @Data
 public class PotentialDuplicateCriteria extends PagingAndSortingCriteriaAdapter {
-  private List<String> teis = new ArrayList<>();
+  private List<String> trackedEntities = new ArrayList<>();
 
   private DeduplicationStatus status = DeduplicationStatus.OPEN;
 }
