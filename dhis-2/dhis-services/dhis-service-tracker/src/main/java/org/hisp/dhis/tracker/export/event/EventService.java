@@ -43,5 +43,10 @@ public interface EventService {
 
   Events getEvents(EventOperationParams params) throws BadRequestException, ForbiddenException;
 
+  /**
+   * Fields the {@link #getEvents(EventOperationParams)} can order events by. Ordering by fields
+   * other than these is considered a programmer error. Validation of user provided field names
+   * should occur before calling {@link #getEvents(EventOperationParams)}.
+   */
   Set<String> getOrderableFields();
 }

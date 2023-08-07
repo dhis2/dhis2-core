@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.event;
+package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
@@ -39,52 +39,55 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class EventsExportControllerUnitTest {
+class TrackedEntitiesExportControllerUnitTest {
 
-  @Mock private EventService eventService;
+  @Mock private TrackedEntityService trackedEntityService;
 
-  @Mock private EventRequestParamsMapper eventParamsMapper;
+  @Mock private TrackedEntityRequestParamsMapper requestParamsMapper;
 
-  @Mock private CsvService<Event> csvEventService;
+  @Mock private CsvService<TrackedEntity> csvService;
 
   @Mock private FieldFilterService fieldFilterService;
 
-  @Mock private EventFieldsParamMapper eventsMapper;
+  @Mock private TrackedEntityFieldsParamMapper fieldsParamMapper;
 
   @Test
   void shouldFailInstantiatingControllerIfAnyOrderableFieldIsUnsupported() {
     // pretend the service does not support 2 of the orderable fields the web advocates
     Iterator<Entry<String, String>> iterator =
-        EventMapper.ORDERABLE_FIELDS.entrySet().stream().iterator();
+        TrackedEntityMapper.ORDERABLE_FIELDS.entrySet().stream().iterator();
     Entry<String, String> missing1 = iterator.next();
     Entry<String, String> missing2 = iterator.next();
-    Map<String, String> orderableFields = new HashMap<>(EventMapper.ORDERABLE_FIELDS);
+    Map<String, String> orderableFields = new HashMap<>(TrackedEntityMapper.ORDERABLE_FIELDS);
     orderableFields.remove(missing1.getKey());
     orderableFields.remove(missing2.getKey());
-    when(eventService.getOrderableFields()).thenReturn(new HashSet<>(orderableFields.values()));
+    when(trackedEntityService.getOrderableFields())
+        .thenReturn(new HashSet<>(orderableFields.values()));
 
     Exception exception =
         assertThrows(
             IllegalStateException.class,
             () ->
-                new EventsExportController(
-                    eventService,
-                    eventParamsMapper,
-                    csvEventService,
+                new TrackedEntitiesExportController(
+                    trackedEntityService,
+                    requestParamsMapper,
+                    csvService,
                     fieldFilterService,
-                    eventsMapper));
+                    fieldsParamMapper));
 
     assertAll(
-        () -> assertStartsWith("event controller supports ordering by", exception.getMessage()),
+        () ->
+            assertStartsWith(
+                "tracked entity controller supports ordering by", exception.getMessage()),
         () -> assertContains(missing1.getKey(), exception.getMessage()),
         () -> assertContains(missing2.getKey(), exception.getMessage()));
   }
