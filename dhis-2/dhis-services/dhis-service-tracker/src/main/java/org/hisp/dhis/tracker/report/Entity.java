@@ -42,6 +42,9 @@ public class Entity {
   /** Type of object this {@link Entity} represents. */
   @JsonProperty private final TrackerType trackerType;
 
+  /** Index into list. */
+  @JsonProperty private Integer index;
+
   /** UID of entity (if object is id object). */
   @JsonProperty private String uid;
 
@@ -51,18 +54,21 @@ public class Entity {
     this.trackerType = trackerType;
   }
 
-  public Entity(TrackerType trackerType, String uid) {
+  public Entity(TrackerType trackerType, String uid, Integer index) {
     this.trackerType = trackerType;
     this.uid = uid;
+    this.index = index;
   }
 
   @JsonCreator
   public Entity(
       @JsonProperty("trackerType") TrackerType trackerType,
       @JsonProperty("uid") String uid,
+      @JsonProperty("index") Integer index,
       @JsonProperty("errorReports") List<Error> errorReports) {
     this.trackerType = trackerType;
     this.uid = uid;
+    this.index = index;
     if (errorReports != null) {
       this.errorReports = errorReports;
     }

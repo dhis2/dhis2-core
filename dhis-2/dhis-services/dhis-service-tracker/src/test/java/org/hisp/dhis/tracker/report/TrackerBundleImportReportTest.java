@@ -310,7 +310,7 @@ class TrackerBundleImportReportTest {
   private PersistenceReport createBundleReport() {
     PersistenceReport persistenceReport = PersistenceReport.emptyReport();
     TrackerTypeReport typeReport = new TrackerTypeReport(TRACKED_ENTITY);
-    Entity objectReport = new Entity(TRACKED_ENTITY, "TEI_UID");
+    Entity objectReport = new Entity(TRACKED_ENTITY, "TEI_UID", 1);
     typeReport.addEntity(objectReport);
     typeReport.getStats().incCreated();
     persistenceReport.getTypeReportMap().put(TRACKED_ENTITY, typeReport);
