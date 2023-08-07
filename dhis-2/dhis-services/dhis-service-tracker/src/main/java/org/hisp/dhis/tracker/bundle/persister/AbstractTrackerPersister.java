@@ -100,7 +100,8 @@ public abstract class AbstractTrackerPersister<
     Set<String> updatedTeiList = bundle.getUpdatedTeis();
 
     for (T trackerDto : dtos) {
-      TrackerObjectReport objectReport = new TrackerObjectReport(getType(), trackerDto.getUid());
+      TrackerObjectReport objectReport =
+          new TrackerObjectReport(getType(), trackerDto.getUid(), dtos.indexOf(trackerDto));
 
       try {
         //

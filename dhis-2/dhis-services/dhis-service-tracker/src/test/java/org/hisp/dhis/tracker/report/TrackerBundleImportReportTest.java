@@ -313,7 +313,7 @@ class TrackerBundleImportReportTest extends DhisSpringTest {
   private TrackerBundleReport createBundleReport() {
     TrackerBundleReport bundleReport = new TrackerBundleReport();
     TrackerTypeReport typeReport = new TrackerTypeReport(TRACKED_ENTITY);
-    TrackerObjectReport objectReport = new TrackerObjectReport(TRACKED_ENTITY, "TEI_UID");
+    TrackerObjectReport objectReport = new TrackerObjectReport(TRACKED_ENTITY, "TEI_UID", 1);
     typeReport.addObjectReport(objectReport);
     typeReport.getStats().incCreated();
     bundleReport.getTypeReportMap().put(TRACKED_ENTITY, typeReport);

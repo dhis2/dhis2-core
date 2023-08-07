@@ -78,7 +78,8 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (Enrollment enrollment : enrollments) {
       String uid = enrollment.getEnrollment();
 
-      TrackerObjectReport objectReport = new TrackerObjectReport(TrackerType.ENROLLMENT, uid);
+      TrackerObjectReport objectReport =
+          new TrackerObjectReport(TrackerType.ENROLLMENT, uid, enrollments.indexOf(enrollment));
 
       ProgramInstance programInstance = programInstanceService.getProgramInstance(uid);
 
@@ -116,7 +117,8 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (Event event : events) {
       String uid = event.getEvent();
 
-      TrackerObjectReport objectReport = new TrackerObjectReport(TrackerType.EVENT, uid);
+      TrackerObjectReport objectReport =
+          new TrackerObjectReport(TrackerType.EVENT, uid, events.indexOf(event));
 
       ProgramStageInstance programStageInstance =
           programStageInstanceService.getProgramStageInstance(uid);
@@ -149,7 +151,9 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (TrackedEntity trackedEntity : trackedEntities) {
       String uid = trackedEntity.getTrackedEntity();
 
-      TrackerObjectReport objectReport = new TrackerObjectReport(TrackerType.TRACKED_ENTITY, uid);
+      TrackerObjectReport objectReport =
+          new TrackerObjectReport(
+              TrackerType.TRACKED_ENTITY, uid, trackedEntities.indexOf(trackedEntity));
 
       org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance =
           teiService.getTrackedEntityInstance(uid);
@@ -186,7 +190,8 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (Relationship rel : relationships) {
       String uid = rel.getRelationship();
 
-      TrackerObjectReport objectReport = new TrackerObjectReport(TrackerType.RELATIONSHIP, uid);
+      TrackerObjectReport objectReport =
+          new TrackerObjectReport(TrackerType.RELATIONSHIP, uid, relationships.indexOf(rel));
 
       org.hisp.dhis.relationship.Relationship relationship =
           relationshipService.getRelationship(uid);
