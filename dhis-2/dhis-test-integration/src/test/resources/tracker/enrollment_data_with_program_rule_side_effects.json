@@ -48,7 +48,9 @@
       "featureType": "NONE",
       "attributes": [
         {
+          "updatedAt": "2020-02-10T10:56:07.591",
           "storedBy": "admin",
+          "createdAt": "2020-02-10T10:56:07.588",
           "valueType": "INTEGER",
           "attribute": {
             "idScheme": "UID",
