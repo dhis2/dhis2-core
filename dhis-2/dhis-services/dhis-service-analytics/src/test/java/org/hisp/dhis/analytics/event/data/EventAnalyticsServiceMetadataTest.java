@@ -158,6 +158,8 @@ public class EventAnalyticsServiceMetadataTest
     @SuppressWarnings( "unchecked" )
     public void testGetQueryItemDimensionMetadata()
     {
+        deB = createDataElement( 'B', ValueType.TEXT, AggregationType.SUM );
+
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
             Lists.newArrayList( peA ) );
         DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,

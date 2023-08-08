@@ -29,7 +29,10 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
@@ -40,7 +43,9 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
@@ -165,7 +170,99 @@ public class EventQueryValidatorTest
     }
 
     @Test
-    public void validateSuccesA()
+    public void validateValidFilterForValueType()
+    {
+        QueryFilter filter = new QueryFilter( QueryOperator.EQ, "68" );
+        QueryItem item = new QueryItem( deA, deA.getLegendSet(),
+            deA.getValueType(), deA.getAggregationType(), deA.getOptionSet() );
+        item.addFilter( filter );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( Arrays.asList( ouB ) )
+            .addItem( item ).build();
+
+        queryValidator.validate( params );
+    }
+
+    @Test
+    public void validateInvalidFilterForIntegerValueType()
+    {
+        QueryFilter filter = new QueryFilter( QueryOperator.EQ, "male" );
+        QueryItem item = new QueryItem( deA, deA.getLegendSet(),
+            deA.getValueType(), deA.getAggregationType(), deA.getOptionSet() );
+        item.addFilter( filter );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( Arrays.asList( ouB ) )
+            .addItem( item ).build();
+
+        assertValidationError( ErrorCode.E7234, params );
+    }
+
+    @Test
+    public void validateInvalidInFilterForIntegerValueType()
+    {
+        QueryFilter filter = new QueryFilter( QueryOperator.IN, "male;1" );
+        QueryItem item = new QueryItem( deA, deA.getLegendSet(),
+            deA.getValueType(), deA.getAggregationType(), deA.getOptionSet() );
+        item.addFilter( filter );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( Arrays.asList( ouB ) )
+            .addItem( item ).build();
+
+        assertValidationError( ErrorCode.E7234, params );
+    }
+
+    @Test
+    public void validateValidInFilterForIntegerValueType()
+    {
+        QueryFilter filter = new QueryFilter( QueryOperator.IN, "2;1" );
+        QueryItem item = new QueryItem( deA, deA.getLegendSet(),
+            deA.getValueType(), deA.getAggregationType(), deA.getOptionSet() );
+        item.addFilter( filter );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( Arrays.asList( ouB ) )
+            .addItem( item ).build();
+
+        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+
+        assertNull( error );
+    }
+
+    @Test
+    public void validateInvalidFilterForDateTimeValueType()
+    {
+        QueryFilter filter = new QueryFilter( QueryOperator.EQ, "2023-12-01" );
+        QueryItem item = new QueryItem( deC, deC.getLegendSet(),
+            deC.getValueType(), deC.getAggregationType(), deC.getOptionSet() );
+        item.addFilter( filter );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( Arrays.asList( ouB ) )
+            .addItem( item ).build();
+
+        assertValidationError( ErrorCode.E7234, params );
+    }
+
+    @Test
+    public void validateSuccessA()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -228,7 +325,7 @@ public class EventQueryValidatorTest
             .withProgram( prA )
             .withOrganisationUnits( Lists.newArrayList( ouB ) ).build();
 
-        assertValidatonError( ErrorCode.E7205, params );
+        assertValidationError( ErrorCode.E7205, params );
     }
 
     @Test
@@ -253,7 +350,7 @@ public class EventQueryValidatorTest
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
             .addItem( new QueryItem( deA, lsA, ValueType.TEXT, AggregationType.NONE, osA ) ).build();
 
-        assertValidatonError( ErrorCode.E7215, params );
+        assertValidationError( ErrorCode.E7215, params );
     }
 
     @Test
@@ -266,7 +363,7 @@ public class EventQueryValidatorTest
             .withOrganisationUnits( Lists.newArrayList( ouA ) )
             .withTimeField( "notAUidOrTimeField" ).build();
 
-        assertValidatonError( ErrorCode.E7210, params );
+        assertValidationError( ErrorCode.E7210, params );
     }
 
     @Test
@@ -279,7 +376,7 @@ public class EventQueryValidatorTest
             .withOrganisationUnits( Lists.newArrayList( ouA ) )
             .withOrgUnitField( "notAUid" ).build();
 
-        assertValidatonError( ErrorCode.E7211, params );
+        assertValidationError( ErrorCode.E7211, params );
     }
 
     @Test
@@ -370,7 +467,7 @@ public class EventQueryValidatorTest
      * @param errorCode the {@link ErrorCode}.
      * @param params the {@link DataQueryParams}.
      */
-    private void assertValidatonError( final ErrorCode errorCode, final EventQueryParams params )
+    private void assertValidationError( final ErrorCode errorCode, final EventQueryParams params )
     {
         ThrowingRunnable runnable = () -> queryValidator.validate( params );
         IllegalQueryException ex = assertThrows( "Error code mismatch", IllegalQueryException.class, runnable );

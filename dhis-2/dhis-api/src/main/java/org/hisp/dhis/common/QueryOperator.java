@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -58,7 +60,7 @@ public enum QueryOperator
 
     public static QueryOperator fromString( String string )
     {
-        if ( string == null || string.isEmpty() )
+        if ( isBlank( string ) )
         {
             return null;
         }
@@ -66,4 +68,8 @@ public enum QueryOperator
         return valueOf( string.toUpperCase() );
     }
 
+    public boolean isIn()
+    {
+        return IN == this;
+    }
 }
