@@ -46,7 +46,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -97,7 +97,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenProgramClosedOuModeDescendantsAndOrgUnitInCaptureScope() {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
     params.setProgram(get(Program.class, "pcxIanBWlSY"));
     params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "uoNW0E3xXUy")));
     params.setOrgUnitSelectionMode(DESCENDANTS);
@@ -120,7 +120,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenNoProgramSpecifiedOuModeDescendantsAndOrgUnitInSearchScope() {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
     params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, orgUnit.getUid())));
     params.setOrgUnitSelectionMode(DESCENDANTS);
 
@@ -137,7 +137,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenNoProgramSpecifiedOuModeDescenadantsAndOrgUnitInSearchScope() {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
     params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "uoNW0E3xXUy")));
     params.setOrgUnitSelectionMode(DESCENDANTS);
 
@@ -154,7 +154,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenProgramClosedOuModeChildrenAndOrgUnitInCaptureScope() {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
     params.setProgram(get(Program.class, "pcxIanBWlSY"));
     params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "uoNW0E3xXUy")));
     params.setOrgUnitSelectionMode(CHILDREN);
@@ -177,7 +177,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenNoProgramSpecifiedOuModeChildrenAndOrgUnitInSearchScope() {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
     params.setAccessibleOrgUnits(
         List.of(
             get(OrganisationUnit.class, orgUnit.getUid()),
@@ -197,7 +197,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenProgramClosedOuModeSelectedAndOrgUnitInCaptureScope() {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
     params.setProgram(get(Program.class, "pcxIanBWlSY"));
     params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "uoNW0E3xXUy")));
     params.setOrgUnitSelectionMode(SELECTED);
@@ -221,7 +221,7 @@ class AclEventExporterTest extends TrackerTest {
   void shouldReturnEventsWhenNoProgramSpecifiedOuModeSelectedAndOrgUnitInSearchScope() {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
 
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
     params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, orgUnit.getUid())));
     params.setOrgUnitSelectionMode(SELECTED);
 
@@ -245,7 +245,7 @@ class AclEventExporterTest extends TrackerTest {
   void shouldReturnNoEventsWhenProgramOpenOuModeSelectedAndNoProgramEvents() {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
 
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
     params.setProgram(get(Program.class, "shPjYNifvMK"));
     params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, orgUnit.getUid())));
     params.setOrgUnitSelectionMode(SELECTED);
@@ -259,7 +259,7 @@ class AclEventExporterTest extends TrackerTest {
   void shouldReturnEventsWhenProgramClosedOuModeAccessible() {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
 
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
     params.setProgram(get(Program.class, "pcxIanBWlSY"));
     params.setOrgUnitSelectionMode(ACCESSIBLE);
 
@@ -281,7 +281,7 @@ class AclEventExporterTest extends TrackerTest {
   void shouldReturnEventsWhenProgramOpenOuModeAccessible() {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
 
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
     params.setProgram(get(Program.class, program.getUid()));
     params.setOrgUnitSelectionMode(ACCESSIBLE);
 
@@ -303,7 +303,7 @@ class AclEventExporterTest extends TrackerTest {
   void shouldReturnEventsWhenProgramOpenOuModeCapture() {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
 
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
     params.setProgram(get(Program.class, "pcxIanBWlSY"));
     params.setOrgUnitSelectionMode(CAPTURE);
 

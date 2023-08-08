@@ -59,7 +59,7 @@ import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -121,7 +121,7 @@ class EventRequestToSearchParamsMapper {
     }
   }
 
-  public EventSearchParams map(
+  public EventQueryParams map(
       String program,
       String programStage,
       ProgramStatus programStatus,
@@ -191,7 +191,7 @@ class EventRequestToSearchParamsMapper {
         includeDeleted);
   }
 
-  public EventSearchParams map(
+  public EventQueryParams map(
       String program,
       String programStage,
       ProgramStatus programStatus,
@@ -228,7 +228,7 @@ class EventRequestToSearchParamsMapper {
       throws ForbiddenException {
     User user = currentUserService.getCurrentUser();
 
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
 
     Program pr = programService.getProgram(program);
 
@@ -386,7 +386,7 @@ class EventRequestToSearchParamsMapper {
     return new QueryItem(de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet());
   }
 
-  public EventSearchParams map(EventCriteria eventCriteria) throws ForbiddenException {
+  public EventQueryParams map(EventCriteria eventCriteria) throws ForbiddenException {
 
     CategoryOptionCombo attributeOptionCombo =
         inputUtils.getAttributeOptionCombo(

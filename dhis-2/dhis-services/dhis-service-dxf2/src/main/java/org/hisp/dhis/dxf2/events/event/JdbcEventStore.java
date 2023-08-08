@@ -32,25 +32,25 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_BY_USER_INFO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ENROLLMENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_GEOMETRY;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_BY_USER_INFO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_COMPLETED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_COMPLETED_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_CREATED_BY_USER_INFO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_CREATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_DELETED;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_DUE_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_ENROLLMENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_EXECUTION_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_GEOMETRY;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_LAST_UPDATED_BY_USER_INFO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_LAST_UPDATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_ORG_UNIT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_ORG_UNIT_NAME;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_PROGRAM_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_PROGRAM_STAGE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_STATUS_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_STORED_BY_ID;
 import static org.hisp.dhis.dxf2.events.event.EventUtils.eventDataValuesToJson;
 import static org.hisp.dhis.dxf2.events.event.EventUtils.jsonToUserInfo;
 import static org.hisp.dhis.dxf2.events.event.EventUtils.userInfoToJson;
@@ -371,7 +371,7 @@ public class JdbcEventStore implements EventStore {
 
   @Override
   public List<Event> getEvents(
-      EventSearchParams params,
+      EventQueryParams params,
       List<OrganisationUnit> organisationUnits,
       Map<String, Set<String>> psdesWithSkipSyncTrue) {
     User user = currentUserService.getCurrentUser();
@@ -598,7 +598,7 @@ public class JdbcEventStore implements EventStore {
 
   @Override
   public List<Map<String, String>> getEventsGrid(
-      EventSearchParams params, List<OrganisationUnit> organisationUnits) {
+      EventQueryParams params, List<OrganisationUnit> organisationUnits) {
     User user = currentUserService.getCurrentUser();
 
     setAccessiblePrograms(user, params);
@@ -635,7 +635,7 @@ public class JdbcEventStore implements EventStore {
 
   @Override
   public List<EventRow> getEventRows(
-      EventSearchParams params, List<OrganisationUnit> organisationUnits) {
+      EventQueryParams params, List<OrganisationUnit> organisationUnits) {
     User user = currentUserService.getCurrentUser();
 
     setAccessiblePrograms(user, params);
@@ -804,7 +804,7 @@ public class JdbcEventStore implements EventStore {
     }
   }
 
-  private String getEventSelectIdentifiersByIdScheme(EventSearchParams params) {
+  private String getEventSelectIdentifiersByIdScheme(EventQueryParams params) {
     IdSchemes idSchemes = params.getIdSchemes();
 
     StringBuilder sqlBuilder = new StringBuilder();
@@ -843,7 +843,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   @Override
-  public int getEventCount(EventSearchParams params, List<OrganisationUnit> organisationUnits) {
+  public int getEventCount(EventQueryParams params, List<OrganisationUnit> organisationUnits) {
     User user = currentUserService.getCurrentUser();
     setAccessiblePrograms(user, params);
 
@@ -883,7 +883,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String buildGridSql(
-      EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
+      EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     SqlHelper hlp = new SqlHelper();
 
     StringBuilder selectBuilder =
@@ -912,7 +912,7 @@ public class JdbcEventStore implements EventStore {
    * on events.
    */
   private String buildSql(
-      EventSearchParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
+      EventQueryParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
     StringBuilder sqlBuilder = new StringBuilder().append("select * from (");
 
     sqlBuilder.append(getEventSelectQuery(params, mapSqlParameterSource, user));
@@ -1031,7 +1031,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String getEventSelectQuery(
-      EventSearchParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
+      EventQueryParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
     SqlHelper hlp = new SqlHelper();
 
     StringBuilder selectBuilder =
@@ -1080,7 +1080,7 @@ public class JdbcEventStore implements EventStore {
         .toString();
   }
 
-  private boolean checkForOwnership(EventSearchParams params) {
+  private boolean checkForOwnership(EventQueryParams params) {
     return Optional.ofNullable(params.getProgram())
         .filter(
             p ->
@@ -1089,12 +1089,12 @@ public class JdbcEventStore implements EventStore {
         .isPresent();
   }
 
-  private String getOuTableName(EventSearchParams params) {
+  private String getOuTableName(EventQueryParams params) {
     return checkForOwnership(params) ? " psiou" : " ou";
   }
 
   private StringBuilder getFromWhereClause(
-      EventSearchParams params,
+      EventQueryParams params,
       MapSqlParameterSource mapSqlParameterSource,
       User user,
       SqlHelper hlp,
@@ -1345,7 +1345,7 @@ public class JdbcEventStore implements EventStore {
     return fromBuilder;
   }
 
-  private String getOrgUnitSql(EventSearchParams params, String ouTable) {
+  private String getOrgUnitSql(EventQueryParams params, String ouTable) {
     switch (params.getOrgUnitSelectionMode()) {
       case SELECTED:
         return getSelectedOrgUnitPath(params.getAccessibleOrgUnits(), ouTable);
@@ -1400,7 +1400,7 @@ public class JdbcEventStore implements EventStore {
    * in where clause.
    */
   private StringBuilder dataElementAndFiltersSql(
-      EventSearchParams params,
+      EventQueryParams params,
       MapSqlParameterSource mapSqlParameterSource,
       SqlHelper hlp,
       StringBuilder selectBuilder) {
@@ -1533,7 +1533,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String getFromWhereClause(
-      EventSearchParams params,
+      EventQueryParams params,
       StringBuilder dataElementAndFiltersSql,
       MapSqlParameterSource mapSqlParameterSource,
       SqlHelper hlp) {
@@ -1685,7 +1685,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String eventStatusSql(
-      EventSearchParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
+      EventQueryParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
     StringBuilder stringBuilder = new StringBuilder();
 
     if (params.getEventStatus() != null) {
@@ -1720,7 +1720,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String addLastUpdatedFilters(
-      EventSearchParams params,
+      EventQueryParams params,
       MapSqlParameterSource mapSqlParameterSource,
       SqlHelper hlp,
       boolean useDateAfterEndDate) {
@@ -1816,7 +1816,7 @@ public class JdbcEventStore implements EventStore {
     return joinCondition + ") as coc_agg on coc_agg.id = psi.attributeoptioncomboid ";
   }
 
-  private String getEventPagingQuery(final EventSearchParams params) {
+  private String getEventPagingQuery(final EventQueryParams params) {
     final StringBuilder sqlBuilder = new StringBuilder().append(" ");
     int pageSize = params.getPageSizeWithDefault();
 
@@ -1840,7 +1840,7 @@ public class JdbcEventStore implements EventStore {
     return sqlBuilder.toString();
   }
 
-  private String getGridOrderQuery(EventSearchParams params) {
+  private String getGridOrderQuery(EventQueryParams params) {
 
     if (params.getGridOrders() != null
         && params.getDataElements() != null
@@ -1872,7 +1872,7 @@ public class JdbcEventStore implements EventStore {
     return "order by lastUpdated desc ";
   }
 
-  private String getOrderQuery(EventSearchParams params) {
+  private String getOrderQuery(EventQueryParams params) {
     ArrayList<String> orderFields = new ArrayList<>();
 
     for (OrderParam order : params.getOrders()) {
@@ -2166,7 +2166,7 @@ public class JdbcEventStore implements EventStore {
     }
   }
 
-  private void setAccessiblePrograms(User user, EventSearchParams params) {
+  private void setAccessiblePrograms(User user, EventQueryParams params) {
     if (!isSuper(user)) {
       params.setAccessiblePrograms(
           manager.getDataReadAll(Program.class).stream()
