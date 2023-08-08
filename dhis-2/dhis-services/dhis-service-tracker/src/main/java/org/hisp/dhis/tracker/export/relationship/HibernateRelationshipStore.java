@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export.relationship;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.TypedQuery;
@@ -47,9 +48,9 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -57,6 +58,15 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.tracker.export.relationship.RelationshipStore")
 class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relationship>
     implements RelationshipStore {
+
+  private static final Order DEFAULT_ORDER = new Order("id", SortDirection.DESC);
+
+  /**
+   * Relationships can be ordered by given fields which correspond to fields on {@link
+   * org.hisp.dhis.relationship.Relationship}.
+   */
+  private static final Set<String> ORDERABLE_FIELDS = Set.of("created");
+
   private static final String TRACKED_ENTITY = "trackedEntity";
 
   private static final String PROGRAM_INSTANCE = "enrollment";
@@ -81,34 +91,31 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
   @Override
   public List<Relationship> getByTrackedEntity(
-      TrackedEntity trackedEntity,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter) {
+      TrackedEntity trackedEntity, RelationshipQueryParams queryParams) {
     TypedQuery<Relationship> relationshipTypedQuery =
-        getRelationshipTypedQuery(trackedEntity, pagingAndSortingCriteriaAdapter);
+        getRelationshipTypedQuery(trackedEntity, queryParams);
 
     return getList(relationshipTypedQuery);
   }
 
   @Override
   public List<Relationship> getByEnrollment(
-      Enrollment enrollment, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter) {
+      Enrollment enrollment, RelationshipQueryParams queryParams) {
     TypedQuery<Relationship> relationshipTypedQuery =
-        getRelationshipTypedQuery(enrollment, pagingAndSortingCriteriaAdapter);
+        getRelationshipTypedQuery(enrollment, queryParams);
 
     return getList(relationshipTypedQuery);
   }
 
   @Override
-  public List<Relationship> getByEvent(
-      Event event, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter) {
-    TypedQuery<Relationship> relationshipTypedQuery =
-        getRelationshipTypedQuery(event, pagingAndSortingCriteriaAdapter);
+  public List<Relationship> getByEvent(Event event, RelationshipQueryParams queryParams) {
+    TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery(event, queryParams);
 
     return getList(relationshipTypedQuery);
   }
 
   private <T extends IdentifiableObject> TypedQuery<Relationship> getRelationshipTypedQuery(
-      T entity, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter) {
+      T entity, RelationshipQueryParams queryParams) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CriteriaQuery<Relationship> relationshipItemCriteriaQuery =
@@ -118,8 +125,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     setRelationshipItemCriteriaQueryExistsCondition(
         entity, builder, relationshipItemCriteriaQuery, root);
 
-    return getRelationshipTypedQuery(
-        pagingAndSortingCriteriaAdapter, builder, relationshipItemCriteriaQuery, root);
+    return getRelationshipTypedQuery(queryParams, builder, relationshipItemCriteriaQuery, root);
   }
 
   private <T extends IdentifiableObject> void setRelationshipItemCriteriaQueryExistsCondition(
@@ -165,12 +171,11 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   }
 
   private TypedQuery<Relationship> getRelationshipTypedQuery(
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      RelationshipQueryParams queryParams,
       CriteriaBuilder builder,
       CriteriaQuery<Relationship> relationshipItemCriteriaQuery,
       Root<Relationship> root) {
-    JpaQueryParameters<Relationship> jpaQueryParameters =
-        newJpaParameters(pagingAndSortingCriteriaAdapter, builder);
+    JpaQueryParameters<Relationship> jpaQueryParameters = newJpaParameters(queryParams, builder);
 
     relationshipItemCriteriaQuery.orderBy(
         jpaQueryParameters.getOrders().stream()
@@ -192,21 +197,30 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   }
 
   private JpaQueryParameters<Relationship> newJpaParameters(
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      CriteriaBuilder criteriaBuilder) {
+      RelationshipQueryParams queryParams, CriteriaBuilder criteriaBuilder) {
 
     JpaQueryParameters<Relationship> jpaQueryParameters = newJpaParameters();
 
-    if (Objects.nonNull(pagingAndSortingCriteriaAdapter)) {
-      if (pagingAndSortingCriteriaAdapter.isSortingRequest()) {
-        pagingAndSortingCriteriaAdapter
+    if (Objects.nonNull(queryParams)) {
+      if (!queryParams.getOrder().isEmpty()) {
+        queryParams
             .getOrder()
-            .forEach(orderCriteria -> addOrder(jpaQueryParameters, orderCriteria, criteriaBuilder));
+            .forEach(order -> addOrder(jpaQueryParameters, order, criteriaBuilder));
+      } else {
+        addOrder(jpaQueryParameters, DEFAULT_ORDER, criteriaBuilder);
       }
 
-      if (pagingAndSortingCriteriaAdapter.isPagingRequest()) {
-        jpaQueryParameters.setFirstResult(pagingAndSortingCriteriaAdapter.getFirstResult());
-        jpaQueryParameters.setMaxResults(pagingAndSortingCriteriaAdapter.getPageSize() + 1);
+      if (!queryParams.isSkipPaging()) {
+        jpaQueryParameters.setFirstResult(queryParams.getOffset());
+        jpaQueryParameters.setMaxResults(queryParams.getPageSizeWithDefault());
+      }
+
+      // When the clients choose to not show the total of pages.
+      if (!queryParams.isTotalPages() && !queryParams.isSkipPaging()) {
+        // Get pageSize + 1, so we are able to know if there is another
+        // page available. It adds one additional element into the list,
+        // as consequence. The caller needs to remove the last element.
+        jpaQueryParameters.setMaxResults(queryParams.getPageSizeWithDefault() + 1);
       }
     }
 
@@ -214,14 +228,17 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   }
 
   private void addOrder(
-      JpaQueryParameters<Relationship> jpaQueryParameters,
-      OrderCriteria orderCriteria,
-      CriteriaBuilder builder) {
+      JpaQueryParameters<Relationship> jpaQueryParameters, Order order, CriteriaBuilder builder) {
     jpaQueryParameters.addOrder(
         relationshipRoot ->
-            orderCriteria.getDirection().isAscending()
-                ? builder.asc(relationshipRoot.get(orderCriteria.getField()))
-                : builder.desc(relationshipRoot.get(orderCriteria.getField())));
+            order.getDirection().isAscending()
+                ? builder.asc(relationshipRoot.get((String) order.getField()))
+                : builder.desc(relationshipRoot.get((String) order.getField())));
+  }
+
+  @Override
+  public Set<String> getOrderableFields() {
+    return ORDERABLE_FIELDS;
   }
 
   @Override

@@ -34,7 +34,7 @@ import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
@@ -49,7 +49,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,7 +73,7 @@ public class DefaultRelationshipService implements RelationshipService {
     Pager pager;
     List<Relationship> relationships = getRelationships(queryParams);
 
-    if (Boolean.TRUE.equals(queryParams.isSkipPaging())) {
+    if (queryParams.isSkipPaging()) {
       return Relationships.withoutPagination(relationships);
     }
 
@@ -89,8 +88,7 @@ public class DefaultRelationshipService implements RelationshipService {
     return Relationships.of(relationships, pager);
   }
 
-  public int countRelationships(RelationshipQueryParams queryParams) {
-
+  private int countRelationships(RelationshipQueryParams queryParams) {
     if (queryParams.getEntity() instanceof TrackedEntity te) {
       return getRelationshipsByTrackedEntity(te, null).size();
     }
@@ -123,55 +121,30 @@ public class DefaultRelationshipService implements RelationshipService {
     return map(relationship);
   }
 
-  @Override
-  public Optional<Relationship> findRelationshipByUid(String uid) {
-    Relationship relationship = relationshipStore.getByUid(uid);
-
-    if (relationship == null) {
-      return Optional.empty();
-    }
-
-    User user = currentUserService.getCurrentUser();
-    List<String> errors = trackerAccessManager.canRead(user, relationship);
-
-    if (!errors.isEmpty()) {
-      return Optional.empty();
-    }
-
-    return Optional.of(map(relationship));
-  }
-
-  @Override
   public List<Relationship> getRelationshipsByTrackedEntity(
-      TrackedEntity trackedEntity,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter) {
-
+      TrackedEntity trackedEntity, RelationshipQueryParams queryParams) {
     List<Relationship> relationships =
-        relationshipStore
-            .getByTrackedEntity(trackedEntity, pagingAndSortingCriteriaAdapter)
-            .stream()
+        relationshipStore.getByTrackedEntity(trackedEntity, queryParams).stream()
             .filter(
                 r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
             .toList();
     return map(relationships);
   }
 
-  @Override
   public List<Relationship> getRelationshipsByEnrollment(
-      Enrollment enrollment, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter) {
+      Enrollment enrollment, RelationshipQueryParams queryParams) {
     List<Relationship> relationships =
-        relationshipStore.getByEnrollment(enrollment, pagingAndSortingCriteriaAdapter).stream()
+        relationshipStore.getByEnrollment(enrollment, queryParams).stream()
             .filter(
                 r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
             .toList();
     return map(relationships);
   }
 
-  @Override
   public List<Relationship> getRelationshipsByEvent(
-      Event event, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter) {
+      Event event, RelationshipQueryParams queryParams) {
     List<Relationship> relationships =
-        relationshipStore.getByEvent(event, pagingAndSortingCriteriaAdapter).stream()
+        relationshipStore.getByEvent(event, queryParams).stream()
             .filter(
                 r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
             .toList();
@@ -269,5 +242,10 @@ public class DefaultRelationshipService implements RelationshipService {
     }
 
     return new SlimPager(originalPage, originalPageSize, isLastPage);
+  }
+
+  @Override
+  public Set<String> getOrderableFields() {
+    return relationshipStore.getOrderableFields();
   }
 }
