@@ -28,22 +28,27 @@
 package org.hisp.dhis.tracker.export.relationship;
 
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 public interface RelationshipStore extends IdentifiableObjectStore<Relationship> {
   String ID = RelationshipStore.class.getName();
 
   List<Relationship> getByTrackedEntity(
-      TrackedEntity trackedEntity, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
+      TrackedEntity trackedEntity, RelationshipQueryParams queryParams);
 
-  List<Relationship> getByEnrollment(
-      Enrollment enrollment, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
+  List<Relationship> getByEnrollment(Enrollment enrollment, RelationshipQueryParams queryParams);
 
-  List<Relationship> getByEvent(
-      Event event, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
+  List<Relationship> getByEvent(Event event, RelationshipQueryParams queryParams);
+
+  /**
+   * Fields the store can order relationships by. Ordering by fields other than these is considered
+   * a programmer error. Validation of user provided field names should occur before calling any
+   * store method.
+   */
+  Set<String> getOrderableFields();
 }

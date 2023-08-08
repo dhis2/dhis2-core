@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
+import static java.util.Map.entry;
+
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
@@ -38,6 +41,13 @@ import org.mapstruct.Mapping;
 @Mapper(uses = {RelationshipItemMapper.class, InstantMapper.class})
 public interface RelationshipMapper
     extends ViewMapper<org.hisp.dhis.relationship.Relationship, Relationship> {
+
+  /**
+   * Relationships can be ordered by given fields which correspond to fields on {@link
+   * org.hisp.dhis.relationship.Relationship}.
+   */
+  Map<String, String> ORDERABLE_FIELDS = Map.ofEntries(entry("createdAt", "created"));
+
   @Mapping(target = "relationship", source = "uid")
   @Mapping(target = "relationshipType", source = "relationshipType.uid")
   @Mapping(target = "relationshipName", source = "relationshipType.name")
