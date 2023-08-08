@@ -33,22 +33,22 @@ import java.util.List;
 import java.util.Set;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
 @Accessors(chain = true)
-public class EnrollmentQueryParams {
+class EnrollmentQueryParams {
   public static final int DEFAULT_PAGE = 1;
 
   public static final int DEFAULT_PAGE_SIZE = 50;
@@ -106,8 +106,7 @@ public class EnrollmentQueryParams {
   /** Indicates whether to include soft-deleted enrollments */
   private boolean includeDeleted;
 
-  /** List of order params */
-  private List<OrderParam> order;
+  private List<Order> order;
 
   // -------------------------------------------------------------------------
   // Transient properties
@@ -220,7 +219,11 @@ public class EnrollmentQueryParams {
     this.skipPaging = false;
   }
 
-  public boolean isSorting() {
-    return !CollectionUtils.emptyIfNull(order).isEmpty();
+  /**
+   * Order by an enrollment field of the given {@code field} name in given sort {@code direction}.
+   */
+  public EnrollmentQueryParams orderBy(String field, SortDirection direction) {
+    this.order.add(new Order(field, direction));
+    return this;
   }
 }

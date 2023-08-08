@@ -97,7 +97,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @Service("org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService")
 @RequiredArgsConstructor
-public class DefaultTrackedEntityService implements TrackedEntityService {
+class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final TrackedEntityStore trackedEntityStore;
 

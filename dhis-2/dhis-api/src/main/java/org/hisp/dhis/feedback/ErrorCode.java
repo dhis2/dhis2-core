@@ -422,6 +422,9 @@ public enum ErrorCode {
   E7141("parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]"),
   E7142("Program(s) `{0}` are not defined on Tracked Entity Type `{1}`"),
   E7143("Organisation unit or organisation unit level is not valid"),
+  E7144(
+      "Query failed because a referenced table does not exist. Please ensure analytics job was run"),
+  E7145("Query failed because of a syntax error"),
 
   /* Event analytics */
   E7200(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
