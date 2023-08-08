@@ -35,6 +35,8 @@ import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -52,6 +54,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -60,7 +63,23 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.tracker.export.enrollment.EnrollmentStore")
 class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment>
     implements EnrollmentStore {
+
+  private static final String DEFAULT_ORDER = "id desc";
+
   private static final String STATUS = "status";
+
+  /**
+   * Enrollments can be ordered by given fields which correspond to fields on {@link
+   * org.hisp.dhis.program.Enrollment}.
+   */
+  private static final Set<String> ORDERABLE_FIELDS =
+      Set.of(
+          "endDate",
+          "created",
+          "createdAtClient",
+          "enrollmentDate",
+          "lastUpdated",
+          "lastUpdatedAtClient");
 
   public HibernateEnrollmentStore(
       SessionFactory sessionFactory,
@@ -199,24 +218,20 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       hql += hlp.whereAnd() + " en.deleted is false ";
     }
 
-    QueryWithOrderBy query = QueryWithOrderBy.builder().query(hql).build();
+    return QueryWithOrderBy.builder().query(hql).orderBy(orderBy(params.getOrder())).build();
+  }
 
-    if (params.isSorting()) {
-      query =
-          query.toBuilder()
-              .orderBy(
-                  " order by "
-                      + params.getOrder().stream()
-                          .map(
-                              orderParam ->
-                                  orderParam.getField()
-                                      + " "
-                                      + (orderParam.getDirection().isAscending() ? "asc" : "desc"))
-                          .collect(Collectors.joining(", ")))
-              .build();
+  private static String orderBy(List<Order> orders) {
+    if (orders.isEmpty()) {
+      return " order by " + DEFAULT_ORDER;
     }
 
-    return query;
+    StringJoiner orderJoiner = new StringJoiner(", ");
+    for (Order order : orders) {
+      orderJoiner.add(
+          order.getField() + " " + (order.getDirection().isAscending() ? "asc" : "desc"));
+    }
+    return " order by " + orderJoiner;
   }
 
   @Getter
@@ -243,5 +258,10 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
   @Override
   protected Enrollment postProcessObject(Enrollment enrollment) {
     return (enrollment == null || enrollment.isDeleted()) ? null : enrollment;
+  }
+
+  @Override
+  public Set<String> getOrderableFields() {
+    return ORDERABLE_FIELDS;
   }
 }

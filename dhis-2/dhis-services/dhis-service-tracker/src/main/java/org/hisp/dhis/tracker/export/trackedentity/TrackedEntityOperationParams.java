@@ -46,9 +46,9 @@ import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
+@Getter
 @Builder(toBuilder = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Getter
 public class TrackedEntityOperationParams {
   public static final int DEFAULT_PAGE = 1;
 
