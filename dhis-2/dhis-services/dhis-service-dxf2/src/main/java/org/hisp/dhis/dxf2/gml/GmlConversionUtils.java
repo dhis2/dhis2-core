@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.gml;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Locale;
-
 import org.apache.commons.math3.util.Precision;
 
 /**
@@ -38,100 +37,88 @@ import org.apache.commons.math3.util.Precision;
  *
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-public class GmlConversionUtils
-{
-    private static final NumberFormat NF = NumberFormat.getInstance( Locale.ENGLISH );
+public class GmlConversionUtils {
+  private static final NumberFormat NF = NumberFormat.getInstance(Locale.ENGLISH);
 
-    /**
-     * Parses a gml:coordinates element and outputs a GeoJSON string.
-     *
-     * @param coordinates contents of gml:coordinates element to parse.
-     * @param precision decimal precision to use in output.
-     * @return a string representation of the coordinates.
-     * @throws ParseException
-     */
-    public static String gmlCoordinatesToString( String coordinates, String precision )
-        throws ParseException
-    {
-        int nDecimals = Integer.parseInt( precision );
+  /**
+   * Parses a gml:coordinates element and outputs a GeoJSON string.
+   *
+   * @param coordinates contents of gml:coordinates element to parse.
+   * @param precision decimal precision to use in output.
+   * @return a string representation of the coordinates.
+   * @throws ParseException
+   */
+  public static String gmlCoordinatesToString(String coordinates, String precision)
+      throws ParseException {
+    int nDecimals = Integer.parseInt(precision);
 
-        StringBuilder sb = new StringBuilder();
+    StringBuilder sb = new StringBuilder();
 
-        for ( String coordinate : coordinates.trim().split( "\\s" ) )
-        {
-            String[] point = coordinate.split( "," );
+    for (String coordinate : coordinates.trim().split("\\s")) {
+      String[] point = coordinate.split(",");
 
-            String lat = parseCoordinate( point[0], nDecimals, NF ),
-                lon = parseCoordinate( point[1], nDecimals, NF );
+      String lat = parseCoordinate(point[0], nDecimals, NF),
+          lon = parseCoordinate(point[1], nDecimals, NF);
 
-            sb.append( "[" ).append( lat ).append( "," ).append( lon ).append( "]," );
-        }
-
-        return sb.length() > 0 ? sb.deleteCharAt( sb.length() - 1 ).toString() : "";
+      sb.append("[").append(lat).append(",").append(lon).append("],");
     }
 
-    /**
-     * Parses a gml:pos element and outputs a GeoJSON string.
-     *
-     * @param pos contents of gml:pos element to parse.
-     * @param precision decimal precision to use in output.
-     * @return a string representation of the point.
-     * @throws ParseException
-     */
-    public static String gmlPosToString( String pos, String precision )
-        throws ParseException
-    {
-        int nDecimals = Integer.parseInt( precision );
+    return sb.length() > 0 ? sb.deleteCharAt(sb.length() - 1).toString() : "";
+  }
 
-        String[] c = pos.trim().split( "\\s", 2 );
+  /**
+   * Parses a gml:pos element and outputs a GeoJSON string.
+   *
+   * @param pos contents of gml:pos element to parse.
+   * @param precision decimal precision to use in output.
+   * @return a string representation of the point.
+   * @throws ParseException
+   */
+  public static String gmlPosToString(String pos, String precision) throws ParseException {
+    int nDecimals = Integer.parseInt(precision);
 
-        if ( c.length != 2 )
-        {
-            return "";
-        }
+    String[] c = pos.trim().split("\\s", 2);
 
-        String lat = parseCoordinate( c[0], nDecimals, NF ),
-            lon = parseCoordinate( c[1], nDecimals, NF );
-
-        return "[" + lat + "," + lon + "]";
+    if (c.length != 2) {
+      return "";
     }
 
-    /**
-     * Parses a gml:posList element and outputs a GeoJSON string.
-     *
-     * @param posList contents of gml:posList element to parse.
-     * @param precision decimal precision to use in output.
-     * @return a string representation of the posList.
-     * @throws ParseException
-     */
-    public static String gmlPosListToString( String posList, String precision )
-        throws ParseException
-    {
-        int nDecimals = Integer.parseInt( precision );
+    String lat = parseCoordinate(c[0], nDecimals, NF), lon = parseCoordinate(c[1], nDecimals, NF);
 
-        StringBuilder sb = new StringBuilder();
+    return "[" + lat + "," + lon + "]";
+  }
 
-        String[] c = posList.trim().split( "\\s" );
+  /**
+   * Parses a gml:posList element and outputs a GeoJSON string.
+   *
+   * @param posList contents of gml:posList element to parse.
+   * @param precision decimal precision to use in output.
+   * @return a string representation of the posList.
+   * @throws ParseException
+   */
+  public static String gmlPosListToString(String posList, String precision) throws ParseException {
+    int nDecimals = Integer.parseInt(precision);
 
-        if ( c.length % 2 != 0 )
-        {
-            return ""; // Badly formed gml:posList
-        }
+    StringBuilder sb = new StringBuilder();
 
-        for ( int i = 0; i < c.length; i += 2 )
-        {
-            String lat = parseCoordinate( c[i], nDecimals, NF ),
-                lon = parseCoordinate( c[i + 1], nDecimals, NF );
+    String[] c = posList.trim().split("\\s");
 
-            sb.append( "[" ).append( lat ).append( "," ).append( lon ).append( "]," );
-        }
-
-        return sb.length() > 0 ? sb.deleteCharAt( sb.length() - 1 ).toString() : "";
+    if (c.length % 2 != 0) {
+      return ""; // Badly formed gml:posList
     }
 
-    private static String parseCoordinate( String number, int precision, NumberFormat nf )
-        throws ParseException
-    {
-        return Double.toString( Precision.round( nf.parse( number ).doubleValue(), precision ) );
+    for (int i = 0; i < c.length; i += 2) {
+      String lat = parseCoordinate(c[i], nDecimals, NF),
+          lon = parseCoordinate(c[i + 1], nDecimals, NF);
+
+      sb.append("[").append(lat).append(",").append(lon).append("],");
     }
+
+    return sb.length() > 0 ? sb.deleteCharAt(sb.length() - 1).toString() : "";
+  }
+
+  private static String parseCoordinate(String number, int precision, NumberFormat nf)
+      throws ParseException {
+    return Double.toString(Precision.round(nf.parse(number).doubleValue(), precision));
+  }
 }

@@ -34,23 +34,19 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component
-public class DataApprovalWorkflowDeletionHandler extends IdObjectDeletionHandler<DataApprovalWorkflow>
-{
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( DataApprovalLevel.class, this::deleteDataApprovalLevel );
-    }
+public class DataApprovalWorkflowDeletionHandler
+    extends IdObjectDeletionHandler<DataApprovalWorkflow> {
+  @Override
+  protected void registerHandler() {
+    whenDeleting(DataApprovalLevel.class, this::deleteDataApprovalLevel);
+  }
 
-    private void deleteDataApprovalLevel( DataApprovalLevel level )
-    {
-        for ( DataApprovalWorkflow workflow : idObjectManager.getAllNoAcl( DataApprovalWorkflow.class ) )
-        {
-            if ( workflow.getLevels().contains( level ) )
-            {
-                workflow.getLevels().remove( level );
-                idObjectManager.updateNoAcl( workflow );
-            }
-        }
+  private void deleteDataApprovalLevel(DataApprovalLevel level) {
+    for (DataApprovalWorkflow workflow : idObjectManager.getAllNoAcl(DataApprovalWorkflow.class)) {
+      if (workflow.getLevels().contains(level)) {
+        workflow.getLevels().remove(level);
+        idObjectManager.updateNoAcl(workflow);
+      }
     }
+  }
 }

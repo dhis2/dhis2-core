@@ -29,13 +29,11 @@ package org.hisp.dhis.visualization;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
-import java.io.Serializable;
-
-import lombok.Data;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
+import lombok.Data;
 
 /**
  * This class holds the legend definitions and settings for each Visualization.
@@ -43,14 +41,13 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author maikel arabori
  */
 @Data
-@JacksonXmlRootElement( localName = "seriesKey", namespace = DXF_2_0 )
-public class SeriesKey implements Serializable
-{
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private StyledObject label;
+@JacksonXmlRootElement(localName = "seriesKey", namespace = DXF_2_0)
+public class SeriesKey implements Serializable {
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private StyledObject label;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private boolean hidden;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private boolean hidden;
 }

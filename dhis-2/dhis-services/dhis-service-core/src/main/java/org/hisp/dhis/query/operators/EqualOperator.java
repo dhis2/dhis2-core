@@ -29,11 +29,9 @@ package org.hisp.dhis.query.operators;
 
 import java.util.Collection;
 import java.util.Date;
-
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.QueryException;
@@ -46,119 +44,101 @@ import org.hisp.dhis.schema.Property;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class EqualOperator<T extends Comparable<? super T>> extends Operator<T>
-{
-    public EqualOperator( T arg )
-    {
-        super( "eq", Typed.from( String.class, Boolean.class, Number.class, Date.class, Enum.class ), arg );
+public class EqualOperator<T extends Comparable<? super T>> extends Operator<T> {
+  public EqualOperator(T arg) {
+    super("eq", Typed.from(String.class, Boolean.class, Number.class, Date.class, Enum.class), arg);
+  }
+
+  public EqualOperator(String name, T arg) {
+    super(name, Typed.from(String.class, Boolean.class, Number.class, Date.class, Enum.class), arg);
+  }
+
+  @Override
+  public Criterion getHibernateCriterion(QueryPath queryPath) {
+    Property property = queryPath.getProperty();
+
+    if (property.isCollection()) {
+      Integer value = QueryUtils.parseValue(Integer.class, args.get(0));
+
+      if (value == null) {
+        throw new QueryException(
+            "Left-side is collection, and right-side is not a valid integer, so can't compare by size.");
+      }
+
+      return Restrictions.sizeEq(queryPath.getPath(), value);
     }
 
-    public EqualOperator( String name, T arg )
-    {
-        super( name, Typed.from( String.class, Boolean.class, Number.class, Date.class, Enum.class ), arg );
+    return Restrictions.eq(queryPath.getPath(), args.get(0));
+  }
+
+  @Override
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
+    Property property = queryPath.getProperty();
+
+    if (property.isCollection()) {
+      Integer value = QueryUtils.parseValue(Integer.class, args.get(0));
+
+      if (value == null) {
+        throw new QueryException(
+            "Left-side is collection, and right-side is not a valid integer, so can't compare by size.");
+      }
+
+      return builder.equal(builder.size(root.get(queryPath.getPath())), value);
+    }
+    return builder.equal(root.get(queryPath.getPath()), args.get(0));
+  }
+
+  @Override
+  public boolean test(Object value) {
+    if (args.isEmpty() || value == null) {
+      return false;
     }
 
-    @Override
-    public Criterion getHibernateCriterion( QueryPath queryPath )
-    {
-        Property property = queryPath.getProperty();
+    Type type = new Type(value);
 
-        if ( property.isCollection() )
-        {
-            Integer value = QueryUtils.parseValue( Integer.class, args.get( 0 ) );
+    if (type.isString()) {
+      String s1 = getValue(String.class);
+      String s2 = (String) value;
 
-            if ( value == null )
-            {
-                throw new QueryException(
-                    "Left-side is collection, and right-side is not a valid integer, so can't compare by size." );
-            }
+      return s2.equals(s1);
+    }
+    if (type.isBoolean()) {
+      Boolean s1 = getValue(Boolean.class);
+      Boolean s2 = (Boolean) value;
 
-            return Restrictions.sizeEq( queryPath.getPath(), value );
-        }
+      return s2.equals(s1);
+    }
+    if (type.isInteger()) {
+      Integer s1 = getValue(Integer.class);
+      Integer s2 = (Integer) value;
 
-        return Restrictions.eq( queryPath.getPath(), args.get( 0 ) );
+      return s2.equals(s1);
+    }
+    if (type.isFloat()) {
+      Float s1 = getValue(Float.class);
+      Float s2 = (Float) value;
+
+      return s2.equals(s1);
+    }
+    if (type.isCollection()) {
+      Collection<?> collection = (Collection<?>) value;
+      Integer size = getValue(Integer.class);
+
+      return size != null && collection.size() == size;
+    }
+    if (type.isDate()) {
+      Date s1 = getValue(Date.class);
+      Date s2 = (Date) value;
+
+      return s2.equals(s1);
+    }
+    if (type.isEnum()) {
+      String s1 = String.valueOf(args.get(0));
+      String s2 = String.valueOf(value);
+
+      return s2.equals(s1);
     }
 
-    @Override
-    public <Y> Predicate getPredicate( CriteriaBuilder builder, Root<Y> root, QueryPath queryPath )
-    {
-        Property property = queryPath.getProperty();
-
-        if ( property.isCollection() )
-        {
-            Integer value = QueryUtils.parseValue( Integer.class, args.get( 0 ) );
-
-            if ( value == null )
-            {
-                throw new QueryException(
-                    "Left-side is collection, and right-side is not a valid integer, so can't compare by size." );
-            }
-
-            return builder.equal( builder.size( root.get( queryPath.getPath() ) ), value );
-        }
-        return builder.equal( root.get( queryPath.getPath() ), args.get( 0 ) );
-    }
-
-    @Override
-    public boolean test( Object value )
-    {
-        if ( args.isEmpty() || value == null )
-        {
-            return false;
-        }
-
-        Type type = new Type( value );
-
-        if ( type.isString() )
-        {
-            String s1 = getValue( String.class );
-            String s2 = (String) value;
-
-            return s2.equals( s1 );
-        }
-        if ( type.isBoolean() )
-        {
-            Boolean s1 = getValue( Boolean.class );
-            Boolean s2 = (Boolean) value;
-
-            return s2.equals( s1 );
-        }
-        if ( type.isInteger() )
-        {
-            Integer s1 = getValue( Integer.class );
-            Integer s2 = (Integer) value;
-
-            return s2.equals( s1 );
-        }
-        if ( type.isFloat() )
-        {
-            Float s1 = getValue( Float.class );
-            Float s2 = (Float) value;
-
-            return s2.equals( s1 );
-        }
-        if ( type.isCollection() )
-        {
-            Collection<?> collection = (Collection<?>) value;
-            Integer size = getValue( Integer.class );
-
-            return size != null && collection.size() == size;
-        }
-        if ( type.isDate() )
-        {
-            Date s1 = getValue( Date.class );
-            Date s2 = (Date) value;
-
-            return s2.equals( s1 );
-        }
-        if ( type.isEnum() )
-        {
-            String s1 = String.valueOf( args.get( 0 ) );
-            String s2 = String.valueOf( value );
-
-            return s2.equals( s1 );
-        }
-
-        return false;
-    }
+    return false;
+  }
 }

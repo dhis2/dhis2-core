@@ -30,11 +30,8 @@ package org.hisp.dhis.dataapproval.exceptions;
 /**
  * @author Jim Grace
  */
-public class UserCannotApproveAttributeComboException
-    extends DataApprovalException
-{
-    public UserCannotApproveAttributeComboException()
-    {
-        super();
-    }
+public class UserCannotApproveAttributeComboException extends DataApprovalException {
+  public UserCannotApproveAttributeComboException() {
+    super();
+  }
 }

@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import java.time.ZonedDateTime;
 import java.util.Date;
-
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datastatistics.DataStatisticsEventStore;
 import org.hisp.dhis.datastatistics.DataStatisticsEventType;
@@ -41,71 +40,68 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Test for visualizations which have not been viewed in the past year.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/analytical_objects/visualizations_not_used_1year.yaml
+ * Test for visualizations which have not been viewed in the past year. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/analytical_objects/visualizations_not_used_1year.yaml
  * }
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityVisualizationNotUsedOneYearControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityVisualizationNotUsedOneYearControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
 
-    @Autowired
-    private DataStatisticsEventStore dataStatisticsEventStore;
+  @Autowired private DataStatisticsEventStore dataStatisticsEventStore;
 
-    @Autowired
-    private VisualizationService visualizationService;
+  @Autowired private VisualizationService visualizationService;
 
-    private DataStatisticsEvent dse1;
+  private DataStatisticsEvent dse1;
 
-    private Visualization viz;
+  private Visualization viz;
 
-    private static final String check = "visualizations_not_viewed_one_year";
+  private static final String check = "visualizations_not_viewed_one_year";
 
-    private static final String detailsIdType = "visualizations";
+  private static final String detailsIdType = "visualizations";
 
-    private static final String viz_uid = "YngaQVeOC44";
+  private static final String viz_uid = "YngaQVeOC44";
 
-    @Test
-    void testUnusedVisualizationsExist()
-    {
+  @Test
+  void testUnusedVisualizationsExist() {
 
-        Date oneYearAgo = Date.from( ZonedDateTime.now().minusYears( 1 ).minusDays( 1 ).toInstant() );
-        dse1 = new DataStatisticsEvent( DataStatisticsEventType.VISUALIZATION_VIEW, oneYearAgo, "TestUser",
-            viz.getUid() );
-        dataStatisticsEventStore.save( dse1 );
-        dbmsManager.clearSession();
+    Date oneYearAgo = Date.from(ZonedDateTime.now().minusYears(1).minusDays(1).toInstant());
+    dse1 =
+        new DataStatisticsEvent(
+            DataStatisticsEventType.VISUALIZATION_VIEW, oneYearAgo, "TestUser", viz.getUid());
+    dataStatisticsEventStore.save(dse1);
+    dbmsManager.clearSession();
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 100, viz.getUid(), "myviz", null, true );
-    }
+    assertHasDataIntegrityIssues(detailsIdType, check, 100, viz.getUid(), "myviz", null, true);
+  }
 
-    @Test
-    void testUsedVisualizationsExist()
-    {
+  @Test
+  void testUsedVisualizationsExist() {
 
-        long millis = System.currentTimeMillis();
-        Date date = new Date( millis );
+    long millis = System.currentTimeMillis();
+    Date date = new Date(millis);
 
-        dse1 = new DataStatisticsEvent( DataStatisticsEventType.VISUALIZATION_VIEW, date, "TestUser", viz.getUid() );
-        dataStatisticsEventStore.save( dse1 );
+    dse1 =
+        new DataStatisticsEvent(
+            DataStatisticsEventType.VISUALIZATION_VIEW, date, "TestUser", viz.getUid());
+    dataStatisticsEventStore.save(dse1);
 
-        dbmsManager.clearSession();
+    dbmsManager.clearSession();
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
-    }
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    @Test
-    void testUnusedVisualizationsRuns()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-    }
+  @Test
+  void testUnusedVisualizationsRuns() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 
-    @BeforeEach
-    void setUp()
-    {
-        viz = new Visualization( "myviz" );
-        viz.setUid( viz_uid );
-        viz.setType( VisualizationType.SINGLE_VALUE );
-        visualizationService.save( viz );
-    }
+  @BeforeEach
+  void setUp() {
+    viz = new Visualization("myviz");
+    viz.setUid(viz_uid);
+    viz.setType(VisualizationType.SINGLE_VALUE);
+    visualizationService.save(viz);
+  }
 }

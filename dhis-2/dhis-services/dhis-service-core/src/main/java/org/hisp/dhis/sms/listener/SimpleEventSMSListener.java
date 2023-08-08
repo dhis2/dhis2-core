@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -61,109 +60,121 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component( "org.hisp.dhis.sms.listener.SimpleEventSMSListener" )
+@Component("org.hisp.dhis.sms.listener.SimpleEventSMSListener")
 @Transactional
-public class SimpleEventSMSListener extends CompressionSMSListener
-{
-    private final EnrollmentService enrollmentService;
+public class SimpleEventSMSListener extends CompressionSMSListener {
+  private final EnrollmentService enrollmentService;
 
-    public SimpleEventSMSListener( IncomingSmsService incomingSmsService,
-        @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,
-        TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
-        ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, EventService eventService,
-        EnrollmentService enrollmentService, IdentifiableObjectManager identifiableObjectManager )
-    {
-        super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService, eventService,
-            identifiableObjectManager );
+  public SimpleEventSMSListener(
+      IncomingSmsService incomingSmsService,
+      @Qualifier("smsMessageSender") MessageSender smsSender,
+      UserService userService,
+      TrackedEntityTypeService trackedEntityTypeService,
+      TrackedEntityAttributeService trackedEntityAttributeService,
+      ProgramService programService,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      DataElementService dataElementService,
+      EventService eventService,
+      EnrollmentService enrollmentService,
+      IdentifiableObjectManager identifiableObjectManager) {
+    super(
+        incomingSmsService,
+        smsSender,
+        userService,
+        trackedEntityTypeService,
+        trackedEntityAttributeService,
+        programService,
+        organisationUnitService,
+        categoryService,
+        dataElementService,
+        eventService,
+        identifiableObjectManager);
 
-        this.enrollmentService = enrollmentService;
+    this.enrollmentService = enrollmentService;
+  }
+
+  @Override
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission)
+      throws SMSProcessingException {
+    SimpleEventSmsSubmission subm = (SimpleEventSmsSubmission) submission;
+
+    Uid ouid = subm.getOrgUnit();
+    Uid aocid = subm.getAttributeOptionCombo();
+    Uid progid = subm.getEventProgram();
+
+    OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ouid.getUid());
+    User user = userService.getUser(subm.getUserId().getUid());
+
+    Program program = programService.getProgram(subm.getEventProgram().getUid());
+
+    if (program == null) {
+      throw new SMSProcessingException(SmsResponse.INVALID_PROGRAM.set(progid));
     }
 
-    @Override
-    protected SmsResponse postProcess( IncomingSms sms, SmsSubmission submission )
-        throws SMSProcessingException
-    {
-        SimpleEventSmsSubmission subm = (SimpleEventSmsSubmission) submission;
+    CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo(aocid.getUid());
 
-        Uid ouid = subm.getOrgUnit();
-        Uid aocid = subm.getAttributeOptionCombo();
-        Uid progid = subm.getEventProgram();
-
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.getUid() );
-        User user = userService.getUser( subm.getUserId().getUid() );
-
-        Program program = programService.getProgram( subm.getEventProgram().getUid() );
-
-        if ( program == null )
-        {
-            throw new SMSProcessingException( SmsResponse.INVALID_PROGRAM.set( progid ) );
-        }
-
-        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUid() );
-
-        if ( aoc == null )
-        {
-            throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );
-        }
-
-        if ( !programService.hasOrgUnit( program, orgUnit ) )
-        {
-            throw new SMSProcessingException( SmsResponse.OU_NOTIN_PROGRAM.set( ouid, progid ) );
-        }
-
-        List<Enrollment> enrollments = new ArrayList<>(
-            enrollmentService.getEnrollments( program, ProgramStatus.ACTIVE ) );
-
-        // For Simple Events, the Program should have one Enrollment
-        // If it doesn't exist, this is the first event, we can create it here
-        if ( enrollments.isEmpty() )
-        {
-            Enrollment enrollment = new Enrollment();
-            enrollment.setEnrollmentDate( new Date() );
-            enrollment.setIncidentDate( new Date() );
-            enrollment.setProgram( program );
-            enrollment.setStatus( ProgramStatus.ACTIVE );
-
-            enrollmentService.addEnrollment( enrollment );
-
-            enrollments.add( enrollment );
-        }
-        else if ( enrollments.size() > 1 )
-        {
-            // TODO: Are we sure this is a problem we can't recover from?
-            throw new SMSProcessingException( SmsResponse.MULTI_PROGRAMS.set( progid ) );
-        }
-
-        Enrollment enrollment = enrollments.get( 0 );
-        Set<ProgramStage> programStages = enrollment.getProgram().getProgramStages();
-        if ( programStages.size() > 1 )
-        {
-            throw new SMSProcessingException( SmsResponse.MULTI_STAGES.set( progid ) );
-        }
-        ProgramStage programStage = programStages.iterator().next();
-
-        List<Object> errorUIDs = saveNewEvent( subm.getEvent().getUid(), orgUnit, programStage, enrollment, sms,
-            aoc, user, subm.getValues(), subm.getEventStatus(), subm.getEventDate(), subm.getDueDate(),
-            subm.getCoordinates() );
-        if ( !errorUIDs.isEmpty() )
-        {
-            return SmsResponse.WARN_DVERR.setList( errorUIDs );
-        }
-        else if ( subm.getValues() == null || subm.getValues().isEmpty() )
-        {
-            // TODO: Should we save the event if there are no data values?
-            return SmsResponse.WARN_DVEMPTY;
-        }
-
-        return SmsResponse.SUCCESS;
+    if (aoc == null) {
+      throw new SMSProcessingException(SmsResponse.INVALID_AOC.set(aocid));
     }
 
-    @Override
-    protected boolean handlesType( SubmissionType type )
-    {
-        return (type == SubmissionType.SIMPLE_EVENT);
+    if (!programService.hasOrgUnit(program, orgUnit)) {
+      throw new SMSProcessingException(SmsResponse.OU_NOTIN_PROGRAM.set(ouid, progid));
     }
 
+    List<Enrollment> enrollments =
+        new ArrayList<>(enrollmentService.getEnrollments(program, ProgramStatus.ACTIVE));
+
+    // For Simple Events, the Program should have one Enrollment
+    // If it doesn't exist, this is the first event, we can create it here
+    if (enrollments.isEmpty()) {
+      Enrollment enrollment = new Enrollment();
+      enrollment.setEnrollmentDate(new Date());
+      enrollment.setIncidentDate(new Date());
+      enrollment.setProgram(program);
+      enrollment.setStatus(ProgramStatus.ACTIVE);
+
+      enrollmentService.addEnrollment(enrollment);
+
+      enrollments.add(enrollment);
+    } else if (enrollments.size() > 1) {
+      // TODO: Are we sure this is a problem we can't recover from?
+      throw new SMSProcessingException(SmsResponse.MULTI_PROGRAMS.set(progid));
+    }
+
+    Enrollment enrollment = enrollments.get(0);
+    Set<ProgramStage> programStages = enrollment.getProgram().getProgramStages();
+    if (programStages.size() > 1) {
+      throw new SMSProcessingException(SmsResponse.MULTI_STAGES.set(progid));
+    }
+    ProgramStage programStage = programStages.iterator().next();
+
+    List<Object> errorUIDs =
+        saveNewEvent(
+            subm.getEvent().getUid(),
+            orgUnit,
+            programStage,
+            enrollment,
+            sms,
+            aoc,
+            user,
+            subm.getValues(),
+            subm.getEventStatus(),
+            subm.getEventDate(),
+            subm.getDueDate(),
+            subm.getCoordinates());
+    if (!errorUIDs.isEmpty()) {
+      return SmsResponse.WARN_DVERR.setList(errorUIDs);
+    } else if (subm.getValues() == null || subm.getValues().isEmpty()) {
+      // TODO: Should we save the event if there are no data values?
+      return SmsResponse.WARN_DVEMPTY;
+    }
+
+    return SmsResponse.SUCCESS;
+  }
+
+  @Override
+  protected boolean handlesType(SubmissionType type) {
+    return (type == SubmissionType.SIMPLE_EVENT);
+  }
 }

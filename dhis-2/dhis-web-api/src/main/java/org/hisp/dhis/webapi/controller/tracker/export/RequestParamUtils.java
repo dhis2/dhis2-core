@@ -28,286 +28,291 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.util.CheckedFunction;
+import org.hisp.dhis.tracker.export.OperationParamUtils;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 /**
- * RequestParamUtils are functions used to parse and transform tracker request
- * parameters. This class is intended to only house functions without any
- * dependencies on services or components.
+ * RequestParamUtils are functions used to parse and transform tracker request parameters. This
+ * class is intended to only house functions without any dependencies on services or components.
  */
-public class RequestParamUtils
-{
-    private RequestParamUtils()
-    {
-        throw new IllegalStateException( "Utility class" );
+public class RequestParamUtils {
+  private RequestParamUtils() {
+    throw new IllegalStateException("Utility class");
+  }
+
+  /**
+   * Helps us transition request parameters that contained semicolon separated UIDs (deprecated) to
+   * comma separated UIDs in a backwards compatible way.
+   *
+   * @param deprecatedParamName request parameter name of deprecated semi-colon separated parameter
+   * @param deprecatedParamUids semicolon separated uids
+   * @param newParamName new request parameter replacing deprecated request parameter
+   * @param newParamUids new request parameter uids
+   * @return uids from the request parameter containing uids
+   * @throws BadRequestException when both deprecated and new request parameter contain uids
+   */
+  public static Set<UID> validateDeprecatedUidsParameter(
+      String deprecatedParamName,
+      String deprecatedParamUids,
+      String newParamName,
+      Set<UID> newParamUids)
+      throws BadRequestException {
+    Set<String> deprecatedParamParsedUids = parseUids(deprecatedParamUids);
+    if (!deprecatedParamParsedUids.isEmpty() && !newParamUids.isEmpty()) {
+      throw new BadRequestException(
+          String.format(
+              "Only one parameter of '%s' (deprecated; semicolon separated UIDs) and '%s' (comma separated UIDs) must be specified. Prefer '%s' as '%s' will be removed.",
+              deprecatedParamName, newParamName, newParamName, deprecatedParamName));
     }
 
-    private static final String COMPARISON_OPERATOR = EnumSet.allOf( QueryOperator.class ).stream()
-        .filter( QueryOperator::isComparison ).map( Enum::toString )
-        .collect( Collectors.joining( "|" ) );
+    return !deprecatedParamParsedUids.isEmpty()
+        ? deprecatedParamParsedUids.stream().map(UID::of).collect(Collectors.toSet())
+        : newParamUids;
+  }
 
-    /**
-     * For multi operand, we support digits and dates
-     * {@link org.hisp.dhis.util.DateUtils}.
-     */
-    private static final String DIGITS_DATES_VALUES_REG_EX = "[\\s\\d\\-+.:T]+";
-
-    private static final Pattern MULTIPLE_OPERAND_VALUE_REG_EX_PATTERN = Pattern
-        .compile( "(?i)(" + COMPARISON_OPERATOR + ")" + DIMENSION_NAME_SEP
-            + DIGITS_DATES_VALUES_REG_EX + "(?!" + "(?i)(" + COMPARISON_OPERATOR + ")"
-            + ")" );
-
-    private static final String MULTI_OPERAND_VALUE_REG_EX = "(?i)(" + COMPARISON_OPERATOR + ")"
-        + DIMENSION_NAME_SEP
-        + "(" + DIGITS_DATES_VALUES_REG_EX + ")";
-
-    /**
-     * RegEx to search and validate multiple operand
-     * {operator}:{value}[:{operator}:{value}], We allow comparison for digits
-     * and dates,
-     */
-    private static final Pattern MULTI_OPERAND_VALUE_PATTERN = Pattern
-        .compile(
-            MULTI_OPERAND_VALUE_REG_EX
-                + DIMENSION_NAME_SEP
-                + MULTI_OPERAND_VALUE_REG_EX );
-
-    /**
-     * RegEx to validate and match {operator}:{value} in a filter
-     */
-    private static final String SINGLE_OPERAND_REG_EX = "(?i)("
-        + EnumSet.allOf( QueryOperator.class ).stream().map( Enum::toString )
-            .collect( Collectors.joining( "|" ) )
-        + ")" +
-        DIMENSION_NAME_SEP + "(.)+";
-
-    private static final Pattern SINGLE_OPERAND_VALIDATION_PATTERN = Pattern
-        .compile( SINGLE_OPERAND_REG_EX );
-
-    /**
-     * Apply func to given arg only if given arg is not empty otherwise return
-     * null.
-     *
-     * @param func function to be called if arg is not empty
-     * @param arg arg to be checked
-     * @return result of func
-     * @param <T> base identifiable object to be returned from func
-     */
-    public static <T extends BaseIdentifiableObject> T applyIfNonEmpty( Function<String, T> func, String arg )
-    {
-        if ( StringUtils.isEmpty( arg ) )
-        {
-            return null;
-        }
-
-        return func.apply( arg );
+  /**
+   * Helps us transition request parameters from a deprecated to a new one.
+   *
+   * @param deprecatedParamName request parameter name of deprecated parameter
+   * @param deprecatedParam value of deprecated request parameter
+   * @param newParamName new request parameter replacing deprecated request parameter
+   * @param newParam value of the request parameter
+   * @return value of the one request parameter that is non-null
+   * @throws BadRequestException when both deprecated and new request parameter are non-null
+   */
+  public static <T> T validateDeprecatedParameter(
+      String deprecatedParamName, T deprecatedParam, String newParamName, T newParam)
+      throws BadRequestException {
+    if (newParam != null && deprecatedParam != null) {
+      throw new BadRequestException(
+          String.format(
+              "Only one parameter of '%s' and '%s' must be specified. Prefer '%s' as '%s' will be removed.",
+              deprecatedParamName, newParamName, newParamName, deprecatedParamName));
     }
 
-    /**
-     * Parse semicolon separated string of UIDs. Filters out invalid UIDs.
-     *
-     * @param input string to parse
-     * @return set of uids
-     */
-    public static Set<String> parseAndFilterUids( String input )
-    {
-        return parseUidString( input )
-            .filter( CodeGenerator::isValidUid )
-            .collect( Collectors.toSet() );
+    return newParam != null ? newParam : deprecatedParam;
+  }
+
+  /**
+   * Helps us transition mandatory request parameters from a deprecated to a new one. At least one
+   * parameter must be non-empty as the deprecated one was mandatory.
+   *
+   * @param deprecatedParamName request parameter name of deprecated parameter
+   * @param deprecatedParam value of deprecated request parameter
+   * @param newParamName new request parameter replacing deprecated request parameter
+   * @param newParam value of the request parameter
+   * @return value of the one request parameter that is non-empty
+   * @throws BadRequestException when both deprecated and new request parameter are non-null
+   * @throws BadRequestException when both deprecated and new request parameter are null
+   */
+  public static UID validateMandatoryDeprecatedUidParameter(
+      String deprecatedParamName, UID deprecatedParam, String newParamName, UID newParam)
+      throws BadRequestException {
+    UID uid =
+        validateDeprecatedParameter(deprecatedParamName, deprecatedParam, newParamName, newParam);
+
+    if (uid == null) {
+      throw new BadRequestException(
+          String.format("Required request parameter '%s' is not present", newParamName));
     }
 
-    /**
-     * Parse semicolon separated string of UIDs.
-     *
-     * @param input string to parse
-     * @return set of uids
-     */
-    public static Set<String> parseUids( String input )
-    {
-        return parseUidString( input )
-            .collect( Collectors.toSet() );
+    return uid;
+  }
+
+  /**
+   * Parse semicolon separated string of UIDs.
+   *
+   * @param input string to parse
+   * @return set of uids
+   */
+  private static Set<String> parseUids(String input) {
+    return parseUidString(input).collect(Collectors.toSet());
+  }
+
+  private static Stream<String> parseUidString(String input) {
+    return CollectionUtils.emptyIfNull(TextUtils.splitToSet(input, TextUtils.SEMICOLON)).stream();
+  }
+
+  /**
+   * Validates that no org unit is present if the ou mode is ACCESSIBLE or CAPTURE. If it is, an
+   * exception will be thrown.
+   *
+   * @param orgUnits
+   * @param orgUnitMode
+   * @throws BadRequestException
+   */
+  public static void validateOrgUnitParams(
+      Set<UID> orgUnits, OrganisationUnitSelectionMode orgUnitMode) throws BadRequestException {
+    if (!orgUnits.isEmpty() && (orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE)) {
+      throw new BadRequestException(
+          String.format(
+              "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
+              orgUnitMode));
+    }
+  }
+
+  /**
+   * Validate the {@code order} request parameter in tracker exporters. Allowed order values are
+   * {@code supportedFieldNames} and UIDs which represent {@code uidMeaning}. Every field name or
+   * UID can be specified at most once.
+   */
+  public static void validateOrderParams(
+      List<OrderCriteria> order, Set<String> supportedFieldNames, String uidMeaning)
+      throws BadRequestException {
+    if (order == null || order.isEmpty()) {
+      return;
     }
 
-    private static Stream<String> parseUidString( String input )
-    {
-        return CollectionUtils.emptyIfNull( TextUtils.splitToSet( input, TextUtils.SEMICOLON ) )
-            .stream();
+    Set<String> invalidOrderComponents =
+        order.stream().map(OrderCriteria::getField).collect(Collectors.toSet());
+    invalidOrderComponents.removeAll(supportedFieldNames);
+    Set<String> uids =
+        invalidOrderComponents.stream()
+            .filter(CodeGenerator::isValidUid)
+            .collect(Collectors.toSet());
+    invalidOrderComponents.removeAll(uids);
+
+    String errorSuffix =
+        String.format(
+            "Supported are %s UIDs and fields '%s'. All of which can at most be specified once.",
+            uidMeaning, String.join(", ", supportedFieldNames.stream().sorted().toList()));
+    if (!invalidOrderComponents.isEmpty()) {
+      throw new BadRequestException(
+          String.format(
+              "order parameter is invalid. '%s' are either unsupported fields and/or invalid UID(s). %s",
+              String.join(", ", invalidOrderComponents), errorSuffix));
     }
 
-    /**
-     * Parse request parameter to filter tracked entity attributes using
-     * identifier, operator and values. Refer to
-     * {@link #parseQueryItem(String, CheckedFunction)} for details on the
-     * expected item format.
-     *
-     * @param items query item strings each composed of identifier, operator and
-     *        value
-     * @param attributes tracked entity attribute map from identifiers to
-     *        attributes
-     * @return query items each of a tracked entity attribute with attached
-     *         query filters
-     */
-    public static List<QueryItem> parseAttributeQueryItems( Set<String> items,
-        Map<String, TrackedEntityAttribute> attributes )
-        throws BadRequestException
-    {
-        List<QueryItem> itemList = new ArrayList<>();
-        for ( String item : items )
-        {
-            itemList.add( parseAttributeQueryItem( item, attributes ) );
-        }
+    validateOrderParamsContainNoDuplicates(order, errorSuffix);
+  }
 
-        return itemList;
+  private static void validateOrderParamsContainNoDuplicates(
+      List<OrderCriteria> order, String errorSuffix) throws BadRequestException {
+    Set<String> duplicateOrderComponents =
+        order.stream()
+            .map(OrderCriteria::getField)
+            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+            .entrySet()
+            .stream()
+            .filter(e -> e.getValue() > 1)
+            .map(Entry::getKey)
+            .collect(Collectors.toSet());
+
+    if (!duplicateOrderComponents.isEmpty()) {
+      throw new BadRequestException(
+          String.format(
+              "order parameter is invalid. '%s' are repeated. %s",
+              String.join(", ", duplicateOrderComponents), errorSuffix));
+    }
+  }
+
+  /**
+   * Validate the {@code order} request parameter in tracker exporters. Allowed order values are
+   * {@code supportedFieldNames}. Every field name can be specified at most once. If the endpoint
+   * supports field names and UIDs use {@link #validateOrderParams(List, Set, String)}.
+   */
+  public static void validateOrderParams(List<OrderCriteria> order, Set<String> supportedFieldNames)
+      throws BadRequestException {
+    if (order == null || order.isEmpty()) {
+      return;
     }
 
-    /**
-     * Parse request parameter to filter tracked entity attributes using
-     * identifier, operator and values. Refer to
-     * {@link #parseQueryItem(String, CheckedFunction)} for details on the
-     * expected item format.
-     *
-     * @param item query item string composed of identifier, operator and value
-     * @param attributes tracked entity attribute map from identifiers to
-     *        attributes
-     * @return query item of tracked entity attribute with attached query
-     *         filters
-     */
+    Set<String> invalidOrderComponents =
+        order.stream().map(OrderCriteria::getField).collect(Collectors.toSet());
+    invalidOrderComponents.removeAll(supportedFieldNames);
 
-    public static QueryItem parseAttributeQueryItem( String item, Map<String, TrackedEntityAttribute> attributes )
-        throws BadRequestException
-    {
-        return parseQueryItem( item, id -> attributeToQueryItem( id, attributes ) );
+    String errorSuffix =
+        String.format(
+            "Supported are fields '%s'. All of which can at most be specified once.",
+            String.join(", ", supportedFieldNames.stream().sorted().toList()));
+    if (!invalidOrderComponents.isEmpty()) {
+      throw new BadRequestException(
+          String.format(
+              "order parameter is invalid. '%s' are unsupported. %s",
+              String.join(", ", invalidOrderComponents), errorSuffix));
     }
 
-    private static QueryItem attributeToQueryItem( String identifier, Map<String, TrackedEntityAttribute> attributes )
-        throws BadRequestException
-    {
-        if ( attributes.isEmpty() )
-        {
-            throw new BadRequestException( "Attribute does not exist: " + identifier );
-        }
+    validateOrderParamsContainNoDuplicates(order, errorSuffix);
+  }
 
-        TrackedEntityAttribute at = attributes.get( identifier );
-        if ( at == null )
-        {
-            throw new BadRequestException( "Attribute does not exist: " + identifier );
-        }
-
-        return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique() );
+  /**
+   * Parse given {@code input} string representing a filter for an object referenced by a UID like a
+   * tracked entity attribute or data element. Refer to {@link #parseSanitizedFilters(Map, String)}}
+   * for details on the expected input format.
+   *
+   * @return filters by UIDs
+   */
+  public static Map<String, List<QueryFilter>> parseFilters(String input)
+      throws BadRequestException {
+    Map<String, List<QueryFilter>> result = new HashMap<>();
+    if (StringUtils.isBlank(input)) {
+      return result;
     }
 
-    /**
-     * Creates a QueryItem with QueryFilters from the given item string.
-     * Expected item format is
-     * {identifier}:{operator}:{value}[:{operator}:{value}]. Only the identifier
-     * is mandatory. Multiple operator:value pairs are allowed, If is not a
-     * multiple operand, a single operator:value filter will be created.
-     * Otherwise, the query item is not valid.
-     * <p>
-     * The identifier is passed to given map function which translates the
-     * identifier to a QueryItem. A QueryFilter for each operator:value pair is
-     * then added to this QueryItem.
-     *
-     * @throws BadRequestException given invalid query item
-     */
-    public static QueryItem parseQueryItem( String fullPath, CheckedFunction<String, QueryItem> map )
-        throws BadRequestException
-    {
-        int identifierIndex = fullPath.indexOf( DIMENSION_NAME_SEP ) + 1;
+    for (String uidOperatorValue : OperationParamUtils.filterList(input)) {
+      parseSanitizedFilters(result, uidOperatorValue);
+    }
+    return result;
+  }
 
-        if ( identifierIndex == 0 || fullPath.length() == identifierIndex )
-        {
-            return map.apply( fullPath.replace( DIMENSION_NAME_SEP, "" ) );
-        }
+  /**
+   * Accumulate {@link QueryFilter}s per UID by parsing given input string of format
+   * {uid}:{operator}:{value}[:{operator}:{value}]. Only the UID is mandatory. Multiple
+   * operator:value pairs are allowed. A {@link QueryFilter} for each operator:value pair is added
+   * to the corresponding UID.
+   *
+   * @throws BadRequestException filter is neither multiple nor single operator:value format
+   */
+  private static void parseSanitizedFilters(Map<String, List<QueryFilter>> result, String input)
+      throws BadRequestException {
+    int uidIndex = input.indexOf(DIMENSION_NAME_SEP) + 1;
 
-        QueryItem queryItem = map.apply( fullPath.substring( 0, identifierIndex - 1 ) );
-
-        String filter = fullPath.substring( identifierIndex );
-
-        if ( MULTI_OPERAND_VALUE_PATTERN
-            .matcher( filter ).matches() )
-        {
-            Matcher matcher = MULTIPLE_OPERAND_VALUE_REG_EX_PATTERN.matcher( filter );
-
-            while ( matcher.find() )
-            {
-                queryItem.getFilters().add( singleOperatorValueFilter( matcher.group() ) );
-            }
-
-            return queryItem;
-        }
-
-        if ( SINGLE_OPERAND_VALIDATION_PATTERN
-            .matcher( filter ).matches() )
-        {
-            queryItem.getFilters().add( singleOperatorValueFilter( filter ) );
-        }
-        else
-        {
-            throw new BadRequestException( "Query item or filter is invalid: " + fullPath );
-        }
-
-        return queryItem;
+    if (uidIndex == 0 || input.length() == uidIndex) {
+      String uid = input.replace(DIMENSION_NAME_SEP, "");
+      result.putIfAbsent(uid, new ArrayList<>());
+      return;
     }
 
-    /**
-     * Creates a QueryFilter from the given query string. Query is on format
-     * {operator}:{filter-value}. Only the filter-value is mandatory. The EQ
-     * QueryOperator is used as operator if not specified. We split the query at
-     * the first delimiter, so the filter value can be any sequence of
-     * characters
-     *
-     * @throws BadRequestException given invalid query string
-     */
-    public static QueryFilter parseQueryFilter( String query )
-        throws BadRequestException
-    {
-        if ( query == null || query.isEmpty() )
-        {
-            return null;
-        }
+    String uid = input.substring(0, uidIndex - 1);
+    result.putIfAbsent(uid, new ArrayList<>());
 
-        if ( !query.contains( DimensionalObject.DIMENSION_NAME_SEP ) )
-        {
-            return new QueryFilter( QueryOperator.EQ, query );
-        }
+    String[] filters = OperationParamUtils.FILTER_ITEM_SPLIT.split(input.substring(uidIndex));
 
-        if ( !SINGLE_OPERAND_VALIDATION_PATTERN
-            .matcher( query ).matches() )
-        {
-            throw new BadRequestException( "Query has invalid format: " + query );
-        }
-
-        return singleOperatorValueFilter( query );
+    // single operator
+    if (filters.length == 2) {
+      result
+          .get(uid)
+          .add(OperationParamUtils.operatorValueQueryFilter(filters[0], filters[1], input));
     }
-
-    private static QueryFilter singleOperatorValueFilter( String operatorValue )
-    {
-        String[] operatorValueSplit = operatorValue.split( DIMENSION_NAME_SEP, 2 );
-
-        return new QueryFilter( QueryOperator.fromString( operatorValueSplit[0] ), operatorValueSplit[1] );
+    // multiple operator
+    else if (filters.length == 4) {
+      for (int i = 0; i < filters.length; i += 2) {
+        result
+            .get(uid)
+            .add(OperationParamUtils.operatorValueQueryFilter(filters[i], filters[i + 1], input));
+      }
+    } else {
+      throw new BadRequestException("Query item or filter is invalid: " + input);
     }
+  }
 }

@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.dataset;
 
-public enum LockStatus
-{
-    LOCKED,
-    APPROVED,
-    OPEN;
+public enum LockStatus {
+  LOCKED,
+  APPROVED,
+  OPEN;
 
-    public boolean isOpen()
-    {
-        return this == OPEN;
-    }
+  public boolean isOpen() {
+    return this == OPEN;
+  }
 }

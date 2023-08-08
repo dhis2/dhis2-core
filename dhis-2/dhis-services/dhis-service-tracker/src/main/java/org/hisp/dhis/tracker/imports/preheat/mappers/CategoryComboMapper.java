@@ -33,20 +33,15 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = {
-    DebugMapper.class,
-    AttributeValueMapper.class
-} )
-public interface CategoryComboMapper
-    extends PreheatMapper<CategoryCombo>
-{
-    CategoryComboMapper INSTANCE = Mappers.getMapper( CategoryComboMapper.class );
+@Mapper(uses = {DebugMapper.class, AttributeValueMapper.class})
+public interface CategoryComboMapper extends PreheatMapper<CategoryCombo> {
+  CategoryComboMapper INSTANCE = Mappers.getMapper(CategoryComboMapper.class);
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "name" )
-    @Mapping( target = "code" )
-    @Mapping( target = "attributeValues" )
-    CategoryCombo map( CategoryCombo categoryCombo );
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "name")
+  @Mapping(target = "code")
+  @Mapping(target = "attributeValues")
+  CategoryCombo map(CategoryCombo categoryCombo);
 }

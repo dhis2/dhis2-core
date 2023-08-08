@@ -27,144 +27,123 @@
  */
 package org.hisp.dhis.tracker.imports.databuilder;
 
+import com.google.gson.JsonObject;
 import java.time.Instant;
 import java.util.List;
-
 import org.hisp.dhis.helpers.JsonObjectBuilder;
-
-import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventDataBuilder implements TrackerImporterDataBuilder
-{
-    private JsonObjectBuilder builder;
+public class EventDataBuilder implements TrackerImporterDataBuilder {
+  private JsonObjectBuilder builder;
 
-    public EventDataBuilder()
-    {
-        this.builder = new JsonObjectBuilder();
-        setEventDate( Instant.now().toString() );
-        // setStatus( "ACTIVE" );
-    }
+  public EventDataBuilder() {
+    this.builder = new JsonObjectBuilder();
+    setEventDate(Instant.now().toString());
+    // setStatus( "ACTIVE" );
+  }
 
-    public EventDataBuilder setId( String id )
-    {
-        this.builder.addProperty( "event", id );
-        return this;
-    }
+  public EventDataBuilder setId(String id) {
+    this.builder.addProperty("event", id);
+    return this;
+  }
 
-    public EventDataBuilder setProgramStage( String programStage )
-    {
-        this.builder.addProperty( "programStage", programStage );
+  public EventDataBuilder setProgramStage(String programStage) {
+    this.builder.addProperty("programStage", programStage);
 
-        return this;
-    }
+    return this;
+  }
 
-    public EventDataBuilder setAssignedUser( String assignedUserId )
-    {
-        JsonObject assignedUser = new JsonObjectBuilder().addProperty( "uid", assignedUserId ).build();
-        this.builder.addObject( "assignedUser", assignedUser );
+  public EventDataBuilder setAssignedUser(String assignedUserId) {
+    JsonObject assignedUser = new JsonObjectBuilder().addProperty("uid", assignedUserId).build();
+    this.builder.addObject("assignedUser", assignedUser);
 
-        return this;
-    }
+    return this;
+  }
 
-    public EventDataBuilder setProgram( String program )
-    {
-        this.builder.addProperty( "program", program );
+  public EventDataBuilder setProgram(String program) {
+    this.builder.addProperty("program", program);
 
-        return this;
-    }
+    return this;
+  }
 
-    public EventDataBuilder setAttributeCategoryOptions( List<String> categoryOptions )
-    {
-        this.builder.addProperty( "attributeCategoryOptions", String.join( ";", categoryOptions ) );
+  public EventDataBuilder setAttributeCategoryOptions(List<String> categoryOptions) {
+    this.builder.addProperty("attributeCategoryOptions", String.join(";", categoryOptions));
 
-        return this;
-    }
+    return this;
+  }
 
-    public EventDataBuilder setStatus( String status )
-    {
-        this.builder.addProperty( "status", status );
-        return this;
-    }
+  public EventDataBuilder setStatus(String status) {
+    this.builder.addProperty("status", status);
+    return this;
+  }
 
-    public EventDataBuilder setScheduledDate( String date )
-    {
-        builder.addProperty( "scheduledAt", date );
-        return this;
-    }
+  public EventDataBuilder setScheduledDate(String date) {
+    builder.addProperty("scheduledAt", date);
+    return this;
+  }
 
-    public EventDataBuilder setEnrollment( String enrollment )
-    {
-        builder.addProperty( "enrollment", enrollment );
-        return this;
-    }
+  public EventDataBuilder setEnrollment(String enrollment) {
+    builder.addProperty("enrollment", enrollment);
+    return this;
+  }
 
-    public EventDataBuilder setTei( String tei )
-    {
-        builder.addProperty( "trackedEntity", tei );
+  public EventDataBuilder setTei(String tei) {
+    builder.addProperty("trackedEntity", tei);
 
-        return this;
-    }
+    return this;
+  }
 
-    public EventDataBuilder addDataValue( String dataElementId, String value )
-    {
-        JsonObject dataValue = new JsonObjectBuilder()
-            .addProperty( "dataElement", dataElementId )
-            .addProperty( "value", value ).build();
-
-        this.builder.addOrAppendToArray( "dataValues", dataValue );
-        return this;
-    }
-
-    public EventDataBuilder setOu( String ou )
-    {
-        this.builder.addProperty( "orgUnit", ou );
-        return this;
-    }
-
-    public EventDataBuilder setEventDate( String eventDate )
-    {
-        this.builder.addProperty( "occurredAt", eventDate );
-
-        return this;
-    }
-
-    public EventDataBuilder addNote( String value )
-    {
-        JsonObject note = new JsonObjectBuilder()
-            .addProperty( "value", value )
+  public EventDataBuilder addDataValue(String dataElementId, String value) {
+    JsonObject dataValue =
+        new JsonObjectBuilder()
+            .addProperty("dataElement", dataElementId)
+            .addProperty("value", value)
             .build();
 
-        this.builder.addOrAppendToArray( "notes", note );
+    this.builder.addOrAppendToArray("dataValues", dataValue);
+    return this;
+  }
 
-        return this;
-    }
+  public EventDataBuilder setOu(String ou) {
+    this.builder.addProperty("orgUnit", ou);
+    return this;
+  }
 
-    public JsonObject array( String ou, String program, String programStage )
-    {
-        setOu( ou ).setProgram( program ).setProgramStage( programStage );
+  public EventDataBuilder setEventDate(String eventDate) {
+    this.builder.addProperty("occurredAt", eventDate);
 
-        return array();
-    }
+    return this;
+  }
 
-    public JsonObject array( String ou, String program, String programStage, String status )
-    {
-        setOu( ou ).setProgram( program ).setProgramStage( programStage ).setStatus( status );
+  public EventDataBuilder addNote(String value) {
+    JsonObject note = new JsonObjectBuilder().addProperty("value", value).build();
 
-        return array();
-    }
+    this.builder.addOrAppendToArray("notes", note);
 
-    @Override
-    public JsonObject single()
-    {
-        return this.builder.build();
-    }
+    return this;
+  }
 
-    @Override
-    public JsonObject array()
-    {
-        return this.builder.wrapIntoArray( "events" );
-    }
+  public JsonObject array(String ou, String program, String programStage) {
+    setOu(ou).setProgram(program).setProgramStage(programStage);
+
+    return array();
+  }
+
+  public JsonObject array(String ou, String program, String programStage, String status) {
+    setOu(ou).setProgram(program).setProgramStage(programStage).setStatus(status);
+
+    return array();
+  }
+
+  @Override
+  public JsonObject single() {
+    return this.builder.build();
+  }
+
+  @Override
+  public JsonObject array() {
+    return this.builder.wrapIntoArray("events");
+  }
 }

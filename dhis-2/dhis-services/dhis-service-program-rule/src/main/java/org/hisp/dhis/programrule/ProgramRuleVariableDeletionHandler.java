@@ -31,9 +31,7 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Program;
@@ -47,36 +45,31 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ProgramRuleVariableDeletionHandler extends DeletionHandler
-{
-    private final ProgramRuleVariableService programRuleVariableService;
+public class ProgramRuleVariableDeletionHandler extends DeletionHandler {
+  private final ProgramRuleVariableService programRuleVariableService;
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( ProgramStage.class, this::allowDeleteProgramStage );
-        whenDeleting( Program.class, this::deleteProgram );
+  @Override
+  protected void register() {
+    whenVetoing(ProgramStage.class, this::allowDeleteProgramStage);
+    whenDeleting(Program.class, this::deleteProgram);
+  }
+
+  private DeletionVeto allowDeleteProgramStage(ProgramStage programStage) {
+    String programRuleVariables =
+        programRuleVariableService.getProgramRuleVariable(programStage.getProgram()).stream()
+            .filter(prv -> Objects.equals(prv.getProgramStage(), programStage))
+            .map(IdentifiableObject::getName)
+            .collect(Collectors.joining(", "));
+
+    return StringUtils.isBlank(programRuleVariables)
+        ? ACCEPT
+        : new DeletionVeto(ProgramRuleVariable.class, programRuleVariables);
+  }
+
+  private void deleteProgram(Program program) {
+    for (ProgramRuleVariable programRuleVariable :
+        programRuleVariableService.getProgramRuleVariable(program)) {
+      programRuleVariableService.deleteProgramRuleVariable(programRuleVariable);
     }
-
-    private DeletionVeto allowDeleteProgramStage( ProgramStage programStage )
-    {
-        String programRuleVariables = programRuleVariableService
-            .getProgramRuleVariable( programStage.getProgram() )
-            .stream()
-            .filter( prv -> Objects.equals( prv.getProgramStage(), programStage ) )
-            .map( IdentifiableObject::getName )
-            .collect( Collectors.joining( ", " ) );
-
-        return StringUtils.isBlank( programRuleVariables )
-            ? ACCEPT
-            : new DeletionVeto( ProgramRuleVariable.class, programRuleVariables );
-    }
-
-    private void deleteProgram( Program program )
-    {
-        for ( ProgramRuleVariable programRuleVariable : programRuleVariableService.getProgramRuleVariable( program ) )
-        {
-            programRuleVariableService.deleteProgramRuleVariable( programRuleVariable );
-        }
-    }
+  }
 }

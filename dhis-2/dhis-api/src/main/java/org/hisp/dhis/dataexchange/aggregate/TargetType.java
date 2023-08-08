@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
-public enum TargetType
-{
-    INTERNAL,
-    EXTERNAL;
+public enum TargetType {
+  INTERNAL,
+  EXTERNAL;
 }

@@ -27,53 +27,44 @@
  */
 package org.hisp.dhis.helpers.matchers;
 
+import com.google.common.collect.Ordering;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
-
-import com.google.common.collect.Ordering;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class Sorted
-    extends TypeSafeDiagnosingMatcher<Iterable>
-{
-    private final String orderType;
+public class Sorted extends TypeSafeDiagnosingMatcher<Iterable> {
+  private final String orderType;
 
-    private final Ordering ordering;
+  private final Ordering ordering;
 
-    public Sorted( Ordering ordering, String orderType )
-    {
-        this.ordering = ordering;
-        this.orderType = orderType;
+  public Sorted(Ordering ordering, String orderType) {
+    this.ordering = ordering;
+    this.orderType = orderType;
+  }
+
+  public static TypeSafeDiagnosingMatcher by(String orderType) {
+    Ordering ordering = Ordering.natural().nullsLast();
+
+    if (isInDescendingOrder(orderType)) {
+      ordering = ordering.reverse().nullsLast();
     }
 
-    public static TypeSafeDiagnosingMatcher by( String orderType )
-    {
-        Ordering ordering = Ordering.natural().nullsLast();
+    return new Sorted(ordering, orderType);
+  }
 
-        if ( isInDescendingOrder( orderType ) )
-        {
-            ordering = ordering.reverse().nullsLast();
-        }
+  private static boolean isInDescendingOrder(String orderType) {
+    return orderType.equalsIgnoreCase("desc") || orderType.equalsIgnoreCase("descending");
+  }
 
-        return new Sorted( ordering, orderType );
-    }
+  @Override
+  protected boolean matchesSafely(Iterable items, Description mismatchDescription) {
+    return ordering.isOrdered(items);
+  }
 
-    private static boolean isInDescendingOrder( String orderType )
-    {
-        return orderType.equalsIgnoreCase( "desc" ) || orderType.equalsIgnoreCase( "descending" );
-    }
-
-    @Override
-    protected boolean matchesSafely( Iterable items, Description mismatchDescription )
-    {
-        return ordering.isOrdered( items );
-    }
-
-    @Override
-    public void describeTo( Description description )
-    {
-        description.appendText( "an iterable in " ).appendText( orderType ).appendText( " order" );
-    }
+  @Override
+  public void describeTo(Description description) {
+    description.appendText("an iterable in ").appendText(orderType).appendText(" order");
+  }
 }

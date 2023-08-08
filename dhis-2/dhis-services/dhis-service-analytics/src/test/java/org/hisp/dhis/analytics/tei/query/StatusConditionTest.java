@@ -31,7 +31,6 @@ import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -43,118 +42,117 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.Test;
 
-class StatusConditionTest
-{
-    @Test
-    void testProgramStatusCompletedProduceCorrectSql()
-    {
-        // SETUP
-        List<String> values = List.of( "COMPLETED" );
+class StatusConditionTest {
+  @Test
+  void testProgramStatusCompletedProduceCorrectSql() {
+    // SETUP
+    List<String> values = List.of("COMPLETED");
 
-        DimensionIdentifier<DimensionParam> dimensionIdentifier = getProgramAttributeDimensionIdentifier(
-            "programUid", StringUtils.EMPTY, DimensionParam.StaticDimension.ENROLLMENT_STATUS, values );
+    DimensionIdentifier<DimensionParam> dimensionIdentifier =
+        getProgramAttributeDimensionIdentifier(
+            "programUid",
+            StringUtils.EMPTY,
+            DimensionParam.StaticDimension.ENROLLMENT_STATUS,
+            values);
 
-        // CALL
-        SqlParameterManager sqlParameterManager = new SqlParameterManager();
-        QueryContext queryContext = QueryContext.of( null, sqlParameterManager );
+    // CALL
+    SqlParameterManager sqlParameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
 
-        StatusCondition statusCondition = StatusCondition.of( dimensionIdentifier, queryContext );
+    StatusCondition statusCondition = StatusCondition.of(dimensionIdentifier, queryContext);
 
-        String rendered = statusCondition.render();
+    String rendered = statusCondition.render();
 
-        assertEquals( "\"programUid[0]\".enrollmentstatus in (:1)", rendered );
-        assertEquals( "COMPLETED", queryContext.getParametersPlaceHolder().get( "1" ) );
+    assertEquals("\"programUid[0]\".enrollmentstatus in (:1)", rendered);
+    assertEquals("COMPLETED", queryContext.getParametersPlaceHolder().get("1"));
+  }
+
+  @Test
+  void testProgramStatusCompletedActiveProduceCorrectSql() {
+    // SETUP
+    List<String> values = List.of("COMPLETED", "ACTIVE");
+
+    DimensionIdentifier<DimensionParam> dimensionIdentifier =
+        getProgramAttributeDimensionIdentifier(
+            "programUid",
+            StringUtils.EMPTY,
+            DimensionParam.StaticDimension.ENROLLMENT_STATUS,
+            values);
+
+    // CALL
+    SqlParameterManager sqlParameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
+
+    StatusCondition statusCondition = StatusCondition.of(dimensionIdentifier, queryContext);
+
+    String rendered = statusCondition.render();
+
+    assertEquals("\"programUid[0]\".enrollmentstatus in (:1)", rendered);
+    assertEquals(values, queryContext.getParametersPlaceHolder().get("1"));
+  }
+
+  @Test
+  void testEventStatusCompletedProduceCorrectSql() {
+    // SETUP
+    List<String> values = List.of("COMPLETED");
+
+    DimensionIdentifier<DimensionParam> dimensionIdentifier =
+        getProgramAttributeDimensionIdentifier(
+            "programUid", "programStageUid", DimensionParam.StaticDimension.EVENT_STATUS, values);
+
+    // CALL
+    SqlParameterManager sqlParameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
+
+    StatusCondition statusCondition = StatusCondition.of(dimensionIdentifier, queryContext);
+
+    String rendered = statusCondition.render();
+
+    assertEquals("\"programUid[0].programStageUid[0]\".status in (:1)", rendered);
+    assertEquals("COMPLETED", queryContext.getParametersPlaceHolder().get("1"));
+  }
+
+  @Test
+  void testEventStatusCompletedScheduleProduceCorrectSql() {
+    // SETUP
+    List<String> values = List.of("COMPLETED", "SCHEDULE");
+
+    DimensionIdentifier<DimensionParam> dimensionIdentifier =
+        getProgramAttributeDimensionIdentifier(
+            "programUid", "programStageUid", DimensionParam.StaticDimension.EVENT_STATUS, values);
+
+    // CALL
+    SqlParameterManager sqlParameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
+
+    StatusCondition statusCondition = StatusCondition.of(dimensionIdentifier, queryContext);
+
+    String rendered = statusCondition.render();
+
+    assertEquals("\"programUid[0].programStageUid[0]\".status in (:1)", rendered);
+    assertEquals(values, queryContext.getParametersPlaceHolder().get("1"));
+  }
+
+  private DimensionIdentifier<DimensionParam> getProgramAttributeDimensionIdentifier(
+      String programUid,
+      String programStageUid,
+      DimensionParam.StaticDimension dimension,
+      List<String> items) {
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(dimension.name(), DimensionParamType.DIMENSIONS, items);
+
+    Program program = new Program();
+    program.setUid(programUid);
+
+    ElementWithOffset<ProgramStage> programStageElementWithOffset = emptyElementWithOffset();
+
+    if (StringUtils.isNotBlank(programStageUid)) {
+      ProgramStage programStage = new ProgramStage();
+      programStage.setUid(programStageUid);
+      programStageElementWithOffset = ElementWithOffset.of(programStage, 0);
     }
 
-    @Test
-    void testProgramStatusCompletedActiveProduceCorrectSql()
-    {
-        // SETUP
-        List<String> values = List.of( "COMPLETED", "ACTIVE" );
-
-        DimensionIdentifier<DimensionParam> dimensionIdentifier = getProgramAttributeDimensionIdentifier(
-            "programUid", StringUtils.EMPTY, DimensionParam.StaticDimension.ENROLLMENT_STATUS, values );
-
-        // CALL
-        SqlParameterManager sqlParameterManager = new SqlParameterManager();
-        QueryContext queryContext = QueryContext.of( null, sqlParameterManager );
-
-        StatusCondition statusCondition = StatusCondition.of( dimensionIdentifier, queryContext );
-
-        String rendered = statusCondition.render();
-
-        assertEquals( "\"programUid[0]\".enrollmentstatus in (:1)", rendered );
-        assertEquals( values, queryContext.getParametersPlaceHolder().get( "1" ) );
-    }
-
-    @Test
-    void testEventStatusCompletedProduceCorrectSql()
-    {
-        // SETUP
-        List<String> values = List.of( "COMPLETED" );
-
-        DimensionIdentifier<DimensionParam> dimensionIdentifier = getProgramAttributeDimensionIdentifier(
-            "programUid", "programStageUid",
-            DimensionParam.StaticDimension.EVENT_STATUS, values );
-
-        // CALL
-        SqlParameterManager sqlParameterManager = new SqlParameterManager();
-        QueryContext queryContext = QueryContext.of( null, sqlParameterManager );
-
-        StatusCondition statusCondition = StatusCondition.of( dimensionIdentifier, queryContext );
-
-        String rendered = statusCondition.render();
-
-        assertEquals( "\"programUid[0].programStageUid[0]\".status in (:1)", rendered );
-        assertEquals( "COMPLETED", queryContext.getParametersPlaceHolder().get( "1" ) );
-    }
-
-    @Test
-    void testEventStatusCompletedScheduleProduceCorrectSql()
-    {
-        // SETUP
-        List<String> values = List.of( "COMPLETED", "SCHEDULE" );
-
-        DimensionIdentifier<DimensionParam> dimensionIdentifier = getProgramAttributeDimensionIdentifier(
-            "programUid", "programStageUid", DimensionParam.StaticDimension.EVENT_STATUS, values );
-
-        // CALL
-        SqlParameterManager sqlParameterManager = new SqlParameterManager();
-        QueryContext queryContext = QueryContext.of( null, sqlParameterManager );
-
-        StatusCondition statusCondition = StatusCondition.of( dimensionIdentifier, queryContext );
-
-        String rendered = statusCondition.render();
-
-        assertEquals( "\"programUid[0].programStageUid[0]\".status in (:1)", rendered );
-        assertEquals( values, queryContext.getParametersPlaceHolder().get( "1" ) );
-    }
-
-    private DimensionIdentifier<DimensionParam> getProgramAttributeDimensionIdentifier(
-        String programUid, String programStageUid,
-        DimensionParam.StaticDimension dimension,
-        List<String> items )
-    {
-        DimensionParam dimensionParam = DimensionParam.ofObject(
-            dimension.name(),
-            DimensionParamType.DIMENSIONS,
-            items );
-
-        Program program = new Program();
-        program.setUid( programUid );
-
-        ElementWithOffset<ProgramStage> programStageElementWithOffset = emptyElementWithOffset();
-
-        if ( StringUtils.isNotBlank( programStageUid ) )
-        {
-            ProgramStage programStage = new ProgramStage();
-            programStage.setUid( programStageUid );
-            programStageElementWithOffset = ElementWithOffset.of( programStage, 0 );
-        }
-
-        return DimensionIdentifier.of(
-            ElementWithOffset.of( program, 0 ),
-            programStageElementWithOffset,
-            dimensionParam );
-    }
+    return DimensionIdentifier.of(
+        ElementWithOffset.of(program, 0), programStageElementWithOffset, dimensionParam);
+  }
 }

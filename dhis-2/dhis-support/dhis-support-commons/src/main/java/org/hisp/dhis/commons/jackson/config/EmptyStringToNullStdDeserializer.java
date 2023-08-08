@@ -27,30 +27,24 @@
  */
 package org.hisp.dhis.commons.jackson.config;
 
-import java.io.IOException;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import java.io.IOException;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class EmptyStringToNullStdDeserializer extends JsonDeserializer<String>
-{
-    @Override
-    public String deserialize( JsonParser parser, DeserializationContext context )
-        throws IOException
-    {
-        String result = parser.getValueAsString();
+public class EmptyStringToNullStdDeserializer extends JsonDeserializer<String> {
+  @Override
+  public String deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+    String result = parser.getValueAsString();
 
-        if ( StringUtils.isEmpty( result ) )
-        {
-            return null;
-        }
-
-        return result;
+    if (StringUtils.isEmpty(result)) {
+      return null;
     }
+
+    return result;
+  }
 }

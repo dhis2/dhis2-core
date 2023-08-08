@@ -32,56 +32,46 @@ import static org.hisp.dhis.common.OpenApi.Response.Status.CONFLICT;
 import java.text.MessageFormat;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 
 @Getter
-@Accessors( chain = true )
-@OpenApi.Response( status = CONFLICT, value = WebMessageResponse.class )
-@SuppressWarnings( { "java:S1165", "java:S1948" } )
-public final class ConflictException extends Exception implements Error
-{
-    public static <E extends RuntimeException, V> V on( Class<E> type, Supplier<V> operation )
-        throws ConflictException
-    {
-        return Error.rethrow( type, ConflictException::new, operation );
-    }
+@Accessors(chain = true)
+@OpenApi.Response(status = CONFLICT, value = WebMessageResponse.class)
+@SuppressWarnings({"java:S1165", "java:S1948"})
+public final class ConflictException extends Exception implements Error {
+  public static <E extends RuntimeException, V> V on(Class<E> type, Supplier<V> operation)
+      throws ConflictException {
+    return Error.rethrow(type, ConflictException::new, operation);
+  }
 
-    public static <E extends RuntimeException, V> V on( Class<E> type, Function<E, ConflictException> map,
-        Supplier<V> operation )
-        throws ConflictException
-    {
-        return Error.rethrowMapped( type, map, operation );
-    }
+  public static <E extends RuntimeException, V> V on(
+      Class<E> type, Function<E, ConflictException> map, Supplier<V> operation)
+      throws ConflictException {
+    return Error.rethrowMapped(type, map, operation);
+  }
 
-    private final ErrorCode code;
+  private final ErrorCode code;
 
-    @Setter
-    private String devMessage;
+  @Setter private String devMessage;
 
-    @Setter
-    private ObjectReport objectReport;
+  @Setter private ObjectReport objectReport;
 
-    public ConflictException( String message )
-    {
-        super( message );
-        this.code = ErrorCode.E1004;
-    }
+  public ConflictException(String message) {
+    super(message);
+    this.code = ErrorCode.E1004;
+  }
 
-    public ConflictException( ErrorCode code, Object... args )
-    {
-        super( MessageFormat.format( code.getMessage(), args ) );
-        this.code = code;
-    }
+  public ConflictException(ErrorCode code, Object... args) {
+    super(MessageFormat.format(code.getMessage(), args));
+    this.code = code;
+  }
 
-    public ConflictException( ErrorMessage message )
-    {
-        super( message.getMessage() );
-        this.code = message.getErrorCode();
-    }
+  public ConflictException(ErrorMessage message) {
+    super(message.getMessage());
+    this.code = message.getErrorCode();
+  }
 }

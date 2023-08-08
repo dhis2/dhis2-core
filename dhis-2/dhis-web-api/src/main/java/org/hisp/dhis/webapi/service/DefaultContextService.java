@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.service;
 
+import com.google.common.collect.Lists;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -35,134 +36,110 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
-public class DefaultContextService implements ContextService
-{
-    private static Pattern API_VERSION = Pattern.compile( "(/api/(\\d+)?/)" );
+public class DefaultContextService implements ContextService {
+  private static Pattern API_VERSION = Pattern.compile("(/api/(\\d+)?/)");
 
-    @Override
-    public String getServletPath()
-    {
-        return getContextPath() + getRequest().getServletPath();
+  @Override
+  public String getServletPath() {
+    return getContextPath() + getRequest().getServletPath();
+  }
+
+  @Override
+  public String getContextPath() {
+    HttpServletRequest request = getRequest();
+    StringBuilder builder = new StringBuilder();
+    String xForwardedProto = request.getHeader("X-Forwarded-Proto");
+    String xForwardedPort = request.getHeader("X-Forwarded-Port");
+
+    if (xForwardedProto != null
+        && (xForwardedProto.equalsIgnoreCase("http")
+            || xForwardedProto.equalsIgnoreCase("https"))) {
+      builder.append(xForwardedProto);
+    } else {
+      builder.append(request.getScheme());
     }
 
-    @Override
-    public String getContextPath()
-    {
-        HttpServletRequest request = getRequest();
-        StringBuilder builder = new StringBuilder();
-        String xForwardedProto = request.getHeader( "X-Forwarded-Proto" );
-        String xForwardedPort = request.getHeader( "X-Forwarded-Port" );
+    builder.append("://").append(request.getServerName());
 
-        if ( xForwardedProto != null
-            && (xForwardedProto.equalsIgnoreCase( "http" ) || xForwardedProto.equalsIgnoreCase( "https" )) )
-        {
-            builder.append( xForwardedProto );
-        }
-        else
-        {
-            builder.append( request.getScheme() );
-        }
+    int port;
 
-        builder.append( "://" ).append( request.getServerName() );
-
-        int port;
-
-        try
-        {
-            port = Integer.parseInt( xForwardedPort );
-        }
-        catch ( NumberFormatException e )
-        {
-            port = request.getServerPort();
-        }
-
-        if ( port != 80 && port != 443 )
-        {
-            builder.append( ":" ).append( port );
-        }
-
-        builder.append( request.getContextPath() );
-
-        return builder.toString();
+    try {
+      port = Integer.parseInt(xForwardedPort);
+    } catch (NumberFormatException e) {
+      port = request.getServerPort();
     }
 
-    @Override
-    public String getApiPath()
-    {
-        HttpServletRequest request = getRequest();
-        Matcher matcher = API_VERSION.matcher( request.getRequestURI() );
-        String version = "";
-
-        if ( matcher.find() )
-        {
-            version = "/" + matcher.group( 2 );
-        }
-
-        return getServletPath() + version;
+    if (port != 80 && port != 443) {
+      builder.append(":").append(port);
     }
 
-    @Override
-    public HttpServletRequest getRequest()
-    {
-        return ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+    builder.append(request.getContextPath());
+
+    return builder.toString();
+  }
+
+  @Override
+  public String getApiPath() {
+    HttpServletRequest request = getRequest();
+    Matcher matcher = API_VERSION.matcher(request.getRequestURI());
+    String version = "";
+
+    if (matcher.find()) {
+      version = "/" + matcher.group(2);
     }
 
-    @Override
-    public List<String> getParameterValues( String name )
-    {
-        return Optional.ofNullable( name )
-            .map( this::getRequestParameterValues )
-            .orElse( Collections.emptyList() );
+    return getServletPath() + version;
+  }
+
+  @Override
+  public HttpServletRequest getRequest() {
+    return ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+  }
+
+  @Override
+  public List<String> getParameterValues(String name) {
+    return Optional.ofNullable(name)
+        .map(this::getRequestParameterValues)
+        .orElse(Collections.emptyList());
+  }
+
+  private List<String> getRequestParameterValues(String paramName) {
+    String[] parameterValues = getRequest().getParameterValues(paramName);
+
+    if (parameterValues != null) {
+      return Arrays.stream(parameterValues).distinct().collect(Collectors.toList());
     }
 
-    private List<String> getRequestParameterValues( String paramName )
-    {
-        String[] parameterValues = getRequest().getParameterValues( paramName );
+    return Collections.emptyList();
+  }
 
-        if ( parameterValues != null )
-        {
-            return Arrays.stream( parameterValues )
-                .distinct()
-                .collect( Collectors.toList() );
-        }
+  @Override
+  public Map<String, List<String>> getParameterValuesMap() {
+    return getRequest().getParameterMap().entrySet().stream()
+        .collect(
+            Collectors.toMap(
+                Map.Entry::getKey, stringEntry -> Lists.newArrayList(stringEntry.getValue())));
+  }
 
-        return Collections.emptyList();
-    }
+  @Override
+  public List<String> getFieldsFromRequestOrAll() {
+    return getFieldsFromRequestOrElse(":all");
+  }
 
-    @Override
-    public Map<String, List<String>> getParameterValuesMap()
-    {
-        return getRequest().getParameterMap().entrySet().stream()
-            .collect( Collectors.toMap(
-                Map.Entry::getKey,
-                stringEntry -> Lists.newArrayList( stringEntry.getValue() ) ) );
-    }
-
-    @Override
-    public List<String> getFieldsFromRequestOrAll()
-    {
-        return getFieldsFromRequestOrElse( ":all" );
-    }
-
-    @Override
-    public List<String> getFieldsFromRequestOrElse( String fields )
-    {
-        return Optional.ofNullable( getParameterValues( "fields" ) )
-            .filter( CollectionUtils::isNotEmpty )
-            .orElse( Collections.singletonList( fields ) );
-    }
+  @Override
+  public List<String> getFieldsFromRequestOrElse(String fields) {
+    return Optional.ofNullable(getParameterValues("fields"))
+        .filter(CollectionUtils::isNotEmpty)
+        .orElse(Collections.singletonList(fields));
+  }
 }

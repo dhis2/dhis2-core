@@ -36,29 +36,23 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.springframework.stereotype.Component;
 
-/**
- * Validator to validate all {@link TrackedEntity}s in the
- * {@link TrackerBundle}.
- */
-@Component( "org.hisp.dhis.tracker.imports.validation.validator.trackedentity.TrackedEntityRuleEngineValidator" )
-public class TrackedEntityRuleEngineValidator implements Validator<TrackerBundle>
-{
-    private final Validator<TrackerBundle> validator;
+/** Validator to validate all {@link TrackedEntity}s in the {@link TrackerBundle}. */
+@Component(
+    "org.hisp.dhis.tracker.imports.validation.validator.trackedentity.TrackedEntityRuleEngineValidator")
+public class TrackedEntityRuleEngineValidator implements Validator<TrackerBundle> {
+  private final Validator<TrackerBundle> validator;
 
-    public TrackedEntityRuleEngineValidator( AttributeValidator attributeValidator )
-    {
-        validator = each( TrackerBundle::getTrackedEntities, attributeValidator );
-    }
+  public TrackedEntityRuleEngineValidator(AttributeValidator attributeValidator) {
+    validator = each(TrackerBundle::getTrackedEntities, attributeValidator);
+  }
 
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
-    {
-        validator.validate( reporter, bundle, input );
-    }
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
+    validator.validate(reporter, bundle, input);
+  }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true; // this main validator should always run
-    }
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true; // this main validator should always run
+  }
 }

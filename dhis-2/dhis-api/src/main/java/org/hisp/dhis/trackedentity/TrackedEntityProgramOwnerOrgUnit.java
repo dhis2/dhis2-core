@@ -29,16 +29,14 @@ package org.hisp.dhis.trackedentity;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 @Getter
 @RequiredArgsConstructor
-public class TrackedEntityProgramOwnerOrgUnit
-{
-    private final String trackedEntityId;
+public class TrackedEntityProgramOwnerOrgUnit {
+  private final String trackedEntityId;
 
-    private final String programId;
+  private final String programId;
 
-    private final OrganisationUnit organisationUnit;
+  private final OrganisationUnit organisationUnit;
 }

@@ -32,13 +32,11 @@ import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
 /**
  * @author Luciano Fiandesio
  */
-public abstract class AbstractMapper<T, E> implements Mapper<T, E>
-{
+public abstract class AbstractMapper<T, E> implements Mapper<T, E> {
 
-    protected final WorkContext workContext;
+  protected final WorkContext workContext;
 
-    public AbstractMapper( WorkContext ctx )
-    {
-        this.workContext = ctx;
-    }
+  public AbstractMapper(WorkContext ctx) {
+    this.workContext = ctx;
+  }
 }

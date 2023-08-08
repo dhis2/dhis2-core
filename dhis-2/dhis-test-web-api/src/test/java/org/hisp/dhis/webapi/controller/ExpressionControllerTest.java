@@ -39,23 +39,21 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class ExpressionControllerTest extends DhisControllerConvenienceTest
-{
+class ExpressionControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testGetExpressionDescription()
-    {
-        JsonWebMessage response = GET( "/expressions/description?expression=0" ).content().as( JsonWebMessage.class );
-        assertWebMessage( "OK", 200, "OK", "Valid", response );
-        assertEquals( "0", response.getDescription() );
-    }
+  @Test
+  void testGetExpressionDescription() {
+    JsonWebMessage response =
+        GET("/expressions/description?expression=0").content().as(JsonWebMessage.class);
+    assertWebMessage("OK", 200, "OK", "Valid", response);
+    assertEquals("0", response.getDescription());
+  }
 
-    @Test
-    void testGetExpressionDescription_InvalidExpression()
-    {
-        JsonWebMessage response = GET( "/expressions/description?expression=invalid" ).content()
-            .as( JsonWebMessage.class );
-        assertWebMessage( "OK", 200, "ERROR", "Expression is not well-formed", response );
-        assertNull( response.getDescription() );
-    }
+  @Test
+  void testGetExpressionDescription_InvalidExpression() {
+    JsonWebMessage response =
+        GET("/expressions/description?expression=invalid").content().as(JsonWebMessage.class);
+    assertWebMessage("OK", 200, "ERROR", "Expression is not well-formed", response);
+    assertNull(response.getDescription());
+  }
 }

@@ -43,62 +43,72 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class SchemaControllerTest extends DhisControllerConvenienceTest
-{
-    @Test
-    void testValidateSchema()
-    {
-        assertWebMessage( "OK", 200, "OK", null,
-            POST( "/schemas/organisationUnit", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" )
-                .content( HttpStatus.OK ) );
-    }
+class SchemaControllerTest extends DhisControllerConvenienceTest {
+  @Test
+  void testValidateSchema() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        null,
+        POST(
+                "/schemas/organisationUnit",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}")
+            .content(HttpStatus.OK));
+  }
 
-    @Test
-    void testValidateSchema_NoSuchType()
-    {
-        assertWebMessage( "Not Found", 404, "ERROR", "Type xyz does not exist.",
-            POST( "/schemas/xyz", "{}" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testValidateSchema_NoSuchType() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "Type xyz does not exist.",
+        POST("/schemas/xyz", "{}").content(HttpStatus.NOT_FOUND));
+  }
 
-    @Test
-    void testFieldFilteringNameKlass()
-    {
-        var schema = GET( "/schemas/organisationUnit?fields=name,klass" ).content( HttpStatus.OK )
-            .as( JsonSchema.class );
-        assertNotNull( schema.getKlass() );
-        assertNotNull( schema.getName() );
-        assertNull( schema.getSingular() );
-        assertNull( schema.getPlural() );
-        assertFalse( schema.get( "properties" ).exists() );
-    }
+  @Test
+  void testFieldFilteringNameKlass() {
+    var schema =
+        GET("/schemas/organisationUnit?fields=name,klass")
+            .content(HttpStatus.OK)
+            .as(JsonSchema.class);
+    assertNotNull(schema.getKlass());
+    assertNotNull(schema.getName());
+    assertNull(schema.getSingular());
+    assertNull(schema.getPlural());
+    assertFalse(schema.get("properties").exists());
+  }
 
-    @Test
-    void testFieldFilteringDefaultPropertiesExpansion()
-    {
-        var schema = GET( "/schemas/organisationUnit?fields=name,klass,properties" ).content( HttpStatus.OK )
-            .as( JsonSchema.class );
-        assertNotNull( schema.getKlass() );
-        assertNotNull( schema.getName() );
-        assertNull( schema.getSingular() );
-        assertNull( schema.getPlural() );
-        assertTrue( schema.get( "properties" ).exists() );
-        assertFalse( schema.getProperties().isEmpty() );
-        assertNotNull( schema.getProperties().get( 0 ).getName() );
-        assertNotNull( schema.getProperties().get( 0 ).getKlass() );
-        assertNotNull( schema.getProperties().get( 0 ).getFieldName() );
-    }
+  @Test
+  void testFieldFilteringDefaultPropertiesExpansion() {
+    var schema =
+        GET("/schemas/organisationUnit?fields=name,klass,properties")
+            .content(HttpStatus.OK)
+            .as(JsonSchema.class);
+    assertNotNull(schema.getKlass());
+    assertNotNull(schema.getName());
+    assertNull(schema.getSingular());
+    assertNull(schema.getPlural());
+    assertTrue(schema.get("properties").exists());
+    assertFalse(schema.getProperties().isEmpty());
+    assertNotNull(schema.getProperties().get(0).getName());
+    assertNotNull(schema.getProperties().get(0).getKlass());
+    assertNotNull(schema.getProperties().get(0).getFieldName());
+  }
 
-    @Test
-    void testFieldFilteringAllSchemas()
-    {
-        var schemas = GET( "/schemas?fields=name,klass" ).content( HttpStatus.OK ).as( JsonObject.class )
-            .getList( "schemas", JsonSchema.class );
-        for ( JsonSchema schema : schemas )
-        {
-            assertNotNull( schema.getKlass() );
-            assertNotNull( schema.getName() );
-            assertNull( schema.getSingular() );
-            assertNull( schema.getPlural() );
-        }
+  @Test
+  void testFieldFilteringAllSchemas() {
+    var schemas =
+        GET("/schemas?fields=name,klass")
+            .content(HttpStatus.OK)
+            .as(JsonObject.class)
+            .getList("schemas", JsonSchema.class);
+    for (JsonSchema schema : schemas) {
+      assertNotNull(schema.getKlass());
+      assertNotNull(schema.getName());
+      assertNull(schema.getSingular());
+      assertNull(schema.getPlural());
     }
+  }
 }

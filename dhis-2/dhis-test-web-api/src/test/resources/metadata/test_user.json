@@ -1,0 +1,135 @@
+{
+  "userRoles": [
+    {
+      "description": "test UserRole",
+      "name": "testUserRole",
+      "id": "yrB6vc5Ip3r",
+      "programs": [],
+      "code": "testUserRole",
+      "lastUpdated": "2016-03-17T01:51:26.775+0000",
+      "authorities": [
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
+        "F_DATAELEMENTGROUP_PUBLIC_ADD",
+        "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
+        "F_DATAELEMENT_DELETE",
+        "F_CATEGORY_OPTION_GROUP_SET_PRIVATE_ADD",
+        "F_MAP_PUBLIC_ADD",
+        "F_CATEGORY_OPTION_GROUP_SET_DELETE",
+        "F_CATEGORY_PRIVATE_ADD",
+        "F_INDICATORGROUPSET_PUBLIC_ADD",
+        "F_USER_ADD_WITHIN_MANAGED_GROUP",
+        "F_PROGRAM_ENROLLMENT",
+        "F_CATEGORY_OPTION_PRIVATE_ADD",
+        "F_GIS_ADMIN",
+        "F_CATEGORY_OPTION_GROUP_PUBLIC_ADD",
+        "F_REPLICATE_USER",
+        "F_INSERT_CUSTOM_JS_CSS",
+        "F_DATAELEMENTGROUPSET_DELETE",
+        "F_INDICATOR_DELETE",
+        "F_INDICATORTYPE_ADD",
+        "F_VIEW_UNAPPROVED_DATA",
+        "F_INDICATOR_PUBLIC_ADD",
+        "F_INDICATORGROUP_PUBLIC_ADD",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
+        "F_INDICATOR_PRIVATE_ADD",
+        "F_TRACKED_ENTITY_INSTANCE_ADD",
+        "F_USERGROUP_PUBLIC_ADD",
+        "F_OAUTH2_CLIENT_MANAGE",
+        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
+        "F_APPROVE_DATA_LOWER_LEVELS",
+        "F_CATEGORY_OPTION_PUBLIC_ADD",
+        "F_CATEGORY_OPTION_DELETE",
+        "F_CATEGORY_COMBO_PRIVATE_ADD",
+        "F_TRACKED_ENTITY_INSTANCE_DELETE",
+        "F_DATAELEMENT_PUBLIC_ADD",
+        "F_INDICATORGROUP_DELETE",
+        "F_CATEGORY_OPTION_GROUP_DELETE",
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH",
+        "F_SQLVIEW_EXTERNAL",
+        "F_DATAELEMENTGROUPSET_PRIVATE_ADD",
+        "F_CATEGORY_COMBO_DELETE",
+        "F_CATEGORY_OPTION_GROUP_PRIVATE_ADD",
+        "F_DASHBOARD_PUBLIC_ADD",
+        "F_METADATA_IMPORT",
+        "F_INDICATORGROUPSET_PRIVATE_ADD",
+        "F_CATEGORY_PUBLIC_ADD",
+        "F_VISUALIZATION_PUBLIC_ADD",
+        "F_EVENT_VISUALIZATION_PUBLIC_ADD",
+        "F_EVENT_VISUALIZATION_EXTERNAL",
+        "F_CATEGORY_COMBO_PUBLIC_ADD",
+        "F_VISUALIZATION_EXTERNAL",
+        "F_METADATA_EXPORT",
+        "F_PROGRAM_UNENROLLMENT",
+        "F_DATAELEMENTGROUP_PRIVATE_ADD",
+        "F_INDICATORGROUPSET_DELETE",
+        "F_APPROVE_DATA",
+        "F_ACCEPT_DATA_LOWER_LEVELS",
+        "F_CATEGORY_DELETE",
+        "F_TRACKED_ENTITY_DATAVALUE_ADD",
+        "F_INDICATORTYPE_DELETE",
+        "F_CATEGORY_OPTION_GROUP_SET_PUBLIC_ADD",
+        "F_MAP_EXTERNAL",
+        "F_INDICATORGROUP_PRIVATE_ADD",
+        "F_DATAELEMENT_PRIVATE_ADD",
+        "F_TRACKED_ENTITY_DATAVALUE_DELETE",
+        "F_DATAELEMENTGROUP_DELETE",
+        "F_DATAELEMENTGROUPSET_PUBLIC_ADD",
+        "F_PROGRAM_PUBLIC_ADD",
+        "F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD"
+      ],
+      "dataSets": [],
+      "sharing": {
+        "public": "--------"
+      }
+    }
+  ],
+  "users": [
+    {
+      "firstName": "test User",
+      "userRoles": [
+        {
+          "id": "yrB6vc5Ip3r"
+        }
+      ],
+      "selfRegistered": false,
+      "externalAuth": false,
+      "invitation": false,
+      "catDimensionConstraints": [],
+      "cogsDimensionConstraints": [],
+      "passwordLastUpdated": "2016-03-17T01:51:26.795+0000",
+      "username": "testuser",
+      "disabled": false,
+      "lastLogin": "2016-03-17T01:51:26.794+0000",
+      "organisationUnits": [
+        {
+          "id": "uyHni0GvBpD"
+        }
+      ],
+      "lastUpdated": "2016-03-17T01:51:26.764+0000",
+      "code": "testuser",
+      "teiSearchOrganisationUnits": [],
+      "attributeValues": [],
+      "id": "HvbPAQEyXSD",
+      "surname": "testuser",
+      "dataViewOrganisationUnits": [],
+      "created": "2016-03-17T01:51:26.764+0000"
+    }
+  ],
+  "organisationUnits": [
+    {
+      "path": "/uyHni0GvBpD",
+      "featureType": "NONE",
+      "uuid": "eb380b08-6cc6-4aca-9b67-e1247e02db33",
+      "shortName": "Country",
+      "attributeValues": [ ],
+      "openingDate": "2016-03-17",
+      "id": "uyHni0GvBpD",
+      "description": "",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "name": "Country"
+    }
+  ]
+}

@@ -42,67 +42,90 @@ import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.event.ProgramRuleActionController}
- * using (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.webapi.controller.event.ProgramRuleActionController} using
+ * (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-class ProgramRuleActionControllerTest extends DhisControllerConvenienceTest
-{
+class ProgramRuleActionControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testGetDataExpressionDescription()
-    {
-        String pId = assertStatus( HttpStatus.CREATED,
-            POST( "/programs/", "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}" ) );
-        assertWebMessage( "OK", 200, "OK", "Valid",
-            POST( "/programRuleActions/data/expression/description?programId=" + pId, "70" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testGetDataExpressionDescription() {
+    String pId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}"));
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Valid",
+        POST("/programRuleActions/data/expression/description?programId=" + pId, "70")
+            .content(HttpStatus.OK));
+  }
 
-    @Test
-    void testGetDataExpressionDescription_NoSuchProgram()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "Expression is not valid",
-            POST( "/programRuleActions/data/expression/description?programId=xyz", "70" )
-                .content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testGetDataExpressionDescription_NoSuchProgram() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Expression is not valid",
+        POST("/programRuleActions/data/expression/description?programId=xyz", "70")
+            .content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testGetDataExpressionDescription_WithInvalidExpression()
-    {
-        String pId = assertStatus( HttpStatus.CREATED,
-            POST( "/programs/", "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}" ) );
-        assertWebMessage( "Conflict", 409, "ERROR", "Expression is not valid",
-            POST( "/programRuleActions/data/expression/description?programId=" + pId, "1 + " )
-                .content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testGetDataExpressionDescription_WithInvalidExpression() {
+    String pId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}"));
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Expression is not valid",
+        POST("/programRuleActions/data/expression/description?programId=" + pId, "1 + ")
+            .content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testSaveActionWithIrrelevantReferenceObjects()
-    {
-        Program program = createProgram( 'A' );
-        manager.save( program );
-        DataElement dataElement = createDataElement( 'A' );
-        manager.save( dataElement );
-        ProgramStage programStage = createProgramStage( 'A', program );
-        programStage.addDataElement( dataElement, 0 );
-        programStage.setProgram( program );
-        manager.save( programStage );
-        ProgramRule programRule = createProgramRule( 'A', program );
-        manager.save( programRule );
+  @Test
+  void testSaveActionWithIrrelevantReferenceObjects() {
+    Program program = createProgram('A');
+    manager.save(program);
+    DataElement dataElement = createDataElement('A');
+    manager.save(dataElement);
+    ProgramStage programStage = createProgramStage('A', program);
+    programStage.addDataElement(dataElement, 0);
+    programStage.setProgram(program);
+    manager.save(programStage);
+    ProgramRule programRule = createProgramRule('A', program);
+    manager.save(programRule);
 
-        String programRuleAction = "{ 'programRule':{'id':'" + programRule.getUid() + "'}, " +
-            "'programRuleActionType': 'HIDEPROGRAMSTAGE', " +
-            "'dataElement':{'id':'" + dataElement.getUid() + "'}, " +
-            "'programStage': {'id':'" + programStage.getUid() + "'} }";
+    String programRuleAction =
+        "{ 'programRule':{'id':'"
+            + programRule.getUid()
+            + "'}, "
+            + "'programRuleActionType': 'HIDEPROGRAMSTAGE', "
+            + "'dataElement':{'id':'"
+            + dataElement.getUid()
+            + "'}, "
+            + "'programStage': {'id':'"
+            + programStage.getUid()
+            + "'} }";
 
-        JsonErrorReport error = POST( "/programRuleActions", programRuleAction ).content( HttpStatus.CONFLICT ).find(
-            JsonErrorReport.class,
-            report -> report.getErrorCode() == ErrorCode.E4058 );
-        assertNotNull( error );
-        assertEquals(
-            "Program Rule `ProgramRuleA` with Action Type `HIDEPROGRAMSTAGE` has irrelevant reference objects",
-            error.getMessage() );
-    }
+    JsonErrorReport error =
+        POST("/programRuleActions", programRuleAction)
+            .content(HttpStatus.CONFLICT)
+            .find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4058);
+    assertNotNull(error);
+    assertEquals(
+        "Program Rule `ProgramRuleA` with Action Type `HIDEPROGRAMSTAGE` has irrelevant reference objects",
+        error.getMessage());
+  }
 }

@@ -29,25 +29,21 @@ package org.hisp.dhis.analytics.tei.query.context.sql;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import lombok.Getter;
 
 /**
- * This class is used to hold the parameters that are used to build the query
- * along with the placeholder that will be used in the query.
+ * This class is used to hold the parameters that are used to build the query along with the
+ * placeholder that will be used in the query.
  */
-public class SqlParameterManager
-{
-    private int parameterIndex = 0;
+public class SqlParameterManager {
+  private int parameterIndex = 0;
 
-    @Getter
-    private final Map<String, Object> parametersPlaceHolder = new HashMap<>();
+  @Getter private final Map<String, Object> parametersPlaceHolder = new HashMap<>();
 
-    public String bindParamAndGetIndex( Object param )
-    {
-        parameterIndex++;
-        parametersPlaceHolder.put( String.valueOf( parameterIndex ), param );
+  public String bindParamAndGetIndex(Object param) {
+    parameterIndex++;
+    parametersPlaceHolder.put(String.valueOf(parameterIndex), param);
 
-        return ":" + parameterIndex;
-    }
+    return ":" + parameterIndex;
+  }
 }

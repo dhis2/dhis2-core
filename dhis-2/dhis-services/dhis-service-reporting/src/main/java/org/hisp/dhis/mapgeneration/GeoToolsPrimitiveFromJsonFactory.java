@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.mapgeneration;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -35,130 +36,113 @@ import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 /**
  * Factory for producing GeoTools geometric primitives from coordinates in json.
  *
  * @author Olai Solheim <olais@ifi.uio.no>
  */
-public class GeoToolsPrimitiveFromJsonFactory
-{
-    // Factory creating GeoTools geometric primitives
-    private static final GeometryFactory FACTORY = JTSFactoryFinder.getGeometryFactory( null );
+public class GeoToolsPrimitiveFromJsonFactory {
+  // Factory creating GeoTools geometric primitives
+  private static final GeometryFactory FACTORY = JTSFactoryFinder.getGeometryFactory(null);
 
-    /**
-     * Create a GeoTools geometric point primitive from coordinates in json.
-     *
-     * @param json the json array of components
-     * @return the point
-     */
-    public static Point createPointFromJson( JsonNode json )
-    {
-        return FACTORY.createPoint( createCoordinateFromJson( json ) );
+  /**
+   * Create a GeoTools geometric point primitive from coordinates in json.
+   *
+   * @param json the json array of components
+   * @return the point
+   */
+  public static Point createPointFromJson(JsonNode json) {
+    return FACTORY.createPoint(createCoordinateFromJson(json));
+  }
+
+  /**
+   * Create a GeoTools geometric coordinate primitive from coordinates in json.
+   *
+   * @param json the json array of components
+   * @return the coordinate
+   */
+  public static Coordinate createCoordinateFromJson(JsonNode json) {
+    // Parse the double values from the json and create the coordinate
+    return new Coordinate(json.get(0).asDouble(), json.get(1).asDouble());
+  }
+
+  /**
+   * Create a GeoTools geometric multi-polygon primitive from coordinates in json.
+   *
+   * @param json the json array of polygons
+   * @return the multi-polygon
+   */
+  public static MultiPolygon createMultiPolygonFromJson(JsonNode json) {
+    // Native array of polygons to pass to GeoFactory
+    Polygon[] polygons = new Polygon[MapUtils.getNonEmptyNodes(json)];
+
+    // Read all the polygons from the json array
+    for (int i = 0; i < json.size(); i++) {
+      JsonNode node = json.get(i);
+
+      if (MapUtils.nodeIsNonEmpty(node)) {
+        polygons[i] = createPolygonFromJson(node);
+      }
     }
 
-    /**
-     * Create a GeoTools geometric coordinate primitive from coordinates in
-     * json.
-     *
-     * @param json the json array of components
-     * @return the coordinate
-     */
-    public static Coordinate createCoordinateFromJson( JsonNode json )
-    {
-        // Parse the double values from the json and create the coordinate
-        return new Coordinate( json.get( 0 ).asDouble(), json.get( 1 ).asDouble() );
-    }
+    // Create the multi-polygon from factory
+    return FACTORY.createMultiPolygon(polygons);
+  }
 
-    /**
-     * Create a GeoTools geometric multi-polygon primitive from coordinates in
-     * json.
-     *
-     * @param json the json array of polygons
-     * @return the multi-polygon
-     */
-    public static MultiPolygon createMultiPolygonFromJson( JsonNode json )
-    {
-        // Native array of polygons to pass to GeoFactory
-        Polygon[] polygons = new Polygon[MapUtils.getNonEmptyNodes( json )];
+  /**
+   * Create a GeoTools geometric polygon primitive from coordinates in json.
+   *
+   * @param json the json array of linear ring
+   * @return the polygon
+   */
+  public static Polygon createPolygonFromJson(JsonNode json) {
+    // Get the json array of coordinates representing the shell and make a
+    // linear-ring out of them
+    JsonNode shell = json.get(0);
+    LinearRing sh = createLinearRingFromJson(shell);
 
-        // Read all the polygons from the json array
-        for ( int i = 0; i < json.size(); i++ )
-        {
-            JsonNode node = json.get( i );
+    // Native array of linear-ring holes to pass to GeoFactory
+    LinearRing[] holes = null;
 
-            if ( MapUtils.nodeIsNonEmpty( node ) )
-            {
-                polygons[i] = createPolygonFromJson( node );
-            }
+    // Get the linear-ring holes if the polygon has any holes
+    if (json.size() > 1) {
+      // Allocate memory for the holes, i.e. minus the shell
+      holes = new LinearRing[shell.size() - 1];
+
+      // Read the json array of linear-ring into holes
+      for (int i = 1; i < shell.size(); i++) {
+        JsonNode hole = json.get(i);
+
+        if (hole != null && hole.size() > 0) {
+          holes[i] = createLinearRingFromJson(hole);
         }
-
-        // Create the multi-polygon from factory
-        return FACTORY.createMultiPolygon( polygons );
+      }
     }
 
-    /**
-     * Create a GeoTools geometric polygon primitive from coordinates in json.
-     *
-     * @param json the json array of linear ring
-     * @return the polygon
-     */
-    public static Polygon createPolygonFromJson( JsonNode json )
-    {
-        // Get the json array of coordinates representing the shell and make a
-        // linear-ring out of them
-        JsonNode shell = json.get( 0 );
-        LinearRing sh = createLinearRingFromJson( shell );
+    // Create the polygon from factory
+    return FACTORY.createPolygon(sh, holes);
+  }
 
-        // Native array of linear-ring holes to pass to GeoFactory
-        LinearRing[] holes = null;
+  /**
+   * Create a GeoTools geometric linear-ring from coordinates in json.
+   *
+   * @param json the json array of coordinates
+   * @return the linear-ring
+   */
+  public static LinearRing createLinearRingFromJson(JsonNode json) {
+    // Native array of coordinates to pass to GeoFactory
+    Coordinate[] coords = new Coordinate[MapUtils.getNonEmptyNodes(json)];
 
-        // Get the linear-ring holes if the polygon has any holes
-        if ( json.size() > 1 )
-        {
-            // Allocate memory for the holes, i.e. minus the shell
-            holes = new LinearRing[shell.size() - 1];
+    // Read the json array of coordinates
+    for (int i = 0; i < json.size(); i++) {
+      JsonNode node = json.get(i);
 
-            // Read the json array of linear-ring into holes
-            for ( int i = 1; i < shell.size(); i++ )
-            {
-                JsonNode hole = json.get( i );
-
-                if ( hole != null && hole.size() > 0 )
-                {
-                    holes[i] = createLinearRingFromJson( hole );
-                }
-            }
-        }
-
-        // Create the polygon from factory
-        return FACTORY.createPolygon( sh, holes );
+      if (MapUtils.nodeIsNonEmpty(node)) {
+        coords[i] = createCoordinateFromJson(node);
+      }
     }
 
-    /**
-     * Create a GeoTools geometric linear-ring from coordinates in json.
-     *
-     * @param json the json array of coordinates
-     * @return the linear-ring
-     */
-    public static LinearRing createLinearRingFromJson( JsonNode json )
-    {
-        // Native array of coordinates to pass to GeoFactory
-        Coordinate[] coords = new Coordinate[MapUtils.getNonEmptyNodes( json )];
-
-        // Read the json array of coordinates
-        for ( int i = 0; i < json.size(); i++ )
-        {
-            JsonNode node = json.get( i );
-
-            if ( MapUtils.nodeIsNonEmpty( node ) )
-            {
-                coords[i] = createCoordinateFromJson( node );
-            }
-        }
-
-        // Create the linear-ring from factory
-        return FACTORY.createLinearRing( coords );
-    }
+    // Create the linear-ring from factory
+    return FACTORY.createLinearRing(coords);
+  }
 }

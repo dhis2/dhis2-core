@@ -30,9 +30,8 @@ package org.hisp.dhis.dashboard;
 /**
  * @author Lars Helge Overland
  */
-public enum DashboardItemShape
-{
-    NORMAL,
-    DOUBLE_WIDTH,
-    FULL_WIDTH
+public enum DashboardItemShape {
+  NORMAL,
+  DOUBLE_WIDTH,
+  FULL_WIDTH
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.dataset;
 
 import java.util.Map;
-
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
@@ -38,19 +37,16 @@ import org.springframework.stereotype.Component;
  * @author Stian Sandvold
  */
 @Component
-public class DataInputPeriodDeletionHandler extends JdbcDeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( DataInputPeriod.class );
+public class DataInputPeriodDeletionHandler extends JdbcDeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(DataInputPeriod.class);
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( Period.class, this::allowDeletePeriod );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(Period.class, this::allowDeletePeriod);
+  }
 
-    private DeletionVeto allowDeletePeriod( Period period )
-    {
-        String sql = "select 1 from datainputperiod where periodid= :id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", period.getId() ) );
-    }
+  private DeletionVeto allowDeletePeriod(Period period) {
+    String sql = "select 1 from datainputperiod where periodid= :id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", period.getId()));
+  }
 }

@@ -42,20 +42,16 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class MetaValidator
-    implements Validator<Event>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
-    {
-        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( event.getOrgUnit() );
-        reporter.addErrorIfNull( organisationUnit, event, E1011, event.getOrgUnit() );
+class MetaValidator implements Validator<Event> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
+    OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit(event.getOrgUnit());
+    reporter.addErrorIfNull(organisationUnit, event, E1011, event.getOrgUnit());
 
-        Program program = bundle.getPreheat().getProgram( event.getProgram() );
-        reporter.addErrorIfNull( program, event, E1010, event.getProgram() );
+    Program program = bundle.getPreheat().getProgram(event.getProgram());
+    reporter.addErrorIfNull(program, event, E1010, event.getProgram());
 
-        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
-        reporter.addErrorIfNull( programStage, event, E1013, event.getProgramStage() );
-    }
-
+    ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
+    reporter.addErrorIfNull(programStage, event, E1013, event.getProgramStage());
+  }
 }

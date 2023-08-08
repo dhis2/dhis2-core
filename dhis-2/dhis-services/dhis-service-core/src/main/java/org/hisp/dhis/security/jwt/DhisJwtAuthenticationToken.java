@@ -28,7 +28,6 @@
 package org.hisp.dhis.security.jwt;
 
 import java.util.Collection;
-
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.springframework.security.core.GrantedAuthority;
@@ -39,21 +38,21 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class DhisJwtAuthenticationToken extends JwtAuthenticationToken
-{
-    private final DhisOidcUser dhisOidcUser;
+public class DhisJwtAuthenticationToken extends JwtAuthenticationToken {
+  private final DhisOidcUser dhisOidcUser;
 
-    public DhisJwtAuthenticationToken( Jwt jwt, Collection<? extends GrantedAuthority> authorities, String name,
-        CurrentUserDetails user )
-    {
-        super( jwt, authorities, name );
+  public DhisJwtAuthenticationToken(
+      Jwt jwt,
+      Collection<? extends GrantedAuthority> authorities,
+      String name,
+      CurrentUserDetails user) {
+    super(jwt, authorities, name);
 
-        this.dhisOidcUser = new DhisOidcUser( user, jwt.getClaims(), IdTokenClaimNames.SUB, null );
-    }
+    this.dhisOidcUser = new DhisOidcUser(user, jwt.getClaims(), IdTokenClaimNames.SUB, null);
+  }
 
-    @Override
-    public Object getPrincipal()
-    {
-        return this.dhisOidcUser;
-    }
+  @Override
+  public Object getPrincipal() {
+    return this.dhisOidcUser;
+  }
 }

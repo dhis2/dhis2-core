@@ -40,7 +40,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -58,154 +57,151 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class VisualizationGridServiceTest
-{
-    @Mock
-    private VisualizationService visualizationService;
+@ExtendWith(MockitoExtension.class)
+class VisualizationGridServiceTest {
+  @Mock private VisualizationService visualizationService;
 
-    @Mock
-    private AnalyticsService analyticsService;
+  @Mock private AnalyticsService analyticsService;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private CurrentUserService currentUserService;
 
-    @Mock
-    private I18nManager i18nManager;
+  @Mock private I18nManager i18nManager;
 
-    private VisualizationGridService visualizationGridService;
+  private VisualizationGridService visualizationGridService;
 
-    @BeforeEach
-    public void setUp()
-    {
-        visualizationGridService = new DefaultVisualizationGridService( visualizationService, analyticsService,
-            organisationUnitService, currentUserService, i18nManager );
-    }
+  @BeforeEach
+  public void setUp() {
+    visualizationGridService =
+        new DefaultVisualizationGridService(
+            visualizationService,
+            analyticsService,
+            organisationUnitService,
+            currentUserService,
+            i18nManager);
+  }
 
-    @Test
-    void getVisualizationGridByUserWhenItHasOrganisationUnitLevels()
-    {
-        // Given
-        final String anyVisualizationUid = "adbet5RTs";
-        final Date anyRelativePeriodDate = new Date();
-        final String anyOrganisationUnitUid = "ouiRzW5e";
-        final User userStub = userStub();
-        final List<Integer> orgUnitLevels = asList( 1, 2 );
-        final List<OrganisationUnit> orgUnits = asList( new OrganisationUnit() );
-        final Map<String, Object> valueMap = valueMapStub();
+  @Test
+  void getVisualizationGridByUserWhenItHasOrganisationUnitLevels() {
+    // Given
+    final String anyVisualizationUid = "adbet5RTs";
+    final Date anyRelativePeriodDate = new Date();
+    final String anyOrganisationUnitUid = "ouiRzW5e";
+    final User userStub = userStub();
+    final List<Integer> orgUnitLevels = asList(1, 2);
+    final List<OrganisationUnit> orgUnits = asList(new OrganisationUnit());
+    final Map<String, Object> valueMap = valueMapStub();
 
-        final Visualization visualizationStub = visualizationStub( "abc123xy" );
-        visualizationStub.setOrganisationUnitLevels( orgUnitLevels );
-        visualizationStub.setOrganisationUnits( orgUnits );
-        final Visualization visualizationSpy = spy( visualizationStub );
+    final Visualization visualizationStub = visualizationStub("abc123xy");
+    visualizationStub.setOrganisationUnitLevels(orgUnitLevels);
+    visualizationStub.setOrganisationUnits(orgUnits);
+    final Visualization visualizationSpy = spy(visualizationStub);
 
-        // When
-        when( visualizationService.getVisualization( anyVisualizationUid ) ).thenReturn( visualizationSpy );
-        when( analyticsService.getAggregatedDataValueMapping( visualizationSpy ) ).thenReturn( valueMap );
-        final Grid expectedGrid = visualizationGridService.getVisualizationGrid( anyVisualizationUid,
-            anyRelativePeriodDate, anyOrganisationUnitUid, userStub );
+    // When
+    when(visualizationService.getVisualization(anyVisualizationUid)).thenReturn(visualizationSpy);
+    when(analyticsService.getAggregatedDataValueMapping(visualizationSpy)).thenReturn(valueMap);
+    final Grid expectedGrid =
+        visualizationGridService.getVisualizationGrid(
+            anyVisualizationUid, anyRelativePeriodDate, anyOrganisationUnitUid, userStub);
 
-        // Then
-        assertThat( expectedGrid.getRows(), hasSize( 1 ) );
-        assertThat( expectedGrid.getRows().get( 0 ), hasSize( 7 ) );
-        assertThat( expectedGrid.getRows().get( 0 ), hasItem( "abc123xy" ) );
-        assertThat( expectedGrid.getHeaders(), hasSize( 7 ) );
-        assertThat( expectedGrid.getMetaColumnIndexes(), hasSize( 7 ) );
-        assertThatHeadersAreTheExpectedOnes( expectedGrid );
+    // Then
+    assertThat(expectedGrid.getRows(), hasSize(1));
+    assertThat(expectedGrid.getRows().get(0), hasSize(7));
+    assertThat(expectedGrid.getRows().get(0), hasItem("abc123xy"));
+    assertThat(expectedGrid.getHeaders(), hasSize(7));
+    assertThat(expectedGrid.getMetaColumnIndexes(), hasSize(7));
+    assertThatHeadersAreTheExpectedOnes(expectedGrid);
 
-        verify( organisationUnitService, times( 1 ) ).getOrganisationUnitsAtLevels( orgUnitLevels, orgUnits );
-        verify( visualizationSpy, times( 1 ) ).clearTransientState();
-    }
+    verify(organisationUnitService, times(1)).getOrganisationUnitsAtLevels(orgUnitLevels, orgUnits);
+    verify(visualizationSpy, times(1)).clearTransientState();
+  }
 
-    @Test
-    void getVisualizationGridByUserWhenItHasItemOrganisationUnitGroups()
-    {
-        // Given
-        final String anyVisualizationUid = "adbet5RTs";
-        final Date anyRelativePeriodDate = new Date();
-        final String anyOrganisationUnitUid = "ouiRzW5e";
-        final User userStub = userStub();
-        final List<OrganisationUnit> orgUnits = asList( new OrganisationUnit() );
-        final List<OrganisationUnitGroup> orgUnitGroups = asList( new OrganisationUnitGroup() );
-        final Map<String, Object> valueMap = valueMapStub();
+  @Test
+  void getVisualizationGridByUserWhenItHasItemOrganisationUnitGroups() {
+    // Given
+    final String anyVisualizationUid = "adbet5RTs";
+    final Date anyRelativePeriodDate = new Date();
+    final String anyOrganisationUnitUid = "ouiRzW5e";
+    final User userStub = userStub();
+    final List<OrganisationUnit> orgUnits = asList(new OrganisationUnit());
+    final List<OrganisationUnitGroup> orgUnitGroups = asList(new OrganisationUnitGroup());
+    final Map<String, Object> valueMap = valueMapStub();
 
-        final Visualization visualizationStub = visualizationStub( "abc123xy" );
-        visualizationStub.setOrganisationUnits( orgUnits );
-        visualizationStub.setItemOrganisationUnitGroups( orgUnitGroups );
-        final Visualization visualizationSpy = spy( visualizationStub );
+    final Visualization visualizationStub = visualizationStub("abc123xy");
+    visualizationStub.setOrganisationUnits(orgUnits);
+    visualizationStub.setItemOrganisationUnitGroups(orgUnitGroups);
+    final Visualization visualizationSpy = spy(visualizationStub);
 
-        // When
-        when( visualizationService.getVisualization( anyVisualizationUid ) ).thenReturn( visualizationSpy );
-        when( analyticsService.getAggregatedDataValueMapping( visualizationSpy ) ).thenReturn( valueMap );
-        final Grid expectedGrid = visualizationGridService.getVisualizationGrid( anyVisualizationUid,
-            anyRelativePeriodDate, anyOrganisationUnitUid, userStub );
+    // When
+    when(visualizationService.getVisualization(anyVisualizationUid)).thenReturn(visualizationSpy);
+    when(analyticsService.getAggregatedDataValueMapping(visualizationSpy)).thenReturn(valueMap);
+    final Grid expectedGrid =
+        visualizationGridService.getVisualizationGrid(
+            anyVisualizationUid, anyRelativePeriodDate, anyOrganisationUnitUid, userStub);
 
-        // Then
-        assertThat( expectedGrid.getRows(), hasSize( 1 ) );
-        assertThat( expectedGrid.getRows().get( 0 ), hasSize( 7 ) );
-        assertThat( expectedGrid.getRows().get( 0 ), hasItem( "abc123xy" ) );
-        assertThat( expectedGrid.getHeaders(), hasSize( 7 ) );
-        assertThat( expectedGrid.getMetaColumnIndexes(), hasSize( 7 ) );
-        assertThatHeadersAreTheExpectedOnes( expectedGrid );
+    // Then
+    assertThat(expectedGrid.getRows(), hasSize(1));
+    assertThat(expectedGrid.getRows().get(0), hasSize(7));
+    assertThat(expectedGrid.getRows().get(0), hasItem("abc123xy"));
+    assertThat(expectedGrid.getHeaders(), hasSize(7));
+    assertThat(expectedGrid.getMetaColumnIndexes(), hasSize(7));
+    assertThatHeadersAreTheExpectedOnes(expectedGrid);
 
-        verify( organisationUnitService, times( 1 ) ).getOrganisationUnits( orgUnitGroups, orgUnits );
-        verify( visualizationSpy, times( 1 ) ).clearTransientState();
-    }
+    verify(organisationUnitService, times(1)).getOrganisationUnits(orgUnitGroups, orgUnits);
+    verify(visualizationSpy, times(1)).clearTransientState();
+  }
 
-    private void assertThatHeadersAreTheExpectedOnes( Grid expectedGrid )
-    {
-        final List<GridHeader> gridHeaders = expectedGrid.getHeaders();
-        assertThat( "Header must be present: dataid", gridContains( gridHeaders, "dataid" ) );
-        assertThat( "Header must be present: dataname", gridContains( gridHeaders, "dataname" ) );
-        assertThat( "Header must be present: datacode", gridContains( gridHeaders, "datacode" ) );
-        assertThat( "Header must be present: datadescription", gridContains( gridHeaders, "datadescription" ) );
-        assertThat( "Header must be present: reporting_month_name",
-            gridContains( gridHeaders, "reporting_month_name" ) );
-        assertThat( "Header must be present: param_organisationunit_name",
-            gridContains( gridHeaders, "param_organisationunit_name" ) );
-        assertThat( "Header must be present: organisation_unit_is_parent",
-            gridContains( gridHeaders, "organisation_unit_is_parent" ) );
-    }
+  private void assertThatHeadersAreTheExpectedOnes(Grid expectedGrid) {
+    final List<GridHeader> gridHeaders = expectedGrid.getHeaders();
+    assertThat("Header must be present: dataid", gridContains(gridHeaders, "dataid"));
+    assertThat("Header must be present: dataname", gridContains(gridHeaders, "dataname"));
+    assertThat("Header must be present: datacode", gridContains(gridHeaders, "datacode"));
+    assertThat(
+        "Header must be present: datadescription", gridContains(gridHeaders, "datadescription"));
+    assertThat(
+        "Header must be present: reporting_month_name",
+        gridContains(gridHeaders, "reporting_month_name"));
+    assertThat(
+        "Header must be present: param_organisationunit_name",
+        gridContains(gridHeaders, "param_organisationunit_name"));
+    assertThat(
+        "Header must be present: organisation_unit_is_parent",
+        gridContains(gridHeaders, "organisation_unit_is_parent"));
+  }
 
-    private boolean gridContains( final List<GridHeader> gridHeaders, final String columnHeader )
-    {
-        return gridHeaders.removeIf( gridHeader -> gridHeader.getColumn().equals( columnHeader ) );
-    }
+  private boolean gridContains(final List<GridHeader> gridHeaders, final String columnHeader) {
+    return gridHeaders.removeIf(gridHeader -> gridHeader.getColumn().equals(columnHeader));
+  }
 
-    private User userStub()
-    {
-        final User userStub = new User();
-        userStub.setName( "John" );
-        userStub.setSurname( "Rambo" );
-        return userStub;
-    }
+  private User userStub() {
+    final User userStub = new User();
+    userStub.setName("John");
+    userStub.setSurname("Rambo");
+    return userStub;
+  }
 
-    private Visualization visualizationStub( final String dimensionItem )
-    {
-        final List<String> rowsDimensions = asList( "dx" );
-        final List<DimensionalItemObject> dimensionalItemObjects = asList(
-            baseDimensionalItemObjectStub( dimensionItem ) );
+  private Visualization visualizationStub(final String dimensionItem) {
+    final List<String> rowsDimensions = asList("dx");
+    final List<DimensionalItemObject> dimensionalItemObjects =
+        asList(baseDimensionalItemObjectStub(dimensionItem));
 
-        final Visualization visualization = new Visualization();
-        visualization.setRowDimensions( rowsDimensions );
-        visualization.setGridRows( asList( dimensionalItemObjects ) );
-        return visualization;
-    }
+    final Visualization visualization = new Visualization();
+    visualization.setRowDimensions(rowsDimensions);
+    visualization.setGridRows(asList(dimensionalItemObjects));
+    return visualization;
+  }
 
-    private Map<String, Object> valueMapStub()
-    {
-        final Map<String, Object> valueMap = new HashMap<>();
-        valueMap.put( "key1", "value1" );
-        return valueMap;
-    }
+  private Map<String, Object> valueMapStub() {
+    final Map<String, Object> valueMap = new HashMap<>();
+    valueMap.put("key1", "value1");
+    return valueMap;
+  }
 
-    private BaseDimensionalItemObject baseDimensionalItemObjectStub( final String dimensionItem )
-    {
-        final BaseDimensionalItemObject baseDimensionalItemObject = new BaseDimensionalItemObject( dimensionItem );
-        baseDimensionalItemObject.setDescription( "display " + dimensionItem );
-        return baseDimensionalItemObject;
-    }
+  private BaseDimensionalItemObject baseDimensionalItemObjectStub(final String dimensionItem) {
+    final BaseDimensionalItemObject baseDimensionalItemObject =
+        new BaseDimensionalItemObject(dimensionItem);
+    baseDimensionalItemObject.setDescription("display " + dimensionItem);
+    return baseDimensionalItemObject;
+  }
 }

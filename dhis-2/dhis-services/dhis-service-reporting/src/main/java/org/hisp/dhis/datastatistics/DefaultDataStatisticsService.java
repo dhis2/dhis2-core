@@ -35,9 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.Dhis2Info;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -65,223 +63,224 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Julie Hill Roa
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.datastatistics.DataStatisticsService" )
+@Service("org.hisp.dhis.datastatistics.DataStatisticsService")
 @Transactional
-public class DefaultDataStatisticsService
-    implements DataStatisticsService
-{
-    private final DataStatisticsStore dataStatisticsStore;
+public class DefaultDataStatisticsService implements DataStatisticsService {
+  private final DataStatisticsStore dataStatisticsStore;
 
-    private final DataStatisticsEventStore dataStatisticsEventStore;
+  private final DataStatisticsEventStore dataStatisticsEventStore;
 
-    private final UserService userService;
+  private final UserService userService;
 
-    private final IdentifiableObjectManager idObjectManager;
+  private final IdentifiableObjectManager idObjectManager;
 
-    private final DataValueService dataValueService;
+  private final DataValueService dataValueService;
 
-    private final StatisticsProvider statisticsProvider;
+  private final StatisticsProvider statisticsProvider;
 
-    private final EventService eventService;
+  private final EventService eventService;
 
-    private final EventVisualizationStore eventVisualizationStore;
+  private final EventVisualizationStore eventVisualizationStore;
 
-    private final SystemService systemService;
+  private final SystemService systemService;
 
-    // -------------------------------------------------------------------------
-    // DataStatisticsService implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DataStatisticsService implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public int addEvent( DataStatisticsEvent event )
-    {
-        dataStatisticsEventStore.save( event );
+  @Override
+  public int addEvent(DataStatisticsEvent event) {
+    dataStatisticsEventStore.save(event);
 
-        return event.getId();
-    }
+    return event.getId();
+  }
 
-    @Override
-    public List<AggregatedStatistics> getReports( Date startDate, Date endDate, EventInterval eventInterval )
-    {
-        return dataStatisticsStore.getSnapshotsInInterval( eventInterval, startDate, endDate );
-    }
+  @Override
+  public List<AggregatedStatistics> getReports(
+      Date startDate, Date endDate, EventInterval eventInterval) {
+    return dataStatisticsStore.getSnapshotsInInterval(eventInterval, startDate, endDate);
+  }
 
-    private DataStatistics getDataStatisticsSnapshot( Date day, JobProgress progress )
-    {
-        Date startDate = getStartDate( day );
-        int days = getDays( startDate );
+  private DataStatistics getDataStatisticsSnapshot(Date day, JobProgress progress) {
+    Date startDate = getStartDate(day);
+    int days = getDays(startDate);
 
-        // when counting fails we use null so the count does not appear in the
-        // stats
-        Integer errorValue = null;
-        progress.startingStage( "Counting maps", SKIP_STAGE );
-        Integer savedMaps = progress.runStage( errorValue,
-            () -> idObjectManager.getCountByCreated( org.hisp.dhis.mapping.Map.class, startDate ) );
-        progress.startingStage( "Counting visualisations", SKIP_STAGE );
-        Integer savedVisualizations = progress.runStage( errorValue,
-            () -> idObjectManager.getCountByCreated( Visualization.class, startDate ) );
-        progress.startingStage( "Counting event reports", SKIP_STAGE );
-        Integer savedEventReports = progress.runStage( errorValue,
-            () -> eventVisualizationStore.countReportsCreated( startDate ) );
-        progress.startingStage( "Counting event charts", SKIP_STAGE );
-        Integer savedEventCharts = progress.runStage( errorValue,
-            () -> eventVisualizationStore.countChartsCreated( startDate ) );
-        progress.startingStage( "Counting event visualisations", SKIP_STAGE );
-        Integer savedEventVisualizations = progress.runStage( errorValue,
-            () -> eventVisualizationStore.countEventVisualizationsCreated( startDate ) );
-        progress.startingStage( "Counting dashboards", SKIP_STAGE );
-        Integer savedDashboards = progress.runStage( errorValue,
-            () -> idObjectManager.getCountByCreated( Dashboard.class, startDate ) );
-        progress.startingStage( "Counting indicators", SKIP_STAGE );
-        Integer savedIndicators = progress.runStage( errorValue,
-            () -> idObjectManager.getCountByCreated( Indicator.class, startDate ) );
-        progress.startingStage( "Counting data values", SKIP_STAGE );
-        Integer savedDataValues = progress.runStage( errorValue,
-            () -> dataValueService.getDataValueCount( days ) );
-        progress.startingStage( "Counting active users", SKIP_STAGE );
-        Integer activeUsers = progress.runStage( errorValue,
-            () -> userService.getActiveUsersCount( 1 ) );
-        progress.startingStage( "Counting users", SKIP_STAGE );
-        Integer users = progress.runStage( errorValue,
-            () -> idObjectManager.getCount( User.class ) );
-        progress.startingStage( "Counting views", SKIP_STAGE );
-        Map<DataStatisticsEventType, Double> eventCountMap = progress.runStage( Map.of(),
-            () -> dataStatisticsEventStore.getDataStatisticsEventCount( startDate, day ) );
+    // when counting fails we use null so the count does not appear in the
+    // stats
+    Integer errorValue = null;
+    progress.startingStage("Counting maps", SKIP_STAGE);
+    Integer savedMaps =
+        progress.runStage(
+            errorValue,
+            () -> idObjectManager.getCountByCreated(org.hisp.dhis.mapping.Map.class, startDate));
+    progress.startingStage("Counting visualisations", SKIP_STAGE);
+    Integer savedVisualizations =
+        progress.runStage(
+            errorValue, () -> idObjectManager.getCountByCreated(Visualization.class, startDate));
+    progress.startingStage("Counting event reports", SKIP_STAGE);
+    Integer savedEventReports =
+        progress.runStage(errorValue, () -> eventVisualizationStore.countReportsCreated(startDate));
+    progress.startingStage("Counting event charts", SKIP_STAGE);
+    Integer savedEventCharts =
+        progress.runStage(errorValue, () -> eventVisualizationStore.countChartsCreated(startDate));
+    progress.startingStage("Counting event visualisations", SKIP_STAGE);
+    Integer savedEventVisualizations =
+        progress.runStage(
+            errorValue, () -> eventVisualizationStore.countEventVisualizationsCreated(startDate));
+    progress.startingStage("Counting dashboards", SKIP_STAGE);
+    Integer savedDashboards =
+        progress.runStage(
+            errorValue, () -> idObjectManager.getCountByCreated(Dashboard.class, startDate));
+    progress.startingStage("Counting indicators", SKIP_STAGE);
+    Integer savedIndicators =
+        progress.runStage(
+            errorValue, () -> idObjectManager.getCountByCreated(Indicator.class, startDate));
+    progress.startingStage("Counting data values", SKIP_STAGE);
+    Integer savedDataValues =
+        progress.runStage(errorValue, () -> dataValueService.getDataValueCount(days));
+    progress.startingStage("Counting active users", SKIP_STAGE);
+    Integer activeUsers = progress.runStage(errorValue, () -> userService.getActiveUsersCount(1));
+    progress.startingStage("Counting users", SKIP_STAGE);
+    Integer users = progress.runStage(errorValue, () -> idObjectManager.getCount(User.class));
+    progress.startingStage("Counting views", SKIP_STAGE);
+    Map<DataStatisticsEventType, Double> eventCountMap =
+        progress.runStage(
+            Map.of(), () -> dataStatisticsEventStore.getDataStatisticsEventCount(startDate, day));
 
-        return new DataStatistics(
-            eventCountMap.get( DataStatisticsEventType.MAP_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.VISUALIZATION_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.EVENT_REPORT_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.EVENT_CHART_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.EVENT_VISUALIZATION_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.DASHBOARD_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.DATA_SET_REPORT_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.TOTAL_VIEW ),
-            asDouble( savedMaps ), asDouble( savedVisualizations ), asDouble( savedEventReports ),
-            asDouble( savedEventCharts ), asDouble( savedEventVisualizations ), asDouble( savedDashboards ),
-            asDouble( savedIndicators ), asDouble( savedDataValues ), activeUsers, users );
-    }
+    return new DataStatistics(
+        eventCountMap.get(DataStatisticsEventType.MAP_VIEW),
+        eventCountMap.get(DataStatisticsEventType.VISUALIZATION_VIEW),
+        eventCountMap.get(DataStatisticsEventType.EVENT_REPORT_VIEW),
+        eventCountMap.get(DataStatisticsEventType.EVENT_CHART_VIEW),
+        eventCountMap.get(DataStatisticsEventType.EVENT_VISUALIZATION_VIEW),
+        eventCountMap.get(DataStatisticsEventType.DASHBOARD_VIEW),
+        eventCountMap.get(DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW),
+        eventCountMap.get(DataStatisticsEventType.DATA_SET_REPORT_VIEW),
+        eventCountMap.get(DataStatisticsEventType.TOTAL_VIEW),
+        asDouble(savedMaps),
+        asDouble(savedVisualizations),
+        asDouble(savedEventReports),
+        asDouble(savedEventCharts),
+        asDouble(savedEventVisualizations),
+        asDouble(savedDashboards),
+        asDouble(savedIndicators),
+        asDouble(savedDataValues),
+        activeUsers,
+        users);
+  }
 
-    @Override
-    public long saveDataStatistics( DataStatistics dataStatistics )
-    {
-        dataStatisticsStore.save( dataStatistics );
+  @Override
+  public long saveDataStatistics(DataStatistics dataStatistics) {
+    dataStatisticsStore.save(dataStatistics);
 
-        return dataStatistics.getId();
-    }
+    return dataStatistics.getId();
+  }
 
-    @Override
-    public long saveDataStatisticsSnapshot( JobProgress progress )
-    {
-        return saveDataStatistics( getDataStatisticsSnapshot( new Date(), progress ) );
-    }
+  @Override
+  public long saveDataStatisticsSnapshot(JobProgress progress) {
+    return saveDataStatistics(getDataStatisticsSnapshot(new Date(), progress));
+  }
 
-    @Override
-    public List<FavoriteStatistics> getTopFavorites( DataStatisticsEventType eventType, int pageSize,
-        SortOrder sortOrder, String username )
-    {
-        return dataStatisticsEventStore.getFavoritesData( eventType, pageSize, sortOrder, username );
-    }
+  @Override
+  public List<FavoriteStatistics> getTopFavorites(
+      DataStatisticsEventType eventType, int pageSize, SortOrder sortOrder, String username) {
+    return dataStatisticsEventStore.getFavoritesData(eventType, pageSize, sortOrder, username);
+  }
 
-    @Override
-    public FavoriteStatistics getFavoriteStatistics( String uid )
-    {
-        return dataStatisticsEventStore.getFavoriteStatistics( uid );
-    }
+  @Override
+  public FavoriteStatistics getFavoriteStatistics(String uid) {
+    return dataStatisticsEventStore.getFavoriteStatistics(uid);
+  }
 
-    @Override
-    public DataSummary getSystemStatisticsSummary()
-    {
-        DataSummary statistics = new DataSummary();
+  @Override
+  public DataSummary getSystemStatisticsSummary() {
+    DataSummary statistics = new DataSummary();
 
-        // Database objects
-        Map<String, Long> objectCounts = new HashMap<>();
-        statisticsProvider.getObjectCounts()
-            .forEach( ( object, count ) -> objectCounts.put( object.getValue(), count ) );
+    // Database objects
+    Map<String, Long> objectCounts = new HashMap<>();
+    statisticsProvider
+        .getObjectCounts()
+        .forEach((object, count) -> objectCounts.put(object.getValue(), count));
 
-        statistics.setObjectCounts( objectCounts );
+    statistics.setObjectCounts(objectCounts);
 
-        // Active users
-        Date lastHour = new DateTime().minusHours( 1 ).toDate();
+    // Active users
+    Date lastHour = new DateTime().minusHours(1).toDate();
 
-        Map<Integer, Integer> activeUsers = new HashMap<>();
+    Map<Integer, Integer> activeUsers = new HashMap<>();
 
-        activeUsers.put( 0, userService.getActiveUsersCount( lastHour ) );
-        activeUsers.put( 1, userService.getActiveUsersCount( 0 ) );
-        activeUsers.put( 2, userService.getActiveUsersCount( 1 ) );
-        activeUsers.put( 7, userService.getActiveUsersCount( 7 ) );
-        activeUsers.put( 30, userService.getActiveUsersCount( 30 ) );
+    activeUsers.put(0, userService.getActiveUsersCount(lastHour));
+    activeUsers.put(1, userService.getActiveUsersCount(0));
+    activeUsers.put(2, userService.getActiveUsersCount(1));
+    activeUsers.put(7, userService.getActiveUsersCount(7));
+    activeUsers.put(30, userService.getActiveUsersCount(30));
 
-        statistics.setActiveUsers( activeUsers );
+    statistics.setActiveUsers(activeUsers);
 
-        // User invitations
-        Map<String, Integer> userInvitations = new HashMap<>();
+    // User invitations
+    Map<String, Integer> userInvitations = new HashMap<>();
 
-        UserQueryParams inviteAll = new UserQueryParams();
-        inviteAll.setInvitationStatus( UserInvitationStatus.ALL );
-        userInvitations.put( UserInvitationStatus.ALL.getValue(), userService.getUserCount( inviteAll ) );
+    UserQueryParams inviteAll = new UserQueryParams();
+    inviteAll.setInvitationStatus(UserInvitationStatus.ALL);
+    userInvitations.put(UserInvitationStatus.ALL.getValue(), userService.getUserCount(inviteAll));
 
-        UserQueryParams inviteExpired = new UserQueryParams();
-        inviteExpired.setInvitationStatus( UserInvitationStatus.EXPIRED );
-        userInvitations.put( UserInvitationStatus.EXPIRED.getValue(), userService.getUserCount( inviteExpired ) );
+    UserQueryParams inviteExpired = new UserQueryParams();
+    inviteExpired.setInvitationStatus(UserInvitationStatus.EXPIRED);
+    userInvitations.put(
+        UserInvitationStatus.EXPIRED.getValue(), userService.getUserCount(inviteExpired));
 
-        statistics.setUserInvitations( userInvitations );
+    statistics.setUserInvitations(userInvitations);
 
-        // Data values
-        Map<Integer, Integer> dataValueCount = new HashMap<>();
+    // Data values
+    Map<Integer, Integer> dataValueCount = new HashMap<>();
 
-        dataValueCount.put( 0, dataValueService.getDataValueCount( 0 ) );
-        dataValueCount.put( 1, dataValueService.getDataValueCount( 1 ) );
-        dataValueCount.put( 7, dataValueService.getDataValueCount( 7 ) );
-        dataValueCount.put( 30, dataValueService.getDataValueCount( 30 ) );
+    dataValueCount.put(0, dataValueService.getDataValueCount(0));
+    dataValueCount.put(1, dataValueService.getDataValueCount(1));
+    dataValueCount.put(7, dataValueService.getDataValueCount(7));
+    dataValueCount.put(30, dataValueService.getDataValueCount(30));
 
-        statistics.setDataValueCount( dataValueCount );
+    statistics.setDataValueCount(dataValueCount);
 
-        // Events
-        Map<Integer, Long> eventCount = new HashMap<>();
+    // Events
+    Map<Integer, Long> eventCount = new HashMap<>();
 
-        eventCount.put( 0, eventService.getEventCount( 0 ) );
-        eventCount.put( 1, eventService.getEventCount( 1 ) );
-        eventCount.put( 7, eventService.getEventCount( 7 ) );
-        eventCount.put( 30, eventService.getEventCount( 30 ) );
+    eventCount.put(0, eventService.getEventCount(0));
+    eventCount.put(1, eventService.getEventCount(1));
+    eventCount.put(7, eventService.getEventCount(7));
+    eventCount.put(30, eventService.getEventCount(30));
 
-        statistics.setEventCount( eventCount );
+    statistics.setEventCount(eventCount);
 
-        statistics.setSystem( getDhis2Info() );
+    statistics.setSystem(getDhis2Info());
 
-        return statistics;
-    }
+    return statistics;
+  }
 
-    private Date getStartDate( Date day )
-    {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime( day );
-        cal.add( Calendar.DATE, -1 );
-        return cal.getTime();
-    }
+  private Date getStartDate(Date day) {
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(day);
+    cal.add(Calendar.DATE, -1);
+    return cal.getTime();
+  }
 
-    private int getDays( Date startDate )
-    {
-        Date now = new Date();
-        long diff = now.getTime() - startDate.getTime();
-        return (int) TimeUnit.DAYS.convert( diff, TimeUnit.MILLISECONDS );
-    }
+  private int getDays(Date startDate) {
+    Date now = new Date();
+    long diff = now.getTime() - startDate.getTime();
+    return (int) TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
+  }
 
-    private Double asDouble( Integer count )
-    {
-        return count == null ? null : count.doubleValue();
-    }
+  private Double asDouble(Integer count) {
+    return count == null ? null : count.doubleValue();
+  }
 
-    private Dhis2Info getDhis2Info()
-    {
-        SystemInfo system = systemService.getSystemInfo();
+  private Dhis2Info getDhis2Info() {
+    SystemInfo system = systemService.getSystemInfo();
 
-        return new Dhis2Info()
-            .setVersion( system.getVersion() )
-            .setRevision( system.getRevision() )
-            .setBuildTime( system.getBuildTime() )
-            .setSystemId( system.getSystemId() )
-            .setServerDate( system.getServerDate() );
-    }
+    return new Dhis2Info()
+        .setVersion(system.getVersion())
+        .setRevision(system.getRevision())
+        .setBuildTime(system.getBuildTime())
+        .setSystemId(system.getSystemId())
+        .setServerDate(system.getServerDate());
+  }
 }

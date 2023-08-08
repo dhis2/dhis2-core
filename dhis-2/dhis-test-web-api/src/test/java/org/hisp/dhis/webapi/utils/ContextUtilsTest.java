@@ -56,9 +56,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Calendar;
-
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -73,173 +71,157 @@ import org.springframework.mock.web.MockHttpServletResponse;
 /**
  * @author Stian Sandvold
  */
-class ContextUtilsTest extends DhisWebSpringTest
-{
-    @Autowired
-    private ContextUtils contextUtils;
+class ContextUtilsTest extends DhisWebSpringTest {
+  @Autowired private ContextUtils contextUtils;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingManager systemSettingManager;
 
-    private HttpServletResponse response;
+  private HttpServletResponse response;
 
-    @BeforeEach
-    void init()
-    {
-        response = new MockHttpServletResponse();
-    }
+  @BeforeEach
+  void init() {
+    response = new MockHttpServletResponse();
+  }
 
-    @AfterEach
-    void afterEach()
-    {
-        response.reset();
-    }
+  @AfterEach
+  void afterEach() {
+    response.reset();
+  }
 
-    @Test
-    void testConfigureResponseReturnsCorrectTypeAndNumberOfHeaders()
-    {
-        contextUtils.configureResponse( response, null, NO_CACHE, null, false );
-        String cacheControl = response.getHeader( "Cache-Control" );
-        // Make sure we just have 1 header: Cache-Control
-        assertEquals( 1, response.getHeaderNames().size() );
-        assertNotNull( cacheControl );
-    }
+  @Test
+  void testConfigureResponseReturnsCorrectTypeAndNumberOfHeaders() {
+    contextUtils.configureResponse(response, null, NO_CACHE, null, false);
+    String cacheControl = response.getHeader("Cache-Control");
+    // Make sure we just have 1 header: Cache-Control
+    assertEquals(1, response.getHeaderNames().size());
+    assertNotNull(cacheControl);
+  }
 
-    @Test
-    void testConfigureResponseReturnsConfiguredNoCacheStrategy()
-    {
-        contextUtils.configureResponse( response, null, NO_CACHE, null, false );
+  @Test
+  void testConfigureResponseReturnsConfiguredNoCacheStrategy() {
+    contextUtils.configureResponse(response, null, NO_CACHE, null, false);
 
-        assertEquals( "no-cache", response.getHeader( "Cache-Control" ) );
-    }
+    assertEquals("no-cache", response.getHeader("Cache-Control"));
+  }
 
-    @Test
-    void testConfigureResponseReturnsConfiguredCacheStrategy()
-    {
-        contextUtils.configureResponse( response, null, CACHE_1_MINUTE, null, false );
+  @Test
+  void testConfigureResponseReturnsConfiguredCacheStrategy() {
+    contextUtils.configureResponse(response, null, CACHE_1_MINUTE, null, false);
 
-        assertEquals( "max-age=60, public", response.getHeader( "Cache-Control" ) );
-    }
+    assertEquals("max-age=60, public", response.getHeader("Cache-Control"));
+  }
 
-    @Test
-    void testConfigureResponseReturnsConfiguredCacheStrategy6AMTomorrow()
-    {
-        contextUtils.configureResponse( response, null, CACHE_6AM_TOMORROW, null, false );
+  @Test
+  void testConfigureResponseReturnsConfiguredCacheStrategy6AMTomorrow() {
+    contextUtils.configureResponse(response, null, CACHE_6AM_TOMORROW, null, false);
 
-        String header = response.getHeader( "Cache-Control" );
-        assertAll(
-            () -> assertStartsWith( "max-age", header ),
-            () -> {
-                long maxAgeSeconds = Long.parseLong( StringUtils.getDigits( header ) );
-                Long expected = CACHE_6AM_TOMORROW.toSeconds();
-                long delta = 60; // 1 minute
-                assertWithinRange( expected - delta, expected + delta, maxAgeSeconds );
-            } );
-    }
+    String header = response.getHeader("Cache-Control");
+    assertAll(
+        () -> assertStartsWith("max-age", header),
+        () -> {
+          long maxAgeSeconds = Long.parseLong(StringUtils.getDigits(header));
+          Long expected = CACHE_6AM_TOMORROW.toSeconds();
+          long delta = 60; // 1 minute
+          assertWithinRange(expected - delta, expected + delta, maxAgeSeconds);
+        });
+  }
 
-    @Test
-    void testConfigureResponseRespectsCacheStrategyInSystemSetting()
-    {
-        systemSettingManager.saveSystemSetting( CACHE_STRATEGY,
-            getAsRealClass( CACHE_STRATEGY.getName(), CACHE_1_HOUR.toString() ) );
+  @Test
+  void testConfigureResponseRespectsCacheStrategyInSystemSetting() {
+    systemSettingManager.saveSystemSetting(
+        CACHE_STRATEGY, getAsRealClass(CACHE_STRATEGY.getName(), CACHE_1_HOUR.toString()));
 
-        contextUtils.configureResponse( response, null, RESPECT_SYSTEM_SETTING, null, false );
+    contextUtils.configureResponse(response, null, RESPECT_SYSTEM_SETTING, null, false);
 
-        assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
-    }
+    assertEquals("max-age=3600, public", response.getHeader("Cache-Control"));
+  }
 
-    @Test
-    void testConfigureResponseReturnsCorrectCacheabilityInHeader()
-    {
-        // Set to public; is default
-        systemSettingManager.saveSystemSetting( CACHEABILITY, PUBLIC );
-        contextUtils.configureResponse( response, null, CACHE_1_HOUR, null, false );
-        assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
-        // Set to private
-        systemSettingManager.saveSystemSetting( CACHEABILITY, PRIVATE );
-        response.reset();
-        contextUtils.configureResponse( response, null, CACHE_1_HOUR, null, false );
-        assertEquals( "max-age=3600, private", response.getHeader( "Cache-Control" ) );
-    }
+  @Test
+  void testConfigureResponseReturnsCorrectCacheabilityInHeader() {
+    // Set to public; is default
+    systemSettingManager.saveSystemSetting(CACHEABILITY, PUBLIC);
+    contextUtils.configureResponse(response, null, CACHE_1_HOUR, null, false);
+    assertEquals("max-age=3600, public", response.getHeader("Cache-Control"));
+    // Set to private
+    systemSettingManager.saveSystemSetting(CACHEABILITY, PRIVATE);
+    response.reset();
+    contextUtils.configureResponse(response, null, CACHE_1_HOUR, null, false);
+    assertEquals("max-age=3600, private", response.getHeader("Cache-Control"));
+  }
 
-    @Test
-    void testConfigureAnalyticsResponseWhenProgressiveIsDisabled()
-    {
-        Calendar dateBeforeToday = getInstance();
-        dateBeforeToday.add( YEAR, -5 );
-        DataQueryParams params = newBuilder().withEndDate( dateBeforeToday.getTime() ).build();
-        // Progressive caching is not enabled
-        systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_TTL_MODE, FIXED );
-        response.reset();
-        contextUtils.configureAnalyticsResponse( response, null, CACHE_1_HOUR, null, false, params.getLatestEndDate() );
-        assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
-    }
+  @Test
+  void testConfigureAnalyticsResponseWhenProgressiveIsDisabled() {
+    Calendar dateBeforeToday = getInstance();
+    dateBeforeToday.add(YEAR, -5);
+    DataQueryParams params = newBuilder().withEndDate(dateBeforeToday.getTime()).build();
+    // Progressive caching is not enabled
+    systemSettingManager.saveSystemSetting(ANALYTICS_CACHE_TTL_MODE, FIXED);
+    response.reset();
+    contextUtils.configureAnalyticsResponse(
+        response, null, CACHE_1_HOUR, null, false, params.getLatestEndDate());
+    assertEquals("max-age=3600, public", response.getHeader("Cache-Control"));
+  }
 
-    @Test
-    void testConfigureAnalyticsResponseWhenProgressiveIsEnabledAndCacheStrategyIsOverridden()
-    {
-        // Cache strategy overridden
-        CacheStrategy overriddenCacheStrategy = CACHE_1_HOUR;
-        Calendar dateBeforeToday = getInstance();
-        dateBeforeToday.add( YEAR, -5 );
-        DataQueryParams params = newBuilder().withEndDate( dateBeforeToday.getTime() ).build();
-        // Progressive caching is not enabled
-        systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_TTL_MODE, PROGRESSIVE );
-        systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR, 10 );
-        response.reset();
-        contextUtils.configureAnalyticsResponse( response, null, overriddenCacheStrategy, null, false,
-            params.getLatestEndDate() );
-        assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
-    }
+  @Test
+  void testConfigureAnalyticsResponseWhenProgressiveIsEnabledAndCacheStrategyIsOverridden() {
+    // Cache strategy overridden
+    CacheStrategy overriddenCacheStrategy = CACHE_1_HOUR;
+    Calendar dateBeforeToday = getInstance();
+    dateBeforeToday.add(YEAR, -5);
+    DataQueryParams params = newBuilder().withEndDate(dateBeforeToday.getTime()).build();
+    // Progressive caching is not enabled
+    systemSettingManager.saveSystemSetting(ANALYTICS_CACHE_TTL_MODE, PROGRESSIVE);
+    systemSettingManager.saveSystemSetting(ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR, 10);
+    response.reset();
+    contextUtils.configureAnalyticsResponse(
+        response, null, overriddenCacheStrategy, null, false, params.getLatestEndDate());
+    assertEquals("max-age=3600, public", response.getHeader("Cache-Control"));
+  }
 
-    @Test
-    void testConfigureAnalyticsResponseWhenProgressiveIsEnabledAndCacheStrategyIsRespectSystemSetting()
-    {
-        Calendar dateBeforeToday = getInstance();
-        dateBeforeToday.add( YEAR, -5 );
-        // Cache strategy set to respect system settings
-        CacheStrategy respectSystemSetting = RESPECT_SYSTEM_SETTING;
-        // Defined TTL Factor
-        int ttlFactor = 10;
-        // Expected timeToLive. See {@link TimeToLive.compute()}
-        long timeToLive = DAYS.between( dateBeforeToday.toInstant(), now() ) * ttlFactor;
-        DataQueryParams params = newBuilder().withEndDate( dateBeforeToday.getTime() ).build();
-        // Progressive caching is not enabled
-        systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_TTL_MODE, PROGRESSIVE );
-        systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR, ttlFactor );
-        response.reset();
-        contextUtils.configureAnalyticsResponse( response, null, respectSystemSetting, null, false,
-            params.getLatestEndDate() );
-        assertEquals( "max-age=" + timeToLive + ", public", response.getHeader( "Cache-Control" ) );
-    }
+  @Test
+  void
+      testConfigureAnalyticsResponseWhenProgressiveIsEnabledAndCacheStrategyIsRespectSystemSetting() {
+    Calendar dateBeforeToday = getInstance();
+    dateBeforeToday.add(YEAR, -5);
+    // Cache strategy set to respect system settings
+    CacheStrategy respectSystemSetting = RESPECT_SYSTEM_SETTING;
+    // Defined TTL Factor
+    int ttlFactor = 10;
+    // Expected timeToLive. See {@link TimeToLive.compute()}
+    long timeToLive = DAYS.between(dateBeforeToday.toInstant(), now()) * ttlFactor;
+    DataQueryParams params = newBuilder().withEndDate(dateBeforeToday.getTime()).build();
+    // Progressive caching is not enabled
+    systemSettingManager.saveSystemSetting(ANALYTICS_CACHE_TTL_MODE, PROGRESSIVE);
+    systemSettingManager.saveSystemSetting(ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR, ttlFactor);
+    response.reset();
+    contextUtils.configureAnalyticsResponse(
+        response, null, respectSystemSetting, null, false, params.getLatestEndDate());
+    assertEquals("max-age=" + timeToLive + ", public", response.getHeader("Cache-Control"));
+  }
 
-    @Test
-    void testGetAttachmentFileNameNull()
-    {
-        assertNull( getAttachmentFileName( null ) );
-    }
+  @Test
+  void testGetAttachmentFileNameNull() {
+    assertNull(getAttachmentFileName(null));
+  }
 
-    @Test
-    void testGetAttachmentFileNameInline()
-    {
-        assertNull( getAttachmentFileName( "inline; filename=test.txt" ) );
-    }
+  @Test
+  void testGetAttachmentFileNameInline() {
+    assertNull(getAttachmentFileName("inline; filename=test.txt"));
+  }
 
-    @Test
-    void testGetAttachmentFileName()
-    {
-        assertEquals( "test.txt", getAttachmentFileName( "attachment; filename=test.txt" ) );
-    }
+  @Test
+  void testGetAttachmentFileName() {
+    assertEquals("test.txt", getAttachmentFileName("attachment; filename=test.txt"));
+  }
 
-    @Test
-    void testStripFormatCompressionExtension()
-    {
-        assertEquals( "data", stripFormatCompressionExtension( "data.xml.zip", "xml", "zip" ) );
-        assertEquals( "data", stripFormatCompressionExtension( "data.json.zip", "json", "zip" ) );
-        assertEquals( "data.json", stripFormatCompressionExtension( "data.json.json.zip", "json", "zip" ) );
-        assertEquals( "data.json", stripFormatCompressionExtension( "data.json.json.gz", "json", "gz" ) );
-        assertEquals( "data", stripFormatCompressionExtension( "data.json.gz", "json", "gz" ) );
-        assertEquals( "data.....", stripFormatCompressionExtension( "data.....", "xml", "zip" ) );
-        assertEquals( "", stripFormatCompressionExtension( null, "xml", "zip" ) );
-    }
+  @Test
+  void testStripFormatCompressionExtension() {
+    assertEquals("data", stripFormatCompressionExtension("data.xml.zip", "xml", "zip"));
+    assertEquals("data", stripFormatCompressionExtension("data.json.zip", "json", "zip"));
+    assertEquals("data.json", stripFormatCompressionExtension("data.json.json.zip", "json", "zip"));
+    assertEquals("data.json", stripFormatCompressionExtension("data.json.json.gz", "json", "gz"));
+    assertEquals("data", stripFormatCompressionExtension("data.json.gz", "json", "gz"));
+    assertEquals("data.....", stripFormatCompressionExtension("data.....", "xml", "zip"));
+    assertEquals("", stripFormatCompressionExtension(null, "xml", "zip"));
+  }
 }

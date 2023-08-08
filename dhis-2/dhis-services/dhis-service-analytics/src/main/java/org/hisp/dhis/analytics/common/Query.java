@@ -28,32 +28,28 @@
 package org.hisp.dhis.analytics.common;
 
 import java.util.Map;
-
 import javax.annotation.Nonnull;
 
 /**
- * Encapsulates the internals of a query, exposing methods that provide
- * executable statements.
+ * Encapsulates the internals of a query, exposing methods that provide executable statements.
  *
  * @author maikel arabori
  */
-public interface Query
-{
-    /**
-     * Responsible for encapsulating the logic to unify all query attributes
-     * into a full/final statement that can be executed on the respective data
-     * provider.
-     *
-     * @return the full query statement
-     */
-    @Nonnull
-    String getStatement();
+public interface Query {
+  /**
+   * Responsible for encapsulating the logic to unify all query attributes into a full/final
+   * statement that can be executed on the respective data provider.
+   *
+   * @return the full query statement
+   */
+  @Nonnull
+  String getStatement();
 
-    /**
-     * Returns the parameters used by the current statement.
-     *
-     * @return a map of params
-     */
-    @Nonnull
-    Map<String, Object> getParams();
+  /**
+   * Returns the parameters used by the current statement.
+   *
+   * @return a map of params
+   */
+  @Nonnull
+  Map<String, Object> getParams();
 }

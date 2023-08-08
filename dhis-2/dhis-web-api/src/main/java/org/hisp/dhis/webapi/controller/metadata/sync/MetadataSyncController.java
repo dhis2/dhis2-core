@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.metadata.sync;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -61,89 +60,68 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author vanyas
  */
-@OpenApi.Tags( "metadata" )
+@OpenApi.Tags("metadata")
 @RestController
-@RequestMapping( "/metadata/sync" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class MetadataSyncController
-{
-    @Autowired
-    private ContextService contextService;
+@RequestMapping("/metadata/sync")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class MetadataSyncController {
+  @Autowired private ContextService contextService;
 
-    @Autowired
-    private MetadataSyncService metadataSyncService;
+  @Autowired private MetadataSyncService metadataSyncService;
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
-    @GetMapping
-    public ResponseEntity<? extends WebMessageResponse> metadataSync( HttpServletRequest request,
-        HttpServletResponse response )
-        throws MetadataSyncException,
-        BadRequestException,
-        MetadataImportConflictException,
-        ForbiddenException
-    {
-        MetadataSyncParams syncParams;
-        MetadataSyncSummary metadataSyncSummary = null;
+  @PreAuthorize("hasRole('ALL') or hasRole('F_METADATA_MANAGE')")
+  @GetMapping
+  public ResponseEntity<? extends WebMessageResponse> metadataSync(
+      HttpServletRequest request, HttpServletResponse response)
+      throws MetadataSyncException,
+          BadRequestException,
+          MetadataImportConflictException,
+          ForbiddenException {
+    MetadataSyncParams syncParams;
+    MetadataSyncSummary metadataSyncSummary = null;
 
-        synchronized ( metadataSyncService )
-        {
-            try
-            {
-                syncParams = metadataSyncService.getParamsFromMap( contextService.getParameterValuesMap() );
-            }
-            catch ( RemoteServerUnavailableException exception )
-            {
-                throw new MetadataSyncException( exception.getMessage(), exception );
+    synchronized (metadataSyncService) {
+      try {
+        syncParams = metadataSyncService.getParamsFromMap(contextService.getParameterValuesMap());
+      } catch (RemoteServerUnavailableException exception) {
+        throw new MetadataSyncException(exception.getMessage(), exception);
 
-            }
-            catch ( MetadataSyncServiceException serviceException )
-            {
-                throw new BadRequestException( "Error in parsing inputParams " + serviceException.getMessage() );
-            }
+      } catch (MetadataSyncServiceException serviceException) {
+        throw new BadRequestException(
+            "Error in parsing inputParams " + serviceException.getMessage());
+      }
 
-            try
-            {
-                boolean isSyncRequired = metadataSyncService.isSyncRequired( syncParams );
+      try {
+        boolean isSyncRequired = metadataSyncService.isSyncRequired(syncParams);
 
-                if ( isSyncRequired )
-                {
-                    metadataSyncSummary = metadataSyncService.doMetadataSync( syncParams );
-                    validateSyncSummaryResponse( metadataSyncSummary );
-                }
-                else
-                {
-                    throw new MetadataImportConflictException(
-                        "Version already exists in system and hence not starting the sync." );
-                }
-            }
-
-            catch ( MetadataSyncImportException importerException )
-            {
-                throw new MetadataSyncException(
-                    "Runtime exception occurred while doing import: " + importerException.getMessage() );
-            }
-            catch ( MetadataSyncServiceException serviceException )
-            {
-                throw new MetadataSyncException(
-                    "Exception occurred while doing metadata sync: " + serviceException.getMessage() );
-            }
-            catch ( DhisVersionMismatchException versionMismatchException )
-            {
-                throw new ForbiddenException(
-                    "Exception occurred while doing metadata sync: " + versionMismatchException.getMessage() );
-            }
+        if (isSyncRequired) {
+          metadataSyncSummary = metadataSyncService.doMetadataSync(syncParams);
+          validateSyncSummaryResponse(metadataSyncSummary);
+        } else {
+          throw new MetadataImportConflictException(
+              "Version already exists in system and hence not starting the sync.");
         }
-
-        return new ResponseEntity<>( metadataSyncSummary, HttpStatus.OK );
+      } catch (MetadataSyncImportException importerException) {
+        throw new MetadataSyncException(
+            "Runtime exception occurred while doing import: " + importerException.getMessage());
+      } catch (MetadataSyncServiceException serviceException) {
+        throw new MetadataSyncException(
+            "Exception occurred while doing metadata sync: " + serviceException.getMessage());
+      } catch (DhisVersionMismatchException versionMismatchException) {
+        throw new ForbiddenException(
+            "Exception occurred while doing metadata sync: "
+                + versionMismatchException.getMessage());
+      }
     }
 
-    private void validateSyncSummaryResponse( MetadataSyncSummary metadataSyncSummary )
-        throws MetadataImportConflictException
-    {
-        ImportReport importReport = metadataSyncSummary.getImportReport();
-        if ( importReport.getStatus() != Status.OK )
-        {
-            throw new MetadataImportConflictException( metadataSyncSummary );
-        }
+    return new ResponseEntity<>(metadataSyncSummary, HttpStatus.OK);
+  }
+
+  private void validateSyncSummaryResponse(MetadataSyncSummary metadataSyncSummary)
+      throws MetadataImportConflictException {
+    ImportReport importReport = metadataSyncSummary.getImportReport();
+    if (importReport.getStatus() != Status.OK) {
+      throw new MetadataImportConflictException(metadataSyncSummary);
     }
+  }
 }

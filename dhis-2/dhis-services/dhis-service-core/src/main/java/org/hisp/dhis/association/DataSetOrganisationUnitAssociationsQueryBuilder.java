@@ -29,28 +29,25 @@ package org.hisp.dhis.association;
 
 import lombok.AccessLevel;
 import lombok.Getter;
-
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 
 @Service
 public class DataSetOrganisationUnitAssociationsQueryBuilder
-    extends AbstractOrganisationUnitAssociationsQueryBuilder
-{
-    @Getter( AccessLevel.PROTECTED )
-    private final String relationshipTableName = "datasetsource";
+    extends AbstractOrganisationUnitAssociationsQueryBuilder {
+  @Getter(AccessLevel.PROTECTED)
+  private final String relationshipTableName = "datasetsource";
 
-    @Getter( AccessLevel.PROTECTED )
-    private final String orgUnitJoinColumnName = "sourceid";
+  @Getter(AccessLevel.PROTECTED)
+  private final String orgUnitJoinColumnName = "sourceid";
 
-    @Getter( AccessLevel.PROTECTED )
-    private final String joinColumnName = "datasetid";
+  @Getter(AccessLevel.PROTECTED)
+  private final String joinColumnName = "datasetid";
 
-    @Getter( AccessLevel.PROTECTED )
-    private final String baseTableName = "dataset";
+  @Getter(AccessLevel.PROTECTED)
+  private final String baseTableName = "dataset";
 
-    public DataSetOrganisationUnitAssociationsQueryBuilder( CurrentUserService currentUserService )
-    {
-        super( currentUserService );
-    }
+  public DataSetOrganisationUnitAssociationsQueryBuilder(CurrentUserService currentUserService) {
+    super(currentUserService);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,12 @@
 package org.hisp.dhis.cacheinvalidation;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Objects;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.PaginationCacheManager;
 import org.hisp.dhis.cache.QueryCacheManager;
-import org.hisp.dhis.cacheinvalidation.debezium.KnownTransactionsService;
-import org.hisp.dhis.cacheinvalidation.debezium.TableNameToEntityMapping;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -47,83 +41,55 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
-public class BaseCacheEvictionService
-{
-    @Autowired
-    protected SessionFactory sessionFactory;
+public class BaseCacheEvictionService {
+  @Autowired protected SessionFactory sessionFactory;
 
-    @Autowired
-    protected KnownTransactionsService knownTransactionsService;
+  @Autowired protected PaginationCacheManager paginationCacheManager;
 
-    @Autowired
-    protected PaginationCacheManager paginationCacheManager;
+  @Autowired protected QueryCacheManager queryCacheManager;
 
-    @Autowired
-    protected QueryCacheManager queryCacheManager;
+  @Autowired protected IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    protected TableNameToEntityMapping tableNameToEntityMapping;
+  @Autowired protected TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Autowired
-    protected IdentifiableObjectManager idObjectManager;
+  @Autowired protected TrackedEntityService trackedEntityService;
 
-    @Autowired
-    protected TrackedEntityAttributeService trackedEntityAttributeService;
+  @Autowired protected PeriodService periodService;
 
-    @Autowired
-    protected TrackedEntityService trackedEntityService;
+  public BaseCacheEvictionService(
+      SessionFactory sessionFactory,
+      PaginationCacheManager paginationCacheManager,
+      QueryCacheManager queryCacheManager,
+      IdentifiableObjectManager idObjectManager,
+      TrackedEntityAttributeService trackedEntityAttributeService,
+      TrackedEntityService trackedEntityService,
+      PeriodService periodService) {
 
-    @Autowired
-    protected PeriodService periodService;
+    this.sessionFactory = sessionFactory;
+    this.paginationCacheManager = paginationCacheManager;
+    this.queryCacheManager = queryCacheManager;
+    this.idObjectManager = idObjectManager;
+    this.trackedEntityAttributeService = trackedEntityAttributeService;
+    this.trackedEntityService = trackedEntityService;
+    this.periodService = periodService;
+  }
 
-    protected void tryFetchNewEntity( Serializable entityId, Class<?> entityClass )
-    {
-        try ( Session session = sessionFactory.openSession() )
-        {
-            session.get( entityClass, entityId );
-        }
-        catch ( Exception e )
-        {
-            log.warn(
-                String.format( "Fetching new entity failed, failed to execute get query! entityId=%s, entityClass=%s",
-                    entityId, entityClass ),
-                e );
-            if ( e instanceof HibernateException )
-            {
-                log.debug( "tryFetchNewEntity caused a Hibernate exception: " + e.getMessage() );
-                // Ignore HibernateExceptions, as they are expected.
-                return;
-            }
+  protected void tryFetchNewEntity(Serializable entityId, Class<?> entityClass) {
+    try (Session session = sessionFactory.openSession()) {
+      session.get(entityClass, entityId);
+    } catch (Exception e) {
+      log.warn(
+          String.format(
+              "Fetching new entity failed, failed to execute get query! entityId=%s, entityClass=%s",
+              entityId, entityClass),
+          e);
+      if (e instanceof HibernateException) {
+        log.debug("tryFetchNewEntity caused a Hibernate exception: " + e.getMessage());
+        // Ignore HibernateExceptions, as they are expected.
+        return;
+      }
 
-            throw e;
-        }
+      throw e;
     }
-
-    /**
-     * It evicts the entity and all its collections from the cache
-     *
-     * @param entityAndRoles A list of Object arrays, each containing the entity
-     *        class and the role name.
-     * @param id The id of the entity to evict
-     */
-    protected void evictCollections( List<Object[]> entityAndRoles, Serializable id )
-    {
-        Object[] firstEntityAndRole = entityAndRoles.get( 0 );
-        Objects.requireNonNull( firstEntityAndRole, "firstEntityAndRole can't be null!" );
-
-        // It's only a collection if we also have a role mapped
-        if ( firstEntityAndRole.length == 2 )
-        {
-            for ( Object[] entityAndRole : entityAndRoles )
-            {
-                Class<?> eKlass = (Class<?>) entityAndRole[0];
-                sessionFactory.getCache().evict( eKlass, id );
-                queryCacheManager.evictQueryCache( sessionFactory.getCache(), eKlass );
-                paginationCacheManager.evictCache( eKlass.getName() );
-
-                String role = (String) entityAndRole[1];
-                sessionFactory.getCache().evictCollectionData( role, id );
-            }
-        }
-    }
+  }
 }

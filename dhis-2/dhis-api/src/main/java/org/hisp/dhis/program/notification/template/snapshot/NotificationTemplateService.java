@@ -28,37 +28,32 @@
 package org.hisp.dhis.program.notification.template.snapshot;
 
 import java.util.Date;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService" )
-public class NotificationTemplateService
-{
+@Service("org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService")
+public class NotificationTemplateService {
 
-    private final NotificationTemplateMapper mapper;
+  private final NotificationTemplateMapper mapper;
 
-    public ProgramNotificationInstance createNotificationInstance( ProgramNotificationTemplate template,
-        String date )
-    {
-        return createNotificationInstance( template, DateUtils.parseDate( date ) );
-    }
+  public ProgramNotificationInstance createNotificationInstance(
+      ProgramNotificationTemplate template, String date) {
+    return createNotificationInstance(template, DateUtils.parseDate(date));
+  }
 
-    public ProgramNotificationInstance createNotificationInstance( ProgramNotificationTemplate template, Date date )
-    {
-        ProgramNotificationInstance notificationInstance = new ProgramNotificationInstance();
-        notificationInstance.setAutoFields();
-        notificationInstance.setName( template.getName() );
-        notificationInstance.setScheduledAt( date );
-        notificationInstance
-            .setProgramNotificationTemplateSnapshot( mapper.toProgramNotificationTemplateSnapshot( template ) );
+  public ProgramNotificationInstance createNotificationInstance(
+      ProgramNotificationTemplate template, Date date) {
+    ProgramNotificationInstance notificationInstance = new ProgramNotificationInstance();
+    notificationInstance.setAutoFields();
+    notificationInstance.setName(template.getName());
+    notificationInstance.setScheduledAt(date);
+    notificationInstance.setProgramNotificationTemplateSnapshot(
+        mapper.toProgramNotificationTemplateSnapshot(template));
 
-        return notificationInstance;
-    }
-
+    return notificationInstance;
+  }
 }

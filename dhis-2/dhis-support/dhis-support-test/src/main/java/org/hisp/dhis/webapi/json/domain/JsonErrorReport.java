@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.json.domain;
 
 import java.util.List;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
 
@@ -37,35 +36,28 @@ import org.hisp.dhis.jsontree.JsonObject;
  *
  * @author Jan Bernitt
  */
-public interface JsonErrorReport extends JsonObject
-{
-    default String getMessage()
-    {
-        return getString( "message" ).string();
-    }
+public interface JsonErrorReport extends JsonObject {
+  default String getMessage() {
+    return getString("message").string();
+  }
 
-    default Class<?> getMainKlass()
-    {
-        return getString( "mainKlass" ).parsedClass();
-    }
+  default Class<?> getMainKlass() {
+    return getString("mainKlass").parsedClass();
+  }
 
-    default ErrorCode getErrorCode()
-    {
-        return getString( "errorCode" ).parsed( ErrorCode::valueOf );
-    }
+  default ErrorCode getErrorCode() {
+    return getString("errorCode").parsed(ErrorCode::valueOf);
+  }
 
-    default Class<?> getErrorKlass()
-    {
-        return getString( "errorKlass" ).parsedClass();
-    }
+  default Class<?> getErrorKlass() {
+    return getString("errorKlass").parsedClass();
+  }
 
-    default String getErrorProperty()
-    {
-        return getString( "errorProperty" ).string();
-    }
+  default String getErrorProperty() {
+    return getString("errorProperty").string();
+  }
 
-    default List<String> getErrorProperties()
-    {
-        return getArray( "errorProperties" ).stringValues();
-    }
+  default List<String> getErrorProperties() {
+    return getArray("errorProperties").stringValues();
+  }
 }

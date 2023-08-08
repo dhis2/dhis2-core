@@ -28,116 +28,113 @@
 package org.hisp.dhis.cache;
 
 import java.time.Duration;
-
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 
 /**
- * The {@link CacheProvider} has a factory method for each {@link Cache} use
- * case in DHIS2.
+ * The {@link CacheProvider} has a factory method for each {@link Cache} use case in DHIS2.
  *
- * The {@link Cache} value type is kept generic to not bind this interface to
- * numerous domain types.
+ * <p>The {@link Cache} value type is kept generic to not bind this interface to numerous domain
+ * types.
  *
- * Names of the factory methods follow the pattern: {@code create{region}Cache}.
+ * <p>Names of the factory methods follow the pattern: {@code create{region}Cache}.
  *
  * @author Jan Bernitt
  */
-public interface CacheProvider
-{
-    <V> Cache<V> createAnalyticsResponseCache( Duration initialExpirationTime );
+public interface CacheProvider {
+  <V> Cache<V> createAnalyticsResponseCache(Duration initialExpirationTime);
 
-    <V> Cache<V> createAnalyticsCache();
+  <V> Cache<V> createAnalyticsCache();
 
-    <V> Cache<V> createDefaultObjectCache();
+  <V> Cache<V> createDefaultObjectCache();
 
-    <V> Cache<V> createIsDataApprovedCache();
+  <V> Cache<V> createIsDataApprovedCache();
 
-    <V> Cache<V> createAllConstantsCache();
+  <V> Cache<V> createAllConstantsCache();
 
-    <V> Cache<V> createInUserOrgUnitHierarchyCache();
+  <V> Cache<V> createInUserOrgUnitHierarchyCache();
 
-    <V> Cache<V> createInUserViewOrgUnitHierarchyCache();
+  <V> Cache<V> createInUserViewOrgUnitHierarchyCache();
 
-    <V> Cache<V> createInUserSearchOrgUnitHierarchyCache();
+  <V> Cache<V> createInUserSearchOrgUnitHierarchyCache();
 
-    <V> Cache<V> createUserCaptureOrgUnitThresholdCache();
+  <V> Cache<V> createUserCaptureOrgUnitThresholdCache();
 
-    <V> Cache<V> createPeriodIdCache();
+  <V> Cache<V> createPeriodIdCache();
 
-    <V> Cache<V> createUserFailedLoginAttemptCache( V defaultValue );
+  <V> Cache<V> createUserFailedLoginAttemptCache(V defaultValue);
 
-    <V> Cache<V> createUserAccountRecoverAttemptCache( V defaultValue );
+  <V> Cache<V> createUserAccountRecoverAttemptCache(V defaultValue);
 
-    <V> Cache<V> createProgramOwnerCache();
+  <V> Cache<V> createProgramOwnerCache();
 
-    <V> Cache<V> createProgramTempOwnerCache();
+  <V> Cache<V> createProgramTempOwnerCache();
 
-    <V> Cache<V> createUserIdCache();
+  <V> Cache<V> createUserIdCache();
 
-    <V> Cache<V> createCurrentUserGroupInfoCache();
+  <V> Cache<V> createCurrentUserGroupInfoCache();
 
-    <V> Cache<V> createUserSettingCache();
+  <V> Cache<V> createUserSettingCache();
 
-    <V> Cache<V> createAttrOptionComboIdCache();
+  <V> Cache<V> createAttrOptionComboIdCache();
 
-    <V> Cache<V> createSystemSettingCache();
+  <V> Cache<V> createSystemSettingCache();
 
-    <V> Cache<V> createGoogleAccessTokenCache();
+  <V> Cache<V> createGoogleAccessTokenCache();
 
-    <V> Cache<V> createDataItemsPaginationCache();
+  <V> Cache<V> createDataItemsPaginationCache();
 
-    <V> Cache<V> createMetadataAttributesCache();
+  <V> Cache<V> createMetadataAttributesCache();
 
-    <V> Cache<V> createCanDataWriteCocCache();
+  <V> Cache<V> createCanDataWriteCocCache();
 
-    <V> Cache<V> createAnalyticsSqlCache();
+  <V> Cache<V> createAnalyticsSqlCache();
 
-    <V> Cache<V> createDataElementCache();
+  <V> Cache<V> createDataElementCache();
 
-    <V> Cache<V> createPropertyTransformerCache();
+  <V> Cache<V> createPropertyTransformerCache();
 
-    <V> Cache<V> createProgramHasRulesCache();
+  <V> Cache<V> createProgramHasRulesCache();
 
-    <V> Cache<V> createProgramRuleVariablesCache();
+  <V> Cache<V> createProgramRuleVariablesCache();
 
-    <V> Cache<V> createUserGroupNameCache();
+  <V> Cache<V> createUserGroupNameCache();
 
-    <V> Cache<V> createUserDisplayNameCache();
+  <V> Cache<V> createUserDisplayNameCache();
 
-    void handleApplicationCachesCleared( ApplicationCacheClearedEvent event );
+  void handleApplicationCachesCleared(ApplicationCacheClearedEvent event);
 
-    <V> Cache<V> createProgramWebHookNotificationTemplateCache();
+  <V> Cache<V> createProgramWebHookNotificationTemplateCache();
 
-    <V> Cache<V> createProgramStageWebHookNotificationTemplateCache();
+  <V> Cache<V> createProgramStageWebHookNotificationTemplateCache();
 
-    <V> Cache<V> createProgramOrgUnitAssociationCache();
+  <V> Cache<V> createProgramOrgUnitAssociationCache();
 
-    <V> Cache<V> createCatOptOrgUnitAssociationCache();
+  <V> Cache<V> createCatOptOrgUnitAssociationCache();
 
-    <V> Cache<V> createDataSetOrgUnitAssociationCache();
+  <V> Cache<V> createDataSetOrgUnitAssociationCache();
 
-    <V> Cache<V> createApiKeyCache();
+  <V> Cache<V> createApiKeyCache();
 
-    <V> Cache<V> createProgramCache();
+  <V> Cache<V> createProgramCache();
 
-    <V> Cache<V> createTeiAttributesCache();
+  <V> Cache<V> createTeiAttributesCache();
 
-    <V> Cache<V> createProgramTeiAttributesCache();
+  <V> Cache<V> createProgramTeiAttributesCache();
 
-    <V> Cache<V> createUserGroupUIDCache();
+  <V> Cache<V> createUserGroupUIDCache();
 
-    // TODO(tracker): remove with old tracker
-    <V> Cache<V> createOldTrackerSecurityCache();
+  // TODO(tracker): remove with old tracker
+  <V> Cache<V> createOldTrackerSecurityCache();
 
-    <V> Cache<V> createSecurityCache();
+  <V> Cache<V> createSecurityCache();
 
-    <V> Cache<V> createRunningJobsInfoCache();
+  <V> Cache<V> createRunningJobsInfoCache();
 
-    <V> Cache<V> createCompletedJobsInfoCache();
+  <V> Cache<V> createCompletedJobsInfoCache();
 
-    <V> Cache<V> createJobCancelRequestedCache();
+  <V> Cache<V> createJobCancelRequestedCache();
 
-    <V> Cache<V> createDataIntegritySummaryCache();
+  <V> Cache<V> createDataIntegritySummaryCache();
 
-    <V> Cache<V> createDataIntegrityDetailsCache();
+  <V> Cache<V> createDataIntegrityDetailsCache();
 }

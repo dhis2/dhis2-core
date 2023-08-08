@@ -28,12 +28,11 @@
 package org.hisp.dhis.analytics.event;
 
 import java.util.List;
-
 import org.hisp.dhis.common.PrefixedDimension;
 
-public interface EventAnalyticsDimensionsService
-{
-    List<PrefixedDimension> getQueryDimensionsByProgramStageId( String programStageId );
+public interface EventAnalyticsDimensionsService {
+  List<PrefixedDimension> getQueryDimensionsByProgramStageId(
+      String programId, String programStageId);
 
-    List<PrefixedDimension> getAggregateDimensionsByProgramStageId( String programStageId );
+  List<PrefixedDimension> getAggregateDimensionsByProgramStageId(String programStageId);
 }

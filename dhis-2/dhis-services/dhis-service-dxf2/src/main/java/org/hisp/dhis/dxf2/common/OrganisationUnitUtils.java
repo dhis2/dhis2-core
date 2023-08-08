@@ -30,80 +30,62 @@ package org.hisp.dhis.dxf2.common;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class OrganisationUnitUtils
-{
-    public static Map<String, OrganisationUnit> getOrganisationUnitMap( Collection<OrganisationUnit> organisationUnits )
-    {
-        Map<String, OrganisationUnit> organisationUnitMap = new HashMap<>();
+public class OrganisationUnitUtils {
+  public static Map<String, OrganisationUnit> getOrganisationUnitMap(
+      Collection<OrganisationUnit> organisationUnits) {
+    Map<String, OrganisationUnit> organisationUnitMap = new HashMap<>();
 
-        for ( OrganisationUnit organisationUnit : organisationUnits )
-        {
-            if ( organisationUnit.getUid() != null )
-            {
-                organisationUnitMap.put( organisationUnit.getUid(), organisationUnit );
-            }
+    for (OrganisationUnit organisationUnit : organisationUnits) {
+      if (organisationUnit.getUid() != null) {
+        organisationUnitMap.put(organisationUnit.getUid(), organisationUnit);
+      }
 
-            if ( organisationUnit.getCode() != null )
-            {
-                organisationUnitMap.put( organisationUnit.getCode(), organisationUnit );
-            }
+      if (organisationUnit.getCode() != null) {
+        organisationUnitMap.put(organisationUnit.getCode(), organisationUnit);
+      }
 
-            if ( organisationUnit.getName() != null )
-            {
-                organisationUnitMap.put( organisationUnit.getName(), organisationUnit );
-            }
+      if (organisationUnit.getName() != null) {
+        organisationUnitMap.put(organisationUnit.getName(), organisationUnit);
+      }
 
-            if ( organisationUnit.getShortName() != null )
-            {
-                organisationUnitMap.put( organisationUnit.getShortName(), organisationUnit );
-            }
+      if (organisationUnit.getShortName() != null) {
+        organisationUnitMap.put(organisationUnit.getShortName(), organisationUnit);
+      }
+    }
+
+    return organisationUnitMap;
+  }
+
+  public static void updateParents(Collection<OrganisationUnit> organisationUnits) {
+    updateParents(organisationUnits, getOrganisationUnitMap(organisationUnits));
+  }
+
+  public static void updateParents(
+      Collection<OrganisationUnit> organisationUnits,
+      Map<String, OrganisationUnit> organisationUnitMap) {
+    for (OrganisationUnit organisationUnit : organisationUnits) {
+      OrganisationUnit parent = organisationUnit.getParent();
+
+      if (parent != null) {
+        if (parent.getUid() != null) {
+          parent = organisationUnitMap.get(parent.getUid());
+        } else if (parent.getCode() != null) {
+          parent = organisationUnitMap.get(parent.getCode());
+        } else if (parent.getName() != null) {
+          parent = organisationUnitMap.get(parent.getName());
+        } else if (parent.getShortName() != null) {
+          parent = organisationUnitMap.get(parent.getShortName());
         }
+      }
 
-        return organisationUnitMap;
+      if (parent != null) {
+        organisationUnit.setParent(parent);
+      }
     }
-
-    public static void updateParents( Collection<OrganisationUnit> organisationUnits )
-    {
-        updateParents( organisationUnits, getOrganisationUnitMap( organisationUnits ) );
-    }
-
-    public static void updateParents( Collection<OrganisationUnit> organisationUnits,
-        Map<String, OrganisationUnit> organisationUnitMap )
-    {
-        for ( OrganisationUnit organisationUnit : organisationUnits )
-        {
-            OrganisationUnit parent = organisationUnit.getParent();
-
-            if ( parent != null )
-            {
-                if ( parent.getUid() != null )
-                {
-                    parent = organisationUnitMap.get( parent.getUid() );
-                }
-                else if ( parent.getCode() != null )
-                {
-                    parent = organisationUnitMap.get( parent.getCode() );
-                }
-                else if ( parent.getName() != null )
-                {
-                    parent = organisationUnitMap.get( parent.getName() );
-                }
-                else if ( parent.getShortName() != null )
-                {
-                    parent = organisationUnitMap.get( parent.getShortName() );
-                }
-            }
-
-            if ( parent != null )
-            {
-                organisationUnit.setParent( parent );
-            }
-        }
-    }
+  }
 }

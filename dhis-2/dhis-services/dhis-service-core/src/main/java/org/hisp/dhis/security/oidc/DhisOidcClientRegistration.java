@@ -29,55 +29,49 @@ package org.hisp.dhis.security.oidc;
 
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ID;
 
+import com.nimbusds.jose.jwk.JWK;
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import lombok.Builder;
 import lombok.Data;
-
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
-
-import com.nimbusds.jose.jwk.JWK;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
 @Builder
-public class DhisOidcClientRegistration
-{
-    private final ClientRegistration clientRegistration;
+public class DhisOidcClientRegistration {
+  private final ClientRegistration clientRegistration;
 
-    private final String mappingClaimKey;
+  private final String mappingClaimKey;
 
-    private final String loginIcon;
+  private final String loginIcon;
 
-    private final String loginIconPadding;
+  private final String loginIconPadding;
 
-    private final String loginText;
+  private final String loginText;
 
-    private final JWK jwk;
+  private final JWK jwk;
 
-    private final RSAPublicKey rsaPublicKey;
+  private final RSAPublicKey rsaPublicKey;
 
-    private final String keyId;
+  private final String keyId;
 
-    private final String jwkSetUrl;
+  private final String jwkSetUrl;
 
-    @Builder.Default
-    private final Map<String, Map<String, String>> externalClients = new HashMap<>();
+  @Builder.Default private final Map<String, Map<String, String>> externalClients = new HashMap<>();
 
-    public Collection<String> getClientIds()
-    {
-        Set<String> allExternalClientIds = externalClients.entrySet()
-            .stream()
-            .flatMap( e -> e.getValue().entrySet().stream() )
-            .filter( e -> e.getKey().contains( CLIENT_ID ) )
-            .map( Map.Entry::getValue )
-            .collect( Collectors.toSet() );
+  public Collection<String> getClientIds() {
+    Set<String> allExternalClientIds =
+        externalClients.entrySet().stream()
+            .flatMap(e -> e.getValue().entrySet().stream())
+            .filter(e -> e.getKey().contains(CLIENT_ID))
+            .map(Map.Entry::getValue)
+            .collect(Collectors.toSet());
 
-        allExternalClientIds.add( clientRegistration.getClientId() );
-        return Collections.unmodifiableSet( allExternalClientIds );
-    }
+    allExternalClientIds.add(clientRegistration.getClientId());
+    return Collections.unmodifiableSet(allExternalClientIds);
+  }
 }

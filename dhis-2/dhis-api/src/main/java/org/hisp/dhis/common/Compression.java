@@ -30,22 +30,18 @@ package org.hisp.dhis.common;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum Compression
-{
-    NONE,
-    GZIP,
-    ZIP;
+public enum Compression {
+  NONE,
+  GZIP,
+  ZIP;
 
-    public static Compression fromValue( String compression )
-    {
-        for ( Compression comp : Compression.values() )
-        {
-            if ( comp.name().equalsIgnoreCase( compression ) )
-            {
-                return comp;
-            }
-        }
-
-        return null;
+  public static Compression fromValue(String compression) {
+    for (Compression comp : Compression.values()) {
+      if (comp.name().equalsIgnoreCase(compression)) {
+        return comp;
+      }
     }
+
+    return null;
+  }
 }

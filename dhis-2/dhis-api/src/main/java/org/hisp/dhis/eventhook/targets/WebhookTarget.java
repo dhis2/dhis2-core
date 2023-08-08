@@ -27,48 +27,41 @@
  */
 package org.hisp.dhis.eventhook.targets;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashMap;
 import java.util.Map;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.auth.Auth;
 import org.hisp.dhis.eventhook.Target;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
-@EqualsAndHashCode( callSuper = true )
-@Accessors( chain = true )
-public class WebhookTarget extends Target
-{
-    public static final String TYPE = "webhook";
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
+public class WebhookTarget extends Target {
+  public static final String TYPE = "webhook";
 
-    @JsonProperty( required = true )
-    private String clientId = "dhis2-webhook-" + CodeGenerator.generateUid();
+  @JsonProperty(required = true)
+  private String clientId = "dhis2-webhook-" + CodeGenerator.generateUid();
 
-    @JsonProperty( required = true )
-    private String url;
+  @JsonProperty(required = true)
+  private String url;
 
-    @JsonProperty( required = true )
-    private String contentType = "application/json";
+  @JsonProperty(required = true)
+  private String contentType = "application/json";
 
-    @JsonProperty
-    private Map<String, String> headers = new HashMap<>();
+  @JsonProperty private Map<String, String> headers = new HashMap<>();
 
-    @JsonProperty
-    private Auth auth;
+  @JsonProperty private Auth auth;
 
-    public WebhookTarget()
-    {
-        super( TYPE );
-    }
+  public WebhookTarget() {
+    super(TYPE);
+  }
 }

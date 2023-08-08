@@ -30,11 +30,10 @@ package org.hisp.dhis.webportal.menu;
 /**
  * @author Torgeir Lorange Ostby
  */
-public interface MenuStateManager
-{
-    String ID = MenuStateManager.class.getName();
+public interface MenuStateManager {
+  String ID = MenuStateManager.class.getName();
 
-    MenuState getMenuState();
+  MenuState getMenuState();
 
-    void setMenuState( MenuState menuState );
+  void setMenuState(MenuState menuState);
 }

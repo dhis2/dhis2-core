@@ -27,73 +27,60 @@
  */
 package org.hisp.dhis.artemis.audit.legacy;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
- * A factory for constructing {@see org.hisp.dhis.audit.Audit} data payloads.
- * This can be the object itself (as is the case for metadata), or it can be a
- * wrapper object collecting the parts wanted.
+ * A factory for constructing {@see org.hisp.dhis.audit.Audit} data payloads. This can be the object
+ * itself (as is the case for metadata), or it can be a wrapper object collecting the parts wanted.
  *
  * @author Luciano Fiandesio
  */
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class DefaultAuditObjectFactory implements AuditObjectFactory
-{
-    @Qualifier( "hibernateAwareJsonMapper" )
-    private final ObjectMapper objectMapper;
+public class DefaultAuditObjectFactory implements AuditObjectFactory {
+  @Qualifier("hibernateAwareJsonMapper")
+  private final ObjectMapper objectMapper;
 
-    @Override
-    public Object create( AuditScope auditScope, AuditType auditType, Object object, String user )
-    {
-        switch ( auditScope )
-        {
-        case METADATA:
-            return handleMetadataAudit( object );
-        case TRACKER:
-            return handleTracker( object );
-        case AGGREGATE:
-            return handleAggregate( object );
-        }
-        return null;
+  @Override
+  public Object create(AuditScope auditScope, AuditType auditType, Object object, String user) {
+    switch (auditScope) {
+      case METADATA:
+        return handleMetadataAudit(object);
+      case TRACKER:
+        return handleTracker(object);
+      case AGGREGATE:
+        return handleAggregate(object);
     }
+    return null;
+  }
 
-    private String handleTracker( Object object )
-    {
-        return toJson( object );
-    }
+  private String handleTracker(Object object) {
+    return toJson(object);
+  }
 
-    private String handleAggregate( Object object )
-    {
-        return toJson( object );
-    }
+  private String handleAggregate(Object object) {
+    return toJson(object);
+  }
 
-    private String handleMetadataAudit( Object object )
-    {
-        return toJson( object );
-    }
+  private String handleMetadataAudit(Object object) {
+    return toJson(object);
+  }
 
-    private String toJson( Object object )
-    {
-        try
-        {
-            return objectMapper.writeValueAsString( object );
-        }
-        catch ( JsonProcessingException e )
-        {
-            log.error( DebugUtils.getStackTrace( e ) );
-        }
-        return null;
+  private String toJson(Object object) {
+    try {
+      return objectMapper.writeValueAsString(object);
+    } catch (JsonProcessingException e) {
+      log.error(DebugUtils.getStackTrace(e));
     }
+    return null;
+  }
 }

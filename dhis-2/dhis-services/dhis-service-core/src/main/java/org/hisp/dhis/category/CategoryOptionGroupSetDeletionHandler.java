@@ -34,20 +34,17 @@ import org.springframework.stereotype.Component;
  * @author Chau Thu Tran
  */
 @Component
-public class CategoryOptionGroupSetDeletionHandler extends IdObjectDeletionHandler<CategoryOptionGroupSet>
-{
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( CategoryOptionGroup.class, this::deleteCategoryOptionGroup );
-    }
+public class CategoryOptionGroupSetDeletionHandler
+    extends IdObjectDeletionHandler<CategoryOptionGroupSet> {
+  @Override
+  protected void registerHandler() {
+    whenDeleting(CategoryOptionGroup.class, this::deleteCategoryOptionGroup);
+  }
 
-    private void deleteCategoryOptionGroup( CategoryOptionGroup categoryOptionGroup )
-    {
-        for ( CategoryOptionGroupSet groupSet : categoryOptionGroup.getGroupSets() )
-        {
-            groupSet.getMembers().remove( categoryOptionGroup );
-            idObjectManager.updateNoAcl( groupSet );
-        }
+  private void deleteCategoryOptionGroup(CategoryOptionGroup categoryOptionGroup) {
+    for (CategoryOptionGroupSet groupSet : categoryOptionGroup.getGroupSets()) {
+      groupSet.getMembers().remove(categoryOptionGroup);
+      idObjectManager.updateNoAcl(groupSet);
     }
+  }
 }

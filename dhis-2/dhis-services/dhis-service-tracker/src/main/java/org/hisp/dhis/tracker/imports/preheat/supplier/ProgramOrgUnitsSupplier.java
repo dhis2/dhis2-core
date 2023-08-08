@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -39,70 +38,66 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
 /**
- * This supplier adds to the pre-heat object a Map-like data structure, where
- * the key is a Program ID (primary key) and the value is a List of Org Units ID
- * (primary keys). The scope of this data structure is to allow the validation
- * to check if the entity or enrollment declared org unit is part of the
- * declared program's org units.
+ * This supplier adds to the pre-heat object a Map-like data structure, where the key is a Program
+ * ID (primary key) and the value is a List of Org Units ID (primary keys). The scope of this data
+ * structure is to allow the validation to check if the entity or enrollment declared org unit is
+ * part of the declared program's org units.
  *
- * This supplier is efficient because it only loads the data that are strictly
- * necessary for this check.
+ * <p>This supplier is efficient because it only loads the data that are strictly necessary for this
+ * check.
  *
  * @author Luciano Fiandesio
  */
 @Component
-public class ProgramOrgUnitsSupplier extends JdbcAbstractPreheatSupplier
-{
-    protected ProgramOrgUnitsSupplier( JdbcTemplate jdbcTemplate )
-    {
-        super( jdbcTemplate );
-    }
+public class ProgramOrgUnitsSupplier extends JdbcAbstractPreheatSupplier {
+  protected ProgramOrgUnitsSupplier(JdbcTemplate jdbcTemplate) {
+    super(jdbcTemplate);
+  }
 
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
-    {
-        // fetch all existing Org Units from payload
-        final List<Long> orgUnitIds = preheat.getAll( OrganisationUnit.class )
-            .stream()
-            .map( IdentifiableObject::getId )
+  @Override
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+    // fetch all existing Org Units from payload
+    final List<Long> orgUnitIds =
+        preheat.getAll(OrganisationUnit.class).stream()
+            .map(IdentifiableObject::getId)
             .distinct()
-            .collect( Collectors.toList() );
+            .collect(Collectors.toList());
 
-        if ( orgUnitIds.isEmpty() )
-        {
-            return;
-        }
-
-        final String sql = "SELECT p.uid AS programuid, ou.uid AS organisationunituid " +
-            "FROM program_organisationunits po " +
-            "JOIN program p ON po.programid=p.programid " +
-            "JOIN organisationunit ou ON po.organisationunitid=ou.organisationunitid " +
-            "WHERE po.organisationunitid IN ( :ids )";
-
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue( "ids", orgUnitIds );
-
-        preheat.setProgramWithOrgUnitsMap( jdbcTemplate.query( sql, parameters, rs -> {
-            Map<String, List<String>> map = new HashMap<>();
-
-            while ( rs.next() )
-            {
-                final String pid = rs.getString( "programuid" );
-                final String ouid = rs.getString( "organisationunituid" );
-
-                if ( map.containsKey( pid ) )
-                {
-                    map.get( pid ).add( ouid );
-                }
-                else
-                {
-                    List<String> ouids = new ArrayList<>();
-                    ouids.add( ouid );
-                    map.put( pid, ouids );
-                }
-            }
-
-            return map;
-        } ) );
+    if (orgUnitIds.isEmpty()) {
+      return;
     }
+
+    final String sql =
+        "SELECT p.uid AS programuid, ou.uid AS organisationunituid "
+            + "FROM program_organisationunits po "
+            + "JOIN program p ON po.programid=p.programid "
+            + "JOIN organisationunit ou ON po.organisationunitid=ou.organisationunitid "
+            + "WHERE po.organisationunitid IN ( :ids )";
+
+    MapSqlParameterSource parameters = new MapSqlParameterSource();
+    parameters.addValue("ids", orgUnitIds);
+
+    preheat.setProgramWithOrgUnitsMap(
+        jdbcTemplate.query(
+            sql,
+            parameters,
+            rs -> {
+              Map<String, List<String>> map = new HashMap<>();
+
+              while (rs.next()) {
+                final String pid = rs.getString("programuid");
+                final String ouid = rs.getString("organisationunituid");
+
+                if (map.containsKey(pid)) {
+                  map.get(pid).add(ouid);
+                } else {
+                  List<String> ouids = new ArrayList<>();
+                  ouids.add(ouid);
+                  map.put(pid, ouids);
+                }
+              }
+
+              return map;
+            }));
+  }
 }

@@ -27,30 +27,25 @@
  */
 package org.hisp.dhis.webapi.controller.system;
 
-import java.util.Map;
-
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.vdurmont.semver4j.Semver;
+import java.util.Map;
+import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 
 /**
  * @author Morten Svanaes
  */
-public class SoftwareUpdateResponse extends AbstractWebMessageResponse
-{
-    private final Map<Semver, Map<String, String>> versionMetadata;
+public class SoftwareUpdateResponse extends AbstractWebMessageResponse {
+  private final Map<Semver, Map<String, String>> versionMetadata;
 
-    public SoftwareUpdateResponse( Map<Semver, Map<String, String>> versionMetadata )
-    {
-        this.versionMetadata = versionMetadata;
-    }
+  public SoftwareUpdateResponse(Map<Semver, Map<String, String>> versionMetadata) {
+    this.versionMetadata = versionMetadata;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public Map<Semver, Map<String, String>> getVersionMetadata()
-    {
-        return versionMetadata;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public Map<Semver, Map<String, String>> getVersionMetadata() {
+    return versionMetadata;
+  }
 }

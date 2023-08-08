@@ -33,9 +33,8 @@ import lombok.Value;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Value
-public class TokenWrapper
-{
-    char[] plaintextToken;
+public class TokenWrapper {
+  char[] plaintextToken;
 
-    ApiToken apiToken;
+  ApiToken apiToken;
 }

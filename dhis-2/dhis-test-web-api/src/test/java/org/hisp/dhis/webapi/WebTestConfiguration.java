@@ -31,11 +31,8 @@ import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.Map;
-
 import javax.sql.DataSource;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationStoreConfiguration;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -92,208 +89,186 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com
  */
 @Configuration
-@ImportResource( locations = { "classpath*:/META-INF/dhis/beans.xml" } )
-@ComponentScan( basePackages = { "org.hisp.dhis" }, useDefaultFilters = false, includeFilters = {
-    @Filter( type = FilterType.ANNOTATION, value = Service.class ),
-    @Filter( type = FilterType.ANNOTATION, value = Component.class ),
-    @Filter( type = FilterType.ANNOTATION, value = Repository.class )
-
-}, excludeFilters = @Filter( Configuration.class ) )
-@Import( {
-    HibernateConfig.class,
-    DataSourceConfig.class,
-    JdbcConfig.class,
-    FlywayConfig.class,
-    HibernateEncryptionConfig.class,
-    ServiceConfig.class,
-    StoreConfig.class,
-    LeaderElectionConfiguration.class,
-    NotifierConfiguration.class,
-    org.hisp.dhis.setting.config.ServiceConfig.class,
-    org.hisp.dhis.external.config.ServiceConfig.class,
-    org.hisp.dhis.dxf2.config.ServiceConfig.class,
-    org.hisp.dhis.support.config.ServiceConfig.class,
-    org.hisp.dhis.validation.config.ServiceConfig.class,
-    org.hisp.dhis.validation.config.StoreConfig.class,
-    org.hisp.dhis.programrule.config.ProgramRuleConfig.class,
-    org.hisp.dhis.reporting.config.StoreConfig.class,
-    org.hisp.dhis.analytics.config.ServiceConfig.class,
-    JacksonObjectMapperConfig.class,
-    ContentNegotiationConfig.class,
-    JdbcOrgUnitAssociationStoreConfiguration.class,
-    StartupConfig.class
-} )
+@ImportResource(locations = {"classpath*:/META-INF/dhis/beans.xml"})
+@ComponentScan(
+    basePackages = {"org.hisp.dhis"},
+    useDefaultFilters = false,
+    includeFilters = {
+      @Filter(type = FilterType.ANNOTATION, value = Service.class),
+      @Filter(type = FilterType.ANNOTATION, value = Component.class),
+      @Filter(type = FilterType.ANNOTATION, value = Repository.class)
+    },
+    excludeFilters = @Filter(Configuration.class))
+@Import({
+  HibernateConfig.class,
+  DataSourceConfig.class,
+  JdbcConfig.class,
+  FlywayConfig.class,
+  HibernateEncryptionConfig.class,
+  ServiceConfig.class,
+  StoreConfig.class,
+  LeaderElectionConfiguration.class,
+  NotifierConfiguration.class,
+  org.hisp.dhis.setting.config.ServiceConfig.class,
+  org.hisp.dhis.external.config.ServiceConfig.class,
+  org.hisp.dhis.dxf2.config.ServiceConfig.class,
+  org.hisp.dhis.support.config.ServiceConfig.class,
+  org.hisp.dhis.validation.config.ServiceConfig.class,
+  org.hisp.dhis.validation.config.StoreConfig.class,
+  org.hisp.dhis.programrule.config.ProgramRuleConfig.class,
+  org.hisp.dhis.reporting.config.StoreConfig.class,
+  org.hisp.dhis.analytics.config.ServiceConfig.class,
+  JacksonObjectMapperConfig.class,
+  ContentNegotiationConfig.class,
+  JdbcOrgUnitAssociationStoreConfiguration.class,
+  StartupConfig.class
+})
 @Transactional
 @Slf4j
-@Order( 10 )
-public class WebTestConfiguration
-{
-    @Bean
-    public static SessionRegistryImpl sessionRegistry()
-    {
-        return new org.springframework.security.core.session.SessionRegistryImpl();
+@Order(10)
+public class WebTestConfiguration {
+  @Bean
+  public static SessionRegistryImpl sessionRegistry() {
+    return new org.springframework.security.core.session.SessionRegistryImpl();
+  }
+
+  @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
+
+  @Bean("dataSource")
+  @Primary
+  public DataSource actualDataSource(
+      HibernateConfigurationProvider hibernateConfigurationProvider) {
+    final DhisConfigurationProvider config = dhisConfigurationProvider;
+    String jdbcUrl = config.getProperty(ConfigurationKey.CONNECTION_URL);
+    String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
+    String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
+
+    DatabasePoolUtils.PoolConfig.PoolConfigBuilder builder = DatabasePoolUtils.PoolConfig.builder();
+    builder.dhisConfig(config);
+    builder.hibernateConfig(hibernateConfigurationProvider);
+    builder.dbPoolType(dbPoolType);
+
+    try {
+      final DataSource dbPool = DatabasePoolUtils.createDbPool(builder.build());
+
+      // H2 JSON functions
+      H2SqlFunction.registerH2Functions(dbPool);
+
+      return dbPool;
+    } catch (SQLException | PropertyVetoException e) {
+      String message =
+          String.format(
+              "Connection test failed for main database pool, " + "jdbcUrl: '%s', user: '%s'",
+              jdbcUrl, username);
+
+      log.error(message);
+      log.error(DebugUtils.getStackTrace(e));
+
+      throw new IllegalStateException(message, e);
+    }
+  }
+
+  @Bean
+  public BCryptPasswordEncoder bCryptPasswordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
+
+  @Bean
+  public LdapAuthenticator ldapAuthenticator() {
+    return authentication -> null;
+  }
+
+  @Bean
+  public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
+    return (dirContextOperations, s) -> null;
+  }
+
+  @Bean("oAuth2AuthenticationManager")
+  public AuthenticationManager oAuth2AuthenticationManager() {
+    return authentication -> null;
+  }
+
+  @Bean("authenticationManager")
+  @Primary
+  public AuthenticationManager authenticationManager() {
+    return authentication -> null;
+  }
+
+  @Bean
+  public DefaultAuthenticationEventPublisher authenticationEventPublisher() {
+    DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher =
+        new DefaultAuthenticationEventPublisher();
+    defaultAuthenticationEventPublisher.setAdditionalExceptionMappings(
+        Map.of(
+            OAuth2AuthenticationException.class, AuthenticationFailureBadCredentialsEvent.class));
+    return defaultAuthenticationEventPublisher;
+  }
+
+  @Bean
+  public SystemAuthoritiesProvider systemAuthoritiesProvider() {
+    return () -> DefaultAdminUserPopulator.ALL_AUTHORITIES;
+  }
+
+  /** During tests we do not want asynchronous job scheduling. */
+  @Bean
+  @Primary
+  public SchedulingManager synchronousSchedulingManager(SchedulingManagerSupport support) {
+    return new TestSchedulingManager(support);
+  }
+
+  public static class TestSchedulingManager extends AbstractSchedulingManager {
+    private boolean enabled = true;
+
+    private boolean isRunning = false;
+
+    public TestSchedulingManager(SchedulingManagerSupport support) {
+      super(support);
     }
 
-    @Autowired
-    private DhisConfigurationProvider dhisConfigurationProvider;
+    @Override
+    public void schedule(JobConfiguration configuration) {
+      // we don't run it
+    }
 
-    @Bean( "dataSource" )
-    @Primary
-    public DataSource actualDataSource( HibernateConfigurationProvider hibernateConfigurationProvider )
-    {
-        final DhisConfigurationProvider config = dhisConfigurationProvider;
-        String jdbcUrl = config.getProperty( ConfigurationKey.CONNECTION_URL );
-        String username = config.getProperty( ConfigurationKey.CONNECTION_USERNAME );
-        String dbPoolType = config.getProperty( ConfigurationKey.DB_POOL_TYPE );
+    @Override
+    public void scheduleWithStartTime(JobConfiguration configuration, Date startTime) {
+      // we don't run it
+    }
 
-        DatabasePoolUtils.PoolConfig.PoolConfigBuilder builder = DatabasePoolUtils.PoolConfig.builder();
-        builder.dhisConfig( config );
-        builder.hibernateConfig( hibernateConfigurationProvider );
-        builder.dbPoolType( dbPoolType );
+    @Override
+    public void stop(JobConfiguration configuration) {
+      // its either never started or we don't support stop (silent)
+    }
 
-        try
-        {
-            final DataSource dbPool = DatabasePoolUtils.createDbPool( builder.build() );
-
-            // H2 JSON functions
-            H2SqlFunction.registerH2Functions( dbPool );
-
-            return dbPool;
+    @Override
+    public boolean executeNow(JobConfiguration configuration) {
+      if (enabled) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        try {
+          // executing will set and clear the SecurityContext
+          // so it is restored afterward to what it was before
+          return execute(configuration);
+        } finally {
+          SecurityContext context = SecurityContextHolder.createEmptyContext();
+          context.setAuthentication(auth);
+          SecurityContextHolder.setContext(context);
         }
-        catch ( SQLException | PropertyVetoException e )
-        {
-            String message = String.format( "Connection test failed for main database pool, " +
-                "jdbcUrl: '%s', user: '%s'", jdbcUrl, username );
-
-            log.error( message );
-            log.error( DebugUtils.getStackTrace( e ) );
-
-            throw new IllegalStateException( message, e );
-        }
+      }
+      return !isRunning;
     }
 
-    @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder()
-    {
-        return new BCryptPasswordEncoder();
+    @Override
+    public boolean isRunning(JobType type) {
+      return isRunning;
     }
 
-    @Bean
-    public LdapAuthenticator ldapAuthenticator()
-    {
-        return authentication -> null;
+    public void setEnabled(boolean enabled) {
+
+      this.enabled = enabled;
     }
 
-    @Bean
-    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator()
-    {
-        return ( dirContextOperations, s ) -> null;
+    public void setRunning(boolean running) {
+      isRunning = running;
     }
-
-    @Bean( "oAuth2AuthenticationManager" )
-    public AuthenticationManager oAuth2AuthenticationManager()
-    {
-        return authentication -> null;
-    }
-
-    @Bean( "authenticationManager" )
-    @Primary
-    public AuthenticationManager authenticationManager()
-    {
-        return authentication -> null;
-    }
-
-    @Bean
-    public DefaultAuthenticationEventPublisher authenticationEventPublisher()
-    {
-        DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher = new DefaultAuthenticationEventPublisher();
-        defaultAuthenticationEventPublisher.setAdditionalExceptionMappings(
-            Map.of( OAuth2AuthenticationException.class, AuthenticationFailureBadCredentialsEvent.class ) );
-        return defaultAuthenticationEventPublisher;
-    }
-
-    @Bean
-    public SystemAuthoritiesProvider systemAuthoritiesProvider()
-    {
-        return () -> DefaultAdminUserPopulator.ALL_AUTHORITIES;
-    }
-
-    /**
-     * During tests we do not want asynchronous job scheduling.
-     */
-    @Bean
-    @Primary
-    public SchedulingManager synchronousSchedulingManager( SchedulingManagerSupport support )
-    {
-        return new TestSchedulingManager( support );
-    }
-
-    public static class TestSchedulingManager extends AbstractSchedulingManager
-    {
-        private boolean enabled = true;
-
-        private boolean isRunning = false;
-
-        public TestSchedulingManager( SchedulingManagerSupport support )
-        {
-            super( support );
-        }
-
-        @Override
-        public void schedule( JobConfiguration configuration )
-        {
-            // we don't run it
-        }
-
-        @Override
-        public void scheduleWithStartTime( JobConfiguration configuration, Date startTime )
-        {
-            // we don't run it
-        }
-
-        @Override
-        public void stop( JobConfiguration configuration )
-        {
-            // its either never started or we don't support stop (silent)
-        }
-
-        @Override
-        public boolean executeNow( JobConfiguration configuration )
-        {
-            if ( enabled )
-            {
-                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                try
-                {
-                    // executing will set and clear the SecurityContext
-                    // so it is restored afterward to what it was before
-                    return execute( configuration );
-                }
-                finally
-                {
-                    SecurityContext context = SecurityContextHolder.createEmptyContext();
-                    context.setAuthentication( auth );
-                    SecurityContextHolder.setContext( context );
-                }
-            }
-            return !isRunning;
-        }
-
-        @Override
-        public boolean isRunning( JobType type )
-        {
-            return isRunning;
-        }
-
-        public void setEnabled( boolean enabled )
-        {
-
-            this.enabled = enabled;
-        }
-
-        public void setRunning( boolean running )
-        {
-            isRunning = running;
-        }
-    }
+  }
 }

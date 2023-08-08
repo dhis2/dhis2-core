@@ -32,23 +32,20 @@ import org.hisp.dhis.user.UserGroup;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserGroupObjectBundleHook extends AbstractObjectBundleHook<UserGroup>
-{
-    @Override
-    public void preUpdate( UserGroup object, UserGroup persistedObject, ObjectBundle bundle )
-    {
-        handleCreatedUserProperty( object, persistedObject, bundle );
-    }
+public class UserGroupObjectBundleHook extends AbstractObjectBundleHook<UserGroup> {
+  @Override
+  public void preUpdate(UserGroup object, UserGroup persistedObject, ObjectBundle bundle) {
+    handleCreatedUserProperty(object, persistedObject, bundle);
+  }
 
-    /**
-     * As User property of UserGroup is marked with @JsonIgnore ( see
-     * {@link UserGroup} ), the new object will always has User = NULL. So we
-     * need to get this from persisted UserGroup, otherwise it will always be
-     * set to current User when updating.
-     */
-    private void handleCreatedUserProperty( UserGroup userGroup, UserGroup persistedUserGroup, ObjectBundle bundle )
-    {
-        userGroup.setCreatedBy( persistedUserGroup.getCreatedBy() );
-        bundle.getPreheat().put( bundle.getPreheatIdentifier(), persistedUserGroup.getCreatedBy() );
-    }
+  /**
+   * As User property of UserGroup is marked with @JsonIgnore ( see {@link UserGroup} ), the new
+   * object will always has User = NULL. So we need to get this from persisted UserGroup, otherwise
+   * it will always be set to current User when updating.
+   */
+  private void handleCreatedUserProperty(
+      UserGroup userGroup, UserGroup persistedUserGroup, ObjectBundle bundle) {
+    userGroup.setCreatedBy(persistedUserGroup.getCreatedBy());
+    bundle.getPreheat().put(bundle.getPreheatIdentifier(), persistedUserGroup.getCreatedBy());
+  }
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.expression.function;
 
 import java.util.stream.Collectors;
-
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.expression.ExpressionParams;
@@ -39,62 +38,54 @@ import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 /**
  * Function orgUnit.group
- * <p>
- * Does the current orgUnit belong to one of the orgUnit groups?
+ *
+ * <p>Does the current orgUnit belong to one of the orgUnit groups?
  *
  * @author Jim Grace
  */
-public class FunctionOrgUnitGroup
-    implements ExpressionItem
-{
-    @Override
-    public Object getDescription( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        for ( TerminalNode uid : ctx.UID() )
-        {
-            OrganisationUnitGroup orgUnitGroup = visitor.getIdObjectManager()
-                .get( OrganisationUnitGroup.class, uid.getText() );
+public class FunctionOrgUnitGroup implements ExpressionItem {
+  @Override
+  public Object getDescription(ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor) {
+    for (TerminalNode uid : ctx.UID()) {
+      OrganisationUnitGroup orgUnitGroup =
+          visitor.getIdObjectManager().get(OrganisationUnitGroup.class, uid.getText());
 
-            if ( orgUnitGroup == null )
-            {
-                throw new ParserExceptionWithoutContext( "No organization unit group defined for " + uid.getText() );
-            }
+      if (orgUnitGroup == null) {
+        throw new ParserExceptionWithoutContext(
+            "No organization unit group defined for " + uid.getText());
+      }
 
-            visitor.getItemDescriptions().put( uid.getText(), orgUnitGroup.getDisplayName() );
+      visitor.getItemDescriptions().put(uid.getText(), orgUnitGroup.getDisplayName());
+    }
+
+    return false;
+  }
+
+  @Override
+  public Object getExpressionInfo(
+      ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor) {
+    visitor
+        .getInfo()
+        .getOrgUnitGroupIds()
+        .addAll(ctx.UID().stream().map(TerminalNode::getText).collect(Collectors.toList()));
+
+    return false;
+  }
+
+  @Override
+  public Object evaluate(ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor) {
+    ExpressionParams params = visitor.getParams();
+
+    if (params.getOrgUnit() != null) {
+      for (TerminalNode uid : ctx.UID()) {
+        OrganisationUnitGroup oug = params.getOrgUnitGroupMap().get(uid.getText());
+
+        if (oug != null && oug.getMembers().contains(params.getOrgUnit())) {
+          return true;
         }
-
-        return false;
+      }
     }
 
-    @Override
-    public Object getExpressionInfo( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        visitor.getInfo().getOrgUnitGroupIds().addAll(
-            ctx.UID().stream()
-                .map( TerminalNode::getText )
-                .collect( Collectors.toList() ) );
-
-        return false;
-    }
-
-    @Override
-    public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        ExpressionParams params = visitor.getParams();
-
-        if ( params.getOrgUnit() != null )
-        {
-            for ( TerminalNode uid : ctx.UID() )
-            {
-                OrganisationUnitGroup oug = params.getOrgUnitGroupMap().get( uid.getText() );
-
-                if ( oug != null && oug.getMembers().contains( params.getOrgUnit() ) )
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
+    return false;
+  }
 }

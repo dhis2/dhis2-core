@@ -46,80 +46,69 @@ import org.hisp.dhis.system.util.ValidationUtils;
  *
  * @author Jim Grace
  */
-public abstract class DimensionalItem
-    implements ExpressionItem
-{
-    @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        DimensionalItemId itemId = getDimensionalItemId( ctx, visitor );
+public abstract class DimensionalItem implements ExpressionItem {
+  @Override
+  public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    DimensionalItemId itemId = getDimensionalItemId(ctx, visitor);
 
-        DimensionalItemObject item = visitor.getDimensionService().getDataDimensionalItemObject( itemId );
+    DimensionalItemObject item = visitor.getDimensionService().getDataDimensionalItemObject(itemId);
 
-        if ( item == null )
-        {
-            throw new ParserExceptionWithoutContext(
-                "Can't find " + itemId.getDimensionItemType().name() + " for '" + itemId + "'" );
-        }
-
-        visitor.getItemDescriptions().put( ctx.getText(), item.getDisplayName() );
-
-        return ValidationUtils.getNullReplacementValue( getItemValueType( item, visitor ) );
+    if (item == null) {
+      throw new ParserExceptionWithoutContext(
+          "Can't find " + itemId.getDimensionItemType().name() + " for '" + itemId + "'");
     }
 
-    @Override
-    public final Object getExpressionInfo( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        visitor.getInfo().getItemIds().add( getDimensionalItemId( ctx, visitor ) );
+    visitor.getItemDescriptions().put(ctx.getText(), item.getDisplayName());
 
-        return DOUBLE_VALUE_IF_NULL;
+    return ValidationUtils.getNullReplacementValue(getItemValueType(item, visitor));
+  }
+
+  @Override
+  public final Object getExpressionInfo(ExprContext ctx, CommonExpressionVisitor visitor) {
+    visitor.getInfo().getItemIds().add(getDimensionalItemId(ctx, visitor));
+
+    return DOUBLE_VALUE_IF_NULL;
+  }
+
+  @Override
+  public final Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
+    DimensionalItemId itemId = getDimensionalItemId(ctx, visitor);
+
+    DimensionalItemObject item = visitor.getParams().getItemMap().get(itemId);
+
+    Object value = (item != null) ? visitor.getParams().getValueMap().get(item) : null;
+
+    return visitor.getState().handleNulls(value, getItemValueType(item, visitor));
+  }
+
+  /**
+   * Constructs the DimensionalItemId object for this item.
+   *
+   * @param ctx the parser item context
+   * @param visitor the tree visitor
+   * @return the DimensionalItemId object for this item
+   */
+  public abstract DimensionalItemId getDimensionalItemId(
+      ExprContext ctx, CommonExpressionVisitor visitor);
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * Returns the value type of this item.
+   *
+   * <p>If within an indicator and not a subexpression, always returns number. If in an indicator
+   * subexpression or anywhere else (such as validation rule or predictor), returns the item's data
+   * type if it has one (defaulting to number).
+   */
+  private ValueType getItemValueType(DimensionalItemObject item, CommonExpressionVisitor visitor) {
+    if (item instanceof ValueTypedDimensionalItemObject
+        && (visitor.getParams().getParseType() != INDICATOR_EXPRESSION
+            || visitor.getState().isInSubexpression())) {
+      return ((ValueTypedDimensionalItemObject) item).getValueType();
     }
 
-    @Override
-    public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        DimensionalItemId itemId = getDimensionalItemId( ctx, visitor );
-
-        DimensionalItemObject item = visitor.getParams().getItemMap().get( itemId );
-
-        Object value = (item != null)
-            ? visitor.getParams().getValueMap().get( item )
-            : null;
-
-        return visitor.getState().handleNulls( value, getItemValueType( item, visitor ) );
-    }
-
-    /**
-     * Constructs the DimensionalItemId object for this item.
-     *
-     * @param ctx the parser item context
-     * @param visitor the tree visitor
-     * @return the DimensionalItemId object for this item
-     */
-    public abstract DimensionalItemId getDimensionalItemId( ExprContext ctx,
-        CommonExpressionVisitor visitor );
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns the value type of this item.
-     * <p>
-     * If within an indicator and not a subexpression, always returns number. If
-     * in an indicator subexpression or anywhere else (such as validation rule
-     * or predictor), returns the item's data type if it has one (defaulting to
-     * number).
-     */
-    private ValueType getItemValueType( DimensionalItemObject item, CommonExpressionVisitor visitor )
-    {
-        if ( item instanceof ValueTypedDimensionalItemObject &&
-            (visitor.getParams().getParseType() != INDICATOR_EXPRESSION
-                || visitor.getState().isInSubexpression()) )
-        {
-            return ((ValueTypedDimensionalItemObject) item).getValueType();
-        }
-
-        return NUMBER;
-    }
+    return NUMBER;
+  }
 }

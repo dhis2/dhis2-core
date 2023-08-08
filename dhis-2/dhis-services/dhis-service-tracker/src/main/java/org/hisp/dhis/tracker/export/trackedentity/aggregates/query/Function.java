@@ -35,25 +35,22 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-class Function implements QueryElement
-{
-    private final String name;
+class Function implements QueryElement {
+  private final String name;
 
-    private final String prefix;
+  private final String prefix;
 
-    private final String column;
+  private final String column;
 
-    private final String alias;
+  private final String alias;
 
-    @Override
-    public String useInSelect()
-    {
-        return this.name + "(" + prefix + "." + column + ") as " + alias;
-    }
+  @Override
+  public String useInSelect() {
+    return this.name + "(" + prefix + "." + column + ") as " + alias;
+  }
 
-    @Override
-    public String getResultsetValue()
-    {
-        return alias == null ? column : alias;
-    }
+  @Override
+  public String getResultsetValue() {
+    return alias == null ? column : alias;
+  }
 }

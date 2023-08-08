@@ -38,15 +38,11 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class OperatorCompareGreaterThan
-    extends AntlrOperatorCompareGreaterThan
-    implements ExpressionItem
-{
+public class OperatorCompareGreaterThan extends AntlrOperatorCompareGreaterThan
+    implements ExpressionItem {
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return visitor.sqlNumericVisit( ctx.expr( 0 ) )
-            + " > " + visitor.sqlNumericVisit( ctx.expr( 1 ) );
-    }
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return visitor.sqlNumericVisit(ctx.expr(0)) + " > " + visitor.sqlNumericVisit(ctx.expr(1));
+  }
 }

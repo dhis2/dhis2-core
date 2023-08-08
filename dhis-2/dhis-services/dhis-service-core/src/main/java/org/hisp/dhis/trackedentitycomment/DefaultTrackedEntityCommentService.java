@@ -28,7 +28,6 @@
 package org.hisp.dhis.trackedentitycomment;
 
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,51 +35,43 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Chau Thu Tran
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService" )
-public class DefaultTrackedEntityCommentService
-    implements TrackedEntityCommentService
-{
-    private final TrackedEntityCommentStore commentStore;
+@Service("org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService")
+public class DefaultTrackedEntityCommentService implements TrackedEntityCommentService {
+  private final TrackedEntityCommentStore commentStore;
 
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implementation methods
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public long addTrackedEntityComment( TrackedEntityComment comment )
-    {
-        commentStore.save( comment );
+  @Override
+  @Transactional
+  public long addTrackedEntityComment(TrackedEntityComment comment) {
+    commentStore.save(comment);
 
-        return comment.getId();
-    }
+    return comment.getId();
+  }
 
-    @Override
-    @Transactional
-    public void deleteTrackedEntityComment( TrackedEntityComment comment )
-    {
-        commentStore.delete( comment );
-    }
+  @Override
+  @Transactional
+  public void deleteTrackedEntityComment(TrackedEntityComment comment) {
+    commentStore.delete(comment);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public boolean trackedEntityCommentExists( String uid )
-    {
-        return commentStore.exists( uid );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public boolean trackedEntityCommentExists(String uid) {
+    return commentStore.exists(uid);
+  }
 
-    @Override
-    @Transactional
-    public void updateTrackedEntityComment( TrackedEntityComment comment )
-    {
-        commentStore.update( comment );
-    }
+  @Override
+  @Transactional
+  public void updateTrackedEntityComment(TrackedEntityComment comment) {
+    commentStore.update(comment);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public TrackedEntityComment getTrackedEntityComment( long id )
-    {
-        return commentStore.get( id );
-    }
-
+  @Override
+  @Transactional(readOnly = true)
+  public TrackedEntityComment getTrackedEntityComment(long id) {
+    return commentStore.get(id);
+  }
 }

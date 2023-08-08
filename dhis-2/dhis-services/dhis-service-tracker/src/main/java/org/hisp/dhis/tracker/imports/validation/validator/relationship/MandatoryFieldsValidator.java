@@ -31,7 +31,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1124;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4001;
 
 import java.util.stream.Stream;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
@@ -42,26 +41,33 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 /**
  * @author Enrico Colasante
  */
-class MandatoryFieldsValidator
-    implements Validator<Relationship>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle,
-        Relationship relationship )
-    {
-        reporter.addErrorIf( () -> relationship.getFrom() == null || hasUnexpectedReferences( relationship.getFrom() ),
-            relationship, E4001, "from", relationship.getRelationship() );
-        reporter.addErrorIf( () -> relationship.getTo() == null || hasUnexpectedReferences( relationship.getTo() ),
-            relationship, E4001, "to", relationship.getRelationship() );
+class MandatoryFieldsValidator implements Validator<Relationship> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
+    reporter.addErrorIf(
+        () -> relationship.getFrom() == null || hasUnexpectedReferences(relationship.getFrom()),
+        relationship,
+        E4001,
+        "from",
+        relationship.getRelationship());
+    reporter.addErrorIf(
+        () -> relationship.getTo() == null || hasUnexpectedReferences(relationship.getTo()),
+        relationship,
+        E4001,
+        "to",
+        relationship.getRelationship());
 
-        reporter.addErrorIf( () -> relationship.getRelationshipType().isBlank(), relationship, E1124,
-            "relationshipType" );
-    }
+    reporter.addErrorIf(
+        () -> relationship.getRelationshipType().isBlank(),
+        relationship,
+        E1124,
+        "relationshipType");
+  }
 
-    private boolean hasUnexpectedReferences( RelationshipItem item )
-    {
-        return Stream.of( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() )
-            .filter( StringUtils::isNotBlank )
-            .count() != 1;
-    }
+  private boolean hasUnexpectedReferences(RelationshipItem item) {
+    return Stream.of(item.getTrackedEntity(), item.getEnrollment(), item.getEvent())
+            .filter(StringUtils::isNotBlank)
+            .count()
+        != 1;
+  }
 }

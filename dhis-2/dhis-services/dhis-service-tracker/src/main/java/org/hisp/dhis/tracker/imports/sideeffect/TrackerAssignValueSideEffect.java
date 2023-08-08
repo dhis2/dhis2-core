@@ -27,42 +27,32 @@
  */
 package org.hisp.dhis.tracker.imports.sideeffect;
 
-import lombok.Builder;
-import lombok.Data;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import lombok.Builder;
+import lombok.Data;
 
 /**
- * DHIS2 equivalent to rule engine
- * {@link org.hisp.dhis.rules.models.RuleActionAssign}
+ * DHIS2 equivalent to rule engine {@link org.hisp.dhis.rules.models.RuleActionAssign}
  *
  * @author Zubair Asghar
  */
-
 @Data
-@Builder( builderClassName = "TrackerAssignValueSideEffectBuilder" )
-@JsonDeserialize( builder = TrackerAssignValueSideEffect.TrackerAssignValueSideEffectBuilder.class )
-public class TrackerAssignValueSideEffect implements TrackerRuleEngineSideEffect
-{
-    @JsonProperty
-    private String data;
+@Builder(builderClassName = "TrackerAssignValueSideEffectBuilder")
+@JsonDeserialize(builder = TrackerAssignValueSideEffect.TrackerAssignValueSideEffectBuilder.class)
+public class TrackerAssignValueSideEffect implements TrackerRuleEngineSideEffect {
+  @JsonProperty private String data;
 
-    @JsonProperty
-    private String content;
+  @JsonProperty private String content;
 
-    @JsonProperty
-    private String field;
+  @JsonProperty private String field;
 
-    @Override
-    public String getData()
-    {
-        return data;
-    }
+  @Override
+  public String getData() {
+    return data;
+  }
 
-    @JsonPOJOBuilder( withPrefix = "" )
-    public static final class TrackerAssignValueSideEffectBuilder
-    {
-    }
+  @JsonPOJOBuilder(withPrefix = "")
+  public static final class TrackerAssignValueSideEffectBuilder {}
 }

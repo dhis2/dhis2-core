@@ -30,15 +30,16 @@ package org.hisp.dhis.datavalue;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
@@ -53,264 +54,232 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
 @Getter
 @Setter
-@Accessors( chain = true )
-public class DataExportParams
-{
-    private Set<DataElement> dataElements = new HashSet<>();
+@Accessors(chain = true)
+public class DataExportParams {
+  private Set<DataElement> dataElements = new HashSet<>();
 
-    private Set<DataElementOperand> dataElementOperands = new HashSet<>();
+  private Set<DataElementOperand> dataElementOperands = new HashSet<>();
 
-    private Set<DataSet> dataSets = new HashSet<>();
+  private Set<DataSet> dataSets = new HashSet<>();
 
-    private Set<DataElementGroup> dataElementGroups = new HashSet<>();
+  private Set<DataElementGroup> dataElementGroups = new HashSet<>();
 
-    private Set<Period> periods = new HashSet<>();
+  private Set<Period> periods = new HashSet<>();
 
-    private Set<PeriodType> periodTypes = new HashSet<>();
+  private Set<PeriodType> periodTypes = new HashSet<>();
 
-    private Date startDate;
+  private Date startDate;
 
-    private Date endDate;
+  private Date endDate;
 
-    private Date includedDate;
+  private Date includedDate;
 
-    private Set<OrganisationUnit> organisationUnits = new HashSet<>();
+  private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
-    private OrganisationUnitSelectionMode ouMode = SELECTED;
+  private OrganisationUnitSelectionMode ouMode = SELECTED;
 
-    private Integer orgUnitLevel;
+  private Integer orgUnitLevel;
 
-    private boolean includeDescendants;
+  private boolean includeDescendants;
 
-    private boolean orderByOrgUnitPath;
+  private boolean orderByOrgUnitPath;
 
-    private boolean orderByPeriod;
+  private boolean orderByPeriod;
 
-    private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
+  private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
 
-    private Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
+  private Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
 
-    private Set<CategoryOptionCombo> attributeOptionCombos = new HashSet<>();
+  private Set<CategoryOptionCombo> attributeOptionCombos = new HashSet<>();
 
-    private Set<CategoryOption> coDimensionConstraints;
+  private Set<CategoryOption> coDimensionConstraints;
 
-    private Set<CategoryOptionGroup> cogDimensionConstraints;
+  private Set<CategoryOptionGroup> cogDimensionConstraints;
 
-    private boolean includeDeleted;
+  private boolean includeDeleted;
 
-    private Date lastUpdated;
+  private Date lastUpdated;
 
-    private String lastUpdatedDuration;
+  private String lastUpdatedDuration;
 
-    private Integer limit;
+  private Integer limit;
 
-    private IdSchemes outputIdSchemes;
+  private IdSchemes outputIdSchemes;
 
-    private BlockingQueue<DeflatedDataValue> blockingQueue;
+  private BlockingQueue<DeflatedDataValue> blockingQueue;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public DataExportParams()
-    {
+  public DataExportParams() {}
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  public Set<DataElement> getAllDataElements() {
+    final Set<DataElement> elements = Sets.newHashSet();
+
+    elements.addAll(dataElements);
+    dataSets.forEach(ds -> elements.addAll(ds.getDataElements()));
+    dataElementGroups.forEach(dg -> elements.addAll(dg.getMembers()));
+
+    return ImmutableSet.copyOf(elements);
+  }
+
+  public Set<OrganisationUnit> getAllOrganisationUnits() {
+    final Set<OrganisationUnit> orgUnits = Sets.newHashSet();
+    orgUnits.addAll(organisationUnits);
+
+    for (OrganisationUnitGroup group : organisationUnitGroups) {
+      orgUnits.addAll(group.getMembers());
     }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+    return ImmutableSet.copyOf(orgUnits);
+  }
 
-    public Set<DataElement> getAllDataElements()
-    {
-        final Set<DataElement> elements = Sets.newHashSet();
+  public boolean hasDataElements() {
+    return dataElements != null && !dataElements.isEmpty();
+  }
 
-        elements.addAll( dataElements );
-        dataSets.forEach( ds -> elements.addAll( ds.getDataElements() ) );
-        dataElementGroups.forEach( dg -> elements.addAll( dg.getMembers() ) );
+  public boolean hasDataSets() {
+    return dataSets != null && !dataSets.isEmpty();
+  }
 
-        return ImmutableSet.copyOf( elements );
-    }
+  public boolean hasDataElementGroups() {
+    return dataElementGroups != null && !dataElementGroups.isEmpty();
+  }
 
-    public Set<OrganisationUnit> getAllOrganisationUnits()
-    {
-        final Set<OrganisationUnit> orgUnits = Sets.newHashSet();
-        orgUnits.addAll( organisationUnits );
+  public DataSet getFirstDataSet() {
+    return hasDataSets() ? dataSets.iterator().next() : null;
+  }
 
-        for ( OrganisationUnitGroup group : organisationUnitGroups )
-        {
-            orgUnits.addAll( group.getMembers() );
-        }
+  public Period getFirstPeriod() {
+    return hasPeriods() ? periods.iterator().next() : null;
+  }
 
-        return ImmutableSet.copyOf( orgUnits );
-    }
+  public boolean hasPeriods() {
+    return periods != null && !periods.isEmpty();
+  }
 
-    public boolean hasDataElements()
-    {
-        return dataElements != null && !dataElements.isEmpty();
-    }
+  public boolean hasPeriodTypes() {
+    return periodTypes != null && !periodTypes.isEmpty();
+  }
 
-    public boolean hasDataSets()
-    {
-        return dataSets != null && !dataSets.isEmpty();
-    }
+  public boolean hasStartEndDate() {
+    return startDate != null && endDate != null;
+  }
 
-    public boolean hasDataElementGroups()
-    {
-        return dataElementGroups != null && !dataElementGroups.isEmpty();
-    }
+  public boolean hasIncludedDate() {
+    return includedDate != null;
+  }
 
-    public DataSet getFirstDataSet()
-    {
-        return hasDataSets() ? dataSets.iterator().next() : null;
-    }
+  public boolean hasOrganisationUnits() {
+    return organisationUnits != null && !organisationUnits.isEmpty();
+  }
 
-    public Period getFirstPeriod()
-    {
-        return hasPeriods() ? periods.iterator().next() : null;
-    }
+  public boolean isIncludeDescendantsForOrganisationUnits() {
+    return includeDescendants && hasOrganisationUnits();
+  }
 
-    public boolean hasPeriods()
-    {
-        return periods != null && !periods.isEmpty();
-    }
+  public boolean hasOrgUnitLevel() {
+    return orgUnitLevel != null;
+  }
 
-    public boolean hasPeriodTypes()
-    {
-        return periodTypes != null && !periodTypes.isEmpty();
-    }
+  public boolean hasBlockingQueue() {
+    return blockingQueue != null;
+  }
 
-    public boolean hasStartEndDate()
-    {
-        return startDate != null && endDate != null;
-    }
+  public OrganisationUnit getFirstOrganisationUnit() {
+    return organisationUnits != null && !organisationUnits.isEmpty()
+        ? organisationUnits.iterator().next()
+        : null;
+  }
 
-    public boolean hasIncludedDate()
-    {
-        return includedDate != null;
-    }
+  public boolean hasOrganisationUnitGroups() {
+    return organisationUnitGroups != null && !organisationUnitGroups.isEmpty();
+  }
 
-    public boolean hasOrganisationUnits()
-    {
-        return organisationUnits != null && !organisationUnits.isEmpty();
-    }
+  public boolean hasCategoryOptionCombos() {
+    return categoryOptionCombos != null && !categoryOptionCombos.isEmpty();
+  }
 
-    public boolean isIncludeDescendantsForOrganisationUnits()
-    {
-        return includeDescendants && hasOrganisationUnits();
-    }
+  public boolean hasAttributeOptionCombos() {
+    return attributeOptionCombos != null && !attributeOptionCombos.isEmpty();
+  }
 
-    public boolean hasOrgUnitLevel()
-    {
-        return orgUnitLevel != null;
-    }
+  public boolean hasCoDimensionConstraints() {
+    return coDimensionConstraints != null && !coDimensionConstraints.isEmpty();
+  }
 
-    public boolean hasBlockingQueue()
-    {
-        return blockingQueue != null;
-    }
+  public boolean hasCogDimensionConstraints() {
+    return cogDimensionConstraints != null && !cogDimensionConstraints.isEmpty();
+  }
 
-    public OrganisationUnit getFirstOrganisationUnit()
-    {
-        return organisationUnits != null && !organisationUnits.isEmpty() ? organisationUnits.iterator().next() : null;
-    }
+  public boolean hasLastUpdated() {
+    return lastUpdated != null;
+  }
 
-    public boolean hasOrganisationUnitGroups()
-    {
-        return organisationUnitGroups != null && !organisationUnitGroups.isEmpty();
-    }
+  public boolean hasLastUpdatedDuration() {
+    return lastUpdatedDuration != null;
+  }
 
-    public boolean hasCategoryOptionCombos()
-    {
-        return categoryOptionCombos != null && !categoryOptionCombos.isEmpty();
-    }
+  public boolean hasLimit() {
+    return limit != null;
+  }
 
-    public boolean hasAttributeOptionCombos()
-    {
-        return attributeOptionCombos != null && !attributeOptionCombos.isEmpty();
-    }
+  public boolean needsOrgUnitDetails() {
+    return isOrderByOrgUnitPath()
+        || hasOrgUnitLevel()
+        || getOuMode() == DESCENDANTS
+        || isIncludeDescendants();
+  }
 
-    public boolean hasCoDimensionConstraints()
-    {
-        return coDimensionConstraints != null && !coDimensionConstraints.isEmpty();
-    }
+  /**
+   * Indicates whether these parameters represent a single data value set, implying that it contains
+   * exactly one of data sets, periods and organisation units.
+   */
+  public boolean isSingleDataValueSet() {
+    return dataSets.size() == 1
+        && periods.size() == 1
+        && organisationUnits.size() == 1
+        && dataElementGroups.isEmpty();
+  }
 
-    public boolean hasCogDimensionConstraints()
-    {
-        return cogDimensionConstraints != null && !cogDimensionConstraints.isEmpty();
-    }
-
-    public boolean hasLastUpdated()
-    {
-        return lastUpdated != null;
-    }
-
-    public boolean hasLastUpdatedDuration()
-    {
-        return lastUpdatedDuration != null;
-    }
-
-    public boolean hasLimit()
-    {
-        return limit != null;
-    }
-
-    public boolean needsOrgUnitDetails()
-    {
-        return isOrderByOrgUnitPath()
-            || hasOrgUnitLevel()
-            || getOuMode() == DESCENDANTS
-            || isIncludeDescendants();
-    }
-
-    /**
-     * Indicates whether these parameters represent a single data value set,
-     * implying that it contains exactly one of data sets, periods and
-     * organisation units.
-     */
-    public boolean isSingleDataValueSet()
-    {
-        return dataSets.size() == 1 && periods.size() == 1 && organisationUnits.size() == 1
-            && dataElementGroups.isEmpty();
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "data elements", dataElements )
-            .add( "data element operands", dataElementOperands )
-            .add( "data sets", dataSets )
-            .add( "data element groups", dataElementGroups )
-            .add( "periods", periods )
-            .add( "period types", periodTypes )
-            .add( "start date", startDate )
-            .add( "end date", endDate )
-            .add( "included date", includedDate )
-            .add( "org units", organisationUnits )
-            .add( "org unit selection mode", ouMode )
-            .add( "org unit level", orgUnitLevel )
-            .add( "descendants", includeDescendants )
-            .add( "order by org unit path", orderByOrgUnitPath )
-            .add( "order by period", orderByPeriod )
-            .add( "org unit groups", organisationUnitGroups )
-            .add( "attribute option combos", attributeOptionCombos )
-            .add( "category option dimension constraints", coDimensionConstraints )
-            .add( "category option group dimension constraints", cogDimensionConstraints )
-            .add( "deleted", includeDeleted )
-            .add( "last updated", lastUpdated )
-            .add( "last updated duration", lastUpdatedDuration )
-            .add( "limit", limit )
-            .add( "output id schemes", outputIdSchemes )
-            .add( "blockingQueue", blockingQueue )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("data elements", dataElements)
+        .add("data element operands", dataElementOperands)
+        .add("data sets", dataSets)
+        .add("data element groups", dataElementGroups)
+        .add("periods", periods)
+        .add("period types", periodTypes)
+        .add("start date", startDate)
+        .add("end date", endDate)
+        .add("included date", includedDate)
+        .add("org units", organisationUnits)
+        .add("org unit selection mode", ouMode)
+        .add("org unit level", orgUnitLevel)
+        .add("descendants", includeDescendants)
+        .add("order by org unit path", orderByOrgUnitPath)
+        .add("order by period", orderByPeriod)
+        .add("org unit groups", organisationUnitGroups)
+        .add("attribute option combos", attributeOptionCombos)
+        .add("category option dimension constraints", coDimensionConstraints)
+        .add("category option group dimension constraints", cogDimensionConstraints)
+        .add("deleted", includeDeleted)
+        .add("last updated", lastUpdated)
+        .add("last updated duration", lastUpdatedDuration)
+        .add("limit", limit)
+        .add("output id schemes", outputIdSchemes)
+        .add("blockingQueue", blockingQueue)
+        .toString();
+  }
 }

@@ -30,17 +30,15 @@ package org.hisp.dhis.common;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Common interface for objects that have a unique ID used in RESTful APIs but
- * that might not have use for a name and other fundamentals that come with
- * {@link IdentifiableObject}s.
+ * Common interface for objects that have a unique ID used in RESTful APIs but that might not have
+ * use for a name and other fundamentals that come with {@link IdentifiableObject}s.
  *
  * @author Jan Bernitt
  */
-public interface UidObject
-{
-    /**
-     * @return external unique ID of the object as used in the RESTful API
-     */
-    @JsonProperty( value = "id" )
-    String getUid();
+public interface UidObject {
+  /**
+   * @return external unique ID of the object as used in the RESTful API
+   */
+  @JsonProperty(value = "id")
+  String getUid();
 }

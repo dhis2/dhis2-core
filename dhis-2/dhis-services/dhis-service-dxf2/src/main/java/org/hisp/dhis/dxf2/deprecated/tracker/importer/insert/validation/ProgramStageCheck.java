@@ -43,27 +43,26 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class ProgramStageCheck implements Checker
-{
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
-    {
-        IdScheme programStageIdScheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
-        // Get the program stage id from the event.
-        // If the event has no program stage set, use a dummy value which will
-        // not
-        // return any Program Stage
-        // from the WorkContext
-        final String programStageId = StringUtils.isEmpty( event.getProgramStage() ) ? "-" : event.getProgramStage();
+public class ProgramStageCheck implements Checker {
+  @Override
+  public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
+    IdScheme programStageIdScheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
+    // Get the program stage id from the event.
+    // If the event has no program stage set, use a dummy value which will
+    // not
+    // return any Program Stage
+    // from the WorkContext
+    final String programStageId =
+        StringUtils.isEmpty(event.getProgramStage()) ? "-" : event.getProgramStage();
 
-        ProgramStage programStage = ctx.getProgramStage( programStageIdScheme, programStageId );
+    ProgramStage programStage = ctx.getProgramStage(programStageIdScheme, programStageId);
 
-        if ( programStage == null )
-        {
-            return error( "Event.programStage does not point to a valid programStage: " + event.getProgramStage(),
-                event.getEvent() );
-        }
-
-        return success();
+    if (programStage == null) {
+      return error(
+          "Event.programStage does not point to a valid programStage: " + event.getProgramStage(),
+          event.getEvent());
     }
+
+    return success();
+  }
 }

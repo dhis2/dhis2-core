@@ -37,12 +37,12 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class SharedProgramCheck implements Checker
-{
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
-    {
-        return checkNull( ctx.getProgramsMap().get( event.getProgram() ),
-            "Event.program does not point to a valid program: " + event.getProgram(), event );
-    }
+public class SharedProgramCheck implements Checker {
+  @Override
+  public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
+    return checkNull(
+        ctx.getProgramsMap().get(event.getProgram()),
+        "Event.program does not point to a valid program: " + event.getProgram(),
+        event);
+  }
 }

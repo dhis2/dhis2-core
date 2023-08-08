@@ -30,22 +30,16 @@ package org.hisp.dhis.preheat;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class PreheatException
-    extends RuntimeException
-{
-    public PreheatException( String message )
-    {
-        super( message );
-    }
+public class PreheatException extends RuntimeException {
+  public PreheatException(String message) {
+    super(message);
+  }
 
-    public PreheatException( String message, Throwable cause )
-    {
-        super( message, cause );
-    }
+  public PreheatException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-    public PreheatException( Throwable cause )
-    {
-        super( cause );
-    }
-
+  public PreheatException(Throwable cause) {
+    super(cause);
+  }
 }

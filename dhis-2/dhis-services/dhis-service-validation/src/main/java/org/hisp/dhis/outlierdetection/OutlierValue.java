@@ -27,76 +27,69 @@
  */
 package org.hisp.dhis.outlierdetection;
 
-import java.util.Date;
-
-import lombok.Data;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.util.Date;
+import lombok.Data;
 
 /**
  * @author Lars Helge Overland
  */
 @Data
-@JsonPropertyOrder( { "de", "deName", "pe", "ou", "ouName",
-    "coc", "cocName", "aoc", "lastUpdated", "value", "mean",
-    "stdDev", "absDev", "zScore", "lowerBound", "upperBound" } )
-public class OutlierValue
-{
-    @JsonProperty
-    private String de;
+@JsonPropertyOrder({
+  "de",
+  "deName",
+  "pe",
+  "ou",
+  "ouName",
+  "coc",
+  "cocName",
+  "aoc",
+  "lastUpdated",
+  "value",
+  "mean",
+  "stdDev",
+  "absDev",
+  "zScore",
+  "lowerBound",
+  "upperBound"
+})
+public class OutlierValue {
+  @JsonProperty private String de;
 
-    @JsonProperty
-    private String deName;
+  @JsonProperty private String deName;
 
-    @JsonProperty
-    private String pe;
+  @JsonProperty private String pe;
 
-    @JsonProperty
-    private String ou;
+  @JsonProperty private String ou;
 
-    @JsonProperty
-    private String ouName;
+  @JsonProperty private String ouName;
 
-    @JsonProperty
-    private String coc;
+  @JsonProperty private String coc;
 
-    @JsonProperty
-    private String cocName;
+  @JsonProperty private String cocName;
 
-    @JsonProperty
-    private String aoc;
+  @JsonProperty private String aoc;
 
-    @JsonProperty
-    private String aocName;
+  @JsonProperty private String aocName;
 
-    @JsonProperty
-    private Date lastUpdated;
+  @JsonProperty private Date lastUpdated;
 
-    @JsonProperty
-    private Double value;
+  @JsonProperty private Double value;
 
-    @JsonProperty
-    private Double mean;
+  @JsonProperty private Double mean;
 
-    @JsonProperty
-    private Double median;
+  @JsonProperty private Double median;
 
-    @JsonProperty
-    private Double stdDev;
+  @JsonProperty private Double stdDev;
 
-    @JsonProperty
-    private Double absDev;
+  @JsonProperty private Double absDev;
 
-    @JsonProperty
-    private Double zScore;
+  @JsonProperty private Double zScore;
 
-    @JsonProperty
-    private Double lowerBound;
+  @JsonProperty private Double lowerBound;
 
-    @JsonProperty
-    private Double upperBound;
+  @JsonProperty private Double upperBound;
 
-    @JsonProperty
-    private Boolean followup;
+  @JsonProperty private Boolean followup;
 }

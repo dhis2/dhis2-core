@@ -27,16 +27,13 @@
  */
 package org.hisp.dhis.system;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.BeanUtils;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Lars Helge Overland
@@ -44,198 +41,148 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 @NoArgsConstructor
-public class SystemInfo
-{
-    // -------------------------------------------------------------------------
-    // Transient properties
-    // -------------------------------------------------------------------------
+public class SystemInfo {
+  // -------------------------------------------------------------------------
+  // Transient properties
+  // -------------------------------------------------------------------------
 
-    @JsonProperty
-    private String contextPath;
+  @JsonProperty private String contextPath;
 
-    @JsonProperty
-    private String userAgent;
+  @JsonProperty private String userAgent;
 
-    // -------------------------------------------------------------------------
-    // Volatile properties
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Volatile properties
+  // -------------------------------------------------------------------------
 
-    @JsonProperty
-    private String calendar;
+  @JsonProperty private String calendar;
 
-    @JsonProperty
-    private String dateFormat;
+  @JsonProperty private String dateFormat;
 
-    @JsonProperty
-    private Date serverDate;
+  @JsonProperty private Date serverDate;
 
-    @JsonProperty
-    private String serverTimeZoneId;
+  @JsonProperty private String serverTimeZoneId;
 
-    @JsonProperty
-    private String serverTimeZoneDisplayName;
+  @JsonProperty private String serverTimeZoneDisplayName;
 
-    @JsonProperty
-    private Date lastAnalyticsTableSuccess;
+  @JsonProperty private Date lastAnalyticsTableSuccess;
 
-    @JsonProperty
-    private String intervalSinceLastAnalyticsTableSuccess;
+  @JsonProperty private String intervalSinceLastAnalyticsTableSuccess;
 
-    @JsonProperty
-    private String lastAnalyticsTableRuntime;
+  @JsonProperty private String lastAnalyticsTableRuntime;
 
-    @JsonProperty
-    private Date lastSystemMonitoringSuccess;
+  @JsonProperty private Date lastSystemMonitoringSuccess;
 
-    @JsonProperty
-    private Date lastAnalyticsTablePartitionSuccess;
+  @JsonProperty private Date lastAnalyticsTablePartitionSuccess;
 
-    @JsonProperty
-    private String intervalSinceLastAnalyticsTablePartitionSuccess;
+  @JsonProperty private String intervalSinceLastAnalyticsTablePartitionSuccess;
 
-    @JsonProperty
-    private String lastAnalyticsTablePartitionRuntime;
+  @JsonProperty private String lastAnalyticsTablePartitionRuntime;
 
-    // -------------------------------------------------------------------------
-    // Stable properties
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Stable properties
+  // -------------------------------------------------------------------------
 
-    @JsonProperty
-    private String version;
+  @JsonProperty private String version;
 
-    @JsonProperty
-    private String revision;
+  @JsonProperty private String revision;
 
-    @JsonProperty
-    private Date buildTime;
+  @JsonProperty private Date buildTime;
 
-    @JsonProperty
-    private String jasperReportsVersion;
+  @JsonProperty private String jasperReportsVersion;
 
-    @JsonProperty
-    private String environmentVariable;
+  @JsonProperty private String environmentVariable;
 
-    @JsonProperty
-    private String fileStoreProvider;
+  @JsonProperty private String fileStoreProvider;
 
-    @JsonProperty
-    private String readOnlyMode;
+  @JsonProperty private String readOnlyMode;
 
-    @JsonProperty
-    private String nodeId;
+  @JsonProperty private String nodeId;
 
-    @JsonProperty
-    private String javaVersion;
+  @JsonProperty private String javaVersion;
 
-    @JsonProperty
-    private String javaVendor;
+  @JsonProperty private String javaVendor;
 
-    @JsonProperty
-    private String javaOpts;
+  @JsonProperty private String javaOpts;
 
-    @JsonProperty
-    private String osName;
+  @JsonProperty private String osName;
 
-    @JsonProperty
-    private String osArchitecture;
+  @JsonProperty private String osArchitecture;
 
-    @JsonProperty
-    private String osVersion;
+  @JsonProperty private String osVersion;
 
-    @JsonProperty
-    private String externalDirectory;
+  @JsonProperty private String externalDirectory;
 
-    @JsonProperty
-    private DatabaseInfo databaseInfo;
+  @JsonProperty private DatabaseInfo databaseInfo;
 
-    @JsonProperty
-    private Integer readReplicaCount;
+  @JsonProperty private Integer readReplicaCount;
 
-    @JsonProperty
-    private String memoryInfo;
+  @JsonProperty private String memoryInfo;
 
-    @JsonProperty
-    private Integer cpuCores;
+  @JsonProperty private Integer cpuCores;
 
-    @JsonProperty
-    private boolean encryption;
+  @JsonProperty private boolean encryption;
 
-    @JsonProperty
-    private boolean emailConfigured;
+  @JsonProperty private boolean emailConfigured;
 
-    @JsonProperty
-    private boolean redisEnabled;
+  @JsonProperty private boolean redisEnabled;
 
-    @JsonProperty
-    private String redisHostname;
+  @JsonProperty private String redisHostname;
 
-    @JsonProperty
-    private String systemId;
+  @JsonProperty private String systemId;
 
-    @JsonProperty
-    private String systemName;
+  @JsonProperty private String systemName;
 
-    @JsonProperty
-    private String systemMetadataVersion;
+  @JsonProperty private String systemMetadataVersion;
 
-    @JsonProperty
-    private String instanceBaseUrl;
+  @JsonProperty private String instanceBaseUrl;
 
-    @JsonProperty
-    private String systemMonitoringUrl;
+  @JsonProperty private String systemMonitoringUrl;
 
-    @JsonProperty
-    private String clusterHostname;
+  @JsonProperty private String clusterHostname;
 
-    @JsonProperty
-    private Boolean isMetadataVersionEnabled;
+  @JsonProperty private Boolean isMetadataVersionEnabled;
 
-    @JsonProperty
-    private Date lastMetadataVersionSyncAttempt;
+  @JsonProperty private Date lastMetadataVersionSyncAttempt;
 
-    @JsonProperty
-    private Boolean isMetadataSyncEnabled;
+  @JsonProperty private Boolean isMetadataSyncEnabled;
 
-    public SystemInfo instance()
-    {
-        SystemInfo info = new SystemInfo();
-        BeanUtils.copyProperties( this, info );
-        // clear sensitive info may reset the data
-        info.setDatabaseInfo( databaseInfo == null ? null : databaseInfo.instance() );
-        return info;
+  public SystemInfo instance() {
+    SystemInfo info = new SystemInfo();
+    BeanUtils.copyProperties(this, info);
+    // clear sensitive info may reset the data
+    info.setDatabaseInfo(databaseInfo == null ? null : databaseInfo.instance());
+    return info;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  public void clearSensitiveInfo() {
+    this.jasperReportsVersion = null;
+    this.environmentVariable = null;
+    this.fileStoreProvider = null;
+    this.readOnlyMode = null;
+    this.nodeId = null;
+    this.javaVersion = null;
+    this.javaVendor = null;
+    this.javaOpts = null;
+    this.osName = null;
+    this.osArchitecture = null;
+    this.osVersion = null;
+    this.externalDirectory = null;
+    this.readReplicaCount = null;
+    this.memoryInfo = null;
+    this.cpuCores = null;
+    this.systemMonitoringUrl = null;
+    this.encryption = false;
+    this.redisEnabled = false;
+    this.redisHostname = null;
+    this.systemId = null;
+    this.clusterHostname = null;
+
+    if (this.databaseInfo != null) {
+      this.databaseInfo.clearSensitiveInfo();
     }
-
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    public void clearSensitiveInfo()
-    {
-        this.jasperReportsVersion = null;
-        this.environmentVariable = null;
-        this.fileStoreProvider = null;
-        this.readOnlyMode = null;
-        this.nodeId = null;
-        this.javaVersion = null;
-        this.javaVendor = null;
-        this.javaOpts = null;
-        this.osName = null;
-        this.osArchitecture = null;
-        this.osVersion = null;
-        this.externalDirectory = null;
-        this.readReplicaCount = null;
-        this.memoryInfo = null;
-        this.cpuCores = null;
-        this.systemMonitoringUrl = null;
-        this.encryption = false;
-        this.redisEnabled = false;
-        this.redisHostname = null;
-        this.systemId = null;
-        this.clusterHostname = null;
-
-        if ( this.databaseInfo != null )
-        {
-            this.databaseInfo.clearSensitiveInfo();
-        }
-    }
+  }
 }

@@ -35,9 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -61,277 +59,252 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Abyot Asalefew
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.program.EventService" )
-public class DefaultEventService
-    implements EventService
-{
-    private final EventStore eventStore;
+@Service("org.hisp.dhis.program.EventService")
+public class DefaultEventService implements EventService {
+  private final EventStore eventStore;
 
-    private final TrackedEntityDataValueAuditService dataValueAuditService;
+  private final TrackedEntityDataValueAuditService dataValueAuditService;
 
-    private final FileResourceService fileResourceService;
+  private final FileResourceService fileResourceService;
 
-    private final DhisConfigurationProvider config;
+  private final DhisConfigurationProvider config;
 
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implementation methods
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public long addEvent( Event event )
-    {
-        event.setAutoFields();
-        eventStore.save( event );
-        return event.getId();
+  @Override
+  @Transactional
+  public long addEvent(Event event) {
+    event.setAutoFields();
+    eventStore.save(event);
+    return event.getId();
+  }
+
+  @Override
+  @Transactional
+  public long addEvent(Event event, User user) {
+    event.setAutoFields();
+    eventStore.save(event, user);
+    return event.getId();
+  }
+
+  @Override
+  @Transactional
+  public void deleteEvent(Event event) {
+    eventStore.delete(event);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Event getEvent(long id) {
+    return eventStore.get(id);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Event getEvent(String uid) {
+    return eventStore.getByUid(uid);
+  }
+
+  @Override
+  @Transactional
+  public void updateEvent(Event event) {
+    event.setAutoFields();
+    eventStore.update(event);
+  }
+
+  @Override
+  @Transactional
+  public void updateEvent(Event event, User user) {
+    event.setAutoFields();
+    eventStore.update(event, user);
+  }
+
+  @Override
+  @Transactional
+  public void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized) {
+    eventStore.updateEventsSyncTimestamp(eventUids, lastSynchronized);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean eventExists(String uid) {
+    return eventStore.exists(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean eventExistsIncludingDeleted(String uid) {
+    return eventStore.existsIncludingDeleted(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getEventUidsIncludingDeleted(List<String> uids) {
+    return eventStore.getUidsIncludingDeleted(uids);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public long getEventCount(int days) {
+    Calendar cal = PeriodType.createCalendarInstance();
+    cal.add(Calendar.DAY_OF_YEAR, (days * -1));
+
+    return eventStore.getEventCountLastUpdatedAfter(cal.getTime());
+  }
+
+  @Override
+  @Transactional
+  public Event createEvent(
+      Enrollment enrollment,
+      ProgramStage programStage,
+      Date enrollmentDate,
+      Date incidentDate,
+      OrganisationUnit organisationUnit) {
+    Event event = null;
+    Date currentDate = new Date();
+    Date dateCreatedEvent;
+
+    if (programStage.getGeneratedByEnrollmentDate()) {
+      dateCreatedEvent = enrollmentDate;
+    } else {
+      dateCreatedEvent = incidentDate;
     }
 
-    @Override
-    @Transactional
-    public long addEvent( Event event, User user )
-    {
-        event.setAutoFields();
-        eventStore.save( event, user );
-        return event.getId();
+    Date dueDate = DateUtils.addDays(dateCreatedEvent, programStage.getMinDaysFromStart());
+
+    if (!enrollment.getProgram().getIgnoreOverdueEvents() || dueDate.before(currentDate)) {
+      event = new Event();
+      event.setEnrollment(enrollment);
+      event.setProgramStage(programStage);
+      event.setOrganisationUnit(organisationUnit);
+      event.setDueDate(dueDate);
+      event.setStatus(EventStatus.SCHEDULE);
+
+      if (programStage.getOpenAfterEnrollment()
+          || enrollment.getProgram().isWithoutRegistration()
+          || programStage.getPeriodType() != null) {
+        event.setExecutionDate(dueDate);
+        event.setStatus(EventStatus.ACTIVE);
+      }
+
+      addEvent(event);
     }
 
-    @Override
-    @Transactional
-    public void deleteEvent( Event event )
-    {
-        eventStore.delete( event );
+    return event;
+  }
+
+  @Override
+  @Transactional
+  public void saveEventDataValuesAndSaveEvent(
+      Event event, Map<DataElement, EventDataValue> dataElementEventDataValueMap) {
+    validateEventDataValues(dataElementEventDataValueMap);
+    Set<EventDataValue> eventDataValues = new HashSet<>(dataElementEventDataValueMap.values());
+    event.setEventDataValues(eventDataValues);
+    addEvent(event);
+
+    for (Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet()) {
+      entry.getValue().setAutoFields();
+      createAndAddAudit(entry.getValue(), entry.getKey(), event, AuditType.CREATE);
+      handleFileDataValueSave(entry.getValue(), entry.getKey());
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  // -------------------------------------------------------------------------
+  // Validation
+  // -------------------------------------------------------------------------
+
+  private String validateEventDataValue(DataElement dataElement, EventDataValue eventDataValue) {
+
+    if (StringUtils.isEmpty(eventDataValue.getStoredBy())) {
+      return "Stored by is null or empty";
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Event getEvent( long id )
-    {
-        return eventStore.get( id );
+    if (StringUtils.isEmpty(eventDataValue.getDataElement())) {
+      return "Data element is null or empty";
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Event getEvent( String uid )
-    {
-        return eventStore.getByUid( uid );
+    if (!dataElement.getUid().equals(eventDataValue.getDataElement())) {
+      throw new IllegalQueryException(
+          "DataElement "
+              + dataElement.getUid()
+              + " assigned to EventDataValues does not match with one EventDataValue: "
+              + eventDataValue.getDataElement());
     }
 
-    @Override
-    @Transactional
-    public void updateEvent( Event event )
-    {
-        event.setAutoFields();
-        eventStore.update( event );
+    String result =
+        ValidationUtils.valueIsValid(eventDataValue.getValue(), dataElement.getValueType());
+
+    return result == null ? null : "Value is not valid:  " + result;
+  }
+
+  private void validateEventDataValues(
+      Map<DataElement, EventDataValue> dataElementEventDataValueMap) {
+    String result;
+    for (Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet()) {
+      result = validateEventDataValue(entry.getKey(), entry.getValue());
+      if (result != null) {
+        throw new IllegalQueryException(result);
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Audit
+  // -------------------------------------------------------------------------
+
+  private void createAndAddAudit(
+      EventDataValue dataValue, DataElement dataElement, Event event, AuditType auditType) {
+    if (!config.isEnabled(CHANGELOG_TRACKER) || dataElement == null) {
+      return;
     }
 
-    @Override
-    @Transactional
-    public void updateEvent( Event event, User user )
-    {
-        event.setAutoFields();
-        eventStore.update( event, user );
+    TrackedEntityDataValueAudit dataValueAudit =
+        new TrackedEntityDataValueAudit(
+            dataElement,
+            event,
+            dataValue.getValue(),
+            dataValue.getStoredBy(),
+            dataValue.getProvidedElsewhere(),
+            auditType);
+
+    dataValueAuditService.addTrackedEntityDataValueAudit(dataValueAudit);
+  }
+
+  // -------------------------------------------------------------------------
+  // File data values
+  // -------------------------------------------------------------------------
+
+  /** Update FileResource with 'assigned' status. */
+  private void handleFileDataValueSave(EventDataValue dataValue, DataElement dataElement) {
+    if (dataElement == null) {
+      return;
     }
 
-    @Override
-    @Transactional
-    public void updateEventsSyncTimestamp( List<String> eventUids, Date lastSynchronized )
-    {
-        eventStore.updateEventsSyncTimestamp( eventUids,
-            lastSynchronized );
+    FileResource fileResource = fetchFileResource(dataValue, dataElement);
+
+    if (fileResource == null) {
+      return;
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public boolean eventExists( String uid )
-    {
-        return eventStore.exists( uid );
+    setAssigned(fileResource);
+  }
+
+  private FileResource fetchFileResource(EventDataValue dataValue, DataElement dataElement) {
+    if (!dataElement.isFileType()) {
+      return null;
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public boolean eventExistsIncludingDeleted( String uid )
-    {
-        return eventStore.existsIncludingDeleted( uid );
-    }
+    return fileResourceService.getFileResource(dataValue.getValue());
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<String> getEventUidsIncludingDeleted( List<String> uids )
-    {
-        return eventStore.getUidsIncludingDeleted( uids );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public long getEventCount( int days )
-    {
-        Calendar cal = PeriodType.createCalendarInstance();
-        cal.add( Calendar.DAY_OF_YEAR, (days * -1) );
-
-        return eventStore.getEventCountLastUpdatedAfter( cal.getTime() );
-    }
-
-    @Override
-    @Transactional
-    public Event createEvent( Enrollment enrollment, ProgramStage programStage,
-        Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
-    {
-        Event event = null;
-        Date currentDate = new Date();
-        Date dateCreatedEvent;
-
-        if ( programStage.getGeneratedByEnrollmentDate() )
-        {
-            dateCreatedEvent = enrollmentDate;
-        }
-        else
-        {
-            dateCreatedEvent = incidentDate;
-        }
-
-        Date dueDate = DateUtils.addDays( dateCreatedEvent, programStage.getMinDaysFromStart() );
-
-        if ( !enrollment.getProgram().getIgnoreOverdueEvents() || dueDate.before( currentDate ) )
-        {
-            event = new Event();
-            event.setEnrollment( enrollment );
-            event.setProgramStage( programStage );
-            event.setOrganisationUnit( organisationUnit );
-            event.setDueDate( dueDate );
-            event.setStatus( EventStatus.SCHEDULE );
-
-            if ( programStage.getOpenAfterEnrollment() || enrollment.getProgram().isWithoutRegistration()
-                || programStage.getPeriodType() != null )
-            {
-                event.setExecutionDate( dueDate );
-                event.setStatus( EventStatus.ACTIVE );
-            }
-
-            addEvent( event );
-        }
-
-        return event;
-    }
-
-    @Override
-    @Transactional
-    public void saveEventDataValuesAndSaveEvent( Event event,
-        Map<DataElement, EventDataValue> dataElementEventDataValueMap )
-    {
-        validateEventDataValues( dataElementEventDataValueMap );
-        Set<EventDataValue> eventDataValues = new HashSet<>( dataElementEventDataValueMap.values() );
-        event.setEventDataValues( eventDataValues );
-        addEvent( event );
-
-        for ( Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet() )
-        {
-            entry.getValue().setAutoFields();
-            createAndAddAudit( entry.getValue(), entry.getKey(), event, AuditType.CREATE );
-            handleFileDataValueSave( entry.getValue(), entry.getKey() );
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    // -------------------------------------------------------------------------
-    // Validation
-    // -------------------------------------------------------------------------
-
-    private String validateEventDataValue( DataElement dataElement, EventDataValue eventDataValue )
-    {
-
-        if ( StringUtils.isEmpty( eventDataValue.getStoredBy() ) )
-        {
-            return "Stored by is null or empty";
-        }
-
-        if ( StringUtils.isEmpty( eventDataValue.getDataElement() ) )
-        {
-            return "Data element is null or empty";
-        }
-
-        if ( !dataElement.getUid().equals( eventDataValue.getDataElement() ) )
-        {
-            throw new IllegalQueryException( "DataElement " + dataElement.getUid()
-                + " assigned to EventDataValues does not match with one EventDataValue: "
-                + eventDataValue.getDataElement() );
-        }
-
-        String result = ValidationUtils.valueIsValid( eventDataValue.getValue(), dataElement.getValueType() );
-
-        return result == null ? null : "Value is not valid:  " + result;
-    }
-
-    private void validateEventDataValues( Map<DataElement, EventDataValue> dataElementEventDataValueMap )
-    {
-        String result;
-        for ( Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet() )
-        {
-            result = validateEventDataValue( entry.getKey(), entry.getValue() );
-            if ( result != null )
-            {
-                throw new IllegalQueryException( result );
-            }
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // Audit
-    // -------------------------------------------------------------------------
-
-    private void createAndAddAudit( EventDataValue dataValue, DataElement dataElement,
-        Event event, AuditType auditType )
-    {
-        if ( !config.isEnabled( CHANGELOG_TRACKER ) || dataElement == null )
-        {
-            return;
-        }
-
-        TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( dataElement, event,
-            dataValue.getValue(), dataValue.getStoredBy(), dataValue.getProvidedElsewhere(), auditType );
-
-        dataValueAuditService.addTrackedEntityDataValueAudit( dataValueAudit );
-    }
-
-    // -------------------------------------------------------------------------
-    // File data values
-    // -------------------------------------------------------------------------
-
-    /**
-     * Update FileResource with 'assigned' status.
-     */
-    private void handleFileDataValueSave( EventDataValue dataValue, DataElement dataElement )
-    {
-        if ( dataElement == null )
-        {
-            return;
-        }
-
-        FileResource fileResource = fetchFileResource( dataValue, dataElement );
-
-        if ( fileResource == null )
-        {
-            return;
-        }
-
-        setAssigned( fileResource );
-    }
-
-    private FileResource fetchFileResource( EventDataValue dataValue, DataElement dataElement )
-    {
-        if ( !dataElement.isFileType() )
-        {
-            return null;
-        }
-
-        return fileResourceService.getFileResource( dataValue.getValue() );
-    }
-
-    private void setAssigned( FileResource fileResource )
-    {
-        fileResource.setAssigned( true );
-        fileResourceService.updateFileResource( fileResource );
-    }
+  private void setAssigned(FileResource fileResource) {
+    fileResource.setAssigned(true);
+    fileResourceService.updateFileResource(fileResource);
+  }
 }

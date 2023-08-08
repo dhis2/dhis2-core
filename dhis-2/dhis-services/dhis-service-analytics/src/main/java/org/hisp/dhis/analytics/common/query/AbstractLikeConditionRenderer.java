@@ -30,41 +30,41 @@ package org.hisp.dhis.analytics.common.query;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
 import java.util.function.Function;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public abstract class AbstractLikeConditionRenderer extends BaseRenderable
-{
-    private final Renderable field;
+public abstract class AbstractLikeConditionRenderer extends BaseRenderable {
+  private final Renderable field;
 
-    private final String sqlOperator;
+  private final String sqlOperator;
 
-    private final Renderable value;
+  private final Renderable value;
 
-    private final Function<String, String> fieldTransformer;
+  private final Function<String, String> fieldTransformer;
 
-    private final Function<String, String> valueTransformer;
+  private final Function<String, String> valueTransformer;
 
-    protected AbstractLikeConditionRenderer( Renderable field, String sqlOperator, Renderable value )
-    {
-        this.field = field;
-        this.sqlOperator = sqlOperator;
-        this.value = value;
-        this.fieldTransformer = Function.identity();
-        this.valueTransformer = Function.identity();
-    }
+  protected AbstractLikeConditionRenderer(Renderable field, String sqlOperator, Renderable value) {
+    this.field = field;
+    this.sqlOperator = sqlOperator;
+    this.value = value;
+    this.fieldTransformer = Function.identity();
+    this.valueTransformer = Function.identity();
+  }
 
-    @Nonnull
-    @Override
-    public String render()
-    {
-        ConstantValuesRenderer constantValuesRenderer = (ConstantValuesRenderer) value;
-        ConstantValuesRenderer transformedArgument = constantValuesRenderer.withArgumentTransformer(
-            argument -> "%" + valueTransformer.apply( argument ) + "%" );
+  @Nonnull
+  @Override
+  public String render() {
+    ConstantValuesRenderer constantValuesRenderer = (ConstantValuesRenderer) value;
+    ConstantValuesRenderer transformedArgument =
+        constantValuesRenderer.withArgumentTransformer(
+            argument -> "%" + valueTransformer.apply(argument) + "%");
 
-        return fieldTransformer.apply( field.render() ) + SPACE + sqlOperator + SPACE + transformedArgument.render();
-    }
+    return fieldTransformer.apply(field.render())
+        + SPACE
+        + sqlOperator
+        + SPACE
+        + transformedArgument.render();
+  }
 }

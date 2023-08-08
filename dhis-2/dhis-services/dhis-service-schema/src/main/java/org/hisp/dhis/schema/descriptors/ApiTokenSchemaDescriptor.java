@@ -34,28 +34,26 @@ import org.hisp.dhis.security.apikey.ApiToken;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ApiTokenSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "apiToken";
+public class ApiTokenSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "apiToken";
 
-    public static final String PLURAL_OLD = "apiToken";
+  public static final String PLURAL_OLD = "apiToken";
 
-    public static final String PLURAL_NEW = "apiTokens";
+  public static final String PLURAL_NEW = "apiTokens";
 
-    public static final String API_ENDPOINT_OLD = "/" + PLURAL_OLD;
+  public static final String API_ENDPOINT_OLD = "/" + PLURAL_OLD;
 
-    public static final String API_ENDPOINT_NEW = "/" + PLURAL_NEW;
+  public static final String API_ENDPOINT_NEW = "/" + PLURAL_NEW;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( ApiToken.class, SINGULAR, PLURAL_OLD );
-        schema.setRelativeApiEndpoint( API_ENDPOINT_OLD );
-        schema.setDataShareable( false );
-        schema.setDefaultPrivate( true );
-        schema.setDataReadShareable( false );
-        schema.setDataWriteShareable( false );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(ApiToken.class, SINGULAR, PLURAL_OLD);
+    schema.setRelativeApiEndpoint(API_ENDPOINT_OLD);
+    schema.setDataShareable(false);
+    schema.setDefaultPrivate(true);
+    schema.setDataReadShareable(false);
+    schema.setDataWriteShareable(false);
 
-        return schema;
-    }
+    return schema;
+  }
 }

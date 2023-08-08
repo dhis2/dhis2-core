@@ -30,9 +30,8 @@ package org.hisp.dhis.tracker.export.event;
 /**
  * @author Luciano Fiandesio
  */
-public interface QueryElement
-{
-    String useInSelect();
+public interface QueryElement {
+  String useInSelect();
 
-    String getResultsetValue();
+  String getResultsetValue();
 }

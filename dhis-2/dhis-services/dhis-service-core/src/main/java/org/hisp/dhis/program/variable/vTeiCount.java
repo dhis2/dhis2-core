@@ -34,12 +34,9 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
  *
  * @author Jim Grace
  */
-public class vTeiCount
-    extends ProgramDoubleVariable
-{
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        return "distinct tei";
-    }
+public class vTeiCount extends ProgramDoubleVariable {
+  @Override
+  public Object getSql(CommonExpressionVisitor visitor) {
+    return "distinct tei";
+  }
 }

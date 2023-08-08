@@ -35,9 +35,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
-
 import javax.sql.DataSource;
-
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.StatementDialect;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,131 +50,120 @@ import org.mockito.junit.jupiter.MockitoExtension;
  *
  * @author Jim Grace
  */
-@ExtendWith( MockitoExtension.class )
-class MappingBatchHandlerTest
-{
-    @Mock
-    private DataSource dataSource;
+@ExtendWith(MockitoExtension.class)
+class MappingBatchHandlerTest {
+  @Mock private DataSource dataSource;
 
-    @Mock
-    ResultSet resultSet;
+  @Mock ResultSet resultSet;
 
-    @Mock
-    ResultSetMetaData metaData;
+  @Mock ResultSetMetaData metaData;
 
-    private static final String testTableName = "tablename";
+  private static final String testTableName = "tablename";
 
-    private static final List<String> testColumns = List.of( "colA", "colB", "colC", "colD" );
+  private static final List<String> testColumns = List.of("colA", "colB", "colC", "colD");
 
-    private static final String testAutoIncrementColumn = "colA";
+  private static final String testAutoIncrementColumn = "colA";
 
-    private static final boolean testInclusiveUniqueColumns = true;
+  private static final boolean testInclusiveUniqueColumns = true;
 
-    private static final List<String> testIdentifierColumns = List.of( "colA", "colB" );
+  private static final List<String> testIdentifierColumns = List.of("colA", "colB");
 
-    private static final List<String> testUniqueColumns = List.of( "colA", "colB", "colC" );
+  private static final List<String> testUniqueColumns = List.of("colA", "colB", "colC");
 
-    private static final List<Object> testValues = List.of( 1, 2, "C", "D" );
+  private static final List<Object> testValues = List.of(1, 2, "C", "D");
 
-    private static final List<Object> testIdentifierValues = testValues.subList( 0, 2 );
+  private static final List<Object> testIdentifierValues = testValues.subList(0, 2);
 
-    private static final List<Object> testUniqueValues = testValues.subList( 0, 3 );
+  private static final List<Object> testUniqueValues = testValues.subList(0, 3);
 
-    private static final Map<String, Object> testRow = Map.of(
-        "colA", testValues.get( 0 ),
-        "colB", testValues.get( 1 ),
-        "colC", testValues.get( 2 ),
-        "colD", testValues.get( 3 ) );
+  private static final Map<String, Object> testRow =
+      Map.of(
+          "colA", testValues.get(0),
+          "colB", testValues.get(1),
+          "colC", testValues.get(2),
+          "colD", testValues.get(3));
 
-    private MappingBatchHandler target;
+  private MappingBatchHandler target;
 
-    @BeforeEach
-    public void setUp()
-        throws SQLException
-    {
-        JdbcConfiguration config = new JdbcConfiguration( StatementDialect.POSTGRESQL, dataSource );
+  @BeforeEach
+  public void setUp() throws SQLException {
+    JdbcConfiguration config = new JdbcConfiguration(StatementDialect.POSTGRESQL, dataSource);
 
-        target = MappingBatchHandler.builder()
-            .jdbcConfiguration( config )
-            .tableName( testTableName )
-            .columns( testColumns )
-            .autoIncrementColumn( testAutoIncrementColumn )
-            .inclusiveUniqueColumns( testInclusiveUniqueColumns )
-            .identifierColumns( testIdentifierColumns )
-            .uniqueColumns( testUniqueColumns )
+    target =
+        MappingBatchHandler.builder()
+            .jdbcConfiguration(config)
+            .tableName(testTableName)
+            .columns(testColumns)
+            .autoIncrementColumn(testAutoIncrementColumn)
+            .inclusiveUniqueColumns(testInclusiveUniqueColumns)
+            .identifierColumns(testIdentifierColumns)
+            .uniqueColumns(testUniqueColumns)
             .build();
-    }
+  }
 
-    @Test
-    void testGetTableName()
-    {
-        assertEquals( testTableName, target.getTableName() );
-    }
+  @Test
+  void testGetTableName() {
+    assertEquals(testTableName, target.getTableName());
+  }
 
-    @Test
-    void testGetColumns()
-    {
-        assertEquals( testColumns, target.getColumns() );
-    }
+  @Test
+  void testGetColumns() {
+    assertEquals(testColumns, target.getColumns());
+  }
 
-    @Test
-    void testGetAutoIncrementColumn()
-    {
-        assertEquals( testAutoIncrementColumn, target.getAutoIncrementColumn() );
-    }
+  @Test
+  void testGetAutoIncrementColumn() {
+    assertEquals(testAutoIncrementColumn, target.getAutoIncrementColumn());
+  }
 
-    @Test
-    void testIsInclusiveUniqueColumns()
-    {
-        assertEquals( testInclusiveUniqueColumns, target.isInclusiveUniqueColumns() );
-    }
+  @Test
+  void testIsInclusiveUniqueColumns() {
+    assertEquals(testInclusiveUniqueColumns, target.isInclusiveUniqueColumns());
+  }
 
-    @Test
-    void testGetIdentifierColumns()
-    {
-        assertEquals( testIdentifierColumns, target.getIdentifierColumns() );
-    }
+  @Test
+  void testGetIdentifierColumns() {
+    assertEquals(testIdentifierColumns, target.getIdentifierColumns());
+  }
 
-    @Test
-    void testGetUniqueColumns()
-    {
-        assertEquals( testUniqueColumns, target.getUniqueColumns() );
-    }
+  @Test
+  void testGetUniqueColumns() {
+    assertEquals(testUniqueColumns, target.getUniqueColumns());
+  }
 
-    @Test
-    void testGetIdentifierValues()
-    {
-        assertEquals( testIdentifierValues, target.getIdentifierValues( testRow ) );
-    }
+  @Test
+  void testGetIdentifierValues() {
+    assertEquals(testIdentifierValues, target.getIdentifierValues(testRow));
+  }
 
-    @Test
-    void testGetUniqueValues()
-    {
-        assertEquals( testUniqueValues, target.getUniqueValues( testRow ) );
-    }
+  @Test
+  void testGetUniqueValues() {
+    assertEquals(testUniqueValues, target.getUniqueValues(testRow));
+  }
 
-    @Test
-    void testGetValues()
-    {
-        assertEquals( testValues, target.getValues( testRow ) );
-    }
+  @Test
+  void testGetValues() {
+    assertEquals(testValues, target.getValues(testRow));
+  }
 
-    @Test
-    void testMapRow()
-        throws SQLException
-    {
-        Mockito.when( resultSet.getMetaData() ).thenReturn( metaData );
+  @Test
+  void testMapRow() throws SQLException {
+    Mockito.when(resultSet.getMetaData()).thenReturn(metaData);
 
-        Mockito.when( metaData.getColumnCount() ).thenReturn( testColumns.size() );
+    Mockito.when(metaData.getColumnCount()).thenReturn(testColumns.size());
 
-        Mockito.when( metaData.getColumnName( anyInt() ) ).thenAnswer( invocation -> {
-            return testColumns.get( (Integer) invocation.getArguments()[0] );
-        } );
+    Mockito.when(metaData.getColumnName(anyInt()))
+        .thenAnswer(
+            invocation -> {
+              return testColumns.get((Integer) invocation.getArguments()[0]);
+            });
 
-        Mockito.when( resultSet.getObject( anyInt() ) ).thenAnswer( invocation -> {
-            return testValues.get( (Integer) invocation.getArguments()[0] );
-        } );
+    Mockito.when(resultSet.getObject(anyInt()))
+        .thenAnswer(
+            invocation -> {
+              return testValues.get((Integer) invocation.getArguments()[0]);
+            });
 
-        assertEquals( testRow, target.mapRow( resultSet ) );
-    }
+    assertEquals(testRow, target.mapRow(resultSet));
+  }
 }

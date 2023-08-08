@@ -33,9 +33,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
@@ -55,125 +53,113 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class AuditManager
-{
-    private final AuditProducerSupplier auditProducerSupplier;
+public class AuditManager {
+  private final AuditProducerSupplier auditProducerSupplier;
 
-    private final AuditProducerConfiguration config;
+  private final AuditProducerConfiguration config;
 
-    private final AuditScheduler auditScheduler;
+  private final AuditScheduler auditScheduler;
 
-    private final AuditMatrix auditMatrix;
+  private final AuditMatrix auditMatrix;
 
-    private final UsernameSupplier usernameSupplier;
+  private final UsernameSupplier usernameSupplier;
 
-    private final AuditObjectFactory objectFactory;
+  private final AuditObjectFactory objectFactory;
 
-    /**
-     * Cache for Fields of {@link org.hisp.dhis.audit.Auditable} classes Key is
-     * class name. Value is Map of {@link AuditAttribute} Fields and its getter
-     * Method
-     */
-    private static final Map<String, Map<Field, Method>> cachedAuditAttributeFields = new ConcurrentHashMap<>();
+  /**
+   * Cache for Fields of {@link org.hisp.dhis.audit.Auditable} classes Key is class name. Value is
+   * Map of {@link AuditAttribute} Fields and its getter Method
+   */
+  private static final Map<String, Map<Field, Method>> cachedAuditAttributeFields =
+      new ConcurrentHashMap<>();
 
-    public AuditManager(
-        AuditProducerSupplier auditProducerSupplier,
-        AuditScheduler auditScheduler,
-        AuditProducerConfiguration config,
-        AuditMatrix auditMatrix,
-        AuditObjectFactory auditObjectFactory,
-        UsernameSupplier usernameSupplier )
-    {
-        checkNotNull( auditProducerSupplier );
-        checkNotNull( config );
-        checkNotNull( auditMatrix );
-        checkNotNull( auditObjectFactory );
-        checkNotNull( usernameSupplier );
+  public AuditManager(
+      AuditProducerSupplier auditProducerSupplier,
+      AuditScheduler auditScheduler,
+      AuditProducerConfiguration config,
+      AuditMatrix auditMatrix,
+      AuditObjectFactory auditObjectFactory,
+      UsernameSupplier usernameSupplier) {
+    checkNotNull(auditProducerSupplier);
+    checkNotNull(config);
+    checkNotNull(auditMatrix);
+    checkNotNull(auditObjectFactory);
+    checkNotNull(usernameSupplier);
 
-        this.auditProducerSupplier = auditProducerSupplier;
-        this.config = config;
-        this.auditScheduler = auditScheduler;
-        this.auditMatrix = auditMatrix;
-        this.objectFactory = auditObjectFactory;
-        this.usernameSupplier = usernameSupplier;
+    this.auditProducerSupplier = auditProducerSupplier;
+    this.config = config;
+    this.auditScheduler = auditScheduler;
+    this.auditMatrix = auditMatrix;
+    this.objectFactory = auditObjectFactory;
+    this.usernameSupplier = usernameSupplier;
+  }
+
+  public void send(Audit audit) {
+    if (!auditMatrix.isEnabled(audit) || audit.getAuditableEntity() == null) {
+      log.debug("Audit message ignored:\n" + audit.toLog());
+      return;
     }
 
-    public void send( Audit audit )
-    {
-        if ( !auditMatrix.isEnabled( audit ) || audit.getAuditableEntity() == null )
-        {
-            log.debug( "Audit message ignored:\n" + audit.toLog() );
-            return;
-        }
-
-        if ( StringUtils.isEmpty( audit.getCreatedBy() ) )
-        {
-            audit.setCreatedBy( usernameSupplier.get() );
-        }
-
-        if ( audit.getData() == null )
-        {
-            audit.setData( this.objectFactory.create(
-                audit.getAuditScope(),
-                audit.getAuditType(),
-                audit.getAuditableEntity().getEntity(),
-                audit.getCreatedBy() ) );
-        }
-
-        if ( config.isUseQueue() )
-        {
-            auditScheduler.addAuditItem( audit );
-        }
-        else
-        {
-            auditProducerSupplier.publish( audit );
-        }
+    if (StringUtils.isEmpty(audit.getCreatedBy())) {
+      audit.setCreatedBy(usernameSupplier.get());
     }
 
-    public Map<Field, Method> getAuditAttributeFields( Class<?> auditClass )
-    {
-        Map<Field, Method> map = cachedAuditAttributeFields.get( auditClass.getName() );
-
-        if ( map == null )
-        {
-            map = AnnotationUtils.getAnnotatedFields( auditClass, AuditAttribute.class );
-            cachedAuditAttributeFields.put( auditClass.getName(), map );
-        }
-
-        return map;
+    if (audit.getData() == null) {
+      audit.setData(
+          this.objectFactory.create(
+              audit.getAuditScope(),
+              audit.getAuditType(),
+              audit.getAuditableEntity().getEntity(),
+              audit.getCreatedBy()));
     }
 
-    public AuditAttributes collectAuditAttributes( Object entity, Class<?> entityClass )
-    {
-        AuditAttributes auditAttributes = new AuditAttributes();
+    if (config.isUseQueue()) {
+      auditScheduler.addAuditItem(audit);
+    } else {
+      auditProducerSupplier.publish(audit);
+    }
+  }
 
-        getAuditAttributeFields( entityClass ).forEach( ( field, getterMethod ) -> auditAttributes.put( field.getName(),
-            getAttributeValue( entity, field.getName(), getterMethod ) ) );
+  public Map<Field, Method> getAuditAttributeFields(Class<?> auditClass) {
+    Map<Field, Method> map = cachedAuditAttributeFields.get(auditClass.getName());
 
-        return auditAttributes;
+    if (map == null) {
+      map = AnnotationUtils.getAnnotatedFields(auditClass, AuditAttribute.class);
+      cachedAuditAttributeFields.put(auditClass.getName(), map);
     }
 
-    private Object getAttributeValue( Object auditObject, String attributeName, Method getter )
-    {
-        if ( auditObject instanceof Map )
-        {
-            return ((Map<?, ?>) auditObject).get( attributeName );
-        }
+    return map;
+  }
 
-        Object value = ReflectionUtils.invokeMethod( auditObject, getter );
+  public AuditAttributes collectAuditAttributes(Object entity, Class<?> entityClass) {
+    AuditAttributes auditAttributes = new AuditAttributes();
 
-        if ( value instanceof IdentifiableObject )
-        {
-            return ((IdentifiableObject) value).getUid();
-        }
+    getAuditAttributeFields(entityClass)
+        .forEach(
+            (field, getterMethod) ->
+                auditAttributes.put(
+                    field.getName(), getAttributeValue(entity, field.getName(), getterMethod)));
 
-        if ( value instanceof RelationshipItem )
-        {
-            RelationshipItem ri = (RelationshipItem) value;
-            return ObjectUtils.firstNonNull( ri.getTrackedEntity(), ri.getEnrollment(),
-                ri.getEvent() ).getUid();
-        }
+    return auditAttributes;
+  }
 
-        return value;
+  private Object getAttributeValue(Object auditObject, String attributeName, Method getter) {
+    if (auditObject instanceof Map) {
+      return ((Map<?, ?>) auditObject).get(attributeName);
     }
+
+    Object value = ReflectionUtils.invokeMethod(auditObject, getter);
+
+    if (value instanceof IdentifiableObject) {
+      return ((IdentifiableObject) value).getUid();
+    }
+
+    if (value instanceof RelationshipItem) {
+      RelationshipItem ri = (RelationshipItem) value;
+      return ObjectUtils.firstNonNull(ri.getTrackedEntity(), ri.getEnrollment(), ri.getEvent())
+          .getUid();
+    }
+
+    return value;
+  }
 }

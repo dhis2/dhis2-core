@@ -36,9 +36,7 @@ import static org.hisp.dhis.webapi.controller.dataitem.Order.Attribute.getNames;
 import static org.hisp.dhis.webapi.controller.dataitem.Order.Nature.getValues;
 
 import java.util.Set;
-
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
 
@@ -47,55 +45,45 @@ import org.hisp.dhis.feedback.ErrorMessage;
  *
  * @author maikel arabori
  */
-@NoArgsConstructor( access = PRIVATE )
-public class OrderValidator
-{
-    public static final byte ORDERING_ATTRIBUTE_NAME = 0;
+@NoArgsConstructor(access = PRIVATE)
+public class OrderValidator {
+  public static final byte ORDERING_ATTRIBUTE_NAME = 0;
 
-    public static final byte ORDERING_VALUE = 1;
+  public static final byte ORDERING_VALUE = 1;
 
-    /**
-     * Checks if the given set o filters are valid, and contains only filter
-     * names and operators supported.
-     *
-     * @param orderParams a set containing elements in the format
-     *        "attributeName:asc"
-     * @throws IllegalQueryException if the set contains a non-supported name or
-     *         operator, or contains invalid syntax.
-     */
-    public static void checkOrderParams( Set<String> orderParams )
-    {
-        if ( isNotEmpty( orderParams ) )
-        {
-            for ( String orderParam : orderParams )
-            {
-                String[] orderAttributeValuePair = orderParam.split( ":" );
-                String orderAttributeName = trimToEmpty( orderAttributeValuePair[ORDERING_ATTRIBUTE_NAME] );
-                String orderValue = trimToEmpty( orderAttributeValuePair[ORDERING_VALUE] );
+  /**
+   * Checks if the given set o filters are valid, and contains only filter names and operators
+   * supported.
+   *
+   * @param orderParams a set containing elements in the format "attributeName:asc"
+   * @throws IllegalQueryException if the set contains a non-supported name or operator, or contains
+   *     invalid syntax.
+   */
+  public static void checkOrderParams(Set<String> orderParams) {
+    if (isNotEmpty(orderParams)) {
+      for (String orderParam : orderParams) {
+        String[] orderAttributeValuePair = orderParam.split(":");
+        String orderAttributeName = trimToEmpty(orderAttributeValuePair[ORDERING_ATTRIBUTE_NAME]);
+        String orderValue = trimToEmpty(orderAttributeValuePair[ORDERING_VALUE]);
 
-                boolean filterHasCorrectForm = orderAttributeValuePair.length == 2;
+        boolean filterHasCorrectForm = orderAttributeValuePair.length == 2;
 
-                if ( filterHasCorrectForm )
-                {
-                    // Check for valid order attribute name. Only a few DataItem
-                    // attributes are allowed.
-                    if ( !getNames().contains( orderAttributeName ) )
-                    {
-                        throw new IllegalQueryException( new ErrorMessage( E2037, orderAttributeName ) );
-                    }
+        if (filterHasCorrectForm) {
+          // Check for valid order attribute name. Only a few DataItem
+          // attributes are allowed.
+          if (!getNames().contains(orderAttributeName)) {
+            throw new IllegalQueryException(new ErrorMessage(E2037, orderAttributeName));
+          }
 
-                    // Check for valid ordering. Only "asc" and "desc" are
-                    // allowed.
-                    if ( !getValues().contains( orderValue ) )
-                    {
-                        throw new IllegalQueryException( new ErrorMessage( E2037, orderValue ) );
-                    }
-                }
-                else
-                {
-                    throw new IllegalQueryException( new ErrorMessage( E2015, orderParam ) );
-                }
-            }
+          // Check for valid ordering. Only "asc" and "desc" are
+          // allowed.
+          if (!getValues().contains(orderValue)) {
+            throw new IllegalQueryException(new ErrorMessage(E2037, orderValue));
+          }
+        } else {
+          throw new IllegalQueryException(new ErrorMessage(E2015, orderParam));
         }
+      }
     }
+  }
 }

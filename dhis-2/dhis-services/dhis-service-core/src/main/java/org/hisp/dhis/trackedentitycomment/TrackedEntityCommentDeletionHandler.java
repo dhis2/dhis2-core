@@ -28,7 +28,6 @@
 package org.hisp.dhis.trackedentitycomment;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
@@ -37,30 +36,25 @@ import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
 @RequiredArgsConstructor
-public class TrackedEntityCommentDeletionHandler extends IdObjectDeletionHandler<TrackedEntityComment>
-{
-    private final TrackedEntityCommentService commentService;
+public class TrackedEntityCommentDeletionHandler
+    extends IdObjectDeletionHandler<TrackedEntityComment> {
+  private final TrackedEntityCommentService commentService;
 
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( Enrollment.class, this::deleteEnrollment );
-        whenDeleting( Event.class, this::deleteEvent );
-    }
+  @Override
+  protected void registerHandler() {
+    whenDeleting(Enrollment.class, this::deleteEnrollment);
+    whenDeleting(Event.class, this::deleteEvent);
+  }
 
-    private void deleteEnrollment( Enrollment enrollment )
-    {
-        for ( TrackedEntityComment comment : enrollment.getComments() )
-        {
-            commentService.deleteTrackedEntityComment( comment );
-        }
+  private void deleteEnrollment(Enrollment enrollment) {
+    for (TrackedEntityComment comment : enrollment.getComments()) {
+      commentService.deleteTrackedEntityComment(comment);
     }
+  }
 
-    private void deleteEvent( Event event )
-    {
-        for ( TrackedEntityComment comment : event.getComments() )
-        {
-            commentService.deleteTrackedEntityComment( comment );
-        }
+  private void deleteEvent(Event event) {
+    for (TrackedEntityComment comment : event.getComments()) {
+      commentService.deleteTrackedEntityComment(comment);
     }
+  }
 }

@@ -31,17 +31,15 @@ import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
+import com.google.common.collect.Multimap;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -49,86 +47,79 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Multimap;
-
 /**
  * @author Luciano Fiandesio
  */
-@Component( "org.hisp.dhis.tracker.trackedentity.aggregates.EventAggregate" )
+@Component("org.hisp.dhis.tracker.trackedentity.aggregates.EventAggregate")
 @RequiredArgsConstructor
-public class EventAggregate
-    implements
-    Aggregate
-{
-    @Qualifier( "org.hisp.dhis.tracker.trackedentity.aggregates.EventStore" )
-    @Nonnull
-    private final EventStore eventStore;
+public class EventAggregate implements Aggregate {
+  @Qualifier("org.hisp.dhis.tracker.trackedentity.aggregates.EventStore")
+  @Nonnull
+  private final EventStore eventStore;
 
-    /**
-     * Key: enrollment uid -> Value: Event
-     *
-     * @param ids a List of {@see Enrollment} Primary Keys
-     * @param ctx the {@see Context}
-     * @return a Map where the key is a Enrollment Primary Key, and the value is
-     *         a List of {@see Event}
-     */
-    Multimap<String, Event> findByEnrollmentIds( List<Long> ids, Context ctx )
-    {
-        // Fetch all the Events that are linked to the given Enrollment IDs
+  /**
+   * Key: enrollment uid -> Value: Event
+   *
+   * @param ids a List of {@see Enrollment} Primary Keys
+   * @param ctx the {@see Context}
+   * @return a Map where the key is a Enrollment Primary Key, and the value is a List of {@see
+   *     Event}
+   */
+  Multimap<String, Event> findByEnrollmentIds(List<Long> ids, Context ctx) {
+    // Fetch all the Events that are linked to the given Enrollment IDs
 
-        Multimap<String, Event> events = this.eventStore.getEventsByEnrollmentIds( ids, ctx );
+    Multimap<String, Event> events = this.eventStore.getEventsByEnrollmentIds(ids, ctx);
 
-        if ( events.isEmpty() )
-        {
-            return events;
-        }
-
-        List<Long> eventIds = events.values().stream().map( Event::getId )
-            .collect( Collectors.toList() );
-
-        /*
-         * Async fetch Relationships for the given Event ids (only if
-         * isIncludeRelationships = true)
-         */
-        final CompletableFuture<Multimap<String, RelationshipItem>> relationshipAsync = conditionalAsyncFetch(
-            ctx.getParams().getEventParams().isIncludeRelationships(),
-            () -> eventStore.getRelationships( eventIds, ctx ), getPool() );
-
-        /*
-         * Async fetch Notes for the given Event ids
-         */
-        final CompletableFuture<Multimap<String, TrackedEntityComment>> notesAsync = asyncFetch(
-            () -> eventStore.getNotes( eventIds ), getPool() );
-
-        /*
-         * Async fetch DataValues for the given Event ids
-         */
-        final CompletableFuture<Map<String, List<EventDataValue>>> dataValuesAsync = supplyAsync(
-            () -> eventStore.getDataValues( eventIds ), getPool() );
-
-        return allOf( dataValuesAsync, notesAsync, relationshipAsync ).thenApplyAsync( fn -> {
-
-            Map<String, List<EventDataValue>> dataValues = dataValuesAsync.join();
-            Multimap<String, TrackedEntityComment> notes = notesAsync.join();
-            Multimap<String, RelationshipItem> relationships = relationshipAsync.join();
-
-            for ( Event event : events.values() )
-            {
-                if ( ctx.getParams().isIncludeRelationships() )
-                {
-                    event.setRelationshipItems( new HashSet<>( relationships.get( event.getUid() ) ) );
-                }
-
-                List<EventDataValue> dataValuesForEvent = dataValues.get( event.getUid() );
-                if ( dataValuesForEvent != null && !dataValuesForEvent.isEmpty() )
-                {
-                    event.setEventDataValues( new HashSet<>( dataValues.get( event.getUid() ) ) );
-                }
-                event.setComments( new ArrayList<>( notes.get( event.getUid() ) ) );
-            }
-
-            return events;
-
-        }, getPool() ).join();
+    if (events.isEmpty()) {
+      return events;
     }
+
+    List<Long> eventIds = events.values().stream().map(Event::getId).collect(Collectors.toList());
+
+    /*
+     * Async fetch Relationships for the given Event ids (only if
+     * isIncludeRelationships = true)
+     */
+    final CompletableFuture<Multimap<String, RelationshipItem>> relationshipAsync =
+        conditionalAsyncFetch(
+            ctx.getParams().getEventParams().isIncludeRelationships(),
+            () -> eventStore.getRelationships(eventIds, ctx),
+            getPool());
+
+    /*
+     * Async fetch Notes for the given Event ids
+     */
+    final CompletableFuture<Multimap<String, TrackedEntityComment>> notesAsync =
+        asyncFetch(() -> eventStore.getNotes(eventIds), getPool());
+
+    /*
+     * Async fetch DataValues for the given Event ids
+     */
+    final CompletableFuture<Map<String, List<EventDataValue>>> dataValuesAsync =
+        supplyAsync(() -> eventStore.getDataValues(eventIds), getPool());
+
+    return allOf(dataValuesAsync, notesAsync, relationshipAsync)
+        .thenApplyAsync(
+            fn -> {
+              Map<String, List<EventDataValue>> dataValues = dataValuesAsync.join();
+              Multimap<String, TrackedEntityComment> notes = notesAsync.join();
+              Multimap<String, RelationshipItem> relationships = relationshipAsync.join();
+
+              for (Event event : events.values()) {
+                if (ctx.getParams().isIncludeRelationships()) {
+                  event.setRelationshipItems(new HashSet<>(relationships.get(event.getUid())));
+                }
+
+                List<EventDataValue> dataValuesForEvent = dataValues.get(event.getUid());
+                if (dataValuesForEvent != null && !dataValuesForEvent.isEmpty()) {
+                  event.setEventDataValues(new HashSet<>(dataValues.get(event.getUid())));
+                }
+                event.setComments(new ArrayList<>(notes.get(event.getUid())));
+              }
+
+              return events;
+            },
+            getPool())
+        .join();
+  }
 }

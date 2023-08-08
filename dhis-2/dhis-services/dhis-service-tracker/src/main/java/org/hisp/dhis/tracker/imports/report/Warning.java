@@ -27,68 +27,64 @@
  */
 package org.hisp.dhis.tracker.imports.report;
 
-import lombok.Builder;
-import lombok.Value;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Value;
 
 /**
  * @author Enrico Colasante
  */
 @Value
 @Builder
-public class Warning
-{
-    private final String warningMessage;
+public class Warning {
+  private final String warningMessage;
 
-    private final String warningCode;
+  private final String warningCode;
 
-    private final String trackerType;
+  private final String trackerType;
 
-    private final String uid;
+  private final String uid;
 
-    @JsonCreator
-    public Warning( @JsonProperty( "message" ) String warningMessage,
-        @JsonProperty( "errorCode" ) String warningCode,
-        @JsonProperty( "trackerType" ) String trackerType, @JsonProperty( "uid" ) String uid )
-    {
-        this.warningMessage = warningMessage;
-        this.warningCode = warningCode;
-        this.trackerType = trackerType;
-        this.uid = uid;
-    }
+  @JsonCreator
+  public Warning(
+      @JsonProperty("message") String warningMessage,
+      @JsonProperty("errorCode") String warningCode,
+      @JsonProperty("trackerType") String trackerType,
+      @JsonProperty("uid") String uid) {
+    this.warningMessage = warningMessage;
+    this.warningCode = warningCode;
+    this.trackerType = trackerType;
+    this.uid = uid;
+  }
 
-    @JsonProperty
-    public String getWarningCode()
-    {
-        return warningCode;
-    }
+  @JsonProperty
+  public String getWarningCode() {
+    return warningCode;
+  }
 
-    @JsonProperty
-    public String getMessage()
-    {
-        return warningMessage;
-    }
+  @JsonProperty
+  public String getMessage() {
+    return warningMessage;
+  }
 
-    @JsonProperty
-    public String getTrackerType()
-    {
-        return trackerType;
-    }
+  @JsonProperty
+  public String getTrackerType() {
+    return trackerType;
+  }
 
-    @JsonProperty
-    public String getUid()
-    {
-        return uid;
-    }
+  @JsonProperty
+  public String getUid() {
+    return uid;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "TrackerWarningReport{" +
-            "message=" + warningMessage +
-            ", warningCode=" + warningCode +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "TrackerWarningReport{"
+        + "message="
+        + warningMessage
+        + ", warningCode="
+        + warningCode
+        + '}';
+  }
 }

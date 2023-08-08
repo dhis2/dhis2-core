@@ -27,43 +27,27 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 @Getter
 @Setter
 @NoArgsConstructor
-@Accessors( chain = true )
-public class TargetRequest
-    implements Serializable
-{
-    /**
-     * Data element identifier scheme.
-     */
-    @JsonProperty
-    private String dataElementIdScheme;
+@Accessors(chain = true)
+public class TargetRequest implements Serializable {
+  /** Data element identifier scheme. */
+  @JsonProperty private String dataElementIdScheme;
 
-    /**
-     * Org unit identifier scheme.
-     */
-    @JsonProperty
-    private String orgUnitIdScheme;
+  /** Org unit identifier scheme. */
+  @JsonProperty private String orgUnitIdScheme;
 
-    /**
-     * Category option combination identifier scheme.
-     */
-    @JsonProperty
-    private String categoryOptionComboIdScheme;
+  /** Category option combination identifier scheme. */
+  @JsonProperty private String categoryOptionComboIdScheme;
 
-    /**
-     * General identifier scheme.
-     */
-    @JsonProperty
-    private String idScheme;
+  /** General identifier scheme. */
+  @JsonProperty private String idScheme;
 }

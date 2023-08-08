@@ -37,95 +37,80 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-
 import org.hisp.dhis.common.DimensionType;
 
 /**
- * This class is used to hold the association between a dimension and its type.
- * Its main goal is to track the associations across dynamic dimensions and
- * their actual type.
+ * This class is used to hold the association between a dimension and its type. Its main goal is to
+ * track the associations across dynamic dimensions and their actual type.
  */
 @Getter
 @Setter
 @AllArgsConstructor
-public class DimensionDescriptor
-{
-    private String dimension;
+public class DimensionDescriptor {
+  private String dimension;
 
-    private DimensionType type;
+  private DimensionType type;
 
-    public boolean hasDimension( final String dimension )
-    {
-        return trimToEmpty( dimension ).equalsIgnoreCase( trimToEmpty( getDimension() ) );
-    }
+  public boolean hasDimension(final String dimension) {
+    return trimToEmpty(dimension).equalsIgnoreCase(trimToEmpty(getDimension()));
+  }
 
-    /**
-     * Based on the given dimension and the given DimensionDescriptor list, this
-     * method will retrieve the respective dimension identifier. See the
-     * examples below.
-     *
-     * For regular dimensions: a "dimension" `dx` will have a type of
-     * {@link DimensionType#DATA_X}. Hence the dimension identifier returned
-     * will be `dx`.
-     *
-     * For dynamic dimensions: a "dimension" `mq4jAnN6fg3` (of an org unit, for
-     * example), will have a type of {@link DimensionType#ORGANISATION_UNIT}.
-     * Hence the dimension identifier returned by this method will be `ou`.
-     *
-     * @param dimensionDescriptors the list of descriptors to be compared.
-     * @param dimension the value to be retrieved from the list of
-     *        dimensionDescriptors
-     * @return the respective descriptive value
-     */
-    public static String getDimensionIdentifierFor( final String dimension,
-        final List<DimensionDescriptor> dimensionDescriptors )
-    {
-        if ( isNotEmpty( dimensionDescriptors ) )
-        {
-            // For each dimension descriptor
-            for ( final DimensionDescriptor dimensionDescriptor : dimensionDescriptors )
-            {
-                if ( dimensionDescriptor.hasDimension( dimension ) )
-                {
-                    // Returns the string/value associated with the dimension
-                    // type.
-                    return dimensionDescriptor.getDimensionIdentifier();
-                }
-            }
+  /**
+   * Based on the given dimension and the given DimensionDescriptor list, this method will retrieve
+   * the respective dimension identifier. See the examples below.
+   *
+   * <p>For regular dimensions: a "dimension" `dx` will have a type of {@link DimensionType#DATA_X}.
+   * Hence the dimension identifier returned will be `dx`.
+   *
+   * <p>For dynamic dimensions: a "dimension" `mq4jAnN6fg3` (of an org unit, for example), will have
+   * a type of {@link DimensionType#ORGANISATION_UNIT}. Hence the dimension identifier returned by
+   * this method will be `ou`.
+   *
+   * @param dimensionDescriptors the list of descriptors to be compared.
+   * @param dimension the value to be retrieved from the list of dimensionDescriptors
+   * @return the respective descriptive value
+   */
+  public static String getDimensionIdentifierFor(
+      final String dimension, final List<DimensionDescriptor> dimensionDescriptors) {
+    if (isNotEmpty(dimensionDescriptors)) {
+      // For each dimension descriptor
+      for (final DimensionDescriptor dimensionDescriptor : dimensionDescriptors) {
+        if (dimensionDescriptor.hasDimension(dimension)) {
+          // Returns the string/value associated with the dimension
+          // type.
+          return dimensionDescriptor.getDimensionIdentifier();
         }
-
-        return dimension;
+      }
     }
 
-    /**
-     * This method will return the respective dimension identifier associated
-     * with the current dimension {@link #type}.
-     *
-     * @return the dimension identifier. See
-     *         {@link org.hisp.dhis.common.DimensionalObject} for the list of
-     *         possible dimension identifiers.
-     */
-    private String getDimensionIdentifier()
-    {
-        switch ( getType() )
-        {
-        case ATTRIBUTE_OPTION_COMBO:
-            return ATTRIBUTEOPTIONCOMBO_DIM_ID;
-        case CATEGORY_OPTION_COMBO:
-            return CATEGORYOPTIONCOMBO_DIM_ID;
-        case DATA_X:
-            return DATA_X_DIM_ID;
-        case ORGANISATION_UNIT:
-        case ORGANISATION_UNIT_GROUP_SET:
-            return ORGUNIT_DIM_ID;
-        case PERIOD:
-            return PERIOD_DIM_ID;
-        default:
-            return EMPTY;
-        }
+    return dimension;
+  }
+
+  /**
+   * This method will return the respective dimension identifier associated with the current
+   * dimension {@link #type}.
+   *
+   * @return the dimension identifier. See {@link org.hisp.dhis.common.DimensionalObject} for the
+   *     list of possible dimension identifiers.
+   */
+  private String getDimensionIdentifier() {
+    switch (getType()) {
+      case ATTRIBUTE_OPTION_COMBO:
+        return ATTRIBUTEOPTIONCOMBO_DIM_ID;
+      case CATEGORY_OPTION_COMBO:
+        return CATEGORYOPTIONCOMBO_DIM_ID;
+      case DATA_X:
+        return DATA_X_DIM_ID;
+      case ORGANISATION_UNIT:
+      case ORGANISATION_UNIT_GROUP_SET:
+        return ORGUNIT_DIM_ID;
+      case PERIOD:
+        return PERIOD_DIM_ID;
+      default:
+        return EMPTY;
     }
+  }
 }

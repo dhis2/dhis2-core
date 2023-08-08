@@ -32,19 +32,16 @@ package org.hisp.dhis.analytics;
  *
  * @author maikel arabori
  */
-public enum IndexFunction
-{
-    LOWER( "lower" );
+public enum IndexFunction {
+  LOWER("lower");
 
-    private final String value;
+  private final String value;
 
-    IndexFunction( final String value )
-    {
-        this.value = value;
-    }
+  IndexFunction(final String value) {
+    this.value = value;
+  }
 
-    public String value()
-    {
-        return value;
-    }
+  public String value() {
+    return value;
+  }
 }

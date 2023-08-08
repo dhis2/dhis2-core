@@ -32,10 +32,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class TwoFactorAuthenticationEnrolmentException extends BadCredentialsException
-{
-    public TwoFactorAuthenticationEnrolmentException( String msg )
-    {
-        super( msg );
-    }
+public class TwoFactorAuthenticationEnrolmentException extends BadCredentialsException {
+  public TwoFactorAuthenticationEnrolmentException(String msg) {
+    super(msg);
+  }
 }

@@ -27,21 +27,15 @@
  */
 package org.hisp.dhis.analytics.dimensions;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Data;
-
 import org.hisp.dhis.common.Pager;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 @Data
-public class AnalyticsDimensionsPagingWrapper<T>
-{
-    @JsonProperty
-    private List<T> dimensions = new ArrayList<>();
+public class AnalyticsDimensionsPagingWrapper<T> {
+  @JsonProperty private List<T> dimensions = new ArrayList<>();
 
-    @JsonProperty
-    private Pager pager;
+  @JsonProperty private Pager pager;
 }

@@ -29,9 +29,7 @@ package org.hisp.dhis.userdatastore.hibernate;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -49,51 +47,65 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public class HibernateUserDatastoreStore
-    extends HibernateIdentifiableObjectStore<UserDatastoreEntry>
-    implements UserDatastoreStore
-{
-    public HibernateUserDatastoreStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, UserDatastoreEntry.class, currentUserService, aclService,
-            true );
-    }
+    extends HibernateIdentifiableObjectStore<UserDatastoreEntry> implements UserDatastoreStore {
+  public HibernateUserDatastoreStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        UserDatastoreEntry.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public UserDatastoreEntry getUserKeyJsonValue( User user, String namespace, String key )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public UserDatastoreEntry getUserKeyJsonValue(User user, String namespace, String key) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( BaseIdentifiableObject_.CREATED_BY ), user ) )
-            .addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) )
-            .addPredicate( root -> builder.equal( root.get( "key" ), key ) ) );
-    }
+    return getSingleResult(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get(BaseIdentifiableObject_.CREATED_BY), user))
+            .addPredicate(root -> builder.equal(root.get("namespace"), namespace))
+            .addPredicate(root -> builder.equal(root.get("key"), key)));
+  }
 
-    @Override
-    public List<String> getNamespacesByUser( User user )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<String> getNamespacesByUser(User user) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( BaseIdentifiableObject_.CREATED_BY ), user ) ) )
-            .stream().map( UserDatastoreEntry::getNamespace ).distinct().collect( Collectors.toList() );
-    }
+    return getList(
+            builder,
+            newJpaParameters()
+                .addPredicate(
+                    root -> builder.equal(root.get(BaseIdentifiableObject_.CREATED_BY), user)))
+        .stream()
+        .map(UserDatastoreEntry::getNamespace)
+        .distinct()
+        .collect(Collectors.toList());
+  }
 
-    @Override
-    public List<String> getKeysByUserAndNamespace( User user, String namespace )
-    {
-        return (getUserKeyJsonValueByUserAndNamespace( user, namespace )).stream().map( UserDatastoreEntry::getKey )
-            .collect( Collectors.toList() );
-    }
+  @Override
+  public List<String> getKeysByUserAndNamespace(User user, String namespace) {
+    return (getUserKeyJsonValueByUserAndNamespace(user, namespace))
+        .stream().map(UserDatastoreEntry::getKey).collect(Collectors.toList());
+  }
 
-    @Override
-    public List<UserDatastoreEntry> getUserKeyJsonValueByUserAndNamespace( User user, String namespace )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<UserDatastoreEntry> getUserKeyJsonValueByUserAndNamespace(
+      User user, String namespace) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( BaseIdentifiableObject_.CREATED_BY ), user ) )
-            .addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get(BaseIdentifiableObject_.CREATED_BY), user))
+            .addPredicate(root -> builder.equal(root.get("namespace"), namespace)));
+  }
 }

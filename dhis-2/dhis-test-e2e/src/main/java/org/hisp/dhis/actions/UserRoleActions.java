@@ -27,32 +27,28 @@
  */
 package org.hisp.dhis.actions;
 
+import com.google.gson.JsonArray;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.utils.DataGenerator;
-
-import com.google.gson.JsonArray;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class UserRoleActions
-    extends RestApiActions
-{
-    public UserRoleActions()
-    {
-        super( "/userRoles" );
+public class UserRoleActions extends RestApiActions {
+  public UserRoleActions() {
+    super("/userRoles");
+  }
+
+  public String createWithAuthorities(String... authorities) {
+    JsonArray auths = new JsonArray();
+    for (String authority : authorities) {
+      auths.add(authority);
     }
 
-    public String createWithAuthorities( String... authorities )
-    {
-        JsonArray auths = new JsonArray();
-        for ( String authority : authorities )
-        {
-            auths.add( authority );
-        }
-
-        return this.create( new JsonObjectBuilder()
-            .addProperty( "name", DataGenerator.randomString() )
-            .addArray( "authorities", auths ).build() );
-    }
+    return this.create(
+        new JsonObjectBuilder()
+            .addProperty("name", DataGenerator.randomString())
+            .addArray("authorities", auths)
+            .build());
+  }
 }

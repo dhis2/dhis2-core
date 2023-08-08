@@ -27,72 +27,60 @@
  */
 package org.hisp.dhis.security.apikey;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class IpAllowedList extends ApiTokenAttribute
-{
-    private Set<String> allowedIps = new HashSet<>();
+public class IpAllowedList extends ApiTokenAttribute {
+  private Set<String> allowedIps = new HashSet<>();
 
-    public IpAllowedList()
-    {
-        super( "IpAllowedList" );
+  public IpAllowedList() {
+    super("IpAllowedList");
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(value = PropertyType.COLLECTION, required = Property.Value.TRUE)
+  public Set<String> getAllowedIps() {
+    return allowedIps;
+  }
+
+  public void setAllowedIps(Set<String> allowedIps) {
+    this.allowedIps = allowedIps;
+  }
+
+  public static IpAllowedList of(String... values) {
+    final IpAllowedList ipAllowedList = new IpAllowedList();
+    ipAllowedList.setAllowedIps(new HashSet<>(Stream.of(values).collect(Collectors.toSet())));
+    return ipAllowedList;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.COLLECTION, required = Property.Value.TRUE )
-    public Set<String> getAllowedIps()
-    {
-        return allowedIps;
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public void setAllowedIps( Set<String> allowedIps )
-    {
-        this.allowedIps = allowedIps;
-    }
+    IpAllowedList that = (IpAllowedList) o;
+    return Objects.equals(allowedIps, that.allowedIps);
+  }
 
-    public static IpAllowedList of( String... values )
-    {
-        final IpAllowedList ipAllowedList = new IpAllowedList();
-        ipAllowedList.setAllowedIps( new HashSet<>(
-            Stream.of( values ).collect( Collectors.toSet() ) ) );
-        return ipAllowedList;
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-
-        IpAllowedList that = (IpAllowedList) o;
-        return Objects.equals( allowedIps, that.allowedIps );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( allowedIps );
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(allowedIps);
+  }
 }

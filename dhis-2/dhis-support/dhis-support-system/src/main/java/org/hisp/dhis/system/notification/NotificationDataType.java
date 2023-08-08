@@ -28,15 +28,12 @@
 package org.hisp.dhis.system.notification;
 
 /**
- * A {@link Notification} can have a
- * {@link com.fasterxml.jackson.databind.JsonNode} data object attached for
- * additional information. The {@link NotificationDataType} indicates what data
- * the value represents. This is purely for clarity and ease of processing the
- * data programmatically.
+ * A {@link Notification} can have a {@link com.fasterxml.jackson.databind.JsonNode} data object
+ * attached for additional information. The {@link NotificationDataType} indicates what data the
+ * value represents. This is purely for clarity and ease of processing the data programmatically.
  *
  * @author Jan Bernitt
  */
-public enum NotificationDataType
-{
-    PARAMETERS
+public enum NotificationDataType {
+  PARAMETERS
 }

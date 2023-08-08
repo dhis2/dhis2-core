@@ -50,139 +50,127 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class EnrollmentPreCheckExistenceValidatorTest
-{
-    private final static String SOFT_DELETED_ENROLLMENT_UID = "SoftDeletedEnrollmentId";
+@ExtendWith(MockitoExtension.class)
+class EnrollmentPreCheckExistenceValidatorTest {
+  private static final String SOFT_DELETED_ENROLLMENT_UID = "SoftDeletedEnrollmentId";
 
-    private final static String ENROLLMENT_UID = "EnrollmentId";
+  private static final String ENROLLMENT_UID = "EnrollmentId";
 
-    private final static String NOT_PRESENT_ENROLLMENT_UID = "NotPresentEnrollmentId";
+  private static final String NOT_PRESENT_ENROLLMENT_UID = "NotPresentEnrollmentId";
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private ExistenceValidator validator;
+  private ExistenceValidator validator;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    void setUp()
-    {
-        when( bundle.getPreheat() ).thenReturn( preheat );
+  @BeforeEach
+  void setUp() {
+    when(bundle.getPreheat()).thenReturn(preheat);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
 
-        validator = new ExistenceValidator();
-    }
+    validator = new ExistenceValidator();
+  }
 
-    @Test
-    void verifyEnrollmentValidationSuccessWhenIsCreateAndEnrollmentIsNotPresent()
-    {
-        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
-            .builder()
-            .enrollment( NOT_PRESENT_ENROLLMENT_UID )
+  @Test
+  void verifyEnrollmentValidationSuccessWhenIsCreateAndEnrollmentIsNotPresent() {
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
+        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+            .enrollment(NOT_PRESENT_ENROLLMENT_UID)
             .build();
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE );
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyEnrollmentValidationSuccessWhenEnrollmentIsNotPresent()
-    {
-        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
-            .builder()
-            .enrollment( NOT_PRESENT_ENROLLMENT_UID )
+  @Test
+  void verifyEnrollmentValidationSuccessWhenEnrollmentIsNotPresent() {
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
+        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+            .enrollment(NOT_PRESENT_ENROLLMENT_UID)
             .build();
-        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Enrollment.class ) ) )
-            .thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+    when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.Enrollment.class)))
+        .thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyEnrollmentValidationSuccessWhenIsUpdate()
-    {
-        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
-            .builder()
-            .enrollment( ENROLLMENT_UID )
+  @Test
+  void verifyEnrollmentValidationSuccessWhenIsUpdate() {
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
+        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+            .enrollment(ENROLLMENT_UID)
             .build();
-        when( preheat.getEnrollment( ENROLLMENT_UID ) ).thenReturn( getEnrollment() );
-        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Enrollment.class ) ) )
-            .thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+    when(preheat.getEnrollment(ENROLLMENT_UID)).thenReturn(getEnrollment());
+    when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.Enrollment.class)))
+        .thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyEnrollmentValidationFailsWhenIsSoftDeleted()
-    {
-        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
-            .builder()
-            .enrollment( SOFT_DELETED_ENROLLMENT_UID )
+  @Test
+  void verifyEnrollmentValidationFailsWhenIsSoftDeleted() {
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
+        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+            .enrollment(SOFT_DELETED_ENROLLMENT_UID)
             .build();
-        when( preheat.getEnrollment( SOFT_DELETED_ENROLLMENT_UID ) ).thenReturn( getSoftDeletedEnrollment() );
-        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Enrollment.class ) ) )
-            .thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+    when(preheat.getEnrollment(SOFT_DELETED_ENROLLMENT_UID)).thenReturn(getSoftDeletedEnrollment());
+    when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.Enrollment.class)))
+        .thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, E1113 );
-    }
+    assertHasError(reporter, enrollment, E1113);
+  }
 
-    @Test
-    void verifyEnrollmentValidationFailsWhenIsCreateAndEnrollmentIsAlreadyPresent()
-    {
-        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
-            .builder()
-            .enrollment( ENROLLMENT_UID )
+  @Test
+  void verifyEnrollmentValidationFailsWhenIsCreateAndEnrollmentIsAlreadyPresent() {
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
+        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+            .enrollment(ENROLLMENT_UID)
             .build();
-        when( preheat.getEnrollment( ENROLLMENT_UID ) ).thenReturn( getEnrollment() );
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE );
+    when(preheat.getEnrollment(ENROLLMENT_UID)).thenReturn(getEnrollment());
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, E1080 );
-    }
+    assertHasError(reporter, enrollment, E1080);
+  }
 
-    @Test
-    void verifyEnrollmentValidationFailsWhenIsUpdateAndEnrollmentIsNotPresent()
-    {
-        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
-            .builder()
-            .enrollment( NOT_PRESENT_ENROLLMENT_UID )
+  @Test
+  void verifyEnrollmentValidationFailsWhenIsUpdateAndEnrollmentIsNotPresent() {
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
+        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+            .enrollment(NOT_PRESENT_ENROLLMENT_UID)
             .build();
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.UPDATE );
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.UPDATE);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, E1081 );
-    }
+    assertHasError(reporter, enrollment, E1081);
+  }
 
-    private Enrollment getSoftDeletedEnrollment()
-    {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setUid( SOFT_DELETED_ENROLLMENT_UID );
-        enrollment.setDeleted( true );
-        return enrollment;
-    }
+  private Enrollment getSoftDeletedEnrollment() {
+    Enrollment enrollment = new Enrollment();
+    enrollment.setUid(SOFT_DELETED_ENROLLMENT_UID);
+    enrollment.setDeleted(true);
+    return enrollment;
+  }
 
-    private Enrollment getEnrollment()
-    {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setUid( ENROLLMENT_UID );
-        enrollment.setDeleted( false );
-        return enrollment;
-    }
+  private Enrollment getEnrollment() {
+    Enrollment enrollment = new Enrollment();
+    enrollment.setUid(ENROLLMENT_UID);
+    enrollment.setDeleted(false);
+    return enrollment;
+  }
 }

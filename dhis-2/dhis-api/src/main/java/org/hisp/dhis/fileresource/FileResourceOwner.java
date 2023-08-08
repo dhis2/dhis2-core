@@ -27,53 +27,42 @@
  */
 package org.hisp.dhis.fileresource;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * Backwards reference from a storage key to the object that is associated with
- * the {@link FileResource}.
+ * Backwards reference from a storage key to the object that is associated with the {@link
+ * FileResource}.
  *
- * A {@link FileResourceDomain#DATA_VALUE} uses the 4 data value keys
- * {@link #de}, {@link #ou}, {@link #pe} and {@link #co}, all other types use
- * only the {@link #id}.
+ * <p>A {@link FileResourceDomain#DATA_VALUE} uses the 4 data value keys {@link #de}, {@link #ou},
+ * {@link #pe} and {@link #co}, all other types use only the {@link #id}.
  *
  * @author Jan Bernitt
  */
 @Value
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class FileResourceOwner
-{
-    @JsonProperty
-    FileResourceDomain domain;
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class FileResourceOwner {
+  @JsonProperty FileResourceDomain domain;
 
-    // for data values
-    @JsonProperty
-    String de;
+  // for data values
+  @JsonProperty String de;
 
-    @JsonProperty
-    String ou;
+  @JsonProperty String ou;
 
-    @JsonProperty
-    String pe;
+  @JsonProperty String pe;
 
-    @JsonProperty
-    String co;
+  @JsonProperty String co;
 
-    // for any other domain
-    @JsonProperty
-    String id;
+  // for any other domain
+  @JsonProperty String id;
 
-    public FileResourceOwner( FileResourceDomain domain, String id )
-    {
-        this( domain, null, null, null, null, id );
-    }
+  public FileResourceOwner(FileResourceDomain domain, String id) {
+    this(domain, null, null, null, null, id);
+  }
 
-    public FileResourceOwner( String de, String ou, String pe, String co )
-    {
-        this( FileResourceDomain.DATA_VALUE, de, ou, pe, co, null );
-    }
+  public FileResourceOwner(String de, String ou, String pe, String co) {
+    this(FileResourceDomain.DATA_VALUE, de, ou, pe, co, null);
+  }
 }

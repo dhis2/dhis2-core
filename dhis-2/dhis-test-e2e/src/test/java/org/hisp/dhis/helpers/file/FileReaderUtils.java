@@ -27,67 +27,62 @@
  */
 package org.hisp.dhis.helpers.file;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.File;
 import java.io.IOException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.utils.DataGenerator;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class FileReaderUtils
-{
-    private Logger logger = LogManager.getLogger( FileReaderUtils.class.getName() );
+public class FileReaderUtils {
+  private Logger logger = LogManager.getLogger(FileReaderUtils.class.getName());
 
-    public FileReader read( File file )
-        throws Exception
-    {
+  public FileReader read(File file) throws Exception {
 
-        if ( file.getName().endsWith( ".csv" ) )
-        {
-            return new CsvFileReader( file );
-        }
-
-        if ( file.getName().endsWith( ".json" ) )
-        {
-            return new JsonFileReader( file );
-        }
-
-        if ( file.getName().endsWith( "xml" ) )
-        {
-            return new XmlFileReader( file );
-        }
-
-        logger.warn(
-            "Tried to read file " + file.getName() + ", but there is no reader implemented for this file type. " );
-
-        return null;
+    if (file.getName().endsWith(".csv")) {
+      return new CsvFileReader(file);
     }
 
-    /**
-     * Reads json file and generates data where needed. Json file should
-     * indicate what data should be generated. Format: %string%, %id%
-     *
-     * @param file
-     * @return
-     * @throws IOException
-     */
-    public JsonObject readJsonAndGenerateData( File file )
-        throws Exception
-    {
-        return read( file ).replace( e -> {
-            String json = e.toString();
-
-            json = json.replaceAll( "%id%", new IdGenerator().generateUniqueId() );
-            json = json.replaceAll( "%string%", DataGenerator.randomString() );
-
-            return new JsonParser().parse( json );
-        } ).get( JsonObject.class );
+    if (file.getName().endsWith(".json")) {
+      return new JsonFileReader(file);
     }
+
+    if (file.getName().endsWith("xml")) {
+      return new XmlFileReader(file);
+    }
+
+    logger.warn(
+        "Tried to read file "
+            + file.getName()
+            + ", but there is no reader implemented for this file type. ");
+
+    return null;
+  }
+
+  /**
+   * Reads json file and generates data where needed. Json file should indicate what data should be
+   * generated. Format: %string%, %id%
+   *
+   * @param file
+   * @return
+   * @throws IOException
+   */
+  public JsonObject readJsonAndGenerateData(File file) throws Exception {
+    return read(file)
+        .replace(
+            e -> {
+              String json = e.toString();
+
+              json = json.replaceAll("%id%", new IdGenerator().generateUniqueId());
+              json = json.replaceAll("%string%", DataGenerator.randomString());
+
+              return new JsonParser().parse(json);
+            })
+        .get(JsonObject.class);
+  }
 }

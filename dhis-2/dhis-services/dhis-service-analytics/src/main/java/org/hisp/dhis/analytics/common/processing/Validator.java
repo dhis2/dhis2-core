@@ -34,13 +34,11 @@ import javax.annotation.Nonnull;
  *
  * @param <T>
  */
-public interface Validator<T>
-{
-    /**
-     * Runs a validation on the given query request object T to ensure it is in
-     * a valid state.
-     *
-     * @param object the object T.
-     */
-    void validate( @Nonnull T object );
+public interface Validator<T> {
+  /**
+   * Runs a validation on the given query request object T to ensure it is in a valid state.
+   *
+   * @param object the object T.
+   */
+  void validate(@Nonnull T object);
 }

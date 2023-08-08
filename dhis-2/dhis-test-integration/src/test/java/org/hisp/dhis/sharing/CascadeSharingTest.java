@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.sharing;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -39,63 +40,54 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.sharing.Sharing;
 
-import com.google.common.collect.Lists;
+abstract class CascadeSharingTest extends TransactionalIntegrationTest {
+  protected DimensionalItemObject baseDimensionalItemObject(
+      final String dimensionItem, DimensionItemType type) {
+    final BaseDimensionalItemObject baseDimensionalItemObject =
+        new BaseDimensionalItemObject(dimensionItem);
+    baseDimensionalItemObject.setDimensionItemType(type);
+    return baseDimensionalItemObject;
+  }
 
-abstract class CascadeSharingTest extends TransactionalIntegrationTest
-{
-    protected DimensionalItemObject baseDimensionalItemObject( final String dimensionItem, DimensionItemType type )
-    {
-        final BaseDimensionalItemObject baseDimensionalItemObject = new BaseDimensionalItemObject( dimensionItem );
-        baseDimensionalItemObject.setDimensionItemType( type );
-        return baseDimensionalItemObject;
-    }
+  protected DashboardItem createDashboardItem(String name) {
+    DashboardItem dashboardItem = new DashboardItem();
+    dashboardItem.setName("dashboardItem" + name);
+    dashboardItem.setAutoFields();
+    return dashboardItem;
+  }
 
-    protected DashboardItem createDashboardItem( String name )
-    {
-        DashboardItem dashboardItem = new DashboardItem();
-        dashboardItem.setName( "dashboardItem" + name );
-        dashboardItem.setAutoFields();
-        return dashboardItem;
-    }
+  protected DataElement createDEWithDefaultSharing(char name) {
+    DataElement dataElement = createDataElement(name);
+    dataElement.setSharing(Sharing.builder().publicAccess(AccessStringHelper.DEFAULT).build());
+    return dataElement;
+  }
 
-    protected DataElement createDEWithDefaultSharing( char name )
-    {
-        DataElement dataElement = createDataElement( name );
-        dataElement.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
-        return dataElement;
-    }
+  protected Sharing defaultSharing() {
+    return Sharing.builder().publicAccess(AccessStringHelper.DEFAULT).build();
+  }
 
-    protected Sharing defaultSharing()
-    {
-        return Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build();
-    }
+  protected Dashboard createDashboardWithItem(String name, Sharing sharing) {
+    DashboardItem dashboardItem = createDashboardItem("A");
+    Dashboard dashboard = new Dashboard();
+    dashboard.setName("dashboard" + name);
+    dashboard.setSharing(sharing);
+    dashboard.getItems().add(dashboardItem);
+    return dashboard;
+  }
 
-    protected Dashboard createDashboardWithItem( String name, Sharing sharing )
-    {
-        DashboardItem dashboardItem = createDashboardItem( "A" );
-        Dashboard dashboard = new Dashboard();
-        dashboard.setName( "dashboard" + name );
-        dashboard.setSharing( sharing );
-        dashboard.getItems().add( dashboardItem );
-        return dashboard;
-    }
+  protected Dashboard createDashboard(String name, Sharing sharing) {
+    Dashboard dashboard = new Dashboard();
+    dashboard.setName("dashboard" + name);
+    dashboard.setSharing(sharing);
+    return dashboard;
+  }
 
-    protected Dashboard createDashboard( String name, Sharing sharing )
-    {
-        Dashboard dashboard = new Dashboard();
-        dashboard.setName( "dashboard" + name );
-        dashboard.setSharing( sharing );
-        return dashboard;
-    }
-
-    protected Map createMap( String name )
-    {
-        MapView mapView = createMapView( "Test" );
-        Map map = new Map();
-        map.setName( "map" + name );
-        map.setMapViews( Lists.newArrayList( mapView ) );
-        map.setAutoFields();
-        return map;
-    }
-
+  protected Map createMap(String name) {
+    MapView mapView = createMapView("Test");
+    Map map = new Map();
+    map.setName("map" + name);
+    map.setMapViews(Lists.newArrayList(mapView));
+    map.setAutoFields();
+    return map;
+  }
 }

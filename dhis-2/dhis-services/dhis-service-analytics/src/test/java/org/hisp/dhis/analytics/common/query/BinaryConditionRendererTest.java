@@ -37,7 +37,6 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
@@ -45,294 +44,270 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryOperator;
 import org.junit.jupiter.api.Test;
 
-class BinaryConditionRendererTest
-{
-    @Test
-    void testInWithSingleValueProduceCorrectSql()
-    {
-        genericTestExecutor(
-            IN,
-            List.of( "v1" ),
-            ValueTypeMapping.STRING,
-            "\"field\" = :1",
-            List.of(
-                getQueryContextAssertEqualsConsumer( "v1" ) ) );
-    }
+class BinaryConditionRendererTest {
+  @Test
+  void testInWithSingleValueProduceCorrectSql() {
+    genericTestExecutor(
+        IN,
+        List.of("v1"),
+        ValueTypeMapping.STRING,
+        "\"field\" = :1",
+        List.of(getQueryContextAssertEqualsConsumer("v1")));
+  }
 
-    @Test
-    void testInNVWithSingleValueProduceCorrectSql()
-    {
-        genericTestExecutor(
-            IN,
-            List.of( "NV" ),
-            ValueTypeMapping.STRING,
-            "\"field\" is null",
-            List.of( getQueryContextAssertEmptyConsumer() ) );
-    }
+  @Test
+  void testInNVWithSingleValueProduceCorrectSql() {
+    genericTestExecutor(
+        IN,
+        List.of("NV"),
+        ValueTypeMapping.STRING,
+        "\"field\" is null",
+        List.of(getQueryContextAssertEmptyConsumer()));
+  }
 
-    @Test
-    void testInWithMultipleValueProduceCorrectSql()
-    {
-        genericTestExecutor(
-            IN,
-            List.of( "v1", "v2" ),
-            ValueTypeMapping.STRING,
-            "\"field\" in (:1)",
-            List.of( getQueryContextAssertEqualsConsumer( List.of( "v1", "v2" ) ) ) );
-    }
+  @Test
+  void testInWithMultipleValueProduceCorrectSql() {
+    genericTestExecutor(
+        IN,
+        List.of("v1", "v2"),
+        ValueTypeMapping.STRING,
+        "\"field\" in (:1)",
+        List.of(getQueryContextAssertEqualsConsumer(List.of("v1", "v2"))));
+  }
 
-    @Test
-    void testInNVWithMultipleValuesProduceCorrectSql()
-    {
-        genericTestExecutor(
-            IN,
-            List.of( "NV", "v2" ),
-            ValueTypeMapping.STRING,
-            "(\"field\" is null or \"field\" in (:1))",
-            List.of(
-                getQueryContextAssertEqualsConsumer( "v2" ) ) );
-    }
+  @Test
+  void testInNVWithMultipleValuesProduceCorrectSql() {
+    genericTestExecutor(
+        IN,
+        List.of("NV", "v2"),
+        ValueTypeMapping.STRING,
+        "(\"field\" is null or \"field\" in (:1))",
+        List.of(getQueryContextAssertEqualsConsumer("v2")));
+  }
 
-    @Test
-    void testEqWithSingleValueProduceCorrectSql()
-    {
-        genericTestExecutor(
-            EQ,
-            List.of( "value" ),
-            ValueTypeMapping.STRING,
-            "\"field\" = :1",
-            List.of(
-                getQueryContextAssertEqualsConsumer( "value" ) ) );
-    }
+  @Test
+  void testEqWithSingleValueProduceCorrectSql() {
+    genericTestExecutor(
+        EQ,
+        List.of("value"),
+        ValueTypeMapping.STRING,
+        "\"field\" = :1",
+        List.of(getQueryContextAssertEqualsConsumer("value")));
+  }
 
-    @Test
-    void testEqWithNVProduceCorrectSql()
-    {
-        genericTestExecutor(
-            EQ,
-            List.of( "NV" ),
-            ValueTypeMapping.STRING,
-            "\"field\" is null",
-            List.of( getQueryContextAssertEmptyConsumer() ) );
-    }
+  @Test
+  void testEqWithNVProduceCorrectSql() {
+    genericTestExecutor(
+        EQ,
+        List.of("NV"),
+        ValueTypeMapping.STRING,
+        "\"field\" is null",
+        List.of(getQueryContextAssertEmptyConsumer()));
+  }
 
-    @Test
-    void testEqWithMultipleValueProduceCorrectSql()
-    {
-        genericTestExecutor(
-            EQ,
-            List.of( "v1", "v2" ),
-            ValueTypeMapping.STRING,
-            "\"field\" in (:1)",
-            List.of(
-                getQueryContextAssertEqualsConsumer( List.of( "v1", "v2" ) ) ) );
-    }
+  @Test
+  void testEqWithMultipleValueProduceCorrectSql() {
+    genericTestExecutor(
+        EQ,
+        List.of("v1", "v2"),
+        ValueTypeMapping.STRING,
+        "\"field\" in (:1)",
+        List.of(getQueryContextAssertEqualsConsumer(List.of("v1", "v2"))));
+  }
 
-    @Test
-    void testEqWithNVMultipleValueProduceCorrectSql()
-    {
-        genericTestExecutor(
-            EQ,
-            List.of( "v1", "NV" ),
-            ValueTypeMapping.STRING,
-            "(\"field\" is null or \"field\" in (:1))",
-            List.of(
-                getQueryContextAssertEqualsConsumer( "v1" ),
-                queryContext -> assertEquals( 1,
-                    queryContext.getParametersPlaceHolder().size() ) ) );
-    }
+  @Test
+  void testEqWithNVMultipleValueProduceCorrectSql() {
+    genericTestExecutor(
+        EQ,
+        List.of("v1", "NV"),
+        ValueTypeMapping.STRING,
+        "(\"field\" is null or \"field\" in (:1))",
+        List.of(
+            getQueryContextAssertEqualsConsumer("v1"),
+            queryContext -> assertEquals(1, queryContext.getParametersPlaceHolder().size())));
+  }
 
-    @Test
-    void testLikeProduceCorrectSql()
-    {
-        genericTestExecutor(
-            LIKE,
-            List.of( "value" ),
-            ValueTypeMapping.STRING,
-            "\"field\" like :1",
-            List.of( getQueryContextAssertEqualsConsumer( "%value%" ) ) );
-    }
+  @Test
+  void testLikeProduceCorrectSql() {
+    genericTestExecutor(
+        LIKE,
+        List.of("value"),
+        ValueTypeMapping.STRING,
+        "\"field\" like :1",
+        List.of(getQueryContextAssertEqualsConsumer("%value%")));
+  }
 
-    @Test
-    void testNotLikeProduceCorrectSql()
-    {
-        genericTestExecutor(
-            NLIKE,
-            List.of( "value" ),
-            ValueTypeMapping.STRING,
-            "(\"field\" is null or \"field\" not like :1)",
-            List.of( getQueryContextAssertEqualsConsumer( "%value%" ) ) );
-    }
+  @Test
+  void testNotLikeProduceCorrectSql() {
+    genericTestExecutor(
+        NLIKE,
+        List.of("value"),
+        ValueTypeMapping.STRING,
+        "(\"field\" is null or \"field\" not like :1)",
+        List.of(getQueryContextAssertEqualsConsumer("%value%")));
+  }
 
-    @Test
-    void testLikeCaseInsensitiveProduceCorrectSql()
-    {
-        genericTestExecutor(
-            ILIKE,
-            List.of( "VaLuE" ),
-            ValueTypeMapping.STRING,
-            "lower(\"field\") like :1",
-            List.of( getQueryContextAssertEqualsConsumer( "%value%" ) ) );
-    }
+  @Test
+  void testLikeCaseInsensitiveProduceCorrectSql() {
+    genericTestExecutor(
+        ILIKE,
+        List.of("VaLuE"),
+        ValueTypeMapping.STRING,
+        "lower(\"field\") like :1",
+        List.of(getQueryContextAssertEqualsConsumer("%value%")));
+  }
 
-    @Test
-    void testNotLikeCaseInsensitiveProduceCorrectSql()
-    {
-        genericTestExecutor(
-            NILIKE,
-            List.of( "VaLuE" ),
-            ValueTypeMapping.STRING,
-            "(\"field\" is null or lower(\"field\") not like :1)",
-            List.of( getQueryContextAssertEqualsConsumer( "%value%" ) ) );
-    }
+  @Test
+  void testNotLikeCaseInsensitiveProduceCorrectSql() {
+    genericTestExecutor(
+        NILIKE,
+        List.of("VaLuE"),
+        ValueTypeMapping.STRING,
+        "(\"field\" is null or lower(\"field\") not like :1)",
+        List.of(getQueryContextAssertEqualsConsumer("%value%")));
+  }
 
-    @Test
-    void testLikeWithNVProduceCorrectSql()
-    {
-        Stream.of( QueryOperator.LIKE, QueryOperator.ILIKE )
-            .forEach( operator -> {
-                genericTestExecutor(
-                    operator,
-                    List.of( "NV" ),
-                    ValueTypeMapping.STRING,
-                    "\"field\" is null",
-                    List.of( getQueryContextAssertEmptyConsumer() ) );
-            } );
-    }
+  @Test
+  void testLikeWithNVProduceCorrectSql() {
+    Stream.of(QueryOperator.LIKE, QueryOperator.ILIKE)
+        .forEach(
+            operator -> {
+              genericTestExecutor(
+                  operator,
+                  List.of("NV"),
+                  ValueTypeMapping.STRING,
+                  "\"field\" is null",
+                  List.of(getQueryContextAssertEmptyConsumer()));
+            });
+  }
 
-    @Test
-    void testNotLikeWithNVProduceCorrectSql()
-    {
-        Stream.of( QueryOperator.NLIKE, QueryOperator.NILIKE )
-            .forEach( operator -> {
-                genericTestExecutor(
-                    operator,
-                    List.of( "NV" ),
-                    ValueTypeMapping.STRING,
-                    "\"field\" is not null",
-                    List.of( getQueryContextAssertEmptyConsumer() ) );
-            } );
-    }
+  @Test
+  void testNotLikeWithNVProduceCorrectSql() {
+    Stream.of(QueryOperator.NLIKE, QueryOperator.NILIKE)
+        .forEach(
+            operator -> {
+              genericTestExecutor(
+                  operator,
+                  List.of("NV"),
+                  ValueTypeMapping.STRING,
+                  "\"field\" is not null",
+                  List.of(getQueryContextAssertEmptyConsumer()));
+            });
+  }
 
-    @Test
-    void testComparisonOperatorsWithBigIntegers()
-    {
-        Stream.of( GT, GE, LT, LE )
-            .forEach( operator -> {
-                genericTestExecutor(
-                    operator,
-                    List.of( "100" ),
-                    ValueTypeMapping.NUMERIC,
-                    "\"field\" " + operator.getValue() + " :1",
-                    List.of( getQueryContextAssertEqualsConsumer( new BigInteger( "100" ) ) ) );
-            } );
-    }
+  @Test
+  void testComparisonOperatorsWithBigIntegers() {
+    Stream.of(GT, GE, LT, LE)
+        .forEach(
+            operator -> {
+              genericTestExecutor(
+                  operator,
+                  List.of("100"),
+                  ValueTypeMapping.NUMERIC,
+                  "\"field\" " + operator.getValue() + " :1",
+                  List.of(getQueryContextAssertEqualsConsumer(new BigInteger("100"))));
+            });
+  }
 
-    @Test
-    void testComparisonOperatorsWithBigDecimal()
-    {
-        Stream.of( GT, GE, LT, LE )
-            .forEach( operator -> {
-                genericTestExecutor(
-                    operator,
-                    List.of( "100.1" ),
-                    ValueTypeMapping.DECIMAL,
-                    "\"field\" " + operator.getValue() + " :1",
-                    List.of( getQueryContextAssertEqualsConsumer( new BigDecimal( "100.1" ) ) ) );
-            } );
-    }
+  @Test
+  void testComparisonOperatorsWithBigDecimal() {
+    Stream.of(GT, GE, LT, LE)
+        .forEach(
+            operator -> {
+              genericTestExecutor(
+                  operator,
+                  List.of("100.1"),
+                  ValueTypeMapping.DECIMAL,
+                  "\"field\" " + operator.getValue() + " :1",
+                  List.of(getQueryContextAssertEqualsConsumer(new BigDecimal("100.1"))));
+            });
+  }
 
-    @Test
-    void testNeWithNV()
-    {
-        genericTestExecutor(
-            NEQ,
-            List.of( "NV" ),
-            ValueTypeMapping.STRING,
-            "\"field\" is not null",
-            List.of( getQueryContextAssertEmptyConsumer() ) );
-    }
+  @Test
+  void testNeWithNV() {
+    genericTestExecutor(
+        NEQ,
+        List.of("NV"),
+        ValueTypeMapping.STRING,
+        "\"field\" is not null",
+        List.of(getQueryContextAssertEmptyConsumer()));
+  }
 
-    @Test
-    void testNeShouldIncludeNull()
-    {
-        genericTestExecutor(
-            NEQ,
-            List.of( "test" ),
-            ValueTypeMapping.STRING,
-            "(\"field\" is null or \"field\" != :1)",
-            List.of( getQueryContextAssertEqualsConsumer( "test" ) ) );
-    }
+  @Test
+  void testNeShouldIncludeNull() {
+    genericTestExecutor(
+        NEQ,
+        List.of("test"),
+        ValueTypeMapping.STRING,
+        "(\"field\" is null or \"field\" != :1)",
+        List.of(getQueryContextAssertEqualsConsumer("test")));
+  }
 
-    @Test
-    void testNeNV()
-    {
-        genericTestExecutor(
-            NEQ,
-            List.of( "NV" ),
-            ValueTypeMapping.STRING,
-            "\"field\" is not null",
-            List.of( getQueryContextAssertEmptyConsumer() ) );
-    }
+  @Test
+  void testNeNV() {
+    genericTestExecutor(
+        NEQ,
+        List.of("NV"),
+        ValueTypeMapping.STRING,
+        "\"field\" is not null",
+        List.of(getQueryContextAssertEmptyConsumer()));
+  }
 
-    @Test
-    void testNotLikeShouldIncludeNull()
-    {
-        genericTestExecutor(
-            NLIKE,
-            List.of( "test" ),
-            ValueTypeMapping.STRING,
-            "(\"field\" is null or \"field\" not like :1)",
-            List.of( getQueryContextAssertEqualsConsumer( "%test%" ) ) );
-    }
+  @Test
+  void testNotLikeShouldIncludeNull() {
+    genericTestExecutor(
+        NLIKE,
+        List.of("test"),
+        ValueTypeMapping.STRING,
+        "(\"field\" is null or \"field\" not like :1)",
+        List.of(getQueryContextAssertEqualsConsumer("%test%")));
+  }
 
-    @Test
-    void testNotLikeNV()
-    {
-        genericTestExecutor(
-            NLIKE,
-            List.of( "NV" ),
-            ValueTypeMapping.STRING,
-            "\"field\" is not null",
-            List.of( getQueryContextAssertEmptyConsumer() ) );
-    }
+  @Test
+  void testNotLikeNV() {
+    genericTestExecutor(
+        NLIKE,
+        List.of("NV"),
+        ValueTypeMapping.STRING,
+        "\"field\" is not null",
+        List.of(getQueryContextAssertEmptyConsumer()));
+  }
 
-    private void genericTestExecutor( QueryOperator operator, List<String> values, ValueTypeMapping valueTypeMapping,
-        String expectedSql,
-        List<Consumer<QueryContext>> queryContextConsumers )
-    {
-        SqlParameterManager sqlParameterManager = new SqlParameterManager();
-        QueryContext queryContext = QueryContext.of( null, sqlParameterManager );
-        String render = BinaryConditionRenderer.of(
-            of( "field" ), operator, values, valueTypeMapping, queryContext )
+  private void genericTestExecutor(
+      QueryOperator operator,
+      List<String> values,
+      ValueTypeMapping valueTypeMapping,
+      String expectedSql,
+      List<Consumer<QueryContext>> queryContextConsumers) {
+    SqlParameterManager sqlParameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
+    String render =
+        BinaryConditionRenderer.of(of("field"), operator, values, valueTypeMapping, queryContext)
             .render();
-        assertEquals( expectedSql, render );
-        queryContextConsumers.forEach(
-            queryContextConsumer -> queryContextConsumer.accept( queryContext ) );
-    }
+    assertEquals(expectedSql, render);
+    queryContextConsumers.forEach(
+        queryContextConsumer -> queryContextConsumer.accept(queryContext));
+  }
 
-    private Consumer<QueryContext> getQueryContextAssertEqualsConsumer( Object expectedValue )
-    {
-        return queryContext -> assertEquals( expectedValue,
-            queryContext.getParametersPlaceHolder().get( "1" ) );
-    }
+  private Consumer<QueryContext> getQueryContextAssertEqualsConsumer(Object expectedValue) {
+    return queryContext ->
+        assertEquals(expectedValue, queryContext.getParametersPlaceHolder().get("1"));
+  }
 
-    private Consumer<QueryContext> getQueryContextAssertEmptyConsumer()
-    {
-        return queryContext -> assertTrue( queryContext.getParametersPlaceHolder().isEmpty() );
-    }
+  private Consumer<QueryContext> getQueryContextAssertEmptyConsumer() {
+    return queryContext -> assertTrue(queryContext.getParametersPlaceHolder().isEmpty());
+  }
 
-    @Test
-    void testUnrecognizedOpThrowsIllegalArgumentException()
-    {
-        SqlParameterManager sqlParameterManager = new SqlParameterManager();
-        QueryContext queryContext = QueryContext.of( null, sqlParameterManager );
-        List<String> values = List.of( "v1", "v2" );
-        BinaryConditionRenderer binaryConditionRenderer = BinaryConditionRenderer.of( of( "field" ),
-            QueryOperator.EW,
-            values, ValueTypeMapping.STRING, queryContext );
-        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
-            binaryConditionRenderer::render );
-        assertEquals( "Operator not supported: `EW`", exception.getMessage() );
-    }
+  @Test
+  void testUnrecognizedOpThrowsIllegalArgumentException() {
+    SqlParameterManager sqlParameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
+    List<String> values = List.of("v1", "v2");
+    BinaryConditionRenderer binaryConditionRenderer =
+        BinaryConditionRenderer.of(
+            of("field"), QueryOperator.EW, values, ValueTypeMapping.STRING, queryContext);
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, binaryConditionRenderer::render);
+    assertEquals("Operator not supported: `EW`", exception.getMessage());
+  }
 }

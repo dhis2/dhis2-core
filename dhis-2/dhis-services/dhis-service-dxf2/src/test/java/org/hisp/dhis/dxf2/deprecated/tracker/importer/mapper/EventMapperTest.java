@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.DataValue;
@@ -45,119 +44,120 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
 
-class EventMapperTest
-{
+class EventMapperTest {
 
-    private final ProgramStageInstanceMapper programStageInstanceMapper;
+  private final ProgramStageInstanceMapper programStageInstanceMapper;
 
-    private org.hisp.dhis.dxf2.deprecated.tracker.event.Event event;
+  private org.hisp.dhis.dxf2.deprecated.tracker.event.Event event;
 
-    private final static String DATA_ELEMENT_UID = "ABC12345678";
+  private static final String DATA_ELEMENT_UID = "ABC12345678";
 
-    private final static String EVENT_UID = "ABC23456789";
+  private static final String EVENT_UID = "ABC23456789";
 
-    EventMapperTest()
-    {
-        this.programStageInstanceMapper = setup( Collections.emptyMap() );
-    }
+  EventMapperTest() {
+    this.programStageInstanceMapper = setup(Collections.emptyMap());
+  }
 
-    ProgramStageInstanceMapper setup( Map<String, Event> programStageInstanceMap )
-    {
-        // Identifiers
-        String dataElementCode = "DE_CODE";
-        String eventUid = "ABC23456789";
+  ProgramStageInstanceMapper setup(Map<String, Event> programStageInstanceMap) {
+    // Identifiers
+    String dataElementCode = "DE_CODE";
+    String eventUid = "ABC23456789";
 
-        // Set up DataElement
-        DataElement de = new DataElement();
-        de.setUid( DATA_ELEMENT_UID );
-        de.setCode( dataElementCode );
+    // Set up DataElement
+    DataElement de = new DataElement();
+    de.setUid(DATA_ELEMENT_UID);
+    de.setCode(dataElementCode);
 
-        // Set up DataValue; identifier is CODE.
-        DataValue dv = new DataValue();
-        dv.setDataElement( de.getCode() );
-        dv.setValue( "VALUE" );
+    // Set up DataValue; identifier is CODE.
+    DataValue dv = new DataValue();
+    dv.setDataElement(de.getCode());
+    dv.setValue("VALUE");
 
-        // Set up Event
-        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = new org.hisp.dhis.dxf2.deprecated.tracker.event.Event();
-        event.setUid( eventUid );
-        event.setEvent( eventUid );
-        event.setDataValues( Set.of( dv ) );
+    // Set up Event
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
+        new org.hisp.dhis.dxf2.deprecated.tracker.event.Event();
+    event.setUid(eventUid);
+    event.setEvent(eventUid);
+    event.setDataValues(Set.of(dv));
 
-        // Prepare WorkContext collections
-        Map<String, DataElement> dataElementMap = new HashMap<>();
-        Map<String, Set<EventDataValue>> dataValuesMap = new HashMap<>();
+    // Prepare WorkContext collections
+    Map<String, DataElement> dataElementMap = new HashMap<>();
+    Map<String, Set<EventDataValue>> dataValuesMap = new HashMap<>();
 
-        // populate dataElementMap. Identifier is CODE, value is the DataElement
-        dataElementMap.put( de.getCode(), de );
+    // populate dataElementMap. Identifier is CODE, value is the DataElement
+    dataElementMap.put(de.getCode(), de);
 
-        // convert DataValues to EventDataValues
-        dataValuesMap.put( event.getUid(), event.getDataValues().stream().map( r -> {
-            EventDataValue edv = new EventDataValue();
-            edv.setDataElement( r.getDataElement() );
-            edv.setValue( r.getValue() );
-            return edv;
-        } ).collect( Collectors.toSet() ) );
+    // convert DataValues to EventDataValues
+    dataValuesMap.put(
+        event.getUid(),
+        event.getDataValues().stream()
+            .map(
+                r -> {
+                  EventDataValue edv = new EventDataValue();
+                  edv.setDataElement(r.getDataElement());
+                  edv.setValue(r.getValue());
+                  return edv;
+                })
+            .collect(Collectors.toSet()));
 
-        this.event = event;
+    this.event = event;
 
-        // Initialize workContext, mapper and event.
-        return new ProgramStageInstanceMapper(
-            getWorkContext( programStageInstanceMap, dataElementMap, dataValuesMap ) );
-    }
+    // Initialize workContext, mapper and event.
+    return new ProgramStageInstanceMapper(
+        getWorkContext(programStageInstanceMap, dataElementMap, dataValuesMap));
+  }
 
-    private static WorkContext getWorkContext( Map<String, Event> programStageInstanceMap,
-        Map<String, DataElement> dataElementMap, Map<String, Set<EventDataValue>> dataValuesMap )
-    {
-        return WorkContext.builder()
-            .dataElementMap( dataElementMap )
-            .programStageInstanceMap( programStageInstanceMap )
-            .programInstanceMap( new HashMap<>() )
-            .programsMap( new HashMap<>() )
-            .organisationUnitMap( new HashMap<>() )
-            .categoryOptionComboMap( new HashMap<>() )
-            .eventDataValueMap( dataValuesMap )
-            .importOptions( ImportOptions.getDefaultImportOptions().setIdScheme( "CODE" ) )
-            .build();
-    }
+  private static WorkContext getWorkContext(
+      Map<String, Event> programStageInstanceMap,
+      Map<String, DataElement> dataElementMap,
+      Map<String, Set<EventDataValue>> dataValuesMap) {
+    return WorkContext.builder()
+        .dataElementMap(dataElementMap)
+        .programStageInstanceMap(programStageInstanceMap)
+        .programInstanceMap(new HashMap<>())
+        .programsMap(new HashMap<>())
+        .organisationUnitMap(new HashMap<>())
+        .categoryOptionComboMap(new HashMap<>())
+        .eventDataValueMap(dataValuesMap)
+        .importOptions(ImportOptions.getDefaultImportOptions().setIdScheme("CODE"))
+        .build();
+  }
 
-    @Test
-    void mapShouldChangeIdentifierFromCodeToUid()
-    {
-        Event psi = programStageInstanceMapper.map( event );
+  @Test
+  void mapShouldChangeIdentifierFromCodeToUid() {
+    Event psi = programStageInstanceMapper.map(event);
 
-        assertTrue(
-            psi.getEventDataValues().stream().anyMatch( dv -> dv.getDataElement().equals( DATA_ELEMENT_UID ) ) );
-    }
+    assertTrue(
+        psi.getEventDataValues().stream()
+            .anyMatch(dv -> dv.getDataElement().equals(DATA_ELEMENT_UID)));
+  }
 
-    @Test
-    void mapShouldUseCreatedAtClientAndLastUpdatedAtClientIfNew()
-    {
-        Event psi = programStageInstanceMapper.map( event );
-        assertEquals( psi.getCreatedAtClient(), DateUtils.parseDate( event.getCreatedAtClient() ) );
-        assertEquals( psi.getLastUpdatedAtClient(), DateUtils.parseDate( event.getLastUpdatedAtClient() ) );
-    }
+  @Test
+  void mapShouldUseCreatedAtClientAndLastUpdatedAtClientIfNew() {
+    Event psi = programStageInstanceMapper.map(event);
+    assertEquals(psi.getCreatedAtClient(), DateUtils.parseDate(event.getCreatedAtClient()));
+    assertEquals(psi.getLastUpdatedAtClient(), DateUtils.parseDate(event.getLastUpdatedAtClient()));
+  }
 
-    @Test
-    void mapShouldNotUseCreatedAtClientIfUpdate()
-    {
-        Event existingPsi = mockProgramStageInstance( EVENT_UID,
-            "2020-01-01T00:00:00.000",
-            "2020-01-02T00:00:00.000" );
+  @Test
+  void mapShouldNotUseCreatedAtClientIfUpdate() {
+    Event existingPsi =
+        mockProgramStageInstance(EVENT_UID, "2020-01-01T00:00:00.000", "2020-01-02T00:00:00.000");
 
-        ProgramStageInstanceMapper tested = setup( Map.of( EVENT_UID, existingPsi ) );
+    ProgramStageInstanceMapper tested = setup(Map.of(EVENT_UID, existingPsi));
 
-        Event psi = tested.map( event );
+    Event psi = tested.map(event);
 
-        assertEquals( psi.getCreatedAtClient(), existingPsi.getCreatedAtClient() );
-        assertEquals( psi.getLastUpdatedAtClient(), DateUtils.parseDate( event.getLastUpdatedAtClient() ) );
-    }
+    assertEquals(psi.getCreatedAtClient(), existingPsi.getCreatedAtClient());
+    assertEquals(psi.getLastUpdatedAtClient(), DateUtils.parseDate(event.getLastUpdatedAtClient()));
+  }
 
-    private Event mockProgramStageInstance( String uid, String createdAtClient, String updatedAtClient )
-    {
-        Event psi = new Event();
-        psi.setUid( uid );
-        psi.setCreatedAtClient( DateUtils.parseDate( createdAtClient ) );
-        psi.setLastUpdatedAtClient( DateUtils.parseDate( updatedAtClient ) );
-        return psi;
-    }
+  private Event mockProgramStageInstance(
+      String uid, String createdAtClient, String updatedAtClient) {
+    Event psi = new Event();
+    psi.setUid(uid);
+    psi.setCreatedAtClient(DateUtils.parseDate(createdAtClient));
+    psi.setLastUpdatedAtClient(DateUtils.parseDate(updatedAtClient));
+    return psi;
+  }
 }

@@ -31,44 +31,37 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.user.User;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CascadeSharingParameters
-{
-    /**
-     * TRUE: do not save anything, just return errors/report if any.
-     * <p>
-     * FALSE: save data if possible.
-     */
-    private boolean dryRun = false;
+public class CascadeSharingParameters {
+  /**
+   * TRUE: do not save anything, just return errors/report if any.
+   *
+   * <p>FALSE: save data if possible.
+   */
+  private boolean dryRun = false;
 
-    /**
-     * TRUE: Cascade Sharing will fail if there is an error
-     * <p>
-     * FALSE: Cascade Sharing will try with best effort and report the
-     * successfully shared objects.
-     */
-    private boolean atomic = false;
+  /**
+   * TRUE: Cascade Sharing will fail if there is an error
+   *
+   * <p>FALSE: Cascade Sharing will try with best effort and report the successfully shared objects.
+   */
+  private boolean atomic = false;
 
-    private User user;
+  private User user;
 
-    /**
-     * Report to be included in the api's response
-     */
-    private CascadeSharingReport report = new CascadeSharingReport();
+  /** Report to be included in the api's response */
+  private CascadeSharingReport report = new CascadeSharingReport();
 
-    public CascadeSharingReport getReport()
-    {
-        if ( report == null )
-        {
-            report = new CascadeSharingReport();
-        }
-
-        return report;
+  public CascadeSharingReport getReport() {
+    if (report == null) {
+      report = new CascadeSharingReport();
     }
+
+    return report;
+  }
 }

@@ -30,6 +30,4 @@ package org.hisp.dhis.query;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface Criterion
-{
-}
+public interface Criterion {}

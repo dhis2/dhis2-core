@@ -27,37 +27,27 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.UserInfoSnapshot;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 @Slf4j
-public class EventUtils
-{
-    private EventUtils()
-    {
-        throw new UnsupportedOperationException( "Utility class" );
-    }
+public class EventUtils {
+  private EventUtils() {
+    throw new UnsupportedOperationException("Utility class");
+  }
 
-    public static UserInfoSnapshot jsonToUserInfo( String userInfoAsString, ObjectMapper mapper )
-    {
-        try
-        {
-            if ( StringUtils.isNotEmpty( userInfoAsString ) )
-            {
-                return mapper.readValue( userInfoAsString, UserInfoSnapshot.class );
-            }
-            return null;
-        }
-        catch ( IOException e )
-        {
-            log.error( "Parsing UserInfoSnapshot json string failed. String value: " + userInfoAsString );
-            throw new IllegalArgumentException( e );
-        }
+  public static UserInfoSnapshot jsonToUserInfo(String userInfoAsString, ObjectMapper mapper) {
+    try {
+      if (StringUtils.isNotEmpty(userInfoAsString)) {
+        return mapper.readValue(userInfoAsString, UserInfoSnapshot.class);
+      }
+      return null;
+    } catch (IOException e) {
+      log.error("Parsing UserInfoSnapshot json string failed. String value: " + userInfoAsString);
+      throw new IllegalArgumentException(e);
     }
+  }
 }

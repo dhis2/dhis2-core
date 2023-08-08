@@ -30,49 +30,43 @@ package org.hisp.dhis.analytics.common.params.dimension;
 import static lombok.AccessLevel.PRIVATE;
 
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.tuple.Triple;
 
 /**
- * This object identifies the structure of dimension item and its associations
- * (program and a program stage).
+ * This object identifies the structure of dimension item and its associations (program and a
+ * program stage).
  */
-@RequiredArgsConstructor( access = PRIVATE )
-public class StringDimensionIdentifier
-{
-    private final Triple<ElementWithOffset<StringUid>, ElementWithOffset<StringUid>, StringUid> triple;
+@RequiredArgsConstructor(access = PRIVATE)
+public class StringDimensionIdentifier {
+  private final Triple<ElementWithOffset<StringUid>, ElementWithOffset<StringUid>, StringUid>
+      triple;
 
-    public static StringDimensionIdentifier of(
-        ElementWithOffset<StringUid> program,
-        ElementWithOffset<StringUid> programStage,
-        StringUid dimension )
-    {
-        return new StringDimensionIdentifier( Triple.of( program, programStage, dimension ) );
-    }
+  public static StringDimensionIdentifier of(
+      ElementWithOffset<StringUid> program,
+      ElementWithOffset<StringUid> programStage,
+      StringUid dimension) {
+    return new StringDimensionIdentifier(Triple.of(program, programStage, dimension));
+  }
 
-    public ElementWithOffset<StringUid> getProgram()
-    {
-        return triple.getLeft();
-    }
+  public ElementWithOffset<StringUid> getProgram() {
+    return triple.getLeft();
+  }
 
-    public ElementWithOffset<StringUid> getProgramStage()
-    {
-        return triple.getMiddle();
-    }
+  public ElementWithOffset<StringUid> getProgramStage() {
+    return triple.getMiddle();
+  }
 
-    public StringUid getDimension()
-    {
-        return triple.getRight();
-    }
+  public StringUid getDimension() {
+    return triple.getRight();
+  }
 
-    /**
-     * Returns this object as a String in its full representation. The returned
-     * value will have the format: programUid.programStageUid.dimensionUid.
-     *
-     * @return the string representing the full dimension.
-     */
-    public String toString()
-    {
-        return DimensionIdentifierHelper.asText( getProgram(), getProgramStage(), getDimension() );
-    }
+  /**
+   * Returns this object as a String in its full representation. The returned value will have the
+   * format: programUid.programStageUid.dimensionUid.
+   *
+   * @return the string representing the full dimension.
+   */
+  public String toString() {
+    return DimensionIdentifierHelper.asText(getProgram(), getProgramStage(), getDimension());
+  }
 }

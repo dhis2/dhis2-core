@@ -30,15 +30,10 @@ package org.hisp.dhis.tracker.imports;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum FlushMode
-{
-    /**
-     * Flush for every db write.
-     */
-    OBJECT,
+public enum FlushMode {
+  /** Flush for every db write. */
+  OBJECT,
 
-    /**
-     * Let the importer decide the flushing.
-     */
-    AUTO,
+  /** Let the importer decide the flushing. */
+  AUTO,
 }

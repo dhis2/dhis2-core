@@ -33,7 +33,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.EventParams;
@@ -46,141 +45,145 @@ import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- *
- * @deprecated this is a class related to "old" (deprecated) tracker which will
- *             be removed with "old" tracker. Make sure to plan migrating to new
- *             tracker.
+ * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
+ *     "old" tracker. Make sure to plan migrating to new tracker.
  */
-@Deprecated( since = "2.41" )
-public interface EventService
-{
-    // -------------------------------------------------------------------------
-    // READ
-    // -------------------------------------------------------------------------
+@Deprecated(since = "2.41")
+public interface EventService {
+  // -------------------------------------------------------------------------
+  // READ
+  // -------------------------------------------------------------------------
 
-    Events getEvents( EventSearchParams params );
+  Events getEvents(EventSearchParams params);
 
-    EventRows getEventRows( EventSearchParams params );
+  EventRows getEventRows(EventSearchParams params);
 
-    Grid getEventsGrid( EventSearchParams params );
+  Grid getEventsGrid(EventSearchParams params);
 
-    org.hisp.dhis.dxf2.deprecated.tracker.event.Event getEvent( Event event, EventParams eventParams );
+  org.hisp.dhis.dxf2.deprecated.tracker.event.Event getEvent(Event event, EventParams eventParams);
 
-    org.hisp.dhis.dxf2.deprecated.tracker.event.Event getEvent( Event event, boolean isSynchronizationQuery,
-        boolean skipOwnershipCheck, EventParams eventParams );
+  org.hisp.dhis.dxf2.deprecated.tracker.event.Event getEvent(
+      Event event,
+      boolean isSynchronizationQuery,
+      boolean skipOwnershipCheck,
+      EventParams eventParams);
 
-    // TODO remove these 2 methods and move the logic to the front-end
-    List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> getEventsXml( InputStream inputStream )
-        throws IOException;
+  // TODO remove these 2 methods and move the logic to the front-end
+  List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> getEventsXml(InputStream inputStream)
+      throws IOException;
 
-    List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> getEventsJson( InputStream inputStream )
-        throws IOException;
+  List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> getEventsJson(InputStream inputStream)
+      throws IOException;
 
-    /**
-     * Returns the count of anonymous event that are ready for synchronization
-     * (lastUpdated > lastSynchronized)
-     *
-     * @param skipChangedBefore the point in time specifying which events will
-     *        be synchronized and which not
-     * @return the count of anonymous event that are ready for synchronization
-     *         (lastUpdated > lastSynchronized)
-     */
-    int getAnonymousEventReadyForSynchronizationCount( Date skipChangedBefore );
+  /**
+   * Returns the count of anonymous event that are ready for synchronization (lastUpdated >
+   * lastSynchronized)
+   *
+   * @param skipChangedBefore the point in time specifying which events will be synchronized and
+   *     which not
+   * @return the count of anonymous event that are ready for synchronization (lastUpdated >
+   *     lastSynchronized)
+   */
+  int getAnonymousEventReadyForSynchronizationCount(Date skipChangedBefore);
 
-    /**
-     * Returns the anonymous events that are supposed to be synchronized
-     * (lastUpdated > lastSynchronized)
-     *
-     * @param pageSize Specifies the max number for the events returned.
-     * @param skipChangedBefore the point in time specifying which events will
-     *        be synchronized and which not
-     * @param psdesWithSkipSyncTrue Holds information about PSDEs for which the
-     *        data should not be synchronized
-     * @return the anonymous events that are supposed to be synchronized
-     *         (lastUpdated > lastSynchronized)
-     */
-    Events getAnonymousEventsForSync( int pageSize, Date skipChangedBefore,
-        Map<String, Set<String>> psdesWithSkipSyncTrue );
+  /**
+   * Returns the anonymous events that are supposed to be synchronized (lastUpdated >
+   * lastSynchronized)
+   *
+   * @param pageSize Specifies the max number for the events returned.
+   * @param skipChangedBefore the point in time specifying which events will be synchronized and
+   *     which not
+   * @param psdesWithSkipSyncTrue Holds information about PSDEs for which the data should not be
+   *     synchronized
+   * @return the anonymous events that are supposed to be synchronized (lastUpdated >
+   *     lastSynchronized)
+   */
+  Events getAnonymousEventsForSync(
+      int pageSize, Date skipChangedBefore, Map<String, Set<String>> psdesWithSkipSyncTrue);
 
-    // -------------------------------------------------------------------------
-    // CREATE
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // CREATE
+  // -------------------------------------------------------------------------
 
-    ImportSummary addEvent( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, ImportOptions importOptions,
-        boolean bulkImport );
+  ImportSummary addEvent(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,
+      ImportOptions importOptions,
+      boolean bulkImport);
 
-    ImportSummaries addEvents( List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events,
-        ImportOptions importOptions,
-        boolean clearSession );
+  ImportSummaries addEvents(
+      List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events,
+      ImportOptions importOptions,
+      boolean clearSession);
 
-    ImportSummaries addEvents( List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events,
-        ImportOptions importOptions,
-        JobConfiguration jobId );
+  ImportSummaries addEvents(
+      List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events,
+      ImportOptions importOptions,
+      JobConfiguration jobId);
 
-    ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions )
-        throws IOException;
+  ImportSummaries addEventsXml(InputStream inputStream, ImportOptions importOptions)
+      throws IOException;
 
-    ImportSummaries addEventsJson( InputStream inputStream, ImportOptions importOptions )
-        throws IOException;
+  ImportSummaries addEventsJson(InputStream inputStream, ImportOptions importOptions)
+      throws IOException;
 
-    // -------------------------------------------------------------------------
-    // UPDATE
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // UPDATE
+  // -------------------------------------------------------------------------
 
-    /**
-     * Update an existing Program Stage Instance with the data from the Event
-     * object
-     *
-     * @param event an Event
-     * @param singleValue if true, skip the Data Value mandatory check
-     *        validation and allow the client to send only Data Values that it
-     *        wishes to update
-     * @param importOptions the Import Options
-     * @param bulkUpdate TODO this can be removed
-     * @return an {@see ImportSummary} containing the outcome of the operation
-     */
-    ImportSummary updateEvent( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, boolean singleValue,
-        ImportOptions importOptions, boolean bulkUpdate );
+  /**
+   * Update an existing Program Stage Instance with the data from the Event object
+   *
+   * @param event an Event
+   * @param singleValue if true, skip the Data Value mandatory check validation and allow the client
+   *     to send only Data Values that it wishes to update
+   * @param importOptions the Import Options
+   * @param bulkUpdate TODO this can be removed
+   * @return an {@see ImportSummary} containing the outcome of the operation
+   */
+  ImportSummary updateEvent(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,
+      boolean singleValue,
+      ImportOptions importOptions,
+      boolean bulkUpdate);
 
-    /**
-     *
-     * @param events a List of Events to update
-     * @param importOptions the Import Options
-     * @param singleValue if true, skip the Data Value mandatory check
-     *        validation and allow the client to send only Data Values that it
-     *        wishes to update
-     * @param clearSession TODO this can be removed
-     * @return an {@see ImportSummary} containing the outcome of the operation
-     */
-    ImportSummaries updateEvents( List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events,
-        ImportOptions importOptions,
-        boolean singleValue,
-        boolean clearSession );
+  /**
+   * @param events a List of Events to update
+   * @param importOptions the Import Options
+   * @param singleValue if true, skip the Data Value mandatory check validation and allow the client
+   *     to send only Data Values that it wishes to update
+   * @param clearSession TODO this can be removed
+   * @return an {@see ImportSummary} containing the outcome of the operation
+   */
+  ImportSummaries updateEvents(
+      List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events,
+      ImportOptions importOptions,
+      boolean singleValue,
+      boolean clearSession);
 
-    void updateEventForNote( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event );
+  void updateEventForNote(org.hisp.dhis.dxf2.deprecated.tracker.event.Event event);
 
-    void updateEventForEventDate( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event );
+  void updateEventForEventDate(org.hisp.dhis.dxf2.deprecated.tracker.event.Event event);
 
-    /**
-     * Updates a last sync timestamp on specified Events
-     *
-     * @param eventsUIDs UIDs of Events where the lastSynchronized flag should
-     *        be updated
-     * @param lastSynchronized The date of last successful sync
-     */
-    void updateEventsSyncTimestamp( List<String> eventsUIDs, Date lastSynchronized );
+  /**
+   * Updates a last sync timestamp on specified Events
+   *
+   * @param eventsUIDs UIDs of Events where the lastSynchronized flag should be updated
+   * @param lastSynchronized The date of last successful sync
+   */
+  void updateEventsSyncTimestamp(List<String> eventsUIDs, Date lastSynchronized);
 
-    ImportSummaries processEventImport( List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events,
-        ImportOptions importOptions,
-        JobConfiguration jobId );
+  ImportSummaries processEventImport(
+      List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events,
+      ImportOptions importOptions,
+      JobConfiguration jobId);
 
-    // -------------------------------------------------------------------------
-    // DELETE
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DELETE
+  // -------------------------------------------------------------------------
 
-    ImportSummary deleteEvent( String uid );
+  ImportSummary deleteEvent(String uid);
 
-    ImportSummaries deleteEvents( List<String> uids, boolean clearSession );
+  ImportSummaries deleteEvents(List<String> uids, boolean clearSession);
 
-    void validate( EventSearchParams params, User user );
+  void validate(EventSearchParams params, User user);
 }

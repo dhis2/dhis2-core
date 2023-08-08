@@ -29,20 +29,17 @@ package org.hisp.dhis.programrule;
 
 import lombok.Builder;
 import lombok.Data;
-
 import org.hisp.dhis.feedback.ErrorReport;
 
 /**
  * @author Zubair Asghar
  */
-
 @Data
 @Builder
-public class ProgramRuleActionValidationResult
-{
-    private String description;
+public class ProgramRuleActionValidationResult {
+  private String description;
 
-    private boolean valid;
+  private boolean valid;
 
-    private ErrorReport errorReport;
+  private ErrorReport errorReport;
 }

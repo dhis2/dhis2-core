@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.QueryItemHelper;
@@ -61,321 +60,323 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Dusan Bernat
  */
-class QueryItemHelperTest extends DhisConvenienceTest
-{
-    private String UID_A = CodeGenerator.generateUid();
-
-    private String UID_B = CodeGenerator.generateUid();
-
-    private String OPTION_NAME_A = "OptionA";
-
-    private String OPTION_NAME_B = "OptionB";
-
-    private String LEGEND_NAME_A = "LegendA";
-
-    private String LEGEND_NAME_B = "LegendB";
-
-    private String LEGEND_CODE_A = "LegendCodeA";
-
-    private String LEGEND_CODE_B = "LegendCodeB";
-
-    @Test
-    void testGeItemOptionValueWithIdSchemeNAME()
-    {
-        Option opA = createOption( 'A' );
-        Option opB = createOption( 'B' );
-        opA.setUid( UID_A );
-        opB.setUid( UID_B );
-        OptionSet os = createOptionSet( 'A', opA, opB );
-        QueryItem queryItem = new QueryItem( null, null, null, null, os );
-        EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem )
-            .withOutputIdScheme( IdScheme.NAME ).build();
-
-        String optionValueA = QueryItemHelper.getItemOptionValue( OPTION_NAME_A, params );
-        String optionValueB = QueryItemHelper.getItemOptionValue( OPTION_NAME_B, params );
-
-        assertEquals( OPTION_NAME_A, optionValueA );
-        assertEquals( OPTION_NAME_B, optionValueB );
-    }
-
-    @Test
-    void testGeItemOptionValueWithIdSchemeUID()
-    {
-        Option opA = createOption( 'A' );
-        Option opB = createOption( 'B' );
-        opA.setUid( UID_A );
-        opB.setUid( UID_B );
-        OptionSet os = createOptionSet( 'A', opA, opB );
-        QueryItem queryItem = new QueryItem( null, null, null, null, os );
-        EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem ).withOutputIdScheme( IdScheme.UID )
-            .build();
-
-        String optionValueA = QueryItemHelper.getItemOptionValue( OPTION_NAME_A, params );
-        String optionValueB = QueryItemHelper.getItemOptionValue( OPTION_NAME_B, params );
-
-        assertEquals( UID_A, optionValueA );
-        assertEquals( UID_B, optionValueB );
-    }
-
-    @Test
-    void testGeItemOptionValueWithIdSchemeCODE()
-    {
-        Option opA = createOption( 'A' );
-        Option opB = createOption( 'B' );
-        opA.setUid( UID_A );
-        opB.setUid( UID_B );
-        OptionSet os = createOptionSet( 'A', opA, opB );
-        QueryItem queryItem = new QueryItem( null, null, null, null, os );
-        EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem )
-            .withOutputIdScheme( IdScheme.CODE )
-            .build();
-
-        String optionValueA = QueryItemHelper.getItemOptionValue( OPTION_NAME_A, params );
-        String optionValueB = QueryItemHelper.getItemOptionValue( OPTION_NAME_B, params );
-
-        assertEquals( "OptionCodeA", optionValueA );
-        assertEquals( "OptionCodeB", optionValueB );
-    }
-
-    @Test
-    void testGeItemLegendValueWithIdSchemeNAME()
-    {
-        Legend lpA = createLegend( 'A', 0.0, 1.0 );
-        lpA.setCode( LEGEND_CODE_A );
-        Legend lpB = createLegend( 'B', 0.0, 1.0 );
-        lpB.setCode( LEGEND_CODE_B );
-        lpA.setUid( UID_A );
-        lpB.setUid( UID_B );
-        LegendSet ls = createLegendSet( 'A', lpA, lpB );
-
-        QueryItem queryItem = new QueryItem( null, ls, null, null, null );
-        EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem )
-            .withOutputIdScheme( IdScheme.NAME ).build();
-
-        String legendValueA = QueryItemHelper.getItemLegendValue( LEGEND_NAME_A, params );
-        String legendValueB = QueryItemHelper.getItemLegendValue( LEGEND_NAME_B, params );
-
-        assertEquals( LEGEND_NAME_A, legendValueA );
-        assertEquals( LEGEND_NAME_B, legendValueB );
-    }
-
-    @Test
-    void testGeItemLegendValueWithIdSchemeUID()
-    {
-        Legend lpA = createLegend( 'A', 0.0, 1.0 );
-        lpA.setCode( LEGEND_CODE_A );
-        Legend lpB = createLegend( 'B', 0.0, 1.0 );
-        lpB.setCode( LEGEND_CODE_B );
-        lpA.setUid( UID_A );
-        lpB.setUid( UID_B );
-        LegendSet ls = createLegendSet( 'A', lpA, lpB );
-        QueryItem queryItem = new QueryItem( null, ls, null, null, null );
-        EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem ).withOutputIdScheme( IdScheme.UID )
-            .build();
-
-        String legendValueA = QueryItemHelper.getItemLegendValue( LEGEND_NAME_A, params );
-        String legendValueB = QueryItemHelper.getItemLegendValue( LEGEND_NAME_B, params );
-
-        assertEquals( UID_A, legendValueA );
-        assertEquals( UID_B, legendValueB );
-    }
-
-    @Test
-    void testGeItemLegendValueWithIdSchemeCODE()
-    {
-        Legend lpA = createLegend( 'A', 0.0, 1.0 );
-        lpA.setCode( LEGEND_CODE_A );
-        Legend lpB = createLegend( 'B', 0.0, 1.0 );
-        lpB.setCode( LEGEND_CODE_B );
-        lpA.setUid( UID_A );
-        lpB.setUid( UID_B );
-        LegendSet ls = createLegendSet( 'A', lpA, lpB );
-
-        QueryItem queryItem = new QueryItem( null, ls, null, null, null );
-        EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem )
-            .withOutputIdScheme( IdScheme.CODE ).build();
-
-        String legendValueA = QueryItemHelper.getItemLegendValue( LEGEND_NAME_A, params );
-        String legendValueB = QueryItemHelper.getItemLegendValue( LEGEND_NAME_B, params );
-
-        assertEquals( LEGEND_CODE_A, legendValueA );
-        assertEquals( LEGEND_CODE_B, legendValueB );
-    }
-
-    @Test
-    void testGetItemOptionsThatAreReferencedByQueryItems()
-    {
-        Option option1 = new Option( "Opt-A", "Code-A" );
-        Option option2 = new Option( "Opt-B", "Code-B" );
-        Option option3 = new Option( "Opt-C", "Code-C" );
-        OptionSet optionSet = createOptionSet( 'A', option1, option2, option3 );
-
-        Set<Option> options = Set.of( option1, option2, option3 );
-        List<QueryItem> queryItems = new ArrayList<>();
-
-        QueryItem queryItem = new QueryItem( null, null, null, null, optionSet );
-        queryItem.addFilter( new QueryFilter( IN, "Code-A;Code-B" ) );
-        queryItems.add( queryItem );
-
-        Set<Option> actualOptions = QueryItemHelper.getItemOptionsAsFilter( options, queryItems );
-
-        assertEquals( 2, actualOptions.size(), "Should have size of 2: actualOptions" );
-    }
-
-    @Test
-    void testGetItemOptionsThatAreReferencedByQueryItemsDifferentCases()
-    {
-        Option option1 = new Option( "Opt-A", "Code-A" );
-        Option option2 = new Option( "Opt-B", "Code-B" );
-        Option option3 = new Option( "Opt-C", "Code-C" );
-        OptionSet optionSet = createOptionSet( 'A', option1, option2, option3 );
-
-        Set<Option> options = Set.of( option1, option2, option3 );
-        List<QueryItem> queryItems = new ArrayList<>();
-
-        QueryItem queryItem = new QueryItem( null, null, null, null, optionSet );
-        queryItem.addFilter( new QueryFilter( IN, "CODE-A;CODE-C" ) );
-        queryItems.add( queryItem );
-
-        Set<Option> actualOptions = QueryItemHelper.getItemOptionsAsFilter( options, queryItems );
-
-        // Then
-        assertEquals( 2, actualOptions.size(), "Should have size of 2: actualOptions" );
-    }
-
-    @Test
-    void testGetItemOptionsThatHaveNoFilters()
-    {
-        Option option1 = new Option( "Opt-A", "Code-A" );
-        Option option2 = new Option( "Opt-B", "Code-B" );
-        Option option3 = new Option( "Opt-C", "Code-C" );
-        OptionSet optionSet = createOptionSet( 'A', option1, option2, option3 );
-
-        Set<Option> options = Set.of( option1, option2, option3 );
-        QueryItem queryItem = new QueryItem( null, null, null, null, optionSet );
-        List<QueryItem> queryItems = new ArrayList<>();
-        queryItems.add( queryItem );
-
-        Set<Option> actualOptions = QueryItemHelper.getItemOptionsAsFilter( options, queryItems );
-
-        assertEquals( 0, actualOptions.size(), "Should have size of 0: actualOptions" );
-    }
-
-    @Test
-    void testGetItemOptionsWhenRowsArePresent()
-    {
-        Option option = new Option( "Opt-A", "Code-A" );
-        OptionSet optionSet = createOptionSet( 'A', option );
-
-        Grid grid = stubGridWithRowsAndOptionSet( optionSet );
-        QueryItem queryItem = new QueryItem( null, null, null, null, optionSet );
-        queryItem.addFilter( new QueryFilter( IN, "Code-A" ) );
-
-        EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem ).build();
-        params.getItems().add( queryItem );
-
-        Map<String, List<Option>> options = QueryItemHelper.getItemOptions( grid, params.getItems() );
-
-        assertTrue(
-            options.values().stream().flatMap( Collection::stream ).collect( Collectors.toList() ).contains( option ) );
-    }
-
-    @Test
-    void testGetItemOptionsWhenRowsAreEmpty()
-    {
-        Option option = new Option( "Opt-A", "Code-A" );
-        OptionSet optionSet = createOptionSet( 'A', option );
-
-        Grid grid = stubGridWithEmptyRowsAndOptionSet( optionSet );
-        QueryItem queryItem = new QueryItem( null, null, null, null, optionSet );
-        queryItem.addFilter( new QueryFilter( IN, "Code-A" ) );
-
-        EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem ).build();
-        params.getItems().add( queryItem );
-
-        Map<String, List<Option>> options = QueryItemHelper.getItemOptions( grid, params.getItems() );
-
-        assertTrue( options.values().stream()
-            .flatMap( Collection::stream )
-            .collect( Collectors.toList() )
-            .contains( option ) );
-    }
-
-    @Test
-    void testisItemOptionEqualToRowContentForText()
-    {
-        assertTrue( QueryItemHelper.isItemOptionEqualToRowContent( "abc", "AbC" ) );
-    }
-
-    @Test
-    void testisItemOptionEqualToRowContentForDouble()
-    {
-        assertTrue( QueryItemHelper.isItemOptionEqualToRowContent( "1.0", Double.parseDouble( "1.0" ) ) );
-    }
-
-    @Test
-    void testisItemOptionEqualToRowContentForInteger()
-    {
-        assertTrue( QueryItemHelper.isItemOptionEqualToRowContent( "1", Integer.parseInt( "1" ) ) );
-    }
-
-    @Test
-    void testisItemOptionEqualToRowContentForBoolean()
-    {
-        assertTrue( QueryItemHelper.isItemOptionEqualToRowContent( "TruE", Boolean.parseBoolean( "true" ) ) );
-    }
-
-    @Test
-    void testisItemOptionEqualToRowContentForLocalDate()
-    {
-        LocalDate localDate = LocalDate.now();
-
-        assertTrue( QueryItemHelper.isItemOptionEqualToRowContent( localDate.toString(), localDate ) );
-    }
-
-    @Test
-    void testisItemOptionEqualToRowContentForLocalDateTime()
-    {
-        LocalDateTime localDateTime = LocalDateTime.now();
-
-        assertTrue( QueryItemHelper.isItemOptionEqualToRowContent( localDateTime.toString(), localDateTime ) );
-    }
-
-    private Grid stubGridWithRowsAndOptionSet( OptionSet optionSet )
-    {
-        Grid grid = new ListGrid();
-        GridHeader headerA = new GridHeader( "ColA", "colA", ValueType.TEXT, false, true,
-            optionSet, null, "programStage", new RepeatableStageParams() );
-        GridHeader headerB = new GridHeader( "ColB", "colB", ValueType.TEXT, false, true );
-
-        grid.addHeader( headerA );
-        grid.addHeader( headerB );
-        grid.addRow();
-        grid.addValue( "Code-A" );
-        grid.addValue( 11 );
-        grid.addRow();
-        grid.addValue( 21 );
-        grid.addValue( 22 );
-        grid.addRow();
-        grid.addValue( 31 );
-        grid.addValue( 32 );
-        grid.addRow();
-        grid.addValue( 41 );
-        grid.addValue( 42 );
-
-        return grid;
-    }
-
-    private Grid stubGridWithEmptyRowsAndOptionSet( OptionSet optionSet )
-    {
-        Grid grid = new ListGrid();
-        GridHeader headerA = new GridHeader( "ColA", "colA", ValueType.TEXT, false, true,
-            optionSet, null, "programStage", new RepeatableStageParams() );
-        GridHeader headerB = new GridHeader( "ColB", "colB", ValueType.TEXT, false, true );
-
-        grid.addHeader( headerA );
-        grid.addHeader( headerB );
-
-        return grid;
-    }
+class QueryItemHelperTest extends DhisConvenienceTest {
+  private String UID_A = CodeGenerator.generateUid();
+
+  private String UID_B = CodeGenerator.generateUid();
+
+  private String OPTION_NAME_A = "OptionA";
+
+  private String OPTION_NAME_B = "OptionB";
+
+  private String LEGEND_NAME_A = "LegendA";
+
+  private String LEGEND_NAME_B = "LegendB";
+
+  private String LEGEND_CODE_A = "LegendCodeA";
+
+  private String LEGEND_CODE_B = "LegendCodeB";
+
+  @Test
+  void testGeItemOptionValueWithIdSchemeNAME() {
+    Option opA = createOption('A');
+    Option opB = createOption('B');
+    opA.setUid(UID_A);
+    opB.setUid(UID_B);
+    OptionSet os = createOptionSet('A', opA, opB);
+    QueryItem queryItem = new QueryItem(null, null, null, null, os);
+    EventQueryParams params =
+        new EventQueryParams.Builder().addItem(queryItem).withOutputIdScheme(IdScheme.NAME).build();
+
+    String optionValueA = QueryItemHelper.getItemOptionValue(OPTION_NAME_A, params);
+    String optionValueB = QueryItemHelper.getItemOptionValue(OPTION_NAME_B, params);
+
+    assertEquals(OPTION_NAME_A, optionValueA);
+    assertEquals(OPTION_NAME_B, optionValueB);
+  }
+
+  @Test
+  void testGeItemOptionValueWithIdSchemeUID() {
+    Option opA = createOption('A');
+    Option opB = createOption('B');
+    opA.setUid(UID_A);
+    opB.setUid(UID_B);
+    OptionSet os = createOptionSet('A', opA, opB);
+    QueryItem queryItem = new QueryItem(null, null, null, null, os);
+    EventQueryParams params =
+        new EventQueryParams.Builder().addItem(queryItem).withOutputIdScheme(IdScheme.UID).build();
+
+    String optionValueA = QueryItemHelper.getItemOptionValue(OPTION_NAME_A, params);
+    String optionValueB = QueryItemHelper.getItemOptionValue(OPTION_NAME_B, params);
+
+    assertEquals(UID_A, optionValueA);
+    assertEquals(UID_B, optionValueB);
+  }
+
+  @Test
+  void testGeItemOptionValueWithIdSchemeCODE() {
+    Option opA = createOption('A');
+    Option opB = createOption('B');
+    opA.setUid(UID_A);
+    opB.setUid(UID_B);
+    OptionSet os = createOptionSet('A', opA, opB);
+    QueryItem queryItem = new QueryItem(null, null, null, null, os);
+    EventQueryParams params =
+        new EventQueryParams.Builder().addItem(queryItem).withOutputIdScheme(IdScheme.CODE).build();
+
+    String optionValueA = QueryItemHelper.getItemOptionValue(OPTION_NAME_A, params);
+    String optionValueB = QueryItemHelper.getItemOptionValue(OPTION_NAME_B, params);
+
+    assertEquals("OptionCodeA", optionValueA);
+    assertEquals("OptionCodeB", optionValueB);
+  }
+
+  @Test
+  void testGeItemLegendValueWithIdSchemeNAME() {
+    Legend lpA = createLegend('A', 0.0, 1.0);
+    lpA.setCode(LEGEND_CODE_A);
+    Legend lpB = createLegend('B', 0.0, 1.0);
+    lpB.setCode(LEGEND_CODE_B);
+    lpA.setUid(UID_A);
+    lpB.setUid(UID_B);
+    LegendSet ls = createLegendSet('A', lpA, lpB);
+
+    QueryItem queryItem = new QueryItem(null, ls, null, null, null);
+    EventQueryParams params =
+        new EventQueryParams.Builder().addItem(queryItem).withOutputIdScheme(IdScheme.NAME).build();
+
+    String legendValueA = QueryItemHelper.getItemLegendValue(LEGEND_NAME_A, params);
+    String legendValueB = QueryItemHelper.getItemLegendValue(LEGEND_NAME_B, params);
+
+    assertEquals(LEGEND_NAME_A, legendValueA);
+    assertEquals(LEGEND_NAME_B, legendValueB);
+  }
+
+  @Test
+  void testGeItemLegendValueWithIdSchemeUID() {
+    Legend lpA = createLegend('A', 0.0, 1.0);
+    lpA.setCode(LEGEND_CODE_A);
+    Legend lpB = createLegend('B', 0.0, 1.0);
+    lpB.setCode(LEGEND_CODE_B);
+    lpA.setUid(UID_A);
+    lpB.setUid(UID_B);
+    LegendSet ls = createLegendSet('A', lpA, lpB);
+    QueryItem queryItem = new QueryItem(null, ls, null, null, null);
+    EventQueryParams params =
+        new EventQueryParams.Builder().addItem(queryItem).withOutputIdScheme(IdScheme.UID).build();
+
+    String legendValueA = QueryItemHelper.getItemLegendValue(LEGEND_NAME_A, params);
+    String legendValueB = QueryItemHelper.getItemLegendValue(LEGEND_NAME_B, params);
+
+    assertEquals(UID_A, legendValueA);
+    assertEquals(UID_B, legendValueB);
+  }
+
+  @Test
+  void testGeItemLegendValueWithIdSchemeCODE() {
+    Legend lpA = createLegend('A', 0.0, 1.0);
+    lpA.setCode(LEGEND_CODE_A);
+    Legend lpB = createLegend('B', 0.0, 1.0);
+    lpB.setCode(LEGEND_CODE_B);
+    lpA.setUid(UID_A);
+    lpB.setUid(UID_B);
+    LegendSet ls = createLegendSet('A', lpA, lpB);
+
+    QueryItem queryItem = new QueryItem(null, ls, null, null, null);
+    EventQueryParams params =
+        new EventQueryParams.Builder().addItem(queryItem).withOutputIdScheme(IdScheme.CODE).build();
+
+    String legendValueA = QueryItemHelper.getItemLegendValue(LEGEND_NAME_A, params);
+    String legendValueB = QueryItemHelper.getItemLegendValue(LEGEND_NAME_B, params);
+
+    assertEquals(LEGEND_CODE_A, legendValueA);
+    assertEquals(LEGEND_CODE_B, legendValueB);
+  }
+
+  @Test
+  void testGetItemOptionsThatAreReferencedByQueryItems() {
+    Option option1 = new Option("Opt-A", "Code-A");
+    Option option2 = new Option("Opt-B", "Code-B");
+    Option option3 = new Option("Opt-C", "Code-C");
+    OptionSet optionSet = createOptionSet('A', option1, option2, option3);
+
+    Set<Option> options = Set.of(option1, option2, option3);
+    List<QueryItem> queryItems = new ArrayList<>();
+
+    QueryItem queryItem = new QueryItem(null, null, null, null, optionSet);
+    queryItem.addFilter(new QueryFilter(IN, "Code-A;Code-B"));
+    queryItems.add(queryItem);
+
+    Set<Option> actualOptions = QueryItemHelper.getItemOptionsAsFilter(options, queryItems);
+
+    assertEquals(2, actualOptions.size(), "Should have size of 2: actualOptions");
+  }
+
+  @Test
+  void testGetItemOptionsThatAreReferencedByQueryItemsDifferentCases() {
+    Option option1 = new Option("Opt-A", "Code-A");
+    Option option2 = new Option("Opt-B", "Code-B");
+    Option option3 = new Option("Opt-C", "Code-C");
+    OptionSet optionSet = createOptionSet('A', option1, option2, option3);
+
+    Set<Option> options = Set.of(option1, option2, option3);
+    List<QueryItem> queryItems = new ArrayList<>();
+
+    QueryItem queryItem = new QueryItem(null, null, null, null, optionSet);
+    queryItem.addFilter(new QueryFilter(IN, "CODE-A;CODE-C"));
+    queryItems.add(queryItem);
+
+    Set<Option> actualOptions = QueryItemHelper.getItemOptionsAsFilter(options, queryItems);
+
+    // Then
+    assertEquals(2, actualOptions.size(), "Should have size of 2: actualOptions");
+  }
+
+  @Test
+  void testGetItemOptionsThatHaveNoFilters() {
+    Option option1 = new Option("Opt-A", "Code-A");
+    Option option2 = new Option("Opt-B", "Code-B");
+    Option option3 = new Option("Opt-C", "Code-C");
+    OptionSet optionSet = createOptionSet('A', option1, option2, option3);
+
+    Set<Option> options = Set.of(option1, option2, option3);
+    QueryItem queryItem = new QueryItem(null, null, null, null, optionSet);
+    List<QueryItem> queryItems = new ArrayList<>();
+    queryItems.add(queryItem);
+
+    Set<Option> actualOptions = QueryItemHelper.getItemOptionsAsFilter(options, queryItems);
+
+    assertEquals(0, actualOptions.size(), "Should have size of 0: actualOptions");
+  }
+
+  @Test
+  void testGetItemOptionsWhenRowsArePresent() {
+    Option option = new Option("Opt-A", "Code-A");
+    OptionSet optionSet = createOptionSet('A', option);
+
+    Grid grid = stubGridWithRowsAndOptionSet(optionSet);
+    QueryItem queryItem = new QueryItem(null, null, null, null, optionSet);
+    queryItem.addFilter(new QueryFilter(IN, "Code-A"));
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(queryItem).build();
+    params.getItems().add(queryItem);
+
+    Map<String, List<Option>> options = QueryItemHelper.getItemOptions(grid, params.getItems());
+
+    assertTrue(
+        options.values().stream()
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList())
+            .contains(option));
+  }
+
+  @Test
+  void testGetItemOptionsWhenRowsAreEmpty() {
+    Option option = new Option("Opt-A", "Code-A");
+    OptionSet optionSet = createOptionSet('A', option);
+
+    Grid grid = stubGridWithEmptyRowsAndOptionSet(optionSet);
+    QueryItem queryItem = new QueryItem(null, null, null, null, optionSet);
+    queryItem.addFilter(new QueryFilter(IN, "Code-A"));
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(queryItem).build();
+    params.getItems().add(queryItem);
+
+    Map<String, List<Option>> options = QueryItemHelper.getItemOptions(grid, params.getItems());
+
+    assertTrue(
+        options.values().stream()
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList())
+            .contains(option));
+  }
+
+  @Test
+  void testisItemOptionEqualToRowContentForText() {
+    assertTrue(QueryItemHelper.isItemOptionEqualToRowContent("abc", "AbC"));
+  }
+
+  @Test
+  void testisItemOptionEqualToRowContentForDouble() {
+    assertTrue(QueryItemHelper.isItemOptionEqualToRowContent("1.0", Double.parseDouble("1.0")));
+  }
+
+  @Test
+  void testisItemOptionEqualToRowContentForInteger() {
+    assertTrue(QueryItemHelper.isItemOptionEqualToRowContent("1", Integer.parseInt("1")));
+  }
+
+  @Test
+  void testisItemOptionEqualToRowContentForBoolean() {
+    assertTrue(QueryItemHelper.isItemOptionEqualToRowContent("TruE", Boolean.parseBoolean("true")));
+  }
+
+  @Test
+  void testisItemOptionEqualToRowContentForLocalDate() {
+    LocalDate localDate = LocalDate.now();
+
+    assertTrue(QueryItemHelper.isItemOptionEqualToRowContent(localDate.toString(), localDate));
+  }
+
+  @Test
+  void testisItemOptionEqualToRowContentForLocalDateTime() {
+    LocalDateTime localDateTime = LocalDateTime.now();
+
+    assertTrue(
+        QueryItemHelper.isItemOptionEqualToRowContent(localDateTime.toString(), localDateTime));
+  }
+
+  private Grid stubGridWithRowsAndOptionSet(OptionSet optionSet) {
+    Grid grid = new ListGrid();
+    GridHeader headerA =
+        new GridHeader(
+            "ColA",
+            "colA",
+            ValueType.TEXT,
+            false,
+            true,
+            optionSet,
+            null,
+            "programStage",
+            new RepeatableStageParams());
+    GridHeader headerB = new GridHeader("ColB", "colB", ValueType.TEXT, false, true);
+
+    grid.addHeader(headerA);
+    grid.addHeader(headerB);
+    grid.addRow();
+    grid.addValue("Code-A");
+    grid.addValue(11);
+    grid.addRow();
+    grid.addValue(21);
+    grid.addValue(22);
+    grid.addRow();
+    grid.addValue(31);
+    grid.addValue(32);
+    grid.addRow();
+    grid.addValue(41);
+    grid.addValue(42);
+
+    return grid;
+  }
+
+  private Grid stubGridWithEmptyRowsAndOptionSet(OptionSet optionSet) {
+    Grid grid = new ListGrid();
+    GridHeader headerA =
+        new GridHeader(
+            "ColA",
+            "colA",
+            ValueType.TEXT,
+            false,
+            true,
+            optionSet,
+            null,
+            "programStage",
+            new RepeatableStageParams());
+    GridHeader headerB = new GridHeader("ColB", "colB", ValueType.TEXT, false, true);
+
+    grid.addHeader(headerA);
+    grid.addHeader(headerB);
+
+    return grid;
+  }
 }

@@ -32,61 +32,50 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import lombok.AllArgsConstructor;
 import lombok.Value;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 /**
- * This class is used as a container for order parameters and is deserialized
- * from web requests
+ * This class is used as a container for order parameters and is deserialized from web requests
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
 @Value
-@AllArgsConstructor( staticName = "of" )
-public class OrderCriteria
-{
-    private final String field;
+@AllArgsConstructor(staticName = "of")
+public class OrderCriteria {
+  private final String field;
 
-    private final SortDirection direction;
+  private final SortDirection direction;
 
-    public OrderParam toOrderParam()
-    {
-        return new OrderParam( field, direction );
+  public OrderParam toOrderParam() {
+    return new OrderParam(field, direction);
+  }
+
+  public static List<OrderCriteria> fromOrderString(String source) {
+    return Optional.of(source)
+        .filter(StringUtils::isNotBlank)
+        .map(String::trim)
+        .map(OrderCriteria::toOrderCriterias)
+        .orElse(Collections.emptyList());
+  }
+
+  private static List<OrderCriteria> toOrderCriterias(String s) {
+    return Arrays.stream(s.split(","))
+        .map(OrderCriteria::toOrderCriteria)
+        .collect(Collectors.toList());
+  }
+
+  private static OrderCriteria toOrderCriteria(String s1) {
+    String[] props = s1.split(":");
+    if (props.length == 2) {
+      return OrderCriteria.of(props[0], SortDirection.of(props[1]));
     }
-
-    public static List<OrderCriteria> fromOrderString( String source )
-    {
-        return Optional.of( source )
-            .filter( StringUtils::isNotBlank )
-            .map( String::trim )
-            .map( OrderCriteria::toOrderCriterias )
-            .orElse( Collections.emptyList() );
+    if (props.length == 1) {
+      return OrderCriteria.of(props[0], SortDirection.ASC);
     }
-
-    private static List<OrderCriteria> toOrderCriterias( String s )
-    {
-        return Arrays.stream( s.split( "," ) )
-            .map( OrderCriteria::toOrderCriteria )
-            .collect( Collectors.toList() );
-    }
-
-    private static OrderCriteria toOrderCriteria( String s1 )
-    {
-        String[] props = s1.split( ":" );
-        if ( props.length == 2 )
-        {
-            return OrderCriteria.of( props[0], SortDirection.of( props[1] ) );
-        }
-        if ( props.length == 1 )
-        {
-            return OrderCriteria.of( props[0], SortDirection.ASC );
-        }
-        return null;
-    }
-
+    return null;
+  }
 }

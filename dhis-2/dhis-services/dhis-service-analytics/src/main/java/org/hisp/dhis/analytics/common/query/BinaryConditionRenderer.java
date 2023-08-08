@@ -45,126 +45,111 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiFunction;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryOperator;
 
-/**
- * This class is responsible for rendering a binary condition.
- */
-@RequiredArgsConstructor( staticName = "of" )
-public class BinaryConditionRenderer extends BaseRenderable
-{
-    private final Renderable left;
+/** This class is responsible for rendering a binary condition. */
+@RequiredArgsConstructor(staticName = "of")
+public class BinaryConditionRenderer extends BaseRenderable {
+  private final Renderable left;
+
+  private final QueryOperator queryOperator;
+
+  private final Renderable right;
+
+  public static BinaryConditionRenderer fieldsEqual(
+      String leftAlias, String left, String rightAlias, String right) {
+    return BinaryConditionRenderer.of(
+        Field.of(leftAlias, () -> left, EMPTY), EQ, Field.of(rightAlias, () -> right, EMPTY));
+  }
+
+  public static BinaryConditionRenderer of(
+      Renderable field,
+      QueryOperator queryOperator,
+      List<String> values,
+      ValueTypeMapping valueTypeMapping,
+      QueryContext queryContext) {
+    return BinaryConditionRenderer.of(
+        field, queryOperator, ConstantValuesRenderer.of(values, valueTypeMapping, queryContext));
+  }
+
+  private static final Collection<QueryOperator> comparisonOperators =
+      Arrays.asList(GT, GE, LT, LE);
+
+  @Nonnull
+  @Override
+  public String render() {
+    // EQ / IN
+    if (QueryOperator.EQ == queryOperator || QueryOperator.IN == queryOperator) {
+      return InOrEqConditionRenderer.of(left, right).render();
+    }
+
+    // NE / NEQ
+    if (NEQ == queryOperator) {
+      if (hasNullValue(right)) {
+        return IsNullConditionRenderer.of(left, false).render();
+      }
+      return OrCondition.of(
+              List.of(
+                  IsNullConditionRenderer.of(left, true), NotEqConditionRenderer.of(left, right)))
+          .render();
+    }
+
+    // LIKE / ILIKE
+    if (LikeOperatorMapper.likeOperators().contains(queryOperator)) {
+      return NullValueAwareConditionRenderer.of(LikeOperatorMapper.of(queryOperator), left, right)
+          .render();
+    }
+
+    // NLIKE / NILIKE
+    if (NLIKE == queryOperator || NILIKE == queryOperator) {
+      if (hasNullValue(right)) {
+        return IsNullConditionRenderer.of(left, false).render();
+      }
+
+      return OrCondition.of(
+              List.of(
+                  IsNullConditionRenderer.of(left, true),
+                  NLIKE == queryOperator
+                      ? NotLikeConditionRenderer.of(left, right)
+                      : NotILikeConditionRenderer.of(left, right)))
+          .render();
+    }
+
+    if (comparisonOperators.contains(queryOperator)) {
+      return left.render() + SPACE + queryOperator.getValue() + SPACE + right.render();
+    }
+
+    throw new IllegalQueryException(E2035, queryOperator);
+  }
+
+  /** This class is responsible for mapping a "like" {@link QueryOperator} */
+  @RequiredArgsConstructor
+  private enum LikeOperatorMapper {
+    LIKE(QueryOperator.LIKE, LikeConditionRenderer::of),
+    ILIKE(QueryOperator.ILIKE, ILikeConditionRenderer::of);
 
     private final QueryOperator queryOperator;
 
-    private final Renderable right;
+    private final BiFunction<Renderable, Renderable, Renderable> mapper;
 
-    public static BinaryConditionRenderer fieldsEqual( String leftAlias, String left, String rightAlias, String right )
-    {
-        return BinaryConditionRenderer.of(
-            Field.of( leftAlias, () -> left, EMPTY ), EQ, Field.of( rightAlias, () -> right, EMPTY ) );
+    static BiFunction<Renderable, Renderable, Renderable> of(QueryOperator queryOperator) {
+      return Arrays.stream(values())
+          .filter(likeOperatorMapper -> likeOperatorMapper.queryOperator == queryOperator)
+          .map(likeOperatorMapper -> likeOperatorMapper.mapper)
+          .findFirst()
+          .orElseThrow(
+              () -> new IllegalArgumentException("Unsupported operator: " + queryOperator));
     }
 
-    public static BinaryConditionRenderer of( Renderable field, QueryOperator queryOperator, List<String> values,
-        ValueTypeMapping valueTypeMapping, QueryContext queryContext )
-    {
-        return BinaryConditionRenderer.of( field, queryOperator,
-            ConstantValuesRenderer.of( values, valueTypeMapping, queryContext ) );
+    static Collection<QueryOperator> likeOperators() {
+      return Arrays.stream(values())
+          .map(likeOperatorMapper -> likeOperatorMapper.queryOperator)
+          .collect(toList());
     }
-
-    private static final Collection<QueryOperator> comparisonOperators = Arrays.asList( GT, GE, LT, LE );
-
-    @Nonnull
-    @Override
-    public String render()
-    {
-        // EQ / IN
-        if ( QueryOperator.EQ == queryOperator || QueryOperator.IN == queryOperator )
-        {
-            return InOrEqConditionRenderer.of( left, right ).render();
-        }
-
-        // NE / NEQ
-        if ( NEQ == queryOperator )
-        {
-            if ( hasNullValue( right ) )
-            {
-                return IsNullConditionRenderer.of( left, false ).render();
-            }
-            return OrCondition.of(
-                List.of(
-                    IsNullConditionRenderer.of( left, true ),
-                    NotEqConditionRenderer.of( left, right ) ) )
-                .render();
-        }
-
-        // LIKE / ILIKE
-        if ( LikeOperatorMapper.likeOperators().contains( queryOperator ) )
-        {
-            return NullValueAwareConditionRenderer.of(
-                LikeOperatorMapper.of( queryOperator ), left, right ).render();
-        }
-
-        // NLIKE / NILIKE
-        if ( NLIKE == queryOperator || NILIKE == queryOperator )
-        {
-            if ( hasNullValue( right ) )
-            {
-                return IsNullConditionRenderer.of( left, false ).render();
-            }
-
-            return OrCondition.of(
-                List.of(
-                    IsNullConditionRenderer.of( left, true ),
-                    NLIKE == queryOperator
-                        ? NotLikeConditionRenderer.of( left, right )
-                        : NotILikeConditionRenderer.of( left, right ) ) )
-                .render();
-        }
-
-        if ( comparisonOperators.contains( queryOperator ) )
-        {
-            return left.render() + SPACE + queryOperator.getValue() + SPACE + right.render();
-        }
-
-        throw new IllegalQueryException( E2035, queryOperator );
-    }
-
-    /**
-     * This class is responsible for mapping a "like" {@link QueryOperator}
-     */
-    @RequiredArgsConstructor
-    private enum LikeOperatorMapper
-    {
-        LIKE( QueryOperator.LIKE, LikeConditionRenderer::of ),
-        ILIKE( QueryOperator.ILIKE, ILikeConditionRenderer::of );
-
-        private final QueryOperator queryOperator;
-
-        private final BiFunction<Renderable, Renderable, Renderable> mapper;
-
-        static BiFunction<Renderable, Renderable, Renderable> of( QueryOperator queryOperator )
-        {
-            return Arrays.stream( values() )
-                .filter( likeOperatorMapper -> likeOperatorMapper.queryOperator == queryOperator )
-                .map( likeOperatorMapper -> likeOperatorMapper.mapper )
-                .findFirst()
-                .orElseThrow( () -> new IllegalArgumentException( "Unsupported operator: " + queryOperator ) );
-        }
-
-        static Collection<QueryOperator> likeOperators()
-        {
-            return Arrays.stream( values() )
-                .map( likeOperatorMapper -> likeOperatorMapper.queryOperator )
-                .collect( toList() );
-        }
-    }
+  }
 }

@@ -37,38 +37,30 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
  *
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class AnalyticsTeiActions
-    extends RestApiActions
-{
-    public AnalyticsTeiActions()
-    {
-        super( "/analytics/trackedEntities" );
+public class AnalyticsTeiActions extends RestApiActions {
+  public AnalyticsTeiActions() {
+    super("/analytics/trackedEntities");
+  }
+
+  public AnalyticsTeiActions(String endpoint) {
+    super("/analytics/trackedEntities" + endpoint);
+  }
+
+  public AnalyticsTeiActions query() {
+    return new AnalyticsTeiActions("/query");
+  }
+
+  public ApiResponse getDimensions(String trackedEntityType) {
+    return getDimensions(trackedEntityType, null);
+  }
+
+  public ApiResponse getDimensions(String trackedEntityType, QueryParamsBuilder queryParams) {
+    if (queryParams == null) {
+      queryParams = new QueryParamsBuilder();
     }
 
-    public AnalyticsTeiActions( String endpoint )
-    {
-        super( "/analytics/trackedEntities" + endpoint );
-    }
+    queryParams.add("trackedEntityType", trackedEntityType);
 
-    public AnalyticsTeiActions query()
-    {
-        return new AnalyticsTeiActions( "/query" );
-    }
-
-    public ApiResponse getDimensions( String trackedEntityType )
-    {
-        return getDimensions( trackedEntityType, null );
-    }
-
-    public ApiResponse getDimensions( String trackedEntityType, QueryParamsBuilder queryParams )
-    {
-        if ( queryParams == null )
-        {
-            queryParams = new QueryParamsBuilder();
-        }
-
-        queryParams.add( "trackedEntityType", trackedEntityType );
-
-        return this.get( "/dimensions", queryParams );
-    }
+    return this.get("/dimensions", queryParams);
+  }
 }

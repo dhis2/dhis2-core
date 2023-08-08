@@ -32,7 +32,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 
 import java.io.IOException;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -47,53 +46,45 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class RelationshipImportTest extends TrackerTest
-{
+class RelationshipImportTest extends TrackerTest {
 
-    @Autowired
-    private TrackerImportService trackerImportService;
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    private User userA;
+  private User userA;
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/simple_metadata.json" );
-        userA = userService.getUser( "M5zQapPyTZI" );
-        assertNoErrors(
-            trackerImportService.importTracker( fromJson( "tracker/single_tei.json", userA.getUid() ) ) );
-        assertNoErrors(
-            trackerImportService.importTracker( fromJson( "tracker/single_enrollment.json", userA.getUid() ) ) );
-        assertNoErrors(
-            trackerImportService.importTracker( fromJson( "tracker/single_event.json", userA.getUid() ) ) );
-        manager.flush();
-    }
+  @Override
+  protected void initTest() throws IOException {
+    setUpMetadata("tracker/simple_metadata.json");
+    userA = userService.getUser("M5zQapPyTZI");
+    assertNoErrors(
+        trackerImportService.importTracker(fromJson("tracker/single_tei.json", userA.getUid())));
+    assertNoErrors(
+        trackerImportService.importTracker(
+            fromJson("tracker/single_enrollment.json", userA.getUid())));
+    assertNoErrors(
+        trackerImportService.importTracker(fromJson("tracker/single_event.json", userA.getUid())));
+    manager.flush();
+  }
 
-    @Test
-    void successImportingRelationships()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/relationships.json" );
-        ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
-        assertThat( importReport.getStatus(), is( Status.OK ) );
-        assertThat( importReport.getStats().getCreated(), is( 2 ) );
-    }
+  @Test
+  void successImportingRelationships() throws IOException {
+    TrackerImportParams trackerImportParams = fromJson("tracker/relationships.json");
+    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
+    assertThat(importReport.getStatus(), is(Status.OK));
+    assertThat(importReport.getStats().getCreated(), is(2));
+  }
 
-    @Test
-    void successUpdateRelationships()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/relationships.json" );
-        trackerImportService.importTracker( trackerImportParams );
-        trackerImportParams = fromJson( "tracker/relationshipToUpdate.json" );
-        trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
-        ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
-        assertThat( importReport.getStatus(), is( Status.OK ) );
-        assertThat( importReport.getStats().getCreated(), is( 0 ) );
-        assertThat( importReport.getStats().getIgnored(), is( 1 ) );
-    }
+  @Test
+  void successUpdateRelationships() throws IOException {
+    TrackerImportParams trackerImportParams = fromJson("tracker/relationships.json");
+    trackerImportService.importTracker(trackerImportParams);
+    trackerImportParams = fromJson("tracker/relationshipToUpdate.json");
+    trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
+    assertThat(importReport.getStatus(), is(Status.OK));
+    assertThat(importReport.getStats().getCreated(), is(0));
+    assertThat(importReport.getStats().getIgnored(), is(1));
+  }
 }

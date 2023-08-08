@@ -31,9 +31,7 @@ import static java.lang.String.format;
 
 import java.util.List;
 import java.util.function.Function;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -44,49 +42,45 @@ import org.hisp.dhis.sqlview.SqlViewService;
 import org.springframework.stereotype.Component;
 
 /**
- * A job to update a list of {@link SqlView} that are of type
- * {@link SqlView#isMaterializedView()}.
+ * A job to update a list of {@link SqlView} that are of type {@link SqlView#isMaterializedView()}.
  *
  * @author Jan Bernitt
  */
 @Component
 @RequiredArgsConstructor
-public class SqlViewUpdateJob implements Job
-{
-    private final SqlViewService sqlViewService;
+public class SqlViewUpdateJob implements Job {
+  private final SqlViewService sqlViewService;
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.MATERIALIZED_SQL_VIEW_UPDATE;
-    }
+  @Override
+  public JobType getJobType() {
+    return JobType.MATERIALIZED_SQL_VIEW_UPDATE;
+  }
 
-    @Override
-    public void execute( JobConfiguration config, JobProgress progress )
-    {
-        progress.startingProcess( "SQL View update" );
-        SqlViewUpdateParameters params = (SqlViewUpdateParameters) config.getJobParameters();
-        if ( params == null )
-        {
-            progress.completedProcess( "No views to update" );
-            return;
-        }
-        List<String> sqlViews = params.getSqlViews();
-        progress.startingStage( "Updating SQL views", sqlViews.size(), JobProgress.FailurePolicy.SKIP_ITEM );
-        progress.runStage( sqlViews, Function.identity(), uid -> {
-            SqlView view = sqlViewService.getSqlViewByUid( uid );
-            if ( view != null && view.isMaterializedView() )
-            {
-                if ( !sqlViewService.refreshMaterializedView( view ) )
-                {
-                    throw new RuntimeException( "Failed to refresh view" );
-                }
-            }
-            else
-            {
-                throw new IllegalArgumentException( "View does not exist or is not a materialized view." );
-            }
-        } );
-        progress.completedProcess( format( "Updated %d SQL views", sqlViews.size() ) );
+  @Override
+  public void execute(JobConfiguration config, JobProgress progress) {
+    progress.startingProcess("SQL View update");
+    SqlViewUpdateParameters params = (SqlViewUpdateParameters) config.getJobParameters();
+    if (params == null) {
+      progress.completedProcess("No views to update");
+      return;
     }
+    List<String> sqlViews = params.getSqlViews();
+    progress.startingStage(
+        "Updating SQL views", sqlViews.size(), JobProgress.FailurePolicy.SKIP_ITEM);
+    progress.runStage(
+        sqlViews,
+        Function.identity(),
+        uid -> {
+          SqlView view = sqlViewService.getSqlViewByUid(uid);
+          if (view != null && view.isMaterializedView()) {
+            if (!sqlViewService.refreshMaterializedView(view)) {
+              throw new RuntimeException("Failed to refresh view");
+            }
+          } else {
+            throw new IllegalArgumentException(
+                "View does not exist or is not a materialized view.");
+          }
+        });
+    progress.completedProcess(format("Updated %d SQL views", sqlViews.size()));
+  }
 }

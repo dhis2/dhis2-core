@@ -29,9 +29,7 @@ package org.hisp.dhis.dxf2.deprecated.tracker.importer;
 
 import java.util.List;
 import java.util.function.Predicate;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -40,26 +38,20 @@ import org.hisp.dhis.importexport.ImportStrategy;
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
 @RequiredArgsConstructor
-public class EventProcessorExecutor
-{
+public class EventProcessorExecutor {
 
-    private final List<? extends Processor> processors;
+  private final List<? extends Processor> processors;
 
-    private final Predicate<ImportStrategy> importStrategyPredicate;
+  private final Predicate<ImportStrategy> importStrategyPredicate;
 
-    public void execute( final WorkContext workContext, final List<Event> events )
-    {
-        if ( isApplicable( workContext.getImportOptions().getImportStrategy() ) )
-        {
-            events.forEach(
-                event -> processors.forEach(
-                    processor -> processor.process( event, workContext ) ) );
-        }
+  public void execute(final WorkContext workContext, final List<Event> events) {
+    if (isApplicable(workContext.getImportOptions().getImportStrategy())) {
+      events.forEach(
+          event -> processors.forEach(processor -> processor.process(event, workContext)));
     }
+  }
 
-    private boolean isApplicable( ImportStrategy importStrategy )
-    {
-        return importStrategyPredicate.test( importStrategy );
-    }
-
+  private boolean isApplicable(ImportStrategy importStrategy) {
+    return importStrategyPredicate.test(importStrategy);
+  }
 }

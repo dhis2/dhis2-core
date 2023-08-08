@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.tei;
 
 import static java.util.Collections.emptySet;
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeDataElements;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeTEAs;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.trackedEntityType;
@@ -39,63 +38,61 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
-
 import org.hisp.dhis.analytics.event.data.DefaultEnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for {@link TeiAnalyticsDimensionsService}.
- */
-class TeiAnalyticsDimensionsServiceTest
-{
-    private TeiAnalyticsDimensionsService teiAnalyticsDimensionsService;
+/** Unit tests for {@link TeiAnalyticsDimensionsService}. */
+class TeiAnalyticsDimensionsServiceTest {
+  private TeiAnalyticsDimensionsService teiAnalyticsDimensionsService;
 
-    @BeforeEach
-    void setup()
-    {
-        ProgramService programService = mock( ProgramService.class );
-        Program program = mock( Program.class );
-        TrackedEntityTypeService trackedEntityTypeService = mock( TrackedEntityTypeService.class );
+  @BeforeEach
+  void setup() {
+    ProgramService programService = mock(ProgramService.class);
+    Program program = mock(Program.class);
+    TrackedEntityTypeService trackedEntityTypeService = mock(TrackedEntityTypeService.class);
 
-        when( programService.getProgram( any() ) ).thenReturn( program );
-        when( program.getDataElements() ).thenReturn( allValueTypeDataElements() );
-        when( program.getProgramIndicators() ).thenReturn( emptySet() );
-        when( program.getTrackedEntityAttributes() ).thenReturn( allValueTypeTEAs() );
-        when( trackedEntityTypeService.getTrackedEntityType( any() ) ).thenReturn( trackedEntityType() );
+    when(programService.getProgram(any())).thenReturn(program);
+    when(program.getDataElements()).thenReturn(allValueTypeDataElements());
+    when(program.getProgramIndicators()).thenReturn(emptySet());
+    when(program.getTrackedEntityAttributes()).thenReturn(allValueTypeTEAs());
+    when(trackedEntityTypeService.getTrackedEntityType(any())).thenReturn(trackedEntityType());
 
-        teiAnalyticsDimensionsService = new DefaultTeiAnalyticsDimensionsService(
+    teiAnalyticsDimensionsService =
+        new DefaultTeiAnalyticsDimensionsService(
             trackedEntityTypeService,
-            new DefaultEnrollmentAnalyticsDimensionsService( programService ),
-            programService );
-    }
+            new DefaultEnrollmentAnalyticsDimensionsService(
+                programService, mock(AclService.class), mock(CurrentUserService.class)),
+            programService);
+  }
 
-    @Test
-    void testQueryDoesNotContainDisallowedValueTypes()
-    {
-        Collection<BaseIdentifiableObject> analyticsDimensions = teiAnalyticsDimensionsService
-            .getQueryDimensionsByTrackedEntityTypeId( "aTeiId", emptySet() ).stream()
-            .map( PrefixedDimension::getItem )
-            .collect( toList() );
+  @Test
+  void testQueryDoesNotContainDisallowedValueTypes() {
+    Collection<BaseIdentifiableObject> analyticsDimensions =
+        teiAnalyticsDimensionsService
+            .getQueryDimensionsByTrackedEntityTypeId("aTeiId", emptySet())
+            .stream()
+            .map(PrefixedDimension::getItem)
+            .toList();
 
-        assertTrue(
-            analyticsDimensions
-                .stream()
-                .filter( b -> b instanceof DataElement )
-                .map( de -> ((DataElement) de).getValueType() )
-                .noneMatch( queryDisallowedValueTypesPredicate() ) );
-        assertTrue(
-            analyticsDimensions
-                .stream()
-                .filter( b -> b instanceof TrackedEntityAttribute )
-                .map( tea -> ((TrackedEntityAttribute) tea).getValueType() )
-                .noneMatch( queryDisallowedValueTypesPredicate() ) );
-    }
+    assertTrue(
+        analyticsDimensions.stream()
+            .filter(b -> b instanceof DataElement)
+            .map(de -> ((DataElement) de).getValueType())
+            .noneMatch(queryDisallowedValueTypesPredicate()));
+    assertTrue(
+        analyticsDimensions.stream()
+            .filter(b -> b instanceof TrackedEntityAttribute)
+            .map(tea -> ((TrackedEntityAttribute) tea).getValueType())
+            .noneMatch(queryDisallowedValueTypesPredicate()));
+  }
 }

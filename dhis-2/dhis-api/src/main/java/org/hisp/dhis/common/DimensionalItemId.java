@@ -32,150 +32,136 @@ import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
 
 import java.util.Set;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
 /**
- * Holds the DimensionItemType of a DimensionalItemObject, and the identifier
- * strings of the objects that that make up the DimensionalItemObject
+ * Holds the DimensionItemType of a DimensionalItemObject, and the identifier strings of the objects
+ * that that make up the DimensionalItemObject
  *
  * @author Jim Grace
  */
 @Getter
 @ToString
 @EqualsAndHashCode
-public class DimensionalItemId
-{
-    // -------------------------------------------------------------------------
-    // Properties
-    // -------------------------------------------------------------------------
+public class DimensionalItemId {
+  // -------------------------------------------------------------------------
+  // Properties
+  // -------------------------------------------------------------------------
 
-    /**
-     * The type of DimensionalItemObject whose ids we have
-     */
-    private final DimensionItemType dimensionItemType;
+  /** The type of DimensionalItemObject whose ids we have */
+  private final DimensionItemType dimensionItemType;
 
-    /**
-     * The first id for the DimensionalItemObject
-     */
-    private final String id0;
+  /** The first id for the DimensionalItemObject */
+  private final String id0;
 
-    /**
-     * The second id (if any) for the DimensionalItemObject
-     */
-    private String id1;
+  /** The second id (if any) for the DimensionalItemObject */
+  private String id1;
 
-    /**
-     * The third id (if any) for the DimensionalItemObject
-     */
-    private String id2;
+  /** The third id (if any) for the DimensionalItemObject */
+  private String id2;
 
-    /**
-     * The item as parsed from the expression
-     */
-    private String item;
+  /** The item as parsed from the expression */
+  private String item;
 
-    /**
-     * For subexpressions: the SQL fragment containing the subexpression logic
-     */
-    private String subexSql;
+  /** For subexpressions: the SQL fragment containing the subexpression logic */
+  private String subexSql;
 
-    /**
-     * For subexpressions: the item Ids found in the subexpression (must be data
-     * element or data element operand).
-     */
-    private Set<DimensionalItemId> subexItemIds;
+  /**
+   * For subexpressions: the item Ids found in the subexpression (must be data element or data
+   * element operand).
+   */
+  private Set<DimensionalItemId> subexItemIds;
 
-    /**
-     * The query modifiers
-     */
-    private QueryModifiers queryMods;
+  /** The query modifiers */
+  private QueryModifiers queryMods;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public DimensionalItemId( DimensionItemType dimensionItemType, String id0 )
-    {
-        this.dimensionItemType = dimensionItemType;
-        this.id0 = id0;
-    }
+  public DimensionalItemId(DimensionItemType dimensionItemType, String id0) {
+    this.dimensionItemType = dimensionItemType;
+    this.id0 = id0;
+  }
 
-    public DimensionalItemId( DimensionItemType dimensionItemType, String id0, QueryModifiers queryMods )
-    {
-        this.dimensionItemType = dimensionItemType;
-        this.id0 = id0;
-        this.queryMods = queryMods;
-    }
+  public DimensionalItemId(
+      DimensionItemType dimensionItemType, String id0, QueryModifiers queryMods) {
+    this.dimensionItemType = dimensionItemType;
+    this.id0 = id0;
+    this.queryMods = queryMods;
+  }
 
-    public DimensionalItemId( DimensionItemType dimensionItemType, String id0, String id1 )
-    {
-        this.dimensionItemType = dimensionItemType;
-        this.id0 = id0;
-        this.id1 = id1;
-    }
+  public DimensionalItemId(DimensionItemType dimensionItemType, String id0, String id1) {
+    this.dimensionItemType = dimensionItemType;
+    this.id0 = id0;
+    this.id1 = id1;
+  }
 
-    public DimensionalItemId( DimensionItemType dimensionItemType, String id0, String id1, String id2 )
-    {
-        this.dimensionItemType = dimensionItemType;
-        this.id0 = id0;
-        this.id1 = id1;
-        this.id2 = id2;
-    }
+  public DimensionalItemId(
+      DimensionItemType dimensionItemType, String id0, String id1, String id2) {
+    this.dimensionItemType = dimensionItemType;
+    this.id0 = id0;
+    this.id1 = id1;
+    this.id2 = id2;
+  }
 
-    public DimensionalItemId( DimensionItemType dimensionItemType, String id0, String id1, String id2, String item )
-    {
-        this.dimensionItemType = dimensionItemType;
-        this.id0 = id0;
-        this.id1 = id1;
-        this.id2 = id2;
-        this.item = item;
-    }
+  public DimensionalItemId(
+      DimensionItemType dimensionItemType, String id0, String id1, String id2, String item) {
+    this.dimensionItemType = dimensionItemType;
+    this.id0 = id0;
+    this.id1 = id1;
+    this.id2 = id2;
+    this.item = item;
+  }
 
-    public DimensionalItemId( DimensionItemType dimensionItemType, String id0, String id1, String id2, String item,
-        QueryModifiers queryMods )
-    {
-        this.dimensionItemType = dimensionItemType;
-        this.id0 = id0;
-        this.id1 = id1;
-        this.id2 = id2;
-        this.item = item;
-        this.queryMods = queryMods;
-    }
+  public DimensionalItemId(
+      DimensionItemType dimensionItemType,
+      String id0,
+      String id1,
+      String id2,
+      String item,
+      QueryModifiers queryMods) {
+    this.dimensionItemType = dimensionItemType;
+    this.id0 = id0;
+    this.id1 = id1;
+    this.id2 = id2;
+    this.item = item;
+    this.queryMods = queryMods;
+  }
 
-    public DimensionalItemId( DimensionItemType dimensionItemType, String subexSql,
-        Set<DimensionalItemId> subexItemIds, QueryModifiers queryMods )
-    {
-        this.id0 = null;
-        this.dimensionItemType = dimensionItemType;
-        this.subexSql = subexSql;
-        this.subexItemIds = subexItemIds;
-        this.queryMods = queryMods;
-    }
+  public DimensionalItemId(
+      DimensionItemType dimensionItemType,
+      String subexSql,
+      Set<DimensionalItemId> subexItemIds,
+      QueryModifiers queryMods) {
+    this.id0 = null;
+    this.dimensionItemType = dimensionItemType;
+    this.subexSql = subexSql;
+    this.subexItemIds = subexItemIds;
+    this.queryMods = queryMods;
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    public boolean hasValidIds()
-    {
-        return switch ( dimensionItemType )
-        {
-        case DATA_ELEMENT, INDICATOR, PROGRAM_INDICATOR -> id0 != null && id1 == null && id2 == null;
-        case DATA_ELEMENT_OPERAND -> id0 != null && (id1 != null || id2 != null);
-        case REPORTING_RATE -> id0 != null && id1 != null && id2 == null
-            && isValidEnum( ReportingRateMetric.class, id1 );
-        case PROGRAM_DATA_ELEMENT, PROGRAM_ATTRIBUTE -> id0 != null && id1 != null && id2 == null;
-        case SUBEXPRESSION_DIMENSION_ITEM -> subexSql != null && !subexItemIds.isEmpty();
-        default -> false;
-        };
-    }
+  public boolean hasValidIds() {
+    return switch (dimensionItemType) {
+      case DATA_ELEMENT, INDICATOR, PROGRAM_INDICATOR -> id0 != null && id1 == null && id2 == null;
+      case DATA_ELEMENT_OPERAND -> id0 != null && (id1 != null || id2 != null);
+      case REPORTING_RATE -> id0 != null
+          && id1 != null
+          && id2 == null
+          && isValidEnum(ReportingRateMetric.class, id1);
+      case PROGRAM_DATA_ELEMENT, PROGRAM_ATTRIBUTE -> id0 != null && id1 != null && id2 == null;
+      case SUBEXPRESSION_DIMENSION_ITEM -> subexSql != null && !subexItemIds.isEmpty();
+      default -> false;
+    };
+  }
 
-    public boolean isDataElementOrOperand()
-    {
-        return dimensionItemType == DATA_ELEMENT
-            || dimensionItemType == DATA_ELEMENT_OPERAND;
-    }
+  public boolean isDataElementOrOperand() {
+    return dimensionItemType == DATA_ELEMENT || dimensionItemType == DATA_ELEMENT_OPERAND;
+  }
 }

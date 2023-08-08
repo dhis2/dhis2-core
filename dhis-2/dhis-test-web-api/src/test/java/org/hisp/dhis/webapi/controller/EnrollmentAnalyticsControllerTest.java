@@ -30,47 +30,83 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonGrid;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
  * Tests for the {@link EnrollmentAnalyticsController}.
- * <p>
- * The main purpose of this test is not to test the correct business logic but
- * to make sure the controller parameters are recognised correctly.
+ *
+ * <p>The main purpose of this test is not to test the correct business logic but to make sure the
+ * controller parameters are recognised correctly.
  *
  * @author Jan Bernitt
  */
-class EnrollmentAnalyticsControllerTest extends DhisControllerConvenienceTest
-{
+class EnrollmentAnalyticsControllerTest extends DhisControllerConvenienceTest {
 
-    private String programId;
+  private String programId;
 
-    private String orgUnitId;
+  private String orgUnitId;
 
-    @BeforeEach
-    void setUp()
-    {
-        orgUnitId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-        programId = assertStatus( HttpStatus.CREATED, POST( "/programs/",
-            "{'name':'My Program', 'shortName':'MPX1', 'programType': 'WITHOUT_REGISTRATION', 'organisationUnits': [{'id': '"
-                + orgUnitId + "'}]}" ) );
-    }
+  @BeforeEach
+  void setUp() {
+    orgUnitId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+    programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'My Program', 'shortName':'MPX1', 'programType': 'WITHOUT_REGISTRATION', 'organisationUnits': [{'id': '"
+                    + orgUnitId
+                    + "'}]}"));
+  }
 
-    @Test
-    void testGetQueryJson()
-    {
-        JsonGrid grid = GET(
-            "/analytics/enrollments/query/{program}?dimension=ou:{unit}&startDate=2019-01-01&endDate=2021-01-01",
-            programId, orgUnitId ).content().as( JsonGrid.class );
-        assertEquals( grid.getHeaderWidth(), grid.getHeaders().size() );
-        assertEquals( "My Program", grid.getMetaData().getItems().get( programId ).getString( "name" ).string() );
-        assertEquals( orgUnitId,
-            grid.getMetaData().getDimensions().get( "ou" ).get( 0 ).as( JsonString.class ).string() );
-    }
+  @Test
+  @Disabled(
+      "generated query will fail on H2 database and we are now propagating BadSqlGrammarException since DHIS2-15184")
+  void testGetQueryJson() {
+    JsonGrid grid =
+        GET(
+                "/analytics/enrollments/query/{program}?dimension=ou:{unit}&startDate=2019-01-01&endDate=2021-01-01",
+                programId,
+                orgUnitId)
+            .content()
+            .as(JsonGrid.class);
+    assertEquals(grid.getHeaderWidth(), grid.getHeaders().size());
+    assertEquals(
+        "My Program", grid.getMetaData().getItems().get(programId).getString("name").string());
+    assertEquals(
+        orgUnitId,
+        grid.getMetaData().getDimensions().get("ou").get(0).as(JsonString.class).string());
+  }
+
+  @Test
+  void testBadGrammarException() {
+    /* We know this query will fail since it runs on H2 with postgres specific syntax */
+    JsonWebMessage jsonWebMessage =
+        GET(
+                "/analytics/enrollments/query/{program}?dimension=ou:{unit}&startDate=2019-01-01&endDate=2021-01-01",
+                programId,
+                orgUnitId)
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+
+    assertEquals("Conflict", jsonWebMessage.getHttpStatus());
+    assertEquals(409, jsonWebMessage.getHttpStatusCode());
+    assertEquals("ERROR", jsonWebMessage.getStatus());
+    assertEquals(
+        "Query failed because of a syntax error (SqlState: 90022)", jsonWebMessage.getMessage());
+    assertEquals(ErrorCode.E7145, jsonWebMessage.getErrorCode());
+  }
 }

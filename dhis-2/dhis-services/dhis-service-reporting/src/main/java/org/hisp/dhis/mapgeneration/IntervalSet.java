@@ -31,89 +31,72 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * An interval set is a collection of map objects that are distributed into
- * intervals according to their value.
+ * An interval set is a collection of map objects that are distributed into intervals according to
+ * their value.
  *
- * The core functionality of this class is encapsulated into its method
- * applyIntervalSetToMapLayer, which takes a map layer as input, creates an
- * interval set for it, and distributes its map objects into intervals according
- * to the given distribution strategy.
+ * <p>The core functionality of this class is encapsulated into its method
+ * applyIntervalSetToMapLayer, which takes a map layer as input, creates an interval set for it, and
+ * distributes its map objects into intervals according to the given distribution strategy.
  *
  * @author Olai Solheim <olais@ifi.uio.no>
  */
-public class IntervalSet
-{
-    private List<Interval> intervals = new ArrayList<>();
+public class IntervalSet {
+  private List<Interval> intervals = new ArrayList<>();
 
-    private InternalMapObject objectLow;
+  private InternalMapObject objectLow;
 
-    private InternalMapObject objectHigh;
+  private InternalMapObject objectHigh;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public IntervalSet()
-    {
+  public IntervalSet() {}
+
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
+
+  /** Populates object low and object high based on the given list of map objects. */
+  public IntervalSet setLowHigh(List<InternalMapObject> mapObjects) {
+    for (InternalMapObject mapObject : mapObjects) {
+      if (objectLow == null || mapObject.getValue() < objectLow.getValue()) {
+        setObjectLow(mapObject);
+      }
+
+      if (objectHigh == null || mapObject.getValue() > objectHigh.getValue()) {
+        setObjectHigh(mapObject);
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+    return this;
+  }
 
-    /**
-     * Populates object low and object high based on the given list of map
-     * objects.
-     */
-    public IntervalSet setLowHigh( List<InternalMapObject> mapObjects )
-    {
-        for ( InternalMapObject mapObject : mapObjects )
-        {
-            if ( objectLow == null || mapObject.getValue() < objectLow.getValue() )
-            {
-                setObjectLow( mapObject );
-            }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-            if ( objectHigh == null || mapObject.getValue() > objectHigh.getValue() )
-            {
-                setObjectHigh( mapObject );
-            }
-        }
+  public List<Interval> getIntervals() {
+    return intervals;
+  }
 
-        return this;
-    }
+  public void setIntervals(List<Interval> intervals) {
+    this.intervals = intervals;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  public InternalMapObject getObjectLow() {
+    return objectLow;
+  }
 
-    public List<Interval> getIntervals()
-    {
-        return intervals;
-    }
+  public void setObjectLow(InternalMapObject objectLow) {
+    this.objectLow = objectLow;
+  }
 
-    public void setIntervals( List<Interval> intervals )
-    {
-        this.intervals = intervals;
-    }
+  public InternalMapObject getObjectHigh() {
+    return objectHigh;
+  }
 
-    public InternalMapObject getObjectLow()
-    {
-        return objectLow;
-    }
-
-    public void setObjectLow( InternalMapObject objectLow )
-    {
-        this.objectLow = objectLow;
-    }
-
-    public InternalMapObject getObjectHigh()
-    {
-        return objectHigh;
-    }
-
-    public void setObjectHigh( InternalMapObject objectHigh )
-    {
-        this.objectHigh = objectHigh;
-    }
+  public void setObjectHigh(InternalMapObject objectHigh) {
+    this.objectHigh = objectHigh;
+  }
 }

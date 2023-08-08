@@ -31,21 +31,15 @@ import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import lombok.Singular;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class LeftJoins extends BaseRenderable
-{
-    @Singular
-    private final List<LeftJoin> leftJoins;
+@RequiredArgsConstructor(staticName = "of")
+public class LeftJoins extends BaseRenderable {
+  @Singular private final List<LeftJoin> leftJoins;
 
-    @Override
-    public String render()
-    {
-        return leftJoins.stream()
-            .map( LeftJoin::render )
-            .collect( joining( SPACE ) );
-    }
+  @Override
+  public String render() {
+    return leftJoins.stream().map(LeftJoin::render).collect(joining(SPACE));
+  }
 }

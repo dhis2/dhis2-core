@@ -36,40 +36,39 @@ import lombok.NoArgsConstructor;
  *
  * @author maikel arabori
  */
-@NoArgsConstructor( access = PRIVATE )
-public class QueryParam
-{
-    public static final String NAME = "name";
+@NoArgsConstructor(access = PRIVATE)
+public class QueryParam {
+  public static final String NAME = "name";
 
-    public static final String SHORT_NAME = "shortName";
+  public static final String SHORT_NAME = "shortName";
 
-    public static final String DISPLAY_NAME = "displayName";
+  public static final String DISPLAY_NAME = "displayName";
 
-    public static final String DISPLAY_SHORT_NAME = "displayShortName";
+  public static final String DISPLAY_SHORT_NAME = "displayShortName";
 
-    public static final String LOCALE = "locale";
+  public static final String LOCALE = "locale";
 
-    public static final String VALUE_TYPES = "valueTypes";
+  public static final String VALUE_TYPES = "valueTypes";
 
-    public static final String USER_GROUP_UIDS = "userGroupUids";
+  public static final String USER_GROUP_UIDS = "userGroupUids";
 
-    public static final String USER_UID = "userUid";
+  public static final String USER_UID = "userUid";
 
-    public static final String PROGRAM_ID = "programId";
+  public static final String PROGRAM_ID = "programId";
 
-    public static final String MAX_LIMIT = "maxLimit";
+  public static final String MAX_LIMIT = "maxLimit";
 
-    public static final String NAME_ORDER = "nameOrder";
+  public static final String NAME_ORDER = "nameOrder";
 
-    public static final String SHORT_NAME_ORDER = "shortNameOrder";
+  public static final String SHORT_NAME_ORDER = "shortNameOrder";
 
-    public static final String DISPLAY_NAME_ORDER = "displayNameOrder";
+  public static final String DISPLAY_NAME_ORDER = "displayNameOrder";
 
-    public static final String DISPLAY_SHORT_NAME_ORDER = "displayShortNameOrder";
+  public static final String DISPLAY_SHORT_NAME_ORDER = "displayShortNameOrder";
 
-    public static final String UID = "uid";
+  public static final String UID = "uid";
 
-    public static final String ROOT_JUNCTION = "rootJunction";
+  public static final String ROOT_JUNCTION = "rootJunction";
 
-    public static final String IDENTIFIABLE_TOKEN_COMPARISON = "identifiableTokenComparison";
+  public static final String IDENTIFIABLE_TOKEN_COMPARISON = "identifiableTokenComparison";
 }

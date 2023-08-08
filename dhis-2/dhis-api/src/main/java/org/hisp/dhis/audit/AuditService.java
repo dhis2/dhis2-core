@@ -32,11 +32,10 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface AuditService
-{
-    long addAudit( Audit audit );
+public interface AuditService {
+  long addAudit(Audit audit);
 
-    int countAudits( AuditQuery query );
+  int countAudits(AuditQuery query);
 
-    List<Audit> getAudits( AuditQuery query );
+  List<Audit> getAudits(AuditQuery query);
 }

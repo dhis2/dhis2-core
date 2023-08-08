@@ -29,14 +29,12 @@ package org.hisp.dhis.analytics.common.query;
 
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class ExistsCondition extends BaseRenderable
-{
-    private final Renderable subQuery;
+@RequiredArgsConstructor(staticName = "of")
+public class ExistsCondition extends BaseRenderable {
+  private final Renderable subQuery;
 
-    @Override
-    public String render()
-    {
-        return "exists (" + subQuery.render() + ")";
-    }
+  @Override
+  public String render() {
+    return "exists (" + subQuery.render() + ")";
+  }
 }

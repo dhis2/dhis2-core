@@ -31,28 +31,22 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.collections4.CollectionUtils;
 
-/**
- * Renders the root "order by" clause, respecting the order of the indexed
- * orders.
- */
-@RequiredArgsConstructor( staticName = "of" )
-public class OrderRenderer implements Renderable
-{
-    private final List<IndexedOrder> indexedOrders;
+/** Renders the root "order by" clause, respecting the order of the indexed orders. */
+@RequiredArgsConstructor(staticName = "of")
+public class OrderRenderer implements Renderable {
+  private final List<IndexedOrder> indexedOrders;
 
-    @Override
-    public String render()
-    {
-        return RenderableHelper.join(
-            CollectionUtils.emptyIfNull( indexedOrders ).stream()
-                .sorted( comparing( IndexedOrder::getIndex ) )
-                .map( IndexedOrder::getRenderable )
-                .collect( toList() ),
-            ", ", "order by " );
-    }
+  @Override
+  public String render() {
+    return RenderableHelper.join(
+        CollectionUtils.emptyIfNull(indexedOrders).stream()
+            .sorted(comparing(IndexedOrder::getIndex))
+            .map(IndexedOrder::getRenderable)
+            .collect(toList()),
+        ", ",
+        "order by ");
+  }
 }

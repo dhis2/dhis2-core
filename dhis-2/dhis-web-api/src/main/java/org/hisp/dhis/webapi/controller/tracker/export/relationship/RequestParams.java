@@ -28,128 +28,42 @@
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import java.util.List;
-
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 
+@OpenApi.Shared(name = "RelationshipRequestParams")
 @OpenApi.Property
+@Data
 @NoArgsConstructor
-@EqualsAndHashCode( exclude = { "identifier", "identifierName", "identifierClass" } )
-class RequestParams extends PagingAndSortingCriteriaAdapter
-{
-    static final String DEFAULT_FIELDS_PARAM = "relationship,relationshipType,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
+class RequestParams extends PagingAndSortingCriteriaAdapter {
 
-    @OpenApi.Property( { UID.class, TrackedEntity.class } )
-    private String trackedEntity;
+  static final String DEFAULT_FIELDS_PARAM =
+      "relationship,relationshipType,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
 
-    @OpenApi.Property( { UID.class, Enrollment.class } )
-    @Setter
-    private String enrollment;
+  /**
+   * @deprecated use {@link #trackedEntity} instead
+   */
+  @Deprecated(since = "2.41")
+  @OpenApi.Property({UID.class, TrackedEntity.class})
+  private UID tei;
 
-    @OpenApi.Property( { UID.class, Event.class } )
-    @Setter
-    private String event;
+  @OpenApi.Property({UID.class, TrackedEntity.class})
+  private UID trackedEntity;
 
-    private String identifier;
+  @OpenApi.Property({UID.class, Enrollment.class})
+  private UID enrollment;
 
-    private String identifierName;
+  @OpenApi.Property({UID.class, Event.class})
+  private UID event;
 
-    private Class<?> identifierClass;
-
-    @OpenApi.Property( value = String[].class )
-    @Getter
-    @Setter
-    private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
-
-    public void setTei( String tei )
-    {
-        // this setter is kept for backwards-compatibility
-        // query parameter 'tei' should still be allowed, but 'trackedEntity' is
-        // preferred.
-        this.trackedEntity = tei;
-    }
-
-    public void setTrackedEntity( String trackedEntity )
-    {
-        this.trackedEntity = trackedEntity;
-    }
-
-    @OpenApi.Ignore
-    public String getIdentifierParam()
-        throws BadRequestException
-    {
-        if ( this.identifier != null )
-        {
-            return this.identifier;
-        }
-
-        int count = 0;
-        if ( !StringUtils.isBlank( this.trackedEntity ) )
-        {
-            this.identifier = this.trackedEntity;
-            this.identifierName = "trackedEntity";
-            this.identifierClass = org.hisp.dhis.trackedentity.TrackedEntity.class;
-            count++;
-        }
-        if ( !StringUtils.isBlank( this.enrollment ) )
-        {
-            this.identifier = this.enrollment;
-            this.identifierName = "enrollment";
-            this.identifierClass = org.hisp.dhis.program.Enrollment.class;
-            count++;
-        }
-        if ( !StringUtils.isBlank( this.event ) )
-        {
-            this.identifier = this.event;
-            this.identifierName = "event";
-            this.identifierClass = org.hisp.dhis.program.Event.class;
-            count++;
-        }
-
-        if ( count == 0 )
-        {
-            throw new BadRequestException( "Missing required parameter 'trackedEntity', 'enrollment' or 'event'." );
-        }
-        else if ( count > 1 )
-        {
-            throw new BadRequestException(
-                "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed." );
-        }
-        return this.identifier;
-    }
-
-    @OpenApi.Ignore
-    public String getIdentifierName()
-        throws BadRequestException
-    {
-        if ( this.identifierName == null )
-        {
-            this.getIdentifierParam();
-        }
-        return this.identifierName;
-    }
-
-    @OpenApi.Ignore
-    public Class<?> getIdentifierClass()
-        throws BadRequestException
-    {
-        if ( this.identifierClass == null )
-        {
-            this.getIdentifierParam();
-        }
-        return this.identifierClass;
-    }
+  @OpenApi.Property(value = String[].class)
+  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
 }

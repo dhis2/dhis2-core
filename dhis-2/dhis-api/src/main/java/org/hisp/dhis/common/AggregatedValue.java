@@ -35,35 +35,34 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public abstract class AggregatedValue
-{
-    public static final Double ZERO = 0d;
+public abstract class AggregatedValue {
+  public static final Double ZERO = 0d;
 
-    // ----------------------------------------------------------------------
-    // Properties
-    // ----------------------------------------------------------------------
+  // ----------------------------------------------------------------------
+  // Properties
+  // ----------------------------------------------------------------------
 
-    protected long periodId;
+  protected long periodId;
 
-    protected long periodTypeId;
+  protected long periodTypeId;
 
-    protected long organisationUnitId;
+  protected long organisationUnitId;
 
-    protected long organisationUnitGroupId;
+  protected long organisationUnitGroupId;
 
-    protected int level;
+  protected int level;
 
-    protected double value;
+  protected double value;
 
-    protected transient String periodName;
+  protected transient String periodName;
 
-    protected transient String organisationUnitName;
+  protected transient String organisationUnitName;
 
-    protected transient double trendValue;
+  protected transient double trendValue;
 
-    // ----------------------------------------------------------------------
-    // Abstract methods
-    // ----------------------------------------------------------------------
+  // ----------------------------------------------------------------------
+  // Abstract methods
+  // ----------------------------------------------------------------------
 
-    public abstract long getElementId();
+  public abstract long getElementId();
 }

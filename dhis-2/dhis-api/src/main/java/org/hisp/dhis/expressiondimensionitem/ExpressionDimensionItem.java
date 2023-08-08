@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.expressiondimensionitem;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -35,165 +38,145 @@ import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
- * An Expression is the expression of e.g. a validation rule. It consist of a
- * String representation of the rule as well as references to the data elements
- * and category option combos included in the expression.
- * <p/>
- * The expression can contain numbers and mathematical operators and contain
- * references to data elements and category option combos on the form:
- * <p/>
- * i) [1.2] where 1 refers to the data element identifier and 2 refers to the
- * category option combo identifier.
- * <p/>
- * ii) [1] where 1 refers to the data element identifier, in this case the
- * formula represents the total value for all category option combos for that
- * data element.
+ * An Expression is the expression of e.g. a validation rule. It consist of a String representation
+ * of the rule as well as references to the data elements and category option combos included in the
+ * expression.
  *
+ * <p>The expression can contain numbers and mathematical operators and contain references to data
+ * elements and category option combos on the form:
+ *
+ * <p>i) [1.2] where 1 refers to the data element identifier and 2 refers to the category option
+ * combo identifier.
+ *
+ * <p>ii) [1] where 1 refers to the data element identifier, in this case the formula represents the
+ * total value for all category option combos for that data element.
  */
-@JacksonXmlRootElement( localName = "expressionDimensionItem", namespace = DxfNamespaces.DXF_2_0 )
-public class ExpressionDimensionItem
-    extends BaseDataDimensionalItemObject
-    implements MetadataObject
-{
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = 8342548380669463589L;
+@JacksonXmlRootElement(localName = "expressionDimensionItem", namespace = DxfNamespaces.DXF_2_0)
+public class ExpressionDimensionItem extends BaseDataDimensionalItemObject
+    implements MetadataObject {
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = 8342548380669463589L;
 
-    public static final String SEPARATOR = ".";
+  public static final String SEPARATOR = ".";
 
-    /**
-     * The Expression.
-     */
-    private String expression;
+  /** The Expression. */
+  private String expression;
 
-    /**
-     * This expression should be given sliding window based data
-     */
-    private Boolean slidingWindow = false;
+  /** This expression should be given sliding window based data */
+  private Boolean slidingWindow = false;
 
-    /**
-     * Indicates whether the expression should evaluate to null if all or any
-     * data values are missing in the expression.
-     */
-    private MissingValueStrategy missingValueStrategy = MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
+  /**
+   * Indicates whether the expression should evaluate to null if all or any data values are missing
+   * in the expression.
+   */
+  private MissingValueStrategy missingValueStrategy =
+      MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    /**
-     * Default empty Expression
-     */
-    public ExpressionDimensionItem()
-    {
-    }
+  /** Default empty Expression */
+  public ExpressionDimensionItem() {}
 
-    /**
-     * @param expression The expression as a String
-     * @param description A description of the Expression.
-     */
-    public ExpressionDimensionItem( String expression, String description )
-    {
-        this.expression = expression;
-        this.description = description;
-    }
+  /**
+   * @param expression The expression as a String
+   * @param description A description of the Expression.
+   */
+  public ExpressionDimensionItem(String expression, String description) {
+    this.expression = expression;
+    this.description = description;
+  }
 
-    /**
-     * Constructor with all the parameters.
-     *
-     * @param expression The expression as a String
-     * @param description A description of the Expression.
-     * @param missingValueStrategy Strategy for handling missing values.
-     */
-    public ExpressionDimensionItem( String expression, String description,
-        MissingValueStrategy missingValueStrategy )
-    {
+  /**
+   * Constructor with all the parameters.
+   *
+   * @param expression The expression as a String
+   * @param description A description of the Expression.
+   * @param missingValueStrategy Strategy for handling missing values.
+   */
+  public ExpressionDimensionItem(
+      String expression, String description, MissingValueStrategy missingValueStrategy) {
 
-        this.expression = expression;
-        this.description = description;
-        this.missingValueStrategy = missingValueStrategy;
-    }
+    this.expression = expression;
+    this.description = description;
+    this.missingValueStrategy = missingValueStrategy;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "{" +
-            "\"class\":\"" + getClass() + "\", " +
-            "\"id\":\"" + id + "\", " +
-            "\"expression\":\"" + expression + "\", " +
-            "\"description\":\"" + description + "\" " +
-            "}";
-    }
+  @Override
+  public String toString() {
+    return "{"
+        + "\"class\":\""
+        + getClass()
+        + "\", "
+        + "\"id\":\""
+        + id
+        + "\", "
+        + "\"expression\":\""
+        + expression
+        + "\", "
+        + "\"description\":\""
+        + description
+        + "\" "
+        + "}";
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getExpression()
-    {
-        return expression;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getExpression() {
+    return expression;
+  }
 
-    public void setExpression( String expression )
-    {
-        this.expression = expression;
-    }
+  public void setExpression(String expression) {
+    this.expression = expression;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public MissingValueStrategy getMissingValueStrategy()
-    {
-        return missingValueStrategy;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public MissingValueStrategy getMissingValueStrategy() {
+    return missingValueStrategy;
+  }
 
-    public void setMissingValueStrategy( MissingValueStrategy missingValueStrategy )
-    {
-        this.missingValueStrategy = missingValueStrategy;
-    }
+  public void setMissingValueStrategy(MissingValueStrategy missingValueStrategy) {
+    this.missingValueStrategy = missingValueStrategy;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getSlidingWindow()
-    {
-        return slidingWindow;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getSlidingWindow() {
+    return slidingWindow;
+  }
 
-    public void setSlidingWindow( Boolean slidingWindow )
-    {
-        this.slidingWindow = slidingWindow;
-    }
+  public void setSlidingWindow(Boolean slidingWindow) {
+    this.slidingWindow = slidingWindow;
+  }
 
-    @Override
-    public DimensionItemType getDimensionItemType()
-    {
-        return DimensionItemType.EXPRESSION_DIMENSION_ITEM;
-    }
+  @Override
+  public DimensionItemType getDimensionItemType() {
+    return DimensionItemType.EXPRESSION_DIMENSION_ITEM;
+  }
 
-    /**
-     * Converts the current object to {@link Indicator}.
-     *
-     * @return the {@link Indicator} object.
-     */
-    public Indicator toIndicator()
-    {
-        IndicatorType indicatorType = new IndicatorType();
-        indicatorType.setNumber( true );
-        indicatorType.setFactor( 1 );
+  /**
+   * Converts the current object to {@link Indicator}.
+   *
+   * @return the {@link Indicator} object.
+   */
+  public Indicator toIndicator() {
+    IndicatorType indicatorType = new IndicatorType();
+    indicatorType.setNumber(true);
+    indicatorType.setFactor(1);
 
-        Indicator indicator = new Indicator();
-        indicator.setUid( getUid() );
-        indicator.setName( getName() );
-        indicator.setCode( getCode() );
-        indicator.setIndicatorType( indicatorType );
-        indicator.setNumerator( getExpression() );
-        indicator.setNumeratorDescription( getDescription() );
-        indicator.setDenominator( "1" );
-        indicator.setAnnualized( false );
+    Indicator indicator = new Indicator();
+    indicator.setUid(getUid());
+    indicator.setName(getName());
+    indicator.setCode(getCode());
+    indicator.setIndicatorType(indicatorType);
+    indicator.setNumerator(getExpression());
+    indicator.setNumeratorDescription(getDescription());
+    indicator.setDenominator("1");
+    indicator.setAnnualized(false);
 
-        return indicator;
-    }
+    return indicator;
+  }
 }

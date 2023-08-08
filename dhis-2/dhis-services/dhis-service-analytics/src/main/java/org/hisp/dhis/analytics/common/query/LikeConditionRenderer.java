@@ -29,15 +29,12 @@ package org.hisp.dhis.analytics.common.query;
 
 import static org.hisp.dhis.common.QueryOperator.LIKE;
 
-public class LikeConditionRenderer extends AbstractLikeConditionRenderer
-{
-    private LikeConditionRenderer( Renderable field, Renderable value )
-    {
-        super( field, LIKE.getValue(), value );
-    }
+public class LikeConditionRenderer extends AbstractLikeConditionRenderer {
+  private LikeConditionRenderer(Renderable field, Renderable value) {
+    super(field, LIKE.getValue(), value);
+  }
 
-    public static LikeConditionRenderer of( Renderable field, Renderable value )
-    {
-        return new LikeConditionRenderer( field, value );
-    }
+  public static LikeConditionRenderer of(Renderable field, Renderable value) {
+    return new LikeConditionRenderer(field, value);
+  }
 }

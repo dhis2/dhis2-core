@@ -55,128 +55,122 @@ import org.mockito.quality.Strictness;
 /**
  * @author Enrico Colasante
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class GeoValidatorTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class GeoValidatorTest {
 
-    private static final String PROGRAM = "Program";
+  private static final String PROGRAM = "Program";
 
-    private GeoValidator validator;
+  private GeoValidator validator;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    public void setUp()
-    {
-        validator = new GeoValidator();
+  @BeforeEach
+  public void setUp() {
+    validator = new GeoValidator();
 
-        bundle = TrackerBundle.builder()
-            .preheat( preheat )
+    bundle = TrackerBundle.builder().preheat(preheat).build();
+
+    Program program = new Program();
+    program.setFeatureType(FeatureType.POINT);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM))).thenReturn(program);
+
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
+  }
+
+  @Test
+  void testGeometryIsValid() {
+    // given
+    Enrollment enrollment =
+        Enrollment.builder()
+            .program(MetadataIdentifier.ofUid(PROGRAM))
+            .geometry(new GeometryFactory().createPoint())
             .build();
 
-        Program program = new Program();
-        program.setFeatureType( FeatureType.POINT );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM ) ) ).thenReturn( program );
+    // when
+    validator.validate(reporter, bundle, enrollment);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
-    }
+    // then
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void testGeometryIsValid()
-    {
-        // given
-        Enrollment enrollment = Enrollment.builder()
-            .program( MetadataIdentifier.ofUid( PROGRAM ) )
-            .geometry( new GeometryFactory().createPoint() )
+  @Test
+  void testEnrollmentWithNoProgramThrowsAnError() {
+    // given
+    Enrollment enrollment = new Enrollment();
+    enrollment.setProgram(null);
+    enrollment.setGeometry(new GeometryFactory().createPoint());
+
+    when(preheat.getProgram((MetadataIdentifier) null)).thenReturn(null);
+
+    assertThrows(
+        NullPointerException.class, () -> validator.validate(reporter, bundle, enrollment));
+  }
+
+  @Test
+  void testProgramWithNullFeatureTypeFailsGeometryValidation() {
+    // given
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(MetadataIdentifier.ofUid(PROGRAM))
+            .geometry(new GeometryFactory().createPoint())
             .build();
 
-        // when
-        validator.validate( reporter, bundle, enrollment );
+    // when
+    Program program = new Program();
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM))).thenReturn(program);
 
-        // then
-        assertIsEmpty( reporter.getErrors() );
-    }
+    validator.validate(reporter, bundle, enrollment);
 
-    @Test
-    void testEnrollmentWithNoProgramThrowsAnError()
-    {
-        // given
-        Enrollment enrollment = new Enrollment();
-        enrollment.setProgram( null );
-        enrollment.setGeometry( new GeometryFactory().createPoint() );
+    // then
+    assertHasError(reporter, enrollment, E1074);
+  }
 
-        when( preheat.getProgram( (MetadataIdentifier) null ) ).thenReturn( null );
-
-        assertThrows( NullPointerException.class,
-            () -> validator.validate( reporter, bundle, enrollment ) );
-    }
-
-    @Test
-    void testProgramWithNullFeatureTypeFailsGeometryValidation()
-    {
-        // given
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( PROGRAM ) )
-            .geometry( new GeometryFactory().createPoint() )
+  @Test
+  void testProgramWithFeatureTypeNoneFailsGeometryValidation() {
+    // given
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(MetadataIdentifier.ofUid(PROGRAM))
+            .geometry(new GeometryFactory().createPoint())
             .build();
 
-        // when
-        Program program = new Program();
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM ) ) ).thenReturn( program );
+    // when
+    Program program = new Program();
+    program.setFeatureType(FeatureType.NONE);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM))).thenReturn(program);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        // then
-        assertHasError( reporter, enrollment, E1074 );
-    }
+    // then
+    assertHasError(reporter, enrollment, E1012);
+  }
 
-    @Test
-    void testProgramWithFeatureTypeNoneFailsGeometryValidation()
-    {
-        // given
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( PROGRAM ) )
-            .geometry( new GeometryFactory().createPoint() )
+  @Test
+  void testProgramWithFeatureTypeDifferentFromGeometryFails() {
+    // given
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(MetadataIdentifier.ofUid(PROGRAM))
+            .geometry(new GeometryFactory().createPoint())
             .build();
 
-        // when
-        Program program = new Program();
-        program.setFeatureType( FeatureType.NONE );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM ) ) ).thenReturn( program );
+    // when
+    Program program = new Program();
+    program.setFeatureType(FeatureType.MULTI_POLYGON);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM))).thenReturn(program);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        // then
-        assertHasError( reporter, enrollment, E1012 );
-    }
-
-    @Test
-    void testProgramWithFeatureTypeDifferentFromGeometryFails()
-    {
-        // given
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( PROGRAM ) )
-            .geometry( new GeometryFactory().createPoint() )
-            .build();
-
-        // when
-        Program program = new Program();
-        program.setFeatureType( FeatureType.MULTI_POLYGON );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM ) ) ).thenReturn( program );
-
-        validator.validate( reporter, bundle, enrollment );
-
-        // then
-        assertHasError( reporter, enrollment, E1012 );
-    }
+    // then
+    assertHasError(reporter, enrollment, E1012);
+  }
 }

@@ -32,30 +32,29 @@ import lombok.With;
 
 @With
 @Value
-public class EnrollmentParams
-{
-    public static final EnrollmentParams TRUE = new EnrollmentParams( EnrollmentEventsParams.TRUE, true, true, false );
+public class EnrollmentParams {
+  public static final EnrollmentParams TRUE =
+      new EnrollmentParams(EnrollmentEventsParams.TRUE, true, true);
 
-    public static final EnrollmentParams FALSE = new EnrollmentParams( EnrollmentEventsParams.FALSE, false, false,
-        false );
+  public static final EnrollmentParams FALSE =
+      new EnrollmentParams(EnrollmentEventsParams.FALSE, false, false);
 
-    EnrollmentEventsParams enrollmentEventsParams;
+  EnrollmentEventsParams enrollmentEventsParams;
 
-    boolean includeRelationships;
+  boolean includeRelationships;
 
-    boolean includeAttributes;
+  boolean includeAttributes;
 
-    boolean includeDeleted;
+  public boolean isIncludeEvents() {
+    return enrollmentEventsParams.isIncludeEvents();
+  }
 
-    public boolean isIncludeEvents()
-    {
-        return enrollmentEventsParams.isIncludeEvents();
-    }
-
-    public EnrollmentParams withIncludeEvents( boolean includeEvents )
-    {
-        return this.enrollmentEventsParams.isIncludeEvents() == includeEvents ? this
-            : new EnrollmentParams( enrollmentEventsParams.withIncludeEvents( includeEvents ),
-                this.includeRelationships, this.includeAttributes, this.includeDeleted );
-    }
+  public EnrollmentParams withIncludeEvents(boolean includeEvents) {
+    return this.enrollmentEventsParams.isIncludeEvents() == includeEvents
+        ? this
+        : new EnrollmentParams(
+            enrollmentEventsParams.withIncludeEvents(includeEvents),
+            this.includeRelationships,
+            this.includeAttributes);
+  }
 }

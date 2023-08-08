@@ -31,18 +31,16 @@ import lombok.Value;
 import lombok.With;
 
 /**
- * @deprecated this is a class related to "old" (deprecated) tracker which will
- *             be removed with "old" tracker. Make sure to plan migrating to new
- *             tracker.
+ * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
+ *     "old" tracker. Make sure to plan migrating to new tracker.
  */
 @With
 @Value
-@Deprecated( since = "2.41" )
-public class EventParams
-{
-    public static final EventParams TRUE = new EventParams( true );
+@Deprecated(since = "2.41")
+public class EventParams {
+  public static final EventParams TRUE = new EventParams(true);
 
-    public static final EventParams FALSE = new EventParams( false );
+  public static final EventParams FALSE = new EventParams(false);
 
-    private boolean includeRelationships;
+  private boolean includeRelationships;
 }

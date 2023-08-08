@@ -42,41 +42,39 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Viet Nguyen
  */
-class TEIControllerIntegrationTest extends DhisControllerIntegrationTest
-{
-    @BeforeEach
-    public void setUp()
-    {
-        OrganisationUnit organisationUnit = createOrganisationUnit( "a" );
-        organisationUnit.setUid( "ZiMBqH865GV" );
-        manager.save( organisationUnit );
-        Program program = createProgram( 'A' );
-        program.getOrganisationUnits().add( organisationUnit );
-        program.setUid( "q04UBOqq3rp" );
-        manager.save( program );
-        ProgramStage programStage = createProgramStage( 'A', program );
-        programStage.setUid( "pSllsjpfLH2" );
-        program.getProgramStages().add( programStage );
-        manager.save( programStage );
-    }
+class TEIControllerIntegrationTest extends DhisControllerIntegrationTest {
+  @BeforeEach
+  public void setUp() {
+    OrganisationUnit organisationUnit = createOrganisationUnit("a");
+    organisationUnit.setUid("ZiMBqH865GV");
+    manager.save(organisationUnit);
+    Program program = createProgram('A');
+    program.getOrganisationUnits().add(organisationUnit);
+    program.setUid("q04UBOqq3rp");
+    manager.save(program);
+    ProgramStage programStage = createProgramStage('A', program);
+    programStage.setUid("pSllsjpfLH2");
+    program.getProgramStages().add(programStage);
+    manager.save(programStage);
+  }
 
-    @Test
-    void testGetCsv()
-    {
-        HttpResponse res = GET(
+  @Test
+  void testGetCsv() {
+    HttpResponse res =
+        GET(
             "/trackedEntityInstances.csv?format=csv&ou=ZiMBqH865GV&program=q04UBOqq3rp&programStage=pSllsjpfLH2&attachment=trackedEntityInstances.csv",
-            ContentType( "text/csv" ) );
-        assertEquals( HttpStatus.OK, res.status() );
-        assertEquals( ContextUtils.CONTENT_TYPE_TEXT_CSV, res.header( "Content-Type" ) );
-    }
+            ContentType("text/csv"));
+    assertEquals(HttpStatus.OK, res.status());
+    assertEquals(ContextUtils.CONTENT_TYPE_TEXT_CSV, res.header("Content-Type"));
+  }
 
-    @Test
-    void testGetXml()
-    {
-        HttpResponse res = GET(
+  @Test
+  void testGetXml() {
+    HttpResponse res =
+        GET(
             "/trackedEntityInstances.xml?format=xml&ou=ZiMBqH865GV&program=q04UBOqq3rp&programStage=pSllsjpfLH2&attachment=trackedEntityInstances.xml",
-            ContentType( "application/xml" ) );
-        assertEquals( HttpStatus.OK, res.status() );
-        assertEquals( "application/xml;charset=UTF-8", res.header( "Content-Type" ) );
-    }
+            ContentType("application/xml"));
+    assertEquals(HttpStatus.OK, res.status());
+    assertEquals("application/xml;charset=UTF-8", res.header("Content-Type"));
+  }
 }

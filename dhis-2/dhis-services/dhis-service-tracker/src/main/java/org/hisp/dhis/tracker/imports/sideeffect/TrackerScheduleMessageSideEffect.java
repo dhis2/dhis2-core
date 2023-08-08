@@ -27,39 +27,31 @@
  */
 package org.hisp.dhis.tracker.imports.sideeffect;
 
-import lombok.Builder;
-import lombok.Data;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import lombok.Builder;
+import lombok.Data;
 
 /**
- * DHIS2 equivalent to rule engine
- * {@link org.hisp.dhis.rules.models.RuleActionScheduleMessage}
+ * DHIS2 equivalent to rule engine {@link org.hisp.dhis.rules.models.RuleActionScheduleMessage}
  *
  * @author Zubair Asghar
  */
-
 @Data
-@Builder( builderClassName = "TrackerScheduleMessageSideEffectBuilder" )
-@JsonDeserialize( builder = TrackerScheduleMessageSideEffect.TrackerScheduleMessageSideEffectBuilder.class )
-public class TrackerScheduleMessageSideEffect implements TrackerRuleEngineSideEffect
-{
-    @JsonProperty
-    private String notification;
+@Builder(builderClassName = "TrackerScheduleMessageSideEffectBuilder")
+@JsonDeserialize(
+    builder = TrackerScheduleMessageSideEffect.TrackerScheduleMessageSideEffectBuilder.class)
+public class TrackerScheduleMessageSideEffect implements TrackerRuleEngineSideEffect {
+  @JsonProperty private String notification;
 
-    @JsonProperty
-    private String data;
+  @JsonProperty private String data;
 
-    @Override
-    public String getData()
-    {
-        return data;
-    }
+  @Override
+  public String getData() {
+    return data;
+  }
 
-    @JsonPOJOBuilder( withPrefix = "" )
-    public static final class TrackerScheduleMessageSideEffectBuilder
-    {
-    }
+  @JsonPOJOBuilder(withPrefix = "")
+  public static final class TrackerScheduleMessageSideEffectBuilder {}
 }

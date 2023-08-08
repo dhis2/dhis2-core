@@ -27,58 +27,49 @@
  */
 package org.hisp.dhis.user.sharing;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.sharing.AccessObject;
 import org.hisp.dhis.user.UserGroup;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @NoArgsConstructor
-@JacksonXmlRootElement( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
-public class UserGroupAccess
-    extends AccessObject
-{
+@JacksonXmlRootElement(localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0)
+public class UserGroupAccess extends AccessObject {
 
-    //------------------------------------------------------------------------------------------
-    // Constructors
-    //------------------------------------------------------------------------------------------
+  // ------------------------------------------------------------------------------------------
+  // Constructors
+  // ------------------------------------------------------------------------------------------
 
-    public UserGroupAccess( UserGroup userGroup, String access )
-    {
-        super( access, userGroup.getUid() );
-    }
+  public UserGroupAccess(UserGroup userGroup, String access) {
+    super(access, userGroup.getUid());
+  }
 
-    public UserGroupAccess( String access, String id )
-    {
-        super( access, id );
-    }
+  public UserGroupAccess(String access, String id) {
+    super(access, id);
+  }
 
-    //------------------------------------------------------------------------------------------
-    // Helpers
-    //------------------------------------------------------------------------------------------
+  // ------------------------------------------------------------------------------------------
+  // Helpers
+  // ------------------------------------------------------------------------------------------
 
-    public void setUserGroup( UserGroup userGroup )
-    {
-        setId( userGroup.getUid() );
-    }
+  public void setUserGroup(UserGroup userGroup) {
+    setId(userGroup.getUid());
+  }
 
-    @JsonIgnore
-    public UserGroup getUserGroup()
-    {
-        UserGroup userGroup = new UserGroup();
-        userGroup.setUid( this.id );
-        return userGroup;
-    }
+  @JsonIgnore
+  public UserGroup getUserGroup() {
+    UserGroup userGroup = new UserGroup();
+    userGroup.setUid(this.id);
+    return userGroup;
+  }
 
-    @Override
-    public UserGroupAccess copy()
-    {
-        return new UserGroupAccess( this.access, this.id );
-    }
+  @Override
+  public UserGroupAccess copy() {
+    return new UserGroupAccess(this.access, this.id);
+  }
 }

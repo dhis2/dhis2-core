@@ -55,153 +55,145 @@ import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCES
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import java.util.Set;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataitem.query.shared.OptionalFilterBuilder;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
 /**
- * This component is responsible for providing query capabilities on top of
- * DataElement objects.
+ * This component is responsible for providing query capabilities on top of DataElement objects.
  *
  * @author maikel arabori
  */
 @Slf4j
 @Component
-public class DataElementQuery implements DataItemQuery
-{
-    private static final String COMMON_COLUMNS = "cast (null as text) as program_name, cast (null as text) as program_uid,"
-        + " cast (null as text) as program_shortname, dataelement.uid as item_uid, dataelement.name as item_name,"
-        + " dataelement.shortname as item_shortname, dataelement.valuetype as item_valuetype,"
-        + " dataelement.code as item_code, dataelement.sharing as item_sharing, dataelement.domaintype as item_domaintype,"
-        + " cast ('DATA_ELEMENT' as text) as item_type,"
-        + " cast (null as text) as expression";
+public class DataElementQuery implements DataItemQuery {
+  private static final String COMMON_COLUMNS =
+      "cast (null as text) as program_name, cast (null as text) as program_uid,"
+          + " cast (null as text) as program_shortname, dataelement.uid as item_uid, dataelement.name as item_name,"
+          + " dataelement.shortname as item_shortname, dataelement.valuetype as item_valuetype,"
+          + " dataelement.code as item_code, dataelement.sharing as item_sharing, dataelement.domaintype as item_domaintype,"
+          + " cast ('DATA_ELEMENT' as text) as item_type,"
+          + " cast (null as text) as expression";
 
-    @Override
-    public String getStatement( MapSqlParameterSource paramsMap )
-    {
-        StringBuilder sql = new StringBuilder();
+  @Override
+  public String getStatement(MapSqlParameterSource paramsMap) {
+    StringBuilder sql = new StringBuilder();
 
-        sql.append( "(" );
+    sql.append("(");
 
-        // Creating a temp translated table to be queried.
-        sql.append( SPACED_SELECT + "* from (" );
+    // Creating a temp translated table to be queried.
+    sql.append(SPACED_SELECT + "* from (");
 
-        if ( hasNonBlankStringPresence( paramsMap, LOCALE ) )
-        {
-            // Selecting translated names.
-            sql.append( selectRowsContainingTranslatedName() );
-        }
-        else
-        {
-            // Retrieving all rows ignoring translation as no locale is defined.
-            sql.append( selectAllRowsIgnoringAnyTranslation() );
-        }
-
-        sql.append(
-            " group by item_name, item_uid, item_valuetype, item_code, item_domaintype, item_sharing, item_shortname,"
-                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
-
-        // Closing the temp table.
-        sql.append( " ) t" );
-
-        sql.append( SPACED_WHERE );
-
-        // Applying filters, ordering and limits.
-
-        // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "t.item_sharing", READ_ACCESS, paramsMap ) ) );
-        sql.append( " and " );
-        // ONLY aggregates
-        sql.append( always( "t.item_domaintype = 'AGGREGATE'" ) );
-
-        // Optional filters, based on the current root junction.
-        OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
-        Set<String> aggregatableTypes = getAggregatables().stream().map( type -> type.name() ).collect( toSet() );
-
-        // This condition is needed to enable value types filtering only when
-        // they are actually specified as filters. Otherwise we should only
-        // consider the domainType = 'AGGREGATE'. Very specific to DataElements.
-        if ( paramsMap != null && paramsMap.hasValue( VALUE_TYPES )
-            && paramsMap.getValue( VALUE_TYPES ) != null
-            && !((Set) paramsMap.getValue( VALUE_TYPES )).containsAll( aggregatableTypes ) )
-        {
-            optionalFilters.append( ifSet( valueTypeFiltering( "t.item_valuetype", paramsMap ) ) );
-        }
-
-        optionalFilters.append( ifSet( displayNameFiltering( "t.i18n_first_name", paramsMap ) ) );
-        optionalFilters.append( ifSet( displayShortNameFiltering( "t.i18n_first_shortname", paramsMap ) ) );
-        optionalFilters.append( ifSet( nameFiltering( "t.item_name", paramsMap ) ) );
-        optionalFilters.append( ifSet( shortNameFiltering( "t.item_shortname", paramsMap ) ) );
-        optionalFilters.append( ifSet( uidFiltering( "t.item_uid", paramsMap ) ) );
-        sql.append( ifAny( optionalFilters.toString() ) );
-
-        String identifiableStatement = identifiableTokenFiltering( "t.item_uid", "t.item_code",
-            "t.i18n_first_name",
-            null, paramsMap );
-
-        if ( isNotBlank( identifiableStatement ) )
-        {
-            sql.append( rootJunction( paramsMap ) );
-            sql.append( identifiableStatement );
-        }
-
-        sql.append( ifSet( ordering( "t.i18n_first_name, t.i18n_second_name, t.item_uid", "t.item_name, t.item_uid",
-            "t.i18n_first_shortname, t.i18n_second_shortname, t.item_uid", "t.item_shortname, t.item_uid",
-            paramsMap ) ) );
-        sql.append( ifSet( maxLimit( paramsMap ) ) );
-        sql.append( ")" );
-
-        String fullStatement = sql.toString();
-
-        log.trace( "Full SQL: " + fullStatement );
-
-        return fullStatement;
+    if (hasNonBlankStringPresence(paramsMap, LOCALE)) {
+      // Selecting translated names.
+      sql.append(selectRowsContainingTranslatedName());
+    } else {
+      // Retrieving all rows ignoring translation as no locale is defined.
+      sql.append(selectAllRowsIgnoringAnyTranslation());
     }
 
-    /**
-     * If we have a program id filter, we should not return any data element
-     * because data elements don't have programs directly associated with. Hence
-     * we skip this query.
-     *
-     * @param paramsMap
-     * @return true if rules are matched.
-     */
-    @Override
-    public boolean matchQueryRules( MapSqlParameterSource paramsMap )
-    {
-        return !hasNonBlankStringPresence( paramsMap, PROGRAM_ID );
+    sql.append(
+        " group by item_name, item_uid, item_valuetype, item_code, item_domaintype, item_sharing, item_shortname,"
+            + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname");
+
+    // Closing the temp table.
+    sql.append(" ) t");
+
+    sql.append(SPACED_WHERE);
+
+    // Applying filters, ordering and limits.
+
+    // Mandatory filters. They do not respect the root junction filtering.
+    sql.append(always(sharingConditions("t.item_sharing", READ_ACCESS, paramsMap)));
+    sql.append(" and ");
+    // ONLY aggregates
+    sql.append(always("t.item_domaintype = 'AGGREGATE'"));
+
+    // Optional filters, based on the current root junction.
+    OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder(paramsMap);
+    Set<String> aggregatableTypes =
+        getAggregatables().stream().map(type -> type.name()).collect(toSet());
+
+    // This condition is needed to enable value types filtering only when
+    // they are actually specified as filters. Otherwise we should only
+    // consider the domainType = 'AGGREGATE'. Very specific to DataElements.
+    if (paramsMap != null
+        && paramsMap.hasValue(VALUE_TYPES)
+        && paramsMap.getValue(VALUE_TYPES) != null
+        && !((Set) paramsMap.getValue(VALUE_TYPES)).containsAll(aggregatableTypes)) {
+      optionalFilters.append(ifSet(valueTypeFiltering("t.item_valuetype", paramsMap)));
     }
 
-    @Override
-    public Class<? extends BaseIdentifiableObject> getRootEntity()
-    {
-        return QueryableDataItem.DATA_ELEMENT.getEntity();
+    optionalFilters.append(ifSet(displayNameFiltering("t.i18n_first_name", paramsMap)));
+    optionalFilters.append(ifSet(displayShortNameFiltering("t.i18n_first_shortname", paramsMap)));
+    optionalFilters.append(ifSet(nameFiltering("t.item_name", paramsMap)));
+    optionalFilters.append(ifSet(shortNameFiltering("t.item_shortname", paramsMap)));
+    optionalFilters.append(ifSet(uidFiltering("t.item_uid", paramsMap)));
+    sql.append(ifAny(optionalFilters.toString()));
+
+    String identifiableStatement =
+        identifiableTokenFiltering(
+            "t.item_uid", "t.item_code", "t.i18n_first_name", null, paramsMap);
+
+    if (isNotBlank(identifiableStatement)) {
+      sql.append(rootJunction(paramsMap));
+      sql.append(identifiableStatement);
     }
 
-    private String selectRowsContainingTranslatedName()
-    {
-        StringBuilder sql = new StringBuilder();
+    sql.append(
+        ifSet(
+            ordering(
+                "t.i18n_first_name, t.i18n_second_name, t.item_uid",
+                "t.item_name, t.item_uid",
+                "t.i18n_first_shortname, t.i18n_second_shortname, t.item_uid",
+                "t.item_shortname, t.item_uid",
+                paramsMap)));
+    sql.append(ifSet(maxLimit(paramsMap)));
+    sql.append(")");
 
-        sql.append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( translationNamesColumnsFor( "dataelement" ) );
+    String fullStatement = sql.toString();
 
-        sql.append( " from dataelement " )
-            .append( translationNamesJoinsOn( "dataelement" ) );
+    log.trace("Full SQL: " + fullStatement);
 
-        return sql.toString();
-    }
+    return fullStatement;
+  }
 
-    private String selectAllRowsIgnoringAnyTranslation()
-    {
-        return new StringBuilder()
-            .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", dataelement.name as i18n_first_name, cast (null as text) as i18n_second_name" )
-            .append(
-                ", dataelement.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname" )
-            .append( " from dataelement " ).toString();
-    }
+  /**
+   * If we have a program id filter, we should not return any data element because data elements
+   * don't have programs directly associated with. Hence we skip this query.
+   *
+   * @param paramsMap
+   * @return true if rules are matched.
+   */
+  @Override
+  public boolean matchQueryRules(MapSqlParameterSource paramsMap) {
+    return !hasNonBlankStringPresence(paramsMap, PROGRAM_ID);
+  }
+
+  @Override
+  public Class<? extends BaseIdentifiableObject> getRootEntity() {
+    return QueryableDataItem.DATA_ELEMENT.getEntity();
+  }
+
+  private String selectRowsContainingTranslatedName() {
+    StringBuilder sql = new StringBuilder();
+
+    sql.append(SPACED_SELECT + COMMON_COLUMNS).append(translationNamesColumnsFor("dataelement"));
+
+    sql.append(" from dataelement ").append(translationNamesJoinsOn("dataelement"));
+
+    return sql.toString();
+  }
+
+  private String selectAllRowsIgnoringAnyTranslation() {
+    return new StringBuilder()
+        .append(SPACED_SELECT + COMMON_COLUMNS)
+        .append(", dataelement.name as i18n_first_name, cast (null as text) as i18n_second_name")
+        .append(
+            ", dataelement.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname")
+        .append(" from dataelement ")
+        .toString();
+  }
 }

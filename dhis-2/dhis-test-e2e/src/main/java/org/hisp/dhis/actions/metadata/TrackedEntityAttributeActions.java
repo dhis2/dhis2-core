@@ -27,78 +27,68 @@
  */
 package org.hisp.dhis.actions.metadata;
 
+import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackedEntityAttributeActions
-    extends RestApiActions
-{
-    public TrackedEntityAttributeActions()
-    {
-        super( "/trackedEntityAttributes" );
-    }
+public class TrackedEntityAttributeActions extends RestApiActions {
+  public TrackedEntityAttributeActions() {
+    super("/trackedEntityAttributes");
+  }
 
-    public String create( String valueType )
-    {
-        JsonObject ob = build( valueType );
+  public String create(String valueType) {
+    JsonObject ob = build(valueType);
 
-        return this.post( ob ).validateStatus( 201 ).extractUid();
-    }
+    return this.post(ob).validateStatus(201).extractUid();
+  }
 
-    public String create( String valueType, Boolean unique )
-    {
-        JsonObject ob = new JsonObjectBuilder( build( valueType ) )
-            .addProperty( "unique", String.valueOf( unique ) )
+  public String create(String valueType, Boolean unique) {
+    JsonObject ob =
+        new JsonObjectBuilder(build(valueType))
+            .addProperty("unique", String.valueOf(unique))
             .build();
 
-        return this.post( ob ).validateStatus( 201 ).extractUid();
-    }
+    return this.post(ob).validateStatus(201).extractUid();
+  }
 
-    public String create( String valueType, Boolean unique, Boolean confidential )
-    {
-        JsonObject ob = new JsonObjectBuilder( build( valueType ) )
-            .addProperty( "confidential", String.valueOf( confidential ) )
-            .addProperty( "unique", String.valueOf( unique ) )
+  public String create(String valueType, Boolean unique, Boolean confidential) {
+    JsonObject ob =
+        new JsonObjectBuilder(build(valueType))
+            .addProperty("confidential", String.valueOf(confidential))
+            .addProperty("unique", String.valueOf(unique))
             .build();
 
-        return this.post( ob ).validateStatus( 201 ).extractUid();
-    }
+    return this.post(ob).validateStatus(201).extractUid();
+  }
 
-    public String createOptionSetAttribute( String optionSet )
-    {
-        JsonObject ob = new JsonObjectBuilder( build( "TEXT" ) )
-            .addObject( "optionSet", new JsonObjectBuilder()
-                .addProperty( "id", optionSet )
-                .build() )
+  public String createOptionSetAttribute(String optionSet) {
+    JsonObject ob =
+        new JsonObjectBuilder(build("TEXT"))
+            .addObject("optionSet", new JsonObjectBuilder().addProperty("id", optionSet).build())
             .build();
 
-        return this.post( ob ).validateStatus( 201 ).extractUid();
-    }
+    return this.post(ob).validateStatus(201).extractUid();
+  }
 
-    public String createMultiTextAttribute( String optionSet )
-    {
-        JsonObject ob = new JsonObjectBuilder( build( "MULTI_TEXT" ) )
-            .addObject( "optionSet", new JsonObjectBuilder()
-                .addProperty( "id", optionSet )
-                .build() )
+  public String createMultiTextAttribute(String optionSet) {
+    JsonObject ob =
+        new JsonObjectBuilder(build("MULTI_TEXT"))
+            .addObject("optionSet", new JsonObjectBuilder().addProperty("id", optionSet).build())
             .build();
 
-        return this.post( ob ).validateStatus( 201 ).extractUid();
-    }
+    return this.post(ob).validateStatus(201).extractUid();
+  }
 
-    private JsonObject build( String valueType )
-    {
-        return new JsonObjectBuilder()
-            .addProperty( "name", "TA TEA" + DataGenerator.randomString() )
-            .addProperty( "shortName", "TA TEA " + DataGenerator.randomString() )
-            .addProperty( "valueType", valueType )
-            .addProperty( "aggregationType", "NONE" )
-            .build();
-    }
+  private JsonObject build(String valueType) {
+    return new JsonObjectBuilder()
+        .addProperty("name", "TA TEA" + DataGenerator.randomString())
+        .addProperty("shortName", "TA TEA " + DataGenerator.randomString())
+        .addProperty("valueType", valueType)
+        .addProperty("aggregationType", "NONE")
+        .build();
+  }
 }

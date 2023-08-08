@@ -34,90 +34,74 @@ import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABL
 
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.eventreport.EventReport;
 
 /**
- * This is simple class responsible for ensuring that the necessary attributes
- * are correctly mapped between EventReport and EventVisualization.
+ * This is simple class responsible for ensuring that the necessary attributes are correctly mapped
+ * between EventReport and EventVisualization.
  *
- * @deprecated This is needed only to assist the deprecation process of
- *             EventReport.
- *
+ * @deprecated This is needed only to assist the deprecation process of EventReport.
  * @author maikel arabori
  */
 @Deprecated
-public class EventReportCompatibilityGuard
-{
-    /**
-     * Finds objects of type EventReport and sets the respective mandatory type
-     * so it can be correctly validated and saved.
-     *
-     * @deprecated Needed to keep backward compatibility between the new
-     *             EventVisualization and EventReport entities.
-     *
-     * @param bundleParams
-     */
-    @Deprecated
-    public static void handleDeprecationIfEventReport( final ObjectBundleParams bundleParams )
-    {
-        final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects = bundleParams
-            .getObjects();
+public class EventReportCompatibilityGuard {
+  /**
+   * Finds objects of type EventReport and sets the respective mandatory type so it can be correctly
+   * validated and saved.
+   *
+   * @deprecated Needed to keep backward compatibility between the new EventVisualization and
+   *     EventReport entities.
+   * @param bundleParams
+   */
+  @Deprecated
+  public static void handleDeprecationIfEventReport(final ObjectBundleParams bundleParams) {
+    final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects =
+        bundleParams.getObjects();
 
-        for ( final Map.Entry<Class<? extends IdentifiableObject>, List<IdentifiableObject>> entry : objects
-            .entrySet() )
-        {
-            handleDeprecationIfEventReport( entry.getKey(), entry.getValue() );
-        }
+    for (final Map.Entry<Class<? extends IdentifiableObject>, List<IdentifiableObject>> entry :
+        objects.entrySet()) {
+      handleDeprecationIfEventReport(entry.getKey(), entry.getValue());
     }
+  }
 
-    /**
-     * If the given class is of type EventReport, we must set a valid type for
-     * backward compatibility reasons.
-     *
-     * @deprecated Needed to keep backward compatibility between the new
-     *             EventVisualization and EventReport entities.
-     *
-     * @param type
-     * @param objects
-     */
-    @Deprecated
-    static void handleDeprecationIfEventReport( final Class<? extends IdentifiableObject> type,
-        final List<? extends IdentifiableObject> objects )
-    {
-        if ( type.isAssignableFrom( EventReport.class ) && isNotEmpty( objects ) )
-        {
-            setEventReportType( objects );
-        }
+  /**
+   * If the given class is of type EventReport, we must set a valid type for backward compatibility
+   * reasons.
+   *
+   * @deprecated Needed to keep backward compatibility between the new EventVisualization and
+   *     EventReport entities.
+   * @param type
+   * @param objects
+   */
+  @Deprecated
+  static void handleDeprecationIfEventReport(
+      final Class<? extends IdentifiableObject> type,
+      final List<? extends IdentifiableObject> objects) {
+    if (type.isAssignableFrom(EventReport.class) && isNotEmpty(objects)) {
+      setEventReportType(objects);
     }
+  }
 
-    /**
-     * Sets the correct type for each EventReport in the list.
-     *
-     * @deprecated Needed to keep backward compatibility between the new
-     *             EventVisualization and EventReport entities.
-     *
-     * @param eventReports
-     */
-    @Deprecated
-    private static void setEventReportType( final List<? extends IdentifiableObject> eventReports )
-    {
-        if ( isNotEmpty( eventReports ) )
-        {
-            for ( final IdentifiableObject object : eventReports )
-            {
-                final EventReport eventReport = (EventReport) object;
+  /**
+   * Sets the correct type for each EventReport in the list.
+   *
+   * @deprecated Needed to keep backward compatibility between the new EventVisualization and
+   *     EventReport entities.
+   * @param eventReports
+   */
+  @Deprecated
+  private static void setEventReportType(final List<? extends IdentifiableObject> eventReports) {
+    if (isNotEmpty(eventReports)) {
+      for (final IdentifiableObject object : eventReports) {
+        final EventReport eventReport = (EventReport) object;
 
-                if ( AGGREGATED_VALUES == eventReport.getDataType() )
-                {
-                    eventReport.setType( PIVOT_TABLE );
-                }
-                else
-                {
-                    eventReport.setType( LINE_LIST );
-                }
-            }
+        if (AGGREGATED_VALUES == eventReport.getDataType()) {
+          eventReport.setType(PIVOT_TABLE);
+        } else {
+          eventReport.setType(LINE_LIST);
         }
+      }
     }
+  }
 }

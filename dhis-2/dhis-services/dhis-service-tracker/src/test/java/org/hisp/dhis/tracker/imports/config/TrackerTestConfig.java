@@ -44,44 +44,37 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import( { ConfigProviderConfiguration.class } )
-@ComponentScan( "org.hisp.dhis.tracker.imports.validation" )
-@ExtendWith( MockitoExtension.class )
-public class TrackerTestConfig
-{
-    @Bean
-    public UserService userService()
-    {
-        return mock( UserService.class );
-    }
+@Import({ConfigProviderConfiguration.class})
+@ComponentScan("org.hisp.dhis.tracker.imports.validation")
+@ExtendWith(MockitoExtension.class)
+public class TrackerTestConfig {
+  @Bean
+  public UserService userService() {
+    return mock(UserService.class);
+  }
 
-    @Bean
-    public FileResourceService fileResourceService()
-    {
-        return mock( FileResourceService.class );
-    }
+  @Bean
+  public FileResourceService fileResourceService() {
+    return mock(FileResourceService.class);
+  }
 
-    @Bean
-    public AclService aclService()
-    {
-        return mock( AclService.class );
-    }
+  @Bean
+  public AclService aclService() {
+    return mock(AclService.class);
+  }
 
-    @Bean
-    public TrackerOwnershipManager trackerOwnershipManager()
-    {
-        return mock( TrackerOwnershipManager.class );
-    }
+  @Bean
+  public TrackerOwnershipManager trackerOwnershipManager() {
+    return mock(TrackerOwnershipManager.class);
+  }
 
-    @Bean
-    public OrganisationUnitService organisationUnitService()
-    {
-        return mock( OrganisationUnitService.class );
-    }
+  @Bean
+  public OrganisationUnitService organisationUnitService() {
+    return mock(OrganisationUnitService.class);
+  }
 
-    @Bean
-    public I18nManager i18nManager()
-    {
-        return mock( I18nManager.class );
-    }
+  @Bean
+  public I18nManager i18nManager() {
+    return mock(I18nManager.class);
+  }
 }

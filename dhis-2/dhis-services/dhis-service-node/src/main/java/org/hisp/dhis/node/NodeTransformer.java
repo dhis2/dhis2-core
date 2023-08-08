@@ -32,9 +32,8 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface NodeTransformer
-{
-    String name();
+public interface NodeTransformer {
+  String name();
 
-    Node transform( Node object, List<String> args );
+  Node transform(Node object, List<String> args);
 }

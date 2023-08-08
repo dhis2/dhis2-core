@@ -35,10 +35,11 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
+import com.google.gson.JsonObject;
+import io.restassured.http.ContentType;
 import java.io.File;
 import java.util.List;
 import java.util.stream.Stream;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
@@ -61,229 +62,230 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.google.gson.JsonObject;
-
-import io.restassured.http.ContentType;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventsTests
-    extends TrackerApiTest
-{
-    private static final String OU_ID_0 = Constants.ORG_UNIT_IDS[0];
+public class EventsTests extends TrackerApiTest {
+  private static final String OU_ID_0 = Constants.ORG_UNIT_IDS[0];
 
-    private static final String OU_ID = Constants.ORG_UNIT_IDS[1];
+  private static final String OU_ID = Constants.ORG_UNIT_IDS[1];
 
-    private static final String OU_ID_2 = Constants.ORG_UNIT_IDS[2];
+  private static final String OU_ID_2 = Constants.ORG_UNIT_IDS[2];
 
-    private EventActions eventActions;
+  private EventActions eventActions;
 
-    private static Stream<Arguments> provideEventFilesTestArguments()
-    {
-        return Stream.of(
-            Arguments.arguments( "event.json", ContentType.JSON.toString() ),
-            Arguments.arguments( "event.csv", "text/csv" ) );
-    }
+  private static Stream<Arguments> provideEventFilesTestArguments() {
+    return Stream.of(
+        Arguments.arguments("event.json", ContentType.JSON.toString()),
+        Arguments.arguments("event.csv", "text/csv"));
+  }
 
-    @BeforeAll
-    public void beforeAll()
-    {
-        loginActions.loginAsSuperUser();
-        eventActions = new EventActions();
-    }
+  @BeforeAll
+  public void beforeAll() {
+    loginActions.loginAsSuperUser();
+    eventActions = new EventActions();
+  }
 
-    @Test
-    public void shouldImportEvents()
-        throws Exception
-    {
-        JsonObject eventBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/events/events.json" ) );
+  @Test
+  public void shouldImportEvents() throws Exception {
+    JsonObject eventBody =
+        new FileReaderUtils()
+            .readJsonAndGenerateData(
+                new File("src/test/resources/tracker/importer/events/events.json"));
 
-        TrackerApiResponse importResponse = trackerImportExportActions.postAndGetJobReport( eventBody );
+    TrackerApiResponse importResponse = trackerImportExportActions.postAndGetJobReport(eventBody);
 
-        importResponse.validateSuccessfulImport()
-            .validateEvents()
-            .body( "stats.created", Matchers.equalTo( 4 ) )
-            .body( "objectReports", notNullValue() )
-            .body( "objectReports[0].errorReports", empty() );
+    importResponse
+        .validateSuccessfulImport()
+        .validateEvents()
+        .body("stats.created", Matchers.equalTo(4))
+        .body("objectReports", notNullValue())
+        .body("objectReports[0].errorReports", empty());
 
-        eventBody.getAsJsonArray( "events" ).forEach( event -> {
-            trackerImportExportActions.getEvent( event.getAsJsonObject().get( "event" ).getAsString() )
-                .validate().statusCode( 200 )
-                .body( "", matchesJSON( event ) );
-        } );
+    eventBody
+        .getAsJsonArray("events")
+        .forEach(
+            event -> {
+              trackerImportExportActions
+                  .getEvent(event.getAsJsonObject().get("event").getAsString())
+                  .validate()
+                  .statusCode(200)
+                  .body("", matchesJSON(event));
+            });
+  }
 
-    }
-
-    @ParameterizedTest
-    @MethodSource( "provideEventFilesTestArguments" )
-    public void eventsImportNewEventsFromFile( String fileName, String contentType )
-        throws Exception
-    {
-        Object obj = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/events/" + fileName ) )
-            .replacePropertyValuesWithIds( "event" )
+  @ParameterizedTest
+  @MethodSource("provideEventFilesTestArguments")
+  public void eventsImportNewEventsFromFile(String fileName, String contentType) throws Exception {
+    Object obj =
+        new FileReaderUtils()
+            .read(new File("src/test/resources/tracker/importer/events/" + fileName))
+            .replacePropertyValuesWithIds("event")
             .get();
 
-        ApiResponse response = trackerImportExportActions
-            .post( "", contentType, obj, new QueryParamsBuilder()
-                .addAll( "dryRun=false", "eventIdScheme=UID", "orgUnitIdScheme=UID" ) );
-        response
-            .validate()
-            .statusCode( 200 );
+    ApiResponse response =
+        trackerImportExportActions.post(
+            "",
+            contentType,
+            obj,
+            new QueryParamsBuilder()
+                .addAll("dryRun=false", "eventIdScheme=UID", "orgUnitIdScheme=UID"));
+    response.validate().statusCode(200);
 
-        String jobId = response.extractString( "response.id" );
+    String jobId = response.extractString("response.id");
 
-        trackerImportExportActions.waitUntilJobIsCompleted( jobId );
+    trackerImportExportActions.waitUntilJobIsCompleted(jobId);
 
-        response = trackerImportExportActions.getJobReport( jobId, "FULL" );
+    response = trackerImportExportActions.getJobReport(jobId, "FULL");
 
-        response.validate()
-            .statusCode( 200 )
-            .body( "status", equalTo( "OK" ) );
+    response.validate().statusCode(200).body("status", equalTo("OK"));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"true", "false"})
+  public void shouldImportToRepeatableStage(Boolean repeatableStage) throws Exception {
+    // arrange
+    String program = Constants.TRACKER_PROGRAM_ID;
+    String programStage =
+        new ProgramStageActions()
+            .get(
+                "",
+                new QueryParamsBuilder()
+                    .addAll(
+                        "filter=program.id:eq:" + program,
+                        "filter=repeatable:eq:" + repeatableStage))
+            .extractString("programStages.id[0]");
+
+    TrackerApiResponse response = importTeiWithEnrollment(program);
+    String teiId = response.extractImportedTeis().get(0);
+    String enrollmentId = response.extractImportedEnrollments().get(0);
+
+    JsonObject event =
+        new EventDataBuilder()
+            .setEnrollment(enrollmentId)
+            .setTei(teiId)
+            .array(OU_ID, program, programStage)
+            .getAsJsonArray("events")
+            .get(0)
+            .getAsJsonObject();
+
+    JsonObject payload = new JsonObjectBuilder().addArray("events", event, event).build();
+
+    // act
+    response = trackerImportExportActions.postAndGetJobReport(payload);
+
+    // assert
+    if (repeatableStage) {
+      response.validateSuccessfulImport().validate().body("stats.created", equalTo(2));
+    } else {
+      response.validateErrorReport().body("errorCode", hasItem("E1039"));
     }
+  }
 
-    @ParameterizedTest
-    @ValueSource( strings = { "true", "false" } )
-    public void shouldImportToRepeatableStage( Boolean repeatableStage )
-        throws Exception
-    {
-        // arrange
-        String program = Constants.TRACKER_PROGRAM_ID;
-        String programStage = new ProgramStageActions().get( "",
-            new QueryParamsBuilder().addAll( "filter=program.id:eq:" + program,
-                "filter=repeatable:eq:" + repeatableStage ) )
-            .extractString( "programStages.id[0]" );
+  @Test
+  public void shouldImportAndGetEventWithOrgUnitDifferentFromEnrollmentOrgUnit() throws Exception {
+    String programId = Constants.TRACKER_PROGRAM_ID;
+    String programStageId = "nlXNK4b7LVr";
 
-        TrackerApiResponse response = importTeiWithEnrollment( program );
-        String teiId = response.extractImportedTeis().get( 0 );
-        String enrollmentId = response.extractImportedEnrollments().get( 0 );
+    TrackerApiResponse response = importTeiWithEnrollment(programId);
 
-        JsonObject event = new EventDataBuilder()
-            .setEnrollment( enrollmentId )
-            .setTei( teiId )
-            .array( OU_ID, program, programStage ).getAsJsonArray( "events" ).get( 0 ).getAsJsonObject();
+    String enrollmentId = response.extractImportedEnrollments().get(0);
 
-        JsonObject payload = new JsonObjectBuilder().addArray( "events", event, event ).build();
+    JsonObject event =
+        new EventDataBuilder()
+            .setEnrollment(enrollmentId)
+            .array(OU_ID_0, programId, programStageId);
 
-        // act
-        response = trackerImportExportActions.postAndGetJobReport( payload );
+    response = trackerImportExportActions.postAndGetJobReport(event).validateSuccessfulImport();
 
-        // assert
-        if ( repeatableStage )
-        {
-            response
-                .validateSuccessfulImport()
-                .validate().body( "stats.created", equalTo( 2 ) );
-        }
+    String eventId = response.extractImportedEvents().get(0);
 
-        else
-        {
-            response.validateErrorReport()
-                .body( "errorCode", hasItem( "E1039" ) );
-        }
-    }
+    trackerImportExportActions
+        .get("/enrollments/" + enrollmentId)
+        .validate()
+        .statusCode(200)
+        .body("orgUnit", equalTo(OU_ID));
 
-    @Test
-    public void shouldImportAndGetEventWithOrgUnitDifferentFromEnrollmentOrgUnit()
-        throws Exception
-    {
-        String programId = Constants.TRACKER_PROGRAM_ID;
-        String programStageId = "nlXNK4b7LVr";
+    trackerImportExportActions
+        .get("/events/" + eventId + "?fields=*")
+        .validate()
+        .statusCode(200)
+        .body("orgUnit", equalTo(OU_ID_0));
 
-        TrackerApiResponse response = importTeiWithEnrollment( programId );
+    QueryParamsBuilder builder =
+        new QueryParamsBuilder()
+            .add("ouMode", "DESCENDANTS")
+            .add("orgUnit", OU_ID_2)
+            .add("program", programId);
 
-        String enrollmentId = response.extractImportedEnrollments().get( 0 );
+    // TODO(tracker) eventActions.get() is testing old tracker at /events
+    // this test class should only test new tracker. The call should therefore be replaced with
+    // trackerImportExportActions.getEvents( builder )
+    // Right now this leads to this error
+    // dhis-test-e2e-test-1   | JSON path events doesn't match.
+    // dhis-test-e2e-test-1   | Expected: a collection with size a value equal to or greater than
+    // <1>
+    //     dhis-test-e2e-test-1   |   Actual: null
+    eventActions
+        .get(builder.build())
+        .validate()
+        .statusCode(200)
+        .body("events", hasSize(greaterThanOrEqualTo(1)))
+        .body("events[0].orgUnit", equalTo(OU_ID_0));
+  }
 
-        JsonObject event = new EventDataBuilder()
-            .setEnrollment( enrollmentId )
-            .array( OU_ID_0, programId, programStageId );
+  @Test
+  public void shouldAddEventsToExistingTei() throws Exception {
+    String programId = Constants.TRACKER_PROGRAM_ID;
+    String programStageId = "nlXNK4b7LVr";
 
-        response = trackerImportExportActions.postAndGetJobReport( event )
-            .validateSuccessfulImport();
+    TrackerApiResponse response = importTeiWithEnrollment(programId);
 
-        String eventId = response.extractImportedEvents().get( 0 );
+    String enrollmentId = response.extractImportedEnrollments().get(0);
 
-        trackerImportExportActions
-            .get( "/enrollments/" + enrollmentId )
-            .validate().statusCode( 200 )
-            .body( "orgUnit", equalTo( OU_ID ) );
+    JsonObject event =
+        new EventDataBuilder().setEnrollment(enrollmentId).array(OU_ID, programId, programStageId);
 
-        trackerImportExportActions
-            .get( "/events/" + eventId + "?fields=*" )
-            .validate().statusCode( 200 )
-            .body( "orgUnit", equalTo( OU_ID_0 ) );
+    response = trackerImportExportActions.postAndGetJobReport(event).validateSuccessfulImport();
 
-        QueryParamsBuilder builder = new QueryParamsBuilder()
-            .add( "ouMode", "DESCENDANTS" )
-            .add( "orgUnit", OU_ID_2 )
-            .add( "program", programId );
+    String eventId = response.extractImportedEvents().get(0);
 
-        // TODO(tracker) eventActions.get() is testing old tracker at /events
-        // this test class should only test new tracker. The call should therefore be replaced with
-        // trackerImportExportActions.getEvents( builder )
-        // Right now this leads to this error
-        // dhis-test-e2e-test-1   | JSON path events doesn't match.
-        // dhis-test-e2e-test-1   | Expected: a collection with size a value equal to or greater than <1>
-        //     dhis-test-e2e-test-1   |   Actual: null
-        eventActions.get( builder.build() )
-            .validate().statusCode( 200 )
-            .body( "events", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "events[0].orgUnit", equalTo( OU_ID_0 ) );
-    }
+    trackerImportExportActions
+        .get("/events/" + eventId + "?fields=*")
+        .validate()
+        .statusCode(200)
+        .body("enrollment", equalTo(enrollmentId));
+  }
 
-    @Test
-    public void shouldAddEventsToExistingTei()
-        throws Exception
-    {
-        String programId = Constants.TRACKER_PROGRAM_ID;
-        String programStageId = "nlXNK4b7LVr";
+  @Test
+  public void shouldImportWithCategoryCombo() {
+    ApiResponse program =
+        programActions.get(
+            "",
+            new QueryParamsBuilder()
+                .add("programType=WITHOUT_REGISTRATION")
+                .add("filter=categoryCombo.code:!eq:default")
+                .add("filter=name:like:TA")
+                .add("fields=id,categoryCombo[categories[categoryOptions]]"));
 
-        TrackerApiResponse response = importTeiWithEnrollment( programId );
+    String programId = program.extractString("programs.id[0]");
+    List<String> category =
+        program.extractList("programs[0].categoryCombo.categories.categoryOptions.id.flatten()");
 
-        String enrollmentId = response.extractImportedEnrollments().get( 0 );
+    Assumptions.assumeFalse(StringUtils.isEmpty(programId));
 
-        JsonObject event = new EventDataBuilder()
-            .setEnrollment( enrollmentId )
-            .array( OU_ID, programId, programStageId );
+    JsonObject object =
+        new EventDataBuilder()
+            .setProgram(programId)
+            .setAttributeCategoryOptions(category)
+            .setOu(OU_ID)
+            .array();
 
-        response = trackerImportExportActions.postAndGetJobReport( event )
-            .validateSuccessfulImport();
+    trackerImportExportActions.postAndGetJobReport(object).validateSuccessfulImport();
+  }
 
-        String eventId = response.extractImportedEvents().get( 0 );
-
-        trackerImportExportActions
-            .get( "/events/" + eventId + "?fields=*" )
-            .validate().statusCode( 200 )
-            .body( "enrollment", equalTo( enrollmentId ) );
-    }
-
-    @Test
-    public void shouldImportWithCategoryCombo()
-    {
-        ApiResponse program = programActions.get( "", new QueryParamsBuilder().add( "programType=WITHOUT_REGISTRATION" )
-            .add( "filter=categoryCombo.code:!eq:default" )
-            .add( "filter=name:like:TA" )
-            .add( "fields=id,categoryCombo[categories[categoryOptions]]" ) );
-
-        String programId = program.extractString( "programs.id[0]" );
-        List<String> category = program
-            .extractList( "programs[0].categoryCombo.categories.categoryOptions.id.flatten()" );
-
-        Assumptions.assumeFalse( StringUtils.isEmpty( programId ) );
-
-        JsonObject object = new EventDataBuilder()
-            .setProgram( programId )
-            .setAttributeCategoryOptions( category )
-            .setOu( OU_ID ).array();
-
-        trackerImportExportActions.postAndGetJobReport( object )
-            .validateSuccessfulImport();
-    }
-
-    @AfterEach
-    public void afterEach()
-    {
-        new TestCleanUp().deleteCreatedEntities( "/events" );
-    }
+  @AfterEach
+  public void afterEach() {
+    new TestCleanUp().deleteCreatedEntities("/events");
+  }
 }

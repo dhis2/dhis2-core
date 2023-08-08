@@ -29,7 +29,6 @@ package org.hisp.dhis.outlierdetection.util;
 
 import java.util.Date;
 import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -37,46 +36,41 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 /**
  * @author Lars Helge Overland
  */
-public class OutlierDetectionUtils
-{
-    /**
-     * Returns an organisation unit 'path' "like" clause for the given list of
-     * {@link OrganisationUnit}.
-     *
-     * @param query the list of {@link OrganisationUnit}.
-     * @return an organisation unit 'path' "like" clause.
-     */
-    public static String getOrgUnitPathClause( List<OrganisationUnit> orgUnits )
-    {
-        String sql = "(";
+public class OutlierDetectionUtils {
+  /**
+   * Returns an organisation unit 'path' "like" clause for the given list of {@link
+   * OrganisationUnit}.
+   *
+   * @param query the list of {@link OrganisationUnit}.
+   * @return an organisation unit 'path' "like" clause.
+   */
+  public static String getOrgUnitPathClause(List<OrganisationUnit> orgUnits) {
+    String sql = "(";
 
-        for ( OrganisationUnit ou : orgUnits )
-        {
-            sql += "ou.\"path\" like '" + ou.getPath() + "%' or ";
-        }
-
-        return StringUtils.trim( TextUtils.removeLastOr( sql ) ) + ")";
+    for (OrganisationUnit ou : orgUnits) {
+      sql += "ou.\"path\" like '" + ou.getPath() + "%' or ";
     }
 
-    /**
-     * Returns a period data start date clause.
-     *
-     * @param dataStartDate the data start date.
-     * @return a period data start date clause.
-     */
-    public static String getDataStartDateClause( Date dataStartDate )
-    {
-        return dataStartDate != null ? "and pe.startdate >= :data_start_date " : StringUtils.EMPTY;
-    }
+    return StringUtils.trim(TextUtils.removeLastOr(sql)) + ")";
+  }
 
-    /**
-     * Returns a period data end date clause.
-     *
-     * @param dataStartDate the data start date.
-     * @return a period data end date clause.
-     */
-    public static String getDataEndDateClause( Date dataStartDate )
-    {
-        return dataStartDate != null ? "and pe.enddate <= :data_end_date " : StringUtils.EMPTY;
-    }
+  /**
+   * Returns a period data start date clause.
+   *
+   * @param dataStartDate the data start date.
+   * @return a period data start date clause.
+   */
+  public static String getDataStartDateClause(Date dataStartDate) {
+    return dataStartDate != null ? "and pe.startdate >= :data_start_date " : StringUtils.EMPTY;
+  }
+
+  /**
+   * Returns a period data end date clause.
+   *
+   * @param dataStartDate the data start date.
+   * @return a period data end date clause.
+   */
+  public static String getDataEndDateClause(Date dataStartDate) {
+    return dataStartDate != null ? "and pe.enddate <= :data_end_date " : StringUtils.EMPTY;
+  }
 }

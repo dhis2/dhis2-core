@@ -36,12 +36,11 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
  *
  * @author Luciano Fiandesio
  */
-public abstract class JdbcAbstractPreheatSupplier extends AbstractPreheatSupplier
-{
-    protected final NamedParameterJdbcTemplate jdbcTemplate;
+public abstract class JdbcAbstractPreheatSupplier extends AbstractPreheatSupplier {
+  protected final NamedParameterJdbcTemplate jdbcTemplate;
 
-    protected JdbcAbstractPreheatSupplier( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
-    {
-        this.jdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
-    }
+  protected JdbcAbstractPreheatSupplier(
+      @Qualifier("readOnlyJdbcTemplate") JdbcTemplate jdbcTemplate) {
+    this.jdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+  }
 }

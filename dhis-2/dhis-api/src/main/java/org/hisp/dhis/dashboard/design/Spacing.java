@@ -29,12 +29,10 @@ package org.hisp.dhis.dashboard.design;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
-import java.io.Serializable;
-
-import lombok.Data;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.io.Serializable;
+import lombok.Data;
 
 /**
  * Represents the spacing in the context of a layout.
@@ -42,13 +40,12 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  * @author maikel arabori
  */
 @Data
-public class Spacing implements Serializable
-{
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private Integer column;
+public class Spacing implements Serializable {
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private Integer column;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private Integer row;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private Integer row;
 }

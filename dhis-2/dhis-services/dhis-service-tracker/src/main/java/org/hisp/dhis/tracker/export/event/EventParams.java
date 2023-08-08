@@ -32,11 +32,10 @@ import lombok.With;
 
 @With
 @Value
-public class EventParams
-{
-    public static final EventParams TRUE = new EventParams( true );
+public class EventParams {
+  public static final EventParams TRUE = new EventParams(true);
 
-    public static final EventParams FALSE = new EventParams( false );
+  public static final EventParams FALSE = new EventParams(false);
 
-    boolean includeRelationships;
+  boolean includeRelationships;
 }

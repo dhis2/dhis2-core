@@ -29,40 +29,38 @@ package org.hisp.dhis.dxf2.dataset;
 
 import java.io.OutputStream;
 import java.util.Date;
-
 import org.hisp.dhis.common.IdSchemes;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-public interface CompleteDataSetRegistrationExchangeStore
-{
-    /**
-     * Query for {@link CompleteDataSetRegistration
-     * CompleteDataSetRegistrations} and write result as XML.
-     *
-     * @param params the export query parameters.
-     * @param outputStream the stream to write the XML result to.
-     */
-    void writeCompleteDataSetRegistrationsXml( ExportParams params, OutputStream outputStream );
+public interface CompleteDataSetRegistrationExchangeStore {
+  /**
+   * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as
+   * XML.
+   *
+   * @param params the export query parameters.
+   * @param outputStream the stream to write the XML result to.
+   */
+  void writeCompleteDataSetRegistrationsXml(ExportParams params, OutputStream outputStream);
 
-    /**
-     * Query for {@link CompleteDataSetRegistration
-     * CompleteDataSetRegistrations} and write result as JSON.
-     *
-     * @param params the export query parameters.
-     * @param outputStream the stream to write the JSON result to.
-     */
-    void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream outputStream );
+  /**
+   * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as
+   * JSON.
+   *
+   * @param params the export query parameters.
+   * @param outputStream the stream to write the JSON result to.
+   */
+  void writeCompleteDataSetRegistrationsJson(ExportParams params, OutputStream outputStream);
 
-    /**
-     * Query for {@link CompleteDataSetRegistration
-     * CompleteDataSetRegistrations} and write result as JSON.
-     *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
-     * @param outputStream the stream to write to.
-     * @param idSchemes idSchemes
-     */
-    void writeCompleteDataSetRegistrationsJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
+  /**
+   * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as
+   * JSON.
+   *
+   * @param lastUpdated specifies the date to filter complete data sets last updated after
+   * @param outputStream the stream to write to.
+   * @param idSchemes idSchemes
+   */
+  void writeCompleteDataSetRegistrationsJson(
+      Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes);
 }

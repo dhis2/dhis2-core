@@ -48,17 +48,13 @@
             </type>
         </property>
 
-        <property name="executedBy" type="text" column="executedby" length="11" />
+        <property name="executedBy" column="executedby" length="11" />
 
         <property name="lastExecuted" type="timestamp" />
 
         <property name="lastRuntimeExecution" type="text" />
 
         <property name="enabled" not-null="true" type="boolean" />
-
-        <property name="leaderOnlyJob" not-null="true" type="boolean">
-            <column name="leaderonlyjob" default="false" />
-        </property>
 
         <property name="jobParameters" column="jsonbjobparameters" type="jbJobParameters" />
     </class>

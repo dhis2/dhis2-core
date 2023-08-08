@@ -29,19 +29,16 @@ package org.hisp.dhis.dataintegrity;
 
 import static java.util.stream.Collectors.toUnmodifiableList;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
 import org.hisp.dhis.common.IdentifiableObject;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /**
  * The result data of a {@link DataIntegrityCheck#getRunDetailsCheck()} run.
@@ -50,77 +47,58 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
  */
 @Getter
 @AllArgsConstructor
-public class DataIntegrityDetails implements Serializable
-{
-    @JsonUnwrapped
-    private final DataIntegrityCheck check;
+public class DataIntegrityDetails implements Serializable {
+  @JsonUnwrapped private final DataIntegrityCheck check;
 
-    @JsonProperty
-    private final Date startTime;
+  @JsonProperty private final Date startTime;
 
-    @JsonProperty
-    private final Date finishedTime;
+  @JsonProperty private final Date finishedTime;
 
-    @JsonProperty
-    private final String error;
+  @JsonProperty private final String error;
 
-    @JsonProperty
-    private final List<DataIntegrityIssue> issues;
+  @JsonProperty private final List<DataIntegrityIssue> issues;
 
-    @Getter
-    @AllArgsConstructor
-    public static final class DataIntegrityIssue implements Serializable
-    {
-        @JsonProperty
-        private final String id;
+  @Getter
+  @AllArgsConstructor
+  public static final class DataIntegrityIssue implements Serializable {
+    @JsonProperty private final String id;
 
-        @JsonProperty
-        private final String name;
+    @JsonProperty private final String name;
 
-        @JsonProperty
-        private final String comment;
+    @JsonProperty private final String comment;
 
-        @JsonProperty
-        private final List<String> refs;
+    @JsonProperty private final List<String> refs;
 
-        public static DataIntegrityIssue toIssue( IdentifiableObject obj )
-        {
-            return toIssue( obj, null, null );
-        }
-
-        public static DataIntegrityIssue toIssue( IdentifiableObject obj, String comment )
-        {
-            return toIssue( obj, comment, null );
-        }
-
-        public static DataIntegrityIssue toIssue( IdentifiableObject obj,
-            Collection<? extends IdentifiableObject> refs )
-        {
-            return toIssue( obj, null, refs );
-        }
-
-        public static DataIntegrityIssue toIssue( IdentifiableObject obj, String comment,
-            Collection<? extends IdentifiableObject> refs )
-        {
-            return new DataIntegrityIssue( obj.getUid(), issueName( obj ), comment,
-                refs == null || refs.isEmpty() ? List.of() : toRefsList( refs.stream() ) );
-        }
-
-        public static List<String> toRefsList( Stream<? extends IdentifiableObject> refs )
-        {
-            return refs.map( DataIntegrityIssue::issueName )
-                .sorted()
-                .collect( toUnmodifiableList() );
-        }
-
-        public static String issueName( IdentifiableObject object )
-        {
-            String displayName = object.getDisplayName();
-            String uid = object.getUid();
-            return displayName == null
-                ? uid
-                : displayName + ":" + uid;
-        }
+    public static DataIntegrityIssue toIssue(IdentifiableObject obj) {
+      return toIssue(obj, null, null);
     }
 
+    public static DataIntegrityIssue toIssue(IdentifiableObject obj, String comment) {
+      return toIssue(obj, comment, null);
+    }
+
+    public static DataIntegrityIssue toIssue(
+        IdentifiableObject obj, Collection<? extends IdentifiableObject> refs) {
+      return toIssue(obj, null, refs);
+    }
+
+    public static DataIntegrityIssue toIssue(
+        IdentifiableObject obj, String comment, Collection<? extends IdentifiableObject> refs) {
+      return new DataIntegrityIssue(
+          obj.getUid(),
+          issueName(obj),
+          comment,
+          refs == null || refs.isEmpty() ? List.of() : toRefsList(refs.stream()));
+    }
+
+    public static List<String> toRefsList(Stream<? extends IdentifiableObject> refs) {
+      return refs.map(DataIntegrityIssue::issueName).sorted().collect(toUnmodifiableList());
+    }
+
+    public static String issueName(IdentifiableObject object) {
+      String displayName = object.getDisplayName();
+      String uid = object.getUid();
+      return displayName == null ? uid : displayName + ":" + uid;
+    }
+  }
 }

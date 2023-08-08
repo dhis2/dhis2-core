@@ -29,8 +29,6 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import lombok.Value;
 import lombok.With;
-
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentEventsParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 
@@ -39,53 +37,30 @@ import org.hisp.dhis.tracker.export.event.EventParams;
  */
 @With
 @Value
-public class TrackedEntityParams
-{
-    public static final TrackedEntityParams TRUE = new TrackedEntityParams( true,
-        TrackedEntityEnrollmentParams.TRUE, true, true, false );
+public class TrackedEntityParams {
+  public static final TrackedEntityParams TRUE =
+      new TrackedEntityParams(true, TrackedEntityEnrollmentParams.TRUE, true, true);
 
-    public static final TrackedEntityParams FALSE = new TrackedEntityParams( false,
-        TrackedEntityEnrollmentParams.FALSE, false, false, false );
+  public static final TrackedEntityParams FALSE =
+      new TrackedEntityParams(false, TrackedEntityEnrollmentParams.FALSE, false, false);
 
-    boolean includeRelationships;
+  boolean includeRelationships;
 
-    TrackedEntityEnrollmentParams teiEnrollmentParams;
+  TrackedEntityEnrollmentParams teEnrollmentParams;
 
-    boolean includeProgramOwners;
+  boolean includeProgramOwners;
 
-    boolean includeAttributes;
+  boolean includeAttributes;
 
-    boolean includeDeleted;
+  public boolean isIncludeEnrollments() {
+    return teEnrollmentParams.isIncludeEnrollments();
+  }
 
-    public boolean isIncludeEnrollments()
-    {
-        return teiEnrollmentParams.isIncludeEnrollments();
-    }
+  public EnrollmentParams getEnrollmentParams() {
+    return this.teEnrollmentParams.getEnrollmentParams();
+  }
 
-    public EnrollmentParams getEnrollmentParams()
-    {
-        return this.teiEnrollmentParams.getEnrollmentParams();
-    }
-
-    public TrackedEntityParams withEnrollmentParams( EnrollmentParams enrollmentParams )
-    {
-        return this.withTeiEnrollmentParams( getTeiEnrollmentParams().withEnrollmentParams( enrollmentParams ) );
-    }
-
-    public EventParams getEventParams()
-    {
-        return getEnrollmentParams().getEnrollmentEventsParams().getEventParams();
-    }
-
-    public TrackedEntityParams withEventParams( EventParams eventParams )
-    {
-        EnrollmentParams enrollmentParams = this.teiEnrollmentParams.getEnrollmentParams();
-
-        EnrollmentEventsParams eventParamsToUpdate = enrollmentParams
-            .getEnrollmentEventsParams()
-            .withEventParams( eventParams );
-
-        return withTeiEnrollmentParams( this.teiEnrollmentParams.withEnrollmentParams( enrollmentParams
-            .withEnrollmentEventsParams( eventParamsToUpdate ) ) );
-    }
+  public EventParams getEventParams() {
+    return getEnrollmentParams().getEnrollmentEventsParams().getEventParams();
+  }
 }

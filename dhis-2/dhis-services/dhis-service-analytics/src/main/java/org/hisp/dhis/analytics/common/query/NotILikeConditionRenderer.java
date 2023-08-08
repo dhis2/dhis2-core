@@ -29,15 +29,12 @@ package org.hisp.dhis.analytics.common.query;
 
 import static org.hisp.dhis.common.QueryOperator.NLIKE;
 
-public class NotILikeConditionRenderer extends AbstractLikeConditionRenderer
-{
-    private NotILikeConditionRenderer( Renderable field, Renderable value )
-    {
-        super( field, NLIKE.getValue(), value, s -> "lower(" + s + ")", String::toLowerCase );
-    }
+public class NotILikeConditionRenderer extends AbstractLikeConditionRenderer {
+  private NotILikeConditionRenderer(Renderable field, Renderable value) {
+    super(field, NLIKE.getValue(), value, s -> "lower(" + s + ")", String::toLowerCase);
+  }
 
-    public static NotILikeConditionRenderer of( Renderable field, Renderable value )
-    {
-        return new NotILikeConditionRenderer( field, value );
-    }
+  public static NotILikeConditionRenderer of(Renderable field, Renderable value) {
+    return new NotILikeConditionRenderer(field, value);
+  }
 }

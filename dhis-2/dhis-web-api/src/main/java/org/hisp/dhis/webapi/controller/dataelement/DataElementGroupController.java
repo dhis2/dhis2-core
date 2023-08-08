@@ -29,11 +29,11 @@ package org.hisp.dhis.webapi.controller.dataelement;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
+import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.OpenApi;
@@ -59,113 +59,104 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( "metadata" )
+@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping( value = DataElementGroupSchemaDescriptor.API_ENDPOINT )
-public class DataElementGroupController
-    extends AbstractCrudController<DataElementGroup>
-{
-    @Autowired
-    private CategoryService dataElementCategoryService;
+@RequestMapping(value = DataElementGroupSchemaDescriptor.API_ENDPOINT)
+public class DataElementGroupController extends AbstractCrudController<DataElementGroup> {
+  @Autowired private CategoryService dataElementCategoryService;
 
-    @Autowired
-    private DataElementService dataElementService;
+  @Autowired private DataElementService dataElementService;
 
-    @GetMapping( "/{uid}/operands" )
-    public String getOperands( @PathVariable( "uid" ) String uid, @RequestParam Map<String, String> parameters,
-        Model model,
-        TranslateParams translateParams )
-        throws NotFoundException
-    {
-        WebOptions options = new WebOptions( parameters );
-        setTranslationParams( translateParams );
+  @GetMapping("/{uid}/operands")
+  public String getOperands(
+      @PathVariable("uid") String uid,
+      @RequestParam Map<String, String> parameters,
+      Model model,
+      TranslateParams translateParams)
+      throws NotFoundException {
+    WebOptions options = new WebOptions(parameters);
+    setTranslationParams(translateParams);
 
-        WebMetadata metadata = new WebMetadata();
-        List<DataElementOperand> dataElementOperands = Lists
-            .newArrayList( dataElementCategoryService.getOperands( getEntity( uid ).getMembers() ) );
-        Collections.sort( dataElementOperands );
+    WebMetadata metadata = new WebMetadata();
+    List<DataElementOperand> dataElementOperands =
+        Lists.newArrayList(dataElementCategoryService.getOperands(getEntity(uid).getMembers()));
+    Collections.sort(dataElementOperands);
 
-        metadata.setDataElementOperands( dataElementOperands );
+    metadata.setDataElementOperands(dataElementOperands);
 
-        if ( options.hasPaging() )
-        {
-            Pager pager = new Pager( options.getPage(), dataElementOperands.size(), options.getPageSize() );
-            metadata.setPager( pager );
-            dataElementOperands = PagerUtils.pageCollection( dataElementOperands, pager );
-        }
-
-        metadata.setDataElementOperands( dataElementOperands );
-        linkService.generateLinks( metadata, false );
-
-        model.addAttribute( "model", metadata );
-        model.addAttribute( "viewClass", options.getViewClass( "basic" ) );
-
-        return StringUtils.uncapitalize( getEntitySimpleName() );
+    if (options.hasPaging()) {
+      Pager pager = new Pager(options.getPage(), dataElementOperands.size(), options.getPageSize());
+      metadata.setPager(pager);
+      dataElementOperands = PagerUtils.pageCollection(dataElementOperands, pager);
     }
 
-    @GetMapping( "/{uid}/operands/query/{q}" )
-    public String getOperandsByQuery( @PathVariable( "uid" ) String uid,
-        @PathVariable( "q" ) String q, @RequestParam Map<String, String> parameters, TranslateParams translateParams,
-        Model model )
-        throws NotFoundException
-    {
-        WebOptions options = new WebOptions( parameters );
-        setTranslationParams( translateParams );
+    metadata.setDataElementOperands(dataElementOperands);
+    linkService.generateLinks(metadata, false);
 
-        WebMetadata metadata = new WebMetadata();
-        List<DataElementOperand> dataElementOperands = Lists.newArrayList();
+    model.addAttribute("model", metadata);
+    model.addAttribute("viewClass", options.getViewClass("basic"));
 
-        for ( DataElementOperand dataElementOperand : dataElementCategoryService
-            .getOperands( getEntity( uid ).getMembers() ) )
-        {
-            if ( dataElementOperand.getDisplayName().toLowerCase().contains( q.toLowerCase() ) )
-            {
-                dataElementOperands.add( dataElementOperand );
-            }
-        }
+    return StringUtils.uncapitalize(getEntitySimpleName());
+  }
 
-        metadata.setDataElementOperands( dataElementOperands );
+  @GetMapping("/{uid}/operands/query/{q}")
+  public String getOperandsByQuery(
+      @PathVariable("uid") String uid,
+      @PathVariable("q") String q,
+      @RequestParam Map<String, String> parameters,
+      TranslateParams translateParams,
+      Model model)
+      throws NotFoundException {
+    WebOptions options = new WebOptions(parameters);
+    setTranslationParams(translateParams);
 
-        if ( options.hasPaging() )
-        {
-            Pager pager = new Pager( options.getPage(), dataElementOperands.size(), options.getPageSize() );
-            metadata.setPager( pager );
-            dataElementOperands = PagerUtils.pageCollection( dataElementOperands, pager );
-        }
+    WebMetadata metadata = new WebMetadata();
+    List<DataElementOperand> dataElementOperands = Lists.newArrayList();
 
-        metadata.setDataElementOperands( dataElementOperands );
-        linkService.generateLinks( metadata, false );
-
-        model.addAttribute( "model", metadata );
-        model.addAttribute( "viewClass", options.getViewClass( "basic" ) );
-
-        return StringUtils.uncapitalize( getEntitySimpleName() );
+    for (DataElementOperand dataElementOperand :
+        dataElementCategoryService.getOperands(getEntity(uid).getMembers())) {
+      if (dataElementOperand.getDisplayName().toLowerCase().contains(q.toLowerCase())) {
+        dataElementOperands.add(dataElementOperand);
+      }
     }
 
-    @GetMapping( "/{uid}/metadata" )
-    public ResponseEntity<MetadataExportParams> getDataElementGroupWithDependencies(
-        @PathVariable( "uid" ) String dataElementGroupId,
-        @RequestParam( required = false, defaultValue = "false" ) boolean download )
-        throws WebMessageException,
-        IOException
-    {
-        DataElementGroup dataElementGroup = dataElementService.getDataElementGroup( dataElementGroupId );
+    metadata.setDataElementOperands(dataElementOperands);
 
-        if ( dataElementGroup == null )
-        {
-            throw new WebMessageException(
-                notFound( "DataElementGroup not found for uid: " + dataElementGroupId ) );
-        }
-
-        MetadataExportParams exportParams = exportService.getParamsFromMap( contextService.getParameterValuesMap() );
-        exportService.validate( exportParams );
-        exportParams.setObjectExportWithDependencies( dataElementGroup );
-
-        return ResponseEntity.ok( exportParams );
+    if (options.hasPaging()) {
+      Pager pager = new Pager(options.getPage(), dataElementOperands.size(), options.getPageSize());
+      metadata.setPager(pager);
+      dataElementOperands = PagerUtils.pageCollection(dataElementOperands, pager);
     }
+
+    metadata.setDataElementOperands(dataElementOperands);
+    linkService.generateLinks(metadata, false);
+
+    model.addAttribute("model", metadata);
+    model.addAttribute("viewClass", options.getViewClass("basic"));
+
+    return StringUtils.uncapitalize(getEntitySimpleName());
+  }
+
+  @GetMapping("/{uid}/metadata")
+  public ResponseEntity<MetadataExportParams> getDataElementGroupWithDependencies(
+      @PathVariable("uid") String dataElementGroupId,
+      @RequestParam(required = false, defaultValue = "false") boolean download)
+      throws WebMessageException, IOException {
+    DataElementGroup dataElementGroup = dataElementService.getDataElementGroup(dataElementGroupId);
+
+    if (dataElementGroup == null) {
+      throw new WebMessageException(
+          notFound("DataElementGroup not found for uid: " + dataElementGroupId));
+    }
+
+    MetadataExportParams exportParams =
+        exportService.getParamsFromMap(contextService.getParameterValuesMap());
+    exportService.validate(exportParams);
+    exportParams.setObjectExportWithDependencies(dataElementGroup);
+
+    return ResponseEntity.ok(exportParams);
+  }
 }

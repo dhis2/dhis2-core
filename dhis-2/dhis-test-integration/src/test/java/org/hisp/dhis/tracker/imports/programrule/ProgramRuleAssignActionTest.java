@@ -34,7 +34,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1307;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1308;
 
 import java.io.IOException;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.preheat.PreheatIdentifier;
@@ -57,113 +56,111 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class ProgramRuleAssignActionTest extends TrackerTest
-{
-    @Autowired
-    private TrackerImportService trackerImportService;
+class ProgramRuleAssignActionTest extends TrackerTest {
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Autowired
-    private ProgramRuleService programRuleService;
+  @Autowired private ProgramRuleService programRuleService;
 
-    @Autowired
-    private ProgramRuleActionService programRuleActionService;
+  @Autowired private ProgramRuleActionService programRuleActionService;
 
-    @Autowired
-    private ProgramRuleVariableService programRuleVariableService;
+  @Autowired private ProgramRuleVariableService programRuleVariableService;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingManager systemSettingManager;
 
-    private Program program;
+  private Program program;
 
-    private DataElement dataElement1;
+  private DataElement dataElement1;
 
-    @Override
-    public void initTest()
-        throws IOException
-    {
-        ObjectBundle bundle = setUpMetadata( "tracker/simple_metadata.json" );
-        program = bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJnf" );
-        dataElement1 = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00001" );
-        DataElement dataElement2 = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00002" );
-        ProgramRuleVariable programRuleVariable = createProgramRuleVariableWithDataElement( 'A', program,
-            dataElement2 );
-        programRuleVariableService.addProgramRuleVariable( programRuleVariable );
+  @Override
+  public void initTest() throws IOException {
+    ObjectBundle bundle = setUpMetadata("tracker/simple_metadata.json");
+    program = bundle.getPreheat().get(PreheatIdentifier.UID, Program.class, "BFcipDERJnf");
+    dataElement1 = bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00001");
+    DataElement dataElement2 =
+        bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00002");
+    ProgramRuleVariable programRuleVariable =
+        createProgramRuleVariableWithDataElement('A', program, dataElement2);
+    programRuleVariableService.addProgramRuleVariable(programRuleVariable);
 
-        injectAdminUser();
+    injectAdminUser();
 
-        assignProgramRule();
-        trackerImportService.importTracker( fromJson( "tracker/programrule/tei_enrollment_completed_event.json" ) );
-    }
+    assignProgramRule();
+    trackerImportService.importTracker(
+        fromJson("tracker/programrule/tei_enrollment_completed_event.json"));
+  }
 
-    @Test
-    void shouldImportWithWarningWhenDataElementWithSameValueIsAssignedByAssignRule()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson( "tracker/programrule/event_update_datavalue_same_value.json" );
-        params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
+  @Test
+  void shouldImportWithWarningWhenDataElementWithSameValueIsAssignedByAssignRule()
+      throws IOException {
+    TrackerImportParams params =
+        fromJson("tracker/programrule/event_update_datavalue_same_value.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-        ImportReport importReport = trackerImportService.importTracker( params );
+    ImportReport importReport = trackerImportService.importTracker(params);
 
-        assertHasOnlyWarnings( importReport, E1308 );
-    }
+    assertHasOnlyWarnings(importReport, E1308);
+  }
 
-    @Test
-    void shouldNotImportWhenDataElementWithDifferentValueIsAssignedByAssignRule()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson( "tracker/programrule/event_update_datavalue_different_value.json" );
-        params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
+  @Test
+  void shouldNotImportWhenDataElementWithDifferentValueIsAssignedByAssignRule() throws IOException {
+    TrackerImportParams params =
+        fromJson("tracker/programrule/event_update_datavalue_different_value.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-        ImportReport importReport = trackerImportService.importTracker( params );
+    ImportReport importReport = trackerImportService.importTracker(params);
 
-        assertHasOnlyErrors( importReport, E1307 );
-    }
+    assertHasOnlyErrors(importReport, E1307);
+  }
 
-    @Test
-    void shouldImportWithWarningWhenDataElementWithDifferentValueIsAssignedByAssignRuleAndOverwriteKeyIsTrue()
-        throws IOException
-    {
-        systemSettingManager.saveSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE, true );
-        TrackerImportParams params = fromJson( "tracker/programrule/event_update_datavalue_different_value.json" );
-        params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
+  @Test
+  void
+      shouldImportWithWarningWhenDataElementWithDifferentValueIsAssignedByAssignRuleAndOverwriteKeyIsTrue()
+          throws IOException {
+    systemSettingManager.saveSystemSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE, true);
+    TrackerImportParams params =
+        fromJson("tracker/programrule/event_update_datavalue_different_value.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-        ImportReport importReport = trackerImportService.importTracker( params );
+    ImportReport importReport = trackerImportService.importTracker(params);
 
-        assertHasOnlyWarnings( importReport, E1308 );
-    }
+    assertHasOnlyWarnings(importReport, E1308);
+  }
 
-    private void assignProgramRule()
-    {
-        ProgramRule programRule = createProgramRule( 'F', program, null,
-            "d2:daysBetween('2019-01-28', d2:lastEventDate('ProgramRuleVariableA')) < 5" );
-        programRuleService.addProgramRule( programRule );
-        ProgramRuleAction programRuleAction = createProgramRuleAction( programRule, ASSIGN, dataElement1,
-            "#{ProgramRuleVariableA}" );
-        programRuleActionService.addProgramRuleAction( programRuleAction );
-        programRule.getProgramRuleActions().add( programRuleAction );
-        programRuleService.updateProgramRule( programRule );
-    }
+  private void assignProgramRule() {
+    ProgramRule programRule =
+        createProgramRule(
+            'F',
+            program,
+            null,
+            "d2:daysBetween('2019-01-28', d2:lastEventDate('ProgramRuleVariableA')) < 5");
+    programRuleService.addProgramRule(programRule);
+    ProgramRuleAction programRuleAction =
+        createProgramRuleAction(programRule, ASSIGN, dataElement1, "#{ProgramRuleVariableA}");
+    programRuleActionService.addProgramRuleAction(programRuleAction);
+    programRule.getProgramRuleActions().add(programRuleAction);
+    programRuleService.updateProgramRule(programRule);
+  }
 
-    private ProgramRule createProgramRule( char uniqueCharacter, Program program, ProgramStage programStage,
-        String condition )
-    {
-        ProgramRule programRule = createProgramRule( uniqueCharacter, program );
-        programRule.setUid( "ProgramRul" + uniqueCharacter );
-        programRule.setProgramStage( programStage );
-        programRule.setCondition( condition );
-        return programRule;
-    }
+  private ProgramRule createProgramRule(
+      char uniqueCharacter, Program program, ProgramStage programStage, String condition) {
+    ProgramRule programRule = createProgramRule(uniqueCharacter, program);
+    programRule.setUid("ProgramRul" + uniqueCharacter);
+    programRule.setProgramStage(programStage);
+    programRule.setCondition(condition);
+    return programRule;
+  }
 
-    private ProgramRuleAction createProgramRuleAction( ProgramRule programRule, ProgramRuleActionType actionType,
-        DataElement dataElement, String data )
-    {
-        ProgramRuleAction programRuleAction = createProgramRuleAction( 'A', programRule );
-        programRuleAction.setProgramRuleActionType( actionType );
-        programRuleAction.setContent( "CONTENT" );
-        programRuleAction.setDataElement( dataElement );
-        programRuleAction.setData( data );
+  private ProgramRuleAction createProgramRuleAction(
+      ProgramRule programRule,
+      ProgramRuleActionType actionType,
+      DataElement dataElement,
+      String data) {
+    ProgramRuleAction programRuleAction = createProgramRuleAction('A', programRule);
+    programRuleAction.setProgramRuleActionType(actionType);
+    programRuleAction.setContent("CONTENT");
+    programRuleAction.setDataElement(dataElement);
+    programRuleAction.setData(data);
 
-        return programRuleAction;
-    }
+    return programRuleAction;
+  }
 }

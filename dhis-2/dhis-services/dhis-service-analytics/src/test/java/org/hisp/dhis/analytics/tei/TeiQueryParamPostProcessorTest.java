@@ -35,9 +35,7 @@ import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
 import java.util.List;
-
 import javax.annotation.Nonnull;
-
 import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -55,103 +53,99 @@ import org.hisp.dhis.program.DefaultProgramService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for {@link TeiQueryParamPostProcessor}.
- */
-class TeiQueryParamPostProcessorTest
-{
-    private TeiQueryParamPostProcessor teiQueryParamPostProcessor;
+/** Unit tests for {@link TeiQueryParamPostProcessor}. */
+class TeiQueryParamPostProcessorTest {
+  private TeiQueryParamPostProcessor teiQueryParamPostProcessor;
 
-    @BeforeEach
-    void setup()
-    {
-        DefaultDataQueryService dataQueryService = mock( DefaultDataQueryService.class );
-        DefaultEventDataQueryService eventDataQueryService = mock( DefaultEventDataQueryService.class );
-        DefaultProgramService programService = mock( DefaultProgramService.class );
+  @BeforeEach
+  void setup() {
+    DefaultDataQueryService dataQueryService = mock(DefaultDataQueryService.class);
+    DefaultEventDataQueryService eventDataQueryService = mock(DefaultEventDataQueryService.class);
+    DefaultProgramService programService = mock(DefaultProgramService.class);
 
-        doAnswer( invocationOnMock -> mockPeriod() )
-            .when( dataQueryService )
-            .getDimension( any(), any(), any(), any(), anyBoolean(), any(), any() );
+    doAnswer(invocationOnMock -> mockPeriod())
+        .when(dataQueryService)
+        .getDimension(any(), any(), any(), any(), anyBoolean(), any(), any());
 
-        CommonQueryRequestMapper commonQueryRequestMapper = new CommonQueryRequestMapper(
+    CommonQueryRequestMapper commonQueryRequestMapper =
+        new CommonQueryRequestMapper(
             dataQueryService,
             eventDataQueryService,
             programService,
-            new DimensionIdentifierConverter() );
+            new DimensionIdentifierConverter());
 
-        teiQueryParamPostProcessor = new TeiQueryParamPostProcessor( commonQueryRequestMapper );
-    }
+    teiQueryParamPostProcessor = new TeiQueryParamPostProcessor(commonQueryRequestMapper);
+  }
 
-    @Nonnull
-    private static DimensionalObject mockPeriod()
-    {
-        return new BaseDimensionalObject( "pe", DimensionType.PERIOD, List.of( new Period() ) );
-    }
+  @Nonnull
+  private static DimensionalObject mockPeriod() {
+    return new BaseDimensionalObject("pe", DimensionType.PERIOD, List.of(new Period()));
+  }
 
-    @Test
-    void verifyDefaultPeriodIsAddedIfPeriodIsMissing()
-    {
-        // Given
-        TeiQueryParams params = TeiQueryParams.builder()
-            .commonParams( CommonParams.builder()
-                .dimensionIdentifiers( List.of() )
-                .build() )
+  @Test
+  void verifyDefaultPeriodIsAddedIfPeriodIsMissing() {
+    // Given
+    TeiQueryParams params =
+        TeiQueryParams.builder()
+            .commonParams(CommonParams.builder().dimensionIdentifiers(List.of()).build())
             .build();
 
-        // When
-        params = teiQueryParamPostProcessor.process( params );
+    // When
+    params = teiQueryParamPostProcessor.process(params);
 
-        // Then
-        assertEquals( 1, params.getCommonParams().getDimensionIdentifiers().size() );
-    }
+    // Then
+    assertEquals(1, params.getCommonParams().getDimensionIdentifiers().size());
+  }
 
-    @Test
-    void verifyDefaultPeriodIsNotAddedIfPeriodIsPresent()
-    {
-        // Given
-        TeiQueryParams params = TeiQueryParams.builder()
-            .commonParams( CommonParams.builder()
-                .dimensionIdentifiers(
-                    List.of(
-                        DimensionIdentifier.of(
-                            ElementWithOffset.of( null, null ),
-                            ElementWithOffset.of( null, null ),
-                            DimensionParam.ofObject(
-                                mockPeriod(),
-                                DimensionParamType.DIMENSIONS,
-                                List.of( "LAST_12_MONTHS" ) ) ) ) )
-                .build() )
+  @Test
+  void verifyDefaultPeriodIsNotAddedIfPeriodIsPresent() {
+    // Given
+    TeiQueryParams params =
+        TeiQueryParams.builder()
+            .commonParams(
+                CommonParams.builder()
+                    .dimensionIdentifiers(
+                        List.of(
+                            DimensionIdentifier.of(
+                                ElementWithOffset.of(null, null),
+                                ElementWithOffset.of(null, null),
+                                DimensionParam.ofObject(
+                                    mockPeriod(),
+                                    DimensionParamType.DIMENSIONS,
+                                    List.of("LAST_12_MONTHS")))))
+                    .build())
             .build();
 
-        // When
-        params = teiQueryParamPostProcessor.process( params );
+    // When
+    params = teiQueryParamPostProcessor.process(params);
 
-        // Then
-        assertEquals( 1, params.getCommonParams().getDimensionIdentifiers().size() );
-    }
+    // Then
+    assertEquals(1, params.getCommonParams().getDimensionIdentifiers().size());
+  }
 
-    @Test
-    void verifyDefaultPeriodIsAddedIfPeriodIsPresentWithNoItems()
-    {
-        // Given
-        TeiQueryParams params = TeiQueryParams.builder()
-            .commonParams( CommonParams.builder()
-                .dimensionIdentifiers(
-                    List.of(
-                        DimensionIdentifier.of(
-                            ElementWithOffset.of( null, null ),
-                            ElementWithOffset.of( null, null ),
-                            DimensionParam.ofObject(
-                                mockPeriod(),
-                                DimensionParamType.DIMENSIONS,
-                                Collections.emptyList() ) ) ) )
-                .build() )
+  @Test
+  void verifyDefaultPeriodIsAddedIfPeriodIsPresentWithNoItems() {
+    // Given
+    TeiQueryParams params =
+        TeiQueryParams.builder()
+            .commonParams(
+                CommonParams.builder()
+                    .dimensionIdentifiers(
+                        List.of(
+                            DimensionIdentifier.of(
+                                ElementWithOffset.of(null, null),
+                                ElementWithOffset.of(null, null),
+                                DimensionParam.ofObject(
+                                    mockPeriod(),
+                                    DimensionParamType.DIMENSIONS,
+                                    Collections.emptyList()))))
+                    .build())
             .build();
 
-        // When
-        params = teiQueryParamPostProcessor.process( params );
+    // When
+    params = teiQueryParamPostProcessor.process(params);
 
-        // Then
-        assertEquals( 2, params.getCommonParams().getDimensionIdentifiers().size() );
-    }
+    // Then
+    assertEquals(2, params.getCommonParams().getDimensionIdentifiers().size());
+  }
 }

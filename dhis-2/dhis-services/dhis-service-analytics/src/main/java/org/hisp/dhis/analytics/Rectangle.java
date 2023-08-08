@@ -27,51 +27,41 @@
  */
 package org.hisp.dhis.analytics;
 
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * Object representing a geometry of type rectangle.
  *
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "rectangle", namespace = DxfNamespaces.DXF_2_0 )
-public class Rectangle
-{
-    /**
-     * The extent of the rectangle (bounding box).
-     */
-    private String extent;
+@JacksonXmlRootElement(localName = "rectangle", namespace = DxfNamespaces.DXF_2_0)
+public class Rectangle {
+  /** The extent of the rectangle (bounding box). */
+  private String extent;
 
-    /**
-     * The count of events inside the rectangle.
-     */
-    private long count;
+  /** The count of events inside the rectangle. */
+  private long count;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getExtent()
-    {
-        return extent;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getExtent() {
+    return extent;
+  }
 
-    public void setExtent( String extent )
-    {
-        this.extent = extent;
-    }
+  public void setExtent(String extent) {
+    this.extent = extent;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public long getCount()
-    {
-        return count;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public long getCount() {
+    return count;
+  }
 
-    public void setCount( long count )
-    {
-        this.count = count;
-    }
+  public void setCount(long count) {
+    this.count = count;
+  }
 }

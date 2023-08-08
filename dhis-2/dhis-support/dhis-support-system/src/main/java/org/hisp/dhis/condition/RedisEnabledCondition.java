@@ -32,27 +32,21 @@ import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * Condition that matches to true if redis.enabled property is set to true in
- * dhis.conf.
+ * Condition that matches to true if redis.enabled property is set to true in dhis.conf.
  *
  * @author Ameen Mohamed
- *
  */
-public class RedisEnabledCondition extends PropertiesAwareConfigurationCondition
-{
-    @Override
-    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
-    {
-        if ( !isTestRun( context ) )
-        {
-            return getConfiguration().isEnabled( ConfigurationKey.REDIS_ENABLED );
-        }
-        return false;
+public class RedisEnabledCondition extends PropertiesAwareConfigurationCondition {
+  @Override
+  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+    if (!isTestRun(context)) {
+      return getConfiguration().isEnabled(ConfigurationKey.REDIS_ENABLED);
     }
+    return false;
+  }
 
-    @Override
-    public ConfigurationPhase getConfigurationPhase()
-    {
-        return ConfigurationPhase.REGISTER_BEAN;
-    }
+  @Override
+  public ConfigurationPhase getConfigurationPhase() {
+    return ConfigurationPhase.REGISTER_BEAN;
+  }
 }

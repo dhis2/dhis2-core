@@ -27,42 +27,32 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import org.springframework.jdbc.core.RowCallbackHandler;
-
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import org.springframework.jdbc.core.RowCallbackHandler;
 
 /**
  * @author Luciano Fiandesio
  */
-public abstract class AbstractMapper<T>
-    implements
-    RowCallbackHandler
-{
-    Multimap<String, T> items;
+public abstract class AbstractMapper<T> implements RowCallbackHandler {
+  Multimap<String, T> items;
 
-    protected AbstractMapper()
-    {
-        this.items = ArrayListMultimap.create();
-    }
+  protected AbstractMapper() {
+    this.items = ArrayListMultimap.create();
+  }
 
-    @Override
-    public void processRow( ResultSet rs )
-        throws SQLException
-    {
-        this.items.put( rs.getString( getKeyColumn() ), getItem( rs ) );
-    }
+  @Override
+  public void processRow(ResultSet rs) throws SQLException {
+    this.items.put(rs.getString(getKeyColumn()), getItem(rs));
+  }
 
-    abstract T getItem( ResultSet rs )
-        throws SQLException;
+  abstract T getItem(ResultSet rs) throws SQLException;
 
-    public Multimap<String, T> getItems()
-    {
-        return this.items;
-    }
+  public Multimap<String, T> getItems() {
+    return this.items;
+  }
 
-    abstract String getKeyColumn();
+  abstract String getKeyColumn();
 }

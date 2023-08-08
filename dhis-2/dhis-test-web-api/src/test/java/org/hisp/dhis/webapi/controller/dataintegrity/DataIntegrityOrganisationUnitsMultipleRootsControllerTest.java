@@ -30,73 +30,78 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import java.util.Set;
-
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for multiple roots in the organisation unit hierarchy.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_multiple_roots.yaml}
+ * Test for multiple roots in the organisation unit hierarchy. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_multiple_roots.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitsMultipleRootsControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    private static final String check = "orgunits_multiple_roots";
+class DataIntegrityOrganisationUnitsMultipleRootsControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
+  private static final String check = "orgunits_multiple_roots";
 
-    private static final String detailsIdType = "organisationUnits";
+  private static final String detailsIdType = "organisationUnits";
 
-    private String nullIsland;
+  private String nullIsland;
 
-    private String notNullIsland;
+  private String notNullIsland;
 
-    @Test
-    void testOrgunitMultipleRoots()
-    {
+  @Test
+  void testOrgunitMultipleRoots() {
 
-        nullIsland = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Null Island', 'shortName': 'Null Island', " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 0.001, 0.004]} }" ) );
+    nullIsland =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Null Island', 'shortName': 'Null Island', "
+                    + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 0.001, 0.004]} }"));
 
-        notNullIsland = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
+    notNullIsland =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Not Null Island', 'shortName': 'Null Island', "
+                    + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }"));
 
-        Set<String> orgUnitUIDs = Set.of();
-        if ( nullIsland != null && notNullIsland != null )
-        {
-            orgUnitUIDs = Set.of( nullIsland, notNullIsland );
-        }
-        assertHasDataIntegrityIssues( detailsIdType, check, 100, orgUnitUIDs, Set.of(), Set.of(),
-            true );
-
+    Set<String> orgUnitUIDs = Set.of();
+    if (nullIsland != null && notNullIsland != null) {
+      orgUnitUIDs = Set.of(nullIsland, notNullIsland);
     }
+    assertHasDataIntegrityIssues(detailsIdType, check, 100, orgUnitUIDs, Set.of(), Set.of(), true);
+  }
 
-    @Test
-    void testOrgunitNoMultipleRoots()
-    {
+  @Test
+  void testOrgunitNoMultipleRoots() {
 
-        nullIsland = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Null Island', 'shortName': 'Null Island', " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 0.001, 0.004]} }" ) );
+    nullIsland =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Null Island', 'shortName': 'Null Island', "
+                    + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 0.001, 0.004]} }"));
 
-        notNullIsland = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
-                    "'parent' : {'id': '" + nullIsland + "'}, " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
+    notNullIsland =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Not Null Island', 'shortName': 'Null Island', "
+                    + "'parent' : {'id': '"
+                    + nullIsland
+                    + "'}, "
+                    + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }"));
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    }
-
-    @Test
-    void testOrgUnitsMultipleRootsRuns()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-    }
-
+  @Test
+  void testOrgUnitsMultipleRootsRuns() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 }

@@ -30,9 +30,8 @@ package org.hisp.dhis.node;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum NodeType
-{
-    SIMPLE,
-    COMPLEX,
-    COLLECTION
+public enum NodeType {
+  SIMPLE,
+  COMPLEX,
+  COLLECTION
 }

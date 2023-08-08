@@ -35,20 +35,17 @@ import java.io.StringWriter;
  *
  * @author Lars Helge Overland
  */
-public class DebugUtils
-{
-    public static String getStackTrace( Throwable t )
-    {
-        StringWriter sw = new StringWriter();
+public class DebugUtils {
+  public static String getStackTrace(Throwable t) {
+    StringWriter sw = new StringWriter();
 
-        if ( t != null )
-        {
-            PrintWriter pw = new PrintWriter( sw, true );
-            t.printStackTrace( pw );
-            pw.flush();
-            sw.flush();
-        }
-
-        return sw.toString();
+    if (t != null) {
+      PrintWriter pw = new PrintWriter(sw, true);
+      t.printStackTrace(pw);
+      pw.flush();
+      sw.flush();
     }
+
+    return sw.toString();
+  }
 }

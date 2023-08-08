@@ -37,89 +37,79 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-
 import lombok.NoArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Helper class that provides methods responsible for assisting with specific
- * tasks related to {@link Renderable} objects.
+ * Helper class that provides methods responsible for assisting with specific tasks related to
+ * {@link Renderable} objects.
  */
-@NoArgsConstructor( access = PRIVATE )
-public class RenderableHelper
-{
+@NoArgsConstructor(access = PRIVATE)
+public class RenderableHelper {
 
-    /**
-     * A {@link Renderable} object that always returns "false".
-     */
-    public static final Renderable FALSE_CONDITION = () -> "false";
+  /** A {@link Renderable} object that always returns "false". */
+  public static final Renderable FALSE_CONDITION = () -> "false";
 
-    /**
-     * Joins the given {@link Renderable} objects using the given delimiter.
-     *
-     * @param renderables a collection of {@link Renderable} objects.
-     * @param delimiter a delimiter string.
-     * @return a string of rendered objects joined by the delimiter.
-     */
-    public static String join( Collection<? extends Renderable> renderables, String delimiter )
-    {
-        return join( renderables, delimiter, EMPTY );
+  /**
+   * Joins the given {@link Renderable} objects using the given delimiter.
+   *
+   * @param renderables a collection of {@link Renderable} objects.
+   * @param delimiter a delimiter string.
+   * @return a string of rendered objects joined by the delimiter.
+   */
+  public static String join(Collection<? extends Renderable> renderables, String delimiter) {
+    return join(renderables, delimiter, EMPTY);
+  }
+
+  /**
+   * Joins the given {@link Renderable} objects using the given delimiter and prefix.
+   *
+   * @param renderables a collection of {@link Renderable} objects.
+   * @param delimiter a delimiter string.
+   * @param prefix a prefix string.
+   * @return a string of rendered objects joined by the delimiter and prefixed by the given prefix.
+   */
+  public static String join(
+      Collection<? extends Renderable> renderables, String delimiter, String prefix) {
+    return join(renderables, delimiter, prefix, EMPTY);
+  }
+
+  /**
+   * Renders the given {@link Renderable} objects. Returns an empty list if the given collection is
+   * null or contains only null/blank values.
+   *
+   * @param renderables the collection of {@link Renderable}.
+   * @return a list of rendered strings.
+   */
+  public static List<String> renderCollection(Collection<? extends Renderable> renderables) {
+    return emptyIfNull(renderables).stream()
+        .filter(Objects::nonNull)
+        .map(Renderable::render)
+        .filter(StringUtils::isNotBlank)
+        .collect(toList());
+  }
+
+  /**
+   * Joins the given {@link Renderable} objects using the given delimiter, prefix and suffix.
+   *
+   * @param renderables a collection of {@link Renderable} objects.
+   * @param delimiter a delimiter string.
+   * @param prefix a prefix string.
+   * @param suffix a suffix string.
+   * @return a string of rendered objects joined by the delimiter and prefixed by the given prefix
+   *     and suffixed by the given suffix.
+   */
+  public static String join(
+      Collection<? extends Renderable> renderables,
+      String delimiter,
+      String prefix,
+      String suffix) {
+    List<String> renderedList = renderCollection(renderables);
+
+    if (isNotEmpty(renderedList)) {
+      return renderedList.stream().collect(joining(delimiter, prefix, suffix));
     }
 
-    /**
-     * Joins the given {@link Renderable} objects using the given delimiter and
-     * prefix.
-     *
-     * @param renderables a collection of {@link Renderable} objects.
-     * @param delimiter a delimiter string.
-     * @param prefix a prefix string.
-     * @return a string of rendered objects joined by the delimiter and prefixed
-     *         by the given prefix.
-     */
-    public static String join( Collection<? extends Renderable> renderables, String delimiter, String prefix )
-    {
-        return join( renderables, delimiter, prefix, EMPTY );
-    }
-
-    /**
-     * Renders the given {@link Renderable} objects. Returns an empty list if
-     * the given collection is null or contains only null/blank values.
-     *
-     * @param renderables the collection of {@link Renderable}.
-     * @return a list of rendered strings.
-     */
-    public static List<String> renderCollection( Collection<? extends Renderable> renderables )
-    {
-        return emptyIfNull( renderables )
-            .stream()
-            .filter( Objects::nonNull )
-            .map( Renderable::render )
-            .filter( StringUtils::isNotBlank )
-            .collect( toList() );
-    }
-
-    /**
-     * Joins the given {@link Renderable} objects using the given delimiter,
-     * prefix and suffix.
-     *
-     * @param renderables a collection of {@link Renderable} objects.
-     * @param delimiter a delimiter string.
-     * @param prefix a prefix string.
-     * @param suffix a suffix string.
-     * @return a string of rendered objects joined by the delimiter and prefixed
-     *         by the given prefix and suffixed by the given suffix.
-     */
-    public static String join( Collection<? extends Renderable> renderables, String delimiter, String prefix,
-        String suffix )
-    {
-        List<String> renderedList = renderCollection( renderables );
-
-        if ( isNotEmpty( renderedList ) )
-        {
-            return renderedList.stream().collect( joining( delimiter, prefix, suffix ) );
-        }
-
-        return EMPTY;
-    }
+    return EMPTY;
+  }
 }

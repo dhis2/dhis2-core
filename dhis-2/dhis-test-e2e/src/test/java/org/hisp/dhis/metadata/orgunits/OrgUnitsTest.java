@@ -46,93 +46,90 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class OrgUnitsTest
-    extends ApiTest
-{
-    private LoginActions loginActions;
+public class OrgUnitsTest extends ApiTest {
+  private LoginActions loginActions;
 
-    private UserActions userActions;
+  private UserActions userActions;
 
-    private OrgUnitActions orgUnitActions;
+  private OrgUnitActions orgUnitActions;
 
-    @BeforeEach
-    public void setUp()
-    {
-        loginActions = new LoginActions();
-        userActions = new UserActions();
-        orgUnitActions = new OrgUnitActions();
+  @BeforeEach
+  public void setUp() {
+    loginActions = new LoginActions();
+    userActions = new UserActions();
+    orgUnitActions = new OrgUnitActions();
 
-        loginActions.loginAsSuperUser();
-    }
+    loginActions.loginAsSuperUser();
+  }
 
-    @Test
-    public void shouldNotCreateWithoutPermissions()
-    {
-        String userName = (DataGenerator.randomString()).toLowerCase();
-        String psw = "!XPTOqwerty1";
+  @Test
+  public void shouldNotCreateWithoutPermissions() {
+    String userName = (DataGenerator.randomString()).toLowerCase();
+    String psw = "!XPTOqwerty1";
 
-        userActions.addUserFull( "firstNameA", "lastNameB", userName, psw,
-            "NONE" );
-        loginActions.loginAsUser( userName, psw );
+    userActions.addUserFull("firstNameA", "lastNameB", userName, psw, "NONE");
+    loginActions.loginAsUser(userName, psw);
 
-        ApiResponse response = orgUnitActions.postDummyOrgUnit();
+    ApiResponse response = orgUnitActions.postDummyOrgUnit();
 
-        response.validate()
-            .statusCode( 403 )
-            .body( "message", equalTo( "You don't have the proper permissions to create this object." ) );
-    }
+    response
+        .validate()
+        .statusCode(403)
+        .body("message", equalTo("You don't have the proper permissions to create this object."));
+  }
 
-    @Test
-    public void shouldAddWithoutLevel()
-    {
-        OrgUnit orgUnit = orgUnitActions.generateDummy();
-        orgUnit.setLevel( null );
+  @Test
+  public void shouldAddWithoutLevel() {
+    OrgUnit orgUnit = orgUnitActions.generateDummy();
+    orgUnit.setLevel(null);
 
-        ApiResponse response = orgUnitActions.post( orgUnit );
-        ResponseValidationHelper.validateObjectCreation( response );
+    ApiResponse response = orgUnitActions.post(orgUnit);
+    ResponseValidationHelper.validateObjectCreation(response);
 
-        String uid = response.extractUid();
-        assertNotNull( uid, "Org unit id was not returned." );
+    String uid = response.extractUid();
+    assertNotNull(uid, "Org unit id was not returned.");
 
-        response = orgUnitActions.get( uid );
+    response = orgUnitActions.get(uid);
 
-        // todo create validation helper to check the similarity.
-        response.validate().statusCode( 200 )
-            .body( "shortName", equalTo( orgUnit.getShortName() ) )
-            .body( "name", equalTo( orgUnit.getName() ) )
-            .body( "openingDate", equalTo( orgUnit.getOpeningDate() ) );
-    }
+    // todo create validation helper to check the similarity.
+    response
+        .validate()
+        .statusCode(200)
+        .body("shortName", equalTo(orgUnit.getShortName()))
+        .body("name", equalTo(orgUnit.getName()))
+        .body("openingDate", equalTo(orgUnit.getOpeningDate()));
+  }
 
-    @Test
-    public void shouldUpdate()
-    {
-        OrgUnit orgUnit = orgUnitActions.generateDummy();
+  @Test
+  public void shouldUpdate() {
+    OrgUnit orgUnit = orgUnitActions.generateDummy();
 
-        // create
-        ApiResponse response = orgUnitActions.post( orgUnit );
-        String uid = response.extractUid();
-        assertNotNull( uid, "Org unit uid was not returned" );
+    // create
+    ApiResponse response = orgUnitActions.post(orgUnit);
+    String uid = response.extractUid();
+    assertNotNull(uid, "Org unit uid was not returned");
 
-        response = orgUnitActions.get( uid );
-        String lastUpdatedDate = response.extractString( "lastUpdated" );
+    response = orgUnitActions.get(uid);
+    String lastUpdatedDate = response.extractString("lastUpdated");
 
-        // update
+    // update
 
-        orgUnit.setName( orgUnit.getName() + " updated" );
-        orgUnit.setShortName( orgUnit.getShortName() + " updated" );
-        orgUnit.setOpeningDate( "2017-09-10T00:00:00.000" );
+    orgUnit.setName(orgUnit.getName() + " updated");
+    orgUnit.setShortName(orgUnit.getShortName() + " updated");
+    orgUnit.setOpeningDate("2017-09-10T00:00:00.000");
 
-        response = orgUnitActions.update( uid, orgUnit );
-        assertEquals( 200, response.statusCode(), "Org unit wasn't updated" );
+    response = orgUnitActions.update(uid, orgUnit);
+    assertEquals(200, response.statusCode(), "Org unit wasn't updated");
 
-        // validate
-        response = orgUnitActions.get( uid );
+    // validate
+    response = orgUnitActions.get(uid);
 
-        response.validate().statusCode( 200 )
-            .body( "shortName", equalTo( orgUnit.getShortName() ) )
-            .body( "name", equalTo( orgUnit.getName() ) )
-            .body( "openingDate", equalTo( orgUnit.getOpeningDate() ) )
-            .body( "lastUpdated", not( equalTo( lastUpdatedDate ) ) );
-
-    }
+    response
+        .validate()
+        .statusCode(200)
+        .body("shortName", equalTo(orgUnit.getShortName()))
+        .body("name", equalTo(orgUnit.getName()))
+        .body("openingDate", equalTo(orgUnit.getOpeningDate()))
+        .body("lastUpdated", not(equalTo(lastUpdatedDate)));
+  }
 }

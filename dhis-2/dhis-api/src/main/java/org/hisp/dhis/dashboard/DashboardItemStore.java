@@ -28,7 +28,6 @@
 package org.hisp.dhis.dashboard;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
@@ -42,24 +41,22 @@ import org.hisp.dhis.visualization.Visualization;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface DashboardItemStore
-    extends IdentifiableObjectStore<DashboardItem>
-{
-    Dashboard getDashboardFromDashboardItem( DashboardItem dashboardItem );
+public interface DashboardItemStore extends IdentifiableObjectStore<DashboardItem> {
+  Dashboard getDashboardFromDashboardItem(DashboardItem dashboardItem);
 
-    List<DashboardItem> getVisualizationDashboardItems( Visualization visualization );
+  List<DashboardItem> getVisualizationDashboardItems(Visualization visualization);
 
-    List<DashboardItem> getEventVisualizationDashboardItems( EventVisualization eventVisualization );
+  List<DashboardItem> getEventVisualizationDashboardItems(EventVisualization eventVisualization);
 
-    List<DashboardItem> getEventChartDashboardItems( EventChart eventChart );
+  List<DashboardItem> getEventChartDashboardItems(EventChart eventChart);
 
-    List<DashboardItem> getMapDashboardItems( Map map );
+  List<DashboardItem> getMapDashboardItems(Map map);
 
-    List<DashboardItem> getEventReportDashboardItems( EventReport eventReport );
+  List<DashboardItem> getEventReportDashboardItems(EventReport eventReport);
 
-    List<DashboardItem> getUserDashboardItems( User user );
+  List<DashboardItem> getUserDashboardItems(User user);
 
-    List<DashboardItem> getReportDashboardItems( Report report );
+  List<DashboardItem> getReportDashboardItems(Report report);
 
-    List<DashboardItem> getDocumentDashboardItems( Document document );
+  List<DashboardItem> getDocumentDashboardItems(Document document);
 }

@@ -29,7 +29,6 @@ package org.hisp.dhis.sms.listener;
 
 import java.util.Base64;
 import java.util.Date;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.smscompression.SmsCompressionException;
@@ -38,35 +37,31 @@ import org.hisp.dhis.smscompression.models.SmsMetadata;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.user.User;
 
-abstract class CompressionSMSListenerTest
-    extends
-    DhisConvenienceTest
-{
-    protected static final String SUCCESS_MESSAGE = "1:0::Submission has been processed successfully";
+abstract class CompressionSMSListenerTest extends DhisConvenienceTest {
+  protected static final String SUCCESS_MESSAGE = "1:0::Submission has been processed successfully";
 
-    protected static final String NOVALUES_MESSAGE = "1:2::The submission did not include any data values";
+  protected static final String NOVALUES_MESSAGE =
+      "1:2::The submission did not include any data values";
 
-    protected static final String NOATTRIBS_MESSAGE = "1:3::The submission did not include any attribute values";
+  protected static final String NOATTRIBS_MESSAGE =
+      "1:3::The submission did not include any attribute values";
 
-    protected static final String ORIGINATOR = "47400000";
+  protected static final String ORIGINATOR = "47400000";
 
-    protected static final String ATTRIBUTE_VALUE = "TEST";
+  protected static final String ATTRIBUTE_VALUE = "TEST";
 
-    protected IncomingSms createSMSFromSubmission( SmsSubmission subm )
-        throws SmsCompressionException
-    {
-        User user = makeUser( "U" );
-        SmsMetadata meta = new SmsMetadata();
-        meta.lastSyncDate = new Date();
-        SmsSubmissionWriter writer = new SmsSubmissionWriter( meta );
-        String smsText = Base64.getEncoder().encodeToString( writer.compress( subm ) );
+  protected IncomingSms createSMSFromSubmission(SmsSubmission subm) throws SmsCompressionException {
+    User user = makeUser("U");
+    SmsMetadata meta = new SmsMetadata();
+    meta.lastSyncDate = new Date();
+    SmsSubmissionWriter writer = new SmsSubmissionWriter(meta);
+    String smsText = Base64.getEncoder().encodeToString(writer.compress(subm));
 
-        IncomingSms incomingSms = new IncomingSms();
-        incomingSms.setText( smsText );
-        incomingSms.setOriginator( ORIGINATOR );
-        incomingSms.setCreatedBy( user );
+    IncomingSms incomingSms = new IncomingSms();
+    incomingSms.setText(smsText);
+    incomingSms.setOriginator(ORIGINATOR);
+    incomingSms.setCreatedBy(user);
 
-        return incomingSms;
-    }
-
+    return incomingSms;
+  }
 }

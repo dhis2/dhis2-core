@@ -35,38 +35,33 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = {
-    DebugMapper.class,
-    TrackedEntityTypeMapper.class,
-    AttributeValueMapper.class
-} )
-public interface TrackedEntityMapper extends PreheatMapper<TrackedEntity>
-{
-    TrackedEntityMapper INSTANCE = Mappers.getMapper( TrackedEntityMapper.class );
+@Mapper(uses = {DebugMapper.class, TrackedEntityTypeMapper.class, AttributeValueMapper.class})
+public interface TrackedEntityMapper extends PreheatMapper<TrackedEntity> {
+  TrackedEntityMapper INSTANCE = Mappers.getMapper(TrackedEntityMapper.class);
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "user" )
-    @Mapping( target = "organisationUnit", qualifiedByName = "organisationUnit" )
-    @Mapping( target = "trackedEntityType" )
-    @Mapping( target = "inactive" )
-    @Mapping( target = "enrollments" )
-    @Mapping( target = "created" )
-    @Mapping( target = "trackedEntityAttributeValues" )
-    @Mapping( target = "deleted" )
-    @Mapping( target = "createdByUserInfo" )
-    @Mapping( target = "lastUpdatedByUserInfo" )
-    TrackedEntity map( TrackedEntity trackedEntity );
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "code")
+  @Mapping(target = "user")
+  @Mapping(target = "organisationUnit", qualifiedByName = "organisationUnit")
+  @Mapping(target = "trackedEntityType")
+  @Mapping(target = "inactive")
+  @Mapping(target = "enrollments")
+  @Mapping(target = "created")
+  @Mapping(target = "trackedEntityAttributeValues")
+  @Mapping(target = "deleted")
+  @Mapping(target = "createdByUserInfo")
+  @Mapping(target = "lastUpdatedByUserInfo")
+  TrackedEntity map(TrackedEntity trackedEntity);
 
-    @Named( "organisationUnit" )
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "name" )
-    @Mapping( target = "attributeValues" )
-    @Mapping( target = "user" )
-    OrganisationUnit map( OrganisationUnit organisationUnit );
+  @Named("organisationUnit")
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "code")
+  @Mapping(target = "name")
+  @Mapping(target = "attributeValues")
+  @Mapping(target = "user")
+  OrganisationUnit map(OrganisationUnit organisationUnit);
 }

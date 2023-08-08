@@ -32,10 +32,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 
+import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -45,155 +45,178 @@ import org.hisp.dhis.tracker.imports.databuilder.TeiDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class PotentialDuplicatesEnrollmentsTests
-    extends PotentialDuplicatesApiTest
-{
-    @BeforeEach
-    public void beforeEach()
-    {
-        loginActions.loginAsAdmin();
-    }
+public class PotentialDuplicatesEnrollmentsTests extends PotentialDuplicatesApiTest {
+  @BeforeEach
+  public void beforeEach() {
+    loginActions.loginAsAdmin();
+  }
 
-    @Test
-    public void shouldNotBeMergedWhenBothTeisEnrolledInSameProgram()
-    {
-        String teiA = createTeiWithEnrollmentsAndEvents( Constants.TRACKER_PROGRAM_ID, "nlXNK4b7LVr" )
+  @Test
+  public void shouldNotBeMergedWhenBothTeisEnrolledInSameProgram() {
+    String teiA =
+        createTeiWithEnrollmentsAndEvents(Constants.TRACKER_PROGRAM_ID, "nlXNK4b7LVr")
             .extractImportedTeis()
-            .get( 0 );
-        String teiB = createTeiWithEnrollmentsAndEvents( Constants.TRACKER_PROGRAM_ID, "nlXNK4b7LVr" )
+            .get(0);
+    String teiB =
+        createTeiWithEnrollmentsAndEvents(Constants.TRACKER_PROGRAM_ID, "nlXNK4b7LVr")
             .extractImportedTeis()
-            .get( 0 );
+            .get(0);
 
-        String potentialDuplicate = potentialDuplicatesActions.postPotentialDuplicate( teiA, teiB, "OPEN" )
-            .validateStatus( 200 )
-            .extractString( "id" );
-
-        potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate )
-            .validate().statusCode( 409 )
-            .body( "message", containsString( "Both entities enrolled in the same program" ) );
-    }
-
-    @Test
-    public void shouldBeManuallyMerged()
-    {
-        String teiA = createTeiWithEnrollmentsAndEvents( TRACKER_PROGRAM_ID, TRACKER_PROGRAM_STAGE_ID )
-            .extractImportedTeis()
-            .get( 0 );
-
-        TrackerApiResponse teiBResponse = createTeiWithEnrollmentsAndEvents( Constants.ANOTHER_TRACKER_PROGRAM_ID,
-            "PaOOjwLVW2X" );
-        String teiB = teiBResponse.extractImportedTeis().get( 0 );
-        String enrollmentToMerge = teiBResponse.extractImportedEnrollments().get( 0 );
-
-        String potentialDuplicate = potentialDuplicatesActions.postPotentialDuplicate( teiA, teiB, "OPEN" )
-            .validateStatus( 200 )
-            .extractString( "id" );
-
+    String potentialDuplicate =
         potentialDuplicatesActions
-            .manualMergePotentialDuplicate( potentialDuplicate, new JsonObjectBuilder().addArray( "enrollments",
-                Arrays.asList( enrollmentToMerge ) ).build() )
-            .validate().statusCode( 200 );
+            .postPotentialDuplicate(teiA, teiB, "OPEN")
+            .validateStatus(200)
+            .extractString("id");
 
-        trackerImportExportActions.getTrackedEntity( teiA + "?fields=enrollments" )
-            .validate().statusCode( 200 )
-            .body( "enrollments", hasSize( 2 ) );
-    }
+    potentialDuplicatesActions
+        .autoMergePotentialDuplicate(potentialDuplicate)
+        .validate()
+        .statusCode(409)
+        .body("message", containsString("Both entities enrolled in the same program"));
+  }
 
-    @Test
-    public void shouldAutoMergeWithEnrollmentsAndEvents()
-        throws IOException
-    {
-        // arrange
-        TrackerApiResponse originalTeiResponse = createTeiWithEnrollmentsAndEvents(
-            Constants.ANOTHER_TRACKER_PROGRAM_ID,
-            "PaOOjwLVW2X" );
-        String teiA = originalTeiResponse.extractImportedTeis().get( 0 );
-        String enrollmentA = originalTeiResponse.extractImportedEnrollments().get( 0 );
+  @Test
+  public void shouldBeManuallyMerged() {
+    String teiA =
+        createTeiWithEnrollmentsAndEvents(TRACKER_PROGRAM_ID, TRACKER_PROGRAM_STAGE_ID)
+            .extractImportedTeis()
+            .get(0);
 
-        TrackerApiResponse duplicateTeiResponse = trackerImportExportActions.postAndGetJobReport(
+    TrackerApiResponse teiBResponse =
+        createTeiWithEnrollmentsAndEvents(Constants.ANOTHER_TRACKER_PROGRAM_ID, "PaOOjwLVW2X");
+    String teiB = teiBResponse.extractImportedTeis().get(0);
+    String enrollmentToMerge = teiBResponse.extractImportedEnrollments().get(0);
+
+    String potentialDuplicate =
+        potentialDuplicatesActions
+            .postPotentialDuplicate(teiA, teiB, "OPEN")
+            .validateStatus(200)
+            .extractString("id");
+
+    potentialDuplicatesActions
+        .manualMergePotentialDuplicate(
+            potentialDuplicate,
+            new JsonObjectBuilder()
+                .addArray("enrollments", Arrays.asList(enrollmentToMerge))
+                .build())
+        .validate()
+        .statusCode(200);
+
+    trackerImportExportActions
+        .getTrackedEntity(teiA + "?fields=enrollments")
+        .validate()
+        .statusCode(200)
+        .body("enrollments", hasSize(2));
+  }
+
+  @Test
+  public void shouldAutoMergeWithEnrollmentsAndEvents() throws IOException {
+    // arrange
+    TrackerApiResponse originalTeiResponse =
+        createTeiWithEnrollmentsAndEvents(Constants.ANOTHER_TRACKER_PROGRAM_ID, "PaOOjwLVW2X");
+    String teiA = originalTeiResponse.extractImportedTeis().get(0);
+    String enrollmentA = originalTeiResponse.extractImportedEnrollments().get(0);
+
+    TrackerApiResponse duplicateTeiResponse =
+        trackerImportExportActions.postAndGetJobReport(
             new JsonFileReader(
-                new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json" ) )
-                .get() );
+                    new File(
+                        "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json"))
+                .get());
 
-        String teiB = duplicateTeiResponse.extractImportedTeis().get( 0 );
-        String enrollmentB = duplicateTeiResponse.extractImportedEnrollments().get( 0 );
+    String teiB = duplicateTeiResponse.extractImportedTeis().get(0);
+    String enrollmentB = duplicateTeiResponse.extractImportedEnrollments().get(0);
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
-            "OPEN" );
+    String potentialDuplicate =
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teiA, teiB, "OPEN");
 
-        // act
-        potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate )
-            .validate().statusCode( 200 );
+    // act
+    potentialDuplicatesActions
+        .autoMergePotentialDuplicate(potentialDuplicate)
+        .validate()
+        .statusCode(200);
 
-        // assert
-        potentialDuplicatesActions.get( potentialDuplicate )
-            .validate()
-            .statusCode( 200 )
-            .body( "status", equalTo( "MERGED" ) );
+    // assert
+    potentialDuplicatesActions
+        .get(potentialDuplicate)
+        .validate()
+        .statusCode(200)
+        .body("status", equalTo("MERGED"));
 
-        trackerImportExportActions.getTrackedEntity( teiA + "?fields=*" )
-            .validate().statusCode( 200 )
-            .body( "enrollments", hasSize( 2 ) )
-            .body( "enrollments.enrollment", hasItems( enrollmentA, enrollmentB ) )
-            .rootPath( String.format( "enrollments.find{it.enrollment=='%s'}", enrollmentA ) )
-            .body( "events", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "events.dataValues", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .noRootPath().rootPath( String.format( "enrollments.find{it.enrollment=='%s'}", enrollmentB ) )
-            .body( "events", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "events.dataValues", hasSize( greaterThanOrEqualTo( 1 ) ) );
+    trackerImportExportActions
+        .getTrackedEntity(teiA + "?fields=*")
+        .validate()
+        .statusCode(200)
+        .body("enrollments", hasSize(2))
+        .body("enrollments.enrollment", hasItems(enrollmentA, enrollmentB))
+        .rootPath(String.format("enrollments.find{it.enrollment=='%s'}", enrollmentA))
+        .body("events", hasSize(greaterThanOrEqualTo(1)))
+        .body("events.dataValues", hasSize(greaterThanOrEqualTo(1)))
+        .noRootPath()
+        .rootPath(String.format("enrollments.find{it.enrollment=='%s'}", enrollmentB))
+        .body("events", hasSize(greaterThanOrEqualTo(1)))
+        .body("events.dataValues", hasSize(greaterThanOrEqualTo(1)));
 
-        trackerImportExportActions.getTrackedEntity( teiB )
-            .validate().statusCode( 404 );
-    }
+    trackerImportExportActions.getTrackedEntity(teiB).validate().statusCode(404);
+  }
 
-    @Test
-    public void shouldMergeWithNonSuperUser()
-    {
-        // arrange
-        String teiB = createTeiWithoutEnrollment( Constants.ORG_UNIT_IDS[0] );
+  @Test
+  public void shouldMergeWithNonSuperUser() {
+    // arrange
+    String teiB = createTeiWithoutEnrollment(Constants.ORG_UNIT_IDS[0]);
 
-        TrackerApiResponse imported = trackerImportExportActions.postAndGetJobReport( new TeiDataBuilder()
-            .buildWithEnrollmentAndEvent( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0], TRACKER_PROGRAM_ID,
-                TRACKER_PROGRAM_STAGE_ID ) )
+    TrackerApiResponse imported =
+        trackerImportExportActions
+            .postAndGetJobReport(
+                new TeiDataBuilder()
+                    .buildWithEnrollmentAndEvent(
+                        Constants.TRACKED_ENTITY_TYPE,
+                        Constants.ORG_UNIT_IDS[0],
+                        TRACKER_PROGRAM_ID,
+                        TRACKER_PROGRAM_STAGE_ID))
             .validateSuccessfulImport();
 
-        String teiA = imported.extractImportedTeis().get( 0 );
-        String enrollment = imported.extractImportedEnrollments().get( 0 );
-        assertThat( enrollment, notNullValue() );
+    String teiA = imported.extractImportedTeis().get(0);
+    String enrollment = imported.extractImportedEnrollments().get(0);
+    assertThat(enrollment, notNullValue());
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
-            "OPEN" );
+    String potentialDuplicate =
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teiA, teiB, "OPEN");
 
-        String username = createUserWithAccessToMerge();
-        loginActions.loginAsUser( username, USER_PASSWORD );
+    String username = createUserWithAccessToMerge();
+    loginActions.loginAsUser(username, USER_PASSWORD);
 
-        // act
-        potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate ).validate().statusCode( 200 );
+    // act
+    potentialDuplicatesActions
+        .autoMergePotentialDuplicate(potentialDuplicate)
+        .validate()
+        .statusCode(200);
 
-        // assert
-        potentialDuplicatesActions.get( potentialDuplicate )
-            .validate()
-            .statusCode( 200 )
-            .body( "status", equalTo( "MERGED" ) );
+    // assert
+    potentialDuplicatesActions
+        .get(potentialDuplicate)
+        .validate()
+        .statusCode(200)
+        .body("status", equalTo("MERGED"));
 
-        trackerImportExportActions.getTrackedEntity( teiA + "?fields=*" )
-            .validate().statusCode( 200 )
-            .body( "enrollments", hasSize( 1 ) )
-            .body( "enrollments.enrollment", hasItems( enrollment ) )
-            .body( String.format( "enrollments.find{it.enrollment=='%s'}.events", enrollment ), hasSize( 1 ) );
+    trackerImportExportActions
+        .getTrackedEntity(teiA + "?fields=*")
+        .validate()
+        .statusCode(200)
+        .body("enrollments", hasSize(1))
+        .body("enrollments.enrollment", hasItems(enrollment))
+        .body(
+            String.format("enrollments.find{it.enrollment=='%s'}.events", enrollment), hasSize(1));
 
-        trackerImportExportActions.getTrackedEntity( teiB ).validate().statusCode( 404 );
-    }
+    trackerImportExportActions.getTrackedEntity(teiB).validate().statusCode(404);
+  }
 
-    private String createTeiWithoutEnrollment( String ouId )
-    {
-        JsonObject object = new TeiDataBuilder().array( Constants.TRACKED_ENTITY_TYPE, ouId );
+  private String createTeiWithoutEnrollment(String ouId) {
+    JsonObject object = new TeiDataBuilder().array(Constants.TRACKED_ENTITY_TYPE, ouId);
 
-        return trackerImportExportActions.postAndGetJobReport( object ).extractImportedTeis().get( 0 );
-    }
+    return trackerImportExportActions.postAndGetJobReport(object).extractImportedTeis().get(0);
+  }
 }

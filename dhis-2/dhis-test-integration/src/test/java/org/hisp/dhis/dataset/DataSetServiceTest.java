@@ -37,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
@@ -70,406 +69,447 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Lars Helge Overland
  */
-class DataSetServiceTest extends TransactionalIntegrationTest
-{
-    private PeriodType periodType;
+class DataSetServiceTest extends TransactionalIntegrationTest {
+  private PeriodType periodType;
 
-    private Period period;
+  private Period period;
 
-    private DataElement dataElementA;
+  private DataElement dataElementA;
 
-    private DataElement dataElementB;
+  private DataElement dataElementB;
 
-    private OrganisationUnit unitA;
+  private OrganisationUnit unitA;
 
-    private OrganisationUnit unitB;
+  private OrganisationUnit unitB;
 
-    private OrganisationUnit unitC;
+  private OrganisationUnit unitC;
 
-    private OrganisationUnit unitD;
+  private OrganisationUnit unitD;
 
-    private OrganisationUnit unitE;
+  private OrganisationUnit unitE;
 
-    private OrganisationUnit unitF;
+  private OrganisationUnit unitF;
 
-    private CategoryOptionCombo attributeOptionCombo;
+  private CategoryOptionCombo attributeOptionCombo;
 
-    private User superUser;
+  private User superUser;
 
-    @Autowired
-    private DataSetService dataSetService;
+  @Autowired private DataSetService dataSetService;
 
-    @Autowired
-    private DataElementService dataElementService;
+  @Autowired private DataElementService dataElementService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private PeriodService periodService;
+  @Autowired private PeriodService periodService;
 
-    @Autowired
-    protected UserService _userService;
+  @Autowired protected UserService _userService;
 
-    @Autowired
-    private DataApprovalService approvalService;
+  @Autowired private DataApprovalService approvalService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+  @Autowired private CurrentUserService currentUserService;
 
-    @Autowired
-    private DataApprovalService dataApprovalService;
+  @Autowired private DataApprovalService dataApprovalService;
 
-    @Autowired
-    private DataApprovalLevelService levelService;
+  @Autowired private DataApprovalLevelService levelService;
 
-    @Autowired
-    private AclService aclService;
+  @Autowired private AclService aclService;
 
-    // -------------------------------------------------------------------------
-    // Fixture
-    // -------------------------------------------------------------------------
-    @Override
-    public void setUpTest()
-        throws Exception
-    {
-        userService = _userService;
-        preCreateInjectAdminUser();
+  // -------------------------------------------------------------------------
+  // Fixture
+  // -------------------------------------------------------------------------
+  @Override
+  public void setUpTest() throws Exception {
+    userService = _userService;
+    preCreateInjectAdminUser();
 
-        periodType = new MonthlyPeriodType();
-        period = createPeriod( periodType, getDate( 2000, 3, 1 ), getDate( 2000, 3, 31 ) );
-        periodService.addPeriod( period );
-        dataElementA = createDataElement( 'A' );
-        dataElementB = createDataElement( 'B' );
-        dataElementService.addDataElement( dataElementA );
-        dataElementService.addDataElement( dataElementB );
-        unitA = createOrganisationUnit( 'A' );
-        unitB = createOrganisationUnit( 'B' );
-        unitC = createOrganisationUnit( 'C' );
-        unitD = createOrganisationUnit( 'D' );
-        unitE = createOrganisationUnit( 'E' );
-        unitF = createOrganisationUnit( 'F' );
-        organisationUnitService.addOrganisationUnit( unitA );
-        organisationUnitService.addOrganisationUnit( unitB );
-        organisationUnitService.addOrganisationUnit( unitC );
-        organisationUnitService.addOrganisationUnit( unitD );
-        organisationUnitService.addOrganisationUnit( unitE );
-        organisationUnitService.addOrganisationUnit( unitF );
-        attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+    periodType = new MonthlyPeriodType();
+    period = createPeriod(periodType, getDate(2000, 3, 1), getDate(2000, 3, 31));
+    periodService.addPeriod(period);
+    dataElementA = createDataElement('A');
+    dataElementB = createDataElement('B');
+    dataElementService.addDataElement(dataElementA);
+    dataElementService.addDataElement(dataElementB);
+    unitA = createOrganisationUnit('A');
+    unitB = createOrganisationUnit('B');
+    unitC = createOrganisationUnit('C');
+    unitD = createOrganisationUnit('D');
+    unitE = createOrganisationUnit('E');
+    unitF = createOrganisationUnit('F');
+    organisationUnitService.addOrganisationUnit(unitA);
+    organisationUnitService.addOrganisationUnit(unitB);
+    organisationUnitService.addOrganisationUnit(unitC);
+    organisationUnitService.addOrganisationUnit(unitD);
+    organisationUnitService.addOrganisationUnit(unitE);
+    organisationUnitService.addOrganisationUnit(unitF);
+    attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
-        superUser = createAndAddUser( true, "username", newHashSet( unitA ), newHashSet( unitA ),
-            UserRole.AUTHORITY_ALL );
-        injectSecurityContext( superUser );
+    superUser =
+        createAndAddUser(
+            true, "username", newHashSet(unitA), newHashSet(unitA), UserRole.AUTHORITY_ALL);
+    injectSecurityContext(superUser);
+  }
 
-    }
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+  private void assertEq(char uniqueCharacter, DataSet dataSet) {
+    assertEquals("DataSet" + uniqueCharacter, dataSet.getName());
+    assertEquals("DataSetShort" + uniqueCharacter, dataSet.getShortName());
+    assertEquals(periodType, dataSet.getPeriodType());
+  }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-    private void assertEq( char uniqueCharacter, DataSet dataSet )
-    {
-        assertEquals( "DataSet" + uniqueCharacter, dataSet.getName() );
-        assertEquals( "DataSetShort" + uniqueCharacter, dataSet.getShortName() );
-        assertEquals( periodType, dataSet.getPeriodType() );
-    }
+  private void approveData(DataSet dataSet, Period period, OrganisationUnit unit) {
+    DataApprovalLevel level = new DataApprovalLevel("Level A", unit.getLevel(), null);
+    levelService.addDataApprovalLevel(level);
+    DataApprovalWorkflow workflow =
+        new DataApprovalWorkflow("Workflow A", period.getPeriodType(), newHashSet(level));
+    dataApprovalService.addWorkflow(workflow);
+    dataSet.assignWorkflow(workflow);
+    dataSet.addOrganisationUnit(unit);
+    dataSetService.updateDataSet(dataSet);
+    DataApproval approval =
+        new DataApproval(
+            level, workflow, period, unit, attributeOptionCombo, false, new Date(), superUser);
+    approvalService.approveData(newArrayList(approval));
+  }
 
-    private void approveData( DataSet dataSet, Period period, OrganisationUnit unit )
-    {
-        DataApprovalLevel level = new DataApprovalLevel( "Level A", unit.getLevel(), null );
-        levelService.addDataApprovalLevel( level );
-        DataApprovalWorkflow workflow = new DataApprovalWorkflow( "Workflow A", period.getPeriodType(),
-            newHashSet( level ) );
-        dataApprovalService.addWorkflow( workflow );
-        dataSet.assignWorkflow( workflow );
-        dataSet.addOrganisationUnit( unit );
-        dataSetService.updateDataSet( dataSet );
-        DataApproval approval = new DataApproval( level, workflow, period, unit, attributeOptionCombo, false,
-            new Date(), superUser );
-        approvalService.approveData( newArrayList( approval ) );
-    }
+  // -------------------------------------------------------------------------
+  // DataSet
+  // -------------------------------------------------------------------------
+  @Test
+  void testAddDataSet() {
+    DataSet dataSetA = createDataSet('A', periodType);
+    DataSet dataSetB = createDataSet('B', periodType);
+    dataSetA.addDataSetElement(dataElementA);
+    dataSetA.addDataSetElement(dataElementB);
+    long idA = dataSetService.addDataSet(dataSetA);
+    long idB = dataSetService.addDataSet(dataSetB);
+    dataSetA = dataSetService.getDataSet(idA);
+    dataSetB = dataSetService.getDataSet(idB);
+    assertEquals(idA, dataSetA.getId());
+    assertEq('A', dataSetA);
+    assertEquals(idB, dataSetB.getId());
+    assertEq('B', dataSetB);
+  }
 
-    // -------------------------------------------------------------------------
-    // DataSet
-    // -------------------------------------------------------------------------
-    @Test
-    void testAddDataSet()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
-        dataSetA.addDataSetElement( dataElementA );
-        dataSetA.addDataSetElement( dataElementB );
-        long idA = dataSetService.addDataSet( dataSetA );
-        long idB = dataSetService.addDataSet( dataSetB );
-        dataSetA = dataSetService.getDataSet( idA );
-        dataSetB = dataSetService.getDataSet( idB );
-        assertEquals( idA, dataSetA.getId() );
-        assertEq( 'A', dataSetA );
-        assertEquals( idB, dataSetB.getId() );
-        assertEq( 'B', dataSetB );
-    }
+  @Test
+  void testUpdateDataSet() {
+    DataSet dataSet = createDataSet('A', periodType);
+    dataSet.addDataSetElement(dataElementA);
+    dataSet.addDataSetElement(dataElementB);
+    long id = dataSetService.addDataSet(dataSet);
+    dataSet = dataSetService.getDataSet(id);
+    assertEq('A', dataSet);
+    dataSet.setName("DataSetB");
+    dataSetService.updateDataSet(dataSet);
+    dataSet = dataSetService.getDataSet(id);
+    assertEquals(dataSet.getName(), "DataSetB");
+  }
 
-    @Test
-    void testUpdateDataSet()
-    {
-        DataSet dataSet = createDataSet( 'A', periodType );
-        dataSet.addDataSetElement( dataElementA );
-        dataSet.addDataSetElement( dataElementB );
-        long id = dataSetService.addDataSet( dataSet );
-        dataSet = dataSetService.getDataSet( id );
-        assertEq( 'A', dataSet );
-        dataSet.setName( "DataSetB" );
-        dataSetService.updateDataSet( dataSet );
-        dataSet = dataSetService.getDataSet( id );
-        assertEquals( dataSet.getName(), "DataSetB" );
-    }
+  @Test
+  void testDeleteAndGetDataSet() {
+    DataSet dataSetA = createDataSet('A', periodType);
+    DataSet dataSetB = createDataSet('B', periodType);
+    dataSetA.addDataSetElement(dataElementA);
+    dataSetA.addDataSetElement(dataElementB);
+    long idA = dataSetService.addDataSet(dataSetA);
+    long idB = dataSetService.addDataSet(dataSetB);
+    assertNotNull(dataSetService.getDataSet(idA));
+    assertNotNull(dataSetService.getDataSet(idB));
+    dataSetService.deleteDataSet(dataSetService.getDataSet(idA));
+    assertNull(dataSetService.getDataSet(idA));
+    assertNotNull(dataSetService.getDataSet(idB));
+    dataSetService.deleteDataSet(dataSetService.getDataSet(idB));
+    assertNull(dataSetService.getDataSet(idA));
+    assertNull(dataSetService.getDataSet(idB));
+  }
 
-    @Test
-    void testDeleteAndGetDataSet()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
-        dataSetA.addDataSetElement( dataElementA );
-        dataSetA.addDataSetElement( dataElementB );
-        long idA = dataSetService.addDataSet( dataSetA );
-        long idB = dataSetService.addDataSet( dataSetB );
-        assertNotNull( dataSetService.getDataSet( idA ) );
-        assertNotNull( dataSetService.getDataSet( idB ) );
-        dataSetService.deleteDataSet( dataSetService.getDataSet( idA ) );
-        assertNull( dataSetService.getDataSet( idA ) );
-        assertNotNull( dataSetService.getDataSet( idB ) );
-        dataSetService.deleteDataSet( dataSetService.getDataSet( idB ) );
-        assertNull( dataSetService.getDataSet( idA ) );
-        assertNull( dataSetService.getDataSet( idB ) );
-    }
+  @Test
+  void testUpdateRemoveDataSetElements() {
+    DataSet dataSet = createDataSet('A', periodType);
+    dataSet.addDataSetElement(dataElementA);
+    dataSet.addDataSetElement(dataElementB);
+    dataSetService.addDataSet(dataSet);
+    dataSet = dataSetService.getDataSet(dataSet.getId());
+    assertNotNull(dataSet);
+    List<DataSetElement> dataSetElements = new ArrayList<>(dataSet.getDataSetElements());
+    assertEquals(2, dataSet.getDataSetElements().size());
+    assertEquals(2, dataSetElements.size());
+    // Remove data element A
+    dataSet.removeDataSetElement(dataElementA);
+    dataSetService.updateDataSet(dataSet);
+    dataSet = dataSetService.getDataSet(dataSet.getId());
+    assertNotNull(dataSet);
+    dataSetElements = new ArrayList<>(dataSet.getDataSetElements());
+    assertEquals(1, dataSet.getDataSetElements().size());
+    assertEquals(1, dataSetElements.size());
+    // Remove data element B
+    dataSet.removeDataSetElement(dataElementB);
+    dataSetService.updateDataSet(dataSet);
+    dataSet = dataSetService.getDataSet(dataSet.getId());
+    assertNotNull(dataSet);
+    dataSetElements = new ArrayList<>(dataSet.getDataSetElements());
+    assertEquals(0, dataSet.getDataSetElements().size());
+    assertEquals(0, dataSetElements.size());
+  }
 
-    @Test
-    void testUpdateRemoveDataSetElements()
-    {
-        DataSet dataSet = createDataSet( 'A', periodType );
-        dataSet.addDataSetElement( dataElementA );
-        dataSet.addDataSetElement( dataElementB );
-        dataSetService.addDataSet( dataSet );
-        dataSet = dataSetService.getDataSet( dataSet.getId() );
-        assertNotNull( dataSet );
-        List<DataSetElement> dataSetElements = new ArrayList<>( dataSet.getDataSetElements() );
-        assertEquals( 2, dataSet.getDataSetElements().size() );
-        assertEquals( 2, dataSetElements.size() );
-        // Remove data element A
-        dataSet.removeDataSetElement( dataElementA );
-        dataSetService.updateDataSet( dataSet );
-        dataSet = dataSetService.getDataSet( dataSet.getId() );
-        assertNotNull( dataSet );
-        dataSetElements = new ArrayList<>( dataSet.getDataSetElements() );
-        assertEquals( 1, dataSet.getDataSetElements().size() );
-        assertEquals( 1, dataSetElements.size() );
-        // Remove data element B
-        dataSet.removeDataSetElement( dataElementB );
-        dataSetService.updateDataSet( dataSet );
-        dataSet = dataSetService.getDataSet( dataSet.getId() );
-        assertNotNull( dataSet );
-        dataSetElements = new ArrayList<>( dataSet.getDataSetElements() );
-        assertEquals( 0, dataSet.getDataSetElements().size() );
-        assertEquals( 0, dataSetElements.size() );
-    }
+  @Test
+  void testDeleteRemoveDataSetElements() {
+    DataSet dataSet = createDataSet('A', periodType);
+    dataSet.addDataSetElement(dataElementA);
+    dataSet.addDataSetElement(dataElementB);
+    long ds = dataSetService.addDataSet(dataSet);
+    dataSet = dataSetService.getDataSet(dataSet.getId());
+    assertNotNull(dataSet);
+    List<DataSetElement> dataSetElements = new ArrayList<>(dataSet.getDataSetElements());
+    assertEquals(dataSet, dataSetService.getDataSet(ds));
+    assertEquals(2, dataSet.getDataSetElements().size());
+    assertEquals(2, dataSetElements.size());
+    dataSetService.deleteDataSet(dataSet);
+    assertNull(dataSetService.getDataSet(ds));
+  }
 
-    @Test
-    void testDeleteRemoveDataSetElements()
-    {
-        DataSet dataSet = createDataSet( 'A', periodType );
-        dataSet.addDataSetElement( dataElementA );
-        dataSet.addDataSetElement( dataElementB );
-        long ds = dataSetService.addDataSet( dataSet );
-        dataSet = dataSetService.getDataSet( dataSet.getId() );
-        assertNotNull( dataSet );
-        List<DataSetElement> dataSetElements = new ArrayList<>( dataSet.getDataSetElements() );
-        assertEquals( dataSet, dataSetService.getDataSet( ds ) );
-        assertEquals( 2, dataSet.getDataSetElements().size() );
-        assertEquals( 2, dataSetElements.size() );
-        dataSetService.deleteDataSet( dataSet );
-        assertNull( dataSetService.getDataSet( ds ) );
-    }
+  @Test
+  void testGetAllDataSets() {
+    DataSet dataSetA = createDataSet('A', periodType);
+    DataSet dataSetB = createDataSet('B', periodType);
+    dataSetService.addDataSet(dataSetA);
+    dataSetService.addDataSet(dataSetB);
+    List<DataSet> dataSets = dataSetService.getAllDataSets();
+    assertEquals(dataSets.size(), 2);
+    assertTrue(dataSets.contains(dataSetA));
+    assertTrue(dataSets.contains(dataSetB));
+  }
 
-    @Test
-    void testGetAllDataSets()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
-        dataSetService.addDataSet( dataSetA );
-        dataSetService.addDataSet( dataSetB );
-        List<DataSet> dataSets = dataSetService.getAllDataSets();
-        assertEquals( dataSets.size(), 2 );
-        assertTrue( dataSets.contains( dataSetA ) );
-        assertTrue( dataSets.contains( dataSetB ) );
-    }
+  @Test
+  void testAddDataSetElement() {
+    DataSet dataSetA = createDataSet('A', periodType);
+    dataSetA.addDataSetElement(dataElementA);
+    dataSetA.addDataSetElement(dataElementB);
+    dataSetService.addDataSet(dataSetA);
+    assertEquals(2, dataSetA.getDataSetElements().size());
+    assertEquals(1, dataElementA.getDataSetElements().size());
+    assertEquals(dataSetA, dataElementA.getDataSetElements().iterator().next().getDataSet());
+    assertEquals(1, dataElementB.getDataSetElements().size());
+    assertEquals(dataSetA, dataElementB.getDataSetElements().iterator().next().getDataSet());
+  }
 
-    @Test
-    void testAddDataSetElement()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        dataSetA.addDataSetElement( dataElementA );
-        dataSetA.addDataSetElement( dataElementB );
-        dataSetService.addDataSet( dataSetA );
-        assertEquals( 2, dataSetA.getDataSetElements().size() );
-        assertEquals( 1, dataElementA.getDataSetElements().size() );
-        assertEquals( dataSetA, dataElementA.getDataSetElements().iterator().next().getDataSet() );
-        assertEquals( 1, dataElementB.getDataSetElements().size() );
-        assertEquals( dataSetA, dataElementB.getDataSetElements().iterator().next().getDataSet() );
-    }
+  // -------------------------------------------------------------------------
+  // LockException
+  // -------------------------------------------------------------------------
+  @Test
+  void testSaveGet() {
+    Period period = periodType.createPeriod();
+    DataSet dataSet = createDataSet('A', periodType);
+    dataSetService.addDataSet(dataSet);
+    LockException lockException = new LockException(period, unitA, dataSet);
+    long id = dataSetService.addLockException(lockException);
+    lockException = dataSetService.getLockException(id);
+    assertNotNull(lockException);
+    assertEquals(unitA, lockException.getOrganisationUnit());
+    assertEquals(period, lockException.getPeriod());
+    assertEquals(dataSet, lockException.getDataSet());
+  }
 
-    // -------------------------------------------------------------------------
-    // LockException
-    // -------------------------------------------------------------------------
-    @Test
-    void testSaveGet()
-    {
-        Period period = periodType.createPeriod();
-        DataSet dataSet = createDataSet( 'A', periodType );
-        dataSetService.addDataSet( dataSet );
-        LockException lockException = new LockException( period, unitA, dataSet );
-        long id = dataSetService.addLockException( lockException );
-        lockException = dataSetService.getLockException( id );
-        assertNotNull( lockException );
-        assertEquals( unitA, lockException.getOrganisationUnit() );
-        assertEquals( period, lockException.getPeriod() );
-        assertEquals( dataSet, lockException.getDataSet() );
-    }
+  @Test
+  @Disabled("TODO: fix this test 12098")
+  void testIsLockedDataElement() {
+    DataSet dataSetA = createDataSet('A', periodType);
+    DataSet dataSetB = createDataSet('B', periodType);
+    dataSetA.setExpiryDays(20);
+    dataSetA.setTimelyDays(15);
+    dataSetB.setExpiryDays(10);
+    dataSetB.setTimelyDays(15);
+    dataSetA.addDataSetElement(dataElementA);
+    dataSetB.addDataSetElement(dataElementA);
+    dataSetService.addDataSet(dataSetA);
+    dataSetService.addDataSet(dataSetB);
+    User user = currentUserService.getCurrentUser();
+    // ---------------------------------------------------------------------
+    // Expiry days
+    // ---------------------------------------------------------------------
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 1)));
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 5)));
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 15)));
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataElementB, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 25)));
+    assertEquals(
+        LockStatus.LOCKED,
+        dataSetService.getLockStatus(
+            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 25)));
+    // ---------------------------------------------------------------------
+    // Lock exception
+    // ---------------------------------------------------------------------
+    LockException lockException = new LockException(period, unitA, dataSetA);
+    dataSetService.addLockException(lockException);
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 1)));
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 5)));
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 15)));
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 25)));
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataElementB, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 25)));
+    // ---------------------------------------------------------------------
+    // Approved
+    // ---------------------------------------------------------------------
+    approveData(dataSetA, period, unitA);
+    assertEquals(
+        LockStatus.APPROVED,
+        dataSetService.getLockStatus(
+            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 1)));
+    assertEquals(
+        LockStatus.APPROVED,
+        dataSetService.getLockStatus(
+            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 5)));
+    assertEquals(
+        LockStatus.APPROVED,
+        dataSetService.getLockStatus(
+            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 15)));
+    assertEquals(
+        LockStatus.APPROVED,
+        dataSetService.getLockStatus(
+            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 25)));
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataElementB, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 25)));
+  }
 
-    @Test
-    @Disabled( "TODO: fix this test 12098" )
-    void testIsLockedDataElement()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
-        dataSetA.setExpiryDays( 20 );
-        dataSetA.setTimelyDays( 15 );
-        dataSetB.setExpiryDays( 10 );
-        dataSetB.setTimelyDays( 15 );
-        dataSetA.addDataSetElement( dataElementA );
-        dataSetB.addDataSetElement( dataElementA );
-        dataSetService.addDataSet( dataSetA );
-        dataSetService.addDataSet( dataSetB );
-        User user = currentUserService.getCurrentUser();
-        // ---------------------------------------------------------------------
-        // Expiry days
-        // ---------------------------------------------------------------------
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataElementA, period, unitA,
-            attributeOptionCombo, user, getDate( 2000, 4, 1 ) ) );
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataElementA, period, unitA,
-            attributeOptionCombo, user, getDate( 2000, 4, 5 ) ) );
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataElementA, period, unitA,
-            attributeOptionCombo, user, getDate( 2000, 4, 15 ) ) );
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataElementB, period, unitA,
-            attributeOptionCombo, user, getDate( 2000, 4, 25 ) ) );
-        assertEquals( LockStatus.LOCKED, dataSetService.getLockStatus( dataElementA, period, unitA,
-            attributeOptionCombo, user, getDate( 2000, 4, 25 ) ) );
-        // ---------------------------------------------------------------------
-        // Lock exception
-        // ---------------------------------------------------------------------
-        LockException lockException = new LockException( period, unitA, dataSetA );
-        dataSetService.addLockException( lockException );
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataElementA, period, unitA,
-            attributeOptionCombo, user, getDate( 2000, 4, 1 ) ) );
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataElementA, period, unitA,
-            attributeOptionCombo, user, getDate( 2000, 4, 5 ) ) );
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataElementA, period, unitA,
-            attributeOptionCombo, user, getDate( 2000, 4, 15 ) ) );
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataElementA, period, unitA,
-            attributeOptionCombo, user, getDate( 2000, 4, 25 ) ) );
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataElementB, period, unitA,
-            attributeOptionCombo, user, getDate( 2000, 4, 25 ) ) );
-        // ---------------------------------------------------------------------
-        // Approved
-        // ---------------------------------------------------------------------
-        approveData( dataSetA, period, unitA );
-        assertEquals( LockStatus.APPROVED, dataSetService.getLockStatus( dataElementA, period, unitA,
-            attributeOptionCombo, user, getDate( 2000, 4, 1 ) ) );
-        assertEquals( LockStatus.APPROVED, dataSetService.getLockStatus( dataElementA, period, unitA,
-            attributeOptionCombo, user, getDate( 2000, 4, 5 ) ) );
-        assertEquals( LockStatus.APPROVED, dataSetService.getLockStatus( dataElementA, period, unitA,
-            attributeOptionCombo, user, getDate( 2000, 4, 15 ) ) );
-        assertEquals( LockStatus.APPROVED, dataSetService.getLockStatus( dataElementA, period, unitA,
-            attributeOptionCombo, user, getDate( 2000, 4, 25 ) ) );
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataElementB, period, unitA,
-            attributeOptionCombo, user, getDate( 2000, 4, 25 ) ) );
-    }
+  @Test
+  @Disabled("TODO: fix this test 12098")
+  void testIsLockedDataSet() {
+    injectSecurityContext(superUser);
 
-    @Test
-    @Disabled( "TODO: fix this test 12098" )
-    void testIsLockedDataSet()
-    {
-        injectSecurityContext( superUser );
+    DataSet dataSetA = createDataSet('A', periodType);
+    DataSet dataSetB = createDataSet('B', periodType);
+    dataSetA.setExpiryDays(10);
+    dataSetA.setTimelyDays(15);
+    dataSetB.setExpiryDays(15);
+    dataSetB.setTimelyDays(15);
+    dataSetService.addDataSet(dataSetA);
+    dataSetService.addDataSet(dataSetB);
+    // ---------------------------------------------------------------------
+    // Expiry days
+    // ---------------------------------------------------------------------
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 1)));
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 5)));
+    assertEquals(
+        LockStatus.LOCKED,
+        dataSetService.getLockStatus(
+            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 15)));
+    assertEquals(
+        LockStatus.LOCKED,
+        dataSetService.getLockStatus(
+            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 25)));
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataSetB, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 10)));
+    // Test Expiry days with user has authority "ALL"
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataSetB, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 25)));
+    // ---------------------------------------------------------------------
+    // Lock exception
+    // ---------------------------------------------------------------------
+    LockException lockException = new LockException(period, unitA, dataSetA);
+    dataSetService.addLockException(lockException);
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 1)));
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 5)));
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 15)));
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 25)));
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataSetB, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 10)));
+    assertEquals(
+        LockStatus.LOCKED,
+        dataSetService.getLockStatus(
+            dataSetB, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 25)));
+    // ---------------------------------------------------------------------
+    // Approved
+    // ---------------------------------------------------------------------
+    approveData(dataSetA, period, unitA);
+    assertEquals(
+        LockStatus.APPROVED,
+        dataSetService.getLockStatus(
+            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 1)));
+    assertEquals(
+        LockStatus.APPROVED,
+        dataSetService.getLockStatus(
+            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 5)));
+    assertEquals(
+        LockStatus.APPROVED,
+        dataSetService.getLockStatus(
+            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 15)));
+    assertEquals(
+        LockStatus.APPROVED,
+        dataSetService.getLockStatus(
+            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 25)));
+    assertEquals(
+        LockStatus.OPEN,
+        dataSetService.getLockStatus(
+            dataSetB, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 10)));
+    assertEquals(
+        LockStatus.LOCKED,
+        dataSetService.getLockStatus(
+            dataSetB, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 25)));
+  }
 
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
-        dataSetA.setExpiryDays( 10 );
-        dataSetA.setTimelyDays( 15 );
-        dataSetB.setExpiryDays( 15 );
-        dataSetB.setTimelyDays( 15 );
-        dataSetService.addDataSet( dataSetA );
-        dataSetService.addDataSet( dataSetB );
-        // ---------------------------------------------------------------------
-        // Expiry days
-        // ---------------------------------------------------------------------
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataSetA, period, unitA,
-            attributeOptionCombo, superUser, getDate( 2000, 4, 1 ) ) );
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataSetA, period, unitA, attributeOptionCombo,
-            superUser, getDate( 2000, 4, 5 ) ) );
-        assertEquals( LockStatus.LOCKED, dataSetService.getLockStatus( dataSetA, period, unitA, attributeOptionCombo,
-            superUser, getDate( 2000, 4, 15 ) ) );
-        assertEquals( LockStatus.LOCKED, dataSetService.getLockStatus( dataSetA, period, unitA, attributeOptionCombo,
-            superUser, getDate( 2000, 4, 25 ) ) );
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataSetB, period, unitA, attributeOptionCombo,
-            superUser, getDate( 2000, 4, 10 ) ) );
-        // Test Expiry days with user has authority "ALL"
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataSetB, period, unitA, attributeOptionCombo,
-            superUser, getDate( 2000, 4, 25 ) ) );
-        // ---------------------------------------------------------------------
-        // Lock exception
-        // ---------------------------------------------------------------------
-        LockException lockException = new LockException( period, unitA, dataSetA );
-        dataSetService.addLockException( lockException );
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataSetA, period, unitA, attributeOptionCombo,
-            superUser, getDate( 2000, 4, 1 ) ) );
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataSetA, period, unitA, attributeOptionCombo,
-            superUser, getDate( 2000, 4, 5 ) ) );
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataSetA, period, unitA, attributeOptionCombo,
-            superUser, getDate( 2000, 4, 15 ) ) );
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataSetA, period, unitA, attributeOptionCombo,
-            superUser, getDate( 2000, 4, 25 ) ) );
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataSetB, period, unitA, attributeOptionCombo,
-            superUser, getDate( 2000, 4, 10 ) ) );
-        assertEquals( LockStatus.LOCKED, dataSetService.getLockStatus( dataSetB, period, unitA, attributeOptionCombo,
-            superUser, getDate( 2000, 4, 25 ) ) );
-        // ---------------------------------------------------------------------
-        // Approved
-        // ---------------------------------------------------------------------
-        approveData( dataSetA, period, unitA );
-        assertEquals( LockStatus.APPROVED, dataSetService.getLockStatus( dataSetA, period, unitA, attributeOptionCombo,
-            superUser, getDate( 2000, 4, 1 ) ) );
-        assertEquals( LockStatus.APPROVED, dataSetService.getLockStatus( dataSetA, period, unitA, attributeOptionCombo,
-            superUser, getDate( 2000, 4, 5 ) ) );
-        assertEquals( LockStatus.APPROVED, dataSetService.getLockStatus( dataSetA, period, unitA, attributeOptionCombo,
-            superUser, getDate( 2000, 4, 15 ) ) );
-        assertEquals( LockStatus.APPROVED, dataSetService.getLockStatus( dataSetA, period, unitA, attributeOptionCombo,
-            superUser, getDate( 2000, 4, 25 ) ) );
-        assertEquals( LockStatus.OPEN, dataSetService.getLockStatus( dataSetB, period, unitA, attributeOptionCombo,
-            superUser, getDate( 2000, 4, 10 ) ) );
-        assertEquals( LockStatus.LOCKED, dataSetService.getLockStatus( dataSetB, period, unitA, attributeOptionCombo,
-            superUser, getDate( 2000, 4, 25 ) ) );
-    }
-
-    @Test
-    void testDataSharingDataSet()
-    {
-        User user = createAndAddUser( false, "usernameA", null );
-        injectSecurityContext( user );
-        DataSet dataSet = createDataSet( 'A', new MonthlyPeriodType() );
-        UserAccess userAccess = new UserAccess();
-        userAccess.setUser( user );
-        userAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
-        dataSet.getSharing().addUserAccess( userAccess );
-        Access access = aclService.getAccess( dataSet, user );
-        assertTrue( access.getData().isRead() );
-        assertTrue( access.getData().isWrite() );
-    }
+  @Test
+  void testDataSharingDataSet() {
+    User user = createAndAddUser(false, "usernameA", null);
+    injectSecurityContext(user);
+    DataSet dataSet = createDataSet('A', new MonthlyPeriodType());
+    UserAccess userAccess = new UserAccess();
+    userAccess.setUser(user);
+    userAccess.setAccess(AccessStringHelper.DATA_READ_WRITE);
+    dataSet.getSharing().addUserAccess(userAccess);
+    Access access = aclService.getAccess(dataSet, user);
+    assertTrue(access.getData().isRead());
+    assertTrue(access.getData().isWrite());
+  }
 }

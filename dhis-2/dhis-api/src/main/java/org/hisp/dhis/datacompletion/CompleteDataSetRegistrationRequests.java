@@ -29,11 +29,6 @@ package org.hisp.dhis.datacompletion;
 
 import java.util.HashSet;
 
-/**
- * Represents a collection of dataset completion registration requests
- */
+/** Represents a collection of dataset completion registration requests */
 public class CompleteDataSetRegistrationRequests
-    extends HashSet<CompleteDataSetRegistrationRequest>
-{
-
-}
+    extends HashSet<CompleteDataSetRegistrationRequest> {}

@@ -32,36 +32,30 @@ import java.util.Set;
 /**
  * @author Halvdan Hoem Grelland
  */
-public enum FileResourceDomain
-{
-    DATA_VALUE( "dataValue" ),
-    PUSH_ANALYSIS( "pushAnalysis" ),
-    DOCUMENT( "document" ),
-    MESSAGE_ATTACHMENT( "messageAttachment" ),
-    USER_AVATAR( "userAvatar" ),
-    ORG_UNIT( "organisationUnit" ),
-    CUSTOM_ICON( "customIcon" );
+public enum FileResourceDomain {
+  DATA_VALUE("dataValue"),
+  PUSH_ANALYSIS("pushAnalysis"),
+  DOCUMENT("document"),
+  MESSAGE_ATTACHMENT("messageAttachment"),
+  USER_AVATAR("userAvatar"),
+  ORG_UNIT("organisationUnit"),
+  CUSTOM_ICON("customIcon");
 
-    /**
-     * Container name to use when storing blobs of this FileResourceDomain
-     */
-    private String containerName;
+  /** Container name to use when storing blobs of this FileResourceDomain */
+  private String containerName;
 
-    public static final Set<FileResourceDomain> DOMAIN_FOR_MULTIPLE_IMAGES = Set.of(
-        DATA_VALUE, USER_AVATAR, ORG_UNIT );
+  public static final Set<FileResourceDomain> DOMAIN_FOR_MULTIPLE_IMAGES =
+      Set.of(DATA_VALUE, USER_AVATAR, ORG_UNIT);
 
-    FileResourceDomain( String containerName )
-    {
-        this.containerName = containerName;
-    }
+  FileResourceDomain(String containerName) {
+    this.containerName = containerName;
+  }
 
-    public String getContainerName()
-    {
-        return containerName;
-    }
+  public String getContainerName() {
+    return containerName;
+  }
 
-    public static boolean isDomainForMultipleImages( FileResourceDomain domain )
-    {
-        return domain != null && DOMAIN_FOR_MULTIPLE_IMAGES.contains( domain );
-    }
+  public static boolean isDomainForMultipleImages(FileResourceDomain domain) {
+    return domain != null && DOMAIN_FOR_MULTIPLE_IMAGES.contains(domain);
+  }
 }

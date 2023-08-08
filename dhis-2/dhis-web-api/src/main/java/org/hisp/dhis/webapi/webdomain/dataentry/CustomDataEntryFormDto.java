@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.webapi.webdomain.dataentry;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.common.DisplayDensity;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * DTO which represents a custom data entry form.
@@ -43,37 +41,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @Setter
-@Accessors( chain = true )
+@Accessors(chain = true)
 @NoArgsConstructor
-public class CustomDataEntryFormDto
-{
-    /**
-     * Form identifier.
-     */
-    @JsonProperty
-    private String id;
+public class CustomDataEntryFormDto {
+  /** Form identifier. */
+  @JsonProperty private String id;
 
-    /**
-     * Data set identifier.
-     */
-    @JsonProperty
-    private String dataSetId;
+  /** Data set identifier. */
+  @JsonProperty private String dataSetId;
 
-    /**
-     * Form version.
-     */
-    @JsonProperty
-    private Integer version;
+  /** Form version. */
+  @JsonProperty private Integer version;
 
-    /**
-     * Form display density.
-     */
-    @JsonProperty
-    private DisplayDensity displayDensity;
+  /** Form display density. */
+  @JsonProperty private DisplayDensity displayDensity;
 
-    /**
-     * Form content, may contain CSS, HTML and Javascript.
-     */
-    @JsonProperty
-    private String form;
+  /** Form content, may contain CSS, HTML and Javascript. */
+  @JsonProperty private String form;
 }

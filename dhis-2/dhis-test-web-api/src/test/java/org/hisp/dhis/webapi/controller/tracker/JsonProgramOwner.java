@@ -29,24 +29,17 @@ package org.hisp.dhis.webapi.controller.tracker;
 
 import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * Representation of
- * {@link org.hisp.dhis.webapi.controller.tracker.view.ProgramOwner}.
- */
-public interface JsonProgramOwner extends JsonObject
-{
-    default String getOrgUnit()
-    {
-        return getString( "orgUnit" ).string();
-    }
+/** Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.ProgramOwner}. */
+public interface JsonProgramOwner extends JsonObject {
+  default String getOrgUnit() {
+    return getString("orgUnit").string();
+  }
 
-    default String getTrackedEntity()
-    {
-        return getString( "trackedEntity" ).string();
-    }
+  default String getTrackedEntity() {
+    return getString("trackedEntity").string();
+  }
 
-    default String getProgram()
-    {
-        return getString( "program" ).string();
-    }
+  default String getProgram() {
+    return getString("program").string();
+  }
 }

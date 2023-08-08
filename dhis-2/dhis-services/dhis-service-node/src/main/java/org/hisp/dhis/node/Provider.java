@@ -30,7 +30,6 @@ package org.hisp.dhis.node;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface Provider<T>
-{
-    T provide();
+public interface Provider<T> {
+  T provide();
 }

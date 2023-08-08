@@ -36,11 +36,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
 import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
-
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.From;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
@@ -56,121 +54,97 @@ import org.hisp.dhis.analytics.common.query.Table;
 import org.hisp.dhis.analytics.common.query.Where;
 
 /**
- * This class is responsible for rendering the SQL query. each instance of this
- * class will only render each "part" once, and then cache the result. This way
- * we can reuse the same instance of this class for rendering the count query,
- * without affecting the parameters of the original query.
+ * This class is responsible for rendering the SQL query. each instance of this class will only
+ * render each "part" once, and then cache the result. This way we can reuse the same instance of
+ * this class for rendering the count query, without affecting the parameters of the original query.
  */
 @Data
-@Builder( toBuilder = true )
-public class RenderableSqlQuery implements Renderable
-{
-    private static final Renderable COUNT_1 = Select.ofUnquoted( "count(1)" );
+@Builder(toBuilder = true)
+public class RenderableSqlQuery implements Renderable {
+  private static final Renderable COUNT_1 = Select.ofUnquoted("count(1)");
 
-    private static final String LIMIT_OFFSET = "LIMIT_OFFSET";
+  private static final String LIMIT_OFFSET = "LIMIT_OFFSET";
 
-    private static final String ORDER_BY = "ORDER_BY";
+  private static final String ORDER_BY = "ORDER_BY";
 
-    private static final String WHERE = "WHERE";
+  private static final String WHERE = "WHERE";
 
-    private static final String FROM = "FROM";
+  private static final String FROM = "FROM";
 
-    private static final String SELECT = "SELECT";
+  private static final String SELECT = "SELECT";
 
-    private final boolean countRequested;
+  private final boolean countRequested;
 
-    @Singular
-    private final List<Field> selectFields;
+  @Singular private final List<Field> selectFields;
 
-    private final Table mainTable;
+  private final Table mainTable;
 
-    @Singular
-    private final List<LeftJoin> leftJoins;
+  @Singular private final List<LeftJoin> leftJoins;
 
-    @Singular
-    private final List<GroupableCondition> groupableConditions;
+  @Singular private final List<GroupableCondition> groupableConditions;
 
-    private final LimitOffset limitOffset;
+  private final LimitOffset limitOffset;
 
-    @Singular
-    private final List<IndexedOrder> orderClauses;
+  @Singular private final List<IndexedOrder> orderClauses;
 
-    @Builder.Default
-    private final Map<String, String> renderedParts = new HashMap<>();
+  @Builder.Default private final Map<String, String> renderedParts = new HashMap<>();
 
-    /**
-     * transforms the current instance into a count query.
-     *
-     * @return a new instance of this class, with the same parameters as the
-     *         current instance, but with the countRequested flag set to true.
-     */
-    public RenderableSqlQuery forCount()
-    {
-        return toBuilder()
-            .countRequested( true )
-            .renderedParts( renderedParts )
-            .build();
+  /**
+   * transforms the current instance into a count query.
+   *
+   * @return a new instance of this class, with the same parameters as the current instance, but
+   *     with the countRequested flag set to true.
+   */
+  public RenderableSqlQuery forCount() {
+    return toBuilder().countRequested(true).renderedParts(renderedParts).build();
+  }
+
+  @Override
+  public String render() {
+    if (countRequested) {
+      return renderSqlCountQuery();
+    }
+    return renderSqlQuery();
+  }
+
+  private String renderSqlQuery() {
+    return renderParts(select(), from(), where(), order(), limitOffset());
+  }
+
+  private String renderSqlCountQuery() {
+    return renderParts(COUNT_1.render(), from(), where());
+  }
+
+  private String renderParts(String... parts) {
+    return Arrays.stream(parts).filter(Objects::nonNull).collect(Collectors.joining(SPACE));
+  }
+
+  private String limitOffset() {
+    return getIfPresentOrElse(LIMIT_OFFSET, limitOffset::render);
+  }
+
+  private String order() {
+    return getIfPresentOrElse(ORDER_BY, () -> OrderRenderer.of(orderClauses).render());
+  }
+
+  private String where() {
+    return getIfPresentOrElse(
+        WHERE, () -> Where.of(RootConditionRenderer.of(groupableConditions)).render());
+  }
+
+  private String from() {
+    return getIfPresentOrElse(FROM, () -> From.of(mainTable, LeftJoins.of(leftJoins)).render());
+  }
+
+  private String select() {
+    return getIfPresentOrElse(SELECT, () -> Select.of(selectFields).render());
+  }
+
+  private String getIfPresentOrElse(String key, Supplier<String> supplier) {
+    if (!renderedParts.containsKey(key)) {
+      renderedParts.put(key, supplier.get());
     }
 
-    @Override
-    public String render()
-    {
-        if ( countRequested )
-        {
-            return renderSqlCountQuery();
-        }
-        return renderSqlQuery();
-    }
-
-    private String renderSqlQuery()
-    {
-        return renderParts( select(), from(), where(), order(), limitOffset() );
-    }
-
-    private String renderSqlCountQuery()
-    {
-        return renderParts( COUNT_1.render(), from(), where() );
-    }
-
-    private String renderParts( String... parts )
-    {
-        return Arrays.stream( parts )
-            .filter( Objects::nonNull )
-            .collect( Collectors.joining( SPACE ) );
-    }
-
-    private String limitOffset()
-    {
-        return getIfPresentOrElse( LIMIT_OFFSET, limitOffset::render );
-    }
-
-    private String order()
-    {
-        return getIfPresentOrElse( ORDER_BY, () -> OrderRenderer.of( orderClauses ).render() );
-    }
-
-    private String where()
-    {
-        return getIfPresentOrElse( WHERE, () -> Where.of( RootConditionRenderer.of( groupableConditions ) ).render() );
-    }
-
-    private String from()
-    {
-        return getIfPresentOrElse( FROM, () -> From.of( mainTable, LeftJoins.of( leftJoins ) ).render() );
-    }
-
-    private String select()
-    {
-        return getIfPresentOrElse( SELECT, () -> Select.of( selectFields ).render() );
-    }
-
-    private String getIfPresentOrElse( String key, Supplier<String> supplier )
-    {
-        if ( !renderedParts.containsKey( key ) )
-        {
-            renderedParts.put( key, supplier.get() );
-        }
-
-        return renderedParts.get( key );
-    }
+    return renderedParts.get(key);
+  }
 }

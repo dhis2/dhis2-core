@@ -30,14 +30,11 @@ package org.hisp.dhis.analytics.common.query;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-/**
- * Class to represent a renderable with it's index.
- */
+/** Class to represent a renderable with it's index. */
 @Data
-@RequiredArgsConstructor( staticName = "of" )
-public class IndexedOrder
-{
-    private final long index;
+@RequiredArgsConstructor(staticName = "of")
+public class IndexedOrder {
+  private final long index;
 
-    private final Order renderable;
+  private final Order renderable;
 }

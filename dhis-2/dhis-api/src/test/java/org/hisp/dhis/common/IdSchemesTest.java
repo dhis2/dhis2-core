@@ -31,27 +31,24 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-class IdSchemesTest
-{
+class IdSchemesTest {
 
-    @Test
-    void testGetIdScheme()
-    {
-        IdSchemes schemes = new IdSchemes();
-        schemes.setDataElementIdScheme( IdScheme.UID.name() );
-        schemes.setIdScheme( IdScheme.CODE.name() );
-        assertEquals( IdScheme.UID, schemes.getDataElementIdScheme() );
-        assertEquals( IdScheme.CODE, schemes.getOrgUnitIdScheme() );
-        assertEquals( IdScheme.CODE, schemes.getIdScheme() );
-    }
+  @Test
+  void testGetIdScheme() {
+    IdSchemes schemes = new IdSchemes();
+    schemes.setDataElementIdScheme(IdScheme.UID.name());
+    schemes.setIdScheme(IdScheme.CODE.name());
+    assertEquals(IdScheme.UID, schemes.getDataElementIdScheme());
+    assertEquals(IdScheme.CODE, schemes.getOrgUnitIdScheme());
+    assertEquals(IdScheme.CODE, schemes.getIdScheme());
+  }
 
-    @Test
-    void testFrom()
-    {
-        IdScheme schemeA = IdScheme.from( IdScheme.ATTR_ID_SCHEME_PREFIX + "abcdefghijA" );
-        IdScheme schemeB = IdScheme.from( "CODE" );
-        assertEquals( IdentifiableProperty.ATTRIBUTE, schemeA.getIdentifiableProperty() );
-        assertEquals( "abcdefghijA", schemeA.getAttribute() );
-        assertEquals( IdentifiableProperty.CODE, schemeB.getIdentifiableProperty() );
-    }
+  @Test
+  void testFrom() {
+    IdScheme schemeA = IdScheme.from(IdScheme.ATTR_ID_SCHEME_PREFIX + "abcdefghijA");
+    IdScheme schemeB = IdScheme.from("CODE");
+    assertEquals(IdentifiableProperty.ATTRIBUTE, schemeA.getIdentifiableProperty());
+    assertEquals("abcdefghijA", schemeA.getAttribute());
+    assertEquals(IdentifiableProperty.CODE, schemeB.getIdentifiableProperty());
+  }
 }

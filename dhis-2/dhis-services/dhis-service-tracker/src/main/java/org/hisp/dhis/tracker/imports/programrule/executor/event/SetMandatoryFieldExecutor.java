@@ -31,9 +31,7 @@ import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.error;
 
 import java.util.List;
 import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -45,34 +43,32 @@ import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils;
 
 /**
- * This executor checks if a field is not empty in the {@link TrackerBundle}
- *
- * @Author Enrico Colasante
+ * This executor checks if a field is not empty in the {@link TrackerBundle} @Author Enrico
+ * Colasante
  */
 @RequiredArgsConstructor
-public class SetMandatoryFieldExecutor implements RuleActionExecutor<Event>
-{
-    private final String ruleUid;
+public class SetMandatoryFieldExecutor implements RuleActionExecutor<Event> {
+  private final String ruleUid;
 
-    private final String fieldUid;
+  private final String fieldUid;
 
-    @Override
-    public String getDataElementUid()
-    {
-        return fieldUid;
-    }
+  @Override
+  public String getDataElementUid() {
+    return fieldUid;
+  }
 
-    @Override
-    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Event event )
-    {
-        TrackerPreheat preheat = bundle.getPreheat();
-        ProgramStage programStage = preheat.getProgramStage( event.getProgramStage() );
-        TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
+  @Override
+  public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
+    TrackerPreheat preheat = bundle.getPreheat();
+    ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
+    TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
 
-        return ValidationUtils.validateMandatoryDataValue( programStage, event,
-            List.of( idSchemes.toMetadataIdentifier( preheat.getDataElement( fieldUid ) ) ) )
-            .stream()
-            .map( e -> error( ruleUid, ValidationCode.E1301, e.getIdentifierOrAttributeValue() ) )
-            .findAny();
-    }
+    return ValidationUtils.validateMandatoryDataValue(
+            programStage,
+            event,
+            List.of(idSchemes.toMetadataIdentifier(preheat.getDataElement(fieldUid))))
+        .stream()
+        .map(e -> error(ruleUid, ValidationCode.E1301, e.getIdentifierOrAttributeValue()))
+        .findAny();
+  }
 }

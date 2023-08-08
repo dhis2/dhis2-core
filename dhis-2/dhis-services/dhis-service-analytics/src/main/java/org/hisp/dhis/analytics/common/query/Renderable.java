@@ -30,17 +30,16 @@ package org.hisp.dhis.analytics.common.query;
 import javax.annotation.Nonnull;
 
 /**
- * This interface simply enables and object to be "renderable" based on the
- * conditions defined by the implementer in the respective methods.
+ * This interface simply enables and object to be "renderable" based on the conditions defined by
+ * the implementer in the respective methods.
  */
 @FunctionalInterface
-public interface Renderable
-{
-    /**
-     * Renders a string based on the internal rules/implementation.
-     *
-     * @return the output string.
-     */
-    @Nonnull
-    String render();
+public interface Renderable {
+  /**
+   * Renders a string based on the internal rules/implementation.
+   *
+   * @return the output string.
+   */
+  @Nonnull
+  String render();
 }

@@ -28,65 +28,87 @@
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
-
+import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 
-/**
- * Represents query parameters sent to {@link EnrollmentsExportController}.
- */
+/** Represents query parameters sent to {@link EnrollmentsExportController}. */
+@OpenApi.Shared(name = "EnrollmentRequestParams")
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-public class RequestParams extends PagingAndSortingCriteriaAdapter
-{
-    static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
+class RequestParams extends PagingAndSortingCriteriaAdapter {
+  static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
 
-    @OpenApi.Property( { UID.class, OrganisationUnit.class } )
-    private String orgUnit;
+  /**
+   * Semicolon-delimited list of organisation unit UIDs.
+   *
+   * @deprecated use {@link #orgUnits} instead which is comma instead of semicolon separated.
+   */
+  @Deprecated(since = "2.41")
+  @OpenApi.Property({UID[].class, OrganisationUnit.class})
+  private String orgUnit;
 
-    private OrganisationUnitSelectionMode ouMode;
+  @OpenApi.Property({UID[].class, OrganisationUnit.class})
+  private Set<UID> orgUnits = new HashSet<>();
 
-    @OpenApi.Property( { UID.class, Program.class } )
-    private String program;
+  /**
+   * @deprecated use {@link #orgUnitMode} instead.
+   */
+  @Deprecated(since = "2.41")
+  private OrganisationUnitSelectionMode ouMode;
 
-    private ProgramStatus programStatus;
+  private OrganisationUnitSelectionMode orgUnitMode;
 
-    private Boolean followUp;
+  @OpenApi.Property({UID.class, Program.class})
+  private UID program;
 
-    private Date updatedAfter;
+  private ProgramStatus programStatus;
 
-    private String updatedWithin;
+  private Boolean followUp;
 
-    private Date enrolledAfter;
+  private Date updatedAfter;
 
-    private Date enrolledBefore;
+  private String updatedWithin;
 
-    @OpenApi.Property( { UID.class, TrackedEntityType.class } )
-    private String trackedEntityType;
+  private Date enrolledAfter;
 
-    @OpenApi.Property( { UID.class, TrackedEntity.class } )
-    private String trackedEntity;
+  private Date enrolledBefore;
 
-    @OpenApi.Property( { UID[].class, Enrollment.class } )
-    private String enrollment;
+  @OpenApi.Property({UID.class, TrackedEntityType.class})
+  private UID trackedEntityType;
 
-    private boolean includeDeleted;
+  @OpenApi.Property({UID.class, TrackedEntity.class})
+  private UID trackedEntity;
 
-    @OpenApi.Property( value = String[].class )
-    private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
+  /**
+   * Semicolon-delimited list of enrollment UIDs.
+   *
+   * @deprecated use {@link #enrollments} instead which is comma instead of semicolon separated.
+   */
+  @Deprecated(since = "2.41")
+  @OpenApi.Property({UID[].class, Enrollment.class})
+  private String enrollment;
+
+  @OpenApi.Property({UID[].class, Enrollment.class})
+  private Set<UID> enrollments = new HashSet<>();
+
+  private boolean includeDeleted;
+
+  @OpenApi.Property(value = String[].class)
+  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
 }

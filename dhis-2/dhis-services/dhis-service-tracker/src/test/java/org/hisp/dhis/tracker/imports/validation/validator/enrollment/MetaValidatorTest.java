@@ -35,7 +35,6 @@ import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -55,110 +54,100 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class MetaValidatorTest
-{
-    private static final String ORG_UNIT_UID = "OrgUnitUid";
+@ExtendWith(MockitoExtension.class)
+class MetaValidatorTest {
+  private static final String ORG_UNIT_UID = "OrgUnitUid";
 
-    private static final String TRACKED_ENTITY_UID = "TrackedEntityUid";
+  private static final String TRACKED_ENTITY_UID = "TrackedEntityUid";
 
-    private static final String PROGRAM_UID = "ProgramUid";
+  private static final String PROGRAM_UID = "ProgramUid";
 
-    private MetaValidator validator;
+  private MetaValidator validator;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    public void setUp()
-    {
-        validator = new MetaValidator();
+  @BeforeEach
+  public void setUp() {
+    validator = new MetaValidator();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
+    when(bundle.getPreheat()).thenReturn(preheat);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
-    }
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
+  }
 
-    @Test
-    void verifyEnrollmentValidationSuccess()
-    {
-        Enrollment enrollment = validEnrollment();
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
-            .thenReturn( new OrganisationUnit() );
-        when( preheat.getTrackedEntity( TRACKED_ENTITY_UID ) ).thenReturn( new TrackedEntity() );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) ).thenReturn( new Program() );
+  @Test
+  void verifyEnrollmentValidationSuccess() {
+    Enrollment enrollment = validEnrollment();
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
+        .thenReturn(new OrganisationUnit());
+    when(preheat.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(new TrackedEntity());
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(new Program());
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyEnrollmentValidationSuccessWhenTeiIsInPayload()
-    {
-        Enrollment enrollment = validEnrollment();
-        when( bundle.findTrackedEntityByUid( TRACKED_ENTITY_UID ) )
-            .thenReturn( Optional.of( new org.hisp.dhis.tracker.imports.domain.TrackedEntity() ) );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
-            .thenReturn( new OrganisationUnit() );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) ).thenReturn( new Program() );
+  @Test
+  void verifyEnrollmentValidationSuccessWhenTeiIsInPayload() {
+    Enrollment enrollment = validEnrollment();
+    when(bundle.findTrackedEntityByUid(TRACKED_ENTITY_UID))
+        .thenReturn(Optional.of(new org.hisp.dhis.tracker.imports.domain.TrackedEntity()));
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
+        .thenReturn(new OrganisationUnit());
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(new Program());
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyEnrollmentValidationFailsWhenOrgUnitIsNotPresentInDb()
-    {
-        Enrollment enrollment = validEnrollment();
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) ).thenReturn( new Program() );
-        when( preheat.getTrackedEntity( TRACKED_ENTITY_UID ) ).thenReturn( new TrackedEntity() );
+  @Test
+  void verifyEnrollmentValidationFailsWhenOrgUnitIsNotPresentInDb() {
+    Enrollment enrollment = validEnrollment();
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(new Program());
+    when(preheat.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(new TrackedEntity());
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, E1070 );
-    }
+    assertHasError(reporter, enrollment, E1070);
+  }
 
-    @Test
-    void verifyEnrollmentValidationFailsWhenTrackedEntityIsNotPresentInDbOrPayload()
-    {
-        Enrollment enrollment = validEnrollment();
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
-            .thenReturn( new OrganisationUnit() );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) ).thenReturn( new Program() );
+  @Test
+  void verifyEnrollmentValidationFailsWhenTrackedEntityIsNotPresentInDbOrPayload() {
+    Enrollment enrollment = validEnrollment();
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
+        .thenReturn(new OrganisationUnit());
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(new Program());
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, E1068 );
-    }
+    assertHasError(reporter, enrollment, E1068);
+  }
 
-    @Test
-    void verifyEnrollmentValidationFailsWhenProgramIsNotPresentInDb()
-    {
-        Enrollment enrollment = validEnrollment();
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
-            .thenReturn( new OrganisationUnit() );
-        when( preheat.getTrackedEntity( TRACKED_ENTITY_UID ) ).thenReturn( new TrackedEntity() );
+  @Test
+  void verifyEnrollmentValidationFailsWhenProgramIsNotPresentInDb() {
+    Enrollment enrollment = validEnrollment();
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
+        .thenReturn(new OrganisationUnit());
+    when(preheat.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(new TrackedEntity());
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, E1069 );
-    }
+    assertHasError(reporter, enrollment, E1069);
+  }
 
-    private Enrollment validEnrollment()
-    {
-        return Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .trackedEntity( TRACKED_ENTITY_UID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) )
-            .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
-            .build();
-    }
+  private Enrollment validEnrollment() {
+    return Enrollment.builder()
+        .enrollment(CodeGenerator.generateUid())
+        .trackedEntity(TRACKED_ENTITY_UID)
+        .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID))
+        .program(MetadataIdentifier.ofUid(PROGRAM_UID))
+        .build();
+  }
 }

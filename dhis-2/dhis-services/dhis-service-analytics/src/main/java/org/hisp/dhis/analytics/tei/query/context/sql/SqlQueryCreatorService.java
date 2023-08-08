@@ -31,9 +31,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 import java.util.function.Predicate;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -43,68 +41,62 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class SqlQueryCreatorService
-{
-    private final List<SqlQueryBuilder> providers;
+public class SqlQueryCreatorService {
+  private final List<SqlQueryBuilder> providers;
 
-    /**
-     * Builds a SqlQueryCreator from the given TeiQueryParams.
-     *
-     * @param teiQueryParams the TeiQueryParams to build the SqlQueryCreator
-     *        from.
-     * @return a SqlQueryCreator
-     */
-    public SqlQueryCreator getSqlQueryCreator( TeiQueryParams teiQueryParams )
-    {
-        SqlParameterManager sqlParameterManager = new SqlParameterManager();
-        QueryContext queryContext = QueryContext.of( teiQueryParams, sqlParameterManager );
+  /**
+   * Builds a SqlQueryCreator from the given TeiQueryParams.
+   *
+   * @param teiQueryParams the TeiQueryParams to build the SqlQueryCreator from.
+   * @return a SqlQueryCreator
+   */
+  public SqlQueryCreator getSqlQueryCreator(TeiQueryParams teiQueryParams) {
+    SqlParameterManager sqlParameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(teiQueryParams, sqlParameterManager);
 
-        RenderableSqlQuery renderableSqlQuery = RenderableSqlQuery.builder()
-            .countRequested( false )
-            .build();
+    RenderableSqlQuery renderableSqlQuery =
+        RenderableSqlQuery.builder().countRequested(false).build();
 
-        for ( SqlQueryBuilder provider : providers )
-        {
-            List<DimensionIdentifier<DimensionParam>> acceptedDimensions = teiQueryParams.getCommonParams()
-                .getDimensionIdentifiers().stream()
-                .filter( provider.getDimensionFilters().stream().reduce( x -> true, Predicate::and ) )
-                .collect( toList() );
+    for (SqlQueryBuilder provider : providers) {
+      List<DimensionIdentifier<DimensionParam>> acceptedDimensions =
+          teiQueryParams.getCommonParams().getDimensionIdentifiers().stream()
+              .filter(provider.getDimensionFilters().stream().reduce(x -> true, Predicate::and))
+              .collect(toList());
 
-            List<AnalyticsSortingParams> acceptedSortingParams = teiQueryParams.getCommonParams().getOrderParams()
-                .stream()
-                .filter( provider.getSortingFilters().stream().reduce( x -> true, Predicate::and ) )
-                .collect( toList() );
+      List<AnalyticsSortingParams> acceptedSortingParams =
+          teiQueryParams.getCommonParams().getOrderParams().stream()
+              .filter(provider.getSortingFilters().stream().reduce(x -> true, Predicate::and))
+              .collect(toList());
 
-            if ( provider.alwaysRun() ||
-                !CollectionUtils.isEmpty( acceptedDimensions ) ||
-                !CollectionUtils.isEmpty( acceptedSortingParams ) )
-            {
-                renderableSqlQuery = mergeQueries( renderableSqlQuery,
-                    provider.buildSqlQuery( queryContext, acceptedDimensions, acceptedSortingParams ) );
-            }
-        }
-
-        return SqlQueryCreator.of( queryContext, renderableSqlQuery );
+      if (provider.alwaysRun()
+          || !CollectionUtils.isEmpty(acceptedDimensions)
+          || !CollectionUtils.isEmpty(acceptedSortingParams)) {
+        renderableSqlQuery =
+            mergeQueries(
+                renderableSqlQuery,
+                provider.buildSqlQuery(queryContext, acceptedDimensions, acceptedSortingParams));
+      }
     }
 
-    private RenderableSqlQuery mergeQueries( RenderableSqlQuery initial, RenderableSqlQuery contribution )
-    {
-        RenderableSqlQuery.RenderableSqlQueryBuilder sqlQueryContextBuilder = initial.toBuilder();
-        contribution.getSelectFields().forEach( sqlQueryContextBuilder::selectField );
-        contribution.getLeftJoins().forEach( sqlQueryContextBuilder::leftJoin );
-        contribution.getGroupableConditions().forEach( sqlQueryContextBuilder::groupableCondition );
-        contribution.getOrderClauses().forEach( sqlQueryContextBuilder::orderClause );
+    return SqlQueryCreator.of(queryContext, renderableSqlQuery);
+  }
 
-        if ( contribution.getMainTable() != null )
-        {
-            sqlQueryContextBuilder.mainTable( contribution.getMainTable() );
-        }
+  private RenderableSqlQuery mergeQueries(
+      RenderableSqlQuery initial, RenderableSqlQuery contribution) {
+    RenderableSqlQuery.RenderableSqlQueryBuilder sqlQueryContextBuilder = initial.toBuilder();
+    contribution.getSelectFields().forEach(sqlQueryContextBuilder::selectField);
+    contribution.getLeftJoins().forEach(sqlQueryContextBuilder::leftJoin);
+    contribution.getGroupableConditions().forEach(sqlQueryContextBuilder::groupableCondition);
+    contribution.getOrderClauses().forEach(sqlQueryContextBuilder::orderClause);
 
-        if ( contribution.getLimitOffset() != null )
-        {
-            sqlQueryContextBuilder.limitOffset( contribution.getLimitOffset() );
-        }
-
-        return sqlQueryContextBuilder.build();
+    if (contribution.getMainTable() != null) {
+      sqlQueryContextBuilder.mainTable(contribution.getMainTable());
     }
+
+    if (contribution.getLimitOffset() != null) {
+      sqlQueryContextBuilder.limitOffset(contribution.getLimitOffset());
+    }
+
+    return sqlQueryContextBuilder.build();
+  }
 }

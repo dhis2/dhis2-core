@@ -36,67 +36,55 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for {@link ValueTypeMapping}.
- */
-class ValueTypeMappingTest
-{
-    @Test
-    void testConvertSingleNumeric()
-    {
-        Object o = NUMERIC.convertSingle( "1" );
-        assertInstanceOf( BigInteger.class, o );
-    }
+/** Unit tests for {@link ValueTypeMapping}. */
+class ValueTypeMappingTest {
+  @Test
+  void testConvertSingleNumeric() {
+    Object o = NUMERIC.convertSingle("1");
+    assertInstanceOf(BigInteger.class, o);
+  }
 
-    @Test
-    void testConvertMultipleNumeric()
-    {
-        List<Object> list = NUMERIC.convertMany( List.of( "1", "2", "3" ) );
-        list.forEach( e -> assertInstanceOf( BigInteger.class, e ) );
-    }
+  @Test
+  void testConvertMultipleNumeric() {
+    List<Object> list = NUMERIC.convertMany(List.of("1", "2", "3"));
+    list.forEach(e -> assertInstanceOf(BigInteger.class, e));
+  }
 
-    @Test
-    void testConvertSingleDecimal()
-    {
-        Object o = DECIMAL.convertSingle( "1.1" );
-        assertInstanceOf( BigDecimal.class, o );
-    }
+  @Test
+  void testConvertSingleDecimal() {
+    Object o = DECIMAL.convertSingle("1.1");
+    assertInstanceOf(BigDecimal.class, o);
+  }
 
-    @Test
-    void testConvertMultipleDecimal()
-    {
-        List<Object> list = DECIMAL.convertMany( List.of( "1", "2", "3" ) );
-        list.forEach( e -> assertInstanceOf( BigDecimal.class, e ) );
-    }
+  @Test
+  void testConvertMultipleDecimal() {
+    List<Object> list = DECIMAL.convertMany(List.of("1", "2", "3"));
+    list.forEach(e -> assertInstanceOf(BigDecimal.class, e));
+  }
 
-    @Test
-    void testConvertSingleString()
-    {
-        Object o = STRING.convertSingle( "1" );
-        assertInstanceOf( String.class, o );
-    }
+  @Test
+  void testConvertSingleString() {
+    Object o = STRING.convertSingle("1");
+    assertInstanceOf(String.class, o);
+  }
 
-    @Test
-    void testConvertMultipleString()
-    {
-        List<Object> list = STRING.convertMany( List.of( "1", "2", "3" ) );
-        list.forEach( e -> assertInstanceOf( String.class, e ) );
-    }
+  @Test
+  void testConvertMultipleString() {
+    List<Object> list = STRING.convertMany(List.of("1", "2", "3"));
+    list.forEach(e -> assertInstanceOf(String.class, e));
+  }
 
-    @Test
-    void testConvertSingleText()
-    {
-        Object o = TEXT.convertSingle( "1" );
-        assertInstanceOf( String.class, o );
-    }
+  @Test
+  void testConvertSingleText() {
+    Object o = TEXT.convertSingle("1");
+    assertInstanceOf(String.class, o);
+  }
 
-    @Test
-    void testConvertMultipleText()
-    {
-        List<Object> list = TEXT.convertMany( List.of( "1", "2", "3" ) );
-        list.forEach( e -> assertInstanceOf( String.class, e ) );
-    }
+  @Test
+  void testConvertMultipleText() {
+    List<Object> list = TEXT.convertMany(List.of("1", "2", "3"));
+    list.forEach(e -> assertInstanceOf(String.class, e));
+  }
 }

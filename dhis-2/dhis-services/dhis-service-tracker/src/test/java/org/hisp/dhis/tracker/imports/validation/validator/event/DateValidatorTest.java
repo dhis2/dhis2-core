@@ -37,11 +37,11 @@ import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidatio
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Sets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.event.EventStatus;
@@ -65,242 +65,218 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Enrico Colasante
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class DateValidatorTest extends DhisConvenienceTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class DateValidatorTest extends DhisConvenienceTest {
 
-    private static final String PROGRAM_WITH_REGISTRATION_ID = "ProgramWithRegistration";
+  private static final String PROGRAM_WITH_REGISTRATION_ID = "ProgramWithRegistration";
 
-    private static final String PROGRAM_WITHOUT_REGISTRATION_ID = "ProgramWithoutRegistration";
+  private static final String PROGRAM_WITHOUT_REGISTRATION_ID = "ProgramWithoutRegistration";
 
-    private DateValidator validator;
+  private DateValidator validator;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    public void setUp()
-    {
-        validator = new DateValidator();
+  @BeforeEach
+  public void setUp() {
+    validator = new DateValidator();
 
-        User user = makeUser( "A" );
+    User user = makeUser("A");
 
-        bundle = TrackerBundle.builder()
-            .user( user )
-            .preheat( preheat )
-            .build();
+    bundle = TrackerBundle.builder().user(user).preheat(preheat).build();
 
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION_ID ) ) )
-            .thenReturn( getProgramWithRegistration() );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION_ID ) ) )
-            .thenReturn( getProgramWithoutRegistration() );
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
+        .thenReturn(getProgramWithRegistration());
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID)))
+        .thenReturn(getProgramWithoutRegistration());
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
-    }
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
+  }
 
-    @Test
-    void testEventIsValid()
-    {
-        // given
-        Event event = new Event();
-        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION_ID ) );
-        event.setOccurredAt( now() );
-        event.setStatus( EventStatus.ACTIVE );
+  @Test
+  void testEventIsValid() {
+    // given
+    Event event = new Event();
+    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID));
+    event.setOccurredAt(now());
+    event.setStatus(EventStatus.ACTIVE);
 
-        TrackerBundle bundle = TrackerBundle.builder()
-            .user( getEditExpiredUser() )
-            .preheat( preheat )
-            .build();
+    TrackerBundle bundle =
+        TrackerBundle.builder().user(getEditExpiredUser()).preheat(preheat).build();
 
-        // when
-        validator.validate( reporter, bundle, event );
+    // when
+    validator.validate(reporter, bundle, event);
 
-        // then
-        assertIsEmpty( reporter.getErrors() );
-    }
+    // then
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void testEventIsNotValidWhenOccurredDateIsNotPresentAndProgramIsWithoutRegistration()
-    {
-        // given
-        Event event = new Event();
-        event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION_ID ) );
+  @Test
+  void testEventIsNotValidWhenOccurredDateIsNotPresentAndProgramIsWithoutRegistration() {
+    // given
+    Event event = new Event();
+    event.setEvent(CodeGenerator.generateUid());
+    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID));
 
-        // when
-        validator.validate( reporter, bundle, event );
+    // when
+    validator.validate(reporter, bundle, event);
 
-        // then
-        assertHasError( reporter, event, E1031 );
-    }
+    // then
+    assertHasError(reporter, event, E1031);
+  }
 
-    @Test
-    void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsActive()
-    {
-        // given
-        Event event = new Event();
-        event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION_ID ) );
-        event.setStatus( EventStatus.ACTIVE );
+  @Test
+  void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsActive() {
+    // given
+    Event event = new Event();
+    event.setEvent(CodeGenerator.generateUid());
+    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
+    event.setStatus(EventStatus.ACTIVE);
 
-        // when
-        validator.validate( reporter, bundle, event );
+    // when
+    validator.validate(reporter, bundle, event);
 
-        // then
-        assertHasError( reporter, event, E1031 );
-    }
+    // then
+    assertHasError(reporter, event, E1031);
+  }
 
-    @Test
-    void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsCompleted()
-    {
-        // given
-        Event event = new Event();
-        event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION_ID ) );
-        event.setStatus( EventStatus.COMPLETED );
+  @Test
+  void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsCompleted() {
+    // given
+    Event event = new Event();
+    event.setEvent(CodeGenerator.generateUid());
+    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
+    event.setStatus(EventStatus.COMPLETED);
 
-        // when
-        validator.validate( reporter, bundle, event );
+    // when
+    validator.validate(reporter, bundle, event);
 
-        // then
-        assertHasError( reporter, event, E1031 );
-    }
+    // then
+    assertHasError(reporter, event, E1031);
+  }
 
-    @Test
-    void testEventIsNotValidWhenScheduledDateIsNotPresentAndEventIsSchedule()
-    {
-        // given
-        Event event = new Event();
-        event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION_ID ) );
-        event.setOccurredAt( Instant.now() );
-        event.setStatus( EventStatus.SCHEDULE );
+  @Test
+  void testEventIsNotValidWhenScheduledDateIsNotPresentAndEventIsSchedule() {
+    // given
+    Event event = new Event();
+    event.setEvent(CodeGenerator.generateUid());
+    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
+    event.setOccurredAt(Instant.now());
+    event.setStatus(EventStatus.SCHEDULE);
 
-        // when
-        validator.validate( reporter, bundle, event );
+    // when
+    validator.validate(reporter, bundle, event);
 
-        // then
-        assertHasError( reporter, event, E1050 );
-    }
+    // then
+    assertHasError(reporter, event, E1050);
+  }
 
-    @Test
-    void testEventIsNotValidWhenCompletedAtIsNotPresentAndEventIsCompleted()
-    {
-        // given
-        Event event = new Event();
-        event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION_ID ) );
-        event.setOccurredAt( now() );
-        event.setStatus( EventStatus.COMPLETED );
+  @Test
+  void testEventIsNotValidWhenCompletedAtIsNotPresentAndEventIsCompleted() {
+    // given
+    Event event = new Event();
+    event.setEvent(CodeGenerator.generateUid());
+    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
+    event.setOccurredAt(now());
+    event.setStatus(EventStatus.COMPLETED);
 
-        // when
-        validator.validate( reporter, bundle, event );
+    // when
+    validator.validate(reporter, bundle, event);
 
-        // then
-        assertHasError( reporter, event, E1042 );
-    }
+    // then
+    assertHasError(reporter, event, E1042);
+  }
 
-    @Test
-    void testEventIsNotValidWhenCompletedAtIsTooSoonAndEventIsCompleted()
-    {
-        // given
-        Event event = new Event();
-        event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION_ID ) );
-        event.setOccurredAt( now() );
-        event.setCompletedAt( sevenDaysAgo() );
-        event.setStatus( EventStatus.COMPLETED );
+  @Test
+  void testEventIsNotValidWhenCompletedAtIsTooSoonAndEventIsCompleted() {
+    // given
+    Event event = new Event();
+    event.setEvent(CodeGenerator.generateUid());
+    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
+    event.setOccurredAt(now());
+    event.setCompletedAt(sevenDaysAgo());
+    event.setStatus(EventStatus.COMPLETED);
 
-        // when
-        validator.validate( reporter, bundle, event );
+    // when
+    validator.validate(reporter, bundle, event);
 
-        // then
-        assertHasError( reporter, event, E1043 );
-    }
+    // then
+    assertHasError(reporter, event, E1043);
+  }
 
-    @Test
-    void testEventIsNotValidWhenOccurredAtAndScheduledAtAreNotPresent()
-    {
-        // given
-        Event event = new Event();
-        event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION_ID ) );
-        event.setOccurredAt( null );
-        event.setScheduledAt( null );
-        event.setStatus( EventStatus.SKIPPED );
+  @Test
+  void testEventIsNotValidWhenOccurredAtAndScheduledAtAreNotPresent() {
+    // given
+    Event event = new Event();
+    event.setEvent(CodeGenerator.generateUid());
+    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
+    event.setOccurredAt(null);
+    event.setScheduledAt(null);
+    event.setStatus(EventStatus.SKIPPED);
 
-        // when
-        validator.validate( reporter, bundle, event );
+    // when
+    validator.validate(reporter, bundle, event);
 
-        // then
-        assertHasError( reporter, event, E1046 );
-    }
+    // then
+    assertHasError(reporter, event, E1046);
+  }
 
-    @Test
-    void testEventIsNotValidWhenDateBelongsToExpiredPeriod()
-    {
-        // given
-        Event event = new Event();
-        event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION_ID ) );
-        event.setOccurredAt( sevenDaysAgo() );
-        event.setStatus( EventStatus.ACTIVE );
+  @Test
+  void testEventIsNotValidWhenDateBelongsToExpiredPeriod() {
+    // given
+    Event event = new Event();
+    event.setEvent(CodeGenerator.generateUid());
+    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
+    event.setOccurredAt(sevenDaysAgo());
+    event.setStatus(EventStatus.ACTIVE);
 
-        // when
-        validator.validate( reporter, bundle, event );
+    // when
+    validator.validate(reporter, bundle, event);
 
-        // then
-        assertHasError( reporter, event, E1047 );
-    }
+    // then
+    assertHasError(reporter, event, E1047);
+  }
 
-    private Program getProgramWithRegistration()
-    {
-        Program program = createProgram( 'A' );
-        program.setUid( PROGRAM_WITH_REGISTRATION_ID );
-        program.setProgramType( ProgramType.WITH_REGISTRATION );
-        program.setCompleteEventsExpiryDays( 5 );
-        program.setExpiryDays( 5 );
-        program.setExpiryPeriodType( new DailyPeriodType() );
-        return program;
-    }
+  private Program getProgramWithRegistration() {
+    Program program = createProgram('A');
+    program.setUid(PROGRAM_WITH_REGISTRATION_ID);
+    program.setProgramType(ProgramType.WITH_REGISTRATION);
+    program.setCompleteEventsExpiryDays(5);
+    program.setExpiryDays(5);
+    program.setExpiryPeriodType(new DailyPeriodType());
+    return program;
+  }
 
-    private Program getProgramWithoutRegistration()
-    {
-        Program program = createProgram( 'A' );
-        program.setUid( PROGRAM_WITHOUT_REGISTRATION_ID );
-        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        return program;
-    }
+  private Program getProgramWithoutRegistration() {
+    Program program = createProgram('A');
+    program.setUid(PROGRAM_WITHOUT_REGISTRATION_ID);
+    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    return program;
+  }
 
-    private User getEditExpiredUser()
-    {
-        User user = makeUser( "A" );
-        UserRole userRole = createUserRole( 'A' );
-        userRole.setAuthorities( Sets.newHashSet( Authorities.F_EDIT_EXPIRED.getAuthority() ) );
+  private User getEditExpiredUser() {
+    User user = makeUser("A");
+    UserRole userRole = createUserRole('A');
+    userRole.setAuthorities(Sets.newHashSet(Authorities.F_EDIT_EXPIRED.getAuthority()));
 
-        user.setUserRoles( Sets.newHashSet( userRole ) );
+    user.setUserRoles(Sets.newHashSet(userRole));
 
-        return user;
-    }
+    return user;
+  }
 
-    private Instant now()
-    {
-        return Instant.now();
-    }
+  private Instant now() {
+    return Instant.now();
+  }
 
-    private Instant sevenDaysAgo()
-    {
-        return LocalDateTime.now().minus( 7, ChronoUnit.DAYS ).toInstant( ZoneOffset.UTC );
-    }
+  private Instant sevenDaysAgo() {
+    return LocalDateTime.now().minus(7, ChronoUnit.DAYS).toInstant(ZoneOffset.UTC);
+  }
 }

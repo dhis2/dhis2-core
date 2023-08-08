@@ -34,28 +34,24 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-class SqlUtilsTest
-{
+class SqlUtilsTest {
 
-    @Test
-    void testQuote()
-    {
-        assertEquals( "\"Some \"\"special\"\" value\"", SqlUtils.quote( "Some \"special\" value" ) );
-        assertEquals( "\"Data element\"", SqlUtils.quote( "Data element" ) );
-    }
+  @Test
+  void testQuote() {
+    assertEquals("\"Some \"\"special\"\" value\"", SqlUtils.quote("Some \"special\" value"));
+    assertEquals("\"Data element\"", SqlUtils.quote("Data element"));
+  }
 
-    @Test
-    void testQuoteWithAlias()
-    {
-        assertEquals( "ougs.\"Short name\"", SqlUtils.quote( "ougs", "Short name" ) );
-        assertEquals( "ous.\"uid\"", SqlUtils.quote( "ous", "uid" ) );
-    }
+  @Test
+  void testQuoteWithAlias() {
+    assertEquals("ougs.\"Short name\"", SqlUtils.quote("ougs", "Short name"));
+    assertEquals("ous.\"uid\"", SqlUtils.quote("ous", "uid"));
+  }
 
-    @Test
-    void testSingleQuote()
-    {
-        assertEquals( "'jkhYg65ThbF'", SqlUtils.singleQuote( "jkhYg65ThbF" ) );
-        assertEquals( "'Some ''special'' value'", SqlUtils.singleQuote( "Some 'special' value" ) );
-        assertEquals( "'Another \"strange\" value'", SqlUtils.singleQuote( "Another \"strange\" value" ) );
-    }
+  @Test
+  void testSingleQuote() {
+    assertEquals("'jkhYg65ThbF'", SqlUtils.singleQuote("jkhYg65ThbF"));
+    assertEquals("'Some ''special'' value'", SqlUtils.singleQuote("Some 'special' value"));
+    assertEquals("'Another \"strange\" value'", SqlUtils.singleQuote("Another \"strange\" value"));
+  }
 }

@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
@@ -43,47 +42,41 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.junit.jupiter.api.Test;
 
-class TeiAttributeConditionTest
-{
-    @Test
-    void testProgramAttributeConditionProduceCorrectSql()
-    {
+class TeiAttributeConditionTest {
+  @Test
+  void testProgramAttributeConditionProduceCorrectSql() {
 
-        // SETUP
-        String attr = "attr";
-        List<String> values = List.of( "eq:v1" );
-        DimensionIdentifier<DimensionParam> dimensionIdentifier = getProgramAttributeDimensionIdentifier(
-            "attr", values );
+    // SETUP
+    String attr = "attr";
+    List<String> values = List.of("eq:v1");
+    DimensionIdentifier<DimensionParam> dimensionIdentifier =
+        getProgramAttributeDimensionIdentifier("attr", values);
 
-        // CALL
-        SqlParameterManager sqlParameterManager = new SqlParameterManager();
-        QueryContext queryContext = QueryContext.of( null, sqlParameterManager );
+    // CALL
+    SqlParameterManager sqlParameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
 
-        TeiAttributeCondition teiAttributeCondition = TeiAttributeCondition.of( dimensionIdentifier,
-            queryContext );
+    TeiAttributeCondition teiAttributeCondition =
+        TeiAttributeCondition.of(dimensionIdentifier, queryContext);
 
-        String render = teiAttributeCondition.render();
+    String render = teiAttributeCondition.render();
 
-        assertEquals( "\"" + attr + "\" = :1", render );
-        assertEquals( "v1", queryContext.getParametersPlaceHolder().get( "1" ) );
+    assertEquals("\"" + attr + "\" = :1", render);
+    assertEquals("v1", queryContext.getParametersPlaceHolder().get("1"));
+  }
 
-    }
-
-    private DimensionIdentifier<DimensionParam> getProgramAttributeDimensionIdentifier(
-        String attr, List<String> items )
-    {
-        DimensionParam dimensionParam = DimensionParam.ofObject(
-            new BaseDimensionalObject( attr, DimensionType.PROGRAM_ATTRIBUTE,
-                items.stream()
-                    .map( BaseDimensionalItemObject::new )
-                    .collect( Collectors.toList() ) ),
+  private DimensionIdentifier<DimensionParam> getProgramAttributeDimensionIdentifier(
+      String attr, List<String> items) {
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(
+            new BaseDimensionalObject(
+                attr,
+                DimensionType.PROGRAM_ATTRIBUTE,
+                items.stream().map(BaseDimensionalItemObject::new).collect(Collectors.toList())),
             DimensionParamType.DIMENSIONS,
-            items );
+            items);
 
-        return DimensionIdentifier.of(
-            emptyElementWithOffset(),
-            emptyElementWithOffset(),
-            dimensionParam );
-    }
-
+    return DimensionIdentifier.of(
+        emptyElementWithOffset(), emptyElementWithOffset(), dimensionParam);
+  }
 }

@@ -40,20 +40,15 @@ import org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class GeoValidator
-    implements Validator<Event>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
-    {
-        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
-        checkNotNull( programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL );
+class GeoValidator implements Validator<Event> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
+    ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
+    checkNotNull(programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL);
 
-        if ( event.getGeometry() != null )
-        {
-            ValidationUtils.validateGeometry( reporter, event,
-                event.getGeometry(),
-                programStage.getFeatureType() );
-        }
+    if (event.getGeometry() != null) {
+      ValidationUtils.validateGeometry(
+          reporter, event, event.getGeometry(), programStage.getFeatureType());
     }
+  }
 }

@@ -33,109 +33,103 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * The {@link DatastoreNamespaceProtection} is a configuration for a particular
- * namespace and the set of {@link DatastoreEntry}s in that namespace.
- * <p>
- * Note that this is configured programmatically only.
+ * The {@link DatastoreNamespaceProtection} is a configuration for a particular namespace and the
+ * set of {@link DatastoreEntry}s in that namespace.
+ *
+ * <p>Note that this is configured programmatically only.
  *
  * @author Jan Bernitt
  */
-public class DatastoreNamespaceProtection
-{
+public class DatastoreNamespaceProtection {
 
+  /**
+   * Protection rules apply to users that do not have at least one of the required {@link
+   * #authorities}.
+   *
+   * <p>All superusers always have read and write access.
+   */
+  public enum ProtectionType {
     /**
-     * Protection rules apply to users that do not have at least one of the
-     * required {@link #authorities}.
-     * <p>
-     * All superusers always have read and write access.
+     * READ/WRITE: lets any user see or modify (only exists to be used in combination with one of
+     * the other two).
      */
-    public enum ProtectionType
-    {
-        /**
-         * READ/WRITE: lets any user see or modify (only exists to be used in
-         * combination with one of the other two).
-         */
-        NONE,
-        /**
-         * READ: The namespace apparently does not exist. Queries come back as
-         * empty or undefined.
-         *
-         * WRITE: Attempts to modify an entry are silently ignored.
-         */
-        HIDDEN,
-
-        /**
-         * READ/WRITE: Attempts to read or modify will throw an exception.
-         */
-        RESTRICTED
-    }
-
-    private final String namespace;
-
-    private final boolean sharingRespected;
-
-    private final ProtectionType reads;
-
-    private final ProtectionType writes;
-
-    private final Set<String> authorities;
-
-    public DatastoreNamespaceProtection( String namespace, ProtectionType readWrite, boolean sharingRespected,
-        String... authorities )
-    {
-        this( namespace, readWrite, readWrite, sharingRespected, authorities );
-    }
-
-    public DatastoreNamespaceProtection( String namespace, ProtectionType reads, ProtectionType writes,
-        boolean sharingRespected, String... authorities )
-    {
-        this( namespace, reads, writes, sharingRespected, new HashSet<>( asList( authorities ) ) );
-    }
-
-    public DatastoreNamespaceProtection( String namespace, ProtectionType reads, ProtectionType writes,
-        boolean sharingRespected, Set<String> authorities )
-    {
-        this.namespace = namespace;
-        this.sharingRespected = sharingRespected;
-        this.reads = reads;
-        this.writes = writes;
-        this.authorities = authorities;
-    }
-
-    public String getNamespace()
-    {
-        return namespace;
-    }
-
+    NONE,
     /**
-     * @return true when the {@link org.hisp.dhis.user.sharing.Sharing} of a
-     *         {@link DatastoreEntry} should be checked in addition to authority
-     *         based checks, else false.
+     * READ: The namespace apparently does not exist. Queries come back as empty or undefined.
+     *
+     * <p>WRITE: Attempts to modify an entry are silently ignored.
      */
-    public boolean isSharingRespected()
-    {
-        return sharingRespected;
-    }
+    HIDDEN,
 
-    public Set<String> getAuthorities()
-    {
-        return authorities;
-    }
+    /** READ/WRITE: Attempts to read or modify will throw an exception. */
+    RESTRICTED
+  }
 
-    public ProtectionType getReads()
-    {
-        return reads;
-    }
+  private final String namespace;
 
-    public ProtectionType getWrites()
-    {
-        return writes;
-    }
+  private final boolean sharingRespected;
 
-    @Override
-    public String toString()
-    {
-        return String.format( "KeyJsonNamespaceProtection{%s r:%s w:%s [%s]%s}",
-            namespace, reads, writes, authorities, (sharingRespected ? "!" : "") );
-    }
+  private final ProtectionType reads;
+
+  private final ProtectionType writes;
+
+  private final Set<String> authorities;
+
+  public DatastoreNamespaceProtection(
+      String namespace, ProtectionType readWrite, boolean sharingRespected, String... authorities) {
+    this(namespace, readWrite, readWrite, sharingRespected, authorities);
+  }
+
+  public DatastoreNamespaceProtection(
+      String namespace,
+      ProtectionType reads,
+      ProtectionType writes,
+      boolean sharingRespected,
+      String... authorities) {
+    this(namespace, reads, writes, sharingRespected, new HashSet<>(asList(authorities)));
+  }
+
+  public DatastoreNamespaceProtection(
+      String namespace,
+      ProtectionType reads,
+      ProtectionType writes,
+      boolean sharingRespected,
+      Set<String> authorities) {
+    this.namespace = namespace;
+    this.sharingRespected = sharingRespected;
+    this.reads = reads;
+    this.writes = writes;
+    this.authorities = authorities;
+  }
+
+  public String getNamespace() {
+    return namespace;
+  }
+
+  /**
+   * @return true when the {@link org.hisp.dhis.user.sharing.Sharing} of a {@link DatastoreEntry}
+   *     should be checked in addition to authority based checks, else false.
+   */
+  public boolean isSharingRespected() {
+    return sharingRespected;
+  }
+
+  public Set<String> getAuthorities() {
+    return authorities;
+  }
+
+  public ProtectionType getReads() {
+    return reads;
+  }
+
+  public ProtectionType getWrites() {
+    return writes;
+  }
+
+  @Override
+  public String toString() {
+    return String.format(
+        "KeyJsonNamespaceProtection{%s r:%s w:%s [%s]%s}",
+        namespace, reads, writes, authorities, (sharingRespected ? "!" : ""));
+  }
 }

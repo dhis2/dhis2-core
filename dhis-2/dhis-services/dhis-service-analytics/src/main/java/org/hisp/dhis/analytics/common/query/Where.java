@@ -33,21 +33,17 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.Singular;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class Where extends BaseRenderable
-{
-    @Singular
-    private final Renderable condition;
+@RequiredArgsConstructor(staticName = "of")
+public class Where extends BaseRenderable {
+  @Singular private final Renderable condition;
 
-    @Override
-    public String render()
-    {
-        String renderedCondition = condition.render();
-        if ( isNotBlank( renderedCondition ) )
-        {
-            return "where " + renderedCondition;
-        }
-
-        return EMPTY;
+  @Override
+  public String render() {
+    String renderedCondition = condition.render();
+    if (isNotBlank(renderedCondition)) {
+      return "where " + renderedCondition;
     }
+
+    return EMPTY;
+  }
 }

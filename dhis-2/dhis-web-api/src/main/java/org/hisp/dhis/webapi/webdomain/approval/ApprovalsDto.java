@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.webapi.webdomain.approval;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -37,74 +39,59 @@ import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.Period;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 @OpenApi.Shared
-@JacksonXmlRootElement( localName = "approvals", namespace = DxfNamespaces.DXF_2_0 )
-public class ApprovalsDto
-{
-    private List<String> wf = new ArrayList<>();
+@JacksonXmlRootElement(localName = "approvals", namespace = DxfNamespaces.DXF_2_0)
+public class ApprovalsDto {
+  private List<String> wf = new ArrayList<>();
 
-    private List<String> ds = new ArrayList<>();
+  private List<String> ds = new ArrayList<>();
 
-    private List<String> pe = new ArrayList<>();
+  private List<String> pe = new ArrayList<>();
 
-    private List<ApprovalDto> approvals = new ArrayList<>();
+  private List<ApprovalDto> approvals = new ArrayList<>();
 
-    public ApprovalsDto()
-    {
-    }
+  public ApprovalsDto() {}
 
-    @JsonProperty
-    @OpenApi.Property( { UID[].class, DataApprovalWorkflow.class } )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getWf()
-    {
-        return wf;
-    }
+  @JsonProperty
+  @OpenApi.Property({UID[].class, DataApprovalWorkflow.class})
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public List<String> getWf() {
+    return wf;
+  }
 
-    public void setWf( List<String> wf )
-    {
-        this.wf = wf;
-    }
+  public void setWf(List<String> wf) {
+    this.wf = wf;
+  }
 
-    @JsonProperty
-    @OpenApi.Property( { UID[].class, DataSet.class } )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getDs()
-    {
-        return ds;
-    }
+  @JsonProperty
+  @OpenApi.Property({UID[].class, DataSet.class})
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public List<String> getDs() {
+    return ds;
+  }
 
-    public void setDs( List<String> ds )
-    {
-        this.ds = ds;
-    }
+  public void setDs(List<String> ds) {
+    this.ds = ds;
+  }
 
-    @JsonProperty
-    @OpenApi.Property( Period[].class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getPe()
-    {
-        return pe;
-    }
+  @JsonProperty
+  @OpenApi.Property(Period[].class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public List<String> getPe() {
+    return pe;
+  }
 
-    public void setPe( List<String> pe )
-    {
-        this.pe = pe;
-    }
+  public void setPe(List<String> pe) {
+    this.pe = pe;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<ApprovalDto> getApprovals()
-    {
-        return approvals;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public List<ApprovalDto> getApprovals() {
+    return approvals;
+  }
 
-    public void setApprovals( List<ApprovalDto> approvals )
-    {
-        this.approvals = approvals;
-    }
+  public void setApprovals(List<ApprovalDto> approvals) {
+    this.approvals = approvals;
+  }
 }

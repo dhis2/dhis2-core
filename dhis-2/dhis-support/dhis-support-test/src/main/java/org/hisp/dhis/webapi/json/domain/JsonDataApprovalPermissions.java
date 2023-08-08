@@ -30,40 +30,32 @@ package org.hisp.dhis.webapi.json.domain;
 import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * Web API equivalent of
- * {@link org.hisp.dhis.dataapproval.DataApprovalPermissions}.
+ * Web API equivalent of {@link org.hisp.dhis.dataapproval.DataApprovalPermissions}.
  *
  * @author Jan Bernitt
  */
-public interface JsonDataApprovalPermissions extends JsonObject
-{
-    default boolean isMayApprove()
-    {
-        return getBoolean( "mayApprove" ).booleanValue();
-    }
+public interface JsonDataApprovalPermissions extends JsonObject {
+  default boolean isMayApprove() {
+    return getBoolean("mayApprove").booleanValue();
+  }
 
-    default boolean isMayUnapprove()
-    {
-        return getBoolean( "mayUnapprove" ).booleanValue();
-    }
+  default boolean isMayUnapprove() {
+    return getBoolean("mayUnapprove").booleanValue();
+  }
 
-    default boolean isMayAccept()
-    {
-        return getBoolean( "mayAccept" ).booleanValue();
-    }
+  default boolean isMayAccept() {
+    return getBoolean("mayAccept").booleanValue();
+  }
 
-    default boolean isMayUnaccept()
-    {
-        return getBoolean( "mayUnaccept" ).booleanValue();
-    }
+  default boolean isMayUnaccept() {
+    return getBoolean("mayUnaccept").booleanValue();
+  }
 
-    default boolean isMayReadData()
-    {
-        return getBoolean( "mayReadData" ).booleanValue();
-    }
+  default boolean isMayReadData() {
+    return getBoolean("mayReadData").booleanValue();
+  }
 
-    default String getState()
-    {
-        return getString( "state" ).string();
-    }
+  default String getState() {
+    return getString("state").string();
+  }
 }

@@ -363,22 +363,6 @@
       }
     }
   ],
-  "trackedEntityAttributeGroups": [
-    {
-      "name": "TrackedEntityAttributeGroupA",
-      "trackedEntityAttributes": [
-        {
-          "id": "QhEcRpLZwMb"
-        },
-        {
-          "id": "cpaMZredRXb"
-        }
-      ],
-      "created": "2016-03-11T07:00:02.917+0000",
-      "lastUpdated": "2016-03-11T07:00:02.917+0000",
-      "id": "TLxOGInNoVL"
-    }
-  ],
   "users": [
     {
       "dataViewOrganisationUnits": [],

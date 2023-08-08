@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import lombok.AllArgsConstructor;
-
 import org.hibernate.Session;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseAnalyticalObject;
@@ -43,31 +42,30 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-@Order( 10 )
+@Order(10)
 @AllArgsConstructor
-public class AnalyticalObjectObjectBundleHook
-    extends AbstractObjectBundleHook<AnalyticalObject>
-{
-    private final AnalyticalObjectImportHandler analyticalObjectImportHandler;
+public class AnalyticalObjectObjectBundleHook extends AbstractObjectBundleHook<AnalyticalObject> {
+  private final AnalyticalObjectImportHandler analyticalObjectImportHandler;
 
-    @Override
-    public void preCreate( AnalyticalObject object, ObjectBundle bundle )
-    {
-        BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
-        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( analyticalObject ) );
-        Session session = sessionFactory.getCurrentSession();
+  @Override
+  public void preCreate(AnalyticalObject object, ObjectBundle bundle) {
+    BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
+    Schema schema =
+        schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(analyticalObject));
+    Session session = sessionFactory.getCurrentSession();
 
-        analyticalObjectImportHandler.handleAnalyticalObject( session, schema, analyticalObject, bundle );
-    }
+    analyticalObjectImportHandler.handleAnalyticalObject(session, schema, analyticalObject, bundle);
+  }
 
-    @Override
-    public void preUpdate( AnalyticalObject object, AnalyticalObject persistedObject, ObjectBundle bundle )
-    {
-        BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
+  @Override
+  public void preUpdate(
+      AnalyticalObject object, AnalyticalObject persistedObject, ObjectBundle bundle) {
+    BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
 
-        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( analyticalObject ) );
-        Session session = sessionFactory.getCurrentSession();
+    Schema schema =
+        schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(analyticalObject));
+    Session session = sessionFactory.getCurrentSession();
 
-        analyticalObjectImportHandler.handleAnalyticalObject( session, schema, analyticalObject, bundle );
-    }
+    analyticalObjectImportHandler.handleAnalyticalObject(session, schema, analyticalObject, bundle);
+  }
 }

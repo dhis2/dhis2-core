@@ -27,20 +27,17 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashSet;
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Ameen
@@ -49,12 +46,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class TrackerTrigramIndexJobParameters implements JobParameters
-{
-    @JsonProperty
-    @OpenApi.Property( { UID[].class, TrackedEntityAttribute.class } )
-    private Set<String> attributes = new HashSet<>();
+public class TrackerTrigramIndexJobParameters implements JobParameters {
+  @JsonProperty
+  @OpenApi.Property({UID[].class, TrackedEntityAttribute.class})
+  private Set<String> attributes = new HashSet<>();
 
-    @JsonProperty
-    private boolean skipIndexDeletion = false;
+  @JsonProperty private boolean skipIndexDeletion = false;
 }

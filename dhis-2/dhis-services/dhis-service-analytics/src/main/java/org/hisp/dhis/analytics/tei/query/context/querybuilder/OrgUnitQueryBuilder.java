@@ -34,9 +34,7 @@ import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isO
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
 import lombok.Getter;
-
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -53,78 +51,79 @@ import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders;
 import org.springframework.stereotype.Service;
 
 /**
- * A {@link SqlQueryBuilder} that builds a {@link RenderableSqlQuery} for
- * {@link DimensionParam} of type
- * {@link DimensionParamObjectType#ORGANISATION_UNIT}.
+ * A {@link SqlQueryBuilder} that builds a {@link RenderableSqlQuery} for {@link DimensionParam} of
+ * type {@link DimensionParamObjectType#ORGANISATION_UNIT}.
  */
 @Service
-@org.springframework.core.annotation.Order( 2 )
-public class OrgUnitQueryBuilder implements SqlQueryBuilder
-{
-    @Getter
-    private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters = List
-        .of( OrgUnitQueryBuilder::isOu );
+@org.springframework.core.annotation.Order(2)
+public class OrgUnitQueryBuilder implements SqlQueryBuilder {
+  @Getter
+  private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters =
+      List.of(OrgUnitQueryBuilder::isOu);
 
-    @Getter
-    private final List<Predicate<AnalyticsSortingParams>> sortingFilters = List.of( OrgUnitQueryBuilder::isOuOrder );
+  @Getter
+  private final List<Predicate<AnalyticsSortingParams>> sortingFilters =
+      List.of(OrgUnitQueryBuilder::isOuOrder);
 
-    @Override
-    public RenderableSqlQuery buildSqlQuery( QueryContext queryContext,
-        List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
-        List<AnalyticsSortingParams> acceptedSortingParams )
-    {
-        RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
+  @Override
+  public RenderableSqlQuery buildSqlQuery(
+      QueryContext queryContext,
+      List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
+      List<AnalyticsSortingParams> acceptedSortingParams) {
+    RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
-        Stream.concat( acceptedDimensions.stream(), acceptedSortingParams.stream()
-            .map( AnalyticsSortingParams::getOrderBy ) )
-            .filter( dimensionIdentifier -> dimensionIdentifier.isEventDimension()
-                || dimensionIdentifier.isEnrollmentDimension() )
-            .map( dimensionIdentifier -> Field.ofUnquoted(
-                getPrefix( dimensionIdentifier ),
-                () -> dimensionIdentifier.getDimension().getUid(),
-                dimensionIdentifier.toString() ) )
-            .forEach( builder::selectField );
+    Stream.concat(
+            acceptedDimensions.stream(),
+            acceptedSortingParams.stream().map(AnalyticsSortingParams::getOrderBy))
+        .filter(
+            dimensionIdentifier ->
+                dimensionIdentifier.isEventDimension()
+                    || dimensionIdentifier.isEnrollmentDimension())
+        .map(
+            dimensionIdentifier ->
+                Field.ofUnquoted(
+                    getPrefix(dimensionIdentifier),
+                    () -> dimensionIdentifier.getDimension().getUid(),
+                    dimensionIdentifier.toString()))
+        .forEach(builder::selectField);
 
-        acceptedDimensions
-            .stream()
-            .filter( SqlQueryBuilders::hasRestrictions )
-            .map( dimId -> GroupableCondition.of(
-                dimId.getGroupId(),
-                OrganisationUnitCondition.of( dimId, queryContext ) ) )
-            .forEach( builder::groupableCondition );
+    acceptedDimensions.stream()
+        .filter(SqlQueryBuilders::hasRestrictions)
+        .map(
+            dimId ->
+                GroupableCondition.of(
+                    dimId.getGroupId(), OrganisationUnitCondition.of(dimId, queryContext)))
+        .forEach(builder::groupableCondition);
 
-        acceptedSortingParams
-            .forEach( sortingParam -> builder.orderClause(
+    acceptedSortingParams.forEach(
+        sortingParam ->
+            builder.orderClause(
                 IndexedOrder.of(
                     sortingParam.getIndex(),
                     Order.of(
-                        Field.ofDimensionIdentifier( sortingParam.getOrderBy() ),
-                        sortingParam.getSortDirection() ) ) ) );
+                        Field.ofDimensionIdentifier(sortingParam.getOrderBy()),
+                        sortingParam.getSortDirection()))));
 
-        return builder.build();
-    }
+    return builder.build();
+  }
 
-    private static boolean isOuOrder( AnalyticsSortingParams analyticsSortingParams )
-    {
-        return isOu( analyticsSortingParams.getOrderBy() );
-    }
+  private static boolean isOuOrder(AnalyticsSortingParams analyticsSortingParams) {
+    return isOu(analyticsSortingParams.getOrderBy());
+  }
 
-    /**
-     * Checks if the given {@link DimensionIdentifier} is of type
-     * {@link DimensionParamObjectType#ORGANISATION_UNIT}.
-     *
-     * @param dimensionIdentifier the {@link DimensionIdentifier} to check.
-     * @return true if the given {@link DimensionIdentifier} is of type
-     *         {@link DimensionParamObjectType#ORGANISATION_UNIT}. False
-     *         otherwise.
-     */
-    public static boolean isOu( DimensionIdentifier<DimensionParam> dimensionIdentifier )
-    {
-        return isOfType( dimensionIdentifier, ORGANISATION_UNIT );
-    }
+  /**
+   * Checks if the given {@link DimensionIdentifier} is of type {@link
+   * DimensionParamObjectType#ORGANISATION_UNIT}.
+   *
+   * @param dimensionIdentifier the {@link DimensionIdentifier} to check.
+   * @return true if the given {@link DimensionIdentifier} is of type {@link
+   *     DimensionParamObjectType#ORGANISATION_UNIT}. False otherwise.
+   */
+  public static boolean isOu(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return isOfType(dimensionIdentifier, ORGANISATION_UNIT);
+  }
 
-    public static boolean isNotOuDimension( DimensionIdentifier<DimensionParam> dimensionIdentifier )
-    {
-        return !isOu( dimensionIdentifier );
-    }
+  public static boolean isNotOuDimension(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return !isOu(dimensionIdentifier);
+  }
 }

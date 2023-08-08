@@ -30,21 +30,19 @@ package org.hisp.dhis.system.notification;
 /**
  * @author Lars Helge Overland
  */
-public enum NotificationLevel
-{
-    OFF,
-    DEBUG,
-    /**
-     * Similar to {@link #DEBUG} but is replaced (not appended) by any later
-     * message including messages of type {@code LOOP}.
-     */
-    LOOP,
-    INFO,
-    WARN,
-    ERROR;
+public enum NotificationLevel {
+  OFF,
+  DEBUG,
+  /**
+   * Similar to {@link #DEBUG} but is replaced (not appended) by any later message including
+   * messages of type {@code LOOP}.
+   */
+  LOOP,
+  INFO,
+  WARN,
+  ERROR;
 
-    public boolean isOff()
-    {
-        return this == OFF;
-    }
+  public boolean isOff() {
+    return this == OFF;
+  }
 }

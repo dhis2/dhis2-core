@@ -28,7 +28,6 @@
 package org.hisp.dhis.setting.hibernate;
 
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.setting.SystemSetting;
@@ -40,23 +39,21 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Lars Helge Overland
  */
-@Repository( "org.hisp.dhis.setting.SystemSettingStore" )
-public class HibernateSystemSettingStore
-    extends HibernateGenericStore<SystemSetting>
-    implements SystemSettingStore
-{
-    public HibernateSystemSettingStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, SystemSetting.class, true );
-    }
+@Repository("org.hisp.dhis.setting.SystemSettingStore")
+public class HibernateSystemSettingStore extends HibernateGenericStore<SystemSetting>
+    implements SystemSettingStore {
+  public HibernateSystemSettingStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher) {
+    super(sessionFactory, jdbcTemplate, publisher, SystemSetting.class, true);
+  }
 
-    @Override
-    public SystemSetting getByName( String name )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public SystemSetting getByName(String name) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "name" ), name ) ) );
-    }
+    return getSingleResult(
+        builder, newJpaParameters().addPredicate(root -> builder.equal(root.get("name"), name)));
+  }
 }

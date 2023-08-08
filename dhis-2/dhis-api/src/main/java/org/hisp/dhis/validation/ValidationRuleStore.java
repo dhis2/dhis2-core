@@ -28,29 +28,26 @@
 package org.hisp.dhis.validation;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Chau Thu Tran
  */
 public interface ValidationRuleStore
-    extends IdentifiableObjectStore<ValidationRule>, ValidationRuleDataIntegrityProvider
-{
-    String ID = ValidationRuleStore.class.getName();
+    extends IdentifiableObjectStore<ValidationRule>, ValidationRuleDataIntegrityProvider {
+  String ID = ValidationRuleStore.class.getName();
 
-    /**
-     * Returns all ValidationRules that should be used for form validation.
-     *
-     * @return a List of ValidationRules.
-     */
-    List<ValidationRule> getAllFormValidationRules();
+  /**
+   * Returns all ValidationRules that should be used for form validation.
+   *
+   * @return a List of ValidationRules.
+   */
+  List<ValidationRule> getAllFormValidationRules();
 
-    /**
-     * Returns all ValidationRules which have associated
-     * ValidationNotificationTemplates.
-     *
-     * @return a List of ValidationRules.
-     */
-    List<ValidationRule> getValidationRulesWithNotificationTemplates();
+  /**
+   * Returns all ValidationRules which have associated ValidationNotificationTemplates.
+   *
+   * @return a List of ValidationRules.
+   */
+  List<ValidationRule> getValidationRulesWithNotificationTemplates();
 }

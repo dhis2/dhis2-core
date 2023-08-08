@@ -27,11 +27,8 @@
  */
 package org.hisp.dhis.validation;
 
-/**
- * Defines the types of alert run.
- */
-public enum ValidationRunType
-{
-    INTERACTIVE,
-    SCHEDULED
+/** Defines the types of alert run. */
+public enum ValidationRunType {
+  INTERACTIVE,
+  SCHEDULED
 }

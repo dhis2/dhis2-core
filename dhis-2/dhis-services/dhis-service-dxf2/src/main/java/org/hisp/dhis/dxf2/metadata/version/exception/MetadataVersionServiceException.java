@@ -32,21 +32,16 @@ package org.hisp.dhis.dxf2.metadata.version.exception;
  *
  * @author aamerm
  */
-public class MetadataVersionServiceException
-    extends RuntimeException
-{
-    public MetadataVersionServiceException( String message )
-    {
-        super( message );
-    }
+public class MetadataVersionServiceException extends RuntimeException {
+  public MetadataVersionServiceException(String message) {
+    super(message);
+  }
 
-    public MetadataVersionServiceException( Throwable cause )
-    {
-        super( cause );
-    }
+  public MetadataVersionServiceException(Throwable cause) {
+    super(cause);
+  }
 
-    public MetadataVersionServiceException( String message, Throwable cause )
-    {
-        super( message, cause );
-    }
+  public MetadataVersionServiceException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

@@ -34,9 +34,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.ProgramStage;
@@ -64,94 +62,85 @@ import org.hisp.dhis.tracker.imports.programrule.executor.event.ShowWarningExecu
 import org.hisp.dhis.tracker.imports.programrule.executor.event.ShowWarningOnCompleteExecutor;
 import org.springframework.stereotype.Service;
 
-@Service( "org.hisp.dhis.tracker.imports.programrule.RuleActionEventMapper" )
+@Service("org.hisp.dhis.tracker.imports.programrule.RuleActionEventMapper")
 @RequiredArgsConstructor
-class RuleActionEventMapper
-{
-    private final SystemSettingManager systemSettingManager;
+class RuleActionEventMapper {
+  private final SystemSettingManager systemSettingManager;
 
-    public Map<Event, List<RuleActionExecutor<Event>>> mapRuleEffects( List<RuleEffects> ruleEffects,
-        TrackerBundle bundle )
-    {
-        return ruleEffects
-            .stream()
-            .filter( RuleEffects::isEvent )
-            .filter( e -> bundle.findEventByUid( e.getTrackerObjectUid() ).isPresent() )
-            .collect( Collectors.toMap( e -> bundle.findEventByUid( e.getTrackerObjectUid() ).get(),
-                e -> mapRuleEffects( bundle.findEventByUid( e.getTrackerObjectUid() ).get(), e,
-                    bundle ) ) );
+  public Map<Event, List<RuleActionExecutor<Event>>> mapRuleEffects(
+      List<RuleEffects> ruleEffects, TrackerBundle bundle) {
+    return ruleEffects.stream()
+        .filter(RuleEffects::isEvent)
+        .filter(e -> bundle.findEventByUid(e.getTrackerObjectUid()).isPresent())
+        .collect(
+            Collectors.toMap(
+                e -> bundle.findEventByUid(e.getTrackerObjectUid()).get(),
+                e ->
+                    mapRuleEffects(
+                        bundle.findEventByUid(e.getTrackerObjectUid()).get(), e, bundle)));
+  }
+
+  private List<RuleActionExecutor<Event>> mapRuleEffects(
+      Event event, RuleEffects ruleEffects, TrackerBundle bundle) {
+    ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
+
+    return ruleEffects.getRuleEffects().stream()
+        .map(
+            effect ->
+                buildEventRuleActionExecutor(
+                    effect.ruleId(), effect.data(), effect.ruleAction(), event.getDataValues()))
+        .filter(Objects::nonNull)
+        .filter(
+            executor -> isDataElementPartOfProgramStage(executor.getDataElementUid(), programStage))
+        .filter(executor -> needsToValidateDataValues(event, programStage))
+        .collect(Collectors.toList());
+  }
+
+  private RuleActionExecutor<Event> buildEventRuleActionExecutor(
+      String ruleId, String data, RuleAction ruleAction, Set<DataValue> dataValues) {
+    if (ruleAction instanceof RuleActionAssign) {
+      RuleActionAssign action = (RuleActionAssign) ruleAction;
+      return new AssignDataValueExecutor(
+          systemSettingManager, ruleId, data, action.field(), dataValues);
+    }
+    if (ruleAction instanceof RuleActionSetMandatoryField) {
+      RuleActionSetMandatoryField action = (RuleActionSetMandatoryField) ruleAction;
+      return new SetMandatoryFieldExecutor(ruleId, action.field());
+    }
+    if (ruleAction instanceof RuleActionShowError) {
+      RuleActionShowError action = (RuleActionShowError) ruleAction;
+      return new ShowErrorExecutor(
+          new ValidationRuleAction(ruleId, data, action.field(), action.content()));
+    }
+    if (ruleAction instanceof RuleActionShowWarning) {
+      RuleActionShowWarning action = (RuleActionShowWarning) ruleAction;
+      return new ShowWarningExecutor(
+          new ValidationRuleAction(ruleId, data, action.field(), action.content()));
+    }
+    if (ruleAction instanceof RuleActionErrorOnCompletion) {
+      RuleActionErrorOnCompletion action = (RuleActionErrorOnCompletion) ruleAction;
+      return new ShowErrorOnCompleteExecutor(
+          new ValidationRuleAction(ruleId, data, action.field(), action.content()));
+    }
+    if (ruleAction instanceof RuleActionWarningOnCompletion) {
+      RuleActionWarningOnCompletion action = (RuleActionWarningOnCompletion) ruleAction;
+      return new ShowWarningOnCompleteExecutor(
+          new ValidationRuleAction(ruleId, data, action.field(), action.content()));
+    }
+    if (ruleAction instanceof RuleActionError) {
+      return new RuleEngineErrorExecutor(ruleId, data);
+    }
+    return null;
+  }
+
+  private boolean isDataElementPartOfProgramStage(
+      String dataElementUid, ProgramStage programStage) {
+    if (StringUtils.isEmpty(dataElementUid)) {
+      return true;
     }
 
-    private List<RuleActionExecutor<Event>> mapRuleEffects( Event event, RuleEffects ruleEffects,
-        TrackerBundle bundle )
-    {
-        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
-
-        return ruleEffects
-            .getRuleEffects()
-            .stream()
-            .map( effect -> buildEventRuleActionExecutor( effect.ruleId(), effect.data(),
-                effect.ruleAction(), event.getDataValues() ) )
-            .filter( Objects::nonNull )
-            .filter( executor -> isDataElementPartOfProgramStage( executor.getDataElementUid(), programStage ) )
-            .filter( executor -> needsToValidateDataValues( event, programStage ) )
-            .collect( Collectors.toList() );
-    }
-
-    private RuleActionExecutor<Event> buildEventRuleActionExecutor( String ruleId, String data, RuleAction ruleAction,
-        Set<DataValue> dataValues )
-    {
-        if ( ruleAction instanceof RuleActionAssign )
-        {
-            RuleActionAssign action = (RuleActionAssign) ruleAction;
-            return new AssignDataValueExecutor( systemSettingManager, ruleId, data, action.field(), dataValues );
-        }
-        if ( ruleAction instanceof RuleActionSetMandatoryField )
-        {
-            RuleActionSetMandatoryField action = (RuleActionSetMandatoryField) ruleAction;
-            return new SetMandatoryFieldExecutor( ruleId, action.field() );
-        }
-        if ( ruleAction instanceof RuleActionShowError )
-        {
-            RuleActionShowError action = (RuleActionShowError) ruleAction;
-            return new ShowErrorExecutor(
-                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
-        }
-        if ( ruleAction instanceof RuleActionShowWarning )
-        {
-            RuleActionShowWarning action = (RuleActionShowWarning) ruleAction;
-            return new ShowWarningExecutor(
-                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
-        }
-        if ( ruleAction instanceof RuleActionErrorOnCompletion )
-        {
-            RuleActionErrorOnCompletion action = (RuleActionErrorOnCompletion) ruleAction;
-            return new ShowErrorOnCompleteExecutor(
-                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
-        }
-        if ( ruleAction instanceof RuleActionWarningOnCompletion )
-        {
-            RuleActionWarningOnCompletion action = (RuleActionWarningOnCompletion) ruleAction;
-            return new ShowWarningOnCompleteExecutor(
-                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
-        }
-        if ( ruleAction instanceof RuleActionError )
-        {
-            return new RuleEngineErrorExecutor( ruleId, data );
-        }
-        return null;
-    }
-
-    private boolean isDataElementPartOfProgramStage( String dataElementUid, ProgramStage programStage )
-    {
-        if ( StringUtils.isEmpty( dataElementUid ) )
-        {
-            return true;
-        }
-
-        return programStage.getDataElements()
-            .stream()
-            .map( IdentifiableObject::getUid )
-            .anyMatch( de -> de.equals( dataElementUid ) );
-    }
+    return programStage.getDataElements().stream()
+        .map(IdentifiableObject::getUid)
+        .anyMatch(de -> de.equals(dataElementUid));
+  }
 }

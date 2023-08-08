@@ -34,15 +34,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public class SafeJsonBinaryType extends JsonBinaryType
-{
-    @Override
-    protected ObjectMapper getResultingMapper()
-    {
-        ObjectMapper objectMapper = MAPPER.copy();
-        objectMapper.configure( SerializationFeature.FAIL_ON_EMPTY_BEANS, false );
-        objectMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        objectMapper.configure( DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false );
-        return objectMapper;
-    }
+public class SafeJsonBinaryType extends JsonBinaryType {
+  @Override
+  protected ObjectMapper getResultingMapper() {
+    ObjectMapper objectMapper = MAPPER.copy();
+    objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    objectMapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
+    return objectMapper;
+  }
 }

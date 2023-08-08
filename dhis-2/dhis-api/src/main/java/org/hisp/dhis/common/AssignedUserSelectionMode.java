@@ -31,20 +31,19 @@ package org.hisp.dhis.common;
  * Defines the selection of assigned user.
  *
  * <ul>
- * <li>CURRENT: The current logged in user.</li>
- * <li>PROVIDED: The user provided in the param/payload.</li>
- * <li>NONE: Unassigned.</li>
- * <li>ANY: Assigned to anyone.</li>
- * <li>ALL: all events irrespective of whether a user is assigned.</li>
+ *   <li>CURRENT: The current logged in user.
+ *   <li>PROVIDED: The user provided in the param/payload.
+ *   <li>NONE: Unassigned.
+ *   <li>ANY: Assigned to anyone.
+ *   <li>ALL: all events irrespective of whether a user is assigned.
  * </ul>
  *
  * @author Ameen Mohamed
  */
-public enum AssignedUserSelectionMode
-{
-    CURRENT,
-    PROVIDED,
-    NONE,
-    ANY,
-    ALL;
+public enum AssignedUserSelectionMode {
+  CURRENT,
+  PROVIDED,
+  NONE,
+  ANY,
+  ALL;
 }

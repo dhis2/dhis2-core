@@ -37,10 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -57,140 +55,135 @@ import org.springframework.stereotype.Service;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Service( "org.hisp.dhis.analytics.AnalyticsTableGenerator" )
+@Service("org.hisp.dhis.analytics.AnalyticsTableGenerator")
 @RequiredArgsConstructor
-public class DefaultAnalyticsTableGenerator
-    implements AnalyticsTableGenerator
-{
-    private final List<AnalyticsTableService> analyticsTableServices;
+public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
+  private final List<AnalyticsTableService> analyticsTableServices;
 
-    private final ResourceTableService resourceTableService;
+  private final ResourceTableService resourceTableService;
 
-    private final SystemSettingManager systemSettingManager;
+  private final SystemSettingManager systemSettingManager;
 
-    private final AnalyticsCache analyticsCache;
+  private final AnalyticsCache analyticsCache;
 
-    // TODO introduce last successful timestamps per table type
+  // TODO introduce last successful timestamps per table type
 
-    @Override
-    public void generateTables( AnalyticsTableUpdateParams params0, JobProgress progress )
-    {
-        Clock clock = new Clock( log ).startClock();
-        Date lastSuccessfulUpdate = systemSettingManager
-            .getDateSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
+  @Override
+  public void generateTables(AnalyticsTableUpdateParams params0, JobProgress progress) {
+    Clock clock = new Clock(log).startClock();
+    Date lastSuccessfulUpdate =
+        systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE);
 
-        Set<AnalyticsTableType> availableTypes = analyticsTableServices.stream()
-            .map( AnalyticsTableService::getAnalyticsTableType )
-            .collect( Collectors.toSet() );
+    Set<AnalyticsTableType> availableTypes =
+        analyticsTableServices.stream()
+            .map(AnalyticsTableService::getAnalyticsTableType)
+            .collect(Collectors.toSet());
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder( params0 )
-            .withLastSuccessfulUpdate( lastSuccessfulUpdate )
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder(params0)
+            .withLastSuccessfulUpdate(lastSuccessfulUpdate)
             .build();
 
-        log.info( "Found {} analytics table types: {}", availableTypes.size(), availableTypes );
-        log.info( "Analytics table update: {}", params );
-        log.info( "Last successful analytics table update: '{}'",
-            getLongDateString( lastSuccessfulUpdate ) );
+    log.info("Found {} analytics table types: {}", availableTypes.size(), availableTypes);
+    log.info("Analytics table update: {}", params);
+    log.info(
+        "Last successful analytics table update: '{}'", getLongDateString(lastSuccessfulUpdate));
 
-        progress.startingProcess( "Analytics table update process"
-            + (params.isLatestUpdate() ? "(latest partition)" : "") );
+    progress.startingProcess(
+        "Analytics table update process" + (params.isLatestUpdate() ? "(latest partition)" : ""));
 
-        if ( !params.isSkipResourceTables() && !params.isLatestUpdate() )
-        {
-            generateResourceTablesInternal( progress );
-        }
-
-        Set<AnalyticsTableType> skipTypes = emptyIfNull( params.getSkipTableTypes() );
-
-        for ( AnalyticsTableService service : analyticsTableServices )
-        {
-            AnalyticsTableType tableType = service.getAnalyticsTableType();
-
-            if ( !skipTypes.contains( tableType ) )
-            {
-                service.update( params, progress );
-            }
-        }
-
-        progress.startingStage( "Updating settings" );
-        progress.runStage( () -> updateLastSuccessfulSystemSettings( params, clock ) );
-
-        progress.startingStage( "Invalidate analytics caches", SKIP_STAGE );
-        progress.runStage( analyticsCache::invalidateAll );
-        progress.completedProcess( "Analytics tables updated" );
+    if (!params.isSkipResourceTables() && !params.isLatestUpdate()) {
+      generateResourceTablesInternal(progress);
     }
 
-    private void updateLastSuccessfulSystemSettings( AnalyticsTableUpdateParams params, Clock clock )
-    {
-        if ( params.isLatestUpdate() )
-        {
-            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE,
-                params.getStartTime() );
-            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_RUNTIME,
-                clock.time() );
-        }
-        else
-        {
-            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE,
-                params.getStartTime() );
-            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME,
-                clock.time() );
-        }
+    Set<AnalyticsTableType> skipTypes = emptyIfNull(params.getSkipTableTypes());
+
+    for (AnalyticsTableService service : analyticsTableServices) {
+      AnalyticsTableType tableType = service.getAnalyticsTableType();
+
+      if (!skipTypes.contains(tableType)) {
+        service.update(params, progress);
+      }
     }
 
-    @Override
-    public void generateResourceTables( JobProgress progress )
-    {
-        Clock clock = new Clock().startClock();
+    progress.startingStage("Updating settings");
+    progress.runStage(() -> updateLastSuccessfulSystemSettings(params, clock));
 
-        progress.startingProcess( "Generating resource tables" );
+    progress.startingStage("Invalidate analytics caches", SKIP_STAGE);
+    progress.runStage(analyticsCache::invalidateAll);
+    progress.completedProcess("Analytics tables updated");
+  }
 
-        try
-        {
-            generateResourceTablesInternal( progress );
-
-            progress.completedProcess( "Resource tables generated: " + clock.time() );
-        }
-        catch ( RuntimeException ex )
-        {
-            progress.failedProcess( "Resource tables generation: " + ex.getMessage() );
-            throw ex;
-        }
+  private void updateLastSuccessfulSystemSettings(AnalyticsTableUpdateParams params, Clock clock) {
+    if (params.isLatestUpdate()) {
+      systemSettingManager.saveSystemSetting(
+          SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE, params.getStartTime());
+      systemSettingManager.saveSystemSetting(
+          SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_RUNTIME, clock.time());
+    } else {
+      systemSettingManager.saveSystemSetting(
+          SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, params.getStartTime());
+      systemSettingManager.saveSystemSetting(
+          SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME, clock.time());
     }
+  }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+  @Override
+  public void generateResourceTables(JobProgress progress) {
+    Clock clock = new Clock().startClock();
 
-    private void generateResourceTablesInternal( JobProgress progress )
-    {
-        final Date startTime = new Date();
+    progress.startingProcess("Generating resource tables");
 
-        resourceTableService.dropAllSqlViews( progress );
+    try {
+      generateResourceTablesInternal(progress);
 
-        Map<String, Runnable> generators = new LinkedHashMap<>();
-        generators.put( "generating OrganisationUnit structures",
-            resourceTableService::generateOrganisationUnitStructures );
-        generators.put( "generating DataSetOrganisationUnitCategory table",
-            resourceTableService::generateDataSetOrganisationUnitCategoryTable );
-        generators.put( "generating CategoryOptionCombo names",
-            resourceTableService::generateCategoryOptionComboNames );
-        generators.put( "generating DataElementGroupSet table",
-            resourceTableService::generateDataElementGroupSetTable );
-        generators.put( "generating IndicatorGroupSet table", resourceTableService::generateIndicatorGroupSetTable );
-        generators.put( "generating OrganisationUnitGroupSet table",
-            resourceTableService::generateOrganisationUnitGroupSetTable );
-        generators.put( "generating Category table", resourceTableService::generateCategoryTable );
-        generators.put( "generating DataElement table", resourceTableService::generateDataElementTable );
-        generators.put( "generating Period table", resourceTableService::generatePeriodTable );
-        generators.put( "generating DatePeriod table", resourceTableService::generateDatePeriodTable );
-        generators.put( "generating CategoryOptionCombo table",
-            resourceTableService::generateCategoryOptionComboTable );
-        progress.startingStage( "Generating resource tables", generators.size() );
-        progress.runStage( generators );
-
-        resourceTableService.createAllSqlViews( progress );
-
-        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, startTime );
+      progress.completedProcess("Resource tables generated: " + clock.time());
+    } catch (RuntimeException ex) {
+      progress.failedProcess("Resource tables generation: " + ex.getMessage());
+      throw ex;
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  private void generateResourceTablesInternal(JobProgress progress) {
+    final Date startTime = new Date();
+
+    resourceTableService.dropAllSqlViews(progress);
+
+    Map<String, Runnable> generators = new LinkedHashMap<>();
+    generators.put(
+        "generating OrganisationUnit structures",
+        resourceTableService::generateOrganisationUnitStructures);
+    generators.put(
+        "generating DataSetOrganisationUnitCategory table",
+        resourceTableService::generateDataSetOrganisationUnitCategoryTable);
+    generators.put(
+        "generating CategoryOptionCombo names",
+        resourceTableService::generateCategoryOptionComboNames);
+    generators.put(
+        "generating DataElementGroupSet table",
+        resourceTableService::generateDataElementGroupSetTable);
+    generators.put(
+        "generating IndicatorGroupSet table", resourceTableService::generateIndicatorGroupSetTable);
+    generators.put(
+        "generating OrganisationUnitGroupSet table",
+        resourceTableService::generateOrganisationUnitGroupSetTable);
+    generators.put("generating Category table", resourceTableService::generateCategoryTable);
+    generators.put("generating DataElement table", resourceTableService::generateDataElementTable);
+    generators.put("generating Period table", resourceTableService::generatePeriodTable);
+    generators.put("generating DatePeriod table", resourceTableService::generateDatePeriodTable);
+    generators.put(
+        "generating CategoryOptionCombo table",
+        resourceTableService::generateCategoryOptionComboTable);
+    progress.startingStage("Generating resource tables", generators.size());
+    progress.runStage(generators);
+
+    resourceTableService.createAllSqlViews(progress);
+
+    systemSettingManager.saveSystemSetting(
+        SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, startTime);
+  }
 }

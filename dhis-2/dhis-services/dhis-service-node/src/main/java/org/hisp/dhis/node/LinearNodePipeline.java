@@ -37,51 +37,43 @@ import java.util.List;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class LinearNodePipeline implements NodePipeline
-{
-    private class NodeTransformerWithArgs
-    {
-        NodeTransformer transformer;
+public class LinearNodePipeline implements NodePipeline {
+  private class NodeTransformerWithArgs {
+    NodeTransformer transformer;
 
-        List<String> arguments;
+    List<String> arguments;
 
-        NodeTransformerWithArgs( NodeTransformer transformer, List<String> arguments )
-        {
-            this.transformer = transformer;
-            this.arguments = arguments;
-        }
-
-        Node transform( Node node )
-        {
-            return transformer.transform( node, arguments );
-        }
+    NodeTransformerWithArgs(NodeTransformer transformer, List<String> arguments) {
+      this.transformer = transformer;
+      this.arguments = arguments;
     }
 
-    private List<NodeTransformerWithArgs> nodeTransformers = new ArrayList<>();
+    Node transform(Node node) {
+      return transformer.transform(node, arguments);
+    }
+  }
 
-    @Override
-    public Node process( Node node )
-    {
-        for ( NodeTransformerWithArgs nodeTransformer : nodeTransformers )
-        {
-            node = nodeTransformer.transform( node );
+  private List<NodeTransformerWithArgs> nodeTransformers = new ArrayList<>();
 
-            if ( node == null )
-            {
-                return null;
-            }
-        }
+  @Override
+  public Node process(Node node) {
+    for (NodeTransformerWithArgs nodeTransformer : nodeTransformers) {
+      node = nodeTransformer.transform(node);
 
-        return node;
+      if (node == null) {
+        return null;
+      }
     }
 
-    public void addTransformer( NodeTransformer nodeTransformer )
-    {
-        nodeTransformers.add( new NodeTransformerWithArgs( checkNotNull( nodeTransformer ), new ArrayList<>() ) );
-    }
+    return node;
+  }
 
-    public void addTransformer( NodeTransformer nodeTransformer, List<String> arguments )
-    {
-        nodeTransformers.add( new NodeTransformerWithArgs( checkNotNull( nodeTransformer ), arguments ) );
-    }
+  public void addTransformer(NodeTransformer nodeTransformer) {
+    nodeTransformers.add(
+        new NodeTransformerWithArgs(checkNotNull(nodeTransformer), new ArrayList<>()));
+  }
+
+  public void addTransformer(NodeTransformer nodeTransformer, List<String> arguments) {
+    nodeTransformers.add(new NodeTransformerWithArgs(checkNotNull(nodeTransformer), arguments));
+  }
 }

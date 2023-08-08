@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventUtils.FALLBACK_USERNAME;
 
+import com.google.common.collect.Sets;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.DataValue;
@@ -41,31 +42,28 @@ import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Luciano Fiandesio
  */
-class EventStoredByPreProcessorTest
-{
+class EventStoredByPreProcessorTest {
 
-    private EventStoredByPreProcessor preProcessor;
+  private EventStoredByPreProcessor preProcessor;
 
-    @BeforeEach
-    void setUp()
-    {
-        preProcessor = new EventStoredByPreProcessor();
-    }
+  @BeforeEach
+  void setUp() {
+    preProcessor = new EventStoredByPreProcessor();
+  }
 
-    @Test
-    void t1()
-    {
-        WorkContext ctx = WorkContext.builder().importOptions( ImportOptions.getDefaultImportOptions() ).build();
-        Event event = new Event();
-        event.setDataValues( Sets.newHashSet( new DataValue( "aaa", "one" ), new DataValue( "bbb", "two" ) ) );
-        preProcessor.process( event, ctx );
-        assertThat( event.getStoredBy(), is( FALLBACK_USERNAME ) );
-        assertThat( event.getDataValues(),
-            hasItems( allOf( Matchers.hasProperty( "storedBy", is( FALLBACK_USERNAME ) ) ) ) );
-    }
+  @Test
+  void t1() {
+    WorkContext ctx =
+        WorkContext.builder().importOptions(ImportOptions.getDefaultImportOptions()).build();
+    Event event = new Event();
+    event.setDataValues(Sets.newHashSet(new DataValue("aaa", "one"), new DataValue("bbb", "two")));
+    preProcessor.process(event, ctx);
+    assertThat(event.getStoredBy(), is(FALLBACK_USERNAME));
+    assertThat(
+        event.getDataValues(),
+        hasItems(allOf(Matchers.hasProperty("storedBy", is(FALLBACK_USERNAME)))));
+  }
 }

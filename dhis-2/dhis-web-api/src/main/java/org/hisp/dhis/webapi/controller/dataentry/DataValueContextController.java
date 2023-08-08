@@ -31,9 +31,7 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 
 import java.util.List;
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -55,44 +53,45 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.Tags( "data" )
+@OpenApi.Tags("data")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping( "/dataEntry" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataValueContextController
-{
-    private final DataValueAuditService dataValueAuditService;
+@RequestMapping("/dataEntry")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class DataValueContextController {
+  private final DataValueAuditService dataValueAuditService;
 
-    private final DataValueService dataValueService;
+  private final DataValueService dataValueService;
 
-    private final PeriodService periodService;
+  private final PeriodService periodService;
 
-    private final DataValidator dataValidator;
+  private final DataValidator dataValidator;
 
-    @GetMapping( "/dataValueContext" )
-    public DataValueContextDto getChangeLog( DataValueQueryParams params )
-    {
-        DataElement de = dataValidator.getAndValidateDataElement( params.getDe() );
-        Period pe = dataValidator.getAndValidatePeriod( params.getPe() );
-        OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit( params.getOu() );
-        CategoryOptionCombo co = dataValidator.getAndValidateCategoryOptionCombo( params.getCo() );
-        CategoryOptionCombo ao = dataValidator.getAndValidateAttributeOptionCombo( params.getCc(), params.getCp() );
+  @GetMapping("/dataValueContext")
+  public DataValueContextDto getChangeLog(DataValueQueryParams params) {
+    DataElement de = dataValidator.getAndValidateDataElement(params.getDe());
+    Period pe = dataValidator.getAndValidatePeriod(params.getPe());
+    OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(params.getOu());
+    CategoryOptionCombo co = dataValidator.getAndValidateCategoryOptionCombo(params.getCo());
+    CategoryOptionCombo ao =
+        dataValidator.getAndValidateAttributeOptionCombo(params.getCc(), params.getCp());
 
-        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits( de, pe, ou, co, ao );
+    List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(de, pe, ou, co, ao);
 
-        List<Period> periods = periodService.getPeriods( pe, 13 );
+    List<Period> periods = periodService.getPeriods(pe, 13);
 
-        List<DataValue> dataValues = dataValueService.getDataValues( new DataExportParams()
-            .setDataElements( Set.of( de ) )
-            .setPeriods( Set.copyOf( periods ) )
-            .setOrganisationUnits( Set.of( ou ) )
-            .setCategoryOptionCombos( Set.of( co ) )
-            .setAttributeOptionCombos( Set.of( ao ) )
-            .setOrderByPeriod( true ) );
+    List<DataValue> dataValues =
+        dataValueService.getDataValues(
+            new DataExportParams()
+                .setDataElements(Set.of(de))
+                .setPeriods(Set.copyOf(periods))
+                .setOrganisationUnits(Set.of(ou))
+                .setCategoryOptionCombos(Set.of(co))
+                .setAttributeOptionCombos(Set.of(ao))
+                .setOrderByPeriod(true));
 
-        return new DataValueContextDto()
-            .setAudits( mapToList( audits, DataValueDtoMapper::toDto ) )
-            .setHistory( mapToList( dataValues, DataValueDtoMapper::toDto ) );
-    }
+    return new DataValueContextDto()
+        .setAudits(mapToList(audits, DataValueDtoMapper::toDto))
+        .setHistory(mapToList(dataValues, DataValueDtoMapper::toDto));
+  }
 }

@@ -33,69 +33,71 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Generally, non-numeric data elements should have their aggregation type set
- * to NONE, while numeric data elements should have their aggregation type set
- * to something other than NONE.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_inconsistent_agg_operator.yaml}
+ * Generally, non-numeric data elements should have their aggregation type set to NONE, while
+ * numeric data elements should have their aggregation type set to something other than NONE. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_inconsistent_agg_operator.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityDataElementsAggregationOperatorControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    private final String check = "data_elements_aggregate_aggregation_operator";
+class DataIntegrityDataElementsAggregationOperatorControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
+  private final String check = "data_elements_aggregate_aggregation_operator";
 
-    private final String detailsIdType = "dataElements";
+  private final String detailsIdType = "dataElements";
 
-    private String dataElementB;
+  private String dataElementB;
 
-    @Test
-    void testDataElementInconsistentAggregation()
-    {
-        setUpDataElements();
+  @Test
+  void testDataElementInconsistentAggregation() {
+    setUpDataElements();
 
-        dataElementB = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC3', 'shortName': 'ANC3', 'valueType' : 'TEXT'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
+    dataElementB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC3', 'shortName': 'ANC3', 'valueType' : 'TEXT',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 33,
-            dataElementB, "ANC3", null, true );
+    assertHasDataIntegrityIssues(detailsIdType, check, 33, dataElementB, "ANC3", null, true);
+  }
 
-    }
+  @Test
+  void testDataElementsConsistentAggregation() {
 
-    @Test
-    void testDataElementsConsistentAggregation()
-    {
+    setUpDataElements();
 
-        setUpDataElements();
+    dataElementB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC3', 'shortName': 'ANC3', 'valueType' : 'TEXT',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'NONE'  }"));
 
-        dataElementB = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC3', 'shortName': 'ANC3', 'valueType' : 'TEXT'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'NONE'  }" ) );
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
+  @Test
+  void testDataElementsAggregationDividedByZero() {
 
-    }
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 
-    @Test
-    void testDataElementsAggregationDividedByZero()
-    {
+  void setUpDataElements() {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataElements",
+            "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-
-    }
-
-    void setUpDataElements()
-    {
-        assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
-
-        dataElementB = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
-    }
+    dataElementB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+  }
 }

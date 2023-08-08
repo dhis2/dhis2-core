@@ -28,20 +28,16 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
 import static org.hisp.dhis.web.HttpStatus.BAD_REQUEST;
 import static org.hisp.dhis.web.HttpStatus.CREATED;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.util.Map;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.jsontree.JsonNode;
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,141 +45,140 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Controller tests for
- * {@link org.hisp.dhis.webapi.controller.event.EventReportController}.
+ * Controller tests for {@link org.hisp.dhis.webapi.controller.event.EventReportController}.
  *
  * @author maikel arabori
  */
-class EventReportControllerTest extends DhisControllerConvenienceTest
-{
+class EventReportControllerTest extends DhisControllerConvenienceTest {
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    private Program mockProgram;
+  private Program mockProgram;
 
-    @BeforeEach
-    public void beforeEach()
-    {
-        mockProgram = createProgram( 'A' );
-        manager.save( mockProgram );
-    }
+  @BeforeEach
+  public void beforeEach() {
+    mockProgram = createProgram('A');
+    manager.save(mockProgram);
+  }
 
-    @Test
-    @SuppressWarnings( "unchecked" )
-    void testPostForSingleEventDate()
-    {
-        // Given
-        final String eventDateDimension = "eventDate";
-        final String eventDate = "2021-07-21_2021-08-01";
-        final String dimensionBody = "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate
-            + "'}]}";
-        final String body = "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'" + mockProgram.getUid()
-            + "'}, 'columns': [" + dimensionBody + "]}";
+  @Test
+  void testPostForSingleEventDate() {
+    // Given
+    final String eventDateDimension = "eventDate";
+    final String eventDate = "2021-07-21_2021-08-01";
+    final String dimensionBody =
+        "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate + "'}]}";
+    final String body =
+        "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': ["
+            + dimensionBody
+            + "]}";
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventReports/", body ) );
+    // When
+    final String uid = assertStatus(CREATED, POST("/eventReports/", body));
 
-        // Then
-        final JsonResponse response = GET( "/eventVisualizations/" + uid ).content();
-        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
+    // Then
+    final JsonObject response = GET("/eventVisualizations/" + uid).content();
 
-        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( "COLUMN" ) );
-        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( eventDateDimension ) );
-        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( eventDate ) );
-        assertThat( nodeMap.get( "columns" ).toString(), containsString( eventDateDimension ) );
-        assertThat( nodeMap.get( "rows" ).toString(), not( containsString( eventDateDimension ) ) );
-        assertThat( nodeMap.get( "filters" ).toString(), not( containsString( eventDateDimension ) ) );
-    }
+    assertThat(response.get("simpleDimensions").toString(), containsString("COLUMN"));
+    assertThat(response.get("simpleDimensions").toString(), containsString(eventDateDimension));
+    assertThat(response.get("simpleDimensions").toString(), containsString(eventDate));
+    assertThat(response.get("columns").toString(), containsString(eventDateDimension));
+    assertThat(response.get("rows").toString(), not(containsString(eventDateDimension)));
+    assertThat(response.get("filters").toString(), not(containsString(eventDateDimension)));
+  }
 
-    @Test
-    @SuppressWarnings( "unchecked" )
-    void testPostForMultiEventDates()
-    {
-        // Given
-        final String eventDateDimension = "eventDate";
-        final String incidentDateDimension = "incidentDate";
-        final String eventDate = "2021-07-21_2021-08-01";
-        final String incidentDate = "2021-07-21_2021-08-01";
-        final String eventDateBody = "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate
-            + "'}]}";
-        final String incidentDateBody = "{'dimension': '" + incidentDateDimension + "', 'items': [{'id': '"
-            + incidentDate
-            + "'}]}";
-        final String body = "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'" + mockProgram.getUid()
-            + "'}, 'rows': [" + eventDateBody + "," + incidentDateBody + "]}";
+  @Test
+  void testPostForMultiEventDates() {
+    // Given
+    final String eventDateDimension = "eventDate";
+    final String incidentDateDimension = "incidentDate";
+    final String eventDate = "2021-07-21_2021-08-01";
+    final String incidentDate = "2021-07-21_2021-08-01";
+    final String eventDateBody =
+        "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate + "'}]}";
+    final String incidentDateBody =
+        "{'dimension': '" + incidentDateDimension + "', 'items': [{'id': '" + incidentDate + "'}]}";
+    final String body =
+        "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'"
+            + mockProgram.getUid()
+            + "'}, 'rows': ["
+            + eventDateBody
+            + ","
+            + incidentDateBody
+            + "]}";
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventReports/", body ) );
+    // When
+    final String uid = assertStatus(CREATED, POST("/eventReports/", body));
 
-        // Then
-        final JsonResponse response = GET( "/eventReports/" + uid ).content();
-        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
+    // Then
+    final JsonObject response = GET("/eventReports/" + uid).content();
 
-        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( "ROW" ) );
-        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( eventDate ) );
-        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( incidentDate ) );
-        assertThat( nodeMap.get( "rows" ).toString(), containsString( eventDateDimension ) );
-        assertThat( nodeMap.get( "rows" ).toString(), containsString( incidentDateDimension ) );
-        assertThat( nodeMap.get( "columns" ).toString(), not( containsString( eventDateDimension ) ) );
-        assertThat( nodeMap.get( "columns" ).toString(), not( containsString( incidentDateDimension ) ) );
-        assertThat( nodeMap.get( "filters" ).toString(), not( containsString( eventDateDimension ) ) );
-        assertThat( nodeMap.get( "filters" ).toString(), not( containsString( incidentDateDimension ) ) );
-    }
+    assertThat(response.get("simpleDimensions").toString(), containsString("ROW"));
+    assertThat(response.get("simpleDimensions").toString(), containsString(eventDate));
+    assertThat(response.get("simpleDimensions").toString(), containsString(incidentDate));
+    assertThat(response.get("rows").toString(), containsString(eventDateDimension));
+    assertThat(response.get("rows").toString(), containsString(incidentDateDimension));
+    assertThat(response.get("columns").toString(), not(containsString(eventDateDimension)));
+    assertThat(response.get("columns").toString(), not(containsString(incidentDateDimension)));
+    assertThat(response.get("filters").toString(), not(containsString(eventDateDimension)));
+    assertThat(response.get("filters").toString(), not(containsString(incidentDateDimension)));
+  }
 
-    @Test
-    void testPostForInvalidEventDimension()
-    {
-        // Given
-        final String invalidDimension = "invalidDimension";
-        final String eventDate = "2021-07-21_2021-08-01";
-        final String dimensionBody = "{'dimension': '" + invalidDimension + "', 'items': [{'id': '" + eventDate
-            + "'}]}";
-        final String body = "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'" + mockProgram.getUid()
-            + "'}, 'columns': [" + dimensionBody + "]}";
+  @Test
+  void testPostForInvalidEventDimension() {
+    // Given
+    final String invalidDimension = "invalidDimension";
+    final String eventDate = "2021-07-21_2021-08-01";
+    final String dimensionBody =
+        "{'dimension': '" + invalidDimension + "', 'items': [{'id': '" + eventDate + "'}]}";
+    final String body =
+        "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': ["
+            + dimensionBody
+            + "]}";
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventReports/", body ) );
+    // When
+    final String uid = assertStatus(CREATED, POST("/eventReports/", body));
 
-        // Then
-        assertEquals( "Not a valid dimension: " + invalidDimension,
-            GET( "/eventReports/" + uid ).error( BAD_REQUEST ).getMessage() );
-    }
+    // Then
+    assertEquals(
+        "Not a valid dimension: " + invalidDimension,
+        GET("/eventReports/" + uid).error(BAD_REQUEST).getMessage());
+  }
 
-    @Test
-    @SuppressWarnings( "unchecked" )
-    void testThatGetEventVisualizationsContainsLegacyEventReports()
-    {
-        // Given
-        final String body = "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'" + mockProgram.getUid()
+  @Test
+  void testThatGetEventVisualizationsContainsLegacyEventReports() {
+    // Given
+    final String body =
+        "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'"
+            + mockProgram.getUid()
             + "'}}";
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventReports/", body ) );
+    // When
+    final String uid = assertStatus(CREATED, POST("/eventReports/", body));
 
-        // Then
-        final JsonResponse response = GET( "/eventVisualizations/" + uid ).content();
-        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
+    // Then
+    final JsonObject response = GET("/eventVisualizations/" + uid).content();
 
-        assertThat( nodeMap.get( "name" ).toString(), containsString( "Name Test" ) );
-        assertThat( nodeMap.get( "type" ).toString(), containsString( "LINE_LIST" ) );
-    }
+    assertThat(response.get("name").toString(), containsString("Name Test"));
+    assertThat(response.get("type").toString(), containsString("LINE_LIST"));
+  }
 
-    @Test
-    @SuppressWarnings( "unchecked" )
-    void testThatGetEventReportsDoesNotContainNewEventVisualizations()
-    {
-        // Given
-        final String body = "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'" + mockProgram.getUid()
+  @Test
+  void testThatGetEventReportsDoesNotContainNewEventVisualizations() {
+    // Given
+    final String body =
+        "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'"
+            + mockProgram.getUid()
             + "'}}";
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+    // When
+    final String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
 
-        // Then
-        final JsonResponse response = GET( "/eventReports/" + uid ).content();
-        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
-
-        assertThat( nodeMap.values(), is( empty() ) );
-    }
+    // Then
+    assertTrue(GET("/eventReports/" + uid).content().isEmpty());
+  }
 }

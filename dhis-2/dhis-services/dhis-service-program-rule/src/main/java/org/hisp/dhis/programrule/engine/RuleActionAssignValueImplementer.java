@@ -32,9 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.rules.models.RuleAction;
@@ -47,72 +45,63 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Zubair Asghar
  */
 @Slf4j
-@Component( "org.hisp.dhis.programrule.engine.RuleActionAssignValueImplementer" )
+@Component("org.hisp.dhis.programrule.engine.RuleActionAssignValueImplementer")
 @Transactional
-public class RuleActionAssignValueImplementer implements RuleActionImplementer
-{
-    private static final String REGEX = "[a-zA-Z0-9]+(?:[\\w -._]*[a-zA-Z0-9]+)*+";
+public class RuleActionAssignValueImplementer implements RuleActionImplementer {
+  private static final String REGEX = "[a-zA-Z0-9]+(?:[\\w -._]*[a-zA-Z0-9]+)*+";
 
-    private static final Pattern PATTERN = Pattern.compile( REGEX, Pattern.CASE_INSENSITIVE );
+  private static final Pattern PATTERN = Pattern.compile(REGEX, Pattern.CASE_INSENSITIVE);
 
-    private RuleVariableInMemoryMap variableMap;
+  private RuleVariableInMemoryMap variableMap;
 
-    public RuleActionAssignValueImplementer( RuleVariableInMemoryMap variableMap )
-    {
-        checkNotNull( variableMap );
+  public RuleActionAssignValueImplementer(RuleVariableInMemoryMap variableMap) {
+    checkNotNull(variableMap);
 
-        this.variableMap = variableMap;
+    this.variableMap = variableMap;
+  }
+
+  @Override
+  public boolean accept(RuleAction ruleAction) {
+    return ruleAction instanceof RuleActionAssign;
+  }
+
+  @Override
+  public void implement(RuleEffect ruleEffect, Enrollment enrollment) {
+    checkNotNull(ruleEffect, "Rule Effect cannot be null");
+    checkNotNull(enrollment, "Enrollment cannot be null");
+
+    assignValue(ruleEffect, enrollment);
+  }
+
+  @Override
+  public void implement(RuleEffect ruleEffect, Event event) {
+    assignValue(ruleEffect, event.getEnrollment());
+  }
+
+  private void assignValue(RuleEffect ruleEffect, Enrollment enrollment) {
+    if (enrollment == null) {
+      log.info("No value assigned by AssignValue action");
+      return;
     }
 
-    @Override
-    public boolean accept( RuleAction ruleAction )
-    {
-        return ruleAction instanceof RuleActionAssign;
+    String value = ruleEffect.data();
+
+    RuleActionAssign assign = (RuleActionAssign) ruleEffect.ruleAction();
+
+    String variable = assign.field();
+
+    Matcher matcher = PATTERN.matcher(variable);
+
+    while (matcher.find()) {
+      variable = matcher.group(0).trim();
     }
 
-    @Override
-    public void implement( RuleEffect ruleEffect, Enrollment enrollment )
-    {
-        checkNotNull( ruleEffect, "Rule Effect cannot be null" );
-        checkNotNull( enrollment, "Enrollment cannot be null" );
+    log.debug("Assigning: " + variable + " with value: " + value);
 
-        assignValue( ruleEffect, enrollment );
+    if (!variableMap.containsKey(enrollment.getUid())) {
+      variableMap.put(enrollment.getUid(), new HashMap<>());
     }
 
-    @Override
-    public void implement( RuleEffect ruleEffect, Event event )
-    {
-        assignValue( ruleEffect, event.getEnrollment() );
-    }
-
-    private void assignValue( RuleEffect ruleEffect, Enrollment enrollment )
-    {
-        if ( enrollment == null )
-        {
-            log.info( "No value assigned by AssignValue action" );
-            return;
-        }
-
-        String value = ruleEffect.data();
-
-        RuleActionAssign assign = (RuleActionAssign) ruleEffect.ruleAction();
-
-        String variable = assign.field();
-
-        Matcher matcher = PATTERN.matcher( variable );
-
-        while ( matcher.find() )
-        {
-            variable = matcher.group( 0 ).trim();
-        }
-
-        log.debug( "Assigning: " + variable + " with value: " + value );
-
-        if ( !variableMap.containsKey( enrollment.getUid() ) )
-        {
-            variableMap.put( enrollment.getUid(), new HashMap<>() );
-        }
-
-        variableMap.get( enrollment.getUid() ).put( variable, value );
-    }
+    variableMap.get(enrollment.getUid()).put(variable, value);
+  }
 }

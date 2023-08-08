@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.tei.query.context.sql;
 
 import java.util.List;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -39,46 +38,40 @@ import org.hisp.dhis.analytics.common.query.IndexedOrder;
 import org.hisp.dhis.analytics.common.query.LeftJoin;
 
 /**
- * Convenience class to build a {@link RenderableSqlQuery} from a
- * {@link QueryContext}, allowing to override only the parts of the query that
- * are needed.
+ * Convenience class to build a {@link RenderableSqlQuery} from a {@link QueryContext}, allowing to
+ * override only the parts of the query that are needed.
  */
-public abstract class SqlQueryBuilderAdaptor implements SqlQueryBuilder
-{
-    @Override
-    public RenderableSqlQuery buildSqlQuery( QueryContext queryContext,
-        List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
-        List<AnalyticsSortingParams> acceptedSortingParams )
-    {
-        RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
+public abstract class SqlQueryBuilderAdaptor implements SqlQueryBuilder {
+  @Override
+  public RenderableSqlQuery buildSqlQuery(
+      QueryContext queryContext,
+      List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
+      List<AnalyticsSortingParams> acceptedSortingParams) {
+    RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
-        getSelect( queryContext ).forEach( builder::selectField );
-        getLeftJoin( queryContext ).forEach( builder::leftJoin );
-        getWhereClauses( queryContext, acceptedDimensions ).forEach( builder::groupableCondition );
-        getOrderClauses( queryContext, acceptedSortingParams ).forEach( builder::orderClause );
+    getSelect(queryContext).forEach(builder::selectField);
+    getLeftJoin(queryContext).forEach(builder::leftJoin);
+    getWhereClauses(queryContext, acceptedDimensions).forEach(builder::groupableCondition);
+    getOrderClauses(queryContext, acceptedSortingParams).forEach(builder::orderClause);
 
-        return builder.build();
-    }
+    return builder.build();
+  }
 
-    protected Stream<Field> getSelect( QueryContext unused )
-    {
-        return Stream.empty();
-    }
+  protected Stream<Field> getSelect(QueryContext unused) {
+    return Stream.empty();
+  }
 
-    protected Stream<LeftJoin> getLeftJoin( QueryContext unused )
-    {
-        return Stream.empty();
-    }
+  protected Stream<LeftJoin> getLeftJoin(QueryContext unused) {
+    return Stream.empty();
+  }
 
-    protected Stream<GroupableCondition> getWhereClauses( QueryContext unusedOne,
-        List<DimensionIdentifier<DimensionParam>> unusedTwo )
-    {
-        return Stream.empty();
-    }
+  protected Stream<GroupableCondition> getWhereClauses(
+      QueryContext unusedOne, List<DimensionIdentifier<DimensionParam>> unusedTwo) {
+    return Stream.empty();
+  }
 
-    protected Stream<IndexedOrder> getOrderClauses( QueryContext unused,
-        List<AnalyticsSortingParams> unusedTwo )
-    {
-        return Stream.empty();
-    }
+  protected Stream<IndexedOrder> getOrderClauses(
+      QueryContext unused, List<AnalyticsSortingParams> unusedTwo) {
+    return Stream.empty();
+  }
 }

@@ -34,7 +34,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.user.User;
@@ -45,95 +44,88 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Stian Sandvold
  */
-class MessageConversationStoreTest extends SingleSetupIntegrationTestBase
-{
+class MessageConversationStoreTest extends SingleSetupIntegrationTestBase {
 
-    @Autowired
-    private MessageConversationStore messageConversationStore;
+  @Autowired private MessageConversationStore messageConversationStore;
 
-    @Autowired
-    private MessageService messageService;
+  @Autowired private MessageService messageService;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Autowired
-    private SessionFactory sessionFactory;
+  @Autowired private SessionFactory sessionFactory;
 
-    private User userB;
+  private User userB;
 
-    private User userC;
+  private User userC;
 
-    private long conversationA;
+  private long conversationA;
 
-    private Collection<String> conversationIds;
+  private Collection<String> conversationIds;
 
-    // -------------------------------------------------------------------------
-    // Fixture
-    // -------------------------------------------------------------------------
-    @Override
-    public void setUpTest()
-    {
-        userService = _userService;
-        // 'A' used as currentUser
-        setupUser( "A" );
-        userB = setupUser( "B" );
-        userC = setupUser( "C" );
-        Set<User> usersA = new HashSet<>();
-        usersA.add( userC );
-        Set<User> usersB = new HashSet<>();
-        usersB.add( userC );
-        usersB.add( userB );
-        conversationIds = new HashSet<>();
-        conversationA = messageService.sendPrivateMessage( usersA, "Subject1", "Text", "Meta", null );
-        MessageConversation mc = messageService.getMessageConversation( conversationA );
-        mc.markRead( userC );
-        messageService.updateMessageConversation( mc );
-        conversationIds.add( mc.getUid() );
-        messageService.sendReply( mc, "Message 1", "Meta", false, null );
-        messageService.sendReply( mc, "Message 2", "Meta", false, null );
-        messageService.sendReply( mc, "Message 3", "Meta", false, null );
-        long conversationB = messageService.sendPrivateMessage( usersA, "Subject2", "Text", "Meta", null );
-        mc = messageService.getMessageConversation( conversationB );
-        mc.setFollowUp( true );
-        messageService.updateMessageConversation( mc );
-        conversationIds.add( mc.getUid() );
-        long conversationC = messageService.sendPrivateMessage( usersB, "Subject3", "Text", "Meta", null );
-        mc = messageService.getMessageConversation( conversationC );
-        messageService.updateMessageConversation( mc );
-        conversationIds.add( mc.getUid() );
-    }
+  // -------------------------------------------------------------------------
+  // Fixture
+  // -------------------------------------------------------------------------
+  @Override
+  public void setUpTest() {
+    userService = _userService;
+    // 'A' used as currentUser
+    setupUser("A");
+    userB = setupUser("B");
+    userC = setupUser("C");
+    Set<User> usersA = new HashSet<>();
+    usersA.add(userC);
+    Set<User> usersB = new HashSet<>();
+    usersB.add(userC);
+    usersB.add(userB);
+    conversationIds = new HashSet<>();
+    conversationA = messageService.sendPrivateMessage(usersA, "Subject1", "Text", "Meta", null);
+    MessageConversation mc = messageService.getMessageConversation(conversationA);
+    mc.markRead(userC);
+    messageService.updateMessageConversation(mc);
+    conversationIds.add(mc.getUid());
+    messageService.sendReply(mc, "Message 1", "Meta", false, null);
+    messageService.sendReply(mc, "Message 2", "Meta", false, null);
+    messageService.sendReply(mc, "Message 3", "Meta", false, null);
+    long conversationB =
+        messageService.sendPrivateMessage(usersA, "Subject2", "Text", "Meta", null);
+    mc = messageService.getMessageConversation(conversationB);
+    mc.setFollowUp(true);
+    messageService.updateMessageConversation(mc);
+    conversationIds.add(mc.getUid());
+    long conversationC =
+        messageService.sendPrivateMessage(usersB, "Subject3", "Text", "Meta", null);
+    mc = messageService.getMessageConversation(conversationC);
+    messageService.updateMessageConversation(mc);
+    conversationIds.add(mc.getUid());
+  }
 
-    private User setupUser( String id )
-    {
-        User user = makeUser( id );
-        userService.addUser( user );
-        return user;
-    }
+  private User setupUser(String id) {
+    User user = makeUser(id);
+    userService.addUser(user);
+    return user;
+  }
 
-    @Test
-    void testGetMessageConversationsReturnsCorrectAmountOfConversations()
-    {
-        List<MessageConversation> msgsC = messageConversationStore.getMessageConversations( userC, null, false, false,
-            null, null );
-        List<MessageConversation> msgsB = messageConversationStore.getMessageConversations( userB, null, false, false,
-            null, null );
-        assertEquals( 3, msgsC.size() );
-        assertEquals( 1, msgsB.size() );
-    }
+  @Test
+  void testGetMessageConversationsReturnsCorrectAmountOfConversations() {
+    List<MessageConversation> msgsC =
+        messageConversationStore.getMessageConversations(userC, null, false, false, null, null);
+    List<MessageConversation> msgsB =
+        messageConversationStore.getMessageConversations(userB, null, false, false, null, null);
+    assertEquals(3, msgsC.size());
+    assertEquals(1, msgsB.size());
+  }
 
-    @Test
-    void testGetMessageConversationsReturnCorrectNumberOfMessages()
-    {
-        MessageConversation conversation = messageConversationStore.get( conversationA );
-        sessionFactory.getCurrentSession().flush();
-        assertTrue( (conversation.getMessageCount() == 4) );
-    }
+  @Test
+  void testGetMessageConversationsReturnCorrectNumberOfMessages() {
+    MessageConversation conversation = messageConversationStore.get(conversationA);
+    sessionFactory.getCurrentSession().flush();
+    assertTrue((conversation.getMessageCount() == 4));
+  }
 
-    @Test
-    void testGetMessageConversations()
-    {
-        List<MessageConversation> conversations = messageConversationStore.getMessageConversations( conversationIds );
-        assertEquals( 3, conversations.size() );
-    }
+  @Test
+  void testGetMessageConversations() {
+    List<MessageConversation> conversations =
+        messageConversationStore.getMessageConversations(conversationIds);
+    assertEquals(3, conversations.size());
+  }
 }

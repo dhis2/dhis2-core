@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Date;
 import java.util.HashSet;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -58,135 +57,118 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest
-{
+class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest {
 
-    @Autowired
-    private org.hisp.dhis.dxf2.deprecated.tracker.event.EventService eventService;
+  @Autowired private org.hisp.dhis.dxf2.deprecated.tracker.event.EventService eventService;
 
-    @Autowired
-    private ProgramStageDataElementService programStageDataElementService;
+  @Autowired private ProgramStageDataElementService programStageDataElementService;
 
-    @Autowired
-    private EnrollmentService enrollmentService;
+  @Autowired private EnrollmentService enrollmentService;
 
-    @Autowired
-    private EventService programStageInstanceService;
+  @Autowired private EventService programStageInstanceService;
 
-    @Autowired
-    private IdentifiableObjectManager identifiableObjectManager;
+  @Autowired private IdentifiableObjectManager identifiableObjectManager;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    private OrganisationUnit organisationUnitA;
+  private OrganisationUnit organisationUnitA;
 
-    private DataElement dataElementA;
+  private DataElement dataElementA;
 
-    private Program programA;
+  private Program programA;
 
-    private ProgramStage programStageA;
+  private ProgramStage programStageA;
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        userService = _userService;
-        organisationUnitA = createOrganisationUnit( 'A' );
-        identifiableObjectManager.save( organisationUnitA );
-        dataElementA = createDataElement( 'A' );
-        dataElementA.setValueType( ValueType.INTEGER );
-        identifiableObjectManager.save( dataElementA );
-        programStageA = createProgramStage( 'A', 0 );
-        identifiableObjectManager.save( programStageA );
-        programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
-        programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        identifiableObjectManager.save( programA );
-        ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
-        programStageDataElement.setDataElement( dataElementA );
-        programStageDataElement.setProgramStage( programStageA );
-        programStageDataElementService.addProgramStageDataElement( programStageDataElement );
-        programStageA.getProgramStageDataElements().add( programStageDataElement );
-        programStageA.setProgram( programA );
-        programA.getProgramStages().add( programStageA );
-        identifiableObjectManager.update( programStageA );
-        identifiableObjectManager.update( programA );
-        Enrollment enrollment = new Enrollment();
-        enrollment.setProgram( programA );
-        enrollment.setIncidentDate( new Date() );
-        enrollment.setEnrollmentDate( new Date() );
-        enrollmentService.addEnrollment( enrollment );
-        identifiableObjectManager.update( programA );
-        createUserAndInjectSecurityContext( true );
-        identifiableObjectManager.flush();
-    }
+  @Override
+  protected void setUpTest() throws Exception {
+    userService = _userService;
+    organisationUnitA = createOrganisationUnit('A');
+    identifiableObjectManager.save(organisationUnitA);
+    dataElementA = createDataElement('A');
+    dataElementA.setValueType(ValueType.INTEGER);
+    identifiableObjectManager.save(dataElementA);
+    programStageA = createProgramStage('A', 0);
+    identifiableObjectManager.save(programStageA);
+    programA = createProgram('A', new HashSet<>(), organisationUnitA);
+    programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    identifiableObjectManager.save(programA);
+    ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
+    programStageDataElement.setDataElement(dataElementA);
+    programStageDataElement.setProgramStage(programStageA);
+    programStageDataElementService.addProgramStageDataElement(programStageDataElement);
+    programStageA.getProgramStageDataElements().add(programStageDataElement);
+    programStageA.setProgram(programA);
+    programA.getProgramStages().add(programStageA);
+    identifiableObjectManager.update(programStageA);
+    identifiableObjectManager.update(programA);
+    Enrollment enrollment = new Enrollment();
+    enrollment.setProgram(programA);
+    enrollment.setIncidentDate(new Date());
+    enrollment.setEnrollmentDate(new Date());
+    enrollmentService.addEnrollment(enrollment);
+    identifiableObjectManager.update(programA);
+    createUserAndInjectSecurityContext(true);
+    identifiableObjectManager.flush();
+  }
 
-    @Test
-    void testGetPersonsByProgramStageInstance()
-    {
-        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent( programA.getUid(),
-            programStageA.getUid(),
-            organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, null, false );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        assertNotNull( importSummary.getReference() );
-        Event programStageInstance = programStageInstanceService.getEvent( importSummary.getReference() );
-        assertNotNull( programStageInstance );
-        assertNotNull( eventService.getEvent( programStageInstance, EventParams.FALSE ) );
-    }
+  @Test
+  void testGetPersonsByProgramStageInstance() {
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
+        createEvent(programA.getUid(), programStageA.getUid(), organisationUnitA.getUid());
+    ImportSummary importSummary = eventService.addEvent(event, null, false);
+    assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
+    assertNotNull(importSummary.getReference());
+    Event programStageInstance = programStageInstanceService.getEvent(importSummary.getReference());
+    assertNotNull(programStageInstance);
+    assertNotNull(eventService.getEvent(programStageInstance, EventParams.FALSE));
+  }
 
-    @Test
-    void testGetEventByUid()
-    {
-        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent( programA.getUid(),
-            programStageA.getUid(),
-            organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, null, false );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        assertNotNull( importSummary.getReference() );
-        assertNotNull( programStageInstanceService.getEvent( importSummary.getReference() ) );
-    }
+  @Test
+  void testGetEventByUid() {
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
+        createEvent(programA.getUid(), programStageA.getUid(), organisationUnitA.getUid());
+    ImportSummary importSummary = eventService.addEvent(event, null, false);
+    assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
+    assertNotNull(importSummary.getReference());
+    assertNotNull(programStageInstanceService.getEvent(importSummary.getReference()));
+  }
 
-    @Test
-    void testSaveEvent()
-    {
-        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent( programA.getUid(),
-            programStageA.getUid(),
-            organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, null, false );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        assertEquals( 0, importSummary.getConflictCount() );
-        assertNotNull( importSummary.getReference() );
-        event = eventService
-            .getEvent( programStageInstanceService.getEvent( importSummary.getReference() ),
-                EventParams.FALSE );
-        assertNotNull( event );
-        assertEquals( 1, event.getDataValues().size() );
-    }
+  @Test
+  void testSaveEvent() {
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
+        createEvent(programA.getUid(), programStageA.getUid(), organisationUnitA.getUid());
+    ImportSummary importSummary = eventService.addEvent(event, null, false);
+    assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
+    assertEquals(0, importSummary.getConflictCount());
+    assertNotNull(importSummary.getReference());
+    event =
+        eventService.getEvent(
+            programStageInstanceService.getEvent(importSummary.getReference()), EventParams.FALSE);
+    assertNotNull(event);
+    assertEquals(1, event.getDataValues().size());
+  }
 
-    @Test
-    void testDeleteEvent()
-    {
-        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent( programA.getUid(),
-            programStageA.getUid(),
-            organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, null, false );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        assertNotNull( importSummary.getReference() );
-        assertNotNull( programStageInstanceService.getEvent( importSummary.getReference() ) );
-        eventService.deleteEvent( event.getEvent() );
-        assertNull( programStageInstanceService.getEvent( importSummary.getReference() ) );
-    }
+  @Test
+  void testDeleteEvent() {
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
+        createEvent(programA.getUid(), programStageA.getUid(), organisationUnitA.getUid());
+    ImportSummary importSummary = eventService.addEvent(event, null, false);
+    assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
+    assertNotNull(importSummary.getReference());
+    assertNotNull(programStageInstanceService.getEvent(importSummary.getReference()));
+    eventService.deleteEvent(event.getEvent());
+    assertNull(programStageInstanceService.getEvent(importSummary.getReference()));
+  }
 
-    private org.hisp.dhis.dxf2.deprecated.tracker.event.Event createEvent( String program, String programStage,
-        String orgUnit )
-    {
-        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = new org.hisp.dhis.dxf2.deprecated.tracker.event.Event();
-        event.setProgram( program );
-        event.setProgramStage( programStage );
-        event.setOrgUnit( orgUnit );
-        event.setEventDate( "2013-01-01" );
-        event.getDataValues().add( new DataValue( dataElementA.getUid(), "10" ) );
-        return event;
-    }
+  private org.hisp.dhis.dxf2.deprecated.tracker.event.Event createEvent(
+      String program, String programStage, String orgUnit) {
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
+        new org.hisp.dhis.dxf2.deprecated.tracker.event.Event();
+    event.setProgram(program);
+    event.setProgramStage(programStage);
+    event.setOrgUnit(orgUnit);
+    event.setEventDate("2013-01-01");
+    event.getDataValues().add(new DataValue(dataElementA.getUid(), "10"));
+    return event;
+  }
 }

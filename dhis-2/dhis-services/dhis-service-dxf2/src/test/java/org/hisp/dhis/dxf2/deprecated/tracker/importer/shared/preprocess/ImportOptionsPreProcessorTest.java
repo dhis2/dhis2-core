@@ -40,24 +40,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class ImportOptionsPreProcessorTest
-{
+@ExtendWith(MockitoExtension.class)
+class ImportOptionsPreProcessorTest {
 
-    private ImportOptionsPreProcessor subject;
+  private ImportOptionsPreProcessor subject;
 
-    @BeforeEach
-    public void setUp()
-    {
-        this.subject = new ImportOptionsPreProcessor();
-    }
+  @BeforeEach
+  public void setUp() {
+    this.subject = new ImportOptionsPreProcessor();
+  }
 
-    @Test
-    void verifyExceptionIsThrownOnMissingImportOptions()
-    {
-        WorkContext wc = WorkContext.builder().build();
+  @Test
+  void verifyExceptionIsThrownOnMissingImportOptions() {
+    WorkContext wc = WorkContext.builder().build();
 
-        assertThrows( UnrecoverableImportException.class, () -> subject.process( new Event(), wc ) );
-    }
-
+    assertThrows(UnrecoverableImportException.class, () -> subject.process(new Event(), wc));
+  }
 }

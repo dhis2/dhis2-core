@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.deprecated.tracker.enrollment;
 
 import java.util.List;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.SecurityContextRunnable;
@@ -36,30 +35,29 @@ import org.hisp.dhis.security.SecurityContextRunnable;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ImportEnrollmentsTask
-    extends SecurityContextRunnable
-{
-    private final List<Enrollment> enrollments;
+public class ImportEnrollmentsTask extends SecurityContextRunnable {
+  private final List<Enrollment> enrollments;
 
-    private final EnrollmentService enrollmentService;
+  private final EnrollmentService enrollmentService;
 
-    private final ImportOptions importOptions;
+  private final ImportOptions importOptions;
 
-    private final JobConfiguration id;
+  private final JobConfiguration id;
 
-    public ImportEnrollmentsTask( List<Enrollment> enrollments, EnrollmentService enrollmentService,
-        ImportOptions importOptions, JobConfiguration id )
-    {
-        super();
-        this.enrollments = enrollments;
-        this.enrollmentService = enrollmentService;
-        this.importOptions = importOptions;
-        this.id = id;
-    }
+  public ImportEnrollmentsTask(
+      List<Enrollment> enrollments,
+      EnrollmentService enrollmentService,
+      ImportOptions importOptions,
+      JobConfiguration id) {
+    super();
+    this.enrollments = enrollments;
+    this.enrollmentService = enrollmentService;
+    this.importOptions = importOptions;
+    this.id = id;
+  }
 
-    @Override
-    public void call()
-    {
-        enrollmentService.addEnrollments( enrollments, importOptions, id );
-    }
+  @Override
+  public void call() {
+    enrollmentService.addEnrollments(enrollments, importOptions, id);
+  }
 }

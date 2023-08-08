@@ -27,85 +27,79 @@
  */
 package org.hisp.dhis.system.notification;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Deque;
 import java.util.Map;
-
 import javax.annotation.Nonnull;
-
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Lars Helge Overland
  * @author Jan Bernitt (pulled up default methods)
  */
-public interface Notifier
-{
-    default Notifier notify( JobConfiguration id, String message )
-    {
-        return notify( id, NotificationLevel.INFO, message, false );
+public interface Notifier {
+  default Notifier notify(JobConfiguration id, String message) {
+    return notify(id, NotificationLevel.INFO, message, false);
+  }
+
+  default Notifier notify(JobConfiguration id, @Nonnull NotificationLevel level, String message) {
+    return notify(id, level, message, false);
+  }
+
+  default Notifier notify(JobConfiguration id, String message, boolean completed) {
+    return notify(id, NotificationLevel.INFO, message, completed);
+  }
+
+  default Notifier notify(
+      JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed) {
+    return notify(id, level, message, completed, null, null);
+  }
+
+  Notifier notify(
+      JobConfiguration id,
+      @Nonnull NotificationLevel level,
+      String message,
+      boolean completed,
+      NotificationDataType dataType,
+      JsonNode data);
+
+  default Notifier update(JobConfiguration id, String message) {
+    return update(id, NotificationLevel.INFO, message, false);
+  }
+
+  default Notifier update(JobConfiguration id, String message, boolean completed) {
+    return update(id, NotificationLevel.INFO, message, completed);
+  }
+
+  default Notifier update(JobConfiguration id, @Nonnull NotificationLevel level, String message) {
+    return update(id, level, message, false);
+  }
+
+  default Notifier update(
+      JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed) {
+    if (id != null && !level.isOff()) {
+      notify(id, level, message, completed);
     }
+    return this;
+  }
 
-    default Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message )
-    {
-        return notify( id, level, message, false );
-    }
+  Map<JobType, Map<String, Deque<Notification>>> getNotifications();
 
-    default Notifier notify( JobConfiguration id, String message, boolean completed )
-    {
-        return notify( id, NotificationLevel.INFO, message, completed );
-    }
+  Deque<Notification> getNotificationsByJobId(JobType jobType, String jobId);
 
-    default Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed )
-    {
-        return notify( id, level, message, completed, null, null );
-    }
+  Map<String, Deque<Notification>> getNotificationsByJobType(JobType jobType);
 
-    Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed,
-        NotificationDataType dataType, JsonNode data );
+  Notifier clear(JobConfiguration id);
 
-    default Notifier update( JobConfiguration id, String message )
-    {
-        return update( id, NotificationLevel.INFO, message, false );
-    }
+  default <T> Notifier addJobSummary(JobConfiguration id, T jobSummary, Class<T> jobSummaryType) {
+    return addJobSummary(id, NotificationLevel.INFO, jobSummary, jobSummaryType);
+  }
 
-    default Notifier update( JobConfiguration id, String message, boolean completed )
-    {
-        return update( id, NotificationLevel.INFO, message, completed );
-    }
+  <T> Notifier addJobSummary(
+      JobConfiguration id, NotificationLevel level, T jobSummary, Class<T> jobSummaryType);
 
-    default Notifier update( JobConfiguration id, @Nonnull NotificationLevel level, String message )
-    {
-        return update( id, level, message, false );
-    }
+  Map<String, Object> getJobSummariesForJobType(JobType jobType);
 
-    default Notifier update( JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed )
-    {
-        if ( id != null && !level.isOff() )
-        {
-            notify( id, level, message, completed );
-        }
-        return this;
-    }
-
-    Map<JobType, Map<String, Deque<Notification>>> getNotifications();
-
-    Deque<Notification> getNotificationsByJobId( JobType jobType, String jobId );
-
-    Map<String, Deque<Notification>> getNotificationsByJobType( JobType jobType );
-
-    Notifier clear( JobConfiguration id );
-
-    default <T> Notifier addJobSummary( JobConfiguration id, T jobSummary, Class<T> jobSummaryType )
-    {
-        return addJobSummary( id, NotificationLevel.INFO, jobSummary, jobSummaryType );
-    }
-
-    <T> Notifier addJobSummary( JobConfiguration id, NotificationLevel level, T jobSummary, Class<T> jobSummaryType );
-
-    Map<String, Object> getJobSummariesForJobType( JobType jobType );
-
-    Object getJobSummaryByJobId( JobType jobType, String jobId );
+  Object getJobSummaryByJobId(JobType jobType, String jobId);
 }

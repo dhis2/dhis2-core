@@ -30,6 +30,4 @@ package org.hisp.dhis.programstageworkinglist;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 public interface ProgramStageWorkingListStore
-    extends IdentifiableObjectStore<ProgramStageWorkingList>
-{
-}
+    extends IdentifiableObjectStore<ProgramStageWorkingList> {}

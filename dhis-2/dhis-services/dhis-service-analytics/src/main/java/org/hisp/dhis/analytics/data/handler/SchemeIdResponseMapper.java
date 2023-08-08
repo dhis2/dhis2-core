@@ -36,7 +36,6 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemIdSche
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -50,269 +49,238 @@ import org.hisp.dhis.program.ProgramStage;
 import org.springframework.stereotype.Component;
 
 /**
- * This component is responsible for providing methods that encapsulate the id
- * schema mapping for response elements based on given URL ID schemes.
+ * This component is responsible for providing methods that encapsulate the id schema mapping for
+ * response elements based on given URL ID schemes.
  *
  * @author maikel arabori
  */
 @Component
-public class SchemeIdResponseMapper
-{
-    /**
-     * This method will map the respective element UID's with their respective
-     * ID scheme set. The 'outputIdScheme' is considered the most general ID
-     * scheme parameter. If set, it will map the scheme id set to all dimension
-     * items.
-     *
-     * The other two ID scheme parameters supported ('outputDataElementIdScheme'
-     * and 'outputOrgUnitIdScheme') will allow fine-grained id scheme
-     * definitions on top of the general 'outputIdScheme'. If they are set, they
-     * will override the 'outputIdScheme' definition.
-     *
-     * @param params the {@link DataQueryParams} where the identifier scheme
-     *        options are defined. The supported URL parameters are
-     *        outputIdScheme, outputDataElementIdScheme and
-     *        outputOrgUnitIdScheme.
-     * @return a map of UID and mapping value.
-     */
-    public Map<String, String> getSchemeIdResponseMap( DataQueryParams params )
-    {
-        Map<String, String> responseMap = getDimensionItemIdSchemeMap( params.getAllDimensionItems(),
-            params.getOutputIdScheme() );
+public class SchemeIdResponseMapper {
+  /**
+   * This method will map the respective element UID's with their respective ID scheme set. The
+   * 'outputIdScheme' is considered the most general ID scheme parameter. If set, it will map the
+   * scheme id set to all dimension items.
+   *
+   * <p>The other two ID scheme parameters supported ('outputDataElementIdScheme' and
+   * 'outputOrgUnitIdScheme') will allow fine-grained id scheme definitions on top of the general
+   * 'outputIdScheme'. If they are set, they will override the 'outputIdScheme' definition.
+   *
+   * @param params the {@link DataQueryParams} where the identifier scheme options are defined. The
+   *     supported URL parameters are outputIdScheme, outputDataElementIdScheme and
+   *     outputOrgUnitIdScheme.
+   * @return a map of UID and mapping value.
+   */
+  public Map<String, String> getSchemeIdResponseMap(DataQueryParams params) {
+    Map<String, String> responseMap =
+        getDimensionItemIdSchemeMap(params.getAllDimensionItems(), params.getOutputIdScheme());
 
-        if ( params.isGeneralOutputIdSchemeSet() )
-        {
-            // Apply an ID scheme to all data element operands using the general
-            // output ID scheme defined.
-            applyIdSchemeMapping( params, responseMap );
-        }
-
-        // This section overrides the general ID scheme, so it can be
-        // fine-grained.
-        if ( params.isOutputFormat( DATA_VALUE_SET ) && params.isOutputDataElementIdSchemeSet() )
-        {
-            if ( !params.getDataElementOperands().isEmpty() )
-            {
-                // Replace all data elements operands respecting their ID
-                // scheme definition.
-                applyDataElementOperandIdSchemeMapping( params, responseMap );
-            }
-            else if ( !params.getDataElements().isEmpty() )
-            {
-                // Replace all data elements respecting their ID scheme
-                // definition.
-                applyDataElementsIdSchemeMapping( params.getDataElements(), responseMap,
-                    params.getOutputDataElementIdScheme() );
-            }
-        }
-
-        // If "outputOrgUnitIdScheme" is set, we replace all org units
-        // values respecting its definition.
-        if ( params.isOutputOrgUnitIdSchemeSet() )
-        {
-            applyOrgUnitIdSchemeMapping( params.getOrganisationUnits(), responseMap,
-                params.getOutputOrgUnitIdScheme() );
-        }
-
-        return responseMap;
+    if (params.isGeneralOutputIdSchemeSet()) {
+      // Apply an ID scheme to all data element operands using the general
+      // output ID scheme defined.
+      applyIdSchemeMapping(params, responseMap);
     }
 
-    /**
-     * This method will map the respective element UID's with their respective
-     * ID scheme set. The 'outputIdScheme' is considered the most general ID
-     * scheme parameter. If set, it will map the scheme id set to all dimension
-     * items.
-     *
-     * The other two ID scheme parameters supported ('outputDataElementIdScheme'
-     * and 'outputOrgUnitIdScheme') will allow fine-grained id scheme
-     * definitions on top of the general 'outputIdScheme'. If they are set, they
-     * will override the 'outputIdScheme' definition.
-     *
-     * @param params the {@link CommonParams} where the identifier scheme
-     *        options are defined. The supported URL parameters are
-     *        outputIdScheme, outputDataElementIdScheme and
-     *        outputOrgUnitIdScheme.
-     * @return a map of UID and mapping value.
-     */
-    public Map<String, String> getSchemeIdResponseMap( CommonParams params )
-    {
-        Map<String, String> responseMap = getDimensionItemIdSchemeMap( params.delegate().getAllDimensionalItemObjects(),
-            params.getOutputIdScheme() );
-
-        if ( params.isGeneralOutputIdSchemeSet() )
-        {
-            // Apply an ID scheme to all data element operands using the general output ID scheme defined.
-            applyIdSchemeMapping( params, responseMap );
-        }
-
-        List<DimensionalItemObject> dataElements = params.delegate().getAllDataElements();
-
-        if ( isNotEmpty( dataElements ) )
-        {
-            // Replace all data elements respecting their ID scheme definition.
-            applyDataElementsIdSchemeMapping( dataElements, responseMap, params.getOutputDataElementIdScheme() );
-        }
-
-        List<DimensionalItemObject> orgUnits = params.delegate().getOrgUnitDimensionOrFilterItems();
-
-        // If "outputOrgUnitIdScheme" is set, we replace all org units values respecting its definition.
-        if ( params.isOutputOrgUnitIdSchemeSet() && isNotEmpty( orgUnits ) )
-        {
-            applyOrgUnitIdSchemeMapping( orgUnits, responseMap, params.getOutputOrgUnitIdScheme() );
-        }
-
-        return responseMap;
+    // This section overrides the general ID scheme, so it can be
+    // fine-grained.
+    if (params.isOutputFormat(DATA_VALUE_SET) && params.isOutputDataElementIdSchemeSet()) {
+      if (!params.getDataElementOperands().isEmpty()) {
+        // Replace all data elements operands respecting their ID
+        // scheme definition.
+        applyDataElementOperandIdSchemeMapping(params, responseMap);
+      } else if (!params.getDataElements().isEmpty()) {
+        // Replace all data elements respecting their ID scheme
+        // definition.
+        applyDataElementsIdSchemeMapping(
+            params.getDataElements(), responseMap, params.getOutputDataElementIdScheme());
+      }
     }
 
-    /**
-     * Substitutes the metadata of the grid with the identifier scheme metadata
-     * property indicated in the query. This happens only when a custom
-     * identifier scheme is specified.
-     *
-     * @param params the {@link EventQueryParams}.
-     * @param grid the {@link Grid}.
-     */
-    public void applyCustomIdScheme( EventQueryParams params, Grid grid )
-    {
-        if ( !params.isSkipMeta() && params.hasCustomIdSchemaSet() )
-        {
-            grid.substituteMetaData( getSchemeIdResponseMap( params ) );
-        }
+    // If "outputOrgUnitIdScheme" is set, we replace all org units
+    // values respecting its definition.
+    if (params.isOutputOrgUnitIdSchemeSet()) {
+      applyOrgUnitIdSchemeMapping(
+          params.getOrganisationUnits(), responseMap, params.getOutputOrgUnitIdScheme());
     }
 
-    /**
-     * Substitutes the metadata of the grid with the identifier scheme metadata
-     * property indicated in the query. This happens only when a custom
-     * identifier scheme is specified.
-     *
-     * @param params the {@link CommonParams}.
-     * @param grid the {@link Grid}.
-     */
-    public void applyCustomIdScheme( CommonParams params, Grid grid )
-    {
-        if ( !params.isSkipMeta() && params.hasCustomIdSchemaSet() )
-        {
-            grid.substituteMetaData( getSchemeIdResponseMap( params ) );
-        }
+    return responseMap;
+  }
+
+  /**
+   * This method will map the respective element UID's with their respective ID scheme set. The
+   * 'outputIdScheme' is considered the most general ID scheme parameter. If set, it will map the
+   * scheme id set to all dimension items.
+   *
+   * <p>The other two ID scheme parameters supported ('outputDataElementIdScheme' and
+   * 'outputOrgUnitIdScheme') will allow fine-grained id scheme definitions on top of the general
+   * 'outputIdScheme'. If they are set, they will override the 'outputIdScheme' definition.
+   *
+   * @param params the {@link CommonParams} where the identifier scheme options are defined. The
+   *     supported URL parameters are outputIdScheme, outputDataElementIdScheme and
+   *     outputOrgUnitIdScheme.
+   * @return a map of UID and mapping value.
+   */
+  public Map<String, String> getSchemeIdResponseMap(CommonParams params) {
+    Map<String, String> responseMap =
+        getDimensionItemIdSchemeMap(
+            params.delegate().getAllDimensionalItemObjects(), params.getOutputIdScheme());
+
+    if (params.isGeneralOutputIdSchemeSet()) {
+      // Apply an ID scheme to all data element operands using the general output ID scheme defined.
+      applyIdSchemeMapping(params, responseMap);
     }
 
-    /**
-     * Substitutes the metadata in the given grid. The replacement will only be
-     * done if the grid header has option set or legend set.
-     *
-     * @param grid the {@link Grid}.
-     * @param idScheme the {@link IdScheme}.
-     */
-    public void applyOptionAndLegendSetMapping( Grid grid, IdScheme idScheme )
-    {
-        if ( idScheme != null )
-        {
-            for ( int i = 0; i < grid.getHeaders().size(); i++ )
-            {
-                GridHeader header = grid.getHeaders().get( i );
+    List<DimensionalItemObject> dataElements = params.delegate().getAllDataElements();
 
-                if ( header.hasOptionSet() )
-                {
-                    Map<String, String> optionMap = header.getOptionSetObject().getOptionCodePropertyMap( idScheme );
-                    grid.substituteMetaData( i, i, optionMap );
-                }
-                else if ( header.hasLegendSet() )
-                {
-                    Map<String, String> legendMap = header.getLegendSetObject().getLegendUidPropertyMap( idScheme );
-                    grid.substituteMetaData( i, i, legendMap );
-                }
-            }
-        }
+    if (isNotEmpty(dataElements)) {
+      // Replace all data elements respecting their ID scheme definition.
+      applyDataElementsIdSchemeMapping(
+          dataElements, responseMap, params.getOutputDataElementIdScheme());
     }
 
-    /**
-     * Based on the given parameters and map, this method will, internally, add
-     * elements into the map based on its own uid. Each element added will have
-     * its associated value based on the current "outputIdScheme".
-     *
-     * @param params the {@link CommonParams}.
-     * @param map to be populated with elements to be replaced.
-     */
-    private void applyIdSchemeMapping( CommonParams params, Map<String, String> map )
-    {
-        if ( isNotEmpty( params.getPrograms() ) )
-        {
-            for ( Program program : params.getPrograms() )
-            {
-                map.put( program.getUid(), program.getPropertyValue( params.getOutputIdScheme() ) );
-            }
-        }
+    List<DimensionalItemObject> orgUnits = params.delegate().getOrgUnitDimensionOrFilterItems();
 
-        if ( isNotEmpty( params.delegate().getProgramStages() ) )
-        {
-            for ( ProgramStage stage : params.delegate().getProgramStages() )
-            {
-                map.put( stage.getUid(), stage.getPropertyValue( params.getOutputIdScheme() ) );
-            }
-        }
-
-        if ( isNotEmpty( params.delegate().getItemsOptions() ) )
-        {
-            Set<Option> options = params.delegate().getItemsOptions();
-
-            for ( Option option : options )
-            {
-                map.put( option.getCode(), option.getPropertyValue( params.getOutputIdScheme() ) );
-            }
-        }
+    // If "outputOrgUnitIdScheme" is set, we replace all org units values respecting its definition.
+    if (params.isOutputOrgUnitIdSchemeSet() && isNotEmpty(orgUnits)) {
+      applyOrgUnitIdSchemeMapping(orgUnits, responseMap, params.getOutputOrgUnitIdScheme());
     }
 
-    /**
-     * Based on the given parameters and map, this method will, internally, add
-     * elements into the map based on its own uid. Each element added will have
-     * its associated value based on the current "outputIdScheme".
-     *
-     * @param params the {@link DataQueryParams}.
-     * @param map to be populated with elements to be replaced.
-     */
-    private void applyIdSchemeMapping( DataQueryParams params, Map<String, String> map )
-    {
-        map.putAll( getDataElementOperandIdSchemeMap(
-            asTypedList( params.getDataElementOperands() ), params.getOutputIdScheme() ) );
+    return responseMap;
+  }
 
-        if ( params.hasProgramStage() )
-        {
-            map.put( params.getProgramStage().getUid(),
-                params.getProgramStage().getPropertyValue( params.getOutputIdScheme() ) );
+  /**
+   * Substitutes the metadata of the grid with the identifier scheme metadata property indicated in
+   * the query. This happens only when a custom identifier scheme is specified.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param grid the {@link Grid}.
+   */
+  public void applyCustomIdScheme(EventQueryParams params, Grid grid) {
+    if (!params.isSkipMeta() && params.hasCustomIdSchemaSet()) {
+      grid.substituteMetaData(getSchemeIdResponseMap(params));
+    }
+  }
+
+  /**
+   * Substitutes the metadata of the grid with the identifier scheme metadata property indicated in
+   * the query. This happens only when a custom identifier scheme is specified.
+   *
+   * @param params the {@link CommonParams}.
+   * @param grid the {@link Grid}.
+   */
+  public void applyCustomIdScheme(CommonParams params, Grid grid) {
+    if (!params.isSkipMeta() && params.hasCustomIdSchemaSet()) {
+      grid.substituteMetaData(getSchemeIdResponseMap(params));
+    }
+  }
+
+  /**
+   * Substitutes the metadata in the given grid. The replacement will only be done if the grid
+   * header has option set or legend set.
+   *
+   * @param grid the {@link Grid}.
+   * @param idScheme the {@link IdScheme}.
+   */
+  public void applyOptionAndLegendSetMapping(Grid grid, IdScheme idScheme) {
+    if (idScheme != null) {
+      for (int i = 0; i < grid.getHeaders().size(); i++) {
+        GridHeader header = grid.getHeaders().get(i);
+
+        if (header.hasOptionSet()) {
+          Map<String, String> optionMap =
+              header.getOptionSetObject().getOptionCodePropertyMap(idScheme);
+          grid.substituteMetaData(i, i, optionMap);
+        } else if (header.hasLegendSet()) {
+          Map<String, String> legendMap =
+              header.getLegendSetObject().getLegendUidPropertyMap(idScheme);
+          grid.substituteMetaData(i, i, legendMap);
         }
+      }
+    }
+  }
 
-        if ( params.hasProgram() )
-        {
-            map.put( params.getProgram().getUid(), params.getProgram().getPropertyValue( params.getOutputIdScheme() ) );
-        }
-
-        if ( params instanceof EventQueryParams
-            && isNotEmpty( ((EventQueryParams) params).getItemOptions() ) )
-        {
-            Set<Option> options = ((EventQueryParams) params).getItemOptions();
-
-            for ( Option option : options )
-            {
-                map.put( option.getCode(), option.getPropertyValue( params.getOutputIdScheme() ) );
-            }
-        }
+  /**
+   * Based on the given parameters and map, this method will, internally, add elements into the map
+   * based on its own uid. Each element added will have its associated value based on the current
+   * "outputIdScheme".
+   *
+   * @param params the {@link CommonParams}.
+   * @param map to be populated with elements to be replaced.
+   */
+  private void applyIdSchemeMapping(CommonParams params, Map<String, String> map) {
+    if (isNotEmpty(params.getPrograms())) {
+      for (Program program : params.getPrograms()) {
+        map.put(program.getUid(), program.getPropertyValue(params.getOutputIdScheme()));
+      }
     }
 
-    private void applyDataElementOperandIdSchemeMapping( DataQueryParams params, Map<String, String> map )
-    {
-        map.putAll( getDataElementOperandIdSchemeMap( asTypedList( params.getDataElementOperands() ),
-            params.getOutputDataElementIdScheme() ) );
+    if (isNotEmpty(params.delegate().getProgramStages())) {
+      for (ProgramStage stage : params.delegate().getProgramStages()) {
+        map.put(stage.getUid(), stage.getPropertyValue(params.getOutputIdScheme()));
+      }
     }
 
-    private void applyDataElementsIdSchemeMapping( List<DimensionalItemObject> dataElements, Map<String, String> map,
-        IdScheme outputDataElementIdScheme )
-    {
-        map.putAll( getDimensionItemIdSchemeMap( asTypedList( dataElements ), outputDataElementIdScheme ) );
+    if (isNotEmpty(params.delegate().getItemsOptions())) {
+      Set<Option> options = params.delegate().getItemsOptions();
+
+      for (Option option : options) {
+        map.put(option.getCode(), option.getPropertyValue(params.getOutputIdScheme()));
+      }
+    }
+  }
+
+  /**
+   * Based on the given parameters and map, this method will, internally, add elements into the map
+   * based on its own uid. Each element added will have its associated value based on the current
+   * "outputIdScheme".
+   *
+   * @param params the {@link DataQueryParams}.
+   * @param map to be populated with elements to be replaced.
+   */
+  private void applyIdSchemeMapping(DataQueryParams params, Map<String, String> map) {
+    map.putAll(
+        getDataElementOperandIdSchemeMap(
+            asTypedList(params.getDataElementOperands()), params.getOutputIdScheme()));
+
+    if (params.hasProgramStage()) {
+      map.put(
+          params.getProgramStage().getUid(),
+          params.getProgramStage().getPropertyValue(params.getOutputIdScheme()));
     }
 
-    private void applyOrgUnitIdSchemeMapping( List<DimensionalItemObject> orgUnits, Map<String, String> map,
-        IdScheme outputOrgUnitIdScheme )
-    {
-        map.putAll( getDimensionItemIdSchemeMap( asTypedList( orgUnits ), outputOrgUnitIdScheme ) );
+    if (params.hasProgram()) {
+      map.put(
+          params.getProgram().getUid(),
+          params.getProgram().getPropertyValue(params.getOutputIdScheme()));
     }
+
+    if (params instanceof EventQueryParams
+        && isNotEmpty(((EventQueryParams) params).getItemOptions())) {
+      Set<Option> options = ((EventQueryParams) params).getItemOptions();
+
+      for (Option option : options) {
+        map.put(option.getCode(), option.getPropertyValue(params.getOutputIdScheme()));
+      }
+    }
+  }
+
+  private void applyDataElementOperandIdSchemeMapping(
+      DataQueryParams params, Map<String, String> map) {
+    map.putAll(
+        getDataElementOperandIdSchemeMap(
+            asTypedList(params.getDataElementOperands()), params.getOutputDataElementIdScheme()));
+  }
+
+  private void applyDataElementsIdSchemeMapping(
+      List<DimensionalItemObject> dataElements,
+      Map<String, String> map,
+      IdScheme outputDataElementIdScheme) {
+    map.putAll(getDimensionItemIdSchemeMap(asTypedList(dataElements), outputDataElementIdScheme));
+  }
+
+  private void applyOrgUnitIdSchemeMapping(
+      List<DimensionalItemObject> orgUnits,
+      Map<String, String> map,
+      IdScheme outputOrgUnitIdScheme) {
+    map.putAll(getDimensionItemIdSchemeMap(asTypedList(orgUnits), outputOrgUnitIdScheme));
+  }
 }

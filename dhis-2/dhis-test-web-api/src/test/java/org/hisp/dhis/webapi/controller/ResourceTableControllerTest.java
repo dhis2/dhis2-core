@@ -44,60 +44,72 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-class ResourceTableControllerTest extends DhisControllerConvenienceTest
-{
+class ResourceTableControllerTest extends DhisControllerConvenienceTest {
 
-    @Autowired
-    private SchedulingManager schedulingManager;
+  @Autowired private SchedulingManager schedulingManager;
 
-    @BeforeEach
-    void setUp()
-    {
-        ((TestSchedulingManager) schedulingManager).setEnabled( false );
-    }
+  @BeforeEach
+  void setUp() {
+    ((TestSchedulingManager) schedulingManager).setEnabled(false);
+  }
 
-    @AfterEach
-    void tearDown()
-    {
-        TestSchedulingManager testSchedulingManager = (TestSchedulingManager) schedulingManager;
-        testSchedulingManager.setEnabled( true );
-        testSchedulingManager.setRunning( false );
-    }
+  @AfterEach
+  void tearDown() {
+    TestSchedulingManager testSchedulingManager = (TestSchedulingManager) schedulingManager;
+    testSchedulingManager.setEnabled(true);
+    testSchedulingManager.setRunning(false);
+  }
 
-    @Test
-    void testAnalytics()
-    {
-        assertWebMessage( "OK", 200, "OK", "Initiated inMemoryAnalyticsJob",
-            POST( "/resourceTables/analytics" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testAnalytics() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Initiated inMemoryAnalyticsJob",
+        POST("/resourceTables/analytics").content(HttpStatus.OK));
+  }
 
-    @Test
-    void testAnalytics_SecondRequestWhileRunning()
-    {
-        assertWebMessage( "OK", 200, "OK", "Initiated inMemoryAnalyticsJob",
-            POST( "/resourceTables/analytics" ).content( HttpStatus.OK ) );
+  @Test
+  void testAnalytics_SecondRequestWhileRunning() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Initiated inMemoryAnalyticsJob",
+        POST("/resourceTables/analytics").content(HttpStatus.OK));
 
-        // we fake that the first request above would internally still run (in
-        // tests it never starts)
-        ((TestSchedulingManager) schedulingManager).setRunning( true );
+    // we fake that the first request above would internally still run (in
+    // tests it never starts)
+    ((TestSchedulingManager) schedulingManager).setRunning(true);
 
-        JsonWebMessage message = assertWebMessage( "Conflict", 409, "ERROR",
+    JsonWebMessage message =
+        assertWebMessage(
+            "Conflict",
+            409,
+            "ERROR",
             "Job of type ANALYTICS_TABLE is already running",
-            POST( "/resourceTables/analytics" ).content( HttpStatus.CONFLICT ) );
-        assertEquals( "FAILED", message.getResponse().getString( "jobStatus" ).string() );
-    }
+            POST("/resourceTables/analytics").content(HttpStatus.CONFLICT));
+    assertEquals("FAILED", message.getResponse().getString("jobStatus").string());
+  }
 
-    @Test
-    void testResourceTables()
-    {
-        assertWebMessage( "OK", 200, "OK", "Initiated inMemoryResourceTableJob",
-            POST( "/resourceTables" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testResourceTables() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Initiated inMemoryResourceTableJob",
+        POST("/resourceTables").content(HttpStatus.OK));
+  }
 
-    @Test
-    void testMonitoring()
-    {
-        assertWebMessage( "OK", 200, "OK", "Initiated inMemoryMonitoringJob",
-            POST( "/resourceTables/monitoring" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testMonitoring() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Initiated inMemoryMonitoringJob",
+        POST("/resourceTables/monitoring").content(HttpStatus.OK));
+  }
 }

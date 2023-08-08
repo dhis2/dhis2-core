@@ -28,26 +28,23 @@
 package org.hisp.dhis.programrule;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author markusbekken
  */
-public interface ProgramRuleActionStore
-    extends IdentifiableObjectStore<ProgramRuleAction>
-{
-    /**
-     * Get programRuleAction by program
-     *
-     * @param programRule {@link ProgramRule}
-     * @return ProgramRuleActionVariable list
-     */
-    List<ProgramRuleAction> get( ProgramRule programRule );
+public interface ProgramRuleActionStore extends IdentifiableObjectStore<ProgramRuleAction> {
+  /**
+   * Get programRuleAction by program
+   *
+   * @param programRule {@link ProgramRule}
+   * @return ProgramRuleActionVariable list
+   */
+  List<ProgramRuleAction> get(ProgramRule programRule);
 
-    List<ProgramRuleAction> getProgramActionsWithNoDataObject();
+  List<ProgramRuleAction> getProgramActionsWithNoDataObject();
 
-    List<ProgramRuleAction> getProgramActionsWithNoNotification();
+  List<ProgramRuleAction> getProgramActionsWithNoNotification();
 
-    List<ProgramRuleAction> getMalFormedRuleActionsByType( ProgramRuleActionType type );
+  List<ProgramRuleAction> getMalFormedRuleActionsByType(ProgramRuleActionType type);
 }

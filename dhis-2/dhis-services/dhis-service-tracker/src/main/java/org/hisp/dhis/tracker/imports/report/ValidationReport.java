@@ -27,163 +27,140 @@
  */
 package org.hisp.dhis.tracker.imports.report;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import org.hisp.dhis.tracker.imports.validation.Validation;
 import org.hisp.dhis.tracker.imports.validation.ValidationResult;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @ToString
 @EqualsAndHashCode
-public class ValidationReport
-{
-    @JsonProperty( "errorReports" )
-    private final List<Error> errors;
+public class ValidationReport {
+  @JsonProperty("errorReports")
+  private final List<Error> errors;
 
-    @JsonProperty( "warningReports" )
-    private final List<Warning> warnings;
+  @JsonProperty("warningReports")
+  private final List<Warning> warnings;
 
-    public static ValidationReport emptyReport()
-    {
-        return new ValidationReport();
+  public static ValidationReport emptyReport() {
+    return new ValidationReport();
+  }
+
+  public static ValidationReport merge(
+      ValidationResult validationResult, ValidationResult anotherValidationResult) {
+    ValidationReport validationReport = fromResult(validationResult);
+    ValidationReport anotherValidationReport = fromResult(anotherValidationResult);
+    validationReport.addErrors(anotherValidationReport.getErrors());
+    validationReport.addWarnings(anotherValidationReport.getWarnings());
+    return validationReport;
+  }
+
+  public static ValidationReport fromResult(ValidationResult validationResult) {
+    ValidationReport validationReport = new ValidationReport();
+    validationReport.addErrors(convertToError(List.copyOf(validationResult.getErrors())));
+    validationReport.addWarnings(convertToWarning(List.copyOf(validationResult.getWarnings())));
+    return validationReport;
+  }
+
+  private static List<Error> convertToError(List<Validation> errors) {
+    return errors.stream()
+        .map(
+            e ->
+                Error.builder()
+                    .errorMessage(e.getMessage())
+                    .errorCode(e.getCode())
+                    .trackerType(e.getType())
+                    .uid(e.getUid())
+                    .build())
+        .collect(Collectors.toList());
+  }
+
+  private static List<Warning> convertToWarning(List<Validation> warnings) {
+    return warnings.stream()
+        .map(
+            e ->
+                Warning.builder()
+                    .warningMessage(e.getMessage())
+                    .warningCode(e.getCode())
+                    .trackerType(e.getType())
+                    .uid(e.getUid())
+                    .build())
+        .collect(Collectors.toList());
+  }
+
+  private ValidationReport() {
+    this.errors = new ArrayList<>();
+    this.warnings = new ArrayList<>();
+  }
+
+  public ValidationReport(List<Error> errors, List<Warning> warnings) {
+    this.errors = errors;
+    this.warnings = warnings;
+  }
+
+  // -----------------------------------------------------------------------------------
+  // Utility Methods
+  // -----------------------------------------------------------------------------------
+
+  public List<Error> getErrors() {
+    return Collections.unmodifiableList(errors);
+  }
+
+  public List<Warning> getWarnings() {
+    return Collections.unmodifiableList(warnings);
+  }
+
+  public boolean hasErrors() {
+    return !errors.isEmpty();
+  }
+
+  public boolean hasError(Predicate<Error> test) {
+    return errors.stream().anyMatch(test);
+  }
+
+  public boolean hasWarnings() {
+    return !warnings.isEmpty();
+  }
+
+  public boolean hasWarning(Predicate<Warning> test) {
+    return warnings.stream().anyMatch(test);
+  }
+
+  /** Returns the size of all the Tracker DTO that did not pass validation */
+  public long size() {
+
+    return this.getErrors().stream().map(Error::getUid).distinct().count();
+  }
+
+  public void addErrors(List<Error> errors) {
+    for (Error error : errors) {
+      addErrorIfNotExisting(error);
     }
+  }
 
-    public static ValidationReport merge( ValidationResult validationResult, ValidationResult anotherValidationResult )
-    {
-        ValidationReport validationReport = fromResult( validationResult );
-        ValidationReport anotherValidationReport = fromResult( anotherValidationResult );
-        validationReport.addErrors( anotherValidationReport.getErrors() );
-        validationReport.addWarnings( anotherValidationReport.getWarnings() );
-        return validationReport;
+  public void addWarnings(List<Warning> warnings) {
+    for (Warning warning : warnings) {
+      addWarningIfNotExisting(warning);
     }
+  }
 
-    public static ValidationReport fromResult( ValidationResult validationResult )
-    {
-        ValidationReport validationReport = new ValidationReport();
-        validationReport.addErrors( convertToError( List.copyOf( validationResult.getErrors() ) ) );
-        validationReport.addWarnings( convertToWarning( List.copyOf( validationResult.getWarnings() ) ) );
-        return validationReport;
+  private void addErrorIfNotExisting(Error error) {
+    if (!this.errors.contains(error)) {
+      this.errors.add(error);
     }
+  }
 
-    private static List<Error> convertToError( List<Validation> errors )
-    {
-        return errors.stream()
-            .map( e -> Error.builder()
-                .errorMessage( e.getMessage() )
-                .errorCode( e.getCode() )
-                .trackerType( e.getType() )
-                .uid( e.getUid() )
-                .build() )
-            .collect( Collectors.toList() );
+  private void addWarningIfNotExisting(Warning warning) {
+    if (!this.warnings.contains(warning)) {
+      this.warnings.add(warning);
     }
-
-    private static List<Warning> convertToWarning( List<Validation> warnings )
-    {
-        return warnings.stream()
-            .map( e -> Warning.builder()
-                .warningMessage( e.getMessage() )
-                .warningCode( e.getCode() )
-                .trackerType( e.getType() )
-                .uid( e.getUid() )
-                .build() )
-            .collect( Collectors.toList() );
-    }
-
-    private ValidationReport()
-    {
-        this.errors = new ArrayList<>();
-        this.warnings = new ArrayList<>();
-    }
-
-    public ValidationReport( List<Error> errors, List<Warning> warnings )
-    {
-        this.errors = errors;
-        this.warnings = warnings;
-    }
-
-    // -----------------------------------------------------------------------------------
-    // Utility Methods
-    // -----------------------------------------------------------------------------------
-
-    public List<Error> getErrors()
-    {
-        return Collections.unmodifiableList( errors );
-    }
-
-    public List<Warning> getWarnings()
-    {
-        return Collections.unmodifiableList( warnings );
-    }
-
-    public boolean hasErrors()
-    {
-        return !errors.isEmpty();
-    }
-
-    public boolean hasError( Predicate<Error> test )
-    {
-        return errors.stream().anyMatch( test );
-    }
-
-    public boolean hasWarnings()
-    {
-        return !warnings.isEmpty();
-    }
-
-    public boolean hasWarning( Predicate<Warning> test )
-    {
-        return warnings.stream().anyMatch( test );
-    }
-
-    /**
-     * Returns the size of all the Tracker DTO that did not pass validation
-     */
-    public long size()
-    {
-
-        return this.getErrors().stream().map( Error::getUid ).distinct().count();
-    }
-
-    public void addErrors( List<Error> errors )
-    {
-        for ( Error error : errors )
-        {
-            addErrorIfNotExisting( error );
-        }
-    }
-
-    public void addWarnings( List<Warning> warnings )
-    {
-        for ( Warning warning : warnings )
-        {
-            addWarningIfNotExisting( warning );
-        }
-    }
-
-    private void addErrorIfNotExisting( Error error )
-    {
-        if ( !this.errors.contains( error ) )
-        {
-            this.errors.add( error );
-        }
-    }
-
-    private void addWarningIfNotExisting( Warning warning )
-    {
-        if ( !this.warnings.contains( warning ) )
-        {
-            this.warnings.add( warning );
-        }
-    }
+  }
 }

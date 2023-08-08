@@ -36,22 +36,19 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.security.AuthoritiesController}.
+ * Tests the {@link org.hisp.dhis.webapi.controller.security.AuthoritiesController}.
  *
  * @author Jan Bernitt
  */
-class AuthoritiesControllerTest extends DhisControllerConvenienceTest
-{
+class AuthoritiesControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testGetAuthorities()
-    {
-        JsonArray systemAuthorities = GET( "/authorities" ).content().getArray( "systemAuthorities" );
-        assertTrue( systemAuthorities.size() > 10 );
-        // its sorted
-        JsonObject all = systemAuthorities.getObject( 0 );
-        assertEquals( "ALL", all.getString( "id" ).string() );
-        assertEquals( "ALL", all.getString( "name" ).string() );
-    }
+  @Test
+  void testGetAuthorities() {
+    JsonArray systemAuthorities = GET("/authorities").content().getArray("systemAuthorities");
+    assertTrue(systemAuthorities.size() > 10);
+    // its sorted
+    JsonObject all = systemAuthorities.getObject(0);
+    assertEquals("ALL", all.getString("id").string());
+    assertEquals("ALL", all.getString("name").string());
+  }
 }

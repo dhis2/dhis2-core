@@ -28,7 +28,6 @@
 package org.hisp.dhis.dataapproval;
 
 import java.util.Map;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
@@ -38,33 +37,28 @@ import org.springframework.stereotype.Component;
  * @author Jim Grace
  */
 @Component
-public class DataApprovalDeletionHandler extends JdbcDeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( DataApproval.class );
+public class DataApprovalDeletionHandler extends JdbcDeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(DataApproval.class);
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( DataApprovalLevel.class, this::allowDeleteDataApprovalLevel );
-        whenVetoing( DataApprovalWorkflow.class, this::allowDeleteDataApprovalWorkflow );
-        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(DataApprovalLevel.class, this::allowDeleteDataApprovalLevel);
+    whenVetoing(DataApprovalWorkflow.class, this::allowDeleteDataApprovalWorkflow);
+    whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
+  }
 
-    private DeletionVeto allowDeleteDataApprovalLevel( DataApprovalLevel dataApprovalLevel )
-    {
-        String sql = "select 1 from dataapproval where dataapprovallevelid=:id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", dataApprovalLevel.getId() ) );
-    }
+  private DeletionVeto allowDeleteDataApprovalLevel(DataApprovalLevel dataApprovalLevel) {
+    String sql = "select 1 from dataapproval where dataapprovallevelid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", dataApprovalLevel.getId()));
+  }
 
-    private DeletionVeto allowDeleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
-    {
-        String sql = "select 1 from dataapproval where workflowid=:id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", workflow.getId() ) );
-    }
+  private DeletionVeto allowDeleteDataApprovalWorkflow(DataApprovalWorkflow workflow) {
+    String sql = "select 1 from dataapproval where workflowid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", workflow.getId()));
+  }
 
-    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
-    {
-        String sql = "select 1 from dataapproval where attributeoptioncomboid=:id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", optionCombo.getId() ) );
-    }
+  private DeletionVeto allowDeleteCategoryOptionCombo(CategoryOptionCombo optionCombo) {
+    String sql = "select 1 from dataapproval where attributeoptioncomboid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", optionCombo.getId()));
+  }
 }

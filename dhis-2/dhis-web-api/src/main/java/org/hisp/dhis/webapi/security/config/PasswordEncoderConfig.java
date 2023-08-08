@@ -37,13 +37,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Configuration
-@Order( 903 )
-public class PasswordEncoderConfig
-{
-    @Bean
-    public PasswordEncoder passwordEncoder()
-    {
-        return new BCryptPasswordEncoder();
-    }
-
+@Order(903)
+public class PasswordEncoderConfig {
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
 }

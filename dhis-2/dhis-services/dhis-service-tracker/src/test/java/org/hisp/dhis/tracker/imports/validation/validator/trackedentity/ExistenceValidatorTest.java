@@ -50,139 +50,123 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class ExistenceValidatorTest
-{
-    private final static String SOFT_DELETED_TEI_UID = "SoftDeletedTEIId";
+@ExtendWith(MockitoExtension.class)
+class ExistenceValidatorTest {
+  private static final String SOFT_DELETED_TE_UID = "SoftDeletedTEIId";
 
-    private final static String TEI_UID = "TEIId";
+  private static final String TE_UID = "TEIId";
 
-    private final static String NOT_PRESENT_TEI_UID = "NotPresentTEIId";
+  private static final String NOT_PRESENT_TE_UID = "NotPresentTEIId";
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private ExistenceValidator validator;
+  private ExistenceValidator validator;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    void setUp()
-    {
-        when( bundle.getPreheat() ).thenReturn( preheat );
+  @BeforeEach
+  void setUp() {
+    when(bundle.getPreheat()).thenReturn(preheat);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
 
-        validator = new ExistenceValidator();
-    }
+    validator = new ExistenceValidator();
+  }
 
-    @Test
-    void verifyTrackedEntityValidationSuccessWhenIsCreateAndTeiIsNotPresent()
-    {
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = org.hisp.dhis.tracker.imports.domain.TrackedEntity
-            .builder()
-            .trackedEntity( NOT_PRESENT_TEI_UID )
+  @Test
+  void verifyTrackedEntityValidationSuccessWhenIsCreateAndTeiIsNotPresent() {
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+            .trackedEntity(NOT_PRESENT_TE_UID)
             .build();
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE);
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyTrackedEntityValidationSuccessWhenTeiIsNotPresent()
-    {
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = org.hisp.dhis.tracker.imports.domain.TrackedEntity
-            .builder()
-            .trackedEntity( NOT_PRESENT_TEI_UID )
+  @Test
+  void verifyTrackedEntityValidationSuccessWhenTeiIsNotPresent() {
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+            .trackedEntity(NOT_PRESENT_TE_UID)
             .build();
-        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.TrackedEntity.class ) ) )
-            .thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+    when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.TrackedEntity.class)))
+        .thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyTrackedEntityValidationSuccessWhenIsUpdate()
-    {
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = org.hisp.dhis.tracker.imports.domain.TrackedEntity
-            .builder()
-            .trackedEntity( TEI_UID )
+  @Test
+  void verifyTrackedEntityValidationSuccessWhenIsUpdate() {
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder().trackedEntity(TE_UID).build();
+    when(preheat.getTrackedEntity(TE_UID)).thenReturn(trackedEntity());
+    when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.TrackedEntity.class)))
+        .thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+
+    validator.validate(reporter, bundle, trackedEntity);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void verifyTrackedEntityValidationFailsWhenIsSoftDeleted() {
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+            .trackedEntity(SOFT_DELETED_TE_UID)
             .build();
-        when( preheat.getTrackedEntity( TEI_UID ) ).thenReturn( getTei() );
-        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.TrackedEntity.class ) ) )
-            .thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+    when(preheat.getTrackedEntity(SOFT_DELETED_TE_UID)).thenReturn(getSoftDeletedTei());
+    when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.TrackedEntity.class)))
+        .thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertHasError(reporter, trackedEntity, E1114);
+  }
 
-    @Test
-    void verifyTrackedEntityValidationFailsWhenIsSoftDeleted()
-    {
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = org.hisp.dhis.tracker.imports.domain.TrackedEntity
-            .builder()
-            .trackedEntity( SOFT_DELETED_TEI_UID )
+  @Test
+  void verifyTrackedEntityValidationFailsWhenIsCreateAndTeAlreadyPresent() {
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder().trackedEntity(TE_UID).build();
+    when(preheat.getTrackedEntity(TE_UID)).thenReturn(trackedEntity());
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE);
+
+    validator.validate(reporter, bundle, trackedEntity);
+
+    assertHasError(reporter, trackedEntity, E1002);
+  }
+
+  @Test
+  void verifyTrackedEntityValidationFailsWhenIsUpdateAndTeNotPresent() {
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+            .trackedEntity(NOT_PRESENT_TE_UID)
             .build();
-        when( preheat.getTrackedEntity( SOFT_DELETED_TEI_UID ) ).thenReturn( getSoftDeletedTei() );
-        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.TrackedEntity.class ) ) )
-            .thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.UPDATE);
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertHasError( reporter, trackedEntity, E1114 );
-    }
+    assertHasError(reporter, trackedEntity, E1063);
+  }
 
-    @Test
-    void verifyTrackedEntityValidationFailsWhenIsCreateAndTEIIsAlreadyPresent()
-    {
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = org.hisp.dhis.tracker.imports.domain.TrackedEntity
-            .builder()
-            .trackedEntity( TEI_UID )
-            .build();
-        when( preheat.getTrackedEntity( TEI_UID ) ).thenReturn( getTei() );
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
+  private TrackedEntity getSoftDeletedTei() {
+    TrackedEntity trackedEntity = new TrackedEntity();
+    trackedEntity.setUid(SOFT_DELETED_TE_UID);
+    trackedEntity.setDeleted(true);
+    return trackedEntity;
+  }
 
-        validator.validate( reporter, bundle, trackedEntity );
-
-        assertHasError( reporter, trackedEntity, E1002 );
-    }
-
-    @Test
-    void verifyTrackedEntityValidationFailsWhenIsUpdateAndTEIIsNotPresent()
-    {
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = org.hisp.dhis.tracker.imports.domain.TrackedEntity
-            .builder()
-            .trackedEntity( NOT_PRESENT_TEI_UID )
-            .build();
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.UPDATE );
-
-        validator.validate( reporter, bundle, trackedEntity );
-
-        assertHasError( reporter, trackedEntity, E1063 );
-    }
-
-    private TrackedEntity getSoftDeletedTei()
-    {
-        TrackedEntity trackedEntity = new TrackedEntity();
-        trackedEntity.setUid( SOFT_DELETED_TEI_UID );
-        trackedEntity.setDeleted( true );
-        return trackedEntity;
-    }
-
-    private TrackedEntity getTei()
-    {
-        TrackedEntity trackedEntity = new TrackedEntity();
-        trackedEntity.setUid( TEI_UID );
-        trackedEntity.setDeleted( false );
-        return trackedEntity;
-    }
+  private TrackedEntity trackedEntity() {
+    TrackedEntity trackedEntity = new TrackedEntity();
+    trackedEntity.setUid(TE_UID);
+    trackedEntity.setDeleted(false);
+    return trackedEntity;
+  }
 }

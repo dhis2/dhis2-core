@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.web.HttpStatus;
@@ -36,82 +38,65 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author viet@dhis2.org
  */
-public class ProgramSectionControllerTest
-    extends DhisControllerConvenienceTest
-{
-    @Autowired
-    private ObjectMapper jsonMapper;
+public class ProgramSectionControllerTest extends DhisControllerConvenienceTest {
+  @Autowired private ObjectMapper jsonMapper;
 
-    @Test
-    public void testCreateWithProgramSection()
-        throws JsonProcessingException
-    {
-        switchToNewUser( "test", "F_PROGRAM_PUBLIC_ADD" );
-        Program program = createProgram( 'A' );
+  @Test
+  public void testCreateWithProgramSection() throws JsonProcessingException {
+    switchToNewUser("test", "F_PROGRAM_PUBLIC_ADD");
+    Program program = createProgram('A');
 
-        ProgramSection programSection = createProgramSection( 'A', program );
+    ProgramSection programSection = createProgramSection('A', program);
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/programs", jsonMapper.writeValueAsString( program ) ) );
+    assertStatus(HttpStatus.CREATED, POST("/programs", jsonMapper.writeValueAsString(program)));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/programSections", jsonMapper.writeValueAsString( programSection ) ) );
-    }
+    assertStatus(
+        HttpStatus.CREATED,
+        POST("/programSections", jsonMapper.writeValueAsString(programSection)));
+  }
 
-    @Test
-    public void testWithoutAuthority()
-        throws JsonProcessingException
-    {
-        Program program = createProgram( 'A' );
-        assertStatus( HttpStatus.CREATED,
-            POST( "/programs", jsonMapper.writeValueAsString( program ) ) );
-        ProgramSection programSection = createProgramSection( 'A', program );
+  @Test
+  public void testWithoutAuthority() throws JsonProcessingException {
+    Program program = createProgram('A');
+    assertStatus(HttpStatus.CREATED, POST("/programs", jsonMapper.writeValueAsString(program)));
+    ProgramSection programSection = createProgramSection('A', program);
 
-        switchToNewUser( "test" );
-        assertStatus( HttpStatus.CREATED,
-            POST( "/programSections", jsonMapper.writeValueAsString( programSection ) ) );
-    }
+    switchToNewUser("test");
+    assertStatus(
+        HttpStatus.CREATED,
+        POST("/programSections", jsonMapper.writeValueAsString(programSection)));
+  }
 
-    @Test
-    public void testDeleteProgramSectionNoAuthority()
-        throws JsonProcessingException
-    {
-        Program program = createProgram( 'A' );
-        assertStatus( HttpStatus.CREATED,
-            POST( "/programs", jsonMapper.writeValueAsString( program ) ) );
-        ProgramSection programSection = createProgramSection( 'A', program );
-        String programSectionId = programSection.getUid();
+  @Test
+  public void testDeleteProgramSectionNoAuthority() throws JsonProcessingException {
+    Program program = createProgram('A');
+    assertStatus(HttpStatus.CREATED, POST("/programs", jsonMapper.writeValueAsString(program)));
+    ProgramSection programSection = createProgramSection('A', program);
+    String programSectionId = programSection.getUid();
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/programSections", jsonMapper.writeValueAsString( programSection ) ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST("/programSections", jsonMapper.writeValueAsString(programSection)));
 
-        switchToNewUser( "test" );
-        assertStatus( HttpStatus.FORBIDDEN,
-            DELETE( "/programSections/" + programSectionId ) );
-    }
+    switchToNewUser("test");
+    assertStatus(HttpStatus.FORBIDDEN, DELETE("/programSections/" + programSectionId));
+  }
 
-    @Test
-    public void testDeleteProgramSection()
-        throws JsonProcessingException
-    {
-        switchToNewUser( "test", "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_DELETE" );
-        Program program = createProgram( 'A' );
-        assertStatus( HttpStatus.CREATED,
-            POST( "/programs", jsonMapper.writeValueAsString( program ) ) );
-        ProgramSection programSection = createProgramSection( 'A', program );
-        String programSectionId = programSection.getUid();
+  @Test
+  public void testDeleteProgramSection() throws JsonProcessingException {
+    switchToNewUser("test", "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_DELETE");
+    Program program = createProgram('A');
+    assertStatus(HttpStatus.CREATED, POST("/programs", jsonMapper.writeValueAsString(program)));
+    ProgramSection programSection = createProgramSection('A', program);
+    String programSectionId = programSection.getUid();
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/programSections", jsonMapper.writeValueAsString( programSection ) ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST("/programSections", jsonMapper.writeValueAsString(programSection)));
 
-        assertStatus( HttpStatus.OK,
-            DELETE( "/programSections/" + programSectionId ) );
-
-    }
+    assertStatus(HttpStatus.OK, DELETE("/programSections/" + programSectionId));
+  }
 }

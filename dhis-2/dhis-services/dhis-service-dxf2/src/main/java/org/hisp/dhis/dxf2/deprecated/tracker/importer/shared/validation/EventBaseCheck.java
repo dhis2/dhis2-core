@@ -37,7 +37,6 @@ import static org.hisp.dhis.util.DateUtils.removeTimeStamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.Checker;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
@@ -50,93 +49,80 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class EventBaseCheck implements Checker
-{
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
-    {
-        ImportSummary importSummary = new ImportSummary();
-        List<String> errors = validate( event, ctx );
+public class EventBaseCheck implements Checker {
+  @Override
+  public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
+    ImportSummary importSummary = new ImportSummary();
+    List<String> errors = validate(event, ctx);
 
-        if ( !errors.isEmpty() )
-        {
-            importSummary.setStatus( ERROR );
-            importSummary.setReference( event.getEvent() );
-            errors.forEach( error -> importSummary.addConflict( "Event", error ) );
-            importSummary.incrementIgnored();
+    if (!errors.isEmpty()) {
+      importSummary.setStatus(ERROR);
+      importSummary.setReference(event.getEvent());
+      errors.forEach(error -> importSummary.addConflict("Event", error));
+      importSummary.incrementIgnored();
+    }
+    return importSummary;
+  }
 
-        }
-        return importSummary;
+  private List<String> validate(ImmutableEvent event, WorkContext ctx) {
+    List<String> errors = new ArrayList<>();
+
+    validateDates(event, errors);
+
+    validateProgramInstance(event, ctx, errors);
+
+    return errors;
+  }
+
+  private void validateDates(ImmutableEvent event, List<String> errors) {
+    if (event.getDueDate() != null && !dateIsValid(event.getDueDate())) {
+      errors.add("Invalid event due date: " + event.getDueDate());
     }
 
-    private List<String> validate( ImmutableEvent event, WorkContext ctx )
-    {
-        List<String> errors = new ArrayList<>();
-
-        validateDates( event, errors );
-
-        validateProgramInstance( event, ctx, errors );
-
-        return errors;
+    if (event.getEventDate() != null && !dateIsValid(event.getEventDate())) {
+      errors.add("Invalid event date: " + event.getEventDate());
     }
 
-    private void validateDates( ImmutableEvent event, List<String> errors )
-    {
-        if ( event.getDueDate() != null && !dateIsValid( event.getDueDate() ) )
-        {
-            errors.add( "Invalid event due date: " + event.getDueDate() );
-        }
-
-        if ( event.getEventDate() != null && !dateIsValid( event.getEventDate() ) )
-        {
-            errors.add( "Invalid event date: " + event.getEventDate() );
-        }
-
-        if ( event.getCreatedAtClient() != null && !dateIsValid( event.getCreatedAtClient() ) )
-        {
-            errors.add( "Invalid event created at client date: " + event.getCreatedAtClient() );
-        }
-
-        if ( event.getLastUpdatedAtClient() != null && !dateIsValid( event.getLastUpdatedAtClient() ) )
-        {
-            errors.add( "Invalid event last updated at client date: " + event.getLastUpdatedAtClient() );
-        }
+    if (event.getCreatedAtClient() != null && !dateIsValid(event.getCreatedAtClient())) {
+      errors.add("Invalid event created at client date: " + event.getCreatedAtClient());
     }
 
-    private void validateProgramInstance( ImmutableEvent event, WorkContext ctx, List<String> errors )
-    {
-
-        Enrollment enrollment = ctx.getProgramInstanceMap().get( event.getUid() );
-        ImportOptions importOptions = ctx.getImportOptions();
-
-        if ( enrollment == null )
-        {
-            errors.add( "No enrollment found for event: " + event.getEvent() );
-
-        }
-        else if ( COMPLETED.equals( enrollment.getStatus() ) )
-        {
-            if ( importOptions == null || importOptions.getUser() == null
-                || importOptions.getUser().isAuthorized( F_EDIT_EXPIRED.getAuthority() ) )
-            {
-                return;
-            }
-
-            Date referenceDate = parseDate( event.getCreated() );
-
-            if ( referenceDate == null )
-            {
-                referenceDate = new Date();
-            }
-
-            referenceDate = removeTimeStamp( referenceDate );
-
-            if ( referenceDate.after( removeTimeStamp( enrollment.getEndDate() ) ) )
-            {
-                errors.add( "Not possible to add event to a completed enrollment. Event created date ( " + referenceDate
-                    + " ) is after enrollment completed date ( " + removeTimeStamp( enrollment.getEndDate() )
-                    + " )." );
-            }
-        }
+    if (event.getLastUpdatedAtClient() != null && !dateIsValid(event.getLastUpdatedAtClient())) {
+      errors.add("Invalid event last updated at client date: " + event.getLastUpdatedAtClient());
     }
+  }
+
+  private void validateProgramInstance(ImmutableEvent event, WorkContext ctx, List<String> errors) {
+
+    Enrollment enrollment = ctx.getProgramInstanceMap().get(event.getUid());
+    ImportOptions importOptions = ctx.getImportOptions();
+
+    if (enrollment == null) {
+      errors.add("No enrollment found for event: " + event.getEvent());
+
+    } else if (COMPLETED.equals(enrollment.getStatus())) {
+      if (importOptions == null
+          || importOptions.getUser() == null
+          || importOptions.getUser().isAuthorized(F_EDIT_EXPIRED.getAuthority())) {
+        return;
+      }
+
+      Date referenceDate = parseDate(event.getCreated());
+
+      if (referenceDate == null) {
+        referenceDate = new Date();
+      }
+
+      referenceDate = removeTimeStamp(referenceDate);
+
+      if (referenceDate.after(removeTimeStamp(enrollment.getEndDate()))) {
+        errors.add(
+            "Not possible to add event to a completed enrollment. Event created date ( "
+                + referenceDate
+                + " ) is after enrollment completed date ( "
+                + removeTimeStamp(enrollment.getEndDate())
+                + " ).");
+      }
+    }
+  }
 }

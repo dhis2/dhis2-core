@@ -28,10 +28,8 @@
 package org.hisp.dhis.tracker.imports.job;
 
 import java.io.IOException;
-
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
-
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.common.AsyncTaskExecutor;
@@ -48,47 +46,43 @@ import org.springframework.stereotype.Component;
  * @author Zubair Asghar
  */
 @Component
-public class TrackerRuleEngineMessageManager extends BaseMessageManager
-{
-    private final ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory;
+public class TrackerRuleEngineMessageManager extends BaseMessageManager {
+  private final ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory;
 
-    public TrackerRuleEngineMessageManager(
-        MessageManager messageManager,
-        AsyncTaskExecutor taskExecutor,
-        RenderService renderService,
-        ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory )
-    {
-        super( messageManager, taskExecutor, renderService );
-        this.trackerRuleEngineThreadObjectFactory = trackerRuleEngineThreadObjectFactory;
+  public TrackerRuleEngineMessageManager(
+      MessageManager messageManager,
+      AsyncTaskExecutor taskExecutor,
+      RenderService renderService,
+      ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory) {
+    super(messageManager, taskExecutor, renderService);
+    this.trackerRuleEngineThreadObjectFactory = trackerRuleEngineThreadObjectFactory;
+  }
+
+  @Override
+  public String getTopic() {
+    return Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME;
+  }
+
+  @JmsListener(
+      destination = Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME,
+      containerFactory = "jmsQueueListenerContainerFactory")
+  public void consume(TextMessage message) throws JMSException, IOException {
+    TrackerSideEffectDataBundle bundle = toBundle(message);
+
+    if (bundle == null) {
+      return;
     }
 
-    @Override
-    public String getTopic()
-    {
-        return Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME;
-    }
+    JobConfiguration jobConfiguration =
+        new JobConfiguration(
+            "", JobType.TRACKER_IMPORT_RULE_ENGINE_JOB, bundle.getAccessedBy(), true);
 
-    @JmsListener( destination = Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )
-    public void consume( TextMessage message )
-        throws JMSException,
-        IOException
-    {
-        TrackerSideEffectDataBundle bundle = toBundle( message );
+    bundle.setJobConfiguration(jobConfiguration);
 
-        if ( bundle == null )
-        {
-            return;
-        }
+    TrackerRuleEngineThread notificationThread = trackerRuleEngineThreadObjectFactory.getObject();
 
-        JobConfiguration jobConfiguration = new JobConfiguration( "", JobType.TRACKER_IMPORT_RULE_ENGINE_JOB,
-            bundle.getAccessedBy(), true );
+    notificationThread.setSideEffectDataBundle(bundle);
 
-        bundle.setJobConfiguration( jobConfiguration );
-
-        TrackerRuleEngineThread notificationThread = trackerRuleEngineThreadObjectFactory.getObject();
-
-        notificationThread.setSideEffectDataBundle( bundle );
-
-        executeJob( notificationThread );
-    }
+    executeJob(notificationThread);
+  }
 }

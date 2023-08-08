@@ -28,11 +28,9 @@
 package org.hisp.dhis.analytics.tei;
 
 import java.util.stream.Collectors;
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.params.IdentifiableKey;
@@ -40,53 +38,50 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 /**
- * This class is a wrapper for all possible parameters related to a tei. All
- * attributes present here should be correctly typed and ready to be used by the
- * service layers.
+ * This class is a wrapper for all possible parameters related to a tei. All attributes present here
+ * should be correctly typed and ready to be used by the service layers.
  *
  * @author maikel arabori
  */
 @Getter
 @Setter
-@Builder( toBuilder = true )
-public class TeiQueryParams implements IdentifiableKey
-{
-    private final TrackedEntityType trackedEntityType;
+@Builder(toBuilder = true)
+public class TeiQueryParams implements IdentifiableKey {
+  private final TrackedEntityType trackedEntityType;
 
-    private final CommonParams commonParams;
+  private final CommonParams commonParams;
 
-    /**
-     * Returns a unique key representing this query. This key is suitable for
-     * caching.
-     */
-    public String getKey()
-    {
-        QueryKey key = new QueryKey();
+  /** Returns a unique key representing this query. This key is suitable for caching. */
+  public String getKey() {
+    QueryKey key = new QueryKey();
 
-        key.addIgnoreNull( "teiType", trackedEntityType );
-        key.addIgnoreNull( "paging", commonParams.getPagingParams().wrappedKey() );
-        key.addIgnoreNull( "includeMetadataDetails", commonParams.isIncludeMetadataDetails() );
-        key.addIgnoreNull( "displayProperty", commonParams.getDisplayProperty() );
-        key.addIgnoreNull( "userOrgUnit",
-            commonParams.getUserOrgUnit().stream()
-                .map( IdentifiableObject::getUid )
-                .sorted()
-                .collect( Collectors.joining( ";" ) ) );
-        key.addIgnoreNull( "ouMode", commonParams.getOuMode() );
-        key.addIgnoreNull( "dataIdScheme", commonParams.getDataIdScheme() );
-        key.addIgnoreNull( "relativePeriodDate", commonParams.getRelativePeriodDate() );
-        key.addIgnoreNull( "skipMeta", commonParams.isSkipMeta() );
-        key.addIgnoreNull( "skipData", commonParams.isSkipData() );
-        key.addIgnoreNull( "skipHeaders", commonParams.isSkipHeaders() );
-        key.addIgnoreNull( "skipRounding", commonParams.isSkipRounding() );
-        key.addIgnoreNull( "hierarchyMeta", commonParams.isHierarchyMeta() );
-        key.addIgnoreNull( "showHierarchy", commonParams.isShowHierarchy() );
+    key.addIgnoreNull("teiType", trackedEntityType);
+    key.addIgnoreNull("paging", commonParams.getPagingParams().wrappedKey());
+    key.addIgnoreNull("includeMetadataDetails", commonParams.isIncludeMetadataDetails());
+    key.addIgnoreNull("displayProperty", commonParams.getDisplayProperty());
+    key.addIgnoreNull(
+        "userOrgUnit",
+        commonParams.getUserOrgUnit().stream()
+            .map(IdentifiableObject::getUid)
+            .sorted()
+            .collect(Collectors.joining(";")));
+    key.addIgnoreNull("ouMode", commonParams.getOuMode());
+    key.addIgnoreNull("dataIdScheme", commonParams.getDataIdScheme());
+    key.addIgnoreNull("relativePeriodDate", commonParams.getRelativePeriodDate());
+    key.addIgnoreNull("skipMeta", commonParams.isSkipMeta());
+    key.addIgnoreNull("skipData", commonParams.isSkipData());
+    key.addIgnoreNull("skipHeaders", commonParams.isSkipHeaders());
+    key.addIgnoreNull("skipRounding", commonParams.isSkipRounding());
+    key.addIgnoreNull("hierarchyMeta", commonParams.isHierarchyMeta());
+    key.addIgnoreNull("showHierarchy", commonParams.isShowHierarchy());
 
-        commonParams.getOrderParams().forEach( param -> key.add( "ordering", param.wrappedKey() ) );
-        commonParams.getDimensionIdentifiers().forEach( dim -> key.add( "dimensionIdentifiers", dim.wrappedKey() ) );
-        commonParams.getPrograms().forEach( program -> key.add( "programs", program.getUid() ) );
-        commonParams.getHeaders().forEach( header -> key.addIgnoreNull( "headers", header ) );
+    commonParams.getOrderParams().forEach(param -> key.add("ordering", param.wrappedKey()));
+    commonParams
+        .getDimensionIdentifiers()
+        .forEach(dim -> key.add("dimensionIdentifiers", dim.wrappedKey()));
+    commonParams.getPrograms().forEach(program -> key.add("programs", program.getUid()));
+    commonParams.getHeaders().forEach(header -> key.addIgnoreNull("headers", header));
 
-        return key.build();
-    }
+    return key.build();
+  }
 }

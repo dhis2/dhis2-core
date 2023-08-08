@@ -34,22 +34,19 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserInfoInsertPreProcessor extends UserInfoUpdatePreProcessor
-{
+public class UserInfoInsertPreProcessor extends UserInfoUpdatePreProcessor {
 
-    @Override
-    protected void updateDataValueUserInfo( Event unused, EventDataValue dataValue,
-        UserInfoSnapshot userInfo )
-    {
-        super.updateDataValueUserInfo( null, dataValue, userInfo );
-        dataValue.setCreatedByUserInfo( userInfo );
-    }
+  @Override
+  protected void updateDataValueUserInfo(
+      Event unused, EventDataValue dataValue, UserInfoSnapshot userInfo) {
+    super.updateDataValueUserInfo(null, dataValue, userInfo);
+    dataValue.setCreatedByUserInfo(userInfo);
+  }
 
-    @Override
-    protected void updateEventUserInfo( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,
-        UserInfoSnapshot eventUserInfo )
-    {
-        super.updateEventUserInfo( event, eventUserInfo );
-        event.setCreatedByUserInfo( eventUserInfo );
-    }
+  @Override
+  protected void updateEventUserInfo(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, UserInfoSnapshot eventUserInfo) {
+    super.updateEventUserInfo(event, eventUserInfo);
+    event.setCreatedByUserInfo(eventUserInfo);
+  }
 }

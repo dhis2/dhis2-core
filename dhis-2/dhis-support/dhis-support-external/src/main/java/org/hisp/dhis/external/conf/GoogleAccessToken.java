@@ -27,69 +27,57 @@
  */
 package org.hisp.dhis.external.conf;
 
-import java.time.LocalDateTime;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.LocalDateTime;
 
 /**
  * @author Lars Helge Overland
  */
-public class GoogleAccessToken
-{
-    private String accessToken;
+public class GoogleAccessToken {
+  private String accessToken;
 
-    private String clientId;
+  private String clientId;
 
-    private long expiresInSeconds;
+  private long expiresInSeconds;
 
-    private LocalDateTime expiresOn;
+  private LocalDateTime expiresOn;
 
-    public GoogleAccessToken()
-    {
-    }
+  public GoogleAccessToken() {}
 
-    @JsonProperty( value = "access_token" )
-    public String getAccessToken()
-    {
-        return accessToken;
-    }
+  @JsonProperty(value = "access_token")
+  public String getAccessToken() {
+    return accessToken;
+  }
 
-    public void setAccessToken( String accessToken )
-    {
-        this.accessToken = accessToken;
-    }
+  public void setAccessToken(String accessToken) {
+    this.accessToken = accessToken;
+  }
 
-    @JsonProperty( value = "client_id" )
-    public String getClientId()
-    {
-        return clientId;
-    }
+  @JsonProperty(value = "client_id")
+  public String getClientId() {
+    return clientId;
+  }
 
-    public void setClientId( String clientId )
-    {
-        this.clientId = clientId;
-    }
+  public void setClientId(String clientId) {
+    this.clientId = clientId;
+  }
 
-    @JsonProperty( value = "expires_in" )
-    public long getExpiresInSeconds()
-    {
-        return expiresInSeconds;
-    }
+  @JsonProperty(value = "expires_in")
+  public long getExpiresInSeconds() {
+    return expiresInSeconds;
+  }
 
-    public void setExpiresInSeconds( long expiresInSeconds )
-    {
-        this.expiresInSeconds = expiresInSeconds;
-    }
+  public void setExpiresInSeconds(long expiresInSeconds) {
+    this.expiresInSeconds = expiresInSeconds;
+  }
 
-    @JsonIgnore
-    public LocalDateTime getExpiresOn()
-    {
-        return expiresOn;
-    }
+  @JsonIgnore
+  public LocalDateTime getExpiresOn() {
+    return expiresOn;
+  }
 
-    public void setExpiresOn( LocalDateTime expiresOn )
-    {
-        this.expiresOn = expiresOn;
-    }
+  public void setExpiresOn(LocalDateTime expiresOn) {
+    this.expiresOn = expiresOn;
+  }
 }

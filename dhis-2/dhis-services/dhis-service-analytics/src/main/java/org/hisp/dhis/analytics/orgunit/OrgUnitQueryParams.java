@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.analytics.orgunit;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -37,132 +37,104 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
-public class OrgUnitQueryParams
-{
-    /**
-     * Organisation units to query.
-     */
-    private List<OrganisationUnit> orgUnits = new ArrayList<>();
+public class OrgUnitQueryParams {
+  /** Organisation units to query. */
+  private List<OrganisationUnit> orgUnits = new ArrayList<>();
 
-    /**
-     * Organisation unit group sets to query.
-     */
-    private List<OrganisationUnitGroupSet> orgUnitGroupSets = new ArrayList<>();
+  /** Organisation unit group sets to query. */
+  private List<OrganisationUnitGroupSet> orgUnitGroupSets = new ArrayList<>();
 
-    /**
-     * Organisation unit group sets to use as columns in a table layout.
-     */
-    private List<DimensionalObject> columns = new ArrayList<>();
+  /** Organisation unit group sets to use as columns in a table layout. */
+  private List<DimensionalObject> columns = new ArrayList<>();
 
-    /**
-     * Organisation unit level to query, set internally.
-     */
-    private transient int orgUnitLevel;
+  /** Organisation unit level to query, set internally. */
+  private transient int orgUnitLevel;
 
-    private OrgUnitQueryParams()
-    {
+  private OrgUnitQueryParams() {}
+
+  public List<OrganisationUnit> getOrgUnits() {
+    return orgUnits;
+  }
+
+  public List<OrganisationUnitGroupSet> getOrgUnitGroupSets() {
+    return orgUnitGroupSets;
+  }
+
+  public List<DimensionalObject> getColumns() {
+    return columns;
+  }
+
+  public List<DimensionalObject> getRows() {
+    List<DimensionalObject> rows = new ArrayList<>();
+    rows.add(
+        new BaseDimensionalObject(
+            DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, orgUnits));
+    rows.addAll(orgUnitGroupSets);
+    rows.removeAll(columns);
+    return rows;
+  }
+
+  public int getOrgUnitLevel() {
+    return orgUnitLevel;
+  }
+
+  public boolean isTableLayout() {
+    return !columns.isEmpty();
+  }
+
+  @Override
+  public String toString() {
+    return new ToStringBuilder(this)
+        .append("orgUnits", orgUnits)
+        .append("orgUnitGroupSets", orgUnitGroupSets)
+        .append("columns", columns)
+        .append("isTableLayout", isTableLayout())
+        .build();
+  }
+
+  public OrgUnitQueryParams getInstance() {
+    OrgUnitQueryParams params = new OrgUnitQueryParams();
+    params.orgUnits = Lists.newArrayList(this.orgUnits);
+    params.orgUnitGroupSets = Lists.newArrayList(this.orgUnitGroupSets);
+    return params;
+  }
+
+  public static class Builder {
+    private OrgUnitQueryParams params;
+
+    public Builder() {
+      this.params = new OrgUnitQueryParams();
     }
 
-    public List<OrganisationUnit> getOrgUnits()
-    {
-        return orgUnits;
+    public Builder(OrgUnitQueryParams params) {
+      this.params = params.getInstance();
     }
 
-    public List<OrganisationUnitGroupSet> getOrgUnitGroupSets()
-    {
-        return orgUnitGroupSets;
+    public Builder withOrgUnits(List<OrganisationUnit> orgUnits) {
+      this.params.orgUnits = orgUnits;
+      return this;
     }
 
-    public List<DimensionalObject> getColumns()
-    {
-        return columns;
+    public Builder withOrgUnitGroupSets(List<OrganisationUnitGroupSet> orgUnitGroupSets) {
+      this.params.orgUnitGroupSets = orgUnitGroupSets;
+      return this;
     }
 
-    public List<DimensionalObject> getRows()
-    {
-        List<DimensionalObject> rows = new ArrayList<>();
-        rows.add(
-            new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, orgUnits ) );
-        rows.addAll( orgUnitGroupSets );
-        rows.removeAll( columns );
-        return rows;
+    public Builder withColumns(List<DimensionalObject> columns) {
+      this.params.columns = columns;
+      return this;
     }
 
-    public int getOrgUnitLevel()
-    {
-        return orgUnitLevel;
+    public Builder withOrgUnitLevel(int orgUnitLevel) {
+      this.params.orgUnitLevel = orgUnitLevel;
+      return this;
     }
 
-    public boolean isTableLayout()
-    {
-        return !columns.isEmpty();
+    public OrgUnitQueryParams build() {
+      return this.params;
     }
-
-    @Override
-    public String toString()
-    {
-        return new ToStringBuilder( this )
-            .append( "orgUnits", orgUnits )
-            .append( "orgUnitGroupSets", orgUnitGroupSets )
-            .append( "columns", columns )
-            .append( "isTableLayout", isTableLayout() )
-            .build();
-    }
-
-    public OrgUnitQueryParams getInstance()
-    {
-        OrgUnitQueryParams params = new OrgUnitQueryParams();
-        params.orgUnits = Lists.newArrayList( this.orgUnits );
-        params.orgUnitGroupSets = Lists.newArrayList( this.orgUnitGroupSets );
-        return params;
-    }
-
-    public static class Builder
-    {
-        private OrgUnitQueryParams params;
-
-        public Builder()
-        {
-            this.params = new OrgUnitQueryParams();
-        }
-
-        public Builder( OrgUnitQueryParams params )
-        {
-            this.params = params.getInstance();
-        }
-
-        public Builder withOrgUnits( List<OrganisationUnit> orgUnits )
-        {
-            this.params.orgUnits = orgUnits;
-            return this;
-        }
-
-        public Builder withOrgUnitGroupSets( List<OrganisationUnitGroupSet> orgUnitGroupSets )
-        {
-            this.params.orgUnitGroupSets = orgUnitGroupSets;
-            return this;
-        }
-
-        public Builder withColumns( List<DimensionalObject> columns )
-        {
-            this.params.columns = columns;
-            return this;
-        }
-
-        public Builder withOrgUnitLevel( int orgUnitLevel )
-        {
-            this.params.orgUnitLevel = orgUnitLevel;
-            return this;
-        }
-
-        public OrgUnitQueryParams build()
-        {
-            return this.params;
-        }
-    }
+  }
 }

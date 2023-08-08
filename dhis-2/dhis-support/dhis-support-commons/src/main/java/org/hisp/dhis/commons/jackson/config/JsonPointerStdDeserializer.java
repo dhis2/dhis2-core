@@ -27,22 +27,19 @@
  */
 package org.hisp.dhis.commons.jackson.config;
 
-import java.io.IOException;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import java.io.IOException;
 
 /**
  * @author Morten Olav Hansen
  */
-public class JsonPointerStdDeserializer extends JsonDeserializer<JsonPointer>
-{
-    @Override
-    public JsonPointer deserialize( JsonParser parser, DeserializationContext context )
-        throws IOException
-    {
-        return JsonPointer.valueOf( parser.getValueAsString() );
-    }
+public class JsonPointerStdDeserializer extends JsonDeserializer<JsonPointer> {
+  @Override
+  public JsonPointer deserialize(JsonParser parser, DeserializationContext context)
+      throws IOException {
+    return JsonPointer.valueOf(parser.getValueAsString());
+  }
 }

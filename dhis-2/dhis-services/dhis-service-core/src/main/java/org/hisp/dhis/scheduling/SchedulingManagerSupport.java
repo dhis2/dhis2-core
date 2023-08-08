@@ -29,7 +29,6 @@ package org.hisp.dhis.scheduling;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.eventhook.EventHookPublisher;
@@ -45,28 +44,27 @@ import org.springframework.stereotype.Component;
 @Component
 @Getter
 @RequiredArgsConstructor
-public class SchedulingManagerSupport
-{
-    private final UserService userService;
+public class SchedulingManagerSupport {
+  private final UserService userService;
 
-    private final AuthenticationService authenticationService;
+  private final AuthenticationService authenticationService;
 
-    private final JobService jobService;
+  private final JobService jobService;
 
-    private final JobConfigurationService jobConfigurationService;
+  private final JobConfigurationService jobConfigurationService;
 
-    private final MessageService messageService;
+  private final MessageService messageService;
 
-    private final LeaderManager leaderManager;
+  private final LeaderManager leaderManager;
 
-    private final Notifier notifier;
+  private final Notifier notifier;
 
-    private final EventHookPublisher eventHookPublisher;
+  private final EventHookPublisher eventHookPublisher;
 
-    private final CacheProvider cacheProvider;
+  private final CacheProvider cacheProvider;
 
-    private final AsyncTaskExecutor taskExecutor;
+  private final AsyncTaskExecutor taskExecutor;
 
-    @Qualifier( "taskScheduler" )
-    private final TaskScheduler jobScheduler;
+  @Qualifier("taskScheduler")
+  private final TaskScheduler jobScheduler;
 }

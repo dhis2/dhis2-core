@@ -41,7 +41,6 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -80,192 +79,189 @@ import org.springframework.test.util.ReflectionTestUtils;
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class TrackerCrudTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class TrackerCrudTest {
 
-    @Mock
-    private ImportOptions importOptions;
+  @Mock private ImportOptions importOptions;
 
-    @Mock
-    private JobConfiguration jobConfiguration;
+  @Mock private JobConfiguration jobConfiguration;
 
-    @Mock
-    private Notifier notifier;
+  @Mock private Notifier notifier;
 
-    @Mock
-    private DefaultTrackedEntityService defaultTrackedEntityInstanceService;
+  @Mock private DefaultTrackedEntityService defaultTrackedEntityInstanceService;
 
-    @Mock
-    private EnrollmentService enrollmentService;
+  @Mock private EnrollmentService enrollmentService;
 
-    @Mock
-    private TrackedEntityInstance trackedEntityInstance;
+  @Mock private TrackedEntityInstance trackedEntityInstance;
 
-    @Mock
-    private UserService userService;
+  @Mock private UserService userService;
 
-    @Mock
-    private QueryService queryService;
+  @Mock private QueryService queryService;
 
-    @Mock
-    private SchemaService schemaService;
+  @Mock private SchemaService schemaService;
 
-    @Mock
-    private RelationshipService relationshipService;
+  @Mock private RelationshipService relationshipService;
 
-    @Mock
-    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+  @Mock private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
-    @Mock
-    private DbmsManager dbmsManager;
+  @Mock private DbmsManager dbmsManager;
 
-    @Mock
-    private IdSchemes idSchemes;
+  @Mock private IdSchemes idSchemes;
 
-    @Mock
-    private IdentifiableObjectManager identifiableObjectManager;
+  @Mock private IdentifiableObjectManager identifiableObjectManager;
 
-    @Mock
-    private TrackerAccessManager trackerAccessManager;
+  @Mock private TrackerAccessManager trackerAccessManager;
 
-    @Mock
-    private User user;
+  @Mock private User user;
 
-    private AbstractTrackedEntityInstanceService trackedEntityInstanceService;
+  private AbstractTrackedEntityInstanceService trackedEntityInstanceService;
 
-    private static final String trackedEntityTypeUid = "tet";
+  private static final String trackedEntityTypeUid = "tet";
 
-    private static final String trackedEntityInstanceUid = "tei";
+  private static final String trackedEntityInstanceUid = "tei";
 
-    private static final String orgUnitUid = "orgUnit";
+  private static final String orgUnitUid = "orgUnit";
 
-    @BeforeEach
-    public void setUp()
-    {
-        trackedEntityInstanceService = mock( AbstractTrackedEntityInstanceService.class, CALLS_REAL_METHODS );
+  @BeforeEach
+  public void setUp() {
+    trackedEntityInstanceService =
+        mock(AbstractTrackedEntityInstanceService.class, CALLS_REAL_METHODS);
 
-        when( importOptions.getUser() ).thenReturn( user );
-        when( importOptions.getIdSchemes() ).thenReturn( idSchemes );
+    when(importOptions.getUser()).thenReturn(user);
+    when(importOptions.getIdSchemes()).thenReturn(idSchemes);
 
-        when( idSchemes.getTrackedEntityIdScheme() ).thenReturn( IdScheme.UID );
-        when( idSchemes.getOrgUnitIdScheme() ).thenReturn( IdScheme.UID );
+    when(idSchemes.getTrackedEntityIdScheme()).thenReturn(IdScheme.UID);
+    when(idSchemes.getOrgUnitIdScheme()).thenReturn(IdScheme.UID);
 
-        when( notifier.notify( any( JobConfiguration.class ), any( NotificationLevel.class ), anyString(),
-            anyBoolean() ) ).thenReturn( notifier );
-        when( notifier.notify( any( JobConfiguration.class ), anyString() ) ).thenReturn( notifier );
-        when( notifier.clear( any() ) ).thenReturn( notifier );
+    when(notifier.notify(
+            any(JobConfiguration.class), any(NotificationLevel.class), anyString(), anyBoolean()))
+        .thenReturn(notifier);
+    when(notifier.notify(any(JobConfiguration.class), anyString())).thenReturn(notifier);
+    when(notifier.clear(any())).thenReturn(notifier);
 
-        when( defaultTrackedEntityInstanceService.getTrackedEntity( trackedEntityInstanceUid, user ) )
-            .thenReturn( new TrackedEntity() );
-        when( defaultTrackedEntityInstanceService.getTrackedEntity( trackedEntityInstanceUid ) )
-            .thenReturn( new TrackedEntity() );
-        when( defaultTrackedEntityInstanceService.getTrackedEntitiesUidsIncludingDeleted( anyList() ) )
-            .thenReturn( new ArrayList<>() );
+    when(defaultTrackedEntityInstanceService.getTrackedEntity(trackedEntityInstanceUid, user))
+        .thenReturn(new TrackedEntity());
+    when(defaultTrackedEntityInstanceService.getTrackedEntity(trackedEntityInstanceUid))
+        .thenReturn(new TrackedEntity());
+    when(defaultTrackedEntityInstanceService.getTrackedEntitiesUidsIncludingDeleted(anyList()))
+        .thenReturn(new ArrayList<>());
 
-        when( enrollmentService.deleteEnrollments( anyList(), any(), anyBoolean() ) )
-            .thenReturn( new ImportSummaries() );
-        when( enrollmentService.updateEnrollments( anyList(), any(), anyBoolean() ) )
-            .thenReturn( new ImportSummaries() );
-        when( enrollmentService.addEnrollments( anyList(), any(), any(), anyBoolean() ) )
-            .thenReturn( new ImportSummaries() );
-        when( enrollmentService.addEnrollmentList( anyList(), any() ) ).thenReturn( new ImportSummaries() );
+    when(enrollmentService.deleteEnrollments(anyList(), any(), anyBoolean()))
+        .thenReturn(new ImportSummaries());
+    when(enrollmentService.updateEnrollments(anyList(), any(), anyBoolean()))
+        .thenReturn(new ImportSummaries());
+    when(enrollmentService.addEnrollments(anyList(), any(), any(), anyBoolean()))
+        .thenReturn(new ImportSummaries());
+    when(enrollmentService.addEnrollmentList(anyList(), any())).thenReturn(new ImportSummaries());
 
-        when( relationshipService.processRelationshipList( anyList(), any() ) ).thenReturn( new ImportSummaries() );
+    when(relationshipService.processRelationshipList(anyList(), any()))
+        .thenReturn(new ImportSummaries());
 
-        when( userService.getUser( any() ) ).thenReturn( new User() );
-        when( identifiableObjectManager.getObject( TrackedEntityType.class, IdScheme.UID, trackedEntityTypeUid ) )
-            .thenReturn( new TrackedEntityType() );
-        when( identifiableObjectManager.getObject( OrganisationUnit.class, IdScheme.UID, orgUnitUid ) )
-            .thenReturn( new OrganisationUnit() );
-        when( trackerAccessManager.canWrite( any(), any( TrackedEntity.class ) ) )
-            .thenReturn( new ArrayList<>() );
+    when(userService.getUser(any())).thenReturn(new User());
+    when(identifiableObjectManager.getObject(
+            TrackedEntityType.class, IdScheme.UID, trackedEntityTypeUid))
+        .thenReturn(new TrackedEntityType());
+    when(identifiableObjectManager.getObject(OrganisationUnit.class, IdScheme.UID, orgUnitUid))
+        .thenReturn(new OrganisationUnit());
+    when(trackerAccessManager.canWrite(any(), any(TrackedEntity.class)))
+        .thenReturn(new ArrayList<>());
 
-        when( trackedEntityInstance.getOrgUnit() ).thenReturn( orgUnitUid );
-        when( trackedEntityInstance.getAttributes() ).thenReturn( new ArrayList<>() );
-        when( trackedEntityInstance.getTrackedEntityType() ).thenReturn( trackedEntityTypeUid );
-        when( trackedEntityInstance.getTrackedEntityInstance() ).thenReturn( trackedEntityInstanceUid );
+    when(trackedEntityInstance.getOrgUnit()).thenReturn(orgUnitUid);
+    when(trackedEntityInstance.getAttributes()).thenReturn(new ArrayList<>());
+    when(trackedEntityInstance.getTrackedEntityType()).thenReturn(trackedEntityTypeUid);
+    when(trackedEntityInstance.getTrackedEntityInstance()).thenReturn(trackedEntityInstanceUid);
 
-        setFieldInAbstractService();
-    }
+    setFieldInAbstractService();
+  }
 
-    private void setFieldInAbstractService()
-    {
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "notifier", notifier );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "teiService", defaultTrackedEntityInstanceService );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "enrollmentService", enrollmentService );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "userService", userService );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "queryService", queryService );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "schemaService", schemaService );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "trackedEntityAttributeValueService",
-            trackedEntityAttributeValueService );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "relationshipService", relationshipService );
+  private void setFieldInAbstractService() {
+    ReflectionTestUtils.setField(trackedEntityInstanceService, "notifier", notifier);
+    ReflectionTestUtils.setField(
+        trackedEntityInstanceService, "teiService", defaultTrackedEntityInstanceService);
+    ReflectionTestUtils.setField(
+        trackedEntityInstanceService, "enrollmentService", enrollmentService);
+    ReflectionTestUtils.setField(trackedEntityInstanceService, "userService", userService);
+    ReflectionTestUtils.setField(trackedEntityInstanceService, "queryService", queryService);
+    ReflectionTestUtils.setField(trackedEntityInstanceService, "schemaService", schemaService);
+    ReflectionTestUtils.setField(
+        trackedEntityInstanceService,
+        "trackedEntityAttributeValueService",
+        trackedEntityAttributeValueService);
+    ReflectionTestUtils.setField(
+        trackedEntityInstanceService, "relationshipService", relationshipService);
 
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "dbmsManager", dbmsManager );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "manager", identifiableObjectManager );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "trackerAccessManager", trackerAccessManager );
+    ReflectionTestUtils.setField(trackedEntityInstanceService, "dbmsManager", dbmsManager);
+    ReflectionTestUtils.setField(
+        trackedEntityInstanceService, "manager", identifiableObjectManager);
+    ReflectionTestUtils.setField(
+        trackedEntityInstanceService, "trackerAccessManager", trackerAccessManager);
 
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "programCache", new CachingMap<>() );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "organisationUnitCache", new CachingMap<>() );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "trackedEntityCache", new CachingMap<>() );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "trackedEntityAttributeCache", new CachingMap<>() );
-    }
+    ReflectionTestUtils.setField(trackedEntityInstanceService, "programCache", new CachingMap<>());
+    ReflectionTestUtils.setField(
+        trackedEntityInstanceService, "organisationUnitCache", new CachingMap<>());
+    ReflectionTestUtils.setField(
+        trackedEntityInstanceService, "trackedEntityCache", new CachingMap<>());
+    ReflectionTestUtils.setField(
+        trackedEntityInstanceService, "trackedEntityAttributeCache", new CachingMap<>());
+  }
 
-    @Test
-    void shouldAddTrackedEntityWithCreateStrategy()
-    {
-        List<TrackedEntityInstance> trackedEntityInstanceList = Collections.singletonList( trackedEntityInstance );
+  @Test
+  void shouldAddTrackedEntityWithCreateStrategy() {
+    List<TrackedEntityInstance> trackedEntityInstanceList =
+        Collections.singletonList(trackedEntityInstance);
 
-        when( importOptions.getImportStrategy() ).thenReturn( ImportStrategy.CREATE );
+    when(importOptions.getImportStrategy()).thenReturn(ImportStrategy.CREATE);
 
-        ImportSummaries importSummaries = trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances(
-            trackedEntityInstanceList,
-            importOptions, jobConfiguration );
+    ImportSummaries importSummaries =
+        trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances(
+            trackedEntityInstanceList, importOptions, jobConfiguration);
 
-        assertFalse(
-            importSummaries.getImportSummaries().stream().anyMatch( is -> is.isStatus( ImportStatus.ERROR ) ) );
+    assertFalse(
+        importSummaries.getImportSummaries().stream()
+            .anyMatch(is -> is.isStatus(ImportStatus.ERROR)));
 
-        verify( defaultTrackedEntityInstanceService, times( 1 ) ).addTrackedEntity( any() );
-    }
+    verify(defaultTrackedEntityInstanceService, times(1)).addTrackedEntity(any());
+  }
 
-    @Test
-    void shouldUpdateTrackedEntityWithUpdateStrategy()
-    {
-        List<TrackedEntityInstance> trackedEntityInstanceList = Collections.singletonList( trackedEntityInstance );
+  @Test
+  void shouldUpdateTrackedEntityWithUpdateStrategy() {
+    List<TrackedEntityInstance> trackedEntityInstanceList =
+        Collections.singletonList(trackedEntityInstance);
 
-        when( importOptions.getImportStrategy() ).thenReturn( ImportStrategy.UPDATE );
+    when(importOptions.getImportStrategy()).thenReturn(ImportStrategy.UPDATE);
 
-        ImportSummaries importSummaries = trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances(
-            trackedEntityInstanceList,
-            importOptions, jobConfiguration );
+    ImportSummaries importSummaries =
+        trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances(
+            trackedEntityInstanceList, importOptions, jobConfiguration);
 
-        assertFalse(
-            importSummaries.getImportSummaries().stream().anyMatch( is -> is.isStatus( ImportStatus.ERROR ) ) );
+    assertFalse(
+        importSummaries.getImportSummaries().stream()
+            .anyMatch(is -> is.isStatus(ImportStatus.ERROR)));
 
-        verify( defaultTrackedEntityInstanceService, times( 1 ) ).getTrackedEntity( trackedEntityInstanceUid,
-            user );
-        verify( defaultTrackedEntityInstanceService, times( 1 ) ).updateTrackedEntity( any() );
-    }
+    verify(defaultTrackedEntityInstanceService, times(1))
+        .getTrackedEntity(trackedEntityInstanceUid, user);
+    verify(defaultTrackedEntityInstanceService, times(1)).updateTrackedEntity(any());
+  }
 
-    @Test
-    void shouldDeleteTrackedEntityWithDeleteStrategy()
-    {
-        List<TrackedEntityInstance> trackedEntityInstanceList = Collections.singletonList( trackedEntityInstance );
+  @Test
+  void shouldDeleteTrackedEntityWithDeleteStrategy() {
+    List<TrackedEntityInstance> trackedEntityInstanceList =
+        Collections.singletonList(trackedEntityInstance);
 
-        when( defaultTrackedEntityInstanceService.trackedEntityExists( trackedEntityInstanceUid ) )
-            .thenReturn( true );
+    when(defaultTrackedEntityInstanceService.trackedEntityExists(trackedEntityInstanceUid))
+        .thenReturn(true);
 
-        when( importOptions.getImportStrategy() ).thenReturn( ImportStrategy.DELETE );
+    when(importOptions.getImportStrategy()).thenReturn(ImportStrategy.DELETE);
 
-        ImportSummaries importSummaries = trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances(
-            trackedEntityInstanceList,
-            importOptions, jobConfiguration );
+    ImportSummaries importSummaries =
+        trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances(
+            trackedEntityInstanceList, importOptions, jobConfiguration);
 
-        assertFalse(
-            importSummaries.getImportSummaries().stream().anyMatch( is -> is.isStatus( ImportStatus.ERROR ) ) );
+    assertFalse(
+        importSummaries.getImportSummaries().stream()
+            .anyMatch(is -> is.isStatus(ImportStatus.ERROR)));
 
-        verify( defaultTrackedEntityInstanceService, times( 1 ) ).deleteTrackedEntity( any() );
-    }
-
+    verify(defaultTrackedEntityInstanceService, times(1)).deleteTrackedEntity(any());
+  }
 }

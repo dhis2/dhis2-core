@@ -30,9 +30,7 @@ package org.hisp.dhis.dataset.notifications;
 import static org.hisp.dhis.scheduling.JobType.DATA_SET_NOTIFICATION;
 
 import java.util.Date;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -45,21 +43,18 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class DataSetNotificationJob implements Job
-{
-    private final DataSetNotificationService dataSetNotificationService;
+public class DataSetNotificationJob implements Job {
+  private final DataSetNotificationService dataSetNotificationService;
 
-    @Override
-    public JobType getJobType()
-    {
-        return DATA_SET_NOTIFICATION;
-    }
+  @Override
+  public JobType getJobType() {
+    return DATA_SET_NOTIFICATION;
+  }
 
-    @Override
-    public void execute( JobConfiguration config, JobProgress progress )
-    {
-        progress.startingProcess( "Dataset notification" );
-        dataSetNotificationService.sendScheduledDataSetNotificationsForDay( new Date(), progress );
-        progress.completedProcess( null );
-    }
+  @Override
+  public void execute(JobConfiguration config, JobProgress progress) {
+    progress.startingProcess("Dataset notification");
+    dataSetNotificationService.sendScheduledDataSetNotificationsForDay(new Date(), progress);
+    progress.completedProcess(null);
+  }
 }

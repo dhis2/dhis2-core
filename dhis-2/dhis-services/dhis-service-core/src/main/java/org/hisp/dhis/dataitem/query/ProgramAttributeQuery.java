@@ -52,7 +52,6 @@ import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCES
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataitem.query.shared.OptionalFilterBuilder;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -66,132 +65,137 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class ProgramAttributeQuery implements DataItemQuery
-{
-    private static final String COMMON_COLUMNS = "program.name as program_name, program.uid as program_uid,"
-        + " program.shortname as program_shortname, trackedentityattribute.uid as item_uid,"
-        + " trackedentityattribute.name as item_name, trackedentityattribute.shortname as item_shortname,"
-        + " trackedentityattribute.valuetype as item_valuetype, trackedentityattribute.code as item_code,"
-        + " trackedentityattribute.sharing as item_sharing, cast (null as text) as item_domaintype,"
-        + " cast ('PROGRAM_ATTRIBUTE' as text) as item_type,"
-        + " cast (null as text) as expression";
+public class ProgramAttributeQuery implements DataItemQuery {
+  private static final String COMMON_COLUMNS =
+      "program.name as program_name, program.uid as program_uid,"
+          + " program.shortname as program_shortname, trackedentityattribute.uid as item_uid,"
+          + " trackedentityattribute.name as item_name, trackedentityattribute.shortname as item_shortname,"
+          + " trackedentityattribute.valuetype as item_valuetype, trackedentityattribute.code as item_code,"
+          + " trackedentityattribute.sharing as item_sharing, cast (null as text) as item_domaintype,"
+          + " cast ('PROGRAM_ATTRIBUTE' as text) as item_type,"
+          + " cast (null as text) as expression";
 
-    private static final String COMMON_UIDS = "program.uid, trackedentityattribute.uid";
+  private static final String COMMON_UIDS = "program.uid, trackedentityattribute.uid";
 
-    private static final String JOINS = " join program_attributes on program_attributes.trackedentityattributeid = trackedentityattribute.trackedentityattributeid"
-        + " join program on program_attributes.programid = program.programid";
+  private static final String JOINS =
+      " join program_attributes on program_attributes.trackedentityattributeid = trackedentityattribute.trackedentityattributeid"
+          + " join program on program_attributes.programid = program.programid";
 
-    private static final String SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE = " from trackedentityattribute ";
+  private static final String SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE =
+      " from trackedentityattribute ";
 
-    @Override
-    public String getStatement( MapSqlParameterSource paramsMap )
-    {
-        StringBuilder sql = new StringBuilder();
+  @Override
+  public String getStatement(MapSqlParameterSource paramsMap) {
+    StringBuilder sql = new StringBuilder();
 
-        sql.append( "(" );
+    sql.append("(");
 
-        // Creating a temp translated table to be queried.
-        sql.append( SPACED_SELECT + "* from (" );
+    // Creating a temp translated table to be queried.
+    sql.append(SPACED_SELECT + "* from (");
 
-        if ( hasNonBlankStringPresence( paramsMap, LOCALE ) )
-        {
-            // Selecting translated names.
-            sql.append( selectRowsContainingTranslatedName() );
-        }
-        else
-        {
-            // Retrieving all rows ignoring translation as no locale is defined.
-            sql.append( selectAllRowsIgnoringAnyTranslation() );
-        }
-
-        sql.append(
-            " group by program.name, program.shortname, item_name, " + COMMON_UIDS
-                + ", item_valuetype, item_code, item_sharing, item_shortname,"
-                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
-
-        // Closing the temp table.
-        sql.append( " ) t" );
-
-        sql.append( SPACED_WHERE );
-
-        // Applying filters, ordering and limits.
-
-        // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "t.item_sharing", READ_ACCESS, paramsMap ) ) );
-        sql.append( " and" );
-        sql.append( ifSet( valueTypeFiltering( "t.item_valuetype", paramsMap ) ) );
-
-        // Optional filters, based on the current root junction.
-        OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
-        optionalFilters.append( ifSet( displayNameFiltering( "t.i18n_first_name", "t.i18n_second_name", paramsMap ) ) );
-        optionalFilters
-            .append(
-                ifSet( displayShortNameFiltering( "t.i18n_first_shortname", "t.i18n_second_shortname", paramsMap ) ) );
-        optionalFilters.append( ifSet( nameFiltering( "t.program_name", "t.item_name", paramsMap ) ) );
-        optionalFilters.append( ifSet( shortNameFiltering( "t.program_shortname", "t.item_shortname", paramsMap ) ) );
-        optionalFilters.append( ifSet( programIdFiltering( "t.program_uid", paramsMap ) ) );
-        optionalFilters.append( ifSet( uidFiltering( "t.item_uid", paramsMap ) ) );
-        sql.append( ifAny( optionalFilters.toString() ) );
-
-        String identifiableStatement = identifiableTokenFiltering( "t.item_uid", "t.item_code",
-            "t.i18n_second_name", "t.i18n_first_name", paramsMap );
-
-        if ( isNotBlank( identifiableStatement ) )
-        {
-            sql.append( rootJunction( paramsMap ) );
-            sql.append( identifiableStatement );
-        }
-
-        sql.append( ifSet( ordering( "t.i18n_first_name, t.i18n_second_name, t.item_uid",
-            "t.program_name, t.item_name, t.item_uid",
-            "t.i18n_first_shortname," + " t.i18n_second_shortname, t.item_uid",
-            "t.program_shortname, t.item_shortname, t.item_uid", paramsMap ) ) );
-        sql.append( ifSet( maxLimit( paramsMap ) ) );
-        sql.append( ")" );
-
-        String fullStatement = sql.toString();
-
-        log.trace( "Full SQL: " + fullStatement );
-
-        return fullStatement;
+    if (hasNonBlankStringPresence(paramsMap, LOCALE)) {
+      // Selecting translated names.
+      sql.append(selectRowsContainingTranslatedName());
+    } else {
+      // Retrieving all rows ignoring translation as no locale is defined.
+      sql.append(selectAllRowsIgnoringAnyTranslation());
     }
 
-    /**
-     * No rules required.
-     *
-     * @param paramsMap
-     * @return true
-     */
-    @Override
-    public boolean matchQueryRules( MapSqlParameterSource paramsMap )
-    {
-        return true;
+    sql.append(
+        " group by program.name, program.shortname, item_name, "
+            + COMMON_UIDS
+            + ", item_valuetype, item_code, item_sharing, item_shortname,"
+            + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname");
+
+    // Closing the temp table.
+    sql.append(" ) t");
+
+    sql.append(SPACED_WHERE);
+
+    // Applying filters, ordering and limits.
+
+    // Mandatory filters. They do not respect the root junction filtering.
+    sql.append(always(sharingConditions("t.item_sharing", READ_ACCESS, paramsMap)));
+    sql.append(" and");
+    sql.append(ifSet(valueTypeFiltering("t.item_valuetype", paramsMap)));
+
+    // Optional filters, based on the current root junction.
+    OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder(paramsMap);
+    optionalFilters.append(
+        ifSet(displayNameFiltering("t.i18n_first_name", "t.i18n_second_name", paramsMap)));
+    optionalFilters.append(
+        ifSet(
+            displayShortNameFiltering(
+                "t.i18n_first_shortname", "t.i18n_second_shortname", paramsMap)));
+    optionalFilters.append(ifSet(nameFiltering("t.program_name", "t.item_name", paramsMap)));
+    optionalFilters.append(
+        ifSet(shortNameFiltering("t.program_shortname", "t.item_shortname", paramsMap)));
+    optionalFilters.append(ifSet(programIdFiltering("t.program_uid", paramsMap)));
+    optionalFilters.append(ifSet(uidFiltering("t.item_uid", paramsMap)));
+    sql.append(ifAny(optionalFilters.toString()));
+
+    String identifiableStatement =
+        identifiableTokenFiltering(
+            "t.item_uid", "t.item_code", "t.i18n_second_name", "t.i18n_first_name", paramsMap);
+
+    if (isNotBlank(identifiableStatement)) {
+      sql.append(rootJunction(paramsMap));
+      sql.append(identifiableStatement);
     }
 
-    @Override
-    public Class<? extends BaseIdentifiableObject> getRootEntity()
-    {
-        return QueryableDataItem.PROGRAM_ATTRIBUTE.getEntity();
-    }
+    sql.append(
+        ifSet(
+            ordering(
+                "t.i18n_first_name, t.i18n_second_name, t.item_uid",
+                "t.program_name, t.item_name, t.item_uid",
+                "t.i18n_first_shortname," + " t.i18n_second_shortname, t.item_uid",
+                "t.program_shortname, t.item_shortname, t.item_uid",
+                paramsMap)));
+    sql.append(ifSet(maxLimit(paramsMap)));
+    sql.append(")");
 
-    private String selectRowsContainingTranslatedName()
-    {
-        return new StringBuilder()
-            .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( translationNamesColumnsFor( "trackedentityattribute", true ) )
-            .append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
-            .append( JOINS )
-            .append( translationNamesJoinsOn( "trackedentityattribute", true ) ).toString();
-    }
+    String fullStatement = sql.toString();
 
-    private String selectAllRowsIgnoringAnyTranslation()
-    {
-        return new StringBuilder()
-            .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", program.name as i18n_first_name, trackedentityattribute.name as i18n_second_name" )
-            .append(
-                ", program.shortname as i18n_first_shortname, trackedentityattribute.shortname as i18n_second_shortname" )
-            .append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
-            .append( JOINS ).toString();
-    }
+    log.trace("Full SQL: " + fullStatement);
+
+    return fullStatement;
+  }
+
+  /**
+   * No rules required.
+   *
+   * @param paramsMap
+   * @return true
+   */
+  @Override
+  public boolean matchQueryRules(MapSqlParameterSource paramsMap) {
+    return true;
+  }
+
+  @Override
+  public Class<? extends BaseIdentifiableObject> getRootEntity() {
+    return QueryableDataItem.PROGRAM_ATTRIBUTE.getEntity();
+  }
+
+  private String selectRowsContainingTranslatedName() {
+    return new StringBuilder()
+        .append(SPACED_SELECT + COMMON_COLUMNS)
+        .append(translationNamesColumnsFor("trackedentityattribute", true))
+        .append(SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE)
+        .append(JOINS)
+        .append(translationNamesJoinsOn("trackedentityattribute", true))
+        .toString();
+  }
+
+  private String selectAllRowsIgnoringAnyTranslation() {
+    return new StringBuilder()
+        .append(SPACED_SELECT + COMMON_COLUMNS)
+        .append(
+            ", program.name as i18n_first_name, trackedentityattribute.name as i18n_second_name")
+        .append(
+            ", program.shortname as i18n_first_shortname, trackedentityattribute.shortname as i18n_second_shortname")
+        .append(SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE)
+        .append(JOINS)
+        .toString();
+  }
 }

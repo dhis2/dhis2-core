@@ -33,6 +33,8 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,9 +42,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
+import java.util.stream.Stream;
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -81,482 +82,531 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( "metadata" )
+@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping( value = OrganisationUnitSchemaDescriptor.API_ENDPOINT )
-public class OrganisationUnitController
-    extends AbstractCrudController<OrganisationUnit>
-{
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+@RequestMapping(value = OrganisationUnitSchemaDescriptor.API_ENDPOINT)
+public class OrganisationUnitController extends AbstractCrudController<OrganisationUnit> {
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private VersionService versionService;
+  @Autowired private VersionService versionService;
 
-    @Autowired
-    private OrgUnitSplitService orgUnitSplitService;
+  @Autowired private OrgUnitSplitService orgUnitSplitService;
 
-    @Autowired
-    private OrgUnitMergeService orgUnitMergeService;
+  @Autowired private OrgUnitMergeService orgUnitMergeService;
 
-    @ResponseStatus( HttpStatus.OK )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_SPLIT')" )
-    @PostMapping( value = "/split", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody WebMessage splitOrgUnits( @RequestBody OrgUnitSplitQuery query )
-    {
-        orgUnitSplitService.split( orgUnitSplitService.getFromQuery( query ) );
+  @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize("hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_SPLIT')")
+  @PostMapping(value = "/split", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody WebMessage splitOrgUnits(@RequestBody OrgUnitSplitQuery query) {
+    orgUnitSplitService.split(orgUnitSplitService.getFromQuery(query));
 
-        return ok( "Organisation unit split" );
-    }
+    return ok("Organisation unit split");
+  }
 
-    @ResponseStatus( HttpStatus.OK )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_MERGE')" )
-    @PostMapping( value = "/merge", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody WebMessage mergeOrgUnits( @RequestBody OrgUnitMergeQuery query )
-    {
-        orgUnitMergeService.merge( orgUnitMergeService.getFromQuery( query ) );
+  @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize("hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_MERGE')")
+  @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody WebMessage mergeOrgUnits(@RequestBody OrgUnitMergeQuery query) {
+    orgUnitMergeService.merge(orgUnitMergeService.getFromQuery(query));
 
-        return ok( "Organisation units merged" );
-    }
+    return ok("Organisation units merged");
+  }
 
-    @OpenApi.Param( name = "fields", value = String[].class )
-    @OpenApi.Param( name = "filter", value = String[].class )
-    @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( ObjectListResponse.class )
-    @GetMapping( value = "/{uid}", params = "includeChildren=true" )
-    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getIncludeChildren(
-        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
-        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, @CurrentUser User currentUser )
-        throws ForbiddenException,
-        BadRequestException,
-        NotFoundException
-    {
-        return getChildren( uid, rpParameters, orderParams, response, currentUser );
-    }
+  @OpenApi.Param(name = "fields", value = String[].class)
+  @OpenApi.Param(name = "filter", value = String[].class)
+  @OpenApi.Params(WebOptions.class)
+  @OpenApi.Response(ObjectListResponse.class)
+  @GetMapping(value = "/{uid}", params = "includeChildren=true")
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getIncludeChildren(
+      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      @CurrentUser User currentUser)
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    return getChildren(uid, rpParameters, orderParams, response, currentUser);
+  }
 
-    @OpenApi.Param( name = "fields", value = String[].class )
-    @OpenApi.Param( name = "filter", value = String[].class )
-    @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( ObjectListResponse.class )
-    @GetMapping( "/{uid}/children" )
-    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getChildren(
-        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
-        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, @CurrentUser User currentUser )
-        throws ForbiddenException,
-        BadRequestException,
-        NotFoundException
-    {
-        OrganisationUnit parent = getEntity( uid );
-        return getObjectList( rpParameters, orderParams, response, currentUser, false,
-            params -> List.copyOf( parent.getChildren() ) );
-    }
+  @OpenApi.Param(name = "fields", value = String[].class)
+  @OpenApi.Param(name = "filter", value = String[].class)
+  @OpenApi.Params(WebOptions.class)
+  @OpenApi.Response(ObjectListResponse.class)
+  @GetMapping("/{uid}/children")
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getChildren(
+      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      @CurrentUser User currentUser)
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    OrganisationUnit parent = getEntity(uid);
+    return getObjectList(
+        rpParameters,
+        orderParams,
+        response,
+        currentUser,
+        false,
+        params -> Stream.concat(Stream.of(parent), parent.getChildren().stream()).toList());
+  }
 
-    @OpenApi.Param( name = "fields", value = String[].class )
-    @OpenApi.Param( name = "filter", value = String[].class )
-    @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( ObjectListResponse.class )
-    @GetMapping( value = "/{uid}", params = "level" )
-    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getObjectWithLevel(
-        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
-        @RequestParam int level,
-        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, @CurrentUser User currentUser )
-        throws ForbiddenException,
-        BadRequestException,
-        NotFoundException
-    {
-        return getChildrenWithLevel( uid, level, rpParameters, orderParams, response, currentUser );
-    }
+  @OpenApi.Param(name = "fields", value = String[].class)
+  @OpenApi.Param(name = "filter", value = String[].class)
+  @OpenApi.Params(WebOptions.class)
+  @OpenApi.Response(ObjectListResponse.class)
+  @GetMapping(value = "/{uid}", params = "level")
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getObjectWithLevel(
+      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
+      @RequestParam int level,
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      @CurrentUser User currentUser)
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    return getChildrenWithLevel(uid, level, rpParameters, orderParams, response, currentUser);
+  }
 
-    @OpenApi.Param( name = "fields", value = String[].class )
-    @OpenApi.Param( name = "filter", value = String[].class )
-    @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( ObjectListResponse.class )
-    @GetMapping( value = "/{uid}/children", params = "level" )
-    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getChildrenWithLevel(
-        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
-        @RequestParam int level,
-        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, @CurrentUser User currentUser )
-        throws ForbiddenException,
-        BadRequestException,
-        NotFoundException
-    {
-        OrganisationUnit parent = getEntity( uid );
-        return getObjectList( rpParameters, orderParams, response, currentUser, false, params -> organisationUnitService
-            .getOrganisationUnitsAtLevel( parent.getLevel() + max( 0, level ), parent ) );
-    }
+  @OpenApi.Param(name = "fields", value = String[].class)
+  @OpenApi.Param(name = "filter", value = String[].class)
+  @OpenApi.Params(WebOptions.class)
+  @OpenApi.Response(ObjectListResponse.class)
+  @GetMapping(value = "/{uid}/children", params = "level")
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getChildrenWithLevel(
+      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
+      @RequestParam int level,
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      @CurrentUser User currentUser)
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    OrganisationUnit parent = getEntity(uid);
+    return getObjectList(
+        rpParameters,
+        orderParams,
+        response,
+        currentUser,
+        false,
+        params ->
+            organisationUnitService.getOrganisationUnitsAtLevel(
+                parent.getLevel() + max(0, level), parent));
+  }
 
-    @OpenApi.Param( name = "fields", value = String[].class )
-    @OpenApi.Param( name = "filter", value = String[].class )
-    @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( ObjectListResponse.class )
-    @GetMapping( value = "/{uid}", params = "includeDescendants=true" )
-    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getIncludeDescendants(
-        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
-        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, @CurrentUser User currentUser )
-        throws ForbiddenException,
-        BadRequestException,
-        NotFoundException
-    {
-        return getDescendants( uid, rpParameters, orderParams, response, currentUser );
-    }
+  @OpenApi.Param(name = "fields", value = String[].class)
+  @OpenApi.Param(name = "filter", value = String[].class)
+  @OpenApi.Params(WebOptions.class)
+  @OpenApi.Response(ObjectListResponse.class)
+  @GetMapping(value = "/{uid}", params = "includeDescendants=true")
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getIncludeDescendants(
+      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      @CurrentUser User currentUser)
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    return getDescendants(uid, rpParameters, orderParams, response, currentUser);
+  }
 
-    @OpenApi.Param( name = "fields", value = String[].class )
-    @OpenApi.Param( name = "filter", value = String[].class )
-    @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( ObjectListResponse.class )
-    @GetMapping( "/{uid}/descendants" )
-    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getDescendants(
-        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
-        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, @CurrentUser User currentUser )
-        throws ForbiddenException,
-        BadRequestException,
-        NotFoundException
-    {
-        OrganisationUnit parent = getEntity( uid );
-        return getObjectList( rpParameters, orderParams, response, currentUser, false,
-            params -> organisationUnitService.getOrganisationUnitWithChildren( parent.getUid() ) );
-    }
+  @OpenApi.Param(name = "fields", value = String[].class)
+  @OpenApi.Param(name = "filter", value = String[].class)
+  @OpenApi.Params(WebOptions.class)
+  @OpenApi.Response(ObjectListResponse.class)
+  @GetMapping("/{uid}/descendants")
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getDescendants(
+      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      @CurrentUser User currentUser)
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    OrganisationUnit parent = getEntity(uid);
+    return getObjectList(
+        rpParameters,
+        orderParams,
+        response,
+        currentUser,
+        false,
+        params -> organisationUnitService.getOrganisationUnitWithChildren(parent.getUid()));
+  }
 
-    @OpenApi.Param( name = "fields", value = String[].class )
-    @OpenApi.Param( name = "filter", value = String[].class )
-    @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( ObjectListResponse.class )
-    @GetMapping( value = "/{uid}", params = "includeAncestors=true" )
-    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getIncludeAncestors(
-        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
-        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, @CurrentUser User currentUser )
-        throws ForbiddenException,
-        BadRequestException,
-        NotFoundException
-    {
-        return getAncestors( uid, rpParameters, orderParams, response, currentUser );
-    }
+  @OpenApi.Param(name = "fields", value = String[].class)
+  @OpenApi.Param(name = "filter", value = String[].class)
+  @OpenApi.Params(WebOptions.class)
+  @OpenApi.Response(ObjectListResponse.class)
+  @GetMapping(value = "/{uid}", params = "includeAncestors=true")
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getIncludeAncestors(
+      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      @CurrentUser User currentUser)
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    return getAncestors(uid, rpParameters, orderParams, response, currentUser);
+  }
 
-    @OpenApi.Param( name = "fields", value = String[].class )
-    @OpenApi.Param( name = "filter", value = String[].class )
-    @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( ObjectListResponse.class )
-    @GetMapping( "/{uid}/ancestors" )
-    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getAncestors(
-        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
-        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, @CurrentUser User currentUser )
-        throws ForbiddenException,
-        BadRequestException,
-        NotFoundException
-    {
-        OrganisationUnit parent = getEntity( uid );
-        return getObjectList( rpParameters, orderParams, response, currentUser, false, params -> {
-            List<OrganisationUnit> res = new ArrayList<>();
-            res.addAll( parent.getAncestors() );
-            Collections.reverse( res );
-            res.add( 0, parent );
-            return res;
-        } );
-    }
+  @OpenApi.Param(name = "fields", value = String[].class)
+  @OpenApi.Param(name = "filter", value = String[].class)
+  @OpenApi.Params(WebOptions.class)
+  @OpenApi.Response(ObjectListResponse.class)
+  @GetMapping("/{uid}/ancestors")
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getAncestors(
+      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      @CurrentUser User currentUser)
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    OrganisationUnit parent = getEntity(uid);
+    return getObjectList(
+        rpParameters,
+        orderParams,
+        response,
+        currentUser,
+        false,
+        params -> {
+          List<OrganisationUnit> res = new ArrayList<>();
+          res.addAll(parent.getAncestors());
+          Collections.reverse(res);
+          res.add(0, parent);
+          return res;
+        });
+  }
 
-    @OpenApi.Param( name = "fields", value = String[].class )
-    @OpenApi.Param( name = "filter", value = String[].class )
-    @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( ObjectListResponse.class )
-    @GetMapping( "/{uid}/parents" )
-    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getParents(
-        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
-        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, @CurrentUser User currentUser )
-        throws ForbiddenException,
-        BadRequestException,
-        NotFoundException
-    {
-        OrganisationUnit root = getEntity( uid );
-        return getObjectList( rpParameters, orderParams, response, currentUser, false, params -> {
-            OrganisationUnit parent = root.getParent();
-            List<OrganisationUnit> res = new ArrayList<>();
-            while ( parent != null )
-            {
-                res.add( parent );
-                parent = parent.getParent();
+  @OpenApi.Param(name = "fields", value = String[].class)
+  @OpenApi.Param(name = "filter", value = String[].class)
+  @OpenApi.Params(WebOptions.class)
+  @OpenApi.Response(ObjectListResponse.class)
+  @GetMapping("/{uid}/parents")
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getParents(
+      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      @CurrentUser User currentUser)
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    OrganisationUnit root = getEntity(uid);
+    return getObjectList(
+        rpParameters,
+        orderParams,
+        response,
+        currentUser,
+        false,
+        params -> {
+          OrganisationUnit parent = root.getParent();
+          List<OrganisationUnit> res = new ArrayList<>();
+          while (parent != null) {
+            res.add(parent);
+            parent = parent.getParent();
+          }
+          return res;
+        });
+  }
+
+  @OpenApi.Param(name = "fields", value = String[].class)
+  @OpenApi.Param(name = "filter", value = String[].class)
+  @OpenApi.Params(WebOptions.class)
+  @OpenApi.Response(ObjectListResponse.class)
+  @GetMapping(params = {"memberObject", "memberCollection"})
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>>
+      getOrganisationUnitsWithMemberCount(
+          @RequestParam String memberObject,
+          @RequestParam String memberCollection,
+          @RequestParam Map<String, String> rpParameters,
+          OrderParams orderParams,
+          HttpServletResponse response,
+          @CurrentUser User currentUser)
+          throws ForbiddenException, BadRequestException {
+    return getObjectList(
+        rpParameters,
+        orderParams,
+        response,
+        currentUser,
+        false,
+        params -> {
+          List<OrganisationUnit> units =
+              getEntityList(
+                  params.getMetadata(),
+                  params.getOptions(),
+                  params.getFilters(),
+                  params.getOrders());
+          Optional<? extends IdentifiableObject> member = manager.find(memberObject);
+          if (member.isPresent()) {
+            for (OrganisationUnit unit : units) {
+              Long count =
+                  organisationUnitService.getOrganisationUnitHierarchyMemberCount(
+                      unit, member.get(), memberCollection);
+
+              unit.setMemberCount((count != null ? count.intValue() : 0));
             }
-            return res;
-        } );
+          }
+          return units;
+        });
+  }
+
+  @OpenApi.Param(name = "fields", value = String[].class)
+  @OpenApi.Param(name = "filter", value = String[].class)
+  @OpenApi.Params(WebOptions.class)
+  @OpenApi.Response(ObjectListResponse.class)
+  @GetMapping(params = "userOnly=true")
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getUserOrganisationUnits(
+      @RequestParam boolean userOnly,
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      @CurrentUser User currentUser)
+      throws ForbiddenException, BadRequestException {
+    return getObjectList(
+        rpParameters,
+        orderParams,
+        response,
+        currentUser,
+        false,
+        params -> new ArrayList<>(currentUser.getOrganisationUnits()));
+  }
+
+  @OpenApi.Param(name = "fields", value = String[].class)
+  @OpenApi.Param(name = "filter", value = String[].class)
+  @OpenApi.Params(WebOptions.class)
+  @OpenApi.Response(ObjectListResponse.class)
+  @GetMapping(params = "userDataViewOnly=true")
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>>
+      getUserDataViewOrganisationUnits(
+          @RequestParam boolean userDataViewOnly,
+          @RequestParam Map<String, String> rpParameters,
+          OrderParams orderParams,
+          HttpServletResponse response,
+          @CurrentUser User currentUser)
+          throws ForbiddenException, BadRequestException {
+    return getObjectList(
+        rpParameters,
+        orderParams,
+        response,
+        currentUser,
+        false,
+        params -> new ArrayList<>(currentUser.getDataViewOrganisationUnits()));
+  }
+
+  @OpenApi.Param(name = "fields", value = String[].class)
+  @OpenApi.Param(name = "filter", value = String[].class)
+  @OpenApi.Params(WebOptions.class)
+  @OpenApi.Response(ObjectListResponse.class)
+  @GetMapping(params = "userDataViewFallback=true")
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>>
+      getUserDataViewOrganisationUnitsWithFallback(
+          @RequestParam boolean userDataViewFallback,
+          @RequestParam Map<String, String> rpParameters,
+          OrderParams orderParams,
+          HttpServletResponse response,
+          @CurrentUser User currentUser)
+          throws ForbiddenException, BadRequestException {
+    return getObjectList(
+        rpParameters,
+        orderParams,
+        response,
+        currentUser,
+        false,
+        params ->
+            currentUser.hasDataViewOrganisationUnit()
+                ? new ArrayList<>(currentUser.getDataViewOrganisationUnits())
+                : organisationUnitService.getOrganisationUnitsAtLevel(1));
+  }
+
+  @OpenApi.Param(name = "fields", value = String[].class)
+  @OpenApi.Param(name = "filter", value = String[].class)
+  @OpenApi.Params(WebOptions.class)
+  @OpenApi.Response(ObjectListResponse.class)
+  @GetMapping(params = "levelSorted=true")
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>>
+      getAllOrganisationUnitsByLevel(
+          @RequestParam boolean levelSorted,
+          @RequestParam Map<String, String> rpParameters,
+          OrderParams orderParams,
+          HttpServletResponse response,
+          @CurrentUser User currentUser)
+          throws ForbiddenException, BadRequestException {
+    return getObjectList(
+        rpParameters,
+        orderParams,
+        response,
+        currentUser,
+        false,
+        params ->
+            manager.getAll(getEntityClass()).stream()
+                .sorted(OrganisationUnitByLevelComparator.INSTANCE)
+                .collect(toList()));
+  }
+
+  @Override
+  @OpenApi.Ignore
+  @GetMapping(
+      params =
+          "getObjectList") // overridden and over-specified to effectively remove the @GetMapping
+  public ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getObjectList(
+      Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      User currentUser) {
+    return null;
+  }
+
+  @OpenApi.Param(name = "fields", value = String[].class)
+  @OpenApi.Param(name = "filter", value = String[].class)
+  @OpenApi.Params(WebOptions.class)
+  @OpenApi.Response(ObjectListResponse.class)
+  @GetMapping
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getObjectList(
+      @RequestParam(required = false) String query,
+      @RequestParam(required = false) Integer level,
+      @RequestParam(required = false) Integer maxLevel,
+      @RequestParam(required = false) Boolean withinUserHierarchy,
+      @RequestParam(required = false) Boolean withinUserSearchHierarchy,
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      @CurrentUser User currentUser)
+      throws ForbiddenException, BadRequestException {
+    if (query == null
+        && level == null
+        && maxLevel == null
+        && withinUserHierarchy == null
+        && withinUserSearchHierarchy == null) {
+      return super.getObjectList(rpParameters, orderParams, response, currentUser);
+    }
+    return getObjectList(
+        rpParameters,
+        orderParams,
+        response,
+        currentUser,
+        false,
+        parameters -> {
+          OrganisationUnitQueryParams p = new OrganisationUnitQueryParams();
+          p.setQuery(query);
+          p.setLevel(level);
+          p.setMaxLevels(maxLevel);
+
+          p.setParents(
+              withinUserHierarchy == Boolean.TRUE
+                  ? currentUser.getOrganisationUnits()
+                  : withinUserSearchHierarchy == Boolean.TRUE
+                      ? currentUser.getTeiSearchOrganisationUnitsWithFallback()
+                      : Set.of());
+
+          return organisationUnitService.getOrganisationUnitsByQuery(p);
+        });
+  }
+
+  @GetMapping(
+      value = {"", ".geojson"},
+      produces = {"application/json+geo", "application/json+geojson"})
+  public void getGeoJson(
+      @RequestParam(value = "level", required = false) List<Integer> rpLevels,
+      @OpenApi.Param({UID[].class, OrganisationUnit.class})
+          @RequestParam(value = "parent", required = false)
+          List<String> rpParents,
+      @RequestParam(value = "properties", required = false, defaultValue = "true")
+          boolean rpProperties,
+      @CurrentUser User currentUser,
+      HttpServletResponse response)
+      throws IOException {
+    rpLevels = rpLevels != null ? rpLevels : new ArrayList<>();
+    rpParents = rpParents != null ? rpParents : new ArrayList<>();
+
+    List<OrganisationUnit> parents =
+        new ArrayList<>(manager.getByUid(OrganisationUnit.class, rpParents));
+
+    if (rpLevels.isEmpty()) {
+      rpLevels.add(1);
     }
 
-    @OpenApi.Param( name = "fields", value = String[].class )
-    @OpenApi.Param( name = "filter", value = String[].class )
-    @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( ObjectListResponse.class )
-    @GetMapping( params = { "memberObject", "memberCollection" } )
-    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getOrganisationUnitsWithMemberCount(
-        @RequestParam String memberObject,
-        @RequestParam String memberCollection,
-        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, @CurrentUser User currentUser )
-        throws ForbiddenException,
-        BadRequestException
-    {
-        return getObjectList( rpParameters, orderParams, response, currentUser, false,
-            params -> {
-                List<OrganisationUnit> units = getEntityList( params.getMetadata(), params.getOptions(),
-                    params.getFilters(), params.getOrders() );
-                Optional<? extends IdentifiableObject> member = manager.find( memberObject );
-                if ( member.isPresent() )
-                {
-                    for ( OrganisationUnit unit : units )
-                    {
-                        Long count = organisationUnitService.getOrganisationUnitHierarchyMemberCount( unit,
-                            member.get(),
-                            memberCollection );
-
-                        unit.setMemberCount( (count != null ? count.intValue() : 0) );
-                    }
-                }
-                return units;
-            } );
+    if (parents.isEmpty()) {
+      parents.addAll(organisationUnitService.getRootOrganisationUnits());
     }
 
-    @OpenApi.Param( name = "fields", value = String[].class )
-    @OpenApi.Param( name = "filter", value = String[].class )
-    @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( ObjectListResponse.class )
-    @GetMapping( params = "userOnly=true" )
-    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getUserOrganisationUnits(
-        @RequestParam boolean userOnly,
-        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, @CurrentUser User currentUser )
-        throws ForbiddenException,
-        BadRequestException
-    {
-        return getObjectList( rpParameters, orderParams, response, currentUser, false,
-            params -> new ArrayList<>( currentUser.getOrganisationUnits() ) );
+    List<OrganisationUnit> organisationUnits =
+        organisationUnitService.getOrganisationUnitsAtLevels(rpLevels, parents);
+
+    response.setContentType(APPLICATION_JSON_VALUE);
+
+    try (JsonGenerator generator = new JsonFactory().createGenerator(response.getOutputStream())) {
+
+      generator.writeStartObject();
+      generator.writeStringField("type", "FeatureCollection");
+      generator.writeArrayFieldStart("features");
+
+      for (OrganisationUnit organisationUnit : organisationUnits) {
+        writeFeature(generator, organisationUnit, rpProperties, currentUser);
+      }
+
+      generator.writeEndArray();
+      generator.writeEndObject();
+    }
+  }
+
+  private void writeFeature(
+      JsonGenerator generator,
+      OrganisationUnit organisationUnit,
+      boolean includeProperties,
+      User user)
+      throws IOException {
+    if (organisationUnit.getGeometry() == null) {
+      return;
     }
 
-    @OpenApi.Param( name = "fields", value = String[].class )
-    @OpenApi.Param( name = "filter", value = String[].class )
-    @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( ObjectListResponse.class )
-    @GetMapping( params = "userDataViewOnly=true" )
-    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getUserDataViewOrganisationUnits(
-        @RequestParam boolean userDataViewOnly,
-        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, @CurrentUser User currentUser )
-        throws ForbiddenException,
-        BadRequestException
-    {
-        return getObjectList( rpParameters, orderParams, response, currentUser, false,
-            params -> new ArrayList<>( currentUser.getDataViewOrganisationUnits() ) );
+    generator.writeStartObject();
+
+    generator.writeStringField("type", "Feature");
+    generator.writeStringField("id", organisationUnit.getUid());
+
+    generator.writeObjectFieldStart("geometry");
+    generator.writeObjectField("type", organisationUnit.getGeometry().getGeometryType());
+
+    generator.writeFieldName("coordinates");
+    generator.writeRawValue(getCoordinatesFromGeometry(organisationUnit.getGeometry()));
+
+    generator.writeEndObject();
+
+    generator.writeObjectFieldStart("properties");
+
+    if (includeProperties) {
+      Set<OrganisationUnit> roots = user.getDataViewOrganisationUnitsWithFallback();
+
+      generator.writeStringField("code", organisationUnit.getCode());
+      generator.writeStringField("name", organisationUnit.getName());
+      generator.writeStringField("level", String.valueOf(organisationUnit.getLevel()));
+
+      if (organisationUnit.getParent() != null) {
+        generator.writeStringField("parent", organisationUnit.getParent().getUid());
+      }
+
+      generator.writeStringField("parentGraph", organisationUnit.getParentGraph(roots));
+
+      generator.writeArrayFieldStart("groups");
+
+      for (OrganisationUnitGroup group : organisationUnit.getGroups()) {
+        generator.writeString(group.getUid());
+      }
+
+      generator.writeEndArray();
     }
 
-    @OpenApi.Param( name = "fields", value = String[].class )
-    @OpenApi.Param( name = "filter", value = String[].class )
-    @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( ObjectListResponse.class )
-    @GetMapping( params = "userDataViewFallback=true" )
-    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getUserDataViewOrganisationUnitsWithFallback(
-        @RequestParam boolean userDataViewFallback,
-        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, @CurrentUser User currentUser )
-        throws ForbiddenException,
-        BadRequestException
-    {
-        return getObjectList( rpParameters, orderParams, response, currentUser, false,
-            params -> currentUser.hasDataViewOrganisationUnit()
-                ? new ArrayList<>( currentUser.getDataViewOrganisationUnits() )
-                : organisationUnitService.getOrganisationUnitsAtLevel( 1 ) );
-    }
+    generator.writeEndObject();
 
-    @OpenApi.Param( name = "fields", value = String[].class )
-    @OpenApi.Param( name = "filter", value = String[].class )
-    @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( ObjectListResponse.class )
-    @GetMapping( params = "levelSorted=true" )
-    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getAllOrganisationUnitsByLevel(
-        @RequestParam boolean levelSorted,
-        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, @CurrentUser User currentUser )
-        throws ForbiddenException,
-        BadRequestException
-    {
-        return getObjectList( rpParameters, orderParams, response, currentUser, false,
-            params -> manager.getAll( getEntityClass() ).stream().sorted( OrganisationUnitByLevelComparator.INSTANCE )
-                .collect( toList() ) );
-    }
+    generator.writeEndObject();
+  }
 
-    @Override
-    @OpenApi.Ignore
-    @GetMapping( params = "getObjectList" ) // overridden and over-specified to effectively remove the @GetMapping
-    public ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getObjectList(
-        Map<String, String> rpParameters, OrderParams orderParams, HttpServletResponse response, User currentUser )
-    {
-        return null;
-    }
+  @Override
+  protected void postCreateEntity(OrganisationUnit entity) {
+    versionService.updateVersion(VersionService.ORGANISATIONUNIT_VERSION);
+  }
 
-    @OpenApi.Param( name = "fields", value = String[].class )
-    @OpenApi.Param( name = "filter", value = String[].class )
-    @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( ObjectListResponse.class )
-    @GetMapping
-    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getObjectList(
-        @RequestParam( required = false ) String query,
-        @RequestParam( required = false ) Integer level,
-        @RequestParam( required = false ) Integer maxLevel,
-        @RequestParam( required = false ) Boolean withinUserHierarchy,
-        @RequestParam( required = false ) Boolean withinUserSearchHierarchy,
-        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, @CurrentUser User currentUser )
-        throws ForbiddenException,
-        BadRequestException
-    {
-        if ( query == null && level == null && maxLevel == null && withinUserHierarchy == null
-            && withinUserSearchHierarchy == null )
-        {
-            return super.getObjectList( rpParameters, orderParams, response, currentUser );
-        }
-        return getObjectList( rpParameters, orderParams, response, currentUser, false,
-            parameters -> {
-                OrganisationUnitQueryParams p = new OrganisationUnitQueryParams();
-                p.setQuery( query );
-                p.setLevel( level );
-                p.setMaxLevels( maxLevel );
+  @Override
+  protected void postUpdateEntity(OrganisationUnit entity) {
+    versionService.updateVersion(VersionService.ORGANISATIONUNIT_VERSION);
+  }
 
-                p.setParents( withinUserHierarchy == Boolean.TRUE
-                    ? currentUser.getOrganisationUnits()
-                    : withinUserSearchHierarchy == Boolean.TRUE
-                        ? currentUser.getTeiSearchOrganisationUnitsWithFallback()
-                        : Set.of() );
-
-                return organisationUnitService.getOrganisationUnitsByQuery( p );
-            } );
-    }
-
-    @GetMapping( value = { "", ".geojson" }, produces = { "application/json+geo",
-        "application/json+geojson" } )
-    public void getGeoJson(
-        @RequestParam( value = "level", required = false ) List<Integer> rpLevels,
-        @OpenApi.Param( { UID[].class,
-            OrganisationUnit.class } ) @RequestParam( value = "parent", required = false ) List<String> rpParents,
-        @RequestParam( value = "properties", required = false, defaultValue = "true" ) boolean rpProperties,
-        @CurrentUser User currentUser, HttpServletResponse response )
-        throws IOException
-    {
-        rpLevels = rpLevels != null ? rpLevels : new ArrayList<>();
-        rpParents = rpParents != null ? rpParents : new ArrayList<>();
-
-        List<OrganisationUnit> parents = new ArrayList<>( manager.getByUid( OrganisationUnit.class, rpParents ) );
-
-        if ( rpLevels.isEmpty() )
-        {
-            rpLevels.add( 1 );
-        }
-
-        if ( parents.isEmpty() )
-        {
-            parents.addAll( organisationUnitService.getRootOrganisationUnits() );
-        }
-
-        List<OrganisationUnit> organisationUnits = organisationUnitService.getOrganisationUnitsAtLevels( rpLevels,
-            parents );
-
-        response.setContentType( APPLICATION_JSON_VALUE );
-
-        try ( JsonGenerator generator = new JsonFactory().createGenerator( response.getOutputStream() ) )
-        {
-
-            generator.writeStartObject();
-            generator.writeStringField( "type", "FeatureCollection" );
-            generator.writeArrayFieldStart( "features" );
-
-            for ( OrganisationUnit organisationUnit : organisationUnits )
-            {
-                writeFeature( generator, organisationUnit, rpProperties, currentUser );
-            }
-
-            generator.writeEndArray();
-            generator.writeEndObject();
-        }
-    }
-
-    private void writeFeature( JsonGenerator generator, OrganisationUnit organisationUnit,
-        boolean includeProperties, User user )
-        throws IOException
-    {
-        if ( organisationUnit.getGeometry() == null )
-        {
-            return;
-        }
-
-        generator.writeStartObject();
-
-        generator.writeStringField( "type", "Feature" );
-        generator.writeStringField( "id", organisationUnit.getUid() );
-
-        generator.writeObjectFieldStart( "geometry" );
-        generator.writeObjectField( "type", organisationUnit.getGeometry().getGeometryType() );
-
-        generator.writeFieldName( "coordinates" );
-        generator.writeRawValue( getCoordinatesFromGeometry( organisationUnit.getGeometry() ) );
-
-        generator.writeEndObject();
-
-        generator.writeObjectFieldStart( "properties" );
-
-        if ( includeProperties )
-        {
-            Set<OrganisationUnit> roots = user.getDataViewOrganisationUnitsWithFallback();
-
-            generator.writeStringField( "code", organisationUnit.getCode() );
-            generator.writeStringField( "name", organisationUnit.getName() );
-            generator.writeStringField( "level", String.valueOf( organisationUnit.getLevel() ) );
-
-            if ( organisationUnit.getParent() != null )
-            {
-                generator.writeStringField( "parent", organisationUnit.getParent().getUid() );
-            }
-
-            generator.writeStringField( "parentGraph", organisationUnit.getParentGraph( roots ) );
-
-            generator.writeArrayFieldStart( "groups" );
-
-            for ( OrganisationUnitGroup group : organisationUnit.getGroups() )
-            {
-                generator.writeString( group.getUid() );
-            }
-
-            generator.writeEndArray();
-        }
-
-        generator.writeEndObject();
-
-        generator.writeEndObject();
-    }
-
-    @Override
-    protected void postCreateEntity( OrganisationUnit entity )
-    {
-        versionService.updateVersion( VersionService.ORGANISATIONUNIT_VERSION );
-    }
-
-    @Override
-    protected void postUpdateEntity( OrganisationUnit entity )
-    {
-        versionService.updateVersion( VersionService.ORGANISATIONUNIT_VERSION );
-    }
-
-    @Override
-    protected void postDeleteEntity( String entityUID )
-    {
-        versionService.updateVersion( VersionService.ORGANISATIONUNIT_VERSION );
-    }
+  @Override
+  protected void postDeleteEntity(String entityUID) {
+    versionService.updateVersion(VersionService.ORGANISATIONUNIT_VERSION);
+  }
 }

@@ -27,25 +27,18 @@
  */
 package org.hisp.dhis.leader.election;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 @Data
-public class LeaderNodeInfo
-{
-    @JsonProperty
-    private String leaderNodeId;
+public class LeaderNodeInfo {
+  @JsonProperty private String leaderNodeId;
 
-    @JsonProperty
-    private String leaderNodeUuid;
+  @JsonProperty private String leaderNodeUuid;
 
-    @JsonProperty
-    private String currentNodeId;
+  @JsonProperty private String currentNodeId;
 
-    @JsonProperty
-    private String currentNodeUuid;
+  @JsonProperty private String currentNodeUuid;
 
-    @JsonProperty
-    private boolean leader;
+  @JsonProperty private boolean leader;
 }

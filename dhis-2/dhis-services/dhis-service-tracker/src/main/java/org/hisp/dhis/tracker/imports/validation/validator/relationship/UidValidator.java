@@ -37,14 +37,14 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class UidValidator
-    implements Validator<Relationship>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Relationship relationship )
-    {
-        checkUidFormat( relationship.getRelationship(), reporter, relationship, relationship.getRelationship(),
-            relationship.getRelationship() );
-    }
-
+class UidValidator implements Validator<Relationship> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
+    checkUidFormat(
+        relationship.getRelationship(),
+        reporter,
+        relationship,
+        relationship.getRelationship(),
+        relationship.getRelationship());
+  }
 }

@@ -40,16 +40,23 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Dusan Bernat
  */
-@Repository( "org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItemStore" )
+@Repository("org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItemStore")
 public class HibernateExpressionDimensionItemStore
-    extends HibernateIdentifiableObjectStore<ExpressionDimensionItem>
-{
-    @Autowired
-    public HibernateExpressionDimensionItemStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher,
-        CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ExpressionDimensionItem.class, currentUserService, aclService,
-            true );
-    }
+    extends HibernateIdentifiableObjectStore<ExpressionDimensionItem> {
+  @Autowired
+  public HibernateExpressionDimensionItemStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        ExpressionDimensionItem.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 }

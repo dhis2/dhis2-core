@@ -28,50 +28,46 @@
 package org.hisp.dhis.system.deletion;
 
 import java.lang.reflect.ParameterizedType;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * This base deletion handler for {@link IdentifiableObject} implements method
- * {@link IdObjectDeletionHandler#allowDeleteUser(User)} by default. If there is
- * any object has property createdBy or lastUpdatedBy linked to deleting
- * {@link User} then the deletion is vetoed.
+ * This base deletion handler for {@link IdentifiableObject} implements method {@link
+ * IdObjectDeletionHandler#allowDeleteUser(User)} by default. If there is any object has property
+ * createdBy or lastUpdatedBy linked to deleting {@link User} then the deletion is vetoed.
  */
-public abstract class IdObjectDeletionHandler<T extends IdentifiableObject> extends JdbcDeletionHandler
-{
-    protected final DeletionVeto VETO;
+public abstract class IdObjectDeletionHandler<T extends IdentifiableObject>
+    extends JdbcDeletionHandler {
+  protected final DeletionVeto VETO;
 
-    private final Class<T> klass;
+  private final Class<T> klass;
 
-    protected IdentifiableObjectManager idObjectManager;
+  protected IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    public void setIdObjectManager( IdentifiableObjectManager idObjectManager )
-    {
-        this.idObjectManager = idObjectManager;
-    }
+  @Autowired
+  public void setIdObjectManager(IdentifiableObjectManager idObjectManager) {
+    this.idObjectManager = idObjectManager;
+  }
 
-    @SuppressWarnings( "unchecked" )
-    protected IdObjectDeletionHandler()
-    {
-        this.klass = (Class<T>) (((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0]);
-        this.VETO = new DeletionVeto( klass );
-    }
+  @SuppressWarnings("unchecked")
+  protected IdObjectDeletionHandler() {
+    this.klass =
+        (Class<T>)
+            (((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0]);
+    this.VETO = new DeletionVeto(klass);
+  }
 
-    @Override
-    protected final void register()
-    {
-        whenVetoing( User.class, this::allowDeleteUser );
-        registerHandler();
-    }
+  @Override
+  protected final void register() {
+    whenVetoing(User.class, this::allowDeleteUser);
+    registerHandler();
+  }
 
-    protected abstract void registerHandler();
+  protected abstract void registerHandler();
 
-    private DeletionVeto allowDeleteUser( User user )
-    {
-        return idObjectManager.findByUser( klass, user ).isEmpty() ? DeletionVeto.ACCEPT : VETO;
-    }
+  private DeletionVeto allowDeleteUser(User user) {
+    return idObjectManager.findByUser(klass, user).isEmpty() ? DeletionVeto.ACCEPT : VETO;
+  }
 }

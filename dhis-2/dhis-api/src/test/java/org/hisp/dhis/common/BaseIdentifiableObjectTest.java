@@ -27,32 +27,64 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.BaseIdentifiableObject.copySet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Set;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramSection;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-class BaseIdentifiableObjectTest
-{
+class BaseIdentifiableObjectTest {
 
-    @Test
-    void testGetValue()
-    {
-        DataElement deA = new DataElement();
-        deA.setUid( "A1234567890" );
-        deA.setCode( "CodeA" );
-        deA.setName( "NameA" );
-        DataElement deB = new DataElement();
-        IdScheme idSchemeUid = IdScheme.from( IdentifiableProperty.UID );
-        IdScheme idSchemeCode = IdScheme.from( IdentifiableProperty.CODE );
-        IdScheme idSchemeName = IdScheme.from( IdentifiableProperty.NAME );
-        assertEquals( "A1234567890", deA.getPropertyValue( idSchemeUid ) );
-        assertEquals( "CodeA", deA.getPropertyValue( idSchemeCode ) );
-        assertEquals( "NameA", deA.getPropertyValue( idSchemeName ) );
-        assertNull( deB.getPropertyValue( idSchemeCode ) );
-    }
+  @Test
+  void testGetValue() {
+    DataElement deA = new DataElement();
+    deA.setUid("A1234567890");
+    deA.setCode("CodeA");
+    deA.setName("NameA");
+    DataElement deB = new DataElement();
+    IdScheme idSchemeUid = IdScheme.from(IdentifiableProperty.UID);
+    IdScheme idSchemeCode = IdScheme.from(IdentifiableProperty.CODE);
+    IdScheme idSchemeName = IdScheme.from(IdentifiableProperty.NAME);
+    assertEquals("A1234567890", deA.getPropertyValue(idSchemeUid));
+    assertEquals("CodeA", deA.getPropertyValue(idSchemeCode));
+    assertEquals("NameA", deA.getPropertyValue(idSchemeName));
+    assertNull(deB.getPropertyValue(idSchemeCode));
+  }
+
+  @Test
+  void testCopySet() {
+    Program program1 = new Program("Program 1");
+    Program program2 = new Program("Program 2");
+    ProgramSection section1 = new ProgramSection();
+    section1.setAutoFields();
+    section1.setProgram(program1);
+    ProgramSection section2 = new ProgramSection();
+    section2.setAutoFields();
+    section2.setProgram(program1);
+
+    Set<ProgramSection> sections = Set.of(section1, section2);
+    program1.setProgramSections(sections);
+
+    Set<ProgramSection> copiedSections =
+        copySet(program2, program1.getProgramSections(), ProgramSection.copyOf);
+
+    assertEquals(sections.size(), copiedSections.size());
+  }
+
+  @Test
+  void testCopySetNullCollection() {
+    Program program = new Program("Program 1");
+
+    Set<ProgramSection> copiedSections = copySet(program, null, ProgramSection.copyOf);
+
+    assertTrue(copiedSections.isEmpty());
+  }
 }

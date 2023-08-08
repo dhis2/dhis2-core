@@ -32,42 +32,35 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
 import java.util.Set;
-
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * Tests for {@link DefaultVisualizationService}.
- */
-class DefaultVisualizationServiceTest extends TransactionalIntegrationTest
-{
-    @Autowired
-    private VisualizationService visualizationService;
+/** Tests for {@link DefaultVisualizationService}. */
+class DefaultVisualizationServiceTest extends TransactionalIntegrationTest {
+  @Autowired private VisualizationService visualizationService;
 
-    @Test
-    void testPostWithIconsObject()
-    {
-        // Given
-        Icon icon = new Icon();
-        icon.setType( DATA_ITEM );
+  @Test
+  void testPostWithIconsObject() {
+    // Given
+    Icon icon = new Icon();
+    icon.setType(DATA_ITEM);
 
-        Visualization aVisWithIcons = createVisualization( "any" );
-        aVisWithIcons.setIcons( Set.of( icon ) );
+    Visualization aVisWithIcons = createVisualization("any");
+    aVisWithIcons.setIcons(Set.of(icon));
 
-        // When
-        long uid = visualizationService.save( aVisWithIcons );
+    // When
+    long uid = visualizationService.save(aVisWithIcons);
 
-        // Then
-        Visualization saved = visualizationService.getVisualization( uid );
-        assertIterableEquals( Set.of( icon ), saved.getIcons() );
-        assertEquals( "any", saved.getName() );
-    }
+    // Then
+    Visualization saved = visualizationService.getVisualization(uid);
+    assertIterableEquals(Set.of(icon), saved.getIcons());
+    assertEquals("any", saved.getName());
+  }
 
-    private Visualization createVisualization( String name )
-    {
-        Visualization visualization = createVisualization( 'X' );
-        visualization.setName( name );
-        return visualization;
-    }
+  private Visualization createVisualization(String name) {
+    Visualization visualization = createVisualization('X');
+    visualization.setName(name);
+    return visualization;
+  }
 }

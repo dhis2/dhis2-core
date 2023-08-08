@@ -30,26 +30,20 @@ package org.hisp.dhis.scheduling;
 import org.hisp.dhis.feedback.ErrorReport;
 
 /**
- * This interface is used for jobs in the system which are scheduled or executed
- * by the Spring scheduler. The actual job will contain an execute method which
- * performs the appropriate actions.
- * <p>
- * See {@link SchedulingManager} for more information about the scheduling.
+ * This interface is used for jobs in the system which are scheduled or executed by the Spring
+ * scheduler. The actual job will contain an execute method which performs the appropriate actions.
  *
- * @see <a href=
- *      "https://github.com/dhis2/wow-backend/blob/master/docs/job_scheduling.md">Docs</a>
+ * <p>See {@link SchedulingManager} for more information about the scheduling.
  *
+ * @see <a href= "https://github.com/dhis2/wow-backend/blob/master/docs/job_scheduling.md">Docs</a>
  * @author Henning Håkonsen
  */
-public interface Job
-{
-    JobType getJobType();
+public interface Job {
+  JobType getJobType();
 
-    default ErrorReport validate()
-    {
-        return null;
-    }
+  default ErrorReport validate() {
+    return null;
+  }
 
-    void execute( JobConfiguration jobConfiguration, JobProgress progress );
-
+  void execute(JobConfiguration jobConfiguration, JobProgress progress);
 }

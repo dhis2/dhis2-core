@@ -30,133 +30,103 @@ package org.hisp.dhis.webapi.controller.tracker;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * Representation of
- * {@link org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem}.
- */
-public interface JsonRelationshipItem extends JsonObject
-{
-    default JsonTrackedEntity getTrackedEntity()
-    {
-        return get( "trackedEntity" ).as( JsonTrackedEntity.class );
+/** Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem}. */
+public interface JsonRelationshipItem extends JsonObject {
+  default JsonTrackedEntity getTrackedEntity() {
+    return get("trackedEntity").as(JsonTrackedEntity.class);
+  }
+
+  default JsonEnrollment getEnrollment() {
+    return get("enrollment").as(JsonEnrollment.class);
+  }
+
+  default JsonEvent getEvent() {
+    return get("event").as(JsonEvent.class);
+  }
+
+  interface JsonTrackedEntity extends JsonObject {
+    default String getTrackedEntity() {
+      return getString("trackedEntity").string();
     }
 
-    default JsonEnrollment getEnrollment()
-    {
-        return get( "enrollment" ).as( JsonEnrollment.class );
+    default String getTrackedEntityType() {
+      return getString("trackedEntityType").string();
     }
 
-    default JsonEvent getEvent()
-    {
-        return get( "event" ).as( JsonEvent.class );
+    default String getOrgUnit() {
+      return getString("orgUnit").string();
     }
 
-    interface JsonTrackedEntity extends JsonObject
-    {
-        default String getTrackedEntity()
-        {
-            return getString( "trackedEntity" ).string();
-        }
-
-        default String getTrackedEntityType()
-        {
-            return getString( "trackedEntityType" ).string();
-        }
-
-        default String getOrgUnit()
-        {
-            return getString( "orgUnit" ).string();
-        }
-
-        default JsonList<JsonAttribute> getAttributes()
-        {
-            return get( "attributes" ).asList( JsonAttribute.class );
-        }
-
-        default JsonList<JsonEnrollment> getEnrollments()
-        {
-            return get( "enrollments" ).asList( JsonEnrollment.class );
-        }
-
-        default JsonList<JsonProgramOwner> getProgramOwners()
-        {
-            return get( "programOwners" ).asList( JsonProgramOwner.class );
-        }
+    default JsonList<JsonAttribute> getAttributes() {
+      return get("attributes").asList(JsonAttribute.class);
     }
 
-    interface JsonEnrollment extends JsonObject
-    {
-        default String getEnrollment()
-        {
-            return getString( "enrollment" ).string();
-        }
-
-        default String getTrackedEntity()
-        {
-            return getString( "trackedEntity" ).string();
-        }
-
-        default String getProgram()
-        {
-            return getString( "program" ).string();
-        }
-
-        default String getOrgUnit()
-        {
-            return getString( "orgUnit" ).string();
-        }
-
-        default JsonList<JsonEvent> getEvents()
-        {
-            return get( "events" ).asList( JsonEvent.class );
-        }
-
-        default JsonList<JsonAttribute> getAttributes()
-        {
-            return get( "attributes" ).asList( JsonAttribute.class );
-        }
-
-        default JsonList<JsonNote> getNotes()
-        {
-            return get( "notes" ).asList( JsonNote.class );
-        }
+    default JsonList<JsonEnrollment> getEnrollments() {
+      return get("enrollments").asList(JsonEnrollment.class);
     }
 
-    interface JsonEvent extends JsonObject
-    {
-        default String getEvent()
-        {
-            return getString( "event" ).string();
-        }
-
-        default String getStatus()
-        {
-            return getString( "status" ).string();
-        }
-
-        default String getProgramStage()
-        {
-            return getString( "programStage" ).string();
-        }
-
-        default String getEnrollment()
-        {
-            return getString( "enrollment" ).string();
-        }
-
-        default JsonUser getAssignedUser()
-        {
-            return get( "assignedUser" ).as( JsonUser.class );
-        }
-
-        default JsonList<JsonDataValue> getDataValues()
-        {
-            return get( "dataValues" ).asList( JsonDataValue.class );
-        }
-
-        default JsonList<JsonNote> getNotes()
-        {
-            return get( "notes" ).asList( JsonNote.class );
-        }
+    default JsonList<JsonProgramOwner> getProgramOwners() {
+      return get("programOwners").asList(JsonProgramOwner.class);
     }
+  }
+
+  interface JsonEnrollment extends JsonObject {
+    default String getEnrollment() {
+      return getString("enrollment").string();
+    }
+
+    default String getTrackedEntity() {
+      return getString("trackedEntity").string();
+    }
+
+    default String getProgram() {
+      return getString("program").string();
+    }
+
+    default String getOrgUnit() {
+      return getString("orgUnit").string();
+    }
+
+    default JsonList<JsonEvent> getEvents() {
+      return get("events").asList(JsonEvent.class);
+    }
+
+    default JsonList<JsonAttribute> getAttributes() {
+      return get("attributes").asList(JsonAttribute.class);
+    }
+
+    default JsonList<JsonNote> getNotes() {
+      return get("notes").asList(JsonNote.class);
+    }
+  }
+
+  interface JsonEvent extends JsonObject {
+    default String getEvent() {
+      return getString("event").string();
+    }
+
+    default String getStatus() {
+      return getString("status").string();
+    }
+
+    default String getProgramStage() {
+      return getString("programStage").string();
+    }
+
+    default String getEnrollment() {
+      return getString("enrollment").string();
+    }
+
+    default JsonUser getAssignedUser() {
+      return get("assignedUser").as(JsonUser.class);
+    }
+
+    default JsonList<JsonDataValue> getDataValues() {
+      return get("dataValues").asList(JsonDataValue.class);
+    }
+
+    default JsonList<JsonNote> getNotes() {
+      return get("notes").asList(JsonNote.class);
+    }
+  }
 }

@@ -30,8 +30,6 @@ package org.hisp.dhis.util;
 import org.hisp.dhis.feedback.BadRequestException;
 
 @FunctionalInterface
-public interface CheckedFunction<T, R>
-{
-    R apply( T t )
-        throws BadRequestException;
+public interface CheckedFunction<T, R> {
+  R apply(T t) throws BadRequestException;
 }

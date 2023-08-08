@@ -27,73 +27,63 @@
  */
 package org.hisp.dhis.security.apikey;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class MethodAllowedList extends ApiTokenAttribute
-{
-    private Set<String> allowedMethods = new HashSet<>();
+public class MethodAllowedList extends ApiTokenAttribute {
+  private Set<String> allowedMethods = new HashSet<>();
 
-    public MethodAllowedList()
-    {
-        super( "MethodAllowedList" );
+  public MethodAllowedList() {
+    super("MethodAllowedList");
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(value = PropertyType.COLLECTION, required = Property.Value.TRUE)
+  public Set<String> getAllowedMethods() {
+    return allowedMethods;
+  }
+
+  public void setAllowedMethods(Set<String> allowedMethods) {
+    this.allowedMethods = allowedMethods;
+  }
+
+  public static MethodAllowedList of(String... values) {
+    final MethodAllowedList methodAllowedList = new MethodAllowedList();
+    methodAllowedList.setAllowedMethods(
+        new HashSet<>(
+            Stream.of(values).map(s -> s.toUpperCase(Locale.ROOT)).collect(Collectors.toSet())));
+    return methodAllowedList;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.COLLECTION, required = Property.Value.TRUE )
-    public Set<String> getAllowedMethods()
-    {
-        return allowedMethods;
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public void setAllowedMethods( Set<String> allowedMethods )
-    {
-        this.allowedMethods = allowedMethods;
-    }
+    MethodAllowedList that = (MethodAllowedList) o;
+    return Objects.equals(allowedMethods, that.allowedMethods);
+  }
 
-    public static MethodAllowedList of( String... values )
-    {
-        final MethodAllowedList methodAllowedList = new MethodAllowedList();
-        methodAllowedList.setAllowedMethods( new HashSet<>(
-            Stream.of( values ).map( s -> s.toUpperCase( Locale.ROOT ) ).collect( Collectors.toSet() ) ) );
-        return methodAllowedList;
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-
-        MethodAllowedList that = (MethodAllowedList) o;
-        return Objects.equals( allowedMethods, that.allowedMethods );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( allowedMethods );
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(allowedMethods);
+  }
 }

@@ -28,9 +28,7 @@
 package org.hisp.dhis.dataset;
 
 import java.util.Map;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -43,42 +41,38 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class CompleteDataSetRegistrationDeletionHandler extends JdbcDeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( CompleteDataSetRegistration.class );
+public class CompleteDataSetRegistrationDeletionHandler extends JdbcDeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(CompleteDataSetRegistration.class);
 
-    private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
+  private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( DataSet.class, this::deleteDataSet );
-        whenVetoing( Period.class, this::allowDeletePeriod );
-        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
-        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(DataSet.class, this::deleteDataSet);
+    whenVetoing(Period.class, this::allowDeletePeriod);
+    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
+    whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
+  }
 
-    private void deleteDataSet( DataSet dataSet )
-    {
-        completeDataSetRegistrationService.deleteCompleteDataSetRegistrations( dataSet );
-    }
+  private void deleteDataSet(DataSet dataSet) {
+    completeDataSetRegistrationService.deleteCompleteDataSetRegistrations(dataSet);
+  }
 
-    private DeletionVeto allowDeletePeriod( Period period )
-    {
-        return vetoIfExists( VETO, "select 1 from completedatasetregistration where periodid= :id limit 1",
-            Map.of( "id", period.getId() ) );
-    }
+  private DeletionVeto allowDeletePeriod(Period period) {
+    return vetoIfExists(
+        VETO,
+        "select 1 from completedatasetregistration where periodid= :id limit 1",
+        Map.of("id", period.getId()));
+  }
 
-    private void deleteOrganisationUnit( OrganisationUnit unit )
-    {
-        completeDataSetRegistrationService.deleteCompleteDataSetRegistrations( unit );
-    }
+  private void deleteOrganisationUnit(OrganisationUnit unit) {
+    completeDataSetRegistrationService.deleteCompleteDataSetRegistrations(unit);
+  }
 
-    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
-    {
-        return vetoIfExists( VETO,
-            "select 1 from completedatasetregistration where attributeoptioncomboid= :id limit 1",
-            Map.of( "id", optionCombo.getId() ) );
-    }
-
+  private DeletionVeto allowDeleteCategoryOptionCombo(CategoryOptionCombo optionCombo) {
+    return vetoIfExists(
+        VETO,
+        "select 1 from completedatasetregistration where attributeoptioncomboid= :id limit 1",
+        Map.of("id", optionCombo.getId()));
+  }
 }

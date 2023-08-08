@@ -32,86 +32,71 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
-public class QuarterlyNovemberPeriodType
-    extends QuarterlyAbstractPeriodType
-{
-    private static final String ISO_FORMAT = "yyyyNovQn";
+public class QuarterlyNovemberPeriodType extends QuarterlyAbstractPeriodType {
+  private static final String ISO_FORMAT = "yyyyNovQn";
 
-    // -------------------------------------------------------------------------
-    // PeriodType functionality
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // PeriodType functionality
+  // -------------------------------------------------------------------------
 
-    @Override
-    public PeriodTypeEnum getPeriodTypeEnum()
-    {
-        return PeriodTypeEnum.QUARTERLY_NOV;
+  @Override
+  public PeriodTypeEnum getPeriodTypeEnum() {
+    return PeriodTypeEnum.QUARTERLY_NOV;
+  }
+
+  /** n refers to the quarter, can be [1-4]. */
+  @Override
+  public String getIsoFormat() {
+    return ISO_FORMAT;
+  }
+
+  @Override
+  public Period createPeriod(DateTimeUnit dateTimeUnit, Calendar calendar) {
+    int startMonth = ((dateTimeUnit.getMonth() - 2) - ((dateTimeUnit.getMonth() - 2) % 3)) + 2;
+    int startYear = dateTimeUnit.getYear();
+
+    if (dateTimeUnit.getMonth() == 1) {
+      startMonth = -1;
     }
 
-    /**
-     * n refers to the quarter, can be [1-4].
-     */
-    @Override
-    public String getIsoFormat()
-    {
-        return ISO_FORMAT;
+    if (startMonth > 12) {
+      startMonth = 1;
+      startYear = startYear + 1;
+    } else if (startMonth < 1) {
+      startMonth = startMonth + 12;
+      startYear = startYear - 1;
     }
 
-    @Override
-    public Period createPeriod( DateTimeUnit dateTimeUnit, Calendar calendar )
-    {
-        int startMonth = ((dateTimeUnit.getMonth() - 2) - ((dateTimeUnit.getMonth() - 2) % 3)) + 2;
-        int startYear = dateTimeUnit.getYear();
+    DateTimeUnit start = new DateTimeUnit(startYear, startMonth, 1, dateTimeUnit.isIso8601());
 
-        if ( dateTimeUnit.getMonth() == 1 )
-        {
-            startMonth = -1;
-        }
+    DateTimeUnit end = new DateTimeUnit(start);
+    end = calendar.plusMonths(end, 2);
+    end.setDay(calendar.daysInMonth(end.getYear(), end.getMonth()));
 
-        if ( startMonth > 12 )
-        {
-            startMonth = 1;
-            startYear = startYear + 1;
-        }
-        else if ( startMonth < 1 )
-        {
-            startMonth = startMonth + 12;
-            startYear = startYear - 1;
-        }
+    return toIsoPeriod(start, end, calendar);
+  }
 
-        DateTimeUnit start = new DateTimeUnit( startYear, startMonth, 1, dateTimeUnit.isIso8601() );
+  @Override
+  public String getIsoDate(DateTimeUnit dateTimeUnit, Calendar calendar) {
+    DateTimeUnit newUnit = dateTimeUnit;
 
-        DateTimeUnit end = new DateTimeUnit( start );
-        end = calendar.plusMonths( end, 2 );
-        end.setDay( calendar.daysInMonth( end.getYear(), end.getMonth() ) );
-
-        return toIsoPeriod( start, end, calendar );
+    if (!calendar.name().equals(ISO_CALENDAR_NAME) && newUnit.isIso8601()) {
+      newUnit = calendar.fromIso(newUnit);
     }
 
-    @Override
-    public String getIsoDate( DateTimeUnit dateTimeUnit, Calendar calendar )
-    {
-        DateTimeUnit newUnit = dateTimeUnit;
-
-        if ( !calendar.name().equals( ISO_CALENDAR_NAME ) && newUnit.isIso8601() )
-        {
-            newUnit = calendar.fromIso( newUnit );
-        }
-
-        switch ( newUnit.getMonth() )
-        {
-        case 11:
-            return newUnit.getYear() + 1 + "NovQ1";
-        case 2:
-            return newUnit.getYear() + "NovQ2";
-        case 5:
-            return newUnit.getYear() + "NovQ3";
-        case 8:
-            return newUnit.getYear() + "NovQ4";
-        default:
-            throw new IllegalArgumentException( "Month not valid [11,2,5,8], was given " + dateTimeUnit.getMonth() );
-        }
+    switch (newUnit.getMonth()) {
+      case 11:
+        return newUnit.getYear() + 1 + "NovQ1";
+      case 2:
+        return newUnit.getYear() + "NovQ2";
+      case 5:
+        return newUnit.getYear() + "NovQ3";
+      case 8:
+        return newUnit.getYear() + "NovQ4";
+      default:
+        throw new IllegalArgumentException(
+            "Month not valid [11,2,5,8], was given " + dateTimeUnit.getMonth());
     }
-
+  }
 }

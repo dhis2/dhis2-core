@@ -30,7 +30,6 @@ package org.hisp.dhis.security.authority;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.appmanager.AndroidSettingsApp;
 import org.hisp.dhis.appmanager.AppManager;
@@ -39,27 +38,25 @@ import org.hisp.dhis.security.SystemAuthoritiesProvider;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AppsSystemAuthoritiesProvider implements SystemAuthoritiesProvider
-{
-    private AppManager appManager;
+public class AppsSystemAuthoritiesProvider implements SystemAuthoritiesProvider {
+  private AppManager appManager;
 
-    public AppsSystemAuthoritiesProvider( AppManager appManager )
-    {
-        this.appManager = appManager;
-    }
+  public AppsSystemAuthoritiesProvider(AppManager appManager) {
+    this.appManager = appManager;
+  }
 
-    @Override
-    public Collection<String> getSystemAuthorities()
-    {
-        Set<String> authorities = new HashSet<>();
+  @Override
+  public Collection<String> getSystemAuthorities() {
+    Set<String> authorities = new HashSet<>();
 
-        appManager.getApps( null ).stream()
-            .filter( app -> !StringUtils.isEmpty( app.getShortName() ) && !app.isBundled() )
-            .forEach( app -> {
-                authorities.add( app.getSeeAppAuthority() );
-                authorities.addAll( app.getAuthorities() );
-            } );
-        authorities.add( AndroidSettingsApp.AUTHORITY );
-        return authorities;
-    }
+    appManager.getApps(null).stream()
+        .filter(app -> !StringUtils.isEmpty(app.getShortName()) && !app.isBundled())
+        .forEach(
+            app -> {
+              authorities.add(app.getSeeAppAuthority());
+              authorities.addAll(app.getAuthorities());
+            });
+    authorities.add(AndroidSettingsApp.AUTHORITY);
+    return authorities;
+  }
 }

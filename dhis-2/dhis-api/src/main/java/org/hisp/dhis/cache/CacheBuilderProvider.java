@@ -32,15 +32,13 @@ package org.hisp.dhis.cache;
  *
  * @author Ameen Mohamed
  */
-public interface CacheBuilderProvider
-{
-    /**
-     * Creates a new {@link ExtendedCacheBuilder} that can be used to build a
-     * cache that stores the valueType specified.
-     *
-     * @return A cache builder instance for the specified value type. Returns a
-     *         {@link ExtendedCacheBuilder}.
-     */
-    <V> CacheBuilder<V> newCacheBuilder();
-
+public interface CacheBuilderProvider {
+  /**
+   * Creates a new {@link ExtendedCacheBuilder} that can be used to build a cache that stores the
+   * valueType specified.
+   *
+   * @return A cache builder instance for the specified value type. Returns a {@link
+   *     ExtendedCacheBuilder}.
+   */
+  <V> CacheBuilder<V> newCacheBuilder();
 }

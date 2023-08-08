@@ -27,35 +27,32 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Henning Håkonsen
  */
-public class ProgramSectionSchemaDescriptor
-    implements SchemaDescriptor
-{
-    public static final String SINGULAR = "programSection";
+public class ProgramSectionSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "programSection";
 
-    public static final String PLURAL = "programSections";
+  public static final String PLURAL = "programSections";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( ProgramSection.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1550 );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(ProgramSection.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1550);
 
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_PROGRAM_PUBLIC_ADD" ) ) );
+    schema.add(
+        new Authority(AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_PROGRAM_PUBLIC_ADD")));
 
-        return schema;
-    }
+    return schema;
+  }
 }

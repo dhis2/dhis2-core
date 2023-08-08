@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
+import static java.util.Map.entry;
+
+import java.util.Map;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
@@ -38,35 +41,49 @@ import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = {
-    AttributeMapper.class,
-    EventMapper.class,
-    InstantMapper.class,
-    NoteMapper.class,
-    RelationshipMapper.class,
-    UserMapper.class
-} )
+@Mapper(
+    uses = {
+      AttributeMapper.class,
+      EventMapper.class,
+      InstantMapper.class,
+      NoteMapper.class,
+      RelationshipMapper.class,
+      UserMapper.class
+    })
 public interface EnrollmentMapper
-    extends ViewMapper<Enrollment, org.hisp.dhis.webapi.controller.tracker.view.Enrollment>
-{
-    @Mapping( target = "enrollment", source = "uid" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "trackedEntity", source = "trackedEntity.uid" )
-    @Mapping( target = "program", source = "program.uid" )
-    @Mapping( target = "orgUnit", source = "organisationUnit.uid" )
-    @Mapping( target = "orgUnitName", source = "organisationUnit.name" )
-    @Mapping( target = "enrolledAt", source = "enrollmentDate" )
-    @Mapping( target = "occurredAt", source = "incidentDate" )
-    @Mapping( target = "followUp", source = "followup" )
-    @Mapping( target = "completedAt", source = "endDate" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    @Mapping( target = "relationships", source = "relationshipItems" )
-    @Mapping( target = "attributes", source = "trackedEntity.trackedEntityAttributeValues" )
-    @Mapping( target = "notes", source = "comments" )
-    @Override
-    org.hisp.dhis.webapi.controller.tracker.view.Enrollment from( Enrollment enrollment );
+    extends ViewMapper<Enrollment, org.hisp.dhis.webapi.controller.tracker.view.Enrollment> {
+
+  /**
+   * Enrollments can be ordered by given fields which correspond to fields on {@link
+   * org.hisp.dhis.program.Enrollment}.
+   */
+  Map<String, String> ORDERABLE_FIELDS =
+      Map.ofEntries(
+          entry("completedAt", "endDate"),
+          entry("createdAt", "created"),
+          entry("createdAtClient", "createdAtClient"),
+          entry("enrolledAt", "enrollmentDate"),
+          entry("updatedAt", "lastUpdated"),
+          entry("updatedAtClient", "lastUpdatedAtClient"));
+
+  @Mapping(target = "enrollment", source = "uid")
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "createdAtClient", source = "createdAtClient")
+  @Mapping(target = "updatedAt", source = "lastUpdated")
+  @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
+  @Mapping(target = "trackedEntity", source = "trackedEntity.uid")
+  @Mapping(target = "program", source = "program.uid")
+  @Mapping(target = "orgUnit", source = "organisationUnit.uid")
+  @Mapping(target = "orgUnitName", source = "organisationUnit.name")
+  @Mapping(target = "enrolledAt", source = "enrollmentDate")
+  @Mapping(target = "occurredAt", source = "incidentDate")
+  @Mapping(target = "followUp", source = "followup")
+  @Mapping(target = "completedAt", source = "endDate")
+  @Mapping(target = "createdBy", source = "createdByUserInfo")
+  @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
+  @Mapping(target = "relationships", source = "relationshipItems")
+  @Mapping(target = "attributes", source = "trackedEntity.trackedEntityAttributeValues")
+  @Mapping(target = "notes", source = "comments")
+  @Override
+  org.hisp.dhis.webapi.controller.tracker.view.Enrollment from(Enrollment enrollment);
 }

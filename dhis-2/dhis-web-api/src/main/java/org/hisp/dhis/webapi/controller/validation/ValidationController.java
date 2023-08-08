@@ -30,9 +30,7 @@ package org.hisp.dhis.webapi.controller.validation;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -64,90 +62,90 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags( "data" )
+@OpenApi.Tags("data")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping( value = "/validation" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ValidationController
-{
-    private final ValidationService validationService;
+@RequestMapping(value = "/validation")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class ValidationController {
+  private final ValidationService validationService;
 
-    private final CategoryService categoryService;
+  private final CategoryService categoryService;
 
-    private final SchedulingManager schedulingManager;
+  private final SchedulingManager schedulingManager;
 
-    private final DataValidator dataValidator;
+  private final DataValidator dataValidator;
 
-    @GetMapping( "/dataSet/{ds}" )
-    public ValidationSummary validate( @PathVariable String ds,
-        @RequestParam String pe,
-        @RequestParam String ou,
-        @RequestParam( required = false ) String aoc,
-        @RequestParam( required = false ) String cc,
-        @RequestParam( required = false ) String cp,
-        HttpServletResponse response, Model model )
-    {
-        DataSet dataSet = dataValidator.getAndValidateDataSet( ds );
-        Period period = dataValidator.getAndValidatePeriod( pe );
-        OrganisationUnit orgUnit = dataValidator.getAndValidateOrganisationUnit( ou );
-        CategoryOptionCombo attributeOptionCombo = getAttributeOptionCombo( aoc, cc, cp );
+  @GetMapping("/dataSet/{ds}")
+  public ValidationSummary validate(
+      @PathVariable String ds,
+      @RequestParam String pe,
+      @RequestParam String ou,
+      @RequestParam(required = false) String aoc,
+      @RequestParam(required = false) String cc,
+      @RequestParam(required = false) String cp,
+      HttpServletResponse response,
+      Model model) {
+    DataSet dataSet = dataValidator.getAndValidateDataSet(ds);
+    Period period = dataValidator.getAndValidatePeriod(pe);
+    OrganisationUnit orgUnit = dataValidator.getAndValidateOrganisationUnit(ou);
+    CategoryOptionCombo attributeOptionCombo = getAttributeOptionCombo(aoc, cc, cp);
 
-        ValidationSummary summary = new ValidationSummary();
+    ValidationSummary summary = new ValidationSummary();
 
-        ValidationAnalysisParams params = validationService.newParamsBuilder( dataSet, orgUnit, period )
-            .withAttributeOptionCombo( attributeOptionCombo )
+    ValidationAnalysisParams params =
+        validationService
+            .newParamsBuilder(dataSet, orgUnit, period)
+            .withAttributeOptionCombo(attributeOptionCombo)
             .build();
 
-        summary.setValidationRuleViolations( validationService
-            .validationAnalysis( params, NoopJobProgress.INSTANCE ) );
-        summary.setCommentRequiredViolations( validationService
-            .validateRequiredComments( dataSet, period, orgUnit, attributeOptionCombo ) );
+    summary.setValidationRuleViolations(
+        validationService.validationAnalysis(params, NoopJobProgress.INSTANCE));
+    summary.setCommentRequiredViolations(
+        validationService.validateRequiredComments(dataSet, period, orgUnit, attributeOptionCombo));
 
-        return summary;
+    return summary;
+  }
+
+  @RequestMapping(
+      value = "/sendNotifications",
+      method = {RequestMethod.PUT, RequestMethod.POST})
+  @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
+  public WebMessage runValidationNotificationsTask() {
+    JobConfiguration validationResultNotification =
+        new JobConfiguration(
+            "validation result notification from validation controller",
+            JobType.VALIDATION_RESULTS_NOTIFICATION,
+            "",
+            null);
+    validationResultNotification.setInMemoryJob(true);
+    validationResultNotification.setUid(CodeGenerator.generateUid());
+
+    schedulingManager.executeNow(validationResultNotification);
+
+    return ok("Initiated validation result notification");
+  }
+
+  /**
+   * Returns an attribute option combination based on the given identifiers, or the default
+   * attribute option combination if all identifiers are blank.
+   *
+   * @param aoc the attribute option combination identifier.
+   * @param cc the category combination identifier.
+   * @param cp the category option identifier.
+   * @return a {@link CategoryOptionCombo}.
+   */
+  private CategoryOptionCombo getAttributeOptionCombo(String aoc, String cc, String cp) {
+    CategoryOptionCombo attributeOptionCombo = null;
+
+    if (StringUtils.isNotBlank(aoc)) {
+      attributeOptionCombo = dataValidator.getAndValidateCategoryOptionCombo(aoc);
+    } else if (StringUtils.isNoneBlank(cc, cp)) {
+      attributeOptionCombo = dataValidator.getAndValidateAttributeOptionCombo(cc, cp);
+    } else {
+      attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
     }
 
-    @RequestMapping( value = "/sendNotifications", method = { RequestMethod.PUT, RequestMethod.POST } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
-    public WebMessage runValidationNotificationsTask()
-    {
-        JobConfiguration validationResultNotification = new JobConfiguration(
-            "validation result notification from validation controller", JobType.VALIDATION_RESULTS_NOTIFICATION,
-            "", null );
-        validationResultNotification.setInMemoryJob( true );
-        validationResultNotification.setUid( CodeGenerator.generateUid() );
-
-        schedulingManager.executeNow( validationResultNotification );
-
-        return ok( "Initiated validation result notification" );
-    }
-
-    /**
-     * Returns an attribute option combination based on the given identifiers,
-     * or the default attribute option combination if all identifiers are blank.
-     *
-     * @param aoc the attribute option combination identifier.
-     * @param cc the category combination identifier.
-     * @param cp the category option identifier.
-     * @return a {@link CategoryOptionCombo}.
-     */
-    private CategoryOptionCombo getAttributeOptionCombo( String aoc, String cc, String cp )
-    {
-        CategoryOptionCombo attributeOptionCombo = null;
-
-        if ( StringUtils.isNotBlank( aoc ) )
-        {
-            attributeOptionCombo = dataValidator.getAndValidateCategoryOptionCombo( aoc );
-        }
-        else if ( StringUtils.isNoneBlank( cc, cp ) )
-        {
-            attributeOptionCombo = dataValidator.getAndValidateAttributeOptionCombo( cc, cp );
-        }
-        else
-        {
-            attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-        }
-
-        return attributeOptionCombo;
-    }
+    return attributeOptionCombo;
+  }
 }

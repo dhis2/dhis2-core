@@ -30,86 +30,71 @@ package org.hisp.dhis.webapi.controller.scheduling;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
 import java.util.List;
-
 import lombok.Value;
-
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobStatus;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 @Value
-class SchedulerEntry
-{
-    @JsonProperty
-    String name;
+class SchedulerEntry {
+  @JsonProperty String name;
 
-    @JsonProperty
-    String type;
+  @JsonProperty String type;
 
-    @JsonProperty
-    String cronExpression;
+  @JsonProperty String cronExpression;
 
-    @JsonProperty
-    Integer delay;
+  @JsonProperty Integer delay;
 
-    @JsonProperty
-    Date nextExecutionTime;
+  @JsonProperty Date nextExecutionTime;
 
-    @JsonProperty
-    JobStatus status;
+  @JsonProperty JobStatus status;
 
-    @JsonProperty
-    boolean enabled;
+  @JsonProperty boolean enabled;
 
-    @JsonProperty
-    boolean configurable;
+  @JsonProperty boolean configurable;
 
-    @JsonProperty
-    List<SchedulerEntryJob> sequence;
+  @JsonProperty List<SchedulerEntryJob> sequence;
 
-    static SchedulerEntry of( JobConfiguration config )
-    {
-        return new SchedulerEntry(
-            config.getName(),
-            config.getJobType().name(),
-            config.getCronExpression(),
-            config.getDelay(),
-            config.getNextExecutionTime(),
-            config.getJobStatus(),
-            config.isEnabled(),
-            config.getJobType().isConfigurable(),
-            List.of( SchedulerEntryJob.of( config ) ) );
+  static SchedulerEntry of(JobConfiguration config) {
+    return new SchedulerEntry(
+        config.getName(),
+        config.getJobType().name(),
+        config.getCronExpression(),
+        config.getDelay(),
+        config.getNextExecutionTime(),
+        config.getJobStatus(),
+        config.isEnabled(),
+        config.getJobType().isConfigurable(),
+        List.of(SchedulerEntryJob.of(config)));
+  }
+
+  static SchedulerEntry of(List<JobConfiguration> jobs) {
+    List<JobConfiguration> queue =
+        jobs.stream().sorted(comparing(JobConfiguration::getQueuePosition)).collect(toList());
+    JobConfiguration trigger = queue.get(0);
+    if (!trigger.isUsedInQueue()) {
+      return of(trigger);
     }
-
-    static SchedulerEntry of( List<JobConfiguration> jobs )
-    {
-        List<JobConfiguration> queue = jobs.stream()
-            .sorted( comparing( JobConfiguration::getQueuePosition ) )
-            .collect( toList() );
-        JobConfiguration trigger = queue.get( 0 );
-        if ( !trigger.isUsedInQueue() )
-        {
-            return of( trigger );
-        }
-        JobStatus queueStatus = queue.stream()
-            .map( JobConfiguration::getJobStatus )
-            .filter( status -> status == JobStatus.RUNNING )
-            .findAny().orElse( trigger.getJobStatus() );
-        return new SchedulerEntry(
-            trigger.getQueueName(),
-            "Sequence",
-            trigger.getCronExpression(),
-            trigger.getDelay(),
-            trigger.getNextExecutionTime(),
-            queueStatus,
-            trigger.isEnabled(),
-            true,
-            queue.stream()
-                .sorted( comparing( JobConfiguration::getQueuePosition ) )
-                .map( SchedulerEntryJob::of )
-                .collect( toList() ) );
-    }
+    JobStatus queueStatus =
+        queue.stream()
+            .map(JobConfiguration::getJobStatus)
+            .filter(status -> status == JobStatus.RUNNING)
+            .findAny()
+            .orElse(trigger.getJobStatus());
+    return new SchedulerEntry(
+        trigger.getQueueName(),
+        "Sequence",
+        trigger.getCronExpression(),
+        trigger.getDelay(),
+        trigger.getNextExecutionTime(),
+        queueStatus,
+        trigger.isEnabled(),
+        true,
+        queue.stream()
+            .sorted(comparing(JobConfiguration::getQueuePosition))
+            .map(SchedulerEntryJob::of)
+            .collect(toList()));
+  }
 }

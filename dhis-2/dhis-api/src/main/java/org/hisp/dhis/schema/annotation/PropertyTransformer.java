@@ -35,9 +35,8 @@ import java.lang.annotation.Target;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Target( { ElementType.FIELD, ElementType.METHOD } )
-@Retention( RetentionPolicy.RUNTIME )
-public @interface PropertyTransformer
-{
-    Class<? extends org.hisp.dhis.schema.PropertyTransformer> value();
+@Target({ElementType.FIELD, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface PropertyTransformer {
+  Class<? extends org.hisp.dhis.schema.PropertyTransformer> value();
 }

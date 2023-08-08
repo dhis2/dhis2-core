@@ -31,7 +31,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.FLYWAY_OUT_OF_ORDER_M
 import static org.hisp.dhis.external.conf.ConfigurationKey.FLYWAY_REPAIR_BEFORE_MIGRATION;
 
 import javax.sql.DataSource;
-
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.Location;
 import org.flywaydb.core.api.configuration.ClassicConfiguration;
@@ -46,35 +45,32 @@ import org.springframework.context.annotation.Profile;
  * @author Luciano Fiandesio
  */
 @Configuration
-public class FlywayConfig
-{
+public class FlywayConfig {
 
-    private final static String FLYWAY_MIGRATION_FOLDER = "org/hisp/dhis/db/migration";
+  private static final String FLYWAY_MIGRATION_FOLDER = "org/hisp/dhis/db/migration";
 
-    @Bean( value = "flyway", initMethod = "migrate" )
-    @Profile( "!test-h2" )
-    @DependsOn( "dataSource" )
-    public Flyway flyway( DhisConfigurationProvider configurationProvider, DataSource dataSource )
-    {
-        ClassicConfiguration classicConfiguration = new ClassicConfiguration();
+  @Bean(value = "flyway", initMethod = "migrate")
+  @Profile("!test-h2")
+  @DependsOn("dataSource")
+  public Flyway flyway(DhisConfigurationProvider configurationProvider, DataSource dataSource) {
+    ClassicConfiguration classicConfiguration = new ClassicConfiguration();
 
-        classicConfiguration.setDataSource( dataSource );
-        classicConfiguration.setBaselineOnMigrate( true );
-        classicConfiguration.setOutOfOrder( configurationProvider.isEnabled( FLYWAY_OUT_OF_ORDER_MIGRATION ) );
-        classicConfiguration.setIgnoreMigrationPatterns( "*:missing" );
-        classicConfiguration.setGroup( true );
-        classicConfiguration.setLocations( new Location( FLYWAY_MIGRATION_FOLDER ) );
-        classicConfiguration.setMixed( true );
+    classicConfiguration.setDataSource(dataSource);
+    classicConfiguration.setBaselineOnMigrate(true);
+    classicConfiguration.setOutOfOrder(
+        configurationProvider.isEnabled(FLYWAY_OUT_OF_ORDER_MIGRATION));
+    classicConfiguration.setIgnoreMigrationPatterns("*:missing");
+    classicConfiguration.setGroup(true);
+    classicConfiguration.setLocations(new Location(FLYWAY_MIGRATION_FOLDER));
+    classicConfiguration.setMixed(true);
 
-        return new DhisFlyway( classicConfiguration,
-            configurationProvider.isEnabled( FLYWAY_REPAIR_BEFORE_MIGRATION ) );
+    return new DhisFlyway(
+        classicConfiguration, configurationProvider.isEnabled(FLYWAY_REPAIR_BEFORE_MIGRATION));
+  }
 
-    }
-
-    @Bean( "flyway" )
-    @Profile( "test-h2" )
-    public NoOpFlyway noFlyway()
-    {
-        return new NoOpFlyway();
-    }
+  @Bean("flyway")
+  @Profile("test-h2")
+  public NoOpFlyway noFlyway() {
+    return new NoOpFlyway();
+  }
 }

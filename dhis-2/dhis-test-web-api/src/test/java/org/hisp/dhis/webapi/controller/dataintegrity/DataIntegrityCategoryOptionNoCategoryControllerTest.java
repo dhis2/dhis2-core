@@ -33,52 +33,49 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- *
- * Tests metadata integrity check for category options with no category.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/categories/category_options_no_categories.yaml
+ * Tests metadata integrity check for category options with no category. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/categories/category_options_no_categories.yaml
  * }
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityCategoryOptionNoCategoryControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    private final String check = "category_options_no_categories";
+class DataIntegrityCategoryOptionNoCategoryControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
+  private final String check = "category_options_no_categories";
 
-    private final String detailsIdType = "categoryOptions";
+  private final String detailsIdType = "categoryOptions";
 
-    @Test
-    void testCategoryOptionNoCategoriesExist()
-    {
+  @Test
+  void testCategoryOptionNoCategoriesExist() {
 
-        String categoryOptionRed = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptions",
-                "{ 'name': 'Red', 'shortName': 'Red' }" ) );
+    String categoryOptionRed =
+        assertStatus(
+            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
 
-        assertNamedMetadataObjectExists( "categories", "default" );
-        assertNamedMetadataObjectExists( "categoryOptions", "default" );
-        /*
-         * Note that the default category is implicit here, so the percentage
-         * need to take that into account
-         */
-        assertHasDataIntegrityIssues( detailsIdType, check, 50, categoryOptionRed, "Red", null,
-            true );
+    assertNamedMetadataObjectExists("categories", "default");
+    assertNamedMetadataObjectExists("categoryOptions", "default");
+    /*
+     * Note that the default category is implicit here, so the percentage
+     * need to take that into account
+     */
+    assertHasDataIntegrityIssues(detailsIdType, check, 50, categoryOptionRed, "Red", null, true);
+  }
 
-    }
+  @Test
+  void testCategoryOptionsHaveCategories() {
 
-    @Test
-    void testCategoryOptionsHaveCategories()
-    {
+    String categoryOptionRed =
+        assertStatus(
+            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/categories",
+            "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ,"
+                + "'categoryOptions' : [{'id' : '"
+                + categoryOptionRed
+                + "'} ] }"));
 
-        String categoryOptionRed = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptions",
-                "{ 'name': 'Red', 'shortName': 'Red' }" ) );
-        assertStatus( HttpStatus.CREATED,
-            POST( "/categories",
-                "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ," +
-                    "'categoryOptions' : [{'id' : '" + categoryOptionRed + "'} ] }" ) );
-
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
-
-    }
-
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 }

@@ -30,8 +30,8 @@ package org.hisp.dhis.deprecated.tracker.event;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.google.gson.JsonObject;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.deprecated.tracker.DeprecatedTrackerApiTest;
@@ -42,84 +42,90 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventImportValidationTests
-    extends DeprecatedTrackerApiTest
-{
-    private static String ouId = Constants.ORG_UNIT_IDS[0];
+public class EventImportValidationTests extends DeprecatedTrackerApiTest {
+  private static String ouId = Constants.ORG_UNIT_IDS[0];
 
-    private static String eventProgramId = Constants.EVENT_PROGRAM_ID;
+  private static String eventProgramId = Constants.EVENT_PROGRAM_ID;
 
-    private static String eventProgramStageId;
+  private static String eventProgramStageId;
 
-    private static String trackerProgramId = Constants.TRACKER_PROGRAM_ID;
+  private static String trackerProgramId = Constants.TRACKER_PROGRAM_ID;
 
-    private static String ouIdWithoutAccess;
+  private static String ouIdWithoutAccess;
 
-    private static Stream<Arguments> provideValidationArguments()
-    {
-        return Stream.of(
-            Arguments.arguments( null, eventProgramId, eventProgramStageId,
-                "Event.orgUnit does not point to a valid organisation unit" ),
-            Arguments.arguments( ouIdWithoutAccess, eventProgramId, eventProgramStageId,
-                "Program is not assigned to this organisation unit" ),
-            Arguments.arguments( ouId, null, eventProgramStageId, "Event.program does not point to a valid program" ),
-            Arguments.arguments( ouId, trackerProgramId, null,
-                "Event.programStage does not point to a valid programStage" ) );
-    }
+  private static Stream<Arguments> provideValidationArguments() {
+    return Stream.of(
+        Arguments.arguments(
+            null,
+            eventProgramId,
+            eventProgramStageId,
+            "Event.orgUnit does not point to a valid organisation unit"),
+        Arguments.arguments(
+            ouIdWithoutAccess,
+            eventProgramId,
+            eventProgramStageId,
+            "Program is not assigned to this organisation unit"),
+        Arguments.arguments(
+            ouId, null, eventProgramStageId, "Event.program does not point to a valid program"),
+        Arguments.arguments(
+            ouId,
+            trackerProgramId,
+            null,
+            "Event.programStage does not point to a valid programStage"));
+  }
 
-    @BeforeAll
-    public void beforeAll()
-    {
-        loginActions.loginAsAdmin();
+  @BeforeAll
+  public void beforeAll() {
+    loginActions.loginAsAdmin();
 
-        setupData();
-    }
+    setupData();
+  }
 
-    @ParameterizedTest
-    @MethodSource( "provideValidationArguments" )
-    public void eventImportShouldValidateReferences( String ouId, String programId, String programStageId,
-        String message )
-    {
-        JsonObject jsonObject = eventActions.createEventBody( ouId, programId, programStageId );
+  @ParameterizedTest
+  @MethodSource("provideValidationArguments")
+  public void eventImportShouldValidateReferences(
+      String ouId, String programId, String programStageId, String message) {
+    JsonObject jsonObject = eventActions.createEventBody(ouId, programId, programStageId);
 
-        eventActions.post( jsonObject )
-            .validate().statusCode( 409 )
-            .body( "status", equalTo( "ERROR" ) )
-            .rootPath( "response" )
-            .body( "ignored", equalTo( 1 ) )
-            .body( "importSummaries.description[0]", containsStringIgnoringCase( message ) );
-    }
+    eventActions
+        .post(jsonObject)
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .rootPath("response")
+        .body("ignored", equalTo(1))
+        .body("importSummaries.description[0]", containsStringIgnoringCase(message));
+  }
 
-    @Test
-    public void eventImportShouldValidateEventDate()
-    {
-        JsonObject object = eventActions.createEventBody( ouId, eventProgramId, eventProgramStageId );
+  @Test
+  public void eventImportShouldValidateEventDate() {
+    JsonObject object = eventActions.createEventBody(ouId, eventProgramId, eventProgramStageId);
 
-        object.addProperty( "eventDate", "" );
-        object.addProperty( "status", "ACTIVE" );
+    object.addProperty("eventDate", "");
+    object.addProperty("status", "ACTIVE");
 
-        eventActions.post( object )
-            .validate().statusCode( 409 )
-            .body( "status", equalTo( "ERROR" ) )
-            .rootPath( "response" )
-            .body( "ignored", equalTo( 1 ) )
-            .body( "importSummaries.description[0]", containsString( "Event date is required" ) );
-    }
+    eventActions
+        .post(object)
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .rootPath("response")
+        .body("ignored", equalTo(1))
+        .body("importSummaries.description[0]", containsString("Event date is required"));
+  }
 
-    private void setupData()
-    {
-        eventProgramStageId = programActions.programStageActions
-            .get( "", new QueryParamsBuilder().add( "filter=program.id:eq:" +
-                eventProgramId ) )
-            .extractString( "programStages.id[0]" );
+  private void setupData() {
+    eventProgramStageId =
+        programActions
+            .programStageActions
+            .get("", new QueryParamsBuilder().add("filter=program.id:eq:" + eventProgramId))
+            .extractString("programStages.id[0]");
 
-        assertNotNull( eventProgramStageId, "Failed to find a program stage" );
+    assertNotNull(eventProgramStageId, "Failed to find a program stage");
 
-        ouIdWithoutAccess = new OrgUnitActions().createOrgUnit();
-    }
+    ouIdWithoutAccess = new OrgUnitActions().createOrgUnit();
+  }
 }

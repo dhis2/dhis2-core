@@ -27,96 +27,92 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-
-@JsonPropertyOrder( {
-    "trackedEntity",
-    "trackedEntityType",
-    "createdAt",
-    "createdAtClient",
-    "updatedAt",
-    "updatedAtClient",
-    "orgUnit",
-    "inactive",
-    "deleted",
-    "potentialDuplicate",
-    "geometry",
-    "latitude",
-    "longitude",
-    "storedBy",
-    "createdBy",
-    "updatedBy"
-} )
-
+@JsonPropertyOrder({
+  "trackedEntity",
+  "trackedEntityType",
+  "createdAt",
+  "createdAtClient",
+  "updatedAt",
+  "updatedAtClient",
+  "orgUnit",
+  "inactive",
+  "deleted",
+  "potentialDuplicate",
+  "geometry",
+  "latitude",
+  "longitude",
+  "storedBy",
+  "createdBy",
+  "updatedBy"
+})
 @Data
 @NoArgsConstructor
-class CsvTrackedEntity
-{
+class CsvTrackedEntity {
 
-    private String trackedEntity;
+  private String trackedEntity;
 
-    private String trackedEntityType;
+  private String trackedEntityType;
 
-    private String createdAt;
+  private String createdAt;
 
-    private String createdAtClient;
+  private String createdAtClient;
 
-    private String updatedAt;
+  private String updatedAt;
 
-    private String updatedAtClient;
+  private String updatedAtClient;
 
-    private String orgUnit;
+  private String orgUnit;
 
-    private boolean inactive;
+  private boolean inactive;
 
-    private boolean deleted;
+  private boolean deleted;
 
-    private boolean potentialDuplicate;
+  private boolean potentialDuplicate;
 
-    private String attribute;
+  private String attribute;
 
-    private String displayName;
+  private String displayName;
 
-    private String attrCreatedAt;
+  private String attrCreatedAt;
 
-    private String attrUpdatedAt;
+  private String attrUpdatedAt;
 
-    private String valueType;
+  private String valueType;
 
-    private String value;
+  private String value;
 
-    private String geometry;
+  private String geometry;
 
-    private Double longitude;
+  private Double longitude;
 
-    private Double latitude;
+  private Double latitude;
 
-    private String storedBy;
+  private String storedBy;
 
-    private String createdBy;
+  private String createdBy;
 
-    private String updatedBy;
+  private String updatedBy;
 
-    public CsvTrackedEntity( CsvTrackedEntity entity )
-    {
-        this.trackedEntity = entity.getTrackedEntity();
-        this.trackedEntityType = entity.getTrackedEntityType();
-        this.createdAt = entity.getCreatedAt();
-        this.createdAtClient = entity.getCreatedAtClient();
-        this.updatedAt = entity.getUpdatedAt();
-        this.updatedAtClient = entity.getUpdatedAtClient();
-        this.orgUnit = entity.getOrgUnit();
-        this.inactive = entity.isInactive();
-        this.deleted = entity.isDeleted();
-        this.potentialDuplicate = entity.isPotentialDuplicate();
-        this.geometry = entity.getGeometry();
-        this.longitude = entity.getLongitude();
-        this.latitude = entity.getLatitude();
-        this.storedBy = entity.getStoredBy();
-        this.createdBy = entity.getCreatedBy();
-        this.updatedBy = entity.getUpdatedBy();
-    }
+  public CsvTrackedEntity(CsvTrackedEntity entity) {
+    this.trackedEntity = entity.getTrackedEntity();
+    this.trackedEntityType = entity.getTrackedEntityType();
+    this.createdAt = entity.getCreatedAt();
+    this.createdAtClient = entity.getCreatedAtClient();
+    this.updatedAt = entity.getUpdatedAt();
+    this.updatedAtClient = entity.getUpdatedAtClient();
+    this.orgUnit = entity.getOrgUnit();
+    this.inactive = entity.isInactive();
+    this.deleted = entity.isDeleted();
+    this.potentialDuplicate = entity.isPotentialDuplicate();
+    this.geometry = entity.getGeometry();
+    this.longitude = entity.getLongitude();
+    this.latitude = entity.getLatitude();
+    this.storedBy = entity.getStoredBy();
+    this.createdBy = entity.getCreatedBy();
+    this.updatedBy = entity.getUpdatedBy();
+  }
 }

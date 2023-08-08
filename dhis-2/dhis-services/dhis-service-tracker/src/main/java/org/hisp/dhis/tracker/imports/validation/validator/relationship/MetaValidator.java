@@ -39,17 +39,14 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class MetaValidator
-    implements Validator<Relationship>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle,
-        Relationship relationship )
-    {
-        TrackerPreheat preheat = bundle.getPreheat();
-        RelationshipType relationshipType = preheat.getRelationshipType( relationship.getRelationshipType() );
+class MetaValidator implements Validator<Relationship> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
+    TrackerPreheat preheat = bundle.getPreheat();
+    RelationshipType relationshipType =
+        preheat.getRelationshipType(relationship.getRelationshipType());
 
-        reporter.addErrorIfNull( relationshipType, relationship, E4006, relationship.getRelationshipType() );
-    }
-
+    reporter.addErrorIfNull(
+        relationshipType, relationship, E4006, relationship.getRelationshipType());
+  }
 }

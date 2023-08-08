@@ -30,29 +30,24 @@ package org.hisp.dhis.webapi.security.apikey;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.util.Assert;
 
-public class ApiTokenAuthenticationException extends AuthenticationException
-{
-    private final ApiTokenError error;
+public class ApiTokenAuthenticationException extends AuthenticationException {
+  private final ApiTokenError error;
 
-    public ApiTokenAuthenticationException( ApiTokenError error )
-    {
-        this( error, error.getDescription() );
-    }
+  public ApiTokenAuthenticationException(ApiTokenError error) {
+    this(error, error.getDescription());
+  }
 
-    public ApiTokenAuthenticationException( ApiTokenError error, String message )
-    {
-        this( error, message, null );
-    }
+  public ApiTokenAuthenticationException(ApiTokenError error, String message) {
+    this(error, message, null);
+  }
 
-    public ApiTokenAuthenticationException( ApiTokenError error, String message, Throwable cause )
-    {
-        super( message, cause );
-        Assert.notNull( error, "error cannot be null" );
-        this.error = error;
-    }
+  public ApiTokenAuthenticationException(ApiTokenError error, String message, Throwable cause) {
+    super(message, cause);
+    Assert.notNull(error, "error cannot be null");
+    this.error = error;
+  }
 
-    public ApiTokenError getError()
-    {
-        return this.error;
-    }
+  public ApiTokenError getError() {
+    return this.error;
+  }
 }

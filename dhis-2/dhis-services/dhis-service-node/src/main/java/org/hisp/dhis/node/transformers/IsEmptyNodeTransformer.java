@@ -30,7 +30,6 @@ package org.hisp.dhis.node.transformers;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
@@ -42,32 +41,29 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class IsEmptyNodeTransformer implements NodeTransformer
-{
-    @Override
-    public String name()
-    {
-        return "isEmpty";
+public class IsEmptyNodeTransformer implements NodeTransformer {
+  @Override
+  public String name() {
+    return "isEmpty";
+  }
+
+  @Override
+  public Node transform(Node node, List<String> args) {
+    checkNotNull(node);
+    checkNotNull(node.getProperty());
+
+    Property property = node.getProperty();
+
+    if (property.isCollection()) {
+      return new SimpleNode(
+          property.getCollectionName(), node.getChildren().isEmpty(), property.isAttribute());
+    } else if (property.isSimple()) {
+      return new SimpleNode(
+          property.getName(),
+          ObjectUtils.isEmpty(((SimpleNode) node).getValue()),
+          property.isAttribute());
     }
 
-    @Override
-    public Node transform( Node node, List<String> args )
-    {
-        checkNotNull( node );
-        checkNotNull( node.getProperty() );
-
-        Property property = node.getProperty();
-
-        if ( property.isCollection() )
-        {
-            return new SimpleNode( property.getCollectionName(), node.getChildren().isEmpty(), property.isAttribute() );
-        }
-        else if ( property.isSimple() )
-        {
-            return new SimpleNode( property.getName(), ObjectUtils.isEmpty( ((SimpleNode) node).getValue() ),
-                property.isAttribute() );
-        }
-
-        return node;
-    }
+    return node;
+  }
 }

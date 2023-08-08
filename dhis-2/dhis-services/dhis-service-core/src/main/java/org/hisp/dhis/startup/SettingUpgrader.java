@@ -33,26 +33,20 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 
-public class SettingUpgrader
-    extends AbstractStartupRoutine
-{
-    private final SystemSettingManager manager;
+public class SettingUpgrader extends AbstractStartupRoutine {
+  private final SystemSettingManager manager;
 
-    public SettingUpgrader( SystemSettingManager manager )
-    {
-        checkNotNull( manager );
-        this.manager = manager;
+  public SettingUpgrader(SystemSettingManager manager) {
+    checkNotNull(manager);
+    this.manager = manager;
+  }
+
+  @Override
+  public void execute() throws Exception {
+    String startModule = manager.getStringSetting(SettingKey.START_MODULE);
+
+    if ("dhis-web-dashboard-integration".equals(startModule)) {
+      manager.saveSystemSetting(SettingKey.START_MODULE, SettingKey.START_MODULE.getDefaultValue());
     }
-
-    @Override
-    public void execute()
-        throws Exception
-    {
-        String startModule = manager.getStringSetting( SettingKey.START_MODULE );
-
-        if ( "dhis-web-dashboard-integration".equals( startModule ) )
-        {
-            manager.saveSystemSetting( SettingKey.START_MODULE, SettingKey.START_MODULE.getDefaultValue() );
-        }
-    }
+  }
 }

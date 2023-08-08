@@ -1,54 +1,180 @@
 {
-  "validCompleteOnly": false,
-  "skipOffline": false,
-  "compulsoryFieldsCompleteOnly": false,
-  "id": "Tl0gpmhQOmr",
-  "sharing": {
-    "external": false,
-    "users": {},
-    "userGroups": {},
-    "public": "rw------"
-  },
-  "timelyDays": 15,
-  "name": "test1",
-  "shortName": "test1",
-  "dataElementDecoration": false,
-  "notifyCompletingUser": false,
-  "noValueRequiresComment": false,
-  "fieldCombinationRequired": false,
-  "renderHorizontally": false,
-  "renderAsTabs": false,
-  "mobile": false,
-  "openPeriodsAfterCoEndDate": 0,
-  "periodType": "Monthly",
-  "openFuturePeriods": 0,
-  "expiryDays": 0,
-  "categoryCombo": {
-    "id": "bjDvmb4bfuf"
-  },
-  "lastUpdatedBy": {
-    "id": "GOLswS44mh8"
-  },
-  "dataSetElements": [
+  "categories": [
     {
-      "dataElement": {
-        "id": "cYeuwXTCPkU"
-      }
+      "lastUpdated": "2016-03-17T01:53:56.098+0000",
+      "code": "Gender",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
+      "dataDimensionType": "DISAGGREGATION",
+      "userGroupAccesses": [],
+      "id": "XFgfIO1qQmd",
+      "name": "Gender",
+      "shortName": "Gender",
+      "created": "2016-03-17T01:53:56.097+0000",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "categoryOptions": [
+        {
+          "id": "DRs8ZFxNOpW"
+        },
+        {
+          "id": "x3Owjhq9G7K"
+        }
+      ],
+      "dataDimension": true
+    }
+  ],
+  "categoryOptions": [
+    {
+      "userGroupAccesses": [ ],
+      "id": "DRs8ZFxNOpW",
+      "name": "Female",
+      "created": "2016-03-17T01:53:41.459+0000",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "shortName": "Female",
+      "attributeValues": [ ],
+      "lastUpdated": "2016-03-17T01:53:41.461+0000",
+      "code": "Female",
+      "sharing" : {
+        "public": "rw------",
+        "external": false
+      },
+      "organisationUnits": [ ]
     },
     {
-      "dataElement": {
-        "id": "fbfJHSPpUQD"
+      "code": "Male",
+      "lastUpdated": "2016-03-17T01:53:34.526+0000",
+      "organisationUnits": [ ],
+      "sharing" : {
+        "public": "rw------",
+        "external": false
+      },
+      "name": "Male",
+      "created": "2016-03-17T01:53:34.525+0000",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "id": "x3Owjhq9G7K",
+      "userGroupAccesses": [ ],
+      "attributeValues": [ ],
+      "shortName": "Male"
+    }
+  ],
+  "categoryOptionCombos": [
+    {
+      "categoryCombo": {
+        "id": "v7n8H4aj8Cg"
+      },
+      "categoryOptions": [
+        {
+          "id": "DRs8ZFxNOpW"
+        }
+      ],
+      "name": "Female",
+      "created": "2016-03-17T01:54:04.952+0000",
+      "lastUpdated": "2016-03-17T01:54:04.952+0000",
+      "ignoreApproval": false,
+      "id": "c8yQa2ZIqhL"
+    },
+    {
+      "name": "Male",
+      "created": "2016-03-17T01:54:04.954+0000",
+      "lastUpdated": "2016-03-17T01:54:04.954+0000",
+      "ignoreApproval": false,
+      "id": "O9ZA0CUVVmL",
+      "categoryOptions": [
+        {
+          "id": "x3Owjhq9G7K"
+        }
+      ],
+      "categoryCombo": {
+        "id": "v7n8H4aj8Cg"
       }
     }
   ],
-  "compulsoryDataElementOperands": [
+  "categoryCombos": [
     {
-      "dataElement": {
-        "id": "fbfJHSPpUQD"
+      "sharing" : {
+        "public": "rw------",
+        "external": false
       },
-      "categoryOptionCombo": {
-        "id": "pq2XI5kz2BY"
+      "lastUpdated": "2016-03-17T01:54:04.956+0000",
+      "code": "Gender",
+      "skipTotal": false,
+      "id": "v7n8H4aj8Cg",
+      "categories": [
+        {
+          "id": "XFgfIO1qQmd"
+        }
+      ],
+      "userGroupAccesses": [ ],
+      "created": "2016-03-17T01:54:04.875+0000",
+      "name": "Gender",
+      "dataDimensionType": "DISAGGREGATION",
+      "user": {
+        "id": "M5zQapPyTZI"
       }
     }
-  ]
+  ],
+  "dataSets": [
+    {
+      "validCompleteOnly": false,
+      "skipOffline": false,
+      "compulsoryFieldsCompleteOnly": false,
+      "id": "Tl0gpmhQOmr",
+      "sharing": {
+        "external": false,
+        "users": {},
+        "userGroups": {},
+        "public": "rw------"
+      },
+      "timelyDays": 15,
+      "name": "test1",
+      "shortName": "test1",
+      "dataElementDecoration": false,
+      "notifyCompletingUser": false,
+      "noValueRequiresComment": false,
+      "fieldCombinationRequired": false,
+      "renderHorizontally": false,
+      "renderAsTabs": false,
+      "mobile": false,
+      "openPeriodsAfterCoEndDate": 0,
+      "periodType": "Monthly",
+      "openFuturePeriods": 0,
+      "expiryDays": 0,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "GOLswS44mh8"
+      },
+      "dataSetElements": [
+        {
+          "dataElement": {
+            "id": "cYeuwXTCPkU"
+          }
+        },
+        {
+          "dataElement": {
+            "id": "fbfJHSPpUQD"
+          }
+        }
+      ],
+      "compulsoryDataElementOperands": [
+        {
+          "dataElement": {
+            "id": "fbfJHSPpUQD"
+          },
+          "categoryOptionCombo": {
+            "id": "c8yQa2ZIqhL"
+          }
+        }
+      ]
+    }
+    ]
 }

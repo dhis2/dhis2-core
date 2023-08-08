@@ -30,96 +30,122 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import java.util.Set;
-
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test metadata check for indicator group sets which are composed of less than
- * two indicator groups.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/indicators/group_size_indicator_group_sets.yaml}
+ * Test metadata check for indicator group sets which are composed of less than two indicator
+ * groups. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/indicators/group_size_indicator_group_sets.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityGroupSizeIndicatorGroupSetsControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityGroupSizeIndicatorGroupSetsControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
 
-    private static final String check = "indicator_group_sets_scarce";
+  private static final String check = "indicator_group_sets_scarce";
 
-    private static final String detailsIdType = "indicatorGroupSets";
+  private static final String detailsIdType = "indicatorGroupSets";
 
-    private String indicatorGroupA;
+  private String indicatorGroupA;
 
-    @Test
-    void testIndicatorGroupSetSizeTooSmall()
-    {
+  @Test
+  void testIndicatorGroupSetSizeTooSmall() {
 
-        setUpTest();
-        String indicatorGroupSetA = assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorGroupSets",
+    setUpTest();
+    String indicatorGroupSetA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroupSets",
                 "{ 'name' : 'IGS1', 'shortName' : 'IGS1', 'indicatorGroups' : [{'id' : '"
-                    + indicatorGroupA + "'}]}" ) );
+                    + indicatorGroupA
+                    + "'}]}"));
 
-        String indicatorGroupSetB = assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorGroupSets",
-                "{ 'name' : 'IGS2', 'shortName' : 'IGS2' }" ) );
+    String indicatorGroupSetB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/indicatorGroupSets", "{ 'name' : 'IGS2', 'shortName' : 'IGS2' }"));
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 66,
-            Set.of( indicatorGroupSetA, indicatorGroupSetB ), Set.of( "IGS1", "IGS2" ), Set.of( "0", "1" ), true );
-    }
+    assertHasDataIntegrityIssues(
+        detailsIdType,
+        check,
+        66,
+        Set.of(indicatorGroupSetA, indicatorGroupSetB),
+        Set.of("IGS1", "IGS2"),
+        Set.of("0", "1"),
+        true);
+  }
 
-    @Test
-    void testIndicatorGroupSetSizeOK()
-    {
+  @Test
+  void testIndicatorGroupSetSizeOK() {
 
-        setUpTest();
+    setUpTest();
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
-    }
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    @Test
-    void testIndicatorsInGroupsRuns()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-    }
+  @Test
+  void testIndicatorsInGroupsRuns() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 
-    void setUpTest()
-    {
+  void setUpTest() {
 
-        String indicatorTypeA = assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorTypes",
-                "{ 'name': 'Per cent', 'factor' : 100, 'number' : false }" ) );
+    String indicatorTypeA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/indicatorTypes", "{ 'name': 'Per cent', 'factor' : 100, 'number' : false }"));
 
-        String indicatorA = assertStatus( HttpStatus.CREATED,
-            POST( "/indicators",
-                "{ 'name': 'Indicator A', 'shortName': 'Indicator A',  'indicatorType' : {'id' : '" + indicatorTypeA
-                    + "'}," +
-                    " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', " +
-                    "'denominatorDescription' : 'Zero'} }" ) );
+    String indicatorA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators",
+                "{ 'name': 'Indicator A', 'shortName': 'Indicator A',  'indicatorType' : {'id' : '"
+                    + indicatorTypeA
+                    + "'},"
+                    + " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', "
+                    + "'denominatorDescription' : 'Zero'} }"));
 
-        String indicatorB = assertStatus( HttpStatus.CREATED,
-            POST( "/indicators",
-                "{ 'name': 'Indicator B', 'shortName': 'Indicator B', 'indicatorType' : {'id' : '" + indicatorTypeA
-                    + "'}," +
-                    " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', " +
-                    "'denominatorDescription' : 'Zero'}" ) );
+    String indicatorB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators",
+                "{ 'name': 'Indicator B', 'shortName': 'Indicator B', 'indicatorType' : {'id' : '"
+                    + indicatorTypeA
+                    + "'},"
+                    + " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', "
+                    + "'denominatorDescription' : 'Zero'}"));
 
-        indicatorGroupA = assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorGroups",
+    indicatorGroupA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroups",
                 "{ 'name' : 'An indicator group', 'shortName' : 'An indicator group', 'indicators' : [{'id' : '"
-                    + indicatorA + "'}]}" ) );
+                    + indicatorA
+                    + "'}]}"));
 
-        String indicatorGroupB = assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorGroups",
+    String indicatorGroupB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroups",
                 "{ 'name' : 'Another indicator group', 'shortName' : 'Another indicator group', 'indicators' : [{'id' : '"
-                    + indicatorB + "'}]}" ) );
+                    + indicatorB
+                    + "'}]}"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorGroupSets",
-                "{ 'name' : 'An indicator group set', 'shortName' : 'An indicator group set', 'indicatorGroups' : [{'id' : '"
-                    + indicatorGroupA + "'}, " +
-                    "{'id' : '" + indicatorGroupB + "'}]}" ) );
-
-    }
-
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/indicatorGroupSets",
+            "{ 'name' : 'An indicator group set', 'shortName' : 'An indicator group set', 'indicatorGroups' : [{'id' : '"
+                + indicatorGroupA
+                + "'}, "
+                + "{'id' : '"
+                + indicatorGroupB
+                + "'}]}"));
+  }
 }

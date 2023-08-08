@@ -30,16 +30,10 @@ package org.hisp.dhis.tracker.imports.bundle;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum TrackerBundleMode
-{
-    /**
-     * If bundle is valid, commit the bundle to the database. Commits at
-     * intervals.
-     */
-    COMMIT,
+public enum TrackerBundleMode {
+  /** If bundle is valid, commit the bundle to the database. Commits at intervals. */
+  COMMIT,
 
-    /**
-     * Validate bundle only (dry run)
-     */
-    VALIDATE
+  /** Validate bundle only (dry run) */
+  VALIDATE
 }

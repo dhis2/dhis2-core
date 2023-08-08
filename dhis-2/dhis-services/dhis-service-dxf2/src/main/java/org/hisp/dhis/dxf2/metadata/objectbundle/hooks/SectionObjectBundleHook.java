@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.Section;
@@ -41,37 +40,30 @@ import org.springframework.stereotype.Component;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @Component
-public class SectionObjectBundleHook extends AbstractObjectBundleHook<Section>
-{
-    @Override
-    public void preUpdate( Section section, Section persistedObject, ObjectBundle bundle )
-    {
-        Set<DataElementOperand> returnGreyFields = new HashSet<>();
+public class SectionObjectBundleHook extends AbstractObjectBundleHook<Section> {
+  @Override
+  public void preUpdate(Section section, Section persistedObject, ObjectBundle bundle) {
+    Set<DataElementOperand> returnGreyFields = new HashSet<>();
 
-        for ( DataElementOperand greyField : section.getGreyedFields() )
-        {
-            boolean exist = false;
+    for (DataElementOperand greyField : section.getGreyedFields()) {
+      boolean exist = false;
 
-            for ( DataElement de : section.getDataElements() )
-            {
-                if ( !ObjectUtils.allNonNull( de.getUid(), greyField.getDataElement() ) )
-                {
-                    continue;
-                }
-
-                if ( de.getUid().equals( greyField.getDataElement().getUid() ) )
-                {
-                    exist = true;
-                    break;
-                }
-            }
-
-            if ( exist )
-            {
-                returnGreyFields.add( greyField );
-            }
+      for (DataElement de : section.getDataElements()) {
+        if (!ObjectUtils.allNonNull(de.getUid(), greyField.getDataElement())) {
+          continue;
         }
 
-        section.setGreyedFields( returnGreyFields );
+        if (de.getUid().equals(greyField.getDataElement().getUid())) {
+          exist = true;
+          break;
+        }
+      }
+
+      if (exist) {
+        returnGreyFields.add(greyField);
+      }
     }
+
+    section.setGreyedFields(returnGreyFields);
+  }
 }

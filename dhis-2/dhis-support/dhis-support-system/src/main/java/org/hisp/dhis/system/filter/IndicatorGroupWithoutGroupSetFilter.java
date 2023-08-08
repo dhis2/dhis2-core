@@ -33,12 +33,9 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 /**
  * @author Lars Helge Overland
  */
-public class IndicatorGroupWithoutGroupSetFilter
-    implements Filter<IndicatorGroup>
-{
-    @Override
-    public boolean retain( IndicatorGroup object )
-    {
-        return object == null || object.getGroupSets().isEmpty();
-    }
+public class IndicatorGroupWithoutGroupSetFilter implements Filter<IndicatorGroup> {
+  @Override
+  public boolean retain(IndicatorGroup object) {
+    return object == null || object.getGroupSets().isEmpty();
+  }
 }

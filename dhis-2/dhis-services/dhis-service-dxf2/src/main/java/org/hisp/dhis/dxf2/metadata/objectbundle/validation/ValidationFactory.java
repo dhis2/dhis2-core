@@ -28,9 +28,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import java.util.List;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHooks;
@@ -46,90 +44,82 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class ValidationFactory
-{
-    private final SchemaValidator schemaValidator;
+public class ValidationFactory {
+  private final SchemaValidator schemaValidator;
 
-    private final SchemaService schemaService;
+  private final SchemaService schemaService;
 
-    private final AclService aclService;
+  private final AclService aclService;
 
-    private final UserService userService;
+  private final UserService userService;
 
-    private final ObjectBundleHooks objectBundleHooks;
+  private final ObjectBundleHooks objectBundleHooks;
 
-    private final ValidationRunner validationRunner;
+  private final ValidationRunner validationRunner;
 
-    /**
-     * Run the validation checks against the bundle
-     *
-     * @param bundle an {@see ObjectBundle}
-     * @param klass the Class type that is getting validated
-     * @param persistedObjects a List of IdentifiableObject
-     * @param nonPersistedObjects a List of IdentifiableObject
-     *
-     * @return a {@see TypeReport} containing the outcome of the validation
-     */
-    public <T extends IdentifiableObject> TypeReport validateBundle( ObjectBundle bundle, Class<T> klass,
-        List<T> persistedObjects, List<T> nonPersistedObjects )
-    {
-        ValidationContext ctx = getContext();
-        TypeReport typeReport = validationRunner.executeValidationChain( bundle, klass, persistedObjects,
-            nonPersistedObjects, ctx );
+  /**
+   * Run the validation checks against the bundle
+   *
+   * @param bundle an {@see ObjectBundle}
+   * @param klass the Class type that is getting validated
+   * @param persistedObjects a List of IdentifiableObject
+   * @param nonPersistedObjects a List of IdentifiableObject
+   * @return a {@see TypeReport} containing the outcome of the validation
+   */
+  public <T extends IdentifiableObject> TypeReport validateBundle(
+      ObjectBundle bundle, Class<T> klass, List<T> persistedObjects, List<T> nonPersistedObjects) {
+    ValidationContext ctx = getContext();
+    TypeReport typeReport =
+        validationRunner.executeValidationChain(
+            bundle, klass, persistedObjects, nonPersistedObjects, ctx);
 
-        // Remove invalid objects from the bundle
-        removeFromBundle( klass, ctx, bundle );
+    // Remove invalid objects from the bundle
+    removeFromBundle(klass, ctx, bundle);
 
-        return addStatistics( typeReport, bundle, persistedObjects, nonPersistedObjects );
+    return addStatistics(typeReport, bundle, persistedObjects, nonPersistedObjects);
+  }
+
+  private <T extends IdentifiableObject> TypeReport addStatistics(
+      TypeReport typeReport,
+      ObjectBundle bundle,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects) {
+    if (bundle.getImportMode().isCreateAndUpdate()) {
+      typeReport.getStats().incCreated(nonPersistedObjects.size());
+      typeReport.getStats().incUpdated(persistedObjects.size());
+    } else if (bundle.getImportMode().isCreate()) {
+      typeReport.getStats().incCreated(nonPersistedObjects.size());
+
+    } else if (bundle.getImportMode().isUpdate()) {
+      typeReport.getStats().incUpdated(persistedObjects.size());
+
+    } else if (bundle.getImportMode().isDelete()) {
+      typeReport.getStats().incDeleted(persistedObjects.size());
     }
 
-    private <T extends IdentifiableObject> TypeReport addStatistics( TypeReport typeReport, ObjectBundle bundle,
-        List<T> persistedObjects, List<T> nonPersistedObjects )
-    {
-        if ( bundle.getImportMode().isCreateAndUpdate() )
-        {
-            typeReport.getStats().incCreated( nonPersistedObjects.size() );
-            typeReport.getStats().incUpdated( persistedObjects.size() );
-        }
-        else if ( bundle.getImportMode().isCreate() )
-        {
-            typeReport.getStats().incCreated( nonPersistedObjects.size() );
+    return typeReport;
+  }
 
-        }
-        else if ( bundle.getImportMode().isUpdate() )
-        {
-            typeReport.getStats().incUpdated( persistedObjects.size() );
+  /**
+   * @param klass the class of the objects to remove from bundle
+   * @param ctx the {@see ValidationContext} containing the list of objects to remove
+   * @param bundle the {@see ObjectBundle}
+   */
+  private <T extends IdentifiableObject> void removeFromBundle(
+      Class<T> klass, ValidationContext ctx, ObjectBundle bundle) {
+    List<T> persisted = bundle.getObjects(klass, true);
+    persisted.removeAll(ctx.getMarkedForRemoval());
 
-        }
-        else if ( bundle.getImportMode().isDelete() )
-        {
-            typeReport.getStats().incDeleted( persistedObjects.size() );
-        }
+    List<T> nonPersisted = bundle.getObjects(klass, false);
+    nonPersisted.removeAll(ctx.getMarkedForRemoval());
+  }
 
-        return typeReport;
-    }
-
-    /**
-     *
-     * @param klass the class of the objects to remove from bundle
-     * @param ctx the {@see ValidationContext} containing the list of objects to
-     *        remove
-     * @param bundle the {@see ObjectBundle}
-     */
-    private <T extends IdentifiableObject> void removeFromBundle( Class<T> klass, ValidationContext ctx,
-        ObjectBundle bundle )
-    {
-        List<T> persisted = bundle.getObjects( klass, true );
-        persisted.removeAll( ctx.getMarkedForRemoval() );
-
-        List<T> nonPersisted = bundle.getObjects( klass, false );
-        nonPersisted.removeAll( ctx.getMarkedForRemoval() );
-    }
-
-    private ValidationContext getContext()
-    {
-        return new ValidationContext( this.objectBundleHooks, this.schemaValidator, this.aclService, this.userService,
-            this.schemaService );
-    }
-
+  private ValidationContext getContext() {
+    return new ValidationContext(
+        this.objectBundleHooks,
+        this.schemaValidator,
+        this.aclService,
+        this.userService,
+        this.schemaService);
+  }
 }

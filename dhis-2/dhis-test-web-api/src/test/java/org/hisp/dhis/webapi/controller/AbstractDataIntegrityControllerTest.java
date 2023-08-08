@@ -41,42 +41,40 @@ import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
  *
  * @author Jan Bernitt
  */
-abstract class AbstractDataIntegrityControllerTest extends DhisControllerConvenienceTest
-{
-    protected final JsonDataIntegrityDetails getDetails( String check )
-    {
-        JsonObject content = GET( "/dataIntegrity/details?checks={check}&timeout=1000", check ).content();
-        JsonDataIntegrityDetails details = content.get( check.replace( '-', '_' ), JsonDataIntegrityDetails.class );
-        assertTrue( details.exists(), "check " + check + " did not complete in time or threw an exception" );
-        assertTrue( details.isObject() );
-        return details;
-    }
+abstract class AbstractDataIntegrityControllerTest extends DhisControllerConvenienceTest {
+  protected final JsonDataIntegrityDetails getDetails(String check) {
+    JsonObject content = GET("/dataIntegrity/details?checks={check}&timeout=1000", check).content();
+    JsonDataIntegrityDetails details =
+        content.get(check.replace('-', '_'), JsonDataIntegrityDetails.class);
+    assertTrue(
+        details.exists(), "check " + check + " did not complete in time or threw an exception");
+    assertTrue(details.isObject());
+    return details;
+  }
 
-    /**
-     * Triggers the single check provided
-     *
-     * @param check name of the check to perform
-     */
-    protected final void postDetails( String check )
-    {
-        HttpResponse trigger = POST( "/dataIntegrity/details?checks=" + check );
-        assertEquals( "http://localhost/dataIntegrity/details?checks=" + check, trigger.location() );
-        assertTrue( trigger.content().isA( JsonWebMessage.class ) );
-    }
+  /**
+   * Triggers the single check provided
+   *
+   * @param check name of the check to perform
+   */
+  protected final void postDetails(String check) {
+    HttpResponse trigger = POST("/dataIntegrity/details?checks=" + check);
+    assertEquals("http://localhost/dataIntegrity/details?checks=" + check, trigger.location());
+    assertTrue(trigger.content().isA(JsonWebMessage.class));
+  }
 
-    protected final JsonDataIntegritySummary getSummary( String check )
-    {
-        JsonObject content = GET( "/dataIntegrity/summary?checks={check}&timeout=1000", check ).content();
-        JsonDataIntegritySummary summary = content.get( check.replace( '-', '_' ), JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        return summary;
-    }
+  protected final JsonDataIntegritySummary getSummary(String check) {
+    JsonObject content = GET("/dataIntegrity/summary?checks={check}&timeout=1000", check).content();
+    JsonDataIntegritySummary summary =
+        content.get(check.replace('-', '_'), JsonDataIntegritySummary.class);
+    assertTrue(summary.exists());
+    assertTrue(summary.isObject());
+    return summary;
+  }
 
-    protected final void postSummary( String check )
-    {
-        HttpResponse trigger = POST( "/dataIntegrity/summary?checks=" + check );
-        assertEquals( "http://localhost/dataIntegrity/summary?checks=" + check, trigger.location() );
-        assertTrue( trigger.content().isA( JsonWebMessage.class ) );
-    }
+  protected final void postSummary(String check) {
+    HttpResponse trigger = POST("/dataIntegrity/summary?checks=" + check);
+    assertEquals("http://localhost/dataIntegrity/summary?checks=" + check, trigger.location());
+    assertTrue(trigger.content().isA(JsonWebMessage.class));
+  }
 }

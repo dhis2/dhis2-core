@@ -47,8 +47,7 @@ import static org.hisp.dhis.common.QueryOperator.NE;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
 import static org.hisp.dhis.common.QueryOperator.NILIKE;
-import static org.hisp.dhis.common.ValueType.NUMBER;
-import static org.hisp.dhis.common.ValueType.TEXT;
+import static org.hisp.dhis.common.ValueType.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -66,9 +65,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-
 import javax.sql.rowset.RowSetMetaDataImpl;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
@@ -110,688 +107,734 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest
-{
-    @Mock
-    private JdbcTemplate jdbcTemplate;
+@ExtendWith(MockitoExtension.class)
+class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
+  @Mock private JdbcTemplate jdbcTemplate;
 
-    @Mock
-    private ProgramIndicatorService programIndicatorService;
+  @Mock private ProgramIndicatorService programIndicatorService;
 
-    @Mock
-    private ExecutionPlanStore executionPlanStore;
+  @Mock private ExecutionPlanStore executionPlanStore;
 
-    private JdbcEventAnalyticsManager eventSubject;
+  private JdbcEventAnalyticsManager eventSubject;
 
-    private Program programA;
+  private Program programA;
 
-    private DataElement dataElementA;
+  private DataElement dataElementA;
 
-    private Date from = getDate( 2017, 10, 10 );
+  private Date from = getDate(2017, 10, 10);
 
-    private Date to = getDate( 2018, 10, 10 );
+  private Date to = getDate(2018, 10, 10);
 
-    @BeforeEach
-    public void setUp()
-    {
-        StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
+  @BeforeEach
+  public void setUp() {
+    StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
 
-        DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder(
-            programIndicatorService );
+    DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
+        new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
 
-        eventSubject = new JdbcEventAnalyticsManager( jdbcTemplate, programIndicatorService,
-            programIndicatorSubqueryBuilder, new EventTimeFieldSqlRenderer( statementBuilder ), executionPlanStore );
+    eventSubject =
+        new JdbcEventAnalyticsManager(
+            jdbcTemplate,
+            programIndicatorService,
+            programIndicatorSubqueryBuilder,
+            new EventTimeFieldSqlRenderer(statementBuilder),
+            executionPlanStore);
 
-        programA = createProgram( 'A' );
+    programA = createProgram('A');
 
-        dataElementA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
-        dataElementA.setUid( "fWIAEtYVEGk" );
-    }
+    dataElementA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
+    dataElementA.setUid("fWIAEtYVEGk");
+  }
 
-    @Test
-    void verifyGetSelectSqlWithProgramIndicator()
-    {
-        ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
-        QueryItem item = new QueryItem( programIndicator );
-        eventSubject.getSelectSql( new QueryFilter(), item, from, to );
+  @Test
+  void verifyGetSelectSqlWithProgramIndicator() {
+    ProgramIndicator programIndicator = createProgramIndicator('A', programA, "9.0", null);
+    QueryItem item = new QueryItem(programIndicator);
+    eventSubject.getSelectSql(new QueryFilter(), item, from, to);
 
-        verify( programIndicatorService ).getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
-            from, to );
-    }
+    verify(programIndicatorService)
+        .getAnalyticsSql(programIndicator.getExpression(), NUMERIC, programIndicator, from, to);
+  }
 
-    @Test
-    void verifyGetSelectSqlWithTextDataElementIgnoringCase()
-    {
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+  @Test
+  void verifyGetSelectSqlWithTextDataElementIgnoringCase() {
+    DimensionalItemObject dio = new BaseDimensionalItemObject(dataElementA.getUid());
 
-        QueryItem item = new QueryItem( dio );
-        item.setValueType( ValueType.TEXT );
+    QueryItem item = new QueryItem(dio);
+    item.setValueType(ValueType.TEXT);
 
-        QueryFilter queryFilter = new QueryFilter( QueryOperator.IEQ, "IEQ" );
+    QueryFilter queryFilter = new QueryFilter(QueryOperator.IEQ, "IEQ");
 
-        String column = eventSubject.getSelectSql( queryFilter, item, from, to );
+    String column = eventSubject.getSelectSql(queryFilter, item, from, to);
 
-        assertThat( column, is( "lower(ax.\"" + dataElementA.getUid() + "\")" ) );
-    }
+    assertThat(column, is("lower(ax.\"" + dataElementA.getUid() + "\")"));
+  }
 
-    @Test
-    void verifyGetSelectSqlWithTextDataElement()
-    {
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+  @Test
+  void verifyGetSelectSqlWithTextDataElement() {
+    DimensionalItemObject dio = new BaseDimensionalItemObject(dataElementA.getUid());
 
-        QueryItem item = new QueryItem( dio );
-        item.setValueType( ValueType.TEXT );
+    QueryItem item = new QueryItem(dio);
+    item.setValueType(ValueType.TEXT);
 
-        QueryFilter queryFilter = new QueryFilter( EQ, "EQ" );
+    QueryFilter queryFilter = new QueryFilter(EQ, "EQ");
 
-        String column = eventSubject.getSelectSql( queryFilter, item, from, to );
+    String column = eventSubject.getSelectSql(queryFilter, item, from, to);
 
-        assertThat( column, is( "ax.\"" + dataElementA.getUid() + "\"" ) );
-    }
+    assertThat(column, is("ax.\"" + dataElementA.getUid() + "\""));
+  }
 
-    @Test
-    void verifyGetSelectSqlWithNonTextDataElement()
-    {
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+  @Test
+  void verifyGetSelectSqlWithNonTextDataElement() {
+    DimensionalItemObject dio = new BaseDimensionalItemObject(dataElementA.getUid());
 
-        QueryItem item = new QueryItem( dio );
-        item.setValueType( NUMBER );
+    QueryItem item = new QueryItem(dio);
+    item.setValueType(NUMBER);
 
-        String column = eventSubject.getSelectSql( new QueryFilter(), item, from, to );
+    String column = eventSubject.getSelectSql(new QueryFilter(), item, from, to);
 
-        assertThat( column, is( "ax.\"" + dataElementA.getUid() + "\"" ) );
-    }
+    assertThat(column, is("ax.\"" + dataElementA.getUid() + "\""));
+  }
 
-    @Test
-    void verifyGetCoordinateColumn()
-    {
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
-        QueryItem item = new QueryItem( dio );
+  @Test
+  void verifyGetCoordinateColumn() {
+    DimensionalItemObject dio = new BaseDimensionalItemObject(dataElementA.getUid());
+    QueryItem item = new QueryItem(dio);
 
-        String column = eventSubject.getCoordinateColumn( item ).asSql();
+    String column = eventSubject.getCoordinateColumn(item).asSql();
 
-        String colName = quote( item.getItemName() );
+    String colName = quote(item.getItemName());
 
-        assertThat( column, is( "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName
-            + ")::numeric, 6) || ']' as " + colName ) );
+    assertThat(
+        column,
+        is(
+            "'[' || round(ST_X("
+                + colName
+                + ")::numeric, 6) || ',' || round(ST_Y("
+                + colName
+                + ")::numeric, 6) || ']' as "
+                + colName));
 
-        return;
-    }
+    return;
+  }
 
-    @Test
-    void verifyGetColumn()
-    {
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+  @Test
+  void verifyGetColumn() {
+    DimensionalItemObject dio = new BaseDimensionalItemObject(dataElementA.getUid());
 
-        QueryItem item = new QueryItem( dio );
+    QueryItem item = new QueryItem(dio);
 
-        String column = eventSubject.getColumn( item );
+    String column = eventSubject.getColumn(item);
 
-        assertThat( column, is( "ax.\"" + dataElementA.getUid() + "\"" ) );
-    }
+    assertThat(column, is("ax.\"" + dataElementA.getUid() + "\""));
+  }
 
-    @Override
-    String getTableName()
-    {
-        return "";
-    }
+  @Override
+  String getTableName() {
+    return "";
+  }
 
-    @Test
-    void verifyGetAggregateClauseWithValue()
-    {
-        DataElement de = new DataElement();
+  @Test
+  void verifyGetAggregateClauseWithBooleanValue() {
+    DataElement booleanElement = createDataElement('A');
+    booleanElement.setValueType(BOOLEAN);
 
-        de.setUid( dataElementA.getUid() );
-        de.setAggregationType( AggregationType.SUM );
-        de.setValueType( NUMBER );
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams()).withValue(booleanElement).build();
 
-        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
-            .withValue( de )
-            .withAggregationType( AnalyticsAggregationType.SUM )
+    String clause = eventSubject.getAggregateClause(params);
+
+    assertThat(clause, is("sum(ax.\"" + booleanElement.getUid() + "\")"));
+  }
+
+  @Test
+  void verifyGetAggregateClauseWithValue() {
+    DataElement de = new DataElement();
+
+    de.setUid(dataElementA.getUid());
+    de.setAggregationType(AggregationType.SUM);
+    de.setValueType(NUMBER);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withValue(de)
+            .withAggregationType(AnalyticsAggregationType.SUM)
             .build();
 
-        String clause = eventSubject.getAggregateClause( params );
+    String clause = eventSubject.getAggregateClause(params);
 
-        assertThat( clause, is( "sum(ax.\"fWIAEtYVEGk\")" ) );
-    }
+    assertThat(clause, is("sum(ax.\"fWIAEtYVEGk\")"));
+  }
 
-    @Test
-    void verifyGetAggregateClauseWithValueFails()
-    {
-        DataElement de = new DataElement();
+  @Test
+  void verifyGetAggregateClauseWithValueFails() {
+    DataElement de = new DataElement();
 
-        de.setAggregationType( AggregationType.CUSTOM );
-        de.setValueType( NUMBER );
+    de.setAggregationType(AggregationType.CUSTOM);
+    de.setValueType(NUMBER);
 
-        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
-            .withValue( de )
-            .withAggregationType( fromAggregationType( AggregationType.CUSTOM ) )
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withValue(de)
+            .withAggregationType(fromAggregationType(AggregationType.CUSTOM))
             .build();
 
-        assertThrows( IllegalArgumentException.class, () -> eventSubject.getAggregateClause( params ) );
-    }
+    assertThrows(IllegalArgumentException.class, () -> eventSubject.getAggregateClause(params));
+  }
 
-    @Test
-    void verifyGetAggregateClauseWithEventFallback()
-    {
-        DataElement de = new DataElement();
+  @Test
+  void verifyGetAggregateClauseWithEventFallback() {
+    DataElement de = new DataElement();
 
-        de.setAggregationType( AggregationType.NONE );
-        de.setValueType( TEXT );
+    de.setAggregationType(AggregationType.NONE);
+    de.setValueType(TEXT);
 
-        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
-            .withValue( de )
-            .withAggregationType( fromAggregationType( AggregationType.CUSTOM ) )
-            .withOutputType( EventOutputType.EVENT )
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withValue(de)
+            .withAggregationType(fromAggregationType(AggregationType.CUSTOM))
+            .withOutputType(EventOutputType.EVENT)
             .build();
 
-        String aggregateClause = eventSubject.getAggregateClause( params );
+    String aggregateClause = eventSubject.getAggregateClause(params);
 
-        assertEquals( "count(ax.\"psi\")", aggregateClause );
-    }
+    assertEquals("count(ax.\"psi\")", aggregateClause);
+  }
 
-    @Test
-    void verifyGetAggregateClauseWithEnrollmentFallback()
-    {
-        DataElement de = new DataElement();
+  @Test
+  void verifyGetAggregateClauseWithEnrollmentFallback() {
+    DataElement de = new DataElement();
 
-        de.setAggregationType( AggregationType.SUM );
-        de.setValueType( TEXT );
+    de.setAggregationType(AggregationType.SUM);
+    de.setValueType(TEXT);
 
-        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
-            .withValue( de )
-            .withAggregationType( fromAggregationType( AggregationType.CUSTOM ) )
-            .withOutputType( EventOutputType.ENROLLMENT )
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withValue(de)
+            .withAggregationType(fromAggregationType(AggregationType.CUSTOM))
+            .withOutputType(EventOutputType.ENROLLMENT)
             .build();
 
-        String aggregateClause = eventSubject.getAggregateClause( params );
+    String aggregateClause = eventSubject.getAggregateClause(params);
 
-        assertEquals( "count(distinct ax.\"pi\")", aggregateClause );
-    }
+    assertEquals("count(distinct ax.\"pi\")", aggregateClause);
+  }
 
-    @Test
-    void verifyGetAggregateClauseWithProgramIndicator()
-    {
-        ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
-        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
-            .withProgramIndicator( programIndicator )
+  @Test
+  void verifyGetAggregateClauseWithProgramIndicator() {
+    ProgramIndicator programIndicator = createProgramIndicator('A', programA, "9.0", null);
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withProgramIndicator(programIndicator)
             .build();
 
-        when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
-            params.getEarliestStartDate(), params.getLatestEndDate() ) )
-            .thenReturn( "select * from table" );
+    when(programIndicatorService.getAnalyticsSql(
+            programIndicator.getExpression(),
+            NUMERIC,
+            programIndicator,
+            params.getEarliestStartDate(),
+            params.getLatestEndDate()))
+        .thenReturn("select * from table");
 
-        String clause = eventSubject.getAggregateClause( params );
+    String clause = eventSubject.getAggregateClause(params);
 
-        assertThat( clause, is( "avg(select * from table)" ) );
-    }
+    assertThat(clause, is("avg(select * from table)"));
+  }
 
-    @Test
-    void verifyGetAggregateClauseWithProgramIndicatorAndCustomAggregationType()
-    {
-        ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
-        programIndicator.setAggregationType( AggregationType.CUSTOM );
+  @Test
+  void verifyGetAggregateClauseWithProgramIndicatorAndCustomAggregationType() {
+    ProgramIndicator programIndicator = createProgramIndicator('A', programA, "9.0", null);
+    programIndicator.setAggregationType(AggregationType.CUSTOM);
 
-        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
-            .withProgramIndicator( programIndicator )
-            .withAggregationType( fromAggregationType( programIndicator.getAggregationTypeFallback() ) )
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withProgramIndicator(programIndicator)
+            .withAggregationType(fromAggregationType(programIndicator.getAggregationTypeFallback()))
             .build();
 
-        when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
-            params.getEarliestStartDate(), params.getLatestEndDate() ) )
-            .thenReturn( "select * from table" );
+    when(programIndicatorService.getAnalyticsSql(
+            programIndicator.getExpression(),
+            NUMERIC,
+            programIndicator,
+            params.getEarliestStartDate(),
+            params.getLatestEndDate()))
+        .thenReturn("select * from table");
 
-        String clause = eventSubject.getAggregateClause( params );
+    String clause = eventSubject.getAggregateClause(params);
 
-        assertThat( clause, is( "(select * from table)" ) );
-    }
+    assertThat(clause, is("(select * from table)"));
+  }
 
-    @Test
-    void verifyGetAggregateClauseWithEnrollmentDimension()
-    {
-        ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
-        programIndicator.setAnalyticsType( AnalyticsType.ENROLLMENT );
-        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
-            .withProgramIndicator( programIndicator )
+  @Test
+  void verifyGetAggregateClauseWithEnrollmentDimension() {
+    ProgramIndicator programIndicator = createProgramIndicator('A', programA, "9.0", null);
+    programIndicator.setAnalyticsType(AnalyticsType.ENROLLMENT);
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withProgramIndicator(programIndicator)
             .build();
 
-        when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
-            params.getEarliestStartDate(), params.getLatestEndDate() ) )
-            .thenReturn( "select * from table" );
+    when(programIndicatorService.getAnalyticsSql(
+            programIndicator.getExpression(),
+            NUMERIC,
+            programIndicator,
+            params.getEarliestStartDate(),
+            params.getLatestEndDate()))
+        .thenReturn("select * from table");
 
-        String clause = eventSubject.getAggregateClause( params );
+    String clause = eventSubject.getAggregateClause(params);
 
-        assertThat( clause, is( "avg(select * from table)" ) );
-    }
+    assertThat(clause, is("avg(select * from table)"));
+  }
 
-    @Test
-    void verifyGetColumnsWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite()
-    {
-        DataElement deA = createDataElement( 'A', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
-        DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            List.of( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
+  @Test
+  void
+      verifyGetColumnsWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite() {
+    DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
+    DimensionalObject periods =
+        new BaseDimensionalObject(
+            DimensionalObject.PERIOD_DIM_ID,
+            DimensionType.PERIOD,
+            List.of(MonthlyPeriodType.getPeriodFromIsoString("201701")));
 
-        DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, "ouA", List.of( createOrganisationUnit( 'A' ) ) );
+    DimensionalObject orgUnits =
+        new BaseDimensionalObject(
+            DimensionalObject.ORGUNIT_DIM_ID,
+            DimensionType.ORGANISATION_UNIT,
+            "ouA",
+            List.of(createOrganisationUnit('A')));
 
-        QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
+    QueryItem qiA = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), null);
 
-        EventQueryParams params = new EventQueryParams.Builder()
-            .addDimension( periods )
-            .addDimension( orgUnits )
-            .addItem( qiA )
-            .withCoordinateFields( List.of( deA.getUid() ) )
-            .withSkipData( true )
-            .withSkipMeta( false )
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(periods)
+            .addDimension(orgUnits)
+            .addItem(qiA)
+            .withCoordinateFields(List.of(deA.getUid()))
+            .withSkipData(true)
+            .withSkipMeta(false)
             .build();
 
-        List<String> columns = this.eventSubject.getSelectColumns( params, false );
+    List<String> columns = this.eventSubject.getSelectColumns(params, false);
 
-        assertThat( columns, hasSize( 3 ) );
-        assertThat( columns, containsInAnyOrder( "ax.\"pe\"", "ax.\"ou\"",
-            "'[' || round(ST_X(ST_Centroid(\"" + deA.getUid() + "_geom"
-                + "\"))::numeric, 6) || ',' || round(ST_Y(ST_Centroid(\"" + deA.getUid() + "_geom"
-                + "\"))::numeric, 6) || ']' as \"" + deA.getUid() + "_geom" + "\"" ) );
-    }
+    assertThat(columns, hasSize(3));
+    assertThat(
+        columns,
+        containsInAnyOrder(
+            "ax.\"pe\"",
+            "ax.\"ou\"",
+            "'[' || round(ST_X(ST_Centroid(\""
+                + deA.getUid()
+                + "_geom"
+                + "\"))::numeric, 6) || ',' || round(ST_Y(ST_Centroid(\""
+                + deA.getUid()
+                + "_geom"
+                + "\"))::numeric, 6) || ']' as \""
+                + deA.getUid()
+                + "_geom"
+                + "\""));
+  }
 
-    @Test
-    void verifyGetWhereClauseWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite()
-    {
-        DataElement deA = createDataElement( 'A', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
-        DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            List.of( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
+  @Test
+  void
+      verifyGetWhereClauseWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite() {
+    DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
+    DimensionalObject periods =
+        new BaseDimensionalObject(
+            DimensionalObject.PERIOD_DIM_ID,
+            DimensionType.PERIOD,
+            List.of(MonthlyPeriodType.getPeriodFromIsoString("201701")));
 
-        DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, "ouA", List.of( createOrganisationUnit( 'A' ) ) );
+    DimensionalObject orgUnits =
+        new BaseDimensionalObject(
+            DimensionalObject.ORGUNIT_DIM_ID,
+            DimensionType.ORGANISATION_UNIT,
+            "ouA",
+            List.of(createOrganisationUnit('A')));
 
-        QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
+    QueryItem qiA = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), null);
 
-        EventQueryParams params = new EventQueryParams.Builder()
-            .addDimension( periods )
-            .addDimension( orgUnits )
-            .addItem( qiA )
-            .withCoordinateFields( List.of( deA.getUid() ) )
-            .withSkipData( true )
-            .withSkipMeta( false )
-            .withStartDate( new Date() )
-            .withEndDate( new Date() )
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(periods)
+            .addDimension(orgUnits)
+            .addItem(qiA)
+            .withCoordinateFields(List.of(deA.getUid()))
+            .withSkipData(true)
+            .withSkipMeta(false)
+            .withStartDate(new Date())
+            .withEndDate(new Date())
             // the not null condition is only triggered by this flag (or
             // withGeometry) being true
-            .withCoordinatesOnly( true )
+            .withCoordinatesOnly(true)
             .build();
 
-        String whereClause = this.eventSubject.getWhereClause( params );
+    String whereClause = this.eventSubject.getWhereClause(params);
 
-        assertThat( whereClause, containsString( "and coalesce(ax.\"" + deA.getUid() + "_geom" + "\") is not null" ) );
-    }
+    assertThat(
+        whereClause,
+        containsString("and coalesce(ax.\"" + deA.getUid() + "_geom" + "\") is not null"));
+  }
 
-    @Test
-    void testGetWhereClauseWithMultipleOrgUnitDescendantsAtSameLevel()
-    {
-        DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID,
-            DimensionType.PERIOD, List.of( MonthlyPeriodType.getPeriodFromIsoString( "201801" ) ) );
+  @Test
+  void testGetWhereClauseWithMultipleOrgUnitDescendantsAtSameLevel() {
+    DimensionalObject periods =
+        new BaseDimensionalObject(
+            DimensionalObject.PERIOD_DIM_ID,
+            DimensionType.PERIOD,
+            List.of(MonthlyPeriodType.getPeriodFromIsoString("201801")));
 
-        DimensionalObject multipleOrgUnitsSameLevel = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, "uidlevel1", "Level 1",
-            List.of( createOrganisationUnit( 'A' ), createOrganisationUnit( 'B' ), createOrganisationUnit( 'C' ) ) );
+    DimensionalObject multipleOrgUnitsSameLevel =
+        new BaseDimensionalObject(
+            DimensionalObject.ORGUNIT_DIM_ID,
+            DimensionType.ORGANISATION_UNIT,
+            "uidlevel1",
+            "Level 1",
+            List.of(
+                createOrganisationUnit('A'),
+                createOrganisationUnit('B'),
+                createOrganisationUnit('C')));
 
-        EventQueryParams params = new EventQueryParams.Builder()
-            .addDimension( periods )
-            .addDimension( multipleOrgUnitsSameLevel )
-            .withSkipData( true )
-            .withSkipMeta( false )
-            .withStartDate( new Date() )
-            .withEndDate( new Date() )
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(periods)
+            .addDimension(multipleOrgUnitsSameLevel)
+            .withSkipData(true)
+            .withSkipMeta(false)
+            .withStartDate(new Date())
+            .withEndDate(new Date())
             .build();
 
-        String whereClause = this.eventSubject.getWhereClause( params );
+    String whereClause = this.eventSubject.getWhereClause(params);
 
-        assertThat( whereClause,
-            containsString(
-                "and ax.\"uidlevel0\" in ('ouabcdefghA','ouabcdefghB','ouabcdefghC')" ) );
-    }
+    assertThat(
+        whereClause,
+        containsString("and ax.\"uidlevel0\" in ('ouabcdefghA','ouabcdefghB','ouabcdefghC')"));
+  }
 
-    @Test
-    void testValidCoordinatesFieldInSqlWhereClauseForEvent()
-    {
-        EventQueryParams params = getEventQueryParamsForCoordinateFieldsTest(
-            List.of( "pigeometry", "psigeometry", "teigeometry", "ougeometry" ) );
+  @Test
+  void testValidCoordinatesFieldInSqlWhereClauseForEvent() {
+    EventQueryParams params =
+        getEventQueryParamsForCoordinateFieldsTest(
+            List.of("pigeometry", "psigeometry", "teigeometry", "ougeometry"));
 
-        String whereClause = this.eventSubject.getWhereClause( params );
+    String whereClause = this.eventSubject.getWhereClause(params);
 
-        assertThat( whereClause, containsString(
-            "coalesce(ax.\"pigeometry\",ax.\"psigeometry\",ax.\"teigeometry\",ax.\"ougeometry\") is not null" ) );
-    }
+    assertThat(
+        whereClause,
+        containsString(
+            "coalesce(ax.\"pigeometry\",ax.\"psigeometry\",ax.\"teigeometry\",ax.\"ougeometry\") is not null"));
+  }
 
-    @Test
-    void testMissingPsiGeometryInDefaultCoordinatesFieldInSqlSelectClause()
-    {
-        EventQueryParams params = getEventQueryParamsForCoordinateFieldsTest(
-            List.of( "pigeometry", "teigeometry", "ougeometry" ) );
+  @Test
+  void testMissingPsiGeometryInDefaultCoordinatesFieldInSqlSelectClause() {
+    EventQueryParams params =
+        getEventQueryParamsForCoordinateFieldsTest(
+            List.of("pigeometry", "teigeometry", "ougeometry"));
 
-        String whereClause = this.eventSubject.getSelectClause( params );
+    String whereClause = this.eventSubject.getSelectClause(params);
 
-        assertThat( whereClause, containsString( "coalesce(ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\")" ) );
-    }
+    assertThat(
+        whereClause,
+        containsString("coalesce(ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\")"));
+  }
 
-    @Test
-    void testValidExplicitCoordinatesFieldInSqlSelectClause()
-    {
-        EventQueryParams params = getEventQueryParamsForCoordinateFieldsTest( List.of( "ougeometry", "psigeometry" ) );
+  @Test
+  void testValidExplicitCoordinatesFieldInSqlSelectClause() {
+    EventQueryParams params =
+        getEventQueryParamsForCoordinateFieldsTest(List.of("ougeometry", "psigeometry"));
 
-        String whereClause = this.eventSubject.getSelectClause( params );
+    String whereClause = this.eventSubject.getSelectClause(params);
 
-        assertThat( whereClause, containsString( "coalesce(ax.\"ougeometry\",ax.\"psigeometry\")" ) );
-    }
+    assertThat(whereClause, containsString("coalesce(ax.\"ougeometry\",ax.\"psigeometry\")"));
+  }
 
-    @Test
-    void testGeItemNoFiltersSql()
-    {
-        EventQueryParams queryParams = new EventQueryParams.Builder()
-            .addItem( buildQueryItemWithGroupAndFilters( "item", UUID.randomUUID(), Collections.emptyList() ) )
+  @Test
+  void testGeItemNoFiltersSql() {
+    EventQueryParams queryParams =
+        new EventQueryParams.Builder()
+            .addItem(
+                buildQueryItemWithGroupAndFilters(
+                    "item", UUID.randomUUID(), Collections.emptyList()))
             .build();
-        assertEquals( "", eventSubject.getQueryItemsAndFiltersWhereClause( queryParams, new SqlHelper() ) );
-    }
+    assertEquals("", eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper()));
+  }
 
-    @Test
-    void testGetItemSimpleFilterSql()
-    {
-        EventQueryParams queryParams = new EventQueryParams.Builder()
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item",
-                UUID.randomUUID(),
-                List.of( buildQueryFilter( EQ, "A" ) ) ) )
+  @Test
+  void testGetItemSimpleFilterSql() {
+    EventQueryParams queryParams =
+        new EventQueryParams.Builder()
+            .addItem(
+                buildQueryItemWithGroupAndFilters(
+                    "item", UUID.randomUUID(), List.of(buildQueryFilter(EQ, "A"))))
             .build();
-        String result = eventSubject.getQueryItemsAndFiltersWhereClause( queryParams, new SqlHelper() );
-        assertEquals( "where ax.\"item\" = 'A' ", result );
-    }
+    String result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
+    assertEquals("where ax.\"item\" = 'A' ", result);
+  }
 
-    @Test
-    void testGetItemNotLikeFilterSql()
-    {
-        EventQueryParams queryParams = new EventQueryParams.Builder()
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item",
-                UUID.randomUUID(),
-                List.of( buildQueryFilter( NEQ, "12" ) ), NUMBER ) )
+  @Test
+  void testGetItemNotLikeFilterSql() {
+    EventQueryParams queryParams =
+        new EventQueryParams.Builder()
+            .addItem(
+                buildQueryItemWithGroupAndFilters(
+                    "item", UUID.randomUUID(), List.of(buildQueryFilter(NEQ, "12")), NUMBER))
             .build();
-        String result = eventSubject.getQueryItemsAndFiltersWhereClause( queryParams, new SqlHelper() );
-        assertEquals( "where (ax.\"item\" is null or ax.\"item\" != '12') ", result );
-    }
+    String result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
+    assertEquals("where (ax.\"item\" is null or ax.\"item\" != '12') ", result);
+  }
 
-    @Test
-    void testGetItemNotILikeFilterSqlNullValueType()
-    {
-        EventQueryParams queryParams = new EventQueryParams.Builder()
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item",
-                UUID.randomUUID(),
-                List.of( buildQueryFilter( NILIKE, "A" ) ) ) )
+  @Test
+  void testGetItemNotILikeFilterSqlNullValueType() {
+    EventQueryParams queryParams =
+        new EventQueryParams.Builder()
+            .addItem(
+                buildQueryItemWithGroupAndFilters(
+                    "item", UUID.randomUUID(), List.of(buildQueryFilter(NILIKE, "A"))))
             .build();
-        String result = eventSubject.getQueryItemsAndFiltersWhereClause( queryParams, new SqlHelper() );
-        assertEquals( "where (ax.\"item\" is null or ax.\"item\" not ilike '%A%') ", result );
-    }
+    String result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
+    assertEquals("where (ax.\"item\" is null or ax.\"item\" not ilike '%A%') ", result);
+  }
 
-    @Test
-    void testGetItemNotEqualsFilterSql()
-    {
-        EventQueryParams queryParams = new EventQueryParams.Builder()
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item",
-                UUID.randomUUID(),
-                List.of( buildQueryFilter( NEQ, "A" ) ), TEXT ) )
+  @Test
+  void testGetItemNotEqualsFilterSql() {
+    EventQueryParams queryParams =
+        new EventQueryParams.Builder()
+            .addItem(
+                buildQueryItemWithGroupAndFilters(
+                    "item", UUID.randomUUID(), List.of(buildQueryFilter(NEQ, "A")), TEXT))
             .build();
-        String result = eventSubject.getQueryItemsAndFiltersWhereClause( queryParams, new SqlHelper() );
-        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result );
+    String result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
+    assertEquals("where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result);
 
-        queryParams = new EventQueryParams.Builder()
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item",
-                UUID.randomUUID(),
-                List.of( buildQueryFilter( NE, "A" ) ), TEXT ) )
+    queryParams =
+        new EventQueryParams.Builder()
+            .addItem(
+                buildQueryItemWithGroupAndFilters(
+                    "item", UUID.randomUUID(), List.of(buildQueryFilter(NE, "A")), TEXT))
             .build();
-        result = eventSubject.getQueryItemsAndFiltersWhereClause( queryParams, new SqlHelper() );
-        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result );
-    }
+    result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
+    assertEquals("where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result);
+  }
 
-    @Test
-    void testGetItemNotIEqualsFilterSql()
-    {
-        EventQueryParams queryParams = new EventQueryParams.Builder()
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item",
-                UUID.randomUUID(),
-                List.of( buildQueryFilter( NIEQ, "A" ) ), TEXT ) )
+  @Test
+  void testGetItemNotIEqualsFilterSql() {
+    EventQueryParams queryParams =
+        new EventQueryParams.Builder()
+            .addItem(
+                buildQueryItemWithGroupAndFilters(
+                    "item", UUID.randomUUID(), List.of(buildQueryFilter(NIEQ, "A")), TEXT))
             .build();
-        String result = eventSubject.getQueryItemsAndFiltersWhereClause( queryParams, new SqlHelper() );
-        assertEquals( "where (coalesce(lower(ax.\"item\"), '') = '' or lower(ax.\"item\") != 'a') ", result );
-    }
+    String result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
+    assertEquals(
+        "where (coalesce(lower(ax.\"item\"), '') = '' or lower(ax.\"item\") != 'a') ", result);
+  }
 
-    @Test
-    void testGetItemTwoConditionsSameGroupSql()
-    {
-        EventQueryParams queryParams = new EventQueryParams.Builder()
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item",
-                UUID.randomUUID(),
-                List.of(
-                    buildQueryFilter( EQ, "A" ),
-                    buildQueryFilter( EQ, "B" ) ) ) )
+  @Test
+  void testGetItemTwoConditionsSameGroupSql() {
+    EventQueryParams queryParams =
+        new EventQueryParams.Builder()
+            .addItem(
+                buildQueryItemWithGroupAndFilters(
+                    "item",
+                    UUID.randomUUID(),
+                    List.of(buildQueryFilter(EQ, "A"), buildQueryFilter(EQ, "B"))))
             .build();
-        String result = eventSubject.getQueryItemsAndFiltersWhereClause( queryParams, new SqlHelper() );
-        assertEquals( "where ax.\"item\" = 'A'  and ax.\"item\" = 'B' ", result );
-    }
+    String result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
+    assertEquals("where ax.\"item\" = 'A'  and ax.\"item\" = 'B' ", result);
+  }
 
-    @Test
-    void testGetItemSameItemTwoConditionsSqlEnhancedConditions()
-    {
-        EventQueryParams queryParams = new EventQueryParams.Builder()
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item",
-                UUID.randomUUID(),
-                List.of(
-                    buildQueryFilter( EQ, "A" ),
-                    buildQueryFilter( EQ, "B" ) ) ) )
-            .withEnhancedConditions( true )
-            .build();
-
-        String result = eventSubject.getQueryItemsAndFiltersWhereClause( queryParams, new SqlHelper() );
-        assertEquals( "where (ax.\"item\" = 'A'  and ax.\"item\" = 'B' )", result );
-    }
-
-    @Test
-    void testGetItemTwoConditionsSameGroupSqlEnhancedConditions()
-    {
-        UUID groupUUID = UUID.randomUUID();
-        EventQueryParams queryParams = new EventQueryParams.Builder()
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item1",
-                groupUUID,
-                List.of(
-                    buildQueryFilter( EQ, "A" ) ) ) )
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item2",
-                groupUUID,
-                List.of(
-                    buildQueryFilter( EQ, "B" ) ) ) )
-            .withEnhancedConditions( true )
+  @Test
+  void testGetItemSameItemTwoConditionsSqlEnhancedConditions() {
+    EventQueryParams queryParams =
+        new EventQueryParams.Builder()
+            .addItem(
+                buildQueryItemWithGroupAndFilters(
+                    "item",
+                    UUID.randomUUID(),
+                    List.of(buildQueryFilter(EQ, "A"), buildQueryFilter(EQ, "B"))))
+            .withEnhancedConditions(true)
             .build();
 
-        String result = eventSubject.getQueryItemsAndFiltersWhereClause( queryParams, new SqlHelper() );
-        assertEquals( "where (ax.\"item1\" = 'A'  or ax.\"item2\" = 'B' )", result );
-    }
+    String result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
+    assertEquals("where (ax.\"item\" = 'A'  and ax.\"item\" = 'B' )", result);
+  }
 
-    @Test
-    void testGetItemTwoConditionsDifferentGroupsSqlEnhancedConditions()
-    {
-        UUID groupUUID1 = UUID.randomUUID();
-        UUID groupUUID2 = UUID.randomUUID();
-        EventQueryParams queryParams = new EventQueryParams.Builder()
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item1",
-                groupUUID1,
-                List.of( buildQueryFilter( EQ, "A" ) ) ) )
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item2",
-                groupUUID1,
-                List.of( buildQueryFilter( EQ, "B" ) ) ) )
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item3",
-                groupUUID2,
-                List.of( buildQueryFilter( EQ, "C" ) ) ) )
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item4",
-                groupUUID2,
-                List.of( buildQueryFilter( EQ, "D" ) ) ) )
-            .withEnhancedConditions( true )
+  @Test
+  void testGetItemTwoConditionsSameGroupSqlEnhancedConditions() {
+    UUID groupUUID = UUID.randomUUID();
+    EventQueryParams queryParams =
+        new EventQueryParams.Builder()
+            .addItem(
+                buildQueryItemWithGroupAndFilters(
+                    "item1", groupUUID, List.of(buildQueryFilter(EQ, "A"))))
+            .addItem(
+                buildQueryItemWithGroupAndFilters(
+                    "item2", groupUUID, List.of(buildQueryFilter(EQ, "B"))))
+            .withEnhancedConditions(true)
             .build();
 
-        String result = eventSubject.getQueryItemsAndFiltersWhereClause( queryParams, new SqlHelper() );
-        assertTrue( result.contains( "(ax.\"item1\" = 'A'  or ax.\"item2\" = 'B' )" ) );
-        assertTrue( result.contains( "(ax.\"item3\" = 'C'  or ax.\"item4\" = 'D' )" ) );
-    }
+    String result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
+    assertEquals("where (ax.\"item1\" = 'A'  or ax.\"item2\" = 'B' )", result);
+  }
 
-    @Test
-    void testAddGridValueForDoubleObject()
-        throws SQLException
-    {
-        Double doubleObject = 35.5d;
-        int index = 1;
-
-        RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
-        metaData.setColumnCount( 2 );
-        metaData.setColumnName( 1, "col-1" );
-        metaData.setColumnName( 2, "col-2" );
-
-        ResultSet resultSet = mock( ResultSet.class );
-        when( resultSet.getObject( index ) ).thenReturn( doubleObject );
-        when( resultSet.getMetaData() ).thenReturn( metaData );
-
-        EventQueryParams queryParams = new EventQueryParams.Builder()
-            .withSkipRounding( false ).build();
-
-        GridHeader header = new GridHeader( "header-1", NUMBER );
-        Grid grid = new ListGrid();
-        grid.addHeader( header );
-        grid.addRow();
-
-        SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet( resultSet );
-
-        eventSubject.addGridValue( grid, header, index, sqlRowSet, queryParams );
-
-        assertTrue( grid.getColumn( 0 ).contains( doubleObject ), "Should contain value " + doubleObject );
-    }
-
-    @Test
-    void testAddGridValueForBigDecimalObject()
-        throws SQLException
-    {
-        // Given
-        BigDecimal bigDecimalObject = new BigDecimal( "123.40000000" );
-        int index = 1;
-
-        RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
-        metaData.setColumnCount( 2 );
-        metaData.setColumnName( 1, "col-1" );
-        metaData.setColumnName( 2, "col-2" );
-
-        ResultSet resultSet = mock( ResultSet.class );
-        when( resultSet.getObject( index ) ).thenReturn( bigDecimalObject );
-        when( resultSet.getMetaData() ).thenReturn( metaData );
-
-        EventQueryParams queryParams = new EventQueryParams.Builder().build();
-
-        GridHeader header = new GridHeader( "header-1", NUMBER );
-        Grid grid = new ListGrid();
-        grid.addHeader( header );
-        grid.addRow();
-
-        SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet( resultSet );
-
-        // When
-        eventSubject.addGridValue( grid, header, index, sqlRowSet, queryParams );
-
-        // Then
-        String expected = bigDecimalObject.setScale( 2, RoundingMode.CEILING ).stripTrailingZeros().toPlainString();
-        assertEquals( grid.getColumn( 0 ).get( 0 ), expected, "Should contain value " + expected );
-    }
-
-    @Test
-    void testAddGridValueForNull()
-        throws SQLException
-    {
-        Double nullObject = null;
-        int index = 1;
-
-        RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
-        metaData.setColumnCount( 2 );
-        metaData.setColumnName( 1, "col-1" );
-        metaData.setColumnName( 2, "col-2" );
-
-        ResultSet resultSet = mock( ResultSet.class );
-        when( resultSet.getObject( index ) ).thenReturn( nullObject );
-        when( resultSet.getMetaData() ).thenReturn( metaData );
-
-        EventQueryParams queryParams = new EventQueryParams.Builder()
-            .withSkipRounding( false ).build();
-
-        GridHeader header = new GridHeader( "header-1", NUMBER );
-        Grid grid = new ListGrid();
-        grid.addHeader( header );
-        grid.addRow();
-
-        SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet( resultSet );
-
-        eventSubject.addGridValue( grid, header, index, sqlRowSet, queryParams );
-
-        assertTrue( grid.getColumn( 0 ).contains( EMPTY ), "Should contain empty value" );
-    }
-
-    private QueryFilter buildQueryFilter( QueryOperator operator, String filter )
-    {
-        return new QueryFilter( operator, filter );
-    }
-
-    private QueryItem buildQueryItem( String item )
-    {
-        return new QueryItem( new BaseDimensionalItemObject( item ) );
-    }
-
-    private QueryItem buildQueryItemWithGroupAndFilters( String item, UUID groupUUID, Collection<QueryFilter> filters,
-        ValueType valueType )
-    {
-        QueryItem queryItem = buildQueryItemWithGroupAndFilters( item, groupUUID, filters );
-        queryItem.setValueType( valueType );
-
-        return queryItem;
-    }
-
-    private QueryItem buildQueryItemWithGroupAndFilters( String item, UUID groupUUID, Collection<QueryFilter> filters )
-    {
-        QueryItem queryItem = buildQueryItem( item );
-        queryItem.setGroupUUID( groupUUID );
-        queryItem.setFilters( new ArrayList<>( filters ) );
-        return queryItem;
-    }
-
-    private EventQueryParams getEventQueryParamsForCoordinateFieldsTest( List<String> coordinateFields )
-    {
-        DataElement deA = createDataElement( 'A', TEXT, AggregationType.NONE );
-        Period peA = createPeriod( "202201" );
-        QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
-        Program program = createProgram( 'A' );
-
-        return new EventQueryParams.Builder()
-            .withPeriods( List.of( peA ), PeriodTypeEnum.MONTHLY.getName() )
-            .withOrganisationUnits( List.of( createOrganisationUnit( 'A' ) ) )
-            .addItem( qiA )
-            .withProgram( program )
-            .withStartDate( new Date() )
-            .withEndDate( new Date() )
-            .withCoordinatesOnly( true )
-            .withGeometryOnly( true )
-            .withCoordinateFields( coordinateFields )
+  @Test
+  void testGetItemTwoConditionsDifferentGroupsSqlEnhancedConditions() {
+    UUID groupUUID1 = UUID.randomUUID();
+    UUID groupUUID2 = UUID.randomUUID();
+    EventQueryParams queryParams =
+        new EventQueryParams.Builder()
+            .addItem(
+                buildQueryItemWithGroupAndFilters(
+                    "item1", groupUUID1, List.of(buildQueryFilter(EQ, "A"))))
+            .addItem(
+                buildQueryItemWithGroupAndFilters(
+                    "item2", groupUUID1, List.of(buildQueryFilter(EQ, "B"))))
+            .addItem(
+                buildQueryItemWithGroupAndFilters(
+                    "item3", groupUUID2, List.of(buildQueryFilter(EQ, "C"))))
+            .addItem(
+                buildQueryItemWithGroupAndFilters(
+                    "item4", groupUUID2, List.of(buildQueryFilter(EQ, "D"))))
+            .withEnhancedConditions(true)
             .build();
-    }
+
+    String result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
+    assertTrue(result.contains("(ax.\"item1\" = 'A'  or ax.\"item2\" = 'B' )"));
+    assertTrue(result.contains("(ax.\"item3\" = 'C'  or ax.\"item4\" = 'D' )"));
+  }
+
+  @Test
+  void testAddGridValueForDoubleObject() throws SQLException {
+    Double doubleObject = 35.5d;
+    int index = 1;
+
+    RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
+    metaData.setColumnCount(2);
+    metaData.setColumnName(1, "col-1");
+    metaData.setColumnName(2, "col-2");
+
+    ResultSet resultSet = mock(ResultSet.class);
+    when(resultSet.getObject(index)).thenReturn(doubleObject);
+    when(resultSet.getMetaData()).thenReturn(metaData);
+
+    EventQueryParams queryParams = new EventQueryParams.Builder().withSkipRounding(false).build();
+
+    GridHeader header = new GridHeader("header-1", NUMBER);
+    Grid grid = new ListGrid();
+    grid.addHeader(header);
+    grid.addRow();
+
+    SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet(resultSet);
+
+    eventSubject.addGridValue(grid, header, index, sqlRowSet, queryParams);
+
+    assertTrue(grid.getColumn(0).contains(doubleObject), "Should contain value " + doubleObject);
+  }
+
+  @Test
+  void testAddGridValueForBigDecimalObject() throws SQLException {
+    // Given
+    BigDecimal bigDecimalObject = new BigDecimal("123.40000000");
+    int index = 1;
+
+    RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
+    metaData.setColumnCount(2);
+    metaData.setColumnName(1, "col-1");
+    metaData.setColumnName(2, "col-2");
+
+    ResultSet resultSet = mock(ResultSet.class);
+    when(resultSet.getObject(index)).thenReturn(bigDecimalObject);
+    when(resultSet.getMetaData()).thenReturn(metaData);
+
+    EventQueryParams queryParams = new EventQueryParams.Builder().build();
+
+    GridHeader header = new GridHeader("header-1", NUMBER);
+    Grid grid = new ListGrid();
+    grid.addHeader(header);
+    grid.addRow();
+
+    SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet(resultSet);
+
+    // When
+    eventSubject.addGridValue(grid, header, index, sqlRowSet, queryParams);
+
+    // Then
+    String expected =
+        bigDecimalObject.setScale(2, RoundingMode.CEILING).stripTrailingZeros().toPlainString();
+    assertEquals(grid.getColumn(0).get(0), expected, "Should contain value " + expected);
+  }
+
+  @Test
+  void testAddGridValueForNull() throws SQLException {
+    Double nullObject = null;
+    int index = 1;
+
+    RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
+    metaData.setColumnCount(2);
+    metaData.setColumnName(1, "col-1");
+    metaData.setColumnName(2, "col-2");
+
+    ResultSet resultSet = mock(ResultSet.class);
+    when(resultSet.getObject(index)).thenReturn(nullObject);
+    when(resultSet.getMetaData()).thenReturn(metaData);
+
+    EventQueryParams queryParams = new EventQueryParams.Builder().withSkipRounding(false).build();
+
+    GridHeader header = new GridHeader("header-1", NUMBER);
+    Grid grid = new ListGrid();
+    grid.addHeader(header);
+    grid.addRow();
+
+    SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet(resultSet);
+
+    eventSubject.addGridValue(grid, header, index, sqlRowSet, queryParams);
+
+    assertTrue(grid.getColumn(0).contains(EMPTY), "Should contain empty value");
+  }
+
+  private QueryFilter buildQueryFilter(QueryOperator operator, String filter) {
+    return new QueryFilter(operator, filter);
+  }
+
+  private QueryItem buildQueryItem(String item) {
+    return new QueryItem(new BaseDimensionalItemObject(item));
+  }
+
+  private QueryItem buildQueryItemWithGroupAndFilters(
+      String item, UUID groupUUID, Collection<QueryFilter> filters, ValueType valueType) {
+    QueryItem queryItem = buildQueryItemWithGroupAndFilters(item, groupUUID, filters);
+    queryItem.setValueType(valueType);
+
+    return queryItem;
+  }
+
+  private QueryItem buildQueryItemWithGroupAndFilters(
+      String item, UUID groupUUID, Collection<QueryFilter> filters) {
+    QueryItem queryItem = buildQueryItem(item);
+    queryItem.setGroupUUID(groupUUID);
+    queryItem.setFilters(new ArrayList<>(filters));
+    return queryItem;
+  }
+
+  private EventQueryParams getEventQueryParamsForCoordinateFieldsTest(
+      List<String> coordinateFields) {
+    DataElement deA = createDataElement('A', TEXT, AggregationType.NONE);
+    Period peA = createPeriod("202201");
+    QueryItem qiA = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), null);
+    Program program = createProgram('A');
+
+    return new EventQueryParams.Builder()
+        .withPeriods(List.of(peA), PeriodTypeEnum.MONTHLY.getName())
+        .withOrganisationUnits(List.of(createOrganisationUnit('A')))
+        .addItem(qiA)
+        .withProgram(program)
+        .withStartDate(new Date())
+        .withEndDate(new Date())
+        .withCoordinatesOnly(true)
+        .withGeometryOnly(true)
+        .withCoordinateFields(coordinateFields)
+        .build();
+  }
 }

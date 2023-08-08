@@ -42,7 +42,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hamcrest.Matchers;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.junit.jupiter.api.Test;
@@ -52,213 +51,200 @@ import org.junit.jupiter.api.Test;
  *
  * @author maikel arabori
  */
-class FilterValidatorTest
-{
+class FilterValidatorTest {
 
-    @Test
-    void testCheckNamesAndOperatorsWhenFilterHasInvalidFormat()
-    {
-        // Given
-        final Set<String> filters = new HashSet<>( singletonList( "name:ilike:someName:bla:bla" ) );
-        // When throws
-        final IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> checkNamesAndOperators( filters ) );
-        // Then
-        assertThat( thrown.getMessage(), containsString( "Unable to parse filter `name:ilike:someName:bla:bla`" ) );
-    }
+  @Test
+  void testCheckNamesAndOperatorsWhenFilterHasInvalidFormat() {
+    // Given
+    final Set<String> filters = new HashSet<>(singletonList("name:ilike:someName:bla:bla"));
+    // When throws
+    final IllegalQueryException thrown =
+        assertThrows(IllegalQueryException.class, () -> checkNamesAndOperators(filters));
+    // Then
+    assertThat(
+        thrown.getMessage(),
+        containsString("Unable to parse filter `name:ilike:someName:bla:bla`"));
+  }
 
-    @Test
-    void testCheckNamesAndOperatorsWhenCombinationIsInvalid()
-    {
-        // Given
-        final String invalidCombination = "dimensionItemType:ilike:";
-        final Set<String> filters = new HashSet<>( singletonList( invalidCombination ) );
-        // When throws
-        final IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> checkNamesAndOperators( filters ) );
-        // Then
-        assertThat( thrown.getMessage(), containsString( "Unable to parse filter `dimensionItemType:ilike:`" ) );
-    }
+  @Test
+  void testCheckNamesAndOperatorsWhenCombinationIsInvalid() {
+    // Given
+    final String invalidCombination = "dimensionItemType:ilike:";
+    final Set<String> filters = new HashSet<>(singletonList(invalidCombination));
+    // When throws
+    final IllegalQueryException thrown =
+        assertThrows(IllegalQueryException.class, () -> checkNamesAndOperators(filters));
+    // Then
+    assertThat(
+        thrown.getMessage(), containsString("Unable to parse filter `dimensionItemType:ilike:`"));
+  }
 
-    @Test
-    void testCheckNamesAndOperatorsWhenOperationIsInvalid()
-    {
-        // Given
-        final Set<String> filters = new HashSet<>( singletonList( "name:invalidOperation:aWord" ) );
-        // When throws
-        final IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> checkNamesAndOperators( filters ) );
-        // Then
-        assertThat( thrown.getMessage(), containsString( "Operator not supported: `invalidOperation`" ) );
-    }
+  @Test
+  void testCheckNamesAndOperatorsWhenOperationIsInvalid() {
+    // Given
+    final Set<String> filters = new HashSet<>(singletonList("name:invalidOperation:aWord"));
+    // When throws
+    final IllegalQueryException thrown =
+        assertThrows(IllegalQueryException.class, () -> checkNamesAndOperators(filters));
+    // Then
+    assertThat(thrown.getMessage(), containsString("Operator not supported: `invalidOperation`"));
+  }
 
-    @Test
-    void testCheckNamesAndOperatorsWhenAttributeIsInvalid()
-    {
-        // Given
-        final Set<String> filters = new HashSet<>( singletonList( "invalidAttribute:ilike:aWord" ) );
-        // When throws
-        final IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> checkNamesAndOperators( filters ) );
-        // Then
-        assertThat( thrown.getMessage(), containsString( "Filter not supported: `invalidAttribute`" ) );
-    }
+  @Test
+  void testCheckNamesAndOperatorsWhenAttributeIsInvalid() {
+    // Given
+    final Set<String> filters = new HashSet<>(singletonList("invalidAttribute:ilike:aWord"));
+    // When throws
+    final IllegalQueryException thrown =
+        assertThrows(IllegalQueryException.class, () -> checkNamesAndOperators(filters));
+    // Then
+    assertThat(thrown.getMessage(), containsString("Filter not supported: `invalidAttribute`"));
+  }
 
-    @Test
-    void testCheckNamesAndOperatorsWithSuccess()
-    {
-        // Given
-        final Set<String> filters = new HashSet<>( singletonList( "name:ilike:aWord" ) );
-        // When
-        checkNamesAndOperators( filters );
-    }
+  @Test
+  void testCheckNamesAndOperatorsWithSuccess() {
+    // Given
+    final Set<String> filters = new HashSet<>(singletonList("name:ilike:aWord"));
+    // When
+    checkNamesAndOperators(filters);
+  }
 
-    @Test
-    void testContainsFilterWithAnyOfPrefixesWhenPrefixMatches()
-    {
-        // Given
-        final Set<String> filters = new HashSet<>( singletonList( "attribute:ilike:aWord" ) );
-        final String thePrefix = "attribute:ilike:";
-        // When
-        final boolean actualResult = containsFilterWithAnyOfPrefixes( filters, thePrefix );
-        // Then
-        assertThat( actualResult, is( true ) );
-    }
+  @Test
+  void testContainsFilterWithAnyOfPrefixesWhenPrefixMatches() {
+    // Given
+    final Set<String> filters = new HashSet<>(singletonList("attribute:ilike:aWord"));
+    final String thePrefix = "attribute:ilike:";
+    // When
+    final boolean actualResult = containsFilterWithAnyOfPrefixes(filters, thePrefix);
+    // Then
+    assertThat(actualResult, is(true));
+  }
 
-    @Test
-    void testContainsFilterWithAnyOfPrefixesWhenMultiplePrefixesMatch()
-    {
-        // Given
-        final Set<String> filters = new HashSet<>( singletonList( "attribute:ilike:aWord" ) );
-        final String[] thePrefixes = { "attribute:ilike:", "attribute" };
-        // When
-        final boolean actualResult = containsFilterWithAnyOfPrefixes( filters, thePrefixes );
-        // Then
-        assertThat( actualResult, is( true ) );
-    }
+  @Test
+  void testContainsFilterWithAnyOfPrefixesWhenMultiplePrefixesMatch() {
+    // Given
+    final Set<String> filters = new HashSet<>(singletonList("attribute:ilike:aWord"));
+    final String[] thePrefixes = {"attribute:ilike:", "attribute"};
+    // When
+    final boolean actualResult = containsFilterWithAnyOfPrefixes(filters, thePrefixes);
+    // Then
+    assertThat(actualResult, is(true));
+  }
 
-    @Test
-    void testContainsFilterWithAnyOfPrefixesWhenWeHaveMultiplFiltersAndOneMatch()
-    {
-        // Given
-        final Set<String> filters = newHashSet( "attribute:ilike:aWord", "programId:eq:abcderf" );
-        final String thePrefix = "programId:eq:";
-        // When
-        final boolean actualResult = containsFilterWithAnyOfPrefixes( filters, thePrefix );
-        // Then
-        assertThat( actualResult, is( true ) );
-    }
+  @Test
+  void testContainsFilterWithAnyOfPrefixesWhenWeHaveMultiplFiltersAndOneMatch() {
+    // Given
+    final Set<String> filters = newHashSet("attribute:ilike:aWord", "programId:eq:abcderf");
+    final String thePrefix = "programId:eq:";
+    // When
+    final boolean actualResult = containsFilterWithAnyOfPrefixes(filters, thePrefix);
+    // Then
+    assertThat(actualResult, is(true));
+  }
 
-    @Test
-    void testContainsFilterWithAnyOfPrefixesWhenPrefixDoesNotMatch()
-    {
-        // Given
-        final Set<String> filters = new HashSet<>( singletonList( "attribute:ilike:aWord" ) );
-        final String thePrefix = "attribute:eq:";
-        // When
-        final boolean actualResult = containsFilterWithAnyOfPrefixes( filters, thePrefix );
-        // Then
-        assertThat( actualResult, is( false ) );
-    }
+  @Test
+  void testContainsFilterWithAnyOfPrefixesWhenPrefixDoesNotMatch() {
+    // Given
+    final Set<String> filters = new HashSet<>(singletonList("attribute:ilike:aWord"));
+    final String thePrefix = "attribute:eq:";
+    // When
+    final boolean actualResult = containsFilterWithAnyOfPrefixes(filters, thePrefix);
+    // Then
+    assertThat(actualResult, is(false));
+  }
 
-    @Test
-    void testContainsFilterWithAnyOfPrefixesWhenListOfFiltersIsEmpty()
-    {
-        // Given
-        final Set<String> filters = emptySet();
-        final String thePrefix = "attribute:eq:";
-        // When
-        final boolean actualResult = containsFilterWithAnyOfPrefixes( filters, thePrefix );
-        // Then
-        assertThat( actualResult, is( false ) );
-    }
+  @Test
+  void testContainsFilterWithAnyOfPrefixesWhenListOfFiltersIsEmpty() {
+    // Given
+    final Set<String> filters = emptySet();
+    final String thePrefix = "attribute:eq:";
+    // When
+    final boolean actualResult = containsFilterWithAnyOfPrefixes(filters, thePrefix);
+    // Then
+    assertThat(actualResult, is(false));
+  }
 
-    @Test
-    void testContainsFilterWithAnyOfPrefixesWhenPrefixIsNull()
-    {
-        // Given
-        final Set<String> filters = new HashSet<>( singletonList( "attribute:ilike:aWord" ) );
-        final String nullPrefix = null;
-        // When
-        final boolean actualResult = containsFilterWithAnyOfPrefixes( filters, nullPrefix );
-        // Then
-        assertThat( actualResult, is( false ) );
-    }
+  @Test
+  void testContainsFilterWithAnyOfPrefixesWhenPrefixIsNull() {
+    // Given
+    final Set<String> filters = new HashSet<>(singletonList("attribute:ilike:aWord"));
+    final String nullPrefix = null;
+    // When
+    final boolean actualResult = containsFilterWithAnyOfPrefixes(filters, nullPrefix);
+    // Then
+    assertThat(actualResult, is(false));
+  }
 
-    @Test
-    void testFilterHasPrefixMatches()
-    {
-        final String anyFilter = "displayName:ilike:someBla";
-        final String anyPrefix = "displayName:ilike:";
-        // When
-        final boolean actualResult = filterHasPrefix( anyFilter, anyPrefix );
-        // Then
-        assertThat( actualResult, is( true ) );
-    }
+  @Test
+  void testFilterHasPrefixMatches() {
+    final String anyFilter = "displayName:ilike:someBla";
+    final String anyPrefix = "displayName:ilike:";
+    // When
+    final boolean actualResult = filterHasPrefix(anyFilter, anyPrefix);
+    // Then
+    assertThat(actualResult, is(true));
+  }
 
-    @Test
-    void testFilterHasPrefixDoesNotMatch()
-    {
-        final String anyFilter = "displayName:ilike:someBla";
-        final String nonExistingPrefix = "nonExistingPrefix";
-        // When
-        final boolean actualResult = filterHasPrefix( anyFilter, nonExistingPrefix );
-        // Then
-        assertThat( actualResult, is( false ) );
-    }
+  @Test
+  void testFilterHasPrefixDoesNotMatch() {
+    final String anyFilter = "displayName:ilike:someBla";
+    final String nonExistingPrefix = "nonExistingPrefix";
+    // When
+    final boolean actualResult = filterHasPrefix(anyFilter, nonExistingPrefix);
+    // Then
+    assertThat(actualResult, is(false));
+  }
 
-    @Test
-    void testFilterHasPrefixWhenPrefixIsNull()
-    {
-        final String anyFilter = "displayName:ilike:someBla";
-        final String nullPrefix = null;
-        // When
-        final boolean actualResult = filterHasPrefix( anyFilter, nullPrefix );
-        // Then
-        assertThat( actualResult, is( false ) );
-    }
+  @Test
+  void testFilterHasPrefixWhenPrefixIsNull() {
+    final String anyFilter = "displayName:ilike:someBla";
+    final String nullPrefix = null;
+    // When
+    final boolean actualResult = filterHasPrefix(anyFilter, nullPrefix);
+    // Then
+    assertThat(actualResult, is(false));
+  }
 
-    @Test
-    void testFilterHasPrefixWhenFilterIsNull()
-    {
-        final String nullFilter = null;
-        final String anyPrefix = "bla";
-        // When
-        final boolean actualResult = filterHasPrefix( nullFilter, anyPrefix );
-        // Then
-        assertThat( actualResult, is( false ) );
-    }
+  @Test
+  void testFilterHasPrefixWhenFilterIsNull() {
+    final String nullFilter = null;
+    final String anyPrefix = "bla";
+    // When
+    final boolean actualResult = filterHasPrefix(nullFilter, anyPrefix);
+    // Then
+    assertThat(actualResult, is(false));
+  }
 
-    @Test
-    void testContainsDimensionTypeFilterUsingEqualsQuery()
-    {
-        // Given
-        final Set<String> filters = newHashSet( "dimensionItemType:eq:DATA_SET" );
-        // When
-        final boolean actualResult = containsFilterWithAnyOfPrefixes( filters, DIMENSION_TYPE_EQUAL.getCombination() );
-        // Then
-        assertThat( actualResult, Matchers.is( true ) );
-    }
+  @Test
+  void testContainsDimensionTypeFilterUsingEqualsQuery() {
+    // Given
+    final Set<String> filters = newHashSet("dimensionItemType:eq:DATA_SET");
+    // When
+    final boolean actualResult =
+        containsFilterWithAnyOfPrefixes(filters, DIMENSION_TYPE_EQUAL.getCombination());
+    // Then
+    assertThat(actualResult, Matchers.is(true));
+  }
 
-    @Test
-    void testContainsDimensionTypeFilterUsingInQuery()
-    {
-        // Given
-        final Set<String> filters = newHashSet( "dimensionItemType:in:[DATA_SET,INDICATOR]" );
-        // When
-        final boolean actualResult = containsFilterWithAnyOfPrefixes( filters, DIMENSION_TYPE_IN.getCombination() );
-        // Then
-        assertThat( actualResult, Matchers.is( true ) );
-    }
+  @Test
+  void testContainsDimensionTypeFilterUsingInQuery() {
+    // Given
+    final Set<String> filters = newHashSet("dimensionItemType:in:[DATA_SET,INDICATOR]");
+    // When
+    final boolean actualResult =
+        containsFilterWithAnyOfPrefixes(filters, DIMENSION_TYPE_IN.getCombination());
+    // Then
+    assertThat(actualResult, Matchers.is(true));
+  }
 
-    @Test
-    void testContainsDimensionTypeFilterWhenDimensionItemTypeInFilterIsNotSet()
-    {
-        // Given
-        final Set<String> filters = newHashSet( "displayName:ilike:anc" );
-        // When
-        final boolean actualResult = containsFilterWithAnyOfPrefixes( filters, DIMENSION_TYPE_IN.getCombination() );
-        // Then
-        assertThat( actualResult, Matchers.is( false ) );
-    }
+  @Test
+  void testContainsDimensionTypeFilterWhenDimensionItemTypeInFilterIsNotSet() {
+    // Given
+    final Set<String> filters = newHashSet("displayName:ilike:anc");
+    // When
+    final boolean actualResult =
+        containsFilterWithAnyOfPrefixes(filters, DIMENSION_TYPE_IN.getCombination());
+    // Then
+    assertThat(actualResult, Matchers.is(false));
+  }
 }

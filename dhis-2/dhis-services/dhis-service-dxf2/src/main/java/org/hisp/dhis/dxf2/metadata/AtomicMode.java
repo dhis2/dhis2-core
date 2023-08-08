@@ -30,16 +30,10 @@ package org.hisp.dhis.dxf2.metadata;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum AtomicMode
-{
-    /**
-     * Import objects only if they all pass the validation phase (including
-     * references)
-     */
-    ALL,
+public enum AtomicMode {
+  /** Import objects only if they all pass the validation phase (including references) */
+  ALL,
 
-    /**
-     * Legacy mode. Allow non-valid references when importing.
-     */
-    NONE
+  /** Legacy mode. Allow non-valid references when importing. */
+  NONE
 }

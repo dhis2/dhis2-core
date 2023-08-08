@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
 import java.util.Set;
-
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.mapstruct.BeanMapping;
@@ -37,27 +36,26 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = {
-    DebugMapper.class,
-    CategoryOptionMapper.class,
-    CategoryComboMapper.class,
-    AttributeValueMapper.class
-} )
-public interface CategoryOptionComboMapper
-    extends PreheatMapper<CategoryOptionCombo>
-{
-    CategoryOptionComboMapper INSTANCE = Mappers.getMapper( CategoryOptionComboMapper.class );
+@Mapper(
+    uses = {
+      DebugMapper.class,
+      CategoryOptionMapper.class,
+      CategoryComboMapper.class,
+      AttributeValueMapper.class
+    })
+public interface CategoryOptionComboMapper extends PreheatMapper<CategoryOptionCombo> {
+  CategoryOptionComboMapper INSTANCE = Mappers.getMapper(CategoryOptionComboMapper.class);
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "name" )
-    @Mapping( target = "code" )
-    @Mapping( target = "attributeValues" )
-    @Mapping( target = "categoryOptions", qualifiedByName = "categoryOptions" )
-    @Mapping( target = "categoryCombo" )
-    CategoryOptionCombo map( CategoryOptionCombo categoryOptionCombo );
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "name")
+  @Mapping(target = "code")
+  @Mapping(target = "attributeValues")
+  @Mapping(target = "categoryOptions", qualifiedByName = "categoryOptions")
+  @Mapping(target = "categoryCombo")
+  CategoryOptionCombo map(CategoryOptionCombo categoryOptionCombo);
 
-    @Named( "categoryOptions" )
-    Set<CategoryOption> mapCategoryOptions( Set<CategoryOption> categoryOptionSet );
+  @Named("categoryOptions")
+  Set<CategoryOption> mapCategoryOptions(Set<CategoryOption> categoryOptionSet);
 }

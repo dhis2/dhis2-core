@@ -41,28 +41,26 @@ import org.springframework.stereotype.Component;
  * @author maikel arabori
  */
 @Component
-public class ProgramStageInstanceBasicCheck implements Checker
-{
-    @Override
-    public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )
-    {
-        final Event programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
+public class ProgramStageInstanceBasicCheck implements Checker {
+  @Override
+  public ImportSummary check(final ImmutableEvent event, final WorkContext ctx) {
+    final Event programStageInstance = ctx.getProgramStageInstanceMap().get(event.getEvent());
 
-        if ( programStageInstance == null )
-        {
-            final ImportSummary error = error( "Event ID " + event.getEvent() + " doesn't point to valid event",
-                event.getEvent() );
-            error.addConflict( "Invalid Event ID", event.getEvent() );
+    if (programStageInstance == null) {
+      final ImportSummary error =
+          error("Event ID " + event.getEvent() + " doesn't point to valid event", event.getEvent());
+      error.addConflict("Invalid Event ID", event.getEvent());
 
-            return error;
-        }
-        else if ( programStageInstance.isDeleted() || ctx.getImportOptions().getImportStrategy().isCreate() )
-        {
-            return error(
-                "Event ID " + event.getEvent() + " was already used and/or deleted. This event can not be modified." )
-                .setReference( event.getEvent() );
-        }
-
-        return success();
+      return error;
+    } else if (programStageInstance.isDeleted()
+        || ctx.getImportOptions().getImportStrategy().isCreate()) {
+      return error(
+              "Event ID "
+                  + event.getEvent()
+                  + " was already used and/or deleted. This event can not be modified.")
+          .setReference(event.getEvent());
     }
+
+    return success();
+  }
 }

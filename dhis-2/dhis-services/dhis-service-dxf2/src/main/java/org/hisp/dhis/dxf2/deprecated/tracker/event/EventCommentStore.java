@@ -28,24 +28,19 @@
 package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
 import java.util.List;
-
 import org.hisp.dhis.program.Event;
 
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- * @deprecated this is a class related to "old" (deprecated) tracker which will
- *             be removed with "old" tracker. Make sure to plan migrating to new
- *             tracker.
+ * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
+ *     "old" tracker. Make sure to plan migrating to new tracker.
  */
-@Deprecated( since = "2.41" )
-public interface EventCommentStore
-{
-    /**
-     * Inserts non-empty comments from a List {@see Event}
-     *
-     * @param events a List of {@see Event}
-     *
-     */
-    void saveAllComments( List<Event> events );
-
+@Deprecated(since = "2.41")
+public interface EventCommentStore {
+  /**
+   * Inserts non-empty comments from a List {@see Event}
+   *
+   * @param events a List of {@see Event}
+   */
+  void saveAllComments(List<Event> events);
 }

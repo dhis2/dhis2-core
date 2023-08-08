@@ -29,7 +29,6 @@ package org.hisp.dhis.system.objectmapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.quick.mapper.RowMapper;
 
@@ -38,31 +37,27 @@ import org.hisp.quick.mapper.RowMapper;
  * @version $Id$
  */
 public class DeflatedDataValueRowMapper
-    implements RowMapper<DeflatedDataValue>, org.springframework.jdbc.core.RowMapper<DeflatedDataValue>
-{
-    @Override
-    public DeflatedDataValue mapRow( ResultSet resultSet )
-        throws SQLException
-    {
-        final DeflatedDataValue value = new DeflatedDataValue();
+    implements RowMapper<DeflatedDataValue>,
+        org.springframework.jdbc.core.RowMapper<DeflatedDataValue> {
+  @Override
+  public DeflatedDataValue mapRow(ResultSet resultSet) throws SQLException {
+    final DeflatedDataValue value = new DeflatedDataValue();
 
-        value.setDataElementId( resultSet.getLong( "dataelementid" ) );
-        value.setPeriodId( resultSet.getLong( "periodid" ) );
-        value.setSourceId( resultSet.getLong( "sourceid" ) );
-        value.setCategoryOptionComboId( resultSet.getLong( "categoryoptioncomboid" ) );
-        value.setValue( resultSet.getString( "value" ) );
-        value.setStoredBy( resultSet.getString( "storedby" ) );
-        value.setCreated( resultSet.getTimestamp( "created" ) );
-        value.setLastUpdated( resultSet.getTimestamp( "lastupdated" ) );
-        value.setComment( resultSet.getString( "comment" ) );
+    value.setDataElementId(resultSet.getLong("dataelementid"));
+    value.setPeriodId(resultSet.getLong("periodid"));
+    value.setSourceId(resultSet.getLong("sourceid"));
+    value.setCategoryOptionComboId(resultSet.getLong("categoryoptioncomboid"));
+    value.setValue(resultSet.getString("value"));
+    value.setStoredBy(resultSet.getString("storedby"));
+    value.setCreated(resultSet.getTimestamp("created"));
+    value.setLastUpdated(resultSet.getTimestamp("lastupdated"));
+    value.setComment(resultSet.getString("comment"));
 
-        return value;
-    }
+    return value;
+  }
 
-    @Override
-    public DeflatedDataValue mapRow( ResultSet resultSet, int rowNum )
-        throws SQLException
-    {
-        return mapRow( resultSet );
-    }
+  @Override
+  public DeflatedDataValue mapRow(ResultSet resultSet, int rowNum) throws SQLException {
+    return mapRow(resultSet);
+  }
 }

@@ -32,47 +32,40 @@ import java.util.List;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class Program
-{
-    private String uid;
+public class Program {
+  private String uid;
 
-    private List<String> programStages;
+  private List<String> programStages;
 
-    private String trackedEntityType;
+  private String trackedEntityType;
 
-    public String getUid()
-    {
-        return uid;
-    }
+  public String getUid() {
+    return uid;
+  }
 
-    public Program setUid( String uid )
-    {
-        this.uid = uid;
+  public Program setUid(String uid) {
+    this.uid = uid;
 
-        return this;
-    }
+    return this;
+  }
 
-    public List<String> getProgramStages()
-    {
-        return programStages;
-    }
+  public List<String> getProgramStages() {
+    return programStages;
+  }
 
-    public Program setProgramStages( List<String> programStages )
-    {
-        this.programStages = programStages;
+  public Program setProgramStages(List<String> programStages) {
+    this.programStages = programStages;
 
-        return this;
-    }
+    return this;
+  }
 
-    public String getTrackedEntityType()
-    {
-        return trackedEntityType;
-    }
+  public String getTrackedEntityType() {
+    return trackedEntityType;
+  }
 
-    public Program setTrackedEntityType( String trackedEntityType )
-    {
-        this.trackedEntityType = trackedEntityType;
+  public Program setTrackedEntityType(String trackedEntityType) {
+    this.trackedEntityType = trackedEntityType;
 
-        return this;
-    }
+    return this;
+  }
 }

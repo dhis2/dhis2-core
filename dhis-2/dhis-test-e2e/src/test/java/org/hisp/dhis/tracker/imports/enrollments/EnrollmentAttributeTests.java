@@ -30,9 +30,9 @@ package org.hisp.dhis.tracker.imports.enrollments;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.Matchers.*;
 
+import com.google.gson.JsonObject;
 import java.util.Arrays;
 import java.util.function.Function;
-
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.IdGenerator;
@@ -46,220 +46,224 @@ import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EnrollmentAttributeTests
-    extends TrackerApiTest
-{
-    TrackedEntityAttributeActions teaAttributeActions;
+public class EnrollmentAttributeTests extends TrackerApiTest {
+  TrackedEntityAttributeActions teaAttributeActions;
 
-    ProgramActions programActions;
+  ProgramActions programActions;
 
-    String optionSetId = "ZGkmoWb77MW";
+  String optionSetId = "ZGkmoWb77MW";
 
-    String programId;
+  String programId;
 
-    String attributeId;
+  String attributeId;
 
-    String optionSetAttributeId;
+  String optionSetAttributeId;
 
-    String numberAttributeId;
+  String numberAttributeId;
 
-    String uniqueAttributeId;
+  String uniqueAttributeId;
 
-    @BeforeEach
-    public void beforeEach()
-    {
-        teaAttributeActions = new TrackedEntityAttributeActions();
-        programActions = new ProgramActions();
+  @BeforeEach
+  public void beforeEach() {
+    teaAttributeActions = new TrackedEntityAttributeActions();
+    programActions = new ProgramActions();
 
-        loginActions.loginAsAdmin();
+    loginActions.loginAsAdmin();
 
-        programId = programActions.createTrackerProgram( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS )
+    programId =
+        programActions
+            .createTrackerProgram(Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS)
             .extractUid();
 
-        setupAttributes();
-    }
+    setupAttributes();
+  }
 
-    @Test
-    public void shouldRequireMandatoryAttributeValue()
-        throws Exception
-    {
-        String tea = teaAttributeActions.create( "TEXT" );
-        programActions.addAttribute( programId, tea, true );
+  @Test
+  public void shouldRequireMandatoryAttributeValue() throws Exception {
+    String tea = teaAttributeActions.create("TEXT");
+    programActions.addAttribute(programId, tea, true);
 
-        String tei = importTei();
+    String tei = importTei();
 
-        JsonObject payload = new EnrollmentDataBuilder()
-            .setTei( tei )
-            .array( programId, Constants.ORG_UNIT_IDS[1] );
+    JsonObject payload =
+        new EnrollmentDataBuilder().setTei(tei).array(programId, Constants.ORG_UNIT_IDS[1]);
 
-        trackerImportExportActions.postAndGetJobReport( payload )
-            .validateErrorReport()
-            .body( "message", hasItem( Matchers.stringContainsInOrder( tea, "is mandatory" ) ) )
-            .body( "errorCode", hasItem( "E1018" ) )
-            .body( "trackerType", hasItem( "ENROLLMENT" ) );
-    }
+    trackerImportExportActions
+        .postAndGetJobReport(payload)
+        .validateErrorReport()
+        .body("message", hasItem(Matchers.stringContainsInOrder(tea, "is mandatory")))
+        .body("errorCode", hasItem("E1018"))
+        .body("trackerType", hasItem("ENROLLMENT"));
+  }
 
-    @Test
-    public void shouldUpdateAttributeValue()
-        throws Exception
-    {
-        String tei = importTei();
+  @Test
+  public void shouldUpdateAttributeValue() throws Exception {
+    String tei = importTei();
 
-        JsonObject payload = new EnrollmentDataBuilder()
-            .setId( new IdGenerator().generateUniqueId() )
-            .setTei( tei )
-            .addAttribute( numberAttributeId, "5" )
-            .array( programId, Constants.ORG_UNIT_IDS[1] );
+    JsonObject payload =
+        new EnrollmentDataBuilder()
+            .setId(new IdGenerator().generateUniqueId())
+            .setTei(tei)
+            .addAttribute(numberAttributeId, "5")
+            .array(programId, Constants.ORG_UNIT_IDS[1]);
 
-        trackerImportExportActions.postAndGetJobReport( payload ).validateSuccessfulImport();
+    trackerImportExportActions.postAndGetJobReport(payload).validateSuccessfulImport();
 
-        payload = new JsonObjectBuilder( payload ).addPropertyByJsonPath( "enrollments[0].attributes[0].value", "9" )
+    payload =
+        new JsonObjectBuilder(payload)
+            .addPropertyByJsonPath("enrollments[0].attributes[0].value", "9")
             .build();
 
-        trackerImportExportActions.postAndGetJobReport( payload ).validateSuccessfulImport();
+    trackerImportExportActions.postAndGetJobReport(payload).validateSuccessfulImport();
 
-        trackerImportExportActions.getTrackedEntity( tei + "?program=" + programId )
-            .validateStatus( 200 )
-            .validate().statusCode( 200 )
-            .body( "attributes", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "attributes.attribute", hasItem( numberAttributeId ) )
-            .body( "attributes.value", hasItem( "9" ) );
+    trackerImportExportActions
+        .getTrackedEntity(tei + "?program=" + programId)
+        .validateStatus(200)
+        .validate()
+        .statusCode(200)
+        .body("attributes", hasSize(greaterThanOrEqualTo(1)))
+        .body("attributes.attribute", hasItem(numberAttributeId))
+        .body("attributes.value", hasItem("9"));
+  }
 
-    }
+  @Test
+  public void shouldAddAttributeValue() throws Exception {
+    String tei = importTei();
 
-    @Test
-    public void shouldAddAttributeValue()
-        throws Exception
-    {
-        String tei = importTei();
+    JsonObject payload =
+        new EnrollmentDataBuilder()
+            .setTei(tei)
+            .addAttribute(optionSetAttributeId, "TA_YES")
+            .array(programId, Constants.ORG_UNIT_IDS[1]);
 
-        JsonObject payload = new EnrollmentDataBuilder()
-            .setTei( tei )
-            .addAttribute( optionSetAttributeId, "TA_YES" )
-            .array( programId, Constants.ORG_UNIT_IDS[1] );
+    trackerImportExportActions
+        .postAndGetJobReport(payload, new QueryParamsBuilder().add("async=false"))
+        .validateSuccessfulImport();
 
-        trackerImportExportActions.postAndGetJobReport( payload, new QueryParamsBuilder().add( "async=false" ) )
-            .validateSuccessfulImport();
+    trackerImportExportActions
+        .getTrackedEntity(tei + "?program=" + programId)
+        .validateStatus(200)
+        .validate()
+        .statusCode(200)
+        .body("attributes", hasSize(greaterThanOrEqualTo(1)))
+        .body("attributes.attribute", hasItem(optionSetAttributeId))
+        .body("attributes.value", hasItem("TA_YES"));
+  }
 
-        trackerImportExportActions.getTrackedEntity( tei + "?program=" + programId )
-            .validateStatus( 200 )
-            .validate().statusCode( 200 )
-            .body( "attributes", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "attributes.attribute", hasItem( optionSetAttributeId ) )
-            .body( "attributes.value", hasItem( "TA_YES" ) );
-    }
+  @Test
+  public void shouldRemoveAttributeValue() throws Exception {
+    String tei = importTei();
 
-    @Test
-    public void shouldRemoveAttributeValue()
-        throws Exception
-    {
-        String tei = importTei();
+    JsonObject payload =
+        new EnrollmentDataBuilder()
+            .setId(new IdGenerator().generateUniqueId())
+            .setTei(tei)
+            .addAttribute(optionSetAttributeId, "TA_YES")
+            .array(programId, Constants.ORG_UNIT_IDS[1]);
 
-        JsonObject payload = new EnrollmentDataBuilder()
-            .setId( new IdGenerator().generateUniqueId() )
-            .setTei( tei )
-            .addAttribute( optionSetAttributeId, "TA_YES" )
-            .array( programId, Constants.ORG_UNIT_IDS[1] );
+    trackerImportExportActions.postAndGetJobReport(payload).validateSuccessfulImport();
 
-        trackerImportExportActions.postAndGetJobReport( payload ).validateSuccessfulImport();
-
-        payload = new JsonObjectBuilder( payload ).addPropertyByJsonPath( "enrollments[0].attributes[0].value", null )
+    payload =
+        new JsonObjectBuilder(payload)
+            .addPropertyByJsonPath("enrollments[0].attributes[0].value", null)
             .build();
 
-        trackerImportExportActions.postAndGetJobReport( payload ).validateSuccessfulImport();
+    trackerImportExportActions.postAndGetJobReport(payload).validateSuccessfulImport();
 
-        trackerImportExportActions.getTrackedEntity( tei + "?program=" + programId )
-            .validateStatus( 200 )
-            .validate().statusCode( 200 )
-            .body( "attributes", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "attributes.attribute", not( hasItem( optionSetAttributeId ) ) )
-            .body( "attributes.value", not( hasItem( "TA_YES" ) ) );
-    }
+    trackerImportExportActions
+        .getTrackedEntity(tei + "?program=" + programId)
+        .validateStatus(200)
+        .validate()
+        .statusCode(200)
+        .body("attributes", hasSize(greaterThanOrEqualTo(1)))
+        .body("attributes.attribute", not(hasItem(optionSetAttributeId)))
+        .body("attributes.value", not(hasItem("TA_YES")));
+  }
 
-    @Test
-    public void shouldRejectTetAttributes()
-        throws Exception
-    {
-        String tetAttribute = "dIVt4l5vIOa";
+  @Test
+  public void shouldRejectTetAttributes() throws Exception {
+    String tetAttribute = "dIVt4l5vIOa";
 
-        String tei = importTei();
+    String tei = importTei();
 
-        JsonObject payload = new EnrollmentDataBuilder()
-            .setId( new IdGenerator().generateUniqueId() )
-            .setTei( tei )
-            .addAttribute( tetAttribute, "NOT_A_VALUE" )
-            .array( programId, Constants.ORG_UNIT_IDS[1] );
+    JsonObject payload =
+        new EnrollmentDataBuilder()
+            .setId(new IdGenerator().generateUniqueId())
+            .setTei(tei)
+            .addAttribute(tetAttribute, "NOT_A_VALUE")
+            .array(programId, Constants.ORG_UNIT_IDS[1]);
 
-        trackerImportExportActions.postAndGetJobReport( payload ).validateErrorReport()
-            .body( "", hasSize( 1 ) )
-            .body( "errorCode", hasItem( "E1019" ) )
-            .body( "message", hasItem( containsStringIgnoringCase( "Only program attributes" ) ) );
-    }
+    trackerImportExportActions
+        .postAndGetJobReport(payload)
+        .validateErrorReport()
+        .body("", hasSize(1))
+        .body("errorCode", hasItem("E1019"))
+        .body("message", hasItem(containsStringIgnoringCase("Only program attributes")));
+  }
 
-    @Test
-    public void shouldValidateUniqueness()
-        throws Exception
-    {
-        String tei = importTei();
-        String value = DataGenerator.randomString();
+  @Test
+  public void shouldValidateUniqueness() throws Exception {
+    String tei = importTei();
+    String value = DataGenerator.randomString();
 
-        JsonObject payload = new EnrollmentDataBuilder()
-            .setId( new IdGenerator().generateUniqueId() )
-            .setTei( tei )
-            .addAttribute( uniqueAttributeId, value )
-            .array( programId, Constants.ORG_UNIT_IDS[1] );
+    JsonObject payload =
+        new EnrollmentDataBuilder()
+            .setId(new IdGenerator().generateUniqueId())
+            .setTei(tei)
+            .addAttribute(uniqueAttributeId, value)
+            .array(programId, Constants.ORG_UNIT_IDS[1]);
 
-        trackerImportExportActions.postAndGetJobReport( payload ).validateSuccessfulImport();
+    trackerImportExportActions.postAndGetJobReport(payload).validateSuccessfulImport();
 
-        payload = new EnrollmentDataBuilder()
-            .setId( new IdGenerator().generateUniqueId() )
-            .setTei( importTei() )
-            .addAttribute( uniqueAttributeId, value )
-            .array( programId, Constants.ORG_UNIT_IDS[1] );
+    payload =
+        new EnrollmentDataBuilder()
+            .setId(new IdGenerator().generateUniqueId())
+            .setTei(importTei())
+            .addAttribute(uniqueAttributeId, value)
+            .array(programId, Constants.ORG_UNIT_IDS[1]);
 
-        trackerImportExportActions.postAndGetJobReport( payload ).validateErrorReport();
-    }
+    trackerImportExportActions.postAndGetJobReport(payload).validateErrorReport();
+  }
 
-    @Test
-    public void shouldValidateUniquenessWithinThePayload()
-        throws Exception
-    {
-        String tei = importTei();
-        String teiB = importTei();
-        String value = DataGenerator.randomString();
+  @Test
+  public void shouldValidateUniquenessWithinThePayload() throws Exception {
+    String tei = importTei();
+    String teiB = importTei();
+    String value = DataGenerator.randomString();
 
-        Function<String, JsonObject> singleEnrollment = ( teiId ) -> {
-            return new EnrollmentDataBuilder()
-                .setId( new IdGenerator().generateUniqueId() )
-                .setTei( teiId )
-                .addAttribute( uniqueAttributeId, value )
-                .setProgram( programId )
-                .setOu( Constants.ORG_UNIT_IDS[1] )
-                .single();
+    Function<String, JsonObject> singleEnrollment =
+        (teiId) -> {
+          return new EnrollmentDataBuilder()
+              .setId(new IdGenerator().generateUniqueId())
+              .setTei(teiId)
+              .addAttribute(uniqueAttributeId, value)
+              .setProgram(programId)
+              .setOu(Constants.ORG_UNIT_IDS[1])
+              .single();
         };
 
-        JsonObject payload = new JsonObjectBuilder()
-            .addOrAppendToArray( "enrollments", singleEnrollment.apply( tei ), singleEnrollment.apply( teiB ) )
+    JsonObject payload =
+        new JsonObjectBuilder()
+            .addOrAppendToArray(
+                "enrollments", singleEnrollment.apply(tei), singleEnrollment.apply(teiB))
             .build();
 
-        trackerImportExportActions.postAndGetJobReport( payload ).validateErrorReport();
-    }
+    trackerImportExportActions.postAndGetJobReport(payload).validateErrorReport();
+  }
 
-    private void setupAttributes()
-    {
-        attributeId = teaAttributeActions.create( "TEXT" );
-        optionSetAttributeId = teaAttributeActions.createOptionSetAttribute( optionSetId );
-        numberAttributeId = teaAttributeActions.create( "NUMBER" );
-        uniqueAttributeId = teaAttributeActions.create( "TEXT", true );
+  private void setupAttributes() {
+    attributeId = teaAttributeActions.create("TEXT");
+    optionSetAttributeId = teaAttributeActions.createOptionSetAttribute(optionSetId);
+    numberAttributeId = teaAttributeActions.create("NUMBER");
+    uniqueAttributeId = teaAttributeActions.create("TEXT", true);
 
-        Arrays.asList( attributeId, optionSetAttributeId, numberAttributeId, uniqueAttributeId ).forEach( att -> {
-            programActions.addAttribute( programId, att, false );
-        } );
-
-    }
+    Arrays.asList(attributeId, optionSetAttributeId, numberAttributeId, uniqueAttributeId)
+        .forEach(
+            att -> {
+              programActions.addAttribute(programId, att, false);
+            });
+  }
 }

@@ -30,7 +30,6 @@ package org.hisp.dhis.commons.action;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -42,78 +41,68 @@ import org.hisp.dhis.user.User;
 /**
  * @author mortenoh
  */
-public class GetIndicatorGroupsAction
-    extends ActionPagingSupport<IndicatorGroup>
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetIndicatorGroupsAction extends ActionPagingSupport<IndicatorGroup> {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private IndicatorService indicatorService;
+  private IndicatorService indicatorService;
 
-    public void setIndicatorService( IndicatorService indicatorService )
-    {
-        this.indicatorService = indicatorService;
+  public void setIndicatorService(IndicatorService indicatorService) {
+    this.indicatorService = indicatorService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Input & Output
+  // -------------------------------------------------------------------------
+
+  private String key;
+
+  public void setKey(String key) {
+    this.key = key;
+  }
+
+  public boolean filterNoGroupSet = false;
+
+  public void setFilterNoGroupSet(boolean filterNoGroupSet) {
+    this.filterNoGroupSet = filterNoGroupSet;
+  }
+
+  private List<IndicatorGroup> indicatorGroups;
+
+  public List<IndicatorGroup> getIndicatorGroups() {
+    return indicatorGroups;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() {
+    canReadType(IndicatorGroup.class);
+
+    indicatorGroups = new ArrayList<>(indicatorService.getAllIndicatorGroups());
+
+    if (filterNoGroupSet) {
+      FilterUtils.filter(indicatorGroups, new IndicatorGroupWithoutGroupSetFilter());
     }
 
-    // -------------------------------------------------------------------------
-    // Input & Output
-    // -------------------------------------------------------------------------
-
-    private String key;
-
-    public void setKey( String key )
-    {
-        this.key = key;
+    if (key != null) {
+      indicatorGroups = IdentifiableObjectUtils.filterNameByKey(indicatorGroups, key, true);
     }
 
-    public boolean filterNoGroupSet = false;
+    Collections.sort(indicatorGroups);
 
-    public void setFilterNoGroupSet( boolean filterNoGroupSet )
-    {
-        this.filterNoGroupSet = filterNoGroupSet;
+    User currentUser = currentUserService.getCurrentUser();
+    indicatorGroups.forEach(instance -> canReadInstance(instance, currentUser));
+
+    if (usePaging) {
+      this.paging = createPaging(indicatorGroups.size());
+
+      indicatorGroups = indicatorGroups.subList(paging.getStartPos(), paging.getEndPos());
     }
 
-    private List<IndicatorGroup> indicatorGroups;
-
-    public List<IndicatorGroup> getIndicatorGroups()
-    {
-        return indicatorGroups;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-    {
-        canReadType( IndicatorGroup.class );
-
-        indicatorGroups = new ArrayList<>( indicatorService.getAllIndicatorGroups() );
-
-        if ( filterNoGroupSet )
-        {
-            FilterUtils.filter( indicatorGroups, new IndicatorGroupWithoutGroupSetFilter() );
-        }
-
-        if ( key != null )
-        {
-            indicatorGroups = IdentifiableObjectUtils.filterNameByKey( indicatorGroups, key, true );
-        }
-
-        Collections.sort( indicatorGroups );
-
-        User currentUser = currentUserService.getCurrentUser();
-        indicatorGroups.forEach( instance -> canReadInstance( instance, currentUser ) );
-
-        if ( usePaging )
-        {
-            this.paging = createPaging( indicatorGroups.size() );
-
-            indicatorGroups = indicatorGroups.subList( paging.getStartPos(), paging.getEndPos() );
-        }
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

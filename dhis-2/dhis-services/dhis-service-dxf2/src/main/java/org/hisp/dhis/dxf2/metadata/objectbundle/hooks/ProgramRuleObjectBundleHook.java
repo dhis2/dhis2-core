@@ -29,9 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.List;
 import java.util.function.Consumer;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -42,32 +40,29 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class ProgramRuleObjectBundleHook extends AbstractObjectBundleHook<ProgramRule>
-{
-    private final ProgramRuleService programRuleService;
+public class ProgramRuleObjectBundleHook extends AbstractObjectBundleHook<ProgramRule> {
+  private final ProgramRuleService programRuleService;
 
-    @Override
-    public void validate( ProgramRule programRule, ObjectBundle bundle, Consumer<ErrorReport> addReports )
-    {
-        Program program = programRule.getProgram();
+  @Override
+  public void validate(
+      ProgramRule programRule, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    Program program = programRule.getProgram();
 
-        if ( program == null )
-        {
-            return;
-        }
-
-        program = bundle.getPreheat().get( bundle.getPreheatIdentifier(), program );
-
-        List<ProgramRule> rules = programRuleService.getProgramRule( program );
-        for ( ProgramRule rule : rules )
-        {
-            if ( !rule.getUid().equalsIgnoreCase( programRule.getUid() )
-                && rule.getName().equalsIgnoreCase( programRule.getName() ) )
-            {
-                addReports.accept(
-                    new ErrorReport( ProgramRule.class, ErrorCode.E4057, programRule.getName(), program.getName() ) );
-                break;
-            }
-        }
+    if (program == null) {
+      return;
     }
+
+    program = bundle.getPreheat().get(bundle.getPreheatIdentifier(), program);
+
+    List<ProgramRule> rules = programRuleService.getProgramRule(program);
+    for (ProgramRule rule : rules) {
+      if (!rule.getUid().equalsIgnoreCase(programRule.getUid())
+          && rule.getName().equalsIgnoreCase(programRule.getName())) {
+        addReports.accept(
+            new ErrorReport(
+                ProgramRule.class, ErrorCode.E4057, programRule.getName(), program.getName()));
+        break;
+      }
+    }
+  }
 }

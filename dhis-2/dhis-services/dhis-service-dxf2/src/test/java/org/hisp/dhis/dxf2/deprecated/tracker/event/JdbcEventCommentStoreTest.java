@@ -37,7 +37,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.util.List;
-
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,64 +51,55 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class JdbcEventCommentStoreTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class JdbcEventCommentStoreTest {
 
-    private JdbcEventCommentStore jdbcEventCommentStore;
+  private JdbcEventCommentStore jdbcEventCommentStore;
 
-    @BeforeEach
-    public void setUp()
-    {
-        JdbcTemplate jdbcTemplate = mock( JdbcTemplate.class );
-        JdbcEventCommentStore jdbcEventCommentStore = new JdbcEventCommentStore( jdbcTemplate );
-        this.jdbcEventCommentStore = Mockito.spy( jdbcEventCommentStore );
-        doReturn( 1L ).when( this.jdbcEventCommentStore ).saveComment( any() );
-        doNothing().when( this.jdbcEventCommentStore ).saveCommentToEvent( anyLong(), anyLong(), anyInt() );
+  @BeforeEach
+  public void setUp() {
+    JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+    JdbcEventCommentStore jdbcEventCommentStore = new JdbcEventCommentStore(jdbcTemplate);
+    this.jdbcEventCommentStore = Mockito.spy(jdbcEventCommentStore);
+    doReturn(1L).when(this.jdbcEventCommentStore).saveComment(any());
+    doNothing().when(this.jdbcEventCommentStore).saveCommentToEvent(anyLong(), anyLong(), anyInt());
+  }
+
+  @Test
+  void verifyPSITableIsNotQueriedWhenNoComments() {
+    List<Event> eventList = getProgramStageList(false);
+    jdbcEventCommentStore.saveAllComments(eventList);
+    verify(jdbcEventCommentStore, never()).getInitialSortOrder(any());
+  }
+
+  @Test
+  void verifyPSITableIsNotQueriedWhenCommentsTextEmpty() {
+    List<Event> eventList = getProgramStageList(true, true);
+    jdbcEventCommentStore.saveAllComments(eventList);
+    verify(jdbcEventCommentStore, never()).getInitialSortOrder(any());
+  }
+
+  @Test
+  void verifyPSITableIsQueriedWhenComments() {
+    List<Event> eventList = getProgramStageList(true);
+    jdbcEventCommentStore.saveAllComments(eventList);
+    verify(jdbcEventCommentStore).getInitialSortOrder(any());
+  }
+
+  private List<Event> getProgramStageList(boolean withComments) {
+    return getProgramStageList(withComments, false);
+  }
+
+  private List<Event> getProgramStageList(boolean withComments, boolean emptyComment) {
+    Event event = new Event();
+    if (withComments) {
+      event.setComments(List.of(getComment(emptyComment ? "" : "Some comment")));
     }
+    return List.of(event);
+  }
 
-    @Test
-    void verifyPSITableIsNotQueriedWhenNoComments()
-    {
-        List<Event> eventList = getProgramStageList( false );
-        jdbcEventCommentStore.saveAllComments( eventList );
-        verify( jdbcEventCommentStore, never() ).getInitialSortOrder( any() );
-    }
-
-    @Test
-    void verifyPSITableIsNotQueriedWhenCommentsTextEmpty()
-    {
-        List<Event> eventList = getProgramStageList( true, true );
-        jdbcEventCommentStore.saveAllComments( eventList );
-        verify( jdbcEventCommentStore, never() ).getInitialSortOrder( any() );
-    }
-
-    @Test
-    void verifyPSITableIsQueriedWhenComments()
-    {
-        List<Event> eventList = getProgramStageList( true );
-        jdbcEventCommentStore.saveAllComments( eventList );
-        verify( jdbcEventCommentStore ).getInitialSortOrder( any() );
-    }
-
-    private List<Event> getProgramStageList( boolean withComments )
-    {
-        return getProgramStageList( withComments, false );
-    }
-
-    private List<Event> getProgramStageList( boolean withComments, boolean emptyComment )
-    {
-        Event event = new Event();
-        if ( withComments )
-        {
-            event.setComments( List.of( getComment( emptyComment ? "" : "Some comment" ) ) );
-        }
-        return List.of( event );
-    }
-
-    private TrackedEntityComment getComment( String commentText )
-    {
-        return new TrackedEntityComment( commentText, "Some author" );
-    }
+  private TrackedEntityComment getComment(String commentText) {
+    return new TrackedEntityComment(commentText, "Some author");
+  }
 }

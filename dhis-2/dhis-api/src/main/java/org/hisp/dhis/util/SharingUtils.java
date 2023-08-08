@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.common.collect.ImmutableList;
 import java.util.function.UnaryOperator;
-
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.schema.Property;
@@ -36,80 +40,82 @@ import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.common.collect.ImmutableList;
+public class SharingUtils {
+  private static final ImmutableList<String> LEGACY_SHARING_PROPERTIES =
+      ImmutableList.<String>builder()
+          .add("userAccesses", "userGroupAccesses", "publicAccess", "externalAccess")
+          .build();
 
-public class SharingUtils
-{
-    private static final ImmutableList<String> LEGACY_SHARING_PROPERTIES = ImmutableList.<String> builder().add(
-        "userAccesses", "userGroupAccesses", "publicAccess", "externalAccess" ).build();
+  private static final ObjectMapper FROM_AND_TO_JSON = createMapper();
 
-    private static final ObjectMapper FROM_AND_TO_JSON = createMapper();
+  private SharingUtils() {
+    throw new UnsupportedOperationException("utility");
+  }
 
-    private SharingUtils()
-    {
-        throw new UnsupportedOperationException( "utility" );
+  public static String withAccess(String jsonb, UnaryOperator<String> accessTransformation)
+      throws JsonProcessingException {
+    Sharing value = FROM_AND_TO_JSON.readValue(jsonb, Sharing.class);
+    return FROM_AND_TO_JSON.writeValueAsString(value.withAccess(accessTransformation));
+  }
+
+  public static boolean isLegacySharingProperty(Property property) {
+    return LEGACY_SHARING_PROPERTIES.contains(property.getFieldName());
+  }
+
+  private static ObjectMapper createMapper() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
+    mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+    return mapper;
+  }
+
+  public static String sharingToString(BaseIdentifiableObject object, String currentUserName) {
+    StringBuilder builder =
+        new StringBuilder()
+            .append("'")
+            .append(currentUserName)
+            .append("'")
+            .append(" update sharing on ")
+            .append(object.getClass().getName())
+            .append(", uid: ")
+            .append(object.getUid())
+            .append(", name: ")
+            .append(object.getName())
+            .append(", publicAccess: ")
+            .append(object.getSharing().getPublicAccess())
+            .append(", externalAccess: ")
+            .append(object.getSharing().isExternal());
+
+    if (!MapUtils.isEmpty(object.getSharing().getUserGroups())) {
+      builder.append(", userGroupAccesses: ");
+
+      for (UserGroupAccess userGroupAccess : object.getSharing().getUserGroups().values()) {
+        builder
+            .append("{uid: ")
+            .append(userGroupAccess.getId())
+            .append(", name: ")
+            .append(userGroupAccess.getDisplayName())
+            .append(", access: ")
+            .append(userGroupAccess.getAccess())
+            .append("} ");
+      }
     }
 
-    public static String withAccess( String jsonb, UnaryOperator<String> accessTransformation )
-        throws JsonProcessingException
-    {
-        Sharing value = FROM_AND_TO_JSON.readValue( jsonb, Sharing.class );
-        return FROM_AND_TO_JSON.writeValueAsString( value.withAccess( accessTransformation ) );
+    if (!MapUtils.isEmpty(object.getSharing().getUsers())) {
+      builder.append(", userAccesses: ");
+
+      for (UserAccess userAccess : object.getSharing().getUsers().values()) {
+        builder
+            .append("{uid: ")
+            .append(userAccess.getId())
+            .append(", name: ")
+            .append(userAccess.getDisplayName())
+            .append(", access: ")
+            .append(userAccess.getAccess())
+            .append("} ");
+      }
     }
 
-    public static boolean isLegacySharingProperty( Property property )
-    {
-        return LEGACY_SHARING_PROPERTIES.contains( property.getFieldName() );
-    }
-
-    private static ObjectMapper createMapper()
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure( MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true );
-        mapper.configure( SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true );
-        return mapper;
-    }
-
-    public static String sharingToString( BaseIdentifiableObject object, String currentUserName )
-    {
-        StringBuilder builder = new StringBuilder()
-            .append( "'" ).append( currentUserName ).append( "'" )
-            .append( " update sharing on " ).append( object.getClass().getName() )
-            .append( ", uid: " ).append( object.getUid() )
-            .append( ", name: " ).append( object.getName() )
-            .append( ", publicAccess: " ).append( object.getSharing().getPublicAccess() )
-            .append( ", externalAccess: " ).append( object.getSharing().isExternal() );
-
-        if ( !MapUtils.isEmpty( object.getSharing().getUserGroups() ) )
-        {
-            builder.append( ", userGroupAccesses: " );
-
-            for ( UserGroupAccess userGroupAccess : object.getSharing().getUserGroups().values() )
-            {
-                builder.append( "{uid: " ).append( userGroupAccess.getId() )
-                    .append( ", name: " ).append( userGroupAccess.getDisplayName() )
-                    .append( ", access: " ).append( userGroupAccess.getAccess() )
-                    .append( "} " );
-            }
-        }
-
-        if ( !MapUtils.isEmpty( object.getSharing().getUsers() ) )
-        {
-            builder.append( ", userAccesses: " );
-
-            for ( UserAccess userAccess : object.getSharing().getUsers().values() )
-            {
-                builder.append( "{uid: " ).append( userAccess.getId() )
-                    .append( ", name: " ).append( userAccess.getDisplayName() )
-                    .append( ", access: " ).append( userAccess.getAccess() )
-                    .append( "} " );
-            }
-        }
-
-        return builder.toString();
-    }
+    return builder.toString();
+  }
 }

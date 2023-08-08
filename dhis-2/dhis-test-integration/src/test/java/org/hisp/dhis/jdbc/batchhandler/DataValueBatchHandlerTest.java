@@ -33,8 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Sets;
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -55,200 +55,204 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
-class DataValueBatchHandlerTest extends IntegrationTestBase
-{
+class DataValueBatchHandlerTest extends IntegrationTestBase {
 
-    @Autowired
-    private BatchHandlerFactory batchHandlerFactory;
+  @Autowired private BatchHandlerFactory batchHandlerFactory;
 
-    @Autowired
-    private DataValueService dataValueService;
+  @Autowired private DataValueService dataValueService;
 
-    @Autowired
-    private DataElementService dataElementService;
+  @Autowired private DataElementService dataElementService;
 
-    @Autowired
-    private PeriodService periodService;
+  @Autowired private PeriodService periodService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private CategoryService categoryService;
+  @Autowired private CategoryService categoryService;
 
-    private BatchHandler<DataValue> batchHandler;
+  private BatchHandler<DataValue> batchHandler;
 
-    private DataElement dataElementA;
+  private DataElement dataElementA;
 
-    private CategoryOptionCombo categoryOptionComboA;
+  private CategoryOptionCombo categoryOptionComboA;
 
-    private PeriodType periodTypeA;
+  private PeriodType periodTypeA;
 
-    private Period periodA;
+  private Period periodA;
 
-    private Period periodB;
+  private Period periodB;
 
-    private OrganisationUnit unitA;
+  private OrganisationUnit unitA;
 
-    private OrganisationUnit unitB;
+  private OrganisationUnit unitB;
 
-    private DataValue dataValueA;
+  private DataValue dataValueA;
 
-    private DataValue dataValueB;
+  private DataValue dataValueB;
 
-    private DataValue dataValueC;
+  private DataValue dataValueC;
 
-    private DataValue dataValueD;
+  private DataValue dataValueD;
 
-    private DataValue dataValueE;
+  private DataValue dataValueE;
 
-    private DataValue dataValueF;
+  private DataValue dataValueF;
 
-    // -------------------------------------------------------------------------
-    // Fixture
-    // -------------------------------------------------------------------------
-    @Override
-    public void setUpTest()
-    {
-        batchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class );
-        dataElementA = createDataElement( 'A' );
-        dataElementService.addDataElement( dataElementA );
-        categoryOptionComboA = categoryService.getDefaultCategoryOptionCombo();
-        periodTypeA = PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY );
-        periodA = createPeriod( periodTypeA, getDate( 2000, 1, 1 ), getDate( 2000, 1, 31 ) );
-        periodB = createPeriod( periodTypeA, getDate( 2000, 2, 1 ), getDate( 2000, 2, 28 ) );
-        periodService.addPeriod( periodA );
-        periodService.addPeriod( periodB );
-        unitA = createOrganisationUnit( 'A' );
-        unitB = createOrganisationUnit( 'B' );
-        organisationUnitService.addOrganisationUnit( unitA );
-        organisationUnitService.addOrganisationUnit( unitB );
-        dataValueA = createDataValue( dataElementA, periodA, unitA, categoryOptionComboA, categoryOptionComboA, "10" );
-        dataValueB = createDataValue( dataElementA, periodA, unitB, categoryOptionComboA, categoryOptionComboA, "11" );
-        dataValueC = createDataValue( dataElementA, periodB, unitA, categoryOptionComboA, categoryOptionComboA, "12" );
-        dataValueD = createDataValue( dataElementA, periodB, unitB, categoryOptionComboA, categoryOptionComboA, "13" );
-        // Duplicate
-        dataValueE = createDataValue( dataElementA, periodA, unitB, categoryOptionComboA, categoryOptionComboA, "14" );
-        // with
-        // 2nd
-        // Duplicate
-        dataValueF = createDataValue( dataElementA, periodB, unitB, categoryOptionComboA, categoryOptionComboA, "15" );
-        // with
-        // 4th
-        batchHandler.init();
-    }
+  // -------------------------------------------------------------------------
+  // Fixture
+  // -------------------------------------------------------------------------
+  @Override
+  public void setUpTest() {
+    batchHandler = batchHandlerFactory.createBatchHandler(DataValueBatchHandler.class);
+    dataElementA = createDataElement('A');
+    dataElementService.addDataElement(dataElementA);
+    categoryOptionComboA = categoryService.getDefaultCategoryOptionCombo();
+    periodTypeA = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY);
+    periodA = createPeriod(periodTypeA, getDate(2000, 1, 1), getDate(2000, 1, 31));
+    periodB = createPeriod(periodTypeA, getDate(2000, 2, 1), getDate(2000, 2, 28));
+    periodService.addPeriod(periodA);
+    periodService.addPeriod(periodB);
+    unitA = createOrganisationUnit('A');
+    unitB = createOrganisationUnit('B');
+    organisationUnitService.addOrganisationUnit(unitA);
+    organisationUnitService.addOrganisationUnit(unitB);
+    dataValueA =
+        createDataValue(
+            dataElementA, periodA, unitA, categoryOptionComboA, categoryOptionComboA, "10");
+    dataValueB =
+        createDataValue(
+            dataElementA, periodA, unitB, categoryOptionComboA, categoryOptionComboA, "11");
+    dataValueC =
+        createDataValue(
+            dataElementA, periodB, unitA, categoryOptionComboA, categoryOptionComboA, "12");
+    dataValueD =
+        createDataValue(
+            dataElementA, periodB, unitB, categoryOptionComboA, categoryOptionComboA, "13");
+    // Duplicate
+    dataValueE =
+        createDataValue(
+            dataElementA, periodA, unitB, categoryOptionComboA, categoryOptionComboA, "14");
+    // with
+    // 2nd
+    // Duplicate
+    dataValueF =
+        createDataValue(
+            dataElementA, periodB, unitB, categoryOptionComboA, categoryOptionComboA, "15");
+    // with
+    // 4th
+    batchHandler.init();
+  }
 
-    @Override
-    public void tearDownTest()
-    {
-        batchHandler.flush();
-    }
+  @Override
+  public void tearDownTest() {
+    batchHandler.flush();
+  }
 
-    // -------------------------------------------------------------------------
-    // Tests
-    // -------------------------------------------------------------------------
-    @Test
-    void testInsertObject()
-    {
-        batchHandler.insertObject( dataValueA );
-        DataValue dataValue = dataValueService.getDataValue( dataElementA, periodA, unitA, categoryOptionComboA,
-            categoryOptionComboA );
-        assertEquals( dataValue, dataValueA );
-    }
+  // -------------------------------------------------------------------------
+  // Tests
+  // -------------------------------------------------------------------------
+  @Test
+  void testInsertObject() {
+    batchHandler.insertObject(dataValueA);
+    DataValue dataValue =
+        dataValueService.getDataValue(
+            dataElementA, periodA, unitA, categoryOptionComboA, categoryOptionComboA);
+    assertEquals(dataValue, dataValueA);
+  }
 
-    @Test
-    void testAddObject()
-    {
-        batchHandler.addObject( dataValueA );
-        batchHandler.addObject( dataValueB );
-        batchHandler.addObject( dataValueC );
-        batchHandler.addObject( dataValueD );
-        batchHandler.flush();
-        List<DataValue> values = dataValueService.getDataValues( new DataExportParams()
-            .setDataElements( Sets.newHashSet( dataElementA ) ).setPeriods( Sets.newHashSet( periodA, periodB ) )
-            .setOrganisationUnits( Sets.newHashSet( unitA, unitB ) ) );
-        assertNotNull( values );
-        assertEquals( 4, values.size() );
-        assertTrue( values.contains( dataValueA ) );
-        assertTrue( values.contains( dataValueB ) );
-        assertTrue( values.contains( dataValueC ) );
-        assertTrue( values.contains( dataValueD ) );
-    }
+  @Test
+  void testAddObject() {
+    batchHandler.addObject(dataValueA);
+    batchHandler.addObject(dataValueB);
+    batchHandler.addObject(dataValueC);
+    batchHandler.addObject(dataValueD);
+    batchHandler.flush();
+    List<DataValue> values =
+        dataValueService.getDataValues(
+            new DataExportParams()
+                .setDataElements(Sets.newHashSet(dataElementA))
+                .setPeriods(Sets.newHashSet(periodA, periodB))
+                .setOrganisationUnits(Sets.newHashSet(unitA, unitB)));
+    assertNotNull(values);
+    assertEquals(4, values.size());
+    assertTrue(values.contains(dataValueA));
+    assertTrue(values.contains(dataValueB));
+    assertTrue(values.contains(dataValueC));
+    assertTrue(values.contains(dataValueD));
+  }
 
-    @Test
-    void testAddObjectDuplicates()
-    {
-        batchHandler.addObject( dataValueA );
-        batchHandler.addObject( dataValueB );
-        batchHandler.addObject( dataValueC );
-        batchHandler.addObject( dataValueD );
-        batchHandler.addObject( dataValueE );
-        batchHandler.addObject( dataValueF );
-        batchHandler.flush();
-        List<DataValue> values = dataValueService.getDataValues( new DataExportParams()
-            .setDataElements( Sets.newHashSet( dataElementA ) ).setPeriods( Sets.newHashSet( periodA, periodB ) )
-            .setOrganisationUnits( Sets.newHashSet( unitA, unitB ) ) );
-        assertNotNull( values );
-        assertEquals( 4, values.size() );
-        assertTrue( values.contains( dataValueA ) );
-        assertTrue( values.contains( dataValueB ) );
-        assertTrue( values.contains( dataValueC ) );
-        assertTrue( values.contains( dataValueD ) );
-    }
+  @Test
+  void testAddObjectDuplicates() {
+    batchHandler.addObject(dataValueA);
+    batchHandler.addObject(dataValueB);
+    batchHandler.addObject(dataValueC);
+    batchHandler.addObject(dataValueD);
+    batchHandler.addObject(dataValueE);
+    batchHandler.addObject(dataValueF);
+    batchHandler.flush();
+    List<DataValue> values =
+        dataValueService.getDataValues(
+            new DataExportParams()
+                .setDataElements(Sets.newHashSet(dataElementA))
+                .setPeriods(Sets.newHashSet(periodA, periodB))
+                .setOrganisationUnits(Sets.newHashSet(unitA, unitB)));
+    assertNotNull(values);
+    assertEquals(4, values.size());
+    assertTrue(values.contains(dataValueA));
+    assertTrue(values.contains(dataValueB));
+    assertTrue(values.contains(dataValueC));
+    assertTrue(values.contains(dataValueD));
+  }
 
-    @Test
-    void testFindObject()
-    {
-        dataValueService.addDataValue( dataValueA );
-        dataValueService.addDataValue( dataValueC );
-        DataValue retrievedDataValueA = batchHandler.findObject( dataValueA );
-        DataValue retrievedDataValueB = batchHandler.findObject( dataValueB );
-        assertNotNull( dataValueA.getValue() );
-        assertNotNull( dataValueA.getComment() );
-        assertNotNull( dataValueA.getStoredBy() );
-        assertEquals( dataValueA.getValue(), retrievedDataValueA.getValue() );
-        assertEquals( dataValueA.getComment(), retrievedDataValueA.getComment() );
-        assertEquals( dataValueA.getStoredBy(), retrievedDataValueA.getStoredBy() );
-        assertEquals( dataValueA.isFollowup(), retrievedDataValueA.isFollowup() );
-        assertNull( retrievedDataValueB );
-    }
+  @Test
+  void testFindObject() {
+    dataValueService.addDataValue(dataValueA);
+    dataValueService.addDataValue(dataValueC);
+    DataValue retrievedDataValueA = batchHandler.findObject(dataValueA);
+    DataValue retrievedDataValueB = batchHandler.findObject(dataValueB);
+    assertNotNull(dataValueA.getValue());
+    assertNotNull(dataValueA.getComment());
+    assertNotNull(dataValueA.getStoredBy());
+    assertEquals(dataValueA.getValue(), retrievedDataValueA.getValue());
+    assertEquals(dataValueA.getComment(), retrievedDataValueA.getComment());
+    assertEquals(dataValueA.getStoredBy(), retrievedDataValueA.getStoredBy());
+    assertEquals(dataValueA.isFollowup(), retrievedDataValueA.isFollowup());
+    assertNull(retrievedDataValueB);
+  }
 
-    @Test
-    void testObjectExists()
-    {
-        dataValueService.addDataValue( dataValueA );
-        dataValueService.addDataValue( dataValueC );
-        assertTrue( batchHandler.objectExists( dataValueA ) );
-        assertTrue( batchHandler.objectExists( dataValueC ) );
-        assertFalse( batchHandler.objectExists( dataValueB ) );
-        assertFalse( batchHandler.objectExists( dataValueD ) );
-    }
+  @Test
+  void testObjectExists() {
+    dataValueService.addDataValue(dataValueA);
+    dataValueService.addDataValue(dataValueC);
+    assertTrue(batchHandler.objectExists(dataValueA));
+    assertTrue(batchHandler.objectExists(dataValueC));
+    assertFalse(batchHandler.objectExists(dataValueB));
+    assertFalse(batchHandler.objectExists(dataValueD));
+  }
 
-    @Test
-    @Disabled( "ERROR: cannot execute UPDATE in a read-only transaction" )
-    void testUpdateObject()
-    {
-        dataValueService.addDataValue( dataValueA );
-        dataValueA.setValue( "20" );
-        batchHandler.updateObject( dataValueA );
-        assertEquals( "20", dataValueService
-            .getDataValue( dataElementA, periodA, unitA, categoryOptionComboA, categoryOptionComboA ).getValue() );
-    }
+  @Test
+  @Disabled("ERROR: cannot execute UPDATE in a read-only transaction")
+  void testUpdateObject() {
+    dataValueService.addDataValue(dataValueA);
+    dataValueA.setValue("20");
+    batchHandler.updateObject(dataValueA);
+    assertEquals(
+        "20",
+        dataValueService
+            .getDataValue(dataElementA, periodA, unitA, categoryOptionComboA, categoryOptionComboA)
+            .getValue());
+  }
 
-    @Test
-    void testDeleteObject()
-    {
-        dataValueService.addDataValue( dataValueA );
-        dataValueService.addDataValue( dataValueC );
-        assertTrue( batchHandler.objectExists( dataValueA ) );
-        assertTrue( batchHandler.objectExists( dataValueC ) );
-        batchHandler.deleteObject( dataValueA );
-        assertFalse( batchHandler.objectExists( dataValueA ) );
-        assertTrue( batchHandler.objectExists( dataValueC ) );
-    }
+  @Test
+  void testDeleteObject() {
+    dataValueService.addDataValue(dataValueA);
+    dataValueService.addDataValue(dataValueC);
+    assertTrue(batchHandler.objectExists(dataValueA));
+    assertTrue(batchHandler.objectExists(dataValueC));
+    batchHandler.deleteObject(dataValueA);
+    assertFalse(batchHandler.objectExists(dataValueA));
+    assertTrue(batchHandler.objectExists(dataValueC));
+  }
 }

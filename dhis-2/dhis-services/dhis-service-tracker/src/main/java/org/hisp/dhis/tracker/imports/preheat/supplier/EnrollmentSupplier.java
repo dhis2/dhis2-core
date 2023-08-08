@@ -29,11 +29,8 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Program;
@@ -49,35 +46,31 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-public class EnrollmentSupplier extends AbstractPreheatSupplier
-{
-    @Nonnull
-    private final EnrollmentStore enrollmentStore;
+public class EnrollmentSupplier extends AbstractPreheatSupplier {
+  @Nonnull private final EnrollmentStore enrollmentStore;
 
-    @Nonnull
-    private final ProgramStore programStore;
+  @Nonnull private final ProgramStore programStore;
 
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
-    {
-        List<Program> programsWithoutRegistration = preheat.getAll( Program.class )
-            .stream()
-            .filter( program -> program.getProgramType().equals( ProgramType.WITHOUT_REGISTRATION ) )
-            .collect( Collectors.toList() );
-        if ( programsWithoutRegistration.isEmpty() )
-        {
-            programsWithoutRegistration = programStore.getByType( ProgramType.WITHOUT_REGISTRATION );
-        }
-        if ( !programsWithoutRegistration.isEmpty() )
-        {
-            List<Enrollment> enrollments = DetachUtils.detach( EnrollmentMapper.INSTANCE,
-                enrollmentStore.getByPrograms( programsWithoutRegistration ) );
-
-            enrollments
-                .forEach( e -> {
-                    preheat.putEnrollment( e.getUid(), e );
-                    preheat.putEnrollmentsWithoutRegistration( e.getProgram().getUid(), e );
-                } );
-        }
+  @Override
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+    List<Program> programsWithoutRegistration =
+        preheat.getAll(Program.class).stream()
+            .filter(program -> program.getProgramType().equals(ProgramType.WITHOUT_REGISTRATION))
+            .collect(Collectors.toList());
+    if (programsWithoutRegistration.isEmpty()) {
+      programsWithoutRegistration = programStore.getByType(ProgramType.WITHOUT_REGISTRATION);
     }
+    if (!programsWithoutRegistration.isEmpty()) {
+      List<Enrollment> enrollments =
+          DetachUtils.detach(
+              EnrollmentMapper.INSTANCE,
+              enrollmentStore.getByPrograms(programsWithoutRegistration));
+
+      enrollments.forEach(
+          e -> {
+            preheat.putEnrollment(e.getUid(), e);
+            preheat.putEnrollmentsWithoutRegistration(e.getProgram().getUid(), e);
+          });
+    }
+  }
 }

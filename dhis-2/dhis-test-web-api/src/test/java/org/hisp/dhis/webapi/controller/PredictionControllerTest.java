@@ -39,28 +39,34 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class PredictionControllerTest extends DhisControllerConvenienceTest
-{
+class PredictionControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testRunPredictors()
-    {
-        assertWebMessage( "OK", 200, "OK", null,
-            POST( "/38/predictions?startDate=2020-01-01&endDate=2021-01-01" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testRunPredictors() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        null,
+        POST("/38/predictions?startDate=2020-01-01&endDate=2021-01-01").content(HttpStatus.OK));
+  }
 
-    @Test
-    void testRunPredictors_Pre38()
-    {
-        JsonObject summary = POST( "/37/predictions?startDate=2020-01-01&endDate=2021-01-01" ).content( HttpStatus.OK );
-        assertEquals( "SUCCESS", summary.getString( "status" ).string() );
-        assertEquals( 0, summary.getNumber( "predictors" ).intValue() );
-    }
+  @Test
+  void testRunPredictors_Pre38() {
+    JsonObject summary =
+        POST("/37/predictions?startDate=2020-01-01&endDate=2021-01-01").content(HttpStatus.OK);
+    assertEquals("SUCCESS", summary.getString("status").string());
+    assertEquals(0, summary.getNumber("predictors").intValue());
+  }
 
-    @Test
-    void testRunPredictors_Async()
-    {
-        assertWebMessage( "OK", 200, "OK", "Initiated inMemoryPrediction",
-            POST( "/predictions?startDate=2020-01-01&endDate=2021-01-01&async=true" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testRunPredictors_Async() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Initiated inMemoryPrediction",
+        POST("/predictions?startDate=2020-01-01&endDate=2021-01-01&async=true")
+            .content(HttpStatus.OK));
+  }
 }

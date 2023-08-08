@@ -35,11 +35,9 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-@OpenApi.Tags( "tracker" )
+@OpenApi.Tags("tracker")
 @Controller
-@RequestMapping( value = ProgramStageWorkingListSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( include = { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )
+@RequestMapping(value = ProgramStageWorkingListSchemaDescriptor.API_ENDPOINT)
+@ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
 public class ProgramStageWorkingListController
-    extends AbstractCrudController<ProgramStageWorkingList>
-{
-}
+    extends AbstractCrudController<ProgramStageWorkingList> {}

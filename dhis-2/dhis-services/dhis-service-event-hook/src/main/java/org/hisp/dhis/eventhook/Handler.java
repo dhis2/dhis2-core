@@ -31,12 +31,9 @@ package org.hisp.dhis.eventhook;
  * @author Morten Olav Hansen
  */
 @FunctionalInterface
-public interface Handler extends AutoCloseable
-{
-    void run( EventHook eventHook, Event event, String payload );
+public interface Handler extends AutoCloseable {
+  void run(EventHook eventHook, Event event, String payload);
 
-    @Override
-    default void close()
-    {
-    }
+  @Override
+  default void close() {}
 }

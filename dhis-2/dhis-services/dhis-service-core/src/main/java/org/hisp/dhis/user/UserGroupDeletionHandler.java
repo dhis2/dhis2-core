@@ -28,9 +28,7 @@
 package org.hisp.dhis.user;
 
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -39,38 +37,34 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class UserGroupDeletionHandler extends IdObjectDeletionHandler<UserGroup>
-{
-    private final CurrentUserService currentUserService;
+public class UserGroupDeletionHandler extends IdObjectDeletionHandler<UserGroup> {
+  private final CurrentUserService currentUserService;
 
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( User.class, this::deleteUser );
-        whenDeleting( UserGroup.class, this::deleteUserGroup );
+  @Override
+  protected void registerHandler() {
+    whenDeleting(User.class, this::deleteUser);
+    whenDeleting(UserGroup.class, this::deleteUserGroup);
+  }
+
+  private void deleteUser(User user) {
+    Set<UserGroup> userGroups = user.getGroups();
+
+    for (UserGroup group : userGroups) {
+      group.getMembers().remove(user);
+      idObjectManager.updateNoAcl(group);
+    }
+  }
+
+  private void deleteUserGroup(UserGroup userGroup) {
+    Set<UserGroup> userGroups = userGroup.getManagedByGroups();
+
+    for (UserGroup group : userGroups) {
+      group.getManagedGroups().remove(userGroup);
+      idObjectManager.updateNoAcl(group);
     }
 
-    private void deleteUser( User user )
-    {
-        Set<UserGroup> userGroups = user.getGroups();
-
-        for ( UserGroup group : userGroups )
-        {
-            group.getMembers().remove( user );
-            idObjectManager.updateNoAcl( group );
-        }
-    }
-
-    private void deleteUserGroup( UserGroup userGroup )
-    {
-        Set<UserGroup> userGroups = userGroup.getManagedByGroups();
-
-        for ( UserGroup group : userGroups )
-        {
-            group.getManagedGroups().remove( userGroup );
-            idObjectManager.updateNoAcl( group );
-        }
-
-        userGroup.getMembers().forEach( member -> currentUserService.invalidateUserGroupCache( member.getUid() ) );
-    }
+    userGroup
+        .getMembers()
+        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
+  }
 }

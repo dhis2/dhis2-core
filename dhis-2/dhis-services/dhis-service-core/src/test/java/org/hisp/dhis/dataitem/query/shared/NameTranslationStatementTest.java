@@ -41,136 +41,147 @@ import org.junit.jupiter.api.Test;
  *
  * @author maikel arabori
  */
-class NameTranslationStatementTest
-{
+class NameTranslationStatementTest {
 
-    @Test
-    void testTranslationNamesJoinsOn()
-    {
-        // Given
-        final String table = "indicator";
-        // When
-        final String actualStatement = translationNamesJoinsOn( table );
-        // Then
-        assertThat( actualStatement,
-            containsString( "left join jsonb_to_recordset(indicator.translations) as indicator" ) );
-        assertThat( actualStatement,
-            containsString( "indicator_displayname(value TEXT, locale TEXT, property TEXT) on indicator" ) );
-        assertThat( actualStatement, not( containsString( "program" ) ) );
-    }
+  @Test
+  void testTranslationNamesJoinsOn() {
+    // Given
+    final String table = "indicator";
+    // When
+    final String actualStatement = translationNamesJoinsOn(table);
+    // Then
+    assertThat(
+        actualStatement,
+        containsString("left join jsonb_to_recordset(indicator.translations) as indicator"));
+    assertThat(
+        actualStatement,
+        containsString(
+            "indicator_displayname(value TEXT, locale TEXT, property TEXT) on indicator"));
+    assertThat(actualStatement, not(containsString("program")));
+  }
 
-    @Test
-    void testTranslationNamesJoinsOnWhenTableIsNull()
-    {
-        // Given
-        final String nullTable = null;
-        // When
-        final String actualStatement = translationNamesJoinsOn( nullTable );
-        // Then
-        assertThat( actualStatement, containsString( EMPTY ) );
-    }
+  @Test
+  void testTranslationNamesJoinsOnWhenTableIsNull() {
+    // Given
+    final String nullTable = null;
+    // When
+    final String actualStatement = translationNamesJoinsOn(nullTable);
+    // Then
+    assertThat(actualStatement, containsString(EMPTY));
+  }
 
-    @Test
-    void testTranslationNamesJoinsOnWhenTableIsBlank()
-    {
-        // Given
-        final String blankTable = " ";
-        // When
-        final String actualStatement = translationNamesJoinsOn( blankTable );
-        // Then
-        assertThat( actualStatement, containsString( EMPTY ) );
-    }
+  @Test
+  void testTranslationNamesJoinsOnWhenTableIsBlank() {
+    // Given
+    final String blankTable = " ";
+    // When
+    final String actualStatement = translationNamesJoinsOn(blankTable);
+    // Then
+    assertThat(actualStatement, containsString(EMPTY));
+  }
 
-    @Test
-    void testTranslationNamesJoinsOnWithProgram()
-    {
-        // Given
-        final String table = "indicator";
-        // When
-        final String actualStatement = translationNamesJoinsOn( table, true );
-        // Then
-        assertThat( actualStatement,
-            containsString( "left join jsonb_to_recordset(indicator.translations) as indicator" ) );
-        assertThat( actualStatement,
-            containsString( "indicator_displayname(value TEXT, locale TEXT, property TEXT) on indicator" ) );
-        assertThat( actualStatement, containsString(
-            "left join jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT)" ) );
-        assertThat( actualStatement, containsString(
-            "left join jsonb_to_recordset(program.translations) as p_displayshortname(value TEXT, locale TEXT, property TEXT)" ) );
-    }
+  @Test
+  void testTranslationNamesJoinsOnWithProgram() {
+    // Given
+    final String table = "indicator";
+    // When
+    final String actualStatement = translationNamesJoinsOn(table, true);
+    // Then
+    assertThat(
+        actualStatement,
+        containsString("left join jsonb_to_recordset(indicator.translations) as indicator"));
+    assertThat(
+        actualStatement,
+        containsString(
+            "indicator_displayname(value TEXT, locale TEXT, property TEXT) on indicator"));
+    assertThat(
+        actualStatement,
+        containsString(
+            "left join jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT)"));
+    assertThat(
+        actualStatement,
+        containsString(
+            "left join jsonb_to_recordset(program.translations) as p_displayshortname(value TEXT, locale TEXT, property TEXT)"));
+  }
 
-    @Test
-    void testTranslationNamesColumnsForWhenTableIsNull()
-    {
-        // When
-        final String actualStatement = translationNamesJoinsOn( null );
-        // Then
-        assertThat( actualStatement, containsString( EMPTY ) );
-    }
+  @Test
+  void testTranslationNamesColumnsForWhenTableIsNull() {
+    // When
+    final String actualStatement = translationNamesJoinsOn(null);
+    // Then
+    assertThat(actualStatement, containsString(EMPTY));
+  }
 
-    @Test
-    void testTranslationNamesColumnsForWhenTableIsEmpty()
-    {
-        // Given
-        final String emptyTable = null;
-        // When
-        final String actualStatement = translationNamesJoinsOn( emptyTable );
-        // Then
-        assertThat( actualStatement, containsString( EMPTY ) );
-    }
+  @Test
+  void testTranslationNamesColumnsForWhenTableIsEmpty() {
+    // Given
+    final String emptyTable = null;
+    // When
+    final String actualStatement = translationNamesJoinsOn(emptyTable);
+    // Then
+    assertThat(actualStatement, containsString(EMPTY));
+  }
 
-    @Test
-    void testTranslationNamesColumnsFor()
-    {
-        // Given
-        final String table = "indicator";
-        // When
-        final String actualStatement = translationNamesColumnsFor( table );
-        // Then
-        assertThat( actualStatement,
-            containsString( "(case when indicator_displayname.value is not null then indicator_displayname.value" ) );
-        assertThat( actualStatement, containsString(
-            "(case when indicator_displayshortname.value is not null then indicator_displayshortname.value" ) );
-        assertThat( actualStatement, not( containsString( "program" ) ) );
-    }
+  @Test
+  void testTranslationNamesColumnsFor() {
+    // Given
+    final String table = "indicator";
+    // When
+    final String actualStatement = translationNamesColumnsFor(table);
+    // Then
+    assertThat(
+        actualStatement,
+        containsString(
+            "(case when indicator_displayname.value is not null then indicator_displayname.value"));
+    assertThat(
+        actualStatement,
+        containsString(
+            "(case when indicator_displayshortname.value is not null then indicator_displayshortname.value"));
+    assertThat(actualStatement, not(containsString("program")));
+  }
 
-    @Test
-    void testTranslationNamesColumnsForWithProgram()
-    {
-        // Given
-        final String table = "indicator";
-        // When
-        final String actualStatement = translationNamesColumnsFor( table, true );
-        // Then
-        assertThat( actualStatement,
-            containsString( "(case when indicator_displayname.value is not null then indicator_displayname.value" ) );
-        assertThat( actualStatement, containsString(
-            "(case when indicator_displayshortname.value is not null then indicator_displayshortname.value" ) );
-        assertThat( actualStatement, containsString(
-            "(case when p_displayname.value is not null then p_displayname.value else program.name end) as i18n_first_name" ) );
-        assertThat( actualStatement, containsString(
-            "(case when p_displayshortname.value is not null then p_displayshortname.value else program.shortname end) as i18n_first_shortname" ) );
-    }
+  @Test
+  void testTranslationNamesColumnsForWithProgram() {
+    // Given
+    final String table = "indicator";
+    // When
+    final String actualStatement = translationNamesColumnsFor(table, true);
+    // Then
+    assertThat(
+        actualStatement,
+        containsString(
+            "(case when indicator_displayname.value is not null then indicator_displayname.value"));
+    assertThat(
+        actualStatement,
+        containsString(
+            "(case when indicator_displayshortname.value is not null then indicator_displayshortname.value"));
+    assertThat(
+        actualStatement,
+        containsString(
+            "(case when p_displayname.value is not null then p_displayname.value else program.name end) as i18n_first_name"));
+    assertThat(
+        actualStatement,
+        containsString(
+            "(case when p_displayshortname.value is not null then p_displayshortname.value else program.shortname end) as i18n_first_shortname"));
+  }
 
-    @Test
-    void testTranslationNamesColumnsForWithProgramWhenTableIsNull()
-    {
-        // Given
-        final String nullTable = null;
-        // When
-        final String actualStatement = translationNamesColumnsFor( nullTable, true );
-        // Then
-        assertThat( actualStatement, containsString( EMPTY ) );
-    }
+  @Test
+  void testTranslationNamesColumnsForWithProgramWhenTableIsNull() {
+    // Given
+    final String nullTable = null;
+    // When
+    final String actualStatement = translationNamesColumnsFor(nullTable, true);
+    // Then
+    assertThat(actualStatement, containsString(EMPTY));
+  }
 
-    @Test
-    void testTranslationNamesColumnsForWithProgramWhenTableIsEmpty()
-    {
-        // Given
-        final String emptyTable = null;
-        // When
-        final String actualStatement = translationNamesColumnsFor( emptyTable, true );
-        // Then
-        assertThat( actualStatement, containsString( EMPTY ) );
-    }
+  @Test
+  void testTranslationNamesColumnsForWithProgramWhenTableIsEmpty() {
+    // Given
+    final String emptyTable = null;
+    // When
+    final String actualStatement = translationNamesColumnsFor(emptyTable, true);
+    // Then
+    assertThat(actualStatement, containsString(EMPTY));
+  }
 }

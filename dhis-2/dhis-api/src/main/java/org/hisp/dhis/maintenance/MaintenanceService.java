@@ -34,91 +34,86 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 /**
  * @author Lars Helge Overland
  */
-public interface MaintenanceService
-{
-    String ID = MaintenanceService.class.getName();
+public interface MaintenanceService {
+  String ID = MaintenanceService.class.getName();
 
-    /**
-     * Deletes data values registered with 0 as value and associated with data
-     * elements with sum as aggregation operator.
-     *
-     * @return the number of deleted data values.
-     */
-    int deleteZeroDataValues();
+  /**
+   * Deletes data values registered with 0 as value and associated with data elements with sum as
+   * aggregation operator.
+   *
+   * @return the number of deleted data values.
+   */
+  int deleteZeroDataValues();
 
-    /**
-     * Permanently deletes data values which have been soft deleted, i.e. data
-     * values where the deleted property is true.
-     *
-     * @return the number of deleted data values.
-     */
-    int deleteSoftDeletedDataValues();
+  /**
+   * Permanently deletes data values which have been soft deleted, i.e. data values where the
+   * deleted property is true.
+   *
+   * @return the number of deleted data values.
+   */
+  int deleteSoftDeletedDataValues();
 
-    /**
-     * Permanently deletes events which have been soft-deleted, i.e. events
-     * where the deleted property is true.
-     *
-     * @return the number of deleted events.
-     */
-    int deleteSoftDeletedEvents();
+  /**
+   * Permanently deletes events which have been soft-deleted, i.e. events where the deleted property
+   * is true.
+   *
+   * @return the number of deleted events.
+   */
+  int deleteSoftDeletedEvents();
 
-    /**
-     * Permanently deletes relationships which have been soft deleted, i.e.
-     * relationships where the deleted property is true.
-     *
-     * @return the number of deleted relationships.
-     */
-    int deleteSoftDeletedRelationships();
+  /**
+   * Permanently deletes relationships which have been soft deleted, i.e. relationships where the
+   * deleted property is true.
+   *
+   * @return the number of deleted relationships.
+   */
+  int deleteSoftDeletedRelationships();
 
-    /**
-     * Permanently deletes Enrollments which have been soft deleted, i.e.
-     * Enrollments where the deleted property is true.
-     *
-     * @return the number of deleted Enrollments.
-     */
-    int deleteSoftDeletedEnrollments();
+  /**
+   * Permanently deletes Enrollments which have been soft deleted, i.e. Enrollments where the
+   * deleted property is true.
+   *
+   * @return the number of deleted Enrollments.
+   */
+  int deleteSoftDeletedEnrollments();
 
-    /**
-     * Permanently deletes tracked entities which have been soft deleted, i.e.
-     * tracked entities where the deleted property is true.
-     *
-     * @return the number of deleted tracked entities
-     */
-    int deleteSoftDeletedTrackedEntities();
+  /**
+   * Permanently deletes tracked entities which have been soft deleted, i.e. tracked entities where
+   * the deleted property is true.
+   *
+   * @return the number of deleted tracked entities
+   */
+  int deleteSoftDeletedTrackedEntities();
 
-    /**
-     * Deletes periods which are not associated with any other table.
-     */
-    void prunePeriods();
+  /** Deletes periods which are not associated with any other table. */
+  void prunePeriods();
 
-    /**
-     * Prunes complete data set registrations, data approvals, data value audits
-     * and data values for the given organisation unit.
-     *
-     * @param organisationUnit the organisation unit.
-     * @return true if the data pruning took place, false if not permitted.
-     */
-    boolean pruneData( OrganisationUnit organisationUnit );
+  /**
+   * Prunes complete data set registrations, data approvals, data value audits and data values for
+   * the given organisation unit.
+   *
+   * @param organisationUnit the organisation unit.
+   * @return true if the data pruning took place, false if not permitted.
+   */
+  boolean pruneData(OrganisationUnit organisationUnit);
 
-    /**
-     * Prunes data and audit records related to the given data element
-     *
-     * @param dataElement the data element.
-     * @return true if the data pruning took place, false if not permitted.
-     */
-    boolean pruneData( DataElement dataElement );
+  /**
+   * Prunes data and audit records related to the given data element
+   *
+   * @param dataElement the data element.
+   * @return true if the data pruning took place, false if not permitted.
+   */
+  boolean pruneData(DataElement dataElement);
 
-    /**
-     * Deletes user accounts representing expired account invitations.
-     *
-     * @return the number of removed user invitations as a result of this
-     *         operation.
-     */
-    int removeExpiredInvitations();
+  /**
+   * Deletes user accounts representing expired account invitations.
+   *
+   * @return the number of removed user invitations as a result of this operation.
+   */
+  int removeExpiredInvitations();
 
-    /**
-     * Emits an {@link ApplicationCacheClearedEvent} which relevant caches can
-     * listen and react to.
-     */
-    void clearApplicationCaches();
+  /**
+   * Emits an {@link ApplicationCacheClearedEvent} which relevant caches can listen and react to.
+   */
+  void clearApplicationCaches();
 }

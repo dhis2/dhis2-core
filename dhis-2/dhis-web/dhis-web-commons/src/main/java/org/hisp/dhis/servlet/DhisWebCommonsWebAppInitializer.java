@@ -28,23 +28,19 @@
 package org.hisp.dhis.servlet;
 
 import java.util.EnumSet;
-
 import javax.servlet.DispatcherType;
 import javax.servlet.ServletContext;
-
 import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.WebApplicationInitializer;
 
-@Order( 12 )
-public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer
-{
+@Order(12)
+public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer {
 
-    @Override
-    public void onStartup( ServletContext context )
-    {
-        context
-            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() )
-            .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
-    }
+  @Override
+  public void onStartup(ServletContext context) {
+    context
+        .addFilter("StrutsDispatcher", new StrutsPrepareAndExecuteFilter())
+        .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "*.action");
+  }
 }

@@ -50,7 +50,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.params.CommonParams;
@@ -72,416 +71,598 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * Unit tests for {@link CommonQueryRequestMapper}.
- */
-@ExtendWith( MockitoExtension.class )
-class CommonQueryRequestMapperTest
-{
-    @Mock
-    private DataQueryService dataQueryService;
+/** Unit tests for {@link CommonQueryRequestMapper}. */
+@ExtendWith(MockitoExtension.class)
+class CommonQueryRequestMapperTest {
+  @Mock private DataQueryService dataQueryService;
 
-    @Mock
-    private EventDataQueryService eventDataQueryService;
+  @Mock private EventDataQueryService eventDataQueryService;
 
-    @Mock
-    private ProgramService programService;
+  @Mock private ProgramService programService;
 
-    @Mock
-    private DimensionIdentifierConverter dimensionIdentifierConverter;
+  @Mock private DimensionIdentifierConverter dimensionIdentifierConverter;
 
-    @Test
-    void mapWithSuccessOnlyDimension()
-    {
-        // Given
-        Program program1 = new Program( "prg-1" );
-        program1.setUid( "lxAQ7Zs9VYR" );
-        Program program2 = new Program( "prg-2" );
-        program2.setUid( "ur1Edk5Oe2n" );
+  @Test
+  void mapWithSuccessOnlyDimension() {
+    // Given
+    Program program1 = new Program("prg-1");
+    program1.setUid("lxAQ7Zs9VYR");
+    Program program2 = new Program("prg-2");
+    program2.setUid("ur1Edk5Oe2n");
 
-        ProgramStage programStage1 = new ProgramStage( "ps-1", program1 );
-        String queryItem = "EQ:john";
-        String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
+    ProgramStage programStage1 = new ProgramStage("ps-1", program1);
+    String queryItem = "EQ:john";
+    String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
 
-        List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
-            new OrganisationUnit( "org-2" ) );
-        List<Program> programs = asList( program1, program2 );
+    List<OrganisationUnit> organisationUnits =
+        List.of(new OrganisationUnit("org-1"), new OrganisationUnit("org-2"));
+    List<Program> programs = asList(program1, program2);
 
-        DimensionIdentifier<StringUid> deDimensionIdentifier = DimensionIdentifier.of(
-            ElementWithOffset.of( program1, 1 ),
-            ElementWithOffset.of( programStage1, 2 ),
-            StringUid.of( "yLIPuJHRgey" ) );
+    DimensionIdentifier<StringUid> deDimensionIdentifier =
+        DimensionIdentifier.of(
+            ElementWithOffset.of(program1, 1),
+            ElementWithOffset.of(programStage1, 2),
+            StringUid.of("yLIPuJHRgey"));
 
-        BaseDimensionalObject dimensionalObject = new BaseDimensionalObject(
-            deDimensionIdentifier.getDimension().getUid(), DATA_X, null, DISPLAY_NAME_DATA_X,
-            emptyList(), new DimensionItemKeywords() );
+    BaseDimensionalObject dimensionalObject =
+        new BaseDimensionalObject(
+            deDimensionIdentifier.getDimension().getUid(),
+            DATA_X,
+            null,
+            DISPLAY_NAME_DATA_X,
+            emptyList(),
+            new DimensionItemKeywords());
 
-        CommonQueryRequest aCommonQueryRequest = new CommonQueryRequest()
-            .withUserOrgUnit( "PEZNsGbZaVJ" )
-            .withProgram( new HashSet<>( asList( "ur1Edk5Oe2n", "lxAQ7Zs9VYR" ) ) )
-            .withDimension( new HashSet<>( asList( dimension + ":" + queryItem ) ) );
+    CommonQueryRequest aCommonQueryRequest =
+        new CommonQueryRequest()
+            .withUserOrgUnit("PEZNsGbZaVJ")
+            .withProgram(new HashSet<>(asList("ur1Edk5Oe2n", "lxAQ7Zs9VYR")))
+            .withDimension(new HashSet<>(asList(dimension + ":" + queryItem)));
 
-        when( dataQueryService.getUserOrgUnits( null, aCommonQueryRequest.getUserOrgUnit() ) )
-            .thenReturn( organisationUnits );
-        when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
-        when( dimensionIdentifierConverter.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
-        when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
-            asList( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true,
-            aCommonQueryRequest.getDisplayProperty(), UID )) ).thenReturn( dimensionalObject );
+    when(dataQueryService.getUserOrgUnits(null, aCommonQueryRequest.getUserOrgUnit()))
+        .thenReturn(organisationUnits);
+    when(programService.getPrograms(aCommonQueryRequest.getProgram())).thenReturn(programs);
+    when(dimensionIdentifierConverter.fromString(programs, dimension))
+        .thenReturn(deDimensionIdentifier);
+    when((dataQueryService.getDimension(
+            deDimensionIdentifier.getDimension().getUid(),
+            asList(queryItem),
+            aCommonQueryRequest.getRelativePeriodDate(),
+            organisationUnits,
+            true,
+            aCommonQueryRequest.getDisplayProperty(),
+            UID)))
+        .thenReturn(dimensionalObject);
 
-        // When
-        CommonParams params = new CommonQueryRequestMapper( dataQueryService, eventDataQueryService, programService,
-            dimensionIdentifierConverter ).map( aCommonQueryRequest );
+    // When
+    CommonParams params =
+        new CommonQueryRequestMapper(
+                dataQueryService,
+                eventDataQueryService,
+                programService,
+                dimensionIdentifierConverter)
+            .map(aCommonQueryRequest);
 
-        // Then
-        assertEquals( 2, params.getPrograms().size(), "Should contain 2 programs." );
-        assertEquals( "lxAQ7Zs9VYR", params.getPrograms().get( 0 ).getUid(), "First program should be lxAQ7Zs9VYR." );
-        assertEquals( "ur1Edk5Oe2n", params.getPrograms().get( 1 ).getUid(), "Second program should be ur1Edk5Oe2n." );
-        assertEquals( 1, params.getDimensionIdentifiers().size(), "Should contain 1 identifier." );
-        assertTrue( params.getDimensionIdentifiers().get( 0 ).hasProgram(), "Should contain 1 program." );
-        assertTrue( params.getDimensionIdentifiers().get( 0 ).hasProgramStage(),
-            "Should contain 1 program stage." );
-        assertEquals( "yLIPuJHRgey",
-            params.getDimensionIdentifiers().get( 0 ).getDimension().getDimensionalObject().getDimension(),
-            "Dimension identifier should be yLIPuJHRgey." );
-        assertEquals( 1, params.getDimensionIdentifiers().get( 0 ).getProgram().getOffset(),
-            "Program offset should be 1." );
-        assertEquals( 2, params.getDimensionIdentifiers().get( 0 ).getProgramStage().getOffset(),
-            "ProgramStage offset should be 2." );
-        assertFalse( params.getPagingParams().isEmpty(), "Paging and sorting should not be empty." );
-    }
+    // Then
+    assertEquals(2, params.getPrograms().size(), "Should contain 2 programs.");
+    assertEquals(
+        "lxAQ7Zs9VYR",
+        params.getPrograms().get(0).getUid(),
+        "First program should be lxAQ7Zs9VYR.");
+    assertEquals(
+        "ur1Edk5Oe2n",
+        params.getPrograms().get(1).getUid(),
+        "Second program should be ur1Edk5Oe2n.");
+    assertEquals(1, params.getDimensionIdentifiers().size(), "Should contain 1 identifier.");
+    assertTrue(params.getDimensionIdentifiers().get(0).hasProgram(), "Should contain 1 program.");
+    assertTrue(
+        params.getDimensionIdentifiers().get(0).hasProgramStage(),
+        "Should contain 1 program stage.");
+    assertEquals(
+        "yLIPuJHRgey",
+        params
+            .getDimensionIdentifiers()
+            .get(0)
+            .getDimension()
+            .getDimensionalObject()
+            .getDimension(),
+        "Dimension identifier should be yLIPuJHRgey.");
+    assertEquals(
+        1,
+        params.getDimensionIdentifiers().get(0).getProgram().getOffset(),
+        "Program offset should be 1.");
+    assertEquals(
+        2,
+        params.getDimensionIdentifiers().get(0).getProgramStage().getOffset(),
+        "ProgramStage offset should be 2.");
+    assertFalse(params.getPagingParams().isEmpty(), "Paging and sorting should not be empty.");
+  }
 
-    @Test
-    void mapWithSuccessOnlyFilter()
-    {
-        // Given
-        Program program1 = new Program( "prg-1" );
-        program1.setUid( "lxAQ7Zs9VYR" );
-        Program program2 = new Program( "prg-2" );
-        program2.setUid( "ur1Edk5Oe2n" );
+  @Test
+  void mapWithSuccessOnlyFilter() {
+    // Given
+    Program program1 = new Program("prg-1");
+    program1.setUid("lxAQ7Zs9VYR");
+    Program program2 = new Program("prg-2");
+    program2.setUid("ur1Edk5Oe2n");
 
-        ProgramStage programStage1 = new ProgramStage( "ps-1", program1 );
-        String queryItem = "ur1Edk5Oe2n.OU";
-        String orgUnitUid = "PEZNsGbZaVJ";
+    ProgramStage programStage1 = new ProgramStage("ps-1", program1);
+    String queryItem = "ur1Edk5Oe2n.OU";
+    String orgUnitUid = "PEZNsGbZaVJ";
 
-        List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
-            new OrganisationUnit( "org-2" ) );
-        List<Program> programs = List.of( program1, program2 );
+    List<OrganisationUnit> organisationUnits =
+        List.of(new OrganisationUnit("org-1"), new OrganisationUnit("org-2"));
+    List<Program> programs = List.of(program1, program2);
 
-        DimensionIdentifier<StringUid> deDimensionIdentifier = DimensionIdentifier.of(
-            ElementWithOffset.of( program1, 1 ), null, StringUid.of( null ) );
+    DimensionIdentifier<StringUid> deDimensionIdentifier =
+        DimensionIdentifier.of(ElementWithOffset.of(program1, 1), null, StringUid.of(null));
 
-        DimensionIdentifier<StringUid> ouDimensionIdentifier = DimensionIdentifier.of(
-            ElementWithOffset.of( program1, 1 ),
-            ElementWithOffset.of( programStage1, 2 ), StringUid.of( queryItem ) );
+    DimensionIdentifier<StringUid> ouDimensionIdentifier =
+        DimensionIdentifier.of(
+            ElementWithOffset.of(program1, 1),
+            ElementWithOffset.of(programStage1, 2),
+            StringUid.of(queryItem));
 
-        BaseDimensionalObject dimensionalObject = new BaseDimensionalObject(
-            deDimensionIdentifier.getDimension().getUid(), DATA_X, null, DISPLAY_NAME_DATA_X,
-            emptyList(), new DimensionItemKeywords() );
+    BaseDimensionalObject dimensionalObject =
+        new BaseDimensionalObject(
+            deDimensionIdentifier.getDimension().getUid(),
+            DATA_X,
+            null,
+            DISPLAY_NAME_DATA_X,
+            emptyList(),
+            new DimensionItemKeywords());
 
-        CommonQueryRequest aCommonQueryRequest = new CommonQueryRequest()
-            .withUserOrgUnit( orgUnitUid )
-            .withProgram( Set.of( "lxAQ7Zs9VYR", "ur1Edk5Oe2n" ) )
-            .withFilter( Set.of( "ur1Edk5Oe2n.OU:PEZNsGbZaVJ" ) );
+    CommonQueryRequest aCommonQueryRequest =
+        new CommonQueryRequest()
+            .withUserOrgUnit(orgUnitUid)
+            .withProgram(Set.of("lxAQ7Zs9VYR", "ur1Edk5Oe2n"))
+            .withFilter(Set.of("ur1Edk5Oe2n.OU:PEZNsGbZaVJ"));
 
-        when( dataQueryService.getUserOrgUnits( null, aCommonQueryRequest.getUserOrgUnit() ) )
-            .thenReturn( organisationUnits );
-        when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
-        when( dimensionIdentifierConverter.fromString( programs, queryItem ) ).thenReturn( ouDimensionIdentifier );
-        when( (dataQueryService.getDimension( ouDimensionIdentifier.getDimension().getUid(),
-            List.of( orgUnitUid ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true,
-            aCommonQueryRequest.getDisplayProperty(), UID )) ).thenReturn( dimensionalObject );
+    when(dataQueryService.getUserOrgUnits(null, aCommonQueryRequest.getUserOrgUnit()))
+        .thenReturn(organisationUnits);
+    when(programService.getPrograms(aCommonQueryRequest.getProgram())).thenReturn(programs);
+    when(dimensionIdentifierConverter.fromString(programs, queryItem))
+        .thenReturn(ouDimensionIdentifier);
+    when((dataQueryService.getDimension(
+            ouDimensionIdentifier.getDimension().getUid(),
+            List.of(orgUnitUid),
+            aCommonQueryRequest.getRelativePeriodDate(),
+            organisationUnits,
+            true,
+            aCommonQueryRequest.getDisplayProperty(),
+            UID)))
+        .thenReturn(dimensionalObject);
 
-        // When
-        CommonParams params = new CommonQueryRequestMapper( dataQueryService, eventDataQueryService, programService,
-            dimensionIdentifierConverter ).map( aCommonQueryRequest );
+    // When
+    CommonParams params =
+        new CommonQueryRequestMapper(
+                dataQueryService,
+                eventDataQueryService,
+                programService,
+                dimensionIdentifierConverter)
+            .map(aCommonQueryRequest);
 
-        // Then
-        assertEquals( 2, params.getPrograms().size(), "Should contain 2 programs." );
-        assertEquals( "lxAQ7Zs9VYR", params.getPrograms().get( 0 ).getUid(), "First program should be lxAQ7Zs9VYR." );
-        assertEquals( "ur1Edk5Oe2n", params.getPrograms().get( 1 ).getUid(), "Second program should be ur1Edk5Oe2n." );
-        assertEquals( 1, params.getDimensionIdentifiers().size(), "Should contain 1 identifier." );
-        assertTrue( params.getDimensionIdentifiers().get( 0 ).hasProgramStage(),
-            "Should contain 1 program stage." );
-        assertNull(
-            params.getDimensionIdentifiers().get( 0 ).getDimension().getDimensionalObject().getDimension(),
-            "Dimension identifier should be yLIPuJHRgey." );
-        assertEquals( 1, params.getDimensionIdentifiers().get( 0 ).getProgram().getOffset(),
-            "Program offset should be 1." );
-        assertEquals( 2, params.getDimensionIdentifiers().get( 0 ).getProgramStage().getOffset(),
-            "ProgramStage offset should be 2." );
-        assertFalse( params.getPagingParams().isEmpty(), "Paging and sorting should not be empty." );
-    }
+    // Then
+    assertEquals(2, params.getPrograms().size(), "Should contain 2 programs.");
+    assertEquals(
+        "lxAQ7Zs9VYR",
+        params.getPrograms().get(0).getUid(),
+        "First program should be lxAQ7Zs9VYR.");
+    assertEquals(
+        "ur1Edk5Oe2n",
+        params.getPrograms().get(1).getUid(),
+        "Second program should be ur1Edk5Oe2n.");
+    assertEquals(1, params.getDimensionIdentifiers().size(), "Should contain 1 identifier.");
+    assertTrue(
+        params.getDimensionIdentifiers().get(0).hasProgramStage(),
+        "Should contain 1 program stage.");
+    assertNull(
+        params
+            .getDimensionIdentifiers()
+            .get(0)
+            .getDimension()
+            .getDimensionalObject()
+            .getDimension(),
+        "Dimension identifier should be yLIPuJHRgey.");
+    assertEquals(
+        1,
+        params.getDimensionIdentifiers().get(0).getProgram().getOffset(),
+        "Program offset should be 1.");
+    assertEquals(
+        2,
+        params.getDimensionIdentifiers().get(0).getProgramStage().getOffset(),
+        "ProgramStage offset should be 2.");
+    assertFalse(params.getPagingParams().isEmpty(), "Paging and sorting should not be empty.");
+  }
 
-    @Test
-    void mapWithSuccessDimensionAndFilter()
-    {
-        // Given
-        Program program1 = new Program( "prg-1" );
-        program1.setUid( "lxAQ7Zs9VYR" );
-        Program program2 = new Program( "prg-2" );
-        program2.setUid( "ur1Edk5Oe2n" );
+  @Test
+  void mapWithSuccessDimensionAndFilter() {
+    // Given
+    Program program1 = new Program("prg-1");
+    program1.setUid("lxAQ7Zs9VYR");
+    Program program2 = new Program("prg-2");
+    program2.setUid("ur1Edk5Oe2n");
 
-        ProgramStage programStage1 = new ProgramStage( "ps-1", program1 );
-        String orgUnitDimension = "ur1Edk5Oe2n.OU";
-        String queryItemFilter = "PEZNsGbZaVJ";
-        String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
-        String queryItemDimension = "EQ:john";
-        List<OrganisationUnit> organisationUnits = asList( new OrganisationUnit( "org-1" ),
-            new OrganisationUnit( "org-2" ) );
-        List<Program> programs = asList( program1, program2 );
+    ProgramStage programStage1 = new ProgramStage("ps-1", program1);
+    String orgUnitDimension = "ur1Edk5Oe2n.OU";
+    String queryItemFilter = "PEZNsGbZaVJ";
+    String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
+    String queryItemDimension = "EQ:john";
+    List<OrganisationUnit> organisationUnits =
+        asList(new OrganisationUnit("org-1"), new OrganisationUnit("org-2"));
+    List<Program> programs = asList(program1, program2);
 
-        DimensionIdentifier<StringUid> deDimensionIdentifier = DimensionIdentifier.of(
-            ElementWithOffset.of( program1, 1 ),
-            ElementWithOffset.of( programStage1, 2 ), StringUid.of( queryItemDimension ) );
+    DimensionIdentifier<StringUid> deDimensionIdentifier =
+        DimensionIdentifier.of(
+            ElementWithOffset.of(program1, 1),
+            ElementWithOffset.of(programStage1, 2),
+            StringUid.of(queryItemDimension));
 
-        DimensionIdentifier<StringUid> ouDimensionIdentifier = DimensionIdentifier.of(
-            ElementWithOffset.of( program1, 1 ),
-            ElementWithOffset.of( programStage1, 2 ), StringUid.of( orgUnitDimension ) );
+    DimensionIdentifier<StringUid> ouDimensionIdentifier =
+        DimensionIdentifier.of(
+            ElementWithOffset.of(program1, 1),
+            ElementWithOffset.of(programStage1, 2),
+            StringUid.of(orgUnitDimension));
 
-        BaseDimensionalObject dimensionalObject = new BaseDimensionalObject(
-            deDimensionIdentifier.getDimension().getUid(), DATA_X, null, DISPLAY_NAME_DATA_X,
-            emptyList(), new DimensionItemKeywords() );
+    BaseDimensionalObject dimensionalObject =
+        new BaseDimensionalObject(
+            deDimensionIdentifier.getDimension().getUid(),
+            DATA_X,
+            null,
+            DISPLAY_NAME_DATA_X,
+            emptyList(),
+            new DimensionItemKeywords());
 
-        BaseDimensionalObject orgUnitObject = new BaseDimensionalObject(
-            ouDimensionIdentifier.getDimension().getUid(), ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-            organisationUnits, new DimensionItemKeywords() );
+    BaseDimensionalObject orgUnitObject =
+        new BaseDimensionalObject(
+            ouDimensionIdentifier.getDimension().getUid(),
+            ORGANISATION_UNIT,
+            null,
+            DISPLAY_NAME_ORGUNIT,
+            organisationUnits,
+            new DimensionItemKeywords());
 
-        CommonQueryRequest aCommonQueryRequest = new CommonQueryRequest()
-            .withUserOrgUnit( queryItemFilter )
-            .withProgram( new HashSet<>( asList( "lxAQ7Zs9VYR", "ur1Edk5Oe2n" ) ) )
-            .withDimension( new HashSet<>( asList( dimension + ":" + queryItemDimension ) ) )
-            .withFilter( new HashSet<>( asList( "ur1Edk5Oe2n.OU:PEZNsGbZaVJ" ) ) );
+    CommonQueryRequest aCommonQueryRequest =
+        new CommonQueryRequest()
+            .withUserOrgUnit(queryItemFilter)
+            .withProgram(new HashSet<>(asList("lxAQ7Zs9VYR", "ur1Edk5Oe2n")))
+            .withDimension(new HashSet<>(asList(dimension + ":" + queryItemDimension)))
+            .withFilter(new HashSet<>(asList("ur1Edk5Oe2n.OU:PEZNsGbZaVJ")));
 
-        when( dataQueryService.getUserOrgUnits( null, aCommonQueryRequest.getUserOrgUnit() ) )
-            .thenReturn( organisationUnits );
-        when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
-        when( dimensionIdentifierConverter.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
-        when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
-            asList( queryItemDimension ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true,
-            aCommonQueryRequest.getDisplayProperty(), UID )) ).thenReturn( dimensionalObject );
+    when(dataQueryService.getUserOrgUnits(null, aCommonQueryRequest.getUserOrgUnit()))
+        .thenReturn(organisationUnits);
+    when(programService.getPrograms(aCommonQueryRequest.getProgram())).thenReturn(programs);
+    when(dimensionIdentifierConverter.fromString(programs, dimension))
+        .thenReturn(deDimensionIdentifier);
+    when((dataQueryService.getDimension(
+            deDimensionIdentifier.getDimension().getUid(),
+            asList(queryItemDimension),
+            aCommonQueryRequest.getRelativePeriodDate(),
+            organisationUnits,
+            true,
+            aCommonQueryRequest.getDisplayProperty(),
+            UID)))
+        .thenReturn(dimensionalObject);
 
-        when( dimensionIdentifierConverter.fromString( programs, orgUnitDimension ) )
-            .thenReturn( ouDimensionIdentifier );
-        when( (dataQueryService.getDimension( ouDimensionIdentifier.getDimension().getUid(),
-            asList( queryItemFilter ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true,
-            aCommonQueryRequest.getDisplayProperty(), UID )) ).thenReturn( orgUnitObject );
+    when(dimensionIdentifierConverter.fromString(programs, orgUnitDimension))
+        .thenReturn(ouDimensionIdentifier);
+    when((dataQueryService.getDimension(
+            ouDimensionIdentifier.getDimension().getUid(),
+            asList(queryItemFilter),
+            aCommonQueryRequest.getRelativePeriodDate(),
+            organisationUnits,
+            true,
+            aCommonQueryRequest.getDisplayProperty(),
+            UID)))
+        .thenReturn(orgUnitObject);
 
-        // When
-        CommonParams params = new CommonQueryRequestMapper( dataQueryService, eventDataQueryService, programService,
-            dimensionIdentifierConverter ).map( aCommonQueryRequest );
+    // When
+    CommonParams params =
+        new CommonQueryRequestMapper(
+                dataQueryService,
+                eventDataQueryService,
+                programService,
+                dimensionIdentifierConverter)
+            .map(aCommonQueryRequest);
 
-        // Then
-        assertEquals( 2, params.getPrograms().size(), "Should contain 2 programs." );
-        assertEquals( "lxAQ7Zs9VYR", params.getPrograms().get( 0 ).getUid(), "First program should be lxAQ7Zs9VYR." );
-        assertEquals( "ur1Edk5Oe2n", params.getPrograms().get( 1 ).getUid(), "Second program should be ur1Edk5Oe2n." );
-        assertEquals( 2, params.getDimensionIdentifiers().size(), "Should contain 2 identifiers." );
-        assertTrue( params.getDimensionIdentifiers().get( 0 ).hasProgram(), "Should contain 1 program." );
-        assertTrue( params.getDimensionIdentifiers().get( 0 ).hasProgramStage(),
-            "Should contain 1 program stage." );
-        assertEquals( "EQ:john",
-            params.getDimensionIdentifiers().get( 0 ).getDimension().getDimensionalObject().getDimension(),
-            "Dimension identifier should be yLIPuJHRgey." );
-        assertEquals( 1, params.getDimensionIdentifiers().get( 0 ).getProgram().getOffset(),
-            "Program offset should be 1." );
-        assertEquals( 2, params.getDimensionIdentifiers().get( 0 ).getProgramStage().getOffset(),
-            "ProgramStage offset should be 2." );
-        assertFalse( params.getPagingParams().isEmpty(), "Paging and sorting should not be empty." );
-    }
+    // Then
+    assertEquals(2, params.getPrograms().size(), "Should contain 2 programs.");
+    assertEquals(
+        "lxAQ7Zs9VYR",
+        params.getPrograms().get(0).getUid(),
+        "First program should be lxAQ7Zs9VYR.");
+    assertEquals(
+        "ur1Edk5Oe2n",
+        params.getPrograms().get(1).getUid(),
+        "Second program should be ur1Edk5Oe2n.");
+    assertEquals(2, params.getDimensionIdentifiers().size(), "Should contain 2 identifiers.");
+    assertTrue(params.getDimensionIdentifiers().get(0).hasProgram(), "Should contain 1 program.");
+    assertTrue(
+        params.getDimensionIdentifiers().get(0).hasProgramStage(),
+        "Should contain 1 program stage.");
+    assertEquals(
+        "EQ:john",
+        params
+            .getDimensionIdentifiers()
+            .get(0)
+            .getDimension()
+            .getDimensionalObject()
+            .getDimension(),
+        "Dimension identifier should be yLIPuJHRgey.");
+    assertEquals(
+        1,
+        params.getDimensionIdentifiers().get(0).getProgram().getOffset(),
+        "Program offset should be 1.");
+    assertEquals(
+        2,
+        params.getDimensionIdentifiers().get(0).getProgramStage().getOffset(),
+        "ProgramStage offset should be 2.");
+    assertFalse(params.getPagingParams().isEmpty(), "Paging and sorting should not be empty.");
+  }
 
-    @Test
-    void mapWhenProgramsCannotBeFound()
-    {
-        // Given
-        Program program1 = new Program( "prg-1" );
-        program1.setUid( "lxAQ7Zs9VYR" );
+  @Test
+  void mapWhenProgramsCannotBeFound() {
+    // Given
+    Program program1 = new Program("prg-1");
+    program1.setUid("lxAQ7Zs9VYR");
 
-        String queryItem = "EQ:john";
-        String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
+    String queryItem = "EQ:john";
+    String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
 
-        List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
-            new OrganisationUnit( "org-2" ) );
+    List<OrganisationUnit> organisationUnits =
+        List.of(new OrganisationUnit("org-1"), new OrganisationUnit("org-2"));
 
-        CommonQueryRequestMapper commonQueryRequestMapper = new CommonQueryRequestMapper( dataQueryService,
-            eventDataQueryService, programService, dimensionIdentifierConverter );
+    CommonQueryRequestMapper commonQueryRequestMapper =
+        new CommonQueryRequestMapper(
+            dataQueryService, eventDataQueryService, programService, dimensionIdentifierConverter);
 
-        // List has only one Program, but the CommonQueryRequest, below, has
-        // two.
-        List<Program> programs = List.of( program1 );
+    // List has only one Program, but the CommonQueryRequest, below, has
+    // two.
+    List<Program> programs = List.of(program1);
 
-        CommonQueryRequest aCommonQueryRequest = new CommonQueryRequest()
-            .withUserOrgUnit( "PEZNsGbZaVJ" )
-            .withDimension( Set.of( dimension + ":" + queryItem ) )
+    CommonQueryRequest aCommonQueryRequest =
+        new CommonQueryRequest()
+            .withUserOrgUnit("PEZNsGbZaVJ")
+            .withDimension(Set.of(dimension + ":" + queryItem))
             // Two programs, where "ur1Edk5Oe2n" does not exist.
-            .withProgram( Set.of( "lxAQ7Zs9VYR", "ur1Edk5Oe2n" ) );
+            .withProgram(Set.of("lxAQ7Zs9VYR", "ur1Edk5Oe2n"));
 
-        when( dataQueryService.getUserOrgUnits( null, aCommonQueryRequest.getUserOrgUnit() ) )
-            .thenReturn( organisationUnits );
-        when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
+    when(dataQueryService.getUserOrgUnits(null, aCommonQueryRequest.getUserOrgUnit()))
+        .thenReturn(organisationUnits);
+    when(programService.getPrograms(aCommonQueryRequest.getProgram())).thenReturn(programs);
 
-        // When
-        IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> commonQueryRequestMapper.map( aCommonQueryRequest ) );
+    // When
+    IllegalQueryException thrown =
+        assertThrows(
+            IllegalQueryException.class, () -> commonQueryRequestMapper.map(aCommonQueryRequest));
 
-        // Then
-        assertEquals( "Program is specified but does not exist: `[ur1Edk5Oe2n]`", thrown.getMessage(),
-            "Exception message does not match." );
-    }
+    // Then
+    assertEquals(
+        "Program is specified but does not exist: `[ur1Edk5Oe2n]`",
+        thrown.getMessage(),
+        "Exception message does not match.");
+  }
 
-    @Test
-    void mapWhenDimensionIsNotObject()
-    {
-        // Given
-        Program program1 = new Program( "prg-1" );
-        program1.setUid( "lxAQ7Zs9VYR" );
-        Program program2 = new Program( "prg-2" );
-        program2.setUid( "ur1Edk5Oe2n" );
+  @Test
+  void mapWhenDimensionIsNotObject() {
+    // Given
+    Program program1 = new Program("prg-1");
+    program1.setUid("lxAQ7Zs9VYR");
+    Program program2 = new Program("prg-2");
+    program2.setUid("ur1Edk5Oe2n");
 
-        ProgramStage programStage1 = new ProgramStage( "ps-1", program1 );
-        String queryItem = "EQ:john";
-        String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
-        QueryItem anyQueryItem = new QueryItem( new DataElement() );
+    ProgramStage programStage1 = new ProgramStage("ps-1", program1);
+    String queryItem = "EQ:john";
+    String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
+    QueryItem anyQueryItem = new QueryItem(new DataElement());
 
-        List<OrganisationUnit> organisationUnits = asList( new OrganisationUnit( "org-1" ),
-            new OrganisationUnit( "org-2" ) );
-        List<Program> programs = asList( program1, program2 );
+    List<OrganisationUnit> organisationUnits =
+        asList(new OrganisationUnit("org-1"), new OrganisationUnit("org-2"));
+    List<Program> programs = asList(program1, program2);
 
-        DimensionIdentifier<StringUid> deDimensionIdentifier = DimensionIdentifier.of(
-            ElementWithOffset.of( program1, 1 ),
-            ElementWithOffset.of( programStage1, 2 ),
-            StringUid.of( "yLIPuJHRgey" ) );
+    DimensionIdentifier<StringUid> deDimensionIdentifier =
+        DimensionIdentifier.of(
+            ElementWithOffset.of(program1, 1),
+            ElementWithOffset.of(programStage1, 2),
+            StringUid.of("yLIPuJHRgey"));
 
-        CommonQueryRequest aCommonQueryRequest = new CommonQueryRequest()
-            .withUserOrgUnit( "PEZNsGbZaVJ" )
-            .withProgram( new HashSet<>( asList( "lxAQ7Zs9VYR", "ur1Edk5Oe2n" ) ) )
-            .withDimension( new HashSet<>( asList( dimension + ":" + queryItem ) ) );
+    CommonQueryRequest aCommonQueryRequest =
+        new CommonQueryRequest()
+            .withUserOrgUnit("PEZNsGbZaVJ")
+            .withProgram(new HashSet<>(asList("lxAQ7Zs9VYR", "ur1Edk5Oe2n")))
+            .withDimension(new HashSet<>(asList(dimension + ":" + queryItem)));
 
-        when( dataQueryService.getUserOrgUnits( null, aCommonQueryRequest.getUserOrgUnit() ) )
-            .thenReturn( organisationUnits );
-        when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
-        when( dimensionIdentifierConverter.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
-        when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
-            asList( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true,
-            aCommonQueryRequest.getDisplayProperty(), UID )) ).thenReturn( null );
-        when( eventDataQueryService.getQueryItem( deDimensionIdentifier.getDimension().getUid(),
-            deDimensionIdentifier.getProgram().getElement(), TRACKED_ENTITY_INSTANCE ) )
-            .thenReturn( anyQueryItem );
+    when(dataQueryService.getUserOrgUnits(null, aCommonQueryRequest.getUserOrgUnit()))
+        .thenReturn(organisationUnits);
+    when(programService.getPrograms(aCommonQueryRequest.getProgram())).thenReturn(programs);
+    when(dimensionIdentifierConverter.fromString(programs, dimension))
+        .thenReturn(deDimensionIdentifier);
+    when((dataQueryService.getDimension(
+            deDimensionIdentifier.getDimension().getUid(),
+            asList(queryItem),
+            aCommonQueryRequest.getRelativePeriodDate(),
+            organisationUnits,
+            true,
+            aCommonQueryRequest.getDisplayProperty(),
+            UID)))
+        .thenReturn(null);
+    when(eventDataQueryService.getQueryItem(
+            deDimensionIdentifier.getDimension().getUid(),
+            deDimensionIdentifier.getProgram().getElement(),
+            TRACKED_ENTITY_INSTANCE))
+        .thenReturn(anyQueryItem);
 
-        // When
-        CommonParams params = new CommonQueryRequestMapper( dataQueryService, eventDataQueryService, programService,
-            dimensionIdentifierConverter ).map( aCommonQueryRequest );
+    // When
+    CommonParams params =
+        new CommonQueryRequestMapper(
+                dataQueryService,
+                eventDataQueryService,
+                programService,
+                dimensionIdentifierConverter)
+            .map(aCommonQueryRequest);
 
-        // Then
-        assertEquals( 2, params.getPrograms().size(), "Should contain 2 programs." );
-        assertEquals( "lxAQ7Zs9VYR", params.getPrograms().get( 0 ).getUid(), "First program should be lxAQ7Zs9VYR." );
-        assertEquals( "ur1Edk5Oe2n", params.getPrograms().get( 1 ).getUid(), "Second program should be ur1Edk5Oe2n." );
-        assertEquals( 1, params.getDimensionIdentifiers().size(), "Should contain 1 identifier." );
-        assertTrue( params.getDimensionIdentifiers().get( 0 ).hasProgram(), "Should contain 1 program." );
-        assertTrue( params.getDimensionIdentifiers().get( 0 ).hasProgramStage(),
-            "Should contain 1 program stage." );
-        assertNull( params.getDimensionIdentifiers().get( 0 ).getDimension().getDimensionalObject(),
-            "Dimensional object should be null." );
-        assertEquals( 1, params.getDimensionIdentifiers().get( 0 ).getProgram().getOffset(),
-            "Program offset should be 1." );
-        assertEquals( 2, params.getDimensionIdentifiers().get( 0 ).getProgramStage().getOffset(),
-            "ProgramStage offset should be 2." );
-        assertFalse( params.getPagingParams().isEmpty(), "Paging and sorting should not be empty." );
-    }
+    // Then
+    assertEquals(2, params.getPrograms().size(), "Should contain 2 programs.");
+    assertEquals(
+        "lxAQ7Zs9VYR",
+        params.getPrograms().get(0).getUid(),
+        "First program should be lxAQ7Zs9VYR.");
+    assertEquals(
+        "ur1Edk5Oe2n",
+        params.getPrograms().get(1).getUid(),
+        "Second program should be ur1Edk5Oe2n.");
+    assertEquals(1, params.getDimensionIdentifiers().size(), "Should contain 1 identifier.");
+    assertTrue(params.getDimensionIdentifiers().get(0).hasProgram(), "Should contain 1 program.");
+    assertTrue(
+        params.getDimensionIdentifiers().get(0).hasProgramStage(),
+        "Should contain 1 program stage.");
+    assertNull(
+        params.getDimensionIdentifiers().get(0).getDimension().getDimensionalObject(),
+        "Dimensional object should be null.");
+    assertEquals(
+        1,
+        params.getDimensionIdentifiers().get(0).getProgram().getOffset(),
+        "Program offset should be 1.");
+    assertEquals(
+        2,
+        params.getDimensionIdentifiers().get(0).getProgramStage().getOffset(),
+        "ProgramStage offset should be 2.");
+    assertFalse(params.getPagingParams().isEmpty(), "Paging and sorting should not be empty.");
+  }
 
-    @Test
-    void mapWhenDimensionIsNotObjectAndProgramAndStageAreNotSet()
-    {
-        // Given
-        String queryItem = "EQ:john";
-        String nonFullyQualifiedDimension = "yLIPuJHRgey";
+  @Test
+  void mapWhenDimensionIsNotObjectAndProgramAndStageAreNotSet() {
+    // Given
+    String queryItem = "EQ:john";
+    String nonFullyQualifiedDimension = "yLIPuJHRgey";
 
-        List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
-            new OrganisationUnit( "org-2" ) );
-        List<Program> noPrograms = emptyList();
+    List<OrganisationUnit> organisationUnits =
+        List.of(new OrganisationUnit("org-1"), new OrganisationUnit("org-2"));
+    List<Program> noPrograms = emptyList();
 
-        DimensionIdentifier<StringUid> deDimensionIdentifier = DimensionIdentifier.of(
+    DimensionIdentifier<StringUid> deDimensionIdentifier =
+        DimensionIdentifier.of(
             null, // The null program
             null, // The null stage
-            StringUid.of( nonFullyQualifiedDimension ) );
+            StringUid.of(nonFullyQualifiedDimension));
 
-        CommonQueryRequest aCommonQueryRequest = new CommonQueryRequest()
-            .withUserOrgUnit( "PEZNsGbZaVJ" )
-            .withDimension( new HashSet<>( asList( nonFullyQualifiedDimension + ":" + queryItem ) ) );
+    CommonQueryRequest aCommonQueryRequest =
+        new CommonQueryRequest()
+            .withUserOrgUnit("PEZNsGbZaVJ")
+            .withDimension(new HashSet<>(asList(nonFullyQualifiedDimension + ":" + queryItem)));
 
-        CommonQueryRequestMapper commonQueryRequestMapper = new CommonQueryRequestMapper( dataQueryService,
-            eventDataQueryService, programService, dimensionIdentifierConverter );
+    CommonQueryRequestMapper commonQueryRequestMapper =
+        new CommonQueryRequestMapper(
+            dataQueryService, eventDataQueryService, programService, dimensionIdentifierConverter);
 
-        when( dataQueryService.getUserOrgUnits( null, aCommonQueryRequest.getUserOrgUnit() ) )
-            .thenReturn( organisationUnits );
-        when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( noPrograms );
-        when( dimensionIdentifierConverter.fromString( noPrograms, nonFullyQualifiedDimension ) )
-            .thenReturn( deDimensionIdentifier );
-        when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
-            asList( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true,
-            aCommonQueryRequest.getDisplayProperty(), UID )) ).thenReturn( null );
+    when(dataQueryService.getUserOrgUnits(null, aCommonQueryRequest.getUserOrgUnit()))
+        .thenReturn(organisationUnits);
+    when(programService.getPrograms(aCommonQueryRequest.getProgram())).thenReturn(noPrograms);
+    when(dimensionIdentifierConverter.fromString(noPrograms, nonFullyQualifiedDimension))
+        .thenReturn(deDimensionIdentifier);
+    when((dataQueryService.getDimension(
+            deDimensionIdentifier.getDimension().getUid(),
+            asList(queryItem),
+            aCommonQueryRequest.getRelativePeriodDate(),
+            organisationUnits,
+            true,
+            aCommonQueryRequest.getDisplayProperty(),
+            UID)))
+        .thenReturn(null);
 
-        // When
-        IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> commonQueryRequestMapper.map( aCommonQueryRequest ) );
+    // When
+    IllegalQueryException thrown =
+        assertThrows(
+            IllegalQueryException.class, () -> commonQueryRequestMapper.map(aCommonQueryRequest));
 
-        // Then
-        assertEquals( "Dimension is not a fully qualified: `yLIPuJHRgey`", thrown.getMessage(),
-            "Exception message does not match." );
-    }
+    // Then
+    assertEquals(
+        "Dimension is not a fully qualified: `yLIPuJHRgey`",
+        thrown.getMessage(),
+        "Exception message does not match.");
+  }
 
-    @Test
-    void mapWhenOrIsUsed()
-    {
-        // Given
-        Program program1 = new Program( "prg-1" );
-        program1.setUid( "lxAQ7Zs9VYR" );
-        Program program2 = new Program( "prg-2" );
-        program2.setUid( "ur1Edk5Oe2n" );
+  @Test
+  void mapWhenOrIsUsed() {
+    // Given
+    Program program1 = new Program("prg-1");
+    program1.setUid("lxAQ7Zs9VYR");
+    Program program2 = new Program("prg-2");
+    program2.setUid("ur1Edk5Oe2n");
 
-        ProgramStage programStage1 = new ProgramStage( "ps-1", program1 );
-        String queryItem_1 = "EQ:john";
-        String queryItem_2 = "EQ:joe";
-        String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
+    ProgramStage programStage1 = new ProgramStage("ps-1", program1);
+    String queryItem_1 = "EQ:john";
+    String queryItem_2 = "EQ:joe";
+    String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
 
-        List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
-            new OrganisationUnit( "org-2" ) );
-        List<Program> programs = List.of( program1, program2 );
+    List<OrganisationUnit> organisationUnits =
+        List.of(new OrganisationUnit("org-1"), new OrganisationUnit("org-2"));
+    List<Program> programs = List.of(program1, program2);
 
-        DimensionIdentifier<StringUid> deDimensionIdentifier = DimensionIdentifier.of(
-            ElementWithOffset.of( program1, 1 ),
-            ElementWithOffset.of( programStage1, 2 ),
-            StringUid.of( "yLIPuJHRgey" ) );
+    DimensionIdentifier<StringUid> deDimensionIdentifier =
+        DimensionIdentifier.of(
+            ElementWithOffset.of(program1, 1),
+            ElementWithOffset.of(programStage1, 2),
+            StringUid.of("yLIPuJHRgey"));
 
-        BaseDimensionalObject dimensionalObject = new BaseDimensionalObject(
-            deDimensionIdentifier.getDimension().getUid(), DATA_X, null, DISPLAY_NAME_DATA_X,
-            emptyList(), new DimensionItemKeywords() );
+    BaseDimensionalObject dimensionalObject =
+        new BaseDimensionalObject(
+            deDimensionIdentifier.getDimension().getUid(),
+            DATA_X,
+            null,
+            DISPLAY_NAME_DATA_X,
+            emptyList(),
+            new DimensionItemKeywords());
 
-        CommonQueryRequest aCommonQueryRequest = new CommonQueryRequest()
-            .withUserOrgUnit( "PEZNsGbZaVJ" )
-            .withProgram( Set.of( "ur1Edk5Oe2n", "lxAQ7Zs9VYR" ) )
+    CommonQueryRequest aCommonQueryRequest =
+        new CommonQueryRequest()
+            .withUserOrgUnit("PEZNsGbZaVJ")
+            .withProgram(Set.of("ur1Edk5Oe2n", "lxAQ7Zs9VYR"))
             .withDimension(
-                new HashSet<>( asList(
-                    dimension + ":" + queryItem_1 + DIMENSION_OR_SEPARATOR + dimension + ":" + queryItem_2 ) ) );
+                new HashSet<>(
+                    asList(
+                        dimension
+                            + ":"
+                            + queryItem_1
+                            + DIMENSION_OR_SEPARATOR
+                            + dimension
+                            + ":"
+                            + queryItem_2)));
 
-        when( dataQueryService.getUserOrgUnits( null, aCommonQueryRequest.getUserOrgUnit() ) )
-            .thenReturn( organisationUnits );
-        when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
-        when( dimensionIdentifierConverter.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
+    when(dataQueryService.getUserOrgUnits(null, aCommonQueryRequest.getUserOrgUnit()))
+        .thenReturn(organisationUnits);
+    when(programService.getPrograms(aCommonQueryRequest.getProgram())).thenReturn(programs);
+    when(dimensionIdentifierConverter.fromString(programs, dimension))
+        .thenReturn(deDimensionIdentifier);
 
-        Stream.of( queryItem_1, queryItem_2 )
-            .forEach( s -> when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
-                asList( s ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true,
-                aCommonQueryRequest.getDisplayProperty(), UID )) ).thenReturn( dimensionalObject ) );
+    Stream.of(queryItem_1, queryItem_2)
+        .forEach(
+            s ->
+                when((dataQueryService.getDimension(
+                        deDimensionIdentifier.getDimension().getUid(),
+                        asList(s),
+                        aCommonQueryRequest.getRelativePeriodDate(),
+                        organisationUnits,
+                        true,
+                        aCommonQueryRequest.getDisplayProperty(),
+                        UID)))
+                    .thenReturn(dimensionalObject));
 
-        // When
-        CommonParams params = new CommonQueryRequestMapper( dataQueryService, eventDataQueryService, programService,
-            dimensionIdentifierConverter ).map( aCommonQueryRequest );
+    // When
+    CommonParams params =
+        new CommonQueryRequestMapper(
+                dataQueryService,
+                eventDataQueryService,
+                programService,
+                dimensionIdentifierConverter)
+            .map(aCommonQueryRequest);
 
-        Set<String> groups = params.getDimensionIdentifiers().stream()
-            .map( DimensionIdentifier::getGroupId )
-            .collect( Collectors.toSet() );
-        // Then
-        assertThat( groups, hasSize( 1 ) );
-        assertThat( params.getDimensionIdentifiers(), hasSize( 2 ) );
-    }
+    Set<String> groups =
+        params.getDimensionIdentifiers().stream()
+            .map(DimensionIdentifier::getGroupId)
+            .collect(Collectors.toSet());
+    // Then
+    assertThat(groups, hasSize(1));
+    assertThat(params.getDimensionIdentifiers(), hasSize(2));
+  }
 }

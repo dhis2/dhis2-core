@@ -30,10 +30,8 @@ package org.hisp.dhis.webapi.security.apikey;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ApiTokenConstraintsValidationFailedException extends ApiTokenAuthenticationException
-{
-    public ApiTokenConstraintsValidationFailedException( String msg )
-    {
-        super( ApiTokenErrors.invalidToken( msg ) );
-    }
+public class ApiTokenConstraintsValidationFailedException extends ApiTokenAuthenticationException {
+  public ApiTokenConstraintsValidationFailedException(String msg) {
+    super(ApiTokenErrors.invalidToken(msg));
+  }
 }

@@ -44,96 +44,89 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-class TrackerOwnershipManagerTest extends IntegrationTestBase
-{
+class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
-    @Autowired
-    private TrackerOwnershipManager trackerOwnershipAccessManager;
+  @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Autowired
-    private TrackedEntityService entityInstanceService;
+  @Autowired private TrackedEntityService entityInstanceService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    private TrackedEntity entityInstanceA1;
+  private TrackedEntity entityInstanceA1;
 
-    private TrackedEntity entityInstanceB1;
+  private TrackedEntity entityInstanceB1;
 
-    private OrganisationUnit organisationUnitA;
+  private OrganisationUnit organisationUnitA;
 
-    private OrganisationUnit organisationUnitB;
+  private OrganisationUnit organisationUnitB;
 
-    private Program programA;
+  private Program programA;
 
-    private User userA;
+  private User userA;
 
-    private User userB;
+  private User userB;
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        userService = _userService;
-        preCreateInjectAdminUser();
+  @Override
+  protected void setUpTest() throws Exception {
+    userService = _userService;
+    preCreateInjectAdminUser();
 
-        organisationUnitA = createOrganisationUnit( 'A' );
-        organisationUnitService.addOrganisationUnit( organisationUnitA );
-        organisationUnitB = createOrganisationUnit( 'B' );
-        organisationUnitService.addOrganisationUnit( organisationUnitB );
+    organisationUnitA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(organisationUnitA);
+    organisationUnitB = createOrganisationUnit('B');
+    organisationUnitService.addOrganisationUnit(organisationUnitB);
 
-        entityInstanceA1 = createTrackedEntity( organisationUnitA );
-        entityInstanceB1 = createTrackedEntity( organisationUnitB );
-        entityInstanceService.addTrackedEntity( entityInstanceA1 );
-        entityInstanceService.addTrackedEntity( entityInstanceB1 );
-        programA = createProgram( 'A' );
-        programA.setAccessLevel( AccessLevel.PROTECTED );
-        programService.addProgram( programA );
+    entityInstanceA1 = createTrackedEntity(organisationUnitA);
+    entityInstanceB1 = createTrackedEntity(organisationUnitB);
+    entityInstanceService.addTrackedEntity(entityInstanceA1);
+    entityInstanceService.addTrackedEntity(entityInstanceB1);
+    programA = createProgram('A');
+    programA.setAccessLevel(AccessLevel.PROTECTED);
+    programService.addProgram(programA);
 
-        userA = createUserWithAuth( "userA" );
-        userA.addOrganisationUnit( organisationUnitA );
-        userService.updateUser( userA );
-        userB = createUserWithAuth( "userB" );
-        userB.addOrganisationUnit( organisationUnitB );
-        userService.updateUser( userB );
-    }
+    userA = createUserWithAuth("userA");
+    userA.addOrganisationUnit(organisationUnitA);
+    userService.updateUser(userA);
+    userB = createUserWithAuth("userB");
+    userB.addOrganisationUnit(organisationUnitB);
+    userService.updateUser(userB);
+  }
 
-    @Test
-    void testAssignOwnership()
-    {
-        assertTrue( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ) );
-        assertFalse( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programA ) );
-        assertTrue( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceB1, programA ) );
-        trackerOwnershipAccessManager.assignOwnership( entityInstanceA1, programA, organisationUnitB, false, true );
-        assertFalse( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ) );
-        assertTrue( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programA ) );
-    }
+  @Test
+  void testAssignOwnership() {
+    assertTrue(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceA1, programA));
+    assertFalse(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
+    assertTrue(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceB1, programA));
+    trackerOwnershipAccessManager.assignOwnership(
+        entityInstanceA1, programA, organisationUnitB, false, true);
+    assertFalse(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceA1, programA));
+    assertTrue(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
+  }
 
-    @Test
-    void testGrantTemporaryOwnershipWithAudit()
-    {
-        assertTrue( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ) );
-        assertFalse( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programA ) );
-        trackerOwnershipAccessManager.grantTemporaryOwnership( entityInstanceA1, programA, userB, "testing reason" );
-        assertTrue( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ) );
-        assertTrue( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ) );
-        assertTrue( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programA ) );
-    }
+  @Test
+  void testGrantTemporaryOwnershipWithAudit() {
+    assertTrue(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceA1, programA));
+    assertFalse(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
+    trackerOwnershipAccessManager.grantTemporaryOwnership(
+        entityInstanceA1, programA, userB, "testing reason");
+    assertTrue(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceA1, programA));
+    assertTrue(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceA1, programA));
+    assertTrue(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
+  }
 
-    @Test
-    void testTransferOwnership()
-    {
-        trackerOwnershipAccessManager.assignOwnership( entityInstanceA1, programA, organisationUnitA, false, true );
-        assertTrue( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ) );
-        assertFalse( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programA ) );
-        trackerOwnershipAccessManager.transferOwnership( entityInstanceA1, programA, organisationUnitB, false, true );
-        assertFalse( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ) );
-        assertTrue( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programA ) );
-    }
+  @Test
+  void testTransferOwnership() {
+    trackerOwnershipAccessManager.assignOwnership(
+        entityInstanceA1, programA, organisationUnitA, false, true);
+    assertTrue(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceA1, programA));
+    assertFalse(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
+    trackerOwnershipAccessManager.transferOwnership(
+        entityInstanceA1, programA, organisationUnitB, false, true);
+    assertFalse(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceA1, programA));
+    assertTrue(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
+  }
 }

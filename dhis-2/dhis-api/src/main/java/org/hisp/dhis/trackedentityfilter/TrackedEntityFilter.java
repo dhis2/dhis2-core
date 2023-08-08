@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.trackedentityfilter;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -41,221 +45,171 @@ import org.hisp.dhis.programstagefilter.DateFilterPeriod;
 import org.hisp.dhis.programstagefilter.DatePeriodType;
 import org.hisp.dhis.translation.Translatable;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
-@JacksonXmlRootElement( localName = "trackedEntityFilter", namespace = DxfNamespaces.DXF_2_0 )
-public class TrackedEntityFilter
-    extends BaseIdentifiableObject
-    implements MetadataObject
-{
+@JacksonXmlRootElement(localName = "trackedEntityFilter", namespace = DxfNamespaces.DXF_2_0)
+public class TrackedEntityFilter extends BaseIdentifiableObject implements MetadataObject {
 
-    /**
-     * Property indicating program's of trackedEntityFilter
-     */
-    private Program program;
+  /** Property indicating program's of trackedEntityFilter */
+  private Program program;
 
-    /**
-     * Property indicating description of trackedEntityFilter
-     */
-    private String description;
+  /** Property indicating description of trackedEntityFilter */
+  private String description;
 
-    /**
-     * Property indicating the filter's order in tracked entity instance search
-     * UI
-     */
-    private int sortOrder;
+  /** Property indicating the filter's order in tracked entity instance search UI */
+  private int sortOrder;
 
-    /**
-     * Property indicating the filter's rendering style
-     */
-    private ObjectStyle style;
+  /** Property indicating the filter's rendering style */
+  private ObjectStyle style;
 
-    /**
-     * Property to filter tracked entity instances based on event dates and
-     * statues
-     */
-    private List<EventFilter> eventFilters = new ArrayList<>();
+  /** Property to filter tracked entity instances based on event dates and statues */
+  private List<EventFilter> eventFilters = new ArrayList<>();
 
-    private EntityQueryCriteria entityQueryCriteria;
+  private EntityQueryCriteria entityQueryCriteria;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public TrackedEntityFilter()
-    {
+  public TrackedEntityFilter() {}
 
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
+
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Program getProgram() {
+    return program;
+  }
+
+  public void setProgram(Program program) {
+    this.program = program;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "description", key = "DESCRIPTION")
+  public String getDisplayDescription() {
+    return getTranslation("DESCRIPTION", getDescription());
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ObjectStyle getStyle() {
+    return style;
+  }
+
+  public void setStyle(ObjectStyle style) {
+    this.style = style;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getSortOrder() {
+    return sortOrder;
+  }
+
+  public void setSortOrder(int sortOrder) {
+    this.sortOrder = sortOrder;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ProgramStatus getEnrollmentStatus() {
+    if (this.entityQueryCriteria != null) {
+      return entityQueryCriteria.getEnrollmentStatus();
+    }
+    return null;
+  }
+
+  public void setEnrollmentStatus(ProgramStatus enrollmentStatus) {
+    if (this.entityQueryCriteria == null) {
+      this.entityQueryCriteria = new EntityQueryCriteria();
+    }
+    this.entityQueryCriteria.setEnrollmentStatus(enrollmentStatus);
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean isFollowup() {
+    if (this.entityQueryCriteria != null) {
+      return entityQueryCriteria.getFollowUp();
+    }
+    return false;
+  }
+
+  public void setFollowup(Boolean followup) {
+    if (this.entityQueryCriteria == null) {
+      this.entityQueryCriteria = new EntityQueryCriteria();
+    }
+    this.entityQueryCriteria.setFollowUp(followup);
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public FilterPeriod getEnrollmentCreatedPeriod() {
+    if (this.entityQueryCriteria != null
+        && this.entityQueryCriteria.getEnrollmentCreatedDate() != null
+        && this.entityQueryCriteria.getEnrollmentCreatedDate().getType()
+            == DatePeriodType.RELATIVE) {
+      DateFilterPeriod enrollmentCreatedDate = this.entityQueryCriteria.getEnrollmentCreatedDate();
+      FilterPeriod enrollmentCreatedPeriod = new FilterPeriod();
+      enrollmentCreatedPeriod.setPeriodFrom(enrollmentCreatedDate.getStartBuffer());
+      enrollmentCreatedPeriod.setPeriodTo(enrollmentCreatedDate.getEndBuffer());
+      return enrollmentCreatedPeriod;
+    }
+    return null;
+  }
+
+  public void setEnrollmentCreatedPeriod(FilterPeriod enrollmentCreatedPeriod) {
+    if (enrollmentCreatedPeriod == null) {
+      return;
     }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Program getProgram()
-    {
-        return program;
+    if (this.entityQueryCriteria == null) {
+      this.entityQueryCriteria = new EntityQueryCriteria();
     }
 
-    public void setProgram( Program program )
-    {
-        this.program = program;
-    }
+    DateFilterPeriod enrollmentCreatedDate = new DateFilterPeriod();
+    enrollmentCreatedDate.setStartBuffer(enrollmentCreatedPeriod.getPeriodFrom());
+    enrollmentCreatedDate.setEndBuffer(enrollmentCreatedPeriod.getPeriodTo());
+    enrollmentCreatedDate.setType(DatePeriodType.RELATIVE);
+    enrollmentCreatedDate.setPeriod(RelativePeriodEnum.TODAY);
+    this.entityQueryCriteria.setEnrollmentCreatedDate(enrollmentCreatedDate);
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDescription()
-    {
-        return description;
-    }
+  @JsonProperty("eventFilters")
+  @JacksonXmlElementWrapper(localName = "eventFilters", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "eventFilters", namespace = DxfNamespaces.DXF_2_0)
+  public List<EventFilter> getEventFilters() {
+    return eventFilters;
+  }
 
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
+  public void setEventFilters(List<EventFilter> eventFilters) {
+    this.eventFilters = eventFilters;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "description", key = "DESCRIPTION" )
-    public String getDisplayDescription()
-    {
-        return getTranslation( "DESCRIPTION", getDescription() );
-    }
+  @JsonProperty("entityQueryCriteria")
+  @JacksonXmlElementWrapper(localName = "entityQueryCriteria", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "entityQueryCriteria", namespace = DxfNamespaces.DXF_2_0)
+  public EntityQueryCriteria getEntityQueryCriteria() {
+    return entityQueryCriteria;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ObjectStyle getStyle()
-    {
-        return style;
-    }
-
-    public void setStyle( ObjectStyle style )
-    {
-        this.style = style;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getSortOrder()
-    {
-        return sortOrder;
-    }
-
-    public void setSortOrder( int sortOrder )
-    {
-        this.sortOrder = sortOrder;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramStatus getEnrollmentStatus()
-    {
-        if ( this.entityQueryCriteria != null )
-        {
-            return entityQueryCriteria.getEnrollmentStatus();
-        }
-        return null;
-    }
-
-    public void setEnrollmentStatus( ProgramStatus enrollmentStatus )
-    {
-        if ( this.entityQueryCriteria == null )
-        {
-            this.entityQueryCriteria = new EntityQueryCriteria();
-        }
-        this.entityQueryCriteria.setEnrollmentStatus( enrollmentStatus );
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean isFollowup()
-    {
-        if ( this.entityQueryCriteria != null )
-        {
-            return entityQueryCriteria.getFollowUp();
-        }
-        return false;
-    }
-
-    public void setFollowup( Boolean followup )
-    {
-        if ( this.entityQueryCriteria == null )
-        {
-            this.entityQueryCriteria = new EntityQueryCriteria();
-        }
-        this.entityQueryCriteria.setFollowUp( followup );
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public FilterPeriod getEnrollmentCreatedPeriod()
-    {
-        if ( this.entityQueryCriteria != null && this.entityQueryCriteria.getEnrollmentCreatedDate() != null &&
-            this.entityQueryCriteria.getEnrollmentCreatedDate().getType() == DatePeriodType.RELATIVE )
-        {
-            DateFilterPeriod enrollmentCreatedDate = this.entityQueryCriteria.getEnrollmentCreatedDate();
-            FilterPeriod enrollmentCreatedPeriod = new FilterPeriod();
-            enrollmentCreatedPeriod.setPeriodFrom( enrollmentCreatedDate.getStartBuffer() );
-            enrollmentCreatedPeriod.setPeriodTo( enrollmentCreatedDate.getEndBuffer() );
-            return enrollmentCreatedPeriod;
-        }
-        return null;
-    }
-
-    public void setEnrollmentCreatedPeriod( FilterPeriod enrollmentCreatedPeriod )
-    {
-        if ( enrollmentCreatedPeriod == null )
-        {
-            return;
-        }
-
-        if ( this.entityQueryCriteria == null )
-        {
-            this.entityQueryCriteria = new EntityQueryCriteria();
-        }
-
-        DateFilterPeriod enrollmentCreatedDate = new DateFilterPeriod();
-        enrollmentCreatedDate.setStartBuffer( enrollmentCreatedPeriod.getPeriodFrom() );
-        enrollmentCreatedDate.setEndBuffer( enrollmentCreatedPeriod.getPeriodTo() );
-        enrollmentCreatedDate.setType( DatePeriodType.RELATIVE );
-        enrollmentCreatedDate.setPeriod( RelativePeriodEnum.TODAY );
-        this.entityQueryCriteria.setEnrollmentCreatedDate( enrollmentCreatedDate );
-    }
-
-    @JsonProperty( "eventFilters" )
-    @JacksonXmlElementWrapper( localName = "eventFilters", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "eventFilters", namespace = DxfNamespaces.DXF_2_0 )
-    public List<EventFilter> getEventFilters()
-    {
-        return eventFilters;
-    }
-
-    public void setEventFilters( List<EventFilter> eventFilters )
-    {
-        this.eventFilters = eventFilters;
-    }
-
-    @JsonProperty( "entityQueryCriteria" )
-    @JacksonXmlElementWrapper( localName = "entityQueryCriteria", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "entityQueryCriteria", namespace = DxfNamespaces.DXF_2_0 )
-    public EntityQueryCriteria getEntityQueryCriteria()
-    {
-        return entityQueryCriteria;
-    }
-
-    public void setEntityQueryCriteria( EntityQueryCriteria entityQueryCriteria )
-    {
-        this.entityQueryCriteria = entityQueryCriteria;
-    }
-
+  public void setEntityQueryCriteria(EntityQueryCriteria entityQueryCriteria) {
+    this.entityQueryCriteria = entityQueryCriteria;
+  }
 }

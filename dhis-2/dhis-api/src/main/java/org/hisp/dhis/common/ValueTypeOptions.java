@@ -27,56 +27,44 @@
  */
 package org.hisp.dhis.common;
 
-import java.io.Serializable;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
 
 /**
- * An abstract class that have sub classes representing any number of options
- * for one or more ValueTypes e.g. {@link ValueType}.FILE_RESOURCE
+ * An abstract class that have sub classes representing any number of options for one or more
+ * ValueTypes e.g. {@link ValueType}.FILE_RESOURCE
  *
- * <p>
- * The sub classes will be serialized and persisted with Hibernate as a jsonb
- * Postgres value type, with the field <strong>'type'</strong> as the sub class
- * discriminator field, see: {@link JsonTypeInfo#property()} below.
+ * <p>The sub classes will be serialized and persisted with Hibernate as a jsonb Postgres value
+ * type, with the field <strong>'type'</strong> as the sub class discriminator field, see: {@link
+ * JsonTypeInfo#property()} below.
  *
- * <p>
- * See {@link org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType} for the
- * implementation of the custom Hibernate value type representing this object as
- * the jsonb value type in Postgres.
+ * <p>See {@link org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType} for the implementation of
+ * the custom Hibernate value type representing this object as the jsonb value type in Postgres.
  *
- * <p>
- * To make a new option class, extend this class and add a
- * {@link com.fasterxml.jackson.annotation.JsonSubTypes.Type} line in the
- * {@link JsonSubTypes#value()} list in this file. Point to the implementation
- * in the {@link JsonSubTypes.Type#value()} attribute and what discriminator
- * value it has in the {@link JsonSubTypes.Type#name()} attribute. The new
- * option class must be annotated with {@link JsonTypeName#value()} and have the
- * same value as the: {@link JsonSubTypes.Type#name()} attribute in this file.
+ * <p>To make a new option class, extend this class and add a {@link
+ * com.fasterxml.jackson.annotation.JsonSubTypes.Type} line in the {@link JsonSubTypes#value()} list
+ * in this file. Point to the implementation in the {@link JsonSubTypes.Type#value()} attribute and
+ * what discriminator value it has in the {@link JsonSubTypes.Type#name()} attribute. The new option
+ * class must be annotated with {@link JsonTypeName#value()} and have the same value as the: {@link
+ * JsonSubTypes.Type#name()} attribute in this file.
  *
- * <p>
- * See: {@link FileTypeValueOptions} for an example of a sub class of this file.
+ * <p>See: {@link FileTypeValueOptions} for an example of a sub class of this file.
  *
- * <p>
- * See {@link org.hisp.dhis.dataelement.DataElement} for an example of a class
- * that uses ValueTypeOptions to complement it's ValueType.
+ * <p>See {@link org.hisp.dhis.dataelement.DataElement} for an example of a class that uses
+ * ValueTypeOptions to complement it's ValueType.
  *
  * @see FileTypeValueOptions
  * @see ValueType
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@JsonInclude( )
-@JsonTypeInfo( use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.WRAPPER_OBJECT )
-@JsonSubTypes( {
-    @JsonSubTypes.Type( value = FileTypeValueOptions.class ),
-} )
-@JacksonXmlRootElement( localName = "valueTypeOptions", namespace = DxfNamespaces.DXF_2_0 )
-public abstract class ValueTypeOptions implements Serializable
-{
-
-}
+@JsonInclude()
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.WRAPPER_OBJECT)
+@JsonSubTypes({
+  @JsonSubTypes.Type(value = FileTypeValueOptions.class),
+})
+@JacksonXmlRootElement(localName = "valueTypeOptions", namespace = DxfNamespaces.DXF_2_0)
+public abstract class ValueTypeOptions implements Serializable {}

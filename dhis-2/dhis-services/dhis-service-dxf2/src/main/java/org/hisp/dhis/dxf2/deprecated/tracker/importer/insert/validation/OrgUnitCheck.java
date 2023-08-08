@@ -37,12 +37,12 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class OrgUnitCheck implements Checker
-{
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
-    {
-        return checkNull( ctx.getOrganisationUnitMap().get( event.getUid() ),
-            "Event.orgUnit does not point to a valid organisation unit: " + event.getOrgUnit(), event );
-    }
+public class OrgUnitCheck implements Checker {
+  @Override
+  public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
+    return checkNull(
+        ctx.getOrganisationUnitMap().get(event.getUid()),
+        "Event.orgUnit does not point to a valid organisation unit: " + event.getOrgUnit(),
+        event);
+  }
 }

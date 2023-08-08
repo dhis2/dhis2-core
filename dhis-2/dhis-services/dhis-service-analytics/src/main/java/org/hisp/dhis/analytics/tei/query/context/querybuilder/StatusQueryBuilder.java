@@ -38,9 +38,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
 import lombok.Getter;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -56,69 +54,68 @@ import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilderAdaptor;
 import org.springframework.stereotype.Service;
 
 @Service
-public class StatusQueryBuilder extends SqlQueryBuilderAdaptor
-{
-    /** The supported status dimensions. */
-    private static final Collection<DimensionParam.StaticDimension> SUPPORTED_STATUS_DIMENSIONS = List.of(
-        ENROLLMENT_STATUS, EVENT_STATUS );
+public class StatusQueryBuilder extends SqlQueryBuilderAdaptor {
+  /** The supported status dimensions. */
+  private static final Collection<DimensionParam.StaticDimension> SUPPORTED_STATUS_DIMENSIONS =
+      List.of(ENROLLMENT_STATUS, EVENT_STATUS);
 
-    @Getter
-    private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters = List
-        .of( StatusQueryBuilder::isStatusDimension );
+  @Getter
+  private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters =
+      List.of(StatusQueryBuilder::isStatusDimension);
 
-    @Getter
-    private final List<Predicate<AnalyticsSortingParams>> sortingFilters = List.of(
-        sortingParams -> isStatusDimension( sortingParams.getOrderBy() ) );
+  @Getter
+  private final List<Predicate<AnalyticsSortingParams>> sortingFilters =
+      List.of(sortingParams -> isStatusDimension(sortingParams.getOrderBy()));
 
-    private static boolean isStatusDimension( DimensionIdentifier<DimensionParam> dimensionIdentifier )
-    {
-        return Optional.of( dimensionIdentifier )
-            .map( DimensionIdentifier::getDimension )
-            .map( DimensionParam::getStaticDimension )
-            .filter( SUPPORTED_STATUS_DIMENSIONS::contains )
-            .isPresent();
-    }
+  private static boolean isStatusDimension(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return Optional.of(dimensionIdentifier)
+        .map(DimensionIdentifier::getDimension)
+        .map(DimensionParam::getStaticDimension)
+        .filter(SUPPORTED_STATUS_DIMENSIONS::contains)
+        .isPresent();
+  }
 
-    @Override
-    public RenderableSqlQuery buildSqlQuery( QueryContext ctx,
-        List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
-        List<AnalyticsSortingParams> acceptedSortingParams )
-    {
-        RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
+  @Override
+  public RenderableSqlQuery buildSqlQuery(
+      QueryContext ctx,
+      List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
+      List<AnalyticsSortingParams> acceptedSortingParams) {
+    RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
-        Stream.concat( acceptedDimensions.stream(), acceptedSortingParams.stream()
-            .map( AnalyticsSortingParams::getOrderBy ) )
-            .map( dimensionIdentifier -> {
-                String field = dimensionIdentifier.getDimension().getStaticDimension().getColumnName();
-                String prefix = getPrefix( dimensionIdentifier, false );
+    Stream.concat(
+            acceptedDimensions.stream(),
+            acceptedSortingParams.stream().map(AnalyticsSortingParams::getOrderBy))
+        .map(
+            dimensionIdentifier -> {
+              String field =
+                  dimensionIdentifier.getDimension().getStaticDimension().getColumnName();
+              String prefix = getPrefix(dimensionIdentifier, false);
 
-                return Field.ofUnquoted(
-                    doubleQuote( prefix ),
-                    () -> field,
-                    prefix + DIMENSION_SEPARATOR + field );
-            } )
-            .forEach( builder::selectField );
+              return Field.ofUnquoted(
+                  doubleQuote(prefix), () -> field, prefix + DIMENSION_SEPARATOR + field);
+            })
+        .forEach(builder::selectField);
 
-        acceptedDimensions.stream()
-            .map( dimensionIdentifier -> StatusCondition.of( dimensionIdentifier, ctx ) )
-            .map( GroupableCondition::ofUngroupedCondition )
-            .forEach( builder::groupableCondition );
+    acceptedDimensions.stream()
+        .map(dimensionIdentifier -> StatusCondition.of(dimensionIdentifier, ctx))
+        .map(GroupableCondition::ofUngroupedCondition)
+        .forEach(builder::groupableCondition);
 
-        acceptedSortingParams
-            .forEach( sortingParam -> {
-                DimensionIdentifier<DimensionParam> dimensionIdentifier = sortingParam.getOrderBy();
-                String fieldName = dimensionIdentifier.getDimension().getStaticDimension().getColumnName();
+    acceptedSortingParams.forEach(
+        sortingParam -> {
+          DimensionIdentifier<DimensionParam> dimensionIdentifier = sortingParam.getOrderBy();
+          String fieldName =
+              dimensionIdentifier.getDimension().getStaticDimension().getColumnName();
 
-                Field field = Field.ofUnquoted(
-                    getPrefix( sortingParam.getOrderBy() ),
-                    () -> fieldName, StringUtils.EMPTY );
-                builder.orderClause(
-                    IndexedOrder.of(
-                        sortingParam.getIndex(),
-                        Order.of( field,
-                            sortingParam.getSortDirection() ) ) );
-            } );
+          Field field =
+              Field.ofUnquoted(
+                  getPrefix(sortingParam.getOrderBy()), () -> fieldName, StringUtils.EMPTY);
+          builder.orderClause(
+              IndexedOrder.of(
+                  sortingParam.getIndex(), Order.of(field, sortingParam.getSortDirection())));
+        });
 
-        return builder.build();
-    }
+    return builder.build();
+  }
 }

@@ -27,101 +27,86 @@
  */
 package org.hisp.dhis.appmanager.webmodules;
 
-import lombok.Data;
-
-import org.hisp.dhis.appmanager.App;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import org.hisp.dhis.appmanager.App;
 
 /**
  * @author Torgeir Lorange Ostby
  */
-
 @Data
-public class WebModule
-{
-    @JsonProperty
-    private String name;
+public class WebModule {
+  @JsonProperty private String name;
 
-    @JsonProperty
-    private String namespace;
+  @JsonProperty private String namespace;
 
-    @JsonProperty
-    private String defaultAction;
+  @JsonProperty private String defaultAction;
 
-    @JsonProperty
-    private String displayName;
+  @JsonProperty private String displayName;
 
-    @JsonProperty
-    private String icon;
+  @JsonProperty private String icon;
 
-    @JsonProperty
-    private String description;
+  @JsonProperty private String description;
 
-    public WebModule()
-    {
+  public WebModule() {}
+
+  public WebModule(String name) {
+    this.name = name;
+  }
+
+  public WebModule(String name, String namespace) {
+    this(name, namespace, null);
+  }
+
+  public WebModule(String name, String namespace, String defaultAction) {
+    this.name = name;
+    this.namespace = namespace;
+    this.defaultAction = defaultAction;
+  }
+
+  public static WebModule getModule(App app) {
+    boolean hasIcon = app.getIcons() != null && app.getIcons().getIcon48() != null;
+
+    String defaultAction = app.getLaunchUrl();
+
+    String icon = hasIcon ? app.getBaseUrl() + "/" + app.getIcons().getIcon48() : null;
+
+    String description = subString(app.getDescription(), 0, 80);
+
+    WebModule module = new WebModule(app.getShortName(), app.getShortName(), defaultAction);
+    module.setIcon(icon);
+    module.setDescription(description);
+    module.setDisplayName(app.getName());
+
+    return module;
+  }
+
+  public static String subString(String string, int beginIndex, int length) {
+    if (string == null) {
+      return null;
     }
 
-    public WebModule( String name )
-    {
-        this.name = name;
+    final int endIndex = beginIndex + length;
+
+    if (beginIndex >= string.length()) {
+      return "";
     }
 
-    public WebModule( String name, String namespace )
-    {
-        this( name, namespace, null );
+    if (endIndex > string.length()) {
+      return string.substring(beginIndex, string.length());
     }
 
-    public WebModule( String name, String namespace, String defaultAction )
-    {
-        this.name = name;
-        this.namespace = namespace;
-        this.defaultAction = defaultAction;
-    }
+    return string.substring(beginIndex, endIndex);
+  }
 
-    public static WebModule getModule( App app )
-    {
-        boolean hasIcon = app.getIcons() != null && app.getIcons().getIcon48() != null;
-
-        String defaultAction = app.getLaunchUrl();
-
-        String icon = hasIcon ? app.getBaseUrl() + "/" + app.getIcons().getIcon48() : null;
-
-        String description = subString( app.getDescription(), 0, 80 );
-
-        WebModule module = new WebModule( app.getShortName(), app.getShortName(), defaultAction );
-        module.setIcon( icon );
-        module.setDescription( description );
-        module.setDisplayName( app.getName() );
-
-        return module;
-    }
-
-    public static String subString( String string, int beginIndex, int length )
-    {
-        if ( string == null )
-        {
-            return null;
-        }
-
-        final int endIndex = beginIndex + length;
-
-        if ( beginIndex >= string.length() )
-        {
-            return "";
-        }
-
-        if ( endIndex > string.length() )
-        {
-            return string.substring( beginIndex, string.length() );
-        }
-
-        return string.substring( beginIndex, endIndex );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "[Name: " + name + ", namespace: " + namespace + ", default action: " + defaultAction + "]";
-    }
+  @Override
+  public String toString() {
+    return "[Name: "
+        + name
+        + ", namespace: "
+        + namespace
+        + ", default action: "
+        + defaultAction
+        + "]";
+  }
 }

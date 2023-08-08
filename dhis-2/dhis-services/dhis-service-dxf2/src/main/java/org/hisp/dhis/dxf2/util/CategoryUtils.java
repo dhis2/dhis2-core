@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.dxf2.util;
 
+import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -41,103 +40,105 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
 @Slf4j
 @Component
-public class CategoryUtils
-{
+public class CategoryUtils {
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    @Autowired
-    private CategoryService categoryService;
+  @Autowired private CategoryService categoryService;
 
-    public ImportSummaries addAndPruneOptionCombos( CategoryCombo categoryCombo )
-    {
-        ImportSummaries importSummaries = new ImportSummaries();
+  public ImportSummaries addAndPruneOptionCombos(CategoryCombo categoryCombo) {
+    ImportSummaries importSummaries = new ImportSummaries();
 
-        if ( categoryCombo == null || !categoryCombo.isValid() )
-        {
-            log.warn( "Category combo is null or invalid, could not update option combos: " + categoryCombo );
-            importSummaries.addImportSummary( new ImportSummary( ImportStatus.ERROR,
-                "Category combo is null or invalid, could not update option combos: " + categoryCombo ) );
-            return importSummaries;
-        }
-
-        List<CategoryOptionCombo> generatedOptionCombos = categoryCombo.generateOptionCombosList();
-        Set<CategoryOptionCombo> persistedOptionCombos = Sets.newHashSet( categoryCombo.getOptionCombos() );
-
-        boolean modified = false;
-
-        for ( CategoryOptionCombo optionCombo : generatedOptionCombos )
-        {
-            if ( !persistedOptionCombos.contains( optionCombo ) )
-            {
-                categoryCombo.getOptionCombos().add( optionCombo );
-                categoryService.addCategoryOptionCombo( optionCombo );
-
-                log.info( "Added missing category option combo: " + optionCombo + " for category combo: "
-                    + categoryCombo.getName() );
-
-                ImportSummary importSummary = new ImportSummary();
-                importSummary.setDescription( "Added missing category option combo: (" + optionCombo.getName()
-                    + ") for category combo: " + categoryCombo.getName() );
-                importSummary.incrementImported();
-
-                importSummaries.addImportSummary( importSummary );
-
-                modified = true;
-            }
-        }
-
-        for ( CategoryOptionCombo optionCombo : persistedOptionCombos )
-        {
-            if ( !generatedOptionCombos.contains( optionCombo ) )
-            {
-                try
-                {
-                    categoryService.deleteCategoryOptionCombo( optionCombo );
-                    categoryCombo.getOptionCombos().remove( optionCombo );
-
-                    log.info( "Deleted obsolete category option combo: " + optionCombo.getName()
-                        + " for category combo: " + categoryCombo.getName() );
-
-                    ImportSummary importSummary = new ImportSummary();
-                    importSummary.setDescription( "Deleted obsolete category option combo: (" + optionCombo.getName()
-                        + ") for category combo: " + categoryCombo.getName() );
-                    importSummary.incrementDeleted();
-
-                    importSummaries.addImportSummary( importSummary );
-
-                    modified = true;
-                }
-                catch ( Exception ex )
-                {
-                    log.warn( "Could not delete category option combo: " + optionCombo );
-
-                    ImportSummary importSummary = new ImportSummary();
-                    importSummary.setStatus( ImportStatus.WARNING );
-                    importSummary
-                        .setDescription( "Could not delete category option combo: (" + optionCombo.getName() + ")" );
-                    importSummary.incrementIgnored();
-
-                    importSummaries.addImportSummary( importSummary );
-                }
-            }
-        }
-
-        if ( modified )
-        {
-            categoryService.updateCategoryCombo( categoryCombo );
-        }
-
-        return importSummaries;
+    if (categoryCombo == null || !categoryCombo.isValid()) {
+      log.warn(
+          "Category combo is null or invalid, could not update option combos: " + categoryCombo);
+      importSummaries.addImportSummary(
+          new ImportSummary(
+              ImportStatus.ERROR,
+              "Category combo is null or invalid, could not update option combos: "
+                  + categoryCombo));
+      return importSummaries;
     }
+
+    List<CategoryOptionCombo> generatedOptionCombos = categoryCombo.generateOptionCombosList();
+    Set<CategoryOptionCombo> persistedOptionCombos =
+        Sets.newHashSet(categoryCombo.getOptionCombos());
+
+    boolean modified = false;
+
+    for (CategoryOptionCombo optionCombo : generatedOptionCombos) {
+      if (!persistedOptionCombos.contains(optionCombo)) {
+        categoryCombo.getOptionCombos().add(optionCombo);
+        categoryService.addCategoryOptionCombo(optionCombo);
+
+        log.info(
+            "Added missing category option combo: "
+                + optionCombo
+                + " for category combo: "
+                + categoryCombo.getName());
+
+        ImportSummary importSummary = new ImportSummary();
+        importSummary.setDescription(
+            "Added missing category option combo: ("
+                + optionCombo.getName()
+                + ") for category combo: "
+                + categoryCombo.getName());
+        importSummary.incrementImported();
+
+        importSummaries.addImportSummary(importSummary);
+
+        modified = true;
+      }
+    }
+
+    for (CategoryOptionCombo optionCombo : persistedOptionCombos) {
+      if (!generatedOptionCombos.contains(optionCombo)) {
+        try {
+          categoryService.deleteCategoryOptionCombo(optionCombo);
+          categoryCombo.getOptionCombos().remove(optionCombo);
+
+          log.info(
+              "Deleted obsolete category option combo: "
+                  + optionCombo.getName()
+                  + " for category combo: "
+                  + categoryCombo.getName());
+
+          ImportSummary importSummary = new ImportSummary();
+          importSummary.setDescription(
+              "Deleted obsolete category option combo: ("
+                  + optionCombo.getName()
+                  + ") for category combo: "
+                  + categoryCombo.getName());
+          importSummary.incrementDeleted();
+
+          importSummaries.addImportSummary(importSummary);
+
+          modified = true;
+        } catch (Exception ex) {
+          log.warn("Could not delete category option combo: " + optionCombo);
+
+          ImportSummary importSummary = new ImportSummary();
+          importSummary.setStatus(ImportStatus.WARNING);
+          importSummary.setDescription(
+              "Could not delete category option combo: (" + optionCombo.getName() + ")");
+          importSummary.incrementIgnored();
+
+          importSummaries.addImportSummary(importSummary);
+        }
+      }
+    }
+
+    if (modified) {
+      categoryService.updateCategoryCombo(categoryCombo);
+    }
+
+    return importSummaries;
+  }
 }

@@ -30,65 +30,63 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import java.util.Set;
-
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for duplicated indicator types, namely those which have the same
- * factor.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/indicators/indicator_duplicate_types.yaml}
+ * Tests for duplicated indicator types, namely those which have the same factor. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/indicators/indicator_duplicate_types.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityIndicatorsDuplicatedFactorsControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityIndicatorsDuplicatedFactorsControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
 
-    private static final String check = "indicator_types_duplicated";
+  private static final String check = "indicator_types_duplicated";
 
-    private static final String detailsIdType = "indicatorTypes";
+  private static final String detailsIdType = "indicatorTypes";
 
-    @Test
-    void testDuplicatedIndicatorFactorsExist()
-    {
-        String IndicatorA = assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorTypes",
-                "{ 'name': 'Per cent', 'factor' : 100, 'number' : false }" ) );
+  @Test
+  void testDuplicatedIndicatorFactorsExist() {
+    String IndicatorA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/indicatorTypes", "{ 'name': 'Per cent', 'factor' : 100, 'number' : false }"));
 
-        String IndicatorB = assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorTypes",
-                "{ 'name': 'Per one hundred', 'factor' : 100, 'number' : false }" ) );
+    String IndicatorB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorTypes",
+                "{ 'name': 'Per one hundred', 'factor' : 100, 'number' : false }"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorTypes",
-                "{ 'name': 'Per thousand', 'factor' : 1000, 'number' : false }" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST("/indicatorTypes", "{ 'name': 'Per thousand', 'factor' : 1000, 'number' : false }"));
 
-        assertNamedMetadataObjectExists( "indicatorTypes", "Per cent" );
-        assertNamedMetadataObjectExists( "indicatorTypes", "Per one hundred" );
+    assertNamedMetadataObjectExists("indicatorTypes", "Per cent");
+    assertNamedMetadataObjectExists("indicatorTypes", "Per one hundred");
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 66, Set.of( IndicatorA, IndicatorB ),
-            Set.of(), Set.of(), true );
-    }
+    assertHasDataIntegrityIssues(
+        detailsIdType, check, 66, Set.of(IndicatorA, IndicatorB), Set.of(), Set.of(), true);
+  }
 
-    @Test
-    void testIndicatorFactorsUnique()
-    {
+  @Test
+  void testIndicatorFactorsUnique() {
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorTypes",
-                "{ 'name': 'Percent', 'factor' : 100, 'number' : false }" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST("/indicatorTypes", "{ 'name': 'Percent', 'factor' : 100, 'number' : false }"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorTypes",
-                "{ 'name': 'Per thousand', 'factor' : 1000, 'number' : false }" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST("/indicatorTypes", "{ 'name': 'Per thousand', 'factor' : 1000, 'number' : false }"));
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
-    }
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    @Test
-    void testDuplicatedIndicatorFactorsRuns()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-    }
-
+  @Test
+  void testDuplicatedIndicatorFactorsRuns() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 }

@@ -33,23 +33,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Custom icons are uploaded by users and can be modified and deleted.
- */
+/** Custom icons are uploaded by users and can be modified and deleted. */
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class CustomIcon implements Icon
-{
-    private String key;
+public class CustomIcon implements Icon {
+  private String key;
 
-    private String description;
+  private String description;
 
-    private String[] keywords;
+  private String[] keywords;
 
-    private String fileResourceUid;
+  private String fileResourceUid;
 
-    private String createdByUserUid;
+  private String createdByUserUid;
 }

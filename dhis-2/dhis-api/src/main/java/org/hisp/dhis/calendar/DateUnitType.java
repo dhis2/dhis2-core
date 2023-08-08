@@ -32,83 +32,70 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
 import org.hisp.dhis.period.PeriodTypeEnum;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum DateUnitType
-{
-    DAILY( PeriodTypeEnum.DAILY, List.of( "\\b(\\d{4})(\\d{2})(\\d{2})\\b", "\\b(\\d{4})-(\\d{2})-(\\d{2})\\b" ) ),
-    WEEKLY( PeriodTypeEnum.WEEKLY, "\\b(\\d{4})W(\\d[\\d]?)\\b" ),
-    WEEKLY_WEDNESDAY( PeriodTypeEnum.WEEKLY_WEDNESDAY, "\\b(\\d{4})WedW(\\d[\\d]?)\\b" ),
-    WEEKLY_THURSDAY( PeriodTypeEnum.WEEKLY_THURSDAY, "\\b(\\d{4})ThuW(\\d[\\d]?)\\b" ),
-    WEEKLY_SATURDAY( PeriodTypeEnum.WEEKLY_SATURDAY, "\\b(\\d{4})SatW(\\d[\\d]?)\\b" ),
-    WEEKLY_SUNDAY( PeriodTypeEnum.WEEKLY_SUNDAY, "\\b(\\d{4})SunW(\\d[\\d]?)\\b" ),
-    BI_WEEKLY( PeriodTypeEnum.BI_WEEKLY, "\\b(\\d{4})BiW(\\d[\\d]?)\\b" ),
-    MONTHLY( PeriodTypeEnum.MONTHLY, "\\b(\\d{4})[-]?(\\d{2})\\b" ),
-    BI_MONTHLY( PeriodTypeEnum.BI_MONTHLY, "\\b(\\d{4})(\\d{2})B\\b" ),
-    QUARTERLY( PeriodTypeEnum.QUARTERLY, "\\b(\\d{4})Q(\\d)\\b" ),
-    QUARTERLY_NOV( PeriodTypeEnum.QUARTERLY_NOV, "\\b(\\d{4})NovQ(\\d)\\b" ),
-    SIX_MONTHLY( PeriodTypeEnum.SIX_MONTHLY, "\\b(\\d{4})S(\\d)\\b" ),
-    SIX_MONTHLY_APRIL( PeriodTypeEnum.SIX_MONTHLY_APRIL, "\\b(\\d{4})AprilS(\\d)\\b" ),
-    SIX_MONTHLY_NOVEMBER( PeriodTypeEnum.SIX_MONTHLY_NOV, "\\b(\\d{4})NovS(\\d)\\b" ),
-    YEARLY( PeriodTypeEnum.YEARLY, "\\b(\\d{4})\\b" ),
-    FINANCIAL_APRIL( PeriodTypeEnum.FINANCIAL_APRIL, "\\b(\\d{4})April\\b" ),
-    FINANCIAL_JULY( PeriodTypeEnum.FINANCIAL_JULY, "\\b(\\d{4})July\\b" ),
-    FINANCIAL_OCTOBER( PeriodTypeEnum.FINANCIAL_OCT, "\\b(\\d{4})Oct\\b" ),
-    FINANCIAL_NOVEMBER( PeriodTypeEnum.FINANCIAL_NOV, "\\b(\\d{4})Nov\\b" );
+public enum DateUnitType {
+  DAILY(
+      PeriodTypeEnum.DAILY,
+      List.of("\\b(\\d{4})(\\d{2})(\\d{2})\\b", "\\b(\\d{4})-(\\d{2})-(\\d{2})\\b")),
+  WEEKLY(PeriodTypeEnum.WEEKLY, "\\b(\\d{4})W(\\d[\\d]?)\\b"),
+  WEEKLY_WEDNESDAY(PeriodTypeEnum.WEEKLY_WEDNESDAY, "\\b(\\d{4})WedW(\\d[\\d]?)\\b"),
+  WEEKLY_THURSDAY(PeriodTypeEnum.WEEKLY_THURSDAY, "\\b(\\d{4})ThuW(\\d[\\d]?)\\b"),
+  WEEKLY_SATURDAY(PeriodTypeEnum.WEEKLY_SATURDAY, "\\b(\\d{4})SatW(\\d[\\d]?)\\b"),
+  WEEKLY_SUNDAY(PeriodTypeEnum.WEEKLY_SUNDAY, "\\b(\\d{4})SunW(\\d[\\d]?)\\b"),
+  BI_WEEKLY(PeriodTypeEnum.BI_WEEKLY, "\\b(\\d{4})BiW(\\d[\\d]?)\\b"),
+  MONTHLY(PeriodTypeEnum.MONTHLY, "\\b(\\d{4})[-]?(\\d{2})\\b"),
+  BI_MONTHLY(PeriodTypeEnum.BI_MONTHLY, "\\b(\\d{4})(\\d{2})B\\b"),
+  QUARTERLY(PeriodTypeEnum.QUARTERLY, "\\b(\\d{4})Q(\\d)\\b"),
+  QUARTERLY_NOV(PeriodTypeEnum.QUARTERLY_NOV, "\\b(\\d{4})NovQ(\\d)\\b"),
+  SIX_MONTHLY(PeriodTypeEnum.SIX_MONTHLY, "\\b(\\d{4})S(\\d)\\b"),
+  SIX_MONTHLY_APRIL(PeriodTypeEnum.SIX_MONTHLY_APRIL, "\\b(\\d{4})AprilS(\\d)\\b"),
+  SIX_MONTHLY_NOVEMBER(PeriodTypeEnum.SIX_MONTHLY_NOV, "\\b(\\d{4})NovS(\\d)\\b"),
+  YEARLY(PeriodTypeEnum.YEARLY, "\\b(\\d{4})\\b"),
+  FINANCIAL_APRIL(PeriodTypeEnum.FINANCIAL_APRIL, "\\b(\\d{4})April\\b"),
+  FINANCIAL_JULY(PeriodTypeEnum.FINANCIAL_JULY, "\\b(\\d{4})July\\b"),
+  FINANCIAL_OCTOBER(PeriodTypeEnum.FINANCIAL_OCT, "\\b(\\d{4})Oct\\b"),
+  FINANCIAL_NOVEMBER(PeriodTypeEnum.FINANCIAL_NOV, "\\b(\\d{4})Nov\\b");
 
-    @Getter
-    private final PeriodTypeEnum periodType;
+  @Getter private final PeriodTypeEnum periodType;
 
-    @Getter
-    private final Collection<Pattern> patterns;
+  @Getter private final Collection<Pattern> patterns;
 
-    DateUnitType( PeriodTypeEnum periodType, String patterns )
-    {
-        this.periodType = periodType;
-        this.patterns = List.of( Pattern.compile( patterns ) );
-    }
+  DateUnitType(PeriodTypeEnum periodType, String patterns) {
+    this.periodType = periodType;
+    this.patterns = List.of(Pattern.compile(patterns));
+  }
 
-    DateUnitType( PeriodTypeEnum periodType, Collection<String> patterns )
-    {
-        this.periodType = periodType;
-        this.patterns = patterns.stream()
-            .map( Pattern::compile )
-            .collect( Collectors.toList() );
-    }
+  DateUnitType(PeriodTypeEnum periodType, Collection<String> patterns) {
+    this.periodType = periodType;
+    this.patterns = patterns.stream().map(Pattern::compile).collect(Collectors.toList());
+  }
 
-    public String getName()
-    {
-        return periodType.getName();
-    }
+  public String getName() {
+    return periodType.getName();
+  }
 
-    public static Optional<DateUnitTypeWithPattern> find( String isoString )
-    {
-        for ( DateUnitType type : DateUnitType.values() )
-        {
-            for ( Pattern pattern : type.getPatterns() )
-            {
-                if ( pattern.matcher( isoString ).matches() )
-                {
-                    return Optional.of( DateUnitTypeWithPattern.of( type, pattern ) );
-                }
-            }
+  public static Optional<DateUnitTypeWithPattern> find(String isoString) {
+    for (DateUnitType type : DateUnitType.values()) {
+      for (Pattern pattern : type.getPatterns()) {
+        if (pattern.matcher(isoString).matches()) {
+          return Optional.of(DateUnitTypeWithPattern.of(type, pattern));
         }
-        return Optional.empty();
+      }
     }
+    return Optional.empty();
+  }
 
-    @Getter
-    @AllArgsConstructor( staticName = "of" )
-    public static class DateUnitTypeWithPattern
-    {
-        private final DateUnitType dateUnitType;
+  @Getter
+  @AllArgsConstructor(staticName = "of")
+  public static class DateUnitTypeWithPattern {
+    private final DateUnitType dateUnitType;
 
-        private final Pattern pattern;
-    }
+    private final Pattern pattern;
+  }
 }

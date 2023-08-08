@@ -34,15 +34,13 @@ import org.hisp.dhis.visualization.OutlierAnalysis;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class OutlierAnalysisSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "outlierAnalysis";
+public class OutlierAnalysisSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "outlierAnalysis";
 
-    public static final String PLURAL = "outlierAnalysis";
+  public static final String PLURAL = "outlierAnalysis";
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( OutlierAnalysis.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(OutlierAnalysis.class, SINGULAR, PLURAL);
+  }
 }

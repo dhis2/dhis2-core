@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.program.notification;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.Sets;
 import java.util.Set;
-
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -40,234 +44,205 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserGroup;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.Sets;
-
 /**
  * @author Halvdan Hoem Grelland
  */
-@JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
-public class ProgramNotificationTemplate
-    extends NotificationTemplateObject
-    implements MetadataObject
-{
-    private String subjectTemplate;
+@JacksonXmlRootElement(namespace = DxfNamespaces.DXF_2_0)
+public class ProgramNotificationTemplate extends NotificationTemplateObject
+    implements MetadataObject {
+  private String subjectTemplate;
 
-    private String messageTemplate;
+  private String messageTemplate;
 
-    private NotificationTrigger notificationTrigger = NotificationTrigger.COMPLETION;
+  private NotificationTrigger notificationTrigger = NotificationTrigger.COMPLETION;
 
-    private ProgramNotificationRecipient notificationRecipient = ProgramNotificationRecipient.USER_GROUP;
+  private ProgramNotificationRecipient notificationRecipient =
+      ProgramNotificationRecipient.USER_GROUP;
 
-    private Set<DeliveryChannel> deliveryChannels = Sets.newHashSet();
+  private Set<DeliveryChannel> deliveryChannels = Sets.newHashSet();
 
-    private Boolean notifyUsersInHierarchyOnly;
+  private Boolean notifyUsersInHierarchyOnly;
 
-    private Boolean notifyParentOrganisationUnitOnly;
+  private Boolean notifyParentOrganisationUnitOnly;
 
-    private boolean sendRepeatable;
+  private boolean sendRepeatable;
 
-    // -------------------------------------------------------------------------
-    // Conditionally relevant properties
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Conditionally relevant properties
+  // -------------------------------------------------------------------------
 
-    private Integer relativeScheduledDays = null;
+  private Integer relativeScheduledDays = null;
 
-    private UserGroup recipientUserGroup = null;
+  private UserGroup recipientUserGroup = null;
 
-    private TrackedEntityAttribute recipientProgramAttribute = null;
+  private TrackedEntityAttribute recipientProgramAttribute = null;
 
-    private DataElement recipientDataElement = null;
+  private DataElement recipientDataElement = null;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public ProgramNotificationTemplate()
-    {
-    }
+  public ProgramNotificationTemplate() {}
 
-    public ProgramNotificationTemplate( String name, String subjectTemplate, String messageTemplate,
-        NotificationTrigger notificationTrigger, ProgramNotificationRecipient notificationRecipient,
-        Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup,
-        TrackedEntityAttribute recipientProgramAttribute )
-    {
-        this.name = name;
-        this.subjectTemplate = subjectTemplate;
-        this.messageTemplate = messageTemplate;
-        this.notificationTrigger = notificationTrigger;
-        this.notificationRecipient = notificationRecipient;
-        this.deliveryChannels = deliveryChannels;
-        this.relativeScheduledDays = relativeScheduledDays;
-        this.recipientUserGroup = recipientUserGroup;
-        this.recipientProgramAttribute = recipientProgramAttribute;
-    }
+  public ProgramNotificationTemplate(
+      String name,
+      String subjectTemplate,
+      String messageTemplate,
+      NotificationTrigger notificationTrigger,
+      ProgramNotificationRecipient notificationRecipient,
+      Set<DeliveryChannel> deliveryChannels,
+      Integer relativeScheduledDays,
+      UserGroup recipientUserGroup,
+      TrackedEntityAttribute recipientProgramAttribute) {
+    this.name = name;
+    this.subjectTemplate = subjectTemplate;
+    this.messageTemplate = messageTemplate;
+    this.notificationTrigger = notificationTrigger;
+    this.notificationRecipient = notificationRecipient;
+    this.deliveryChannels = deliveryChannels;
+    this.relativeScheduledDays = relativeScheduledDays;
+    this.recipientUserGroup = recipientUserGroup;
+    this.recipientProgramAttribute = recipientProgramAttribute;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getSubjectTemplate()
-    {
-        return subjectTemplate;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getSubjectTemplate() {
+    return subjectTemplate;
+  }
 
-    public void setSubjectTemplate( String subjectTemplate )
-    {
-        this.subjectTemplate = subjectTemplate;
-    }
+  public void setSubjectTemplate(String subjectTemplate) {
+    this.subjectTemplate = subjectTemplate;
+  }
 
-    @PropertyRange( min = 1, max = 10000 )
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getMessageTemplate()
-    {
-        return messageTemplate;
-    }
+  @PropertyRange(min = 1, max = 10000)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getMessageTemplate() {
+    return messageTemplate;
+  }
 
-    public void setMessageTemplate( String messageTemplate )
-    {
-        this.messageTemplate = messageTemplate;
-    }
+  public void setMessageTemplate(String messageTemplate) {
+    this.messageTemplate = messageTemplate;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public NotificationTrigger getNotificationTrigger()
-    {
-        return notificationTrigger;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public NotificationTrigger getNotificationTrigger() {
+    return notificationTrigger;
+  }
 
-    public void setNotificationTrigger( NotificationTrigger notificationTrigger )
-    {
-        this.notificationTrigger = notificationTrigger;
-    }
+  public void setNotificationTrigger(NotificationTrigger notificationTrigger) {
+    this.notificationTrigger = notificationTrigger;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramNotificationRecipient getNotificationRecipient()
-    {
-        return notificationRecipient;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ProgramNotificationRecipient getNotificationRecipient() {
+    return notificationRecipient;
+  }
 
-    public void setNotificationRecipient( ProgramNotificationRecipient notificationRecipient )
-    {
-        this.notificationRecipient = notificationRecipient;
-    }
+  public void setNotificationRecipient(ProgramNotificationRecipient notificationRecipient) {
+    this.notificationRecipient = notificationRecipient;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Set<DeliveryChannel> getDeliveryChannels()
-    {
-        return deliveryChannels;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Set<DeliveryChannel> getDeliveryChannels() {
+    return deliveryChannels;
+  }
 
-    public void setDeliveryChannels( Set<DeliveryChannel> deliveryChannels )
-    {
-        this.deliveryChannels = deliveryChannels;
-    }
+  public void setDeliveryChannels(Set<DeliveryChannel> deliveryChannels) {
+    this.deliveryChannels = deliveryChannels;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.INTEGER )
-    @PropertyRange( min = Integer.MIN_VALUE, max = Integer.MAX_VALUE )
-    public Integer getRelativeScheduledDays()
-    {
-        return relativeScheduledDays;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(value = PropertyType.INTEGER)
+  @PropertyRange(min = Integer.MIN_VALUE, max = Integer.MAX_VALUE)
+  public Integer getRelativeScheduledDays() {
+    return relativeScheduledDays;
+  }
 
-    public void setRelativeScheduledDays( Integer relativeScheduledDays )
-    {
-        this.relativeScheduledDays = relativeScheduledDays;
-    }
+  public void setRelativeScheduledDays(Integer relativeScheduledDays) {
+    this.relativeScheduledDays = relativeScheduledDays;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public UserGroup getRecipientUserGroup()
-    {
-        return recipientUserGroup;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public UserGroup getRecipientUserGroup() {
+    return recipientUserGroup;
+  }
 
-    public void setRecipientUserGroup( UserGroup recipientUserGroup )
-    {
-        this.recipientUserGroup = recipientUserGroup;
-    }
+  public void setRecipientUserGroup(UserGroup recipientUserGroup) {
+    this.recipientUserGroup = recipientUserGroup;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityAttribute getRecipientProgramAttribute()
-    {
-        return recipientProgramAttribute;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public TrackedEntityAttribute getRecipientProgramAttribute() {
+    return recipientProgramAttribute;
+  }
 
-    public void setRecipientProgramAttribute( TrackedEntityAttribute recipientProgramAttribute )
-    {
-        this.recipientProgramAttribute = recipientProgramAttribute;
-    }
+  public void setRecipientProgramAttribute(TrackedEntityAttribute recipientProgramAttribute) {
+    this.recipientProgramAttribute = recipientProgramAttribute;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataElement getRecipientDataElement()
-    {
-        return recipientDataElement;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public DataElement getRecipientDataElement() {
+    return recipientDataElement;
+  }
 
-    public void setRecipientDataElement( DataElement dataElement )
-    {
-        this.recipientDataElement = dataElement;
-    }
+  public void setRecipientDataElement(DataElement dataElement) {
+    this.recipientDataElement = dataElement;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getNotifyUsersInHierarchyOnly()
-    {
-        return notifyUsersInHierarchyOnly;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getNotifyUsersInHierarchyOnly() {
+    return notifyUsersInHierarchyOnly;
+  }
 
-    public void setNotifyUsersInHierarchyOnly( Boolean notifyUsersInHierarchyOnly )
-    {
-        this.notifyUsersInHierarchyOnly = notifyUsersInHierarchyOnly;
-    }
+  public void setNotifyUsersInHierarchyOnly(Boolean notifyUsersInHierarchyOnly) {
+    this.notifyUsersInHierarchyOnly = notifyUsersInHierarchyOnly;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getNotifyParentOrganisationUnitOnly()
-    {
-        return notifyParentOrganisationUnitOnly;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getNotifyParentOrganisationUnitOnly() {
+    return notifyParentOrganisationUnitOnly;
+  }
 
-    public void setNotifyParentOrganisationUnitOnly( Boolean notifyParentOrganisationUnitOnly )
-    {
-        this.notifyParentOrganisationUnitOnly = notifyParentOrganisationUnitOnly;
-    }
+  public void setNotifyParentOrganisationUnitOnly(Boolean notifyParentOrganisationUnitOnly) {
+    this.notifyParentOrganisationUnitOnly = notifyParentOrganisationUnitOnly;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSendRepeatable()
-    {
-        return sendRepeatable;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isSendRepeatable() {
+    return sendRepeatable;
+  }
 
-    public void setSendRepeatable( boolean sendRepeatable )
-    {
-        this.sendRepeatable = sendRepeatable;
-    }
+  public void setSendRepeatable(boolean sendRepeatable) {
+    this.sendRepeatable = sendRepeatable;
+  }
 
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "uid", uid )
-            .add( "name", name )
-            .add( "notificationTrigger", notificationTrigger )
-            .add( "notificationRecipient", notificationRecipient )
-            .add( "deliveryChannels", deliveryChannels )
-            .add( "messageTemplate", messageTemplate )
-            .add( "subjectTemplate", subjectTemplate )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("uid", uid)
+        .add("name", name)
+        .add("notificationTrigger", notificationTrigger)
+        .add("notificationRecipient", notificationRecipient)
+        .add("deliveryChannels", deliveryChannels)
+        .add("messageTemplate", messageTemplate)
+        .add("subjectTemplate", subjectTemplate)
+        .toString();
+  }
 }

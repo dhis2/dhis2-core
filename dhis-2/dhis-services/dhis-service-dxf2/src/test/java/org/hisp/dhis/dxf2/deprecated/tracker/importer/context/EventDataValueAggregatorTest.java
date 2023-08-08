@@ -30,10 +30,11 @@ package org.hisp.dhis.dxf2.deprecated.tracker.importer.context;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.DataValue;
@@ -43,205 +44,228 @@ import org.hisp.dhis.program.Event;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * @author Luciano Fiandesio
  */
-class EventDataValueAggregatorTest
-{
+class EventDataValueAggregatorTest {
 
-    private EventDataValueAggregator subject;
+  private EventDataValueAggregator subject;
 
-    @BeforeEach
-    void setUp()
-    {
-        this.subject = new EventDataValueAggregator();
-    }
+  @BeforeEach
+  void setUp() {
+    this.subject = new EventDataValueAggregator();
+  }
 
-    private final ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
+  private final ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
 
-    @Test
-    void verifyAggregateDataValuesOnNewEvent()
-    {
-        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event1 = createEvent(
-            EventTestUtils.createDataValue( "abcd", "val1" ),
-            EventTestUtils.createDataValue( "efgh", "val2" ),
-            EventTestUtils.createDataValue( "ilmn", "val3" ) );
-        Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
-            new HashMap<>(), importOptions );
-        assertThat( dataValues, is( notNullValue() ) );
-        assertThat( dataValues.keySet(), hasSize( 1 ) );
-        assertThat( dataValues.get( event1.getUid() ), hasSize( 3 ) );
-        assertDataValue( dataValues.get( event1.getUid() ), "abcd", "val1" );
-        assertDataValue( dataValues.get( event1.getUid() ), "efgh", "val2" );
-        assertDataValue( dataValues.get( event1.getUid() ), "ilmn", "val3" );
-    }
+  @Test
+  void verifyAggregateDataValuesOnNewEvent() {
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event1 =
+        createEvent(
+            EventTestUtils.createDataValue("abcd", "val1"),
+            EventTestUtils.createDataValue("efgh", "val2"),
+            EventTestUtils.createDataValue("ilmn", "val3"));
+    Map<String, Set<EventDataValue>> dataValues =
+        subject.aggregateDataValues(Lists.newArrayList(event1), new HashMap<>(), importOptions);
+    assertThat(dataValues, is(notNullValue()));
+    assertThat(dataValues.keySet(), hasSize(1));
+    assertThat(dataValues.get(event1.getUid()), hasSize(3));
+    assertDataValue(dataValues.get(event1.getUid()), "abcd", "val1");
+    assertDataValue(dataValues.get(event1.getUid()), "efgh", "val2");
+    assertDataValue(dataValues.get(event1.getUid()), "ilmn", "val3");
+  }
 
-    @Test
-    void verifyAggregateDataValuesOnExistingPSI()
-    {
-        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event1 = createEvent(
-            EventTestUtils.createDataValue( "abcd", "val1" ),
-            EventTestUtils.createDataValue( "efgh", "val2" ),
-            EventTestUtils.createDataValue( "ilmn", "val3" ) );
-        Map<String, Event> programStageInstanceMap = new HashMap<>();
-        programStageInstanceMap.put( event1.getUid(),
-            createPsi( event1.getUid(), EventTestUtils.createEventDataValue( "abcd", "val1" ),
-                EventTestUtils.createEventDataValue( "efgh", "val2" ),
-                EventTestUtils.createEventDataValue( "ilmn", "val3" ) ) );
-        Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
-            programStageInstanceMap, importOptions );
-        assertThat( dataValues, is( notNullValue() ) );
-        assertThat( dataValues.keySet(), hasSize( 1 ) );
-        assertThat( dataValues.get( event1.getUid() ), hasSize( 3 ) );
-        assertDataValue( dataValues.get( event1.getUid() ), "abcd", "val1" );
-        assertDataValue( dataValues.get( event1.getUid() ), "efgh", "val2" );
-        assertDataValue( dataValues.get( event1.getUid() ), "ilmn", "val3" );
-    }
+  @Test
+  void verifyAggregateDataValuesOnExistingPSI() {
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event1 =
+        createEvent(
+            EventTestUtils.createDataValue("abcd", "val1"),
+            EventTestUtils.createDataValue("efgh", "val2"),
+            EventTestUtils.createDataValue("ilmn", "val3"));
+    Map<String, Event> programStageInstanceMap = new HashMap<>();
+    programStageInstanceMap.put(
+        event1.getUid(),
+        createPsi(
+            event1.getUid(),
+            EventTestUtils.createEventDataValue("abcd", "val1"),
+            EventTestUtils.createEventDataValue("efgh", "val2"),
+            EventTestUtils.createEventDataValue("ilmn", "val3")));
+    Map<String, Set<EventDataValue>> dataValues =
+        subject.aggregateDataValues(
+            Lists.newArrayList(event1), programStageInstanceMap, importOptions);
+    assertThat(dataValues, is(notNullValue()));
+    assertThat(dataValues.keySet(), hasSize(1));
+    assertThat(dataValues.get(event1.getUid()), hasSize(3));
+    assertDataValue(dataValues.get(event1.getUid()), "abcd", "val1");
+    assertDataValue(dataValues.get(event1.getUid()), "efgh", "val2");
+    assertDataValue(dataValues.get(event1.getUid()), "ilmn", "val3");
+  }
 
-    @Test
-    void verifyAggregateDataValuesOnExistingPSI_PayloadHasLessDataValues()
-    {
-        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event1 = createEvent(
-            EventTestUtils.createDataValue( "abcd", "val1" ) );
-        Map<String, Event> programStageInstanceMap = new HashMap<>();
-        programStageInstanceMap.put( event1.getUid(),
-            createPsi( event1.getUid(), EventTestUtils.createEventDataValue( "abcd", "val1" ),
-                EventTestUtils.createEventDataValue( "efgh", "val2" ),
-                EventTestUtils.createEventDataValue( "ilmn", "val3" ) ) );
-        Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
-            programStageInstanceMap, importOptions );
-        assertThat( dataValues, is( notNullValue() ) );
-        assertThat( dataValues.keySet(), hasSize( 1 ) );
-        assertThat( dataValues.get( event1.getUid() ), hasSize( 1 ) );
-        assertDataValue( dataValues.get( event1.getUid() ), "abcd", "val1" );
-    }
+  @Test
+  void verifyAggregateDataValuesOnExistingPSI_PayloadHasLessDataValues() {
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event1 =
+        createEvent(EventTestUtils.createDataValue("abcd", "val1"));
+    Map<String, Event> programStageInstanceMap = new HashMap<>();
+    programStageInstanceMap.put(
+        event1.getUid(),
+        createPsi(
+            event1.getUid(),
+            EventTestUtils.createEventDataValue("abcd", "val1"),
+            EventTestUtils.createEventDataValue("efgh", "val2"),
+            EventTestUtils.createEventDataValue("ilmn", "val3")));
+    Map<String, Set<EventDataValue>> dataValues =
+        subject.aggregateDataValues(
+            Lists.newArrayList(event1), programStageInstanceMap, importOptions);
+    assertThat(dataValues, is(notNullValue()));
+    assertThat(dataValues.keySet(), hasSize(1));
+    assertThat(dataValues.get(event1.getUid()), hasSize(1));
+    assertDataValue(dataValues.get(event1.getUid()), "abcd", "val1");
+  }
 
-    @Test
-    void verifyAggregateDataValuesOnExistingPSI_PayloadHasMoreDataValues()
-    {
-        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event1 = createEvent(
-            EventTestUtils.createDataValue( "abcd", "val1" ),
-            EventTestUtils.createDataValue( "efgh", "val2" ),
-            EventTestUtils.createDataValue( "ilmn", "val3" ), EventTestUtils.createDataValue( "gggg", "val4" ) );
-        Map<String, Event> programStageInstanceMap = new HashMap<>();
-        programStageInstanceMap.put( event1.getUid(),
-            createPsi( event1.getUid(), EventTestUtils.createEventDataValue( "abcd", "val1" ),
-                EventTestUtils.createEventDataValue( "efgh", "val2" ),
-                EventTestUtils.createEventDataValue( "ilmn", "val3" ) ) );
-        Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
-            programStageInstanceMap, importOptions );
-        assertThat( dataValues, is( notNullValue() ) );
-        assertThat( dataValues.keySet(), hasSize( 1 ) );
-        assertThat( dataValues.get( event1.getUid() ), hasSize( 4 ) );
-        assertDataValue( dataValues.get( event1.getUid() ), "abcd", "val1" );
-        assertDataValue( dataValues.get( event1.getUid() ), "efgh", "val2" );
-        assertDataValue( dataValues.get( event1.getUid() ), "ilmn", "val3" );
-        assertDataValue( dataValues.get( event1.getUid() ), "gggg", "val4" );
-    }
+  @Test
+  void verifyAggregateDataValuesOnExistingPSI_PayloadHasMoreDataValues() {
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event1 =
+        createEvent(
+            EventTestUtils.createDataValue("abcd", "val1"),
+            EventTestUtils.createDataValue("efgh", "val2"),
+            EventTestUtils.createDataValue("ilmn", "val3"),
+            EventTestUtils.createDataValue("gggg", "val4"));
+    Map<String, Event> programStageInstanceMap = new HashMap<>();
+    programStageInstanceMap.put(
+        event1.getUid(),
+        createPsi(
+            event1.getUid(),
+            EventTestUtils.createEventDataValue("abcd", "val1"),
+            EventTestUtils.createEventDataValue("efgh", "val2"),
+            EventTestUtils.createEventDataValue("ilmn", "val3")));
+    Map<String, Set<EventDataValue>> dataValues =
+        subject.aggregateDataValues(
+            Lists.newArrayList(event1), programStageInstanceMap, importOptions);
+    assertThat(dataValues, is(notNullValue()));
+    assertThat(dataValues.keySet(), hasSize(1));
+    assertThat(dataValues.get(event1.getUid()), hasSize(4));
+    assertDataValue(dataValues.get(event1.getUid()), "abcd", "val1");
+    assertDataValue(dataValues.get(event1.getUid()), "efgh", "val2");
+    assertDataValue(dataValues.get(event1.getUid()), "ilmn", "val3");
+    assertDataValue(dataValues.get(event1.getUid()), "gggg", "val4");
+  }
 
-    @Test
-    void verifyAggregateDataValuesOnExistingPSI_PayloadHasNoDataValues()
-    {
-        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event1 = new org.hisp.dhis.dxf2.deprecated.tracker.event.Event();
-        event1.setUid( CodeGenerator.generateUid() );
-        event1.setDataValues( Sets.newHashSet() );
-        Map<String, Event> programStageInstanceMap = new HashMap<>();
-        programStageInstanceMap.put( event1.getUid(),
-            createPsi( event1.getUid(), EventTestUtils.createEventDataValue( "abcd", "val1" ),
-                EventTestUtils.createEventDataValue( "efgh", "val2" ),
-                EventTestUtils.createEventDataValue( "ilmn", "val3" ) ) );
-        Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
-            programStageInstanceMap, importOptions );
-        assertThat( dataValues, is( notNullValue() ) );
-        assertThat( dataValues.keySet(), hasSize( 1 ) );
-        assertThat( dataValues.get( event1.getUid() ), hasSize( 0 ) );
-    }
+  @Test
+  void verifyAggregateDataValuesOnExistingPSI_PayloadHasNoDataValues() {
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event1 =
+        new org.hisp.dhis.dxf2.deprecated.tracker.event.Event();
+    event1.setUid(CodeGenerator.generateUid());
+    event1.setDataValues(Sets.newHashSet());
+    Map<String, Event> programStageInstanceMap = new HashMap<>();
+    programStageInstanceMap.put(
+        event1.getUid(),
+        createPsi(
+            event1.getUid(),
+            EventTestUtils.createEventDataValue("abcd", "val1"),
+            EventTestUtils.createEventDataValue("efgh", "val2"),
+            EventTestUtils.createEventDataValue("ilmn", "val3")));
+    Map<String, Set<EventDataValue>> dataValues =
+        subject.aggregateDataValues(
+            Lists.newArrayList(event1), programStageInstanceMap, importOptions);
+    assertThat(dataValues, is(notNullValue()));
+    assertThat(dataValues.keySet(), hasSize(1));
+    assertThat(dataValues.get(event1.getUid()), hasSize(0));
+  }
 
-    @Test
-    void verifyAggregateDataValuesOnExistingPSI_PayloadHasEmptyDataValues()
-    {
-        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event1 = createEvent(
-            EventTestUtils.createDataValue( "abcd", "" ),
-            EventTestUtils.createDataValue( "efgh", "" ),
-            EventTestUtils.createDataValue( "ilmn", "" ) );
-        Map<String, Event> programStageInstanceMap = new HashMap<>();
-        programStageInstanceMap.put( event1.getUid(),
-            createPsi( event1.getUid(), EventTestUtils.createEventDataValue( "abcd", "val1" ),
-                EventTestUtils.createEventDataValue( "efgh", "val2" ),
-                EventTestUtils.createEventDataValue( "ilmn", "val3" ) ) );
-        Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
-            programStageInstanceMap, importOptions );
-        assertThat( dataValues, is( notNullValue() ) );
-        assertThat( dataValues.keySet(), hasSize( 1 ) );
-        assertThat( dataValues.get( event1.getUid() ), hasSize( 0 ) );
-    }
+  @Test
+  void verifyAggregateDataValuesOnExistingPSI_PayloadHasEmptyDataValues() {
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event1 =
+        createEvent(
+            EventTestUtils.createDataValue("abcd", ""),
+            EventTestUtils.createDataValue("efgh", ""),
+            EventTestUtils.createDataValue("ilmn", ""));
+    Map<String, Event> programStageInstanceMap = new HashMap<>();
+    programStageInstanceMap.put(
+        event1.getUid(),
+        createPsi(
+            event1.getUid(),
+            EventTestUtils.createEventDataValue("abcd", "val1"),
+            EventTestUtils.createEventDataValue("efgh", "val2"),
+            EventTestUtils.createEventDataValue("ilmn", "val3")));
+    Map<String, Set<EventDataValue>> dataValues =
+        subject.aggregateDataValues(
+            Lists.newArrayList(event1), programStageInstanceMap, importOptions);
+    assertThat(dataValues, is(notNullValue()));
+    assertThat(dataValues.keySet(), hasSize(1));
+    assertThat(dataValues.get(event1.getUid()), hasSize(0));
+  }
 
-    @Test
-    void verifyAggregateDataValuesOnExistingPSIwithMerge()
-    {
-        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event1 = createEvent(
-            EventTestUtils.createDataValue( "abcd", "val5" ) );
-        importOptions.setMergeDataValues( true );
-        Map<String, Event> programStageInstanceMap = new HashMap<>();
-        programStageInstanceMap.put( event1.getUid(),
-            createPsi( event1.getUid(), EventTestUtils.createEventDataValue( "abcd", "val1" ),
-                EventTestUtils.createEventDataValue( "efgh", "val2" ),
-                EventTestUtils.createEventDataValue( "ilmn", "val3" ) ) );
-        Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
-            programStageInstanceMap, importOptions );
-        assertThat( dataValues, is( notNullValue() ) );
-        assertThat( dataValues.keySet(), hasSize( 1 ) );
-        assertThat( dataValues.get( event1.getUid() ), hasSize( 3 ) );
-        assertDataValue( dataValues.get( event1.getUid() ), "abcd", "val5" );
-        assertDataValue( dataValues.get( event1.getUid() ), "efgh", "val2" );
-        assertDataValue( dataValues.get( event1.getUid() ), "ilmn", "val3" );
-    }
+  @Test
+  void verifyAggregateDataValuesOnExistingPSIwithMerge() {
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event1 =
+        createEvent(EventTestUtils.createDataValue("abcd", "val5"));
+    importOptions.setMergeDataValues(true);
+    Map<String, Event> programStageInstanceMap = new HashMap<>();
+    programStageInstanceMap.put(
+        event1.getUid(),
+        createPsi(
+            event1.getUid(),
+            EventTestUtils.createEventDataValue("abcd", "val1"),
+            EventTestUtils.createEventDataValue("efgh", "val2"),
+            EventTestUtils.createEventDataValue("ilmn", "val3")));
+    Map<String, Set<EventDataValue>> dataValues =
+        subject.aggregateDataValues(
+            Lists.newArrayList(event1), programStageInstanceMap, importOptions);
+    assertThat(dataValues, is(notNullValue()));
+    assertThat(dataValues.keySet(), hasSize(1));
+    assertThat(dataValues.get(event1.getUid()), hasSize(3));
+    assertDataValue(dataValues.get(event1.getUid()), "abcd", "val5");
+    assertDataValue(dataValues.get(event1.getUid()), "efgh", "val2");
+    assertDataValue(dataValues.get(event1.getUid()), "ilmn", "val3");
+  }
 
-    @Test
-    void verifyAggregateDataValuesOnExistingPSIwithMergeAndEmptyDataValue()
-    {
-        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event1 = createEvent(
-            EventTestUtils.createDataValue( "abcd", "" ) );
-        importOptions.setMergeDataValues( true );
-        Map<String, Event> programStageInstanceMap = new HashMap<>();
-        programStageInstanceMap.put( event1.getUid(),
-            createPsi( event1.getUid(), EventTestUtils.createEventDataValue( "abcd", "val1" ),
-                EventTestUtils.createEventDataValue( "efgh", "val2" ),
-                EventTestUtils.createEventDataValue( "ilmn", "val3" ) ) );
-        Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
-            programStageInstanceMap, importOptions );
-        assertThat( dataValues, is( notNullValue() ) );
-        assertThat( dataValues.keySet(), hasSize( 1 ) );
-        assertThat( dataValues.get( event1.getUid() ), hasSize( 2 ) );
-        assertDataValue( dataValues.get( event1.getUid() ), "efgh", "val2" );
-        assertDataValue( dataValues.get( event1.getUid() ), "ilmn", "val3" );
-    }
+  @Test
+  void verifyAggregateDataValuesOnExistingPSIwithMergeAndEmptyDataValue() {
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event1 =
+        createEvent(EventTestUtils.createDataValue("abcd", ""));
+    importOptions.setMergeDataValues(true);
+    Map<String, Event> programStageInstanceMap = new HashMap<>();
+    programStageInstanceMap.put(
+        event1.getUid(),
+        createPsi(
+            event1.getUid(),
+            EventTestUtils.createEventDataValue("abcd", "val1"),
+            EventTestUtils.createEventDataValue("efgh", "val2"),
+            EventTestUtils.createEventDataValue("ilmn", "val3")));
+    Map<String, Set<EventDataValue>> dataValues =
+        subject.aggregateDataValues(
+            Lists.newArrayList(event1), programStageInstanceMap, importOptions);
+    assertThat(dataValues, is(notNullValue()));
+    assertThat(dataValues.keySet(), hasSize(1));
+    assertThat(dataValues.get(event1.getUid()), hasSize(2));
+    assertDataValue(dataValues.get(event1.getUid()), "efgh", "val2");
+    assertDataValue(dataValues.get(event1.getUid()), "ilmn", "val3");
+  }
 
-    private Event createPsi( String uid, EventDataValue... eventDataValues )
-    {
-        Event event = new Event();
-        event.setUid( uid );
-        event.setEventDataValues( Sets.newHashSet( eventDataValues ) );
-        return event;
-    }
+  private Event createPsi(String uid, EventDataValue... eventDataValues) {
+    Event event = new Event();
+    event.setUid(uid);
+    event.setEventDataValues(Sets.newHashSet(eventDataValues));
+    return event;
+  }
 
-    private void assertDataValue( Set<EventDataValue> dataValues, String dataElement, String value )
-    {
-        dataValues.stream().filter( dv -> dv.getDataElement().equals( dataElement ) ).findFirst().ifPresent( dv -> {
-            assertThat( dv.getValue(), is( value ) );
-            assertThat( dv.getStoredBy(), is( nullValue() ) );
-            assertThat( dv.getLastUpdated(), is( notNullValue() ) );
-        } );
-    }
+  private void assertDataValue(Set<EventDataValue> dataValues, String dataElement, String value) {
+    dataValues.stream()
+        .filter(dv -> dv.getDataElement().equals(dataElement))
+        .findFirst()
+        .ifPresent(
+            dv -> {
+              assertThat(dv.getValue(), is(value));
+              assertThat(dv.getStoredBy(), is(nullValue()));
+              assertThat(dv.getLastUpdated(), is(notNullValue()));
+            });
+  }
 
-    private org.hisp.dhis.dxf2.deprecated.tracker.event.Event createEvent( DataValue... dataValues )
-    {
-        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = new org.hisp.dhis.dxf2.deprecated.tracker.event.Event();
-        event.setUid( CodeGenerator.generateUid() );
-        event.setDataValues( Sets.newHashSet( dataValues ) );
-        return event;
-    }
+  private org.hisp.dhis.dxf2.deprecated.tracker.event.Event createEvent(DataValue... dataValues) {
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
+        new org.hisp.dhis.dxf2.deprecated.tracker.event.Event();
+    event.setUid(CodeGenerator.generateUid());
+    event.setDataValues(Sets.newHashSet(dataValues));
+    return event;
+  }
 }

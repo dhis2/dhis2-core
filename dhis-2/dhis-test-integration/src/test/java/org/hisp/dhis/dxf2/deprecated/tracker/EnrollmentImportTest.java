@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -59,113 +58,113 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author <luca@dhis2.org>
  */
-class EnrollmentImportTest extends TransactionalIntegrationTest
-{
-    @Autowired
-    private TrackedEntityTypeService trackedEntityTypeService;
+class EnrollmentImportTest extends TransactionalIntegrationTest {
+  @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
-    @Autowired
-    private EnrollmentService enrollmentService;
+  @Autowired private EnrollmentService enrollmentService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    private TrackedEntity trackedEntity;
+  private TrackedEntity trackedEntity;
 
-    private OrganisationUnit organisationUnitA;
+  private OrganisationUnit organisationUnitA;
 
-    private Program program;
+  private Program program;
 
-    private Enrollment enrollment;
+  private Enrollment enrollment;
 
-    private User user;
+  private User user;
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        userService = _userService;
+  @Override
+  protected void setUpTest() throws Exception {
+    userService = _userService;
 
-        organisationUnitA = createOrganisationUnit( 'A' );
-        manager.save( organisationUnitA );
+    organisationUnitA = createOrganisationUnit('A');
+    manager.save(organisationUnitA);
 
-        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
-        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
 
-        trackedEntity = createTrackedEntity( organisationUnitA );
-        trackedEntity.setTrackedEntityType( trackedEntityType );
-        manager.save( trackedEntity );
+    trackedEntity = createTrackedEntity(organisationUnitA);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
+    manager.save(trackedEntity);
 
-        program = createProgram( 'A', new HashSet<>(), organisationUnitA );
-        program.setProgramType( ProgramType.WITH_REGISTRATION );
-        manager.save( program );
+    program = createProgram('A', new HashSet<>(), organisationUnitA);
+    program.setProgramType(ProgramType.WITH_REGISTRATION);
+    manager.save(program);
 
-        enrollment = new Enrollment();
-        enrollment.setEnrollmentDate( new Date() );
-        enrollment.setIncidentDate( new Date() );
-        enrollment.setProgram( program );
-        enrollment.setStatus( ProgramStatus.ACTIVE );
-        enrollment.setStoredBy( "test" );
-        enrollment.setName( "test" );
-        enrollment.enrollTrackedEntity( trackedEntity, program );
-        manager.save( enrollment );
+    enrollment = new Enrollment();
+    enrollment.setEnrollmentDate(new Date());
+    enrollment.setIncidentDate(new Date());
+    enrollment.setProgram(program);
+    enrollment.setStatus(ProgramStatus.ACTIVE);
+    enrollment.setStoredBy("test");
+    enrollment.setName("test");
+    enrollment.enrollTrackedEntity(trackedEntity, program);
+    manager.save(enrollment);
 
-        user = createAndAddAdminUser( AUTHORITY_ALL );
-    }
+    user = createAndAddAdminUser(AUTHORITY_ALL);
+  }
 
-    @Test
-    void shouldSetCreatedByUserInfoWhenCreateEnrollments()
-    {
-        String enrollmentUid = CodeGenerator.generateUid();
+  @Test
+  void shouldSetCreatedByUserInfoWhenCreateEnrollments() {
+    String enrollmentUid = CodeGenerator.generateUid();
 
-        org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment = enrollment( organisationUnitA.getUid(),
-            program.getUid(),
-            trackedEntity.getUid() );
-        enrollment.setEnrollment( enrollmentUid );
+    org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment =
+        enrollment(organisationUnitA.getUid(), program.getUid(), trackedEntity.getUid());
+    enrollment.setEnrollment(enrollmentUid);
 
-        ImportSummaries importSummaries = enrollmentService.addEnrollments( List.of( enrollment ),
-            new ImportOptions().setUser( user ),
-            null );
+    ImportSummaries importSummaries =
+        enrollmentService.addEnrollments(
+            List.of(enrollment), new ImportOptions().setUser(user), null);
 
-        assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() ),
-            () -> assertEquals( UserInfoSnapshot.from( user ),
-                enrollmentService.getEnrollment( enrollmentUid, EnrollmentParams.FALSE )
-                    .getCreatedByUserInfo() ),
-            () -> assertEquals( UserInfoSnapshot.from( user ),
-                enrollmentService.getEnrollment( enrollmentUid, EnrollmentParams.FALSE )
-                    .getLastUpdatedByUserInfo() ) );
-    }
+    assertAll(
+        () -> assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus()),
+        () ->
+            assertEquals(
+                UserInfoSnapshot.from(user),
+                enrollmentService
+                    .getEnrollment(enrollmentUid, EnrollmentParams.FALSE)
+                    .getCreatedByUserInfo()),
+        () ->
+            assertEquals(
+                UserInfoSnapshot.from(user),
+                enrollmentService
+                    .getEnrollment(enrollmentUid, EnrollmentParams.FALSE)
+                    .getLastUpdatedByUserInfo()));
+  }
 
-    @Test
-    void shouldSetUpdatedByUserInfoWhenUpdateEnrollments()
-    {
-        org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment = enrollment( organisationUnitA.getUid(),
-            program.getUid(),
-            trackedEntity.getUid() );
-        enrollment.setEnrollment( this.enrollment.getUid() );
+  @Test
+  void shouldSetUpdatedByUserInfoWhenUpdateEnrollments() {
+    org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment =
+        enrollment(organisationUnitA.getUid(), program.getUid(), trackedEntity.getUid());
+    enrollment.setEnrollment(this.enrollment.getUid());
 
-        ImportSummaries importSummaries = enrollmentService.updateEnrollments( List.of( enrollment ),
-            new ImportOptions().setUser( user ),
-            true );
+    ImportSummaries importSummaries =
+        enrollmentService.updateEnrollments(
+            List.of(enrollment), new ImportOptions().setUser(user), true);
 
-        assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() ),
-            () -> assertEquals( UserInfoSnapshot.from( user ),
-                enrollmentService.getEnrollment( this.enrollment.getUid(), EnrollmentParams.FALSE )
-                    .getLastUpdatedByUserInfo() ) );
-    }
+    assertAll(
+        () -> assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus()),
+        () ->
+            assertEquals(
+                UserInfoSnapshot.from(user),
+                enrollmentService
+                    .getEnrollment(this.enrollment.getUid(), EnrollmentParams.FALSE)
+                    .getLastUpdatedByUserInfo()));
+  }
 
-    private org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment( String orgUnit, String program,
-        String trackedEntity )
-    {
-        org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment = new org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment();
-        enrollment.setOrgUnit( orgUnit );
-        enrollment.setProgram( program );
-        enrollment.setTrackedEntityInstance( trackedEntity );
-        enrollment.setEnrollmentDate( new Date() );
-        enrollment.setIncidentDate( new Date() );
-        return enrollment;
-    }
+  private org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment(
+      String orgUnit, String program, String trackedEntity) {
+    org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment =
+        new org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment();
+    enrollment.setOrgUnit(orgUnit);
+    enrollment.setProgram(program);
+    enrollment.setTrackedEntityInstance(trackedEntity);
+    enrollment.setEnrollmentDate(new Date());
+    enrollment.setIncidentDate(new Date());
+    return enrollment;
+  }
 }

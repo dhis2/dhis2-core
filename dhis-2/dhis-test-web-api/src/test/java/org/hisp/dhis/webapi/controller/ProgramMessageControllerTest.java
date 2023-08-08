@@ -30,13 +30,17 @@ package org.hisp.dhis.webapi.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.web.HttpStatus;
@@ -45,64 +49,160 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
-
 /**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.event.ProgramMessageController} using
- * (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.webapi.controller.event.ProgramMessageController} using (mocked)
+ * REST requests.
  *
  * @author Jan Bernitt
  */
-class ProgramMessageControllerTest extends DhisControllerConvenienceTest
-{
+class ProgramMessageControllerTest extends DhisControllerConvenienceTest {
 
-    @Autowired
-    private TrackedEntityService teiService;
+  @Autowired private TrackedEntityService teiService;
 
-    @Autowired
-    private EnrollmentService piService;
+  @Autowired private EnrollmentService enrollmentService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+  @Autowired private EventService eventService;
 
-    private Enrollment enrollmentA;
+  @Autowired private IdentifiableObjectManager idObjectManager;
 
-    @BeforeEach
-    void setUp()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        idObjectManager.save( ouA );
-        Program prA = createProgram( 'A', Sets.newHashSet(), ouA );
-        idObjectManager.save( prA );
-        TrackedEntity teiA = createTrackedEntity( 'A', ouA );
-        teiService.addTrackedEntity( teiA );
-        enrollmentA = createEnrollment( prA, teiA, ouA );
-        piService.addEnrollment( enrollmentA );
-    }
+  private Enrollment enrollmentA;
 
-    @Test
-    void testGetProgramMessages()
-    {
-        assertTrue( GET( "/messages?programInstance={id}", enrollmentA.getUid() ).content( HttpStatus.OK ).isArray() );
-    }
+  private Event eventA;
 
-    @Test
-    void testGetScheduledSentMessage()
-    {
-        assertTrue(
-            GET( "/messages/scheduled/sent?programInstance={id}", enrollmentA.getUid() ).content( HttpStatus.OK )
-                .isArray() );
-    }
+  @BeforeEach
+  void setUp() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    idObjectManager.save(ouA);
+    Program prA = createProgram('A', Sets.newHashSet(), ouA);
+    idObjectManager.save(prA);
+    ProgramStage psA = createProgramStage('A', prA);
+    idObjectManager.save(psA);
+    TrackedEntity teiA = createTrackedEntity('A', ouA);
+    teiService.addTrackedEntity(teiA);
+    enrollmentA = createEnrollment(prA, teiA, ouA);
+    enrollmentService.addEnrollment(enrollmentA);
+    eventA = createEvent(psA, enrollmentA, ouA);
+    eventService.addEvent(eventA);
+  }
 
-    @Test
-    void testSaveMessages()
-    {
-        JsonObject status = POST( "/messages", "{'programMessages': []}" ).content( HttpStatus.OK );
-        assertTrue( status.isObject() );
-        assertEquals( 1, status.size() );
-        JsonArray summaries = status.getArray( "summaries" );
-        assertTrue( summaries.isArray() );
-        assertTrue( summaries.isEmpty() );
-    }
+  @Test
+  void shouldGetProgramMessageWhenPassingDeprecatedProgramInstanceParam() {
+    assertTrue(
+        GET("/messages?programInstance={id}", enrollmentA.getUid())
+            .content(HttpStatus.OK)
+            .isArray());
+  }
+
+  @Test
+  void shouldGetProgramMessageWhenPassingEnrollmentParam() {
+    assertTrue(
+        GET("/messages?enrollment={id}", enrollmentA.getUid()).content(HttpStatus.OK).isArray());
+  }
+
+  @Test
+  void shouldFailToGetProgramMessageWhenPassingEnrollmentAndProgramInstanceParams() {
+    assertEquals(
+        "Only one parameter of 'programInstance' and 'enrollment' must be specified. Prefer 'enrollment' as 'programInstance' will be removed.",
+        GET(
+                "/messages?enrollment={id}&programInstance={id}",
+                enrollmentA.getUid(),
+                enrollmentA.getUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
+  }
+
+  @Test
+  void shouldGetProgramMessageWhenPassingDeprecatedProgramStageInstanceParam() {
+    assertTrue(
+        GET("/messages?programStageInstance={id}", eventA.getUid())
+            .content(HttpStatus.OK)
+            .isArray());
+  }
+
+  @Test
+  void shouldGetProgramMessageWhenPassingEventParam() {
+    assertTrue(GET("/messages?event={id}", eventA.getUid()).content(HttpStatus.OK).isArray());
+  }
+
+  @Test
+  void shouldFailToGetProgramMessageWhenPassingEventAndProgramStageInstanceParams() {
+    assertEquals(
+        "Only one parameter of 'programStageInstance' and 'event' must be specified. Prefer 'event' as 'programStageInstance' will be removed.",
+        GET("/messages?event={id}&programStageInstance={id}", eventA.getUid(), eventA.getUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
+  }
+
+  @Test
+  void shouldFailToGetProgramMessageWhenNoEventOrEnrollmentParamIsSpecified() {
+    assertEquals(
+        "Enrollment or Event must be specified.",
+        GET("/messages").error(HttpStatus.CONFLICT).getMessage());
+  }
+
+  @Test
+  void shouldScheduleProgramMessageWhenPassingDeprecatedProgramInstanceParam() {
+    assertTrue(
+        GET("/messages/scheduled/sent?programInstance={id}", enrollmentA.getUid())
+            .content(HttpStatus.OK)
+            .isArray());
+  }
+
+  @Test
+  void shouldScheduleProgramMessageWhenPassingEnrollmentParam() {
+    assertTrue(
+        GET("/messages/scheduled/sent?enrollment={id}", enrollmentA.getUid())
+            .content(HttpStatus.OK)
+            .isArray());
+  }
+
+  @Test
+  void shouldFailToScheduleProgramMessageWhenPassingEnrollmentAndProgramInstanceParams() {
+    assertEquals(
+        "Only one parameter of 'programInstance' and 'enrollment' must be specified. Prefer 'enrollment' as 'programInstance' will be removed.",
+        GET(
+                "/messages/scheduled/sent?enrollment={id}&programInstance={id}",
+                enrollmentA.getUid(),
+                enrollmentA.getUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
+  }
+
+  @Test
+  void shouldScheduleProgramMessageWhenPassingDeprecatedProgramStageInstanceParam() {
+    assertTrue(
+        GET("/messages/scheduled/sent?programStageInstance={id}", eventA.getUid())
+            .content(HttpStatus.OK)
+            .isArray());
+  }
+
+  @Test
+  void shouldScheduleProgramMessageWhenPassingEventParam() {
+    assertTrue(
+        GET("/messages/scheduled/sent?event={id}", eventA.getUid())
+            .content(HttpStatus.OK)
+            .isArray());
+  }
+
+  @Test
+  void shouldFailToScheduleProgramMessageWhenPassingEventAndProgramStageInstanceParams() {
+    assertEquals(
+        "Only one parameter of 'programStageInstance' and 'event' must be specified. Prefer 'event' as 'programStageInstance' will be removed.",
+        GET(
+                "/messages/scheduled/sent?event={id}&programStageInstance={id}",
+                eventA.getUid(),
+                eventA.getUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
+  }
+
+  @Test
+  void testSaveMessages() {
+    JsonObject status = POST("/messages", "{'programMessages': []}").content(HttpStatus.OK);
+    assertTrue(status.isObject());
+    assertEquals(1, status.size());
+    JsonArray summaries = status.getArray("summaries");
+    assertTrue(summaries.isArray());
+    assertTrue(summaries.isEmpty());
+  }
 }

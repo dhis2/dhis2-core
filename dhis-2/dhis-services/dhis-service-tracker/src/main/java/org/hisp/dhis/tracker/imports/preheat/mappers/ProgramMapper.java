@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
 import java.util.Set;
-
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.mapstruct.BeanMapping;
@@ -36,43 +35,43 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = {
-    DebugMapper.class,
-    OrganisationUnitMapper.class,
-    CategoryComboMapper.class,
-    TrackedEntityTypeMapper.class,
-    ProgramStageMapper.class,
-    ProgramTrackedEntityAttributeMapper.class,
-    AttributeValueMapper.class,
-    SharingMapper.class
-} )
-public interface ProgramMapper extends PreheatMapper<Program>
-{
-    ProgramMapper INSTANCE = Mappers.getMapper( ProgramMapper.class );
+@Mapper(
+    uses = {
+      DebugMapper.class,
+      OrganisationUnitMapper.class,
+      CategoryComboMapper.class,
+      TrackedEntityTypeMapper.class,
+      ProgramStageMapper.class,
+      ProgramTrackedEntityAttributeMapper.class,
+      AttributeValueMapper.class,
+      SharingMapper.class
+    })
+public interface ProgramMapper extends PreheatMapper<Program> {
+  ProgramMapper INSTANCE = Mappers.getMapper(ProgramMapper.class);
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "name" )
-    @Mapping( target = "attributeValues" )
-    @Mapping( target = "trackedEntityType" )
-    @Mapping( target = "programType" )
-    @Mapping( target = "programAttributes" )
-    @Mapping( target = "programStages" )
-    @Mapping( target = "onlyEnrollOnce" )
-    @Mapping( target = "featureType" )
-    @Mapping( target = "categoryCombo" )
-    @Mapping( target = "selectEnrollmentDatesInFuture" )
-    @Mapping( target = "selectIncidentDatesInFuture" )
-    @Mapping( target = "displayIncidentDate" )
-    @Mapping( target = "ignoreOverdueEvents" )
-    @Mapping( target = "expiryDays" )
-    @Mapping( target = "expiryPeriodType" )
-    @Mapping( target = "completeEventsExpiryDays" )
-    @Mapping( target = "sharing" )
-    @Mapping( target = "accessLevel" )
-    Program map( Program program );
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "code")
+  @Mapping(target = "name")
+  @Mapping(target = "attributeValues")
+  @Mapping(target = "trackedEntityType")
+  @Mapping(target = "programType")
+  @Mapping(target = "programAttributes")
+  @Mapping(target = "programStages")
+  @Mapping(target = "onlyEnrollOnce")
+  @Mapping(target = "featureType")
+  @Mapping(target = "categoryCombo")
+  @Mapping(target = "selectEnrollmentDatesInFuture")
+  @Mapping(target = "selectIncidentDatesInFuture")
+  @Mapping(target = "displayIncidentDate")
+  @Mapping(target = "ignoreOverdueEvents")
+  @Mapping(target = "expiryDays")
+  @Mapping(target = "expiryPeriodType")
+  @Mapping(target = "completeEventsExpiryDays")
+  @Mapping(target = "sharing")
+  @Mapping(target = "accessLevel")
+  Program map(Program program);
 
-    Set<ProgramStage> mapProgramStages( Set<ProgramStage> programStages );
+  Set<ProgramStage> mapProgramStages(Set<ProgramStage> programStages);
 }

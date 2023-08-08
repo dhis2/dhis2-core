@@ -27,8 +27,13 @@
  */
 package org.hisp.dhis.security;
 
-import lombok.extern.slf4j.Slf4j;
+import static org.apache.commons.lang3.StringUtils.firstNonEmpty;
 
+import com.google.common.base.Strings;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
+import java.nio.charset.StandardCharsets;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
@@ -46,111 +51,104 @@ import org.springframework.security.web.authentication.session.SessionFixationPr
 import org.springframework.security.web.authentication.switchuser.AuthenticationSwitchUserEvent;
 import org.springframework.util.ClassUtils;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Strings;
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
 public class AuthenticationLoggerListener
-    implements ApplicationListener<AbstractAuthenticationEvent>
-{
-    private final HashFunction sessionIdHasher = Hashing.sha256();
+    implements ApplicationListener<AbstractAuthenticationEvent> {
+  private static final HashFunction ID_HASH_FUNCTION = Hashing.sha256();
 
-    public void onApplicationEvent( AbstractAuthenticationEvent event )
-    {
-        if ( !log.isWarnEnabled() )
-        {
-            return;
-        }
-
-        if ( AuthenticationSwitchUserEvent.class.isAssignableFrom( event.getClass() ) )
-        {
-            AuthenticationSwitchUserEvent switchUserEvent = (AuthenticationSwitchUserEvent) event;
-            log.info( "Authentication event: AuthenticationSwitchUserEvent; username: {}; targetUser: {}",
-                switchUserEvent.getAuthentication().getName(),
-                switchUserEvent.getTargetUser().getUsername() );
-        }
-
-        if ( SessionFixationProtectionEvent.class.isAssignableFrom( event.getClass() ) ||
-            InteractiveAuthenticationSuccessEvent.class.isAssignableFrom( event.getClass() ) )
-        {
-            return;
-        }
-
-        logAuthenticationEvent( event );
+  public void onApplicationEvent(AbstractAuthenticationEvent event) {
+    if (!log.isWarnEnabled()) {
+      return;
     }
 
-    private void logAuthenticationEvent( AbstractAuthenticationEvent event )
-    {
-        String eventClassName = String.format( "Authentication event: %s; ",
-            ClassUtils.getShortName( event.getClass() ) );
-        Authentication authentication = event.getAuthentication();
-
-        String authName = StringUtils.firstNonEmpty( authentication.getName(), "" );
-        String ipAddress = "";
-        String sessionId = "";
-        String exceptionMessage = "";
-
-        if ( event instanceof AbstractAuthenticationFailureEvent )
-        {
-            exceptionMessage = "exception: " + ((AbstractAuthenticationFailureEvent) event).getException().getMessage();
-        }
-        else if ( authentication.getDetails() instanceof ForwardedIpAwareWebAuthenticationDetails )
-        {
-            ForwardedIpAwareWebAuthenticationDetails authDetails = (ForwardedIpAwareWebAuthenticationDetails) authentication
-                .getDetails();
-            ipAddress = String.format( "ip: %s; ", authDetails.getIp() );
-            sessionId = hashSessionId( authDetails.getSessionId() );
-        }
-        else if ( authentication instanceof OAuth2LoginAuthenticationToken )
-        {
-            OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) authentication;
-            authName = getUsernameFromPrincipal( authenticationToken.getPrincipal() );
-            WebAuthenticationDetails oauthDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
-            ipAddress = String.format( "ip: %s; ", oauthDetails.getRemoteAddress() );
-            sessionId = hashSessionId( oauthDetails.getSessionId() );
-        }
-        else if ( event.getSource() instanceof OAuth2AuthenticationToken )
-        {
-            OAuth2AuthenticationToken authenticationToken = (OAuth2AuthenticationToken) event.getSource();
-            authName = getUsernameFromPrincipal( authenticationToken.getPrincipal() );
-        }
-        else if ( event.getSource() instanceof ApiTokenAuthenticationToken )
-        {
-            ApiTokenAuthenticationToken authenticationToken = (ApiTokenAuthenticationToken) event.getSource();
-            CurrentUserDetails principal = authenticationToken.getPrincipal();
-            if ( principal != null )
-            {
-                authName = principal.getUsername();
-            }
-        }
-
-        String usernamePrefix = Strings.isNullOrEmpty( authName ) ? "" : String.format( "username: %s; ", authName );
-        String msg = TextUtils.removeNonEssentialChars(
-            eventClassName + usernamePrefix + ipAddress + sessionId + exceptionMessage );
-        log.info( StringUtils.removeEnd( msg.stripTrailing(), ";" ) );
+    if (event instanceof SessionFixationProtectionEvent
+        || event instanceof InteractiveAuthenticationSuccessEvent) {
+      return;
     }
 
-    private String getUsernameFromPrincipal( Object principal )
-    {
-        if ( principal instanceof DhisOidcUser )
-        {
-            return ((DhisOidcUser) principal).getUsername();
-        }
-        return "";
+    if (event instanceof AuthenticationSwitchUserEvent switchUserEvent) {
+      log.info(
+          "Authentication event: AuthenticationSwitchUserEvent; username: {}; targetUser: {}",
+          switchUserEvent.getAuthentication().getName(),
+          switchUserEvent.getTargetUser().getUsername());
     }
 
-    private String hashSessionId( String sessionId )
-    {
-        if ( sessionId == null )
-        {
-            return "";
-        }
-        String s = sessionIdHasher.newHasher().putString( sessionId, Charsets.UTF_8 ).hash().toString();
-        return String.format( "sessionId: %s; ", s );
+    logAuthenticationEvent(event);
+  }
+
+  private void logAuthenticationEvent(AbstractAuthenticationEvent event) {
+    Authentication authentication = event.getAuthentication();
+
+    String authName = firstNonEmpty(authentication.getName(), "");
+    String ipAddress = "";
+    String sessionId = "";
+    String exceptionMessage = "";
+
+    if (event instanceof AbstractAuthenticationFailureEvent failureEvent) {
+      exceptionMessage = "exception: " + failureEvent.getException().getMessage();
+    } else if (authentication.getDetails()
+        instanceof ForwardedIpAwareWebAuthenticationDetails authDetails) {
+      ipAddress = formatIpAddress(authDetails.getIp());
+      sessionId = hashSessionId(authDetails.getSessionId());
+    } else if (authentication instanceof OAuth2LoginAuthenticationToken authenticationToken) {
+      authName = getUsernameFromPrincipal(authenticationToken.getPrincipal());
+      WebAuthenticationDetails oauthDetails =
+          (WebAuthenticationDetails) authenticationToken.getDetails();
+      ipAddress = formatIpAddress(oauthDetails.getRemoteAddress());
+      sessionId = hashSessionId(oauthDetails.getSessionId());
+    } else if (event.getSource() instanceof OAuth2AuthenticationToken authenticationToken) {
+      authName = getUsernameFromPrincipal(authenticationToken.getPrincipal());
+    } else if (event.getSource() instanceof ApiTokenAuthenticationToken authenticationToken) {
+      CurrentUserDetails principal = authenticationToken.getPrincipal();
+      if (principal != null) {
+        authName = principal.getUsername();
+      }
+      WebAuthenticationDetails apiTokenDetails =
+          (WebAuthenticationDetails) authenticationToken.getDetails();
+      ipAddress = formatIpAddress(apiTokenDetails.getRemoteAddress());
     }
+
+    logMessage(event, authName, ipAddress, sessionId, exceptionMessage);
+  }
+
+  private void logMessage(
+      AbstractAuthenticationEvent event,
+      String authName,
+      String ipAddress,
+      String sessionId,
+      String exceptionMessage) {
+    String eventClassName =
+        String.format("Authentication event: %s; ", ClassUtils.getShortName(event.getClass()));
+    String usernamePrefix =
+        Strings.isNullOrEmpty(authName) ? "" : String.format("username: %s; ", authName);
+    String msg =
+        TextUtils.removeNonEssentialChars(
+            eventClassName + usernamePrefix + ipAddress + sessionId + exceptionMessage);
+
+    log.info(StringUtils.removeEnd(msg.stripTrailing(), ";"));
+  }
+
+  private static String formatIpAddress(String ip) {
+    return String.format("ip: %s; ", ip);
+  }
+
+  private static String getUsernameFromPrincipal(Object principal) {
+    if (principal instanceof DhisOidcUser dhisOidcUser) {
+      return dhisOidcUser.getUsername();
+    }
+    return "";
+  }
+
+  private static String hashSessionId(String sessionId) {
+    if (sessionId == null) {
+      return "";
+    }
+
+    String s =
+        ID_HASH_FUNCTION.newHasher().putString(sessionId, StandardCharsets.UTF_8).hash().toString();
+    return String.format("sessionId: %s; ", s);
+  }
 }

@@ -42,24 +42,24 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class AttributeOptionComboCheck implements Checker
-{
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
-    {
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
-        CategoryOptionCombo coc = ctx.getCategoryOptionComboMap().get( event.getUid() );
+public class AttributeOptionComboCheck implements Checker {
+  @Override
+  public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
+    Program program = ctx.getProgramsMap().get(event.getProgram());
+    CategoryOptionCombo coc = ctx.getCategoryOptionComboMap().get(event.getUid());
 
-        if ( coc != null && coc.isDefault() && program.getCategoryCombo() != null
-            && !program.getCategoryCombo().isDefault() )
-        {
-            ImportSummary importSummary = new ImportSummary( event.getEvent() );
-            importSummary.addConflict( "attributeOptionCombo",
-                "Valid attribute option combo must be specified since program does not have the default category combo" );
-            importSummary.setStatus( ImportStatus.ERROR );
-            return importSummary.incrementIgnored();
-        }
-
-        return success();
+    if (coc != null
+        && coc.isDefault()
+        && program.getCategoryCombo() != null
+        && !program.getCategoryCombo().isDefault()) {
+      ImportSummary importSummary = new ImportSummary(event.getEvent());
+      importSummary.addConflict(
+          "attributeOptionCombo",
+          "Valid attribute option combo must be specified since program does not have the default category combo");
+      importSummary.setStatus(ImportStatus.ERROR);
+      return importSummary.incrementIgnored();
     }
+
+    return success();
+  }
 }

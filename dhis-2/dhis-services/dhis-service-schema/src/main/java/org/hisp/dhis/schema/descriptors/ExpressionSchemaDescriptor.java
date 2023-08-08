@@ -34,21 +34,18 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Enrico Colasante
  */
-public class ExpressionSchemaDescriptor
-    implements SchemaDescriptor
-{
-    public static final String SINGULAR = "expression";
+public class ExpressionSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "expression";
 
-    public static final String PLURAL = "expressions";
+  public static final String PLURAL = "expressions";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( Expression.class, SINGULAR, PLURAL );
-        schema.setOrder( 1000 );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(Expression.class, SINGULAR, PLURAL);
+    schema.setOrder(1000);
 
-        return schema;
-    }
+    return schema;
+  }
 }

@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.program.hibernate;
 
+import com.google.common.collect.Lists;
 import java.util.List;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -43,58 +42,62 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Chau Thu Tran
  */
-@Repository( "org.hisp.dhis.program.ProgramStageStore" )
-public class HibernateProgramStageStore
-    extends HibernateIdentifiableObjectStore<ProgramStage>
-    implements ProgramStageStore
-{
-    public HibernateProgramStageStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramStage.class, currentUserService, aclService, true );
+@Repository("org.hisp.dhis.program.ProgramStageStore")
+public class HibernateProgramStageStore extends HibernateIdentifiableObjectStore<ProgramStage>
+    implements ProgramStageStore {
+  public HibernateProgramStageStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        ProgramStage.class,
+        currentUserService,
+        aclService,
+        true);
+  }
+
+  // -------------------------------------------------------------------------
+  // Implemented methods
+  // -------------------------------------------------------------------------
+
+  @Override
+  public ProgramStage getByNameAndProgram(String name, Program program) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+
+    return getSingleResult(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("name"), name))
+            .addPredicate(root -> builder.equal(root.get("program"), program)));
+  }
+
+  @Override
+  public List<ProgramStage> getByDataEntryForm(DataEntryForm dataEntryForm) {
+    if (dataEntryForm == null) {
+      return Lists.newArrayList();
     }
-    // -------------------------------------------------------------------------
-    // Implemented methods
-    // -------------------------------------------------------------------------
 
-    @Override
-    public ProgramStage getByNameAndProgram( String name, Program program )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+    final String hql = "from ProgramStage p where p.dataEntryForm = :dataEntryForm";
 
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "name" ), name ) )
-            .addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
+    return getQuery(hql).setParameter("dataEntryForm", dataEntryForm).list();
+  }
+
+  @Override
+  public List<ProgramStage> getByProgram(Program program) {
+    if (program == null) {
+      return Lists.newArrayList();
     }
 
-    @Override
-    public List<ProgramStage> getByDataEntryForm( DataEntryForm dataEntryForm )
-    {
-        if ( dataEntryForm == null )
-        {
-            return Lists.newArrayList();
-        }
+    final String hql = "from ProgramStage p where p.program = :program";
 
-        final String hql = "from ProgramStage p where p.dataEntryForm = :dataEntryForm";
-
-        return getQuery( hql ).setParameter( "dataEntryForm", dataEntryForm ).list();
-    }
-
-    @Override
-    public List<ProgramStage> getByProgram( Program program )
-    {
-        if ( program == null )
-        {
-            return Lists.newArrayList();
-        }
-
-        final String hql = "from ProgramStage p where p.program = :program";
-
-        return getQuery( hql ).setParameter( "program", program ).list();
-    }
+    return getQuery(hql).setParameter("program", program).list();
+  }
 }

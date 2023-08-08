@@ -37,91 +37,81 @@ import java.util.regex.Pattern;
 /**
  * @author Lars Helge Overland
  */
-public class SqlViewUtils
-{
-    private SqlViewUtils()
-    {
-        // hide
+public class SqlViewUtils {
+  private SqlViewUtils() {
+    // hide
+  }
+
+  private static final String VARIABLE_EXPRESSION = "\\$\\{([^}]+)}";
+
+  private static final Pattern VARIABLE_PATTERN =
+      Pattern.compile(VARIABLE_EXPRESSION, Pattern.DOTALL);
+
+  /**
+   * Returns the variables contained in the given SQL string.
+   *
+   * @param sql the SQL query string.
+   * @return a set of variable keys.
+   */
+  public static Set<String> getVariables(String sql) {
+    Set<String> variables = new HashSet<>();
+
+    Matcher matcher = VARIABLE_PATTERN.matcher(sql);
+
+    while (matcher.find()) {
+      variables.add(matcher.group(1));
     }
 
-    private static final String VARIABLE_EXPRESSION = "\\$\\{([^}]+)}";
+    return variables;
+  }
 
-    private static final Pattern VARIABLE_PATTERN = Pattern.compile( VARIABLE_EXPRESSION, Pattern.DOTALL );
+  /**
+   * Substitutes the given SQL query string with the given user-supplied variables. SQL variables
+   * are of the format ${key}.
+   *
+   * @param sql the SQL string.
+   * @param variables the variables.
+   * @return the substituted SQL.
+   */
+  public static String substituteSqlVariables(String sql, Map<String, String> variables) {
+    String sqlQuery = sql;
 
-    /**
-     * Returns the variables contained in the given SQL string.
-     *
-     * @param sql the SQL query string.
-     * @return a set of variable keys.
-     */
-    public static Set<String> getVariables( String sql )
-    {
-        Set<String> variables = new HashSet<>();
-
-        Matcher matcher = VARIABLE_PATTERN.matcher( sql );
-
-        while ( matcher.find() )
-        {
-            variables.add( matcher.group( 1 ) );
+    if (variables != null) {
+      for (Entry<String, String> param : variables.entrySet()) {
+        String name = param.getKey();
+        if (SqlView.isValidQueryParam(name)) {
+          sqlQuery = substituteSqlVariable(sqlQuery, name, param.getValue());
         }
-
-        return variables;
+      }
     }
 
-    /**
-     * Substitutes the given SQL query string with the given user-supplied
-     * variables. SQL variables are of the format ${key}.
-     *
-     * @param sql the SQL string.
-     * @param variables the variables.
-     * @return the substituted SQL.
-     */
-    public static String substituteSqlVariables( String sql, Map<String, String> variables )
-    {
-        String sqlQuery = sql;
+    return sqlQuery;
+  }
 
-        if ( variables != null )
-        {
-            for ( Entry<String, String> param : variables.entrySet() )
-            {
-                String name = param.getKey();
-                if ( SqlView.isValidQueryParam( name ) )
-                {
-                    sqlQuery = substituteSqlVariable( sqlQuery, name, param.getValue() );
-                }
-            }
-        }
-
-        return sqlQuery;
+  /**
+   * Substitutes the given SQL query string with the given, single variable. SQL variables are of
+   * the format ${key}.
+   *
+   * @param sql the SQL string.
+   * @param name the variable name.
+   * @param value the variable value.
+   * @return the substituted SQL.
+   */
+  public static String substituteSqlVariable(String sql, String name, String value) {
+    if (SqlView.isValidQueryValue(value)) {
+      return sql.replace("${" + name + "}", value);
     }
 
-    /**
-     * Substitutes the given SQL query string with the given, single variable.
-     * SQL variables are of the format ${key}.
-     *
-     * @param sql the SQL string.
-     * @param name the variable name.
-     * @param value the variable value.
-     * @return the substituted SQL.
-     */
-    public static String substituteSqlVariable( String sql, String name, String value )
-    {
-        if ( SqlView.isValidQueryValue( value ) )
-        {
-            return sql.replace( "${" + name + "}", value );
-        }
+    return sql;
+  }
 
-        return sql;
-    }
-
-    /**
-     * Removes all query separators ";" in the given SQL.
-     *
-     * @param sql the SQL.
-     * @return the replaced SQL.
-     */
-    public static String removeQuerySeparator( String sql )
-    {
-        return sql.replace( ";", "" );
-    }
+  /**
+   * Removes all query separators ";" in the given SQL.
+   *
+   * @param sql the SQL.
+   * @return the replaced SQL.
+   */
+  public static String removeQuerySeparator(String sql) {
+    return sql.replace(";", "");
+  }
 }

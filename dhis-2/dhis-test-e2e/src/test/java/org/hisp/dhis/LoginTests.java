@@ -38,27 +38,24 @@ import org.junit.jupiter.api.BeforeAll;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class LoginTests
-    extends ApiTest
-{
-    private LoginActions loginActions;
+public class LoginTests extends ApiTest {
+  private LoginActions loginActions;
 
-    private UaaActions uaaActions;
+  private UaaActions uaaActions;
 
-    private UserActions userActions;
+  private UserActions userActions;
 
-    private String userName = ("LoginTestsUser" + DataGenerator.randomString()).toLowerCase();
+  private String userName = ("LoginTestsUser" + DataGenerator.randomString()).toLowerCase();
 
-    private String password = Constants.USER_PASSWORD;
+  private String password = Constants.USER_PASSWORD;
 
-    @BeforeAll
-    public void preconditions()
-    {
-        loginActions = new LoginActions();
-        userActions = new UserActions();
+  @BeforeAll
+  public void preconditions() {
+    loginActions = new LoginActions();
+    userActions = new UserActions();
 
-        loginActions.loginAsSuperUser();
+    loginActions.loginAsSuperUser();
 
-        userActions.addUser( userName, password );
-    }
+    userActions.addUser(userName, password);
+  }
 }

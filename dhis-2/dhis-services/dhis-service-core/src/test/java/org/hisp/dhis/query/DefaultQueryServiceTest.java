@@ -35,7 +35,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -53,78 +52,65 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class DefaultQueryServiceTest
-{
+@ExtendWith(MockitoExtension.class)
+class DefaultQueryServiceTest {
 
-    private DefaultQueryService subject;
+  private DefaultQueryService subject;
 
-    @Mock
-    private QueryParser queryParser;
+  @Mock private QueryParser queryParser;
 
-    @Mock
-    private JpaCriteriaQueryEngine<OrganisationUnit> criteriaQueryEngine;
+  @Mock private JpaCriteriaQueryEngine<OrganisationUnit> criteriaQueryEngine;
 
-    @Mock
-    private InMemoryQueryEngine<OrganisationUnit> inMemoryQueryEngine;
+  @Mock private InMemoryQueryEngine<OrganisationUnit> inMemoryQueryEngine;
 
-    @Mock
-    private SchemaService schemaService;
+  @Mock private SchemaService schemaService;
 
-    @BeforeEach
-    public void setUp()
-    {
-        QueryPlanner queryPlanner = new DefaultQueryPlanner( schemaService );
-        subject = new DefaultQueryService( queryParser, queryPlanner, criteriaQueryEngine, inMemoryQueryEngine );
+  @BeforeEach
+  public void setUp() {
+    QueryPlanner queryPlanner = new DefaultQueryPlanner(schemaService);
+    subject =
+        new DefaultQueryService(
+            queryParser, queryPlanner, criteriaQueryEngine, inMemoryQueryEngine);
+  }
+
+  @Test
+  void verifyQueryEngineUsesPaginationInformation() {
+    Query query = Query.from(new OrganisationUnitSchemaDescriptor().getSchema());
+    query.setFirstResult(100);
+    query.setMaxResults(50);
+
+    // Here we make sure that the pagination info are actually passed to the
+    // Hibernate query engine
+    when(criteriaQueryEngine.query(argThat(new QueryWithPagination(query))))
+        .thenReturn(createOrgUnits(20));
+
+    List<? extends IdentifiableObject> orgUnits = subject.query(query);
+
+    assertThat(orgUnits.size(), is(20));
+  }
+
+  private List<OrganisationUnit> createOrgUnits(int size) {
+
+    List<OrganisationUnit> result = new ArrayList<>();
+    for (int i = 0; i < size; i++) {
+      result.add(createOrganisationUnit(RandomStringUtils.randomAlphabetic(1)));
+    }
+    return result;
+  }
+
+  static class QueryWithPagination implements ArgumentMatcher<Query> {
+    int first;
+
+    int size;
+
+    QueryWithPagination(Query query) {
+      this.first = query.getFirstResult();
+      this.size = query.getMaxResults();
     }
 
-    @Test
-    void verifyQueryEngineUsesPaginationInformation()
-    {
-        Query query = Query.from( new OrganisationUnitSchemaDescriptor().getSchema() );
-        query.setFirstResult( 100 );
-        query.setMaxResults( 50 );
-
-        // Here we make sure that the pagination info are actually passed to the
-        // Hibernate query engine
-        when( criteriaQueryEngine.query( argThat( new QueryWithPagination( query ) ) ) )
-            .thenReturn( createOrgUnits( 20 ) );
-
-        List<? extends IdentifiableObject> orgUnits = subject.query( query );
-
-        assertThat( orgUnits.size(), is( 20 ) );
+    @Override
+    public boolean matches(Query query) {
+      return query.getFirstResult() == first && query.getMaxResults() == size;
     }
-
-    private List<OrganisationUnit> createOrgUnits( int size )
-    {
-
-        List<OrganisationUnit> result = new ArrayList<>();
-        for ( int i = 0; i < size; i++ )
-        {
-            result.add( createOrganisationUnit( RandomStringUtils.randomAlphabetic( 1 ) ) );
-        }
-        return result;
-    }
-
-    static class QueryWithPagination
-        implements
-        ArgumentMatcher<Query>
-    {
-        int first;
-
-        int size;
-
-        QueryWithPagination( Query query )
-        {
-            this.first = query.getFirstResult();
-            this.size = query.getMaxResults();
-        }
-
-        @Override
-        public boolean matches( Query query )
-        {
-            return query.getFirstResult() == first && query.getMaxResults() == size;
-        }
-    }
-
+  }
 }

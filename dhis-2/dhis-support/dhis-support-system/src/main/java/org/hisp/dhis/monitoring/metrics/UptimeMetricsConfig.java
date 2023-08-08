@@ -29,42 +29,34 @@ package org.hisp.dhis.monitoring.metrics;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_UPTIME_ENABLED;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.system.UptimeMetrics;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.binder.system.UptimeMetrics;
-
 /**
  * @author Luciano Fiandesio
  */
 @Configuration
-@Conditional( UptimeMetricsConfig.UptimeMetricsConfigEnabledCondition.class )
-public class UptimeMetricsConfig
-{
-    @Bean
-    public UptimeMetrics uptimeMetrics()
-    {
-        return new UptimeMetrics();
-    }
+@Conditional(UptimeMetricsConfig.UptimeMetricsConfigEnabledCondition.class)
+public class UptimeMetricsConfig {
+  @Bean
+  public UptimeMetrics uptimeMetrics() {
+    return new UptimeMetrics();
+  }
 
-    @Autowired
-    public void bindToRegistry( MeterRegistry registry, UptimeMetrics uptimeMetrics )
-    {
-        uptimeMetrics.bindTo( registry );
-    }
+  @Autowired
+  public void bindToRegistry(MeterRegistry registry, UptimeMetrics uptimeMetrics) {
+    uptimeMetrics.bindTo(registry);
+  }
 
-    static class UptimeMetricsConfigEnabledCondition
-        extends
-        MetricsEnabler
-    {
-        @Override
-        protected ConfigurationKey getConfigKey()
-        {
-            return MONITORING_UPTIME_ENABLED;
-        }
+  static class UptimeMetricsConfigEnabledCondition extends MetricsEnabler {
+    @Override
+    protected ConfigurationKey getConfigKey() {
+      return MONITORING_UPTIME_ENABLED;
     }
+  }
 }

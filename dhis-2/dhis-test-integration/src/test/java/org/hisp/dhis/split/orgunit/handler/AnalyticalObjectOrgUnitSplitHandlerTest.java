@@ -42,74 +42,75 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class AnalyticalObjectOrgUnitSplitHandlerTest extends SingleSetupIntegrationTestBase
-{
+class AnalyticalObjectOrgUnitSplitHandlerTest extends SingleSetupIntegrationTestBase {
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private SessionFactory sessionFactory;
+  @Autowired private SessionFactory sessionFactory;
 
-    @Autowired
-    private AnalyticalObjectOrgUnitSplitHandler handler;
+  @Autowired private AnalyticalObjectOrgUnitSplitHandler handler;
 
-    private DataElement deA;
+  private DataElement deA;
 
-    private OrganisationUnit ouA;
+  private OrganisationUnit ouA;
 
-    private OrganisationUnit ouB;
+  private OrganisationUnit ouB;
 
-    private OrganisationUnit ouC;
+  private OrganisationUnit ouC;
 
-    @Override
-    public void setUpTest()
-    {
-        deA = createDataElement( 'A' );
-        idObjectManager.save( deA );
-        ouA = createOrganisationUnit( 'A' );
-        ouB = createOrganisationUnit( 'B' );
-        ouC = createOrganisationUnit( 'C' );
-        idObjectManager.save( ouA );
-        idObjectManager.save( ouB );
-        idObjectManager.save( ouC );
-    }
+  @Override
+  public void setUpTest() {
+    deA = createDataElement('A');
+    idObjectManager.save(deA);
+    ouA = createOrganisationUnit('A');
+    ouB = createOrganisationUnit('B');
+    ouC = createOrganisationUnit('C');
+    idObjectManager.save(ouA);
+    idObjectManager.save(ouB);
+    idObjectManager.save(ouC);
+  }
 
-    @Test
-    void testSplitVisualizations()
-    {
-        Visualization vA = createVisualization( 'A' );
-        vA.addDataDimensionItem( deA );
-        vA.getOrganisationUnits().add( ouA );
-        Visualization vB = createVisualization( 'B' );
-        vB.addDataDimensionItem( deA );
-        vB.getOrganisationUnits().add( ouA );
-        idObjectManager.save( vA );
-        idObjectManager.save( vB );
-        assertEquals( 2, getVisualizationCount( ouA ) );
-        assertEquals( 0, getVisualizationCount( ouB ) );
-        assertEquals( 0, getVisualizationCount( ouC ) );
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouA ).addTarget( ouB )
-            .addTarget( ouC ).withPrimaryTarget( ouB ).build();
-        handler.splitAnalyticalObjects( request );
-        idObjectManager.update( ouC );
-        assertEquals( 0, getVisualizationCount( ouA ) );
-        assertEquals( 2, getVisualizationCount( ouB ) );
-        assertEquals( 2, getVisualizationCount( ouC ) );
-    }
+  @Test
+  void testSplitVisualizations() {
+    Visualization vA = createVisualization('A');
+    vA.addDataDimensionItem(deA);
+    vA.getOrganisationUnits().add(ouA);
+    Visualization vB = createVisualization('B');
+    vB.addDataDimensionItem(deA);
+    vB.getOrganisationUnits().add(ouA);
+    idObjectManager.save(vA);
+    idObjectManager.save(vB);
+    assertEquals(2, getVisualizationCount(ouA));
+    assertEquals(0, getVisualizationCount(ouB));
+    assertEquals(0, getVisualizationCount(ouC));
+    OrgUnitSplitRequest request =
+        new OrgUnitSplitRequest.Builder()
+            .withSource(ouA)
+            .addTarget(ouB)
+            .addTarget(ouC)
+            .withPrimaryTarget(ouB)
+            .build();
+    handler.splitAnalyticalObjects(request);
+    idObjectManager.update(ouC);
+    assertEquals(0, getVisualizationCount(ouA));
+    assertEquals(2, getVisualizationCount(ouB));
+    assertEquals(2, getVisualizationCount(ouC));
+  }
 
-    /**
-     * Test migrate HQL update statement with an HQL select statement to ensure
-     * the updated rows are visible by the current transaction.
-     *
-     * @param target the {@link OrganisationUnit}
-     * @return the count of interpretations.
-     */
-    private long getVisualizationCount( OrganisationUnit target )
-    {
-        return (Long) sessionFactory.getCurrentSession()
+  /**
+   * Test migrate HQL update statement with an HQL select statement to ensure the updated rows are
+   * visible by the current transaction.
+   *
+   * @param target the {@link OrganisationUnit}
+   * @return the count of interpretations.
+   */
+  private long getVisualizationCount(OrganisationUnit target) {
+    return (Long)
+        sessionFactory
+            .getCurrentSession()
             .createQuery(
-                "select count(distinct v) from Visualization v where :target in elements(v.organisationUnits)" )
-            .setParameter( "target", target ).uniqueResult();
-    }
+                "select count(distinct v) from Visualization v where :target in elements(v.organisationUnits)")
+            .setParameter("target", target)
+            .uniqueResult();
+  }
 }

@@ -40,14 +40,22 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Henning Håkonsen
  */
-@Repository( "org.hisp.dhis.program.ProgramSectionStore" )
-public class HibernateProgramSectionStore
-    extends HibernateIdentifiableObjectStore<ProgramSection>
-    implements ProgramSectionStore
-{
-    public HibernateProgramSectionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramSection.class, currentUserService, aclService, true );
-    }
+@Repository("org.hisp.dhis.program.ProgramSectionStore")
+public class HibernateProgramSectionStore extends HibernateIdentifiableObjectStore<ProgramSection>
+    implements ProgramSectionStore {
+  public HibernateProgramSectionStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        ProgramSection.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 }

@@ -32,9 +32,7 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
 import java.util.function.Consumer;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
@@ -54,124 +52,122 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class AggregateDataExchangeObjectBundleHook
-    extends AbstractObjectBundleHook<AggregateDataExchange>
-{
-    private static final int SOURCE_REQUEST_NAME_MAX_LENGTH = 50;
+    extends AbstractObjectBundleHook<AggregateDataExchange> {
+  private static final int SOURCE_REQUEST_NAME_MAX_LENGTH = 50;
 
-    @Qualifier( AES_128_STRING_ENCRYPTOR )
-    private final PooledPBEStringEncryptor encryptor;
+  @Qualifier(AES_128_STRING_ENCRYPTOR)
+  private final PooledPBEStringEncryptor encryptor;
 
-    @Override
-    public void validate( AggregateDataExchange exchange, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
-    {
-        validateSource( exchange, addReports );
-        validateTarget( exchange, addReports );
+  @Override
+  public void validate(
+      AggregateDataExchange exchange, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    validateSource(exchange, addReports);
+    validateTarget(exchange, addReports);
+  }
+
+  @Override
+  public void preCreate(AggregateDataExchange exchange, ObjectBundle bundle) {
+    encryptApiSecrets(exchange);
+  }
+
+  @Override
+  public void preUpdate(
+      AggregateDataExchange exchange,
+      AggregateDataExchange persistedExchange,
+      ObjectBundle bundle) {
+    encryptApiSecrets(exchange);
+  }
+
+  /**
+   * Validates the data exchange source.
+   *
+   * @param exchange the {@link AggregateDataExchange}.
+   * @param addReports the list of {@link ErrorReport}.
+   */
+  private void validateSource(AggregateDataExchange exchange, Consumer<ErrorReport> addReports) {
+    if (isEmpty(exchange.getSource().getRequests())) {
+      addReports.accept(
+          new ErrorReport(AggregateDataExchange.class, ErrorCode.E6302, exchange.getUid()));
     }
 
-    @Override
-    public void preCreate( AggregateDataExchange exchange, ObjectBundle bundle )
-    {
-        encryptApiSecrets( exchange );
+    for (SourceRequest request : exchange.getSource().getRequests()) {
+      if (isEmpty(request.getName())) {
+        addReports.accept(
+            new ErrorReport(AggregateDataExchange.class, ErrorCode.E4000, "source.name"));
+      }
+
+      if (request.getName() != null
+          && request.getName().length() > SOURCE_REQUEST_NAME_MAX_LENGTH) {
+        addReports.accept(
+            new ErrorReport(
+                AggregateDataExchange.class,
+                ErrorCode.E4001,
+                "source.name",
+                SOURCE_REQUEST_NAME_MAX_LENGTH,
+                request.getName().length()));
+      }
+
+      if (request.getVisualization() != null
+          && !CodeGenerator.isValidUid(request.getVisualization())) {
+        addReports.accept(
+            new ErrorReport(
+                AggregateDataExchange.class,
+                ErrorCode.E4014,
+                "source.visualization",
+                request.getVisualization()));
+      }
+
+      if (isEmpty(request.getDx()) || isEmpty(request.getPe()) || isEmpty(request.getOu())) {
+        addReports.accept(new ErrorReport(AggregateDataExchange.class, ErrorCode.E6303));
+      }
+    }
+  }
+
+  /**
+   * Validates the data exchange target.
+   *
+   * @param exchange the {@link AggregateDataExchange}.
+   * @param addReports the list of {@link ErrorReport}.
+   */
+  private void validateTarget(AggregateDataExchange exchange, Consumer<ErrorReport> addReports) {
+    if (exchange.getTarget().getType() == null) {
+      addReports.accept(
+          new ErrorReport(AggregateDataExchange.class, ErrorCode.E4000, "target.type"));
     }
 
-    @Override
-    public void preUpdate( AggregateDataExchange exchange,
-        AggregateDataExchange persistedExchange, ObjectBundle bundle )
-    {
-        encryptApiSecrets( exchange );
+    if (exchange.getTarget().getType() == TargetType.EXTERNAL
+        && exchange.getTarget().getApi() == null) {
+      addReports.accept(new ErrorReport(AggregateDataExchange.class, ErrorCode.E6304));
     }
 
-    /**
-     * Validates the data exchange source.
-     *
-     * @param exchange the {@link AggregateDataExchange}.
-     * @param addReports the list of {@link ErrorReport}.
-     */
-    private void validateSource( AggregateDataExchange exchange, Consumer<ErrorReport> addReports )
-    {
-        if ( isEmpty( exchange.getSource().getRequests() ) )
-        {
-            addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E6302, exchange.getUid() ) );
-        }
+    Api api = exchange.getTarget().getApi();
 
-        for ( SourceRequest request : exchange.getSource().getRequests() )
-        {
-            if ( isEmpty( request.getName() ) )
-            {
-                addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4000, "source.name" ) );
-            }
-
-            if ( request.getName() != null && request.getName().length() > SOURCE_REQUEST_NAME_MAX_LENGTH )
-            {
-                addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4001,
-                    "source.name", SOURCE_REQUEST_NAME_MAX_LENGTH, request.getName().length() ) );
-            }
-
-            if ( request.getVisualization() != null && !CodeGenerator.isValidUid( request.getVisualization() ) )
-            {
-                addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4014,
-                    "source.visualization", request.getVisualization() ) );
-            }
-
-            if ( isEmpty( request.getDx() ) || isEmpty( request.getPe() ) || isEmpty( request.getOu() ) )
-            {
-                addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E6303 ) );
-            }
-        }
+    if (api != null && isEmpty(api.getUrl())) {
+      addReports.accept(
+          new ErrorReport(AggregateDataExchange.class, ErrorCode.E4000, "target.api.url"));
     }
 
-    /**
-     * Validates the data exchange target.
-     *
-     * @param exchange the {@link AggregateDataExchange}.
-     * @param addReports the list of {@link ErrorReport}.
-     */
-    private void validateTarget( AggregateDataExchange exchange, Consumer<ErrorReport> addReports )
-    {
-        if ( exchange.getTarget().getType() == null )
-        {
-            addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4000, "target.type" ) );
-        }
-
-        if ( exchange.getTarget().getType() == TargetType.EXTERNAL && exchange.getTarget().getApi() == null )
-        {
-            addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E6304 ) );
-        }
-
-        Api api = exchange.getTarget().getApi();
-
-        if ( api != null && isEmpty( api.getUrl() ) )
-        {
-            addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4000, "target.api.url" ) );
-        }
-
-        if ( api != null && !(api.isAccessTokenAuth() || api.isBasicAuth()) )
-        {
-            addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E6305 ) );
-        }
+    if (api != null && !(api.isAccessTokenAuth() || api.isBasicAuth())) {
+      addReports.accept(new ErrorReport(AggregateDataExchange.class, ErrorCode.E6305));
     }
+  }
 
-    /**
-     * Encrypts target API secrets.
-     *
-     * @param exchange the {@link AggregateDataExchange}.
-     */
-    private void encryptApiSecrets( AggregateDataExchange exchange )
-    {
-        if ( exchange.getTarget().getApi() != null )
-        {
-            Api api = exchange.getTarget().getApi();
+  /**
+   * Encrypts target API secrets.
+   *
+   * @param exchange the {@link AggregateDataExchange}.
+   */
+  private void encryptApiSecrets(AggregateDataExchange exchange) {
+    if (exchange.getTarget().getApi() != null) {
+      Api api = exchange.getTarget().getApi();
 
-            if ( api != null && StringUtils.isNotBlank( api.getPassword() ) )
-            {
-                api.setPassword( encryptor.encrypt( api.getPassword() ) );
-            }
+      if (api != null && StringUtils.isNotBlank(api.getPassword())) {
+        api.setPassword(encryptor.encrypt(api.getPassword()));
+      }
 
-            if ( api != null && StringUtils.isNotBlank( api.getAccessToken() ) )
-            {
-                api.setAccessToken( encryptor.encrypt( api.getAccessToken() ) );
-            }
-        }
+      if (api != null && StringUtils.isNotBlank(api.getAccessToken())) {
+        api.setAccessToken(encryptor.encrypt(api.getAccessToken()));
+      }
     }
+  }
 }

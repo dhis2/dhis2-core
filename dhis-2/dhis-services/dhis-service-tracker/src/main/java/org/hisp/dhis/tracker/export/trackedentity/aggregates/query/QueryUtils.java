@@ -33,16 +33,14 @@ import java.util.stream.Collectors;
 /**
  * @author Luciano Fiandesio
  */
-class QueryUtils
-{
-    private QueryUtils()
-    {
-        throw new IllegalStateException( "Utility class" );
-    }
+class QueryUtils {
+  private QueryUtils() {
+    throw new IllegalStateException("Utility class");
+  }
 
-    static String getSelect( Collection<? extends QueryElement> columns )
-    {
-        return "SELECT "
-            + columns.stream().map( QueryElement::useInSelect ).collect( Collectors.joining( ", " ) ) + " ";
-    }
+  static String getSelect(Collection<? extends QueryElement> columns) {
+    return "SELECT "
+        + columns.stream().map(QueryElement::useInSelect).collect(Collectors.joining(", "))
+        + " ";
+  }
 }

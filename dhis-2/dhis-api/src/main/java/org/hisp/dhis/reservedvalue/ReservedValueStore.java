@@ -28,31 +28,29 @@
 package org.hisp.dhis.reservedvalue;
 
 import java.util.List;
-
 import org.hisp.dhis.common.GenericStore;
 
 /**
  * @author Stian Sandvold
  */
-public interface ReservedValueStore
-    extends GenericStore<ReservedValue>
-{
+public interface ReservedValueStore extends GenericStore<ReservedValue> {
 
-    void bulkInsertReservedValues( List<ReservedValue> toAdd );
+  void bulkInsertReservedValues(List<ReservedValue> toAdd);
 
-    void reserveValues( List<ReservedValue> toAdd );
+  void reserveValues(List<ReservedValue> toAdd);
 
-    List<ReservedValue> getAvailableValues( ReservedValue reservedValue, List<String> values, String ownerObject );
+  List<ReservedValue> getAvailableValues(
+      ReservedValue reservedValue, List<String> values, String ownerObject);
 
-    List<ReservedValue> reserveValuesJpa( ReservedValue reservedValue, List<String> values );
+  List<ReservedValue> reserveValuesJpa(ReservedValue reservedValue, List<String> values);
 
-    int getNumberOfUsedValues( ReservedValue reservedValue );
+  int getNumberOfUsedValues(ReservedValue reservedValue);
 
-    boolean useReservedValue( String ownerUID, String value );
+  boolean useReservedValue(String ownerUID, String value);
 
-    void deleteReservedValueByUid( String uid );
+  void deleteReservedValueByUid(String uid);
 
-    boolean isReserved( String ownerObject, String ownerUID, String value );
+  boolean isReserved(String ownerObject, String ownerUID, String value);
 
-    void removeUsedOrExpiredReservations();
+  void removeUsedOrExpiredReservations();
 }

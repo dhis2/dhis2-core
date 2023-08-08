@@ -29,39 +29,30 @@ package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.ProgramOwner;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramOwnerRowCallbackHandler
-    extends
-    AbstractMapper<ProgramOwner>
-{
+public class ProgramOwnerRowCallbackHandler extends AbstractMapper<ProgramOwner> {
 
-    @Override
-    ProgramOwner getItem( ResultSet rs )
-        throws SQLException
-    {
-        return getProgramOwner( rs );
-    }
+  @Override
+  ProgramOwner getItem(ResultSet rs) throws SQLException {
+    return getProgramOwner(rs);
+  }
 
-    @Override
-    String getKeyColumn()
-    {
-        return "key";
-    }
+  @Override
+  String getKeyColumn() {
+    return "key";
+  }
 
-    private ProgramOwner getProgramOwner( ResultSet rs )
-        throws SQLException
-    {
-        ProgramOwner programOwner = new ProgramOwner();
+  private ProgramOwner getProgramOwner(ResultSet rs) throws SQLException {
+    ProgramOwner programOwner = new ProgramOwner();
 
-        programOwner.setOwnerOrgUnit( rs.getString( "ouuid" ) );
-        programOwner.setProgram( rs.getString( "prguid" ) );
-        programOwner.setTrackedEntityInstance( rs.getString( "key" ) );
+    programOwner.setOwnerOrgUnit(rs.getString("ouuid"));
+    programOwner.setProgram(rs.getString("prguid"));
+    programOwner.setTrackedEntityInstance(rs.getString("key"));
 
-        return programOwner;
-    }
+    return programOwner;
+  }
 }

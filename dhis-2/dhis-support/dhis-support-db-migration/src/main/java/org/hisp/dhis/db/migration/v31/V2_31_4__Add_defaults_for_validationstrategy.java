@@ -31,7 +31,6 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
@@ -39,36 +38,33 @@ import org.flywaydb.core.api.migration.Context;
 /**
  * @author David Katuscak (katuscak.d@gmail.com)
  */
-public class V2_31_4__Add_defaults_for_validationstrategy extends BaseJavaMigration
-{
-    @Override
-    public void migrate( Context context )
-        throws Exception
-    {
+public class V2_31_4__Add_defaults_for_validationstrategy extends BaseJavaMigration {
+  @Override
+  public void migrate(Context context) throws Exception {
 
-        List<Integer> programStageIds = new ArrayList<>();
+    List<Integer> programStageIds = new ArrayList<>();
 
-        String sql = "SELECT programstageid FROM programstage ps JOIN program p ON p.programid = ps.programid " +
-            "WHERE p.type = 'WITHOUT_REGISTRATION'";
-        try ( Statement stmt = context.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery( sql ); )
-        {
-            while ( rs.next() )
-            {
-                programStageIds.add( rs.getInt( "programstageid" ) );
-            }
-        }
-
-        if ( programStageIds.size() > 0 )
-        {
-            String inStatement = StringUtils.join( programStageIds, "," );
-            sql = "UPDATE programstage SET validationstrategy = 'ON_UPDATE_AND_INSERT' " +
-                "WHERE programstageid IN (" + inStatement + ")";
-
-            try ( Statement stmt = context.getConnection().createStatement() )
-            {
-                stmt.executeUpdate( sql );
-            }
-        }
+    String sql =
+        "SELECT programstageid FROM programstage ps JOIN program p ON p.programid = ps.programid "
+            + "WHERE p.type = 'WITHOUT_REGISTRATION'";
+    try (Statement stmt = context.getConnection().createStatement();
+        ResultSet rs = stmt.executeQuery(sql); ) {
+      while (rs.next()) {
+        programStageIds.add(rs.getInt("programstageid"));
+      }
     }
+
+    if (programStageIds.size() > 0) {
+      String inStatement = StringUtils.join(programStageIds, ",");
+      sql =
+          "UPDATE programstage SET validationstrategy = 'ON_UPDATE_AND_INSERT' "
+              + "WHERE programstageid IN ("
+              + inStatement
+              + ")";
+
+      try (Statement stmt = context.getConnection().createStatement()) {
+        stmt.executeUpdate(sql);
+      }
+    }
+  }
 }

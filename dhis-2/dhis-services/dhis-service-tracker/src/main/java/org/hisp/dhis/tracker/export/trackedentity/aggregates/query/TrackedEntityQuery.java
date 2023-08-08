@@ -27,69 +27,64 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates.query;
 
-import java.util.Map;
-
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 
 /**
  * @author Luciano Fiandesio
  */
-public class TrackedEntityQuery
-{
-    public enum COLUMNS
-    {
-        UID,
-        CREATED,
-        CREATEDCLIENT,
-        CREATED_BY,
-        UPDATED,
-        UPDATEDCLIENT,
-        LAST_UPDATED_BY,
-        INACTIVE,
-        DELETED,
-        GEOMETRY,
-        TYPE_UID,
-        ORGUNIT_UID,
-        TRACKEDENTITYINSTANCEID,
+public class TrackedEntityQuery {
+  public enum COLUMNS {
+    UID,
+    CREATED,
+    CREATEDCLIENT,
+    CREATED_BY,
+    UPDATED,
+    UPDATEDCLIENT,
+    LAST_UPDATED_BY,
+    INACTIVE,
+    DELETED,
+    GEOMETRY,
+    TYPE_UID,
+    ORGUNIT_UID,
+    TRACKEDENTITYID,
 
-        POTENTIALDUPLICATE
-    }
+    POTENTIALDUPLICATE
+  }
 
-    public static final Map<COLUMNS, ? extends QueryElement> columnMap = ImmutableMap.<COLUMNS, QueryElement> builder()
-        .put( COLUMNS.UID, new TableColumn( "tei", "uid", "tei_uid" ) )
-        .put( COLUMNS.CREATED, new TableColumn( "tei", "created" ) )
-        .put( COLUMNS.CREATEDCLIENT, new TableColumn( "tei", "createdatclient" ) )
-        .put( COLUMNS.CREATED_BY, new TableColumn( "tei", "createdbyuserinfo" ) )
-        .put( COLUMNS.UPDATED, new TableColumn( "tei", "lastupdated" ) )
-        .put( COLUMNS.UPDATEDCLIENT, new TableColumn( "tei", "lastupdatedatclient" ) )
-        .put( COLUMNS.LAST_UPDATED_BY, new TableColumn( "tei", "lastupdatedbyuserinfo" ) )
-        .put( COLUMNS.INACTIVE, new TableColumn( "tei", "inactive" ) )
-        .put( COLUMNS.DELETED, new TableColumn( "tei", "deleted" ) )
-        .put( COLUMNS.GEOMETRY, new Function( "ST_AsBinary", "tei", "geometry", "geometry" ) )
-        .put( COLUMNS.TYPE_UID, new TableColumn( "tet", "uid", "type_uid" ) )
-        .put( COLUMNS.ORGUNIT_UID, new TableColumn( "o", "uid", "ou_uid" ) )
-        .put( COLUMNS.TRACKEDENTITYINSTANCEID,
-            new TableColumn( "tei", "trackedentityinstanceid", "trackedentityinstanceid" ) )
-        .put( COLUMNS.POTENTIALDUPLICATE,
-            new TableColumn( "tei", "potentialduplicate", "potentialduplicate" ) )
-        .build();
+  public static final Map<COLUMNS, ? extends QueryElement> columnMap =
+      ImmutableMap.<COLUMNS, QueryElement>builder()
+          .put(COLUMNS.UID, new TableColumn("te", "uid", "te_uid"))
+          .put(COLUMNS.CREATED, new TableColumn("te", "created"))
+          .put(COLUMNS.CREATEDCLIENT, new TableColumn("te", "createdatclient"))
+          .put(COLUMNS.CREATED_BY, new TableColumn("te", "createdbyuserinfo"))
+          .put(COLUMNS.UPDATED, new TableColumn("te", "lastupdated"))
+          .put(COLUMNS.UPDATEDCLIENT, new TableColumn("te", "lastupdatedatclient"))
+          .put(COLUMNS.LAST_UPDATED_BY, new TableColumn("te", "lastupdatedbyuserinfo"))
+          .put(COLUMNS.INACTIVE, new TableColumn("te", "inactive"))
+          .put(COLUMNS.DELETED, new TableColumn("te", "deleted"))
+          .put(COLUMNS.GEOMETRY, new Function("ST_AsBinary", "te", "geometry", "geometry"))
+          .put(COLUMNS.TYPE_UID, new TableColumn("tet", "uid", "type_uid"))
+          .put(COLUMNS.ORGUNIT_UID, new TableColumn("o", "uid", "ou_uid"))
+          .put(COLUMNS.TRACKEDENTITYID, new TableColumn("te", "trackedentityid", "trackedentityid"))
+          .put(
+              COLUMNS.POTENTIALDUPLICATE,
+              new TableColumn("te", "potentialduplicate", "potentialduplicate"))
+          .build();
 
-    public static String getQuery()
-    {
-        return getSelect() +
-            "FROM trackedentityinstance tei " +
-            "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid " +
-            "join organisationunit o on tei.organisationunitid = o.organisationunitid " +
-            "where tei.trackedentityinstanceid in (:ids)";
-    }
+  public static String getQuery() {
+    return getSelect()
+        + "FROM trackedentity te "
+        + "join trackedentitytype tet on te.trackedentitytypeid = tet.trackedentitytypeid "
+        + "join organisationunit o on te.organisationunitid = o.organisationunitid "
+        + "where te.trackedentityid in (:ids)";
+  }
 
-    private static String getSelect()
-    {
-        return QueryUtils.getSelect( columnMap.values() );
-    }
+  private static String getSelect() {
+    return QueryUtils.getSelect(columnMap.values());
+  }
 
-    public static String getColumnName( COLUMNS columns )
-    {
-        return columnMap.get( columns ).getResultsetValue();
-    }
+  public static String getColumnName(COLUMNS columns) {
+    return columnMap.get(columns).getResultsetValue();
+  }
 }

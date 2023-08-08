@@ -29,11 +29,8 @@ package org.hisp.dhis.common;
 
 import org.hisp.dhis.feedback.ErrorCode;
 
-public class QueryRuntimeException
-    extends ErrorCodeException
-{
-    public QueryRuntimeException( ErrorCode errorCode )
-    {
-        super( errorCode );
-    }
+public class QueryRuntimeException extends ErrorCodeException {
+  public QueryRuntimeException(ErrorCode errorCode) {
+    super(errorCode);
+  }
 }

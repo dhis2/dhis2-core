@@ -27,47 +27,38 @@
  */
 package org.hisp.dhis.minmax;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.List;
 
 @JacksonXmlRootElement
-public class MinMaxValueParams
-{
-    private List<String> dataSets;
+public class MinMaxValueParams {
+  private List<String> dataSets;
 
-    private String organisationUnit;
+  private String organisationUnit;
 
-    public MinMaxValueParams()
-    {
-    }
+  public MinMaxValueParams() {}
 
-    public MinMaxValueParams( List<String> dataSets, String organisationUnit )
-    {
-        this.dataSets = dataSets;
-        this.organisationUnit = organisationUnit;
-    }
+  public MinMaxValueParams(List<String> dataSets, String organisationUnit) {
+    this.dataSets = dataSets;
+    this.organisationUnit = organisationUnit;
+  }
 
-    @JsonProperty
-    public List<String> getDataSets()
-    {
-        return dataSets;
-    }
+  @JsonProperty
+  public List<String> getDataSets() {
+    return dataSets;
+  }
 
-    public void setDataSets( List<String> dataSets )
-    {
-        this.dataSets = dataSets;
-    }
+  public void setDataSets(List<String> dataSets) {
+    this.dataSets = dataSets;
+  }
 
-    @JsonProperty
-    public String getOrganisationUnit()
-    {
-        return organisationUnit;
-    }
+  @JsonProperty
+  public String getOrganisationUnit() {
+    return organisationUnit;
+  }
 
-    public void setOrganisationUnit( String organisationUnit )
-    {
-        this.organisationUnit = organisationUnit;
-    }
+  public void setOrganisationUnit(String organisationUnit) {
+    this.organisationUnit = organisationUnit;
+  }
 }

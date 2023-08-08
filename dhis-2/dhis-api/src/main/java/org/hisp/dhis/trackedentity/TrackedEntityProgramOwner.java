@@ -27,219 +27,184 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.Date;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Ameen Mohamed
  */
-@JacksonXmlRootElement( localName = "trackedEntityProgramOwner", namespace = DxfNamespaces.DXF_2_0 )
-public class TrackedEntityProgramOwner implements Serializable
-{
-    private int id;
+@JacksonXmlRootElement(localName = "trackedEntityProgramOwner", namespace = DxfNamespaces.DXF_2_0)
+public class TrackedEntityProgramOwner implements Serializable {
+  private int id;
 
-    private TrackedEntity trackedEntity;
+  private TrackedEntity trackedEntity;
 
-    private Program program;
+  private Program program;
 
-    private OrganisationUnit organisationUnit;
+  private OrganisationUnit organisationUnit;
 
-    private Date created;
+  private Date created;
 
-    private Date lastUpdated;
+  private Date lastUpdated;
 
-    private String createdBy;
+  private String createdBy;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public TrackedEntityProgramOwner()
-    {
-        this.createdBy = "internal";
+  public TrackedEntityProgramOwner() {
+    this.createdBy = "internal";
+  }
+
+  public TrackedEntityProgramOwner(
+      TrackedEntity trackedEntity, Program program, OrganisationUnit organisationUnit) {
+    this.trackedEntity = trackedEntity;
+    this.program = program;
+    this.organisationUnit = organisationUnit;
+    this.createdBy = "internal";
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  public void changeOwner(OrganisationUnit newOwnerOu) {
+    this.organisationUnit = newOwnerOu;
+  }
+
+  // -------------------------------------------------------------------------
+  // equals and hashCode
+  // -------------------------------------------------------------------------
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+
+    result = prime * result + ((trackedEntity == null) ? 0 : trackedEntity.hashCode());
+    result = prime * result + ((program == null) ? 0 : program.hashCode());
+
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (this == object) {
+      return true;
     }
 
-    public TrackedEntityProgramOwner( TrackedEntity trackedEntity, Program program,
-        OrganisationUnit organisationUnit )
-    {
-        this.trackedEntity = trackedEntity;
-        this.program = program;
-        this.organisationUnit = organisationUnit;
-        this.createdBy = "internal";
+    if (object == null) {
+      return false;
     }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    public void changeOwner( OrganisationUnit newOwnerOu )
-    {
-        this.organisationUnit = newOwnerOu;
+    if (!getClass().isAssignableFrom(object.getClass())) {
+      return false;
     }
 
-    // -------------------------------------------------------------------------
-    // equals and hashCode
-    // -------------------------------------------------------------------------
+    final TrackedEntityProgramOwner other = (TrackedEntityProgramOwner) object;
 
-    @Override
-    public int hashCode()
-    {
-        final int prime = 31;
-        int result = super.hashCode();
-
-        result = prime * result + ((trackedEntity == null) ? 0 : trackedEntity.hashCode());
-        result = prime * result + ((program == null) ? 0 : program.hashCode());
-
-        return result;
+    if (trackedEntity == null) {
+      if (other.trackedEntity != null) {
+        return false;
+      }
+    } else if (!trackedEntity.equals(other.trackedEntity)) {
+      return false;
     }
 
-    @Override
-    public boolean equals( Object object )
-    {
-        if ( this == object )
-        {
-            return true;
-        }
-
-        if ( object == null )
-        {
-            return false;
-        }
-
-        if ( !getClass().isAssignableFrom( object.getClass() ) )
-        {
-            return false;
-        }
-
-        final TrackedEntityProgramOwner other = (TrackedEntityProgramOwner) object;
-
-        if ( trackedEntity == null )
-        {
-            if ( other.trackedEntity != null )
-            {
-                return false;
-            }
-        }
-        else if ( !trackedEntity.equals( other.trackedEntity ) )
-        {
-            return false;
-        }
-
-        if ( program == null )
-        {
-            if ( other.program != null )
-            {
-                return false;
-            }
-        }
-        else if ( !program.equals( other.program ) )
-        {
-            return false;
-        }
-
-        return true;
+    if (program == null) {
+      if (other.program != null) {
+        return false;
+      }
+    } else if (!program.equals(other.program)) {
+      return false;
     }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+    return true;
+  }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public OrganisationUnit getOrganisationUnit()
-    {
-        return organisationUnit;
-    }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    public void setOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        this.organisationUnit = organisationUnit;
-    }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public OrganisationUnit getOrganisationUnit() {
+    return organisationUnit;
+  }
 
-    @JsonProperty( "trackedEntityInstance" )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntity getTrackedEntity()
-    {
-        return trackedEntity;
-    }
+  public void setOrganisationUnit(OrganisationUnit organisationUnit) {
+    this.organisationUnit = organisationUnit;
+  }
 
-    public void setTrackedEntity( TrackedEntity trackedEntity )
-    {
-        this.trackedEntity = trackedEntity;
-    }
+  @JsonProperty("trackedEntityInstance")
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0)
+  public TrackedEntity getTrackedEntity() {
+    return trackedEntity;
+  }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Program getProgram()
-    {
-        return program;
-    }
+  public void setTrackedEntity(TrackedEntity trackedEntity) {
+    this.trackedEntity = trackedEntity;
+  }
 
-    public void setProgram( Program program )
-    {
-        this.program = program;
-    }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Program getProgram() {
+    return program;
+  }
 
-    public Date getCreated()
-    {
-        return created;
-    }
+  public void setProgram(Program program) {
+    this.program = program;
+  }
 
-    public void setCreated( Date created )
-    {
-        this.created = created;
-    }
+  public Date getCreated() {
+    return created;
+  }
 
-    public Date getLastUpdated()
-    {
-        return lastUpdated;
-    }
+  public void setCreated(Date created) {
+    this.created = created;
+  }
 
-    public void setLastUpdated( Date lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
-    }
+  public Date getLastUpdated() {
+    return lastUpdated;
+  }
 
-    public String getCreatedBy()
-    {
-        return createdBy;
-    }
+  public void setLastUpdated(Date lastUpdated) {
+    this.lastUpdated = lastUpdated;
+  }
 
-    public void setCreatedBy( String createdBy )
-    {
-        this.createdBy = createdBy;
-    }
+  public String getCreatedBy() {
+    return createdBy;
+  }
 
-    public int getId()
-    {
-        return id;
-    }
+  public void setCreatedBy(String createdBy) {
+    this.createdBy = createdBy;
+  }
 
-    public void setId( int id )
-    {
-        this.id = id;
-    }
+  public int getId() {
+    return id;
+  }
 
-    public void updateDates()
-    {
-        Date now = new Date();
-        if ( this.created == null )
-        {
-            this.created = now;
-        }
-        this.lastUpdated = now;
+  public void setId(int id) {
+    this.id = id;
+  }
+
+  public void updateDates() {
+    Date now = new Date();
+    if (this.created == null) {
+      this.created = now;
     }
+    this.lastUpdated = now;
+  }
 }

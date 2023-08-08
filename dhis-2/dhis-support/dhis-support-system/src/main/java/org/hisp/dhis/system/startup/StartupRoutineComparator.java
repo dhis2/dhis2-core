@@ -33,15 +33,11 @@ import java.util.Comparator;
  * Compares StartupRoutines based on their runlevel values.
  *
  * @author <a href="mailto:torgeilo@gmail.com">Torgeir Lorange Ostby</a>
- * @version $Id: StartupRoutineComparator.java 3217 2007-04-02 08:54:21Z
- *          torgeilo $
+ * @version $Id: StartupRoutineComparator.java 3217 2007-04-02 08:54:21Z torgeilo $
  */
-public class StartupRoutineComparator
-    implements Comparator<StartupRoutine>
-{
-    @Override
-    public int compare( StartupRoutine routineA, StartupRoutine routineB )
-    {
-        return routineA.getRunlevel() - routineB.getRunlevel();
-    }
+public class StartupRoutineComparator implements Comparator<StartupRoutine> {
+  @Override
+  public int compare(StartupRoutine routineA, StartupRoutine routineB) {
+    return routineA.getRunlevel() - routineB.getRunlevel();
+  }
 }

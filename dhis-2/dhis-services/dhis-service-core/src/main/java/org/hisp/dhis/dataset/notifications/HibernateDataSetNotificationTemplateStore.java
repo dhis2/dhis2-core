@@ -28,9 +28,7 @@
 package org.hisp.dhis.dataset.notifications;
 
 import java.util.List;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
@@ -41,38 +39,46 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-/**
- * Created by zubair@dhis2.org on 13.07.17.
- */
-@Repository( "org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateStore" )
+/** Created by zubair@dhis2.org on 13.07.17. */
+@Repository("org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateStore")
 public class HibernateDataSetNotificationTemplateStore
     extends HibernateIdentifiableObjectStore<DataSetNotificationTemplate>
-    implements DataSetNotificationTemplateStore
-{
-    public HibernateDataSetNotificationTemplateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, DataSetNotificationTemplate.class, currentUserService,
-            aclService, true );
-    }
+    implements DataSetNotificationTemplateStore {
+  public HibernateDataSetNotificationTemplateStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        DataSetNotificationTemplate.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public List<DataSetNotificationTemplate> getNotificationsByTriggerType( DataSet dataSet,
-        DataSetNotificationTrigger trigger )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<DataSetNotificationTemplate> getNotificationsByTriggerType(
+      DataSet dataSet, DataSetNotificationTrigger trigger) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "dataSetNotificationTrigger" ), trigger ) )
-            .addPredicate( root -> builder.equal( root.join( "dataSets" ).get( "id" ), dataSet.getId() ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("dataSetNotificationTrigger"), trigger))
+            .addPredicate(root -> builder.equal(root.join("dataSets").get("id"), dataSet.getId())));
+  }
 
-    @Override
-    public List<DataSetNotificationTemplate> getScheduledNotifications( NotificationTrigger trigger )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<DataSetNotificationTemplate> getScheduledNotifications(NotificationTrigger trigger) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "dataSetNotificationTrigger" ), trigger ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("dataSetNotificationTrigger"), trigger)));
+  }
 }

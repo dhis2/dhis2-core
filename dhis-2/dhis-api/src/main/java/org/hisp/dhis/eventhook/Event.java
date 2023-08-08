@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.eventhook;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.ZonedDateTime;
 import java.util.Map;
-
 import lombok.Builder;
 import lombok.Value;
 import lombok.With;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen
@@ -42,19 +40,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @With
 @Value
 @Builder
-public class Event
-{
-    @JsonProperty
-    private String path;
+public class Event {
+  @JsonProperty private String path;
 
-    @JsonProperty
-    @Builder.Default
-    private ZonedDateTime createdAt = ZonedDateTime.now();
+  @JsonProperty @Builder.Default private ZonedDateTime createdAt = ZonedDateTime.now();
 
-    @JsonProperty
-    @Builder.Default
-    private Map<String, ?> meta = Map.of();
+  @JsonProperty @Builder.Default private Map<String, ?> meta = Map.of();
 
-    @JsonProperty
-    private Object object;
+  @JsonProperty private Object object;
 }

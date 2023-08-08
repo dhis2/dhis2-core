@@ -32,45 +32,39 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.junit.jupiter.api.Test;
 
-class LimitOffsetTest
-{
-    @Test
-    void testWhenOffSetHasPaging()
-    {
-        LimitOffset limitOffset = LimitOffset.of(
-            AnalyticsPagingParams.builder()
-                .paging( true )
-                .page( 1 )
-                .pageSize( 1 )
-                .build() );
-        assertEquals( "limit 2 offset 0", limitOffset.render() );
-    }
+class LimitOffsetTest {
+  @Test
+  void testWhenOffSetHasPaging() {
+    LimitOffset limitOffset =
+        LimitOffset.of(AnalyticsPagingParams.builder().paging(true).page(1).pageSize(1).build());
+    assertEquals("limit 2 offset 0", limitOffset.render());
+  }
 
-    @Test
-    void testWhenOffSetIsUnlimitedAndPagingIsFalse()
-    {
-        LimitOffset limitOffset = LimitOffset.of(
+  @Test
+  void testWhenOffSetIsUnlimitedAndPagingIsFalse() {
+    LimitOffset limitOffset =
+        LimitOffset.of(
             AnalyticsPagingParams.builder()
-                .paging( false )
-                .unlimited( true )
-                .page( 1 )
-                .pageSize( 1 )
-                .build() );
-        assertEquals( "", limitOffset.render() );
-    }
+                .paging(false)
+                .unlimited(true)
+                .page(1)
+                .pageSize(1)
+                .build());
+    assertEquals("", limitOffset.render());
+  }
 
-    @Test
-    void testWhenOffSetIsUnlimitedAndPagingIsTrue()
-    {
-        LimitOffset limitOffset = LimitOffset.of(
+  @Test
+  void testWhenOffSetIsUnlimitedAndPagingIsTrue() {
+    LimitOffset limitOffset =
+        LimitOffset.of(
             AnalyticsPagingParams.builder()
-                .paging( true )
-                .unlimited( true )
-                .page( 1 )
-                .pageSize( 1 )
-                .build() );
+                .paging(true)
+                .unlimited(true)
+                .page(1)
+                .pageSize(1)
+                .build());
 
-        // Unlimited takes precedence.
-        assertEquals( "", limitOffset.render() );
-    }
+    // Unlimited takes precedence.
+    assertEquals("", limitOffset.render());
+  }
 }

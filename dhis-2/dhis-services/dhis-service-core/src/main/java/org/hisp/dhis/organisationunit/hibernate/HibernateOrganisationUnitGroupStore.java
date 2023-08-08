@@ -29,7 +29,6 @@ package org.hisp.dhis.organisationunit.hibernate;
 
 import java.util.List;
 import java.util.Set;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -44,39 +43,44 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Lars Helge Overland
  */
-@Repository( "org.hisp.dhis.organisationunit.OrganisationUnitGroupStore" )
+@Repository("org.hisp.dhis.organisationunit.OrganisationUnitGroupStore")
 public class HibernateOrganisationUnitGroupStore
     extends HibernateIdentifiableObjectStore<OrganisationUnitGroup>
-    implements OrganisationUnitGroupStore
-{
-    public HibernateOrganisationUnitGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, OrganisationUnitGroup.class, currentUserService, aclService,
-            true );
-    }
+    implements OrganisationUnitGroupStore {
+  public HibernateOrganisationUnitGroupStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        OrganisationUnitGroup.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets()
-    {
-        return getQuery( "from OrganisationUnitGroup o where size(o.groupSets) > 0" ).list();
-    }
+  @Override
+  public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets() {
+    return getQuery("from OrganisationUnitGroup o where size(o.groupSets) > 0").list();
+  }
 
-    @Override
-    public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets()
-    {
-        return getQuery( "from OrganisationUnitGroup g where size(g.groupSets) = 0" ).list();
-    }
+  @Override
+  public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets() {
+    return getQuery("from OrganisationUnitGroup g where size(g.groupSets) = 0").list();
+  }
 
-    @Override
-    public OrganisationUnitGroup getOrgUnitGroupInGroupSet( Set<OrganisationUnitGroup> groups,
-        OrganisationUnitGroupSet groupSet )
-    {
-        return getQuery(
-            "select g from OrganisationUnitGroup g inner join g.groupSets gs where gs = :groupSet and g in :groups" )
-            .setParameter( "groupSet", groupSet )
-            .setParameter( "groups", groups )
-            .setMaxResults( 1 )
-            .uniqueResult();
-    }
+  @Override
+  public OrganisationUnitGroup getOrgUnitGroupInGroupSet(
+      Set<OrganisationUnitGroup> groups, OrganisationUnitGroupSet groupSet) {
+    return getQuery(
+            "select g from OrganisationUnitGroup g inner join g.groupSets gs where gs = :groupSet and g in :groups")
+        .setParameter("groupSet", groupSet)
+        .setParameter("groups", groups)
+        .setMaxResults(1)
+        .uniqueResult();
+  }
 }

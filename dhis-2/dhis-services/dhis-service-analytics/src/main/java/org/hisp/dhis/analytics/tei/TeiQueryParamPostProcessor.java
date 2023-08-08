@@ -30,9 +30,7 @@ package org.hisp.dhis.analytics.tei;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
@@ -42,40 +40,39 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class TeiQueryParamPostProcessor implements Processor<TeiQueryParams>
-{
-    private static final String DEFAULT_PERIOD = "pe:LAST_YEAR:LAST_UPDATED";
+public class TeiQueryParamPostProcessor implements Processor<TeiQueryParams> {
+  private static final String DEFAULT_PERIOD = "pe:LAST_YEAR:LAST_UPDATED";
 
-    private final CommonQueryRequestMapper commonQueryRequestMapper;
+  private final CommonQueryRequestMapper commonQueryRequestMapper;
 
-    public TeiQueryParams process( TeiQueryParams params )
-    {
-        boolean existsPeriodRestriction = params.getCommonParams().getDimensionIdentifiers().stream()
-            .filter( d -> d.getDimension().isPeriodDimension() )
-            .anyMatch( d -> d.getDimension().hasRestrictions() );
+  public TeiQueryParams process(TeiQueryParams params) {
+    boolean existsPeriodRestriction =
+        params.getCommonParams().getDimensionIdentifiers().stream()
+            .filter(d -> d.getDimension().isPeriodDimension())
+            .anyMatch(d -> d.getDimension().hasRestrictions());
 
-        if ( existsPeriodRestriction )
-        {
-            return params;
-        }
+    if (existsPeriodRestriction) {
+      return params;
+    }
 
-        DimensionIdentifier<DimensionParam> defaultPeriod = commonQueryRequestMapper.toDimensionIdentifier(
+    DimensionIdentifier<DimensionParam> defaultPeriod =
+        commonQueryRequestMapper.toDimensionIdentifier(
             DEFAULT_PERIOD,
             DimensionParamType.DATE_FILTERS,
             params.getCommonParams().getRelativePeriodDate(),
             params.getCommonParams().getDisplayProperty(),
             params.getCommonParams().getPrograms(),
-            params.getCommonParams().getUserOrgUnit() );
+            params.getCommonParams().getUserOrgUnit());
 
-        List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers = Stream
-            .concat( params.getCommonParams().getDimensionIdentifiers().stream(), Stream.of( defaultPeriod ) )
-            .collect( Collectors.toList() );
+    List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers =
+        Stream.concat(
+                params.getCommonParams().getDimensionIdentifiers().stream(),
+                Stream.of(defaultPeriod))
+            .collect(Collectors.toList());
 
-        return params.toBuilder()
-            .commonParams(
-                params.getCommonParams().toBuilder()
-                    .dimensionIdentifiers( dimensionIdentifiers )
-                    .build() )
-            .build();
-    }
+    return params.toBuilder()
+        .commonParams(
+            params.getCommonParams().toBuilder().dimensionIdentifiers(dimensionIdentifiers).build())
+        .build();
+  }
 }

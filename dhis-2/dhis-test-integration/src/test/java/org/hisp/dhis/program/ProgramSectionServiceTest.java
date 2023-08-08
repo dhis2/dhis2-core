@@ -43,55 +43,46 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author viet@dhis2.org
  */
-class ProgramSectionServiceTest
-    extends SingleSetupIntegrationTestBase
-{
-    @Autowired
-    private IdentifiableObjectManager manager;
+class ProgramSectionServiceTest extends SingleSetupIntegrationTestBase {
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Autowired
-    private AclService aclService;
+  @Autowired private AclService aclService;
 
-    @Autowired
-    private CategoryService _categoryService;
+  @Autowired private CategoryService _categoryService;
 
-    @Override
-    public void setUpTest()
-    {
-        userService = _userService;
-        categoryService = _categoryService;
-    }
+  @Override
+  public void setUpTest() {
+    userService = _userService;
+    categoryService = _categoryService;
+  }
 
-    @Test
-    void testUpdateWithAuthority()
-    {
-        Program program = createProgram( 'A' );
-        manager.save( program );
+  @Test
+  void testUpdateWithAuthority() {
+    Program program = createProgram('A');
+    manager.save(program);
 
-        ProgramSection programSection = createProgramSection( 'A', program );
+    ProgramSection programSection = createProgramSection('A', program);
 
-        manager.save( programSection );
+    manager.save(programSection);
 
-        User userA = createUserWithAuth( "A", "F_PROGRAM_PUBLIC_ADD" );
-        assertTrue( aclService.canUpdate( userA, programSection ) );
+    User userA = createUserWithAuth("A", "F_PROGRAM_PUBLIC_ADD");
+    assertTrue(aclService.canUpdate(userA, programSection));
 
-        User userB = createUserWithAuth( "B" );
-        assertFalse( aclService.canUpdate( userB, programSection ) );
-    }
+    User userB = createUserWithAuth("B");
+    assertFalse(aclService.canUpdate(userB, programSection));
+  }
 
-    @Test
-    void testSaveWithoutAuthority()
-    {
-        Program program = createProgram( 'A' );
-        manager.save( program );
+  @Test
+  void testSaveWithoutAuthority() {
+    Program program = createProgram('A');
+    manager.save(program);
 
-        createUserAndInjectSecurityContext( false );
-        ProgramSection programSection = createProgramSection( 'A', program );
-        manager.save( programSection );
+    createUserAndInjectSecurityContext(false);
+    ProgramSection programSection = createProgramSection('A', program);
+    manager.save(programSection);
 
-        assertNotNull( manager.get( ProgramSection.class, programSection.getId() ) );
-    }
+    assertNotNull(manager.get(ProgramSection.class, programSection.getId()));
+  }
 }

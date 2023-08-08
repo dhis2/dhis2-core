@@ -27,73 +27,62 @@
  */
 package org.hisp.dhis.commons.action;
 
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-
-import com.opensymphony.xwork2.Action;
 
 /**
  * @author Lars Helge Overland
  */
-public class GetUserAction extends BaseAction
-    implements Action
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetUserAction extends BaseAction implements Action {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private UserService userService;
+  private UserService userService;
 
-    public void setUserService( UserService userService )
-    {
-        this.userService = userService;
+  public void setUserService(UserService userService) {
+    this.userService = userService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Input & Output
+  // -------------------------------------------------------------------------
+
+  private Integer id;
+
+  public void setId(Integer id) {
+    this.id = id;
+  }
+
+  private String username;
+
+  public void setUsername(String username) {
+    this.username = username;
+  }
+
+  private User user;
+
+  public User getUser() {
+    return user;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() {
+    canReadType(User.class);
+
+    if (id != null) {
+      user = userService.getUser(id);
+    } else if (username != null) {
+      user = userService.getUserByUsername(username);
     }
 
-    // -------------------------------------------------------------------------
-    // Input & Output
-    // -------------------------------------------------------------------------
+    canReadInstance(user, currentUserService.getCurrentUser());
 
-    private Integer id;
-
-    public void setId( Integer id )
-    {
-        this.id = id;
-    }
-
-    private String username;
-
-    public void setUsername( String username )
-    {
-        this.username = username;
-    }
-
-    private User user;
-
-    public User getUser()
-    {
-        return user;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-    {
-        canReadType( User.class );
-
-        if ( id != null )
-        {
-            user = userService.getUser( id );
-        }
-        else if ( username != null )
-        {
-            user = userService.getUserByUsername( username );
-        }
-
-        canReadInstance( user, currentUserService.getCurrentUser() );
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

@@ -41,22 +41,21 @@ import org.hisp.dhis.parser.expression.ExpressionState;
  *
  * @author Enrico Colasante
  */
-public class PeriodOffset
-    implements ExpressionItem
-{
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        ExpressionState state = visitor.getState();
+public class PeriodOffset implements ExpressionItem {
+  @Override
+  public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
+    ExpressionState state = visitor.getState();
 
-        int existingPeriodOffset = (state.getQueryMods() == null) ? 0 : state.getQueryMods().getPeriodOffset();
+    int existingPeriodOffset =
+        (state.getQueryMods() == null) ? 0 : state.getQueryMods().getPeriodOffset();
 
-        int parsedPeriodOffset = (ctx.period == null) ? 0 : firstNonNull( parseInt( ctx.period.getText() ), 0 );
+    int parsedPeriodOffset =
+        (ctx.period == null) ? 0 : firstNonNull(parseInt(ctx.period.getText()), 0);
 
-        int periodOffset = existingPeriodOffset + parsedPeriodOffset;
+    int periodOffset = existingPeriodOffset + parsedPeriodOffset;
 
-        QueryModifiers queryMods = state.getQueryModsBuilder().periodOffset( periodOffset ).build();
+    QueryModifiers queryMods = state.getQueryModsBuilder().periodOffset(periodOffset).build();
 
-        return visitor.visitWithQueryMods( ctx.expr( 0 ), queryMods );
-    }
+    return visitor.visitWithQueryMods(ctx.expr(0), queryMods);
+  }
 }

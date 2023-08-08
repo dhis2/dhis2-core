@@ -28,7 +28,6 @@
 package org.hisp.dhis.visualization;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -36,54 +35,46 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.visualization.VisualizationService" )
-public class DefaultVisualizationService
-    extends GenericAnalyticalObjectService<Visualization>
-    implements VisualizationService
-{
-    @Qualifier( "org.hisp.dhis.visualization.generic.VisualizationStore" )
-    private final AnalyticalObjectStore<Visualization> visualizationStore;
+@Service("org.hisp.dhis.visualization.VisualizationService")
+public class DefaultVisualizationService extends GenericAnalyticalObjectService<Visualization>
+    implements VisualizationService {
+  @Qualifier("org.hisp.dhis.visualization.generic.VisualizationStore")
+  private final AnalyticalObjectStore<Visualization> visualizationStore;
 
-    @Override
-    protected AnalyticalObjectStore<Visualization> getAnalyticalObjectStore()
-    {
-        return visualizationStore;
-    }
+  @Override
+  protected AnalyticalObjectStore<Visualization> getAnalyticalObjectStore() {
+    return visualizationStore;
+  }
 
-    @Override
-    @Transactional
-    public long save( Visualization visualization )
-    {
-        visualizationStore.save( visualization );
+  @Override
+  @Transactional
+  public long save(Visualization visualization) {
+    visualizationStore.save(visualization);
 
-        return visualization.getId();
-    }
+    return visualization.getId();
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Visualization getVisualization( long id )
-    {
-        return visualizationStore.get( id );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public Visualization getVisualization(long id) {
+    return visualizationStore.get(id);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Visualization getVisualization( String uid )
-    {
-        return visualizationStore.getByUid( uid );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public Visualization getVisualization(String uid) {
+    return visualizationStore.getByUid(uid);
+  }
 
-    @Override
-    @Transactional
-    public void delete( Visualization visualization )
-    {
-        visualizationStore.delete( visualization );
-    }
+  @Override
+  @Transactional
+  public void delete(Visualization visualization) {
+    visualizationStore.delete(visualization);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Visualization getVisualizationNoAcl( String uid )
-    {
-        return visualizationStore.getByUidNoAcl( uid );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public Visualization getVisualizationNoAcl(String uid) {
+    return visualizationStore.getByUidNoAcl(uid);
+  }
 }

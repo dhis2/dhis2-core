@@ -27,56 +27,46 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.hisp.dhis.tracker.imports.preheat.supplier.strategy.StrategyFor;
-
 import io.github.classgraph.AnnotationClassRef;
 import io.github.classgraph.AnnotationInfo;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
+import java.util.HashMap;
+import java.util.Map;
+import org.hisp.dhis.tracker.imports.preheat.supplier.strategy.StrategyFor;
 
 /**
- * This class is responsible for creating an associative map where the key is
- * the name of a Strategy class and the key is the name of the domain object
- * class to cache (based on the {@see StrategyFor} annotation)
+ * This class is responsible for creating an associative map where the key is the name of a Strategy
+ * class and the key is the name of the domain object class to cache (based on the {@see
+ * StrategyFor} annotation)
  *
  * @author Luciano Fiandesio
  */
-public class PreheatStrategyScanner
-{
-    public Map<String, String> scanSupplierStrategies()
-    {
-        Map<String, String> classMap = new HashMap<>();
-        final String pkg = getCurrentPackage();
-        final String annotation = StrategyFor.class.getName();
-        try ( ScanResult scanResult = new ClassGraph()
-            .enableClassInfo()
-            .acceptPackages( pkg )
-            .enableAnnotationInfo()
-            .scan() )
-        {
-            for ( ClassInfo classInfo : scanResult.getClassesWithAnnotation( annotation ) )
-            {
-                classMap.put( getTargetClass( classInfo, annotation ), classInfo.getSimpleName() );
-            }
-        }
-        return classMap;
+public class PreheatStrategyScanner {
+  public Map<String, String> scanSupplierStrategies() {
+    Map<String, String> classMap = new HashMap<>();
+    final String pkg = getCurrentPackage();
+    final String annotation = StrategyFor.class.getName();
+    try (ScanResult scanResult =
+        new ClassGraph().enableClassInfo().acceptPackages(pkg).enableAnnotationInfo().scan()) {
+      for (ClassInfo classInfo : scanResult.getClassesWithAnnotation(annotation)) {
+        classMap.put(getTargetClass(classInfo, annotation), classInfo.getSimpleName());
+      }
     }
+    return classMap;
+  }
 
-    private String getCurrentPackage()
-    {
-        return this.getClass().getPackage().getName();
-    }
+  private String getCurrentPackage() {
+    return this.getClass().getPackage().getName();
+  }
 
-    private String getTargetClass( ClassInfo classInfo, String annotation )
-    {
-        AnnotationInfo annotationInfo = classInfo.getAnnotationInfo( annotation );
+  private String getTargetClass(ClassInfo classInfo, String annotation) {
+    AnnotationInfo annotationInfo = classInfo.getAnnotationInfo(annotation);
 
-        AnnotationClassRef klazz = (AnnotationClassRef) annotationInfo.getParameterValues().get( 0 ).getValue();
+    AnnotationClassRef klazz =
+        (AnnotationClassRef) annotationInfo.getParameterValues().get(0).getValue();
 
-        return klazz.getClassInfo().getSimpleName();
-    }
+    return klazz.getClassInfo().getSimpleName();
+  }
 }

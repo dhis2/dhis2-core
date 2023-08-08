@@ -31,27 +31,23 @@ import static org.hisp.dhis.webapi.controller.event.mapper.SortDirection.DESC;
 
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
-@Builder( toBuilder = true )
-@RequiredArgsConstructor( staticName = "of" )
-public class Order extends BaseRenderable
-{
-    private final Renderable order;
+@Builder(toBuilder = true)
+@RequiredArgsConstructor(staticName = "of")
+public class Order extends BaseRenderable {
+  private final Renderable order;
 
-    private final SortDirection direction;
+  private final SortDirection direction;
 
-    @Override
-    public String render()
-    {
-        String rendered = order.render();
+  @Override
+  public String render() {
+    String rendered = order.render();
 
-        if ( direction == DESC )
-        {
-            rendered += " desc";
-        }
-
-        return rendered + " nulls last";
+    if (direction == DESC) {
+      rendered += " desc";
     }
+
+    return rendered + " nulls last";
+  }
 }

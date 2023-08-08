@@ -31,33 +31,25 @@ import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class OrCondition extends BaseRenderable
-{
-    private final List<? extends Renderable> conditions;
+@RequiredArgsConstructor(staticName = "of")
+public class OrCondition extends BaseRenderable {
+  private final List<? extends Renderable> conditions;
 
-    /**
-     * Renders this conditions as a single condition joined by "or".
-     */
-    @Override
-    public String render()
-    {
-        List<String> renderedConditions = RenderableHelper.renderCollection( conditions );
+  /** Renders this conditions as a single condition joined by "or". */
+  @Override
+  public String render() {
+    List<String> renderedConditions = RenderableHelper.renderCollection(conditions);
 
-        if ( renderedConditions.isEmpty() )
-        {
-            return EMPTY;
-        }
-
-        if ( renderedConditions.size() == 1 )
-        {
-            return renderedConditions.get( 0 );
-        }
-
-        return renderedConditions.stream()
-            .collect( joining( " or ", "(", ")" ) );
+    if (renderedConditions.isEmpty()) {
+      return EMPTY;
     }
+
+    if (renderedConditions.size() == 1) {
+      return renderedConditions.get(0);
+    }
+
+    return renderedConditions.stream().collect(joining(" or ", "(", ")"));
+  }
 }

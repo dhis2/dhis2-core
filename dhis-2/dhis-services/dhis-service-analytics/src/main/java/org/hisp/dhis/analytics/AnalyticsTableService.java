@@ -34,31 +34,25 @@ import org.hisp.dhis.scheduling.JobProgress;
  *
  * @author Lars Helge Overland
  */
-public interface AnalyticsTableService
-{
-    /**
-     * Returns the {@link AnalyticsTableType} of analytics table which this
-     * manager handles.
-     *
-     * @return the type of analytics table.
-     */
-    AnalyticsTableType getAnalyticsTableType();
+public interface AnalyticsTableService {
+  /**
+   * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
+   *
+   * @return the type of analytics table.
+   */
+  AnalyticsTableType getAnalyticsTableType();
 
-    /**
-     * Rebuilds the analytics tables.
-     *
-     * @param params the {@link AnalyticsTableUpdateParams}.
-     * @param progress job progress tracking and control flow
-     */
-    void update( AnalyticsTableUpdateParams params, JobProgress progress );
+  /**
+   * Rebuilds the analytics tables.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @param progress job progress tracking and control flow
+   */
+  void update(AnalyticsTableUpdateParams params, JobProgress progress);
 
-    /**
-     * Drops main and temporary analytics tables.
-     */
-    void dropTables();
+  /** Drops main and temporary analytics tables. */
+  void dropTables();
 
-    /**
-     * Performs an SQL analyze operation on all analytics tables.
-     */
-    void analyzeAnalyticsTables();
+  /** Performs an SQL analyze operation on all analytics tables. */
+  void analyzeAnalyticsTables();
 }

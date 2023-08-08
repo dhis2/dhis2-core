@@ -38,31 +38,25 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
 @Component
-public class EventFileResourcePostProcessor implements Processor
-{
-    @Override
-    public void process( Event event, WorkContext ctx )
-    {
-        FileResourceService fileResourceService = ctx.getServiceDelegator().getFileResourceService();
+public class EventFileResourcePostProcessor implements Processor {
+  @Override
+  public void process(Event event, WorkContext ctx) {
+    FileResourceService fileResourceService = ctx.getServiceDelegator().getFileResourceService();
 
-        for ( DataValue dataValue : event.getDataValues() )
-        {
-            DataElement dataElement = ctx.getDataElementMap().get( dataValue.getDataElement() );
+    for (DataValue dataValue : event.getDataValues()) {
+      DataElement dataElement = ctx.getDataElementMap().get(dataValue.getDataElement());
 
-            if ( dataElement.isFileType() )
-            {
-                FileResource fileResource = fileResourceService.getFileResource( dataValue.getValue() );
+      if (dataElement.isFileType()) {
+        FileResource fileResource = fileResourceService.getFileResource(dataValue.getValue());
 
-                if ( !fileResource.isAssigned() || fileResource.getFileResourceOwner() == null )
-                {
-                    fileResource.setAssigned( true );
-                    fileResource.setFileResourceOwner( event.getEvent() );
-                    fileResourceService.updateFileResource( fileResource );
-                }
-            }
+        if (!fileResource.isAssigned() || fileResource.getFileResourceOwner() == null) {
+          fileResource.setAssigned(true);
+          fileResource.setFileResourceOwner(event.getEvent());
+          fileResourceService.updateFileResource(fileResource);
         }
+      }
     }
+  }
 }

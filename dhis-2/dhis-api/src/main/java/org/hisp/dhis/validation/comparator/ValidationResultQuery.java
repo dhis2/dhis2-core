@@ -27,165 +27,137 @@
  */
 package org.hisp.dhis.validation.comparator;
 
+import com.google.common.base.MoreObjects;
 import java.util.Date;
 import java.util.List;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 
-import com.google.common.base.MoreObjects;
-
 /**
  * @author Stian Sandvold
  */
-public class ValidationResultQuery
-{
-    public static final ValidationResultQuery EMPTY = new ValidationResultQuery();
+public class ValidationResultQuery {
+  public static final ValidationResultQuery EMPTY = new ValidationResultQuery();
 
-    private Boolean skipPaging;
+  private Boolean skipPaging;
 
-    private Boolean paging;
+  private Boolean paging;
 
-    private int page = 1;
+  private int page = 1;
 
-    private int pageSize = Pager.DEFAULT_PAGE_SIZE;
+  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
 
-    private long total;
+  private long total;
 
-    /**
-     * Optional list of validation rule uids to filter. If empty the list is not
-     * restricting the query.
-     */
-    private List<String> vr;
+  /**
+   * Optional list of validation rule uids to filter. If empty the list is not restricting the
+   * query.
+   */
+  private List<String> vr;
 
-    /**
-     * Optional list of organisation unit uids to filter. If empty the list is
-     * not restricting the query.
-     */
-    private List<String> ou;
+  /**
+   * Optional list of organisation unit uids to filter. If empty the list is not restricting the
+   * query.
+   */
+  private List<String> ou;
 
-    /**
-     * Optional list of ISO-Date expressions to filter. If empty the list is not
-     * restricting the query.
-     */
-    private List<String> pe;
+  /**
+   * Optional list of ISO-Date expressions to filter. If empty the list is not restricting the
+   * query.
+   */
+  private List<String> pe;
 
-    /**
-     * Optional filter to select only results that have been created on or after
-     * the given date.
-     */
-    private Date createdDate;
+  /** Optional filter to select only results that have been created on or after the given date. */
+  private Date createdDate;
 
-    public ValidationResultQuery()
-    {
-    }
+  public ValidationResultQuery() {}
 
-    public boolean isSkipPaging()
-    {
-        return PagerUtils.isSkipPaging( skipPaging, paging );
-    }
+  public boolean isSkipPaging() {
+    return PagerUtils.isSkipPaging(skipPaging, paging);
+  }
 
-    public void setSkipPaging( Boolean skipPaging )
-    {
-        this.skipPaging = skipPaging;
-    }
+  public void setSkipPaging(Boolean skipPaging) {
+    this.skipPaging = skipPaging;
+  }
 
-    public boolean isPaging()
-    {
-        return BooleanUtils.toBoolean( paging );
-    }
+  public boolean isPaging() {
+    return BooleanUtils.toBoolean(paging);
+  }
 
-    public void setPaging( Boolean paging )
-    {
-        this.paging = paging;
-    }
+  public void setPaging(Boolean paging) {
+    this.paging = paging;
+  }
 
-    public int getPage()
-    {
-        return page;
-    }
+  public int getPage() {
+    return page;
+  }
 
-    public void setPage( int page )
-    {
-        this.page = page;
-    }
+  public void setPage(int page) {
+    this.page = page;
+  }
 
-    public int getPageSize()
-    {
-        return pageSize;
-    }
+  public int getPageSize() {
+    return pageSize;
+  }
 
-    public void setPageSize( int pageSize )
-    {
-        this.pageSize = pageSize;
-    }
+  public void setPageSize(int pageSize) {
+    this.pageSize = pageSize;
+  }
 
-    public long getTotal()
-    {
-        return total;
-    }
+  public long getTotal() {
+    return total;
+  }
 
-    public void setTotal( long total )
-    {
-        this.total = total;
-    }
+  public void setTotal(long total) {
+    this.total = total;
+  }
 
-    public Pager getPager()
-    {
-        return PagerUtils.isSkipPaging( skipPaging, paging ) ? null : new Pager( page, total, pageSize );
-    }
+  public Pager getPager() {
+    return PagerUtils.isSkipPaging(skipPaging, paging) ? null : new Pager(page, total, pageSize);
+  }
 
-    public List<String> getVr()
-    {
-        return vr;
-    }
+  public List<String> getVr() {
+    return vr;
+  }
 
-    public void setVr( List<String> vr )
-    {
-        this.vr = vr;
-    }
+  public void setVr(List<String> vr) {
+    this.vr = vr;
+  }
 
-    public List<String> getOu()
-    {
-        return ou;
-    }
+  public List<String> getOu() {
+    return ou;
+  }
 
-    public void setOu( List<String> ou )
-    {
-        this.ou = ou;
-    }
+  public void setOu(List<String> ou) {
+    this.ou = ou;
+  }
 
-    public List<String> getPe()
-    {
-        return pe;
-    }
+  public List<String> getPe() {
+    return pe;
+  }
 
-    public void setPe( List<String> pe )
-    {
-        this.pe = pe;
-    }
+  public void setPe(List<String> pe) {
+    this.pe = pe;
+  }
 
-    public Date getCreatedDate()
-    {
-        return createdDate;
-    }
+  public Date getCreatedDate() {
+    return createdDate;
+  }
 
-    public void setCreatedDate( Date createdDate )
-    {
-        this.createdDate = createdDate;
-    }
+  public void setCreatedDate(Date createdDate) {
+    this.createdDate = createdDate;
+  }
 
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "page", page )
-            .add( "pageSize", pageSize )
-            .add( "total", total )
-            .add( "ou", ou )
-            .add( "vr", vr )
-            .add( "pe", pe )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("page", page)
+        .add("pageSize", pageSize)
+        .add("total", total)
+        .add("ou", ou)
+        .add("vr", vr)
+        .add("pe", pe)
+        .toString();
+  }
 }

@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.junit.jupiter.api.Test;
 
@@ -44,51 +43,47 @@ import org.junit.jupiter.api.Test;
  *
  * @author maikel arabori
  */
-class OrderValidatorTest
-{
+class OrderValidatorTest {
 
-    @Test
-    void testCheckOrderParamsWhenOrderAttributeIsNotSupported()
-    {
-        // Given
-        final Set<String> orderings = new HashSet<>( singletonList( "notSupportedAttribute:asc" ) );
-        // When throws
-        final IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> checkOrderParams( orderings ) );
-        // Then
-        assertThat( thrown.getMessage(), containsString( "Order not supported: `notSupportedAttribute`" ) );
-    }
+  @Test
+  void testCheckOrderParamsWhenOrderAttributeIsNotSupported() {
+    // Given
+    final Set<String> orderings = new HashSet<>(singletonList("notSupportedAttribute:asc"));
+    // When throws
+    final IllegalQueryException thrown =
+        assertThrows(IllegalQueryException.class, () -> checkOrderParams(orderings));
+    // Then
+    assertThat(thrown.getMessage(), containsString("Order not supported: `notSupportedAttribute`"));
+  }
 
-    @Test
-    void testCheckOrderParamsWhenOrderingValueIsInvalid()
-    {
-        // Given
-        final Set<String> orderings = new HashSet<>( singletonList( "name:invalidOrdering" ) );
-        // When throws
-        final IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> checkOrderParams( orderings ) );
-        // Then
-        assertThat( thrown.getMessage(), containsString( "Order not supported: `invalidOrdering`" ) );
-    }
+  @Test
+  void testCheckOrderParamsWhenOrderingValueIsInvalid() {
+    // Given
+    final Set<String> orderings = new HashSet<>(singletonList("name:invalidOrdering"));
+    // When throws
+    final IllegalQueryException thrown =
+        assertThrows(IllegalQueryException.class, () -> checkOrderParams(orderings));
+    // Then
+    assertThat(thrown.getMessage(), containsString("Order not supported: `invalidOrdering`"));
+  }
 
-    @Test
-    void testCheckOrderParamsWhenOrderingFormIsInvalid()
-    {
-        // Given
-        final Set<String> orderings = new HashSet<>( singletonList( "name:asc:invalid" ) );
-        // When throws
-        final IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> checkOrderParams( orderings ) );
-        // Then
-        assertThat( thrown.getMessage(), containsString( "Unable to parse order param: `name:asc:invalid`" ) );
-    }
+  @Test
+  void testCheckOrderParamsWhenOrderingFormIsInvalid() {
+    // Given
+    final Set<String> orderings = new HashSet<>(singletonList("name:asc:invalid"));
+    // When throws
+    final IllegalQueryException thrown =
+        assertThrows(IllegalQueryException.class, () -> checkOrderParams(orderings));
+    // Then
+    assertThat(
+        thrown.getMessage(), containsString("Unable to parse order param: `name:asc:invalid`"));
+  }
 
-    @Test
-    void testCheckOrderParamsWithSuccess()
-    {
-        // Given
-        final Set<String> orderings = new HashSet<>( singletonList( "name:desc" ) );
-        // When
-        checkOrderParams( orderings );
-    }
+  @Test
+  void testCheckOrderParamsWithSuccess() {
+    // Given
+    final Set<String> orderings = new HashSet<>(singletonList("name:desc"));
+    // When
+    checkOrderParams(orderings);
+  }
 }

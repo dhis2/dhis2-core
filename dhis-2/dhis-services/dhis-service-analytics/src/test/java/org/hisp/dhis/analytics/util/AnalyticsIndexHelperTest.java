@@ -42,7 +42,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
 
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -54,72 +53,65 @@ import org.junit.jupiter.api.Test;
  *
  * @author maikel arabori
  */
-class AnalyticsIndexHelperTest
-{
-    @Test
-    void testGetIndexes()
-    {
-        List<AnalyticsTablePartition> stubPartitions = List.of( stubAnalyticsTablePartition() );
+class AnalyticsIndexHelperTest {
+  @Test
+  void testGetIndexes() {
+    List<AnalyticsTablePartition> stubPartitions = List.of(stubAnalyticsTablePartition());
 
-        List<AnalyticsIndex> indexes = getIndexes( stubPartitions );
+    List<AnalyticsIndex> indexes = getIndexes(stubPartitions);
 
-        assertThat( indexes, hasSize( 1 ) );
-        assertThat( indexes.get( 0 ).getTable(), is( equalTo( "analytics_event_temp_2022" ) ) );
-        assertThat( indexes.get( 0 ).getColumns(), hasSize( 1 ) );
-        assertThat( indexes.get( 0 ).getType(), is( equalTo( BTREE ) ) );
-    }
+    assertThat(indexes, hasSize(1));
+    assertThat(indexes.get(0).getTable(), is(equalTo("analytics_event_temp_2022")));
+    assertThat(indexes.get(0).getColumns(), hasSize(1));
+    assertThat(indexes.get(0).getType(), is(equalTo(BTREE)));
+  }
 
-    @Test
-    void testCreateIndexStatement()
-    {
-        AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex( "table", List.of( "column" ), BTREE );
+  @Test
+  void testCreateIndexStatement() {
+    AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex("table", List.of("column"), BTREE);
 
-        String statement = createIndexStatement( someAnalyticsIndex, EVENT );
+    String statement = createIndexStatement(someAnalyticsIndex, EVENT);
 
-        assertThat( statement, containsString( "create index \"in_column_table" ) );
-        assertThat( statement, containsString( "on table using" ) );
-        assertThat( statement, containsString( "btree (column)" ) );
-    }
+    assertThat(statement, containsString("create index \"in_column_table"));
+    assertThat(statement, containsString("on table using"));
+    assertThat(statement, containsString("btree (column)"));
+  }
 
-    @Test
-    void testGetIndexName()
-    {
-        AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex( "table", List.of( "column" ), BTREE );
+  @Test
+  void testGetIndexName() {
+    AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex("table", List.of("column"), BTREE);
 
-        String statement = getIndexName( someAnalyticsIndex, EVENT );
+    String statement = getIndexName(someAnalyticsIndex, EVENT);
 
-        assertThat( statement, containsString( "\"in_column_table" ) );
-    }
+    assertThat(statement, containsString("\"in_column_table"));
+  }
 
-    @Test
-    void testGetIndexNameWithFunction()
-    {
-        AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex( "table", List.of( "column" ), BTREE, LOWER );
+  @Test
+  void testGetIndexNameWithFunction() {
+    AnalyticsIndex someAnalyticsIndex =
+        new AnalyticsIndex("table", List.of("column"), BTREE, LOWER);
 
-        String statement = getIndexName( someAnalyticsIndex, EVENT );
+    String statement = getIndexName(someAnalyticsIndex, EVENT);
 
-        assertThat( statement, containsString( "\"in_column_table" ) );
-        assertThat( statement, containsString( "_lower\"" ) );
-    }
+    assertThat(statement, containsString("\"in_column_table"));
+    assertThat(statement, containsString("_lower\""));
+  }
 
-    private AnalyticsTablePartition stubAnalyticsTablePartition()
-    {
-        AnalyticsTablePartition analyticsTablePartitionStub = new AnalyticsTablePartition( stubAnalyticsTable(),
-            2022, new Date(), new Date(), false );
+  private AnalyticsTablePartition stubAnalyticsTablePartition() {
+    AnalyticsTablePartition analyticsTablePartitionStub =
+        new AnalyticsTablePartition(stubAnalyticsTable(), 2022, new Date(), new Date(), false);
 
-        return analyticsTablePartitionStub;
-    }
+    return analyticsTablePartitionStub;
+  }
 
-    private AnalyticsTable stubAnalyticsTable()
-    {
-        List<AnalyticsTableColumn> dimensionColumns = List.of( stubAnalyticsTableColumn() );
-        List<AnalyticsTableColumn> valueColumns = List.of( stubAnalyticsTableColumn() );
+  private AnalyticsTable stubAnalyticsTable() {
+    List<AnalyticsTableColumn> dimensionColumns = List.of(stubAnalyticsTableColumn());
+    List<AnalyticsTableColumn> valueColumns = List.of(stubAnalyticsTableColumn());
 
-        return new AnalyticsTable( EVENT, dimensionColumns, valueColumns );
-    }
+    return new AnalyticsTable(EVENT, dimensionColumns, valueColumns);
+  }
 
-    private AnalyticsTableColumn stubAnalyticsTableColumn()
-    {
-        return new AnalyticsTableColumn( "column", TEXT, "c" ).withIndexType( BTREE );
-    }
+  private AnalyticsTableColumn stubAnalyticsTableColumn() {
+    return new AnalyticsTableColumn("column", TEXT, "c").withIndexType(BTREE);
+  }
 }

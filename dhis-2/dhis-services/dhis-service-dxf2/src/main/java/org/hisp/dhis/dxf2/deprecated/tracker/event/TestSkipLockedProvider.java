@@ -31,12 +31,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 @Service
-@Profile( "test" )
-public class TestSkipLockedProvider implements SkipLockedProvider
-{
-    @Override
-    public String getSkipLocked()
-    {
-        return "";
-    }
+@Profile("test")
+public class TestSkipLockedProvider implements SkipLockedProvider {
+  @Override
+  public String getSkipLocked() {
+    return "";
+  }
 }

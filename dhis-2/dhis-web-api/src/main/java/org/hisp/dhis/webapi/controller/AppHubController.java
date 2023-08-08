@@ -32,9 +32,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.net.URISyntaxException;
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.apphub.WebApp;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -57,52 +55,41 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Zubair Asghar
  */
-@OpenApi.Tags( "ui" )
+@OpenApi.Tags("ui")
 @RestController
-@RequestMapping( AppHubController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class AppHubController
-{
-    public static final String RESOURCE_PATH = "/appHub";
+@RequestMapping(AppHubController.RESOURCE_PATH)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class AppHubController {
+  public static final String RESOURCE_PATH = "/appHub";
 
-    @Autowired
-    private AppHubService appHubService;
+  @Autowired private AppHubService appHubService;
 
-    @Autowired
-    private I18nManager i18nManager;
+  @Autowired private I18nManager i18nManager;
 
-    /**
-     * Deprecated as of version 2.35 and should be removed eventually.
-     */
-    @GetMapping( produces = APPLICATION_JSON_VALUE )
-    public List<WebApp> listAppHub()
-    {
-        return appHubService.getAppHub();
+  /** Deprecated as of version 2.35 and should be removed eventually. */
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
+  public List<WebApp> listAppHub() {
+    return appHubService.getAppHub();
+  }
+
+  @GetMapping(value = "/{apiVersion}/**", produces = APPLICATION_JSON_VALUE)
+  public String getAppHubApiResponse(@PathVariable String apiVersion, HttpServletRequest request)
+      throws URISyntaxException {
+    String query = ContextUtils.getWildcardPathValue(request);
+
+    return appHubService.getAppHubApiResponse(apiVersion, query);
+  }
+
+  @PostMapping(value = "/{versionId}")
+  @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void installAppFromAppHub(@PathVariable String versionId) throws WebMessageException {
+    AppStatus status = appHubService.installAppFromAppHub(versionId);
+
+    if (!status.ok()) {
+      String message = i18nManager.getI18n().getString(status.getMessage());
+
+      throw new WebMessageException(conflict(message));
     }
-
-    @GetMapping( value = "/{apiVersion}/**", produces = APPLICATION_JSON_VALUE )
-    public String getAppHubApiResponse(
-        @PathVariable String apiVersion, HttpServletRequest request )
-        throws URISyntaxException
-    {
-        String query = ContextUtils.getWildcardPathValue( request );
-
-        return appHubService.getAppHubApiResponse( apiVersion, query );
-    }
-
-    @PostMapping( value = "/{versionId}" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void installAppFromAppHub( @PathVariable String versionId )
-        throws WebMessageException
-    {
-        AppStatus status = appHubService.installAppFromAppHub( versionId );
-
-        if ( !status.ok() )
-        {
-            String message = i18nManager.getI18n().getString( status.getMessage() );
-
-            throw new WebMessageException( conflict( message ) );
-        }
-    }
+  }
 }

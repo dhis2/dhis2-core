@@ -27,75 +27,65 @@
  */
 package org.hisp.dhis.dxf2.common;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.importsummary.ImportCount;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dxf2.importsummary.ImportCount;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "importSummary", namespace = DxfNamespaces.DXF_2_0 )
-public class ImportSummary
-{
-    private ImportCount importCount = new ImportCount();
+@JacksonXmlRootElement(localName = "importSummary", namespace = DxfNamespaces.DXF_2_0)
+public class ImportSummary {
+  private ImportCount importCount = new ImportCount();
 
-    private List<ImportTypeSummary> importTypeSummaries = new ArrayList<>();
+  private List<ImportTypeSummary> importTypeSummaries = new ArrayList<>();
 
-    public ImportSummary()
-    {
+  public ImportSummary() {}
 
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ImportCount getImportCount() {
+    return importCount;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ImportCount getImportCount()
-    {
-        return importCount;
-    }
+  public void setImportCount(ImportCount importCount) {
+    this.importCount = importCount;
+  }
 
-    public void setImportCount( ImportCount importCount )
-    {
-        this.importCount = importCount;
-    }
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "typeSummaries", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "typeSummary", namespace = DxfNamespaces.DXF_2_0)
+  public List<ImportTypeSummary> getImportTypeSummaries() {
+    return importTypeSummaries;
+  }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "typeSummaries", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "typeSummary", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ImportTypeSummary> getImportTypeSummaries()
-    {
-        return importTypeSummaries;
-    }
+  public void setImportTypeSummaries(List<ImportTypeSummary> importTypeSummaries) {
+    this.importTypeSummaries = importTypeSummaries;
+  }
 
-    public void setImportTypeSummaries( List<ImportTypeSummary> importTypeSummaries )
-    {
-        this.importTypeSummaries = importTypeSummaries;
-    }
+  // -------------------------------------------------------------------------
+  // Helpers
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
+  public void incrementImportCount(ImportCount importCount) {
+    this.importCount.incrementImported(importCount.getImported());
+    this.importCount.incrementUpdated(importCount.getUpdated());
+    this.importCount.incrementIgnored(importCount.getIgnored());
+    this.importCount.incrementDeleted(importCount.getDeleted());
+  }
 
-    public void incrementImportCount( ImportCount importCount )
-    {
-        this.importCount.incrementImported( importCount.getImported() );
-        this.importCount.incrementUpdated( importCount.getUpdated() );
-        this.importCount.incrementIgnored( importCount.getIgnored() );
-        this.importCount.incrementDeleted( importCount.getDeleted() );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "ImportSummary{" +
-            "importCount=" + importCount +
-            ", importTypeSummaries=" + importTypeSummaries +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "ImportSummary{"
+        + "importCount="
+        + importCount
+        + ", importTypeSummaries="
+        + importTypeSummaries
+        + '}';
+  }
 }

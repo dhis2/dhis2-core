@@ -32,113 +32,96 @@ import static java.util.stream.Stream.of;
 
 import java.util.Set;
 
-public class Filter
-{
-    public enum Attribute
-    {
-        DIMENSION_TYPE( "dimensionItemType" ),
-        VALUE_TYPE( "valueType" ),
-        NAME( "name" ),
-        DISPLAY_NAME( "displayName" ),
-        SHORT_NAME( "shortName" ),
-        DISPLAY_SHORT_NAME( "displayShortName" ),
-        PROGRAM_ID( "programId" ),
-        ID( "id" );
+public class Filter {
+  public enum Attribute {
+    DIMENSION_TYPE("dimensionItemType"),
+    VALUE_TYPE("valueType"),
+    NAME("name"),
+    DISPLAY_NAME("displayName"),
+    SHORT_NAME("shortName"),
+    DISPLAY_SHORT_NAME("displayShortName"),
+    PROGRAM_ID("programId"),
+    ID("id");
 
-        private String name;
+    private String name;
 
-        Attribute( final String name )
-        {
-            this.name = name;
-        }
-
-        public String getName()
-        {
-            return name;
-        }
-
-        public static Set<String> getNames()
-        {
-            return of( Attribute.values() ).map( Attribute::getName ).collect( toSet() );
-        }
+    Attribute(final String name) {
+      this.name = name;
     }
 
-    public enum Operation
-    {
-        EQ( "eq" ),
-        IN( "in" ),
-        ILIKE( "ilike" ),
-        TOKEN( "token" );
-
-        private String abbreviation;
-
-        Operation( String abbreviation )
-        {
-            this.abbreviation = abbreviation;
-        }
-
-        public String getAbbreviation()
-        {
-            return this.abbreviation;
-        }
-
-        public static Set<String> getAbbreviations()
-        {
-            return of( Operation.values() ).map( Operation::getAbbreviation ).collect( toSet() );
-        }
+    public String getName() {
+      return name;
     }
 
-    public enum Custom
-    {
-        IDENTIFIABLE( "identifiable" );
+    public static Set<String> getNames() {
+      return of(Attribute.values()).map(Attribute::getName).collect(toSet());
+    }
+  }
 
-        private String propertyName;
+  public enum Operation {
+    EQ("eq"),
+    IN("in"),
+    ILIKE("ilike"),
+    TOKEN("token");
 
-        Custom( final String propertyName )
-        {
-            this.propertyName = propertyName;
-        }
+    private String abbreviation;
 
-        public String getPropertyName()
-        {
-            return this.propertyName;
-        }
-
-        public static Set<String> getPropertyNames()
-        {
-            return of( Custom.values() ).map( Custom::getPropertyName ).collect( toSet() );
-        }
+    Operation(String abbreviation) {
+      this.abbreviation = abbreviation;
     }
 
-    public enum Combination
-    {
-        DIMENSION_TYPE_IN( "dimensionItemType:in:" ),
-        DIMENSION_TYPE_EQUAL( "dimensionItemType:eq:" ),
-        VALUE_TYPE_IN( "valueType:in:" ),
-        VALUE_TYPE_EQUAL( "valueType:eq:" ),
-        NAME_ILIKE( "name:ilike:" ),
-        DISPLAY_NAME_ILIKE( "displayName:ilike:" ),
-        SHORT_NAME_ILIKE( "shortName:ilike:" ),
-        DISPLAY_SHORT_NAME_ILIKE( "displayShortName:ilike:" ),
-        PROGRAM_ID_EQUAL( "programId:eq:" ),
-        ID_EQUAL( "id:eq:" ),
-        IDENTIFIABLE_TOKEN( "identifiable:token:" );
-
-        private String combination;
-
-        Combination( final String combination )
-        {
-            this.combination = combination;
-        }
-
-        public String getCombination()
-        {
-            return this.combination;
-        }
-
-        public static Set<String> getCombinations()
-        {
-            return of( Combination.values() ).map( Combination::getCombination ).collect( toSet() );
-        }
+    public String getAbbreviation() {
+      return this.abbreviation;
     }
+
+    public static Set<String> getAbbreviations() {
+      return of(Operation.values()).map(Operation::getAbbreviation).collect(toSet());
+    }
+  }
+
+  public enum Custom {
+    IDENTIFIABLE("identifiable");
+
+    private String propertyName;
+
+    Custom(final String propertyName) {
+      this.propertyName = propertyName;
+    }
+
+    public String getPropertyName() {
+      return this.propertyName;
+    }
+
+    public static Set<String> getPropertyNames() {
+      return of(Custom.values()).map(Custom::getPropertyName).collect(toSet());
+    }
+  }
+
+  public enum Combination {
+    DIMENSION_TYPE_IN("dimensionItemType:in:"),
+    DIMENSION_TYPE_EQUAL("dimensionItemType:eq:"),
+    VALUE_TYPE_IN("valueType:in:"),
+    VALUE_TYPE_EQUAL("valueType:eq:"),
+    NAME_ILIKE("name:ilike:"),
+    DISPLAY_NAME_ILIKE("displayName:ilike:"),
+    SHORT_NAME_ILIKE("shortName:ilike:"),
+    DISPLAY_SHORT_NAME_ILIKE("displayShortName:ilike:"),
+    PROGRAM_ID_EQUAL("programId:eq:"),
+    ID_EQUAL("id:eq:"),
+    IDENTIFIABLE_TOKEN("identifiable:token:");
+
+    private String combination;
+
+    Combination(final String combination) {
+      this.combination = combination;
+    }
+
+    public String getCombination() {
+      return this.combination;
+    }
+
+    public static Set<String> getCombinations() {
+      return of(Combination.values()).map(Combination::getCombination).collect(toSet());
+    }
+  }
 }

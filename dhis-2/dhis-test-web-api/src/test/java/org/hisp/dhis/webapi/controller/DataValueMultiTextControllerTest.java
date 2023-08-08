@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.stream.Stream;
-
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -45,98 +44,113 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests data value validation for
- * {@link org.hisp.dhis.common.ValueType#MULTI_TEXT}.
+ * Tests data value validation for {@link org.hisp.dhis.common.ValueType#MULTI_TEXT}.
  *
  * @author Jan Bernitt
  */
-class DataValueMultiTextControllerTest extends AbstractDataValueControllerTest
-{
-    private String multiTextDataElementId;
+class DataValueMultiTextControllerTest extends AbstractDataValueControllerTest {
+  private String multiTextDataElementId;
 
-    @BeforeEach
-    @Override
-    public void setUp()
-    {
-        super.setUp();
-        String optionSetId = addOptionSet( "MultiSelectSet", ValueType.MULTI_TEXT );
-        addOptions( optionSetId, "A", "B", "C" );
-        multiTextDataElementId = addDataElement( "MultiSelectDE", "MSDE", ValueType.MULTI_TEXT, optionSetId,
-            categoryComboId );
-    }
+  @BeforeEach
+  @Override
+  public void setUp() {
+    super.setUp();
+    String optionSetId = addOptionSet("MultiSelectSet", ValueType.MULTI_TEXT);
+    addOptions(optionSetId, "A", "B", "C");
+    multiTextDataElementId =
+        addDataElement("MultiSelectDE", "MSDE", ValueType.MULTI_TEXT, optionSetId, categoryComboId);
+  }
 
-    @Test
-    void testAddDataValue_MultiText()
-    {
-        assertDoesNotThrow( () -> addDataValue( "2021-01", "A,B", "", false, multiTextDataElementId, orgUnitId ) );
-        JsonArray values = getDataValues( multiTextDataElementId, "2021-01", orgUnitId );
-        assertEquals( 1, values.size() );
-        assertEquals( "A,B", values.getString( 0 ).string() );
-    }
+  @Test
+  void testAddDataValue_MultiText() {
+    assertDoesNotThrow(
+        () -> addDataValue("2021-01", "A,B", "", false, multiTextDataElementId, orgUnitId));
+    JsonArray values = getDataValues(multiTextDataElementId, "2021-01", orgUnitId);
+    assertEquals(1, values.size());
+    assertEquals("A,B", values.getString(0).string());
+  }
 
-    @Test
-    void testAddDataValue_MultiText_NoSuchOption()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR",
-            format( "Data value is not a valid option of the data element option set: `%s`", multiTextDataElementId ),
-            postNewDataValue( "2021-01", "A,D", "", false, multiTextDataElementId, orgUnitId )
-                .content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testAddDataValue_MultiText_NoSuchOption() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        format(
+            "Data value is not a valid option of the data element option set: `%s`",
+            multiTextDataElementId),
+        postNewDataValue("2021-01", "A,D", "", false, multiTextDataElementId, orgUnitId)
+            .content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testAddDataElement_MultiText_RequiresOptionSet()
-    {
-        String optionSetId = addOptionSet( "MultiSelectSet2", ValueType.TEXT );
-        assertWebMessage( "Conflict", 409, "ERROR",
-            "Data element value type must match option set value type: `TEXT`",
-            postNewDataElement( "MultiSelectDE2", "MSDE2", ValueType.MULTI_TEXT, optionSetId, categoryComboId )
-                .content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testAddDataElement_MultiText_RequiresOptionSet() {
+    String optionSetId = addOptionSet("MultiSelectSet2", ValueType.TEXT);
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Data element value type must match option set value type: `TEXT`",
+        postNewDataElement(
+                "MultiSelectDE2", "MSDE2", ValueType.MULTI_TEXT, optionSetId, categoryComboId)
+            .content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testAddDataElement_MultiText_OptionSetValueTypeMismatch()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR",
-            "Data element of value type multi-text must have an option set: `null`",
-            postNewDataElement( "MultiSelectDE2", "MSDE2", ValueType.MULTI_TEXT, null, categoryComboId )
-                .content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testAddDataElement_MultiText_OptionSetValueTypeMismatch() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Data element of value type multi-text must have an option set: `null`",
+        postNewDataElement("MultiSelectDE2", "MSDE2", ValueType.MULTI_TEXT, null, categoryComboId)
+            .content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testPostJsonDataValueSet_MultiText_NoSuchOption()
-    {
-        String body = format( "{'dataValues':[{"
-            + "'period':'201201',"
-            + "'orgUnit':'%s',"
-            + "'dataElement':'%s',"
-            + "'categoryOptionCombo':'%s',"
-            + "'value':'A,D'"
-            + "}]}", orgUnitId, multiTextDataElementId, categoryOptionComboId );
-        JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
+  @Test
+  void testPostJsonDataValueSet_MultiText_NoSuchOption() {
+    String body =
+        format(
+            "{'dataValues':[{"
+                + "'period':'201201',"
+                + "'orgUnit':'%s',"
+                + "'dataElement':'%s',"
+                + "'categoryOptionCombo':'%s',"
+                + "'value':'A,D'"
+                + "}]}",
+            orgUnitId, multiTextDataElementId, categoryOptionComboId);
+    JsonWebMessage message =
+        assertWebMessage(
+            "Conflict",
+            409,
+            "WARNING",
             "One more conflicts encountered, please check import summary.",
-            POST( "/38/dataValueSets/", body ).content( HttpStatus.CONFLICT ) );
-        JsonImportConflict conflict = message.find( JsonImportConflict.class,
-            c -> c.getErrorCode() == ErrorCode.E7621 );
-        assertTrue( conflict.isObject() );
-        assertEquals(
-            format( "Data value is not a valid option of the data element option set: `%s`", multiTextDataElementId ),
-            conflict.getValue() );
-    }
+            POST("/38/dataValueSets/", body).content(HttpStatus.CONFLICT));
+    JsonImportConflict conflict =
+        message.find(JsonImportConflict.class, c -> c.getErrorCode() == ErrorCode.E7621);
+    assertTrue(conflict.isObject());
+    assertEquals(
+        format(
+            "Data value is not a valid option of the data element option set: `%s`",
+            multiTextDataElementId),
+        conflict.getValue());
+  }
 
-    private String addOptionSet( String name, ValueType valueType )
-    {
-        return assertStatus( HttpStatus.CREATED, POST( "/optionSets/",
-            format( "{'name': '%s', 'valueType':'%s'}", name, valueType ) ) );
-    }
+  private String addOptionSet(String name, ValueType valueType) {
+    return assertStatus(
+        HttpStatus.CREATED,
+        POST("/optionSets/", format("{'name': '%s', 'valueType':'%s'}", name, valueType)));
+  }
 
-    private void addOptions( String optionSet, String... codes )
-    {
-        Stream.of( codes ).forEach( code -> addOption( optionSet, code ) );
-    }
+  private void addOptions(String optionSet, String... codes) {
+    Stream.of(codes).forEach(code -> addOption(optionSet, code));
+  }
 
-    private void addOption( String optionSet, String code )
-    {
-        assertStatus( HttpStatus.CREATED, POST( "/options/",
-            format( "{'name':'%s', 'code':'%s', 'optionSet':{'id':'%s'}}", code, code, optionSet ) ) );
-    }
+  private void addOption(String optionSet, String code) {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/options/",
+            format("{'name':'%s', 'code':'%s', 'optionSet':{'id':'%s'}}", code, code, optionSet)));
+  }
 }

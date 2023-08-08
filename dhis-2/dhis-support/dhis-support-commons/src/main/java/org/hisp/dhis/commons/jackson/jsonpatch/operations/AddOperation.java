@@ -27,98 +27,81 @@
  */
 package org.hisp.dhis.commons.jackson.jsonpatch.operations;
 
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchValueOperation;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchValueOperation;
 
 /**
- * Sets a new value, no existing value is required (think of it as a set
- * operation).
+ * Sets a new value, no existing value is required (think of it as a set operation).
  *
  * @author Morten Olav Hansen
  */
-public class AddOperation extends JsonPatchValueOperation
-{
-    public static final String END_OF_ARRAY = "-";
+public class AddOperation extends JsonPatchValueOperation {
+  public static final String END_OF_ARRAY = "-";
 
-    @JsonCreator
-    public AddOperation( @JsonProperty( "path" ) JsonPointer path, @JsonProperty( "value" ) JsonNode value )
-    {
-        super( "add", path, value );
+  @JsonCreator
+  public AddOperation(
+      @JsonProperty("path") JsonPointer path, @JsonProperty("value") JsonNode value) {
+    super("add", path, value);
+  }
+
+  @Override
+  public JsonNode apply(JsonNode node) throws JsonPatchException {
+    if (path == JsonPointer.empty()) {
+      return value;
     }
 
-    @Override
-    public JsonNode apply( JsonNode node )
-        throws JsonPatchException
-    {
-        if ( path == JsonPointer.empty() )
-        {
-            return value;
-        }
+    final JsonNode parentNode = node.at(path.head());
+    final String rawToken = path.last().getMatchingProperty();
 
-        final JsonNode parentNode = node.at( path.head() );
-        final String rawToken = path.last().getMatchingProperty();
+    if (parentNode.isMissingNode()) {
+      throw new JsonPatchException("Path does not exist: " + path);
+    }
 
-        if ( parentNode.isMissingNode() )
-        {
-            throw new JsonPatchException( "Path does not exist: " + path );
-        }
+    if (!parentNode.isContainerNode()) {
+      throw new JsonPatchException("Parent node is not a container, unable to proceed");
+    }
 
-        if ( !parentNode.isContainerNode() )
-        {
-            throw new JsonPatchException( "Parent node is not a container, unable to proceed" );
-        }
+    if (parentNode.isObject()) {
+      ((ObjectNode) parentNode).set(rawToken, value);
+    } else if (parentNode.isArray()) {
+      final ArrayNode target = (ArrayNode) node.at(path.head());
 
-        if ( parentNode.isObject() )
-        {
-            ((ObjectNode) parentNode).set( rawToken, value );
-        }
-        else if ( parentNode.isArray() )
-        {
-            final ArrayNode target = (ArrayNode) node.at( path.head() );
-
-            // If the "-" character is used to index the end of the array (see
-            // RFC6901),this has the effect of appending the value to the
-            // array.
-            if ( rawToken.equals( END_OF_ARRAY ) )
-            {
-                target.add( value );
-                return node;
-            }
-
-            final int index = getArrayIndex( rawToken, target.size() );
-            target.insert( index, value );
-        }
-
+      // If the "-" character is used to index the end of the array (see
+      // RFC6901),this has the effect of appending the value to the
+      // array.
+      if (rawToken.equals(END_OF_ARRAY)) {
+        target.add(value);
         return node;
+      }
+
+      final int index = getArrayIndex(rawToken, target.size());
+      target.insert(index, value);
     }
 
-    private int getArrayIndex( String rawToken, int size )
-        throws JsonPatchException
-    {
-        final int index;
+    return node;
+  }
 
-        try
-        {
-            index = Integer.parseInt( rawToken );
-        }
-        catch ( NumberFormatException ignored )
-        {
-            throw new JsonPatchException( "not an index: " + rawToken + " (expected: a non-negative integer)" );
-        }
+  private int getArrayIndex(String rawToken, int size) throws JsonPatchException {
+    final int index;
 
-        if ( index < 0 || index > size )
-        {
-            throw new JsonPatchException( "index out of bounds: " + index +
-                " (expected: >= 0 && <= " + size + ')' );
-        }
-
-        return index;
+    try {
+      index = Integer.parseInt(rawToken);
+    } catch (NumberFormatException ignored) {
+      throw new JsonPatchException(
+          "not an index: " + rawToken + " (expected: a non-negative integer)");
     }
+
+    if (index < 0 || index > size) {
+      throw new JsonPatchException(
+          "index out of bounds: " + index + " (expected: >= 0 && <= " + size + ')');
+    }
+
+    return index;
+  }
 }

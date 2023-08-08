@@ -40,25 +40,33 @@ import org.springframework.stereotype.Repository;
 /**
  * @author David Katuscak
  */
-@Repository( "org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore" )
+@Repository("org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore")
 public class HibernateTrackedEntityCommentStore
     extends HibernateIdentifiableObjectStore<TrackedEntityComment>
-    implements TrackedEntityCommentStore
-{
-    public HibernateTrackedEntityCommentStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityComment.class, currentUserService, aclService,
-            false );
-    }
+    implements TrackedEntityCommentStore {
+  public HibernateTrackedEntityCommentStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        TrackedEntityComment.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 
-    @Override
-    public boolean exists( String uid )
-    {
-        return (boolean) sessionFactory.getCurrentSession()
-            .createNativeQuery( "select exists(select 1 from trackedentitycomment where uid=:uid)" )
-            .setParameter( "uid", uid )
+  @Override
+  public boolean exists(String uid) {
+    return (boolean)
+        sessionFactory
+            .getCurrentSession()
+            .createNativeQuery("select exists(select 1 from trackedentitycomment where uid=:uid)")
+            .setParameter("uid", uid)
             .getSingleResult();
-    }
-
+  }
 }
