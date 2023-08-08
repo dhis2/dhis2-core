@@ -692,6 +692,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private String getFromSubQueryJoinOrgUnitConditions(TrackedEntityQueryParams params) {
     StringBuilder orgUnits = new StringBuilder();
 
+    params.handleOrganisationUnits();
+
     orgUnits
         .append(" INNER JOIN organisationunit OU ")
         .append("ON OU.organisationunitid = ")

@@ -519,7 +519,7 @@ class EventRequestToSearchParamsMapper {
       return "User is required for ouMode: " + OrganisationUnitSelectionMode.ACCESSIBLE;
     }
 
-    if (program == null || program.isClosed() || program.isProtected()) {
+    if (program != null && (program.isClosed() || program.isProtected())) {
       violation =
           user.getOrganisationUnits().isEmpty()
               ? "User needs to be assigned data capture orgunits"

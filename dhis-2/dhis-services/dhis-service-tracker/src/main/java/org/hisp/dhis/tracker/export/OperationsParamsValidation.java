@@ -89,8 +89,7 @@ public class OperationsParamsValidation {
       return "User is required for orgUnitMode: " + OrganisationUnitSelectionMode.ACCESSIBLE;
     }
 
-    // TODO If program null use search scope?
-    if (program == null || program.isClosed() || program.isProtected()) {
+    if (program != null && (program.isClosed() || program.isProtected())) {
       violation =
           user.getOrganisationUnits().isEmpty()
               ? "User needs to be assigned data capture orgunits"
