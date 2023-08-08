@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.event.data;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.util.List;
 
@@ -177,11 +178,15 @@ public class DefaultEventQueryValidator
                 error = new ErrorMessage( ErrorCode.E7216, item.getItemId() );
             }
 
-            for ( QueryFilter queryFilter : item.getFilters() )
+            for ( QueryFilter filter : item.getFilters() )
             {
-                if ( !queryFilter.getOperator().isNullAllowed() && queryFilter.getFilter().contains( NV ) )
+                if ( !filter.getOperator().isNullAllowed() && filter.getFilter().contains( NV ) )
                 {
-                    error = new ErrorMessage( ErrorCode.E7229, queryFilter.getOperator().getValue() );
+                    error = new ErrorMessage( ErrorCode.E7229, filter.getOperator().getValue() );
+                }
+                else if ( isNotEmpty( ValidationUtils.valueIsValid( filter.getFilter(), item.getValueType() ) ) )
+                {
+                    error = new ErrorMessage( ErrorCode.E7234, filter.getFilter(), item.getValueType() );
                 }
             }
         }

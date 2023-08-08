@@ -28,7 +28,10 @@
 package org.hisp.dhis.system.util;
 
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.hisp.dhis.system.util.MathUtils.parseDouble;
+import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.datavalue.DataValue.TRUE;
+import static org.hisp.dhis.system.util.MathUtils.*;
+import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
 
 import java.awt.geom.Point2D;
 import java.util.Date;
@@ -138,6 +141,70 @@ public class ValidationUtils
         }
 
         return true;
+    }
+
+        /**
+     * Indicates whether the given value is valid according to the given value type.
+     *
+     * @param value the value.
+     * @param valueType the {@link ValueType}.
+     * @return null if the value is valid, a string if not.
+     */
+    public static String valueIsValid(String value, ValueType valueType)
+    {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+
+        if (valueType == null) {
+            return "data_element_or_type_null_or_empty";
+        }
+
+        if (value.length() > VALUE_MAX_LENGTH) {
+            return "value_length_greater_than_max_length";
+        }
+
+        // Value type checks
+        switch (valueType) {
+            case LETTER:
+                return !isValidLetter(value) ? "value_not_valid_letter" : null;
+            case NUMBER:
+                return !isNumeric(value) ? "value_not_numeric" : null;
+            case UNIT_INTERVAL:
+                return !isUnitInterval(value) ? "value_not_unit_interval" : null;
+            case PERCENTAGE:
+                return !isPercentage(value) ? "value_not_percentage" : null;
+            case INTEGER:
+                return !isInteger(value) ? "value_not_integer" : null;
+            case INTEGER_POSITIVE:
+                return !isPositiveInteger(value) ? "value_not_positive_integer" : null;
+            case INTEGER_NEGATIVE:
+                return !isNegativeInteger(value) ? "value_not_negative_integer" : null;
+            case INTEGER_ZERO_OR_POSITIVE:
+                return !isZeroOrPositiveInteger(value) ? "value_not_zero_or_positive_integer" : null;
+            case BOOLEAN:
+                return !isBool(value.toLowerCase()) ? "value_not_bool" : null;
+            case TRUE_ONLY:
+                return !TRUE.equalsIgnoreCase(value) ? "value_not_true_only" : null;
+            case DATE:
+                return !dateIsValid(value) ? "value_not_valid_date" : null;
+            case DATETIME:
+                return !dateTimeIsValid(value) ? "value_not_valid_datetime" : null;
+            case COORDINATE:
+                return !isCoordinate(value) ? "value_not_coordinate" : null;
+            case URL:
+                return !urlIsValid(value) ? "value_not_url" : null;
+            case FILE_RESOURCE:
+            case IMAGE:
+                return !isValidUid(value) ? "value_not_valid_file_resource_uid" : null;
+            default:
+                return null;
+        }
+    }
+
+    public static boolean isValidLetter(String value)
+    {
+        return value.length() == 1 && Character.isLetter(value.charAt(0));
     }
 
     /**
@@ -503,11 +570,11 @@ public class ValidationUtils
 
         // Value type checks
 
-        if ( ValueType.NUMBER == valueType && !MathUtils.isNumeric( value ) )
+        if ( ValueType.NUMBER == valueType && !isNumeric( value ) )
         {
             return "value_not_numeric";
         }
-        else if ( ValueType.UNIT_INTERVAL == valueType && !MathUtils.isUnitInterval( value ) )
+        else if ( ValueType.UNIT_INTERVAL == valueType && !isUnitInterval( value ) )
         {
             return "value_not_unit_interval";
         }
@@ -535,7 +602,7 @@ public class ValidationUtils
         {
             return "value_not_bool";
         }
-        else if ( ValueType.TRUE_ONLY == valueType && !DataValue.TRUE.equals( trimToEmpty( value ).toLowerCase() ) )
+        else if ( ValueType.TRUE_ONLY == valueType && !TRUE.equals( trimToEmpty( value ).toLowerCase() ) )
         {
             return "value_not_true_only";
         }
@@ -543,7 +610,7 @@ public class ValidationUtils
         {
             return "value_not_valid_date";
         }
-        else if ( ValueType.DATETIME == valueType && !DateUtils.dateTimeIsValid( value ) )
+        else if ( ValueType.DATETIME == valueType && !dateTimeIsValid( value ) )
         {
             return "value_not_valid_datetime";
         }
@@ -555,7 +622,7 @@ public class ValidationUtils
         {
             return "value_not_url";
         }
-        else if ( valueType.isFile() && !CodeGenerator.isValidUid( value ) )
+        else if ( valueType.isFile() && !isValidUid( value ) )
         {
             return "value_not_valid_file_resource_uid";
         }
@@ -687,7 +754,7 @@ public class ValidationUtils
             }
             else if ( BOOL_TRUE_VARIANTS.contains( bool ) )
             {
-                return DataValue.TRUE;
+                return TRUE;
             }
         }
 

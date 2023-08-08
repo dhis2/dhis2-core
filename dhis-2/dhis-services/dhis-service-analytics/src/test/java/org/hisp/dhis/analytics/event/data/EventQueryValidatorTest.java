@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.when;
@@ -38,10 +41,7 @@ import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -164,6 +164,26 @@ public class EventQueryValidatorTest
         idObjectManager.save( osA );
     }
 
+    @Test
+    public void validateValidFilterForValueType()
+    {
+        QueryFilter filter = new QueryFilter( QueryOperator.EQ, "68" );
+        QueryItem item = new QueryItem( deA, deA.getLegendSet(),
+                deA.getValueType(), deA.getAggregationType(), deA.getOptionSet() );
+        item.addFilter( filter );
+
+        List<OrganisationUnit> ous = new ArrayList<>();
+        ous.add(ouB);
+
+        EventQueryParams params = new EventQueryParams.Builder()
+                .withProgram( prA )
+                .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+                .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+                .withOrganisationUnits( ous )
+                .addItem( item ).build();
+
+        queryValidator.validate( params );
+    }
     @Test
     public void validateSuccesA()
     {
