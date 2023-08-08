@@ -55,6 +55,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -494,6 +495,25 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldOrderEnrollmentsByPrimaryKeyDescByDefault()
+      throws ForbiddenException, BadRequestException {
+    Enrollment nxP7UnKhomJ = get(Enrollment.class, "nxP7UnKhomJ");
+    Enrollment TvctPPhpD8z = get(Enrollment.class, "TvctPPhpD8z");
+    List<String> expected =
+        Stream.of(nxP7UnKhomJ, TvctPPhpD8z)
+            .sorted(Comparator.comparing(Enrollment::getId).reversed()) // reversed = desc
+            .map(Enrollment::getUid)
+            .toList();
+
+    EnrollmentOperationParams params =
+        EnrollmentOperationParams.builder().orgUnitUids(Set.of(orgUnit.getUid())).build();
+
+    List<String> enrollments = getEnrollments(params);
+
+    assertEquals(expected, enrollments);
+  }
+
+  @Test
   void shouldOrderEnrollmentsByEnrolledAtAsc() throws ForbiddenException, BadRequestException {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
@@ -507,7 +527,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEnrollmentsByOccurredAtDesc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEnrollmentsByEnrolledAtDesc() throws ForbiddenException, BadRequestException {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))

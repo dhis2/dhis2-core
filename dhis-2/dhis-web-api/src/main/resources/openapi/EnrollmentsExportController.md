@@ -122,6 +122,9 @@ properties
 Valid `sortDirection`s are `asc` and `desc`. `sortDirection` is case-insensitive. `sortDirection`
 defaults to `asc` for properties without explicit `sortDirection` as in `order=enrolledAt`.
 
+Enrollments are ordered by newest (internal id desc) by default meaning when no `order` parameter is
+provided.
+
 ### `*.parameter.EnrollmentRequestParams.fields`
 
 Get only the specified fields in the JSON response. This query parameter allows you to remove

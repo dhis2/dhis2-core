@@ -53,6 +53,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.tracker.export.enrollment.HibernateEnrollmentStore.QueryWithOrderBy.QueryWithOrderByBuilder;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -61,6 +62,9 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.tracker.export.enrollment.EnrollmentStore")
 class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment>
     implements EnrollmentStore {
+
+  private static final String DEFAULT_ORDER = "id desc";
+
   private static final String STATUS = "status";
 
   /**
@@ -213,24 +217,22 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       hql += hlp.whereAnd() + " en.deleted is false ";
     }
 
-    QueryWithOrderBy query = QueryWithOrderBy.builder().query(hql).build();
+    QueryWithOrderByBuilder query = QueryWithOrderBy.builder().query(hql);
 
+    String orderBy = " order by " + DEFAULT_ORDER;
     if (params.isSorting()) {
-      query =
-          query.toBuilder()
-              .orderBy(
-                  " order by "
-                      + params.getOrder().stream()
-                          .map(
-                              orderParam ->
-                                  orderParam.getField()
-                                      + " "
-                                      + (orderParam.getDirection().isAscending() ? "asc" : "desc"))
-                          .collect(Collectors.joining(", ")))
-              .build();
+      orderBy =
+          " order by "
+              + params.getOrder().stream()
+                  .map(
+                      orderParam ->
+                          orderParam.getField()
+                              + " "
+                              + (orderParam.getDirection().isAscending() ? "asc" : "desc"))
+                  .collect(Collectors.joining(", "));
     }
 
-    return query;
+    return query.orderBy(orderBy).build();
   }
 
   @Getter
