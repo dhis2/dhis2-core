@@ -269,9 +269,9 @@ class EventOperationParamsMapperTest {
         .thenReturn(combo);
     when(aclService.canDataRead(any(User.class), any(CategoryOptionCombo.class))).thenReturn(true);
 
-    EventSearchParams searchParams = mapper.map(operationParams);
+    EventQueryParams queryParams = mapper.map(operationParams);
 
-    assertEquals(combo, searchParams.getCategoryOptionCombo());
+    assertEquals(combo, queryParams.getCategoryOptionCombo());
   }
 
   @Test
@@ -282,13 +282,13 @@ class EventOperationParamsMapperTest {
             .assignedUserMode(AssignedUserSelectionMode.PROVIDED)
             .build();
 
-    EventSearchParams searchParams = mapper.map(operationParams);
+    EventQueryParams queryParams = mapper.map(operationParams);
 
     assertContainsOnly(
         Set.of("IsdLBTOBzMi", "l5ab8q5skbB"),
-        searchParams.getAssignedUserQueryParam().getAssignedUsers());
+        queryParams.getAssignedUserQueryParam().getAssignedUsers());
     assertEquals(
-        AssignedUserSelectionMode.PROVIDED, searchParams.getAssignedUserQueryParam().getMode());
+        AssignedUserSelectionMode.PROVIDED, queryParams.getAssignedUserQueryParam().getMode());
   }
 
   @Test
@@ -310,9 +310,9 @@ class EventOperationParamsMapperTest {
                     List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
             .build();
 
-    EventSearchParams searchParams = mapper.map(operationParams);
+    EventQueryParams queryParams = mapper.map(operationParams);
 
-    Map<TrackedEntityAttribute, List<QueryFilter>> attributes = searchParams.getAttributes();
+    Map<TrackedEntityAttribute, List<QueryFilter>> attributes = queryParams.getAttributes();
     assertNotNull(attributes);
     Map<TrackedEntityAttribute, List<QueryFilter>> expected =
         Map.of(
@@ -358,7 +358,7 @@ class EventOperationParamsMapperTest {
             .orderBy("dueDate", SortDirection.ASC)
             .build();
 
-    EventSearchParams params = mapper.map(operationParams);
+    EventQueryParams params = mapper.map(operationParams);
 
     assertEquals(
         List.of(
@@ -422,9 +422,9 @@ class EventOperationParamsMapperTest {
                     List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
             .build();
 
-    EventSearchParams searchParams = mapper.map(operationParams);
+    EventQueryParams queryParams = mapper.map(operationParams);
 
-    Map<DataElement, List<QueryFilter>> dataElements = searchParams.getDataElements();
+    Map<DataElement, List<QueryFilter>> dataElements = queryParams.getDataElements();
     assertNotNull(dataElements);
     Map<DataElement, List<QueryFilter>> expected =
         Map.of(
@@ -473,9 +473,9 @@ class EventOperationParamsMapperTest {
             .orgUnitMode(DESCENDANTS)
             .build();
 
-    EventSearchParams searchParams = mapper.map(operationParams);
+    EventQueryParams queryParams = mapper.map(operationParams);
 
-    assertContainsOnly(List.of(captureScopeOrgUnit), searchParams.getAccessibleOrgUnits());
+    assertContainsOnly(List.of(captureScopeOrgUnit), queryParams.getAccessibleOrgUnits());
   }
 
   @Test
@@ -499,9 +499,9 @@ class EventOperationParamsMapperTest {
             .orgUnitMode(DESCENDANTS)
             .build();
 
-    EventSearchParams searchParams = mapper.map(operationParams);
+    EventQueryParams queryParams = mapper.map(operationParams);
 
-    assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
+    assertContainsOnly(List.of(searchScopeOrgUnit), queryParams.getAccessibleOrgUnits());
   }
 
   @Test
@@ -581,9 +581,9 @@ class EventOperationParamsMapperTest {
     when(currentUserService.getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
 
-    EventSearchParams searchParams = mapper.map(operationParams);
+    EventQueryParams queryParams = mapper.map(operationParams);
 
-    assertContainsOnly(List.of(captureScopeOrgUnit), searchParams.getAccessibleOrgUnits());
+    assertContainsOnly(List.of(captureScopeOrgUnit), queryParams.getAccessibleOrgUnits());
   }
 
   @Test
@@ -605,9 +605,9 @@ class EventOperationParamsMapperTest {
     when(currentUserService.getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
 
-    EventSearchParams searchParams = mapper.map(operationParams);
+    EventQueryParams queryParams = mapper.map(operationParams);
 
-    assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
+    assertContainsOnly(List.of(searchScopeOrgUnit), queryParams.getAccessibleOrgUnits());
   }
 
   @Test
@@ -674,9 +674,9 @@ class EventOperationParamsMapperTest {
     EventOperationParams operationParams =
         EventOperationParams.builder().programUid(program.getUid()).orgUnitMode(CAPTURE).build();
 
-    EventSearchParams searchParams = mapper.map(operationParams);
+    EventQueryParams queryParams = mapper.map(operationParams);
 
-    assertContainsOnly(List.of(captureScopeOrgUnit), searchParams.getAccessibleOrgUnits());
+    assertContainsOnly(List.of(captureScopeOrgUnit), queryParams.getAccessibleOrgUnits());
   }
 
   @Test
@@ -692,9 +692,9 @@ class EventOperationParamsMapperTest {
 
     EventOperationParams operationParams = eventBuilder.programUid(program.getUid()).build();
 
-    EventSearchParams searchParams = mapper.map(operationParams);
+    EventQueryParams queryParams = mapper.map(operationParams);
 
-    assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
+    assertContainsOnly(List.of(searchScopeOrgUnit), queryParams.getAccessibleOrgUnits());
   }
 
   @Test
@@ -719,9 +719,9 @@ class EventOperationParamsMapperTest {
             .orgUnitMode(SELECTED)
             .build();
 
-    EventSearchParams searchParams = mapper.map(operationParams);
+    EventQueryParams queryParams = mapper.map(operationParams);
 
-    assertContainsOnly(List.of(orgUnit), searchParams.getAccessibleOrgUnits());
+    assertContainsOnly(List.of(orgUnit), queryParams.getAccessibleOrgUnits());
   }
 
   @Test
@@ -737,10 +737,10 @@ class EventOperationParamsMapperTest {
 
     EventOperationParams operationParams = eventBuilder.programUid(program.getUid()).build();
 
-    EventSearchParams searchParams = mapper.map(operationParams);
+    EventQueryParams queryParams = mapper.map(operationParams);
 
-    assertEquals(ACCESSIBLE, searchParams.getOrgUnitMode());
-    assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
+    assertEquals(ACCESSIBLE, queryParams.getOrgUnitMode());
+    assertContainsOnly(List.of(searchScopeOrgUnit), queryParams.getAccessibleOrgUnits());
   }
 
   private OrganisationUnit createOrgUnit(String name, String uid) {
