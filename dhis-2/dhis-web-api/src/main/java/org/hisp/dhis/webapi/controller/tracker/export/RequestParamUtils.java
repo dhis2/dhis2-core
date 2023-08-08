@@ -177,7 +177,7 @@ public class RequestParamUtils {
    * UID can be specified at most once.
    */
   public static void validateOrderParams(
-      Set<String> supportedFieldNames, String uidMeaning, List<OrderCriteria> order)
+      List<OrderCriteria> order, Set<String> supportedFieldNames, String uidMeaning)
       throws BadRequestException {
     if (order == null || order.isEmpty()) {
       return;
@@ -192,15 +192,22 @@ public class RequestParamUtils {
             .collect(Collectors.toSet());
     invalidOrderComponents.removeAll(uids);
 
+    String errorSuffix =
+        String.format(
+            "Supported are %s UIDs and fields '%s'. All of which can at most be specified once.",
+            uidMeaning, String.join(", ", supportedFieldNames.stream().sorted().toList()));
     if (!invalidOrderComponents.isEmpty()) {
       throw new BadRequestException(
           String.format(
-              "order parameter is invalid. '%s' are either unsupported fields and/or invalid UID(s). Supported are %s UIDs and fields '%s'. All of which can at most be specified once.",
-              String.join(", ", invalidOrderComponents),
-              uidMeaning,
-              String.join(", ", supportedFieldNames.stream().sorted().toList())));
+              "order parameter is invalid. '%s' are either unsupported fields and/or invalid UID(s). %s",
+              String.join(", ", invalidOrderComponents), errorSuffix));
     }
 
+    validateOrderParamsContainNoDuplicates(order, errorSuffix);
+  }
+
+  private static void validateOrderParamsContainNoDuplicates(
+      List<OrderCriteria> order, String errorSuffix) throws BadRequestException {
     Set<String> duplicateOrderComponents =
         order.stream()
             .map(OrderCriteria::getField)
@@ -214,17 +221,15 @@ public class RequestParamUtils {
     if (!duplicateOrderComponents.isEmpty()) {
       throw new BadRequestException(
           String.format(
-              "order parameter is invalid. '%s' are repeated. Supported are %s UIDs and fields '%s'. All of which can at most be specified once.",
-              String.join(", ", duplicateOrderComponents),
-              uidMeaning,
-              String.join(", ", supportedFieldNames.stream().sorted().toList())));
+              "order parameter is invalid. '%s' are repeated. %s",
+              String.join(", ", duplicateOrderComponents), errorSuffix));
     }
   }
 
   /**
    * Validate the {@code order} request parameter in tracker exporters. Allowed order values are
    * {@code supportedFieldNames}. Every field name can be specified at most once. If the endpoint
-   * supports field names and UIDs use {@link #validateOrderParams(Set, String, List)}.
+   * supports field names and UIDs use {@link #validateOrderParams(List, Set, String)}.
    */
   public static void validateOrderParams(Set<String> supportedFieldNames, List<OrderCriteria> order)
       throws BadRequestException {
@@ -236,31 +241,18 @@ public class RequestParamUtils {
         order.stream().map(OrderCriteria::getField).collect(Collectors.toSet());
     invalidOrderComponents.removeAll(supportedFieldNames);
 
+    String errorSuffix =
+        String.format(
+            "Supported are fields '%s'. All of which can at most be specified once.",
+            String.join(", ", supportedFieldNames.stream().sorted().toList()));
     if (!invalidOrderComponents.isEmpty()) {
       throw new BadRequestException(
           String.format(
-              "order parameter is invalid. '%s' are either unsupported fields. Supported are fields '%s'. All of which can at most be specified once.",
-              String.join(", ", invalidOrderComponents),
-              String.join(", ", supportedFieldNames.stream().sorted().toList())));
+              "order parameter is invalid. '%s' are unsupported. %s",
+              String.join(", ", invalidOrderComponents), errorSuffix));
     }
 
-    Set<String> duplicateOrderComponents =
-        order.stream()
-            .map(OrderCriteria::getField)
-            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
-            .entrySet()
-            .stream()
-            .filter(e -> e.getValue() > 1)
-            .map(Entry::getKey)
-            .collect(Collectors.toSet());
-
-    if (!duplicateOrderComponents.isEmpty()) {
-      throw new BadRequestException(
-          String.format(
-              "order parameter is invalid. '%s' are repeated. Supported are fields '%s'. All of which can at most be specified once.",
-              String.join(", ", duplicateOrderComponents),
-              String.join(", ", supportedFieldNames.stream().sorted().toList())));
-    }
+    validateOrderParamsContainNoDuplicates(order, errorSuffix);
   }
 
   /**
