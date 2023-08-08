@@ -36,6 +36,7 @@ import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -53,7 +54,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.tracker.export.enrollment.HibernateEnrollmentStore.QueryWithOrderBy.QueryWithOrderByBuilder;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -217,22 +218,20 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       hql += hlp.whereAnd() + " en.deleted is false ";
     }
 
-    QueryWithOrderByBuilder query = QueryWithOrderBy.builder().query(hql);
+    return QueryWithOrderBy.builder().query(hql).orderBy(orderBy(params.getOrder())).build();
+  }
 
-    String orderBy = " order by " + DEFAULT_ORDER;
-    if (params.isSorting()) {
-      orderBy =
-          " order by "
-              + params.getOrder().stream()
-                  .map(
-                      orderParam ->
-                          orderParam.getField()
-                              + " "
-                              + (orderParam.getDirection().isAscending() ? "asc" : "desc"))
-                  .collect(Collectors.joining(", "));
+  private static String orderBy(List<Order> orders) {
+    if (orders.isEmpty()) {
+      return " order by " + DEFAULT_ORDER;
     }
 
-    return query.orderBy(orderBy).build();
+    StringJoiner orderJoiner = new StringJoiner(", ");
+    for (Order order : orders) {
+      orderJoiner.add(
+          order.getField() + " " + (order.getDirection().isAscending() ? "asc" : "desc"));
+    }
+    return " order by " + orderJoiner;
   }
 
   @Getter

@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -219,14 +217,6 @@ class EnrollmentQueryParams {
     this.page = DEFAULT_PAGE;
     this.pageSize = DEFAULT_PAGE_SIZE;
     this.skipPaging = false;
-  }
-
-  public boolean isSorting() {
-    return !CollectionUtils.emptyIfNull(order).isEmpty();
-  }
-
-  public List<Order> getOrder() {
-    return Collections.unmodifiableList(this.order);
   }
 
   /**

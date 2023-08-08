@@ -30,8 +30,6 @@ package org.hisp.dhis.tracker.export;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
-import static org.hisp.dhis.tracker.Assertions.assertSlimPager;
-import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -465,7 +463,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @Test
   void shouldReturnPaginatedEnrollmentsGivenNonDefaultPageSize()
       throws ForbiddenException, BadRequestException {
-
     EnrollmentOperationParamsBuilder builder =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
@@ -491,7 +488,38 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     params = builder.page(3).pageSize(1).build();
 
-    assertIsEmpty(uids(enrollmentService.getEnrollments(params).getEnrollments()));
+    assertIsEmpty(getEnrollments(params));
+  }
+
+  @Test
+  void shouldReturnPaginatedEnrollmentsGivenNonDefaultPageSizeAndTotalPages()
+      throws ForbiddenException, BadRequestException {
+    EnrollmentOperationParamsBuilder builder =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orderBy("enrollmentDate", SortDirection.ASC);
+
+    EnrollmentOperationParams params = builder.page(1).pageSize(1).totalPages(true).build();
+
+    Enrollments firstPage = enrollmentService.getEnrollments(params);
+
+    assertAll(
+        "first page",
+        () -> assertPager(1, 1, 2, firstPage.getPager()),
+        () -> assertEquals(List.of("nxP7UnKhomJ"), uids(firstPage.getEnrollments())));
+
+    params = builder.page(2).pageSize(1).totalPages(true).build();
+
+    Enrollments secondPage = enrollmentService.getEnrollments(params);
+
+    assertAll(
+        "second (last) page",
+        () -> assertPager(2, 1, 2, secondPage.getPager()),
+        () -> assertEquals(List.of("TvctPPhpD8z"), uids(secondPage.getEnrollments())));
+
+    params = builder.page(3).pageSize(1).totalPages(true).build();
+
+    assertIsEmpty(getEnrollments(params));
   }
 
   @Test
