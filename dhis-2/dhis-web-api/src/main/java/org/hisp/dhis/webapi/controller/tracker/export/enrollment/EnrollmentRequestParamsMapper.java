@@ -33,7 +33,7 @@ import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrgUnitParams;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitMode;
 
 import java.util.List;
 import java.util.Objects;
@@ -69,7 +69,7 @@ class EnrollmentRequestParamsMapper {
         validateDeprecatedParameter(
             "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
 
-    validateOrgUnitParams(orgUnits, orgUnitMode);
+    validateOrgUnitMode(orgUnits, orgUnitMode);
 
     validateOrderParams(requestParams.getOrder(), ORDERABLE_FIELD_NAMES);
 

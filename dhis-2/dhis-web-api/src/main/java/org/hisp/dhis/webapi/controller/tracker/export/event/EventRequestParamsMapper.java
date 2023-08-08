@@ -68,15 +68,10 @@ class EventRequestParamsMapper {
 
   public EventOperationParams map(RequestParams requestParams) throws BadRequestException {
     OrganisationUnitSelectionMode orgUnitMode =
-        getOrgUnitMode(
-            requestParams.getOrgUnit(),
-            validateDeprecatedParameter(
-                "ouMode",
-                requestParams.getOuMode(),
-                "orgUnitMode",
-                requestParams.getOrgUnitMode()));
+        validateDeprecatedParameter(
+            "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
 
-    validateOrgUnitMode(requestParams.getOrgUnit(), orgUnitMode);
+    orgUnitMode = validateOrgUnitMode(requestParams.getOrgUnit(), orgUnitMode);
 
     UID attributeCategoryCombo =
         validateDeprecatedParameter(
@@ -199,8 +194,13 @@ class EventRequestParamsMapper {
     }
   }
 
-  private void validateOrgUnitMode(UID orgUnit, OrganisationUnitSelectionMode orgUnitMode)
-      throws BadRequestException {
+  private OrganisationUnitSelectionMode validateOrgUnitMode(
+      UID orgUnit, OrganisationUnitSelectionMode orgUnitMode) throws BadRequestException {
+
+    if (orgUnitMode == null) {
+      orgUnitMode = orgUnit != null ? SELECTED : ACCESSIBLE;
+    }
+
     if ((orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE) && orgUnit != null) {
       throw new BadRequestException(
           String.format(
@@ -215,21 +215,7 @@ class EventRequestParamsMapper {
               "orgUnit is required for orgUnitMode: %s. Please add an orgUnit or use a different orgUnitMode.",
               orgUnitMode));
     }
-  }
 
-  /**
-   * Returns the same org unit mode if not null. If null, and an org unit is present, SELECT mode is
-   * used by default, mode ACCESSIBLE is used otherwise.
-   *
-   * @param orgUnit
-   * @param orgUnitMode
-   * @return an org unit mode given the two input params
-   */
-  private OrganisationUnitSelectionMode getOrgUnitMode(
-      UID orgUnit, OrganisationUnitSelectionMode orgUnitMode) {
-    if (orgUnitMode == null) {
-      return orgUnit != null ? SELECTED : ACCESSIBLE;
-    }
     return orgUnitMode;
   }
 }
