@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.dxf2.events.report;
 
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
 public interface EventRowService {
-  EventRows getEventRows(EventSearchParams params);
+  EventRows getEventRows(EventQueryParams params);
 }

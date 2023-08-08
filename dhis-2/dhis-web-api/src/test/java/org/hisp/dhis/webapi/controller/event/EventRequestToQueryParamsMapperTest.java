@@ -53,7 +53,7 @@ import java.util.Set;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -160,7 +160,7 @@ class EventRequestToSearchParamsMapperTest {
   @Test
   void testEventRequestToSearchParamsMapperSuccess() {
 
-    EventSearchParams eventSearchParams =
+    EventQueryParams eventQueryParams =
         mapper.map(
             "programuid",
             null,
@@ -196,7 +196,7 @@ class EventRequestToSearchParamsMapperTest {
             false,
             false); // Then
 
-    assertThat(eventSearchParams, is(not(nullValue())));
+    assertThat(eventQueryParams, is(not(nullValue())));
   }
 
   @Test
@@ -220,7 +220,7 @@ class EventRequestToSearchParamsMapperTest {
     eventCriteria.setOrgUnit(orgUnitId);
     eventCriteria.setOuMode(DESCENDANTS);
 
-    EventSearchParams searchParams = mapper.map(eventCriteria);
+    EventQueryParams searchParams = mapper.map(eventCriteria);
 
     assertContainsOnly(List.of(captureScopeOrgUnit), searchParams.getAccessibleOrgUnits());
   }
@@ -243,7 +243,7 @@ class EventRequestToSearchParamsMapperTest {
     eventCriteria.setOrgUnit(orgUnit.getUid());
     eventCriteria.setOuMode(DESCENDANTS);
 
-    EventSearchParams searchParams = mapper.map(eventCriteria);
+    EventQueryParams searchParams = mapper.map(eventCriteria);
 
     assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
   }
@@ -318,7 +318,7 @@ class EventRequestToSearchParamsMapperTest {
     when(currentUserService.getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
 
-    EventSearchParams searchParams = mapper.map(eventCriteria);
+    EventQueryParams searchParams = mapper.map(eventCriteria);
 
     assertContainsOnly(List.of(captureScopeOrgUnit), searchParams.getAccessibleOrgUnits());
   }
@@ -339,7 +339,7 @@ class EventRequestToSearchParamsMapperTest {
     when(currentUserService.getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
 
-    EventSearchParams searchParams = mapper.map(eventCriteria);
+    EventQueryParams searchParams = mapper.map(eventCriteria);
 
     assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
   }
@@ -405,7 +405,7 @@ class EventRequestToSearchParamsMapperTest {
     eventCriteria.setProgram(program.getUid());
     eventCriteria.setOuMode(CAPTURE);
 
-    EventSearchParams searchParams = mapper.map(eventCriteria);
+    EventQueryParams searchParams = mapper.map(eventCriteria);
 
     assertContainsOnly(List.of(captureScopeOrgUnit), searchParams.getAccessibleOrgUnits());
   }
@@ -425,7 +425,7 @@ class EventRequestToSearchParamsMapperTest {
     eventCriteria.setProgram(program.getUid());
     eventCriteria.setOuMode(ACCESSIBLE);
 
-    EventSearchParams searchParams = mapper.map(eventCriteria);
+    EventQueryParams searchParams = mapper.map(eventCriteria);
 
     assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
   }
@@ -449,7 +449,7 @@ class EventRequestToSearchParamsMapperTest {
     eventCriteria.setOrgUnit(orgUnit.getUid());
     eventCriteria.setOuMode(SELECTED);
 
-    EventSearchParams searchParams = mapper.map(eventCriteria);
+    EventQueryParams searchParams = mapper.map(eventCriteria);
 
     assertContainsOnly(List.of(orgUnit), searchParams.getAccessibleOrgUnits());
   }
@@ -472,7 +472,7 @@ class EventRequestToSearchParamsMapperTest {
     eventCriteria.setProgram(program.getUid());
     eventCriteria.setOrgUnit(orgUnit.getUid());
 
-    EventSearchParams searchParams = mapper.map(eventCriteria);
+    EventQueryParams searchParams = mapper.map(eventCriteria);
 
     assertEquals(SELECTED, searchParams.getOrgUnitSelectionMode());
     assertContainsOnly(List.of(orgUnit), searchParams.getAccessibleOrgUnits());
@@ -492,7 +492,7 @@ class EventRequestToSearchParamsMapperTest {
     EventCriteria eventCriteria = new EventCriteria();
     eventCriteria.setProgram(program.getUid());
 
-    EventSearchParams searchParams = mapper.map(eventCriteria);
+    EventQueryParams searchParams = mapper.map(eventCriteria);
 
     assertEquals(ACCESSIBLE, searchParams.getOrgUnitSelectionMode());
     assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
