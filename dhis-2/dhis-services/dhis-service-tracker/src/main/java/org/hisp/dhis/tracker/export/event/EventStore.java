@@ -36,7 +36,7 @@ import org.hisp.dhis.program.Event;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface EventStore {
-  List<Event> getEvents(EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue);
+  List<Event> getEvents(EventQueryParams params, Map<String, Set<String>> psdesWithSkipSyncTrue);
 
   /**
    * Fields the {@link #getEvents(EventSearchParams, Map)} can order events by. Ordering by fields
@@ -45,5 +45,5 @@ public interface EventStore {
    */
   Set<String> getOrderableFields();
 
-  int getEventCount(EventSearchParams params);
+  int getEventCount(EventQueryParams params);
 }
