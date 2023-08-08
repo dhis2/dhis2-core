@@ -416,7 +416,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     User user = params.getUser();
 
     if (!params.hasTrackedEntities()
-        && !params.hasOrganisationUnits()
+        && !params.hasAccessibleOrgUnits()
         && !(params.isOrganisationUnitMode(ALL)
             || params.isOrganisationUnitMode(ACCESSIBLE)
             || params.isOrganisationUnitMode(CAPTURE))) {
@@ -520,7 +520,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     if (!params.hasProgram()
         && !params.hasTrackedEntityType()
         && params.hasAttributesOrFilters()
-        && !params.hasOrganisationUnits()) {
+        && !params.hasAccessibleOrgUnits()) {
       List<String> uniqueAttributeIds =
           trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
               .map(TrackedEntityAttribute::getUid)

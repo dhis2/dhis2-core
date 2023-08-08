@@ -49,68 +49,67 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class OperationsParamsValidation {
+public class OperationsParamsValidator {
 
+  /**
+   * Validates the user is authorized and/or has the necessary configuration set up in case the org
+   * unit mode is ALL, ACCESSIBLE or CAPTURE. If the mode used is none of these three, no validation
+   * will be run
+   *
+   * @param orgUnitMode the {@link OrganisationUnitSelectionMode orgUnitMode} used in the current
+   *     case
+   * @param user
+   * @param program
+   * @throws BadRequestException if a validation error occurs for any of the three aforementioned
+   *     modes
+   */
   public static void validateOrgUnitMode(
       OrganisationUnitSelectionMode orgUnitMode, User user, Program program)
       throws BadRequestException {
 
-    String violation =
-        switch (orgUnitMode) {
-          case ALL -> userCanSearchOrgUnitModeALL(user)
-              ? null
-              : "Current user is not authorized to query across all organisation units";
-          case ACCESSIBLE -> getAccessibleScopeValidation(user, program);
-          case CAPTURE -> getCaptureScopeValidation(user);
-          default -> null;
-        };
-
-    if (violation != null) {
-      throw new BadRequestException(violation);
+    switch (orgUnitMode) {
+      case ALL -> validateUserCanSearchOrgUnitModeALL(user);
+      case ACCESSIBLE -> validateAccessibleScope(user, program);
+      case CAPTURE -> validateCaptureScope(user);
     }
   }
 
-  private static String getCaptureScopeValidation(User user) {
-    String violation = null;
+  private static void validateCaptureScope(User user) throws BadRequestException {
 
     if (user == null) {
-      violation = "User is required for orgUnitMode: " + CAPTURE;
+      throw new BadRequestException("User is required for orgUnitMode: " + CAPTURE);
     } else if (user.getOrganisationUnits().isEmpty()) {
-      violation = "User needs to be assigned data capture orgunits";
+      throw new BadRequestException("User needs to be assigned data capture orgunits");
     }
-
-    return violation;
   }
 
-  private static String getAccessibleScopeValidation(User user, Program program) {
-    String violation;
+  private static void validateAccessibleScope(User user, Program program)
+      throws BadRequestException {
 
     if (user == null) {
-      return "User is required for orgUnitMode: " + OrganisationUnitSelectionMode.ACCESSIBLE;
+      throw new BadRequestException(
+          "User is required for orgUnitMode: " + OrganisationUnitSelectionMode.ACCESSIBLE);
     }
 
     if (program != null && (program.isClosed() || program.isProtected())) {
-      violation =
-          user.getOrganisationUnits().isEmpty()
-              ? "User needs to be assigned data capture orgunits"
-              : null;
-    } else {
-      violation =
-          user.getTeiSearchOrganisationUnitsWithFallback().isEmpty()
-              ? "User needs to be assigned either TE search, data view or data capture org units"
-              : null;
-    }
+      if (user.getOrganisationUnits().isEmpty()) {
+        throw new BadRequestException("User needs to be assigned data capture orgunits");
+      }
 
-    return violation;
+    } else if (user.getTeiSearchOrganisationUnitsWithFallback().isEmpty()) {
+      throw new BadRequestException(
+          "User needs to be assigned either TE search, data view or data capture org units");
+    }
   }
 
-  private static boolean userCanSearchOrgUnitModeALL(User user) {
-    if (user == null) {
-      return false;
+  private static void validateUserCanSearchOrgUnitModeALL(User user) throws BadRequestException {
+    if (user == null
+        || !(user.isSuper()
+            || user.isAuthorized(
+                Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()))) {
+      throw new BadRequestException(
+          "Current user is not authorized to query across all organisation units");
     }
-
-    return user.isSuper()
-        || user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
   }
 
   /**
@@ -195,25 +194,18 @@ public class OperationsParamsValidation {
       return Collections.emptySet();
     }
 
-    if (isProgramAccessRestricted(program)) {
-      return orgUnits.stream()
-          .filter(
-              availableOrgUnit ->
-                  user.getOrganisationUnits().stream()
-                      .anyMatch(
-                          captureScopeOrgUnit ->
-                              availableOrgUnit.getPath().contains(captureScopeOrgUnit.getPath())))
-          .collect(Collectors.toSet());
-    } else {
-      return orgUnits.stream()
-          .filter(
-              availableOrgUnit ->
-                  user.getTeiSearchOrganisationUnits().stream()
-                      .anyMatch(
-                          searchScopeOrgUnit ->
-                              availableOrgUnit.getPath().contains(searchScopeOrgUnit.getPath())))
-          .collect(Collectors.toSet());
-    }
+    Set<OrganisationUnit> userOrgUnits =
+        isProgramAccessRestricted(program)
+            ? user.getOrganisationUnits()
+            : user.getTeiSearchOrganisationUnits();
+
+    return orgUnits.stream()
+        .filter(
+            availableOrgUnit ->
+                userOrgUnits.stream()
+                    .anyMatch(
+                        userOrgUnit -> availableOrgUnit.getPath().contains(userOrgUnit.getPath())))
+        .collect(Collectors.toSet());
   }
 
   private static boolean isProgramAccessRestricted(Program program) {

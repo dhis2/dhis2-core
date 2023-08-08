@@ -36,8 +36,8 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.tracker.export.OperationsParamsValidation.validateAccessibleOrgUnits;
-import static org.hisp.dhis.tracker.export.OperationsParamsValidation.validateOrgUnitMode;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAccessibleOrgUnits;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
@@ -59,7 +59,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class OperationsParamsValidationTest {
+class OperationsParamsValidatorTest {
 
   @Mock OrganisationUnitService organisationUnitService;
 

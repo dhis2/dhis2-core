@@ -702,7 +702,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
                 ? "PO.organisationunitid "
                 : "TE.organisationunitid ");
 
-    if (!params.hasOrganisationUnits()) {
+    if (!params.hasAccessibleOrgUnits()) {
       return orgUnits.toString();
     }
 

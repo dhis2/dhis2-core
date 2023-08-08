@@ -315,7 +315,7 @@ public class TrackedEntityQueryParams {
   }
 
   /** Indicates whether these parameters specify any organisation units. */
-  public boolean hasOrganisationUnits() {
+  public boolean hasAccessibleOrgUnits() {
     return !accessibleOrgUnits.isEmpty();
   }
 

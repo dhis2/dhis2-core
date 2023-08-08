@@ -238,8 +238,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orderBy("created", SortDirection.ASC)
             .user(importUser)
+            .orderBy("created", SortDirection.ASC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -270,8 +270,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orderBy("created", SortDirection.DESC)
             .user(importUser)
+            .orderBy("created", SortDirection.DESC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -299,8 +299,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
             .user(importUser)
+            .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -316,8 +316,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .user(importUser)
+            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -333,9 +333,9 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
             .orderBy(UID.of("toDelete000"), SortDirection.ASC)
             .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
-            .user(importUser)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -351,8 +351,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .user(importUser)
+            .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -368,8 +368,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
             .user(importUser)
+            .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -384,9 +384,9 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .filters("numericAttr:lt:75")
-            .user(importUser)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -401,9 +401,9 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
             .orderBy(UID.of("numericAttr"), SortDirection.DESC)
             .filters("numericAttr:lt:75")
-            .user(importUser)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -421,8 +421,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .trackedEntityUids(
                 Set.of(
                     "dUE514NMOlo", "QS6w44flWAf")) // TE QS6w44flWAf without attribute notUpdated0
-            .orderBy(UID.of("notUpdated0"), SortDirection.DESC)
             .user(importUser)
+            .orderBy(UID.of("notUpdated0"), SortDirection.DESC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -441,9 +441,9 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
             .orderBy(UID.of("numericAttr"), SortDirection.ASC)
-            .user(importUser)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -459,9 +459,9 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
             .orderBy(UID.of("numericAttr"), SortDirection.DESC)
-            .user(importUser)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);

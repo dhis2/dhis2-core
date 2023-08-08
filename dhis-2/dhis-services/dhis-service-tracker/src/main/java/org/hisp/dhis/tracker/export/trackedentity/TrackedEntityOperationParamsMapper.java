@@ -28,8 +28,8 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
-import static org.hisp.dhis.tracker.export.OperationsParamsValidation.validateAccessibleOrgUnits;
-import static org.hisp.dhis.tracker.export.OperationsParamsValidation.validateOrgUnitMode;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAccessibleOrgUnits;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
