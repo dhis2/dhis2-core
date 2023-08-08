@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.Enrollment;
 
@@ -49,4 +50,11 @@ interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    * @return Enrollments matching params
    */
   List<Enrollment> getEnrollments(EnrollmentQueryParams params);
+
+  /**
+   * Fields the {@link #getEnrollments(EnrollmentQueryParams)} can order enrollments by. Ordering by
+   * fields other than these is considered a programmer error. Validation of user provided field
+   * names should occur before calling {@link #getEnrollments(EnrollmentQueryParams)}.
+   */
+  Set<String> getOrderableFields();
 }

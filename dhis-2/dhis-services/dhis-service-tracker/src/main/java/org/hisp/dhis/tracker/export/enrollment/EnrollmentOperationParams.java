@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -37,7 +38,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 @Getter
 @Builder(toBuilder = true)
@@ -102,8 +104,7 @@ public class EnrollmentOperationParams {
   /** Indicates whether to include soft-deleted enrollments */
   private final boolean includeDeleted;
 
-  /** List of order params */
-  private final List<OrderParam> order;
+  private final List<Order> order;
 
   /** Indicates whether paging is enabled. */
   public boolean isPaging() {
@@ -118,5 +119,23 @@ public class EnrollmentOperationParams {
   /** Returns the page size, falls back to default value of 50 if not specified. */
   public int getPageSizeWithDefault() {
     return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
+  }
+
+  public static class EnrollmentOperationParamsBuilder {
+
+    private List<Order> order = new ArrayList<>();
+
+    // Do not remove this unused method. This hides the order field from the builder which Lombok
+    // does not support. The repeated order field and private order method prevent access to order
+    // via the builder.
+    // Order should be added via the orderBy builder methods.
+    private EnrollmentOperationParamsBuilder order(List<Order> order) {
+      return this;
+    }
+
+    public EnrollmentOperationParamsBuilder orderBy(String field, SortDirection direction) {
+      this.order.add(new Order(field, direction));
+      return this;
+    }
   }
 }
