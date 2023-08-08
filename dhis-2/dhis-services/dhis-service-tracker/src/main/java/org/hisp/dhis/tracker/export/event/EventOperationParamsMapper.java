@@ -65,13 +65,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Maps {@link EventOperationParams} to {@link EventSearchParams} which is used to fetch events from
+ * Maps {@link EventOperationParams} to {@link EventQueryParams} which is used to fetch events from
  * the DB.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class EventOperationParamsMapper {
+class EventOperationParamsMapper {
 
   private final ProgramService programService;
 
@@ -94,7 +94,7 @@ public class EventOperationParamsMapper {
   private final DataElementService dataElementService;
 
   @Transactional(readOnly = true)
-  public EventSearchParams map(EventOperationParams operationParams)
+  public EventQueryParams map(EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
     User user = currentUserService.getCurrentUser();
 
@@ -125,13 +125,13 @@ public class EventOperationParamsMapper {
 
     validateAttributeOptionCombo(attributeOptionCombo, user);
 
-    EventSearchParams searchParams = new EventSearchParams();
+    EventQueryParams queryParams = new EventQueryParams();
 
-    mapDataElementFilters(searchParams, operationParams.getDataElementFilters());
-    mapAttributeFilters(searchParams, operationParams.getAttributeFilters());
-    mapOrderParam(searchParams, operationParams.getOrder());
+    mapDataElementFilters(queryParams, operationParams.getDataElementFilters());
+    mapAttributeFilters(queryParams, operationParams.getAttributeFilters());
+    mapOrderParam(queryParams, operationParams.getOrder());
 
-    return searchParams
+    return queryParams
         .setProgram(program)
         .setProgramStage(programStage)
         .setAccessibleOrgUnits(accessibleOrgUnits)
@@ -418,7 +418,7 @@ public class EventOperationParamsMapper {
   }
 
   private void mapDataElementFilters(
-      EventSearchParams params, Map<String, List<QueryFilter>> dataElementFilters)
+      EventQueryParams params, Map<String, List<QueryFilter>> dataElementFilters)
       throws BadRequestException {
     for (Entry<String, List<QueryFilter>> dataElementFilter : dataElementFilters.entrySet()) {
       DataElement de = dataElementService.getDataElement(dataElementFilter.getKey());
@@ -436,7 +436,7 @@ public class EventOperationParamsMapper {
   }
 
   private void mapAttributeFilters(
-      EventSearchParams params, Map<String, List<QueryFilter>> attributeFilters)
+      EventQueryParams params, Map<String, List<QueryFilter>> attributeFilters)
       throws BadRequestException {
     for (Map.Entry<String, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
       TrackedEntityAttribute tea =
@@ -458,7 +458,7 @@ public class EventOperationParamsMapper {
     }
   }
 
-  private void mapOrderParam(EventSearchParams params, List<Order> orders)
+  private void mapOrderParam(EventQueryParams params, List<Order> orders)
       throws BadRequestException {
     if (orders == null || orders.isEmpty()) {
       return;

@@ -85,9 +85,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventParams;
-import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.tracker.export.event.EventStore;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -819,7 +817,8 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   /**
    * This method will apply the logic related to the parameter 'totalPages=false'. This works in
-   * conjunction with the method: {@link EventStore#getEvents(EventSearchParams, Map)}
+   * conjunction with the method: {@link
+   * TrackedEntityStore#getTrackedEntityIds(TrackedEntityQueryParams)}
    *
    * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
    * allow us to evaluate if we are in the last page or not. And this is what his method does,
