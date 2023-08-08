@@ -85,9 +85,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventParams;
-import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.tracker.export.event.EventStore;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -372,16 +370,14 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   public void decideAccess(TrackedEntityQueryParams params) {
-    User user = params.isInternalSearch() ? null : params.getUser();
-
     if (params.isOrganisationUnitMode(ALL)
         && !currentUserService.currentUserIsAuthorized(
-            Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name())
-        && !params.isInternalSearch()) {
+            Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name())) {
       throw new IllegalQueryException(
           "Current user is not authorized to query across all organisation units");
     }
 
+    User user = params.getUser();
     if (params.hasProgram()) {
       if (!aclService.canDataRead(user, params.getProgram())) {
         throw new IllegalQueryException(
@@ -821,7 +817,8 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   /**
    * This method will apply the logic related to the parameter 'totalPages=false'. This works in
-   * conjunction with the method: {@link EventStore#getEvents(EventSearchParams, Map)}
+   * conjunction with the method: {@link
+   * TrackedEntityStore#getTrackedEntityIds(TrackedEntityQueryParams)}
    *
    * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
    * allow us to evaluate if we are in the last page or not. And this is what his method does,
@@ -848,5 +845,10 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     return new SlimPager(originalPage, originalPageSize, isLastPage);
+  }
+
+  @Override
+  public Set<String> getOrderableFields() {
+    return trackedEntityStore.getOrderableFields();
   }
 }

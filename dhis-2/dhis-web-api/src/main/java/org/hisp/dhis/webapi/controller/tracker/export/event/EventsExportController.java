@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.event.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
@@ -38,13 +39,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
-import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -84,14 +80,13 @@ class EventsExportController {
 
   private static final EventMapper EVENTS_MAPPER = Mappers.getMapper(EventMapper.class);
 
-  @Nonnull private final org.hisp.dhis.tracker.export.event.EventService eventService;
+  private final EventService eventService;
 
-  @Nonnull private final EventRequestParamsMapper eventParamsMapper;
+  private final EventRequestParamsMapper eventParamsMapper;
 
-  @Nonnull
-  private final CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
+  private final CsvService<Event> csvEventService;
 
-  @Nonnull private final FieldFilterService fieldFilterService;
+  private final FieldFilterService fieldFilterService;
 
   private final EventFieldsParamMapper eventsMapper;
 
@@ -107,31 +102,8 @@ class EventsExportController {
     this.fieldFilterService = fieldFilterService;
     this.eventsMapper = eventsMapper;
 
-    assertUserOrderableFieldsAreSupported();
-  }
-
-  /**
-   * Ensures that all fields advocated by {@link
-   * org.hisp.dhis.webapi.controller.tracker.export.event} as orderable are in fact orderable by the
-   * service. Web is responsible for mapping from the language users use (our API) to our internal
-   * representation used in our services. This is to prevent web and service (store) from getting
-   * out of sync.
-   */
-  private void assertUserOrderableFieldsAreSupported() {
-    Set<String> orderableFields = eventService.getOrderableFields();
-    Set<String> unsupportedFields = new HashSet<>(EventMapper.ORDERABLE_FIELDS.values());
-    unsupportedFields.removeAll(orderableFields);
-    if (!unsupportedFields.isEmpty()) {
-      Set<String> unsupportedFieldNames =
-          EventMapper.ORDERABLE_FIELDS.entrySet().stream()
-              .filter(e -> unsupportedFields.contains(e.getValue()))
-              .map(Entry::getKey)
-              .collect(Collectors.toSet());
-      throw new IllegalStateException(
-          "event controller supports ordering by "
-              + String.join(", ", unsupportedFieldNames)
-              + " while event service does not.");
-    }
+    assertUserOrderableFieldsAreSupported(
+        "event", EventMapper.ORDERABLE_FIELDS, eventService.getOrderableFields());
   }
 
   @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)

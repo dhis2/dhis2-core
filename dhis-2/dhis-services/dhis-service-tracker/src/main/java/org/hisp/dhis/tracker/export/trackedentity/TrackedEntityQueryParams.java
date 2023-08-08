@@ -160,18 +160,6 @@ public class TrackedEntityQueryParams {
   private boolean includeAllAttributes;
 
   /**
-   * Indicates whether the search is internal triggered by the system. The system should trigger
-   * superuser search to detect duplicates.
-   */
-  private boolean internalSearch;
-
-  /** Indicates whether the search is for synchronization purposes (for Program Data sync job). */
-  private boolean synchronizationQuery;
-
-  /** Indicates a point in the time used to decide the data that should not be synchronized */
-  private Date skipChangedBefore;
-
-  /**
    * Potential Duplicate query parameter value. If null, we don't check whether a TE is a
    * potentialDuplicate or not
    */
@@ -250,7 +238,7 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  /** Adds the given filters to this parameters if they are not already present. */
+  /** Adds the given filters to these parameters if they are not already present. */
   public TrackedEntityQueryParams addFiltersIfNotExist(List<QueryItem> filtrs) {
     for (QueryItem filter : filtrs) {
       if (filters != null && !filters.contains(filter)) {
@@ -271,7 +259,7 @@ public class TrackedEntityQueryParams {
     return hasQuery();
   }
 
-  /** Indicates whether this parameters specifies a query. */
+  /** Indicates whether these parameters specify a query. */
   public boolean hasQuery() {
     return query != null && query.isFilter();
   }
@@ -317,65 +305,65 @@ public class TrackedEntityQueryParams {
     return duplicates;
   }
 
-  /** Indicates whether this parameters specifies any attributes and/or filters. */
+  /** Indicates whether these parameters specify any attributes and/or filters. */
   public boolean hasAttributesOrFilters() {
     return hasAttributes() || hasFilters();
   }
 
-  /** Indicates whether this parameters specifies any attributes. */
+  /** Indicates whether these parameters specify any attributes. */
   public boolean hasAttributes() {
     return attributes != null && !attributes.isEmpty();
   }
 
-  /** Indicates whether this parameters specifies any filters. */
+  /** Indicates whether these parameters specify any filters. */
   public boolean hasFilters() {
     return filters != null && !filters.isEmpty();
   }
 
-  /** Indicates whether this parameters specifies any organisation units. */
+  /** Indicates whether these parameters specify any organisation units. */
   public boolean hasOrganisationUnits() {
     return orgUnits != null && !orgUnits.isEmpty();
   }
 
-  /** Indicates whether this parameters specifies a program. */
+  /** Indicates whether these parameters specify a program. */
   public boolean hasProgram() {
     return program != null;
   }
 
-  /** Indicates whether this parameters specifies a program status. */
+  /** Indicates whether these parameters specify a program status. */
   public boolean hasProgramStatus() {
     return programStatus != null;
   }
 
   /**
-   * Indicates whether this parameters specifies follow up for the given program. Follow up can be
+   * Indicates whether these parameters specify follow up for the given program. Follow up can be
    * specified as true or false.
    */
   public boolean hasFollowUp() {
     return followUp != null;
   }
 
-  /** Indicates whether this parameters specifies a last updated start date. */
+  /** Indicates whether these parameters specify a last updated start date. */
   public boolean hasLastUpdatedStartDate() {
     return lastUpdatedStartDate != null;
   }
 
-  /** Indicates whether this parameters specifies a last updated end date. */
+  /** Indicates whether these parameters specify a last updated end date. */
   public boolean hasLastUpdatedEndDate() {
     return lastUpdatedEndDate != null;
   }
 
-  /** Indicates whether this parameters has a lastUpdatedDuration filter. */
+  /** Indicates whether these parameters have a lastUpdatedDuration filter. */
   public boolean hasLastUpdatedDuration() {
     return lastUpdatedDuration != null;
   }
 
-  /** Indicates whether this parameters specifies a program enrollment start date. */
+  /** Indicates whether these parameters specify a program enrollment start date. */
   public boolean hasProgramEnrollmentStartDate() {
     return programEnrollmentStartDate != null;
   }
 
-  /** Indicates whether this parameters specifies a program enrollment end date. */
+  /** Indicates whether these parameters specify a program enrollment end date. */
   public boolean hasProgramEnrollmentEndDate() {
     return programEnrollmentEndDate != null;
   }
@@ -433,10 +421,9 @@ public class TrackedEntityQueryParams {
   }
 
   /**
-   * Checks if there is atleast one unique filter in the params. In attributes or filters.
+   * Checks if there is at least one unique filter in the params. In attributes or filters.
    *
-   * @return true if there is exist atlesast one unique filter in filters/attributes, false
-   *     otherwise.
+   * @return true if there is at least one unique filter in filters/attributes, false otherwise.
    */
   public boolean hasUniqueFilter() {
     if (!hasFilters() && !hasAttributes()) {
@@ -761,18 +748,6 @@ public class TrackedEntityQueryParams {
   public TrackedEntityQueryParams setIncludeAllAttributes(boolean includeAllAttributes) {
     this.includeAllAttributes = includeAllAttributes;
     return this;
-  }
-
-  public boolean isInternalSearch() {
-    return internalSearch;
-  }
-
-  public boolean isSynchronizationQuery() {
-    return synchronizationQuery;
-  }
-
-  public Date getSkipChangedBefore() {
-    return skipChangedBefore;
   }
 
   public User getUser() {

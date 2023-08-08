@@ -180,6 +180,11 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return ids;
   }
 
+  @Override
+  public Set<String> getOrderableFields() {
+    return ORDERABLE_FIELDS.keySet();
+  }
+
   private String encodeAndQuote(Collection<String> elements) {
     return getQuotedCommaDelimitedString(
         elements.stream()
@@ -503,15 +508,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(whereAnd.whereAnd())
             .append(" TE.lastupdated < '")
             .append(getMediumDateString(addDays(params.getLastUpdatedEndDate(), 1)))
-            .append(SINGLE_QUOTE);
-      }
-    }
-    if (params.isSynchronizationQuery()) {
-      trackedEntity.append(whereAnd.whereAnd()).append(" TE.lastupdated >= TE.lastsynchronized ");
-      if (params.getSkipChangedBefore() != null) {
-        trackedEntity
-            .append(" AND TE.lastupdated >= '")
-            .append(getMediumDateString(params.getSkipChangedBefore()))
             .append(SINGLE_QUOTE);
       }
     }
