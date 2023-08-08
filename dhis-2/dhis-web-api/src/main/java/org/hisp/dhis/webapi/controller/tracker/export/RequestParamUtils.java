@@ -231,7 +231,7 @@ public class RequestParamUtils {
    * {@code supportedFieldNames}. Every field name can be specified at most once. If the endpoint
    * supports field names and UIDs use {@link #validateOrderParams(List, Set, String)}.
    */
-  public static void validateOrderParams(Set<String> supportedFieldNames, List<OrderCriteria> order)
+  public static void validateOrderParams(List<OrderCriteria> order, Set<String> supportedFieldNames)
       throws BadRequestException {
     if (order == null || order.isEmpty()) {
       return;

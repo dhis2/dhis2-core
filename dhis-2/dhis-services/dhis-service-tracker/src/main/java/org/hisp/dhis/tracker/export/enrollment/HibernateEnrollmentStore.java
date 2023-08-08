@@ -35,6 +35,7 @@ import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -61,6 +62,19 @@ import org.springframework.stereotype.Repository;
 class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment>
     implements EnrollmentStore {
   private static final String STATUS = "status";
+
+  /**
+   * Enrollments can be ordered by given fields which correspond to fields on {@link
+   * org.hisp.dhis.program.Enrollment}.
+   */
+  private static final Set<String> ORDERABLE_FIELDS =
+      Set.of(
+          "endDate",
+          "created",
+          "createdAtClient",
+          "enrollmentDate",
+          "lastUpdated",
+          "lastUpdatedAtClient");
 
   public HibernateEnrollmentStore(
       SessionFactory sessionFactory,
@@ -243,5 +257,10 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
   @Override
   protected Enrollment postProcessObject(Enrollment enrollment) {
     return (enrollment == null || enrollment.isDeleted()) ? null : enrollment;
+  }
+
+  @Override
+  public Set<String> getOrderableFields() {
+    return ORDERABLE_FIELDS;
   }
 }

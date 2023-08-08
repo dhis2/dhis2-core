@@ -368,4 +368,9 @@ class DefaultEnrollmentService
 
     return enrollmentList;
   }
+
+  @Override
+  public Set<String> getOrderableFields() {
+    return enrollmentStore.getOrderableFields();
+  }
 }

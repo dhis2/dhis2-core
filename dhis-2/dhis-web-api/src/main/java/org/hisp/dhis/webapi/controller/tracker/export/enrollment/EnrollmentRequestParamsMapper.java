@@ -71,7 +71,7 @@ class EnrollmentRequestParamsMapper {
 
     validateOrgUnitParams(orgUnits, orgUnitMode);
 
-    validateOrderParams(requestParams.getOrder(), ORDERABLE_FIELD_NAMES, "");
+    validateOrderParams(requestParams.getOrder(), ORDERABLE_FIELD_NAMES);
 
     EnrollmentOperationParamsBuilder builder =
         EnrollmentOperationParams.builder()
