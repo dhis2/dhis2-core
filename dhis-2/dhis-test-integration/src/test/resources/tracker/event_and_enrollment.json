@@ -415,7 +415,6 @@
           "value": "value00001",
           "createdAt": "2021-07-01T12:05:00",
           "storedBy": null,
-          "updatedAt": "2022-07-01T12:05:00",
           "providedElsewhere": false
         },
         {
@@ -426,7 +425,6 @@
           "value": "option1",
           "createdAt": "2021-07-01T12:05:00",
           "storedBy": null,
-          "updatedAt": "2022-07-01T12:05:00",
           "providedElsewhere": false
         },
         {
@@ -437,20 +435,17 @@
           "value": "88",
           "createdAt": "2021-07-01T12:05:00",
           "storedBy": null,
-          "updatedAt": "2022-07-01T12:05:00",
           "providedElsewhere": false
         }
       ],
       "notes": [
         {
           "note": "SGuCABkhpgn",
-          "storedAt": "2019-01-28T12:10:38.108",
           "value": "comment value",
           "storedBy": "admin"
         },
         {
           "note": "DRKO4xUVrpr",
-          "storedAt": "2019-01-28T12:10:38.108",
           "value": "comment value",
           "storedBy": "admin"
         }
@@ -499,7 +494,6 @@
           "value": "value00002",
           "created": "2021-07-01T12:05:00",
           "storedBy": null,
-          "lastUpdated": "2022-07-01T12:05:00",
           "providedElsewhere": false
         },
         {
@@ -510,7 +504,6 @@
           "value": "value00002",
           "created": "2021-07-01T12:05:00",
           "storedBy": null,
-          "lastUpdated": "2022-07-01T12:05:00",
           "providedElsewhere": false
         },
         {
@@ -521,7 +514,6 @@
           "value": "option2",
           "created": "2021-07-01T12:05:00",
           "storedBy": null,
-          "lastUpdated": "2022-07-01T12:05:00",
           "providedElsewhere": false
         },
         {
@@ -532,7 +524,6 @@
           "value": "70",
           "created": "2021-07-01T12:05:00",
           "storedBy": null,
-          "lastUpdated": "2022-07-01T12:05:00",
           "providedElsewhere": false
         }
       ],
@@ -578,8 +569,6 @@
       "storedBy": "admin",
       "followup": false,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
@@ -591,7 +580,6 @@
         }
       ],
       "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
       "notes": []
     },
     {
@@ -616,8 +604,6 @@
       "storedBy": "admin",
       "followup": false,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
@@ -629,7 +615,6 @@
         }
       ],
       "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
       "notes": []
     },
     {
@@ -1010,14 +995,11 @@
       "storedBy": "admin",
       "followup": false,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
       },
       "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
       "notes": []
     }
   ],
@@ -1028,8 +1010,6 @@
         "idScheme": "UID",
         "identifier": "TV9oB9LT3sh"
       },
-      "createdAt": "2018-10-01T12:17:30.163",
-      "updatedAt": "2018-10-01T12:17:30.163",
       "bidirectional": false,
       "deleted": false,
       "from": {
@@ -1045,8 +1025,6 @@
         "idScheme": "UID",
         "identifier": "TV9oB9LT3sh"
       },
-      "createdAt": "2018-10-01T12:17:30.163",
-      "updatedAt": "2018-10-01T12:17:30.163",
       "bidirectional": false,
       "deleted": false,
       "from": {
