@@ -57,7 +57,7 @@ import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -86,7 +86,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Maps query parameters from {@link TrackerEventsExportController} stored in {@link
- * TrackerEventCriteria} to {@link EventSearchParams} which is used to fetch events from the DB.
+ * TrackerEventCriteria} to {@link EventQueryParams} which is used to fetch events from the DB.
  */
 @Component("org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapper")
 @RequiredArgsConstructor
@@ -134,7 +134,7 @@ class TrackerEventCriteriaMapper {
     }
   }
 
-  public EventSearchParams map(TrackerEventCriteria criteria)
+  public EventQueryParams map(TrackerEventCriteria criteria)
       throws BadRequestException, ForbiddenException {
 
     Program program = applyIfNonEmpty(programService::getProgram, criteria.getProgram());
@@ -199,7 +199,7 @@ class TrackerEventCriteriaMapper {
             .filter(CodeGenerator::isValidUid)
             .collect(Collectors.toSet());
 
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
 
     return params
         .setProgram(program)

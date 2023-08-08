@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.AbstractMapper;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.RelationshipRowCallbackHandler;
@@ -137,7 +137,7 @@ public abstract class AbstractStore {
   }
 
   public Multimap<String, Relationship> getRelationshipsByIds(
-      List<Long> ids, EventSearchParams params) {
+      List<Long> ids, EventQueryParams params) {
     List<List<Long>> partitionedIds = Lists.partition(ids, PARITITION_SIZE);
 
     Multimap<String, Relationship> relationshipMultimap = ArrayListMultimap.create();
@@ -150,7 +150,7 @@ public abstract class AbstractStore {
   }
 
   private Multimap<String, Relationship> getRelationshipsByIdsPartitioned(
-      List<Long> ids, EventSearchParams params) {
+      List<Long> ids, EventQueryParams params) {
     if (!ids.isEmpty()) {
       RelationshipRowCallbackHandler handler = new RelationshipRowCallbackHandler();
       StringBuilder query = new StringBuilder(GET_RELATIONSHIP_BY_RELATIONSHIP_ID);

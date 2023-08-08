@@ -51,11 +51,11 @@ public interface EventService {
   // READ
   // -------------------------------------------------------------------------
 
-  Events getEvents(EventSearchParams params);
+  Events getEvents(EventQueryParams params);
 
-  EventRows getEventRows(EventSearchParams params);
+  EventRows getEventRows(EventQueryParams params);
 
-  Grid getEventsGrid(EventSearchParams params);
+  Grid getEventsGrid(EventQueryParams params);
 
   Event getEvent(ProgramStageInstance programStageInstance, EventParams eventParams);
 
@@ -164,5 +164,5 @@ public interface EventService {
 
   ImportSummaries deleteEvents(List<String> uids, boolean clearSession);
 
-  void validate(EventSearchParams params, User user);
+  void validate(EventQueryParams params, User user);
 }
