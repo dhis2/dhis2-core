@@ -110,7 +110,7 @@ class EventRequestParamsMapper {
 
     validateUpdateDurationParams(requestParams);
     validateOrderParams(
-        ORDERABLE_FIELD_NAMES, "data element and attribute", requestParams.getOrder());
+        requestParams.getOrder(), ORDERABLE_FIELD_NAMES, "data element and attribute");
 
     EventOperationParamsBuilder builder =
         EventOperationParams.builder()
