@@ -56,15 +56,15 @@ public interface EventStore {
   List<ProgramStageInstance> updateEvents(List<ProgramStageInstance> programStageInstances);
 
   List<Event> getEvents(
-      EventSearchParams params,
+      EventQueryParams params,
       List<OrganisationUnit> organisationUnits,
       Map<String, Set<String>> psdesWithSkipSyncTrue);
 
-  List<Map<String, String>> getEventsGrid(EventSearchParams params);
+  List<Map<String, String>> getEventsGrid(EventQueryParams params);
 
-  List<EventRow> getEventRows(EventSearchParams params);
+  List<EventRow> getEventRows(EventQueryParams params);
 
-  int getEventCount(EventSearchParams params);
+  int getEventCount(EventQueryParams params);
 
   /**
    * Delete list of given events to be removed. This operation also remove comments connected to

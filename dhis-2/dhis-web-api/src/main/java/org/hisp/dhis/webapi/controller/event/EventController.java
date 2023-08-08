@@ -79,7 +79,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
@@ -272,7 +272,7 @@ public class EventController {
 
     skipPaging = PagerUtils.isSkipPaging(skipPaging, paging);
 
-    EventSearchParams params =
+    EventQueryParams params =
         requestToSearchParamsMapper.map(
             program,
             programStage,
@@ -376,7 +376,7 @@ public class EventController {
 
     skipPaging = PagerUtils.isSkipPaging(skipPaging, paging);
 
-    EventSearchParams params =
+    EventQueryParams params =
         requestToSearchParamsMapper.map(
             program,
             programStage,
@@ -479,7 +479,7 @@ public class EventController {
 
     skipPaging = PagerUtils.isSkipPaging(skipPaging, paging);
 
-    EventSearchParams params =
+    EventQueryParams params =
         requestToSearchParamsMapper.map(
             program,
             programStage,
@@ -583,7 +583,7 @@ public class EventController {
 
     skipPaging = PagerUtils.isSkipPaging(skipPaging, paging);
 
-    EventSearchParams params =
+    EventQueryParams params =
         requestToSearchParamsMapper.map(
             program,
             programStage,
@@ -643,7 +643,7 @@ public class EventController {
           "event,uid,program,programType,status,assignedUser,orgUnit,orgUnitName,eventDate,orgUnit,orgUnitName,created,lastUpdated,followup,deleted,dataValues");
     }
 
-    EventSearchParams params = requestToSearchParamsMapper.map(eventCriteria);
+    EventQueryParams params = requestToSearchParamsMapper.map(eventCriteria);
 
     setParamBasedOnFieldParameters(params, fields);
 
@@ -698,7 +698,7 @@ public class EventController {
       fields.addAll(Preset.ALL.getFields());
     }
 
-    EventSearchParams params = requestToSearchParamsMapper.map(eventCriteria);
+    EventQueryParams params = requestToSearchParamsMapper.map(eventCriteria);
 
     Events events = eventService.getEvents(params);
 
@@ -745,7 +745,7 @@ public class EventController {
    * @param rootNode
    */
   private void addPager(
-      final EventSearchParams params, final Events events, final RootNode rootNode) {
+      final EventQueryParams params, final Events events, final RootNode rootNode) {
     if (events.getPager() != null) {
       if (params.isTotalPages()) {
         rootNode.addChild(NodeUtils.createPager(events.getPager()));
@@ -762,7 +762,7 @@ public class EventController {
       HttpServletResponse response,
       HttpServletRequest request)
       throws IOException, ForbiddenException {
-    EventSearchParams params = requestToSearchParamsMapper.map(eventCriteria);
+    EventQueryParams params = requestToSearchParamsMapper.map(eventCriteria);
 
     Events events = eventService.getEvents(params);
 
@@ -815,7 +815,7 @@ public class EventController {
 
     skipPaging = PagerUtils.isSkipPaging(skipPaging, paging);
 
-    EventSearchParams params =
+    EventQueryParams params =
         requestToSearchParamsMapper.map(
             program,
             null,
@@ -1257,7 +1257,7 @@ public class EventController {
     return params.get(key) != null ? params.get(key).get(0) : null;
   }
 
-  private void setParamBasedOnFieldParameters(EventSearchParams params, List<String> fields) {
+  private void setParamBasedOnFieldParameters(EventQueryParams params, List<String> fields) {
     String joined = Joiner.on("").join(fields);
 
     if (joined.contains("*")) {

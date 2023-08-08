@@ -44,7 +44,7 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -234,7 +234,7 @@ class RegistrationSingleEventServiceTest extends TransactionalIntegrationTest {
             trackedEntityInstanceMaleA.getTrackedEntityInstance());
     importSummary = eventService.addEvent(event, null, false);
     assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
     params.setProgram(programA);
     params.setAccessibleOrgUnits(List.of(organisationUnitA));
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
