@@ -51,7 +51,7 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 /**
  * @author Lars Helge Overland
  */
-public class EventSearchParams {
+public class EventQueryParams {
   public static final String EVENT_ID = "event";
 
   public static final String EVENT_ENROLLMENT_ID = "enrollment";
@@ -189,7 +189,7 @@ public class EventSearchParams {
   // Constructors
   // -------------------------------------------------------------------------
 
-  public EventSearchParams() {}
+  public EventQueryParams() {}
 
   // -------------------------------------------------------------------------
   // Logic
@@ -265,7 +265,7 @@ public class EventSearchParams {
     return items;
   }
 
-  public EventSearchParams addDataElements(List<QueryItem> des) {
+  public EventQueryParams addDataElements(List<QueryItem> des) {
     dataElements.addAll(des);
     return this;
   }
@@ -278,7 +278,7 @@ public class EventSearchParams {
     return program;
   }
 
-  public EventSearchParams setProgram(Program program) {
+  public EventQueryParams setProgram(Program program) {
     this.program = program;
     return this;
   }
@@ -287,7 +287,7 @@ public class EventSearchParams {
     return programStage;
   }
 
-  public EventSearchParams setProgramStage(ProgramStage programStage) {
+  public EventQueryParams setProgramStage(ProgramStage programStage) {
     this.programStage = programStage;
     return this;
   }
@@ -296,7 +296,7 @@ public class EventSearchParams {
     return programStatus;
   }
 
-  public EventSearchParams setProgramStatus(ProgramStatus programStatus) {
+  public EventQueryParams setProgramStatus(ProgramStatus programStatus) {
     this.programStatus = programStatus;
     return this;
   }
@@ -305,7 +305,7 @@ public class EventSearchParams {
     return programType;
   }
 
-  public EventSearchParams setProgramType(ProgramType programType) {
+  public EventQueryParams setProgramType(ProgramType programType) {
     this.programType = programType;
     return this;
   }
@@ -314,7 +314,7 @@ public class EventSearchParams {
     return followUp;
   }
 
-  public EventSearchParams setFollowUp(Boolean followUp) {
+  public EventQueryParams setFollowUp(Boolean followUp) {
     this.followUp = followUp;
     return this;
   }
@@ -323,7 +323,7 @@ public class EventSearchParams {
     return orgUnitSelectionMode;
   }
 
-  public EventSearchParams setOrgUnitSelectionMode(
+  public EventQueryParams setOrgUnitSelectionMode(
       OrganisationUnitSelectionMode orgUnitSelectionMode) {
     this.orgUnitSelectionMode = orgUnitSelectionMode;
     return this;
@@ -333,7 +333,7 @@ public class EventSearchParams {
     return accessibleOrgUnits;
   }
 
-  public EventSearchParams setAccessibleOrgUnits(List<OrganisationUnit> accessibleOrgUnits) {
+  public EventQueryParams setAccessibleOrgUnits(List<OrganisationUnit> accessibleOrgUnits) {
     this.accessibleOrgUnits = accessibleOrgUnits;
     return this;
   }
@@ -342,7 +342,7 @@ public class EventSearchParams {
     return assignedUserSelectionMode;
   }
 
-  public EventSearchParams setAssignedUserSelectionMode(
+  public EventQueryParams setAssignedUserSelectionMode(
       AssignedUserSelectionMode assignedUserSelectionMode) {
     this.assignedUserSelectionMode = assignedUserSelectionMode;
     return this;
@@ -352,7 +352,7 @@ public class EventSearchParams {
     return assignedUsers;
   }
 
-  public EventSearchParams setAssignedUsers(Set<String> assignedUsers) {
+  public EventQueryParams setAssignedUsers(Set<String> assignedUsers) {
     this.assignedUsers = assignedUsers;
     return this;
   }
@@ -361,7 +361,7 @@ public class EventSearchParams {
     return trackedEntityInstance;
   }
 
-  public EventSearchParams setTrackedEntityInstance(TrackedEntityInstance trackedEntityInstance) {
+  public EventQueryParams setTrackedEntityInstance(TrackedEntityInstance trackedEntityInstance) {
     this.trackedEntityInstance = trackedEntityInstance;
     return this;
   }
@@ -370,7 +370,7 @@ public class EventSearchParams {
     return startDate;
   }
 
-  public EventSearchParams setStartDate(Date startDate) {
+  public EventQueryParams setStartDate(Date startDate) {
     this.startDate = startDate;
     return this;
   }
@@ -379,7 +379,7 @@ public class EventSearchParams {
     return endDate;
   }
 
-  public EventSearchParams setEndDate(Date endDate) {
+  public EventQueryParams setEndDate(Date endDate) {
     this.endDate = endDate;
     return this;
   }
@@ -388,7 +388,7 @@ public class EventSearchParams {
     return eventStatus;
   }
 
-  public EventSearchParams setEventStatus(EventStatus eventStatus) {
+  public EventQueryParams setEventStatus(EventStatus eventStatus) {
     this.eventStatus = eventStatus;
     return this;
   }
@@ -397,7 +397,7 @@ public class EventSearchParams {
     return lastUpdatedStartDate;
   }
 
-  public EventSearchParams setLastUpdatedStartDate(Date lastUpdatedStartDate) {
+  public EventQueryParams setLastUpdatedStartDate(Date lastUpdatedStartDate) {
     this.lastUpdatedStartDate = lastUpdatedStartDate;
     return this;
   }
@@ -406,7 +406,7 @@ public class EventSearchParams {
     return lastUpdatedEndDate;
   }
 
-  public EventSearchParams setLastUpdatedEndDate(Date lastUpdatedEndDate) {
+  public EventQueryParams setLastUpdatedEndDate(Date lastUpdatedEndDate) {
     this.lastUpdatedEndDate = lastUpdatedEndDate;
     return this;
   }
@@ -415,7 +415,7 @@ public class EventSearchParams {
     return lastUpdatedDuration;
   }
 
-  public EventSearchParams setLastUpdatedDuration(String lastUpdatedDuration) {
+  public EventQueryParams setLastUpdatedDuration(String lastUpdatedDuration) {
     this.lastUpdatedDuration = lastUpdatedDuration;
     return this;
   }
@@ -424,7 +424,7 @@ public class EventSearchParams {
     return dueDateStart;
   }
 
-  public EventSearchParams setDueDateStart(Date dueDateStart) {
+  public EventQueryParams setDueDateStart(Date dueDateStart) {
     this.dueDateStart = dueDateStart;
     return this;
   }
@@ -433,7 +433,7 @@ public class EventSearchParams {
     return dueDateEnd;
   }
 
-  public EventSearchParams setDueDateEnd(Date dueDateEnd) {
+  public EventQueryParams setDueDateEnd(Date dueDateEnd) {
     this.dueDateEnd = dueDateEnd;
     return this;
   }
@@ -442,7 +442,7 @@ public class EventSearchParams {
     return idSchemes;
   }
 
-  public EventSearchParams setIdSchemes(IdSchemes idSchemes) {
+  public EventQueryParams setIdSchemes(IdSchemes idSchemes) {
     this.idSchemes = idSchemes;
     return this;
   }
@@ -451,7 +451,7 @@ public class EventSearchParams {
     return page;
   }
 
-  public EventSearchParams setPage(Integer page) {
+  public EventQueryParams setPage(Integer page) {
     this.page = page;
     return this;
   }
@@ -460,7 +460,7 @@ public class EventSearchParams {
     return pageSize;
   }
 
-  public EventSearchParams setPageSize(Integer pageSize) {
+  public EventQueryParams setPageSize(Integer pageSize) {
     this.pageSize = pageSize;
     return this;
   }
@@ -469,7 +469,7 @@ public class EventSearchParams {
     return totalPages;
   }
 
-  public EventSearchParams setTotalPages(boolean totalPages) {
+  public EventQueryParams setTotalPages(boolean totalPages) {
     this.totalPages = totalPages;
     return this;
   }
@@ -478,7 +478,7 @@ public class EventSearchParams {
     return skipPaging;
   }
 
-  public EventSearchParams setSkipPaging(boolean skipPaging) {
+  public EventQueryParams setSkipPaging(boolean skipPaging) {
     this.skipPaging = skipPaging;
     return this;
   }
@@ -487,7 +487,7 @@ public class EventSearchParams {
     return includeAttributes;
   }
 
-  public EventSearchParams setIncludeAttributes(boolean includeAttributes) {
+  public EventQueryParams setIncludeAttributes(boolean includeAttributes) {
     this.includeAttributes = includeAttributes;
     return this;
   }
@@ -496,7 +496,7 @@ public class EventSearchParams {
     return includeAllDataElements;
   }
 
-  public EventSearchParams setIncludeAllDataElements(boolean includeAllDataElements) {
+  public EventQueryParams setIncludeAllDataElements(boolean includeAllDataElements) {
     this.includeAllDataElements = includeAllDataElements;
     return this;
   }
@@ -505,7 +505,7 @@ public class EventSearchParams {
     return this.orders;
   }
 
-  public EventSearchParams setOrders(List<OrderParam> orders) {
+  public EventQueryParams setOrders(List<OrderParam> orders) {
     this.orders = orders;
     return this;
   }
@@ -514,7 +514,7 @@ public class EventSearchParams {
     return this.gridOrders;
   }
 
-  public EventSearchParams setGridOrders(List<OrderParam> gridOrders) {
+  public EventQueryParams setGridOrders(List<OrderParam> gridOrders) {
     this.gridOrders = gridOrders;
     return this;
   }
@@ -523,7 +523,7 @@ public class EventSearchParams {
     return categoryOptionCombo;
   }
 
-  public EventSearchParams setCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {
+  public EventQueryParams setCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {
     this.categoryOptionCombo = categoryOptionCombo;
     return this;
   }
@@ -532,7 +532,7 @@ public class EventSearchParams {
     return events;
   }
 
-  public EventSearchParams setEvents(Set<String> events) {
+  public EventQueryParams setEvents(Set<String> events) {
     this.events = events;
     return this;
   }
@@ -541,7 +541,7 @@ public class EventSearchParams {
     return skipEventId;
   }
 
-  public EventSearchParams setSkipEventId(Boolean skipEventId) {
+  public EventQueryParams setSkipEventId(Boolean skipEventId) {
     this.skipEventId = skipEventId;
     return this;
   }
@@ -550,12 +550,12 @@ public class EventSearchParams {
     return filters;
   }
 
-  public EventSearchParams setFilters(List<QueryItem> filters) {
+  public EventQueryParams setFilters(List<QueryItem> filters) {
     this.filters = filters;
     return this;
   }
 
-  public EventSearchParams setIncludeDeleted(boolean includeDeleted) {
+  public EventQueryParams setIncludeDeleted(boolean includeDeleted) {
     this.includeDeleted = includeDeleted;
     return this;
   }
@@ -568,7 +568,7 @@ public class EventSearchParams {
     return dataElements;
   }
 
-  public EventSearchParams setDataElements(Set<QueryItem> dataElements) {
+  public EventQueryParams setDataElements(Set<QueryItem> dataElements) {
     this.dataElements = dataElements;
     return this;
   }
@@ -577,7 +577,7 @@ public class EventSearchParams {
     return accessiblePrograms;
   }
 
-  public EventSearchParams setAccessiblePrograms(Set<String> accessiblePrograms) {
+  public EventQueryParams setAccessiblePrograms(Set<String> accessiblePrograms) {
     this.accessiblePrograms = accessiblePrograms;
     return this;
   }
@@ -586,7 +586,7 @@ public class EventSearchParams {
     return accessibleProgramStages;
   }
 
-  public EventSearchParams setAccessibleProgramStages(Set<String> accessibleProgramStages) {
+  public EventQueryParams setAccessibleProgramStages(Set<String> accessibleProgramStages) {
     this.accessibleProgramStages = accessibleProgramStages;
     return this;
   }
@@ -599,7 +599,7 @@ public class EventSearchParams {
     return synchronizationQuery;
   }
 
-  public EventSearchParams setSynchronizationQuery(boolean synchronizationQuery) {
+  public EventQueryParams setSynchronizationQuery(boolean synchronizationQuery) {
     this.synchronizationQuery = synchronizationQuery;
     return this;
   }
@@ -608,7 +608,7 @@ public class EventSearchParams {
     return skipChangedBefore;
   }
 
-  public EventSearchParams setSkipChangedBefore(Date skipChangedBefore) {
+  public EventQueryParams setSkipChangedBefore(Date skipChangedBefore) {
     this.skipChangedBefore = skipChangedBefore;
     return this;
   }
@@ -617,7 +617,7 @@ public class EventSearchParams {
     return programInstances;
   }
 
-  public EventSearchParams setProgramInstances(Set<String> programInstances) {
+  public EventQueryParams setProgramInstances(Set<String> programInstances) {
     this.programInstances = programInstances;
     return this;
   }
@@ -646,7 +646,7 @@ public class EventSearchParams {
     return includeRelationships;
   }
 
-  public EventSearchParams setIncludeRelationships(boolean includeRelationships) {
+  public EventQueryParams setIncludeRelationships(boolean includeRelationships) {
     this.includeRelationships = includeRelationships;
     return this;
   }

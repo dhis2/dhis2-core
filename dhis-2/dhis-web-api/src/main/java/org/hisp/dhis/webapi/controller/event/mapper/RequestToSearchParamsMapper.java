@@ -59,7 +59,7 @@ import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -125,7 +125,7 @@ public class RequestToSearchParamsMapper {
     }
   }
 
-  public EventSearchParams map(
+  public EventQueryParams map(
       String program,
       String programStage,
       ProgramStatus programStatus,
@@ -194,7 +194,7 @@ public class RequestToSearchParamsMapper {
         includeDeleted);
   }
 
-  public EventSearchParams map(
+  public EventQueryParams map(
       String program,
       String programStage,
       ProgramStatus programStatus,
@@ -230,7 +230,7 @@ public class RequestToSearchParamsMapper {
       boolean includeDeleted) {
     User user = currentUserService.getCurrentUser();
 
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
 
     Program pr = programService.getProgram(program);
 
@@ -399,7 +399,7 @@ public class RequestToSearchParamsMapper {
     return new QueryItem(de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet());
   }
 
-  public EventSearchParams map(EventCriteria eventCriteria) {
+  public EventQueryParams map(EventCriteria eventCriteria) {
 
     CategoryOptionCombo attributeOptionCombo =
         inputUtils.getAttributeOptionCombo(
@@ -483,7 +483,7 @@ public class RequestToSearchParamsMapper {
     return dataElements;
   }
 
-  public EventSearchParams map(TrackerEventCriteria eventCriteria) {
+  public EventQueryParams map(TrackerEventCriteria eventCriteria) {
     return map(TRACKER_EVENT_CRITERIA_MAPPER.toEventCriteria(eventCriteria));
   }
 
