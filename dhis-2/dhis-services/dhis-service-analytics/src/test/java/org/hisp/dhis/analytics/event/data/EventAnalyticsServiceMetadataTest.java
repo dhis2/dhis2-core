@@ -151,6 +151,8 @@ class EventAnalyticsServiceMetadataTest extends DhisSpringTest {
   @Test
   @SuppressWarnings("unchecked")
   void testGetQueryItemDimensionMetadata() {
+    deB = createDataElement('B', ValueType.TEXT, AggregationType.SUM);
+
     DimensionalObject periods =
         new BaseDimensionalObject(
             DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA));

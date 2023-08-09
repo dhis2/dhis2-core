@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.system.util;
 
+import static org.hisp.dhis.common.ValueType.INTEGER;
 import static org.hisp.dhis.system.util.ValidationUtils.bboxIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.coordinateIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
@@ -172,7 +173,7 @@ class ValidationUtilsTest {
   @Test
   void testDataValueIsZeroAndInsignificant() {
     DataElement de = new DataElement("DEA");
-    de.setValueType(ValueType.INTEGER);
+    de.setValueType(INTEGER);
     de.setAggregationType(AggregationType.SUM);
     assertTrue(dataValueIsZeroAndInsignificant("0", de));
     de.setAggregationType(AggregationType.AVERAGE_SUM_ORG_UNIT);
@@ -182,7 +183,7 @@ class ValidationUtilsTest {
   @Test
   void testDataValueIsValid() {
     DataElement de = new DataElement("DEA");
-    de.setValueType(ValueType.INTEGER);
+    de.setValueType(INTEGER);
     assertNull(dataValueIsValid(null, de));
     assertNull(dataValueIsValid("", de));
     assertNull(dataValueIsValid("34", de));

@@ -50,6 +50,7 @@ import org.opengis.geometry.primitive.Point;
 public enum ValueType {
   TEXT(String.class, true),
   LONG_TEXT(String.class, true),
+  MULTI_TEXT(String.class, true),
   LETTER(String.class, true),
   PHONE_NUMBER(String.class, true),
   EMAIL(String.class, true),
