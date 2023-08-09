@@ -166,7 +166,7 @@
     <!-- Apache Artemis -->
     <artemis.version>2.30.0</artemis.version>
     <netty-all.version>4.1.96.Final</netty-all.version>
-    <classgraph.version>4.8.161</classgraph.version>
+    <classgraph.version>4.8.162</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.2.1.1</sms-compression.version>
@@ -1965,10 +1965,6 @@ jasperreports.version=${jasperreports.version}
               <enabled>true</enabled>
             </upToDateChecking>
             <java>
-              <toggleOffOn>
-                <off>@formatter:off</off>
-                <on>@formatter:on</on>
-              </toggleOffOn>
               <googleJavaFormat/>
               <trimTrailingWhitespace/>
               <licenseHeader>

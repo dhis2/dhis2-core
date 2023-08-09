@@ -263,7 +263,6 @@ class AclEventExporterTest extends TrackerTest {
 
     EventSearchParams params = new EventSearchParams();
     params.setProgram(get(Program.class, "pcxIanBWlSY"));
-    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "uoNW0E3xXUy")));
     params.setOrgUnitSelectionMode(ACCESSIBLE);
 
     List<Event> events = eventService.getEvents(params).getEvents();
@@ -286,7 +285,6 @@ class AclEventExporterTest extends TrackerTest {
 
     EventSearchParams params = new EventSearchParams();
     params.setProgram(get(Program.class, program.getUid()));
-    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "h4w96yEMlzO")));
     params.setOrgUnitSelectionMode(ACCESSIBLE);
 
     List<Event> events = eventService.getEvents(params).getEvents();
@@ -309,7 +307,6 @@ class AclEventExporterTest extends TrackerTest {
 
     EventSearchParams params = new EventSearchParams();
     params.setProgram(get(Program.class, "pcxIanBWlSY"));
-    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "uoNW0E3xXUy")));
     params.setOrgUnitSelectionMode(CAPTURE);
 
     List<Event> events = eventService.getEvents(params).getEvents();

@@ -25,56 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.relationship;
+package org.hisp.dhis.tracker.export.enrollment;
 
-import java.util.ArrayList;
 import java.util.List;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+import java.util.Set;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.program.Enrollment;
 
-@Getter
-@Builder(toBuilder = true)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class RelationshipOperationParams {
+interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
+  String ID = EnrollmentStore.class.getName();
 
-  public static final int DEFAULT_PAGE = 1;
+  /**
+   * Count all enrollments by enrollment query params.
+   *
+   * @param params EnrollmentQueryParams to use
+   * @return Count of matching enrollments
+   */
+  int countEnrollments(EnrollmentQueryParams params);
 
-  public static final int DEFAULT_PAGE_SIZE = 50;
+  /**
+   * Get all enrollments by enrollment query params.
+   *
+   * @param params EnrollmentQueryParams to use
+   * @return Enrollments matching params
+   */
+  List<Enrollment> getEnrollments(EnrollmentQueryParams params);
 
-  private TrackerType type;
-
-  private String identifier;
-
-  private Integer page;
-
-  private Integer pageSize;
-
-  private boolean totalPages;
-
-  private boolean skipPaging;
-
-  private List<Order> order;
-
-  public static class RelationshipOperationParamsBuilder {
-
-    private List<Order> order = new ArrayList<>();
-
-    // Do not remove this unused method. This hides the order field from the builder which Lombok
-    // does not support. The repeated order field and private order method prevent access to order
-    // via the builder.
-    // Order should be added via the orderBy builder methods.
-    private RelationshipOperationParamsBuilder order(List<Order> order) {
-      return this;
-    }
-
-    public RelationshipOperationParamsBuilder orderBy(String field, SortDirection direction) {
-      this.order.add(new Order(field, direction));
-      return this;
-    }
-  }
+  /**
+   * Fields the {@link #getEnrollments(EnrollmentQueryParams)} can order enrollments by. Ordering by
+   * fields other than these is considered a programmer error. Validation of user provided field
+   * names should occur before calling {@link #getEnrollments(EnrollmentQueryParams)}.
+   */
+  Set<String> getOrderableFields();
 }

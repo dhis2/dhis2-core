@@ -29,19 +29,14 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
@@ -54,40 +49,18 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
+@ToString
 public class TrackedEntityQueryParams {
-  public static final String TRACKED_ENTITY_ID = "instance";
-
-  public static final String CREATED_ID = "created";
-
-  public static final String LAST_UPDATED_ID = "lastupdated";
-
-  public static final String ORG_UNIT_ID = "ou";
-
-  public static final String ORG_UNIT_NAME = "ouname";
-
-  public static final String TRACKED_ENTITY_TYPE_ID = "te";
-
-  public static final String INACTIVE_ID = "inactive";
-
-  public static final String DELETED = "deleted";
-
-  public static final String META_DATA_NAMES_KEY = "names";
-
-  public static final String PAGER_META_KEY = "pager";
-
-  public static final String POTENTIAL_DUPLICATE = "potentialduplicate";
 
   public static final int DEFAULT_PAGE = 1;
 
   public static final int DEFAULT_PAGE_SIZE = 50;
-
-  public static final String MAIN_QUERY_ALIAS = "TE";
-
-  public static final String PROGRAM_INSTANCE_ALIAS = "pi";
 
   /** Query value, will apply to all relevant attributes. */
   private QueryFilter query;
@@ -162,7 +135,7 @@ public class TrackedEntityQueryParams {
   /** End date for event for the given program. */
   private Date eventEndDate;
 
-  /** Indicates whether not to include meta data in the response. */
+  /** Indicates whether not to include metadata in the response. */
   private boolean skipMeta;
 
   /** Page number. */
@@ -187,25 +160,12 @@ public class TrackedEntityQueryParams {
   private boolean includeAllAttributes;
 
   /**
-   * Indicates whether the search is internal triggered by the system. The system should trigger
-   * superuser search to detect duplicates.
-   */
-  private boolean internalSearch;
-
-  /** Indicates whether the search is for synchronization purposes (for Program Data sync job). */
-  private boolean synchronizationQuery;
-
-  /** Indicates a point in the time used to decide the data that should not be synchronized */
-  private Date skipChangedBefore;
-
-  /**
    * Potential Duplicate query parameter value. If null, we don't check whether a TE is a
    * potentialDuplicate or not
    */
   private Boolean potentialDuplicate;
 
-  /** TE order params */
-  private List<OrderParam> orders = new ArrayList<>();
+  private final List<Order> order = new ArrayList<>();
 
   // -------------------------------------------------------------------------
   // Transient properties
@@ -220,55 +180,10 @@ public class TrackedEntityQueryParams {
 
   public TrackedEntityQueryParams() {}
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  /** Adds a query item as attribute to the parameters. */
-  public TrackedEntityQueryParams addAttribute(QueryItem attribute) {
-    this.attributes.add(attribute);
-    return this;
-  }
-
-  /** Adds a query item as filter to the parameters. */
-  public TrackedEntityQueryParams addFilter(QueryItem filter) {
-    this.filters.add(filter);
-    return this;
-  }
-
   /** Adds an organisation unit to the parameters. */
   public TrackedEntityQueryParams addOrganisationUnit(OrganisationUnit unit) {
     this.orgUnits.add(unit);
     return this;
-  }
-
-  /**
-   * Performs a set of operations on this params.
-   *
-   * <ul>
-   *   <li>If a query item is specified as an attribute item as well as a filter item, the filter
-   *       item will be removed. In that case, if the attribute item does not have any filters and
-   *       the filter item has one or more filters, these will be applied to the attribute item.
-   * </ul>
-   */
-  public void conform() {
-    Iterator<QueryItem> filterIter = filters.iterator();
-
-    while (filterIter.hasNext()) {
-      QueryItem filter = filterIter.next();
-
-      int index = attributes.indexOf(filter); // Filter present as attr
-
-      if (index >= 0) {
-        QueryItem attribute = attributes.get(index);
-
-        if (!attribute.hasFilter() && filter.hasFilter()) {
-          attribute.getFilters().addAll(filter.getFilters());
-        }
-
-        filterIter.remove();
-      }
-    }
   }
 
   /**
@@ -323,7 +238,7 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  /** Adds the given filters to this parameters if they are not already present. */
+  /** Adds the given filters to these parameters if they are not already present. */
   public TrackedEntityQueryParams addFiltersIfNotExist(List<QueryItem> filtrs) {
     for (QueryItem filter : filtrs) {
       if (filters != null && !filters.contains(filter)) {
@@ -344,7 +259,7 @@ public class TrackedEntityQueryParams {
     return hasQuery();
   }
 
-  /** Indicates whether this parameters specifies a query. */
+  /** Indicates whether these parameters specify a query. */
   public boolean hasQuery() {
     return query != null && query.isFilter();
   }
@@ -390,90 +305,90 @@ public class TrackedEntityQueryParams {
     return duplicates;
   }
 
-  /** Indicates whether this parameters specifies any attributes and/or filters. */
+  /** Indicates whether these parameters specify any attributes and/or filters. */
   public boolean hasAttributesOrFilters() {
     return hasAttributes() || hasFilters();
   }
 
-  /** Indicates whether this parameters specifies any attributes. */
+  /** Indicates whether these parameters specify any attributes. */
   public boolean hasAttributes() {
     return attributes != null && !attributes.isEmpty();
   }
 
-  /** Indicates whether this parameters specifies any filters. */
+  /** Indicates whether these parameters specify any filters. */
   public boolean hasFilters() {
     return filters != null && !filters.isEmpty();
   }
 
-  /** Indicates whether this parameters specifies any organisation units. */
+  /** Indicates whether these parameters specify any organisation units. */
   public boolean hasOrganisationUnits() {
     return orgUnits != null && !orgUnits.isEmpty();
   }
 
-  /** Indicates whether this parameters specifies a program. */
+  /** Indicates whether these parameters specify a program. */
   public boolean hasProgram() {
     return program != null;
   }
 
-  /** Indicates whether this parameters specifies a program status. */
+  /** Indicates whether these parameters specify a program status. */
   public boolean hasProgramStatus() {
     return programStatus != null;
   }
 
   /**
-   * Indicates whether this parameters specifies follow up for the given program. Follow up can be
+   * Indicates whether these parameters specify follow up for the given program. Follow up can be
    * specified as true or false.
    */
   public boolean hasFollowUp() {
     return followUp != null;
   }
 
-  /** Indicates whether this parameters specifies a last updated start date. */
+  /** Indicates whether these parameters specify a last updated start date. */
   public boolean hasLastUpdatedStartDate() {
     return lastUpdatedStartDate != null;
   }
 
-  /** Indicates whether this parameters specifies a last updated end date. */
+  /** Indicates whether these parameters specify a last updated end date. */
   public boolean hasLastUpdatedEndDate() {
     return lastUpdatedEndDate != null;
   }
 
-  /** Indicates whether this parameters has a lastUpdatedDuration filter. */
+  /** Indicates whether these parameters have a lastUpdatedDuration filter. */
   public boolean hasLastUpdatedDuration() {
     return lastUpdatedDuration != null;
   }
 
-  /** Indicates whether this parameters specifies a program enrollment start date. */
+  /** Indicates whether these parameters specify a program enrollment start date. */
   public boolean hasProgramEnrollmentStartDate() {
     return programEnrollmentStartDate != null;
   }
 
-  /** Indicates whether this parameters specifies a program enrollment end date. */
+  /** Indicates whether these parameters specify a program enrollment end date. */
   public boolean hasProgramEnrollmentEndDate() {
     return programEnrollmentEndDate != null;
   }
 
-  /** Indicates whether this parameters specifies a program incident start date. */
+  /** Indicates whether these parameters specify a program incident start date. */
   public boolean hasProgramIncidentStartDate() {
     return programIncidentStartDate != null;
   }
 
-  /** Indicates whether this parameters specifies a program incident end date. */
+  /** Indicates whether these parameters specify a program incident end date. */
   public boolean hasProgramIncidentEndDate() {
     return programIncidentEndDate != null;
   }
 
-  /** Indicates whether this parameters specifies a tracked entity. */
+  /** Indicates whether these parameters specify a tracked entity. */
   public boolean hasTrackedEntityType() {
     return trackedEntityType != null;
   }
 
-  /** Indicates whether this parameters is of the given organisation unit mode. */
+  /** Indicates whether these parameters are of the given organisation unit mode. */
   public boolean isOrganisationUnitMode(OrganisationUnitSelectionMode mode) {
     return orgUnitMode != null && orgUnitMode.equals(mode);
   }
 
-  /** Indicates whether this parameters specifies a programStage. */
+  /** Indicates whether these parameters specify a programStage. */
   public boolean hasProgramStage() {
     return programStage != null;
   }
@@ -490,19 +405,14 @@ public class TrackedEntityQueryParams {
     return this.eventStatus != null && this.eventStatus.equals(eventStatus);
   }
 
-  /** Indicates whether this parameters specifies an event start date. */
+  /** Indicates whether these parameters specify an event start date. */
   public boolean hasEventStartDate() {
     return eventStartDate != null;
   }
 
-  /** Indicates whether this parameters specifies an event end date. */
+  /** Indicates whether these parameters specify an event end date. */
   public boolean hasEventEndDate() {
     return eventEndDate != null;
-  }
-
-  /** Indicates whether this parameters specifies a user. */
-  public boolean hasUser() {
-    return user != null;
   }
 
   /** Check whether we are filtering for potential duplicate property. */
@@ -511,10 +421,9 @@ public class TrackedEntityQueryParams {
   }
 
   /**
-   * Checks if there is atleast one unique filter in the params. In attributes or filters.
+   * Checks if there is at least one unique filter in the params. In attributes or filters.
    *
-   * @return true if there is exist atlesast one unique filter in filters/attributes, false
-   *     otherwise.
+   * @return true if there is at least one unique filter in filters/attributes, false otherwise.
    */
   public boolean hasUniqueFilter() {
     if (!hasFilters() && !hasAttributes()) {
@@ -555,53 +464,6 @@ public class TrackedEntityQueryParams {
   public int getOffset() {
     return (getPageWithDefault() - 1) * getPageSizeWithDefault();
   }
-
-  // -------------------------------------------------------------------------
-  // toString
-  // -------------------------------------------------------------------------
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("query", query)
-        .add("attributes", attributes)
-        .add("filters", filters)
-        .add("orgUnits", orgUnits)
-        .add("program", program)
-        .add("programStatus", programStatus)
-        .add("followUp", followUp)
-        .add("lastUpdatedStartDate", lastUpdatedStartDate)
-        .add("lastUpdatedEndDate", lastUpdatedEndDate)
-        .add("lastUpdatedDuration", lastUpdatedDuration)
-        .add("programEnrollmentStartDate", programEnrollmentStartDate)
-        .add("programEnrollmentEndDate", programEnrollmentEndDate)
-        .add("programIncidentStartDate", programIncidentStartDate)
-        .add("programIncidentEndDate", programIncidentEndDate)
-        .add("trackedEntityType", trackedEntityType)
-        .add("orgUnitMode", orgUnitMode)
-        .add("assignedUserQueryParam", assignedUserQueryParam)
-        .add("eventStatus", eventStatus)
-        .add("eventStartDate", eventStartDate)
-        .add("eventEndDate", eventEndDate)
-        .add("skipMeta", skipMeta)
-        .add("page", page)
-        .add("pageSize", pageSize)
-        .add("totalPages", totalPages)
-        .add("skipPaging", skipPaging)
-        .add("includeDeleted", includeDeleted)
-        .add("includeAllAttributes", includeAllAttributes)
-        .add("internalSearch", internalSearch)
-        .add("synchronizationQuery", synchronizationQuery)
-        .add("skipChangedBefore", skipChangedBefore)
-        .add("orders", orders)
-        .add("user", user)
-        .add("potentialDuplicate", potentialDuplicate)
-        .toString();
-  }
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
 
   public QueryFilter getQuery() {
     return query;
@@ -888,43 +750,32 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public boolean isInternalSearch() {
-    return internalSearch;
-  }
-
-  public TrackedEntityQueryParams setInternalSearch(boolean internalSearch) {
-    this.internalSearch = internalSearch;
-    return this;
-  }
-
-  public boolean isSynchronizationQuery() {
-    return synchronizationQuery;
-  }
-
-  public TrackedEntityQueryParams setSynchronizationQuery(boolean synchronizationQuery) {
-    this.synchronizationQuery = synchronizationQuery;
-    return this;
-  }
-
-  public Date getSkipChangedBefore() {
-    return skipChangedBefore;
-  }
-
-  public TrackedEntityQueryParams setSkipChangedBefore(Date skipChangedBefore) {
-    this.skipChangedBefore = skipChangedBefore;
-    return this;
-  }
-
   public User getUser() {
     return user;
   }
 
-  public List<OrderParam> getOrders() {
-    return orders;
+  /** Order by an event field of the given {@code field} name in given sort {@code direction}. */
+  public TrackedEntityQueryParams orderBy(String field, SortDirection direction) {
+    this.order.add(new Order(field, direction));
+    return this;
   }
 
-  public void setOrders(List<OrderParam> orders) {
-    this.orders = orders;
+  /**
+   * Order by the given tracked entity attribute {@code tea} in given sort {@code direction}.
+   * Attributes are added to the attribute list if neither are present in the attribute list nor the
+   * filter list.
+   */
+  public TrackedEntityQueryParams orderBy(TrackedEntityAttribute tea, SortDirection direction) {
+    this.order.add(new Order(tea, direction));
+    this.addAttributesIfNotExist(
+        QueryItem.getQueryItems(List.of(tea)).stream()
+            .filter(sAtt -> !this.getFilters().contains(sAtt))
+            .toList());
+    return this;
+  }
+
+  public List<Order> getOrder() {
+    return order;
   }
 
   public Set<String> getTrackedEntityUids() {
@@ -936,81 +787,11 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  /**
-   * Set assigned user selection mode, assigned users and the current user for the query. Non-empty
-   * assigned users are only allowed with mode PROVIDED (or null).
-   *
-   * @param mode assigned user mode
-   * @param current current user with which query is made
-   * @param assignedUsers assigned user uids
-   * @return this
-   */
-  public TrackedEntityQueryParams setUserWithAssignedUsers(
-      AssignedUserSelectionMode mode, User current, Set<String> assignedUsers) {
-    this.assignedUserQueryParam = new AssignedUserQueryParam(mode, current, assignedUsers);
-    this.user = current;
-    return this;
-  }
-
   public List<TrackedEntityType> getTrackedEntityTypes() {
     return trackedEntityTypes;
   }
 
   public void setTrackedEntityTypes(List<TrackedEntityType> trackedEntityTypes) {
     this.trackedEntityTypes = trackedEntityTypes;
-  }
-
-  @Getter
-  @AllArgsConstructor
-  public enum OrderColumn {
-    TRACKEDENTITY("trackedEntity", "uid", MAIN_QUERY_ALIAS),
-    // TODO(tracker): remove with old tracker
-    CREATED("created", CREATED_ID, MAIN_QUERY_ALIAS),
-    CREATED_AT("createdAt", CREATED_ID, MAIN_QUERY_ALIAS),
-    CREATED_AT_CLIENT("createdAtClient", "createdatclient", MAIN_QUERY_ALIAS),
-    UPDATED_AT("updatedAt", "lastupdated", MAIN_QUERY_ALIAS),
-    UPDATED_AT_CLIENT("updatedAtClient", "lastupdatedatclient", MAIN_QUERY_ALIAS),
-    ENROLLED_AT(
-        "enrolledAt",
-        "enrollmentdate",
-        PROGRAM_INSTANCE_ALIAS), // this works only for the new endpoint
-    // ORGUNIT_NAME( "orgUnitName", MAIN_QUERY_ALIAS+".organisationUnit.name" ),
-    INACTIVE(INACTIVE_ID, "inactive", MAIN_QUERY_ALIAS);
-
-    private final String propName;
-
-    private final String column;
-
-    private final String tableAlias;
-
-    public boolean isPropertyEqualTo(String property) {
-      return propName.equalsIgnoreCase(property);
-    }
-
-    /**
-     * @param property
-     * @return an Optional of an OrderColumn matching by property name
-     */
-    public static Optional<OrderColumn> findColumn(String property) {
-      return Arrays.stream(values())
-          .filter(orderColumn -> orderColumn.getPropName().equals(property))
-          .findFirst();
-    }
-
-    /**
-     * @return a Sql string composed by the actual table alias and column. In use for the inner
-     *     query select fields and order by
-     */
-    public String getSqlColumnWithTableAlias() {
-      return tableAlias + "." + column;
-    }
-
-    /**
-     * @return a Sql string composed by the main query alias and column. In use for the outer query
-     *     select fields and order by
-     */
-    public String getSqlColumnWithMainTable() {
-      return MAIN_QUERY_ALIAS + "." + column;
-    }
   }
 }

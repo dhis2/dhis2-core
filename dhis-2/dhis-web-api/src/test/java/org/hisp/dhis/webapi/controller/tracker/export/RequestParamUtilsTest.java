@@ -87,7 +87,7 @@ class RequestParamUtilsTest {
   void shouldPassOrderParamsValidationWhenGivenOrderIsOrderable() throws BadRequestException {
     Set<String> supportedFieldNames = Set.of("createdAt", "scheduledAt");
 
-    validateOrderParams(supportedFieldNames, "", fromOrderString("createdAt:asc,scheduledAt:asc"));
+    validateOrderParams(fromOrderString("createdAt:asc,scheduledAt:asc"), supportedFieldNames, "");
   }
 
   @Test
@@ -101,12 +101,12 @@ class RequestParamUtilsTest {
             BadRequestException.class,
             () ->
                 validateOrderParams(
-                    supportedFieldNames,
-                    "data element and attribute",
                     fromOrderString(
                         "unsupportedProperty1:asc,enrolledAt:asc,"
                             + invalidUID
-                            + ",unsupportedProperty2:desc")));
+                            + ",unsupportedProperty2:desc"),
+                    supportedFieldNames,
+                    "data element and attribute"));
     assertAll(
         () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
         () ->
@@ -127,7 +127,7 @@ class RequestParamUtilsTest {
     // services. Such invalid order values will be caught in the service (mapper).
     assertTrue(CodeGenerator.isValidUid("lastUpdated"));
 
-    validateOrderParams(supportedFieldNames, "", fromOrderString("lastUpdated:desc"));
+    validateOrderParams(fromOrderString("lastUpdated:desc"), supportedFieldNames, "");
   }
 
   @Test
@@ -139,14 +139,15 @@ class RequestParamUtilsTest {
             BadRequestException.class,
             () ->
                 validateOrderParams(
-                    supportedFieldNames,
-                    "",
                     fromOrderString(
-                        "zGlzbfreTOH,createdAt:asc,enrolledAt:asc,enrolledAt,zGlzbfreTOH")));
+                        "zGlzbfreTOH,createdAt:asc,enrolledAt:asc,enrolledAt,zGlzbfreTOH"),
+                    supportedFieldNames,
+                    ""));
 
     assertAll(
         () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
         // order of fields might not always be the same; therefore using contains
+        () -> assertContains("repeated", exception.getMessage()),
         () -> assertContains("enrolledAt", exception.getMessage()),
         () -> assertContains("zGlzbfreTOH", exception.getMessage()));
   }

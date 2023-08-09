@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,56 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.relationship;
+package org.hisp.dhis.tracker.export;
 
-import java.util.ArrayList;
-import java.util.List;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.Order;
+import lombok.Value;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
-@Getter
-@Builder(toBuilder = true)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class RelationshipOperationParams {
-
-  public static final int DEFAULT_PAGE = 1;
-
-  public static final int DEFAULT_PAGE_SIZE = 50;
-
-  private TrackerType type;
-
-  private String identifier;
-
-  private Integer page;
-
-  private Integer pageSize;
-
-  private boolean totalPages;
-
-  private boolean skipPaging;
-
-  private List<Order> order;
-
-  public static class RelationshipOperationParamsBuilder {
-
-    private List<Order> order = new ArrayList<>();
-
-    // Do not remove this unused method. This hides the order field from the builder which Lombok
-    // does not support. The repeated order field and private order method prevent access to order
-    // via the builder.
-    // Order should be added via the orderBy builder methods.
-    private RelationshipOperationParamsBuilder order(List<Order> order) {
-      return this;
-    }
-
-    public RelationshipOperationParamsBuilder orderBy(String field, SortDirection direction) {
-      this.order.add(new Order(field, direction));
-      return this;
-    }
-  }
+/**
+ * Tracker exporter APIs allow ordering by different types. For example events can be ordered by
+ * field names, {@link DataElement} and {@link TrackedEntityAttribute}. It is crucial for the order
+ * values to stay in one collection as their order needs to be kept as provided by the user. We
+ * cannot come up with a type-safe type that captures the above order features and that can be used
+ * in a generic collection such as a List (see typesafe heterogeneous container). We therefore use
+ * {@link Order} with a field of type {@link Object}. We get compile time type safety via methods
+ * such as {@code orderBy(DataElement, SortDirection)}. This allows us to advocate the types that
+ * can be ordered by while storing the order in a single {@code List} of {@link Order}. Runtime type
+ * checks are then used to ensure users (and developers) get meaningful error messages in case they
+ * order by unsupported fields or types.
+ */
+@Value
+public class Order {
+  Object field;
+  SortDirection direction;
 }

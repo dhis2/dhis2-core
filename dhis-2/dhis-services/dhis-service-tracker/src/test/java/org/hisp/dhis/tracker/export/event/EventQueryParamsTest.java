@@ -38,12 +38,12 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.Order;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class EventSearchParamsTest extends DhisConvenienceTest {
+class EventQueryParamsTest extends DhisConvenienceTest {
 
   private TrackedEntityAttribute tea1;
 
@@ -57,7 +57,7 @@ class EventSearchParamsTest extends DhisConvenienceTest {
 
   @Test
   void shouldAddAttributeToOrderAndAttributesWhenOrderingByAttribute() {
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
 
     params.orderBy(tea1, SortDirection.DESC);
 
@@ -67,7 +67,7 @@ class EventSearchParamsTest extends DhisConvenienceTest {
 
   @Test
   void shouldKeepExistingAttributeFiltersWhenOrderingByAttribute() {
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
 
     QueryFilter filter = new QueryFilter(QueryOperator.EQ, "summer day");
     params.filterBy(tea1, filter);
@@ -81,7 +81,7 @@ class EventSearchParamsTest extends DhisConvenienceTest {
 
   @Test
   void shouldAddDataElementToOrderAndDataElementsWhenOrderingByDataElement() {
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
 
     params.orderBy(de1, SortDirection.ASC);
 
@@ -92,7 +92,7 @@ class EventSearchParamsTest extends DhisConvenienceTest {
 
   @Test
   void shouldKeepExistingDataElementFiltersWhenOrderingByDataElement() {
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
 
     QueryFilter filter = new QueryFilter(QueryOperator.EQ, "summer day");
     params.filterBy(de1, filter);

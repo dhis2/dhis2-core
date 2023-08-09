@@ -82,6 +82,7 @@ class RelationshipOperationParamsMapper {
         .pageSize(params.getPageSize())
         .totalPages(params.isTotalPages())
         .skipPaging(params.isSkipPaging())
+        .order(params.getOrder())
         .build();
   }
 

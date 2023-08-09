@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.export.relationship;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -49,8 +50,10 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -200,5 +203,36 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
         RelationshipOperationParams.builder().type(EVENT).identifier(EV_UID).build();
 
     assertThrows(ForbiddenException.class, () -> mapper.map(params));
+  }
+
+  @Test
+  void shouldMapOrderInGivenOrder() throws ForbiddenException, NotFoundException {
+    when(trackedEntityService.getTrackedEntity(TE_UID)).thenReturn(trackedEntity);
+    when(accessManager.canRead(user, trackedEntity)).thenReturn(List.of());
+
+    RelationshipOperationParams operationParams =
+        RelationshipOperationParams.builder()
+            .type(TRACKED_ENTITY)
+            .identifier(TE_UID)
+            .orderBy("created", SortDirection.DESC)
+            .build();
+
+    RelationshipQueryParams queryParams = mapper.map(operationParams);
+
+    assertEquals(List.of(new Order("created", SortDirection.DESC)), queryParams.getOrder());
+  }
+
+  @Test
+  void shouldMapNullOrderingParamsWhenNoOrderingParamsAreSpecified()
+      throws ForbiddenException, NotFoundException {
+    when(trackedEntityService.getTrackedEntity(TE_UID)).thenReturn(trackedEntity);
+    when(accessManager.canRead(user, trackedEntity)).thenReturn(List.of());
+
+    RelationshipOperationParams operationParams =
+        RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(TE_UID).build();
+
+    RelationshipQueryParams queryParams = mapper.map(operationParams);
+
+    assertIsEmpty(queryParams.getOrder());
   }
 }

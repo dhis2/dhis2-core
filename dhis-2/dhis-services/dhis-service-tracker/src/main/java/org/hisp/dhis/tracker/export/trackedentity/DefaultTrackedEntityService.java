@@ -39,7 +39,6 @@ import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -86,14 +85,11 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventParams;
-import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.tracker.export.event.EventStore;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -101,7 +97,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @Service("org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService")
 @RequiredArgsConstructor
-public class DefaultTrackedEntityService implements TrackedEntityService {
+class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final TrackedEntityStore trackedEntityStore;
 
@@ -358,8 +354,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       params.addFiltersIfNotExist(QueryItem.getQueryItems(attributes));
     }
 
-    handleSortAttributes(params);
-
     decideAccess(params);
 
     // AccessValidation should be skipped only and only if it is internal
@@ -375,45 +369,15 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     return trackedEntityStore.getTrackedEntityIds(params);
   }
 
-  /**
-   * This method handles any dynamic sort order columns in the params. These have to be added to the
-   * attribute list if neither are present in the attribute list nor the filter list.
-   *
-   * <p>For example, if attributes or filters don't have a specific trackedentityattribute uid, but
-   * sorting has been requested for that tea uid, then we need to add them to the attribute list.
-   *
-   * @param params The TEIQueryParams object
-   */
-  private void handleSortAttributes(TrackedEntityQueryParams params) {
-    List<TrackedEntityAttribute> sortAttributes =
-        params.getOrders().stream()
-            .map(OrderParam::getField)
-            .filter(this::isDynamicColumn)
-            .map(trackedEntityAttributeService::getTrackedEntityAttribute)
-            .collect(Collectors.toList());
-
-    params.addAttributesIfNotExist(
-        QueryItem.getQueryItems(sortAttributes).stream()
-            .filter(sAtt -> !params.getFilters().contains(sAtt))
-            .collect(Collectors.toList()));
-  }
-
-  public boolean isDynamicColumn(String propName) {
-    return Arrays.stream(TrackedEntityQueryParams.OrderColumn.values())
-        .noneMatch(orderColumn -> orderColumn.getPropName().equals(propName));
-  }
-
   public void decideAccess(TrackedEntityQueryParams params) {
-    User user = params.isInternalSearch() ? null : params.getUser();
-
     if (params.isOrganisationUnitMode(ALL)
         && !currentUserService.currentUserIsAuthorized(
-            Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name())
-        && !params.isInternalSearch()) {
+            Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name())) {
       throw new IllegalQueryException(
           "Current user is not authorized to query across all organisation units");
     }
 
+    User user = params.getUser();
     if (params.hasProgram()) {
       if (!aclService.canDataRead(user, params.getProgram())) {
         throw new IllegalQueryException(
@@ -560,7 +524,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       List<String> uniqueAttributeIds =
           trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
               .map(TrackedEntityAttribute::getUid)
-              .collect(Collectors.toList());
+              .toList();
 
       for (String att : params.getAttributeAndFilterIds()) {
         if (!uniqueAttributeIds.contains(att)) {
@@ -597,7 +561,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
           searchableAttributeIds.addAll(
               trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
                   .map(TrackedEntityAttribute::getUid)
-                  .collect(Collectors.toList()));
+                  .toList());
         }
 
         List<String> violatingAttributes = new ArrayList<>();
@@ -702,7 +666,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   private void checkIfMaxTeiLimitIsReached(TrackedEntityQueryParams params, int maxTeiLimit) {
     if (maxTeiLimit > 0) {
-      int teCount = trackedEntityStore.getTrackedEntityCountForGridWithMaxTeiLimit(params);
+      int teCount = trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(params);
 
       if (teCount > maxTeiLimit) {
         throw new IllegalQueryException("maxteicountreached");
@@ -726,7 +690,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
     // using countForGrid here to leverage the better performant rewritten
     // sql query
-    return trackedEntityStore.getTrackedEntityCountForGrid(params);
+    return trackedEntityStore.getTrackedEntityCount(params);
   }
 
   /**
@@ -853,7 +817,8 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   /**
    * This method will apply the logic related to the parameter 'totalPages=false'. This works in
-   * conjunction with the method: {@link EventStore#getEvents(EventSearchParams, Map)}
+   * conjunction with the method: {@link
+   * TrackedEntityStore#getTrackedEntityIds(TrackedEntityQueryParams)}
    *
    * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
    * allow us to evaluate if we are in the last page or not. And this is what his method does,
@@ -880,5 +845,10 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     return new SlimPager(originalPage, originalPageSize, isLastPage);
+  }
+
+  @Override
+  public Set<String> getOrderableFields() {
+    return trackedEntityStore.getOrderableFields();
   }
 }

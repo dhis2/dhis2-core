@@ -28,8 +28,8 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -40,7 +40,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -48,9 +47,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,8 +67,6 @@ class EnrollmentOperationParamsMapperTest {
   private static final String ORG_UNIT_1_UID = "lW0T2U7gZUi";
 
   private static final String ORG_UNIT_2_UID = "TK4KA0IIWqa";
-
-  private static final String NOT_PRESENT_ORG_UNIT_UID = "TK4KA0IIWde";
 
   private static final String PROGRAM_UID = "XhBYIraw7sv";
 
@@ -255,19 +252,19 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldMapOrderingParamsWhenOrderingParamsAreSpecified()
-      throws BadRequestException, ForbiddenException {
-    OrderParam order1 = new OrderParam("field1", SortDirection.ASC);
-    OrderParam order2 = new OrderParam("field2", SortDirection.DESC);
+  void shouldMapOrderInGivenOrder() throws BadRequestException, ForbiddenException {
     EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder().order(List.of(order1, order2)).build();
+        EnrollmentOperationParams.builder()
+            .orderBy("enrollmentDate", SortDirection.ASC)
+            .orderBy("created", SortDirection.DESC)
+            .build();
 
     EnrollmentQueryParams params = mapper.map(operationParams);
 
     assertEquals(
         List.of(
-            new OrderParam("field1", SortDirection.ASC),
-            new OrderParam("field2", SortDirection.DESC)),
+            new Order("enrollmentDate", SortDirection.ASC),
+            new Order("created", SortDirection.DESC)),
         params.getOrder());
   }
 
@@ -278,6 +275,6 @@ class EnrollmentOperationParamsMapperTest {
 
     EnrollmentQueryParams params = mapper.map(requestParams);
 
-    assertNull(params.getOrder());
+    assertIsEmpty(params.getOrder());
   }
 }
