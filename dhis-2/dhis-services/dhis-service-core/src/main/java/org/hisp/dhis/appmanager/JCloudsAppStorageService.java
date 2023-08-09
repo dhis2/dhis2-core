@@ -473,7 +473,7 @@ public class JCloudsAppStorageService implements AppStorageService {
   }
 
   private Pair<Credentials, Properties> configureForProvider(
-          BlobStoreProperties properties, String identity, String secret) {
+      BlobStoreProperties properties, String identity, String secret) {
     Properties overrides = new Properties();
     Credentials credentials = new Credentials("Unused", "Unused");
 
