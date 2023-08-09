@@ -42,9 +42,10 @@ public class RequestParamsValidator {
 
   /**
    * Validates that no org unit is present if the ou mode is ACCESSIBLE or CAPTURE. If it is, an
-   * exception will be thrown.
+   * exception will be thrown. If the org unit mode is not defined, SELECTED will be used by default
+   * if an org unit is present. Otherwise, ACCESSIBLE will be the default.
    *
-   * @param orgUnits
+   * @param orgUnits list of org units to be validated
    * @param orgUnitMode
    * @throws BadRequestException
    */
@@ -52,7 +53,7 @@ public class RequestParamsValidator {
       Set<UID> orgUnits, OrganisationUnitSelectionMode orgUnitMode) throws BadRequestException {
 
     if (orgUnitMode == null) {
-      orgUnitMode = orgUnits.isEmpty() ? SELECTED : ACCESSIBLE;
+      orgUnitMode = orgUnits.isEmpty() ? ACCESSIBLE : SELECTED;
     }
 
     if (!orgUnits.isEmpty() && (orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE)) {
@@ -67,6 +68,41 @@ public class RequestParamsValidator {
       throw new BadRequestException(
           String.format(
               "At least one org unit is required for orgUnitMode: %s. Please add an orgUnit or use a different orgUnitMode.",
+              orgUnitMode));
+    }
+
+    return orgUnitMode;
+  }
+
+  /**
+   * Validates that the org unit is not present if the ou mode is ACCESSIBLE or CAPTURE. If it is,
+   * an exception will be thrown. If the org unit mode is not defined, SELECTED will be used by
+   * default if an org unit is present. Otherwise, ACCESSIBLE will be the default.
+   *
+   * @param orgUnit the org unit to validate
+   * @param orgUnitMode
+   * @return
+   * @throws BadRequestException
+   */
+  public static OrganisationUnitSelectionMode validateOrgUnitMode(
+      UID orgUnit, OrganisationUnitSelectionMode orgUnitMode) throws BadRequestException {
+
+    if (orgUnitMode == null) {
+      orgUnitMode = orgUnit != null ? SELECTED : ACCESSIBLE;
+    }
+
+    if ((orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE) && orgUnit != null) {
+      throw new BadRequestException(
+          String.format(
+              "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
+              orgUnitMode));
+    }
+
+    if ((orgUnitMode == CHILDREN || orgUnitMode == SELECTED || orgUnitMode == DESCENDANTS)
+        && orgUnit == null) {
+      throw new BadRequestException(
+          String.format(
+              "orgUnit is required for orgUnitMode: %s. Please add an orgUnit or use a different orgUnitMode.",
               orgUnitMode));
     }
 

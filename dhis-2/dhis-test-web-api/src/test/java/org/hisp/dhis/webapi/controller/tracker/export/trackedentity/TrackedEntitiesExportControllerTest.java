@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertFirstRelationship;
@@ -187,15 +188,6 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     assertEquals(
         "Either Program or Tracked entity type should be specified",
         GET("/tracker/trackedEntities?orgUnit={ou}", orgUnit.getUid())
-            .error(HttpStatus.CONFLICT)
-            .getMessage());
-  }
-
-  @Test
-  void getTrackedEntitiesNeedsAtLeastOneOrgUnit() {
-    assertEquals(
-        "At least one organisation unit must be specified",
-        GET("/tracker/trackedEntities?program={program}", program.getUid())
             .error(HttpStatus.CONFLICT)
             .getMessage());
   }
@@ -426,9 +418,9 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   void getTrackedEntityReturnsCsvFormat() {
     WebClient.HttpResponse response =
         GET(
-            "/tracker/trackedEntities.csv?program={programId}&orgUnit={orgUnitId}",
+            "/tracker/trackedEntities.csv?program={programId}&orgUnitMode={orgUnitMode}",
             program.getUid(),
-            orgUnit.getUid());
+            ACCESSIBLE);
 
     assertEquals(HttpStatus.OK, response.status());
 
@@ -447,9 +439,9 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   void getTrackedEntityReturnsCsvZipFormat() {
     WebClient.HttpResponse response =
         GET(
-            "/tracker/trackedEntities.csv.zip?program={programId}&orgUnit={orgUnitId}",
+            "/tracker/trackedEntities.csv.zip?program={programId}&orgUnitMode={orgUnitMode}",
             program.getUid(),
-            orgUnit.getUid());
+            ACCESSIBLE);
 
     assertEquals(HttpStatus.OK, response.status());
 
@@ -467,9 +459,9 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   void getTrackedEntityReturnsCsvGZipFormat() {
     WebClient.HttpResponse response =
         GET(
-            "/tracker/trackedEntities.csv.gz?program={programId}&orgUnit={orgUnitId}",
+            "/tracker/trackedEntities.csv.gz?program={programId}&orgUnitMode={orgUnitMode}",
             program.getUid(),
-            orgUnit.getUid());
+            ACCESSIBLE);
 
     assertEquals(HttpStatus.OK, response.status());
 

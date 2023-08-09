@@ -29,9 +29,7 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
@@ -411,27 +409,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     if (params == null) {
       throw new IllegalQueryException("Params cannot be null");
-    }
-
-    User user = params.getUser();
-
-    if (!params.hasTrackedEntities()
-        && !params.hasOrganisationUnits()
-        && !(params.isOrganisationUnitMode(ALL)
-            || params.isOrganisationUnitMode(ACCESSIBLE)
-            || params.isOrganisationUnitMode(CAPTURE))) {
-      violation = "At least one organisation unit must be specified";
-    }
-
-    if (params.isOrganisationUnitMode(ACCESSIBLE)
-        && (user == null || !user.hasDataViewOrganisationUnitWithFallback())) {
-      violation =
-          "Current user must be associated with at least one organisation unit when selection mode is ACCESSIBLE";
-    }
-
-    if (params.isOrganisationUnitMode(CAPTURE) && (user == null || !user.hasOrganisationUnit())) {
-      violation =
-          "Current user must be associated with at least one organisation unit with write access when selection mode is CAPTURE";
     }
 
     if (params.hasProgram() && params.hasTrackedEntityType()) {
