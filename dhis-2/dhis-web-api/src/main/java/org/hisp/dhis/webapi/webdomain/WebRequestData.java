@@ -29,4 +29,11 @@ package org.hisp.dhis.webapi.webdomain;
 
 import java.util.List;
 
+/**
+ * Record purely used to tidy up code while passing data
+ *
+ * @param options web options
+ * @param fields fields
+ * @param filters filters
+ */
 public record WebRequestData(WebOptions options, List<String> fields, List<String> filters) {}

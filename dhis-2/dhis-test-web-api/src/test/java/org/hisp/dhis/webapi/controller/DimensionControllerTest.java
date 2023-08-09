@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,7 +85,7 @@ class DimensionControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testGetDimensionsWithPaging() {
+  void testGetDimensionsWithDefaultPaging() {
     addCategoryCombos(55);
     JsonObject response = GET("/dimensions").content();
     assertHasPager(response, 1, 50, 55);
@@ -93,7 +93,7 @@ class DimensionControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testGetDimensionsWithPaging2() {
+  void testGetDimensionsPage2() {
     addCategoryCombos(105);
     JsonObject response = GET("/dimensions?page=2").content();
     assertHasPager(response, 2, 50, 105);
@@ -159,7 +159,6 @@ class DimensionControllerTest extends DhisControllerConvenienceTest {
   }
 
   private void addCategoryCombos(int counter) {
-
     for (int i = 0; i < counter; i++) {
       createCategoryCombo(i);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeUtils;
@@ -108,10 +109,6 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
   // Controller
   // -------------------------------------------------------------------------
 
-  protected @ResponseBody List<DimensionalObject> getEntityList() {
-    return dimensionService.getAllDimensions();
-  }
-
   @Nonnull
   @Override
   protected DimensionalObject getEntity(String uid, WebOptions options) throws NotFoundException {
@@ -121,6 +118,19 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
     throw new NotFoundException(format("No dimensional object with id `%s` exists", uid));
   }
 
+  /**
+   * This method is overridden as {@link DimensionalObject} requires different retrieval and paging
+   * considerations compared to the base generic method. There are many different types of {@link
+   * DimensionalObject} and there is no specific {@link InternalHibernateGenericStore} to retrieve
+   * them from.
+   *
+   * @param rpParameters request parameters
+   * @param orderParams order parameters
+   * @param response response
+   * @param currentUser current user
+   * @return response with Collection of {@link DimensionalObject}
+   * @throws ForbiddenException if no permissions
+   */
   @Override
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<DimensionalObject>> getObjectList(
@@ -133,7 +143,7 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
     WebRequestData requestData = applyRequestSetup(rpParameters, currentUser);
 
     WebMetadata metadata = new WebMetadata();
-    List<DimensionalObject> entities = getEntityList();
+    List<DimensionalObject> entities = dimensionService.getAllDimensions();
 
     PagedEntities<DimensionalObject> pagedEntities =
         PaginationUtils.addPagingIfEnabled(metadata, requestData.options(), entities);
