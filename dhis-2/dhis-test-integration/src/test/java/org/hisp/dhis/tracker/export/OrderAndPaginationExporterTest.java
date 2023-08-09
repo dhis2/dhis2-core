@@ -898,6 +898,36 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldOrderEventsByAttributeOptionComboUidDesc()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        eventParamsBuilder
+            .orgUnitUid("DiszpKrYNg8")
+            .events(Set.of("ck7DzdxqLqA", "lumVtWwwy0O", "cadc5eGj0j7"))
+            .orderBy("attributeOptionCombo.uid", SortDirection.DESC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("ck7DzdxqLqA", "cadc5eGj0j7", "lumVtWwwy0O"), events);
+  }
+
+  @Test
+  void shouldOrderEventsByAttributeOptionComboUidAsc()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        eventParamsBuilder
+            .orgUnitUid("DiszpKrYNg8")
+            .events(Set.of("ck7DzdxqLqA", "lumVtWwwy0O", "cadc5eGj0j7"))
+            .orderBy("attributeOptionCombo.uid", SortDirection.ASC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("lumVtWwwy0O", "cadc5eGj0j7", "ck7DzdxqLqA"), events);
+  }
+
+  @Test
   void shouldOrderEventsByOccurredAtDesc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         eventParamsBuilder
