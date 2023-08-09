@@ -862,6 +862,42 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldOrderEventsByTrackedEntityUidDesc() throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        eventParamsBuilder
+            .orgUnitUid(orgUnit.getUid())
+            .orderBy("enrollment.trackedEntity.uid", SortDirection.DESC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    // TODO(tracker): TECH-1620 the order is reversed
+    // EV D9PbzJY8bJM EN TvctPPhpD8z TE dUE514NMOlo
+    // EV pTzf9KYMk72 EN nxP7UnKhomJ TE QS6w44flWAf
+    // We would therefore expect the TE order to be QS6w44flWAf, dUE514NMOlo
+    // and thus the EV order to be pTzf9KYMk72, D9PbzJY8bJM
+    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
+  }
+
+  @Test
+  void shouldOrderEventsByTrackedEntityUidAsc() throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        eventParamsBuilder
+            .orgUnitUid(orgUnit.getUid())
+            .orderBy("enrollment.trackedEntity.uid", SortDirection.ASC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    // TODO(tracker): TECH-1620 the order is reversed
+    // EV D9PbzJY8bJM EN TvctPPhpD8z TE dUE514NMOlo
+    // EV pTzf9KYMk72 EN nxP7UnKhomJ TE QS6w44flWAf
+    // We would therefore expect the TE order to be dUE514NMOlo, QS6w44flWAf
+    // and thus the EV order to be D9PbzJY8bJM, pTzf9KYMk72
+    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
+  }
+
+  @Test
   void shouldOrderEventsByOccurredAtDesc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         eventParamsBuilder
