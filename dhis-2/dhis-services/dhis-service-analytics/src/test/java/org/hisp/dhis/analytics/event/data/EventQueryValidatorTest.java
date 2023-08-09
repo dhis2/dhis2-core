@@ -163,7 +163,7 @@ class EventQueryValidatorTest extends DhisSpringTest {
   }
 
   @Test
-  public void validateValidFilterForValueType() {
+  void validateValidFilterForValueType() {
     QueryFilter filter = new QueryFilter(QueryOperator.EQ, "68");
     QueryItem item =
         new QueryItem(
@@ -187,7 +187,7 @@ class EventQueryValidatorTest extends DhisSpringTest {
   }
 
   @Test
-  public void validateInvalidFilterForIntegerValueType() {
+  void validateInvalidFilterForIntegerValueType() {
     QueryFilter filter = new QueryFilter(QueryOperator.EQ, "male");
     QueryItem item =
         new QueryItem(
@@ -211,7 +211,7 @@ class EventQueryValidatorTest extends DhisSpringTest {
   }
 
   @Test
-  public void validateInvalidInFilterForIntegerValueType() {
+  void validateInvalidInFilterForIntegerValueType() {
     QueryFilter filter = new QueryFilter(QueryOperator.IN, "male;1");
     QueryItem item =
         new QueryItem(
@@ -235,7 +235,7 @@ class EventQueryValidatorTest extends DhisSpringTest {
   }
 
   @Test
-  public void validateValidInFilterForIntegerValueType() {
+  void validateValidInFilterForIntegerValueType() {
     QueryFilter filter = new QueryFilter(QueryOperator.IN, "2;1");
     QueryItem item =
         new QueryItem(
@@ -261,7 +261,7 @@ class EventQueryValidatorTest extends DhisSpringTest {
   }
 
   @Test
-  public void validateInvalidFilterForDateTimeValueType() {
+  void validateInvalidFilterForDateTimeValueType() {
     QueryFilter filter = new QueryFilter(QueryOperator.EQ, "2023-12-01");
     QueryItem item =
         new QueryItem(
