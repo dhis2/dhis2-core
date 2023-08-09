@@ -21,6 +21,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      create-bucket:
+        condition: service_completed_successfully
 
   db:
     image: ghcr.io/baosystems/postgis:12-3.3
@@ -34,7 +36,7 @@ services:
       POSTGRES_PASSWORD: &postgres_password dhis
       PGPASSWORD: *postgres_password # needed by psql in healthcheck
     healthcheck:
-      test: ["CMD-SHELL", "psql --no-password --quiet --username $$POSTGRES_USER postgres://127.0.0.1/$$POSTGRES_DB -p 5432 --command \"SELECT 'ok'\" > /dev/null"]
+      test: [ "CMD-SHELL", "psql --no-password --quiet --username $$POSTGRES_USER postgres://127.0.0.1/$$POSTGRES_DB -p 5432 --command \"SELECT 'ok'\" > /dev/null" ]
       start_period: 120s
       interval: 1s
       timeout: 3s
@@ -60,10 +62,38 @@ services:
       - "9090:9090"
     volumes:
       - minio:/data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 5s
+      timeout: 2s
+      retries: 3
     environment:
-      MINIO_ROOT_USER: dhis
+      MINIO_ROOT_USER: root
       MINIO_ROOT_PASSWORD: dhisdhis
 
+  ## Although buckets are created automatically, we want to create an unprivileged user with minimal access and use that. (Please change the passwords for production usage!)
+  create-bucket:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: root
+      MINIO_ROOT_PASSWORD: dhisdhis
+      MINIO_USER: dhis
+      MINIO_PASSWORD: dhisdhis
+      S3_BUCKET: dhis2
+    volumes:
+      - ./docker/minio-IAM-policy.json:/dhis2/minio-IAM-policy.json
+    entrypoint: >
+      /bin/sh -c "
+        mc config host add myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD
+        mc ls myminio/$$S3_BUCKET || mc mb myminio/$$S3_BUCKET
+        mc admin user info myminio $$MINIO_USER || mc admin user add myminio $$MINIO_USER $$MINIO_PASSWORD
+        mc admin policy create myminio dhis2 /dhis2/minio-IAM-policy.json
+        mc admin policy attach myminio dhis2 --user dhis
+        exit 0"
+
 volumes:
-  db-dump: {}
-  minio: {}
+  db-dump: { }
+  minio: { }
