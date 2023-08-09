@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.appmanager;
 
+import static org.jclouds.Constants.PROPERTY_ENDPOINT;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -137,11 +138,12 @@ public class JCloudsAppStorageService implements AppStorageService {
         new BlobStoreProperties(
             configurationProvider.getProperty(ConfigurationKey.FILESTORE_PROVIDER),
             configurationProvider.getProperty(ConfigurationKey.FILESTORE_LOCATION),
+            configurationProvider.getProperty(ConfigurationKey.FILESTORE_ENDPOINT),
             configurationProvider.getProperty(ConfigurationKey.FILESTORE_CONTAINER));
 
     Pair<Credentials, Properties> providerConfig =
         configureForProvider(
-            config.provider,
+            config,
             configurationProvider.getProperty(ConfigurationKey.FILESTORE_IDENTITY),
             configurationProvider.getProperty(ConfigurationKey.FILESTORE_SECRET));
 
@@ -471,18 +473,22 @@ public class JCloudsAppStorageService implements AppStorageService {
   }
 
   private Pair<Credentials, Properties> configureForProvider(
-      String provider, String identity, String secret) {
+          BlobStoreProperties properties, String identity, String secret) {
     Properties overrides = new Properties();
     Credentials credentials = new Credentials("Unused", "Unused");
 
-    if (provider.equals(JCLOUDS_PROVIDER_KEY_FILESYSTEM)
+    if (properties.provider.equals(JCLOUDS_PROVIDER_KEY_FILESYSTEM)
         && locationManager.externalDirectorySet()) {
       overrides.setProperty(
           FilesystemConstants.PROPERTY_BASEDIR, locationManager.getExternalDirectoryPath());
-    } else if (provider.equals(JCLOUDS_PROVIDER_KEY_AWS_S3)) {
-      credentials = new Credentials(identity, secret);
+    } else if (properties.provider.equals(JCLOUDS_PROVIDER_KEY_AWS_S3)) {
       overrides.setProperty(S3Constants.PROPERTY_S3_VIRTUAL_HOST_BUCKETS, "false");
 
+      if (!properties.endpoint.isEmpty()) {
+        overrides.setProperty(PROPERTY_ENDPOINT, properties.endpoint);
+      }
+
+      credentials = new Credentials(identity, secret);
       if (credentials.identity.isEmpty() || credentials.credential.isEmpty()) {
         log.warn("AWS S3 store configured without credentials, authentication not possible.");
       }
@@ -498,13 +504,16 @@ public class JCloudsAppStorageService implements AppStorageService {
   private class BlobStoreProperties {
     private String provider;
 
-    private String location;
+    private final String location;
+
+    private final String endpoint;
 
     private String container;
 
-    BlobStoreProperties(String provider, String location, String container) {
+    BlobStoreProperties(String provider, String location, String endpoint, String container) {
       this.provider = provider;
       this.location = location;
+      this.endpoint = endpoint;
       this.container = container;
 
       validate();

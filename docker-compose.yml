@@ -52,5 +52,18 @@ services:
     volumes:
       - db-dump:/opt/dump
 
+  minio:
+    image: quay.io/minio/minio
+    command: server /data --console-address ":9090"
+    ports:
+      - "9000:9000"
+      - "9090:9090"
+    volumes:
+      - minio:/data
+    environment:
+      MINIO_ROOT_USER: dhis
+      MINIO_ROOT_PASSWORD: dhisdhis
+
 volumes:
-  db-dump:
+  db-dump: {}
+  minio: {}
