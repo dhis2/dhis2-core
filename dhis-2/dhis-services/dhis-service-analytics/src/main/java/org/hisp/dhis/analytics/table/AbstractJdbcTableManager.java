@@ -417,9 +417,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     for (Integer year : dataYears) {
       table.addPartitionTable(
-          year,
-          PartitionUtils.getStartDate(calendar, year),
-          PartitionUtils.getEndDate(calendar, year));
+          year, PartitionUtils.getStartDate(year), PartitionUtils.getEndDate(year));
     }
 
     return table;
