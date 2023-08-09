@@ -138,8 +138,6 @@ class JdbcEventStore implements EventStore {
           + " on evc.trackedentitycommentid = evnote.trackedentitycommentid"
           + " left join userinfo on evnote.lastupdatedby = userinfo.userinfoid ";
 
-  private static final String EVENT_STATUS = "ev_status";
-
   private static final String EVENT_STATUS_EQ = " ev.status = ";
 
   private static final String EVENT_LASTUPDATED_GT = " ev.lastupdated >= ";
@@ -152,36 +150,60 @@ class JdbcEventStore implements EventStore {
 
   private static final String AND = " AND ";
 
+  private static final String COLUMN_EVENT_UID = "ev_uid";
+  private static final String COLUMN_PROGRAM_UID = "p_uid";
+  private static final String COLUMN_ENROLLMENT_UID = "en_uid";
+  private static final String COLUMN_ENROLLMENT_STATUS = "en_status";
+  private static final String COLUMN_ENROLLMENT_DATE = "en_enrollmentdate";
+  private static final String COLUMN_ORG_UNIT_UID = "orgunit_uid";
+  private static final String COLUMN_ORG_UNIT_NAME = "orgunit_name";
+  private static final String COLUMN_TRACKEDENTITY_UID = "te_uid";
+  private static final String COLUMN_EVENT_EXECUTION_DATE = "ev_executiondate";
+  private static final String COLUMN_ENROLLMENT_FOLLOWUP = "en_followup";
+  private static final String COLUMN_EVENT_STATUS = "ev_status";
+  private static final String COLUMN_EVENT_DUE_DATE = "ev_duedate";
+  private static final String COLUMN_EVENT_STORED_BY = "ev_storedby";
+  private static final String COLUMN_EVENT_LAST_UPDATED_BY = "ev_lastupdatedbyuserinfo";
+  private static final String COLUMN_EVENT_CREATED_BY = "ev_createdbyuserinfo";
+  private static final String COLUMN_EVENT_CREATED = "ev_created";
+  private static final String COLUMN_EVENT_LAST_UPDATED = "ev_lastupdated";
+  private static final String COLUMN_EVENT_COMPLETED_BY = "ev_completedby";
+  private static final String COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID = "ev_aoc";
+  private static final String COLUMN_EVENT_COMPLETED_DATE = "ev_completeddate";
+  private static final String COLUMN_EVENT_DELETED = "ev_deleted";
+  private static final String COLUMN_EVENT_ASSIGNED_USER_USERNAME = "user_assigned_username";
+  private static final String COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME = "user_assigned_name";
+
   /**
    * Events can be ordered by given fields which correspond to fields on {@link
    * org.hisp.dhis.program.Event}. Maps fields to DB columns.
    */
   private static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
-          entry("uid", "ev_uid"),
-          entry("enrollment.program.uid", "p_uid"),
-          entry("programStage.uid", "en_uid"),
-          entry("enrollment.uid", "en_uid"),
-          entry("enrollment.status", "en_status"),
-          entry("enrollment.enrollmentDate", "en_enrollmentdate"),
-          entry("organisationUnit.uid", "ou_uid"),
-          entry("organisationUnit.name", "ou_name"),
-          entry("enrollment.trackedEntity.uid", "tei_uid"),
-          entry("executionDate", "ev_executiondate"),
-          entry("enrollment.followup", "en_followup"),
-          entry("status", EVENT_STATUS),
-          entry("dueDate", "ev_duedate"),
-          entry("storedBy", "ev_storedby"),
-          entry("lastUpdatedBy", "ev_lastupdatedbyuserinfo"),
-          entry("createdBy", "ev_createdbyuserinfo"),
-          entry("created", "ev_created"),
-          entry("lastUpdated", "ev_lastupdated"),
-          entry("completedBy", "ev_completedby"),
-          entry("attributeOptionCombo.uid", "ev_aoc"),
-          entry("completedDate", "ev_completeddate"),
-          entry("deleted", "ev_deleted"),
-          entry("assignedUser", "user_assigned_username"),
-          entry("assignedUser.displayName", "user_assigned_name"));
+          entry("uid", COLUMN_EVENT_UID),
+          entry("enrollment.program.uid", COLUMN_PROGRAM_UID),
+          entry("programStage.uid", COLUMN_ENROLLMENT_UID),
+          entry("enrollment.uid", COLUMN_ENROLLMENT_UID),
+          entry("enrollment.status", COLUMN_ENROLLMENT_STATUS),
+          entry("enrollment.enrollmentDate", COLUMN_ENROLLMENT_DATE),
+          entry("organisationUnit.uid", COLUMN_ORG_UNIT_UID),
+          entry("organisationUnit.name", COLUMN_ORG_UNIT_NAME),
+          entry("enrollment.trackedEntity.uid", COLUMN_TRACKEDENTITY_UID),
+          entry("executionDate", COLUMN_EVENT_EXECUTION_DATE),
+          entry("enrollment.followup", COLUMN_ENROLLMENT_FOLLOWUP),
+          entry("status", COLUMN_EVENT_STATUS),
+          entry("dueDate", COLUMN_EVENT_DUE_DATE),
+          entry("storedBy", COLUMN_EVENT_STORED_BY),
+          entry("lastUpdatedBy", COLUMN_EVENT_LAST_UPDATED_BY),
+          entry("createdBy", COLUMN_EVENT_CREATED_BY),
+          entry("created", COLUMN_EVENT_CREATED),
+          entry("lastUpdated", COLUMN_EVENT_LAST_UPDATED),
+          entry("completedBy", COLUMN_EVENT_COMPLETED_BY),
+          entry("attributeOptionCombo.uid", COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID),
+          entry("completedDate", COLUMN_EVENT_COMPLETED_DATE),
+          entry("deleted", COLUMN_EVENT_DELETED),
+          entry("assignedUser", COLUMN_EVENT_ASSIGNED_USER_USERNAME),
+          entry("assignedUser.displayName", COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME));
 
   private static final String PATH_LIKE = "path LIKE";
 
@@ -239,11 +261,11 @@ class JdbcEventStore implements EventStore {
           Set<String> notes = new HashSet<>();
 
           while (resultSet.next()) {
-            if (resultSet.getString("ev_uid") == null) {
+            if (resultSet.getString(COLUMN_EVENT_UID) == null) {
               continue;
             }
 
-            String eventUid = resultSet.getString("ev_uid");
+            String eventUid = resultSet.getString(COLUMN_EVENT_UID);
 
             validateIdentifiersPresence(resultSet, params.getIdSchemes());
 
@@ -259,25 +281,26 @@ class JdbcEventStore implements EventStore {
               }
 
               TrackedEntity te = new TrackedEntity();
-              te.setUid(resultSet.getString("te_uid"));
-              event.setStatus(EventStatus.valueOf(resultSet.getString(EVENT_STATUS)));
+              te.setUid(resultSet.getString(COLUMN_TRACKEDENTITY_UID));
+              event.setStatus(EventStatus.valueOf(resultSet.getString(COLUMN_EVENT_STATUS)));
               ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
               Program program = new Program();
               program.setUid(resultSet.getString("p_identifier"));
               program.setProgramType(programType);
               Enrollment enrollment = new Enrollment();
-              enrollment.setUid(resultSet.getString("en_uid"));
+              enrollment.setUid(resultSet.getString(COLUMN_ENROLLMENT_UID));
               enrollment.setProgram(program);
               enrollment.setTrackedEntity(te);
               OrganisationUnit ou = new OrganisationUnit();
-              ou.setUid(resultSet.getString("ou_uid"));
-              ou.setName(resultSet.getString("ou_name"));
+              ou.setUid(resultSet.getString(COLUMN_ORG_UNIT_UID));
+              ou.setName(resultSet.getString(COLUMN_ORG_UNIT_NAME));
               ProgramStage ps = new ProgramStage();
               ps.setUid(resultSet.getString("ps_identifier"));
-              event.setDeleted(resultSet.getBoolean("ev_deleted"));
+              event.setDeleted(resultSet.getBoolean(COLUMN_EVENT_DELETED));
 
-              enrollment.setStatus(ProgramStatus.valueOf(resultSet.getString("en_status")));
-              enrollment.setFollowup(resultSet.getBoolean("en_followup"));
+              enrollment.setStatus(
+                  ProgramStatus.valueOf(resultSet.getString(COLUMN_ENROLLMENT_STATUS)));
+              enrollment.setFollowup(resultSet.getBoolean(COLUMN_ENROLLMENT_FOLLOWUP));
               event.setEnrollment(enrollment);
               event.setProgramStage(ps);
               event.setOrganisationUnit(ou);
@@ -296,20 +319,20 @@ class JdbcEventStore implements EventStore {
               coc.setCategoryOptions(options);
               event.setAttributeOptionCombo(coc);
 
-              event.setStoredBy(resultSet.getString("ev_storedby"));
-              event.setDueDate(resultSet.getTimestamp("ev_duedate"));
-              event.setExecutionDate(resultSet.getTimestamp("ev_executiondate"));
-              event.setCreated(resultSet.getTimestamp("ev_created"));
+              event.setStoredBy(resultSet.getString(COLUMN_EVENT_STORED_BY));
+              event.setDueDate(resultSet.getTimestamp(COLUMN_EVENT_DUE_DATE));
+              event.setExecutionDate(resultSet.getTimestamp(COLUMN_EVENT_EXECUTION_DATE));
+              event.setCreated(resultSet.getTimestamp(COLUMN_EVENT_CREATED));
               event.setCreatedByUserInfo(
                   EventUtils.jsonToUserInfo(
-                      resultSet.getString("ev_createdbyuserinfo"), jsonMapper));
-              event.setLastUpdated(resultSet.getTimestamp("ev_lastupdated"));
+                      resultSet.getString(COLUMN_EVENT_CREATED_BY), jsonMapper));
+              event.setLastUpdated(resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED));
               event.setLastUpdatedByUserInfo(
                   EventUtils.jsonToUserInfo(
-                      resultSet.getString("ev_lastupdatedbyuserinfo"), jsonMapper));
+                      resultSet.getString(COLUMN_EVENT_LAST_UPDATED_BY), jsonMapper));
 
-              event.setCompletedBy(resultSet.getString("ev_completedby"));
-              event.setCompletedDate(resultSet.getTimestamp("ev_completeddate"));
+              event.setCompletedBy(resultSet.getString(COLUMN_EVENT_COMPLETED_BY));
+              event.setCompletedDate(resultSet.getTimestamp(COLUMN_EVENT_COMPLETED_DATE));
 
               if (resultSet.getObject("ev_geometry") != null) {
                 try {
@@ -324,8 +347,8 @@ class JdbcEventStore implements EventStore {
               if (resultSet.getObject("user_assigned") != null) {
                 User eventUser = new User();
                 eventUser.setUid(resultSet.getString("user_assigned"));
-                eventUser.setUsername(resultSet.getString("user_assigned_username"));
-                eventUser.setName(resultSet.getString("user_assigned_name"));
+                eventUser.setUsername(resultSet.getString(COLUMN_EVENT_ASSIGNED_USER_USERNAME));
+                eventUser.setName(resultSet.getString(COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME));
                 eventUser.setFirstName(resultSet.getString("user_assigned_first_name"));
                 eventUser.setSurname(resultSet.getString("user_assigned_surname"));
                 event.setAssignedUser(eventUser);
@@ -421,7 +444,7 @@ class JdbcEventStore implements EventStore {
       throw new IllegalStateException(
           String.format(
               "Program %s does not have a value assigned for idScheme %s",
-              rowSet.getString("p_uid"), idSchemes.getProgramIdScheme().name()));
+              rowSet.getString(COLUMN_PROGRAM_UID), idSchemes.getProgramIdScheme().name()));
     }
 
     if (StringUtils.isEmpty(rowSet.getString("ps_identifier"))) {
@@ -435,7 +458,7 @@ class JdbcEventStore implements EventStore {
       throw new IllegalStateException(
           String.format(
               "OrgUnit %s does not have a value assigned for idScheme %s",
-              rowSet.getString("ou_uid"), idSchemes.getOrgUnitIdScheme().name()));
+              rowSet.getString(COLUMN_ORG_UNIT_UID), idSchemes.getOrgUnitIdScheme().name()));
     }
 
     if (StringUtils.isEmpty(rowSet.getString("coc_identifier"))) {
@@ -637,20 +660,49 @@ class JdbcEventStore implements EventStore {
         new StringBuilder()
             .append("select ")
             .append(getEventSelectIdentifiersByIdScheme(params))
-            .append(" ev.uid as ev_uid, ")
-            .append("ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, ")
+            .append(" ev.uid as ")
+            .append(COLUMN_EVENT_UID)
+            .append(", ")
+            .append("ou.uid as ")
+            .append(COLUMN_ORG_UNIT_UID)
+            .append(", p.uid as ")
+            .append(COLUMN_PROGRAM_UID)
+            .append(", ps.uid as ps_uid, ")
+            .append("ev.eventid as ev_id, ev.status as ")
+            .append(COLUMN_EVENT_STATUS)
+            .append(", ev.executiondate as ")
+            .append(COLUMN_EVENT_EXECUTION_DATE)
+            .append(", ")
+            .append("ev.eventdatavalues as ev_eventdatavalues, ev.duedate as ")
+            .append(COLUMN_EVENT_DUE_DATE)
+            .append(", ev.completedby as ")
+            .append(COLUMN_EVENT_COMPLETED_BY)
+            .append(", ev.storedby as ")
+            .append(COLUMN_EVENT_STORED_BY)
+            .append(", ")
+            .append("ev.created as ")
+            .append(COLUMN_EVENT_CREATED)
+            .append(", ev.createdbyuserinfo as ")
+            .append(COLUMN_EVENT_CREATED_BY)
+            .append(", ev.lastupdated as ")
+            .append(COLUMN_EVENT_LAST_UPDATED)
+            .append(", ev.lastupdatedbyuserinfo as ")
+            .append(COLUMN_EVENT_LAST_UPDATED_BY)
+            .append(", ")
+            .append("ev.completeddate as ")
+            .append(COLUMN_EVENT_COMPLETED_DATE)
+            .append(", ev.deleted as ")
+            .append(COLUMN_EVENT_DELETED)
+            .append(", ")
             .append(
-                "ev.eventid as ev_id, ev.status as ev_status, ev.executiondate as ev_executiondate, ")
-            .append(
-                "ev.eventdatavalues as ev_eventdatavalues, ev.duedate as ev_duedate, ev.completedby as ev_completedby, ev.storedby as ev_storedby, ")
-            .append(
-                "ev.created as ev_created, ev.createdbyuserinfo as ev_createdbyuserinfo, ev.lastupdated as ev_lastupdated, ev.lastupdatedbyuserinfo as ev_lastupdatedbyuserinfo, ")
-            .append("ev.completeddate as ev_completeddate, ev.deleted as ev_deleted, ")
-            .append(
-                "ST_AsText( ev.geometry ) as ev_geometry, au.uid as user_assigned, (au.firstName || ' ' || au.surName) as user_assigned_name,")
+                "ST_AsText( ev.geometry ) as ev_geometry, au.uid as user_assigned, (au.firstName || ' ' || au.surName) as ")
+            .append(COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME)
+            .append(",")
             .append(
                 "au.firstName as user_assigned_first_name, au.surName as user_assigned_surname, ")
-            .append("au.username as user_assigned_username,")
+            .append("au.username as ")
+            .append(COLUMN_EVENT_ASSIGNED_USER_USERNAME)
+            .append(",")
             .append("coc.uid as coc_uid, ")
             .append("coc_agg.co_uids AS co_uids, ")
             .append("coc_agg.co_count AS option_size, ");
@@ -666,10 +718,22 @@ class JdbcEventStore implements EventStore {
 
     return selectBuilder
         .append(
-            "en.uid as en_uid, en.status as en_status, en.followup as en_followup, en.enrollmentdate as en_enrollmentdate, en.incidentdate as en_incidentdate, ")
-        .append("p.type as p_type, ps.uid as ps_uid, ou.name as ou_name, ")
+            "en.uid as "
+                + COLUMN_ENROLLMENT_UID
+                + ", en.status as "
+                + COLUMN_ENROLLMENT_STATUS
+                + ", en.followup as "
+                + COLUMN_ENROLLMENT_FOLLOWUP
+                + ", en.enrollmentdate as "
+                + COLUMN_ENROLLMENT_DATE
+                + ", en.incidentdate as en_incidentdate, ")
+        .append("p.type as p_type, ps.uid as ps_uid, ou.name as ")
+        .append(COLUMN_ORG_UNIT_NAME)
+        .append(", ")
+        .append("te.trackedentityid as te_id, te.uid as ")
+        .append(COLUMN_TRACKEDENTITY_UID)
         .append(
-            "te.trackedentityid as te_id, te.uid as te_uid, teou.uid as te_ou, teou.name as te_ou_name, te.created as te_created, te.inactive as te_inactive ")
+            ", teou.uid as te_ou, teou.name as te_ou_name, te.created as te_created, te.inactive as te_inactive ")
         .append(
             getFromWhereClause(
                 params,
@@ -886,7 +950,6 @@ class JdbcEventStore implements EventStore {
         && !params.getEvents().isEmpty()
         && !params.hasDataElementFilter()) {
       mapSqlParameterSource.addValue("ev_uid", params.getEvents());
-
       fromBuilder.append(hlp.whereAnd()).append(" (ev.uid in (").append(":ev_uid").append(")) ");
     }
 
@@ -1105,28 +1168,28 @@ class JdbcEventStore implements EventStore {
 
     if (params.getEventStatus() != null) {
       if (params.getEventStatus() == EventStatus.VISITED) {
-        mapSqlParameterSource.addValue(EVENT_STATUS, EventStatus.ACTIVE.name());
+        mapSqlParameterSource.addValue(COLUMN_EVENT_STATUS, EventStatus.ACTIVE.name());
 
         stringBuilder
             .append(hlp.whereAnd())
             .append(EVENT_STATUS_EQ)
-            .append(":" + EVENT_STATUS)
+            .append(":" + COLUMN_EVENT_STATUS)
             .append(" and ev.executiondate is not null ");
       } else if (params.getEventStatus() == EventStatus.OVERDUE) {
-        mapSqlParameterSource.addValue(EVENT_STATUS, EventStatus.SCHEDULE.name());
+        mapSqlParameterSource.addValue(COLUMN_EVENT_STATUS, EventStatus.SCHEDULE.name());
 
         stringBuilder
             .append(hlp.whereAnd())
             .append(" date(now()) > date(ev.duedate) and ev.status = ")
-            .append(":" + EVENT_STATUS)
+            .append(":" + COLUMN_EVENT_STATUS)
             .append(" ");
       } else {
-        mapSqlParameterSource.addValue(EVENT_STATUS, params.getEventStatus().name());
+        mapSqlParameterSource.addValue(COLUMN_EVENT_STATUS, params.getEventStatus().name());
 
         stringBuilder
             .append(hlp.whereAnd())
             .append(EVENT_STATUS_EQ)
-            .append(":" + EVENT_STATUS)
+            .append(":" + COLUMN_EVENT_STATUS)
             .append(" ");
       }
     }
