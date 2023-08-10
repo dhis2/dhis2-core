@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.converter;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import com.google.common.base.Objects;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -230,7 +229,7 @@ public class EventTrackerConverterService
 
     result.setStatus(event.getStatus());
 
-    if (!Objects.equal(previousStatus, result.getStatus()) && result.isCompleted()) {
+    if (previousStatus != result.getStatus() && result.isCompleted()) {
       result.setCompletedDate(now);
       result.setCompletedBy(preheat.getUsername());
     }
