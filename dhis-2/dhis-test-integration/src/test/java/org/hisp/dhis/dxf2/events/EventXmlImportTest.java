@@ -38,7 +38,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -127,7 +127,7 @@ class EventXmlImportTest extends TransactionalIntegrationTest {
     assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus());
     Events events =
         eventService.getEvents(
-            new EventSearchParams()
+            new EventQueryParams()
                 .setProgram(programA)
                 .setOrgUnitSelectionMode(OrganisationUnitSelectionMode.ACCESSIBLE));
     assertEquals(1, events.getEvents().size());
@@ -144,7 +144,7 @@ class EventXmlImportTest extends TransactionalIntegrationTest {
     // Get by admin
     Events events =
         eventService.getEvents(
-            new EventSearchParams()
+            new EventQueryParams()
                 .setProgram(programA)
                 .setOrgUnitSelectionMode(OrganisationUnitSelectionMode.ACCESSIBLE));
     assertEquals(1, events.getEvents().size());
@@ -154,7 +154,7 @@ class EventXmlImportTest extends TransactionalIntegrationTest {
     injectSecurityContext(user);
     events =
         eventService.getEvents(
-            new EventSearchParams()
+            new EventQueryParams()
                 .setProgram(programA)
                 .setOrgUnitSelectionMode(OrganisationUnitSelectionMode.ACCESSIBLE));
     assertEquals(0, events.getEvents().size());
