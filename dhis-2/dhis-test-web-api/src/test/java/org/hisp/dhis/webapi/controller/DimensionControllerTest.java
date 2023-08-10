@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.webapi.controller.AbstractGistControllerTest.assertHasNoPager;
 import static org.hisp.dhis.webapi.controller.AbstractGistControllerTest.assertHasPager;
 import static org.hisp.dhis.webapi.controller.AbstractGistControllerTest.assertHasPagerLinks;
@@ -155,7 +154,8 @@ class DimensionControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testGetDimensionsWhenNone() {
     JsonObject response = GET("/dimensions").content();
-    assertHasPager(response, 1, 50, 0);
+    JsonObject pager = response.getObject("pager");
+    assertEquals("{\"page\":1,\"pageCount\":1,\"total\":0,\"pageSize\":50}", pager.toString());
     assertHasPagerLinks(response, 1);
   }
 

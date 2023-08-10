@@ -70,7 +70,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.PaginationUtils;
 import org.hisp.dhis.webapi.utils.PaginationUtils.PagedEntities;
-import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.hisp.dhis.webapi.webdomain.WebRequestData;
@@ -151,7 +150,7 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
    */
   @Override
   @GetMapping
-  public @ResponseBody ResponseEntity<StreamingJsonRoot<DimensionalObject>> getObjectList(
+  public @ResponseBody RootNode getObjectList(
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
@@ -166,12 +165,18 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
         PaginationUtils.addPagingIfEnabled(metadata, requestData.getOptions(), entities);
     linkService.generatePagerLinks(pagedEntities.getPager(), RESOURCE_PATH);
 
-    return ResponseEntity.ok(
-        new StreamingJsonRoot<>(
-            pagedEntities.getPager(),
-            getSchema().getCollectionName(),
-            org.hisp.dhis.fieldfiltering.FieldFilterParams.of(
-                pagedEntities.getEntities(), requestData.getFields())));
+    RootNode rootNode = NodeUtils.createMetadata();
+
+    if (pagedEntities.getPager() != null) {
+      rootNode.addChild(NodeUtils.createPager(pagedEntities.getPager()));
+    }
+
+    rootNode.addChild(
+        oldFieldFilterService.toCollectionNode(
+            DimensionalObject.class,
+            new FieldFilterParams(pagedEntities.getEntities(), requestData.getFields())));
+
+    return rootNode;
   }
 
   @SuppressWarnings("unchecked")
