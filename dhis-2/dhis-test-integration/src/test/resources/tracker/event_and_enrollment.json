@@ -686,7 +686,7 @@
         "identifier": "DiszpKrYNg8"
       },
       "status": "ACTIVE",
-      "deleted": false,
+      "deleted": false
       "dataValues": [
         {
           "created": "2022-04-22T06:00:34.319",
@@ -734,7 +734,7 @@
         "identifier": "DiszpKrYNg8"
       },
       "status": "ACTIVE",
-      "deleted": false,
+      "deleted": false
       "dataValues": [
         {
           "created": "2022-04-22T06:00:30.559",
@@ -782,7 +782,7 @@
         "identifier": "DiszpKrYNg8"
       },
       "status": "ACTIVE",
-      "deleted": false,
+      "deleted": false
       "dataValues": [
         {
           "created": "2022-04-22T06:00:14.224",
