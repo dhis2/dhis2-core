@@ -42,8 +42,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParenthes
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
-import static org.hisp.dhis.resourcetable.ResourceTable.FIRST_YEAR_SUPPORTED;
-import static org.hisp.dhis.resourcetable.ResourceTable.LATEST_YEAR_SUPPORTED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
@@ -420,6 +418,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+    Integer firstDataYear = availableDataYears.get(0);
+    Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
+
     Program program = partition.getMasterTable().getProgram();
     String start = DateUtils.getLongDateString(partition.getStartDate());
     String end = DateUtils.getLongDateString(partition.getEndDate());
@@ -472,10 +475,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + getDateLinkedToStatus()
             + ") is not null "
             + "and dps.year >= "
-            + FIRST_YEAR_SUPPORTED
+            + firstDataYear
             + " "
             + "and dps.year <= "
-            + LATEST_YEAR_SUPPORTED
+            + latestDataYear
             + " "
             + "and psi.status in ("
             + String.join(",", EXPORTABLE_EVENT_STATUSES)
