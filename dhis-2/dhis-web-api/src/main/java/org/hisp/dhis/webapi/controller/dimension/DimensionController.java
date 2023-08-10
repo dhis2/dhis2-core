@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.dimension.AnalyticsDimensionService;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionService;
@@ -54,6 +56,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeUtils;
@@ -63,10 +66,15 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.utils.PaginationUtils;
+import org.hisp.dhis.webapi.utils.PaginationUtils.PagedEntities;
+import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.webapi.webdomain.WebRequestData;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -81,6 +89,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @OpenApi.Tags("metadata")
 @Controller
 @RequestMapping(value = DimensionController.RESOURCE_PATH)
+@RequiredArgsConstructor
 public class DimensionController extends AbstractCrudController<DimensionalObject> {
   public static final String RESOURCE_PATH = "/dimensions";
 
@@ -88,13 +97,13 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
   // Dependencies
   // -------------------------------------------------------------------------
 
-  @Autowired private DimensionService dimensionService;
+  private final DimensionService dimensionService;
 
-  @Autowired private AnalyticsDimensionService analyticsDimensionService;
+  private final AnalyticsDimensionService analyticsDimensionService;
 
-  @Autowired private IdentifiableObjectManager identifiableObjectManager;
+  private final IdentifiableObjectManager identifiableObjectManager;
 
-  @Autowired private DimensionItemPageHandler dimensionItemPageHandler;
+  private final DimensionItemPageHandler dimensionItemPageHandler;
 
   // -------------------------------------------------------------------------
   // Controller
@@ -128,6 +137,43 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
     }
 
     return emptyList();
+  }
+
+  /**
+   * This method is overridden as {@link DimensionalObject} requires different retrieval and paging
+   * considerations compared to the base generic method. There are many different types of {@link
+   * DimensionalObject} and there is no specific {@link InternalHibernateGenericStore} to retrieve
+   * them from.
+   *
+   * @param rpParameters request parameters
+   * @param orderParams order parameters
+   * @param response response
+   * @param currentUser current user
+   * @return response with Collection of {@link DimensionalObject}
+   */
+  @Override
+  @GetMapping
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<DimensionalObject>> getObjectList(
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      @CurrentUser User currentUser) {
+
+    WebRequestData requestData = applyRequestSetup(rpParameters);
+
+    WebMetadata metadata = new WebMetadata();
+    List<DimensionalObject> entities = dimensionService.getAllDimensions();
+
+    PagedEntities<DimensionalObject> pagedEntities =
+        PaginationUtils.addPagingIfEnabled(metadata, requestData.getOptions(), entities);
+    linkService.generatePagerLinks(pagedEntities.getPager(), RESOURCE_PATH);
+
+    return ResponseEntity.ok(
+        new StreamingJsonRoot<>(
+            pagedEntities.getPager(),
+            getSchema().getCollectionName(),
+            org.hisp.dhis.fieldfiltering.FieldFilterParams.of(
+                pagedEntities.getEntities(), requestData.getFields())));
   }
 
   @SuppressWarnings("unchecked")
@@ -190,7 +236,7 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
 
   @GetMapping("/constraints")
   public @ResponseBody ResponseEntity<JsonRoot> getDimensionConstraints(
-      @RequestParam(value = "links", defaultValue = "true", required = false) Boolean links,
+      @RequestParam(value = "links", defaultValue = "true", required = false) boolean links,
       @RequestParam(defaultValue = "*") List<FieldPath> fields) {
     List<DimensionalObject> dimensionConstraints = dimensionService.getDimensionConstraints();
 
@@ -219,7 +265,7 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
   @GetMapping("/dataSet/{uid}")
   public ResponseEntity<JsonRoot> getDimensionsForDataSet(
       @PathVariable String uid,
-      @RequestParam(value = "links", defaultValue = "true", required = false) Boolean links,
+      @RequestParam(value = "links", defaultValue = "true", required = false) boolean links,
       @RequestParam(defaultValue = "*") List<FieldPath> fields)
       throws WebMessageException {
     WebMetadata metadata = new WebMetadata();
@@ -252,5 +298,29 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
         fieldFilterService.toObjectNodes(metadata.getDimensions(), fields);
 
     return ResponseEntity.ok(new JsonRoot("dimensions", objectNodes));
+  }
+
+  /**
+   * This method performs some generic steps. It can be moved into the {@link
+   * org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController} so other Controllers can use it
+   * to avoid duplication.
+   *
+   * @param rpParameters request parameters
+   * @return {@link WebRequestData} record purely for data packaging purposes, containing {@link
+   *     WebOptions}, {@link List} of fields and {@link List} of filters
+   */
+  protected WebRequestData applyRequestSetup(Map<String, String> rpParameters) {
+
+    List<String> fields = new ArrayList<>(contextService.getParameterValues("fields"));
+    List<String> filters = new ArrayList<>(contextService.getParameterValues("filter"));
+
+    if (fields.isEmpty()) {
+      fields.addAll(Preset.defaultPreset().getFields());
+    }
+
+    WebOptions options = new WebOptions(rpParameters);
+    forceFiltering(options, filters);
+
+    return new WebRequestData(options, fields, filters);
   }
 }
