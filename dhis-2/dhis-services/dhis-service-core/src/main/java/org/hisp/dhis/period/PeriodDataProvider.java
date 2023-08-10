@@ -85,7 +85,7 @@ public class PeriodDataProvider {
    */
   private List<Integer> fetchAvailableYears() {
     String dueDateOrExecutionDate =
-        "(case when 'SCHEDULE' = ev.status then ev.duedate else ev.executiondate end)";
+        "(case when 'SCHEDULE' = psi.status then psi.duedate else psi.executiondate end)";
 
     String sql =
         "( select distinct (extract(year from pe.startdate)) as datayear from period pe )"
@@ -95,11 +95,11 @@ public class PeriodDataProvider {
             + " ( select distinct (extract(year from "
             + dueDateOrExecutionDate
             + ")) as datayear"
-            + " from event ev"
+            + " from programstageinstance psi"
             + " where "
             + dueDateOrExecutionDate
             + " is not null"
-            + " and ev.deleted is false ) order by datayear asc";
+            + " and psi.deleted is false ) order by datayear asc";
 
     return jdbcTemplate.queryForList(sql, Integer.class);
   }
