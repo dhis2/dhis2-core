@@ -27,20 +27,21 @@
  */
 package org.hisp.dhis.system.util;
 
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.hisp.dhis.system.util.MathUtils.parseDouble;
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.*;
+import static org.hisp.dhis.common.ValueType.MULTI_TEXT;
+import static org.hisp.dhis.datavalue.DataValue.FALSE;
+import static org.hisp.dhis.datavalue.DataValue.TRUE;
+import static org.hisp.dhis.system.util.MathUtils.*;
+import static org.hisp.dhis.util.DateUtils.dateIsValid;
+import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import java.awt.geom.Point2D;
-import java.util.Date;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.validator.routines.DateValidator;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.analytics.AggregationType;
@@ -50,13 +51,11 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypeOptions;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.render.ObjectValueTypeRenderingOption;
 import org.hisp.dhis.render.StaticRenderingConfiguration;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
-import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Lars Helge Overland
@@ -142,6 +141,13 @@ public class ValidationUtils {
   private static final Pattern GENERIC_PHONE_NUMBER =
       Pattern.compile("^[0-9+\\(\\)#\\.\\s\\/ext-]{6,50}$");
 
+  private static final Map<String, String> BOOLEAN_VALUES =
+      Map.of(
+          "true", TRUE,
+          "false", FALSE,
+          "0", FALSE,
+          "1", TRUE);
+
   /**
    * Validates whether a filter expression contains malicious code such as SQL injection attempts.
    *
@@ -178,27 +184,6 @@ public class ValidationUtils {
    */
   public static boolean emailIsValid(String email) {
     return EmailValidator.getInstance().isValid(email);
-  }
-
-  /**
-   * Validates whether a date string is valid for the given Locale.
-   *
-   * @param date the date string.
-   * @param locale the Locale
-   * @return true if the date string is valid, false otherwise.
-   */
-  public static boolean dateIsValid(String date, Locale locale) {
-    return DateValidator.getInstance().isValid(date, locale);
-  }
-
-  /**
-   * Validates whether a date string is valid for the default Locale.
-   *
-   * @param date the date string.
-   * @return true if the date string is valid, false otherwise.
-   */
-  public static boolean dateIsValid(String date) {
-    return dateIsValid(date, null);
   }
 
   /**
@@ -411,8 +396,7 @@ public class ValidationUtils {
     return "[" + longitude + "," + latitude + "]";
   }
 
-  public static String dataValueIsValid(
-      Object value, ValueType valueType, ValueTypeOptions options) {
+  public static String valueIsValid(Object value, ValueType valueType, ValueTypeOptions options) {
     Objects.requireNonNull(value);
     Objects.requireNonNull(valueType);
     Objects.requireNonNull(options);
@@ -451,8 +435,8 @@ public class ValidationUtils {
     return options.getClass().equals(valueType.getValueTypeOptionsClass());
   }
 
-  public static String dataValueIsValid(String value, DataElement dataElement) {
-    return dataValueIsValid(value, dataElement, true);
+  public static String valueIsValid(String value, DataElement dataElement) {
+    return valueIsValid(value, dataElement, true);
   }
 
   /**
@@ -483,7 +467,7 @@ public class ValidationUtils {
    * @param dataElement the data element.
    * @return null if the value is valid, a string if not.
    */
-  public static String dataValueIsValid(
+  public static String valueIsValid(
       String value, DataElement dataElement, boolean validateOptions) {
     if (dataElement == null) {
       return "data_element_or_type_null_or_empty";
@@ -493,7 +477,7 @@ public class ValidationUtils {
       return "data_element_or_type_null_or_empty";
     }
     OptionSet options = dataElement.getOptionSet();
-    boolean isMultiText = valueType == ValueType.MULTI_TEXT;
+    boolean isMultiText = valueType == MULTI_TEXT;
     if (isMultiText && options == null) {
       return "data_element_lacks_option_set";
     }
@@ -505,7 +489,7 @@ public class ValidationUtils {
         return "value_not_valid_option";
       }
     }
-    return dataValueIsValid(value, valueType);
+    return valueIsValid(value, valueType);
   }
 
   /**
@@ -515,7 +499,7 @@ public class ValidationUtils {
    * @param valueType the {@link ValueType}.
    * @return null if the value is valid, a string if not.
    */
-  public static String dataValueIsValid(String value, ValueType valueType) {
+  public static String valueIsValid(String value, ValueType valueType) {
     if (value == null || value.trim().isEmpty()) {
       return null;
     }
@@ -533,31 +517,29 @@ public class ValidationUtils {
       case LETTER:
         return !isValidLetter(value) ? "value_not_valid_letter" : null;
       case NUMBER:
-        return !MathUtils.isNumeric(value) ? "value_not_numeric" : null;
+        return !isNumeric(value) ? "value_not_numeric" : null;
       case UNIT_INTERVAL:
-        return !MathUtils.isUnitInterval(value) ? "value_not_unit_interval" : null;
+        return !isUnitInterval(value) ? "value_not_unit_interval" : null;
       case PERCENTAGE:
-        return !MathUtils.isPercentage(value) ? "value_not_percentage" : null;
+        return !isPercentage(value) ? "value_not_percentage" : null;
       case INTEGER:
-        return !MathUtils.isInteger(value) ? "value_not_integer" : null;
+        return !isInteger(value) ? "value_not_integer" : null;
       case INTEGER_POSITIVE:
-        return !MathUtils.isPositiveInteger(value) ? "value_not_positive_integer" : null;
+        return !isPositiveInteger(value) ? "value_not_positive_integer" : null;
       case INTEGER_NEGATIVE:
-        return !MathUtils.isNegativeInteger(value) ? "value_not_negative_integer" : null;
+        return !isNegativeInteger(value) ? "value_not_negative_integer" : null;
       case INTEGER_ZERO_OR_POSITIVE:
-        return !MathUtils.isZeroOrPositiveInteger(value)
-            ? "value_not_zero_or_positive_integer"
-            : null;
+        return !isZeroOrPositiveInteger(value) ? "value_not_zero_or_positive_integer" : null;
       case BOOLEAN:
-        return !MathUtils.isBool(trimToEmpty(value).toLowerCase()) ? "value_not_bool" : null;
+        return !isBool(trimToEmpty(value).toLowerCase()) ? "value_not_bool" : null;
       case TRUE_ONLY:
-        return !DataValue.TRUE.equalsIgnoreCase(trimToEmpty(value)) ? "value_not_true_only" : null;
+        return !TRUE.equalsIgnoreCase(trimToEmpty(value)) ? "value_not_true_only" : null;
       case DATE:
-        return !DateUtils.dateIsValid(value) ? "value_not_valid_date" : null;
+        return !dateIsValid(value) ? "value_not_valid_date" : null;
       case DATETIME:
-        return !DateUtils.dateTimeIsValid(value) ? "value_not_valid_datetime" : null;
+        return !dateTimeIsValid(value) ? "value_not_valid_datetime" : null;
       case COORDINATE:
-        return !MathUtils.isCoordinate(value) ? "value_not_coordinate" : null;
+        return !isCoordinate(value) ? "value_not_coordinate" : null;
       case URL:
         return !urlIsValid(value) ? "value_not_url" : null;
       case FILE_RESOURCE:
@@ -565,6 +547,56 @@ public class ValidationUtils {
         return !CodeGenerator.isValidUid(value) ? "value_not_valid_file_resource_uid" : null;
       default:
         return null;
+    }
+  }
+
+  /**
+   * Indicates whether the given "value" is comparable in relation to the given {@link ValueType}.
+   * Empty/null values are always considered NOT comparable.
+   *
+   * @param value the value.
+   * @param valueType the {@link ValueType}.
+   * @return true if the value is comparable, false otherwise.
+   */
+  public static boolean valueIsComparable(String value, ValueType valueType) {
+    if (isEmpty(value) || value.length() > VALUE_MAX_LENGTH || valueType == null) {
+      return false;
+    }
+
+    // Value type grouped checks.
+    switch (valueType) {
+      case INTEGER:
+      case INTEGER_POSITIVE:
+      case INTEGER_NEGATIVE:
+      case INTEGER_ZERO_OR_POSITIVE:
+        return isInteger(trim(value));
+      case NUMBER:
+      case UNIT_INTERVAL:
+      case PERCENTAGE:
+        return isValidDouble(parseDouble(trim(value)));
+      case BOOLEAN:
+      case TRUE_ONLY:
+        return isBool(defaultIfBlank(BOOLEAN_VALUES.get(lowerCase(trim(value))), EMPTY));
+      case DATE:
+        return dateIsValid(trim(value));
+      case TIME:
+        return timeIsValid(trim(value));
+      case DATETIME:
+        return dateTimeIsValid(trim(value));
+      case LONG_TEXT:
+      case MULTI_TEXT:
+      case PHONE_NUMBER:
+      case EMAIL:
+      case TEXT:
+      case LETTER:
+      case COORDINATE:
+      case URL:
+      case FILE_RESOURCE:
+      case IMAGE:
+      case USERNAME:
+      case GEOJSON:
+      default:
+        return true;
     }
   }
 
@@ -674,9 +706,9 @@ public class ValidationUtils {
   public static String normalizeBoolean(String bool, ValueType valueType) {
     if (valueType != null && valueType.isBoolean()) {
       if (BOOL_FALSE_VARIANTS.contains(bool) && valueType != ValueType.TRUE_ONLY) {
-        return DataValue.FALSE;
+        return FALSE;
       } else if (BOOL_TRUE_VARIANTS.contains(bool)) {
-        return DataValue.TRUE;
+        return TRUE;
       }
     }
 

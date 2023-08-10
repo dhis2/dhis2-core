@@ -241,7 +241,7 @@ public class DefaultProgramStageInstanceService implements ProgramStageInstanceS
     }
 
     String result =
-        ValidationUtils.dataValueIsValid(eventDataValue.getValue(), dataElement.getValueType());
+        ValidationUtils.valueIsValid(eventDataValue.getValue(), dataElement.getValueType());
 
     return result == null ? null : "Value is not valid:  " + result;
   }

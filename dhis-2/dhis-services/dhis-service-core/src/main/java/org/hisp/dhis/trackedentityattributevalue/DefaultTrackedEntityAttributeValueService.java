@@ -29,7 +29,7 @@ package org.hisp.dhis.trackedentityattributevalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 
 import java.util.List;
 import java.util.Map;
@@ -158,7 +158,7 @@ public class DefaultTrackedEntityAttributeValueService
     }
 
     String result =
-        dataValueIsValid(attributeValue.getValue(), attributeValue.getAttribute().getValueType());
+        valueIsValid(attributeValue.getValue(), attributeValue.getAttribute().getValueType());
 
     if (result != null) {
       throw new IllegalQueryException("Value is not valid:  " + result);
@@ -207,7 +207,7 @@ public class DefaultTrackedEntityAttributeValueService
       attributeValue.setAutoFields();
 
       String result =
-          dataValueIsValid(attributeValue.getValue(), attributeValue.getAttribute().getValueType());
+          valueIsValid(attributeValue.getValue(), attributeValue.getAttribute().getValueType());
 
       if (result != null) {
         throw new IllegalQueryException("Value is not valid:  " + result);
