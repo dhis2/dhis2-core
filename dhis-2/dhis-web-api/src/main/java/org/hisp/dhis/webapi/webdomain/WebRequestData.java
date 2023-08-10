@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,56 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.relationship;
+package org.hisp.dhis.webapi.webdomain;
 
-import java.util.ArrayList;
 import java.util.List;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
-@Getter
-@Builder(toBuilder = true)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class RelationshipOperationParams {
-
-  public static final int DEFAULT_PAGE = 1;
-
-  public static final int DEFAULT_PAGE_SIZE = 50;
-
-  private TrackerType type;
-
-  private String identifier;
-
-  private Integer page;
-
-  private Integer pageSize;
-
-  private boolean totalPages;
-
-  private boolean skipPaging;
-
-  private List<Order> order;
-
-  public static class RelationshipOperationParamsBuilder {
-
-    private List<Order> order = new ArrayList<>();
-
-    // Do not remove this unused method. This hides the order field from the builder which Lombok
-    // does not support. The repeated order field and private order method prevent access to order
-    // via the builder.
-    // Order should be added via the orderBy builder methods.
-    private RelationshipOperationParamsBuilder order(List<Order> order) {
-      return this;
-    }
-
-    public RelationshipOperationParamsBuilder orderBy(String field, SortDirection direction) {
-      this.order.add(new Order(field, direction));
-      return this;
-    }
-  }
-}
+/**
+ * Record purely used to tidy up code while passing data
+ *
+ * @param options web options
+ * @param fields fields
+ * @param filters filters
+ */
+public record WebRequestData(WebOptions options, List<String> fields, List<String> filters) {}

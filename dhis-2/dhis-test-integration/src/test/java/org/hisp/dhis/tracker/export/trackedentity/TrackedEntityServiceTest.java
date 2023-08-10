@@ -423,6 +423,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitB.getUid()))
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .includeAllAttributes(true)
+            .user(user)
             .build();
 
     final List<TrackedEntity> trackedEntities =
@@ -439,6 +440,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .includeAllAttributes(true)
             .trackedEntityUids(Set.of(trackedEntityA.getUid()))
+            .user(user)
             .build();
 
     final List<TrackedEntity> trackedEntities =
@@ -462,6 +464,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .includeAllAttributes(true)
             .trackedEntityParams(TrackedEntityParams.TRUE)
+            .user(user)
             .build();
 
     final List<TrackedEntity> trackedEntities =
@@ -503,6 +506,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .includeAllAttributes(true)
+            .user(user)
             .build();
 
     final List<TrackedEntity> trackedEntities =
@@ -521,6 +525,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .programUid(programB.getUid())
+            .user(user)
             .build();
 
     final List<TrackedEntity> trackedEntities =
@@ -539,6 +544,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .programUid(programA.getUid())
+            .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =
@@ -558,6 +564,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .filters(teaA.getUid() + ":eq:M'M")
+            .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =
@@ -574,6 +581,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .filters(teaA.getUid() + ":eq:A")
+            .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =
@@ -590,6 +598,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .filters(teaA.getUid() + ":eq:Z")
+            .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =
@@ -606,6 +615,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitB.getUid()))
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .filters(teaA.getUid())
+            .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =
@@ -624,6 +634,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitB.getUid()))
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .attributes(teaA.getUid())
+            .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =
@@ -644,6 +655,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .filters(teaA.getUid())
             .attributes(teaA.getUid())
+            .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =
@@ -663,6 +675,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .lastUpdatedStartDate(Date.from(Instant.now().minus(1, ChronoUnit.DAYS)))
             .lastUpdatedEndDate(new Date())
+            .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =
@@ -677,6 +690,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .lastUpdatedStartDate(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)))
             .lastUpdatedEndDate(new Date())
+            .user(user)
             .build();
 
     assertIsEmpty(trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities());
@@ -823,6 +837,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityUids(Set.of(trackedEntityA.getUid()))
             .includeAllAttributes(true)
             .trackedEntityParams(params)
+            .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =
@@ -853,6 +868,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .trackedEntityUids(Set.of(trackedEntityA.getUid()))
             .includeAllAttributes(true)
+            .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =
@@ -874,6 +890,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityUids(Set.of(trackedEntityA.getUid()))
             .includeAllAttributes(true)
             .trackedEntityParams(params)
+            .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =
@@ -906,6 +923,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .includeAllAttributes(true)
             .trackedEntityParams(params)
+            .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =
@@ -932,6 +950,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .includeAllAttributes(true)
+            .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =
@@ -966,6 +985,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .includeAllAttributes(true)
             .trackedEntityParams(params)
+            .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =
@@ -1012,6 +1032,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .includeAllAttributes(true)
             .trackedEntityParams(params)
+            .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =
@@ -1065,6 +1086,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .trackedEntityUids(Set.of(trackedEntityA.getUid()))
             .trackedEntityParams(params)
+            .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =
@@ -1092,6 +1114,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .trackedEntityUids(Set.of(trackedEntityA.getUid()))
             .trackedEntityParams(params)
+            .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =
@@ -1119,6 +1142,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .trackedEntityUids(Set.of(trackedEntityA.getUid()))
             .trackedEntityParams(params)
+            .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =

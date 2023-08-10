@@ -256,7 +256,7 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orderBy("enrollmentDate", SortDirection.ASC)
-            .orderBy("createdAt", SortDirection.DESC)
+            .orderBy("created", SortDirection.DESC)
             .build();
 
     EnrollmentQueryParams params = mapper.map(operationParams);
@@ -264,7 +264,7 @@ class EnrollmentOperationParamsMapperTest {
     assertEquals(
         List.of(
             new Order("enrollmentDate", SortDirection.ASC),
-            new Order("createdAt", SortDirection.DESC)),
+            new Order("created", SortDirection.DESC)),
         params.getOrder());
   }
 
