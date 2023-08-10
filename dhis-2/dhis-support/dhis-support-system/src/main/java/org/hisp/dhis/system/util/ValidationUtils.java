@@ -32,8 +32,8 @@ import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.lowerCase;
 import static org.apache.commons.lang3.StringUtils.trim;
-import static org.hisp.dhis.common.ValueType.MULTI_TEXT;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.common.ValueType.MULTI_TEXT;
 import static org.hisp.dhis.datavalue.DataValue.FALSE;
 import static org.hisp.dhis.datavalue.DataValue.TRUE;
 import static org.hisp.dhis.system.util.MathUtils.isBool;
@@ -548,9 +548,9 @@ public class ValidationUtils {
       case INTEGER_ZERO_OR_POSITIVE:
         return !isZeroOrPositiveInteger(value) ? "value_not_zero_or_positive_integer" : null;
       case BOOLEAN:
-        return !isBool( value.toLowerCase() ) ? "value_not_bool" : null;
+        return !isBool(value.toLowerCase()) ? "value_not_bool" : null;
       case TRUE_ONLY:
-        return !TRUE.equalsIgnoreCase( value ) ? "value_not_true_only" : null;
+        return !TRUE.equalsIgnoreCase(value) ? "value_not_true_only" : null;
       case DATE:
         return !dateIsValid(value) ? "value_not_valid_date" : null;
       case DATETIME:

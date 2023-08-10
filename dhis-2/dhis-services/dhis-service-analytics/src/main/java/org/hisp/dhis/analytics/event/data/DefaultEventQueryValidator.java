@@ -67,8 +67,7 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
   // -------------------------------------------------------------------------
 
   @Override
-  public void validate(EventQueryParams params)
-      throws IllegalQueryException {
+  public void validate(EventQueryParams params) throws IllegalQueryException {
     queryValidator.validateMaintenanceMode();
 
     ErrorMessage error = validateForErrorMessage(params);
@@ -225,7 +224,7 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
    * @return the validation {@link ErrorMessage}, or null if no error is found.
    */
   private ErrorMessage validateFilterValue(
-          QueryOperator operator, ValueType valueType, String filterValue) {
+      QueryOperator operator, ValueType valueType, String filterValue) {
     if (!operator.isNullAllowed() && filterValue.contains(NV)) {
       return new ErrorMessage(E7229, operator.getValue());
     } else if (!filterValue.contains(NV)
