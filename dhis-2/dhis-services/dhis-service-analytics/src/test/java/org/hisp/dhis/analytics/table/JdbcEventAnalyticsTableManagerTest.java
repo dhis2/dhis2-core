@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.time.LocalDate.now;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -49,7 +50,6 @@ import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY_POINT;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
-import static org.hisp.dhis.resourcetable.ResourceTable.LATEST_YEAR_SUPPORTED;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -92,6 +92,7 @@ import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -134,6 +135,8 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Mock private AnalyticsExportSettings analyticsExportSettings;
 
+  @Mock private PeriodDataProvider periodDataProvider;
+
   private JdbcEventAnalyticsTableManager subject;
 
   private Date today;
@@ -175,7 +178,8 @@ class JdbcEventAnalyticsTableManagerTest {
             mock(PartitionManager.class),
             databaseInfo,
             jdbcTemplate,
-            analyticsExportSettings);
+            analyticsExportSettings,
+            periodDataProvider);
   }
 
   @Test
@@ -216,6 +220,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .thenReturn(lastLatestPartitionUpdate);
     when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(programs);
+    when(periodDataProvider.getAvailableYears()).thenReturn(List.of(2018, 2019, now().getYear()));
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
     assertThat(tables, hasSize(2));
@@ -253,8 +258,12 @@ class JdbcEventAnalyticsTableManagerTest {
     addCategoryCombo(program, categoryCombo);
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(Lists.newArrayList(program));
+    when(periodDataProvider.getAvailableYears()).thenReturn(List.of(2018, 2019, now().getYear()));
 
-    when(jdbcTemplate.queryForList(getYearQueryForCurrentYear(program, true), Integer.class))
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+
+    when(jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear(program, true, availableDataYears), Integer.class))
         .thenReturn(Lists.newArrayList(2018, 2019));
 
     AnalyticsTableUpdateParams params =
@@ -271,7 +280,7 @@ class JdbcEventAnalyticsTableManagerTest {
     new AnalyticsTableAsserter.Builder(tables.get(0))
         .withTableType(AnalyticsTableType.EVENT)
         .withTableName(TABLE_PREFIX + program.getUid().toLowerCase())
-        .withColumnSize(55)
+        .withColumnSize(56)
         .withDefaultColumns(subject.getFixedColumns())
         .addColumns(periodColumns)
         .addColumn(categoryA.getUid(), CHARACTER_11, "acs.", categoryA.getCreated())
@@ -298,6 +307,7 @@ class JdbcEventAnalyticsTableManagerTest {
     program.setProgramStages(Sets.newHashSet(ps1));
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(Lists.newArrayList(program));
+    when(periodDataProvider.getAvailableYears()).thenReturn(List.of(2018, 2019, now().getYear()));
 
     String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
     String aliasD2 =
@@ -359,7 +369,10 @@ class JdbcEventAnalyticsTableManagerTest {
             .withToday(today)
             .build();
 
-    when(jdbcTemplate.queryForList(getYearQueryForCurrentYear(program, true), Integer.class))
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+
+    when(jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear(program, true, availableDataYears), Integer.class))
         .thenReturn(Lists.newArrayList(2018, 2019));
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
@@ -369,7 +382,7 @@ class JdbcEventAnalyticsTableManagerTest {
     new AnalyticsTableAsserter.Builder(tables.get(0))
         .withTableName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
-        .withColumnSize(62)
+        .withColumnSize(63)
         .addColumns(periodColumns)
         .addColumn(d1.getUid(), TEXT, toAlias(aliasD1, d1.getUid())) // ValueType.TEXT
         .addColumn(d2.getUid(), DOUBLE, toAlias(aliasD2, d2.getUid())) // ValueType.PERCENTAGE
@@ -408,6 +421,9 @@ class JdbcEventAnalyticsTableManagerTest {
     program.setProgramStages(Sets.newHashSet(ps1));
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(Lists.newArrayList(program));
+    when(periodDataProvider.getAvailableYears()).thenReturn(List.of(2018, 2019, now().getYear()));
+
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
 
     String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
     String aliasTea1 =
@@ -422,7 +438,8 @@ class JdbcEventAnalyticsTableManagerTest {
             .withToday(today)
             .build();
 
-    when(jdbcTemplate.queryForList(getYearQueryForCurrentYear(program, true), Integer.class))
+    when(jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear(program, true, availableDataYears), Integer.class))
         .thenReturn(Lists.newArrayList(2018, 2019));
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
@@ -432,7 +449,7 @@ class JdbcEventAnalyticsTableManagerTest {
     new AnalyticsTableAsserter.Builder(tables.get(0))
         .withTableName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
-        .withColumnSize(57)
+        .withColumnSize(58)
         .addColumns(periodColumns)
         .addColumn(d1.getUid(), TEXT, toAlias(aliasD1, d1.getUid())) // ValueType.TEXT
         .addColumn(
@@ -465,6 +482,9 @@ class JdbcEventAnalyticsTableManagerTest {
     programA.setProgramStages(Sets.newHashSet(ps1));
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(Lists.newArrayList(programA));
+    when(periodDataProvider.getAvailableYears()).thenReturn(List.of(2018, 2019, now().getYear()));
+
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
@@ -473,7 +493,8 @@ class JdbcEventAnalyticsTableManagerTest {
             .withToday(today)
             .build();
 
-    when(jdbcTemplate.queryForList(getYearQueryForCurrentYear(programA, true), Integer.class))
+    when(jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear(programA, true, availableDataYears), Integer.class))
         .thenReturn(Lists.newArrayList(2018, 2019));
 
     subject.populateTable(
@@ -509,6 +530,9 @@ class JdbcEventAnalyticsTableManagerTest {
     programA.setProgramAttributes(Lists.newArrayList(programTrackedEntityAttribute));
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(Lists.newArrayList(programA));
+    when(periodDataProvider.getAvailableYears()).thenReturn(List.of(2018, 2019, now().getYear()));
+
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
@@ -517,7 +541,8 @@ class JdbcEventAnalyticsTableManagerTest {
             .withToday(today)
             .build();
 
-    when(jdbcTemplate.queryForList(getYearQueryForCurrentYear(programA, true), Integer.class))
+    when(jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear(programA, true, availableDataYears), Integer.class))
         .thenReturn(Lists.newArrayList(2018, 2019));
 
     subject.populateTable(
@@ -552,6 +577,9 @@ class JdbcEventAnalyticsTableManagerTest {
     programA.setProgramAttributes(Lists.newArrayList(programTrackedEntityAttribute));
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(Lists.newArrayList(programA));
+    when(periodDataProvider.getAvailableYears()).thenReturn(List.of(2018, 2019, now().getYear()));
+
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
@@ -560,7 +588,8 @@ class JdbcEventAnalyticsTableManagerTest {
             .withToday(today)
             .build();
 
-    when(jdbcTemplate.queryForList(getYearQueryForCurrentYear(programA, true), Integer.class))
+    when(jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear(programA, true, availableDataYears), Integer.class))
         .thenReturn(Lists.newArrayList(2018, 2019));
 
     // When
@@ -585,6 +614,11 @@ class JdbcEventAnalyticsTableManagerTest {
         rnd.objects(OrganisationUnitLevel.class, 2).collect(Collectors.toList());
     Program programA = rnd.nextObject(Program.class);
     programA.setId(0);
+    when(periodDataProvider.getAvailableYears()).thenReturn(List.of(2018, 2019, now().getYear()));
+
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+    int startYear = availableDataYears.get(0);
+    int latestYear = availableDataYears.get(availableDataYears.size() - 1);
 
     when(idObjectManager.getAllNoAcl(Program.class))
         .thenReturn(Collections.singletonList(programA));
@@ -600,8 +634,10 @@ class JdbcEventAnalyticsTableManagerTest {
                 + "and ("
                 + getDateLinkedToStatus()
                 + ") > '1000-01-01' and psi.deleted is false ) "
-                + "as temp where temp.supportedyear >= 1975 and temp.supportedyear <= "
-                + LATEST_YEAR_SUPPORTED,
+                + "as temp where temp.supportedyear >= "
+                + startYear
+                + " and temp.supportedyear <= "
+                + latestYear,
             Integer.class))
         .thenReturn(Lists.newArrayList(2018, 2019));
 
@@ -641,10 +677,14 @@ class JdbcEventAnalyticsTableManagerTest {
         .thenReturn(Collections.singletonList(programA));
     when(idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class))
         .thenReturn(ouGroupSet);
+    when(periodDataProvider.getAvailableYears()).thenReturn(List.of(2018, 2019, now().getYear()));
+
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder().withStartTime(START_TIME).build();
-    when(jdbcTemplate.queryForList(getYearQueryForCurrentYear(programA, false), Integer.class))
+    when(jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear(programA, false, availableDataYears), Integer.class))
         .thenReturn(Lists.newArrayList(2018, 2019));
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
@@ -677,7 +717,12 @@ class JdbcEventAnalyticsTableManagerTest {
     when(idObjectManager.getAllNoAcl(Program.class))
         .thenReturn(Collections.singletonList(programA));
     when(categoryService.getAttributeCategoryOptionGroupSetsNoAcl()).thenReturn(cogs);
-    when(jdbcTemplate.queryForList(getYearQueryForCurrentYear(programA, false), Integer.class))
+    when(periodDataProvider.getAvailableYears()).thenReturn(List.of(2018, 2019, now().getYear()));
+
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+
+    when(jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear(programA, false, availableDataYears), Integer.class))
         .thenReturn(Lists.newArrayList(2018, 2019));
 
     AnalyticsTableUpdateParams params =
@@ -751,6 +796,11 @@ class JdbcEventAnalyticsTableManagerTest {
     programA.setProgramAttributes(Lists.newArrayList(programTrackedEntityAttribute));
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(Lists.newArrayList(programA));
+    when(periodDataProvider.getAvailableYears()).thenReturn(List.of(2018, 2019, now().getYear()));
+
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+    int startYear = availableDataYears.get(0);
+    int latestYear = availableDataYears.get(availableDataYears.size() - 1);
 
     when(jdbcTemplate.queryForList(
             "select temp.supportedyear from (select distinct extract(year from "
@@ -765,8 +815,10 @@ class JdbcEventAnalyticsTableManagerTest {
                 + ") > '1000-01-01' and psi.deleted is false and ("
                 + getDateLinkedToStatus()
                 + ") >= '2018-01-01') "
-                + "as temp where temp.supportedyear >= 1975 and temp.supportedyear <= "
-                + LATEST_YEAR_SUPPORTED,
+                + "as temp where temp.supportedyear >= "
+                + startYear
+                + " and temp.supportedyear <= "
+                + latestYear,
             Integer.class))
         .thenReturn(Lists.newArrayList(2018, 2019));
 
@@ -801,7 +853,10 @@ class JdbcEventAnalyticsTableManagerTest {
     program.setCategoryCombo(categoryCombo);
   }
 
-  private String getYearQueryForCurrentYear(Program program, boolean withExecutionDate) {
+  private String getYearQueryForCurrentYear(
+      Program program, boolean withExecutionDate, List<Integer> availableDataYears) {
+    int startYear = availableDataYears.get(0);
+    int latestYear = availableDataYears.get(availableDataYears.size() - 1);
     String sql =
         "select temp.supportedyear from (select distinct "
             + "extract(year from "
@@ -822,8 +877,10 @@ class JdbcEventAnalyticsTableManagerTest {
     }
 
     sql +=
-        ") as temp where temp.supportedyear >= 1975 and temp.supportedyear <= "
-            + LATEST_YEAR_SUPPORTED;
+        ") as temp where temp.supportedyear >= "
+            + startYear
+            + " and temp.supportedyear <= "
+            + latestYear;
 
     return sql;
   }
