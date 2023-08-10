@@ -152,7 +152,7 @@ class EventAnalyticsServiceMetadataTest extends SingleSetupIntegrationTestBase {
   @Test
   @SuppressWarnings("unchecked")
   void testGetQueryItemDimensionMetadata() {
-    deB = createDataElement( 'B', ValueType.TEXT, AggregationType.SUM );
+    deB = createDataElement('B', ValueType.TEXT, AggregationType.SUM);
     DimensionalObject periods =
         new BaseDimensionalObject(
             DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of(peA));
