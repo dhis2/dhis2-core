@@ -54,7 +54,6 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
@@ -79,8 +78,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
       PartitionManager partitionManager,
       DatabaseInfo databaseInfo,
       JdbcTemplate jdbcTemplate,
-      AnalyticsExportSettings analyticsExportSettings,
-      PeriodDataProvider periodDataProvider) {
+      AnalyticsExportSettings analyticsExportSettings) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -93,8 +91,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
         partitionManager,
         databaseInfo,
         jdbcTemplate,
-        analyticsExportSettings,
-        periodDataProvider);
+        analyticsExportSettings);
   }
 
   private static final List<AnalyticsTableColumn> FIXED_COLS =

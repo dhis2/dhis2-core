@@ -28,7 +28,6 @@
 package org.hisp.dhis.datavalue;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 
 import java.util.Calendar;
@@ -49,6 +48,7 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -95,7 +95,7 @@ public class DefaultDataValueService implements DataValueService {
       return false;
     }
 
-    String result = dataValueIsValid(dataValue.getValue(), dataValue.getDataElement());
+    String result = ValidationUtils.valueIsValid(dataValue.getValue(), dataValue.getDataElement());
 
     if (result != null) {
       log.info("Data value is not valid: " + result);
@@ -162,7 +162,8 @@ public class DefaultDataValueService implements DataValueService {
     if (dataValue.isNullValue()
         || dataValueIsZeroAndInsignificant(dataValue.getValue(), dataValue.getDataElement())) {
       deleteDataValue(dataValue);
-    } else if (dataValueIsValid(dataValue.getValue(), dataValue.getDataElement()) == null) {
+    } else if (ValidationUtils.valueIsValid(dataValue.getValue(), dataValue.getDataElement())
+        == null) {
       dataValue.setLastUpdated(new Date());
 
       if (config.isEnabled(CHANGELOG_AGGREGATE)
