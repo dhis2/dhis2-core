@@ -32,26 +32,26 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_BY_USER_INFO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ENROLLMENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_GEOMETRY;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_BY_USER_INFO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_COMPLETED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_COMPLETED_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_CREATED_BY_USER_INFO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_CREATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_DELETED;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_DUE_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_ENROLLMENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_EXECUTION_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_GEOMETRY;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_LAST_UPDATED_BY_USER_INFO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_LAST_UPDATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_ORG_UNIT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_ORG_UNIT_NAME;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_PROGRAM_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_PROGRAM_STAGE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_STATUS_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_STORED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.PAGER_META_KEY;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
@@ -291,7 +291,7 @@ public abstract class AbstractEventService implements EventService {
 
   @Transactional(readOnly = true)
   @Override
-  public Events getEvents(EventSearchParams params) {
+  public Events getEvents(EventQueryParams params) {
     User user = currentUserService.getCurrentUser();
 
     validate(params, user);
@@ -328,7 +328,7 @@ public abstract class AbstractEventService implements EventService {
   /**
    * This method will apply the logic related to the parameter 'totalPages=false'. This works in
    * conjunction with the method: {@link
-   * EventStore#getEvents(EventSearchParams,List<OrganisationUnit>,Map<String,Set<String>>)}
+   * EventStore#getEvents(EventQueryParams,List<OrganisationUnit>,Map<String,Set<String>>)}
    *
    * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
    * allow us to evaluate if we are in the last page or not. And this is what his method does,
@@ -338,7 +338,7 @@ public abstract class AbstractEventService implements EventService {
    * @param eventList the reference to the list of Event
    * @return the populated SlimPager instance
    */
-  private Pager handleLastPageFlag(final EventSearchParams params, final List<Event> eventList) {
+  private Pager handleLastPageFlag(final EventQueryParams params, final List<Event> eventList) {
     Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
     Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
     boolean isLastPage = false;
@@ -358,7 +358,7 @@ public abstract class AbstractEventService implements EventService {
 
   @Transactional(readOnly = true)
   @Override
-  public Grid getEventsGrid(EventSearchParams params) {
+  public Grid getEventsGrid(EventQueryParams params) {
     if (params.getProgramStage() == null || params.getProgramStage().getProgram() == null) {
       throw new IllegalQueryException("Program stage can not be null");
     }
@@ -460,7 +460,7 @@ public abstract class AbstractEventService implements EventService {
   /**
    * This method will apply the logic related to the parameter 'totalPages=false'. This works in
    * conjunction with the method: {@link
-   * org.hisp.dhis.dxf2.events.event.JdbcEventStore#getEventPagingQuery(EventSearchParams)}
+   * org.hisp.dhis.dxf2.events.event.JdbcEventStore#getEventPagingQuery(EventQueryParams)}
    *
    * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
    * allow us to evaluate if we are in the last page or not. And this is what his method does,
@@ -470,7 +470,7 @@ public abstract class AbstractEventService implements EventService {
    * @param grid the populated Grid object
    * @return the populated SlimPager instance
    */
-  private Pager handleLastPageFlag(final EventSearchParams params, final Grid grid) {
+  private Pager handleLastPageFlag(final EventQueryParams params, final Grid grid) {
     final Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
     final Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
     boolean isLastPage = false;
@@ -491,8 +491,8 @@ public abstract class AbstractEventService implements EventService {
   @Transactional(readOnly = true)
   @Override
   public int getAnonymousEventReadyForSynchronizationCount(Date skipChangedBefore) {
-    EventSearchParams params =
-        new EventSearchParams()
+    EventQueryParams params =
+        new EventQueryParams()
             .setProgramType(ProgramType.WITHOUT_REGISTRATION)
             .setIncludeDeleted(true)
             .setSynchronizationQuery(true)
@@ -508,8 +508,8 @@ public abstract class AbstractEventService implements EventService {
     // after a successful sync of few pages, as total count will change
     // and offset won't be valid.
 
-    EventSearchParams params =
-        new EventSearchParams()
+    EventQueryParams params =
+        new EventQueryParams()
             .setProgramType(ProgramType.WITHOUT_REGISTRATION)
             .setIncludeDeleted(true)
             .setSynchronizationQuery(true)
@@ -524,7 +524,7 @@ public abstract class AbstractEventService implements EventService {
 
   @Transactional(readOnly = true)
   @Override
-  public EventRows getEventRows(EventSearchParams params) {
+  public EventRows getEventRows(EventQueryParams params) {
     User user = currentUserService.getCurrentUser();
 
     EventRows eventRows = new EventRows();
@@ -930,7 +930,7 @@ public abstract class AbstractEventService implements EventService {
   }
 
   @Override
-  public void validate(EventSearchParams params, User user) throws IllegalQueryException {
+  public void validate(EventQueryParams params, User user) throws IllegalQueryException {
     String violation = null;
 
     if (params.hasLastUpdatedDuration()
