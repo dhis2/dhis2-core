@@ -280,7 +280,7 @@ class JdbcEventAnalyticsTableManagerTest {
     new AnalyticsTableAsserter.Builder(tables.get(0))
         .withTableType(AnalyticsTableType.EVENT)
         .withTableName(TABLE_PREFIX + program.getUid().toLowerCase())
-        .withColumnSize(55)
+        .withColumnSize(56)
         .withDefaultColumns(subject.getFixedColumns())
         .addColumns(periodColumns)
         .addColumn(categoryA.getUid(), CHARACTER_11, "acs.", categoryA.getCreated())
@@ -382,7 +382,7 @@ class JdbcEventAnalyticsTableManagerTest {
     new AnalyticsTableAsserter.Builder(tables.get(0))
         .withTableName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
-        .withColumnSize(62)
+        .withColumnSize(63)
         .addColumns(periodColumns)
         .addColumn(d1.getUid(), TEXT, toAlias(aliasD1, d1.getUid())) // ValueType.TEXT
         .addColumn(d2.getUid(), DOUBLE, toAlias(aliasD2, d2.getUid())) // ValueType.PERCENTAGE
@@ -449,7 +449,7 @@ class JdbcEventAnalyticsTableManagerTest {
     new AnalyticsTableAsserter.Builder(tables.get(0))
         .withTableName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
-        .withColumnSize(57)
+        .withColumnSize(58)
         .addColumns(periodColumns)
         .addColumn(d1.getUid(), TEXT, toAlias(aliasD1, d1.getUid())) // ValueType.TEXT
         .addColumn(
