@@ -42,7 +42,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.setting.SettingKey;
@@ -64,7 +68,7 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
 
   @Override
   public void validate(EventQueryParams params)
-      throws IllegalQueryException, MaintenanceModeException {
+      throws IllegalQueryException {
     queryValidator.validateMaintenanceMode();
 
     ErrorMessage error = validateForErrorMessage(params);
@@ -221,7 +225,7 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
    * @return the validation {@link ErrorMessage}, or null if no error is found.
    */
   private ErrorMessage validateFilterValue(
-      QueryOperator operator, ValueType valueType, String filterValue) {
+          QueryOperator operator, ValueType valueType, String filterValue) {
     if (!operator.isNullAllowed() && filterValue.contains(NV)) {
       return new ErrorMessage(E7229, operator.getValue());
     } else if (!filterValue.contains(NV)

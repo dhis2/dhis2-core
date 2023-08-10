@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.common;
 
-import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.replaceOnce;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

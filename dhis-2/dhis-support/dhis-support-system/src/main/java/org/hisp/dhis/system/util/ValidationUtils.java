@@ -27,25 +27,42 @@
  */
 package org.hisp.dhis.system.util;
 
-import static org.apache.commons.lang3.ObjectUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.lowerCase;
+import static org.apache.commons.lang3.StringUtils.trim;
 import static org.hisp.dhis.common.ValueType.MULTI_TEXT;
+import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.datavalue.DataValue.FALSE;
 import static org.hisp.dhis.datavalue.DataValue.TRUE;
-import static org.hisp.dhis.system.util.MathUtils.*;
+import static org.hisp.dhis.system.util.MathUtils.isBool;
+import static org.hisp.dhis.system.util.MathUtils.isCoordinate;
+import static org.hisp.dhis.system.util.MathUtils.isInteger;
+import static org.hisp.dhis.system.util.MathUtils.isNegativeInteger;
+import static org.hisp.dhis.system.util.MathUtils.isNumeric;
+import static org.hisp.dhis.system.util.MathUtils.isPercentage;
+import static org.hisp.dhis.system.util.MathUtils.isPositiveInteger;
+import static org.hisp.dhis.system.util.MathUtils.isUnitInterval;
+import static org.hisp.dhis.system.util.MathUtils.isValidDouble;
+import static org.hisp.dhis.system.util.MathUtils.isZeroOrPositiveInteger;
+import static org.hisp.dhis.system.util.MathUtils.parseDouble;
 import static org.hisp.dhis.util.DateUtils.dateIsValid;
 import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import java.awt.geom.Point2D;
-import java.util.*;
+import java.util.Date;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.FileTypeValueOptions;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypeOptions;
@@ -531,9 +548,9 @@ public class ValidationUtils {
       case INTEGER_ZERO_OR_POSITIVE:
         return !isZeroOrPositiveInteger(value) ? "value_not_zero_or_positive_integer" : null;
       case BOOLEAN:
-        return !isBool(trimToEmpty(value).toLowerCase()) ? "value_not_bool" : null;
+        return !isBool( value.toLowerCase() ) ? "value_not_bool" : null;
       case TRUE_ONLY:
-        return !TRUE.equalsIgnoreCase(trimToEmpty(value)) ? "value_not_true_only" : null;
+        return !TRUE.equalsIgnoreCase( value ) ? "value_not_true_only" : null;
       case DATE:
         return !dateIsValid(value) ? "value_not_valid_date" : null;
       case DATETIME:
@@ -544,7 +561,7 @@ public class ValidationUtils {
         return !urlIsValid(value) ? "value_not_url" : null;
       case FILE_RESOURCE:
       case IMAGE:
-        return !CodeGenerator.isValidUid(value) ? "value_not_valid_file_resource_uid" : null;
+        return !isValidUid(value) ? "value_not_valid_file_resource_uid" : null;
       default:
         return null;
     }
