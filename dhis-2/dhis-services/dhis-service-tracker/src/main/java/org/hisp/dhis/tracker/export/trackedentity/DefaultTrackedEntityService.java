@@ -416,7 +416,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     User user = params.getUser();
 
     if (!params.hasTrackedEntities()
-        && !params.hasOrganisationUnits()
+        && !params.hasAccessibleOrgUnits()
         && !(params.isOrganisationUnitMode(ALL)
             || params.isOrganisationUnitMode(ACCESSIBLE)
             || params.isOrganisationUnitMode(CAPTURE))) {
@@ -520,7 +520,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     if (!params.hasProgram()
         && !params.hasTrackedEntityType()
         && params.hasAttributesOrFilters()
-        && !params.hasOrganisationUnits()) {
+        && !params.hasAccessibleOrgUnits()) {
       List<String> uniqueAttributeIds =
           trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
               .map(TrackedEntityAttribute::getUid)
@@ -612,11 +612,11 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
 
     if (params.isOrganisationUnitMode(SELECTED)) {
-      searchOrgUnits = params.getOrgUnits();
+      searchOrgUnits = params.getAccessibleOrgUnits();
     } else if (params.isOrganisationUnitMode(CHILDREN)
         || params.isOrganisationUnitMode(DESCENDANTS)) {
-      for (OrganisationUnit ou : params.getOrgUnits()) {
-        searchOrgUnits.addAll(ou.getChildren());
+      for (OrganisationUnit orgUnit : params.getAccessibleOrgUnits()) {
+        searchOrgUnits.addAll(orgUnit.getChildren());
       }
     } else if (params.isOrganisationUnitMode(ALL)) {
       searchOrgUnits.addAll(organisationUnitService.getRootOrganisationUnits());
