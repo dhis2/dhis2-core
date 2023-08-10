@@ -257,7 +257,8 @@ class EventOperationParamsMapper {
           case ALL -> userCanSearchOrgUnitModeALL(user)
               ? null
               : "Current user is not authorized to query across all organisation units";
-          case ACCESSIBLE -> getAccessibleScopeValidation(user, program);
+          case ACCESSIBLE, DESCENDANTS, CHILDREN -> getAccessibleScopeValidation(
+              user, program, orgUnitMode);
           case CAPTURE -> getCaptureScopeValidation(user);
           default -> null;
         };
@@ -279,11 +280,12 @@ class EventOperationParamsMapper {
     return violation;
   }
 
-  private String getAccessibleScopeValidation(User user, Program program) {
+  private String getAccessibleScopeValidation(
+      User user, Program program, OrganisationUnitSelectionMode orgUnitMode) {
     String violation;
 
     if (user == null) {
-      return "User is required for orgUnitMode: " + OrganisationUnitSelectionMode.ACCESSIBLE;
+      return "User is required for orgUnitMode: " + orgUnitMode;
     }
 
     if (program != null && (program.isClosed() || program.isProtected())) {

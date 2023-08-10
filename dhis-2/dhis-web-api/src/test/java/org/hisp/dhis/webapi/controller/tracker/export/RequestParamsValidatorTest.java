@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static java.util.Collections.emptySet;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
@@ -37,9 +38,9 @@ import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria.fromOrderString;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseFilters;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrgUnitParams;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitMode;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -64,16 +65,16 @@ import org.hisp.dhis.tracker.export.OperationParamUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/** Tests {@link org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils}. */
-class RequestParamUtilsTest {
+/** Tests {@link RequestParamsValidator}. */
+class RequestParamsValidatorTest {
 
   private static final String TEA_1_UID = "TvjwTPToKHO";
 
   private static final String TEA_2_UID = "cy2oRh2sNr6";
 
-  private static final OrganisationUnit orgUnit = new OrganisationUnit();
-
   private Map<String, TrackedEntityAttribute> attributes;
+
+  private static final OrganisationUnit orgUnit = new OrganisationUnit();
 
   @BeforeEach
   void setUp() {
@@ -322,10 +323,15 @@ class RequestParamUtilsTest {
     Exception exception =
         assertThrows(
             BadRequestException.class,
-            () -> validateOrgUnitParams(Set.of(UID.of(orgUnit.getUid())), ACCESSIBLE));
+            () -> validateOrgUnitMode(Set.of(UID.of(orgUnit.getUid())), ACCESSIBLE));
 
     assertStartsWith(
         "orgUnitMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
+  }
+
+  @Test
+  void shouldPassWhenNoOrgUnitSuppliedAndOrgUnitModeAccessible() {
+    assertDoesNotThrow(() -> validateOrgUnitMode(emptySet(), ACCESSIBLE));
   }
 
   @Test
@@ -333,23 +339,55 @@ class RequestParamUtilsTest {
     Exception exception =
         assertThrows(
             BadRequestException.class,
-            () -> validateOrgUnitParams(Set.of(UID.of(orgUnit.getUid())), CAPTURE));
+            () -> validateOrgUnitMode(Set.of(UID.of(orgUnit.getUid())), CAPTURE));
 
     assertStartsWith("orgUnitMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
   }
 
   @Test
+  void shouldPassWhenNoOrgUnitSuppliedAndOrgUnitModeCapture() {
+    assertDoesNotThrow(() -> validateOrgUnitMode(emptySet(), CAPTURE));
+  }
+
+  @Test
+  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeSelected() {
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> validateOrgUnitMode(emptySet(), SELECTED));
+
+    assertStartsWith(
+        "At least one org unit is required for orgUnitMode: SELECTED", exception.getMessage());
+  }
+
+  @Test
   void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeSelected() {
-    assertDoesNotThrow(() -> validateOrgUnitParams(Set.of(UID.of(orgUnit.getUid())), SELECTED));
+    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit.getUid())), SELECTED));
+  }
+
+  @Test
+  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeDescendants() {
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> validateOrgUnitMode(emptySet(), DESCENDANTS));
+
+    assertStartsWith(
+        "At least one org unit is required for orgUnitMode: DESCENDANTS", exception.getMessage());
   }
 
   @Test
   void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeDescendants() {
-    assertDoesNotThrow(() -> validateOrgUnitParams(Set.of(UID.of(orgUnit.getUid())), DESCENDANTS));
+    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit.getUid())), DESCENDANTS));
+  }
+
+  @Test
+  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeChildren() {
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> validateOrgUnitMode(emptySet(), CHILDREN));
+
+    assertStartsWith(
+        "At least one org unit is required for orgUnitMode: CHILDREN", exception.getMessage());
   }
 
   @Test
   void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeChildren() {
-    assertDoesNotThrow(() -> validateOrgUnitParams(Set.of(UID.of(orgUnit.getUid())), CHILDREN));
+    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit.getUid())), CHILDREN));
   }
 }

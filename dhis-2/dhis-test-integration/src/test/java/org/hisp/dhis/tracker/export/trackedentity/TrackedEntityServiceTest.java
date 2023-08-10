@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
@@ -421,6 +423,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitB.getUid()))
+            .orgUnitMode(DESCENDANTS)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .includeAllAttributes(true)
             .user(user)
@@ -438,6 +441,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .includeAllAttributes(true)
             .trackedEntityUids(Set.of(trackedEntityA.getUid()))
             .user(user)
@@ -461,6 +465,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .includeAllAttributes(true)
             .trackedEntityParams(TrackedEntityParams.TRUE)
@@ -504,6 +509,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .includeAllAttributes(true)
             .user(user)
@@ -524,6 +530,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .programUid(programB.getUid())
             .user(user)
             .build();
@@ -543,6 +550,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .programUid(programA.getUid())
             .user(user)
             .build();
@@ -562,6 +570,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .filters(teaA.getUid() + ":eq:M'M")
             .user(user)
@@ -579,6 +588,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .filters(teaA.getUid() + ":eq:A")
             .user(user)
@@ -596,6 +606,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .filters(teaA.getUid() + ":eq:Z")
             .user(user)
@@ -613,6 +624,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitB.getUid()))
+            .orgUnitMode(DESCENDANTS)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .filters(teaA.getUid())
             .user(user)
@@ -632,6 +644,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitB.getUid()))
+            .orgUnitMode(DESCENDANTS)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .attributes(teaA.getUid())
             .user(user)
@@ -652,6 +665,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitB.getUid()))
+            .orgUnitMode(DESCENDANTS)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .filters(teaA.getUid())
             .attributes(teaA.getUid())
@@ -672,6 +686,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .lastUpdatedStartDate(Date.from(Instant.now().minus(1, ChronoUnit.DAYS)))
             .lastUpdatedEndDate(new Date())
@@ -687,6 +702,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .lastUpdatedStartDate(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)))
             .lastUpdatedEndDate(new Date())
@@ -753,6 +769,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .includeDeleted(true)
             .trackedEntityParams(TrackedEntityParams.TRUE)
@@ -833,6 +850,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .trackedEntityUids(Set.of(trackedEntityA.getUid()))
             .includeAllAttributes(true)
@@ -865,6 +883,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .trackedEntityUids(Set.of(trackedEntityA.getUid()))
             .includeAllAttributes(true)
@@ -886,6 +905,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .trackedEntityUids(Set.of(trackedEntityA.getUid()))
             .includeAllAttributes(true)
@@ -920,6 +940,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .includeAllAttributes(true)
             .trackedEntityParams(params)
@@ -948,6 +969,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .includeAllAttributes(true)
             .user(user)
@@ -982,6 +1004,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .includeAllAttributes(true)
             .trackedEntityParams(params)
@@ -1029,6 +1052,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .includeAllAttributes(true)
             .trackedEntityParams(params)
@@ -1084,6 +1108,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of(trackedEntityA.getUid()))
             .trackedEntityParams(params)
             .user(user)
@@ -1112,6 +1137,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of(trackedEntityA.getUid()))
             .trackedEntityParams(params)
             .user(user)
@@ -1140,6 +1166,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of(trackedEntityA.getUid()))
             .trackedEntityParams(params)
             .user(user)

@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
@@ -140,6 +141,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     TrackedEntityOperationParamsBuilder builder =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(DESCENDANTS)
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .orderBy(UID.of("numericAttr"), SortDirection.ASC);
 
@@ -186,6 +188,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     TrackedEntityOperationParamsBuilder builder =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(DESCENDANTS)
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .user(importUser)
             .orderBy(UID.of("numericAttr"), SortDirection.ASC);
@@ -232,6 +235,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .user(importUser)
@@ -251,6 +255,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .user(importUser)
@@ -283,6 +288,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .user(importUser)
@@ -312,6 +318,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .user(importUser)
@@ -329,6 +336,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .user(importUser)
@@ -346,6 +354,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .user(importUser)
@@ -364,6 +373,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .user(importUser)
@@ -381,6 +391,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .user(importUser)
@@ -398,6 +409,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .user(importUser)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
@@ -415,6 +427,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .user(importUser)
             .orderBy(UID.of("numericAttr"), SortDirection.DESC)
@@ -432,6 +445,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .trackedEntityUids(
                 Set.of(
@@ -454,6 +468,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .user(importUser)
@@ -472,6 +487,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .user(importUser)

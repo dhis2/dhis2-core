@@ -30,6 +30,9 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,8 +58,8 @@ import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
  * RequestParamUtils are functions used to parse and transform tracker request parameters. This
  * class is intended to only house functions without any dependencies on services or components.
  */
-public class RequestParamUtils {
-  private RequestParamUtils() {
+public class RequestParamsValidator {
+  private RequestParamsValidator() {
     throw new IllegalStateException("Utility class");
   }
 
@@ -151,24 +154,6 @@ public class RequestParamUtils {
 
   private static Stream<String> parseUidString(String input) {
     return CollectionUtils.emptyIfNull(TextUtils.splitToSet(input, TextUtils.SEMICOLON)).stream();
-  }
-
-  /**
-   * Validates that no org unit is present if the ou mode is ACCESSIBLE or CAPTURE. If it is, an
-   * exception will be thrown.
-   *
-   * @param orgUnits
-   * @param orgUnitMode
-   * @throws BadRequestException
-   */
-  public static void validateOrgUnitParams(
-      Set<UID> orgUnits, OrganisationUnitSelectionMode orgUnitMode) throws BadRequestException {
-    if (!orgUnits.isEmpty() && (orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE)) {
-      throw new BadRequestException(
-          String.format(
-              "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
-              orgUnitMode));
-    }
   }
 
   /**
@@ -314,5 +299,73 @@ public class RequestParamUtils {
     } else {
       throw new BadRequestException("Query item or filter is invalid: " + input);
     }
+  }
+
+  /**
+   * Validates that no org unit is present if the ou mode is ACCESSIBLE or CAPTURE. If it is, an
+   * exception will be thrown. If the org unit mode is not defined, SELECTED will be used by default
+   * if an org unit is present. Otherwise, ACCESSIBLE will be the default.
+   *
+   * @param orgUnits list of org units to be validated
+   * @return a valid org unit mode
+   * @throws BadRequestException if a wrong combination of org unit and org unit mode supplied
+   */
+  public static OrganisationUnitSelectionMode validateOrgUnitMode(
+      Set<UID> orgUnits, OrganisationUnitSelectionMode orgUnitMode) throws BadRequestException {
+
+    if (orgUnitMode == null) {
+      return orgUnits.isEmpty() ? ACCESSIBLE : SELECTED;
+    }
+
+    if (!orgUnits.isEmpty() && (orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE)) {
+      throw new BadRequestException(
+          String.format(
+              "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
+              orgUnitMode));
+    }
+
+    if ((orgUnitMode == CHILDREN || orgUnitMode == SELECTED || orgUnitMode == DESCENDANTS)
+        && orgUnits.isEmpty()) {
+      throw new BadRequestException(
+          String.format(
+              "At least one org unit is required for orgUnitMode: %s. Please add an orgUnit or use a different orgUnitMode.",
+              orgUnitMode));
+    }
+
+    return orgUnitMode;
+  }
+
+  /**
+   * Validates that the org unit is not present if the ou mode is ACCESSIBLE or CAPTURE. If it is,
+   * an exception will be thrown. If the org unit mode is not defined, SELECTED will be used by
+   * default if an org unit is present. Otherwise, ACCESSIBLE will be the default.
+   *
+   * @param orgUnit the org unit to validate
+   * @return a valid org unit mode
+   * @throws BadRequestException if a wrong combination of org unit and org unit mode supplied
+   */
+  public static OrganisationUnitSelectionMode validateOrgUnitMode(
+      UID orgUnit, OrganisationUnitSelectionMode orgUnitMode) throws BadRequestException {
+
+    if (orgUnitMode == null) {
+      orgUnitMode = orgUnit != null ? SELECTED : ACCESSIBLE;
+    }
+
+    if ((orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE) && orgUnit != null) {
+      throw new BadRequestException(
+          String.format(
+              "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
+              orgUnitMode));
+    }
+
+    if ((orgUnitMode == CHILDREN || orgUnitMode == SELECTED || orgUnitMode == DESCENDANTS)
+        && orgUnit == null) {
+      throw new BadRequestException(
+          String.format(
+              "orgUnit is required for orgUnitMode: %s. Please add an orgUnit or use a different orgUnitMode.",
+              orgUnitMode));
+    }
+
+    return orgUnitMode;
   }
 }
