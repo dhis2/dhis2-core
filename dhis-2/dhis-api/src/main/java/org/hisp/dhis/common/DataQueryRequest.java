@@ -99,7 +99,7 @@ public class DataQueryRequest {
   protected UserOrgUnitType userOrgUnitType;
 
   protected EndpointItem endpointItem;
-  
+
   protected DhisApiVersion apiVersion;
 
   public boolean hasAggregationType() {
