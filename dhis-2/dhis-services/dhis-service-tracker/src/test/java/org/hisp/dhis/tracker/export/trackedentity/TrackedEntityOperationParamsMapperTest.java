@@ -133,17 +133,19 @@ class TrackedEntityOperationParamsMapperTest {
 
   @BeforeEach
   public void setUp() {
-    user = new User();
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-
     orgUnit1 = new OrganisationUnit("orgUnit1");
     orgUnit1.setUid(ORG_UNIT_1_UID);
+    orgUnit2 = new OrganisationUnit("orgUnit2");
+    orgUnit2.setUid(ORG_UNIT_2_UID);
+    user = new User();
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
+
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+
     when(organisationUnitService.getOrganisationUnit(orgUnit1.getUid())).thenReturn(orgUnit1);
     when(organisationUnitService.isInUserHierarchy(
             orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
         .thenReturn(true);
-    orgUnit2 = new OrganisationUnit("orgUnit2");
-    orgUnit2.setUid(ORG_UNIT_2_UID);
     when(organisationUnitService.getOrganisationUnit(orgUnit2.getUid())).thenReturn(orgUnit2);
     when(organisationUnitService.isInUserHierarchy(
             orgUnit2.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
@@ -495,8 +497,11 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Test
   void testMappingOrgUnits() throws BadRequestException, ForbiddenException {
-    when(trackerAccessManager.canAccess(user, program, orgUnit1)).thenReturn(true);
-    when(trackerAccessManager.canAccess(user, program, orgUnit2)).thenReturn(true);
+    when(organisationUnitService.getOrganisationUnitWithChildren(ORG_UNIT_1_UID))
+        .thenReturn(List.of(orgUnit1));
+    when(organisationUnitService.getOrganisationUnitWithChildren(ORG_UNIT_2_UID))
+        .thenReturn(List.of(orgUnit2));
+
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .programUid(PROGRAM_UID)
@@ -506,7 +511,7 @@ class TrackedEntityOperationParamsMapperTest {
 
     TrackedEntityQueryParams params = mapper.map(operationParams);
 
-    assertContainsOnly(Set.of(orgUnit1, orgUnit2), params.getOrgUnits());
+    assertContainsOnly(Set.of(orgUnit1, orgUnit2), params.getAccessibleOrgUnits());
   }
 
   @Test
@@ -530,8 +535,7 @@ class TrackedEntityOperationParamsMapperTest {
 
     ForbiddenException e =
         assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
-    assertEquals(
-        "User does not have access to organisation unit: " + ORG_UNIT_1_UID, e.getMessage());
+    assertEquals("User does not have access to orgUnit: " + ORG_UNIT_1_UID, e.getMessage());
   }
 
   @Test

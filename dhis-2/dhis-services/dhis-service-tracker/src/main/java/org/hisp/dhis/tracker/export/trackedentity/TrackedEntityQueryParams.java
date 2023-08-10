@@ -75,7 +75,7 @@ public class TrackedEntityQueryParams {
    * Organisation units for which instances in the response were registered at. Is related to the
    * specified OrganisationUnitMode.
    */
-  private Set<OrganisationUnit> orgUnits = new HashSet<>();
+  private Set<OrganisationUnit> accessibleOrgUnits = new HashSet<>();
 
   /** Program for which instances in the response must be enrolled in. */
   private Program program;
@@ -180,12 +180,6 @@ public class TrackedEntityQueryParams {
 
   public TrackedEntityQueryParams() {}
 
-  /** Adds an organisation unit to the parameters. */
-  public TrackedEntityQueryParams addOrganisationUnit(OrganisationUnit unit) {
-    this.orgUnits.add(unit);
-    return this;
-  }
-
   /**
    * Prepares the organisation units of the given parameters to simplify querying. Mode ACCESSIBLE
    * is converted to DESCENDANTS for organisation units linked to the search scope of the given
@@ -196,19 +190,19 @@ public class TrackedEntityQueryParams {
    */
   public void handleOrganisationUnits() {
     if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      setOrgUnits(user.getTeiSearchOrganisationUnitsWithFallback());
+      setAccessibleOrgUnits(user.getTeiSearchOrganisationUnitsWithFallback());
       setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     } else if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.CAPTURE)) {
-      setOrgUnits(user.getOrganisationUnits());
+      setAccessibleOrgUnits(user.getOrganisationUnits());
       setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     } else if (isOrganisationUnitMode(CHILDREN)) {
-      Set<OrganisationUnit> orgUnits = new HashSet<>(getOrgUnits());
+      Set<OrganisationUnit> orgUnits = new HashSet<>(getAccessibleOrgUnits());
 
-      for (OrganisationUnit organisationUnit : getOrgUnits()) {
+      for (OrganisationUnit organisationUnit : getAccessibleOrgUnits()) {
         orgUnits.addAll(organisationUnit.getChildren());
       }
 
-      setOrgUnits(orgUnits);
+      setAccessibleOrgUnits(orgUnits);
       setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
     }
   }
@@ -321,8 +315,8 @@ public class TrackedEntityQueryParams {
   }
 
   /** Indicates whether these parameters specify any organisation units. */
-  public boolean hasOrganisationUnits() {
-    return orgUnits != null && !orgUnits.isEmpty();
+  public boolean hasAccessibleOrgUnits() {
+    return !accessibleOrgUnits.isEmpty();
   }
 
   /** Indicates whether these parameters specify a program. */
@@ -492,17 +486,12 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public Set<OrganisationUnit> getOrgUnits() {
-    return orgUnits;
+  public Set<OrganisationUnit> getAccessibleOrgUnits() {
+    return accessibleOrgUnits;
   }
 
-  public TrackedEntityQueryParams addOrgUnits(Set<OrganisationUnit> orgUnits) {
-    this.orgUnits.addAll(orgUnits);
-    return this;
-  }
-
-  public TrackedEntityQueryParams setOrgUnits(Set<OrganisationUnit> orgUnits) {
-    this.orgUnits = orgUnits;
+  public TrackedEntityQueryParams setAccessibleOrgUnits(Set<OrganisationUnit> accessibleOrgUnits) {
+    this.accessibleOrgUnits = accessibleOrgUnits;
     return this;
   }
 
