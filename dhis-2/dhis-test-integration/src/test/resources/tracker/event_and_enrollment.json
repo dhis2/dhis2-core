@@ -528,6 +528,18 @@
         }
       ],
       "notes": [],
+      "lastUpdatedByUserInfo": {
+        "uid": "xE7jOejl9FI",
+        "firstName": "John",
+        "surname": "Traore",
+        "username": "admin"
+      },
+      "createdByUserInfo": {
+        "uid": "xE7jOejl9FI",
+        "firstName": "John",
+        "surname": "Traore",
+        "username": "admin"
+      },
       "assignedUser": {
         "uid": "xE7jOejl9FI",
         "firstName": "John",
@@ -639,6 +651,18 @@
       },
       "status": "ACTIVE",
       "deleted": false,
+      "lastUpdatedByUserInfo": {
+        "uid": "xE7jOejl9FI",
+        "firstName": "John",
+        "surname": "Traore",
+        "username": "admin"
+      },
+      "createdByUserInfo": {
+        "uid": "xE7jOejl9FI",
+        "firstName": "John",
+        "surname": "Traore",
+        "username": "admin"
+      },
       "dataValues": [
         {
           "created": "2022-04-22T06:00:38.339",
@@ -647,7 +671,19 @@
             "identifier": "GieVkTxp4HH"
           },
           "value": "15",
-          "providedElsewhere": false
+          "providedElsewhere": false,
+          "createdByUserInfo": {
+            "uid": "xE7jOejl9FI",
+            "firstName": "John",
+            "surname": "Traore",
+            "username": "admin"
+          },
+          "lastUpdatedByUserInfo": {
+            "uid": "xE7jOejl9FI",
+            "firstName": "John",
+            "surname": "Traore",
+            "username": "admin"
+          }
         }
       ],
       "notes": [],
@@ -686,7 +722,19 @@
         "identifier": "DiszpKrYNg8"
       },
       "status": "ACTIVE",
-      "deleted": false
+      "deleted": false,
+      "lastUpdatedByUserInfo": {
+        "uid": "xE7jOejl9FI",
+        "firstName": "John",
+        "surname": "Traore",
+        "username": "admin"
+      },
+      "createdByUserInfo": {
+        "uid": "xE7jOejl9FI",
+        "firstName": "John",
+        "surname": "Traore",
+        "username": "admin"
+      },
       "dataValues": [
         {
           "created": "2022-04-22T06:00:34.319",
@@ -695,7 +743,19 @@
             "identifier": "GieVkTxp4HH"
           },
           "value": "14",
-          "providedElsewhere": false
+          "providedElsewhere": false,
+          "createdByUserInfo": {
+            "uid": "xE7jOejl9FI",
+            "firstName": "John",
+            "surname": "Traore",
+            "username": "admin"
+          },
+          "lastUpdatedByUserInfo": {
+            "uid": "xE7jOejl9FI",
+            "firstName": "John",
+            "surname": "Traore",
+            "username": "admin"
+          }
         }
       ],
       "notes": [],
@@ -734,7 +794,19 @@
         "identifier": "DiszpKrYNg8"
       },
       "status": "ACTIVE",
-      "deleted": false
+      "deleted": false,
+      "lastUpdatedByUserInfo": {
+        "uid": "xE7jOejl9FI",
+        "firstName": "John",
+        "surname": "Traore",
+        "username": "admin"
+      },
+      "createdByUserInfo": {
+        "uid": "xE7jOejl9FI",
+        "firstName": "John",
+        "surname": "Traore",
+        "username": "admin"
+      },
       "dataValues": [
         {
           "created": "2022-04-22T06:00:30.559",
@@ -743,7 +815,19 @@
             "identifier": "GieVkTxp4HH"
           },
           "value": "13",
-          "providedElsewhere": false
+          "providedElsewhere": false,
+          "createdByUserInfo": {
+            "uid": "xE7jOejl9FI",
+            "firstName": "John",
+            "surname": "Traore",
+            "username": "admin"
+          },
+          "lastUpdatedByUserInfo": {
+            "uid": "xE7jOejl9FI",
+            "firstName": "John",
+            "surname": "Traore",
+            "username": "admin"
+          }
         }
       ],
       "notes": [],
@@ -782,7 +866,19 @@
         "identifier": "DiszpKrYNg8"
       },
       "status": "ACTIVE",
-      "deleted": false
+      "deleted": false,
+      "lastUpdatedByUserInfo": {
+        "uid": "xE7jOejl9FI",
+        "firstName": "John",
+        "surname": "Traore",
+        "username": "admin"
+      },
+      "createdByUserInfo": {
+        "uid": "xE7jOejl9FI",
+        "firstName": "John",
+        "surname": "Traore",
+        "username": "admin"
+      },
       "dataValues": [
         {
           "created": "2022-04-22T06:00:14.224",
@@ -791,7 +887,19 @@
             "identifier": "GieVkTxp4HH"
           },
           "value": "12",
-          "providedElsewhere": false
+          "providedElsewhere": false,
+          "createdByUserInfo": {
+            "uid": "xE7jOejl9FI",
+            "firstName": "John",
+            "surname": "Traore",
+            "username": "admin"
+          },
+          "lastUpdatedByUserInfo": {
+            "uid": "xE7jOejl9FI",
+            "firstName": "John",
+            "surname": "Traore",
+            "username": "admin"
+          }
         }
       ],
       "notes": [],
