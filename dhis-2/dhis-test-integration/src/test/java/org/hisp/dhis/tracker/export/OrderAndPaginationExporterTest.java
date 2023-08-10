@@ -318,6 +318,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .user(importUser)
@@ -335,6 +336,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .user(importUser)

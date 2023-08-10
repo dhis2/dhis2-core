@@ -184,7 +184,7 @@ public class RequestParamsValidator {
     if (!invalidOrderComponents.isEmpty()) {
       throw new BadRequestException(
           String.format(
-              "order parameter is invalid. '%s' are either unsupported fields and/or invalid UID(s). %s",
+              "order parameter is invalid. Cannot order by '%s'. %s",
               String.join(", ", invalidOrderComponents), errorSuffix));
     }
 
@@ -228,12 +228,12 @@ public class RequestParamsValidator {
 
     String errorSuffix =
         String.format(
-            "Supported are fields '%s'. All of which can at most be specified once.",
+            "Supported fields are '%s'. All of which can at most be specified once.",
             String.join(", ", supportedFieldNames.stream().sorted().toList()));
     if (!invalidOrderComponents.isEmpty()) {
       throw new BadRequestException(
           String.format(
-              "order parameter is invalid. '%s' are unsupported. %s",
+              "order parameter is invalid. Cannot order by '%s'. %s",
               String.join(", ", invalidOrderComponents), errorSuffix));
     }
 
