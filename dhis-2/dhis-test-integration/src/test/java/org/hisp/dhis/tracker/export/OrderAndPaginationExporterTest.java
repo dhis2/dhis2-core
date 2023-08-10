@@ -307,6 +307,40 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldOrderTrackedEntitiesByCreatedAtClientDesc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
+            .orderBy("createdAtClient", SortDirection.DESC)
+            .build();
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(List.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
+  }
+
+  @Test
+  void shouldOrderTrackedEntitiesByCreatedAtClientAsc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
+            .orderBy("createdAtClient", SortDirection.ASC)
+            .build();
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
+  }
+
+  @Test
   void shouldOrderTrackedEntitiesByEnrolledAtAsc()
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntityOperationParams params =
