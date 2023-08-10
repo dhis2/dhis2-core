@@ -90,6 +90,8 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.util.UrlPathHelper;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.core.session.SessionRegistry;
 
 /**
  * The {@code DhisWebApiWebSecurityConfig} class configures mostly all authentication and
@@ -112,6 +114,11 @@ public class DhisWebApiWebSecurityConfig {
   }
 
   @Autowired public DataSource dataSource;
+
+  @Bean
+  public SessionRegistry sessionRegistry() {
+    return new SessionRegistryImpl();
+  }
 
   /** This class is configuring the OIDC login endpoints */
   @Configuration
