@@ -405,7 +405,7 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-      "completedBy": "admin",
+
       "dataValues": [
         {
           "dataElement": {
@@ -484,7 +484,7 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-      "completedBy": "admin",
+
       "dataValues": [
         {
           "dataElement": {
@@ -567,7 +567,7 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-      "completedBy": "admin",
+
       "notes": []
     },
     {
@@ -602,7 +602,7 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-      "completedBy": "admin",
+
       "notes": []
     },
     {
@@ -891,7 +891,7 @@
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
       },
-      "completedBy": "admin",
+
       "notes": []
     }
   ],

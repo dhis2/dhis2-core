@@ -101,7 +101,7 @@
         "idScheme": "UID"
       },
       "attributeCategoryOptions": [],
-      "completedBy": "admin",
+
       "dataValues": [
         {
           "createdAt": "2019-01-28T12:10:38.113",
@@ -147,7 +147,7 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-      "completedBy": "admin",
+
       "dataValues": [],
       "notes": []
     }

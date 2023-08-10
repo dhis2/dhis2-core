@@ -59,7 +59,7 @@
         "idScheme": "UID"
       },
       "attributeCategoryOptions": [],
-      "completedBy": "admin",
+
       "dataValues": [],
       "notes": []
     },
@@ -89,7 +89,7 @@
         "idScheme": "UID"
       },
       "attributeCategoryOptions": [],
-      "completedBy": "admin",
+
       "completedAt": "2019-01-28T00:00:00.000",
       "dataValues": [],
       "notes": []
