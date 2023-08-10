@@ -30,6 +30,9 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonObject;
@@ -134,6 +137,29 @@ abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest 
       assertEquals(
           (int) Math.ceil(total / (double) pageSize), pager.getNumber("pageCount").intValue());
     }
+  }
+
+  static void assertHasPagerLinks(JsonObject response, int page) {
+    JsonObject pager = response.getObject("pager");
+    int pageCount = pager.getNumber("pageCount").intValue();
+    String nextPage = pager.getString("nextPage").string();
+    String prevPage = pager.getString("prevPage").string();
+    if (page < pageCount) {
+      assertNotNull(nextPage, "expecting 'nextPage' field in pager");
+    } else {
+      assertNull(nextPage, "'nextPage' field should not be present in pager");
+    }
+
+    if (page > 1) {
+      assertNotNull(prevPage, "expecting 'prevPage' field in pager");
+    } else {
+      assertNull(prevPage, "'prevPage' field should not be present in pager");
+    }
+  }
+
+  static void assertHasNoPager(JsonObject response) {
+    JsonObject pager = response.getObject("pager");
+    assertFalse(pager.exists(), "Pager should not be present");
   }
 
   /**
