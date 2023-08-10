@@ -137,10 +137,9 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      @CurrentUser User currentUser)
-      throws ForbiddenException {
+      @CurrentUser User currentUser) {
 
-    WebRequestData requestData = applyRequestSetup(rpParameters, currentUser);
+    WebRequestData requestData = applyRequestSetup(rpParameters);
 
     WebMetadata metadata = new WebMetadata();
     List<DimensionalObject> entities = dimensionService.getAllDimensions();
@@ -286,13 +285,11 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
    * to avoid duplication.
    *
    * @param rpParameters request parameters
-   * @param currentUser current {@link User} to check permissions
    * @return {@link WebRequestData} record purely for data packaging purposes, containing {@link
    *     WebOptions}, {@link List} of fields and {@link List} of filters
    * @throws ForbiddenException if no permission
    */
-  protected WebRequestData applyRequestSetup(Map<String, String> rpParameters, User currentUser)
-      throws ForbiddenException {
+  protected WebRequestData applyRequestSetup(Map<String, String> rpParameters) {
 
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
@@ -302,12 +299,6 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
     }
 
     WebOptions options = new WebOptions(rpParameters);
-
-    if (!aclService.canRead(currentUser, getEntityClass())) {
-      throw new ForbiddenException(
-          "You don't have the proper permissions to read objects of this type.");
-    }
-
     forceFiltering(options, filters);
 
     return new WebRequestData(options, fields, filters);
