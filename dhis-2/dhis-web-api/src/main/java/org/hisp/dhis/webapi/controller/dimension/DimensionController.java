@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.dimension.AnalyticsDimensionService;
@@ -151,7 +150,6 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
    * @param response response
    * @param currentUser current user
    * @return response with Collection of {@link DimensionalObject}
-   * @throws ForbiddenException if no permissions
    */
   @Override
   @GetMapping
@@ -167,15 +165,15 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
     List<DimensionalObject> entities = dimensionService.getAllDimensions();
 
     PagedEntities<DimensionalObject> pagedEntities =
-        PaginationUtils.addPagingIfEnabled(metadata, requestData.options(), entities);
-    linkService.generatePagerLinks(pagedEntities.pager(), RESOURCE_PATH);
+        PaginationUtils.addPagingIfEnabled(metadata, requestData.getOptions(), entities);
+    linkService.generatePagerLinks(pagedEntities.getPager(), RESOURCE_PATH);
 
     return ResponseEntity.ok(
         new StreamingJsonRoot<>(
-            pagedEntities.pager(),
+            pagedEntities.getPager(),
             getSchema().getCollectionName(),
             org.hisp.dhis.fieldfiltering.FieldFilterParams.of(
-                pagedEntities.entities(), requestData.fields())));
+                pagedEntities.getEntities(), requestData.getFields())));
   }
 
   @SuppressWarnings("unchecked")
@@ -238,7 +236,7 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
 
   @GetMapping("/constraints")
   public @ResponseBody ResponseEntity<JsonRoot> getDimensionConstraints(
-      @RequestParam(value = "links", defaultValue = "true", required = false) Boolean links,
+      @RequestParam(value = "links", defaultValue = "true", required = false) boolean links,
       @RequestParam(defaultValue = "*") List<FieldPath> fields) {
     List<DimensionalObject> dimensionConstraints = dimensionService.getDimensionConstraints();
 
@@ -310,12 +308,11 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
    * @param rpParameters request parameters
    * @return {@link WebRequestData} record purely for data packaging purposes, containing {@link
    *     WebOptions}, {@link List} of fields and {@link List} of filters
-   * @throws ForbiddenException if no permission
    */
   protected WebRequestData applyRequestSetup(Map<String, String> rpParameters) {
 
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
-    List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
+    List<String> fields = new ArrayList<>(contextService.getParameterValues("fields"));
+    List<String> filters = new ArrayList<>(contextService.getParameterValues("filter"));
 
     if (fields.isEmpty()) {
       fields.addAll(Preset.defaultPreset().getFields());

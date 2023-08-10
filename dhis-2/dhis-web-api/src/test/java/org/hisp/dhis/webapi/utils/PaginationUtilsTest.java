@@ -104,8 +104,8 @@ class PaginationUtilsTest {
     PagedEntities<String> pagedEntities =
         PaginationUtils.addPagingIfEnabled(metadata, options, entities);
 
-    assertNull(pagedEntities.pager());
-    assertEquals(3, pagedEntities.entities().size());
+    assertNull(pagedEntities.getPager());
+    assertEquals(3, pagedEntities.getEntities().size());
   }
 
   @Test
@@ -115,13 +115,13 @@ class PaginationUtilsTest {
     List<String> entities = List.of("one", "two", "three");
     PagedEntities<String> pagedEntities =
         PaginationUtils.addPagingIfEnabled(metadata, options, entities);
-    Pager pager = pagedEntities.pager();
-    assertNotNull(pagedEntities.pager());
+    Pager pager = pagedEntities.getPager();
+    assertNotNull(pager);
     assertEquals(1, pager.getPage());
     assertEquals(50, pager.getPageSize());
     assertEquals(1, pager.getPageCount());
     assertEquals(3, pager.getTotal());
-    assertEquals(3, pagedEntities.entities().size());
+    assertEquals(3, pagedEntities.getEntities().size());
   }
 
   @Test
@@ -131,14 +131,14 @@ class PaginationUtilsTest {
     List<String> entities = List.of("one", "two", "three", "four", "five");
     PagedEntities<String> pagedEntities =
         PaginationUtils.addPagingIfEnabled(metadata, options, entities);
-    Pager pager = pagedEntities.pager();
-    assertNotNull(pagedEntities.pager());
+    Pager pager = pagedEntities.getPager();
+    assertNotNull(pager);
     assertEquals(2, pager.getPage());
     assertEquals(3, pager.getPageSize());
     assertEquals(2, pager.getPageCount());
     assertEquals(5, pager.getTotal());
     assertEquals(3, pager.getOffset());
-    assertEquals(2, pagedEntities.entities().size());
-    assertTrue(pagedEntities.entities().containsAll(List.of("four", "five")));
+    assertEquals(2, pagedEntities.getEntities().size());
+    assertTrue(pagedEntities.getEntities().containsAll(List.of("four", "five")));
   }
 }

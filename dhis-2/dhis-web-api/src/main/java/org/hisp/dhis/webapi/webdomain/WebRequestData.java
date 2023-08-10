@@ -28,12 +28,18 @@
 package org.hisp.dhis.webapi.webdomain;
 
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 /**
- * Record purely used to tidy up code while passing data
+ * Class purely used to tidy up code while passing data
  *
- * @param options web options
- * @param fields fields
- * @param filters filters
+ * @author david mackessy
  */
-public record WebRequestData(WebOptions options, List<String> fields, List<String> filters) {}
+@AllArgsConstructor
+@Data
+public class WebRequestData {
+  private WebOptions options;
+  private List<String> fields;
+  private List<String> filters;
+}
