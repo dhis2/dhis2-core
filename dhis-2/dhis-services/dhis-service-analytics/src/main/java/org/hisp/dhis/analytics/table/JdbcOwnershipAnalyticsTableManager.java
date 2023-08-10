@@ -59,6 +59,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.batchhandler.MappingBatchHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -97,7 +98,8 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
       DatabaseInfo databaseInfo,
       JdbcTemplate jdbcTemplate,
       JdbcConfiguration jdbcConfiguration,
-      AnalyticsExportSettings analyticsExportSettings) {
+      AnalyticsExportSettings analyticsExportSettings,
+      PeriodDataProvider periodDataProvider) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -110,7 +112,8 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
         partitionManager,
         databaseInfo,
         jdbcTemplate,
-        analyticsExportSettings);
+        analyticsExportSettings,
+        periodDataProvider);
     this.jdbcConfiguration = jdbcConfiguration;
   }
 

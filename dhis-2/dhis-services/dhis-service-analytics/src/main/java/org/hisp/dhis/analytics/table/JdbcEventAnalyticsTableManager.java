@@ -75,6 +75,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -114,7 +115,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       PartitionManager partitionManager,
       DatabaseInfo databaseInfo,
       JdbcTemplate jdbcTemplate,
-      AnalyticsExportSettings analyticsExportSettings) {
+      AnalyticsExportSettings analyticsExportSettings,
+      PeriodDataProvider periodDataProvider) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -127,7 +129,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         partitionManager,
         databaseInfo,
         jdbcTemplate,
-        analyticsExportSettings);
+        analyticsExportSettings,
+        periodDataProvider);
   }
 
   private static final List<AnalyticsTableColumn> FIXED_COLS =
@@ -218,9 +221,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             "Get tables using earliest: %s, spatial support: %b",
             params.getFromDate(), databaseInfo.isSpatialSupport()));
 
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+
     return params.isLatestUpdate()
         ? getLatestAnalyticsTables(params)
-        : getRegularAnalyticsTables(params);
+        : getRegularAnalyticsTables(params, availableDataYears);
   }
 
   /**
@@ -242,7 +247,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @return a list of {@link AnalyticsTableUpdateParams}.
    */
-  private List<AnalyticsTable> getRegularAnalyticsTables(AnalyticsTableUpdateParams params) {
+  private List<AnalyticsTable> getRegularAnalyticsTables(
+      AnalyticsTableUpdateParams params, List<Integer> availableDataYears) {
     List<AnalyticsTable> tables = new ArrayList<>();
 
     Calendar calendar = PeriodType.getCalendar();
@@ -254,8 +260,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 .filter(p -> !params.getSkipPrograms().contains(p.getUid()))
                 .collect(toList());
 
+    Integer firstDataYear = availableDataYears.get(0);
+    Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
+
     for (Program program : programs) {
-      List<Integer> dataYears = getDataYears(params, program);
+      List<Integer> dataYears = getDataYears(params, program, firstDataYear, latestDataYear);
 
       Collections.sort(dataYears);
 
@@ -759,7 +768,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return "";
   }
 
-  private List<Integer> getDataYears(AnalyticsTableUpdateParams params, Program program) {
+  private List<Integer> getDataYears(
+      AnalyticsTableUpdateParams params,
+      Program program,
+      Integer firstDataYear,
+      Integer latestDataYear) {
     String sql =
         "select temp.supportedyear from "
             + "(select distinct extract(year from "
@@ -792,9 +805,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     sql +=
         ") as temp where temp.supportedyear >= "
-            + FIRST_YEAR_SUPPORTED
+            + firstDataYear
             + " and temp.supportedyear <= "
-            + LATEST_YEAR_SUPPORTED;
+            + latestDataYear;
 
     return jdbcTemplate.queryForList(sql, Integer.class);
   }
