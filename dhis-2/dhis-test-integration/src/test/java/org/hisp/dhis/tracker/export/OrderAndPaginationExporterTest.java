@@ -108,10 +108,12 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   private EventOperationParamsBuilder eventParamsBuilder;
 
+  private User importUser;
+
   @Override
   protected void initTest() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
-    User importUser = userService.getUser("M5zQapPyTZI");
+    importUser = userService.getUser("M5zQapPyTZI");
     assertNoErrors(
         trackerImportService.importTracker(
             fromJson("tracker/event_and_enrollment.json", importUser.getUid())));
@@ -141,7 +143,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .orderBy(UID.of("numericAttr"), SortDirection.ASC);
 
-    TrackedEntityOperationParams params = builder.page(1).pageSize(3).build();
+    TrackedEntityOperationParams params = builder.page(1).pageSize(3).user(importUser).build();
 
     TrackedEntities firstPage = trackedEntityService.getTrackedEntities(params);
 
@@ -185,6 +187,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
             .orderBy(UID.of("numericAttr"), SortDirection.ASC);
 
     TrackedEntityOperationParams params = builder.page(1).pageSize(3).totalPages(true).build();
@@ -231,6 +234,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -249,6 +253,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
             .orderBy("created", SortDirection.ASC)
             .build();
 
@@ -280,6 +285,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
             .orderBy("created", SortDirection.DESC)
             .build();
 
@@ -308,6 +314,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
             .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
             .build();
 
@@ -324,6 +331,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
             .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .build();
 
@@ -340,6 +348,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
             .orderBy(UID.of("toDelete000"), SortDirection.ASC)
             .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
             .build();
@@ -357,6 +366,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .build();
 
@@ -373,6 +383,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
             .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
             .build();
 
@@ -388,6 +399,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .filters("numericAttr:lt:75")
             .build();
@@ -404,6 +416,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
             .orderBy(UID.of("numericAttr"), SortDirection.DESC)
             .filters("numericAttr:lt:75")
             .build();
@@ -423,6 +436,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .trackedEntityUids(
                 Set.of(
                     "dUE514NMOlo", "QS6w44flWAf")) // TE QS6w44flWAf without attribute notUpdated0
+            .user(importUser)
             .orderBy(UID.of("notUpdated0"), SortDirection.DESC)
             .build();
 
@@ -442,6 +456,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
             .orderBy(UID.of("numericAttr"), SortDirection.ASC)
             .build();
@@ -459,6 +474,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
             .orderBy(UID.of("numericAttr"), SortDirection.DESC)
             .build();
@@ -858,6 +874,42 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     List<String> events = getEvents(params);
 
+    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldOrderEventsByTrackedEntityUidDesc() throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        eventParamsBuilder
+            .orgUnitUid(orgUnit.getUid())
+            .orderBy("enrollment.trackedEntity.uid", SortDirection.DESC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    // TODO(tracker): TECH-1620 the order is reversed
+    // EV D9PbzJY8bJM EN TvctPPhpD8z TE dUE514NMOlo
+    // EV pTzf9KYMk72 EN nxP7UnKhomJ TE QS6w44flWAf
+    // We would therefore expect the TE order to be QS6w44flWAf, dUE514NMOlo
+    // and thus the EV order to be pTzf9KYMk72, D9PbzJY8bJM
+    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
+  }
+
+  @Test
+  void shouldOrderEventsByTrackedEntityUidAsc() throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        eventParamsBuilder
+            .orgUnitUid(orgUnit.getUid())
+            .orderBy("enrollment.trackedEntity.uid", SortDirection.ASC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    // TODO(tracker): TECH-1620 the order is reversed
+    // EV D9PbzJY8bJM EN TvctPPhpD8z TE dUE514NMOlo
+    // EV pTzf9KYMk72 EN nxP7UnKhomJ TE QS6w44flWAf
+    // We would therefore expect the TE order to be dUE514NMOlo, QS6w44flWAf
+    // and thus the EV order to be D9PbzJY8bJM, pTzf9KYMk72
     assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
   }
 
