@@ -30,7 +30,8 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
@@ -90,7 +91,7 @@ class TrackedEntityRequestParamsMapperTest {
   @Test
   void testMapping() throws BadRequestException {
     requestParams.setQuery("query-test");
-    requestParams.setOuMode(DESCENDANTS);
+    requestParams.setOuMode(CAPTURE);
     requestParams.setProgramStatus(ProgramStatus.ACTIVE);
     requestParams.setProgram(UID.of(PROGRAM_UID));
     requestParams.setProgramStage(UID.of(PROGRAM_STAGE_UID));
@@ -141,21 +142,21 @@ class TrackedEntityRequestParamsMapperTest {
   @Test
   void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnitMode(SELECTED);
+    requestParams.setOrgUnitMode(CAPTURE);
 
     TrackedEntityOperationParams params = mapper.map(requestParams, null);
 
-    assertEquals(SELECTED, params.getOrgUnitMode());
+    assertEquals(CAPTURE, params.getOrgUnitMode());
   }
 
   @Test
   void shouldMapOrgUnitModeGivenOuModeParam() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
-    requestParams.setOuMode(SELECTED);
+    requestParams.setOuMode(CAPTURE);
 
     TrackedEntityOperationParams params = mapper.map(requestParams, null);
 
-    assertEquals(SELECTED, params.getOrgUnitMode());
+    assertEquals(CAPTURE, params.getOrgUnitMode());
   }
 
   @Test
@@ -164,7 +165,7 @@ class TrackedEntityRequestParamsMapperTest {
 
     TrackedEntityOperationParams params = mapper.map(requestParams, null);
 
-    assertEquals(DESCENDANTS, params.getOrgUnitMode());
+    assertEquals(ACCESSIBLE, params.getOrgUnitMode());
   }
 
   @Test
