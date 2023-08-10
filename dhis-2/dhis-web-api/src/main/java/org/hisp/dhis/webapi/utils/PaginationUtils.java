@@ -28,7 +28,10 @@
 package org.hisp.dhis.webapi.utils;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
@@ -76,11 +79,17 @@ public class PaginationUtils {
     if (options.hasPaging() && pager == null) {
       long totalCount = entities.size();
       long skip = (long) (options.getPage() - 1) * options.getPageSize();
-      entities = entities.stream().skip(skip).limit(options.getPageSize()).toList();
+      entities =
+          entities.stream().skip(skip).limit(options.getPageSize()).collect(Collectors.toList());
       pager = new Pager(options.getPage(), totalCount, options.getPageSize());
     }
     return new PagedEntities<>(pager, entities);
   }
 
-  public record PagedEntities<T>(Pager pager, List<T> entities) {}
+  @AllArgsConstructor
+  @Data
+  public static class PagedEntities<T> {
+    private Pager pager;
+    private List<T> entities;
+  }
 }
