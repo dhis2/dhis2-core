@@ -46,10 +46,10 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
-public class DatePeriodResourceTable extends ResourceTable<Integer> {
+public class DatePeriodResourceTable extends ResourceTable<Period> {
   private final String tableType;
 
-  public DatePeriodResourceTable(List<Integer> objects, String tableType) {
+  public DatePeriodResourceTable(List<Period> objects, String tableType) {
     super(objects);
     this.tableType = tableType;
   }
@@ -88,11 +88,10 @@ public class DatePeriodResourceTable extends ResourceTable<Integer> {
 
     List<Object[]> batchArgs = new ArrayList<>();
 
-    int firstYearSupported = objects.get(0);
-    int lastYearSupported = objects.get(objects.size() - 1);
+    // TODO Create a dynamic solution instead of having fixed dates
 
-    Date startDate = new Cal(firstYearSupported, 1, 1, true).time();
-    Date endDate = new Cal(lastYearSupported + 1, 1, 1, true).time();
+    Date startDate = new Cal(FIRST_YEAR_SUPPORTED, 1, 1, true).time();
+    Date endDate = new Cal(LATEST_YEAR_SUPPORTED + 1, 1, 1, true).time();
 
     List<Period> dailyPeriods = new DailyPeriodType().generatePeriods(startDate, endDate);
 

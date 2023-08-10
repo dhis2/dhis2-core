@@ -39,10 +39,10 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.springframework.util.Assert;
 
@@ -66,16 +66,6 @@ public class PartitionUtils {
   }
 
   /**
-   * Returns the start date for the given year, inclusive.
-   *
-   * @param year the year.
-   * @return the start date.
-   */
-  public static Date getStartDate(Integer year) {
-    return new DateTimeUnit(year, 1, 1).toJdkDate();
-  }
-
-  /**
    * Returns the end date for the given year, exclusive, i.e. the start date of the year after the
    * given year.
    *
@@ -86,18 +76,6 @@ public class PartitionUtils {
   public static Date getEndDate(Calendar calendar, Integer year) {
     Integer nextYear = year + 1;
     return getStartDate(calendar, nextYear);
-  }
-
-  /**
-   * Returns the end date for the given year, exclusive, i.e. the start date of the year after the
-   * given year.
-   *
-   * @param year the year.
-   * @return the start date.
-   */
-  public static Date getEndDate(Integer year) {
-    Integer nextYear = year + 1;
-    return getStartDate(nextYear);
   }
 
   /**
@@ -184,8 +162,8 @@ public class PartitionUtils {
   private static Set<Integer> getYears(Period period) {
     Set<Integer> years = new HashSet<>();
 
-    int startYear = DateTimeUnit.fromJdkDate(period.getStartDate()).getYear();
-    int endYear = DateTimeUnit.fromJdkDate(period.getEndDate()).getYear();
+    int startYear = PeriodType.getCalendar().fromIso(period.getStartDate()).getYear();
+    int endYear = PeriodType.getCalendar().fromIso(period.getEndDate()).getYear();
 
     while (startYear <= endYear) {
       years.add(startYear);

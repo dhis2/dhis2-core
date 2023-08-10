@@ -72,7 +72,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -130,8 +129,6 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
 
   @Mock private AnalyticsExportSettings analyticsExportSettings;
 
-  @Mock private PeriodDataProvider periodDataProvider;
-
   private static final Program programA = createProgram('A');
 
   private static final Program programB = createProgramWithoutRegistration('B');
@@ -160,8 +157,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             databaseInfo,
             jdbcTemplate,
             jdbcConfiguration,
-            analyticsExportSettings,
-            periodDataProvider);
+            analyticsExportSettings);
 
     tableA =
         new AnalyticsTable(
