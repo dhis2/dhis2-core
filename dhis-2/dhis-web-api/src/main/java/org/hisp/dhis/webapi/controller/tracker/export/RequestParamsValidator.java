@@ -314,7 +314,7 @@ public class RequestParamsValidator {
       Set<UID> orgUnits, OrganisationUnitSelectionMode orgUnitMode) throws BadRequestException {
 
     if (orgUnitMode == null) {
-      orgUnitMode = orgUnits.isEmpty() ? ACCESSIBLE : SELECTED;
+      return orgUnits.isEmpty() ? ACCESSIBLE : SELECTED;
     }
 
     if (!orgUnits.isEmpty() && (orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE)) {

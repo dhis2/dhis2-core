@@ -176,6 +176,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntitiesNeedsProgramOrType() {
+    injectSecurityContext(user);
+
     assertEquals(
         "Either Program or Tracked entity type should be specified",
         GET("/tracker/trackedEntities").error(HttpStatus.CONFLICT).getMessage());
@@ -194,9 +196,16 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntitiesCannotHaveRepeatedAttributes() {
+    injectSecurityContext(user);
+
     assertContains(
         "Filter for attribute " + TEA_UID + " was specified more than once.",
-        GET("/tracker/trackedEntities?filter=" + TEA_UID + ":eq:test," + TEA_UID + ":gt:test2")
+        GET("/tracker/trackedEntities?filter="
+                + TEA_UID
+                + ":eq:test,"
+                + TEA_UID
+                + ":gt:test2&user= "
+                + user.getUid())
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());
   }
