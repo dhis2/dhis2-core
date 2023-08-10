@@ -416,6 +416,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntityReturnsCsvFormat() {
+    injectSecurityContext(user);
+
     WebClient.HttpResponse response =
         GET(
             "/tracker/trackedEntities.csv?program={programId}&orgUnitMode={orgUnitMode}",
@@ -437,6 +439,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntityReturnsCsvZipFormat() {
+    injectSecurityContext(user);
+
     WebClient.HttpResponse response =
         GET(
             "/tracker/trackedEntities.csv.zip?program={programId}&orgUnitMode={orgUnitMode}",
@@ -457,6 +461,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntityReturnsCsvGZipFormat() {
+    injectSecurityContext(user);
+
     WebClient.HttpResponse response =
         GET(
             "/tracker/trackedEntities.csv.gz?program={programId}&orgUnitMode={orgUnitMode}",
