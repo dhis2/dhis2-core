@@ -381,7 +381,7 @@ public class DataValueSetImportValidator {
         ValidationUtils.normalizeBoolean(
             dataValue.getValue(), valueContext.getDataElement().getValueType());
 
-    String errorKey = ValidationUtils.dataValueIsValid(value, valueContext.getDataElement());
+    String errorKey = ValidationUtils.valueIsValid(value, valueContext.getDataElement());
 
     if (errorKey != null) {
       context.addConflict(

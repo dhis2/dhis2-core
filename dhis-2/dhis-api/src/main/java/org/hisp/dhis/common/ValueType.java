@@ -34,6 +34,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -76,6 +77,13 @@ public enum ValueType {
   FILE_RESOURCE(String.class, true, FileTypeValueOptions.class),
   IMAGE(String.class, false, FileTypeValueOptions.class),
   GEOJSON(GeoJSON.class, false);
+
+  /** The character used to separate values in a multi-text value. */
+  public static final String MULTI_TEXT_SEPARATOR = ",";
+
+  public static List<String> splitMultiText(String value) {
+    return value == null ? List.of() : List.of(value.split(MULTI_TEXT_SEPARATOR));
+  }
 
   private static final Set<ValueType> INTEGER_TYPES =
       Set.of(INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE);

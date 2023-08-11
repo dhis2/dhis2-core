@@ -34,7 +34,7 @@ import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.feedback.ErrorCode.E7229;
 import static org.hisp.dhis.feedback.ErrorCode.E7234;
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsComparable;
+import static org.hisp.dhis.system.util.ValidationUtils.valueIsComparable;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.List;
@@ -44,7 +44,6 @@ import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -77,8 +76,7 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
   // -------------------------------------------------------------------------
 
   @Override
-  public void validate(EventQueryParams params)
-      throws IllegalQueryException, MaintenanceModeException {
+  public void validate(EventQueryParams params) throws IllegalQueryException {
     queryValidator.validateMaintenanceMode();
 
     ErrorMessage error = validateForErrorMessage(params);
@@ -238,7 +236,7 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     if (!operator.isNullAllowed() && filterValue.contains(NV)) {
       return new ErrorMessage(E7229, operator.getValue());
     } else if (!filterValue.contains(NV)
-        && !dataValueIsComparable(convertFilterValue(valueType, filterValue), valueType)) {
+        && !valueIsComparable(convertFilterValue(valueType, filterValue), valueType)) {
       return new ErrorMessage(E7234, filterValue, valueType);
     }
 

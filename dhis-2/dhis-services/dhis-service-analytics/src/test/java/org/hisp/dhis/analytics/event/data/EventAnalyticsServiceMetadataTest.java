@@ -33,10 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
@@ -121,16 +120,16 @@ class EventAnalyticsServiceMetadataTest extends DhisSpringTest {
     leC = createLegend('C', 21d, 30d);
     leD = createLegend('D', 31d, 40d);
     lsA = createLegendSet('A');
-    lsA.setLegends(Sets.newHashSet(leA, leB, leC, leD));
+    lsA.setLegends(Set.of(leA, leB, leC, leD));
     opA = createOption('A');
     opB = createOption('B');
     opC = createOption('C');
     osA = createOptionSet('A');
-    osA.setOptions(Lists.newArrayList(opA, opB, opC));
+    osA.setOptions(List.of(opA, opB, opC));
     deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
-    deA.setLegendSets(Lists.newArrayList(lsA));
+    deA.setLegendSets(List.of(lsA));
     deB = createDataElement('B', ValueType.INTEGER, AggregationType.SUM);
-    deB.setLegendSets(Lists.newArrayList(lsA));
+    deB.setLegendSets(List.of(lsA));
     deC = createDataElement('C', ValueType.INTEGER, AggregationType.SUM);
     deD = createDataElement('D', ValueType.INTEGER, AggregationType.SUM);
     deE = createDataElement('E', ValueType.TEXT, AggregationType.NONE);
@@ -155,12 +154,10 @@ class EventAnalyticsServiceMetadataTest extends DhisSpringTest {
 
     DimensionalObject periods =
         new BaseDimensionalObject(
-            DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA));
+            DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of(peA));
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
-            DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT,
-            Lists.newArrayList(ouA));
+            DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of(ouA));
     QueryItem itemLegendSet =
         new QueryItem(deA, lsA, deA.getValueType(), deA.getAggregationType(), null);
     QueryItem itemLegendSetFilter =
@@ -216,19 +213,15 @@ class EventAnalyticsServiceMetadataTest extends DhisSpringTest {
     assertNotNull(itemsOptionSet);
     assertNotNull(itemsOptionSetFilter);
     assertEquals(4, itemsLegendSet.size());
-    assertEquals(
-        itemsLegendSet, Lists.newArrayList(leA.getUid(), leB.getUid(), leC.getUid(), leD.getUid()));
+    assertEquals(itemsLegendSet, List.of(leA.getUid(), leB.getUid(), leC.getUid(), leD.getUid()));
     assertEquals(3, itemsLegendSetFilter.size());
     assertTrue(
-        itemsLegendSetFilter.containsAll(
-            IdentifiableObjectUtils.getUids(Sets.newHashSet(leA, leB, leC))));
+        itemsLegendSetFilter.containsAll(IdentifiableObjectUtils.getUids(Set.of(leA, leB, leC))));
     assertTrue(items.isEmpty());
     assertTrue(itemsFilter.isEmpty());
     assertFalse(itemsOptionSet.isEmpty());
     assertEquals(2, itemsOptionSetFilter.size());
-    assertTrue(
-        itemsOptionSetFilter.containsAll(
-            IdentifiableObjectUtils.getUids(Sets.newHashSet(opA, opB))));
+    assertTrue(itemsOptionSetFilter.containsAll(IdentifiableObjectUtils.getUids(Set.of(opA, opB))));
   }
 
   @Test
@@ -236,12 +229,10 @@ class EventAnalyticsServiceMetadataTest extends DhisSpringTest {
   void testGetQueryItemMetadata() {
     DimensionalObject periods =
         new BaseDimensionalObject(
-            DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA));
+            DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of(peA));
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
-            DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT,
-            Lists.newArrayList(ouA));
+            DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of(ouA));
     QueryItem qiA =
         new QueryItem(deA, deA.getLegendSet(), deA.getValueType(), deA.getAggregationType(), null);
     QueryItem qiB =
@@ -276,7 +267,7 @@ class EventAnalyticsServiceMetadataTest extends DhisSpringTest {
 
   @Test
   void testLegendSetSortedLegends() {
-    List<Legend> legends = Lists.newArrayList(leA, leB, leC, leD);
+    List<Legend> legends = List.of(leA, leB, leC, leD);
     assertEquals(legends, lsA.getSortedLegends());
   }
 }

@@ -41,7 +41,12 @@ import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -118,11 +123,7 @@ class EventQueryValidatorTest extends DhisSpringTest {
     deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER);
     deB = createDataElement('B', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER);
     deC =
-        createDataElement(
-            'C',
-            ValueType.INTEGER,
-            AggregationType.AVERAGE_SUM_ORG_UNIT,
-            DataElementDomain.TRACKER);
+        createDataElement('G', ValueType.DATETIME, AggregationType.NONE, DataElementDomain.TRACKER);
     deD =
         createDataElement(
             'D',
@@ -285,7 +286,7 @@ class EventQueryValidatorTest extends DhisSpringTest {
   }
 
   @Test
-  void validateSuccesA() {
+  void validateSuccessA() {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(prA)

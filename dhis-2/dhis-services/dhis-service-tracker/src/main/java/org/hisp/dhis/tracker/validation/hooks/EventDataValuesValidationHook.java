@@ -126,7 +126,7 @@ public class EventDataValuesValidationHook extends AbstractTrackerDtoValidationH
     } else if (dataElement.getValueType().isOrganisationUnit()) {
       validateOrgUnitValueType(reporter, event, dataValue, dataElement);
     } else {
-      status = ValidationUtils.dataValueIsValid(dataValue.getValue(), dataElement);
+      status = ValidationUtils.valueIsValid(dataValue.getValue(), dataElement);
     }
 
     if (status != null) {

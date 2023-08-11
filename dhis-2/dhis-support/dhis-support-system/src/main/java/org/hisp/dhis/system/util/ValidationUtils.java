@@ -30,6 +30,7 @@ package org.hisp.dhis.system.util;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.common.ValueType.MULTI_TEXT;
 import static org.hisp.dhis.datavalue.DataValue.FALSE;
 import static org.hisp.dhis.datavalue.DataValue.TRUE;
 import static org.hisp.dhis.system.util.MathUtils.*;
@@ -39,7 +40,11 @@ import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import java.awt.geom.Point2D;
-import java.util.*;
+import java.util.Date;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.validator.routines.EmailValidator;
@@ -51,6 +56,7 @@ import org.hisp.dhis.common.ValueTypeOptions;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.render.ObjectValueTypeRenderingOption;
 import org.hisp.dhis.render.StaticRenderingConfiguration;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
@@ -391,8 +397,7 @@ public class ValidationUtils {
     return "[" + longitude + "," + latitude + "]";
   }
 
-  public static String dataValueIsValid(
-      Object value, ValueType valueType, ValueTypeOptions options) {
+  public static String valueIsValid(Object value, ValueType valueType, ValueTypeOptions options) {
     Objects.requireNonNull(value);
     Objects.requireNonNull(valueType);
     Objects.requireNonNull(options);
@@ -432,6 +437,55 @@ public class ValidationUtils {
   }
 
   /**
+   *
+   *
+   * <ul>
+   *   <li>data_element_or_type_null_or_empty
+   *   <li>data_element_lacks_option_set
+   *   <li>value_not_valid_option
+   *   <li>value_length_greater_than_max_length
+   *   <li>value_not_numeric
+   *   <li>value_not_unit_interval
+   *   <li>value_not_percentage
+   *   <li>value_not_integer
+   *   <li>value_not_positive_integer
+   *   <li>value_not_negative_integer
+   *   <li>value_not_bool
+   *   <li>value_not_true_only
+   *   <li>value_not_valid_date
+   *   <li>value_not_valid_letter
+   * </ul>
+   *
+   * @param value the data value.
+   * @param dataElement the data element.
+   * @return null if the value is valid, a string if not.
+   */
+  public static String valueIsValid(
+      String value, DataElement dataElement, boolean validateOptions) {
+    if (dataElement == null) {
+      return "data_element_or_type_null_or_empty";
+    }
+    ValueType valueType = dataElement.getValueType();
+    if (valueType == null) {
+      return "data_element_or_type_null_or_empty";
+    }
+    OptionSet options = dataElement.getOptionSet();
+    boolean isMultiText = valueType == MULTI_TEXT;
+    if (isMultiText && options == null) {
+      return "data_element_lacks_option_set";
+    }
+    if (validateOptions && options != null) {
+      if (!isMultiText && options.getOptionByCode(value) == null) {
+        return "value_not_valid_option";
+      }
+      if (isMultiText && !options.hasAllOptions(ValueType.splitMultiText(value))) {
+        return "value_not_valid_option";
+      }
+    }
+    return valueIsValid(value, valueType);
+  }
+
+  /**
    * Checks if the given data value is valid according to the value type of the given data element.
    * Considers the value to be valid if null or empty. Returns a string if the valid is invalid,
    * possible values are:
@@ -456,12 +510,12 @@ public class ValidationUtils {
    * @param dataElement the data element.
    * @return null if the value is valid, a string if not.
    */
-  public static String dataValueIsValid(String value, DataElement dataElement) {
+  public static String valueIsValid(String value, DataElement dataElement) {
     if (dataElement == null || dataElement.getValueType() == null) {
       return "data_element_or_type_null_or_empty";
     }
 
-    return dataValueIsValid(value, dataElement.getValueType());
+    return valueIsValid(value, dataElement.getValueType());
   }
 
   /**
@@ -471,7 +525,7 @@ public class ValidationUtils {
    * @param valueType the {@link ValueType}.
    * @return null if the value is valid, a string if not.
    */
-  public static String dataValueIsValid(String value, ValueType valueType) {
+  public static String valueIsValid(String value, ValueType valueType) {
     if (value == null || value.trim().isEmpty()) {
       return null;
     }
@@ -531,7 +585,7 @@ public class ValidationUtils {
    * @param valueType the {@link ValueType}.
    * @return true if the value is comparable, false otherwise.
    */
-  public static boolean dataValueIsComparable(String value, ValueType valueType) {
+  public static boolean valueIsComparable(String value, ValueType valueType) {
     if (isEmpty(value) || value.length() > VALUE_MAX_LENGTH || valueType == null) {
       return false;
     }
