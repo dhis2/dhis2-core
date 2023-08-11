@@ -28,6 +28,7 @@
 package org.hisp.dhis.sms.listener;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 
 import java.util.Calendar;
 import java.util.Collection;
@@ -64,7 +65,6 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
@@ -254,7 +254,7 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
       dv.setLastUpdated(new java.util.Date());
       dv.setStoredBy(storedBy);
 
-      if (ValidationUtils.dataValueIsValid(value, dv.getDataElement()) != null) {
+      if (valueIsValid(value, dv.getDataElement()) != null) {
         return; // not a valid value for data element
       }
 

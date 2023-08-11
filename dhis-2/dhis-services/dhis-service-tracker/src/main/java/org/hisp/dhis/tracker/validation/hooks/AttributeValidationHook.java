@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1077;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1085;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1112;
@@ -141,7 +141,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
 
     // Uses ValidationUtils to check that the data value corresponds to the
     // data value type set on the attribute
-    final String result = dataValueIsValid(value, tea.getValueType());
+    final String result = valueIsValid(value, tea.getValueType());
     reporter.addErrorIf(() -> result != null, trackerDto, E1085, tea, result);
   }
 
