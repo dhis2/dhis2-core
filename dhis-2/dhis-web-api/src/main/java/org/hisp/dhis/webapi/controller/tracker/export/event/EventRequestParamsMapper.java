@@ -28,17 +28,13 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseFilters;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrderParams;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitMode;
 
 import java.util.List;
 import java.util.Map;
@@ -68,15 +64,10 @@ class EventRequestParamsMapper {
 
   public EventOperationParams map(RequestParams requestParams) throws BadRequestException {
     OrganisationUnitSelectionMode orgUnitMode =
-        getOrgUnitMode(
-            requestParams.getOrgUnit(),
-            validateDeprecatedParameter(
-                "ouMode",
-                requestParams.getOuMode(),
-                "orgUnitMode",
-                requestParams.getOrgUnitMode()));
+        validateDeprecatedParameter(
+            "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
 
-    validateOrgUnitMode(requestParams.getOrgUnit(), orgUnitMode);
+    orgUnitMode = validateOrgUnitMode(requestParams.getOrgUnit(), orgUnitMode);
 
     UID attributeCategoryCombo =
         validateDeprecatedParameter(
@@ -197,39 +188,5 @@ class EventRequestParamsMapper {
         && DateUtils.getDuration(requestParams.getUpdatedWithin()) == null) {
       throw new BadRequestException("Duration is not valid: " + requestParams.getUpdatedWithin());
     }
-  }
-
-  private void validateOrgUnitMode(UID orgUnit, OrganisationUnitSelectionMode orgUnitMode)
-      throws BadRequestException {
-    if ((orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE) && orgUnit != null) {
-      throw new BadRequestException(
-          String.format(
-              "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
-              orgUnitMode));
-    }
-
-    if ((orgUnitMode == CHILDREN || orgUnitMode == SELECTED || orgUnitMode == DESCENDANTS)
-        && orgUnit == null) {
-      throw new BadRequestException(
-          String.format(
-              "orgUnit is required for orgUnitMode: %s. Please add an orgUnit or use a different orgUnitMode.",
-              orgUnitMode));
-    }
-  }
-
-  /**
-   * Returns the same org unit mode if not null. If null, and an org unit is present, SELECT mode is
-   * used by default, mode ACCESSIBLE is used otherwise.
-   *
-   * @param orgUnit
-   * @param orgUnitMode
-   * @return an org unit mode given the two input params
-   */
-  private OrganisationUnitSelectionMode getOrgUnitMode(
-      UID orgUnit, OrganisationUnitSelectionMode orgUnitMode) {
-    if (orgUnitMode == null) {
-      return orgUnit != null ? SELECTED : ACCESSIBLE;
-    }
-    return orgUnitMode;
   }
 }

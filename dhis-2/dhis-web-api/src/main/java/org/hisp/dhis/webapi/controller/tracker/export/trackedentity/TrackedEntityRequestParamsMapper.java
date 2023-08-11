@@ -31,10 +31,10 @@ import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryFilter;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrgUnitParams;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitMode;
 
 import java.util.List;
 import java.util.Objects;
@@ -87,13 +87,7 @@ class TrackedEntityRequestParamsMapper {
         validateDeprecatedParameter(
             "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
 
-    validateOrgUnitParams(orgUnitUids, orgUnitMode);
-
-    // TODO Default set to DESCENDANTS to replicate master, but this will need to be fixed in
-    // https://dhis2.atlassian.net/browse/TECH-1588
-    if (orgUnitMode == null) {
-      orgUnitMode = OrganisationUnitSelectionMode.DESCENDANTS;
-    }
+    orgUnitMode = validateOrgUnitMode(orgUnitUids, orgUnitMode);
 
     QueryFilter queryFilter = parseQueryFilter(requestParams.getQuery());
 

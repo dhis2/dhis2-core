@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 
 import java.util.Date;
 import java.util.List;
