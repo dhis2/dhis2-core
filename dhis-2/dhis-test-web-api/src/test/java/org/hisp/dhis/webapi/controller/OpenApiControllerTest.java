@@ -34,10 +34,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
+import org.openapitools.codegen.DefaultGenerator;
+import org.openapitools.codegen.config.CodegenConfigurator;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.openapi.OpenApiController} with Mock MVC tests.
@@ -84,5 +89,20 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
             .has("/users/gist", "/users/invite", "/users/invites", "/users/sharing"));
     assertLessOrEqual(130, doc.getObject("paths").size());
     assertLessOrEqual(60, doc.getObject("components.schemas").size());
+  }
+
+  @Test
+  void testGetOpenApiDocument_CodeGeneration() throws IOException {
+    JsonObject doc = GET("/openapi/openapi.json?failOnNameClash=true").content();
+
+    Path tmpFile = Files.createTempFile("openapi", ".json");
+    Files.writeString(tmpFile, doc.node().getDeclaration());
+
+    CodegenConfigurator configurator =
+        new CodegenConfigurator()
+            .setInputSpec(tmpFile.toAbsolutePath().toString())
+            .setGeneratorName("r");
+
+    new DefaultGenerator(true).opts(configurator.toClientOptInput()).generate();
   }
 }

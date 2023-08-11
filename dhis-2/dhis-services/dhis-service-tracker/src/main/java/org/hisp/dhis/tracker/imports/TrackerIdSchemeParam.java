@@ -35,6 +35,7 @@ import lombok.Builder;
 import lombok.Value;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 
 /**
@@ -44,6 +45,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 @Builder
 @JsonDeserialize(builder = TrackerIdSchemeParam.TrackerIdSchemeParamBuilder.class)
 @AllArgsConstructor(staticName = "of", access = AccessLevel.PRIVATE)
+@OpenApi.Property(value = TrackerIdScheme.class)
 public class TrackerIdSchemeParam {
   public static final TrackerIdSchemeParam UID = TrackerIdSchemeParam.of(TrackerIdScheme.UID, null);
 

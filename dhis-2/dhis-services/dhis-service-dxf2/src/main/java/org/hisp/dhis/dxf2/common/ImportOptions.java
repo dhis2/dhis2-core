@@ -38,6 +38,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
@@ -64,6 +65,7 @@ public class ImportOptions {
   private User user;
 
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
+  @OpenApi.Property(name = "idScheme", value = IdentifiableProperty.class)
   private IdSchemes idSchemes = new IdSchemes();
 
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
