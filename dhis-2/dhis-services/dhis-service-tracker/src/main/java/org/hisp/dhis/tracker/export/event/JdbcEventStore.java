@@ -168,7 +168,7 @@ class JdbcEventStore implements EventStore {
   private static final String COLUMN_EVENT_CREATED = "ev_created";
   private static final String COLUMN_EVENT_LAST_UPDATED = "ev_lastupdated";
   private static final String COLUMN_EVENT_COMPLETED_BY = "ev_completedby";
-  private static final String COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID = "ev_aoc";
+  private static final String COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID = "coc_uid";
   private static final String COLUMN_EVENT_COMPLETED_DATE = "ev_completeddate";
   private static final String COLUMN_EVENT_DELETED = "ev_deleted";
   private static final String COLUMN_EVENT_ASSIGNED_USER_USERNAME = "user_assigned_username";
@@ -468,7 +468,8 @@ class JdbcEventStore implements EventStore {
       throw new IllegalStateException(
           String.format(
               "CategoryOptionCombo %s does not have a value assigned for idScheme %s",
-              rowSet.getString("coc_uid"), idSchemes.getCategoryOptionComboIdScheme().name()));
+              rowSet.getString(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID),
+              idSchemes.getCategoryOptionComboIdScheme().name()));
     }
   }
 
@@ -712,7 +713,9 @@ class JdbcEventStore implements EventStore {
             .append("au.username as ")
             .append(COLUMN_EVENT_ASSIGNED_USER_USERNAME)
             .append(",")
-            .append("coc.uid as coc_uid, ")
+            .append("coc.uid as ")
+            .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID)
+            .append(", ")
             .append("coc_agg.co_uids AS co_uids, ")
             .append("coc_agg.co_count AS option_size, ");
 
