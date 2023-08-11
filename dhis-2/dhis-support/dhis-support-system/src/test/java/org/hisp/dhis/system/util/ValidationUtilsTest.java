@@ -41,7 +41,6 @@ import static org.hisp.dhis.common.ValueType.INTEGER_POSITIVE;
 import static org.hisp.dhis.common.ValueType.INTEGER_ZERO_OR_POSITIVE;
 import static org.hisp.dhis.common.ValueType.LETTER;
 import static org.hisp.dhis.common.ValueType.LONG_TEXT;
-import static org.hisp.dhis.common.ValueType.MULTI_TEXT;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.PERCENTAGE;
 import static org.hisp.dhis.common.ValueType.PHONE_NUMBER;
@@ -340,15 +339,6 @@ class ValidationUtilsTest {
     assertTrue(valueIsComparable("0", valueType));
     assertTrue(valueIsComparable("-1", valueType));
     assertTrue(valueIsComparable("@", valueType));
-
-    valueType = MULTI_TEXT;
-    assertTrue(valueIsComparable("a", valueType));
-    assertTrue(valueIsComparable("abc", valueType));
-    assertTrue(valueIsComparable("1", valueType));
-    assertTrue(valueIsComparable("0", valueType));
-    assertTrue(valueIsComparable("-1", valueType));
-    assertTrue(valueIsComparable("@", valueType));
-    assertTrue(valueIsComparable(" ", valueType));
 
     valueType = PHONE_NUMBER;
     assertTrue(valueIsComparable("a", valueType));

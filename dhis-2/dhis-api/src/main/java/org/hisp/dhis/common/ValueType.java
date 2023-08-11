@@ -51,7 +51,6 @@ import org.opengis.geometry.primitive.Point;
 public enum ValueType {
   TEXT(String.class, true),
   LONG_TEXT(String.class, true),
-  MULTI_TEXT(String.class, true),
   LETTER(String.class, true),
   PHONE_NUMBER(String.class, true),
   EMAIL(String.class, true),
@@ -77,13 +76,6 @@ public enum ValueType {
   FILE_RESOURCE(String.class, true, FileTypeValueOptions.class),
   IMAGE(String.class, false, FileTypeValueOptions.class),
   GEOJSON(GeoJSON.class, false);
-
-  /** The character used to separate values in a multi-text value. */
-  public static final String MULTI_TEXT_SEPARATOR = ",";
-
-  public static List<String> splitMultiText(String value) {
-    return value == null ? List.of() : List.of(value.split(MULTI_TEXT_SEPARATOR));
-  }
 
   private static final Set<ValueType> INTEGER_TYPES =
       Set.of(INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE);

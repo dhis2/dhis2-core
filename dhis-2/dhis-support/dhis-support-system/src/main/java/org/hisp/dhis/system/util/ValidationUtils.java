@@ -30,7 +30,6 @@ package org.hisp.dhis.system.util;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
-import static org.hisp.dhis.common.ValueType.MULTI_TEXT;
 import static org.hisp.dhis.datavalue.DataValue.FALSE;
 import static org.hisp.dhis.datavalue.DataValue.TRUE;
 import static org.hisp.dhis.system.util.MathUtils.*;
@@ -437,55 +436,6 @@ public class ValidationUtils {
   }
 
   /**
-   *
-   *
-   * <ul>
-   *   <li>data_element_or_type_null_or_empty
-   *   <li>data_element_lacks_option_set
-   *   <li>value_not_valid_option
-   *   <li>value_length_greater_than_max_length
-   *   <li>value_not_numeric
-   *   <li>value_not_unit_interval
-   *   <li>value_not_percentage
-   *   <li>value_not_integer
-   *   <li>value_not_positive_integer
-   *   <li>value_not_negative_integer
-   *   <li>value_not_bool
-   *   <li>value_not_true_only
-   *   <li>value_not_valid_date
-   *   <li>value_not_valid_letter
-   * </ul>
-   *
-   * @param value the data value.
-   * @param dataElement the data element.
-   * @return null if the value is valid, a string if not.
-   */
-  public static String valueIsValid(
-      String value, DataElement dataElement, boolean validateOptions) {
-    if (dataElement == null) {
-      return "data_element_or_type_null_or_empty";
-    }
-    ValueType valueType = dataElement.getValueType();
-    if (valueType == null) {
-      return "data_element_or_type_null_or_empty";
-    }
-    OptionSet options = dataElement.getOptionSet();
-    boolean isMultiText = valueType == MULTI_TEXT;
-    if (isMultiText && options == null) {
-      return "data_element_lacks_option_set";
-    }
-    if (validateOptions && options != null) {
-      if (!isMultiText && options.getOptionByCode(value) == null) {
-        return "value_not_valid_option";
-      }
-      if (isMultiText && !options.hasAllOptions(ValueType.splitMultiText(value))) {
-        return "value_not_valid_option";
-      }
-    }
-    return valueIsValid(value, valueType);
-  }
-
-  /**
    * Checks if the given data value is valid according to the value type of the given data element.
    * Considers the value to be valid if null or empty. Returns a string if the valid is invalid,
    * possible values are:
@@ -611,7 +561,6 @@ public class ValidationUtils {
       case DATETIME:
         return dateTimeIsValid(trim(value));
       case LONG_TEXT:
-      case MULTI_TEXT:
       case PHONE_NUMBER:
       case EMAIL:
       case TEXT:
