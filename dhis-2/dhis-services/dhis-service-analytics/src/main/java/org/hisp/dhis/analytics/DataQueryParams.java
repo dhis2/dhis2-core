@@ -93,6 +93,7 @@ import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ReportingRateMetric;
+import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -435,6 +436,8 @@ public class DataQueryParams {
 
   protected EndpointItem endpointItem;
 
+  protected EndpointAction endpointAction;
+
   /** Mapping of organisation unit sub-hierarchy roots and lowest available data approval levels. */
   protected transient Map<OrganisationUnit, Integer> dataApprovalLevels = new HashMap<>();
 
@@ -547,6 +550,7 @@ public class DataQueryParams {
     params.skipDataDimensionValidation = this.skipDataDimensionValidation;
     params.userOrgUnitType = this.userOrgUnitType;
     params.endpointItem = this.endpointItem;
+    params.endpointAction = this.endpointAction;
     params.explainOrderId = this.explainOrderId;
     params.serverBaseUrl = this.serverBaseUrl;
 
@@ -2473,6 +2477,10 @@ public class DataQueryParams {
     return endpointItem;
   }
 
+  public EndpointAction getEndpointAction() {
+    return endpointAction;
+  }
+
   // -------------------------------------------------------------------------
   // Builder of immutable instances
   // -------------------------------------------------------------------------
@@ -2984,6 +2992,11 @@ public class DataQueryParams {
 
     public Builder withEndpointItem(EndpointItem endpointItem) {
       this.params.endpointItem = endpointItem;
+      return this;
+    }
+
+    public Builder withEndpointAction(EndpointAction endpointAction) {
+      this.params.endpointAction = endpointAction;
       return this;
     }
 
