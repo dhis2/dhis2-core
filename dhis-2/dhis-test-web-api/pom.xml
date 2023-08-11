@@ -350,7 +350,7 @@
     </dependency>
     <dependency>
       <groupId>org.openapitools</groupId>
-        <artifactId>openapi-generator</artifactId>
+      <artifactId>openapi-generator</artifactId>
       <version>6.6.0</version>
       <scope>test</scope>
       <exclusions>
