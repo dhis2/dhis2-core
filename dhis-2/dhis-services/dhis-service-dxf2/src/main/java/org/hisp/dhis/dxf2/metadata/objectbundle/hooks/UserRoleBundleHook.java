@@ -55,7 +55,7 @@ public class UserRoleBundleHook extends AbstractObjectBundleHook<UserRole> {
     bundle.putExtras(update, INVALIDATE_SESSION_KEY, userRolesUpdated(update, existing));
   }
 
-  private Object userRolesUpdated(UserRole update, UserRole existing) {
+  private Boolean userRolesUpdated(UserRole update, UserRole existing) {
     Set<String> newAuthorities = update.getAuthorities();
     Set<String> existingAuthorities = existing.getAuthorities();
     return !Objects.equals(newAuthorities, existingAuthorities);

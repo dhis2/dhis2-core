@@ -84,7 +84,6 @@ import org.jboss.aerogear.security.otp.api.Base32;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 
 /**
@@ -132,6 +131,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   void updateRolesShouldInvalidateUserSessions() {
     CurrentUserDetails sessionPrincipal = userService.createUserDetails(superUser);
     sessionRegistry.registerNewSession("session1", sessionPrincipal);
+    assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
 
     UserRole roleB = createUserRole("ROLE_B", "ALL");
     userService.addUserRole(roleB);
@@ -143,10 +143,22 @@ class UserControllerTest extends DhisControllerConvenienceTest {
             "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleBID + "'}]}]")
         .content(HttpStatus.OK);
 
-    List<SessionInformation> allSessionsA = sessionRegistry.getAllSessions(sessionPrincipal, false);
-    assertTrue(allSessionsA.isEmpty());
+    assertTrue(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
+  }
 
-    sessionRegistry.registerNewSession("session2", sessionPrincipal);
+  @Test
+  void updateRolesAuthoritiesShouldInvalidateUserSessions() {
+    CurrentUserDetails sessionPrincipal = userService.createUserDetails(superUser);
+
+    UserRole roleB = createUserRole("ROLE_B", "ALL");
+    userService.addUserRole(roleB);
+    superUser.getUserRoles().add(roleB);
+    userService.updateUser(superUser);
+
+    String roleBID = userService.getUserRoleByName("ROLE_B").getUid();
+
+    sessionRegistry.registerNewSession("session1", sessionPrincipal);
+    assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
 
     PATCH(
             "/userRoles/" + roleBID,
@@ -159,8 +171,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
                 + "]")
         .content(HttpStatus.OK);
 
-    List<SessionInformation> allSessionsB = sessionRegistry.getAllSessions(sessionPrincipal, false);
-    assertTrue(allSessionsB.isEmpty());
+    assertTrue(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
   }
 
   @Test
