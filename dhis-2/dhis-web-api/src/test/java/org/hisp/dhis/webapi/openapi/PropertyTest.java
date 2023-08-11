@@ -36,14 +36,14 @@ import org.hisp.dhis.common.OpenApi;
 import org.junit.jupiter.api.Test;
 
 class PropertyTest {
-    @OpenApi.Property(value = String.class)
-    private static class AProperty {}
+  @OpenApi.Property(value = String.class)
+  private static class AProperty {}
 
-    @JsonProperty private AProperty aProperty;
+  @JsonProperty private AProperty aProperty;
 
-    @Test
-    void testGetPropertiesGivenOpenApiPropertyAnnotatedClassThatHasValueSet() {
-        Collection<Property> properties = Property.getProperties(PropertyTest.class);
-        assertEquals(String.class, new ArrayList<>(properties).get(0).getType());
-    }
+  @Test
+  void testGetPropertiesGivenOpenApiPropertyAnnotatedClassThatHasValueSet() {
+    Collection<Property> properties = Property.getProperties(PropertyTest.class);
+    assertEquals(String.class, new ArrayList<>(properties).get(0).getType());
+  }
 }

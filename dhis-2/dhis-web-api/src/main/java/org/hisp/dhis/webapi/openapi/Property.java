@@ -131,8 +131,8 @@ class Property {
       OpenApi.Property a = source.getAnnotation(OpenApi.Property.class);
       return a.value().length > 0 ? a.value()[0] : type;
     } else if (type instanceof Class<?>
-            && ((Class<?>) type).isAnnotationPresent(OpenApi.Property.class)
-            && ((Class<?>) type).getAnnotation(OpenApi.Property.class).value().length > 0) {
+        && ((Class<?>) type).isAnnotationPresent(OpenApi.Property.class)
+        && ((Class<?>) type).getAnnotation(OpenApi.Property.class).value().length > 0) {
       return ((Class<?>) type).getAnnotation(OpenApi.Property.class).value()[0];
     }
     return type;
