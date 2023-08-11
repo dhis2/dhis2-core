@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.utils.Assertions.assertGreaterOrEqual;
 import static org.hisp.dhis.utils.Assertions.assertLessOrEqual;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.swagger.parser.OpenAPIParser;
@@ -103,6 +104,6 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
             .setInputSpec(tmpFile.toAbsolutePath().toString())
             .setGeneratorName("r");
 
-    new DefaultGenerator(true).opts(configurator.toClientOptInput()).generate();
+    assertNotNull(new DefaultGenerator(true).opts(configurator.toClientOptInput()).generate());
   }
 }
