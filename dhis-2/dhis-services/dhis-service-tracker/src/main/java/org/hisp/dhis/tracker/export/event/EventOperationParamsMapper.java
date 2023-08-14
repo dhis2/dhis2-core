@@ -32,8 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.function.Function;
-import java.util.stream.Stream;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -110,7 +109,6 @@ class EventOperationParamsMapper {
             requestedOrgUnit,
             operationParams.getOrgUnitMode(),
             program,
-            organisationUnitService::getOrganisationUnitWithChildren,
             trackerAccessManager);
     validateUser(user, program, programStage);
     TrackedEntity trackedEntity = validateTrackedEntity(operationParams.getTrackedEntityUid());
@@ -317,12 +315,10 @@ class EventOperationParamsMapper {
       OrganisationUnit orgUnit,
       OrganisationUnitSelectionMode orgUnitMode,
       Program program,
-      java.util.function.Function<String, List<OrganisationUnit>> orgUnitDescendants,
       TrackerAccessManager trackerAccessManager)
       throws ForbiddenException {
     List<OrganisationUnit> accessibleOrgUnits =
-        getUserAccessibleOrgUnits(
-            user, orgUnit, orgUnitMode, program, orgUnitDescendants, trackerAccessManager);
+        getUserAccessibleOrgUnits(user, orgUnit, orgUnitMode, program, trackerAccessManager);
 
     if (orgUnit != null && accessibleOrgUnits.isEmpty()) {
       throw new ForbiddenException("User does not have access to orgUnit: " + orgUnit.getUid());
@@ -335,29 +331,23 @@ class EventOperationParamsMapper {
    * Returns a list of all the org units the user has access to
    *
    * @param user the user to check the access of
-   * @param orgUnit parent org unit to get descendants/children of
-   * @param orgUnitDescendants function to retrieve org units, in case ou mode is descendants
+   * @param requestedOrgUnit parent org unit to get descendants/children of
    * @param program the program the user wants to access to
    * @return a list containing the user accessible organisation units
    */
   private static List<OrganisationUnit> getUserAccessibleOrgUnits(
       User user,
-      OrganisationUnit orgUnit,
+      OrganisationUnit requestedOrgUnit,
       OrganisationUnitSelectionMode orgUnitMode,
       Program program,
-      Function<String, List<OrganisationUnit>> orgUnitDescendants,
       TrackerAccessManager trackerAccessManager) {
 
     return switch (orgUnitMode) {
-      case DESCENDANTS -> getAccessibleDescendants(
-          user, program, orgUnitDescendants.apply(orgUnit.getUid()));
-      case CHILDREN -> getAccessibleDescendants(
-          user,
-          program,
-          Stream.concat(Stream.of(orgUnit), orgUnit.getChildren().stream()).toList());
+      case DESCENDANTS -> getAccessibleDescendant(user, program, requestedOrgUnit, true);
+      case CHILDREN -> getAccessibleDescendant(user, program, requestedOrgUnit, false);
       case CAPTURE -> new ArrayList<>(user.getOrganisationUnits());
       case ACCESSIBLE -> getAccessibleOrgUnits(user, program);
-      case SELECTED -> getSelectedOrgUnits(user, program, orgUnit, trackerAccessManager);
+      case SELECTED -> getSelectedOrgUnits(user, program, requestedOrgUnit, trackerAccessManager);
       default -> Collections.emptyList();
     };
   }
@@ -379,44 +369,95 @@ class EventOperationParamsMapper {
   }
 
   /**
-   * Returns the org units whose path is contained in the user search or capture scope org unit. If
+   * Returns the org unit whose path is contained in the user search or capture scope org unit. If
    * there's a match, it means the user org unit is at the same level or above the supplied org
    * unit.
    *
    * @param user the user to check the access of
    * @param program the program the user wants to access to
-   * @param orgUnits the org units to check if the user has access to
-   * @return a list with the org units the user has access to
+   * @param includeAllDescendants whether to include all descendants or just the immediate children
+   * @return an org unit the user has access to
    */
-  private static List<OrganisationUnit> getAccessibleDescendants(
-      User user, Program program, List<OrganisationUnit> orgUnits) {
-    if (orgUnits.isEmpty()) {
-      return Collections.emptyList();
-    }
+  private static List<OrganisationUnit> getAccessibleDescendant(
+      User user,
+      Program program,
+      OrganisationUnit requestedOrgUnit,
+      boolean includeAllDescendants) {
 
-    if (isProgramAccessRestricted(program)) {
-      return orgUnits.stream()
-          .filter(
-              availableOrgUnit ->
-                  user.getOrganisationUnits().stream()
-                      .anyMatch(
-                          captureScopeOrgUnit ->
-                              availableOrgUnit.getPath().contains(captureScopeOrgUnit.getPath())))
-          .toList();
-    } else {
-      return orgUnits.stream()
-          .filter(
-              availableOrgUnit ->
-                  user.getTeiSearchOrganisationUnits().stream()
-                      .anyMatch(
-                          searchScopeOrgUnit ->
-                              availableOrgUnit.getPath().contains(searchScopeOrgUnit.getPath())))
-          .toList();
-    }
+    Set<OrganisationUnit> userOrgUnits =
+        isProgramAccessRestricted(program)
+            ? user.getOrganisationUnits()
+            : user.getTeiSearchOrganisationUnits();
+
+    return includeAllDescendants
+        ? findFirstDescendant(requestedOrgUnit, userOrgUnits)
+        : findFirstChild(requestedOrgUnit, userOrgUnits);
   }
 
   private static boolean isProgramAccessRestricted(Program program) {
     return program != null && (program.isClosed() || program.isProtected());
+  }
+
+  /**
+   * Finds the highest level org unit from the user scope whose path is contained in the requested
+   * org unit path
+   *
+   * @param requestedOrgUnit org unit requested by the user
+   * @param userOrgUnits org units defined in the user scope
+   * @return if found, the org unit that matches the criteria, if not, null
+   */
+  private static List<OrganisationUnit> findFirstDescendant(
+      OrganisationUnit requestedOrgUnit, Set<OrganisationUnit> userOrgUnits) {
+    for (OrganisationUnit orgUnit : userOrgUnits) {
+      if (requestedOrgUnit.getPath().contains(orgUnit.getPath())) {
+        return List.of(requestedOrgUnit);
+      }
+    }
+
+    if (!requestedOrgUnit.hasChild()) {
+      return Collections.emptyList();
+    }
+
+    for (OrganisationUnit child : requestedOrgUnit.getChildren()) {
+      List<OrganisationUnit> descendants = findFirstDescendant(child, userOrgUnits);
+      if (!descendants.isEmpty()) {
+        return descendants;
+      }
+    }
+
+    return Collections.emptyList();
+  }
+
+  /**
+   * Finds the highest level org unit from the user scope whose path is contained in the requested
+   * org unit path. The org unit found can only be in the same level or one level below the
+   * requested org unit.
+   *
+   * @param requestedOrgUnit org unit requested by the user
+   * @param userOrgUnits org units defined in the user scope
+   * @return if found, the org unit that matches the criteria, if not, null
+   */
+  private static List<OrganisationUnit> findFirstChild(
+      OrganisationUnit requestedOrgUnit, Set<OrganisationUnit> userOrgUnits) {
+    for (OrganisationUnit orgUnit : userOrgUnits) {
+      if (requestedOrgUnit.getPath().contains(orgUnit.getPath())) {
+        return List.of(requestedOrgUnit);
+      }
+    }
+
+    if (!requestedOrgUnit.hasChild()) {
+      return Collections.emptyList();
+    }
+
+    for (OrganisationUnit child : requestedOrgUnit.getChildren()) {
+      for (OrganisationUnit orgUnit : userOrgUnits) {
+        if (child.getPath().contains(orgUnit.getPath())) {
+          return List.of(child);
+        }
+      }
+    }
+
+    return Collections.emptyList();
   }
 
   private void mapDataElementFilters(

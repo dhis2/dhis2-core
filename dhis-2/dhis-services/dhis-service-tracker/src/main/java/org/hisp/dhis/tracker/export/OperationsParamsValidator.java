@@ -157,10 +157,14 @@ public class OperationsParamsValidator {
    *
    * @param user the user to check the access of
    * @param program the program the user wants to access to
+   * @param includeAllDescendants whether to include all descendants or just the immediate children
    * @return an org unit the user has access to
    */
   private static OrganisationUnit getAccessibleDescendant(
-      User user, Program program, OrganisationUnit orgUnit, boolean includeAllDescendants) {
+      User user,
+      Program program,
+      OrganisationUnit requestedOrgUnit,
+      boolean includeAllDescendants) {
 
     Set<OrganisationUnit> userOrgUnits =
         isProgramAccessRestricted(program)
@@ -168,8 +172,8 @@ public class OperationsParamsValidator {
             : user.getTeiSearchOrganisationUnits();
 
     return includeAllDescendants
-        ? findFirstDescendant(orgUnit, userOrgUnits)
-        : findFirstChild(orgUnit, userOrgUnits);
+        ? findFirstDescendant(requestedOrgUnit, userOrgUnits)
+        : findFirstChild(requestedOrgUnit, userOrgUnits);
   }
 
   /**

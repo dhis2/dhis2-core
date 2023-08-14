@@ -462,9 +462,8 @@ class EventOperationParamsMapperTest {
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(currentUserService.getCurrentUser()).thenReturn(user);
+    orgUnit.setChildren(Set.of(captureScopeOrgUnit));
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
-    when(organisationUnitService.getOrganisationUnitWithChildren(orgUnitId))
-        .thenReturn(orgUnitDescendants);
 
     EventOperationParams operationParams =
         EventOperationParams.builder()
@@ -488,9 +487,8 @@ class EventOperationParamsMapperTest {
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
 
     when(currentUserService.getCurrentUser()).thenReturn(user);
+    orgUnit.setChildren(Set.of(searchScopeOrgUnit));
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
-    when(organisationUnitService.getOrganisationUnitWithChildren(orgUnitId))
-        .thenReturn(orgUnitDescendants);
 
     EventOperationParams operationParams =
         EventOperationParams.builder()
@@ -516,8 +514,6 @@ class EventOperationParamsMapperTest {
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(currentUserService.getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
-    when(organisationUnitService.getOrganisationUnitWithChildren(orgUnitId))
-        .thenReturn(orgUnitDescendants);
 
     EventOperationParams operationParams =
         EventOperationParams.builder()
@@ -549,8 +545,6 @@ class EventOperationParamsMapperTest {
 
     when(currentUserService.getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
-    when(organisationUnitService.getOrganisationUnitWithChildren(orgUnitId))
-        .thenReturn(orgUnitDescendants);
 
     ForbiddenException exception =
         Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));

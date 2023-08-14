@@ -1395,11 +1395,17 @@ class JdbcEventStore implements EventStore {
               + " '"
               + orgUnit.getPath()
               + "%' "
-              + " and "
+              + " and ( "
               + ouTable
               + "."
               + "hierarchylevel = "
-              + orgUnit.getLevel());
+              + orgUnit.getLevel()
+              + " or "
+              + ouTable
+              + "."
+              + "hierarchylevel = "
+              + (orgUnit.getLevel() + 1)
+              + " ) ");
     }
 
     return orgUnitSqlJoiner.toString();
