@@ -87,6 +87,7 @@ public class JobSchedulerController {
   public List<SchedulerEntry> getSchedulerEntries(@RequestParam(required = false) String order) {
     Map<String, List<JobConfiguration>> configsByQueueNameOrUid =
         jobConfigurationService.getAllJobConfigurations().stream()
+            .filter(config -> config.getSchedulingType() != SchedulingType.ONCE_ASAP)
             .collect(groupingBy(JobConfiguration::getQueueIdentifier));
     Comparator<SchedulerEntry> sortBy =
         "name".equals(order)
@@ -106,7 +107,7 @@ public class JobSchedulerController {
             : config -> !name.equals(config.getQueueName());
     return jobConfigurationService.getAllJobConfigurations().stream()
         .filter(JobConfiguration::isConfigurable)
-        .filter(config -> config.getSchedulingType() != SchedulingType.FIXED_DELAY)
+        .filter(config -> config.getSchedulingType() == SchedulingType.CRON)
         .filter(config -> !config.isUsedInQueue())
         .filter(nameFilter)
         .map(SchedulerEntry::of)

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.validation;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -114,7 +114,7 @@ public class ValidationController {
 
     jobSchedulerService.executeNow(jobConfigurationService.create(config));
 
-    return ok("Initiated validation result notification");
+    return jobConfigurationReport(config);
   }
 
   /**

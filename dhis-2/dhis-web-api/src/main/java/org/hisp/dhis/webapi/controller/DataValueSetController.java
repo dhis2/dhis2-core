@@ -314,7 +314,7 @@ public class DataValueSetController {
     jobSchedulerService.executeNow(
         jobConfigurationService.create(config, mimeType, request.getInputStream()));
 
-    return jobConfigurationReport(config).setLocation("/system/tasks/" + DATAVALUE_IMPORT);
+    return jobConfigurationReport(config);
   }
 
   /**

@@ -394,7 +394,7 @@ public class EnrollmentController {
     taskExecutor.executeTask(
         new ImportEnrollmentsTask(enrollments, enrollmentService, importOptions, jobId));
 
-    return jobConfigurationReport(jobId).setLocation("/system/tasks/" + ENROLLMENT_IMPORT);
+    return jobConfigurationReport(jobId);
   }
 
   private Enrollment getEnrollment(String id) throws NotFoundException {

@@ -27,48 +27,35 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Tests the {@link ResourceTableController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-class ResourceTableControllerTest extends DhisControllerConvenienceTest {
-
-  @Autowired private JobSchedulerService jobSchedulerService;
+class ResourceTableControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void testAnalytics() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Initiated inMemoryAnalyticsJob",
-        POST("/resourceTables/analytics").content(HttpStatus.OK));
+    JsonWebMessage msg = assertWebMessage(HttpStatus.OK, POST("/resourceTables/analytics"));
+    assertStartsWith("Initiated ANALYTICS_TABLE", msg.getMessage());
   }
 
   @Test
   void testResourceTables() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Initiated inMemoryResourceTableJob",
-        POST("/resourceTables").content(HttpStatus.OK));
+    JsonWebMessage msg = assertWebMessage(HttpStatus.OK, POST("/resourceTables"));
+    assertStartsWith("Initiated RESOURCE_TABLE", msg.getMessage());
   }
 
   @Test
   void testMonitoring() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Initiated inMemoryMonitoringJob",
-        POST("/resourceTables/monitoring").content(HttpStatus.OK));
+    JsonWebMessage msg = assertWebMessage(HttpStatus.OK, POST("/resourceTables/monitoring"));
+    assertStartsWith("Initiated MONITORING", msg.getMessage());
   }
 }

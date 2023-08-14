@@ -97,7 +97,7 @@ public class PredictionController {
 
       jobSchedulerService.executeNow(jobConfigurationService.create(config));
 
-      return jobConfigurationReport(config).setLocation("/system/tasks/" + PREDICTOR);
+      return jobConfigurationReport(config);
     }
     PredictionSummary predictionSummary =
         predictionService.predictTask(

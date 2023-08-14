@@ -176,6 +176,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
     this.jobType = type;
     this.schedulingType = SchedulingType.ONCE_ASAP;
     this.jobStatus = JobStatus.NOT_STARTED;
+    setAutoFields();
   }
 
   /**
@@ -189,6 +190,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
     this.jobType = type;
     this.executedBy = executedBy;
     this.schedulingType = SchedulingType.ONCE_ASAP;
+    setAutoFields();
   }
 
   /**

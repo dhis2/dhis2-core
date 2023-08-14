@@ -1196,7 +1196,7 @@ public class EventController {
             "inMemoryEventImport", EVENT_IMPORT, currentUserService.getCurrentUser().getUid());
     taskExecutor.executeTask(new ImportEventsTask(events, eventService, importOptions, jobId));
 
-    return jobConfigurationReport(jobId).setLocation("/system/tasks/" + EVENT_IMPORT);
+    return jobConfigurationReport(jobId);
   }
 
   private boolean fieldsContains(String match, List<String> fields) {

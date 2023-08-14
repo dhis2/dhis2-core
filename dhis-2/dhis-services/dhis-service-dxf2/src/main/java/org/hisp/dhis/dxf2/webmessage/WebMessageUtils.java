@@ -214,9 +214,10 @@ public final class WebMessageUtils {
         .setResponse(new ObjectReportWebMessageResponse(objectReport));
   }
 
-  public static WebMessage jobConfigurationReport(JobConfiguration jobConfiguration) {
-    return ok("Initiated " + jobConfiguration.getName())
-        .setResponse(new JobConfigurationWebMessageResponse(jobConfiguration));
+  public static WebMessage jobConfigurationReport(JobConfiguration config) {
+    return ok("Initiated " + config.getName())
+        .setResponse(new JobConfigurationWebMessageResponse(config))
+        .setLocation("/system/tasks/" + config.getJobType());
   }
 
   public static WebMessage errorReports(List<ErrorReport> errorReports) {

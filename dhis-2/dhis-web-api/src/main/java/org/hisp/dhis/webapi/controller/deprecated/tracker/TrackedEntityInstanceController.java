@@ -454,7 +454,7 @@ public class TrackedEntityInstanceController {
                   ? null
                   : "/api/" + "trackedEntityInstances" + "/" + singleSummary.getReference());
     }
-    return jobConfigurationReport(jobId).setLocation("/system/tasks/" + TEI_IMPORT);
+    return jobConfigurationReport(jobId);
   }
 
   private ImportSummary finalizeTrackedEntityInstancePostRequest(
