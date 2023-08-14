@@ -110,12 +110,7 @@ public class ValidationController {
   @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
   public WebMessage runValidationNotificationsTask()
       throws ConflictException, @OpenApi.Ignore NotFoundException {
-    JobConfiguration config =
-        new JobConfiguration(
-            "validation result notification from validation controller",
-            JobType.VALIDATION_RESULTS_NOTIFICATION,
-            null,
-            null);
+    JobConfiguration config = new JobConfiguration(JobType.VALIDATION_RESULTS_NOTIFICATION);
 
     jobSchedulerService.executeNow(jobConfigurationService.create(config));
 

@@ -122,14 +122,12 @@ public class ResourceTableController {
       skipTableTypes.add(TRACKED_ENTITY_INSTANCE_ENROLLMENTS);
     }
 
-    AnalyticsJobParameters analyticsJobParameters =
-        new AnalyticsJobParameters(lastYears, skipTableTypes, skipPrograms, skipResourceTables);
+    JobConfiguration config = new JobConfiguration(ANALYTICS_TABLE);
+    config.setExecutedBy(currentUserService.getCurrentUser().getUid());
+    config.setJobParameters(
+        new AnalyticsJobParameters(lastYears, skipTableTypes, skipPrograms, skipResourceTables));
 
-    JobConfiguration analyticsTableJob =
-        new JobConfiguration("inMemoryAnalyticsJob", ANALYTICS_TABLE, null, analyticsJobParameters);
-    analyticsTableJob.setExecutedBy(currentUserService.getCurrentUser().getUid());
-
-    return execute(analyticsTableJob);
+    return execute(config);
   }
 
   @RequestMapping(method = {PUT, POST})
@@ -137,7 +135,9 @@ public class ResourceTableController {
   @ResponseBody
   public WebMessage resourceTables(@CurrentUser String currentUserId)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
-    return execute(new JobConfiguration("inMemoryResourceTableJob", RESOURCE_TABLE, currentUserId));
+    JobConfiguration config = new JobConfiguration(RESOURCE_TABLE);
+    config.setExecutedBy(currentUserId);
+    return execute(config);
   }
 
   @RequestMapping(
@@ -146,9 +146,9 @@ public class ResourceTableController {
   @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseBody
   public WebMessage monitoring() throws ConflictException, @OpenApi.Ignore NotFoundException {
-    return execute(
-        new JobConfiguration(
-            "inMemoryMonitoringJob", MONITORING, null, new MonitoringJobParameters()));
+    JobConfiguration config = new JobConfiguration(MONITORING);
+    config.setJobParameters(new MonitoringJobParameters());
+    return execute(config);
   }
 
   private WebMessage execute(JobConfiguration configuration)

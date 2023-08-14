@@ -37,6 +37,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
@@ -164,29 +165,47 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   public JobConfiguration() {}
 
   /**
+   * Constructor to use for any type of {@link SchedulingType#ONCE_ASAP} execution.
+   *
+   * <p>This will make sure the name of the job configuration is unique (within reason).
+   *
+   * @param type of the job to run once
+   */
+  public JobConfiguration(@Nonnull JobType type) {
+    this.name = "%s (%d)".formatted(type.name(), Instant.now().toEpochMilli());
+    this.jobType = type;
+    this.schedulingType = SchedulingType.ONCE_ASAP;
+    this.jobStatus = JobStatus.NOT_STARTED;
+  }
+
+  /**
    * @param name the job name.
-   * @param jobType the {@link JobType}.
+   * @param type the {@link JobType}.
    * @param executedBy the user UID.
    */
-  public JobConfiguration(String name, JobType jobType, String executedBy) {
+  public JobConfiguration(
+      @Nonnull String name, @Nonnull JobType type, @CheckForNull String executedBy) {
     this.name = name;
-    this.jobType = jobType;
+    this.jobType = type;
     this.executedBy = executedBy;
     this.schedulingType = SchedulingType.ONCE_ASAP;
   }
 
   /**
    * @param name the job name.
-   * @param jobType the {@link JobType}.
+   * @param type the {@link JobType}.
    * @param cronExpression the cron expression.
    * @param jobParameters the job parameters.
    */
   public JobConfiguration(
-      String name, JobType jobType, String cronExpression, JobParameters jobParameters) {
+      @Nonnull String name,
+      @Nonnull JobType type,
+      @CheckForNull String cronExpression,
+      @CheckForNull JobParameters jobParameters) {
     boolean undefinedCronExpression = isUndefinedCronExpression(cronExpression);
     this.name = name;
     this.cronExpression = undefinedCronExpression ? null : cronExpression;
-    this.jobType = jobType;
+    this.jobType = type;
     this.jobParameters = jobParameters;
     this.schedulingType = undefinedCronExpression ? SchedulingType.ONCE_ASAP : SchedulingType.CRON;
   }

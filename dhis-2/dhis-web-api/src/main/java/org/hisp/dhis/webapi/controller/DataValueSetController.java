@@ -66,9 +66,11 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.node.Provider;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -98,6 +100,7 @@ public class DataValueSetController {
   private final AdxDataService adxDataService;
   private final CurrentUserService currentUserService;
   private final JobConfigurationService jobConfigurationService;
+  private final JobSchedulerService jobSchedulerService;
 
   // -------------------------------------------------------------------------
   // Get
@@ -225,7 +228,7 @@ public class DataValueSetController {
   @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
   @ResponseBody
   public WebMessage postDxf2DataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException {
+      throws IOException, ConflictException, @OpenApi.Ignore NotFoundException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MediaType.APPLICATION_XML, request);
     }
@@ -240,7 +243,7 @@ public class DataValueSetController {
   @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
   @ResponseBody
   public WebMessage postAdxDataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException {
+      throws IOException, ConflictException, @OpenApi.Ignore NotFoundException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MimeType.valueOf("application/adx+xml"), request);
     }
@@ -255,7 +258,7 @@ public class DataValueSetController {
   @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
   @ResponseBody
   public WebMessage postJsonDataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException {
+      throws IOException, ConflictException, @OpenApi.Ignore NotFoundException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MediaType.APPLICATION_JSON, request);
     }
@@ -270,7 +273,7 @@ public class DataValueSetController {
   @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
   @ResponseBody
   public WebMessage postCsvDataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException {
+      throws IOException, ConflictException, @OpenApi.Ignore NotFoundException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MimeType.valueOf("application/csv"), request);
     }
@@ -285,7 +288,7 @@ public class DataValueSetController {
   @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
   @ResponseBody
   public WebMessage postPdfDataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException {
+      throws IOException, ConflictException, @OpenApi.Ignore NotFoundException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MediaType.APPLICATION_PDF, request);
     }
@@ -303,12 +306,14 @@ public class DataValueSetController {
   /** Starts an asynchronous import task. */
   private WebMessage startAsyncImport(
       ImportOptions importOptions, MimeType mimeType, HttpServletRequest request)
-      throws ConflictException, IOException {
-    JobConfiguration config =
-        new JobConfiguration(
-            "dataValueImport", DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid());
+      throws ConflictException, IOException, NotFoundException {
+    JobConfiguration config = new JobConfiguration(DATAVALUE_IMPORT);
+    config.setExecutedBy(currentUserService.getCurrentUser().getUid());
     config.setJobParameters(importOptions);
-    jobConfigurationService.create(config, mimeType, request.getInputStream());
+
+    jobSchedulerService.executeNow(
+        jobConfigurationService.create(config, mimeType, request.getInputStream()));
+
     return jobConfigurationReport(config).setLocation("/system/tasks/" + DATAVALUE_IMPORT);
   }
 

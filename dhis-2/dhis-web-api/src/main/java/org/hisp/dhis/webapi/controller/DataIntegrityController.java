@@ -88,28 +88,17 @@ public class DataIntegrityController {
       @CurrentUser User currentUser)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<String> names = getCheckNames(checksBody, checks);
-    return runDataIntegrityAsync(
-            names, currentUser, "runDataIntegrity", DataIntegrityReportType.REPORT)
+    return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.REPORT)
         .setLocation("/dataIntegrity/details?checks=" + toChecksList(names));
   }
 
   private WebMessage runDataIntegrityAsync(
-      @Nonnull Set<String> checks,
-      User currentUser,
-      String description,
-      DataIntegrityReportType type)
+      @Nonnull Set<String> checks, User currentUser, DataIntegrityReportType type)
       throws ConflictException, NotFoundException {
-    DataIntegrityJobParameters params = new DataIntegrityJobParameters();
-    params.setChecks(checks);
-    params.setType(type);
-    JobConfiguration config =
-        new JobConfiguration(description, JobType.DATA_INTEGRITY, null, params);
+    JobConfiguration config = new JobConfiguration(JobType.DATA_INTEGRITY);
     config.setExecutedBy(currentUser.getUid());
+    config.setJobParameters(new DataIntegrityJobParameters(type, checks));
 
-    //TODO 3 issues:
-    // 1. names must be unique since now each config is persisted
-    // 2. resetting security context can only be done in a worker (not in tests)
-    // 3. executeNow is not really needed if a job is already created with ONCE_ASAP
     jobSchedulerService.executeNow(jobConfigurationService.create(config));
 
     return jobConfigurationReport(config);
@@ -157,8 +146,7 @@ public class DataIntegrityController {
       @CurrentUser User currentUser)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<String> names = getCheckNames(checksBody, checks);
-    return runDataIntegrityAsync(
-            names, currentUser, "runSummariesCheck", DataIntegrityReportType.SUMMARY)
+    return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.SUMMARY)
         .setLocation("/dataIntegrity/summary?checks=" + toChecksList(names));
   }
 
@@ -192,8 +180,7 @@ public class DataIntegrityController {
       @CurrentUser User currentUser)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<String> names = getCheckNames(checksBody, checks);
-    return runDataIntegrityAsync(
-            names, currentUser, "runDetailsCheck", DataIntegrityReportType.DETAILS)
+    return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.DETAILS)
         .setLocation("/dataIntegrity/details?checks=" + toChecksList(names));
   }
 

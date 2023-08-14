@@ -150,7 +150,6 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   @Override
   @Transactional
   public boolean finishRunSuccess(@Nonnull String jobId) {
-    authenticationService.clearAuthentication();
     if (!jobConfigurationStore.tryFinish(jobId, JobStatus.COMPLETED)) return false;
     JobConfiguration job = jobConfigurationStore.getByUid(jobId);
     if (job == null) return false;

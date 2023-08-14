@@ -43,9 +43,8 @@ public interface AuthenticationService {
    *
    * <p>A.k.a. "becoming" a certain user
    *
-   * <p>When user ID parameter is undefined the current thread is unlinked from any user.
-   *
-   * @param userId as this user, maybe {@code null} to unlink the current thread from a user
+   * @param userId as this user, when {@code null} the user is the system user with {@code ALL}
+   *     authority
    * @throws NotFoundException when no user with the provided ID exists
    */
   void obtainAuthentication(@CheckForNull String userId) throws NotFoundException;

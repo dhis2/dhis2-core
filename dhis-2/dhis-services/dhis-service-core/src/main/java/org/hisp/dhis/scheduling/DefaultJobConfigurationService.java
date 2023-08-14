@@ -66,6 +66,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.scheduling.JobType.Defaults;
 import org.hisp.dhis.schema.Property;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeType;
 
@@ -81,7 +82,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   private final FileResourceService fileResourceService;
 
   @Override
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public String create(JobConfiguration config) throws ConflictException {
     config.setAutoFields();
     jobConfigurationStore.save(config);
@@ -89,7 +90,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   }
 
   @Override
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public String create(JobConfiguration config, MimeType contentType, InputStream content)
       throws ConflictException {
     if (config.getSchedulingType() != SchedulingType.ONCE_ASAP)
@@ -97,7 +98,8 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
           "Job must be of type %s to allow content data".formatted(SchedulingType.ONCE_ASAP));
     config.setAutoFields(); // ensure UID is set
     saveJobData(config.getUid(), contentType, content);
-    return create(config);
+    jobConfigurationStore.save(config);
+    return config.getUid();
   }
 
   private void saveJobData(String uid, MimeType contentType, InputStream content)

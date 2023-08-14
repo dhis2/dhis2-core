@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.user;
 
+import java.util.Collection;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -41,19 +45,24 @@ public class DefaultAuthenticationService implements AuthenticationService {
 
   @Override
   public void obtainAuthentication(String userId) throws NotFoundException {
-    if (userId == null) {
-      clearAuthentication();
-      return;
+    Object username = "System";
+    Collection<? extends GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ALL"));
+    if (userId != null) {
+      CurrentUserDetails user = userService.createUserDetails(userId);
+      username = user;
+      authorities = user.getAuthorities();
     }
-    CurrentUserDetails user = userService.createUserDetails(userId);
     SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(
-        new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities()));
+    context.setAuthentication(new UsernamePasswordAuthenticationToken(username, null, authorities));
     SecurityContextHolder.setContext(context);
   }
 
   @Override
   public void clearAuthentication() {
+    SecurityContext context = SecurityContextHolder.getContext();
+    if (context != null) {
+      SecurityContextHolder.getContext().setAuthentication(null);
+    }
     SecurityContextHolder.clearContext();
   }
 }

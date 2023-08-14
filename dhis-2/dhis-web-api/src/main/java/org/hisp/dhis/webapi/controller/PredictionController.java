@@ -84,8 +84,7 @@ public class PredictionController {
       throws ConflictException, @OpenApi.Ignore NotFoundException {
 
     if (async) {
-      JobConfiguration prediction =
-          new JobConfiguration("inMemoryPrediction", PREDICTOR, currentUser.getUid());
+      JobConfiguration config = new JobConfiguration(PREDICTOR);
       PredictorJobParameters params =
           PredictorJobParameters.builder()
               .startDate(startDate)
@@ -93,11 +92,12 @@ public class PredictionController {
               .predictors(predictors)
               .predictorGroups(predictorGroups)
               .build();
-      prediction.setJobParameters(params);
+      config.setJobParameters(params);
+      config.setExecutedBy(currentUser.getUid());
 
-      jobSchedulerService.executeNow(jobConfigurationService.create(prediction));
+      jobSchedulerService.executeNow(jobConfigurationService.create(config));
 
-      return jobConfigurationReport(prediction).setLocation("/system/tasks/" + PREDICTOR);
+      return jobConfigurationReport(config).setLocation("/system/tasks/" + PREDICTOR);
     }
     PredictionSummary predictionSummary =
         predictionService.predictTask(

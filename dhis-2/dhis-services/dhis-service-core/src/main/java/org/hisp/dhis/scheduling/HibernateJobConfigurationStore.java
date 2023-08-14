@@ -217,19 +217,15 @@ public class HibernateJobConfigurationStore
     // language=SQL
     String sql =
         """
-        update jobconfiguration j1
+        update jobconfiguration
         set
           schedulingtype = 'ONCE_ASAP',
           cancel = false,
-          enabled = true,
           jobstatus = 'SCHEDULED'
         where uid = :id
-        and not exists(
-          select 1 from jobconfiguration j2
-          where j2.jobtype = j1.jobtype
-          and j2.schedulingtype = 'ONCE_ASAP'
-          and j2.jobconfigurationid != j1.jobconfigurationid
-        )
+        and enabled = true
+        and jobstatus != 'RUNNING'
+        and (schedulingtype != 'ONCE_ASAP' or lastfinished is null)
         """;
     return nativeQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
   }
@@ -251,10 +247,12 @@ public class HibernateJobConfigurationStore
         and jobstatus = 'SCHEDULED'
         and enabled = true
         and not exists (
-          select 1 from jobconfiguration j2 where j2.jobtype = j1.jobtype and j2.jobstatus = 'RUNNING'
+          select 1 from jobconfiguration j2
+          where j2.jobtype = j1.jobtype
+          and j2.jobconfigurationid != j1.jobconfigurationid
+          and j2.jobstatus = 'RUNNING'
         )
         """;
-    // TODO flip back schedulingType to non ONCE_ASAP already on start?
     return nativeQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
   }
 
@@ -363,7 +361,7 @@ public class HibernateJobConfigurationStore
         """
         update jobconfiguration
         set jobstatus = 'DISABLED'
-        where schedulingtype = 'SCHEDULED'
+        where jobstatus = 'SCHEDULED'
         and enabled = false
         """;
     return nativeQuery(sql).executeUpdate();

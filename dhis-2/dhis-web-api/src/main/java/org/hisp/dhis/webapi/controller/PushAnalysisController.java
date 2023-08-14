@@ -108,12 +108,9 @@ public class PushAnalysisController extends AbstractCrudController<PushAnalysis>
       throw new NotFoundException(PushAnalysis.class, uid);
     }
 
-    JobConfiguration config =
-        new JobConfiguration(
-            "pushAnalysisJob from controller",
-            JobType.PUSH_ANALYSIS,
-            "",
-            new PushAnalysisJobParameters(uid));
+    JobConfiguration config = new JobConfiguration(JobType.PUSH_ANALYSIS);
+    config.setJobParameters(new PushAnalysisJobParameters(uid));
+    config.setExecutedBy(currentUserService.getCurrentUser().getUid());
 
     jobSchedulerService.executeNow(jobConfigurationService.create(config));
   }

@@ -49,7 +49,9 @@ public enum JobStatus {
   STOPPED("stopped"),
   FAILED("failed"),
   /**
-   * When it has not run before or when it is part of a queue and it got skipped because a job in
+   * Status of a freshly created run once job before is executed via "executeNow".
+   *
+   * <p>When it has not run before or when it is part of a queue and it got skipped because a job in
    * the queue before it failed.
    */
   NOT_STARTED("not_started");
