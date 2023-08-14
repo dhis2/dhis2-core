@@ -313,6 +313,42 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldOrderTrackedEntitiesByCreatedAtClientDesc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
+            .orderBy("createdAtClient", SortDirection.DESC)
+            .build();
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(List.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
+  }
+
+  @Test
+  void shouldOrderTrackedEntitiesByCreatedAtClientAsc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
+            .orderBy("createdAtClient", SortDirection.ASC)
+            .build();
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
+  }
+
+  @Test
   void shouldOrderTrackedEntitiesByEnrolledAtAsc()
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntityOperationParams params =
@@ -894,6 +930,32 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldOrderEventsByProgramStageUidDesc() throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        eventParamsBuilder
+            .orgUnitUid("uoNW0E3xXUy")
+            .orderBy("programStage.uid", SortDirection.DESC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("JaRDIvcEcEx", "jxgFyJEMUPf"), events);
+  }
+
+  @Test
+  void shouldOrderEventsByProgramStageUidAsc() throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        eventParamsBuilder
+            .orgUnitUid("uoNW0E3xXUy")
+            .orderBy("programStage.uid", SortDirection.ASC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("jxgFyJEMUPf", "JaRDIvcEcEx"), events);
+  }
+
+  @Test
   void shouldOrderEventsByTrackedEntityUidDesc() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         eventParamsBuilder
@@ -903,11 +965,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     List<String> events = getEvents(params);
 
-    // TODO(tracker): TECH-1620 the order is reversed
-    // EV D9PbzJY8bJM EN TvctPPhpD8z TE dUE514NMOlo
-    // EV pTzf9KYMk72 EN nxP7UnKhomJ TE QS6w44flWAf
-    // We would therefore expect the TE order to be QS6w44flWAf, dUE514NMOlo
-    // and thus the EV order to be pTzf9KYMk72, D9PbzJY8bJM
     assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
@@ -921,12 +978,37 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     List<String> events = getEvents(params);
 
-    // TODO(tracker): TECH-1620 the order is reversed
-    // EV D9PbzJY8bJM EN TvctPPhpD8z TE dUE514NMOlo
-    // EV pTzf9KYMk72 EN nxP7UnKhomJ TE QS6w44flWAf
-    // We would therefore expect the TE order to be dUE514NMOlo, QS6w44flWAf
-    // and thus the EV order to be D9PbzJY8bJM, pTzf9KYMk72
     assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldOrderEventsByAttributeOptionComboUidDesc()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        eventParamsBuilder
+            .orgUnitUid("DiszpKrYNg8")
+            .events(Set.of("ck7DzdxqLqA", "lumVtWwwy0O", "cadc5eGj0j7"))
+            .orderBy("attributeOptionCombo.uid", SortDirection.DESC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("ck7DzdxqLqA", "cadc5eGj0j7", "lumVtWwwy0O"), events);
+  }
+
+  @Test
+  void shouldOrderEventsByAttributeOptionComboUidAsc()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        eventParamsBuilder
+            .orgUnitUid("DiszpKrYNg8")
+            .events(Set.of("ck7DzdxqLqA", "lumVtWwwy0O", "cadc5eGj0j7"))
+            .orderBy("attributeOptionCombo.uid", SortDirection.ASC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("lumVtWwwy0O", "cadc5eGj0j7", "ck7DzdxqLqA"), events);
   }
 
   @Test
