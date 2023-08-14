@@ -135,8 +135,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           entry(ENROLLMENT_DATE_KEY, ENROLLMENT_DATE_ALIAS),
           entry("inactive", "inactive"));
 
-  private final OrganisationUnitStore organisationUnitStore;
-
   private final StatementBuilder statementBuilder;
 
   private final SystemSettingManager systemSettingManager;
@@ -164,7 +162,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     checkNotNull(systemSettingManager);
 
     this.statementBuilder = statementBuilder;
-    this.organisationUnitStore = organisationUnitStore;
     this.systemSettingManager = systemSettingManager;
   }
 
