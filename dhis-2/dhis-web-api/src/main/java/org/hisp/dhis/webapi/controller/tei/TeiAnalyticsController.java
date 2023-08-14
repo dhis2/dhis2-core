@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tei;
 
+import static org.hisp.dhis.common.DhisApiVersion.ALL;
+import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.system.grid.GridUtils.toCsv;
 import static org.hisp.dhis.system.grid.GridUtils.toHtml;
@@ -64,6 +66,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
 import org.hisp.dhis.webapi.dimension.TeiAnalyticsPrefixStrategy;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -77,6 +80,7 @@ import org.springframework.web.bind.annotation.RestController;
  * instances objects. Methods in this controller should not change any state.
  */
 @OpenApi.Tags("analytics")
+@ApiVersion({DEFAULT, ALL})
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/analytics/trackedEntities")

@@ -113,8 +113,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.tracker.export.event.EventStore")
 @RequiredArgsConstructor
 class JdbcEventStore implements EventStore {
-  private static final String DEFAULT_ORDER = "ev_id desc";
-
   private static final String RELATIONSHIP_IDS_QUERY =
       " left join (select ri.eventid as ri_ev_id, json_agg(ri.relationshipid) as ev_rl FROM relationshipitem ri"
           + " GROUP by ri_ev_id)  as fgh on fgh.ri_ev_id=event.ev_id ";
@@ -150,8 +148,10 @@ class JdbcEventStore implements EventStore {
 
   private static final String AND = " AND ";
 
+  private static final String COLUMN_EVENT_ID = "ev_id";
   private static final String COLUMN_EVENT_UID = "ev_uid";
   private static final String COLUMN_PROGRAM_UID = "p_uid";
+  private static final String COLUMN_PROGRAM_STAGE_UID = "ps_uid";
   private static final String COLUMN_ENROLLMENT_UID = "en_uid";
   private static final String COLUMN_ENROLLMENT_STATUS = "en_status";
   private static final String COLUMN_ENROLLMENT_DATE = "en_enrollmentdate";
@@ -168,11 +168,13 @@ class JdbcEventStore implements EventStore {
   private static final String COLUMN_EVENT_CREATED = "ev_created";
   private static final String COLUMN_EVENT_LAST_UPDATED = "ev_lastupdated";
   private static final String COLUMN_EVENT_COMPLETED_BY = "ev_completedby";
-  private static final String COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID = "ev_aoc";
+  private static final String COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID = "coc_uid";
   private static final String COLUMN_EVENT_COMPLETED_DATE = "ev_completeddate";
   private static final String COLUMN_EVENT_DELETED = "ev_deleted";
   private static final String COLUMN_EVENT_ASSIGNED_USER_USERNAME = "user_assigned_username";
   private static final String COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME = "user_assigned_name";
+
+  private static final String DEFAULT_ORDER = COLUMN_EVENT_ID + " desc";
 
   /**
    * Events can be ordered by given fields which correspond to fields on {@link
@@ -182,7 +184,7 @@ class JdbcEventStore implements EventStore {
       Map.ofEntries(
           entry("uid", COLUMN_EVENT_UID),
           entry("enrollment.program.uid", COLUMN_PROGRAM_UID),
-          entry("programStage.uid", COLUMN_ENROLLMENT_UID),
+          entry("programStage.uid", COLUMN_PROGRAM_STAGE_UID),
           entry("enrollment.uid", COLUMN_ENROLLMENT_UID),
           entry("enrollment.status", COLUMN_ENROLLMENT_STATUS),
           entry("enrollment.enrollmentDate", COLUMN_ENROLLMENT_DATE),
@@ -451,7 +453,8 @@ class JdbcEventStore implements EventStore {
       throw new IllegalStateException(
           String.format(
               "ProgramStage %s does not have a value assigned for idScheme %s",
-              rowSet.getString("ps_uid"), idSchemes.getProgramStageIdScheme().name()));
+              rowSet.getString(COLUMN_PROGRAM_STAGE_UID),
+              idSchemes.getProgramStageIdScheme().name()));
     }
 
     if (StringUtils.isEmpty(rowSet.getString("ou_identifier"))) {
@@ -465,7 +468,8 @@ class JdbcEventStore implements EventStore {
       throw new IllegalStateException(
           String.format(
               "CategoryOptionCombo %s does not have a value assigned for idScheme %s",
-              rowSet.getString("coc_uid"), idSchemes.getCategoryOptionComboIdScheme().name()));
+              rowSet.getString(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID),
+              idSchemes.getCategoryOptionComboIdScheme().name()));
     }
   }
 
@@ -554,7 +558,9 @@ class JdbcEventStore implements EventStore {
 
     sqlBuilder.append(EVENT_COMMENT_QUERY);
 
-    sqlBuilder.append(") as cm on event.ev_id=cm.evc_id ");
+    sqlBuilder.append(") as cm on event.");
+    sqlBuilder.append(COLUMN_EVENT_ID);
+    sqlBuilder.append("=cm.evc_id ");
 
     if (params.isIncludeRelationships()) {
       sqlBuilder.append(RELATIONSHIP_IDS_QUERY);
@@ -667,8 +673,12 @@ class JdbcEventStore implements EventStore {
             .append(COLUMN_ORG_UNIT_UID)
             .append(", p.uid as ")
             .append(COLUMN_PROGRAM_UID)
-            .append(", ps.uid as ps_uid, ")
-            .append("ev.eventid as ev_id, ev.status as ")
+            .append(", ps.uid as ")
+            .append(COLUMN_PROGRAM_STAGE_UID)
+            .append(", ")
+            .append("ev.eventid as ")
+            .append(COLUMN_EVENT_ID)
+            .append(", ev.status as ")
             .append(COLUMN_EVENT_STATUS)
             .append(", ev.executiondate as ")
             .append(COLUMN_EVENT_EXECUTION_DATE)
@@ -703,7 +713,9 @@ class JdbcEventStore implements EventStore {
             .append("au.username as ")
             .append(COLUMN_EVENT_ASSIGNED_USER_USERNAME)
             .append(",")
-            .append("coc.uid as coc_uid, ")
+            .append("coc.uid as ")
+            .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID)
+            .append(", ")
             .append("coc_agg.co_uids AS co_uids, ")
             .append("coc_agg.co_count AS option_size, ");
 
@@ -727,7 +739,7 @@ class JdbcEventStore implements EventStore {
                 + ", en.enrollmentdate as "
                 + COLUMN_ENROLLMENT_DATE
                 + ", en.incidentdate as en_incidentdate, ")
-        .append("p.type as p_type, ps.uid as ps_uid, ou.name as ")
+        .append("p.type as p_type, ou.name as ")
         .append(COLUMN_ORG_UNIT_NAME)
         .append(", ")
         .append("te.trackedentityid as te_id, te.uid as ")
