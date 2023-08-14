@@ -228,6 +228,10 @@ public class EventQueryParams extends DataQueryParams {
   /** Flag to enable enhanced OR conditions. */
   @Getter protected boolean enhancedCondition = false;
 
+  @Getter protected EndpointItem endpointItem;
+
+  @Getter protected EndpointAction endpointAction;
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------

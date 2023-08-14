@@ -68,7 +68,6 @@ public class RequestTypeAware {
   }
 
   public enum EndpointItem {
-    ANALYTICS,
     EVENT,
     ENROLLMENT,
     TRACKED_ENTITY_INSTANCE

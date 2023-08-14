@@ -30,16 +30,9 @@ package org.hisp.dhis.analytics;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
-import static org.hisp.dhis.analytics.TimeField.EVENT_DATE;
-import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ANALYTICS;
-import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.EVENT;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -56,6 +49,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import org.hamcrest.Matchers;
+import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -774,74 +769,14 @@ class DataQueryParamsTest extends DhisConvenienceTest {
     assertThat(periodMap.entrySet(), hasSize(2));
     assertThat(
         periodMap.keySet(),
-        containsInAnyOrder(hasProperty("isoDate", is("2017")), hasProperty("isoDate", is("2018"))));
+        IsIterableContainingInAnyOrder.containsInAnyOrder(
+            hasProperty("isoDate", Matchers.is("2017")),
+            hasProperty("isoDate", Matchers.is("2018"))));
     assertThat(periodMap.allValues(), hasSize(2));
     assertThat(
         periodMap.allValues(),
-        containsInAnyOrder(
-            hasProperty("isoDate", is(peC.getIsoDate())),
-            hasProperty("isoDate", is(peC.getIsoDate()))));
-  }
-
-  @Test
-  void testAnalyticsEndpointPeriod() {
-    // Given
-    peA = createPeriod("201601");
-    peA.setDateField(SCHEDULED_DATE.name());
-
-    peB = createPeriod("201603");
-    peB.setDateField(EVENT_DATE.name());
-
-    DataQueryParams params =
-        DataQueryParams.newBuilder()
-            .withPeriods(List.of(peA, peB))
-            .withOrganisationUnits(List.of(ouA, ouB))
-            .withDataPeriodType(PeriodType.getPeriodTypeFromIsoString("2016"))
-            .withEndpointItem(ANALYTICS)
-            .build();
-    // When
-    ListMap<DimensionalItemObject, DimensionalItemObject> periodMap =
-        params.getDataPeriodAggregationPeriodMap();
-
-    // Then
-    assertThat(periodMap.entrySet(), hasSize(1));
-    assertThat(periodMap.keySet(), containsInAnyOrder(hasProperty("dateField", is(nullValue()))));
-
-    assertThat(periodMap.allValues(), hasSize(2));
-    assertThat(
-        periodMap.allValues(),
-        containsInAnyOrder(
-            hasProperty("dateField", is(nullValue())), hasProperty("dateField", is(nullValue()))));
-  }
-
-  @Test
-  void testNonAnalyticsEndpointPeriod() {
-    // Given
-    peA = createPeriod("2016");
-    peA.setDateField(SCHEDULED_DATE.name());
-
-    peB = createPeriod("2016");
-    peB.setDateField(EVENT_DATE.name());
-
-    DataQueryParams params =
-        DataQueryParams.newBuilder()
-            .withPeriods(List.of(peB, peA))
-            .withOrganisationUnits(List.of(ouA, ouB))
-            .withDataPeriodType(PeriodType.getPeriodTypeFromIsoString("2016"))
-            .withEndpointItem(EVENT)
-            .build();
-
-    // When
-    ListMap<DimensionalItemObject, DimensionalItemObject> periodMap =
-        params.getDataPeriodAggregationPeriodMap();
-
-    // Then
-    assertThat(periodMap.entrySet(), hasSize(1));
-    assertThat(periodMap.allValues(), hasSize(2));
-    assertThat(
-        periodMap.allValues(),
-        containsInAnyOrder(
-            hasProperty("dateField", is(EVENT_DATE.name())),
-            hasProperty("dateField", is(SCHEDULED_DATE.name()))));
+        IsIterableContainingInAnyOrder.containsInAnyOrder(
+            hasProperty("isoDate", Matchers.is(peC.getIsoDate())),
+            hasProperty("isoDate", Matchers.is(peC.getIsoDate()))));
   }
 }

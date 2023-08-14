@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
-import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ANALYTICS;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
@@ -393,10 +392,6 @@ public class AnalyticsController {
 
   private DataQueryRequest fromCriteria(
       AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion) {
-    return DataQueryRequest.newBuilder()
-        .fromCriteria(criteria)
-        .endpointItem(ANALYTICS)
-        .apiVersion(apiVersion)
-        .build();
+    return DataQueryRequest.newBuilder().fromCriteria(criteria).apiVersion(apiVersion).build();
   }
 }

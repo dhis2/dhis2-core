@@ -32,7 +32,6 @@ import java.util.Set;
 import lombok.Getter;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 
 @Getter
 public class DataQueryRequest {
@@ -97,8 +96,6 @@ public class DataQueryRequest {
   protected String userOrgUnit;
 
   protected UserOrgUnitType userOrgUnitType;
-
-  protected EndpointItem endpointItem;
 
   protected DhisApiVersion apiVersion;
 
@@ -270,11 +267,6 @@ public class DataQueryRequest {
       return this;
     }
 
-    public DataQueryRequestBuilder endpointItem(EndpointItem endpointItem) {
-      this.request.endpointItem = endpointItem;
-      return this;
-    }
-
     public DataQueryRequestBuilder apiVersion(DhisApiVersion apiVersion) {
       this.request.apiVersion = apiVersion;
       return this;
@@ -320,7 +312,6 @@ public class DataQueryRequest {
       this.request.timeField = criteria.getTimeField();
       this.request.userOrgUnit = criteria.getUserOrgUnit();
       this.request.userOrgUnitType = criteria.getUserOrgUnitType();
-      this.request.endpointItem = criteria.getEndpointItem();
       return this;
     }
   }

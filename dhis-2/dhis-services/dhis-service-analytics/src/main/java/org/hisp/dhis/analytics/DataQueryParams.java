@@ -49,7 +49,6 @@ import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
 import static org.hisp.dhis.common.DimensionalObject.VALUE_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
-import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ANALYTICS;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
@@ -93,8 +92,6 @@ import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ReportingRateMetric;
-import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
-import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -434,10 +431,6 @@ public class DataQueryParams {
   /** Used to set the type of OrgUnit from the current user to the {@see DataQueryParams} object */
   protected UserOrgUnitType userOrgUnitType;
 
-  protected EndpointItem endpointItem;
-
-  protected EndpointAction endpointAction;
-
   /** Mapping of organisation unit sub-hierarchy roots and lowest available data approval levels. */
   protected transient Map<OrganisationUnit, Integer> dataApprovalLevels = new HashMap<>();
 
@@ -549,8 +542,6 @@ public class DataQueryParams {
     params.dataApprovalLevels = new HashMap<>(this.dataApprovalLevels);
     params.skipDataDimensionValidation = this.skipDataDimensionValidation;
     params.userOrgUnitType = this.userOrgUnitType;
-    params.endpointItem = this.endpointItem;
-    params.endpointAction = this.endpointAction;
     params.explainOrderId = this.explainOrderId;
     params.serverBaseUrl = this.serverBaseUrl;
 
@@ -871,41 +862,24 @@ public class DataQueryParams {
     ListMap<DimensionalItemObject, DimensionalItemObject> map = new ListMap<>();
 
     if (dataPeriodType != null) {
-      for (DimensionalItemObject aggregatedPeriodItem : getDimensionOrFilterItems(PERIOD_DIM_ID)) {
-        Period aggregatedPeriod = (Period) aggregatedPeriodItem;
-        handleDateField(aggregatedPeriod);
+      for (DimensionalItemObject aggregatePeriod : getDimensionOrFilterItems(PERIOD_DIM_ID)) {
+        Period dataPeriod = dataPeriodType.createPeriod(((Period) aggregatePeriod).getStartDate(), ((Period) aggregatePeriod).getDateField());
 
-        Period period = dataPeriodType.createPeriod(aggregatedPeriod.getStartDate());
-        handleDateField(period);
+        map.putValue(dataPeriod, aggregatePeriod);
 
-        map.putValue(period, aggregatedPeriod);
+        if (((Period) aggregatePeriod).getPeriodType().spansMultipleCalendarYears()) {
+          // When dealing with a period that spans multiple years, add
+          // a second aggregated year
+          // corresponding to the second part of the financial year so
+          // that the query will count both years.
 
-        if (aggregatedPeriod.getPeriodType().spansMultipleCalendarYears()) {
-          // When dealing with a period that spans multiple years, add a second aggregated year.
-          // Corresponding to the second part of the financial year so that the query will count
-          // both years.
-          Period endYear = dataPeriodType.createPeriod(aggregatedPeriod.getEndDate());
-          handleDateField(endYear);
-
-          map.putValue(endYear, aggregatedPeriod);
+          Period endYear = dataPeriodType.createPeriod(((Period) aggregatePeriod).getEndDate(), ((Period) aggregatePeriod).getDateField());
+          map.putValue(endYear, aggregatePeriod);
         }
       }
     }
 
     return map;
-  }
-
-  /**
-   * Depending on the endpoint executed, the "dateField" should never be set. This method ensures
-   * that the given {@link Period} remains in consistent state even when loaded from the cache. This
-   * prevents eventual issues in existing rules executed through the flow.
-   *
-   * @param period the instance of a {@link Period}.
-   */
-  private void handleDateField(Period period) {
-    if (this.getEndpointItem() == ANALYTICS) {
-      period.setDateField(null);
-    }
   }
 
   /**
@@ -2473,14 +2447,6 @@ public class DataQueryParams {
     return userOrgUnitType;
   }
 
-  public EndpointItem getEndpointItem() {
-    return endpointItem;
-  }
-
-  public EndpointAction getEndpointAction() {
-    return endpointAction;
-  }
-
   // -------------------------------------------------------------------------
   // Builder of immutable instances
   // -------------------------------------------------------------------------
@@ -2987,16 +2953,6 @@ public class DataQueryParams {
 
     public Builder withUserOrgUnitType(UserOrgUnitType userOrgUnitType) {
       this.params.userOrgUnitType = userOrgUnitType;
-      return this;
-    }
-
-    public Builder withEndpointItem(EndpointItem endpointItem) {
-      this.params.endpointItem = endpointItem;
-      return this;
-    }
-
-    public Builder withEndpointAction(EndpointAction endpointAction) {
-      this.params.endpointAction = endpointAction;
       return this;
     }
 

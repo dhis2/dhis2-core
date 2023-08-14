@@ -40,7 +40,7 @@ import org.hisp.dhis.analytics.SortOrder;
  */
 @Data
 @NoArgsConstructor
-public class AggregateAnalyticsQueryCriteria extends RequestTypeAware {
+public class AggregateAnalyticsQueryCriteria {
   /** The analytics dimensions. */
   private Set<String> dimension;
 
