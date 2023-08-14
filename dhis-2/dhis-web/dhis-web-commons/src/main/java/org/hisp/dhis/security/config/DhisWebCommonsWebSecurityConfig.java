@@ -249,14 +249,13 @@ public class DhisWebCommonsWebSecurityConfig
                 .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class )
 
                 .sessionManagement()
-                .requireExplicitAuthenticationStrategy(true)
+                .requireExplicitAuthenticationStrategy( true )
                 .sessionFixation()
                 .migrateSession()
-                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
-                .enableSessionUrlRewriting(false)
-                .maximumSessions(
-                    Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
-                .expiredUrl("/dhis-web-commons-security/logout.action");
+                .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
+                .enableSessionUrlRewriting( false )
+                .maximumSessions( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
+                .expiredUrl( "/dhis-web-commons-security/logout.action" );
 
             setHttpHeaders( http, dhisConfig );
         }
