@@ -33,6 +33,9 @@
     <allure.version>2.23.0</allure.version>
     <selenium-java.version>4.11.0</selenium-java.version>
     <slf4j-simple.version>2.0.7</slf4j-simple.version>
+    <fluent-hc.version>4.5.14</fluent-hc.version>
+    <httpclient5.version>5.2.1</httpclient5.version>
+    <commons-io.version>2.13.0</commons-io.version>
   </properties>
 
   <dependencies>
@@ -168,6 +171,21 @@
       <version>${slf4j-simple.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
+      <version>${httpclient5.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>fluent-hc</artifactId>
+      <version>${fluent-hc.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>${commons-io.version}</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -210,10 +228,6 @@
               <enabled>true</enabled>
             </upToDateChecking>
             <java>
-              <toggleOffOn>
-                <off>@formatter:off</off>
-                <on>@formatter:on</on>
-              </toggleOffOn>
               <googleJavaFormat/>
               <trimTrailingWhitespace/>
               <licenseHeader>

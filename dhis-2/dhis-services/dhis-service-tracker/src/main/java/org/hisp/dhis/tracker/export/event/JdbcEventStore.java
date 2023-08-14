@@ -52,6 +52,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -67,10 +68,10 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
@@ -90,11 +91,12 @@ import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
@@ -110,7 +112,7 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 @Repository("org.hisp.dhis.tracker.export.event.EventStore")
 @RequiredArgsConstructor
-public class JdbcEventStore implements EventStore {
+class JdbcEventStore implements EventStore {
   private static final String RELATIONSHIP_IDS_QUERY =
       " left join (select ri.eventid as ri_ev_id, json_agg(ri.relationshipid) as ev_rl FROM relationshipitem ri"
           + " GROUP by ri_ev_id)  as fgh on fgh.ri_ev_id=event.ev_id ";
@@ -134,8 +136,6 @@ public class JdbcEventStore implements EventStore {
           + " on evc.trackedentitycommentid = evnote.trackedentitycommentid"
           + " left join userinfo on evnote.lastupdatedby = userinfo.userinfoid ";
 
-  private static final String EVENT_STATUS = "ev_status";
-
   private static final String EVENT_STATUS_EQ = " ev.status = ";
 
   private static final String EVENT_LASTUPDATED_GT = " ev.lastupdated >= ";
@@ -148,36 +148,64 @@ public class JdbcEventStore implements EventStore {
 
   private static final String AND = " AND ";
 
+  private static final String COLUMN_EVENT_ID = "ev_id";
+  private static final String COLUMN_EVENT_UID = "ev_uid";
+  private static final String COLUMN_PROGRAM_UID = "p_uid";
+  private static final String COLUMN_PROGRAM_STAGE_UID = "ps_uid";
+  private static final String COLUMN_ENROLLMENT_UID = "en_uid";
+  private static final String COLUMN_ENROLLMENT_STATUS = "en_status";
+  private static final String COLUMN_ENROLLMENT_DATE = "en_enrollmentdate";
+  private static final String COLUMN_ORG_UNIT_UID = "orgunit_uid";
+  private static final String COLUMN_ORG_UNIT_NAME = "orgunit_name";
+  private static final String COLUMN_TRACKEDENTITY_UID = "te_uid";
+  private static final String COLUMN_EVENT_EXECUTION_DATE = "ev_executiondate";
+  private static final String COLUMN_ENROLLMENT_FOLLOWUP = "en_followup";
+  private static final String COLUMN_EVENT_STATUS = "ev_status";
+  private static final String COLUMN_EVENT_DUE_DATE = "ev_duedate";
+  private static final String COLUMN_EVENT_STORED_BY = "ev_storedby";
+  private static final String COLUMN_EVENT_LAST_UPDATED_BY = "ev_lastupdatedbyuserinfo";
+  private static final String COLUMN_EVENT_CREATED_BY = "ev_createdbyuserinfo";
+  private static final String COLUMN_EVENT_CREATED = "ev_created";
+  private static final String COLUMN_EVENT_LAST_UPDATED = "ev_lastupdated";
+  private static final String COLUMN_EVENT_COMPLETED_BY = "ev_completedby";
+  private static final String COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID = "coc_uid";
+  private static final String COLUMN_EVENT_COMPLETED_DATE = "ev_completeddate";
+  private static final String COLUMN_EVENT_DELETED = "ev_deleted";
+  private static final String COLUMN_EVENT_ASSIGNED_USER_USERNAME = "user_assigned_username";
+  private static final String COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME = "user_assigned_name";
+
+  private static final String DEFAULT_ORDER = COLUMN_EVENT_ID + " desc";
+
   /**
    * Events can be ordered by given fields which correspond to fields on {@link
    * org.hisp.dhis.program.Event}. Maps fields to DB columns.
    */
   private static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
-          entry("uid", "ev_uid"),
-          entry("enrollment.program.uid", "p_uid"),
-          entry("programStage.uid", "en_uid"),
-          entry("enrollment.uid", "en_uid"),
-          entry("enrollment.status", "en_status"),
-          entry("enrollment.enrollmentDate", "en_enrollmentdate"),
-          entry("organisationUnit.uid", "ou_uid"),
-          entry("organisationUnit.name", "ou_name"),
-          entry("enrollment.trackedEntity.uid", "tei_uid"),
-          entry("executionDate", "ev_executiondate"),
-          entry("enrollment.followup", "en_followup"),
-          entry("status", EVENT_STATUS),
-          entry("dueDate", "ev_duedate"),
-          entry("storedBy", "ev_storedby"),
-          entry("lastUpdatedBy", "ev_lastupdatedbyuserinfo"),
-          entry("createdBy", "ev_createdbyuserinfo"),
-          entry("created", "ev_created"),
-          entry("lastUpdated", "ev_lastupdated"),
-          entry("completedBy", "ev_completedby"),
-          entry("attributeOptionCombo.uid", "ev_aoc"),
-          entry("completedDate", "ev_completeddate"),
-          entry("deleted", "ev_deleted"),
-          entry("assignedUser", "user_assigned_username"),
-          entry("assignedUser.displayName", "user_assigned_name"));
+          entry("uid", COLUMN_EVENT_UID),
+          entry("enrollment.program.uid", COLUMN_PROGRAM_UID),
+          entry("programStage.uid", COLUMN_PROGRAM_STAGE_UID),
+          entry("enrollment.uid", COLUMN_ENROLLMENT_UID),
+          entry("enrollment.status", COLUMN_ENROLLMENT_STATUS),
+          entry("enrollment.enrollmentDate", COLUMN_ENROLLMENT_DATE),
+          entry("organisationUnit.uid", COLUMN_ORG_UNIT_UID),
+          entry("organisationUnit.name", COLUMN_ORG_UNIT_NAME),
+          entry("enrollment.trackedEntity.uid", COLUMN_TRACKEDENTITY_UID),
+          entry("executionDate", COLUMN_EVENT_EXECUTION_DATE),
+          entry("enrollment.followup", COLUMN_ENROLLMENT_FOLLOWUP),
+          entry("status", COLUMN_EVENT_STATUS),
+          entry("dueDate", COLUMN_EVENT_DUE_DATE),
+          entry("storedBy", COLUMN_EVENT_STORED_BY),
+          entry("lastUpdatedBy", COLUMN_EVENT_LAST_UPDATED_BY),
+          entry("createdBy", COLUMN_EVENT_CREATED_BY),
+          entry("created", COLUMN_EVENT_CREATED),
+          entry("lastUpdated", COLUMN_EVENT_LAST_UPDATED),
+          entry("completedBy", COLUMN_EVENT_COMPLETED_BY),
+          entry("attributeOptionCombo.uid", COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID),
+          entry("completedDate", COLUMN_EVENT_COMPLETED_DATE),
+          entry("deleted", COLUMN_EVENT_DELETED),
+          entry("assignedUser", COLUMN_EVENT_ASSIGNED_USER_USERNAME),
+          entry("assignedUser.displayName", COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME));
 
   private static final String PATH_LIKE = "path LIKE";
 
@@ -211,7 +239,7 @@ public class JdbcEventStore implements EventStore {
 
   @Override
   public List<Event> getEvents(
-      EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue) {
+      EventQueryParams params, Map<String, Set<String>> psdesWithSkipSyncTrue) {
     User user = currentUserService.getCurrentUser();
 
     setAccessiblePrograms(user, params);
@@ -235,11 +263,11 @@ public class JdbcEventStore implements EventStore {
           Set<String> notes = new HashSet<>();
 
           while (resultSet.next()) {
-            if (resultSet.getString("ev_uid") == null) {
+            if (resultSet.getString(COLUMN_EVENT_UID) == null) {
               continue;
             }
 
-            String eventUid = resultSet.getString("ev_uid");
+            String eventUid = resultSet.getString(COLUMN_EVENT_UID);
 
             validateIdentifiersPresence(resultSet, params.getIdSchemes());
 
@@ -255,25 +283,26 @@ public class JdbcEventStore implements EventStore {
               }
 
               TrackedEntity te = new TrackedEntity();
-              te.setUid(resultSet.getString("te_uid"));
-              event.setStatus(EventStatus.valueOf(resultSet.getString(EVENT_STATUS)));
+              te.setUid(resultSet.getString(COLUMN_TRACKEDENTITY_UID));
+              event.setStatus(EventStatus.valueOf(resultSet.getString(COLUMN_EVENT_STATUS)));
               ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
               Program program = new Program();
               program.setUid(resultSet.getString("p_identifier"));
               program.setProgramType(programType);
               Enrollment enrollment = new Enrollment();
-              enrollment.setUid(resultSet.getString("en_uid"));
+              enrollment.setUid(resultSet.getString(COLUMN_ENROLLMENT_UID));
               enrollment.setProgram(program);
               enrollment.setTrackedEntity(te);
               OrganisationUnit ou = new OrganisationUnit();
-              ou.setUid(resultSet.getString("ou_uid"));
-              ou.setName(resultSet.getString("ou_name"));
+              ou.setUid(resultSet.getString(COLUMN_ORG_UNIT_UID));
+              ou.setName(resultSet.getString(COLUMN_ORG_UNIT_NAME));
               ProgramStage ps = new ProgramStage();
               ps.setUid(resultSet.getString("ps_identifier"));
-              event.setDeleted(resultSet.getBoolean("ev_deleted"));
+              event.setDeleted(resultSet.getBoolean(COLUMN_EVENT_DELETED));
 
-              enrollment.setStatus(ProgramStatus.valueOf(resultSet.getString("en_status")));
-              enrollment.setFollowup(resultSet.getBoolean("en_followup"));
+              enrollment.setStatus(
+                  ProgramStatus.valueOf(resultSet.getString(COLUMN_ENROLLMENT_STATUS)));
+              enrollment.setFollowup(resultSet.getBoolean(COLUMN_ENROLLMENT_FOLLOWUP));
               event.setEnrollment(enrollment);
               event.setProgramStage(ps);
               event.setOrganisationUnit(ou);
@@ -292,20 +321,20 @@ public class JdbcEventStore implements EventStore {
               coc.setCategoryOptions(options);
               event.setAttributeOptionCombo(coc);
 
-              event.setStoredBy(resultSet.getString("ev_storedby"));
-              event.setDueDate(resultSet.getTimestamp("ev_duedate"));
-              event.setExecutionDate(resultSet.getTimestamp("ev_executiondate"));
-              event.setCreated(resultSet.getTimestamp("ev_created"));
+              event.setStoredBy(resultSet.getString(COLUMN_EVENT_STORED_BY));
+              event.setDueDate(resultSet.getTimestamp(COLUMN_EVENT_DUE_DATE));
+              event.setExecutionDate(resultSet.getTimestamp(COLUMN_EVENT_EXECUTION_DATE));
+              event.setCreated(resultSet.getTimestamp(COLUMN_EVENT_CREATED));
               event.setCreatedByUserInfo(
                   EventUtils.jsonToUserInfo(
-                      resultSet.getString("ev_createdbyuserinfo"), jsonMapper));
-              event.setLastUpdated(resultSet.getTimestamp("ev_lastupdated"));
+                      resultSet.getString(COLUMN_EVENT_CREATED_BY), jsonMapper));
+              event.setLastUpdated(resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED));
               event.setLastUpdatedByUserInfo(
                   EventUtils.jsonToUserInfo(
-                      resultSet.getString("ev_lastupdatedbyuserinfo"), jsonMapper));
+                      resultSet.getString(COLUMN_EVENT_LAST_UPDATED_BY), jsonMapper));
 
-              event.setCompletedBy(resultSet.getString("ev_completedby"));
-              event.setCompletedDate(resultSet.getTimestamp("ev_completeddate"));
+              event.setCompletedBy(resultSet.getString(COLUMN_EVENT_COMPLETED_BY));
+              event.setCompletedDate(resultSet.getTimestamp(COLUMN_EVENT_COMPLETED_DATE));
 
               if (resultSet.getObject("ev_geometry") != null) {
                 try {
@@ -320,8 +349,8 @@ public class JdbcEventStore implements EventStore {
               if (resultSet.getObject("user_assigned") != null) {
                 User eventUser = new User();
                 eventUser.setUid(resultSet.getString("user_assigned"));
-                eventUser.setUsername(resultSet.getString("user_assigned_username"));
-                eventUser.setName(resultSet.getString("user_assigned_name"));
+                eventUser.setUsername(resultSet.getString(COLUMN_EVENT_ASSIGNED_USER_USERNAME));
+                eventUser.setName(resultSet.getString(COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME));
                 eventUser.setFirstName(resultSet.getString("user_assigned_first_name"));
                 eventUser.setSurname(resultSet.getString("user_assigned_surname"));
                 event.setAssignedUser(eventUser);
@@ -417,32 +446,34 @@ public class JdbcEventStore implements EventStore {
       throw new IllegalStateException(
           String.format(
               "Program %s does not have a value assigned for idScheme %s",
-              rowSet.getString("p_uid"), idSchemes.getProgramIdScheme().name()));
+              rowSet.getString(COLUMN_PROGRAM_UID), idSchemes.getProgramIdScheme().name()));
     }
 
     if (StringUtils.isEmpty(rowSet.getString("ps_identifier"))) {
       throw new IllegalStateException(
           String.format(
               "ProgramStage %s does not have a value assigned for idScheme %s",
-              rowSet.getString("ps_uid"), idSchemes.getProgramStageIdScheme().name()));
+              rowSet.getString(COLUMN_PROGRAM_STAGE_UID),
+              idSchemes.getProgramStageIdScheme().name()));
     }
 
     if (StringUtils.isEmpty(rowSet.getString("ou_identifier"))) {
       throw new IllegalStateException(
           String.format(
               "OrgUnit %s does not have a value assigned for idScheme %s",
-              rowSet.getString("ou_uid"), idSchemes.getOrgUnitIdScheme().name()));
+              rowSet.getString(COLUMN_ORG_UNIT_UID), idSchemes.getOrgUnitIdScheme().name()));
     }
 
     if (StringUtils.isEmpty(rowSet.getString("coc_identifier"))) {
       throw new IllegalStateException(
           String.format(
               "CategoryOptionCombo %s does not have a value assigned for idScheme %s",
-              rowSet.getString("coc_uid"), idSchemes.getCategoryOptionComboIdScheme().name()));
+              rowSet.getString(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID),
+              idSchemes.getCategoryOptionComboIdScheme().name()));
     }
   }
 
-  private String getEventSelectIdentifiersByIdScheme(EventSearchParams params) {
+  private String getEventSelectIdentifiersByIdScheme(EventQueryParams params) {
     IdSchemes idSchemes = params.getIdSchemes();
 
     StringBuilder sqlBuilder = new StringBuilder();
@@ -481,7 +512,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   @Override
-  public int getEventCount(EventSearchParams params) {
+  public int getEventCount(EventQueryParams params) {
     User user = currentUserService.getCurrentUser();
     setAccessiblePrograms(user, params);
 
@@ -508,7 +539,7 @@ public class JdbcEventStore implements EventStore {
    * on events.
    */
   private String buildSql(
-      EventSearchParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
+      EventQueryParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
     StringBuilder sqlBuilder = new StringBuilder().append("select * from (");
 
     sqlBuilder.append(getEventSelectQuery(params, mapSqlParameterSource, user));
@@ -527,7 +558,9 @@ public class JdbcEventStore implements EventStore {
 
     sqlBuilder.append(EVENT_COMMENT_QUERY);
 
-    sqlBuilder.append(") as cm on event.ev_id=cm.evc_id ");
+    sqlBuilder.append(") as cm on event.");
+    sqlBuilder.append(COLUMN_EVENT_ID);
+    sqlBuilder.append("=cm.evc_id ");
 
     if (params.isIncludeRelationships()) {
       sqlBuilder.append(RELATIONSHIP_IDS_QUERY);
@@ -541,18 +574,16 @@ public class JdbcEventStore implements EventStore {
   /**
    * Generates a single INNER JOIN for each attribute we are searching on. We can search by a range
    * of operators. All searching is using lower() since attribute values are case-insensitive.
-   *
-   * @param attributes
-   * @param filterItems
    */
   private void joinAttributeValueWithoutQueryParameter(
-      StringBuilder attributes, List<QueryItem> filterItems) {
-    for (QueryItem queryItem : filterItems) {
-      String teaValueCol = statementBuilder.columnQuote(queryItem.getItemId());
-      String teaCol = statementBuilder.columnQuote(queryItem.getItemId() + "ATT");
+      StringBuilder sql, Map<TrackedEntityAttribute, List<QueryFilter>> attributes) {
+    for (Entry<TrackedEntityAttribute, List<QueryFilter>> queryItem : attributes.entrySet()) {
+      TrackedEntityAttribute tea = queryItem.getKey();
+      String teaUid = tea.getUid();
+      String teaValueCol = statementBuilder.columnQuote(teaUid);
+      String teaCol = statementBuilder.columnQuote(teaUid + "ATT");
 
-      attributes
-          .append(" INNER JOIN trackedentityattributevalue ")
+      sql.append(" INNER JOIN trackedentityattributevalue ")
           .append(teaValueCol)
           .append(" ON ")
           .append(teaValueCol + ".trackedentityid")
@@ -566,106 +597,155 @@ public class JdbcEventStore implements EventStore {
           .append(AND)
           .append(teaCol + ".UID")
           .append(EQUALS)
-          .append(statementBuilder.encode(queryItem.getItem().getUid(), true));
+          .append(statementBuilder.encode(teaUid, true));
 
-      attributes.append(getAttributeFilterQuery(queryItem, teaCol, teaValueCol));
+      sql.append(
+          getAttributeFilterQuery(
+              queryItem.getValue(), teaCol, teaValueCol, tea.getValueType().isNumeric()));
     }
   }
 
-  private String getAttributeFilterQuery(QueryItem queryItem, String teaCol, String teaValueCol) {
-    StringBuilder query = new StringBuilder();
+  private String getAttributeFilterQuery(
+      List<QueryFilter> filters, String teaCol, String teaValueCol, boolean isNumericTea) {
 
-    if (!queryItem.getFilters().isEmpty()) {
-      query.append(AND);
+    if (filters.isEmpty()) {
+      return "";
+    }
 
-      // In SQL the order of expressions linked by AND is not
-      // guaranteed.
-      // So when casting to number we need to be sure that the value
-      // to cast is really a number.
-      if (queryItem.isNumeric()) {
-        query
-            .append(" CASE WHEN ")
-            .append(lower(teaCol + ".valueType"))
-            .append(" in (")
-            .append(
-                NUMERIC_TYPES.stream()
-                    .map(Enum::name)
-                    .map(StringUtils::lowerCase)
-                    .map(SqlUtils::singleQuote)
-                    .collect(Collectors.joining(",")))
-            .append(")")
-            .append(" THEN ");
-      }
+    StringBuilder query = new StringBuilder(AND);
+    // In SQL the order of expressions linked by AND is not
+    // guaranteed.
+    // So when casting to number we need to be sure that the value
+    // to cast is really a number.
+    if (isNumericTea) {
+      query
+          .append(" CASE WHEN ")
+          .append(lower(teaCol + ".valueType"))
+          .append(" in (")
+          .append(
+              NUMERIC_TYPES.stream()
+                  .map(Enum::name)
+                  .map(StringUtils::lowerCase)
+                  .map(SqlUtils::singleQuote)
+                  .collect(Collectors.joining(",")))
+          .append(")")
+          .append(" THEN ");
+    }
 
-      List<String> filterStrings = new ArrayList<>();
-      for (QueryFilter filter : queryItem.getFilters()) {
-        StringBuilder filterString = new StringBuilder();
-        final String queryCol =
-            queryItem.isNumeric()
-                ? castToNumber(teaValueCol + ".value")
-                : lower(teaValueCol + ".value");
-        final Object encodedFilter =
-            queryItem.isNumeric()
-                ? Double.valueOf(filter.getFilter())
-                : StringUtils.lowerCase(filter.getSqlFilter(filter.getFilter()));
-        filterString
-            .append(queryCol)
-            .append(SPACE)
-            .append(filter.getSqlOperator())
-            .append(SPACE)
-            .append(encodedFilter);
-        filterStrings.add(filterString.toString());
-      }
-      query.append(String.join(AND, filterStrings));
+    List<String> filterStrings = new ArrayList<>();
+    for (QueryFilter filter : filters) {
+      StringBuilder filterString = new StringBuilder();
+      final String queryCol =
+          isNumericTea ? castToNumber(teaValueCol + ".value") : lower(teaValueCol + ".value");
+      final Object encodedFilter =
+          isNumericTea
+              ? Double.valueOf(filter.getFilter())
+              : StringUtils.lowerCase(filter.getSqlFilter(filter.getFilter()));
+      filterString
+          .append(queryCol)
+          .append(SPACE)
+          .append(filter.getSqlOperator())
+          .append(SPACE)
+          .append(encodedFilter);
+      filterStrings.add(filterString.toString());
+    }
+    query.append(String.join(AND, filterStrings));
 
-      if (queryItem.isNumeric()) {
-        query.append(" END ");
-      }
+    if (isNumericTea) {
+      query.append(" END ");
     }
 
     return query.toString();
   }
 
   private String getEventSelectQuery(
-      EventSearchParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
+      EventQueryParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
     SqlHelper hlp = new SqlHelper();
 
     StringBuilder selectBuilder =
         new StringBuilder()
             .append("select ")
             .append(getEventSelectIdentifiersByIdScheme(params))
-            .append(" ev.uid as ev_uid, ")
-            .append("ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, ")
+            .append(" ev.uid as ")
+            .append(COLUMN_EVENT_UID)
+            .append(", ")
+            .append("ou.uid as ")
+            .append(COLUMN_ORG_UNIT_UID)
+            .append(", p.uid as ")
+            .append(COLUMN_PROGRAM_UID)
+            .append(", ps.uid as ")
+            .append(COLUMN_PROGRAM_STAGE_UID)
+            .append(", ")
+            .append("ev.eventid as ")
+            .append(COLUMN_EVENT_ID)
+            .append(", ev.status as ")
+            .append(COLUMN_EVENT_STATUS)
+            .append(", ev.executiondate as ")
+            .append(COLUMN_EVENT_EXECUTION_DATE)
+            .append(", ")
+            .append("ev.eventdatavalues as ev_eventdatavalues, ev.duedate as ")
+            .append(COLUMN_EVENT_DUE_DATE)
+            .append(", ev.completedby as ")
+            .append(COLUMN_EVENT_COMPLETED_BY)
+            .append(", ev.storedby as ")
+            .append(COLUMN_EVENT_STORED_BY)
+            .append(", ")
+            .append("ev.created as ")
+            .append(COLUMN_EVENT_CREATED)
+            .append(", ev.createdbyuserinfo as ")
+            .append(COLUMN_EVENT_CREATED_BY)
+            .append(", ev.lastupdated as ")
+            .append(COLUMN_EVENT_LAST_UPDATED)
+            .append(", ev.lastupdatedbyuserinfo as ")
+            .append(COLUMN_EVENT_LAST_UPDATED_BY)
+            .append(", ")
+            .append("ev.completeddate as ")
+            .append(COLUMN_EVENT_COMPLETED_DATE)
+            .append(", ev.deleted as ")
+            .append(COLUMN_EVENT_DELETED)
+            .append(", ")
             .append(
-                "ev.eventid as ev_id, ev.status as ev_status, ev.executiondate as ev_executiondate, ")
-            .append(
-                "ev.eventdatavalues as ev_eventdatavalues, ev.duedate as ev_duedate, ev.completedby as ev_completedby, ev.storedby as ev_storedby, ")
-            .append(
-                "ev.created as ev_created, ev.createdbyuserinfo as ev_createdbyuserinfo, ev.lastupdated as ev_lastupdated, ev.lastupdatedbyuserinfo as ev_lastupdatedbyuserinfo, ")
-            .append("ev.completeddate as ev_completeddate, ev.deleted as ev_deleted, ")
-            .append(
-                "ST_AsText( ev.geometry ) as ev_geometry, au.uid as user_assigned, (au.firstName || ' ' || au.surName) as user_assigned_name,")
+                "ST_AsText( ev.geometry ) as ev_geometry, au.uid as user_assigned, (au.firstName || ' ' || au.surName) as ")
+            .append(COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME)
+            .append(",")
             .append(
                 "au.firstName as user_assigned_first_name, au.surName as user_assigned_surname, ")
-            .append("au.username as user_assigned_username,")
-            .append("coc.uid as coc_uid, ")
+            .append("au.username as ")
+            .append(COLUMN_EVENT_ASSIGNED_USER_USERNAME)
+            .append(",")
+            .append("coc.uid as ")
+            .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID)
+            .append(", ")
             .append("coc_agg.co_uids AS co_uids, ")
             .append("coc_agg.co_count AS option_size, ");
 
-    for (OrderParam orderParam : params.getAttributeOrders()) {
-      selectBuilder
-          .append(quote(orderParam.getField()))
-          .append(".value AS ")
-          .append(orderParam.getField())
-          .append("_value, ");
+    for (Order order : params.getOrder()) {
+      if (order.getField() instanceof TrackedEntityAttribute tea)
+        selectBuilder
+            .append(quote(tea.getUid()))
+            .append(".value AS ")
+            .append(tea.getUid())
+            .append("_value, ");
     }
 
     return selectBuilder
         .append(
-            "en.uid as en_uid, en.status as en_status, en.followup as en_followup, en.enrollmentdate as en_enrollmentdate, en.incidentdate as en_incidentdate, ")
-        .append("p.type as p_type, ps.uid as ps_uid, ou.name as ou_name, ")
+            "en.uid as "
+                + COLUMN_ENROLLMENT_UID
+                + ", en.status as "
+                + COLUMN_ENROLLMENT_STATUS
+                + ", en.followup as "
+                + COLUMN_ENROLLMENT_FOLLOWUP
+                + ", en.enrollmentdate as "
+                + COLUMN_ENROLLMENT_DATE
+                + ", en.incidentdate as en_incidentdate, ")
+        .append("p.type as p_type, ou.name as ")
+        .append(COLUMN_ORG_UNIT_NAME)
+        .append(", ")
+        .append("te.trackedentityid as te_id, te.uid as ")
+        .append(COLUMN_TRACKEDENTITY_UID)
         .append(
-            "te.trackedentityid as te_id, te.uid as te_uid, teou.uid as te_ou, teou.name as te_ou_name, te.created as te_created, te.inactive as te_inactive ")
+            ", teou.uid as te_ou, teou.name as te_ou_name, te.created as te_created, te.inactive as te_inactive ")
         .append(
             getFromWhereClause(
                 params,
@@ -676,7 +756,7 @@ public class JdbcEventStore implements EventStore {
         .toString();
   }
 
-  private boolean checkForOwnership(EventSearchParams params) {
+  private boolean checkForOwnership(EventQueryParams params) {
     return Optional.ofNullable(params.getProgram())
         .filter(
             p ->
@@ -685,12 +765,12 @@ public class JdbcEventStore implements EventStore {
         .isPresent();
   }
 
-  private String getOuTableName(EventSearchParams params) {
+  private String getOuTableName(EventQueryParams params) {
     return checkForOwnership(params) ? " evou" : " ou";
   }
 
   private StringBuilder getFromWhereClause(
-      EventSearchParams params,
+      EventQueryParams params,
       MapSqlParameterSource mapSqlParameterSource,
       User user,
       SqlHelper hlp,
@@ -720,8 +800,8 @@ public class JdbcEventStore implements EventStore {
             "left join organisationunit teou on (te.organisationunitid=teou.organisationunitid) ")
         .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
-    if (!params.getFilterAttributes().isEmpty()) {
-      joinAttributeValueWithoutQueryParameter(fromBuilder, params.getFilterAttributes());
+    if (!params.getAttributes().isEmpty()) {
+      joinAttributeValueWithoutQueryParameter(fromBuilder, params.getAttributes());
     }
 
     fromBuilder.append(getCategoryOptionComboQuery(user));
@@ -878,9 +958,10 @@ public class JdbcEventStore implements EventStore {
 
     fromBuilder.append(eventStatusSql(params, mapSqlParameterSource, hlp));
 
-    if (params.getEvents() != null && !params.getEvents().isEmpty() && !params.hasFilters()) {
+    if (params.getEvents() != null
+        && !params.getEvents().isEmpty()
+        && !params.hasDataElementFilter()) {
       mapSqlParameterSource.addValue("ev_uid", params.getEvents());
-
       fromBuilder.append(hlp.whereAnd()).append(" (ev.uid in (").append(":ev_uid").append(")) ");
     }
 
@@ -940,7 +1021,7 @@ public class JdbcEventStore implements EventStore {
     return fromBuilder;
   }
 
-  private String getOrgUnitSql(EventSearchParams params, String ouTable) {
+  private String getOrgUnitSql(EventQueryParams params, String ouTable) {
     return switch (params.getOrgUnitMode()) {
       case SELECTED -> getSelectedOrgUnitPath(params.getAccessibleOrgUnits(), ouTable);
       case CHILDREN -> getChildrenOrgUnitsPath(params.getAccessibleOrgUnits(), ouTable);
@@ -954,7 +1035,7 @@ public class JdbcEventStore implements EventStore {
    * in where clause.
    */
   private StringBuilder dataElementAndFiltersSql(
-      EventSearchParams params,
+      EventQueryParams params,
       MapSqlParameterSource mapSqlParameterSource,
       SqlHelper hlp,
       StringBuilder selectBuilder) {
@@ -965,25 +1046,30 @@ public class JdbcEventStore implements EventStore {
     StringBuilder eventDataValuesWhereSql = new StringBuilder();
     Set<String> joinedColumns = new HashSet<>();
 
-    for (QueryItem item : params.getDataElementsAndFilters()) {
+    for (Entry<DataElement, List<QueryFilter>> item : params.getDataElements().entrySet()) {
       ++filterCount;
 
-      final String itemId = item.getItemId();
+      DataElement de = item.getKey();
+      List<QueryFilter> filters = item.getValue();
+      final String deUid = de.getUid();
 
-      final String dataValueValueSql = "ev.eventdatavalues #>> '{" + itemId + ", value}'";
+      final String dataValueValueSql = "ev.eventdatavalues #>> '{" + deUid + ", value}'";
 
       selectBuilder
           .append(", ")
-          .append(item.isNumeric() ? castToNumber(dataValueValueSql) : lower(dataValueValueSql))
+          .append(
+              de.getValueType().isNumeric()
+                  ? castToNumber(dataValueValueSql)
+                  : lower(dataValueValueSql))
           .append(" as ")
-          .append(itemId);
+          .append(deUid);
 
       String optValueTableAs = "opt_" + filterCount;
 
-      if (!joinedColumns.contains(itemId) && item.hasOptionSet() && item.hasFilter()) {
+      if (!joinedColumns.contains(deUid) && de.hasOptionSet() && !filters.isEmpty()) {
         String optSetBind = "optset_" + filterCount;
 
-        mapSqlParameterSource.addValue(optSetBind, item.getOptionSet().getId());
+        mapSqlParameterSource.addValue(optSetBind, de.getOptionSet().getId());
 
         optionValueJoinBuilder
             .append("inner join optionvalue as ")
@@ -1000,20 +1086,22 @@ public class JdbcEventStore implements EventStore {
             .append(optSetBind)
             .append(" ");
 
-        joinedColumns.add(itemId);
+        joinedColumns.add(deUid);
       }
 
-      if (item.hasFilter()) {
-        for (QueryFilter filter : item.getFilters()) {
+      if (!filters.isEmpty()) {
+        for (QueryFilter filter : filters) {
           ++filterCount;
 
           final String queryCol =
-              item.isNumeric() ? castToNumber(dataValueValueSql) : lower(dataValueValueSql);
+              de.getValueType().isNumeric()
+                  ? castToNumber(dataValueValueSql)
+                  : lower(dataValueValueSql);
 
           String bindParameter = "parameter_" + filterCount;
-          int itemType = item.isNumeric() ? Types.NUMERIC : Types.VARCHAR;
+          int itemType = de.getValueType().isNumeric() ? Types.NUMERIC : Types.VARCHAR;
 
-          if (!item.hasOptionSet()) {
+          if (!de.hasOptionSet()) {
             eventDataValuesWhereSql.append(hlp.whereAnd());
 
             if (QueryOperator.IN.getValue().equalsIgnoreCase(filter.getSqlOperator())) {
@@ -1087,33 +1175,33 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String eventStatusSql(
-      EventSearchParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
+      EventQueryParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
     StringBuilder stringBuilder = new StringBuilder();
 
     if (params.getEventStatus() != null) {
       if (params.getEventStatus() == EventStatus.VISITED) {
-        mapSqlParameterSource.addValue(EVENT_STATUS, EventStatus.ACTIVE.name());
+        mapSqlParameterSource.addValue(COLUMN_EVENT_STATUS, EventStatus.ACTIVE.name());
 
         stringBuilder
             .append(hlp.whereAnd())
             .append(EVENT_STATUS_EQ)
-            .append(":" + EVENT_STATUS)
+            .append(":" + COLUMN_EVENT_STATUS)
             .append(" and ev.executiondate is not null ");
       } else if (params.getEventStatus() == EventStatus.OVERDUE) {
-        mapSqlParameterSource.addValue(EVENT_STATUS, EventStatus.SCHEDULE.name());
+        mapSqlParameterSource.addValue(COLUMN_EVENT_STATUS, EventStatus.SCHEDULE.name());
 
         stringBuilder
             .append(hlp.whereAnd())
             .append(" date(now()) > date(ev.duedate) and ev.status = ")
-            .append(":" + EVENT_STATUS)
+            .append(":" + COLUMN_EVENT_STATUS)
             .append(" ");
       } else {
-        mapSqlParameterSource.addValue(EVENT_STATUS, params.getEventStatus().name());
+        mapSqlParameterSource.addValue(COLUMN_EVENT_STATUS, params.getEventStatus().name());
 
         stringBuilder
             .append(hlp.whereAnd())
             .append(EVENT_STATUS_EQ)
-            .append(":" + EVENT_STATUS)
+            .append(":" + COLUMN_EVENT_STATUS)
             .append(" ");
       }
     }
@@ -1122,7 +1210,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String addLastUpdatedFilters(
-      EventSearchParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
+      EventQueryParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
     StringBuilder sqlBuilder = new StringBuilder();
 
     if (params.hasUpdatedAtDuration()) {
@@ -1204,7 +1292,7 @@ public class JdbcEventStore implements EventStore {
     return joinCondition + ") as coc_agg on coc_agg.id = ev.attributeoptioncomboid ";
   }
 
-  private String getEventPagingQuery(final EventSearchParams params) {
+  private String getEventPagingQuery(final EventQueryParams params) {
     final StringBuilder sqlBuilder = new StringBuilder().append(" ");
     int pageSize = params.getPageSizeWithDefault();
 
@@ -1228,36 +1316,37 @@ public class JdbcEventStore implements EventStore {
     return sqlBuilder.toString();
   }
 
-  private String getOrderQuery(EventSearchParams params) {
+  private String getOrderQuery(EventQueryParams params) {
     ArrayList<String> orderFields = new ArrayList<>();
 
-    for (OrderParam order : params.getOrders()) {
-      if (ORDERABLE_FIELDS.containsKey(order.getField())) {
-        String orderText = ORDERABLE_FIELDS.get(order.getField());
-        orderText += " " + (order.getDirection().isAscending() ? "asc" : "desc");
-        orderFields.add(orderText);
-      } else if (params.getAttributeOrders().contains(order)) {
-        orderFields.add(order.getField() + "_value " + order.getDirection());
-      } else if (params.getGridOrders().contains(order)) {
-        orderFields.add(getDataElementsOrder(params.getDataElements(), order));
+    for (Order order : params.getOrder()) {
+      if (order.getField() instanceof String field) {
+        if (!ORDERABLE_FIELDS.containsKey(field)) {
+          throw new IllegalArgumentException(
+              String.format(
+                  "Cannot order by '%s'. Supported are data elements, tracked entity attributes and fields '%s'.",
+                  field, String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
+        }
+
+        orderFields.add(ORDERABLE_FIELDS.get(field) + " " + order.getDirection());
+      } else if (order.getField() instanceof TrackedEntityAttribute tea) {
+        orderFields.add(tea.getUid() + "_value " + order.getDirection());
+      } else if (order.getField() instanceof DataElement de) {
+        orderFields.add(de.getUid() + " " + order.getDirection());
+      } else {
+        throw new IllegalArgumentException(
+            String.format(
+                "Cannot order by '%s'. Supported are data elements, tracked entity attributes and fields '%s'.",
+                order.getField(),
+                String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
       }
     }
 
     if (!orderFields.isEmpty()) {
       return "order by " + StringUtils.join(orderFields, ',') + " ";
     } else {
-      return "order by ev_lastupdated desc ";
+      return "order by " + DEFAULT_ORDER + " ";
     }
-  }
-
-  private String getDataElementsOrder(Set<QueryItem> dataElements, OrderParam order) {
-    for (QueryItem item : dataElements) {
-      if (order.getField().equals(item.getItemId())) {
-        return order.getField() + " " + order.getDirection();
-      }
-    }
-
-    return "";
   }
 
   private String getAttributeValueQuery() {
@@ -1281,7 +1370,7 @@ public class JdbcEventStore implements EventStore {
     }
   }
 
-  private void setAccessiblePrograms(User user, EventSearchParams params) {
+  private void setAccessiblePrograms(User user, EventQueryParams params) {
     if (!isSuper(user)) {
       params.setAccessiblePrograms(
           manager.getDataReadAll(Program.class).stream()

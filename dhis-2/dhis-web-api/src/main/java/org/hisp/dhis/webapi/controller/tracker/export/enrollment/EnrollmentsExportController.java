@@ -28,7 +28,8 @@
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
+import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -36,7 +37,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
@@ -67,20 +67,33 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = RESOURCE_PATH + "/" + EnrollmentsExportController.ENROLLMENTS)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequiredArgsConstructor
 class EnrollmentsExportController {
   protected static final String ENROLLMENTS = "enrollments";
 
   private static final EnrollmentMapper ENROLLMENT_MAPPER =
       Mappers.getMapper(EnrollmentMapper.class);
 
-  private final EnrollmentRequestParamsMapper operationParamsMapper;
-
   private final EnrollmentService enrollmentService;
+
+  private final EnrollmentRequestParamsMapper paramsMapper;
 
   private final FieldFilterService fieldFilterService;
 
   private final EnrollmentFieldsParamMapper fieldsMapper;
+
+  public EnrollmentsExportController(
+      EnrollmentService enrollmentService,
+      EnrollmentRequestParamsMapper paramsMapper,
+      FieldFilterService fieldFilterService,
+      EnrollmentFieldsParamMapper fieldsMapper) {
+    this.enrollmentService = enrollmentService;
+    this.paramsMapper = paramsMapper;
+    this.fieldFilterService = fieldFilterService;
+    this.fieldsMapper = fieldsMapper;
+
+    assertUserOrderableFieldsAreSupported(
+        "enrollment", EnrollmentMapper.ORDERABLE_FIELDS, enrollmentService.getOrderableFields());
+  }
 
   @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
@@ -90,7 +103,7 @@ class EnrollmentsExportController {
 
     List<org.hisp.dhis.program.Enrollment> enrollmentList;
 
-    EnrollmentOperationParams operationParams = operationParamsMapper.map(requestParams);
+    EnrollmentOperationParams operationParams = paramsMapper.map(requestParams);
 
     Set<UID> enrollmentUids =
         validateDeprecatedUidsParameter(

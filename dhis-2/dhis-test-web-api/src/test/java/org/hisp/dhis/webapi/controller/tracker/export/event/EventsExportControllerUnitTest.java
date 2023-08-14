@@ -39,7 +39,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -48,11 +50,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class EventsExportControllerUnitTest {
 
-  @Mock private org.hisp.dhis.tracker.export.event.EventService eventService;
+  @Mock private EventService eventService;
 
   @Mock private EventRequestParamsMapper eventParamsMapper;
 
-  @Mock private CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
+  @Mock private CsvService<Event> csvEventService;
 
   @Mock private FieldFilterService fieldFilterService;
 

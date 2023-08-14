@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.*;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -58,9 +58,9 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
-import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -113,6 +113,10 @@ public class TrackedEntityAggregate implements Aggregate {
    */
   public List<TrackedEntity> find(
       List<Long> ids, TrackedEntityParams params, TrackedEntityQueryParams queryParams) {
+    if (ids.isEmpty()) {
+      return Collections.emptyList();
+    }
+
     final Optional<User> user = Optional.ofNullable(currentUserService.getCurrentUser());
 
     user.ifPresent(

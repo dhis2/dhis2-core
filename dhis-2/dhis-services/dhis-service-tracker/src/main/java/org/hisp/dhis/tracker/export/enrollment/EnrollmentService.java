@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import java.util.Set;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -41,4 +42,12 @@ public interface EnrollmentService {
 
   Enrollments getEnrollments(EnrollmentOperationParams params)
       throws ForbiddenException, BadRequestException;
+
+  /**
+   * Fields the {@link #getEnrollments(EnrollmentOperationParams)} can order enrollments by.
+   * Ordering by fields other than these is considered a programmer error. Validation of user
+   * provided field names should occur before calling {@link
+   * #getEnrollments(EnrollmentOperationParams)}.
+   */
+  Set<String> getOrderableFields();
 }

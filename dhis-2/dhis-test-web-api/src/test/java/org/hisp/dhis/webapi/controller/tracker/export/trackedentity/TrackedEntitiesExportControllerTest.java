@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertFirstRelationship;
@@ -38,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -174,6 +176,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntitiesNeedsProgramOrType() {
+    injectSecurityContext(user);
+
     assertEquals(
         "Either Program or Tracked entity type should be specified",
         GET("/tracker/trackedEntities").error(HttpStatus.CONFLICT).getMessage());
@@ -191,21 +195,36 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   }
 
   @Test
-  void getTrackedEntitiesNeedsAtLeastOneOrgUnit() {
-    assertEquals(
-        "At least one organisation unit must be specified",
-        GET("/tracker/trackedEntities?program={program}", program.getUid())
-            .error(HttpStatus.CONFLICT)
+  void getTrackedEntitiesCannotHaveRepeatedAttributes() {
+    injectSecurityContext(user);
+
+    assertContains(
+        "Filter for attribute " + TEA_UID + " was specified more than once.",
+        GET("/tracker/trackedEntities?filter="
+                + TEA_UID
+                + ":eq:test,"
+                + TEA_UID
+                + ":gt:test2&user= "
+                + user.getUid())
+            .error(HttpStatus.BAD_REQUEST)
             .getMessage());
   }
 
   @Test
-  void getTrackedEntitiesCannotHaveRepeatedAttributes() {
-    assertContains(
-        "Filter for attribute " + TEA_UID + " was specified more than once.",
-        GET("/tracker/trackedEntities?filter=" + TEA_UID + ":eq:test," + TEA_UID + ":gt:test2")
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
+  void shouldReturnEmptyListWhenGettingTrackedEntitiesWithNoMatchingParams() {
+
+    LocalDate futureDate = LocalDate.now().plusYears(1);
+    JsonList<JsonTrackedEntity> instances =
+        GET("/tracker/trackedEntities?trackedEntityType="
+                + trackedEntityType.getUid()
+                + "&ouMode=ALL"
+                + "&trackedEntities=AbjwFr5o9IT"
+                + "&updatedAfter="
+                + futureDate)
+            .content(HttpStatus.OK)
+            .getList("instances", JsonTrackedEntity.class);
+
+    assertEquals(0, instances.size());
   }
 
   @Test
@@ -406,11 +425,13 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntityReturnsCsvFormat() {
+    injectSecurityContext(user);
+
     WebClient.HttpResponse response =
         GET(
-            "/tracker/trackedEntities.csv?program={programId}&orgUnit={orgUnitId}",
+            "/tracker/trackedEntities.csv?program={programId}&orgUnitMode={orgUnitMode}",
             program.getUid(),
-            orgUnit.getUid());
+            ACCESSIBLE);
 
     assertEquals(HttpStatus.OK, response.status());
 
@@ -427,11 +448,13 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntityReturnsCsvZipFormat() {
+    injectSecurityContext(user);
+
     WebClient.HttpResponse response =
         GET(
-            "/tracker/trackedEntities.csv.zip?program={programId}&orgUnit={orgUnitId}",
+            "/tracker/trackedEntities.csv.zip?program={programId}&orgUnitMode={orgUnitMode}",
             program.getUid(),
-            orgUnit.getUid());
+            ACCESSIBLE);
 
     assertEquals(HttpStatus.OK, response.status());
 
@@ -447,11 +470,13 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntityReturnsCsvGZipFormat() {
+    injectSecurityContext(user);
+
     WebClient.HttpResponse response =
         GET(
-            "/tracker/trackedEntities.csv.gz?program={programId}&orgUnit={orgUnitId}",
+            "/tracker/trackedEntities.csv.gz?program={programId}&orgUnitMode={orgUnitMode}",
             program.getUid(),
-            orgUnit.getUid());
+            ACCESSIBLE);
 
     assertEquals(HttpStatus.OK, response.status());
 

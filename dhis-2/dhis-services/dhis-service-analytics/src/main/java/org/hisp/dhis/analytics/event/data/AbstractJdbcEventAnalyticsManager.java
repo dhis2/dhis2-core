@@ -541,6 +541,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       }
     } catch (BadSqlGrammarException ex) {
       log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
+      throw ex;
     } catch (DataAccessResourceFailureException ex) {
       log.warn(ErrorCode.E7131.getMessage(), ex);
       throw new QueryRuntimeException(ErrorCode.E7131);
@@ -908,6 +909,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       runnable.run();
     } catch (BadSqlGrammarException ex) {
       log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
+      throw ex;
     } catch (DataAccessResourceFailureException ex) {
       log.warn(ErrorCode.E7131.getMessage(), ex);
       throw new QueryRuntimeException(ErrorCode.E7131);

@@ -131,6 +131,29 @@ if `assignedUserMode` is either `PROVIDED` or not specified.
 
 ### `*.parameter.TrackedEntityRequestParams.potentialDuplicate`
 
+### `*.parameter.TrackedEntityRequestParams.order`
+
+`<propertyName1:sortDirection>[,<propertyName2:sortDirection>...]`
+
+Get tracked entities in given order. Tracked entities can be ordered by tracked entity attributes by
+passing a UID instead of a property name. This will order tracked entities by the values of the
+specified attribute not their UIDs. Tracked entities can also be ordered by the following
+case-sensitive properties
+
+* `createdAt`
+* `createdAtClient`
+* `enrolledAt`
+* `inactive`
+* `trackedEntity`
+* `updatedAt`
+* `updatedAtClient`
+
+Valid `sortDirection`s are `asc` and `desc`. `sortDirection` is case-insensitive. `sortDirection`
+defaults to `asc` for properties or UIDs without explicit `sortDirection` as in `order=createdAt`.
+
+Tracked entities are ordered by newest (internal id desc) by default meaning when no `order`
+parameter is provided.
+
 ### `*.parameter.TrackedEntityRequestParams.fields`
 
 Get only the specified fields in the JSON response. This query parameter allows you to remove

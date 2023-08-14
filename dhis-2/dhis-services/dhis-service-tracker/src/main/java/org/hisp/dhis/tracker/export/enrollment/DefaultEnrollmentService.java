@@ -29,6 +29,9 @@ package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 
@@ -40,17 +43,18 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentQueryParams;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.hibernate.HibernateEnrollmentStore;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -59,15 +63,17 @@ import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.export.enrollment.EnrollmentService")
-public class DefaultEnrollmentService
+class DefaultEnrollmentService
     implements org.hisp.dhis.tracker.export.enrollment.EnrollmentService {
+  private final EnrollmentStore enrollmentStore;
 
-  private final EnrollmentService enrollmentService;
+  private final AclService aclService;
 
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
@@ -82,7 +88,7 @@ public class DefaultEnrollmentService
   @Override
   public Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
-    Enrollment enrollment = enrollmentService.getEnrollment(uid);
+    Enrollment enrollment = enrollmentStore.getByUid(uid);
 
     if (enrollment == null) {
       throw new NotFoundException(Enrollment.class, uid);
@@ -192,9 +198,28 @@ public class DefaultEnrollmentService
       throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
+    decideAccess(queryParams);
+    validate(queryParams);
+
+    User user = currentUserService.getCurrentUser();
+
+    if (user != null
+        && queryParams.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
+      queryParams.setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
+      queryParams.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    } else if (queryParams.isOrganisationUnitMode(CHILDREN)) {
+      Set<OrganisationUnit> organisationUnits = new HashSet<>(queryParams.getOrganisationUnits());
+
+      for (OrganisationUnit organisationUnit : queryParams.getOrganisationUnits()) {
+        organisationUnits.addAll(organisationUnit.getChildren());
+      }
+
+      queryParams.setOrganisationUnits(organisationUnits);
+    }
+
     List<Enrollment> enrollmentList =
         getEnrollments(
-            new ArrayList<>(enrollmentService.getEnrollments(queryParams)),
+            new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
             params.getEnrollmentParams(),
             params.isIncludeDeleted());
 
@@ -205,13 +230,95 @@ public class DefaultEnrollmentService
     Pager pager;
 
     if (params.isTotalPages()) {
-      int count = enrollmentService.countEnrollments(queryParams);
+      queryParams.setSkipPaging(true);
+      int count = enrollmentStore.countEnrollments(queryParams);
       pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
     } else {
       pager = handleLastPageFlag(queryParams, enrollmentList);
     }
 
     return Enrollments.of(enrollmentList, pager);
+  }
+
+  public void decideAccess(EnrollmentQueryParams params) {
+    if (params.hasProgram()) {
+      if (!aclService.canDataRead(params.getUser(), params.getProgram())) {
+        throw new IllegalQueryException(
+            "Current user is not authorized to read data from selected program:  "
+                + params.getProgram().getUid());
+      }
+
+      if (params.getProgram().getTrackedEntityType() != null
+          && !aclService.canDataRead(
+              params.getUser(), params.getProgram().getTrackedEntityType())) {
+        throw new IllegalQueryException(
+            "Current user is not authorized to read data from selected program's tracked entity type:  "
+                + params.getProgram().getTrackedEntityType().getUid());
+      }
+    }
+
+    if (params.hasTrackedEntityType()
+        && !aclService.canDataRead(params.getUser(), params.getTrackedEntityType())) {
+      throw new IllegalQueryException(
+          "Current user is not authorized to read data from selected tracked entity type:  "
+              + params.getTrackedEntityType().getUid());
+    }
+  }
+
+  public void validate(EnrollmentQueryParams params) throws IllegalQueryException {
+    String violation = null;
+
+    if (params == null) {
+      throw new IllegalQueryException("Params cannot be null");
+    }
+
+    User user = params.getUser();
+
+    if (!params.hasOrganisationUnits()
+        && !(params.isOrganisationUnitMode(ALL) || params.isOrganisationUnitMode(ACCESSIBLE))) {
+      violation = "At least one organisation unit must be specified";
+    }
+
+    if (params.isOrganisationUnitMode(ACCESSIBLE)
+        && (user == null || !user.hasDataViewOrganisationUnitWithFallback())) {
+      violation =
+          "Current user must be associated with at least one organisation unit when selection mode is ACCESSIBLE";
+    }
+
+    if (params.hasProgram() && params.hasTrackedEntityType()) {
+      violation = "Program and tracked entity cannot be specified simultaneously";
+    }
+
+    if (params.hasProgramStatus() && !params.hasProgram()) {
+      violation = "Program must be defined when program status is defined";
+    }
+
+    if (params.hasFollowUp() && !params.hasProgram()) {
+      violation = "Program must be defined when follow up status is defined";
+    }
+
+    if (params.hasProgramStartDate() && !params.hasProgram()) {
+      violation = "Program must be defined when program start date is specified";
+    }
+
+    if (params.hasProgramEndDate() && !params.hasProgram()) {
+      violation = "Program must be defined when program end date is specified";
+    }
+
+    if (params.hasLastUpdated() && params.hasLastUpdatedDuration()) {
+      violation = "Last updated and last updated duration cannot be specified simultaneously";
+    }
+
+    if (params.hasLastUpdatedDuration()
+        && DateUtils.getDuration(params.getLastUpdatedDuration()) == null) {
+      violation = "Duration is not valid: " + params.getLastUpdatedDuration();
+    }
+
+    if (violation != null) {
+      log.warn("Validation failed: " + violation);
+
+      throw new IllegalQueryException(violation);
+    }
   }
 
   /**
@@ -260,5 +367,10 @@ public class DefaultEnrollmentService
     }
 
     return enrollmentList;
+  }
+
+  @Override
+  public Set<String> getOrderableFields() {
+    return enrollmentStore.getOrderableFields();
   }
 }

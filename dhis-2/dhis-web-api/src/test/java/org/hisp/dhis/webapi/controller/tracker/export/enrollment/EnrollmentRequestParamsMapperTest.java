@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
+import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.RequestParams.DEFAULT_FIELDS_PARAM;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -44,9 +46,9 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
@@ -115,21 +117,21 @@ class EnrollmentRequestParamsMapperTest {
   @Test
   void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
+    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.CAPTURE);
 
     EnrollmentOperationParams params = mapper.map(requestParams);
 
-    assertEquals(OrganisationUnitSelectionMode.SELECTED, params.getOrgUnitMode());
+    assertEquals(OrganisationUnitSelectionMode.CAPTURE, params.getOrgUnitMode());
   }
 
   @Test
   void shouldMapOrgUnitModeGivenOuModeParam() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
-    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
+    requestParams.setOuMode(OrganisationUnitSelectionMode.CAPTURE);
 
     EnrollmentOperationParams params = mapper.map(requestParams);
 
-    assertEquals(OrganisationUnitSelectionMode.SELECTED, params.getOrgUnitMode());
+    assertEquals(OrganisationUnitSelectionMode.CAPTURE, params.getOrgUnitMode());
   }
 
   @Test
@@ -175,19 +177,29 @@ class EnrollmentRequestParamsMapperTest {
   }
 
   @Test
-  void testMappingOrderParams() throws BadRequestException {
+  void shouldMapOrderParameterInGivenOrderWhenFieldsAreOrderable() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
-    OrderCriteria order1 = OrderCriteria.of("field1", SortDirection.ASC);
-    OrderCriteria order2 = OrderCriteria.of("field2", SortDirection.DESC);
-    requestParams.setOrder(List.of(order1, order2));
+    requestParams.setOrder(OrderCriteria.fromOrderString("enrolledAt:desc,createdAt:asc"));
 
     EnrollmentOperationParams params = mapper.map(requestParams);
 
     assertEquals(
         List.of(
-            new OrderParam("field1", SortDirection.ASC),
-            new OrderParam("field2", SortDirection.DESC)),
+            new Order("enrollmentDate", SortDirection.DESC),
+            new Order("created", SortDirection.ASC)),
         params.getOrder());
+  }
+
+  @Test
+  void shouldFailGivenInvalidOrderFieldName() {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrder(
+        OrderCriteria.fromOrderString("unsupportedProperty1:asc,enrolledAt:asc"));
+
+    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+    assertAll(
+        () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
+        () -> assertContains("unsupportedProperty1", exception.getMessage()));
   }
 
   @Test

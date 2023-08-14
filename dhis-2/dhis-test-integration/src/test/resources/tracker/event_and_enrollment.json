@@ -37,8 +37,6 @@
         "idScheme": "UID",
         "identifier": "ja8NY4PW7Xm"
       },
-      "createdAt": "2020-02-20T12:09:21.844",
-      "updatedAt": "2020-02-20T12:09:21.844",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "h4w96yEMlzO"
@@ -46,6 +44,7 @@
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
+      "createdAtClient": "2018-10-01T12:17:30.163",
       "relationships": [],
       "attributes": [
         {
@@ -81,8 +80,6 @@
         "idScheme": "UID",
         "identifier": "ja8NY4PW7Xm"
       },
-      "createdAt": "2020-02-20T12:09:21.844",
-      "updatedAt": "2020-02-20T12:09:21.844",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "h4w96yEMlzO"
@@ -90,6 +87,7 @@
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
+      "createdAtClient": "2018-11-01T12:17:30.163",
       "relationships": [],
       "attributes": [
         {
@@ -133,8 +131,6 @@
         "idScheme": "UID",
         "identifier": "ja8NY4PW7Xm"
       },
-      "createdAt": "2020-02-20T12:09:21.844",
-      "updatedAt": "2020-02-20T12:09:21.844",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "h4w96yEMlzO"
@@ -166,7 +162,7 @@
             "idScheme": "UID",
             "identifier": "numericAttr"
           },
-          "value": 88
+          "value": 72
         }
       ],
       "enrollments": []
@@ -177,8 +173,6 @@
         "idScheme": "UID",
         "identifier": "ja8NY4PW7Xm"
       },
-      "createdAt": "2020-02-20T12:09:21.844",
-      "updatedAt": "2020-02-20T12:09:21.844",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "h4w96yEMlzO"
@@ -210,7 +204,7 @@
             "idScheme": "UID",
             "identifier": "numericAttr"
           },
-          "value": 88
+          "value": 89
         }
       ],
       "enrollments": []
@@ -221,8 +215,6 @@
         "idScheme": "UID",
         "identifier": "ja8NY4PW7Xm"
       },
-      "createdAt": "2020-02-20T12:09:21.844",
-      "updatedAt": "2020-02-20T12:09:21.844",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "tSsGrtfRzjY"
@@ -254,7 +246,7 @@
             "idScheme": "UID",
             "identifier": "numericAttr"
           },
-          "value": 88
+          "value": 90
         }
       ],
       "enrollments": []

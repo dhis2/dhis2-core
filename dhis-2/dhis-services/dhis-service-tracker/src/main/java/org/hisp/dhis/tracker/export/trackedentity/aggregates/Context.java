@@ -30,8 +30,8 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 import java.util.List;
 import lombok.Builder;
 import lombok.Value;
-import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
 
 /**
  * @author Luciano Fiandesio

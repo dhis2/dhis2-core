@@ -30,15 +30,18 @@ package org.hisp.dhis.tracker.export.event;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -46,12 +49,14 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 /**
  * @author Lars Helge Overland
  */
-public class EventSearchParams {
+class EventQueryParams {
 
   public static final int DEFAULT_PAGE = 1;
 
@@ -112,11 +117,18 @@ public class EventSearchParams {
 
   private boolean includeRelationships;
 
-  private final List<OrderParam> orders = new ArrayList<>();
-
-  private final List<OrderParam> gridOrders = new ArrayList<>();
-
-  private final List<OrderParam> attributeOrders = new ArrayList<>();
+  /**
+   * Events can be ordered by field names (given as {@link String}), data elements (given as {@link
+   * DataElement}) and tracked entity attributes (given as {@link TrackedEntityAttribute}). It is
+   * crucial for the order values to stay in one collection as their order needs to be kept as
+   * provided by the user. We cannot come up with a type-safe type that captures the above order
+   * features and that can be used in a generic collection such as a {@link List} (see typesafe
+   * heterogeneous container). We therefore provide {@link #orderBy(String, SortDirection)}, {@link
+   * #orderBy(DataElement, SortDirection)} and {@link #orderBy(TrackedEntityAttribute,
+   * SortDirection)} to advocate the types that can be ordered by while storing the order in a
+   * single List of {@link Order}.
+   */
+  private final List<Order> order = new ArrayList<>();
 
   private boolean includeAttributes;
 
@@ -126,13 +138,20 @@ public class EventSearchParams {
 
   private Boolean skipEventId;
 
-  /** Filters for the response. */
-  private final List<QueryItem> filters = new ArrayList<>();
+  /**
+   * Each attribute will affect the final SQL query. Some attributes are filtered on, while
+   * attributes added via {@link #orderBy(TrackedEntityAttribute, SortDirection)} will be ordered
+   * by.
+   */
+  private final Map<TrackedEntityAttribute, List<QueryFilter>> attributes = new HashMap<>();
 
-  private final List<QueryItem> filterAttributes = new ArrayList<>();
+  /**
+   * Each data element will affect the final SQL query. Some data elements are filtered on, while
+   * data elements added via {@link #orderBy(DataElement, SortDirection)} will be ordered by.
+   */
+  private final Map<DataElement, List<QueryFilter>> dataElements = new HashMap<>();
 
-  /** DataElements to be included in the response. Can be used to filter response. */
-  private Set<QueryItem> dataElements = new HashSet<>();
+  private boolean hasDataElementFilter;
 
   private boolean includeDeleted;
 
@@ -153,7 +172,7 @@ public class EventSearchParams {
   // Constructors
   // -------------------------------------------------------------------------
 
-  public EventSearchParams() {}
+  public EventQueryParams() {}
 
   // -------------------------------------------------------------------------
   // Logic
@@ -205,9 +224,12 @@ public class EventSearchParams {
     return updatedAtDuration != null;
   }
 
-  /** Indicates whether this search params contain any filters. */
-  public boolean hasFilters() {
-    return !filters.isEmpty();
+  /**
+   * Returns true if any data element filter has been added using {@link #filterBy(DataElement,
+   * QueryFilter)}.
+   */
+  public boolean hasDataElementFilter() {
+    return this.hasDataElementFilter;
   }
 
   /** Null-safe check for skip event ID parameter. */
@@ -215,29 +237,11 @@ public class EventSearchParams {
     return skipEventId != null && skipEventId;
   }
 
-  /** Returns a list of dataElements and filters combined. */
-  public List<QueryItem> getDataElementsAndFilters() {
-    List<QueryItem> items = new ArrayList<>();
-    items.addAll(filters);
-
-    for (QueryItem de : dataElements) {
-      if (!items.contains(de)) {
-        items.add(de);
-      }
-    }
-
-    return items;
-  }
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
-
   public Program getProgram() {
     return program;
   }
 
-  public EventSearchParams setProgram(Program program) {
+  public EventQueryParams setProgram(Program program) {
     this.program = program;
     return this;
   }
@@ -246,7 +250,7 @@ public class EventSearchParams {
     return programStage;
   }
 
-  public EventSearchParams setProgramStage(ProgramStage programStage) {
+  public EventQueryParams setProgramStage(ProgramStage programStage) {
     this.programStage = programStage;
     return this;
   }
@@ -255,7 +259,7 @@ public class EventSearchParams {
     return programStatus;
   }
 
-  public EventSearchParams setProgramStatus(ProgramStatus programStatus) {
+  public EventQueryParams setProgramStatus(ProgramStatus programStatus) {
     this.programStatus = programStatus;
     return this;
   }
@@ -264,7 +268,7 @@ public class EventSearchParams {
     return programType;
   }
 
-  public EventSearchParams setProgramType(ProgramType programType) {
+  public EventQueryParams setProgramType(ProgramType programType) {
     this.programType = programType;
     return this;
   }
@@ -273,7 +277,7 @@ public class EventSearchParams {
     return followUp;
   }
 
-  public EventSearchParams setFollowUp(Boolean followUp) {
+  public EventQueryParams setFollowUp(Boolean followUp) {
     this.followUp = followUp;
     return this;
   }
@@ -282,7 +286,7 @@ public class EventSearchParams {
     return accessibleOrgUnits;
   }
 
-  public EventSearchParams setAccessibleOrgUnits(List<OrganisationUnit> accessibleOrgUnits) {
+  public EventQueryParams setAccessibleOrgUnits(List<OrganisationUnit> accessibleOrgUnits) {
     this.accessibleOrgUnits = accessibleOrgUnits;
     return this;
   }
@@ -291,7 +295,7 @@ public class EventSearchParams {
     return orgUnitMode;
   }
 
-  public EventSearchParams setOrgUnitMode(OrganisationUnitSelectionMode orgUnitMode) {
+  public EventQueryParams setOrgUnitMode(OrganisationUnitSelectionMode orgUnitMode) {
     this.orgUnitMode = orgUnitMode;
     return this;
   }
@@ -302,8 +306,7 @@ public class EventSearchParams {
    * @param assignedUserQueryParam assigned user query params
    * @return this
    */
-  public EventSearchParams setAssignedUserQueryParam(
-      AssignedUserQueryParam assignedUserQueryParam) {
+  public EventQueryParams setAssignedUserQueryParam(AssignedUserQueryParam assignedUserQueryParam) {
     this.assignedUserQueryParam = assignedUserQueryParam;
     return this;
   }
@@ -312,7 +315,7 @@ public class EventSearchParams {
     return trackedEntity;
   }
 
-  public EventSearchParams setTrackedEntity(TrackedEntity trackedEntity) {
+  public EventQueryParams setTrackedEntity(TrackedEntity trackedEntity) {
     this.trackedEntity = trackedEntity;
     return this;
   }
@@ -321,7 +324,7 @@ public class EventSearchParams {
     return startDate;
   }
 
-  public EventSearchParams setStartDate(Date startDate) {
+  public EventQueryParams setStartDate(Date startDate) {
     this.startDate = startDate;
     return this;
   }
@@ -330,7 +333,7 @@ public class EventSearchParams {
     return endDate;
   }
 
-  public EventSearchParams setEndDate(Date endDate) {
+  public EventQueryParams setEndDate(Date endDate) {
     this.endDate = endDate;
     return this;
   }
@@ -339,7 +342,7 @@ public class EventSearchParams {
     return eventStatus;
   }
 
-  public EventSearchParams setEventStatus(EventStatus eventStatus) {
+  public EventQueryParams setEventStatus(EventStatus eventStatus) {
     this.eventStatus = eventStatus;
     return this;
   }
@@ -348,7 +351,7 @@ public class EventSearchParams {
     return updatedAtStartDate;
   }
 
-  public EventSearchParams setUpdatedAtStartDate(Date updatedAtStartDate) {
+  public EventQueryParams setUpdatedAtStartDate(Date updatedAtStartDate) {
     this.updatedAtStartDate = updatedAtStartDate;
     return this;
   }
@@ -357,7 +360,7 @@ public class EventSearchParams {
     return updatedAtEndDate;
   }
 
-  public EventSearchParams setUpdatedAtEndDate(Date updatedAtEndDate) {
+  public EventQueryParams setUpdatedAtEndDate(Date updatedAtEndDate) {
     this.updatedAtEndDate = updatedAtEndDate;
     return this;
   }
@@ -366,7 +369,7 @@ public class EventSearchParams {
     return updatedAtDuration;
   }
 
-  public EventSearchParams setUpdatedAtDuration(String updatedAtDuration) {
+  public EventQueryParams setUpdatedAtDuration(String updatedAtDuration) {
     this.updatedAtDuration = updatedAtDuration;
     return this;
   }
@@ -375,7 +378,7 @@ public class EventSearchParams {
     return scheduleAtStartDate;
   }
 
-  public EventSearchParams setScheduleAtStartDate(Date scheduleAtStartDate) {
+  public EventQueryParams setScheduleAtStartDate(Date scheduleAtStartDate) {
     this.scheduleAtStartDate = scheduleAtStartDate;
     return this;
   }
@@ -384,7 +387,7 @@ public class EventSearchParams {
     return scheduleAtEndDate;
   }
 
-  public EventSearchParams setScheduleAtEndDate(Date scheduleAtEndDate) {
+  public EventQueryParams setScheduleAtEndDate(Date scheduleAtEndDate) {
     this.scheduleAtEndDate = scheduleAtEndDate;
     return this;
   }
@@ -393,7 +396,7 @@ public class EventSearchParams {
     return enrollmentEnrolledBefore;
   }
 
-  public EventSearchParams setEnrollmentEnrolledBefore(Date enrollmentEnrolledBefore) {
+  public EventQueryParams setEnrollmentEnrolledBefore(Date enrollmentEnrolledBefore) {
     this.enrollmentEnrolledBefore = enrollmentEnrolledBefore;
     return this;
   }
@@ -402,7 +405,7 @@ public class EventSearchParams {
     return enrollmentEnrolledAfter;
   }
 
-  public EventSearchParams setEnrollmentEnrolledAfter(Date enrollmentEnrolledAfter) {
+  public EventQueryParams setEnrollmentEnrolledAfter(Date enrollmentEnrolledAfter) {
     this.enrollmentEnrolledAfter = enrollmentEnrolledAfter;
     return this;
   }
@@ -411,7 +414,7 @@ public class EventSearchParams {
     return enrollmentOccurredBefore;
   }
 
-  public EventSearchParams setEnrollmentOccurredBefore(Date enrollmentOccurredBefore) {
+  public EventQueryParams setEnrollmentOccurredBefore(Date enrollmentOccurredBefore) {
     this.enrollmentOccurredBefore = enrollmentOccurredBefore;
     return this;
   }
@@ -420,7 +423,7 @@ public class EventSearchParams {
     return enrollmentOccurredAfter;
   }
 
-  public EventSearchParams setEnrollmentOccurredAfter(Date enrollmentOccurredAfter) {
+  public EventQueryParams setEnrollmentOccurredAfter(Date enrollmentOccurredAfter) {
     this.enrollmentOccurredAfter = enrollmentOccurredAfter;
     return this;
   }
@@ -429,7 +432,7 @@ public class EventSearchParams {
     return idSchemes;
   }
 
-  public EventSearchParams setIdSchemes(IdSchemes idSchemes) {
+  public EventQueryParams setIdSchemes(IdSchemes idSchemes) {
     this.idSchemes = idSchemes;
     return this;
   }
@@ -438,7 +441,7 @@ public class EventSearchParams {
     return page;
   }
 
-  public EventSearchParams setPage(Integer page) {
+  public EventQueryParams setPage(Integer page) {
     this.page = page;
     return this;
   }
@@ -447,7 +450,7 @@ public class EventSearchParams {
     return pageSize;
   }
 
-  public EventSearchParams setPageSize(Integer pageSize) {
+  public EventQueryParams setPageSize(Integer pageSize) {
     this.pageSize = pageSize;
     return this;
   }
@@ -456,7 +459,7 @@ public class EventSearchParams {
     return totalPages;
   }
 
-  public EventSearchParams setTotalPages(boolean totalPages) {
+  public EventQueryParams setTotalPages(boolean totalPages) {
     this.totalPages = totalPages;
     return this;
   }
@@ -465,7 +468,7 @@ public class EventSearchParams {
     return skipPaging;
   }
 
-  public EventSearchParams setSkipPaging(boolean skipPaging) {
+  public EventQueryParams setSkipPaging(boolean skipPaging) {
     this.skipPaging = skipPaging;
     return this;
   }
@@ -474,7 +477,7 @@ public class EventSearchParams {
     return includeAttributes;
   }
 
-  public EventSearchParams setIncludeAttributes(boolean includeAttributes) {
+  public EventQueryParams setIncludeAttributes(boolean includeAttributes) {
     this.includeAttributes = includeAttributes;
     return this;
   }
@@ -483,35 +486,32 @@ public class EventSearchParams {
     return includeAllDataElements;
   }
 
-  public EventSearchParams setIncludeAllDataElements(boolean includeAllDataElements) {
+  public EventQueryParams setIncludeAllDataElements(boolean includeAllDataElements) {
     this.includeAllDataElements = includeAllDataElements;
     return this;
   }
 
-  public List<OrderParam> getOrders() {
-    return Collections.unmodifiableList(this.orders);
+  public List<Order> getOrder() {
+    return Collections.unmodifiableList(this.order);
   }
 
-  public EventSearchParams addOrders(List<OrderParam> orders) {
-    this.orders.addAll(orders);
+  /** Order by an event field of the given {@code field} name in given sort {@code direction}. */
+  public EventQueryParams orderBy(String field, SortDirection direction) {
+    this.order.add(new Order(field, direction));
     return this;
   }
 
-  public List<OrderParam> getGridOrders() {
-    return Collections.unmodifiableList(this.gridOrders);
-  }
-
-  public EventSearchParams addGridOrders(List<OrderParam> gridOrders) {
-    this.gridOrders.addAll(gridOrders);
+  /** Order by the given data element {@code de} in given sort {@code direction}. */
+  public EventQueryParams orderBy(DataElement de, SortDirection direction) {
+    this.order.add(new Order(de, direction));
+    this.dataElements.putIfAbsent(de, new ArrayList<>());
     return this;
   }
 
-  public List<OrderParam> getAttributeOrders() {
-    return Collections.unmodifiableList(this.attributeOrders);
-  }
-
-  public EventSearchParams addAttributeOrders(List<OrderParam> attributeOrders) {
-    this.attributeOrders.addAll(attributeOrders);
+  /** Order by the given tracked entity attribute {@code tea} in given sort {@code direction}. */
+  public EventQueryParams orderBy(TrackedEntityAttribute tea, SortDirection direction) {
+    this.order.add(new Order(tea, direction));
+    this.attributes.putIfAbsent(tea, new ArrayList<>());
     return this;
   }
 
@@ -519,7 +519,7 @@ public class EventSearchParams {
     return categoryOptionCombo;
   }
 
-  public EventSearchParams setCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {
+  public EventQueryParams setCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {
     this.categoryOptionCombo = categoryOptionCombo;
     return this;
   }
@@ -528,7 +528,7 @@ public class EventSearchParams {
     return events;
   }
 
-  public EventSearchParams setEvents(Set<String> events) {
+  public EventQueryParams setEvents(Set<String> events) {
     this.events = events;
     return this;
   }
@@ -537,40 +537,38 @@ public class EventSearchParams {
     return skipEventId;
   }
 
-  public EventSearchParams setSkipEventId(Boolean skipEventId) {
+  public EventQueryParams setSkipEventId(Boolean skipEventId) {
     this.skipEventId = skipEventId;
     return this;
   }
 
-  public List<QueryItem> getFilters() {
-    return Collections.unmodifiableList(this.filters);
+  public Map<TrackedEntityAttribute, List<QueryFilter>> getAttributes() {
+    return this.attributes;
   }
 
-  public EventSearchParams addFilter(QueryItem item) {
-    this.filters.add(item);
+  public Map<DataElement, List<QueryFilter>> getDataElements() {
+    return this.dataElements;
+  }
+
+  public EventQueryParams filterBy(TrackedEntityAttribute tea, QueryFilter filter) {
+    this.attributes.putIfAbsent(tea, new ArrayList<>());
+    this.attributes.get(tea).add(filter);
     return this;
   }
 
-  public EventSearchParams addFilters(List<QueryItem> items) {
-    this.filters.addAll(items);
+  public EventQueryParams filterBy(TrackedEntityAttribute tea) {
+    this.attributes.putIfAbsent(tea, new ArrayList<>());
     return this;
   }
 
-  public List<QueryItem> getFilterAttributes() {
-    return Collections.unmodifiableList(this.filterAttributes);
-  }
-
-  public EventSearchParams addFilterAttributes(List<QueryItem> item) {
-    this.filterAttributes.addAll(item);
+  public EventQueryParams filterBy(DataElement de, QueryFilter filter) {
+    this.dataElements.putIfAbsent(de, new ArrayList<>());
+    this.dataElements.get(de).add(filter);
+    this.hasDataElementFilter = true;
     return this;
   }
 
-  public EventSearchParams addFilterAttributes(QueryItem item) {
-    this.filterAttributes.add(item);
-    return this;
-  }
-
-  public EventSearchParams setIncludeDeleted(boolean includeDeleted) {
+  public EventQueryParams setIncludeDeleted(boolean includeDeleted) {
     this.includeDeleted = includeDeleted;
     return this;
   }
@@ -579,20 +577,11 @@ public class EventSearchParams {
     return this.includeDeleted;
   }
 
-  public Set<QueryItem> getDataElements() {
-    return dataElements;
-  }
-
-  public EventSearchParams addDataElements(Set<QueryItem> des) {
-    dataElements.addAll(des);
-    return this;
-  }
-
   public Set<String> getAccessiblePrograms() {
     return accessiblePrograms;
   }
 
-  public EventSearchParams setAccessiblePrograms(Set<String> accessiblePrograms) {
+  public EventQueryParams setAccessiblePrograms(Set<String> accessiblePrograms) {
     this.accessiblePrograms = accessiblePrograms;
     return this;
   }
@@ -601,7 +590,7 @@ public class EventSearchParams {
     return accessibleProgramStages;
   }
 
-  public EventSearchParams setAccessibleProgramStages(Set<String> accessibleProgramStages) {
+  public EventQueryParams setAccessibleProgramStages(Set<String> accessibleProgramStages) {
     this.accessibleProgramStages = accessibleProgramStages;
     return this;
   }
@@ -614,7 +603,7 @@ public class EventSearchParams {
     return synchronizationQuery;
   }
 
-  public EventSearchParams setSynchronizationQuery(boolean synchronizationQuery) {
+  public EventQueryParams setSynchronizationQuery(boolean synchronizationQuery) {
     this.synchronizationQuery = synchronizationQuery;
     return this;
   }
@@ -623,7 +612,7 @@ public class EventSearchParams {
     return skipChangedBefore;
   }
 
-  public EventSearchParams setSkipChangedBefore(Date skipChangedBefore) {
+  public EventQueryParams setSkipChangedBefore(Date skipChangedBefore) {
     this.skipChangedBefore = skipChangedBefore;
     return this;
   }
@@ -632,7 +621,7 @@ public class EventSearchParams {
     return enrollments;
   }
 
-  public EventSearchParams setEnrollments(Set<String> enrollments) {
+  public EventQueryParams setEnrollments(Set<String> enrollments) {
     this.enrollments = enrollments;
     return this;
   }
@@ -641,7 +630,7 @@ public class EventSearchParams {
     return includeRelationships;
   }
 
-  public EventSearchParams setIncludeRelationships(boolean includeRelationships) {
+  public EventQueryParams setIncludeRelationships(boolean includeRelationships) {
     this.includeRelationships = includeRelationships;
     return this;
   }

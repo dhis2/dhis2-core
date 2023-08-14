@@ -249,6 +249,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       }
     } catch (BadSqlGrammarException ex) {
       log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
+      throw ex;
     } catch (DataAccessResourceFailureException ex) {
       log.warn(E7131.getMessage(), ex);
       throw new QueryRuntimeException(E7131);

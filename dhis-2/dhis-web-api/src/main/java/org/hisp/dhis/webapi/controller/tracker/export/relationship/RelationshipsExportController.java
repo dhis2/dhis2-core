@@ -29,12 +29,12 @@ package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.relationship.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -65,7 +65,6 @@ import org.springframework.web.bind.annotation.RestController;
     produces = APPLICATION_JSON_VALUE,
     value = RESOURCE_PATH + "/" + RelationshipsExportController.RELATIONSHIPS)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequiredArgsConstructor
 class RelationshipsExportController {
 
   protected static final String RELATIONSHIPS = "relationships";
@@ -78,6 +77,20 @@ class RelationshipsExportController {
   private final RelationshipRequestParamsMapper mapper;
 
   private final FieldFilterService fieldFilterService;
+
+  public RelationshipsExportController(
+      RelationshipService relationshipService,
+      RelationshipRequestParamsMapper mapper,
+      FieldFilterService fieldFilterService) {
+    this.relationshipService = relationshipService;
+    this.mapper = mapper;
+    this.fieldFilterService = fieldFilterService;
+
+    assertUserOrderableFieldsAreSupported(
+        "relationship",
+        RelationshipMapper.ORDERABLE_FIELDS,
+        relationshipService.getOrderableFields());
+  }
 
   @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
   @GetMapping
