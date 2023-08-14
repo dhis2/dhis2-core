@@ -32,6 +32,7 @@ import static org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig.s
 import java.util.Arrays;
 import java.util.List;
 
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.security.MappedRedirectStrategy;
@@ -96,28 +97,6 @@ import com.google.common.collect.ImmutableSet;
     "classpath*:/META-INF/dhis/beans-maintenance-mobile.xml", "classpath*:/META-INF/dhis/beans-approval.xml" } )
 public class DhisWebCommonsWebSecurityConfig
 {
-    /**
-     * This configuration class is responsible for setting up the session
-     * management.
-     */
-    @Configuration
-    @Order( 3300 )
-    public static class SessionWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
-    {
-        @Override
-        protected void configure( HttpSecurity http )
-            throws Exception
-        {
-            http
-                .sessionManagement()
-                .requireExplicitAuthenticationStrategy( true )
-                .sessionFixation().migrateSession()
-                .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
-                .enableSessionUrlRewriting( false )
-                .maximumSessions( 10 )
-                .expiredUrl( "/dhis-web-commons-security/logout.action" );
-        }
-    }
 
     /**
      * This configuration class is responsible for setting up the form login and
@@ -267,7 +246,17 @@ public class DhisWebCommonsWebSecurityConfig
                     HeaderWriterFilter.class )
 
                 .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
-                .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
+                .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class )
+
+                .sessionManagement()
+                .requireExplicitAuthenticationStrategy(true)
+                .sessionFixation()
+                .migrateSession()
+                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+                .enableSessionUrlRewriting(false)
+                .maximumSessions(
+                    Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
+                .expiredUrl("/dhis-web-commons-security/logout.action");
 
             setHttpHeaders( http, dhisConfig );
         }
