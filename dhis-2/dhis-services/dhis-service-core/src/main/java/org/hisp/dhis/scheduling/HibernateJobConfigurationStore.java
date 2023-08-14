@@ -217,14 +217,19 @@ public class HibernateJobConfigurationStore
     // language=SQL
     String sql =
         """
-        update jobconfiguration
+        update jobconfiguration j1
         set
           schedulingtype = 'ONCE_ASAP',
-          cancel = false
+          cancel = false,
+          enabled = true,
+          jobstatus = 'SCHEDULED'
         where uid = :id
-        and enabled = true
-        and jobstatus = 'SCHEDULED'
-        and schedulingtype != 'ONCE_ASAP'
+        and not exists(
+          select 1 from jobconfiguration j2
+          where j2.jobtype = j1.jobtype
+          and j2.schedulingtype = 'ONCE_ASAP'
+          and j2.jobconfigurationid != j1.jobconfigurationid
+        )
         """;
     return nativeQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
   }

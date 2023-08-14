@@ -105,6 +105,11 @@ public class DataIntegrityController {
     JobConfiguration config =
         new JobConfiguration(description, JobType.DATA_INTEGRITY, null, params);
     config.setExecutedBy(currentUser.getUid());
+
+    //TODO 3 issues:
+    // 1. names must be unique since now each config is persisted
+    // 2. resetting security context can only be done in a worker (not in tests)
+    // 3. executeNow is not really needed if a job is already created with ONCE_ASAP
     jobSchedulerService.executeNow(jobConfigurationService.create(config));
 
     return jobConfigurationReport(config);

@@ -80,8 +80,6 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
       if (job.getJobStatus() == JobStatus.RUNNING)
         throw new ConflictException("Job is already running.");
-      if (job.getSchedulingType() == SchedulingType.ONCE_ASAP)
-        throw new ConflictException("Job is already scheduled for immediate execution.");
     }
   }
 
