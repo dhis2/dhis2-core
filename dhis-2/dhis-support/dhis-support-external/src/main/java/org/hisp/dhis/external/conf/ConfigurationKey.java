@@ -187,7 +187,7 @@ public enum ConfigurationKey
      */
     CSP_HEADER_VALUE( "csp.header.value", CspUtils.DEFAULT_HEADER_VALUE, false ),
 
-    MAX_SESSIONS_PER_USER("max.sessions.per_user", "10", false);
+    MAX_SESSIONS_PER_USER( "max.sessions.per_user", "10", false);
 
     private final String key;
 
