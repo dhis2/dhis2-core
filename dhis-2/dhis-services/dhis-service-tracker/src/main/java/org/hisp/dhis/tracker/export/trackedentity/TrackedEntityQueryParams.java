@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
@@ -179,33 +177,6 @@ public class TrackedEntityQueryParams {
   // -------------------------------------------------------------------------
 
   public TrackedEntityQueryParams() {}
-
-  /**
-   * Prepares the organisation units of the given parameters to simplify querying. Mode ACCESSIBLE
-   * is converted to DESCENDANTS for organisation units linked to the search scope of the given
-   * user. Mode CAPTURE is converted to DESCENDANTS too, but using organisation units linked to the
-   * user's capture scope, and mode CHILDREN is converted to SELECTED for organisation units
-   * including all their children. Mode can be DESCENDANTS, SELECTED, ALL only after invoking this
-   * method.
-   */
-  public void handleOrganisationUnits() {
-    if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      setAccessibleOrgUnits(user.getTeiSearchOrganisationUnitsWithFallback());
-      setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.CAPTURE)) {
-      setAccessibleOrgUnits(user.getOrganisationUnits());
-      setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (isOrganisationUnitMode(CHILDREN)) {
-      Set<OrganisationUnit> orgUnits = new HashSet<>(getAccessibleOrgUnits());
-
-      for (OrganisationUnit organisationUnit : getAccessibleOrgUnits()) {
-        orgUnits.addAll(organisationUnit.getChildren());
-      }
-
-      setAccessibleOrgUnits(orgUnits);
-      setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
-    }
-  }
 
   public boolean hasTrackedEntities() {
     return CollectionUtils.isNotEmpty(this.trackedEntityUids);

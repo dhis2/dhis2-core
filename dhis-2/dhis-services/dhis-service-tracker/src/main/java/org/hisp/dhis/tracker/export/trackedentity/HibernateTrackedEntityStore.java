@@ -37,12 +37,14 @@ import static org.hisp.dhis.util.DateUtils.addDays;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
+import com.google.common.base.Strings;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -55,7 +57,6 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -115,6 +116,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private static final String EV_STATUS = "EV.status";
 
   private static final String SELECT_COUNT_INSTANCE_FROM = "SELECT count(trackedentityid) FROM ( ";
+
+  private static final String PATH_LIKE = "path LIKE";
+
+  private static final String PATH_EQ = "path =";
 
   /**
    * Tracked entities can be ordered by given fields which correspond to fields on {@link
@@ -692,8 +697,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private String getFromSubQueryJoinOrgUnitConditions(TrackedEntityQueryParams params) {
     StringBuilder orgUnits = new StringBuilder();
 
-    params.handleOrganisationUnits();
-
     orgUnits
         .append(" INNER JOIN organisationunit OU ")
         .append("ON OU.organisationunitid = ")
@@ -706,28 +709,65 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       return orgUnits.toString();
     }
 
-    if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)) {
-      SqlHelper orHlp = new SqlHelper(true);
+    String orgUnitSql = getOrgUnitSql(params, "OU");
 
-      orgUnits.append("AND (");
-
-      for (OrganisationUnit organisationUnit : params.getAccessibleOrgUnits()) {
-
-        OrganisationUnit ou = organisationUnitStore.getByUid(organisationUnit.getUid());
-        if (ou != null) {
-          orgUnits.append(orHlp.or()).append("OU.path LIKE '").append(ou.getPath()).append("%'");
-        }
-      }
-
-      orgUnits.append(") ");
-    } else if (!params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ALL)) {
-      orgUnits
-          .append("AND OU.organisationunitid IN (")
-          .append(getCommaDelimitedString(getIdentifiers(params.getAccessibleOrgUnits())))
-          .append(") ");
+    if (!Strings.isNullOrEmpty(orgUnitSql)) {
+      orgUnits.append(" AND (").append(orgUnitSql).append(") ");
     }
 
     return orgUnits.toString();
+  }
+
+  private String getOrgUnitSql(TrackedEntityQueryParams params, String ouTable) {
+    return switch (params.getOrgUnitMode()) {
+      case SELECTED -> getSelectedOrgUnitPath(params.getAccessibleOrgUnits(), ouTable);
+      case CHILDREN -> getChildrenOrgUnitsPath(params.getAccessibleOrgUnits(), ouTable);
+      case ALL -> null;
+      default -> getOrgUnitsPath(params.getAccessibleOrgUnits(), ouTable);
+    };
+  }
+
+  private String getChildrenOrgUnitsPath(Set<OrganisationUnit> orgUnits, String ouTable) {
+    StringJoiner orgUnitSqlJoiner = new StringJoiner(" or ");
+
+    for (OrganisationUnit orgUnit : orgUnits) {
+      orgUnitSqlJoiner.add(
+          ouTable
+              + "."
+              + PATH_LIKE
+              + " '"
+              + orgUnit.getPath()
+              + "%' "
+              + " and ("
+              + ouTable
+              + "."
+              + "hierarchylevel = "
+              + orgUnit.getLevel()
+              + " or "
+              + ouTable
+              + "."
+              + "hierarchylevel = "
+              + (orgUnit.getLevel() + 1)
+              + " ) ");
+    }
+
+    return orgUnitSqlJoiner.toString();
+  }
+
+  private String getSelectedOrgUnitPath(Set<OrganisationUnit> orgUnits, String ouTable) {
+    return orgUnits.isEmpty()
+        ? null
+        : ouTable + "." + PATH_EQ + " '" + orgUnits.iterator().next().getPath() + "' ";
+  }
+
+  private String getOrgUnitsPath(Set<OrganisationUnit> orgUnits, String ouTable) {
+    StringJoiner orgUnitSqlJoiner = new StringJoiner(" or ");
+
+    for (OrganisationUnit orgUnit : orgUnits) {
+      orgUnitSqlJoiner.add(ouTable + "." + PATH_LIKE + " '" + orgUnit.getPath() + "%' ");
+    }
+
+    return orgUnitSqlJoiner.toString();
   }
 
   /**

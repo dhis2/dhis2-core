@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.util.DateUtils.parseDate;
@@ -60,6 +61,7 @@ import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.event.EventStatus;
@@ -95,6 +97,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -146,6 +150,10 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private TrackedEntity trackedEntityB;
 
+  private TrackedEntity trackedEntityChildA;
+
+  private TrackedEntity trackedEntityGrandchildA;
+
   private TrackedEntityComment note1;
 
   private CategoryOptionCombo defaultCategoryOptionCombo;
@@ -170,6 +178,17 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     orgUnitA = createOrganisationUnit('A');
     manager.save(orgUnitA, false);
+    OrganisationUnit orgUnitChildA = createOrganisationUnit('D');
+    orgUnitChildA.setParent(orgUnitA);
+    manager.save(orgUnitChildA, false);
+    OrganisationUnit orgUnitGrandchildA = createOrganisationUnit('E');
+    orgUnitGrandchildA.setParent(orgUnitChildA);
+    manager.save(orgUnitGrandchildA, false);
+    orgUnitChildA.setChildren(Set.of(orgUnitGrandchildA));
+    manager.save(orgUnitChildA, false);
+    orgUnitA.setChildren(Set.of(orgUnitChildA));
+    manager.save(orgUnitA, false);
+
     orgUnitB = createOrganisationUnit('B');
     manager.save(orgUnitB, false);
     OrganisationUnit orgUnitC = createOrganisationUnit('C');
@@ -297,11 +316,22 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     trackedEntityB.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityB, false);
 
+    trackedEntityChildA = createTrackedEntity(orgUnitChildA);
+    trackedEntityChildA.setTrackedEntityType(trackedEntityTypeA);
+    manager.save(trackedEntityChildA, false);
+
+    trackedEntityGrandchildA = createTrackedEntity(orgUnitGrandchildA);
+    trackedEntityGrandchildA.setTrackedEntityType(trackedEntityTypeA);
+    manager.save(trackedEntityGrandchildA, false);
+
     TrackedEntity trackedEntityC = createTrackedEntity(orgUnitC);
     trackedEntityC.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityC, false);
 
-    trackerOwnershipManager.assignOwnership(trackedEntityA, programA, orgUnitA, true, true);
+    trackerOwnershipManager.assignOwnership(
+        trackedEntityGrandchildA, programA, orgUnitGrandchildA, true, true);
+    trackerOwnershipManager.assignOwnership(
+        trackedEntityChildA, programA, orgUnitChildA, true, true);
     trackerOwnershipManager.assignOwnership(trackedEntityA, programB, orgUnitA, true, true);
 
     attributeValueService.addTrackedEntityAttributeValue(
@@ -432,7 +462,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     final List<TrackedEntity> trackedEntities =
         trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
-    assertContainsOnly(List.of(trackedEntityA, trackedEntityB), trackedEntities);
+    assertContainsOnly(
+        List.of(trackedEntityA, trackedEntityB, trackedEntityChildA, trackedEntityGrandchildA),
+        trackedEntities);
   }
 
   @Test
@@ -635,7 +667,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     // A filter with only a UID does not cause any join on attributes, so it does not actually
     // filter TEs from the response in contrast to /tracker/events?filterAttribute=uid
-    assertContainsOnly(List.of(trackedEntityA, trackedEntityB), trackedEntities);
+    assertContainsOnly(
+        List.of(trackedEntityA, trackedEntityB, trackedEntityChildA, trackedEntityGrandchildA),
+        trackedEntities);
   }
 
   @Test
@@ -655,7 +689,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     // 'attributes' causes a left join on attributes table, so it does not actually filter
     // TEs from the response in contrast to /tracker/events?filterAttribute=uid
-    assertContainsOnly(List.of(trackedEntityA, trackedEntityB), trackedEntities);
+    assertContainsOnly(
+        List.of(trackedEntityA, trackedEntityB, trackedEntityChildA, trackedEntityGrandchildA),
+        trackedEntities);
   }
 
   @Test
@@ -677,7 +713,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     // 'attributes' causes a left join on attributes table, so it does not actually filter
     // TEs from the response in contrast to /tracker/events?filterAttribute=uid
-    assertContainsOnly(List.of(trackedEntityA, trackedEntityB), trackedEntities);
+    assertContainsOnly(
+        List.of(trackedEntityA, trackedEntityB, trackedEntityChildA, trackedEntityGrandchildA),
+        trackedEntities);
   }
 
   @Test
@@ -1185,6 +1223,102 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     assertAll(
         () -> assertEquals(trackedEntityA.getUid(), actual.getFrom().getTrackedEntity().getUid()),
         () -> assertEquals(eventA.getUid(), actual.getTo().getEvent().getUid()));
+  }
+
+  @Test
+  void shouldReturnOnlySelectedEntitiesWhenModeSelectedAndOrgUnitInScope()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programUid(programA.getUid())
+            .includeAllAttributes(true)
+            .user(user)
+            .build();
+
+    final List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+    assertContainsOnly(
+        Set.of("A", "B", "C"),
+        attributeNames(trackedEntities.get(0).getTrackedEntityAttributeValues()));
+  }
+
+  @Test
+  void shouldReturnParentAndChildEntitiesWhenModeChildrenAndOrgUnitInScope()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(CHILDREN)
+            .trackedEntityUids(
+                Set.of(
+                    trackedEntityA.getUid(),
+                    trackedEntityChildA.getUid(),
+                    trackedEntityGrandchildA.getUid()))
+            .includeAllAttributes(true)
+            .user(user)
+            .build();
+
+    final List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+
+    assertContainsOnly(List.of(trackedEntityA, trackedEntityChildA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnParentChildAndGrandchildEntitiesWhenModeDescendantsAndOrgUnitInScope()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(DESCENDANTS)
+            .trackedEntityUids(
+                Set.of(
+                    trackedEntityA.getUid(),
+                    trackedEntityChildA.getUid(),
+                    trackedEntityGrandchildA.getUid()))
+            .includeAllAttributes(true)
+            .user(user)
+            .build();
+
+    final List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+
+    assertContainsOnly(
+        List.of(trackedEntityA, trackedEntityChildA, trackedEntityGrandchildA), trackedEntities);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"ACCESSIBLE", "CAPTURE"})
+  void shouldReturnParentChildAndGrandchildEntitiesWhenOrgUnitInScope(
+      OrganisationUnitSelectionMode mode)
+      throws ForbiddenException, NotFoundException, BadRequestException {
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(mode)
+            .trackedEntityUids(
+                Set.of(
+                    trackedEntityA.getUid(),
+                    trackedEntityChildA.getUid(),
+                    trackedEntityGrandchildA.getUid()))
+            .includeAllAttributes(true)
+            .user(user)
+            .build();
+
+    final List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+
+    assertContainsOnly(
+        List.of(trackedEntityA, trackedEntityChildA, trackedEntityGrandchildA), trackedEntities);
   }
 
   private Set<String> attributeNames(final Collection<TrackedEntityAttributeValue> attributes) {

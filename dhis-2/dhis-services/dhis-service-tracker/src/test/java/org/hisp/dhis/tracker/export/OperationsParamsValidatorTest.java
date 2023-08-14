@@ -92,49 +92,30 @@ class OperationsParamsValidatorTest {
   @Test
   void shouldMapCaptureScopeOrgUnitWhenProgramProtectedAndOuModeDescendants()
       throws ForbiddenException {
-    when(organisationUnitService.getOrganisationUnitWithChildren(PARENT_ORG_UNIT_UID))
-        .thenReturn(orgUnitDescendants);
-
     program.setAccessLevel(PROTECTED);
     user.setOrganisationUnits(Set.of(captureScopeOrgUnit));
 
     Set<OrganisationUnit> accessibleOrgUnits =
         validateAccessibleOrgUnits(
-            user,
-            Set.of(organisationUnit),
-            DESCENDANTS,
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
+            user, Set.of(organisationUnit), DESCENDANTS, program, trackerAccessManager);
 
     assertContainsOnly(Set.of(captureScopeOrgUnit), accessibleOrgUnits);
   }
 
   @Test
   void shouldMapSearchScopeOrgUnitWhenProgramOpenAndOuModeDescendants() throws ForbiddenException {
-    when(organisationUnitService.getOrganisationUnitWithChildren(PARENT_ORG_UNIT_UID))
-        .thenReturn(orgUnitDescendants);
-
     program.setAccessLevel(OPEN);
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
 
     Set<OrganisationUnit> accessibleOrgUnits =
         validateAccessibleOrgUnits(
-            user,
-            Set.of(organisationUnit),
-            DESCENDANTS,
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
+            user, Set.of(organisationUnit), DESCENDANTS, program, trackerAccessManager);
 
     assertContainsOnly(Set.of(searchScopeOrgUnit), accessibleOrgUnits);
   }
 
   @Test
   void shouldFailWhenProgramProtectedAndOuModeDescendantsAndUserHasNoAccessToCaptureScopeOrgUnit() {
-    when(organisationUnitService.getOrganisationUnitWithChildren(PARENT_ORG_UNIT_UID))
-        .thenReturn(orgUnitDescendants);
-
     program.setAccessLevel(PROTECTED);
     user.setOrganisationUnits(Set.of(createOrgUnit("made-up-org-unit", "made-up-org-unit-uid")));
 
@@ -143,12 +124,7 @@ class OperationsParamsValidatorTest {
             ForbiddenException.class,
             () ->
                 validateAccessibleOrgUnits(
-                    user,
-                    Set.of(organisationUnit),
-                    DESCENDANTS,
-                    program,
-                    organisationUnitService::getOrganisationUnitWithChildren,
-                    trackerAccessManager));
+                    user, Set.of(organisationUnit), DESCENDANTS, program, trackerAccessManager));
 
     assertEquals(
         String.format("User does not have access to orgUnit: %s", PARENT_ORG_UNIT_UID),
@@ -157,9 +133,6 @@ class OperationsParamsValidatorTest {
 
   @Test
   void shouldFailWhenProgramOpenAndOuModeDescendantsAndUserHasNoAccessToSearchScopeOrgUnit() {
-    when(organisationUnitService.getOrganisationUnitWithChildren(PARENT_ORG_UNIT_UID))
-        .thenReturn(orgUnitDescendants);
-
     program.setAccessLevel(OPEN);
     user.setTeiSearchOrganisationUnits(
         Set.of(createOrgUnit("made-up-org-unit", "made-up-org-unit-uid")));
@@ -169,12 +142,7 @@ class OperationsParamsValidatorTest {
             ForbiddenException.class,
             () ->
                 validateAccessibleOrgUnits(
-                    user,
-                    Set.of(organisationUnit),
-                    DESCENDANTS,
-                    program,
-                    organisationUnitService::getOrganisationUnitWithChildren,
-                    trackerAccessManager));
+                    user, Set.of(organisationUnit), DESCENDANTS, program, trackerAccessManager));
 
     assertEquals(
         String.format("User does not have access to orgUnit: %s", PARENT_ORG_UNIT_UID),
@@ -189,12 +157,7 @@ class OperationsParamsValidatorTest {
 
     Set<OrganisationUnit> accessibleOrgUnits =
         validateAccessibleOrgUnits(
-            user,
-            Set.of(organisationUnit),
-            CHILDREN,
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
+            user, Set.of(organisationUnit), CHILDREN, program, trackerAccessManager);
 
     assertContainsOnly(Set.of(captureScopeOrgUnit), accessibleOrgUnits);
   }
@@ -206,12 +169,7 @@ class OperationsParamsValidatorTest {
 
     Set<OrganisationUnit> accessibleOrgUnits =
         validateAccessibleOrgUnits(
-            user,
-            Set.of(organisationUnit),
-            CHILDREN,
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
+            user, Set.of(organisationUnit), CHILDREN, program, trackerAccessManager);
 
     assertContainsOnly(Set.of(searchScopeOrgUnit), accessibleOrgUnits);
   }
@@ -226,12 +184,7 @@ class OperationsParamsValidatorTest {
             ForbiddenException.class,
             () ->
                 validateAccessibleOrgUnits(
-                    user,
-                    Set.of(organisationUnit),
-                    CHILDREN,
-                    program,
-                    organisationUnitService::getOrganisationUnitWithChildren,
-                    trackerAccessManager));
+                    user, Set.of(organisationUnit), CHILDREN, program, trackerAccessManager));
 
     assertEquals(
         String.format("User does not have access to orgUnit: %s", PARENT_ORG_UNIT_UID),
@@ -249,12 +202,7 @@ class OperationsParamsValidatorTest {
             ForbiddenException.class,
             () ->
                 validateAccessibleOrgUnits(
-                    user,
-                    Set.of(organisationUnit),
-                    CHILDREN,
-                    program,
-                    organisationUnitService::getOrganisationUnitWithChildren,
-                    trackerAccessManager));
+                    user, Set.of(organisationUnit), CHILDREN, program, trackerAccessManager));
 
     assertEquals(
         String.format("User does not have access to orgUnit: %s", PARENT_ORG_UNIT_UID),
@@ -267,13 +215,7 @@ class OperationsParamsValidatorTest {
     user.setOrganisationUnits(Set.of(captureScopeOrgUnit));
 
     Set<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            user,
-            emptySet(),
-            CAPTURE,
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
+        validateAccessibleOrgUnits(user, emptySet(), CAPTURE, program, trackerAccessManager);
 
     assertContainsOnly(Set.of(captureScopeOrgUnit), accessibleOrgUnits);
   }
@@ -284,13 +226,7 @@ class OperationsParamsValidatorTest {
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
 
     Set<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            user,
-            emptySet(),
-            ACCESSIBLE,
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
+        validateAccessibleOrgUnits(user, emptySet(), ACCESSIBLE, program, trackerAccessManager);
 
     assertContainsOnly(Set.of(searchScopeOrgUnit), accessibleOrgUnits);
   }
@@ -302,13 +238,7 @@ class OperationsParamsValidatorTest {
     user.setOrganisationUnits(Set.of(captureScopeOrgUnit));
 
     Set<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            user,
-            emptySet(),
-            ACCESSIBLE,
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
+        validateAccessibleOrgUnits(user, emptySet(), ACCESSIBLE, program, trackerAccessManager);
 
     assertContainsOnly(Set.of(captureScopeOrgUnit), accessibleOrgUnits);
   }
@@ -322,12 +252,7 @@ class OperationsParamsValidatorTest {
 
     Set<OrganisationUnit> accessibleOrgUnits =
         validateAccessibleOrgUnits(
-            user,
-            Set.of(organisationUnit),
-            SELECTED,
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
+            user, Set.of(organisationUnit), SELECTED, program, trackerAccessManager);
 
     assertContainsOnly(Set.of(organisationUnit), accessibleOrgUnits);
   }

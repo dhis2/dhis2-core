@@ -100,7 +100,6 @@ class TrackedEntityOperationParamsMapper {
             requestedOrgUnits,
             operationParams.getOrgUnitMode(),
             program,
-            organisationUnitService::getOrganisationUnitWithChildren,
             trackerAccessManager);
 
     QueryFilter queryFilter = operationParams.getQuery();
