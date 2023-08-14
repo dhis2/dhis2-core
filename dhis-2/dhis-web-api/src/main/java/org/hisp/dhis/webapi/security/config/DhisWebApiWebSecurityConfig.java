@@ -485,6 +485,20 @@ public class DhisWebApiWebSecurityConfig {
           .expiredUrl("/dhis-web-commons-security/logout.action");
     }
 
+    private AuthenticationEntryPoint getBasicAuthenticationEntryPoint(String[] activeProfiles) {
+      if (!Arrays.asList(activeProfiles).contains("embeddedJetty")) {
+        return formLoginBasicAuthenticationEntryPoint();
+      } else {
+        return embeddedJettyBasicAuthenticationEntryPoint();
+      }
+    }
+
+    private void configureOAuthAuthorizationServer(HttpSecurity http) throws Exception {
+      if (dhisConfig.isEnabled(ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER)) {
+        http.exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
+      }
+    }
+
     private void configureCspFilter(
         HttpSecurity http,
         DhisConfigurationProvider dhisConfig,
