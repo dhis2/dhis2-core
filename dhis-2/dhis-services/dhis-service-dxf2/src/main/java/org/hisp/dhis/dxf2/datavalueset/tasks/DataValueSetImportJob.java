@@ -83,12 +83,15 @@ public class DataValueSetImportJob implements Job {
                 () -> adxDataService.saveDataValueSet(input, options, jobId));
             case "application/xml" -> progress.runStage(
                 () -> dataValueSetService.importDataValueSetXml(input, options, jobId));
-            default -> progress.runStage(
-                () -> {
-                  progress.failedProcess("Import failed, no summary available");
-                  throw new UnsupportedOperationException("Unknown format: " + contentType);
-                });
+            default -> {
+              progress.failedStage("Unknown format: " + contentType);
+              yield null;
+            }
           };
+      if (summary == null) {
+        progress.failedProcess("Import failed, no summary available");
+        return;
+      }
       ImportCount count = summary.getImportCount();
       progress.completedProcess(
           "Import complete with status %s, %d created, %d updated, %d deleted, %d ignored"
