@@ -41,6 +41,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 /**
  * @author Stian Sandvold
  */
+@SuppressWarnings("java:S1135")
 @Value
 @Builder
 @JsonDeserialize(builder = TrackerIdSchemeParam.TrackerIdSchemeParamBuilder.class)
