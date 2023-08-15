@@ -153,15 +153,10 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
     // Set up JClouds context
     // ---------------------------------------------------------------------
 
-    Properties properties = new Properties();
-    properties.setProperty(PROPERTY_ENDPOINT, "http://minio:9000");
-    properties.setProperty(S3Constants.PROPERTY_S3_VIRTUAL_HOST_BUCKETS, "false");
-
     blobStoreContext =
         ContextBuilder.newBuilder(config.provider)
             .credentials(providerConfig.getLeft().identity, providerConfig.getLeft().credential)
             .overrides(providerConfig.getRight())
-            //            .overrides(properties)
             .build(BlobStoreContext.class);
 
     blobStore = blobStoreContext.getBlobStore();
