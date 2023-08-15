@@ -47,6 +47,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.Value;
 import org.hisp.dhis.common.OpenApi;
 
@@ -59,6 +60,7 @@ import org.hisp.dhis.common.OpenApi;
  */
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Getter
 class Property {
   private static final Map<Class<?>, Collection<Property>> PROPERTIES = new ConcurrentHashMap<>();
 
@@ -75,7 +77,11 @@ class Property {
   }
 
   private Property(Method m) {
-    this(getName(m), getType(m, m.getGenericReturnType()), m, isRequired(m, m.getReturnType()));
+    this(
+        getName(m),
+        getType(m, isSetter(m) ? m.getParameterTypes()[0] : m.getGenericReturnType()),
+        m,
+        isRequired(m, m.getReturnType()));
   }
 
   static Collection<Property> getProperties(Class<?> in) {
@@ -90,9 +96,12 @@ class Property {
     Consumer<Method> addMethod = method -> add.accept(new Property(method));
 
     fieldsIn(object).filter(Property::isProperty).filter(Property::isIncluded).forEach(addField);
-    methodsIn(object).filter(Property::isProperty).filter(Property::isIncluded).forEach(addMethod);
+    methodsIn(object)
+        .filter(o -> Property.isAccessor(o) || Property.isSetter(o))
+        .filter(Property::isIncluded)
+        .forEach(addMethod);
     if (properties.isEmpty() || object.isAnnotationPresent(OpenApi.Property.class)) {
-      methodsIn(object).filter(Property::isProperty).forEach(addMethod);
+      methodsIn(object).filter(Property::isAccessor).forEach(addMethod);
     }
     return List.copyOf(properties.values());
   }
@@ -101,7 +110,19 @@ class Property {
     return !isExcluded(source);
   }
 
-  private static boolean isProperty(Method source) {
+  private static boolean isSetter(Method source) {
+    String name = source.getName();
+    return !isExcluded(source)
+        && source.getParameterCount() == 1
+        && Stream.of("set")
+            .anyMatch(
+                prefix ->
+                    name.startsWith(prefix)
+                        && name.length() > prefix.length()
+                        && isUpperCase(name.charAt(prefix.length())));
+  }
+
+  private static boolean isAccessor(Method source) {
     String name = source.getName();
     return !isExcluded(source)
         && source.getParameterCount() == 0
