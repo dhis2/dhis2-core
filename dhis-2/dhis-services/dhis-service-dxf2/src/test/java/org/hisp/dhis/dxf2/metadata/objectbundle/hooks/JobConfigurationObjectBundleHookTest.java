@@ -37,6 +37,7 @@ import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobService;
+import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingType;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
@@ -65,19 +66,20 @@ class JobConfigurationObjectBundleHookTest {
 
   @InjectMocks private JobConfigurationObjectBundleHook hook;
 
-  private JobConfiguration analyticsTableJobConfig;
+  private JobConfiguration persistedConfig;
 
   @BeforeEach
   public void setUp() {
-    analyticsTableJobConfig = new JobConfiguration();
-    analyticsTableJobConfig.setJobType(JobType.FILE_RESOURCE_CLEANUP);
-    analyticsTableJobConfig.setEnabled(true);
+    persistedConfig = new JobConfiguration();
+    persistedConfig.setJobType(JobType.FILE_RESOURCE_CLEANUP);
+    persistedConfig.setJobStatus(JobStatus.SCHEDULED);
+    persistedConfig.setSchedulingType(SchedulingType.CRON);
+    persistedConfig.setEnabled(true);
   }
 
   @Test
   void validateInternalNonConfigurableChangeError() {
-    when(jobConfigurationService.getJobConfigurationByUid("jsdhJSJHD"))
-        .thenReturn(analyticsTableJobConfig);
+    when(jobConfigurationService.getJobConfigurationByUid("jsdhJSJHD")).thenReturn(persistedConfig);
     when(jobService.getJob(JobType.FILE_RESOURCE_CLEANUP)).thenReturn(job);
 
     JobConfiguration jobConfiguration = new JobConfiguration();
@@ -93,8 +95,7 @@ class JobConfigurationObjectBundleHookTest {
 
   @Test
   void validateInternalNonConfigurableChange() {
-    when(jobConfigurationService.getJobConfigurationByUid("jsdhJSJHD"))
-        .thenReturn(analyticsTableJobConfig);
+    when(jobConfigurationService.getJobConfigurationByUid("jsdhJSJHD")).thenReturn(persistedConfig);
     when(jobService.getJob(JobType.FILE_RESOURCE_CLEANUP)).thenReturn(job);
 
     JobConfiguration jobConfiguration = new JobConfiguration();
@@ -109,8 +110,7 @@ class JobConfigurationObjectBundleHookTest {
 
   @Test
   void validateInternalNonConfigurableShownValidationErrorNonE7010() {
-    when(jobConfigurationService.getJobConfigurationByUid("jsdhJSJHD"))
-        .thenReturn(analyticsTableJobConfig);
+    when(jobConfigurationService.getJobConfigurationByUid("jsdhJSJHD")).thenReturn(persistedConfig);
     when(jobService.getJob(JobType.FILE_RESOURCE_CLEANUP)).thenReturn(job);
     when(job.validate()).thenReturn(new ErrorReport(Class.class, ErrorCode.E7000));
 
@@ -127,12 +127,11 @@ class JobConfigurationObjectBundleHookTest {
 
   @Test
   void validateInternalNonConfigurableShownValidationErrorE7010Configurable() {
-    when(jobConfigurationService.getJobConfigurationByUid("jsdhJSJHD"))
-        .thenReturn(analyticsTableJobConfig);
+    when(jobConfigurationService.getJobConfigurationByUid("jsdhJSJHD")).thenReturn(persistedConfig);
     when(jobService.getJob(JobType.DATA_SYNC)).thenReturn(job);
     when(job.validate()).thenReturn(new ErrorReport(Class.class, ErrorCode.E7010));
 
-    analyticsTableJobConfig.setJobType(JobType.DATA_SYNC);
+    persistedConfig.setJobType(JobType.DATA_SYNC);
     JobConfiguration jobConfiguration = new JobConfiguration();
     jobConfiguration.setUid("jsdhJSJHD");
     jobConfiguration.setJobType(JobType.DATA_SYNC);
@@ -154,7 +153,7 @@ class JobConfigurationObjectBundleHookTest {
     when(jobService.getJob(JobType.FILE_RESOURCE_CLEANUP)).thenReturn(job);
     when(job.validate()).thenReturn(new ErrorReport(Class.class, ErrorCode.E7010));
 
-    analyticsTableJobConfig.setJobType(JobType.FILE_RESOURCE_CLEANUP);
+    persistedConfig.setJobType(JobType.FILE_RESOURCE_CLEANUP);
     JobConfiguration jobConfiguration = new JobConfiguration();
     jobConfiguration.setUid("jsdhJSJHD");
     jobConfiguration.setJobType(JobType.FILE_RESOURCE_CLEANUP);
@@ -168,8 +167,7 @@ class JobConfigurationObjectBundleHookTest {
 
   @Test
   void validateInternalNonConfigurableIgnoredValidationErrorE7010() {
-    when(jobConfigurationService.getJobConfigurationByUid("jsdhJSJHD"))
-        .thenReturn(analyticsTableJobConfig);
+    when(jobConfigurationService.getJobConfigurationByUid("jsdhJSJHD")).thenReturn(persistedConfig);
     when(jobService.getJob(JobType.FILE_RESOURCE_CLEANUP)).thenReturn(job);
     when(job.validate()).thenReturn(new ErrorReport(Class.class, ErrorCode.E7010));
 
@@ -187,12 +185,14 @@ class JobConfigurationObjectBundleHookTest {
   void validateCronExpressionForCronTypeJobs() {
     String jobConfigUid = "jsdhJSJHD";
     when(jobConfigurationService.getJobConfigurationByUid(jobConfigUid))
-        .thenReturn(analyticsTableJobConfig);
+        .thenReturn(persistedConfig);
     when(jobService.getJob(JobType.FILE_RESOURCE_CLEANUP)).thenReturn(job);
 
     JobConfiguration jobConfiguration = new JobConfiguration();
     jobConfiguration.setUid(jobConfigUid);
     jobConfiguration.setJobType(JobType.FILE_RESOURCE_CLEANUP);
+    jobConfiguration.setJobStatus(JobStatus.SCHEDULED);
+    jobConfiguration.setSchedulingType(SchedulingType.CRON);
     jobConfiguration.setEnabled(true);
 
     List<ErrorReport> errorReports = hook.validate(jobConfiguration, null);

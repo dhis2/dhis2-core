@@ -85,7 +85,8 @@ import org.springframework.scheduling.support.SimpleTriggerContext;
 public class JobConfiguration extends BaseIdentifiableObject implements SecondaryMetadataObject {
 
   /** The type of job. */
-  @JsonProperty private JobType jobType;
+  @JsonProperty(required = true)
+  private JobType jobType;
 
   @JsonProperty private SchedulingType schedulingType;
 
@@ -223,16 +224,10 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
    *     for configurable jobs, <code>false</code> otherwise.
    */
   public boolean hasNonConfigurableJobChanges(@Nonnull JobConfiguration other) {
-    if (this.jobType != other.getJobType()) {
-      return true;
-    }
-    if (this.getJobStatus() != other.getJobStatus()) {
-      return true;
-    }
-    if (this.jobParameters != other.getJobParameters()) {
-      return true;
-    }
-    return this.enabled != other.isEnabled();
+    return this.jobType != other.getJobType()
+        || this.getJobStatus() != other.getJobStatus()
+        || this.jobParameters != other.getJobParameters()
+        || this.enabled != other.isEnabled();
   }
 
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)

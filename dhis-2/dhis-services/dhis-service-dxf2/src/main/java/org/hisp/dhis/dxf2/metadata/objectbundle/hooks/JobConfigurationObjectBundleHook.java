@@ -100,11 +100,11 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
   // Supportive methods
   // -------------------------------------------------------------------------
 
-  /*
-   * Validates that there are no other jobs of the same job type which are
-   * scheduled with the same cron expression.
+  /**
+   * Validates that there are no other jobs of the same job type which are scheduled with the same
+   * cron expression.
    */
-  private void validateCronExpressionWithinJobType(
+  private void validateUniqueCronTrigger(
       Consumer<ErrorReport> addReports, JobConfiguration jobConfiguration) {
     Set<JobConfiguration> jobConfigs =
         jobConfigurationService.getAllJobConfigurations().stream()
@@ -136,8 +136,9 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
             addReports, jobConfiguration, persistedJobConfiguration);
 
     setDefaultJobParameters(tempJobConfiguration);
-    validateJobConfigurationCronOrFixedDelay(addReports, tempJobConfiguration);
-    validateCronExpressionWithinJobType(addReports, tempJobConfiguration);
+    validateValidCronConfiguration(addReports, tempJobConfiguration);
+    validateValidFixedDelayConfiguration(addReports, tempJobConfiguration);
+    validateUniqueCronTrigger(addReports, tempJobConfiguration);
 
     // Validate parameters
 
@@ -170,11 +171,13 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
         return persistedJobConfiguration;
       }
     }
-
+    if (persistedJobConfiguration != null) {
+      jobConfiguration.setJobType(persistedJobConfiguration.getJobType());
+    }
     return jobConfiguration;
   }
 
-  private void validateJobConfigurationCronOrFixedDelay(
+  private void validateValidCronConfiguration(
       Consumer<ErrorReport> addReports, JobConfiguration jobConfiguration) {
     if (jobConfiguration.getSchedulingType() == SchedulingType.CRON) {
       if (jobConfiguration.getCronExpression() == null) {
@@ -184,6 +187,10 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
         addReports.accept(new ErrorReport(JobConfiguration.class, ErrorCode.E7005));
       }
     }
+  }
+
+  private void validateValidFixedDelayConfiguration(
+      Consumer<ErrorReport> addReports, JobConfiguration jobConfiguration) {
 
     if (jobConfiguration.getSchedulingType() == SchedulingType.FIXED_DELAY
         && jobConfiguration.getDelay() == null) {
