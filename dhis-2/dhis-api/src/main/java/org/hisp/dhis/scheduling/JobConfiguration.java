@@ -87,7 +87,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   /** The type of job. */
   @JsonProperty private JobType jobType;
 
-  @JsonProperty private SchedulingType schedulingType = SchedulingType.CRON;
+  @JsonProperty private SchedulingType schedulingType;
 
   /**
    * The cron expression used for scheduling the job. Relevant for {@link #schedulingType} {@link
@@ -111,7 +111,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   @JsonProperty private boolean enabled = true;
 
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  private JobStatus jobStatus = JobStatus.SCHEDULED;
+  private JobStatus jobStatus;
 
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private JobStatus lastExecutedStatus = JobStatus.NOT_STARTED;
@@ -172,49 +172,47 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
    * @param type of the job to run once
    */
   public JobConfiguration(@Nonnull JobType type) {
-    this.name = "%s (%d)".formatted(type.name(), Instant.now().toEpochMilli());
-    this.jobType = type;
-    this.schedulingType = SchedulingType.ONCE_ASAP;
-    this.jobStatus = JobStatus.NOT_STARTED;
-    setAutoFields();
+    this(null, type);
+  }
+
+  public JobConfiguration(@CheckForNull String name, @Nonnull JobType type) {
+    this(name, type, null);
   }
 
   /**
-   * @param name the job name.
-   * @param type the {@link JobType}.
-   * @param executedBy the user UID.
+   * Constructor to use for any type of {@link SchedulingType#ONCE_ASAP} execution.
+   *
+   * @param name unique name for the job
+   * @param type of the job to run once
+   * @param executedBy UID of the user running the job or null for run as admin
    */
   public JobConfiguration(
-      @Nonnull String name, @Nonnull JobType type, @CheckForNull String executedBy) {
-    this.name = name;
+      @CheckForNull String name, @Nonnull JobType type, @CheckForNull String executedBy) {
+    this.name =
+        name == null || name.isEmpty()
+            ? "%s (%d)".formatted(type.name(), Instant.now().toEpochMilli())
+            : name;
     this.jobType = type;
     this.executedBy = executedBy;
-    this.schedulingType = SchedulingType.ONCE_ASAP;
     setAutoFields();
-  }
-
-  /**
-   * @param name the job name.
-   * @param type the {@link JobType}.
-   * @param cronExpression the cron expression.
-   * @param jobParameters the job parameters.
-   */
-  public JobConfiguration(
-      @Nonnull String name,
-      @Nonnull JobType type,
-      @CheckForNull String cronExpression,
-      @CheckForNull JobParameters jobParameters) {
-    boolean undefinedCronExpression = isUndefinedCronExpression(cronExpression);
-    this.name = name;
-    this.cronExpression = undefinedCronExpression ? null : cronExpression;
-    this.jobType = type;
-    this.jobParameters = jobParameters;
-    this.schedulingType = undefinedCronExpression ? SchedulingType.ONCE_ASAP : SchedulingType.CRON;
   }
 
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
+
+  public SchedulingType getSchedulingType() {
+    if (schedulingType != null) return schedulingType;
+    if (cronExpression != null) return SchedulingType.CRON;
+    if (delay != null) return SchedulingType.FIXED_DELAY;
+    return SchedulingType.ONCE_ASAP;
+  }
+
+  public JobStatus getJobStatus() {
+    if (jobStatus != null) return jobStatus;
+    if (getSchedulingType() == SchedulingType.ONCE_ASAP) return JobStatus.NOT_STARTED;
+    return JobStatus.SCHEDULED;
+  }
 
   /**
    * Checks if this job has changes compared to the specified job configuration that are only

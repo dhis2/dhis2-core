@@ -149,10 +149,12 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
 
   private void createDefaultJob(JobType type) {
     Defaults job = type.getDefaults();
-    JobConfiguration config = new JobConfiguration(job.name(), type, job.cronExpression(), null);
+    JobConfiguration config = new JobConfiguration(job.name(), type);
+    config.setCronExpression(job.cronExpression());
     config.setDelay(job.delay());
     config.setUid(job.uid());
-    if (job.delay() != null) config.setSchedulingType(SchedulingType.FIXED_DELAY);
+    config.setSchedulingType(
+        job.delay() != null ? SchedulingType.FIXED_DELAY : SchedulingType.CRON);
     jobConfigurationStore.save(config);
   }
 
