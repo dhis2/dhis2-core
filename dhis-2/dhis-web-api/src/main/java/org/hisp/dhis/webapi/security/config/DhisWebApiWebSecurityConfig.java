@@ -78,6 +78,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
@@ -115,7 +116,7 @@ public class DhisWebApiWebSecurityConfig {
   @Autowired public DataSource dataSource;
 
   @Bean
-  public SessionRegistryImpl sessionRegistry() {
+  public SessionRegistry sessionRegistry() {
     return new SessionRegistryImpl();
   }
 
@@ -311,17 +312,6 @@ public class DhisWebApiWebSecurityConfig {
                   return filter;
                 }
               });
-
-      http.sessionManagement()
-          .requireExplicitAuthenticationStrategy(true)
-          .sessionFixation()
-          .migrateSession()
-          .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
-          .enableSessionUrlRewriting(false)
-          .maximumSessions(
-              Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
-          .expiredUrl("/dhis-web-commons-security/logout.action");
-
       // Special handling if we are running in embedded Jetty mode
       if (Arrays.asList(activeProfiles).contains("embeddedJetty")) {
         http.formLogin()
@@ -338,7 +328,17 @@ public class DhisWebApiWebSecurityConfig {
             .logoutUrl("/dhis-web-commons-security/logout.action")
             .logoutSuccessUrl("/")
             .logoutSuccessHandler(dhisOidcLogoutSuccessHandler)
-            .deleteCookies("JSESSIONID");
+            .deleteCookies("JSESSIONID")
+            .and()
+            .sessionManagement()
+            .requireExplicitAuthenticationStrategy(true)
+            .sessionFixation()
+            .migrateSession()
+            .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+            .enableSessionUrlRewriting(false)
+            .maximumSessions(
+                Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
+            .expiredUrl("/dhis-web-commons-security/logout.action");
       }
     }
 

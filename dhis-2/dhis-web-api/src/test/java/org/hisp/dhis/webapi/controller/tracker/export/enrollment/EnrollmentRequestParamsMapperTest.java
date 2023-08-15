@@ -117,21 +117,21 @@ class EnrollmentRequestParamsMapperTest {
   @Test
   void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
+    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.CAPTURE);
 
     EnrollmentOperationParams params = mapper.map(requestParams);
 
-    assertEquals(OrganisationUnitSelectionMode.SELECTED, params.getOrgUnitMode());
+    assertEquals(OrganisationUnitSelectionMode.CAPTURE, params.getOrgUnitMode());
   }
 
   @Test
   void shouldMapOrgUnitModeGivenOuModeParam() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
-    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
+    requestParams.setOuMode(OrganisationUnitSelectionMode.CAPTURE);
 
     EnrollmentOperationParams params = mapper.map(requestParams);
 
-    assertEquals(OrganisationUnitSelectionMode.SELECTED, params.getOrgUnitMode());
+    assertEquals(OrganisationUnitSelectionMode.CAPTURE, params.getOrgUnitMode());
   }
 
   @Test

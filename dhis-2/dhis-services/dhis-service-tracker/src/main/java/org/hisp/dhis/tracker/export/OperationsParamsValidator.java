@@ -58,8 +58,6 @@ public class OperationsParamsValidator {
    *
    * @param orgUnitMode the {@link OrganisationUnitSelectionMode orgUnitMode} used in the current
    *     case
-   * @param user
-   * @param program
    * @throws BadRequestException if a validation error occurs for any of the three aforementioned
    *     modes
    */
@@ -69,26 +67,27 @@ public class OperationsParamsValidator {
 
     switch (orgUnitMode) {
       case ALL -> validateUserCanSearchOrgUnitModeALL(user);
-      case ACCESSIBLE -> validateAccessibleScope(user, program);
+      case ACCESSIBLE, DESCENDANTS, CHILDREN -> validateAccessibleScope(user, program, orgUnitMode);
       case CAPTURE -> validateCaptureScope(user);
     }
   }
 
-  private static void validateCaptureScope(User user) throws BadRequestException {
-
-    if (user == null) {
-      throw new BadRequestException("User is required for orgUnitMode: " + CAPTURE);
-    } else if (user.getOrganisationUnits().isEmpty()) {
-      throw new BadRequestException("User needs to be assigned data capture orgunits");
+  private static void validateUserCanSearchOrgUnitModeALL(User user) throws BadRequestException {
+    if (user == null
+        || !(user.isSuper()
+            || user.isAuthorized(
+                Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()))) {
+      throw new BadRequestException(
+          "Current user is not authorized to query across all organisation units");
     }
   }
 
-  private static void validateAccessibleScope(User user, Program program)
+  private static void validateAccessibleScope(
+      User user, Program program, OrganisationUnitSelectionMode orgUnitMode)
       throws BadRequestException {
 
     if (user == null) {
-      throw new BadRequestException(
-          "User is required for orgUnitMode: " + OrganisationUnitSelectionMode.ACCESSIBLE);
+      throw new BadRequestException("User is required for orgUnitMode: " + orgUnitMode);
     }
 
     if (program != null && (program.isClosed() || program.isProtected())) {
@@ -102,13 +101,12 @@ public class OperationsParamsValidator {
     }
   }
 
-  private static void validateUserCanSearchOrgUnitModeALL(User user) throws BadRequestException {
-    if (user == null
-        || !(user.isSuper()
-            || user.isAuthorized(
-                Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()))) {
-      throw new BadRequestException(
-          "Current user is not authorized to query across all organisation units");
+  private static void validateCaptureScope(User user) throws BadRequestException {
+
+    if (user == null) {
+      throw new BadRequestException("User is required for orgUnitMode: " + CAPTURE);
+    } else if (user.getOrganisationUnits().isEmpty()) {
+      throw new BadRequestException("User needs to be assigned data capture orgunits");
     }
   }
 
@@ -162,22 +160,6 @@ public class OperationsParamsValidator {
     return accessibleOrgUnits;
   }
 
-  private static Set<OrganisationUnit> getSelectedOrgUnits(
-      User user,
-      Program program,
-      OrganisationUnit orgUnit,
-      TrackerAccessManager trackerAccessManager) {
-    return trackerAccessManager.canAccess(user, program, orgUnit)
-        ? Set.of(orgUnit)
-        : Collections.emptySet();
-  }
-
-  private static Set<OrganisationUnit> getAccessibleOrgUnits(User user, Program program) {
-    return isProgramAccessRestricted(program)
-        ? new HashSet<>(user.getOrganisationUnits())
-        : new HashSet<>(user.getTeiSearchOrganisationUnitsWithFallback());
-  }
-
   /**
    * Returns the org units whose path is contained in the user search or capture scope org unit. If
    * there's a match, it means the user org unit is at the same level or above the supplied org
@@ -210,5 +192,21 @@ public class OperationsParamsValidator {
 
   private static boolean isProgramAccessRestricted(Program program) {
     return program != null && (program.isClosed() || program.isProtected());
+  }
+
+  private static Set<OrganisationUnit> getAccessibleOrgUnits(User user, Program program) {
+    return isProgramAccessRestricted(program)
+        ? new HashSet<>(user.getOrganisationUnits())
+        : new HashSet<>(user.getTeiSearchOrganisationUnitsWithFallback());
+  }
+
+  private static Set<OrganisationUnit> getSelectedOrgUnits(
+      User user,
+      Program program,
+      OrganisationUnit orgUnit,
+      TrackerAccessManager trackerAccessManager) {
+    return trackerAccessManager.canAccess(user, program, orgUnit)
+        ? Set.of(orgUnit)
+        : Collections.emptySet();
   }
 }
