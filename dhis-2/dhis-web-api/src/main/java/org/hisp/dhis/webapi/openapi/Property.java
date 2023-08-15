@@ -47,7 +47,6 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.Value;
 import org.hisp.dhis.common.OpenApi;
 
@@ -60,7 +59,6 @@ import org.hisp.dhis.common.OpenApi;
  */
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Getter
 class Property {
   private static final Map<Class<?>, Collection<Property>> PROPERTIES = new ConcurrentHashMap<>();
 
@@ -79,7 +77,7 @@ class Property {
   private Property(Method m) {
     this(
         getName(m),
-        getType(m, isSetter(m) ? m.getParameterTypes()[0] : m.getGenericReturnType()),
+        getType(m, isSetter(m) ? m.getGenericParameterTypes()[0] : m.getGenericReturnType()),
         m,
         isRequired(m, m.getReturnType()));
   }
@@ -113,13 +111,9 @@ class Property {
   private static boolean isSetter(Method source) {
     String name = source.getName();
     return !isExcluded(source)
-        && source.getParameterCount() == 1
-        && Stream.of("set")
-            .anyMatch(
-                prefix ->
-                    name.startsWith(prefix)
-                        && name.length() > prefix.length()
-                        && isUpperCase(name.charAt(prefix.length())));
+        && name.startsWith("set")
+        && name.length() > 3
+        && isUpperCase(name.charAt(3));
   }
 
   private static boolean isAccessor(Method source) {
