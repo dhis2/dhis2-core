@@ -41,6 +41,7 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -54,6 +55,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -84,11 +87,12 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -856,7 +860,7 @@ class TrackerEventCriteriaMapperTest {
     eventCriteria.setOuMode(DESCENDANTS);
 
     ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
+        assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
@@ -880,7 +884,7 @@ class TrackerEventCriteriaMapperTest {
         .thenReturn(orgUnitDescendants);
 
     ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
+        assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
@@ -952,7 +956,7 @@ class TrackerEventCriteriaMapperTest {
     eventCriteria.setOuMode(CHILDREN);
 
     ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
+        assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
@@ -974,7 +978,7 @@ class TrackerEventCriteriaMapperTest {
     eventCriteria.setOuMode(CHILDREN);
 
     ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
+        assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
   }
@@ -1108,9 +1112,34 @@ class TrackerEventCriteriaMapperTest {
     eventCriteria.setOrgUnit(orgUnit.getUid());
 
     ForbiddenException exception =
-        Assertions.assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
+        assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
     assertEquals(
         "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN"})
+  void shouldFailWhenOuModeNeedsOrgUnitAndNoOrgUnitProvided(OrganisationUnitSelectionMode mode) {
+    TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+    eventCriteria.setOuMode(mode);
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
+    assertEquals("Organisation unit is required for ouMode: " + mode, exception.getMessage());
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"CAPTURE", "ACCESSIBLE", "ALL"})
+  void shouldPassWhenOuModeDoesNotNeedOrgUnitAndOrgUnitProvided(
+      OrganisationUnitSelectionMode mode) {
+    TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+    eventCriteria.setOuMode(mode);
+
+    assertDoesNotThrow(() -> mapper.map(eventCriteria));
   }
 
   private OrganisationUnit createOrgUnit(String name, String uid) {

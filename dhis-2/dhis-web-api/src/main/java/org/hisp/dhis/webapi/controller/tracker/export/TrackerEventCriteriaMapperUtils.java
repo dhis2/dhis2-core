@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 
 import java.util.ArrayList;
@@ -36,10 +38,12 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
 
@@ -60,7 +64,7 @@ public class TrackerEventCriteriaMapperUtils {
         getUserAccessibleOrgUnits(
             user, orgUnit, orgUnitMode, program, orgUnitDescendants, trackerAccessManager);
 
-    if (orgUnit != null && accessibleOrgUnits.isEmpty()) {
+    if (orgUnit != null && accessibleOrgUnits.isEmpty() && !shouldIgnoreOrgUnit(orgUnitMode)) {
       throw new ForbiddenException("User does not have access to orgUnit: " + orgUnit.getUid());
     }
 
@@ -165,6 +169,10 @@ public class TrackerEventCriteriaMapperUtils {
     return program != null && (program.isClosed() || program.isProtected());
   }
 
+  private static boolean shouldIgnoreOrgUnit(OrganisationUnitSelectionMode orgUnitMode) {
+    return orgUnitMode == CAPTURE || orgUnitMode == ACCESSIBLE || orgUnitMode == ALL;
+  }
+
   /**
    * Returns the same org unit mode if not null. If null, and an org unit is present, SELECT mode is
    * used by default, mode ACCESSIBLE is used otherwise.
@@ -179,5 +187,43 @@ public class TrackerEventCriteriaMapperUtils {
       return orgUnit != null ? SELECTED : ACCESSIBLE;
     }
     return orgUnitMode;
+  }
+
+  public static void validateOrgUnitMode(
+      OrganisationUnitSelectionMode selectedOuMode, OrganisationUnit orgUnit, User user) {
+
+    switch (selectedOuMode) {
+      case ALL:
+        if (userCanSearchOuModeALL(user)) {
+          throw new IllegalQueryException(
+              "Current user is not authorized to query across all organisation units");
+        }
+        break;
+      case ACCESSIBLE:
+      case CAPTURE:
+        if (user == null) {
+          throw new IllegalQueryException("User is required for ouMode: " + selectedOuMode);
+        }
+        break;
+      case CHILDREN:
+      case SELECTED:
+      case DESCENDANTS:
+        if (orgUnit == null) {
+          throw new IllegalQueryException(
+              "Organisation unit is required for ouMode: " + selectedOuMode);
+        }
+        break;
+      default:
+        throw new IllegalQueryException("Invalid ouMode:  " + selectedOuMode);
+    }
+  }
+
+  private static boolean userCanSearchOuModeALL(User user) {
+    if (user == null) {
+      return false;
+    }
+
+    return user.isSuper()
+        || user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
   }
 }
