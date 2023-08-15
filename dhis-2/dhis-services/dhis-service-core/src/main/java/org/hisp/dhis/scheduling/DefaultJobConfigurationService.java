@@ -65,6 +65,8 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.scheduling.JobType.Defaults;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,6 +82,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
 
   private final JobConfigurationStore jobConfigurationStore;
   private final FileResourceService fileResourceService;
+  private final SystemSettingManager systemSettings;
 
   @Override
   @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -102,6 +105,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     return config.getUid();
   }
 
+  @SuppressWarnings("java:S4790")
   private void saveJobData(String uid, MimeType contentType, InputStream content)
       throws ConflictException {
     try {
@@ -167,14 +171,18 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Override
   @Transactional
   public int deleteFinishedJobs(int ttlMinutes) {
-    // TODO TTL <= 0 => load setting
+    if (ttlMinutes <= 0) {
+      ttlMinutes = systemSettings.getIntSetting(SettingKey.JOBS_CLEANUP_AFTER_MINUTES);
+    }
     return jobConfigurationStore.deleteFinishedJobs(ttlMinutes);
   }
 
   @Override
   @Transactional
   public int rescheduleStaleJobs(int timeoutMinutes) {
-    // TODO TTL <= 0 => load setting
+    if (timeoutMinutes <= 0) {
+      timeoutMinutes = systemSettings.getIntSetting(SettingKey.JOBS_RESCHEDULE_STALE_FOR_MINUTES);
+    }
     return jobConfigurationStore.rescheduleStaleJobs(timeoutMinutes);
   }
 
@@ -238,7 +246,10 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Override
   @Transactional(readOnly = true)
   public List<JobConfiguration> getStaleConfigurations(int staleForSeconds) {
-    // TODO negative => default
+    if (staleForSeconds <= 0) {
+      staleForSeconds =
+          60 * systemSettings.getIntSetting(SettingKey.JOBS_RESCHEDULE_STALE_FOR_MINUTES);
+    }
     return jobConfigurationStore.getStaleConfigurations(staleForSeconds);
   }
 

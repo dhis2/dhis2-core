@@ -156,6 +156,7 @@ public enum JobType {
      * Execute at 3-5AM every night and, use a random min/sec, so we don't have all servers in the
      * world requesting at the same time.
      */
+    @SuppressWarnings("java:S2245")
     static Defaults dailyRandomBetween3and5(String uid, String name) {
       ThreadLocalRandom rnd = ThreadLocalRandom.current();
       String cron = format("%d %d %d ? * *", rnd.nextInt(60), rnd.nextInt(60), rnd.nextInt(3, 6));
