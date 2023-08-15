@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.webdomain;
 
 import java.util.List;
+import org.hisp.dhis.query.Order;
 
 /**
  * Record purely used to tidy up code while passing data
@@ -36,4 +37,4 @@ import java.util.List;
  * @param fields fields
  * @param filters filters
  */
-public record WebRequestData(WebOptions options, List<String> fields, List<String> filters) {}
+public record WebRequestData(WebOptions options, List<String> fields, List<String> filters, List<Order> orders) {}
