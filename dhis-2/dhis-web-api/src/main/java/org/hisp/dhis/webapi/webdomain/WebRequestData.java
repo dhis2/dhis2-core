@@ -37,4 +37,5 @@ import org.hisp.dhis.query.Order;
  * @param fields fields
  * @param filters filters
  */
-public record WebRequestData(WebOptions options, List<String> fields, List<String> filters, List<Order> orders) {}
+public record WebRequestData(
+    WebOptions options, List<String> fields, List<String> filters, List<Order> orders) {}

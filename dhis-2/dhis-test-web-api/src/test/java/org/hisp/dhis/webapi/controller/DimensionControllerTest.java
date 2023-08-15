@@ -135,7 +135,9 @@ class DimensionControllerTest extends DhisControllerConvenienceTest {
   void testGetDimensionsFilteredByType() {
     addCategoryCombos(105);
     addOrganisationGroupSet(5);
-    JsonObject response = GET("/dimensions?fields=id,dimensionType&filter=dimensionType:eq:ORGANISATION_UNIT_GROUP_SET").content();
+    JsonObject response =
+        GET("/dimensions?fields=id,dimensionType&filter=dimensionType:eq:ORGANISATION_UNIT_GROUP_SET")
+            .content();
     JsonArray dimensions = response.getArray("dimensions");
 
     assertNotNull(dimensions);
