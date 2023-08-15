@@ -87,7 +87,7 @@ public class JobSchedulerController {
   public List<SchedulerEntry> getSchedulerEntries(@RequestParam(required = false) String order) {
     Map<String, List<JobConfiguration>> configsByQueueNameOrUid =
         jobConfigurationService.getAllJobConfigurations().stream()
-            .filter(config -> config.getSchedulingType() != SchedulingType.ONCE_ASAP)
+            .filter(config -> config.getCronExpression() != null || config.getDelay() != null)
             .collect(groupingBy(JobConfiguration::getQueueIdentifier));
     Comparator<SchedulerEntry> sortBy =
         "name".equals(order)
