@@ -135,18 +135,18 @@ class DimensionControllerTest extends DhisControllerConvenienceTest {
   void testGetDimensionsFilteredByType() {
     addCategoryCombos(105);
     addOrganisationGroupSet(5);
-    JsonObject response = GET("/dimensions?fields,dimensionType=id&filter=dimensionType:eq:ORGANISATION_UNIT_GROUP_SET").content();
+    JsonObject response = GET("/dimensions?fields=id,dimensionType&filter=dimensionType:eq:ORGANISATION_UNIT_GROUP_SET").content();
     JsonArray dimensions = response.getArray("dimensions");
 
-    JsonObject dimension = dimensions.getObject(0);
-    String displayName = dimension.getString("displayName").string();
-    String id = dimension.getString("id").string();
+    assertNotNull(dimensions);
+    assertEquals(5, dimensions.size());
 
-    assertNull(displayName);
-    assertNotNull(id);
-    assertEquals(17, dimensions.size());
-    assertHasPager(response, 3, 44, 105);
-    assertHasPagerLinks(response, 3);
+    JsonObject dimension = dimensions.getObject(0);
+    String dimensionType = dimension.getString("dimensionType").string();
+    assertEquals("ORGANISATION_UNIT_GROUP_SET", dimensionType);
+
+    assertHasPager(response, 1, 50, 5);
+    assertHasPagerLinks(response, 1);
   }
 
   @Test
