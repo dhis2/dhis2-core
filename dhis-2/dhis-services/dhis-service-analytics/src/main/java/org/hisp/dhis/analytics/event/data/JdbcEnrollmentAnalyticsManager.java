@@ -130,6 +130,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   @Override
+  public void getAggregatedEnrollments(EventQueryParams params, Grid grid, int maxLimit){
+    String sql = getAggregatedEnrollmentsSql(params, maxLimit);
+    withExceptionHandling(() -> getAggregatedEnrollments(params, grid, sql, maxLimit == 0));
+  }
+
+  @Override
   public void getEnrollments(EventQueryParams params, Grid grid, int maxLimit) {
     String sql = getEventsOrEnrollmentsSql(params, maxLimit);
 
@@ -138,6 +144,17 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     } else {
       withExceptionHandling(() -> getEnrollments(params, grid, sql, maxLimit == 0));
     }
+  }
+
+  /**
+   * Adds enrollment aggregates to the given grid based on the given parameters and SQL statement.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param grid the {@link Grid}.
+   * @param sql the SQL statement used to retrieve events.
+   */
+  private void getAggregatedEnrollments(EventQueryParams params, Grid grid, String sql, boolean unlimitedPaging){
+
   }
 
   /**
@@ -237,6 +254,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     return false;
+  }
+
+  @Override
+  public long getAggregatedEnrollmentCount(EventQueryParams params){
+    return 0;
   }
 
   @Override

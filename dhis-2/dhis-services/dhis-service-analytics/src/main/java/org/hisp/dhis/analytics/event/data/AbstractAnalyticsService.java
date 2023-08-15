@@ -101,13 +101,18 @@ public abstract class AbstractAnalyticsService {
 
   protected final SchemeIdResponseMapper schemeIdResponseMapper;
 
+
+  protected Grid getGrid(EventQueryParams params) {
+    return getGrid(params, false);
+  }
+
   /**
    * Returns a grid based on the given query.
    *
    * @param params the {@link EventQueryParams}.
    * @return a {@link Grid}.
    */
-  protected Grid getGrid(EventQueryParams params) {
+  protected Grid getGrid(EventQueryParams params, boolean aggregated) {
     // ---------------------------------------------------------------------
     // Decide access, add constraints and validate
     // ---------------------------------------------------------------------
@@ -217,7 +222,8 @@ public abstract class AbstractAnalyticsService {
     long count = 0;
 
     if (!params.isSkipData() || params.analyzeOnly()) {
-      count = addEventData(grid, params);
+
+      count = aggregated ? addAggregatedEnrollmentData(grid, params) : addEventData(grid, params);
     }
 
     // ---------------------------------------------------------------------
@@ -325,6 +331,8 @@ public abstract class AbstractAnalyticsService {
   protected abstract Grid createGridWithHeaders(EventQueryParams params);
 
   protected abstract long addEventData(Grid grid, EventQueryParams params);
+
+  protected abstract long addAggregatedEnrollmentData(Grid grid, EventQueryParams params);
 
   /**
    * Applies headers to the given if the given query specifies headers.

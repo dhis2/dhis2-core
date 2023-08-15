@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -46,6 +48,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
+import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.RequestTypeAware;
@@ -115,6 +118,22 @@ public class EnrollmentAnalyticsController {
     }
 
     return grid;
+  }
+
+  @GetMapping(
+          value = "/aggregate/{program}",
+          produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Grid getAggregateJson( // JSON, JSONP
+                                              @PathVariable String program,
+                                              EnrollmentAnalyticsQueryCriteria criteria,
+                                              DhisApiVersion apiVersion,
+                                              HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+
+    contextUtils.configureResponse(
+            response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
+
+    return analyticsService.getAggregatedEnrollments(params);
   }
 
   @GetMapping(

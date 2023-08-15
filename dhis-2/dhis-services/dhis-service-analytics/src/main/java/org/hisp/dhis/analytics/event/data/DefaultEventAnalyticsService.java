@@ -797,4 +797,9 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
 
     return count;
   }
+
+  @Override
+  protected long addAggregatedEnrollmentData(Grid grid, EventQueryParams params) {
+    return 0;
+  }
 }

@@ -878,6 +878,27 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
+   * Template method that generates a SQL query for retrieving aggregated enrollments.
+   *
+   * @param params the {@link EventQueryParams} to drive the query generation.
+   * @param maxLimit max number of records to return.
+   * @return a SQL query.
+   */
+  protected String getAggregatedEnrollmentsSql(EventQueryParams params, int maxLimit) {
+    String sql = getSelectClause(params);
+
+    sql += getFromClause(params);
+
+    sql += getWhereClause(params);
+
+    sql += getSortClause(params);
+
+    sql += getPagingClause(params, maxLimit);
+
+    return sql;
+  }
+
+  /**
    * Template method that generates a SQL query for retrieving events or enrollments.
    *
    * @param params the {@link EventQueryParams} to drive the query generation.
