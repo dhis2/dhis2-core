@@ -50,7 +50,9 @@ import org.hisp.dhis.util.ObjectUtils;
 public class IdSchemes implements Serializable {
   public static final IdScheme DEFAULT_ID_SCHEME = IdScheme.UID;
 
-  @JsonProperty private IdScheme idScheme;
+  @OpenApi.Property(value = IdentifiableProperty.class)
+  @JsonProperty
+  private IdScheme idScheme;
 
   @JsonProperty private IdScheme dataElementIdScheme;
 

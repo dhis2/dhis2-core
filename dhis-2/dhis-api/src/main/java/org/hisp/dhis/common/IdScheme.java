@@ -49,7 +49,9 @@ import org.hisp.dhis.attribute.Attribute;
 @Getter
 @JsonInclude(Include.NON_NULL)
 @JsonAutoDetect(getterVisibility = Visibility.NONE, isGetterVisibility = Visibility.NONE)
+@OpenApi.Property(value = IdentifiableProperty.class)
 public class IdScheme implements Serializable {
+
   public static final IdScheme NULL = new IdScheme(null);
 
   public static final IdScheme ID = new IdScheme(IdentifiableProperty.ID);

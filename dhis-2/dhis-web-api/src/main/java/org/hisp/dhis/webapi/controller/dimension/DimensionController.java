@@ -129,7 +129,6 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
    * @param response response
    * @param currentUser current user
    * @return response with Collection of {@link DimensionalObject}
-   * @throws ForbiddenException if no permissions
    */
   @Override
   @GetMapping
@@ -139,13 +138,21 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
       HttpServletResponse response,
       @CurrentUser User currentUser) {
 
-    WebRequestData requestData = applyRequestSetup(rpParameters);
+    WebRequestData requestData = applyRequestSetup(rpParameters, orderParams);
 
     WebMetadata metadata = new WebMetadata();
     List<DimensionalObject> entities = dimensionService.getAllDimensions();
 
+    Query filteredQuery =
+        queryService.getQueryFromUrl(
+            DimensionalObject.class, requestData.filters(), requestData.orders());
+    filteredQuery.setObjects(entities);
+
+    List<DimensionalObject> filteredEntities =
+        (List<DimensionalObject>) queryService.query(filteredQuery);
+
     PagedEntities<DimensionalObject> pagedEntities =
-        PaginationUtils.addPagingIfEnabled(metadata, requestData.options(), entities);
+        PaginationUtils.addPagingIfEnabled(metadata, requestData.options(), filteredEntities);
     linkService.generatePagerLinks(pagedEntities.pager(), RESOURCE_PATH);
 
     return ResponseEntity.ok(
@@ -289,10 +296,12 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
    *     WebOptions}, {@link List} of fields and {@link List} of filters
    * @throws ForbiddenException if no permission
    */
-  protected WebRequestData applyRequestSetup(Map<String, String> rpParameters) {
+  protected WebRequestData applyRequestSetup(
+      Map<String, String> rpParameters, OrderParams orderParams) {
 
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
+    List<Order> orders = orderParams.getOrders(getSchema(DimensionalObject.class));
 
     if (fields.isEmpty()) {
       fields.addAll(Preset.defaultPreset().getFields());
@@ -301,6 +310,6 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
     WebOptions options = new WebOptions(rpParameters);
     forceFiltering(options, filters);
 
-    return new WebRequestData(options, fields, filters);
+    return new WebRequestData(options, fields, filters, orders);
   }
 }

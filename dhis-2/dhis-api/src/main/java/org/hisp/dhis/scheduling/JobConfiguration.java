@@ -359,7 +359,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
 
   private Instant nextDelayExecutionTime(@Nonnull Instant since) {
     if (delay == null || delay <= 0) return null;
-    // always want to run delay after last start, right ways when never started
+    // always want to run delay after last start, right away when never started
     return lastExecuted == null
         ? since
         : lastExecuted.toInstant().plusSeconds(delay).truncatedTo(ChronoUnit.SECONDS);
