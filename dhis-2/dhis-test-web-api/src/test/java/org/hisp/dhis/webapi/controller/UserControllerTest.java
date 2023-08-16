@@ -374,7 +374,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         "Conflict",
         409,
         "ERROR",
-        "Password must have at least 8, and at most 256 characters",
+        "Password must have at least 8, and at most 60 characters",
         POST("/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'lame'}")
             .content(HttpStatus.CONFLICT));
   }
@@ -616,7 +616,8 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         null,
         POST(
                 "/users/",
-                "{'surname':'S.','firstName':'Harry', 'username':'harrys', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}")
+                "{'surname':'S.','firstName':'Harry', 'username':'harrys', 'userRoles': [{'id':"
+                    + " 'yrB6vc5Ip3r'}]}")
             .content(HttpStatus.CREATED));
   }
 
@@ -629,7 +630,8 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         "One or more errors occurred, please see full details in import report.",
         POST(
                 "/users/",
-                "{'id': 'yrB6vc5Ip¤¤', 'surname':'S.','firstName':'Harry', 'username':'harrys', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}")
+                "{'id': 'yrB6vc5Ip¤¤', 'surname':'S.','firstName':'Harry', 'username':'harrys',"
+                    + " 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}")
             .content(HttpStatus.CONFLICT));
   }
 
@@ -766,7 +768,8 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         null,
         POST(
                 "/users/invite",
-                "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'username':'harrys', 'userRoles': [{'id': '"
+                "{'surname':'S.','firstName':'Harry', 'email':'test@example.com',"
+                    + " 'username':'harrys', 'userRoles': [{'id': '"
                     + roleUid
                     + "'}]}")
             .content(HttpStatus.CREATED));
@@ -788,7 +791,8 @@ class UserControllerTest extends DhisControllerConvenienceTest {
             "/users/{id}",
             peter.getUid() + "?importReportMode=ERRORS",
             Body(
-                "[{'op': 'add', 'path': '/userGroups', 'value': [ { 'id': 'GZSvMCVowAx' }, { 'id': 'B6JNeAQ6akX' } ] } ]")));
+                "[{'op': 'add', 'path': '/userGroups', 'value': [ { 'id': 'GZSvMCVowAx' }, { 'id':"
+                    + " 'B6JNeAQ6akX' } ] } ]")));
 
     JsonObject response =
         GET("/users/{id}?fields=userGroups", peter.getUid()).content(HttpStatus.OK);
