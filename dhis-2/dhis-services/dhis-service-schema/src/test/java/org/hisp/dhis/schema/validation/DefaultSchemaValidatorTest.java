@@ -151,10 +151,11 @@ class DefaultSchemaValidatorTest {
 
   private final SchemaService schemaService = mock(SchemaService.class);
 
-  private final PasswordValidationService passwordValidationService = mock( PasswordValidationService.class );
+  private final PasswordValidationService passwordValidationService =
+      mock(PasswordValidationService.class);
 
-  private final DefaultSchemaValidator validator = new DefaultSchemaValidator(schemaService,
-        passwordValidationService );
+  private final DefaultSchemaValidator validator =
+      new DefaultSchemaValidator(schemaService, passwordValidationService);
 
   private final PropertyIntrospectorService introspectorService =
       new DefaultPropertyIntrospectorService(
@@ -162,12 +163,11 @@ class DefaultSchemaValidatorTest {
 
   private final Schema schema = new Schema(SimpleFields.class, "singular", "plural");
 
-    @BeforeEach
-    void setUpSchema()
-    {
-        schema.setPropertyMap( introspectorService.getPropertiesMap( SimpleFields.class ) );
-        when( schemaService.getDynamicSchema( SimpleFields.class ) ).thenReturn( schema );
-    }
+  @BeforeEach
+  void setUpSchema() {
+    schema.setPropertyMap(introspectorService.getPropertiesMap(SimpleFields.class));
+    when(schemaService.getDynamicSchema(SimpleFields.class)).thenReturn(schema);
+  }
 
   @Test
   void testRequiredPropertyIsNull() {
@@ -214,13 +214,12 @@ class DefaultSchemaValidatorTest {
         "Property `email` requires a valid email address, was given `notAnEmail`");
   }
 
-    @Test
-    void testUrlPropertyValid()
-    {
-        when( passwordValidationService.validate( any( CredentialsInfo.class ) ) )
-            .thenReturn( new PasswordValidationResult( null ) );
-        assertNoError( SimpleFields.builder().string( "valid" ).password( "veryGoodS3cret" ).build() );
-    }
+  @Test
+  void testUrlPropertyValid() {
+    when(passwordValidationService.validate(any(CredentialsInfo.class)))
+        .thenReturn(new PasswordValidationResult(null));
+    assertNoError(SimpleFields.builder().string("valid").password("veryGoodS3cret").build());
+  }
 
   @Test
   void testUrlPropertyInvalid() {
@@ -230,22 +229,22 @@ class DefaultSchemaValidatorTest {
         "Property `url` requires a valid URL, was given `notAnURL`");
   }
 
-    @Test
-    void testPasswordPropertyValid()
-    {
-        when( passwordValidationService.validate( any( CredentialsInfo.class ) ) )
-            .thenReturn( new PasswordValidationResult( null ) );
-        assertNoError( SimpleFields.builder().string( "valid" ).password( "veryGoodS3cret" ).build() );
-    }
+  @Test
+  void testPasswordPropertyValid() {
+    when(passwordValidationService.validate(any(CredentialsInfo.class)))
+        .thenReturn(new PasswordValidationResult(null));
+    assertNoError(SimpleFields.builder().string("valid").password("veryGoodS3cret").build());
+  }
 
-    @Test
-    void testPasswordPropertyInvalid()
-    {
-        when( passwordValidationService.validate( any( CredentialsInfo.class ) ) )
-            .thenReturn( new PasswordValidationResult( PASSWORD_TOO_LONG_TOO_SHORT ) );
-        assertError( ErrorCode.E4005, SimpleFields.builder().string( "valid" ).password( "tooShort" ).build(),
-            "Property `password` requires a valid password, was given `tooShort`" );
-    }
+  @Test
+  void testPasswordPropertyInvalid() {
+    when(passwordValidationService.validate(any(CredentialsInfo.class)))
+        .thenReturn(new PasswordValidationResult(PASSWORD_TOO_LONG_TOO_SHORT));
+    assertError(
+        ErrorCode.E4005,
+        SimpleFields.builder().string("valid").password("tooShort").build(),
+        "Property `password` requires a valid password, was given `tooShort`");
+  }
 
   @Test
   void testColorPropertyValid() {

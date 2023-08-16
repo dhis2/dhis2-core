@@ -50,7 +50,6 @@ import static org.hisp.dhis.system.util.MathUtils.parseDouble;
 import static org.hisp.dhis.util.DateUtils.dateIsValid;
 import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
 
-import com.google.common.collect.Sets;
 import java.awt.geom.Point2D;
 import java.util.Date;
 import java.util.Map;
@@ -100,9 +99,11 @@ public class ValidationUtils {
   public static final String NOT_VALID_VALUE_TYPE_OPTION_CLASS =
       "not_valid_value_type_option_class";
 
-  private static final Set<String> BOOL_FALSE_VARIANTS = Set.of( "false", "False", "FALSE", "f", "F", "0" );
+  private static final Set<String> BOOL_FALSE_VARIANTS =
+      Set.of("false", "False", "FALSE", "f", "F", "0");
 
-  private static final Set<String> BOOL_TRUE_VARIANTS = Set.of("true", "True", "TRUE", "t", "T", "1");
+  private static final Set<String> BOOL_TRUE_VARIANTS =
+      Set.of("true", "True", "TRUE", "t", "T", "1");
 
   private static final int VALUE_MAX_LENGTH = 50000;
 
@@ -244,17 +245,15 @@ public class ValidationUtils {
     return matcher.matches();
   }
 
-    /**
-     * Validates whether a coordinate is valid.
-     *
-     * @return true if the coordinate is valid, false otherwise.
-     */
-    public static boolean coordinateIsValid( String coordinate )
-    {
-        if ( coordinate == null || coordinate.trim().isEmpty() )
-        {
-            return false;
-        }
+  /**
+   * Validates whether a coordinate is valid.
+   *
+   * @return true if the coordinate is valid, false otherwise.
+   */
+  public static boolean coordinateIsValid(String coordinate) {
+    if (coordinate == null || coordinate.trim().isEmpty()) {
+      return false;
+    }
 
     Matcher matcher = POINT_PATTERN.matcher(coordinate);
 

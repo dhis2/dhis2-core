@@ -458,10 +458,14 @@ public class UserController extends AbstractCrudController<User> {
       return conflict("Password must be specified");
     }
 
-    CredentialsInfo credentialsInfo = new CredentialsInfo( username, password,
-            existingUser.getEmail() != null ? existingUser.getEmail() : "", false );
+    CredentialsInfo credentialsInfo =
+        new CredentialsInfo(
+            username,
+            password,
+            existingUser.getEmail() != null ? existingUser.getEmail() : "",
+            false);
 
-    PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
+    PasswordValidationResult result = passwordValidationService.validate(credentialsInfo);
 
     if (!result.isValid()) {
       return conflict(result.getErrorMessage());

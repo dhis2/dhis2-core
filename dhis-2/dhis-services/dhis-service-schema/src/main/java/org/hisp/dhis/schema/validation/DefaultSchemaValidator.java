@@ -65,11 +65,12 @@ public class DefaultSchemaValidator implements SchemaValidator {
 
   private final PasswordValidationService passwordValidationService;
 
-  public DefaultSchemaValidator(SchemaService schemaService, PasswordValidationService passwordValidationService) {
+  public DefaultSchemaValidator(
+      SchemaService schemaService, PasswordValidationService passwordValidationService) {
     checkNotNull(schemaService);
     this.schemaService = schemaService;
     this.passwordValidationService = passwordValidationService;
-    }
+  }
 
   @Override
   public List<ErrorReport> validate(Object object) {
@@ -194,18 +195,16 @@ public class DefaultSchemaValidator implements SchemaValidator {
   private boolean isInvalidPassword(Property property, String value) {
     return !BCRYPT_PATTERN.matcher(value).matches()
         && PropertyType.PASSWORD == property.getPropertyType()
-        && !passwordIsValid( value );
-    }
+        && !passwordIsValid(value);
+  }
 
-    private boolean passwordIsValid(String value)
-  {
-        CredentialsInfo credentialsInfo = new CredentialsInfo( "USERNAME", value,
-            "", true );
+  private boolean passwordIsValid(String value) {
+    CredentialsInfo credentialsInfo = new CredentialsInfo("USERNAME", value, "", true);
 
-        PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
+    PasswordValidationResult result = passwordValidationService.validate(credentialsInfo);
 
-        return result.isValid();
-    }
+    return result.isValid();
+  }
 
   private boolean isInvalidUsername(Property property, String value) {
     return PropertyType.USERNAME == property.getPropertyType()
