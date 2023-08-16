@@ -31,12 +31,10 @@ import static com.google.common.collect.Sets.newHashSet;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -50,6 +48,7 @@ import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -71,6 +70,8 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -325,28 +326,18 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
         e.getMessage());
   }
 
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"CAPTURE", "ACCESSIBLE", "ALL"})
+  void shouldPassWhenOuModeDoesNotNeedOrgUnitAndOrgUnitProvided(
+      OrganisationUnitSelectionMode mode) {
     TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+
     criteria.setOu(organisationUnit.getUid());
-    criteria.setOuMode(ACCESSIBLE);
+    criteria.setOuMode(mode);
 
-    Exception exception =
-        assertThrows(IllegalQueryException.class, () -> trackedEntityCriteriaMapper.map(criteria));
-
-    assertStartsWith("ouMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
-    TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
-    criteria.setOu(organisationUnit.getUid());
-    criteria.setOuMode(CAPTURE);
-
-    Exception exception =
-        assertThrows(IllegalQueryException.class, () -> trackedEntityCriteriaMapper.map(criteria));
-
-    assertStartsWith("ouMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
+    assertDoesNotThrow(() -> trackedEntityCriteriaMapper.map(criteria));
   }
 
   @Test
