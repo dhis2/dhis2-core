@@ -46,6 +46,7 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.MeController} API.
@@ -202,7 +203,7 @@ class MeControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testValidatePasswordText_NoDigits() {
+  void testValidatePasswordText_TooShort() {
     JsonPasswordValidation result =
         POST("/me/validatePassword", "text/plain:secret")
             .content()
@@ -210,6 +211,30 @@ class MeControllerTest extends DhisControllerConvenienceTest {
     assertFalse(result.isValidPassword());
     assertEquals(
         "Password must have at least 8, and at most 60 characters", result.getErrorMessage());
+  }
+
+  @Test
+  void testValidatePasswordText_TooLong() {
+    JsonPasswordValidation result =
+        POST(
+                "/me/validatePassword",
+                "text/plain:supersecretsupersecretsupersecret"
+                    + "supersecretsupersecretsupersecretsupersecret")
+            .content()
+            .as(JsonPasswordValidation.class);
+    assertFalse(result.isValidPassword());
+    assertEquals(
+        "Password must have at least 8, and at most 60 characters", result.getErrorMessage());
+  }
+
+  @Test
+  void testValidatePasswordText_NoDigits() {
+    JsonPasswordValidation result =
+        POST("/me/validatePassword", "text/plain:supersecret")
+            .content()
+            .as(JsonPasswordValidation.class);
+    assertFalse(result.isValidPassword());
+    assertEquals("Password must have at least one digit", result.getErrorMessage());
   }
 
   @Test
