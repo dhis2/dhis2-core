@@ -66,43 +66,43 @@ public class CurrentUserService {
     return CurrentUserUtil.getCurrentUsername();
   }
 
+  @Transactional(readOnly = true)
   public User getCurrentUser() {
-    String username = CurrentUserUtil.getCurrentUsername();
+    return getCurrentUserInternal();
+  }
 
+  private User getCurrentUserInternal() {
+    String username = CurrentUserUtil.getCurrentUsername();
     return userStore.getUserByUsername(username, false);
   }
 
   @Transactional(readOnly = true)
   public boolean currentUserIsSuper() {
-    User user = getCurrentUser();
-
+    User user = getCurrentUserInternal();
     return user != null && user.isSuper();
   }
 
   @Transactional(readOnly = true)
   public Set<OrganisationUnit> getCurrentUserOrganisationUnits() {
-    User user = getCurrentUser();
-
+    User user = getCurrentUserInternal();
     return user != null ? new HashSet<>(user.getOrganisationUnits()) : new HashSet<>();
   }
 
   @Transactional(readOnly = true)
   public boolean currentUserIsAuthorized(String auth) {
-    User user = getCurrentUser();
-
+    User user = getCurrentUserInternal();
     return user != null && user.isAuthorized(auth);
   }
 
   @Transactional(readOnly = true)
   public CurrentUserGroupInfo getCurrentUserGroupsInfo() {
     CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
-
     return user == null ? null : getCurrentUserGroupsInfo(user.getUid());
   }
 
   @Transactional(readOnly = true)
   public CurrentUserGroupInfo getCurrentUserGroupsInfo(String userUID) {
-    return currentUserGroupInfoCache.get(userUID, key -> userStore.getCurrentUserGroupInfo(key));
+    return currentUserGroupInfoCache.get(userUID, userStore::getCurrentUserGroupInfo);
   }
 
   @Transactional(readOnly = true)
