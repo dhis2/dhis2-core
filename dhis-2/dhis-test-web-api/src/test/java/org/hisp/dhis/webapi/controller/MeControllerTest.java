@@ -219,6 +219,20 @@ class MeControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  void testValidatePasswordText_TooLong() {
+    JsonPasswordValidation result =
+        POST(
+                "/me/validatePassword",
+                "text/plain:supersecretsupersecretsupersecret"
+                    + "supersecretsupersecretsupersecretsupersecret")
+            .content()
+            .as(JsonPasswordValidation.class);
+    assertFalse(result.isValidPassword());
+    assertEquals(
+        "Password must have at least 8, and at most 60 characters", result.getErrorMessage());
+  }
+
+  @Test
   void testValidatePasswordText_NoDigits() {
     JsonPasswordValidation result =
         POST("/me/validatePassword", "text/plain:supersecret")
