@@ -39,11 +39,27 @@ class PropertyTest {
   @OpenApi.Property(value = String.class)
   private static class AProperty {}
 
+  private static class AnotherProperty {
+    @OpenApi.Property
+    public void setOpenApiProperty(String openApiProperty) {}
+
+    public void setProperty(String property) {}
+  }
+
   @JsonProperty private AProperty aProperty;
 
   @Test
   void testGetPropertiesGivenOpenApiPropertyAnnotatedClassThatHasValueSet() {
     Collection<Property> properties = Property.getProperties(PropertyTest.class);
     assertEquals(String.class, new ArrayList<>(properties).get(0).getType());
+  }
+
+  @Test
+  void testGetPropertiesGivenOpenApiPropertyAnnotatedSetter() {
+    Collection<Property> properties = Property.getProperties(AnotherProperty.class);
+    assertEquals(1, properties.size());
+    Property property = new ArrayList<>(properties).get(0);
+    assertEquals("openApiProperty", property.getName());
+    assertEquals(String.class, property.getType());
   }
 }

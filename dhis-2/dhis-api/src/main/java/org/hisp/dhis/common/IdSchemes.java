@@ -39,6 +39,7 @@ import org.hisp.dhis.util.ObjectUtils;
 public class IdSchemes {
   public static final IdScheme DEFAULT_ID_SCHEME = IdScheme.UID;
 
+  @OpenApi.Property(value = IdentifiableProperty.class)
   private IdScheme idScheme;
 
   private IdScheme dataElementIdScheme;
