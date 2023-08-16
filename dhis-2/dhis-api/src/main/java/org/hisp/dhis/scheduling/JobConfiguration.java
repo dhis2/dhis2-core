@@ -331,6 +331,10 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
     return getQueueName() != null;
   }
 
+  public boolean isRunOnce() {
+    return cronExpression == null && delay == null && queueName == null;
+  }
+
   /**
    * @return the next time this job should run based on the {@link #getLastExecuted()} time
    */
