@@ -60,6 +60,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
@@ -93,7 +94,8 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
       PartitionManager partitionManager,
       DatabaseInfo databaseInfo,
       JdbcTemplate jdbcTemplate,
-      AnalyticsExportSettings analyticsExportSettings) {
+      AnalyticsExportSettings analyticsExportSettings,
+      PeriodDataProvider periodDataProvider) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -106,7 +108,8 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
         partitionManager,
         databaseInfo,
         jdbcTemplate,
-        analyticsExportSettings);
+        analyticsExportSettings,
+        periodDataProvider);
   }
 
   @Override
