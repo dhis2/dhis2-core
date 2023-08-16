@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.icon;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+
 import com.google.common.net.MediaType;
 import java.io.IOException;
 import java.util.List;
@@ -34,21 +36,28 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -66,6 +75,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("ui")
 @Controller
+@Slf4j
 @RequestMapping(value = IconSchemaDescriptor.API_ENDPOINT)
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -77,6 +87,8 @@ public class IconController {
   private final FileResourceService fileResourceService;
 
   private final IconMapper iconMapper;
+
+  private final DhisConfigurationProvider dhisConfig;
 
   @GetMapping("/{iconKey}")
   public @ResponseBody IconResponse getIcon(@PathVariable String iconKey) throws NotFoundException {
@@ -94,6 +106,35 @@ public class IconController {
     response.setContentType(MediaType.SVG_UTF_8.toString());
 
     StreamUtils.copyThenCloseInputStream(icon.getInputStream(), response.getOutputStream());
+  }
+
+  @GetMapping(value = "/{uid}/icon")
+  public void getCustomIconData(@PathVariable String uid, HttpServletResponse response)
+      throws NotFoundException, WebMessageException {
+    FileResource fileResource = fileResourceService.getFileResource(uid);
+
+    if (fileResource == null) {
+      throw new NotFoundException(FileResource.class, uid);
+    }
+
+    response.setContentType(fileResource.getContentType());
+    response.setHeader(
+        HttpHeaders.CONTENT_LENGTH,
+        String.valueOf(fileResourceService.getFileResourceContentLength(fileResource)));
+    response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
+    HeaderUtils.setSecurityHeaders(
+        response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
+
+    try {
+      fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
+    } catch (IOException e) {
+      log.error("Could not retrieve file.", e);
+      throw new WebMessageException(
+          error(
+              "Failed fetching the file from storage",
+              "There was an exception when trying to fetch the file from the storage backend. "
+                  + "Depending on the provider the root cause could be network or file system related."));
+    }
   }
 
   @GetMapping
