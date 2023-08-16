@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 
 import java.util.Date;
@@ -125,13 +123,6 @@ public class EnrollmentCriteriaMapper {
     }
 
     if (ou != null) {
-      if (!ou.isEmpty() && (ouMode == ACCESSIBLE || ouMode == CAPTURE)) {
-        throw new IllegalQueryException(
-            String.format(
-                "ouMode %s cannot be used with orgUnits. Please remove the ou parameter and try again.",
-                ouMode));
-      }
-
       for (String orgUnit : ou) {
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(orgUnit);
 

@@ -32,7 +32,6 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseUids;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrgUnitParams;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -40,7 +39,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -97,8 +95,7 @@ public class TrackerEnrollmentCriteriaMapper {
 
     User user = currentUserService.getCurrentUser();
     Set<String> orgUnitIds = parseUids(criteria.getOrgUnit());
-    Set<OrganisationUnit> orgUnits =
-        validateOrgUnits(user, orgUnitIds, criteria.getOuMode(), program);
+    Set<OrganisationUnit> orgUnits = validateOrgUnits(user, orgUnitIds, program);
 
     ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
     params.setProgram(program);
@@ -145,13 +142,11 @@ public class TrackerEnrollmentCriteriaMapper {
     }
   }
 
-  private Set<OrganisationUnit> validateOrgUnits(
-      User user, Set<String> orgUnitIds, OrganisationUnitSelectionMode orgUnitMode, Program program)
+  private Set<OrganisationUnit> validateOrgUnits(User user, Set<String> orgUnitIds, Program program)
       throws BadRequestException, ForbiddenException {
 
     Set<OrganisationUnit> orgUnits = new HashSet<>();
     if (orgUnitIds != null) {
-      validateOrgUnitParams(orgUnitIds, orgUnitMode);
 
       for (String orgUnitId : orgUnitIds) {
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(orgUnitId);
