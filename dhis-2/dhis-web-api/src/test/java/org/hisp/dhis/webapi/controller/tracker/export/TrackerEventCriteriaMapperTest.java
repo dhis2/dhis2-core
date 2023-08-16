@@ -76,6 +76,7 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -84,6 +85,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -1136,6 +1138,8 @@ class TrackerEventCriteriaMapperTest {
       names = {"CAPTURE", "ACCESSIBLE", "ALL"})
   void shouldPassWhenOuModeDoesNotNeedOrgUnitAndOrgUnitProvided(
       OrganisationUnitSelectionMode mode) {
+    when(currentUserService.getCurrentUser()).thenReturn(createSearchInAllOrgUnitsUser());
+
     TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
     eventCriteria.setOuMode(mode);
 
@@ -1146,5 +1150,15 @@ class TrackerEventCriteriaMapperTest {
     OrganisationUnit orgUnit = new OrganisationUnit(name);
     orgUnit.setUid(uid);
     return orgUnit;
+  }
+
+  private User createSearchInAllOrgUnitsUser() {
+    User user = new User();
+    UserRole userRole = new UserRole();
+    userRole.setAuthorities(
+        Set.of(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
+    user.setUserRoles(Set.of(userRole));
+
+    return user;
   }
 }

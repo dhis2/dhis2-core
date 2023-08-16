@@ -194,7 +194,7 @@ public class TrackerEventCriteriaMapperUtils {
 
     switch (selectedOuMode) {
       case ALL:
-        if (userCanSearchOuModeALL(user)) {
+        if (!userCanSearchOuModeALL(user)) {
           throw new IllegalQueryException(
               "Current user is not authorized to query across all organisation units");
         }
