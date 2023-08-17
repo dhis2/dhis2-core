@@ -25,46 +25,60 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.dxf2.metadata;
 
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.eventhook.EventHookPublisher;
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.user.AuthenticationService;
-import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.schema.Schema;
 
-@Component
 @Getter
 @RequiredArgsConstructor
-public class SchedulingManagerSupport {
-  private final UserService userService;
+public final class MetadataObjects {
 
-  private final AuthenticationService authenticationService;
+  private final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects;
 
-  private final JobService jobService;
+  public MetadataObjects() {
+    this(new HashMap<>());
+  }
 
-  private final JobConfigurationService jobConfigurationService;
+  public List<Class<? extends IdentifiableObject>> getClasses() {
+    return new ArrayList<>(objects.keySet());
+  }
 
-  private final MessageService messageService;
+  public List<? extends IdentifiableObject> getObjects(Class<? extends IdentifiableObject> klass) {
+    return objects.get(klass);
+  }
 
-  private final LeaderManager leaderManager;
+  @SuppressWarnings("unchecked")
+  public MetadataObjects addObject(IdentifiableObject object) {
+    if (object == null) {
+      return this;
+    }
+    objects.computeIfAbsent(getRealClass(object), key -> new ArrayList<>()).add(object);
+    return this;
+  }
 
-  private final Notifier notifier;
+  public MetadataObjects addObjects(List<? extends IdentifiableObject> objects) {
+    objects.forEach(this::addObject);
+    return this;
+  }
 
-  private final EventHookPublisher eventHookPublisher;
-
-  private final CacheProvider cacheProvider;
-
-  private final AsyncTaskExecutor taskExecutor;
-
-  @Qualifier("taskScheduler")
-  private final TaskScheduler jobScheduler;
+  public MetadataObjects addMetadata(List<Schema> schemas, Metadata metadata) {
+    for (Schema schema : schemas) {
+      if (schema.isIdentifiableObject()) {
+        @SuppressWarnings("unchecked")
+        Class<? extends IdentifiableObject> key =
+            (Class<? extends IdentifiableObject>) schema.getKlass();
+        addObjects(metadata.getValues(key));
+      }
+    }
+    return this;
+  }
 }

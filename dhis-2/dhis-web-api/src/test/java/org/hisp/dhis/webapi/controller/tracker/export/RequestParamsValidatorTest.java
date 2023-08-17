@@ -323,7 +323,7 @@ class RequestParamsValidatorTest {
     Exception exception =
         assertThrows(
             BadRequestException.class,
-            () -> validateOrgUnitMode(Set.of(UID.of(orgUnit.getUid())), ACCESSIBLE));
+            () -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), ACCESSIBLE));
 
     assertStartsWith(
         "orgUnitMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
@@ -338,8 +338,7 @@ class RequestParamsValidatorTest {
   void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
     Exception exception =
         assertThrows(
-            BadRequestException.class,
-            () -> validateOrgUnitMode(Set.of(UID.of(orgUnit.getUid())), CAPTURE));
+            BadRequestException.class, () -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), CAPTURE));
 
     assertStartsWith("orgUnitMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
   }
@@ -360,7 +359,7 @@ class RequestParamsValidatorTest {
 
   @Test
   void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeSelected() {
-    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit.getUid())), SELECTED));
+    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), SELECTED));
   }
 
   @Test
@@ -374,7 +373,7 @@ class RequestParamsValidatorTest {
 
   @Test
   void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeDescendants() {
-    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit.getUid())), DESCENDANTS));
+    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), DESCENDANTS));
   }
 
   @Test
@@ -388,6 +387,6 @@ class RequestParamsValidatorTest {
 
   @Test
   void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeChildren() {
-    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit.getUid())), CHILDREN));
+    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), CHILDREN));
   }
 }

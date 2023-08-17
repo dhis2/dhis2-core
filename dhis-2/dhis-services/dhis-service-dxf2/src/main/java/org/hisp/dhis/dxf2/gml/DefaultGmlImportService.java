@@ -53,6 +53,7 @@ import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
@@ -66,7 +67,6 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.core.io.ClassPathResource;
@@ -105,25 +105,11 @@ import org.xml.sax.SAXParseException;
 public class DefaultGmlImportService implements GmlImportService {
   private static final String GML_TO_DXF_STYLESHEET = "gml/gml2dxf2.xsl";
 
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
   private final RenderService renderService;
-
   private final IdentifiableObjectManager idObjectManager;
-
   private final SchemaService schemaService;
-
   private final MetadataImportService importService;
-
-  private final Notifier notifier;
-
   private final MergeService mergeService;
-
-  // -------------------------------------------------------------------------
-  // GmlImportService implementation
-  // -------------------------------------------------------------------------
 
   @Transactional
   @Override
@@ -138,17 +124,13 @@ public class DefaultGmlImportService implements GmlImportService {
     PreProcessingResult preProcessed = preProcessGml(inputStream);
 
     if (preProcessed.isSuccess && preProcessed.metaData != null) {
-      importParams.addMetadata(schemaService.getMetadataSchemas(), preProcessed.metaData);
-      importReport = importService.importMetadata(importParams);
+      importReport =
+          importService.importMetadata(
+              importParams,
+              new MetadataObjects()
+                  .addMetadata(schemaService.getMetadataSchemas(), preProcessed.metaData));
     } else {
       Throwable throwable = preProcessed.throwable;
-
-      notifier.notify(
-          importParams.getId(),
-          NotificationLevel.ERROR,
-          createNotifierErrorMessage(throwable),
-          false);
-
       importReport.setStatus(Status.ERROR);
 
       ObjectReport objectReport = new ObjectReport(getClass(), 0);

@@ -32,6 +32,8 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -66,12 +68,12 @@ public final class UID {
     return value;
   }
 
-  public static UID of(String value) {
+  public static UID of(@Nonnull String value) {
     return new UID(value);
   }
 
-  public static UID of(UidObject object) {
-    return new UID(object.getUid());
+  public static UID of(@CheckForNull UidObject object) {
+    return object == null ? null : new UID(object.getUid());
   }
 
   public static Set<String> toValueSet(Collection<UID> uids) {

@@ -41,7 +41,9 @@ import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
@@ -106,11 +108,13 @@ public class ApiTokenController extends AbstractCrudController<ApiToken> {
         importService
             .getParamsFromMap(contextService.getParameterValuesMap())
             .setImportReportMode(ImportReportMode.FULL)
-            .setUser(currentUser)
-            .setImportStrategy(ImportStrategy.CREATE)
-            .addObject(apiTokenPair.getApiToken());
+            .setUser(UID.of(currentUser))
+            .setImportStrategy(ImportStrategy.CREATE);
 
-    ObjectReport report = importService.importMetadata(params).getFirstObjectReport();
+    ObjectReport report =
+        importService
+            .importMetadata(params, new MetadataObjects().addObject(apiTokenPair.getApiToken()))
+            .getFirstObjectReport();
     WebMessage webMessage = objectReport(report);
 
     if (webMessage.getStatus() == Status.OK) {

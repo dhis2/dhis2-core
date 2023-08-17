@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -122,8 +123,7 @@ class GmlImportServiceTest extends TransactionalIntegrationTest {
   @Test
   void testImportGml() {
     MetadataImportParams importParams = new MetadataImportParams();
-    importParams.setId(id);
-    importParams.setUser(user);
+    importParams.setUser(UID.of(user));
     gmlImportService.importGml(inputStream, importParams);
     assertNotNull(boOrgUnit.getGeometry());
     assertNotNull(bontheOrgUnit.getGeometry());
