@@ -75,6 +75,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -178,7 +179,8 @@ public class MetadataImportExportController {
     if (params.isAsync()) {
       return startAsyncMetadata(params, MimeType.valueOf("application/xml"), request);
     }
-    ImportReport importReport = gmlImportService.importGml(request.getInputStream(), params);
+    ImportReport importReport =
+        gmlImportService.importGml(request.getInputStream(), params, NoopJobProgress.INSTANCE);
     return importReport(importReport).withPlainResponseBefore(DhisApiVersion.V38);
   }
 

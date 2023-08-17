@@ -45,6 +45,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -124,7 +125,7 @@ class GmlImportServiceTest extends TransactionalIntegrationTest {
   void testImportGml() {
     MetadataImportParams importParams = new MetadataImportParams();
     importParams.setUser(UID.of(user));
-    gmlImportService.importGml(inputStream, importParams);
+    gmlImportService.importGml(inputStream, importParams, NoopJobProgress.INSTANCE);
     assertNotNull(boOrgUnit.getGeometry());
     assertNotNull(bontheOrgUnit.getGeometry());
     assertNotNull(ojdOrgUnit.getGeometry());

@@ -84,24 +84,14 @@ public class MetadataImportJob implements Job {
     try (InputStream input =
         progress.runStage(() -> fileResourceService.getFileResourceContent(data))) {
       String contentType = data.getContentType();
-
-      progress.startingStage("Importing data...");
       ImportReport report =
           switch (contentType) {
-            case "application/json" -> progress.runStage(
-                () ->
-                    metadataImportService.importMetadata(
-                        params, jsonToMetadataObjects(input), progress));
-            case "application/csv" -> progress.runStage(
-                () ->
-                    metadataImportService.importMetadata(
-                        params, csvToMetadataObjects(params, input), progress));
-            case "application/xml" -> progress.runStage(
-                () -> gmlImportService.importGml(input, params));
-            default -> {
-              progress.failedStage("Unknown format: " + contentType);
-              yield null;
-            }
+            case "application/json" -> metadataImportService.importMetadata(
+                params, jsonToMetadataObjects(input), progress);
+            case "application/csv" -> metadataImportService.importMetadata(
+                params, csvToMetadataObjects(params, input), progress);
+            case "application/xml" -> gmlImportService.importGml(input, params, progress);
+            default -> null;
           };
       if (report == null) {
         progress.failedProcess("Import failed, no summary available");

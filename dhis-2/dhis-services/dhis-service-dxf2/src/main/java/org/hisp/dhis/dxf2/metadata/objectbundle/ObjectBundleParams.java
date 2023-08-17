@@ -46,7 +46,6 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.preheat.PreheatParams;
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
 
 /**
@@ -63,7 +62,6 @@ public class ObjectBundleParams {
   @ToString.Exclude private User overrideUser;
 
   @ToString.Exclude
-  // TODO use MetadataObjects?
   private Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects =
       new HashMap<>();
 
@@ -81,18 +79,6 @@ public class ObjectBundleParams {
   private boolean skipTranslation;
   private boolean skipValidation;
   private boolean metadataSyncImport;
-
-  // FIXME remove
-  private JobConfiguration jobId;
-
-  public JobConfiguration getJobId() {
-    return jobId;
-  }
-
-  public ObjectBundleParams setJobId(JobConfiguration jobId) {
-    this.jobId = jobId;
-    return this;
-  }
 
   public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> getObjects() {
     return objects;

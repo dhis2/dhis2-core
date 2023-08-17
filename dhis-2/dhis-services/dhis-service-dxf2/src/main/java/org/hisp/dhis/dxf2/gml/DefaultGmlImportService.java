@@ -64,6 +64,7 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.SchemaService;
@@ -113,11 +114,12 @@ public class DefaultGmlImportService implements GmlImportService {
 
   @Transactional
   @Override
-  public ImportReport importGml(InputStream inputStream, MetadataImportParams importParams) {
+  public ImportReport importGml(
+      InputStream inputStream, MetadataImportParams params, JobProgress progress) {
     ImportReport importReport = new ImportReport();
 
-    if (!importParams.getImportStrategy().isUpdate()) {
-      importParams.setImportStrategy(ImportStrategy.UPDATE);
+    if (!params.getImportStrategy().isUpdate()) {
+      params.setImportStrategy(ImportStrategy.UPDATE);
       log.warn("Changed GML import strategy to update. Only updates are supported.");
     }
 
@@ -126,9 +128,10 @@ public class DefaultGmlImportService implements GmlImportService {
     if (preProcessed.isSuccess && preProcessed.metaData != null) {
       importReport =
           importService.importMetadata(
-              importParams,
+              params,
               new MetadataObjects()
-                  .addMetadata(schemaService.getMetadataSchemas(), preProcessed.metaData));
+                  .addMetadata(schemaService.getMetadataSchemas(), preProcessed.metaData),
+              progress);
     } else {
       Throwable throwable = preProcessed.throwable;
       importReport.setStatus(Status.ERROR);

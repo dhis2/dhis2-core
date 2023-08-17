@@ -112,7 +112,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
     if (!validationReport.hasErrorReports() || AtomicMode.NONE == bundle.getAtomicMode()) {
       Timer commitTimer = new SystemTimer().start();
 
-      ObjectBundleCommitReport commitReport = objectBundleService.commit(bundle);
+      ObjectBundleCommitReport commitReport = objectBundleService.commit(bundle, progress);
       importReport.addTypeReports(commitReport);
 
       if (importReport.hasErrorReports()) {
