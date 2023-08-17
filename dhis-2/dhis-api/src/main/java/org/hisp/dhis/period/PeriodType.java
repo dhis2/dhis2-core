@@ -129,6 +129,7 @@ public abstract class PeriodType implements Serializable {
           new MonthlyPeriodType(),
           new BiMonthlyPeriodType(),
           new QuarterlyPeriodType(),
+          new QuarterlyNovemberPeriodType(),
           new SixMonthlyPeriodType(),
           new SixMonthlyAprilPeriodType(),
           new SixMonthlyNovemberPeriodType(),
