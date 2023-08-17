@@ -42,6 +42,8 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +58,7 @@ import org.springframework.http.HttpStatus;
 class DimensionControllerTest extends DhisControllerConvenienceTest {
 
   @Autowired private CategoryService categoryService;
+  @Autowired private OrganisationUnitGroupService orgUnitGroupService;
 
   @Test
   void testGetDimensionsForDataSet() {
@@ -129,6 +132,26 @@ class DimensionControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  void testGetDimensionsFilteredByType() {
+    addCategoryCombos(105);
+    addOrganisationGroupSet(5);
+    JsonObject response =
+        GET("/dimensions?fields=id,dimensionType&filter=dimensionType:eq:ORGANISATION_UNIT_GROUP_SET")
+            .content();
+    JsonArray dimensions = response.getArray("dimensions");
+
+    assertNotNull(dimensions);
+    assertEquals(5, dimensions.size());
+
+    JsonObject dimension = dimensions.getObject(0);
+    String dimensionType = dimension.getString("dimensionType").string();
+    assertEquals("ORGANISATION_UNIT_GROUP_SET", dimensionType);
+
+    assertHasPager(response, 1, 50, 5);
+    assertHasPagerLinks(response, 1);
+  }
+
+  @Test
   void testGetDimensionsWithNoPaging() {
     addCategoryCombos(55);
     JsonObject response = GET("/dimensions?paging=false").content();
@@ -163,6 +186,21 @@ class DimensionControllerTest extends DhisControllerConvenienceTest {
     for (int i = 0; i < counter; i++) {
       createCategoryCombo(i);
     }
+  }
+
+  private void addOrganisationGroupSet(int counter) {
+    for (int i = 0; i < counter; i++) {
+      createOrganisationUnitGroupSet(i);
+    }
+  }
+
+  private OrganisationUnitGroupSet createOrganisationUnitGroupSet(int postfix) {
+    OrganisationUnitGroupSet ogs = createOrganisationUnitGroupSet('a');
+    ogs.setName(ogs.getName() + postfix);
+    ogs.setShortName(ogs.getShortName() + postfix);
+    ogs.setCode(ogs.getCode() + postfix);
+    orgUnitGroupService.addOrganisationUnitGroupSet(ogs);
+    return ogs;
   }
 
   private CategoryCombo createCategoryCombo(int postfix) {
