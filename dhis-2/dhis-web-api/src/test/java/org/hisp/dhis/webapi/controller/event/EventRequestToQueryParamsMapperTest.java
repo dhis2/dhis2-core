@@ -39,6 +39,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -51,6 +52,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.EventQueryParams;
@@ -61,16 +63,21 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -539,6 +546,26 @@ class EventRequestToSearchParamsMapperTest {
         assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
 
     assertStartsWith("ouMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"CAPTURE", "ACCESSIBLE", "ALL"})
+  void shouldPassWhenOuModeDoesNotNeedOrgUnitAndOrgUnitProvided(OrganisationUnitSelectionMode mode) {
+    User user = new User();
+    UserRole userRole = new UserRole();
+    userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
+    user.setUserRoles(Set.of(userRole));
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
+    user.setOrganisationUnits(Set.of(orgUnit));
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+    when(trackerAccessManager.canAccess(user, null, orgUnit)).thenReturn(true);
+
+    EventCriteria eventCriteria = new EventCriteria();
+    eventCriteria.setOrgUnit(orgUnit.getUid());
+    eventCriteria.setOuMode(mode);
+    Assertions.assertDoesNotThrow(() -> mapper.map(eventCriteria));
   }
 
   private OrganisationUnit createOrgUnit(String name, String uid) {
