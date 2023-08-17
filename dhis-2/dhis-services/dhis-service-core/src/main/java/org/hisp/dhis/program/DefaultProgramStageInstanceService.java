@@ -28,6 +28,7 @@
 package org.hisp.dhis.program;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
+import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -47,7 +48,6 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.User;
@@ -240,8 +240,7 @@ public class DefaultProgramStageInstanceService implements ProgramStageInstanceS
               + eventDataValue.getDataElement());
     }
 
-    String result =
-        ValidationUtils.dataValueIsValid(eventDataValue.getValue(), dataElement.getValueType());
+    String result = valueIsValid(eventDataValue.getValue(), dataElement.getValueType());
 
     return result == null ? null : "Value is not valid:  " + result;
   }
