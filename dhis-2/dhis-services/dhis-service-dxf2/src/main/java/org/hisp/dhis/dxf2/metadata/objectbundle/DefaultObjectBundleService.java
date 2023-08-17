@@ -29,6 +29,9 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.metadata.objectbundle.EventReportCompatibilityGuard.handleDeprecationIfEventReport;
+import static org.hisp.dhis.eventhook.EventUtils.metadataCreate;
+import static org.hisp.dhis.eventhook.EventUtils.metadataDelete;
+import static org.hisp.dhis.eventhook.EventUtils.metadataUpdate;
 
 import java.util.HashMap;
 import java.util.List;
@@ -47,7 +50,6 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.eventhook.EventHookPublisher;
-import org.hisp.dhis.eventhook.EventUtils;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.preheat.Preheat;
@@ -58,7 +60,6 @@ import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -68,29 +69,19 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-@Service("org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService")
+@Service
 @RequiredArgsConstructor
 public class DefaultObjectBundleService implements ObjectBundleService {
+
   private final CurrentUserService currentUserService;
-
   private final PreheatService preheatService;
-
   private final SchemaService schemaService;
-
   private final SessionFactory sessionFactory;
-
   private final IdentifiableObjectManager manager;
-
   private final DbmsManager dbmsManager;
-
   private final HibernateCacheManager cacheManager;
-
-  private final Notifier notifier;
-
   private final MergeService mergeService;
-
   private final ObjectBundleHooks objectBundleHooks;
-
   private final EventHookPublisher eventHookPublisher;
 
   @Override
@@ -162,15 +153,14 @@ public class DefaultObjectBundleService implements ObjectBundleService {
     List<T> nonPersistedObjects = bundle.getObjects(klass, false);
     List<T> persistedObjects = bundle.getObjects(klass, true);
 
-    List<ObjectBundleHook<? super T>> importHooks = objectBundleHooks.getTypeImportHooks(klass);
-    importHooks.forEach(hook -> hook.preTypeImport(klass, nonPersistedObjects, bundle));
+    List<ObjectBundleHook<T>> hooks = objectBundleHooks.getTypeImportHooks(klass);
+    hooks.forEach(hook -> hook.preTypeImport(klass, nonPersistedObjects, bundle));
 
     if (bundle.getImportMode().isCreateAndUpdate()) {
-      TypeReport typeReport = new TypeReport(klass);
-      typeReport.merge(handleCreates(session, klass, nonPersistedObjects, bundle, progress));
-      typeReport.merge(handleUpdates(session, klass, persistedObjects, bundle, progress));
-
-      typeReports.put(klass, typeReport);
+      TypeReport report = new TypeReport(klass);
+      report.merge(handleCreates(session, klass, nonPersistedObjects, bundle, progress));
+      report.merge(handleUpdates(session, klass, persistedObjects, bundle, progress));
+      typeReports.put(klass, report);
     } else if (bundle.getImportMode().isCreate()) {
       typeReports.put(klass, handleCreates(session, klass, nonPersistedObjects, bundle, progress));
     } else if (bundle.getImportMode().isUpdate()) {
@@ -179,7 +169,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
       typeReports.put(klass, handleDeletes(session, klass, persistedObjects, bundle, progress));
     }
 
-    importHooks.forEach(hook -> hook.postTypeImport(klass, persistedObjects, bundle));
+    hooks.forEach(hook -> hook.postTypeImport(klass, persistedObjects, bundle));
 
     if (FlushMode.AUTO == bundle.getFlushMode()) {
       session.flush();
@@ -200,19 +190,10 @@ public class DefaultObjectBundleService implements ObjectBundleService {
       return typeReport;
     }
 
-    String message =
-        "("
-            + bundle.getUsername()
-            + ") Creating "
-            + objects.size()
-            + " object(s) of type "
-            + objects.get(0).getClass().getSimpleName();
-
-    log.info(message);
-
-    progress.startingStage(message, objects.size());
-
-    objects.forEach(
+    progress.startingStage("Running preCreate bundle hooks", objects.size());
+    progress.runStage(
+        objects,
+        IdentifiableObject::getName,
         object ->
             objectBundleHooks
                 .getObjectHooks(object)
@@ -220,6 +201,11 @@ public class DefaultObjectBundleService implements ObjectBundleService {
 
     session.flush();
 
+    String message =
+        "Creating %s object(s) of type %s (%s)"
+            .formatted(
+                objects.size(), objects.get(0).getClass().getSimpleName(), bundle.getUsername());
+    progress.startingStage(message, objects.size());
     progress.runStage(
         objects,
         IdentifiableObject::getName,
@@ -245,11 +231,10 @@ public class DefaultObjectBundleService implements ObjectBundleService {
 
           if (log.isDebugEnabled()) {
             String msg =
-                "("
-                    + bundle.getUsername()
-                    + ") Created object '"
-                    + bundle.getPreheatIdentifier().getIdentifiersWithName(object)
-                    + "'";
+                "(%s) Created object '%s'"
+                    .formatted(
+                        bundle.getUsername(),
+                        bundle.getPreheatIdentifier().getIdentifiersWithName(object));
             log.debug(msg);
           }
 
@@ -260,11 +245,13 @@ public class DefaultObjectBundleService implements ObjectBundleService {
 
     session.flush();
 
-    objects.forEach(
+    progress.startingStage("Running postCreate bundle hooks");
+    progress.runStage(
+        objects,
+        IdentifiableObject::getName,
         object -> {
           objectBundleHooks.getObjectHooks(object).forEach(hook -> hook.postCreate(object, bundle));
-          eventHookPublisher.publishEvent(
-              EventUtils.metadataCreate((BaseIdentifiableObject) object));
+          eventHookPublisher.publishEvent(metadataCreate((BaseIdentifiableObject) object));
         });
 
     return typeReport;
@@ -278,28 +265,24 @@ public class DefaultObjectBundleService implements ObjectBundleService {
       return typeReport;
     }
 
-    String message =
-        "("
-            + bundle.getUsername()
-            + ") Updating "
-            + objects.size()
-            + " object(s) of type "
-            + objects.get(0).getClass().getSimpleName();
+    List<ObjectBundleHook<T>> hooks = objectBundleHooks.getTypeImportHooks(klass);
 
-    log.info(message);
-
-    progress.startingStage(message, objects.size());
-
-    objects.forEach(
+    progress.startingStage("Running preUpdate bundle hooks", objects.size());
+    progress.runStage(
+        objects,
+        IdentifiableObject::getName,
         object -> {
           T persistedObject = bundle.getPreheat().get(bundle.getPreheatIdentifier(), object);
-          objectBundleHooks
-              .getObjectHooks(object)
-              .forEach(hook -> hook.preUpdate(object, persistedObject, bundle));
+          hooks.forEach(hook -> hook.preUpdate(object, persistedObject, bundle));
         });
 
     session.flush();
 
+    String message =
+        "Updating %d object(s) of type %s (%s)"
+            .formatted(
+                objects.size(), objects.get(0).getClass().getSimpleName(), bundle.getUsername());
+    progress.startingStage(message, objects.size());
     progress.runStage(
         objects,
         IdentifiableObject::getName,
@@ -335,11 +318,10 @@ public class DefaultObjectBundleService implements ObjectBundleService {
 
           if (log.isDebugEnabled()) {
             String msg =
-                "("
-                    + bundle.getUsername()
-                    + ") Updated object '"
-                    + bundle.getPreheatIdentifier().getIdentifiersWithName(persistedObject)
-                    + "'";
+                "(%s) Updated object '%s'"
+                    .formatted(
+                        bundle.getUsername(),
+                        bundle.getPreheatIdentifier().getIdentifiersWithName(persistedObject));
             log.debug(msg);
           }
 
@@ -350,14 +332,14 @@ public class DefaultObjectBundleService implements ObjectBundleService {
 
     session.flush();
 
-    objects.forEach(
+    progress.startingStage("Running postUpdate bundle hooks", objects.size());
+    progress.runStage(
+        objects,
+        IdentifiableObject::getName,
         object -> {
           T persistedObject = bundle.getPreheat().get(bundle.getPreheatIdentifier(), object);
-          objectBundleHooks
-              .getObjectHooks(object)
-              .forEach(hook -> hook.postUpdate(persistedObject, bundle));
-          eventHookPublisher.publishEvent(
-              EventUtils.metadataUpdate((BaseIdentifiableObject) object));
+          hooks.forEach(hook -> hook.postUpdate(persistedObject, bundle));
+          eventHookPublisher.publishEvent(metadataUpdate((BaseIdentifiableObject) object));
         });
 
     return typeReport;
@@ -371,18 +353,13 @@ public class DefaultObjectBundleService implements ObjectBundleService {
       return typeReport;
     }
 
-    String message =
-        "("
-            + bundle.getUsername()
-            + ") Deleting "
-            + objects.size()
-            + " object(s) of type "
-            + objects.get(0).getClass().getSimpleName();
-
-    log.info(message);
-
     List<T> persistedObjects = bundle.getPreheat().getAll(bundle.getPreheatIdentifier(), objects);
+    List<ObjectBundleHook<T>> hooks = objectBundleHooks.getTypeImportHooks(klass);
 
+    String message =
+        "Deleting %d object(s) of type %s (%s) "
+            .formatted(
+                objects.size(), objects.get(0).getClass().getSimpleName(), bundle.getUsername());
     progress.startingStage(message, persistedObjects.size());
     progress.runStage(
         persistedObjects,
@@ -392,18 +369,17 @@ public class DefaultObjectBundleService implements ObjectBundleService {
           objectReport.setDisplayName(IdentifiableObjectUtils.getDisplayName(object));
           typeReport.addObjectReport(objectReport);
 
-          objectBundleHooks.getObjectHooks(object).forEach(hook -> hook.preDelete(object, bundle));
+          hooks.forEach(hook -> hook.preDelete(object, bundle));
           manager.delete(object, bundle.getUser());
 
           bundle.getPreheat().remove(bundle.getPreheatIdentifier(), object);
 
           if (log.isDebugEnabled()) {
             String msg =
-                "("
-                    + bundle.getUsername()
-                    + ") Deleted object '"
-                    + bundle.getPreheatIdentifier().getIdentifiersWithName(object)
-                    + "'";
+                "(%s) Deleted object '%s'"
+                    .formatted(
+                        bundle.getUsername(),
+                        bundle.getPreheatIdentifier().getIdentifiersWithName(object));
             log.debug(msg);
           }
 
@@ -412,9 +388,11 @@ public class DefaultObjectBundleService implements ObjectBundleService {
           }
         });
 
-    objects.forEach(
-        object ->
-            eventHookPublisher.publishEvent(EventUtils.metadataDelete(klass, object.getUid())));
+    progress.startingStage("Publish deletion event for %s objects".formatted(objects.size()));
+    progress.runStage(
+        () ->
+            objects.forEach(
+                object -> eventHookPublisher.publishEvent(metadataDelete(klass, object.getUid()))));
 
     return typeReport;
   }

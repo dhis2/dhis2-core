@@ -40,6 +40,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.feedback.Stats;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.render.RenderFormat;
@@ -98,7 +99,15 @@ public class MetadataImportJob implements Job {
         return;
       }
       notifier.addJobSummary(config, report, ImportReport.class);
-      progress.completedProcess("Metadata import done");
+      Stats count = report.getStats();
+      progress.completedProcess(
+          "Import complete with status %s, %d created, %d updated, %d deleted, %d ignored"
+              .formatted(
+                  report.getStatus(),
+                  count.getCreated(),
+                  count.getUpdated(),
+                  count.getDeleted(),
+                  count.getIgnored()));
     } catch (IOException ex) {
       progress.failedProcess(ex);
     }

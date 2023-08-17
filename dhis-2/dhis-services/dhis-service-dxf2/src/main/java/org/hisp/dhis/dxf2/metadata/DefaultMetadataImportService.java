@@ -97,41 +97,47 @@ public class DefaultMetadataImportService implements MetadataImportService {
     ObjectBundleParams bundleParams = toObjectBundleParams(params);
     bundleParams.setObjects(objects.getObjects());
 
-    preCreateBundle(bundleParams);
+    progress.startingStage("Running preCreateBundle");
+    progress.runStage(() -> preCreateBundle(bundleParams));
     handleDeprecationIfEventReport(bundleParams);
-    ObjectBundle bundle = objectBundleService.create(bundleParams);
 
-    postCreateBundle(bundle, bundleParams);
+    progress.startingStage("Creating bundle");
+    ObjectBundle bundle = progress.runStage(() -> objectBundleService.create(bundleParams));
 
-    ObjectBundleValidationReport validationReport = objectBundleValidationService.validate(bundle);
-    ImportReport importReport = new ImportReport();
-    importReport.setImportParams(params);
-    importReport.setStatus(Status.OK);
-    importReport.addTypeReports(validationReport);
+    progress.startingStage("Running postCreateBundle");
+    progress.runStage(() -> postCreateBundle(bundle, bundleParams));
+
+    progress.startingStage("Validating bundle");
+    ObjectBundleValidationReport validationReport =
+        progress.runStage(() -> objectBundleValidationService.validate(bundle));
+    ImportReport report = new ImportReport();
+    report.setImportParams(params);
+    report.setStatus(Status.OK);
+    report.addTypeReports(validationReport);
 
     if (!validationReport.hasErrorReports() || AtomicMode.NONE == bundle.getAtomicMode()) {
       Timer commitTimer = new SystemTimer().start();
 
       ObjectBundleCommitReport commitReport = objectBundleService.commit(bundle, progress);
-      importReport.addTypeReports(commitReport);
+      report.addTypeReports(commitReport);
 
-      if (importReport.hasErrorReports()) {
-        importReport.setStatus(Status.WARNING);
+      if (report.hasErrorReports()) {
+        report.setStatus(Status.WARNING);
       }
 
       log.info("(" + bundle.getUsername() + ") Import:Commit took " + commitTimer.toString());
     } else {
-      importReport.getStats().ignored();
-      importReport.getTypeReports().forEach(tr -> tr.getStats().ignored());
-      importReport.setStatus(Status.ERROR);
+      report.getStats().ignored();
+      report.getTypeReports().forEach(tr -> tr.getStats().ignored());
+      report.setStatus(Status.ERROR);
     }
 
     if (ObjectBundleMode.VALIDATE == bundleParams.getObjectBundleMode()) {
-      return importReport;
+      return report;
     }
 
-    importReport.clean();
-    importReport.forEachTypeReport(
+    report.clean();
+    report.forEachTypeReport(
         typeReport -> {
           ImportReportMode mode = params.getImportReportMode();
           if (ImportReportMode.ERRORS == mode) {
@@ -144,7 +150,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
           }
         });
 
-    return importReport;
+    return report;
   }
 
   @Override
