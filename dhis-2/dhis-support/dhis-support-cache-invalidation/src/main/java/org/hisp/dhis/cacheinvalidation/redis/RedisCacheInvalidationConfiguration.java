@@ -46,7 +46,6 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.core.session.SessionRegistryImpl;
 
 /**
  * It configures the Redis client and the connection to the Redis server
@@ -62,11 +61,6 @@ public class RedisCacheInvalidationConfiguration {
   public static final List<Class> EXCLUDE_LIST = List.of(JobConfiguration.class);
 
   public static final String CHANNEL_NAME = "dhis2_cache_invalidation";
-
-  @Bean
-  public static SessionRegistryImpl sessionRegistry() {
-    return new SessionRegistryImpl();
-  }
 
   @Bean(name = "cacheInvalidationServerId")
   public String getCacheInvalidationServerId() {

@@ -25,12 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.configuration;
+package org.hisp.dhis.webapi.security.session;
 
 import org.hisp.dhis.condition.RedisEnabledCondition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.session.data.redis.config.ConfigureRedisAction;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
@@ -41,9 +42,11 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
  * @author Ameen Mohamed
  */
 @Configuration
+@Order(1998)
 @Conditional(RedisEnabledCondition.class)
 @EnableRedisHttpSession
 public class RedisSpringSessionConfiguration {
+
   @Bean
   public static ConfigureRedisAction configureRedisAction() {
     return ConfigureRedisAction.NO_OP;
