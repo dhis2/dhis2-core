@@ -129,6 +129,7 @@ public abstract class PeriodType implements Serializable {
           new MonthlyPeriodType(),
           new BiMonthlyPeriodType(),
           new QuarterlyPeriodType(),
+          new QuarterlyNovemberPeriodType(),
           new SixMonthlyPeriodType(),
           new SixMonthlyAprilPeriodType(),
           new SixMonthlyNovemberPeriodType(),
@@ -311,7 +312,7 @@ public abstract class PeriodType implements Serializable {
    * @return the valid Period based on the given date
    */
   public Period createPeriod(final Date date) {
-    return PERIOD_CACHE.get(getCacheKey(date), s -> createPeriod(createCalendarInstance(date)));
+    return PERIOD_CACHE.get(getCacheKey(date), s -> createPeriod(date, getCalendar()));
   }
 
   public Period createPeriod(Calendar cal) {
