@@ -76,6 +76,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = RESOURCE_PATH + "/" + TrackerEventsExportController.EVENTS)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
+@OpenApi.Ignore
 public class TrackerEventsExportController {
   protected static final String EVENTS = "events";
 
