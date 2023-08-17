@@ -498,6 +498,7 @@ public class ApiFinalise {
             });
   }
 
+  @SuppressWarnings("java:S3776")
   private Map<String, List<Api.Endpoint>> groupEndpointsByAbsolutePath() {
     // OBS! We use a TreeMap to also get alphabetical order/grouping
     Map<String, List<Api.Endpoint>> endpointsByAbsolutePath = new TreeMap<>();
