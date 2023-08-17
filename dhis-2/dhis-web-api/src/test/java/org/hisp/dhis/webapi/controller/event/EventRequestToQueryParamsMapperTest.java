@@ -63,7 +63,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -552,7 +551,8 @@ class EventRequestToSearchParamsMapperTest {
   @EnumSource(
       value = OrganisationUnitSelectionMode.class,
       names = {"CAPTURE", "ACCESSIBLE", "ALL"})
-  void shouldPassWhenOuModeDoesNotNeedOrgUnitAndOrgUnitProvided(OrganisationUnitSelectionMode mode) {
+  void shouldPassWhenOuModeDoesNotNeedOrgUnitAndOrgUnitProvided(
+      OrganisationUnitSelectionMode mode) {
     User user = new User();
     UserRole userRole = new UserRole();
     userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
