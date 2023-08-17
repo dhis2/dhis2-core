@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -98,34 +97,6 @@ import com.google.common.collect.ImmutableSet;
     "classpath*:/META-INF/dhis/beans-maintenance-mobile.xml", "classpath*:/META-INF/dhis/beans-approval.xml" } )
 public class DhisWebCommonsWebSecurityConfig
 {
-    /**
-     * This configuration class is responsible for setting up the session
-     * management.
-     */
-    @Configuration
-    @Order( 3300 )
-    public static class SessionWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
-    {
-        @Bean
-        public static SessionRegistryImpl sessionRegistry()
-        {
-            return new org.springframework.security.core.session.SessionRegistryImpl();
-        }
-
-        @Override
-        protected void configure( HttpSecurity http )
-            throws Exception
-        {
-            http
-                .sessionManagement()
-                .sessionFixation().migrateSession()
-                .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
-                .enableSessionUrlRewriting( false )
-                .maximumSessions( 10 )
-                .expiredUrl( "/dhis-web-commons-security/logout.action" )
-                .sessionRegistry( sessionRegistry() );
-        }
-    }
 
     /**
      * This configuration class is responsible for setting up the form login and
@@ -187,7 +158,8 @@ public class DhisWebCommonsWebSecurityConfig
                 .antMatchers( "/dhis-web-commons/fonts/**" )
                 .antMatchers( "/api/files/style/external" )
                 .antMatchers( "/external-static/**" )
-                .antMatchers( "/favicon.ico" );
+                .antMatchers( "/favicon.ico" )
+                .antMatchers( "/api/ping" );
         }
 
         @Override
@@ -274,7 +246,16 @@ public class DhisWebCommonsWebSecurityConfig
                     HeaderWriterFilter.class )
 
                 .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
-                .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
+                .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class )
+
+                .sessionManagement()
+                .requireExplicitAuthenticationStrategy( true )
+                .sessionFixation()
+                .migrateSession()
+                .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
+                .enableSessionUrlRewriting( false )
+                .maximumSessions( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
+                .expiredUrl( "/dhis-web-commons-security/logout.action" );
 
             setHttpHeaders( http, dhisConfig );
         }
@@ -292,11 +273,6 @@ public class DhisWebCommonsWebSecurityConfig
         {
             DefaultAuthenticationSuccessHandler successHandler = new DefaultAuthenticationSuccessHandler();
             successHandler.setRedirectStrategy( mappedRedirectStrategy() );
-            if ( dhisConfig.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) != null )
-            {
-                successHandler.setSessionTimeout(
-                    Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) ) );
-            }
 
             return successHandler;
         }

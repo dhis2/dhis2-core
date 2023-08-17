@@ -29,9 +29,15 @@ package org.hisp.dhis.dataelement;
 
 import static org.junit.Assert.*;
 
+import java.util.Collections;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -175,5 +181,43 @@ public class DataElementTest
         Period lastOpen = deA.getLatestOpenFuturePeriod();
 
         assertTrue( lastOpen.isAfter( new MonthlyPeriodType().createPeriod() ) );
+    }
+
+    @Test
+    public void testIsExpired_BeforeFirstDayOfPeriod()
+    {
+        assertIsExpired( false, period -> new Date( period.getStartDate().getTime() - 1L ) );
+    }
+
+    @Test
+    public void testIsExpired_FirstDayOfPeriod()
+    {
+        assertIsExpired( false, Period::getStartDate );
+    }
+
+    @Test
+    public void testIsExpired_LastDayOfPeriod()
+    {
+        assertIsExpired( false, Period::getEndDate );
+    }
+
+    @Test
+    public void testIsExpired_AfterLastDayOfPeriod()
+    {
+        // expiryDays is 1 so 1 extra day after the end is still ok
+        assertIsExpired( false, period -> new Date( period.getEndDate().getTime() + TimeUnit.DAYS.toMillis( 1 ) ) );
+        // but 2 is too much
+        assertIsExpired( true, period -> new Date( period.getEndDate().getTime() + TimeUnit.DAYS.toMillis( 2 ) ) );
+    }
+
+    private void assertIsExpired( boolean expected, Function<Period, Date> actual )
+    {
+        Date now = new Date();
+        Period thisMonth = periodType.createPeriod( now );
+        DataElement de = new DataElement();
+        DataSet ds = new DataSet();
+        ds.setExpiryDays( 1 );
+        de.setDataSetElements( Collections.singleton( new DataSetElement( ds, de ) ) );
+        assertEquals( expected, de.isExpired( thisMonth, actual.apply( thisMonth ) ) );
     }
 }

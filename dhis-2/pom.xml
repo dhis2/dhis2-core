@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.hisp.dhis</groupId>
   <artifactId>dhis</artifactId>
-  <version>2.37.10-SNAPSHOT</version>
+  <version>2.37.11-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>DHIS 2</name>
   <url>http://dhis2.org</url>
@@ -63,7 +63,7 @@
     <dhis-hisp-staxwax.version>1.4</dhis-hisp-staxwax.version>
 
     <!-- Security-->
-    <spring-security.version>5.7.5</spring-security.version>
+    <spring-security.version>5.8.2</spring-security.version>
     <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
@@ -71,7 +71,7 @@
     <cglib.version>3.2.4</cglib.version>
 
     <!-- Spring-->
-    <spring.version>5.3.24</spring.version>
+    <spring.version>5.3.25</spring.version>
     <spring-data-redis.version>2.3.2.RELEASE</spring-data-redis.version>
     <spring-session-data-redis.version>2.3.0.RELEASE</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -79,10 +79,10 @@
     <spring-retry.version>1.2.4.RELEASE</spring-retry.version>
     <spring-restdocs-mockmvc.version>2.0.4.RELEASE</spring-restdocs-mockmvc.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.2.2.RELEASE</lettuce.version>
+    <lettuce.version>6.2.3.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>7.0.4</flyway-core.version>
+    <flyway-core.version>9.15.2</flyway-core.version>
     <hibernate.version>5.4.28.Final</hibernate.version>
     <hibernate-types.version>2.10.4</hibernate-types.version>
     <!-- Keep in sync with Hibernate! -->
@@ -107,7 +107,7 @@
     <!-- Jackson -->
     <jackson.version>2.12.1</jackson.version>
     <jackson-datatype-jts.version>1.0-2.7</jackson-datatype-jts.version>
-    <jackson-datatype-hibernate5.version>2.11.2</jackson-datatype-hibernate5.version>
+    <jackson-datatype-hibernate5.version>2.14.2</jackson-datatype-hibernate5.version>
     <classmate.version>1.3.2</classmate.version>
 
     <!-- JAXB -->
@@ -150,7 +150,7 @@
     <sms-compression.version>0.2.1.1</sms-compression.version>
     <javacsv.version>2.0</javacsv.version>
     <aerogear-otp-java.version>1.0.0.CR1</aerogear-otp-java.version>
-    <javax.interceptor-api.version>1.2.1</javax.interceptor-api.version>
+    <javax.interceptor-api.version>1.2.2</javax.interceptor-api.version>
     <jsmpp.version>2.3.7</jsmpp.version>
     <rxtx.version>2.1.7</rxtx.version>
     <json-path.version>2.4.0</json-path.version>
@@ -246,7 +246,7 @@
   <repositories>
     <repository>
       <id>central</id>
-      <url>https://repo1.maven.org/maven2</url>
+      <url>https://maven-central.storage-download.googleapis.com/maven2/</url>
       <releases>
         <enabled>true</enabled>
       </releases>

@@ -31,7 +31,16 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_PROGRAM_RULE_S
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.anySet;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -40,7 +49,14 @@ import java.util.List;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
@@ -52,10 +68,15 @@ import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -136,7 +157,8 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     {
         setProgramRuleActionType_ShowError();
 
-        verify( programRuleEngine, never() ).evaluate( programInstance, Sets.newHashSet() );
+        verify( programRuleEngine, never() ).evaluate( programInstance, Sets.newHashSet(),
+            Lists.newArrayList( programRuleA ) );
         assertEquals( 0, ruleEffects.size() );
     }
 
@@ -152,7 +174,8 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         effects.add( RuleEffect.create( "", RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
 
         when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
-        when( programRuleEngine.evaluate( any(), any() ) ).thenReturn( effects );
+        when( programRuleEngine.evaluate( any(), any(), any() ) ).thenReturn( effects );
+        when( programRuleEngine.getProgramRules( any() ) ).thenReturn( Lists.newArrayList( programRuleA ) );
 
         setProgramRuleActionType_SendMessage();
 
@@ -170,7 +193,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
             assertEquals( NOTIFICATION_UID, ruleActionSendMessage.notification() );
         }
 
-        verify( programRuleEngine, times( 1 ) ).evaluate( argumentCaptor.capture(), any() );
+        verify( programRuleEngine, times( 1 ) ).evaluate( argumentCaptor.capture(), any(), any() );
         assertEquals( programInstance, argumentCaptor.getValue() );
 
         verify( ruleActionSendMessage ).accept( action );
@@ -194,24 +217,83 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         when( programStageInstanceService.getProgramStageInstance( anyString() ) ).thenReturn( programStageInstance );
         when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
 
-        when( programRuleEngine.evaluate( any(), any(), anySet() ) ).thenReturn( effects );
+        when( programRuleEngine.getProgramRules( any(), any() ) ).thenReturn( Lists.newArrayList( programRuleA ) );
+        when( programRuleEngine.evaluate( any(), any(), anySet(), anyList() ) ).thenReturn( effects );
 
         setProgramRuleActionType_SendMessage();
-
-        ArgumentCaptor<ProgramStageInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );
 
         List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects( programStageInstance.getUid() );
 
         assertEquals( 1, ruleEffects.size() );
 
-        verify( programRuleEngine, times( 1 ) ).evaluate( any(), argumentCaptor.capture(), any() );
-        assertEquals( programStageInstance, argumentCaptor.getValue() );
+        verify( programRuleEngine, times( 1 ) )
+            .evaluate( programInstance, programStageInstance, programInstance.getProgramStageInstances(),
+                Lists.newArrayList( programRuleA ) );
 
         verify( ruleActionSendMessage ).accept( ruleEffects.get( 0 ).ruleAction() );
         verify( ruleActionSendMessage ).implement( any( RuleEffect.class ), any( ProgramStageInstance.class ) );
 
         assertEquals( 1, this.ruleEffects.size() );
         assertTrue( this.ruleEffects.get( 0 ).ruleAction() instanceof RuleActionSendMessage );
+    }
+
+    @Test
+    public void shouldNotRetrieveEventsWhenEvaluatingAProgramEvent()
+    {
+        doAnswer( invocationOnMock -> {
+            ruleEffects.add( (RuleEffect) invocationOnMock.getArguments()[0] );
+            return ruleEffects;
+        } ).when( ruleActionSendMessage ).implement( any(), any( ProgramStageInstance.class ) );
+
+        List<RuleEffect> effects = new ArrayList<>();
+        effects.add( RuleEffect.create( "", RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
+        Program program = createProgram( 'A' );
+        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+        ProgramStage programStage = createProgramStage( 'A', program );
+        ProgramStageInstance programEvent = new ProgramStageInstance();
+        programEvent.setProgramStage( programStage );
+        programEvent.setProgramInstance( programInstance );
+
+        when( programStageInstanceService.getProgramStageInstance( programEvent.getUid() ) ).thenReturn( programEvent );
+
+        when( programRuleEngine.getProgramRules( program, Lists.newArrayList( programStage ) ) )
+            .thenReturn( Lists.newArrayList( programRuleA ) );
+        when( programRuleEngine.evaluateProgramEvent( programEvent, program, Lists.newArrayList( programRuleA ) ) )
+            .thenReturn( effects );
+
+        setProgramRuleActionType_SendMessage();
+
+        List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects( programEvent.getUid() );
+
+        assertEquals( 1, ruleEffects.size() );
+
+        verify( programRuleEngine, times( 1 ) )
+            .evaluateProgramEvent( programEvent, program, Lists.newArrayList( programRuleA ) );
+
+        verify( programInstanceService, never() ).getProgramInstance( any() );
+
+        verify( ruleActionSendMessage ).accept( ruleEffects.get( 0 ).ruleAction() );
+        verify( ruleActionSendMessage ).implement( any( RuleEffect.class ), any( ProgramStageInstance.class ) );
+
+        assertEquals( 1, this.ruleEffects.size() );
+        assertTrue( this.ruleEffects.get( 0 ).ruleAction() instanceof RuleActionSendMessage );
+    }
+
+    @Test
+    public void shouldNotTryToEvaluateWhenThereAreNoRulesToRun()
+    {
+        when( programStageInstanceService.getProgramStageInstance( anyString() ) ).thenReturn( programStageInstance );
+        when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
+
+        when( programRuleEngine.getProgramRules( any(), any() ) ).thenReturn( Lists.newArrayList() );
+
+        List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects( programStageInstance.getUid() );
+
+        assertEquals( 0, ruleEffects.size() );
+
+        verify( programRuleEngine, never() ).evaluateProgramEvent( any(), any(), anyList() );
+        verify( programRuleEngine, never() ).evaluate( any(), any(), anyList() );
+        verify( programInstanceService, never() ).getProgramInstance( any() );
     }
 
     @Test

@@ -44,7 +44,6 @@ public enum DataValueSetImportConflict implements ImportConflictDescriptor
 
     DATASET_NOT_FOUND( ErrorCode.E7600, "dataSet", DataSet.class ),
     DATASET_NOT_ACCESSIBLE( ErrorCode.E7601, "dataSet", DataSet.class ),
-    DATASET_NOT_VALID( ErrorCode.E7602, "dataSet" ),
     ORG_UNIT_NOT_FOUND( ErrorCode.E7603, "orgUnit", OrganisationUnit.class, DataSet.class ),
     ATTR_OPTION_COMBO_NOT_FOUND( ErrorCode.E7604, "attributeOptionCombo", CategoryOptionCombo.class,
         DataSet.class );

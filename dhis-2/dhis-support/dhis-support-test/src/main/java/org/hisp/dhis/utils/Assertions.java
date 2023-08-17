@@ -52,7 +52,7 @@ public final class Assertions
 
         for ( E e : expected )
         {
-            assertTrue( "Expected " + e.toString() + " in " + actual.toString(), actual.contains( e ) );
+            assertTrue( "Expected " + e.toString() + " in " + actual, actual.contains( e ) );
         }
     }
 
@@ -66,7 +66,7 @@ public final class Assertions
 
         for ( Map.Entry<K, V> e : actual.entrySet() )
         {
-            assertEquals( "Did not expect value in " + actual.toString(),
+            assertEquals( "Did not expect value in " + actual,
                 e.getValue(), expected.get( e.getKey() ) );
         }
     }
@@ -74,13 +74,12 @@ public final class Assertions
     /**
      * Asserts that the given collection is not null and empty.
      *
-     * @param <E>
      * @param actual the collection.
      */
-    public static <E> void assertIsEmpty( Collection<E> actual )
+    public static void assertIsEmpty( Collection<?> actual )
     {
         assertNotNull( actual );
-        assertTrue( actual.isEmpty() );
+        assertTrue( actual.toString(), actual.isEmpty() );
     }
 
     /**
@@ -107,6 +106,24 @@ public final class Assertions
         assertTrue( String
             .format( "expected string to start with '%s', got '%s' instead", expected, actual ),
             actual.startsWith( expected ) );
+    }
+
+    /**
+     * Asserts that the given character sequence is contained within the actual
+     * string.
+     *
+     * @param expected expected character sequence to be contained within the
+     *        actual string
+     * @param actual actual string which should contain the expected character
+     *        sequence
+     */
+    public static void assertContains( CharSequence expected, String actual )
+    {
+        assertNotNull( String
+            .format( "expected actual to contain '%s', got null instead", expected ), actual );
+        assertTrue( String
+            .format( "expected actual to contain '%s', got '%s' instead", expected, actual ),
+            actual.contains( expected ) );
     }
 
     /**

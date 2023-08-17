@@ -97,8 +97,7 @@ public class DataInputPeriod implements EmbeddedObject
      */
     public boolean isDateWithinOpenCloseDates( Date date )
     {
-        return (openingDate == null || date.after( openingDate ))
-            && (closingDate == null || date.before( closingDate ));
+        return Period.isDateInTimeFrame( openingDate, closingDate, date );
     }
 
     /**

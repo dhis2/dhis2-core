@@ -27,6 +27,28 @@
  */
 package org.hisp.dhis.system.util;
 
+import static org.hisp.dhis.common.ValueType.BOOLEAN;
+import static org.hisp.dhis.common.ValueType.COORDINATE;
+import static org.hisp.dhis.common.ValueType.DATE;
+import static org.hisp.dhis.common.ValueType.DATETIME;
+import static org.hisp.dhis.common.ValueType.EMAIL;
+import static org.hisp.dhis.common.ValueType.FILE_RESOURCE;
+import static org.hisp.dhis.common.ValueType.IMAGE;
+import static org.hisp.dhis.common.ValueType.INTEGER;
+import static org.hisp.dhis.common.ValueType.INTEGER_NEGATIVE;
+import static org.hisp.dhis.common.ValueType.INTEGER_POSITIVE;
+import static org.hisp.dhis.common.ValueType.INTEGER_ZERO_OR_POSITIVE;
+import static org.hisp.dhis.common.ValueType.LETTER;
+import static org.hisp.dhis.common.ValueType.LONG_TEXT;
+import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.common.ValueType.PERCENTAGE;
+import static org.hisp.dhis.common.ValueType.PHONE_NUMBER;
+import static org.hisp.dhis.common.ValueType.TEXT;
+import static org.hisp.dhis.common.ValueType.TIME;
+import static org.hisp.dhis.common.ValueType.TRUE_ONLY;
+import static org.hisp.dhis.common.ValueType.UNIT_INTERVAL;
+import static org.hisp.dhis.common.ValueType.URL;
+import static org.hisp.dhis.common.ValueType.USERNAME;
 import static org.hisp.dhis.system.util.ValidationUtils.bboxIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.coordinateIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
@@ -40,6 +62,7 @@ import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
 import static org.hisp.dhis.system.util.ValidationUtils.passwordIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.valueIsComparable;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -170,9 +193,9 @@ public class ValidationUtilsTest
     public void testDataValueIsZeroAndInsignificant()
     {
         DataElement de = new DataElement( "DEA" );
-        de.setValueType( ValueType.INTEGER );
-        de.setAggregationType( AggregationType.SUM );
 
+        de.setValueType( INTEGER );
+        de.setAggregationType( AggregationType.SUM );
         assertTrue( dataValueIsZeroAndInsignificant( "0", de ) );
 
         de.setAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT );
@@ -180,60 +203,279 @@ public class ValidationUtilsTest
     }
 
     @Test
-    public void testDataValueIsValid()
+    public void testValueIsComparableForIntegerTypes()
+    {
+        ValueType valueType = INTEGER;
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "-1", valueType ) );
+        assertTrue( valueIsComparable( "-1 ", valueType ) );
+        assertFalse( valueIsComparable( "-", valueType ) );
+        assertFalse( valueIsComparable( "a", valueType ) );
+
+        valueType = INTEGER_POSITIVE;
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "-1", valueType ) );
+        assertTrue( valueIsComparable( "-1 ", valueType ) );
+        assertFalse( valueIsComparable( "-", valueType ) );
+        assertFalse( valueIsComparable( "a", valueType ) );
+
+        valueType = INTEGER_NEGATIVE;
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "-1", valueType ) );
+        assertTrue( valueIsComparable( "-1 ", valueType ) );
+        assertFalse( valueIsComparable( "-", valueType ) );
+        assertFalse( valueIsComparable( "a", valueType ) );
+
+        valueType = INTEGER_ZERO_OR_POSITIVE;
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "-1", valueType ) );
+        assertTrue( valueIsComparable( "-1 ", valueType ) );
+        assertFalse( valueIsComparable( "-", valueType ) );
+        assertFalse( valueIsComparable( "a", valueType ) );
+    }
+
+    @Test
+    public void testValueIsComparableForDoubleTypes()
+    {
+        ValueType valueType;
+        valueType = NUMBER;
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "-1", valueType ) );
+        assertTrue( valueIsComparable( "2.45", valueType ) );
+        assertTrue( valueIsComparable( "-2.45", valueType ) );
+        assertTrue( valueIsComparable( "-2.45 ", valueType ) );
+        assertFalse( valueIsComparable( "-", valueType ) );
+        assertFalse( valueIsComparable( "a", valueType ) );
+
+        valueType = UNIT_INTERVAL;
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "-1", valueType ) );
+        assertTrue( valueIsComparable( "2.45", valueType ) );
+        assertTrue( valueIsComparable( "-2.45", valueType ) );
+        assertTrue( valueIsComparable( "-2.45 ", valueType ) );
+        assertFalse( valueIsComparable( "-", valueType ) );
+        assertFalse( valueIsComparable( "a", valueType ) );
+
+        valueType = PERCENTAGE;
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "-1", valueType ) );
+        assertTrue( valueIsComparable( "2.45", valueType ) );
+        assertTrue( valueIsComparable( "-2.45", valueType ) );
+        assertTrue( valueIsComparable( "-2.45 ", valueType ) );
+        assertFalse( valueIsComparable( "-", valueType ) );
+        assertFalse( valueIsComparable( "a", valueType ) );
+    }
+
+    @Test
+    public void testValueIsComparableForBooleanTypes()
+    {
+        ValueType valueType;
+        valueType = BOOLEAN;
+        assertTrue( valueIsComparable( "true", valueType ) );
+        assertTrue( valueIsComparable( "false", valueType ) );
+        assertTrue( valueIsComparable( "false ", valueType ) );
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "1 ", valueType ) );
+        assertFalse( valueIsComparable( "-", valueType ) );
+        assertFalse( valueIsComparable( "a", valueType ) );
+
+        valueType = TRUE_ONLY;
+        assertTrue( valueIsComparable( "true", valueType ) );
+        assertTrue( valueIsComparable( "false", valueType ) );
+        assertTrue( valueIsComparable( "false ", valueType ) );
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "1 ", valueType ) );
+        assertFalse( valueIsComparable( "-", valueType ) );
+        assertFalse( valueIsComparable( "a", valueType ) );
+    }
+
+    @Test
+    public void testValueIsComparableForDateTimeTypes()
+    {
+        ValueType valueType;
+        valueType = DATE;
+        assertTrue( valueIsComparable( "2013-04-01", valueType ) );
+        assertFalse( valueIsComparable( "2013/04/01", valueType ) );
+        assertFalse( valueIsComparable( "-", valueType ) );
+        assertFalse( valueIsComparable( "a", valueType ) );
+
+        valueType = TIME;
+        assertTrue( valueIsComparable( "12:30", valueType ) );
+        assertFalse( valueIsComparable( "12.30", valueType ) );
+        assertFalse( valueIsComparable( "-", valueType ) );
+        assertFalse( valueIsComparable( "a", valueType ) );
+
+        valueType = DATETIME;
+        assertTrue( valueIsComparable( "2021-08-30T13:53:33.767412Z", valueType ) );
+        assertTrue( valueIsComparable( "2021-08-30T13:53:33.767412", valueType ) );
+        assertTrue( valueIsComparable( "2013-04-01T11:12:05.5417Z", valueType ) );
+        assertTrue( valueIsComparable( "2013-04-01T11:12:05.5417", valueType ) );
+        assertTrue( valueIsComparable( "2013-04-01T11:12:02.541Z", valueType ) );
+        assertTrue( valueIsComparable( "2021-08-30T13:53:33.741", valueType ) );
+        assertTrue( valueIsComparable( "2013-04-01T11:12:00", valueType ) );
+        assertFalse( valueIsComparable( "2021-08-30T13.53.33.767412Z", valueType ) );
+        assertFalse( valueIsComparable( "2021-08-30T13.53.33.767412", valueType ) );
+        assertFalse( valueIsComparable( "2013-04-01T11.12.05.5417Z", valueType ) );
+        assertFalse( valueIsComparable( "2021-08-30T13.53.33.741", valueType ) );
+        assertFalse( valueIsComparable( "2013-04-01T11.12.00", valueType ) );
+        assertFalse( valueIsComparable( "2013-04-01", valueType ) );
+        assertFalse( valueIsComparable( "abcd", valueType ) );
+        assertFalse( valueIsComparable( "-", valueType ) );
+    }
+
+    @Test
+    public void testValueIsComparableForStringTypes()
+    {
+        ValueType valueType;
+        valueType = LONG_TEXT;
+        assertTrue( valueIsComparable( "a", valueType ) );
+        assertTrue( valueIsComparable( "abc", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "-1", valueType ) );
+        assertTrue( valueIsComparable( "@", valueType ) );
+
+        valueType = PHONE_NUMBER;
+        assertTrue( valueIsComparable( "a", valueType ) );
+        assertTrue( valueIsComparable( "abc", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "(+355)", valueType ) );
+        assertTrue( valueIsComparable( "5-1234-5", valueType ) );
+        assertTrue( valueIsComparable( "@", valueType ) );
+
+        valueType = EMAIL;
+        assertTrue( valueIsComparable( "a", valueType ) );
+        assertTrue( valueIsComparable( "abc", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "5_1234_5", valueType ) );
+        assertTrue( valueIsComparable( "5-1234-5", valueType ) );
+        assertTrue( valueIsComparable( "@", valueType ) );
+
+        valueType = TEXT;
+        assertTrue( valueIsComparable( "a", valueType ) );
+        assertTrue( valueIsComparable( "abc", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "-1", valueType ) );
+        assertTrue( valueIsComparable( "@", valueType ) );
+        assertTrue( valueIsComparable( " ", valueType ) );
+
+        valueType = LETTER;
+        assertTrue( valueIsComparable( "a", valueType ) );
+        assertTrue( valueIsComparable( "abc", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "-1", valueType ) );
+        assertTrue( valueIsComparable( "@", valueType ) );
+        assertTrue( valueIsComparable( " ", valueType ) );
+
+        valueType = COORDINATE;
+        assertTrue( valueIsComparable( "a", valueType ) );
+        assertTrue( valueIsComparable( "abc", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "-1", valueType ) );
+        assertTrue( valueIsComparable( ":", valueType ) );
+        assertTrue( valueIsComparable( ".", valueType ) );
+
+        valueType = URL;
+        assertTrue( valueIsComparable( "http", valueType ) );
+        assertTrue( valueIsComparable( "abc", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "-1", valueType ) );
+        assertTrue( valueIsComparable( ":", valueType ) );
+        assertTrue( valueIsComparable( ".", valueType ) );
+
+        valueType = FILE_RESOURCE;
+        assertTrue( valueIsComparable( "file://", valueType ) );
+        assertTrue( valueIsComparable( "abc", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "@", valueType ) );
+        assertTrue( valueIsComparable( ":", valueType ) );
+        assertTrue( valueIsComparable( ".", valueType ) );
+
+        valueType = IMAGE;
+        assertTrue( valueIsComparable( "file://", valueType ) );
+        assertTrue( valueIsComparable( "abc", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "@", valueType ) );
+        assertTrue( valueIsComparable( ":", valueType ) );
+        assertTrue( valueIsComparable( ".", valueType ) );
+
+        valueType = USERNAME;
+        assertTrue( valueIsComparable( "a", valueType ) );
+        assertTrue( valueIsComparable( "abc", valueType ) );
+        assertTrue( valueIsComparable( "1", valueType ) );
+        assertTrue( valueIsComparable( "0", valueType ) );
+        assertTrue( valueIsComparable( "-1", valueType ) );
+        assertTrue( valueIsComparable( "@", valueType ) );
+
+        // Applicable for all value types.
+        assertFalse( valueIsComparable( "", valueType ) );
+        assertFalse( valueIsComparable( null, valueType ) );
+    }
+
+    @Test
+    public void testValueIsValid()
     {
         DataElement de = new DataElement( "DEA" );
-        de.setValueType( ValueType.INTEGER );
 
+        de.setValueType( INTEGER );
         assertNull( dataValueIsValid( null, de ) );
         assertNull( dataValueIsValid( "", de ) );
-
         assertNull( dataValueIsValid( "34", de ) );
         assertNotNull( dataValueIsValid( "Yes", de ) );
 
-        de.setValueType( ValueType.NUMBER );
-
+        de.setValueType( NUMBER );
         assertNull( dataValueIsValid( "3.7", de ) );
         assertNotNull( dataValueIsValid( "No", de ) );
 
-        de.setValueType( ValueType.INTEGER_POSITIVE );
-
+        de.setValueType( INTEGER_POSITIVE );
         assertNull( dataValueIsValid( "3", de ) );
         assertNotNull( dataValueIsValid( "-4", de ) );
 
-        de.setValueType( ValueType.INTEGER_ZERO_OR_POSITIVE );
-
+        de.setValueType( INTEGER_ZERO_OR_POSITIVE );
         assertNull( dataValueIsValid( "3", de ) );
         assertNotNull( dataValueIsValid( "-4", de ) );
 
-        de.setValueType( ValueType.INTEGER_NEGATIVE );
-
+        de.setValueType( INTEGER_NEGATIVE );
         assertNull( dataValueIsValid( "-3", de ) );
         assertNotNull( dataValueIsValid( "4", de ) );
 
-        de.setValueType( ValueType.TEXT );
-
+        de.setValueType( TEXT );
         assertNull( dataValueIsValid( "0", de ) );
 
-        de.setValueType( ValueType.BOOLEAN );
-
+        de.setValueType( BOOLEAN );
         assertNull( dataValueIsValid( "true", de ) );
         assertNull( dataValueIsValid( "false", de ) );
         assertNull( dataValueIsValid( "FALSE", de ) );
         assertNotNull( dataValueIsValid( "yes", de ) );
 
-        de.setValueType( ValueType.TRUE_ONLY );
-
+        de.setValueType( TRUE_ONLY );
         assertNull( dataValueIsValid( "true", de ) );
         assertNull( dataValueIsValid( "TRUE", de ) );
         assertNotNull( dataValueIsValid( "false", de ) );
 
-        de.setValueType( ValueType.DATE );
+        de.setValueType( DATE );
         assertNull( dataValueIsValid( "2013-04-01", de ) );
         assertNotNull( dataValueIsValid( "2012304-01", de ) );
         assertNotNull( dataValueIsValid( "Date", de ) );
 
-        de.setValueType( ValueType.DATETIME );
+        de.setValueType( DATETIME );
         assertNull( dataValueIsValid( "2021-08-30T13:53:33.767412Z", de ) );
         assertNull( dataValueIsValid( "2021-08-30T13:53:33.767412", de ) );
         assertNull( dataValueIsValid( "2013-04-01T11:12:05.5417Z", de ) );
@@ -277,19 +519,17 @@ public class ValidationUtilsTest
     @Test
     public void testNormalizeBoolean()
     {
-        assertEquals( "true", normalizeBoolean( "1", ValueType.BOOLEAN ) );
-        assertEquals( "true", normalizeBoolean( "T", ValueType.BOOLEAN ) );
-        assertEquals( "true", normalizeBoolean( "true", ValueType.BOOLEAN ) );
-        assertEquals( "true", normalizeBoolean( "TRUE", ValueType.BOOLEAN ) );
-        assertEquals( "true", normalizeBoolean( "t", ValueType.BOOLEAN ) );
-
-        assertEquals( "test", normalizeBoolean( "test", ValueType.TEXT ) );
-
-        assertEquals( "false", normalizeBoolean( "0", ValueType.BOOLEAN ) );
-        assertEquals( "false", normalizeBoolean( "f", ValueType.BOOLEAN ) );
-        assertEquals( "false", normalizeBoolean( "False", ValueType.BOOLEAN ) );
-        assertEquals( "false", normalizeBoolean( "FALSE", ValueType.BOOLEAN ) );
-        assertEquals( "false", normalizeBoolean( "F", ValueType.BOOLEAN ) );
+        assertEquals( "true", normalizeBoolean( "1", BOOLEAN ) );
+        assertEquals( "true", normalizeBoolean( "T", BOOLEAN ) );
+        assertEquals( "true", normalizeBoolean( "true", BOOLEAN ) );
+        assertEquals( "true", normalizeBoolean( "TRUE", BOOLEAN ) );
+        assertEquals( "true", normalizeBoolean( "t", BOOLEAN ) );
+        assertEquals( "test", normalizeBoolean( "test", TEXT ) );
+        assertEquals( "false", normalizeBoolean( "0", BOOLEAN ) );
+        assertEquals( "false", normalizeBoolean( "f", BOOLEAN ) );
+        assertEquals( "false", normalizeBoolean( "False", BOOLEAN ) );
+        assertEquals( "false", normalizeBoolean( "FALSE", BOOLEAN ) );
+        assertEquals( "false", normalizeBoolean( "F", BOOLEAN ) );
     }
 
     @Test
@@ -298,7 +538,7 @@ public class ValidationUtilsTest
     {
         long oneHundredMegaBytes = 1024 * (1024 * 100L);
 
-        ValueType valueType = ValueType.FILE_RESOURCE;
+        ValueType valueType = FILE_RESOURCE;
 
         FileTypeValueOptions options = new FileTypeValueOptions();
         options.setMaxFileSize( oneHundredMegaBytes );
