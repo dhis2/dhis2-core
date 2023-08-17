@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.webdomain;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.hisp.dhis.query.Order;
 
 /**
  * Class purely used to tidy up code while passing data
@@ -42,4 +43,5 @@ public class WebRequestData {
   private WebOptions options;
   private List<String> fields;
   private List<String> filters;
+  private List<Order> orders;
 }
