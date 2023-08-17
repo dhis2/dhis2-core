@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.configuration;
+package org.hisp.dhis.webapi.openapi;
 
-import org.hisp.dhis.webapi.filter.DefaultSessionConfiguration;
-import org.springframework.session.web.context.AbstractHttpSessionApplicationInitializer;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * This is used for adding springSessionRepositoryFilter into the filter chain. The actual filter
- * bean used will be either backed by redis from the {@link RedisSpringSessionConfiguration} or a
- * dummy filter from {@link DefaultSessionConfiguration}.
- *
- * @author Ameen Mohamed
- */
-public class SpringHttpSessionInitializer extends AbstractHttpSessionApplicationInitializer {}
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.Collection;
+import org.hisp.dhis.common.OpenApi;
+import org.junit.jupiter.api.Test;
+
+class PropertyTest {
+  @OpenApi.Property(value = String.class)
+  private static class AProperty {}
+
+  @JsonProperty private AProperty aProperty;
+
+  @Test
+  void testGetPropertiesGivenOpenApiPropertyAnnotatedClassThatHasValueSet() {
+    Collection<Property> properties = Property.getProperties(PropertyTest.class);
+    assertEquals(String.class, new ArrayList<>(properties).get(0).getType());
+  }
+}

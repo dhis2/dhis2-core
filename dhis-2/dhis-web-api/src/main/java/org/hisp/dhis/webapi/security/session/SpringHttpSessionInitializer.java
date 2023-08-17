@@ -25,27 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.configuration;
+package org.hisp.dhis.webapi.security.session;
 
-import org.hisp.dhis.condition.RedisEnabledCondition;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.session.data.redis.config.ConfigureRedisAction;
-import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
+import org.hisp.dhis.webapi.filter.DefaultSessionConfiguration;
+import org.springframework.session.web.context.AbstractHttpSessionApplicationInitializer;
 
 /**
- * Configuration registered if {@link RedisEnabledCondition} matches to true. Redis backed Spring
- * Session will be configured due to the {@link EnableRedisHttpSession} annotation.
+ * This is used for adding springSessionRepositoryFilter into the filter chain. The actual filter
+ * bean used will be either backed by redis from the {@link RedisSpringSessionConfiguration} or a
+ * dummy filter from {@link DefaultSessionConfiguration}.
  *
  * @author Ameen Mohamed
  */
-@Configuration
-@Conditional(RedisEnabledCondition.class)
-@EnableRedisHttpSession
-public class RedisSpringSessionConfiguration {
-  @Bean
-  public static ConfigureRedisAction configureRedisAction() {
-    return ConfigureRedisAction.NO_OP;
-  }
-}
+public class SpringHttpSessionInitializer extends AbstractHttpSessionApplicationInitializer {}

@@ -25,38 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.embeddedjetty;
+package org.hisp.dhis.webapi.security.session;
 
-import org.hisp.dhis.security.SystemAuthoritiesProvider;
-import org.hisp.dhis.startup.DefaultAdminUserPopulator;
+import org.hisp.dhis.condition.RedisEnabledCondition;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.session.data.redis.config.ConfigureRedisAction;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Configuration registered if {@link RedisEnabledCondition} matches to true. Redis backed Spring
+ * Session will be configured due to the {@link EnableRedisHttpSession} annotation.
+ *
+ * @author Ameen Mohamed
  */
 @Configuration
-@Order(100)
-@ComponentScan(basePackages = {"org.hisp.dhis"})
-@Profile("embeddedJetty")
-public class SpringConfiguration {
+@Order(1998)
+@Conditional(RedisEnabledCondition.class)
+@EnableRedisHttpSession
+public class RedisSpringSessionConfiguration {
 
-  @Primary
-  @Bean("org.hisp.dhis.security.SystemAuthoritiesProvider")
-  public SystemAuthoritiesProvider systemAuthoritiesProvider() {
-    return () -> DefaultAdminUserPopulator.ALL_AUTHORITIES;
-  }
-
-  @Bean("org.hisp.dhis.web.embeddedjetty.StartupFinishedRoutine")
-  public StartupFinishedRoutine startupFinishedRoutine() {
-    StartupFinishedRoutine startupRoutine = new StartupFinishedRoutine();
-    startupRoutine.setName("StartupFinishedRoutine");
-    startupRoutine.setRunlevel(42);
-    startupRoutine.setSkipInTests(true);
-    return startupRoutine;
+  @Bean
+  public static ConfigureRedisAction configureRedisAction() {
+    return ConfigureRedisAction.NO_OP;
   }
 }
