@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.user;
 
-import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.NotFoundException;
 
 /**
@@ -43,11 +43,13 @@ public interface AuthenticationService {
    *
    * <p>A.k.a. "becoming" a certain user
    *
-   * @param userId as this user, when {@code null} the user is the system user with {@code ALL}
-   *     authority
+   * @param userId as this user
    * @throws NotFoundException when no user with the provided ID exists
    */
-  void obtainAuthentication(@CheckForNull String userId) throws NotFoundException;
+  void obtainAuthentication(@Nonnull String userId) throws NotFoundException;
+
+  /** Internally "login" as a system user {@code ALL} with authority */
+  void obtainSystemAuthentication();
 
   /**
    * "Logout" or clear the current thread context.

@@ -29,6 +29,7 @@ package org.hisp.dhis.user;
 
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -44,14 +45,18 @@ public class DefaultAuthenticationService implements AuthenticationService {
   private final UserService userService;
 
   @Override
-  public void obtainAuthentication(String userId) throws NotFoundException {
-    Object username = "System";
-    Collection<? extends GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ALL"));
-    if (userId != null) {
-      CurrentUserDetails user = userService.createUserDetails(userId);
-      username = user;
-      authorities = user.getAuthorities();
-    }
+  public void obtainAuthentication(@Nonnull String userId) throws NotFoundException {
+    CurrentUserDetails user = userService.createUserDetails(userId);
+    setupInContext(user, user.getAuthorities());
+  }
+
+  @Override
+  public void obtainSystemAuthentication() {
+    setupInContext("system", List.of(new SimpleGrantedAuthority("ALL")));
+  }
+
+  private static void setupInContext(
+      Object username, Collection<? extends GrantedAuthority> authorities) {
     SecurityContext context = SecurityContextHolder.createEmptyContext();
     context.setAuthentication(new UsernamePasswordAuthenticationToken(username, null, authorities));
     SecurityContextHolder.setContext(context);
