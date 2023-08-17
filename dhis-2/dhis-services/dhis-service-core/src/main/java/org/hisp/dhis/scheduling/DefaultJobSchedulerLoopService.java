@@ -135,7 +135,11 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   @Transactional(readOnly = true)
   public JobProgress startRun(@Nonnull String jobId, String user, Runnable observer)
       throws NotFoundException {
-    authenticationService.obtainAuthentication(user);
+    if (user != null) {
+      authenticationService.obtainAuthentication(user);
+    } else {
+      authenticationService.obtainSystemAuthentication();
+    }
     JobConfiguration job = jobConfigurationStore.getByUid(jobId);
     if (job == null) return NoopJobProgress.INSTANCE;
     return startRecording(job, observer);
