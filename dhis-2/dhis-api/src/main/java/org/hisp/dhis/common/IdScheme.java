@@ -27,18 +27,31 @@
  */
 package org.hisp.dhis.common;
 
-import com.google.common.base.MoreObjects;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableMap;
+import java.io.Serializable;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@ToString
+@EqualsAndHashCode
 @Getter
+@JsonInclude(Include.NON_NULL)
+@JsonAutoDetect(getterVisibility = Visibility.NONE, isGetterVisibility = Visibility.NONE)
 @OpenApi.Property(value = IdentifiableProperty.class)
-public class IdScheme {
+public class IdScheme implements Serializable {
+
   public static final IdScheme NULL = new IdScheme(null);
 
   public static final IdScheme ID = new IdScheme(IdentifiableProperty.ID);
@@ -62,9 +75,10 @@ public class IdScheme {
 
   public static final String ATTR_ID_SCHEME_PREFIX = "ATTRIBUTE:";
 
+  @JsonProperty("type")
   private final IdentifiableProperty identifiableProperty;
 
-  private String attribute;
+  @JsonProperty private String attribute;
 
   public static IdScheme from(IdScheme idScheme) {
     if (idScheme == null) {
@@ -104,7 +118,10 @@ public class IdScheme {
     this.identifiableProperty = identifiableProperty;
   }
 
-  private IdScheme(IdentifiableProperty identifiableProperty, String attribute) {
+  @JsonCreator
+  public IdScheme(
+      @JsonProperty("type") IdentifiableProperty identifiableProperty,
+      @JsonProperty("attribute") String attribute) {
     this.identifiableProperty = identifiableProperty;
     this.attribute = attribute;
   }
@@ -151,13 +168,5 @@ public class IdScheme {
     return !StringUtils.isEmpty(str)
         && str.toUpperCase().startsWith(ATTR_ID_SCHEME_PREFIX)
         && str.length() == 21;
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("identifiableProperty", identifiableProperty)
-        .add("attribute", attribute)
-        .toString();
   }
 }

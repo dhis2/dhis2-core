@@ -76,7 +76,7 @@ class JobProgressTest {
     verify(progress).startingWorkItem("3");
     verify(progress, times(3)).completedWorkItem(null);
     verify(progress).completedStage("(3/0)");
-    verify(progress, atLeast(3)).isCancellationRequested();
+    verify(progress, atLeast(3)).isCancelled();
     verify(progress, never()).failedWorkItem(any(Exception.class));
     verify(progress, never()).failedWorkItem(anyString());
     verify(progress, never()).failedStage(any(Exception.class));
@@ -86,7 +86,7 @@ class JobProgressTest {
   @Test
   void testRunStage_StreamCancel() {
     JobProgress progress = newMockJobProgress();
-    when(progress.isCancellationRequested()).thenReturn(true);
+    when(progress.isCancelled()).thenReturn(true);
     List<Integer> worked = new ArrayList<>();
     progress.runStage(
         Stream.of(1, 2, 3), String::valueOf, worked::add, JobProgressTest::printSummary);
@@ -124,7 +124,7 @@ class JobProgressTest {
     // first return true after we failed once
     doAnswer(
             invocation -> {
-              when(progress.isCancellationRequested()).thenReturn(true);
+              when(progress.isCancelled()).thenReturn(true);
               return null;
             })
         .when(progress)

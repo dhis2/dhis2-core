@@ -31,8 +31,10 @@ package org.hisp.dhis.scheduling;
  * @author Lars Helge Overland
  */
 public enum SchedulingType {
-  /** Scheduling based on a expression. */
+  /** Scheduling based on a CRON expression. */
   CRON,
   /** Scheduling based on a fixed delay between invocations. */
-  FIXED_DELAY;
+  FIXED_DELAY,
+  /** The job should run as soon as possible but only once. */
+  ONCE_ASAP
 }

@@ -64,7 +64,7 @@ class DataIntegrityCategoryOptionComboWrongCardinalityControllerTest
                 + "'} ]} "));
 
     assertHasDataIntegrityIssues(
-        detailsIdType, check, 50, testCatCombo, "Taste and color", null, true);
+        detailsIdType, check, 33, testCatCombo, "Taste and color", null, true);
   }
 
   @Test

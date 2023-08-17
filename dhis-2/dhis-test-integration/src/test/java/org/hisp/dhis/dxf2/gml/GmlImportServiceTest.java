@@ -110,7 +110,7 @@ class GmlImportServiceTest extends TransactionalIntegrationTest {
     forskOrgUnit.setName("Forskningsparken");
     organisationUnitService.addOrganisationUnit(forskOrgUnit);
     user = createAndInjectAdminUser();
-    id = new JobConfiguration("gmlImportTest", JobType.METADATA_IMPORT, user.getUid(), true);
+    id = new JobConfiguration("gmlImportTest", JobType.METADATA_IMPORT, user.getUid());
     importOptions = new ImportOptions().setImportStrategy(ImportStrategy.UPDATE);
     importOptions.setDryRun(false);
     importOptions.setPreheatCache(true);

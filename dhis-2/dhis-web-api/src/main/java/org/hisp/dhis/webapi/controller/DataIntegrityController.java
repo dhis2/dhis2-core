@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 
 import java.util.Collection;
@@ -45,9 +44,12 @@ import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
 import org.hisp.dhis.dataintegrity.DataIntegrityService;
 import org.hisp.dhis.dataintegrity.DataIntegritySummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters.DataIntegrityReportType;
 import org.hisp.dhis.user.CurrentUser;
@@ -72,9 +74,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class DataIntegrityController {
-  private final SchedulingManager schedulingManager;
 
   private final DataIntegrityService dataIntegrityService;
+  private final JobConfigurationService jobConfigurationService;
+  private final JobSchedulerService jobSchedulerService;
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @PostMapping
@@ -82,29 +85,22 @@ public class DataIntegrityController {
   public WebMessage runDataIntegrity(
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @CheckForNull @RequestBody(required = false) Set<String> checksBody,
-      @CurrentUser User currentUser) {
+      @CurrentUser User currentUser)
+      throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<String> names = getCheckNames(checksBody, checks);
-    return runDataIntegrityAsync(
-            names, currentUser, "runDataIntegrity", DataIntegrityReportType.REPORT)
+    return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.REPORT)
         .setLocation("/dataIntegrity/details?checks=" + toChecksList(names));
   }
 
   private WebMessage runDataIntegrityAsync(
-      @Nonnull Set<String> checks,
-      User currentUser,
-      String description,
-      DataIntegrityReportType type) {
-    DataIntegrityJobParameters params = new DataIntegrityJobParameters();
-    params.setChecks(checks);
-    params.setType(type);
-    JobConfiguration config =
-        new JobConfiguration(description, JobType.DATA_INTEGRITY, null, params, true, true);
+      @Nonnull Set<String> checks, User currentUser, DataIntegrityReportType type)
+      throws ConflictException, NotFoundException {
+    JobConfiguration config = new JobConfiguration(JobType.DATA_INTEGRITY);
     config.setExecutedBy(currentUser.getUid());
-    config.setAutoFields();
+    config.setJobParameters(new DataIntegrityJobParameters(type, checks));
 
-    if (!schedulingManager.executeNow(config)) {
-      return conflict("Data integrity check is already running");
-    }
+    jobSchedulerService.executeNow(jobConfigurationService.create(config));
+
     return jobConfigurationReport(config);
   }
 
@@ -147,10 +143,10 @@ public class DataIntegrityController {
   public WebMessage runSummariesCheck(
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @CheckForNull @RequestBody(required = false) Set<String> checksBody,
-      @CurrentUser User currentUser) {
+      @CurrentUser User currentUser)
+      throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<String> names = getCheckNames(checksBody, checks);
-    return runDataIntegrityAsync(
-            names, currentUser, "runSummariesCheck", DataIntegrityReportType.SUMMARY)
+    return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.SUMMARY)
         .setLocation("/dataIntegrity/summary?checks=" + toChecksList(names));
   }
 
@@ -181,10 +177,10 @@ public class DataIntegrityController {
   public WebMessage runDetailsCheck(
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @RequestBody(required = false) Set<String> checksBody,
-      @CurrentUser User currentUser) {
+      @CurrentUser User currentUser)
+      throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<String> names = getCheckNames(checksBody, checks);
-    return runDataIntegrityAsync(
-            names, currentUser, "runDetailsCheck", DataIntegrityReportType.DETAILS)
+    return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.DETAILS)
         .setLocation("/dataIntegrity/details?checks=" + toChecksList(names));
   }
 

@@ -374,8 +374,7 @@ public class DefaultAdxDataService implements AdxDataService {
     JobConfiguration dxfJobId =
         (id == null)
             ? null
-            : new JobConfiguration(
-                "dxfJob", JobType.DATAVALUE_IMPORT_INTERNAL, id.getUserUid(), true);
+            : new JobConfiguration("dxfJob", JobType.DATAVALUE_IMPORT_INTERNAL, id.getUserUid());
 
     int groupCount = 0;
 

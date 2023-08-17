@@ -28,6 +28,7 @@
 package org.hisp.dhis.attribute;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
 
@@ -35,7 +36,8 @@ import org.hisp.dhis.common.IdentifiableObject;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface AttributeValueStore extends GenericStore<AttributeValue> {
-  List<AttributeValue> getAllByAttributes(List<Attribute> attributes);
+  @Nonnull
+  List<AttributeValue> getAllByAttributes(@Nonnull List<Attribute> attributes);
 
   List<AttributeValue> getAllByAttribute(Attribute attribute);
 

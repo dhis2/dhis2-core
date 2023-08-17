@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.leader.election;
 
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.SchedulingManager;
-
 /**
  * Manages cluster leader node elections, renewals, revocations and to check whether the current
  * instance is the leader in the cluster.
@@ -38,10 +35,10 @@ import org.hisp.dhis.scheduling.SchedulingManager;
  */
 public interface LeaderManager {
   /** Extend the expiration time of leadership if this node is the current leader. */
-  void renewLeader(JobProgress progress);
+  void renewLeader(int ttlSeconds);
 
   /** Attempt to become the leader. */
-  void electLeader(JobProgress progress);
+  void electLeader(int ttlSeconds);
 
   /**
    * Check if the current instance is the leader.
@@ -49,13 +46,6 @@ public interface LeaderManager {
    * @return true if this instance is the leader, false otherwise.
    */
   boolean isLeader();
-
-  /**
-   * Setter to set the scheduling manager to gain access to systems scheduling mechanisms.
-   *
-   * @param schedulingManager the instantiated scheduling manager.
-   */
-  void setSchedulingManager(SchedulingManager schedulingManager);
 
   /**
    * Get the nodeID that was generated for the current instance.

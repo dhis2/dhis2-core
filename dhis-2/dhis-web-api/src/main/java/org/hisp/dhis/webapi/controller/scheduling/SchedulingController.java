@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.scheduling;
 
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -42,10 +41,11 @@ import lombok.Getter;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.scheduling.JobProgress.Process;
+import org.hisp.dhis.scheduling.JobProgress.Progress;
 import org.hisp.dhis.scheduling.JobProgress.Stage;
 import org.hisp.dhis.scheduling.JobProgress.Status;
+import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,8 +57,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controller for status information on the {@link SchedulingManager} and running {@link
- * org.hisp.dhis.scheduling.Job}s.
+ * Controller for status information on the the scheduling of jobs.
  *
  * @author Jan Bernitt
  */
@@ -68,14 +67,15 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class SchedulingController {
-  private final SchedulingManager schedulingManager;
+
+  private final JobSchedulerService jobSchedulerService;
 
   @GetMapping(
       value = {"/running/types", "/running/types/"},
       produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public Collection<JobType> getRunningProgressTypesOnly() {
-    return schedulingManager.getRunningTypes();
+    return jobSchedulerService.getRunningTypes();
   }
 
   @GetMapping(
@@ -83,10 +83,9 @@ public class SchedulingController {
       produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public Map<JobType, Collection<ProcessInfo>> getRunningProgressTypes() {
-    return schedulingManager.getRunningTypes().stream()
-        .collect(
-            toMap(
-                Function.identity(), type -> flatten(schedulingManager.getRunningProgress(type))));
+    Function<JobType, Progress> running = jobSchedulerService::getRunningProgress;
+    return jobSchedulerService.getRunningTypes().stream()
+        .collect(toMap(Function.identity(), type -> flatten(running.apply(type))));
   }
 
   @GetMapping(
@@ -94,53 +93,46 @@ public class SchedulingController {
       produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public Map<JobType, Collection<ProcessInfo>> getCompletedProgressTypes() {
-    return schedulingManager.getCompletedTypes().stream()
-        .collect(
-            toMap(
-                Function.identity(),
-                type -> flatten(schedulingManager.getCompletedProgress(type))));
+    Function<JobType, Progress> completed = jobSchedulerService::getCompletedProgress;
+    return jobSchedulerService.getCompletedTypes().stream()
+        .collect(toMap(Function.identity(), type -> flatten(completed.apply(type))));
   }
 
   @GetMapping(value = "/running/{type}", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public Collection<Process> getRunningProgress(@PathVariable("type") String type) {
-    return schedulingManager.getRunningProgress(JobType.valueOf(type.toUpperCase()));
+  public Progress getRunningProgress(@PathVariable("type") String type) {
+    return jobSchedulerService.getRunningProgress(JobType.valueOf(type.toUpperCase()));
   }
 
   @GetMapping(value = "/completed/{type}", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public Collection<Process> getCompletedProgress(@PathVariable("type") String type) {
-    return schedulingManager.getCompletedProgress(JobType.valueOf(type.toUpperCase()));
+  public Progress getCompletedProgress(@PathVariable("type") String type) {
+    return jobSchedulerService.getCompletedProgress(JobType.valueOf(type.toUpperCase()));
   }
 
   @PostMapping("/cancel/{type}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void requestCancellation(@PathVariable("type") String type) {
-    schedulingManager.cancel(JobType.valueOf(type.toUpperCase()));
+    jobSchedulerService.requestCancel(JobType.valueOf(type.toUpperCase()));
   }
 
-  private static Collection<ProcessInfo> flatten(Collection<Process> processes) {
-    return processes.stream().map(ProcessInfo::new).collect(toList());
+  private static Collection<ProcessInfo> flatten(Progress progress) {
+    return progress == null
+        ? List.of()
+        : progress.getSequence().stream().map(ProcessInfo::new).toList();
   }
 
   @Getter
   public static final class ProcessInfo {
+
     @JsonProperty private final String jobId;
-
     @JsonProperty private final Status status;
-
     @JsonProperty private final String description;
-
     @JsonProperty private final Date startedTime;
-
     @JsonProperty private final Date completedTime;
-
     @JsonProperty private final Date cancelledTime;
-
     @JsonProperty private final String summary;
-
     @JsonProperty private final String error;
-
     @JsonProperty private final List<String> stages;
 
     ProcessInfo(Process process) {
@@ -152,7 +144,7 @@ public class SchedulingController {
       this.description = process.getDescription();
       this.summary = process.getSummary();
       this.error = process.getError();
-      this.stages = process.getStages().stream().map(ProcessInfo::getDescription).collect(toList());
+      this.stages = process.getStages().stream().map(ProcessInfo::getDescription).toList();
     }
 
     private static String getDescription(Stage stage) {

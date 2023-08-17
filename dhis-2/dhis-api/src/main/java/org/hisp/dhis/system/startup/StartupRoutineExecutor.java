@@ -25,34 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.leader.election;
-
-import lombok.AllArgsConstructor;
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.system.startup;
 
 /**
- * Job that attempts to elect the current instance as the leader of the cluster.
+ * Executes a collection of StartupRoutines when the system is started.
  *
- * @author Ameen Mohamed (original)
- * @author Jan Bernitt (job progress tracking)
+ * @author <a href="mailto:torgeilo@gmail.com">Torgeir Lorange Ostby</a>
  */
-@Component
-@AllArgsConstructor
-public class LeaderElectionJob implements Job {
-  private final LeaderManager leaderManager;
+public interface StartupRoutineExecutor {
+  /**
+   * Executes the StartupRoutines.
+   *
+   * @throws Exception on execution failure.
+   */
+  void execute() throws Exception;
 
-  @Override
-  public JobType getJobType() {
-    return JobType.LEADER_ELECTION;
-  }
-
-  @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
-    progress.startingProcess("Elect leader node");
-    progress.endingProcess(progress.runStage(() -> leaderManager.electLeader(progress)));
-  }
+  /**
+   * Executes the StartupRoutines for testing.
+   *
+   * @throws Exception on execution failure.
+   */
+  void executeForTesting() throws Exception;
 }

@@ -239,6 +239,19 @@ public enum SettingKey {
   RULE_ENGINE_ASSIGN_OVERWRITE("ruleEngineAssignOverwrite", Boolean.FALSE, Boolean.class),
 
   /**
+   * A job that has not been updating its "alive" timestamp for this number of minutes is reset to
+   * initial state of being scheduled by the heartbeat job. The run that was in progress is
+   * considered a failed run.
+   */
+  JOBS_RESCHEDULE_STALE_FOR_MINUTES("jobsRescheduleAfterMinutes", 10, Integer.class),
+
+  /**
+   * A job that only runs once (typical an import or manual request) is deleted after this number of
+   * minutes after it is finished by the heartbeat job.
+   */
+  JOBS_CLEANUP_AFTER_MINUTES("jobsCleanupAfterMinutes", 24 * 60, Integer.class),
+
+  /**
    * Progressive caching factor for the analytics API. To enable, the {@link
    * #ANALYTICS_CACHE_TTL_MODE} must be set to PROGRESSIVE.
    */

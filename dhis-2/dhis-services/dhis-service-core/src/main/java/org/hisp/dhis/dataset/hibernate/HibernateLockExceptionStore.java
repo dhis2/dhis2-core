@@ -34,6 +34,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dataelement.DataElement;
@@ -90,7 +91,7 @@ public class HibernateLockExceptionStore extends HibernateGenericStore<LockExcep
   // -------------------------------------------------------------------------
 
   @Override
-  public void save(LockException lockException) {
+  public void save(@Nonnull LockException lockException) {
     lockException.setPeriod(periodService.reloadPeriod(lockException.getPeriod()));
     lockException.setAutoFields();
 
@@ -98,7 +99,7 @@ public class HibernateLockExceptionStore extends HibernateGenericStore<LockExcep
   }
 
   @Override
-  public void update(LockException lockException) {
+  public void update(@Nonnull LockException lockException) {
     lockException.setPeriod(periodService.reloadPeriod(lockException.getPeriod()));
     lockException.setAutoFields();
 

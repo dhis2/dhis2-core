@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -36,15 +40,11 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class ValidationControllerTest extends DhisControllerConvenienceTest {
+class ValidationControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void testRunValidationNotificationsTask() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Initiated validation result notification",
-        POST("/validation/sendNotifications").content());
+    JsonWebMessage msg = assertWebMessage(HttpStatus.OK, POST("/validation/sendNotifications"));
+    assertStartsWith("Initiated VALIDATION_RESULTS_NOTIFICATION", msg.getMessage());
   }
 }

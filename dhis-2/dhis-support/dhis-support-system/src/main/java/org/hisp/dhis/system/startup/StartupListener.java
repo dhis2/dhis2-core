@@ -56,7 +56,7 @@ public class StartupListener implements ServletContextListener {
         WebApplicationContextUtils.getWebApplicationContext(event.getServletContext());
 
     StartupRoutineExecutor startupRoutineExecutor =
-        (StartupRoutineExecutor) applicationContext.getBean(StartupRoutineExecutor.ID);
+        applicationContext.getBean(StartupRoutineExecutor.class);
 
     try {
       startupRoutineExecutor.execute();
