@@ -73,6 +73,4 @@ public interface EnrollmentAnalyticsService {
    * @return enrollments with event data as a Grid object.
    */
   Grid getEnrollments(EventQueryParams params);
-
-  Grid getAggregatedEnrollments(EventQueryParams params);
 }

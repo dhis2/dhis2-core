@@ -107,12 +107,6 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
   // -------------------------------------------------------------------------
 
   @Override
-  public Grid getAggregatedEnrollments(EventQueryParams params) {
-    return getGrid(params, true);
-  }
-
-
-  @Override
   public Grid getEnrollments(EventQueryParams params) {
     return getGrid(params);
   }
@@ -159,22 +153,9 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
         .addHeader(new GridHeader(ITEM_PROGRAM_STATUS, NAME_PROGRAM_STATUS, TEXT, false, true));
   }
 
-  @Override
-  protected long addAggregatedEnrollmentData(Grid grid, EventQueryParams params){
-    long count = 0;
-
-    if (params.isTotalPages()) {
-      count += enrollmentAnalyticsManager.getAggregatedEnrollmentCount(params);
-    }
-
-    enrollmentAnalyticsManager.getAggregatedEnrollments(params, grid, queryValidator.getMaxLimit());
-
-    return count;
-  }
-
 
   @Override
-  protected long addEventData(Grid grid, EventQueryParams params) {
+  protected long addData(Grid grid, EventQueryParams params) {
     Timer timer = new Timer().start().disablePrint();
 
     params = queryPlanner.planEnrollmentQuery(params);
@@ -186,7 +167,6 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
     if (params.isTotalPages()) {
       count += enrollmentAnalyticsManager.getEnrollmentCount(params);
     }
-
     enrollmentAnalyticsManager.getEnrollments(params, grid, queryValidator.getMaxLimit());
 
     timer.getTime("Got enrollments " + grid.getHeight());

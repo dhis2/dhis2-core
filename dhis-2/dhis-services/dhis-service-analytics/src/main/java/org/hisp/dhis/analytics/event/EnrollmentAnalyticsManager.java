@@ -43,17 +43,6 @@ public interface EnrollmentAnalyticsManager {
    */
   Grid getAggregatedEventData(EventQueryParams params, Grid grid, int maxLimit);
 
-
-  /**
-   * Retrieves aggregated data based on enrollments.
-   *
-   * @param params the query to retrieve enrollments for.
-   * @param grid the grid to insert data into.
-   * @param maxLimit the max number of records to retrieve.
-   * @return a grid with data.
-   */
-    void getAggregatedEnrollments(EventQueryParams params, Grid grid, int maxLimit);
-
   /**
    * Retrieves data based on enrollments.
    *
@@ -63,14 +52,6 @@ public interface EnrollmentAnalyticsManager {
    * @return a grid with data.
    */
   void getEnrollments(EventQueryParams params, Grid grid, int maxLimit);
-
-  /**
-   * Retreives count of aggregated enrollments based on params.
-   *
-   * @param params the qyery to count enrollments for,
-   * @return number of enrollments macting the parameter criteria.
-   */
-  long getAggregatedEnrollmentCount(EventQueryParams params);
 
   /**
    * Retreives count of enrollments based on params.

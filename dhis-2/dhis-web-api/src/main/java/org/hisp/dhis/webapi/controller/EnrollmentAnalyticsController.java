@@ -129,11 +129,12 @@ public class EnrollmentAnalyticsController {
                                               DhisApiVersion apiVersion,
                                               HttpServletResponse response) {
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+    params.setAggregateEnrollmentData(true);
 
     contextUtils.configureResponse(
             response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
 
-    return analyticsService.getAggregatedEnrollments(params);
+    return analyticsService.getEnrollments(params);
   }
 
   @GetMapping(

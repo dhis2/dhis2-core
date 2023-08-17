@@ -188,6 +188,10 @@ public class EventQueryParams extends DataQueryParams {
   /** Indicates whether the query originates from an aggregate data query. */
   private boolean aggregateData;
 
+  /** Indicates whether the query originates from an aggregate enrollment data query. */
+  private boolean aggregateEnrollmentData;
+
+
   /** Size of cluster in meter. */
   private Long clusterSize;
 
@@ -300,6 +304,7 @@ public class EventQueryParams extends DataQueryParams {
     params.endpointItem = this.endpointItem;
     params.endpointAction = this.endpointAction;
     params.rowContext = this.rowContext;
+    params.aggregateEnrollmentData = this.aggregateEnrollmentData;
     return params;
   }
 
@@ -956,6 +961,13 @@ public class EventQueryParams extends DataQueryParams {
     return aggregateData;
   }
 
+  public boolean isAggregateEnrollmentData() {
+    return aggregateEnrollmentData;
+  }
+
+  public void setAggregateEnrollmentData(boolean aggregateEnrollmentData) {
+    this.aggregateEnrollmentData = aggregateEnrollmentData;
+  }
   public boolean isComingFromQuery() {
     return endpointAction == QUERY;
   }
