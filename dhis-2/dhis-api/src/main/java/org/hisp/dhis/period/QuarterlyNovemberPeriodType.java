@@ -30,7 +30,9 @@ package org.hisp.dhis.period;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
-/** @author Abyot Asalefew Gizaw <abyota@gmail.com> */
+/**
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ */
 public class QuarterlyNovemberPeriodType extends QuarterlyAbstractPeriodType {
   private static final String ISO_FORMAT = "yyyyNovQn";
 

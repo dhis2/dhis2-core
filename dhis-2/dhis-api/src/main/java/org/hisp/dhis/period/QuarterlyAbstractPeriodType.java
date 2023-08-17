@@ -33,7 +33,9 @@ import java.util.List;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
-/** @author Abyot Asalefew Gizaw <abyota@gmail.com> */
+/**
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ */
 public abstract class QuarterlyAbstractPeriodType extends CalendarPeriodType {
   public static final int FREQUENCY_ORDER = 91;
 
