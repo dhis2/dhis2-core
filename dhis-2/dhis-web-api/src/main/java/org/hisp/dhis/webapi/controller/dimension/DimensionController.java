@@ -157,13 +157,21 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
       HttpServletResponse response,
       @CurrentUser User currentUser) {
 
-    WebRequestData requestData = applyRequestSetup(rpParameters);
+    WebRequestData requestData = applyRequestSetup(rpParameters, orderParams);
 
     WebMetadata metadata = new WebMetadata();
     List<DimensionalObject> entities = dimensionService.getAllDimensions();
 
+    Query filteredQuery =
+        queryService.getQueryFromUrl(
+            DimensionalObject.class, requestData.getFilters(), requestData.getOrders());
+    filteredQuery.setObjects(entities);
+
+    List<DimensionalObject> filteredEntities =
+        (List<DimensionalObject>) queryService.query(filteredQuery);
+
     PagedEntities<DimensionalObject> pagedEntities =
-        PaginationUtils.addPagingIfEnabled(metadata, requestData.getOptions(), entities);
+        PaginationUtils.addPagingIfEnabled(metadata, requestData.getOptions(), filteredEntities);
     linkService.generatePagerLinks(pagedEntities.getPager(), RESOURCE_PATH);
 
     return ResponseEntity.ok(
@@ -307,10 +315,12 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
    * @return {@link WebRequestData} record purely for data packaging purposes, containing {@link
    *     WebOptions}, {@link List} of fields and {@link List} of filters
    */
-  protected WebRequestData applyRequestSetup(Map<String, String> rpParameters) {
+  protected WebRequestData applyRequestSetup(
+      Map<String, String> rpParameters, OrderParams orderParams) {
 
     List<String> fields = new ArrayList<>(contextService.getParameterValues("fields"));
     List<String> filters = new ArrayList<>(contextService.getParameterValues("filter"));
+    List<Order> orders = orderParams.getOrders(getSchema(DimensionalObject.class));
 
     if (fields.isEmpty()) {
       fields.addAll(Preset.defaultPreset().getFields());
@@ -319,6 +329,6 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
     WebOptions options = new WebOptions(rpParameters);
     forceFiltering(options, filters);
 
-    return new WebRequestData(options, fields, filters);
+    return new WebRequestData(options, fields, filters, orders);
   }
 }
