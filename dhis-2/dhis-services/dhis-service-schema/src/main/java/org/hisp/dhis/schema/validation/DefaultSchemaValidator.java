@@ -175,7 +175,8 @@ public class DefaultSchemaValidator implements SchemaValidator {
       errorReports.add(createNameReport(ErrorCode.E4004, klass, property, value));
     } else if (isInvalidPassword(property, value)) {
       PasswordValidationResult result = validatePassword(value);
-      errorReports.add(createNameReport(ErrorCode.E4005, klass, property, result.getErrorMessage()));
+      errorReports.add(
+          createNameReport(ErrorCode.E4005, klass, property, result.getErrorMessage()));
     } else if (isInvalidColor(property, value)) {
       errorReports.add(createNameReport(ErrorCode.E4006, klass, property, value));
     }

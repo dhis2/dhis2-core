@@ -229,8 +229,7 @@ class MeControllerTest extends DhisControllerConvenienceTest {
                     + "supersecretsupersecretsupersecretsupersecret"
                     + "supersecretsupersecretsupersecretsupersecret"
                     + "supersecretsupersecretsupersecretsupersecret"
-                    + "supersecretsupersecretsupersecretsupersecret"
-            )
+                    + "supersecretsupersecretsupersecretsupersecret")
             .content()
             .as(JsonPasswordValidation.class);
     assertFalse(result.isValidPassword());
