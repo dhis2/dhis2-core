@@ -243,7 +243,8 @@ class DefaultSchemaValidatorTest {
     assertError(
         ErrorCode.E4005,
         SimpleFields.builder().string("valid").password("tooShort").build(),
-        "Property `password` requires a valid password, was given `tooShort`");
+        "Property `password` requires a valid password, `Password must have at least %d, and at"
+            + " most %d characters`");
   }
 
   @Test
