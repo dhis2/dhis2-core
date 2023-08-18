@@ -133,7 +133,7 @@ class MeControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testChangePassword_WrongNew() {
     assertEquals(
-        "Password must have at least 8, and at most 256 characters",
+        "Password must have at least 8, and at most 72 characters",
         PUT("/me/changePassword", "{'oldPassword':'district','newPassword':'secret'}")
             .error(Series.CLIENT_ERROR)
             .getMessage());
@@ -215,7 +215,7 @@ class MeControllerTest extends DhisControllerConvenienceTest {
             .as(JsonPasswordValidation.class);
     assertFalse(result.isValidPassword());
     assertEquals(
-        "Password must have at least 8, and at most 256 characters", result.getErrorMessage());
+        "Password must have at least 8, and at most 72 characters", result.getErrorMessage());
   }
 
   @Test
@@ -223,24 +223,20 @@ class MeControllerTest extends DhisControllerConvenienceTest {
     JsonPasswordValidation result =
         POST(
                 "/me/validatePassword",
-                "text/plain:supersecretsupersecretsupersecret"
-                    + "supersecretsupersecretsupersecretsupersecret"
-                    + "supersecretsupersecretsupersecretsupersecret"
-                    + "supersecretsupersecretsupersecretsupersecret"
-                    + "supersecretsupersecretsupersecretsupersecret"
-                    + "supersecretsupersecretsupersecretsupersecret"
-                    + "supersecretsupersecretsupersecretsupersecret")
+                "text/plain:supersecretsupersecretsupersecretsupersecretsupersecretsupersecretsuperse")
             .content()
             .as(JsonPasswordValidation.class);
     assertFalse(result.isValidPassword());
     assertEquals(
-        "Password must have at least 8, and at most 256 characters", result.getErrorMessage());
+        "Password must have at least 8, and at most 72 characters", result.getErrorMessage());
   }
 
   @Test
   void testValidatePasswordText_NoDigits() {
     JsonPasswordValidation result =
-        POST("/me/validatePassword", "text/plain:supersecret")
+        POST(
+                "/me/validatePassword",
+                "text/plain:supersecretsupersecretsupersecretsupersecretsupersecretsupersecretsupers")
             .content()
             .as(JsonPasswordValidation.class);
     assertFalse(result.isValidPassword());
