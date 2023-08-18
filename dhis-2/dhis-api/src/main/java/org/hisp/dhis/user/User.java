@@ -438,7 +438,6 @@ public class User extends BaseIdentifiableObject implements MetadataObject, User
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Property(value = PropertyType.PASSWORD, access = Property.Access.WRITE_ONLY)
-  @PropertyRange(min = 8, max = 60)
   public String getPassword() {
     return password;
   }
