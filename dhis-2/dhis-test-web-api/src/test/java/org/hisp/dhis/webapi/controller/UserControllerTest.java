@@ -374,7 +374,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         "Conflict",
         409,
         "ERROR",
-        "Password must have at least 8, and at most 60 characters",
+        "Password must have at least 8, and at most 256 characters",
         POST("/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'lame'}")
             .content(HttpStatus.CONFLICT));
   }

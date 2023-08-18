@@ -133,7 +133,7 @@ class MeControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testChangePassword_WrongNew() {
     assertEquals(
-        "Password must have at least 8, and at most 60 characters",
+        "Password must have at least 8, and at most 256 characters",
         PUT("/me/changePassword", "{'oldPassword':'district','newPassword':'secret'}")
             .error(Series.CLIENT_ERROR)
             .getMessage());
@@ -215,7 +215,7 @@ class MeControllerTest extends DhisControllerConvenienceTest {
             .as(JsonPasswordValidation.class);
     assertFalse(result.isValidPassword());
     assertEquals(
-        "Password must have at least 8, and at most 60 characters", result.getErrorMessage());
+        "Password must have at least 8, and at most 256 characters", result.getErrorMessage());
   }
 
   @Test
@@ -224,12 +224,18 @@ class MeControllerTest extends DhisControllerConvenienceTest {
         POST(
                 "/me/validatePassword",
                 "text/plain:supersecretsupersecretsupersecret"
-                    + "supersecretsupersecretsupersecretsupersecret")
+                    + "supersecretsupersecretsupersecretsupersecret"
+                    + "supersecretsupersecretsupersecretsupersecret"
+                    + "supersecretsupersecretsupersecretsupersecret"
+                    + "supersecretsupersecretsupersecretsupersecret"
+                    + "supersecretsupersecretsupersecretsupersecret"
+                    + "supersecretsupersecretsupersecretsupersecret"
+            )
             .content()
             .as(JsonPasswordValidation.class);
     assertFalse(result.isValidPassword());
     assertEquals(
-        "Password must have at least 8, and at most 60 characters", result.getErrorMessage());
+        "Password must have at least 8, and at most 256 characters", result.getErrorMessage());
   }
 
   @Test

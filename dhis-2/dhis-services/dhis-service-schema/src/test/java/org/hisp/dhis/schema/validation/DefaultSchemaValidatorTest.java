@@ -165,13 +165,8 @@ class DefaultSchemaValidatorTest {
 
   @BeforeEach
   void setUpSchema() {
-    CredentialsInfo credentialsInfo = new CredentialsInfo("USERNAME", "tooShort", "", true);
-
     schema.setPropertyMap(introspectorService.getPropertiesMap(SimpleFields.class));
     when(schemaService.getDynamicSchema(SimpleFields.class)).thenReturn(schema);
-
-    //        when( passwordValidationService.isV( credentialsInfo ) ).thenReturn( new
-    // PasswordValidationResult( null ) );
   }
 
   @Test
