@@ -702,7 +702,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         if (EventOutputType.TRACKED_ENTITY_INSTANCE.equals(outputType)
             && params.isProgramRegistration()) {
           return "count(distinct " + quoteAlias("tei") + ")";
-        } else if (EventOutputType.ENROLLMENT.equals(outputType)) {
+        } else if (EventOutputType.ENROLLMENT.equals(outputType)
+            || params.isEnrollmentAggregated()) {
           if (params.hasEnrollmentProgramIndicatorDimension()) {
             return "count(" + quoteAlias("pi") + ")";
           }

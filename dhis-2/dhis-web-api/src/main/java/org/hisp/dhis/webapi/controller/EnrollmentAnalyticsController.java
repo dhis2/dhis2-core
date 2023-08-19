@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -40,6 +42,7 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
+import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -80,7 +83,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class EnrollmentAnalyticsController {
   @Nonnull private final EventDataQueryService eventDataQueryService;
 
-  @Nonnull private final EnrollmentAnalyticsService analyticsService;
+  @Nonnull private final EnrollmentAnalyticsService enrollmentAnalyticsService;
+
+  @Nonnull private final EventAnalyticsService eventAnalyticsService;
 
   @Nonnull private final ContextUtils contextUtils;
 
@@ -96,6 +101,35 @@ public class EnrollmentAnalyticsController {
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
   @GetMapping(
+      value = "/aggregate/{program}/{stage}/explain",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Grid getExplainAggregateJson( // JSON, JSONP
+      @PathVariable String program,
+      @PathVariable String stage,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    configResponseForJson(response);
+    return getGridWithAggregatedData(program, stage, criteria, apiVersion, true, AGGREGATE);
+  }
+
+  @GetMapping(
+      value = "/aggregate/{program}/{stage}",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Grid getAggregateJson( // JSON, JSONP
+      @PathVariable String program,
+      @PathVariable String stage,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    configResponseForJson(response);
+    return getGridWithAggregatedData(program, stage, criteria, apiVersion, false, AGGREGATE);
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @GetMapping(
       value = "/query/{program}/explain",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public @ResponseBody Grid getExplainQueryJson( // JSON, JSONP
@@ -104,8 +138,7 @@ public class EnrollmentAnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true, QUERY);
-
-    Grid grid = analyticsService.getEnrollments(params);
+    Grid grid = enrollmentAnalyticsService.getEnrollments(params);
     contextUtils.configureResponse(
         response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
 
@@ -130,7 +163,7 @@ public class EnrollmentAnalyticsController {
     contextUtils.configureResponse(
         response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
 
-    return analyticsService.getEnrollments(params);
+    return enrollmentAnalyticsService.getEnrollments(params);
   }
 
   @SneakyThrows
@@ -148,7 +181,7 @@ public class EnrollmentAnalyticsController {
         CacheStrategy.RESPECT_SYSTEM_SETTING,
         "enrollments.xml",
         false);
-    Grid grid = analyticsService.getEnrollments(params);
+    Grid grid = enrollmentAnalyticsService.getEnrollments(params);
     GridUtils.toXml(grid, response.getOutputStream());
   }
 
@@ -167,7 +200,7 @@ public class EnrollmentAnalyticsController {
         CacheStrategy.RESPECT_SYSTEM_SETTING,
         "enrollments.xls",
         true);
-    Grid grid = analyticsService.getEnrollments(params);
+    Grid grid = enrollmentAnalyticsService.getEnrollments(params);
     GridUtils.toXls(grid, response.getOutputStream());
   }
 
@@ -186,7 +219,7 @@ public class EnrollmentAnalyticsController {
         CacheStrategy.RESPECT_SYSTEM_SETTING,
         "enrollments.csv",
         true);
-    Grid grid = analyticsService.getEnrollments(params);
+    Grid grid = enrollmentAnalyticsService.getEnrollments(params);
     GridUtils.toCsv(grid, response.getWriter());
   }
 
@@ -205,7 +238,7 @@ public class EnrollmentAnalyticsController {
         CacheStrategy.RESPECT_SYSTEM_SETTING,
         "enrollments.html",
         false);
-    Grid grid = analyticsService.getEnrollments(params);
+    Grid grid = enrollmentAnalyticsService.getEnrollments(params);
     GridUtils.toHtml(grid, response.getWriter());
   }
 
@@ -224,7 +257,7 @@ public class EnrollmentAnalyticsController {
         CacheStrategy.RESPECT_SYSTEM_SETTING,
         "enrollments.html",
         false);
-    Grid grid = analyticsService.getEnrollments(params);
+    Grid grid = enrollmentAnalyticsService.getEnrollments(params);
     GridUtils.toHtmlCss(grid, response.getWriter());
   }
 
@@ -262,14 +295,47 @@ public class EnrollmentAnalyticsController {
         fields);
   }
 
+  private Grid getGridWithAggregatedData(
+      String program,
+      String stage,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      boolean analyzeOnly,
+      EndpointAction endpointAction)
+      throws Exception {
+    EventQueryParams params =
+        getEventQueryParams(program, stage, criteria, apiVersion, analyzeOnly, endpointAction);
+    EventQueryParams.Builder builder =
+        new EventQueryParams.Builder(params).withEnrollmentAggregated(true);
+    params = builder.build();
+    Grid grid =
+        eventAnalyticsService.getAggregatedEventData(
+            params, getItemsFromParam(null), getItemsFromParam(null));
+
+    if (params.analyzeOnly()) {
+      grid.addPerformanceMetrics(executionPlanStore.getExecutionPlans(params.getExplainOrderId()));
+    }
+
+    return grid;
+  }
+
   private EventQueryParams getEventQueryParams(
-      @PathVariable String program,
+      String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      boolean analyzeOnly,
+      EndpointAction endpointAction) {
+    return getEventQueryParams(program, null, criteria, apiVersion, analyzeOnly, endpointAction);
+  }
+
+  private EventQueryParams getEventQueryParams(
+      String program,
+      String stage,
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       boolean analyzeOnly,
       EndpointAction endpointAction) {
     criteria.definePageSize(systemSettingManager.getIntSetting(SettingKey.ANALYTICS_MAX_LIMIT));
-
     PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
         criteria,
         systemSettingManager.getSystemSetting(
@@ -283,9 +349,15 @@ public class EnrollmentAnalyticsController {
                         .withEndpointAction(endpointAction)
                         .withEndpointItem(RequestTypeAware.EndpointItem.ENROLLMENT))
             .program(program)
+            .stage(stage)
             .apiVersion(apiVersion)
             .build();
 
     return eventDataQueryService.getFromRequest(request, analyzeOnly);
+  }
+
+  private void configResponseForJson(HttpServletResponse response) {
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
   }
 }

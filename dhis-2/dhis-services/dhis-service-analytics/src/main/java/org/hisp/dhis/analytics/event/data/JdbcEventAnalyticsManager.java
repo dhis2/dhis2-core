@@ -365,9 +365,12 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
       sql += getFirstOrLastValueSubquerySql(params);
     } else {
-      sql += params.getTableName();
+      if (params.isEnrollmentAggregated()) {
+        sql += "analytics_enrollment_" + params.getProgram().getUid();
+      } else {
+        sql += params.getTableName();
+      }
     }
-
     sql += " as " + ANALYTICS_TBL_ALIAS + " ";
 
     if (params.hasTimeField()) {
@@ -494,13 +497,28 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     // ---------------------------------------------------------------------
 
     if (params.hasProgramStage()) {
-      sql +=
-          hlp.whereAnd()
-              + " "
-              + quoteAlias("ps")
-              + " = '"
-              + params.getProgramStage().getUid()
-              + "' ";
+      if (params.isEnrollmentAggregated()) {
+        sql +=
+            hlp.whereAnd()
+                + " exists(select 1 from "
+                + params.getTableName()
+                + " ev where "
+                + ANALYTICS_TBL_ALIAS
+                + ".pi = ev.pi and ev.ps"
+                + " = '"
+                + params.getProgramStage().getUid()
+                + "' "
+                + ")";
+
+      } else {
+        sql +=
+            hlp.whereAnd()
+                + " "
+                + quoteAlias("ps")
+                + " = '"
+                + params.getProgramStage().getUid()
+                + "' ";
+      }
     }
 
     // ---------------------------------------------------------------------

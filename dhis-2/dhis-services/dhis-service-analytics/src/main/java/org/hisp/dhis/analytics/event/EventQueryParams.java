@@ -210,6 +210,8 @@ public class EventQueryParams extends DataQueryParams {
   /** flag to enable row context in grid response */
   private boolean rowContext = false;
 
+  private boolean enrollmentAggregated;
+
   /** Indicates whether to include metadata details to response. */
   protected boolean includeMetadataDetails;
 
@@ -300,6 +302,7 @@ public class EventQueryParams extends DataQueryParams {
     params.endpointItem = this.endpointItem;
     params.endpointAction = this.endpointAction;
     params.rowContext = this.rowContext;
+    params.enrollmentAggregated = this.enrollmentAggregated;
     return params;
   }
 
@@ -832,6 +835,10 @@ public class EventQueryParams extends DataQueryParams {
     return dataIdScheme != null;
   }
 
+  public boolean isEnrollmentAggregated() {
+    return enrollmentAggregated;
+  }
+
   /**
    * Returns a negative integer in case of ascending sort order, a positive in case of descending
    * sort order and 0 in case of no sort order.
@@ -1028,6 +1035,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withEndDate(Date endDate) {
       this.params.endDate = endDate;
+      return this;
+    }
+
+    public Builder withEnrollmentAggregated(boolean enrollmentAggregated) {
+      this.params.enrollmentAggregated = enrollmentAggregated;
       return this;
     }
 
