@@ -149,9 +149,12 @@ public class TrackedEntityInstanceCriteriaMapper {
         throw new IllegalQueryException("Organisation unit does not exist: " + orgUnit);
       }
 
-      if (!trackerAccessManager.canAccess(user, program, organisationUnit)) {
+      if (user != null
+          && !user.isSuper()
+          && !organisationUnitService.isInUserHierarchy(
+              organisationUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
         throw new IllegalQueryException(
-            "User does not have access to organisation unit: " + orgUnit);
+            "Organisation unit is not part of the search scope: " + orgUnit);
       }
 
       params.getOrganisationUnits().add(organisationUnit);

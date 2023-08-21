@@ -495,7 +495,7 @@ class TrackerTrackedEntityCriteriaMapperTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenOrgUnitNotInScope() {
+  void shouldThrowExceptionWhenOrgUnitNotInSearchScope() {
     when(organisationUnitService.isInUserHierarchy(
             orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
         .thenReturn(false);
@@ -504,7 +504,7 @@ class TrackerTrackedEntityCriteriaMapperTest {
 
     ForbiddenException e = assertThrows(ForbiddenException.class, () -> mapper.map(criteria));
     assertEquals(
-        "User does not have access to organisation unit: " + ORG_UNIT_1_UID, e.getMessage());
+        "Organisation unit is not part of the search scope: " + ORG_UNIT_1_UID, e.getMessage());
   }
 
   @Test

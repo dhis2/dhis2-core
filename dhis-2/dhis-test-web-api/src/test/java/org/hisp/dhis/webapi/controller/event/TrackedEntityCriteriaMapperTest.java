@@ -276,7 +276,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenProgramIsProtectedAndUserNotInCaptureScope() {
+  void shouldThrowExceptionWhenProgramIsProtectedSearchScopeIsEmptyAndUserNotInCaptureScope() {
     clearSecurityContext();
     User mockUser = createUserWithAuth("testUser2");
     mockUser.setOrganisationUnits(Set.of(organisationUnit));
@@ -290,7 +290,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
         assertThrows(IllegalQueryException.class, () -> trackedEntityCriteriaMapper.map(criteria));
 
     assertEquals(
-        "User does not have access to organisation unit: " + organisationUnitB.getUid(),
+        "Organisation unit is not part of the search scope: " + organisationUnitB.getUid(),
         e.getMessage());
   }
 
@@ -309,7 +309,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
         assertThrows(IllegalQueryException.class, () -> trackedEntityCriteriaMapper.map(criteria));
 
     assertEquals(
-        "User does not have access to organisation unit: " + organisationUnitB.getUid(),
+        "Organisation unit is not part of the search scope: " + organisationUnitB.getUid(),
         e.getMessage());
   }
 

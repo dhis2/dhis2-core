@@ -65,7 +65,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -92,8 +91,6 @@ public class TrackerTrackedEntityCriteriaMapper {
 
   @Nonnull private final TrackedEntityAttributeService attributeService;
 
-  @Nonnull private final TrackerAccessManager trackerAccessManager;
-
   @Transactional(readOnly = true)
   public TrackedEntityInstanceQueryParams map(TrackerTrackedEntityCriteria criteria)
       throws BadRequestException, ForbiddenException {
@@ -112,7 +109,7 @@ public class TrackerTrackedEntityCriteriaMapper {
     Set<String> orgUnitIds = parseUids(criteria.getOrgUnit());
     validateOrgUnitParams(orgUnitIds, criteria.getOuMode());
 
-    Set<OrganisationUnit> orgUnits = validateOrgUnits(user, orgUnitIds, program);
+    Set<OrganisationUnit> orgUnits = validateOrgUnits(user, orgUnitIds);
     if (criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null) {
       orgUnits.addAll(user.getOrganisationUnits());
     }
@@ -210,7 +207,7 @@ public class TrackerTrackedEntityCriteriaMapper {
         .collect(Collectors.toSet());
   }
 
-  private Set<OrganisationUnit> validateOrgUnits(User user, Set<String> orgUnitIds, Program program)
+  private Set<OrganisationUnit> validateOrgUnits(User user, Set<String> orgUnitIds)
       throws BadRequestException, ForbiddenException {
 
     Set<OrganisationUnit> orgUnits = new HashSet<>();
@@ -221,9 +218,12 @@ public class TrackerTrackedEntityCriteriaMapper {
         throw new BadRequestException("Organisation unit does not exist: " + orgUnitId);
       }
 
-      if (!trackerAccessManager.canAccess(user, program, orgUnit)) {
+      if (user != null
+          && !user.isSuper()
+          && !organisationUnitService.isInUserHierarchy(
+              orgUnitId, user.getTeiSearchOrganisationUnitsWithFallback())) {
         throw new ForbiddenException(
-            "User does not have access to organisation unit: " + orgUnitId);
+            "Organisation unit is not part of the search scope: " + orgUnitId);
       }
 
       orgUnits.add(orgUnit);
