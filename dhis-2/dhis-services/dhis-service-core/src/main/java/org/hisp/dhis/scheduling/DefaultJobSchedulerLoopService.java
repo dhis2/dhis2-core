@@ -50,6 +50,7 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.AuthenticationService;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -116,8 +117,12 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
     return jobConfigurationStore.getNextInQueue(queue, fromPosition);
   }
 
+  /**
+   * We do need {@link Isolation#SERIALIZABLE} to make sure no other TX transitions to running while
+   * we try transition as otherwise two of the same {@link JobType} might transition.
+   */
   @Override
-  @Transactional
+  @Transactional(isolation = Isolation.SERIALIZABLE)
   public boolean tryRun(@Nonnull String jobId) {
     if (!jobConfigurationStore.tryStart(jobId)) return false;
     JobConfiguration job = jobConfigurationStore.getByUid(jobId);
