@@ -68,6 +68,8 @@ public class ImportOptions implements JobParameters {
 
   @ToString.Exclude private transient User user;
 
+  @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
+  @OpenApi.Ignore
   private IdSchemes idSchemes = new IdSchemes();
 
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)

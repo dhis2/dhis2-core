@@ -46,6 +46,16 @@ class PropertyTest {
     public void setProperty(String property) {}
   }
 
+  private static class IgnoredProperty {
+
+    @OpenApi.Ignore
+    @JsonProperty
+    private String openApiProperty;
+
+    @JsonProperty
+    public void setOpenApiProperty(String openApiProperty) {}
+  }
+
   @JsonProperty private AProperty aProperty;
 
   @Test
@@ -61,5 +71,11 @@ class PropertyTest {
     Property property = new ArrayList<>(properties).get(0);
     assertEquals("openApiProperty", property.getName());
     assertEquals(String.class, property.getType());
+  }
+
+  @Test
+  void testGetPropertiesGivenOpenApiIgnoreAndJsonPropertyAnnotatedField() {
+    Collection<Property> properties = Property.getProperties(IgnoredProperty.class);
+    assertEquals(0, properties.size());
   }
 }
