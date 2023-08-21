@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 
 import java.util.ArrayList;
@@ -59,7 +60,7 @@ public class TrackerEventCriteriaMapperUtils {
         getUserAccessibleOrgUnits(
             user, orgUnit, orgUnitMode, program, orgUnitDescendants, trackerAccessManager);
 
-    if (orgUnit != null && accessibleOrgUnits.isEmpty()) {
+    if (orgUnit != null && accessibleOrgUnits.isEmpty() && orgUnitMode != ALL) {
       throw new IllegalQueryException("User does not have access to orgUnit: " + orgUnit.getUid());
     }
 
