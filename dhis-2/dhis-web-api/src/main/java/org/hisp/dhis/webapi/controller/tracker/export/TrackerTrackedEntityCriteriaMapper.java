@@ -36,7 +36,6 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.p
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryFilter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseUids;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateOrgUnitParams;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -110,7 +109,6 @@ public class TrackerTrackedEntityCriteriaMapper {
 
     User user = currentUserService.getCurrentUser();
     Set<String> orgUnitIds = parseUids(criteria.getOrgUnit());
-    validateOrgUnitParams(orgUnitIds, criteria.getOuMode());
 
     Set<OrganisationUnit> orgUnits = validateOrgUnits(user, orgUnitIds, program);
     if (criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null) {

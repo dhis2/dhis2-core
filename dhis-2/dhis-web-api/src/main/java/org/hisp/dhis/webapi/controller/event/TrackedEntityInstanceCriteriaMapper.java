@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.event;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
@@ -38,13 +37,11 @@ import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toO
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -139,8 +136,6 @@ public class TrackedEntityInstanceCriteriaMapper {
         params.getFilters().add(it);
       }
     }
-
-    validateOrgUnitParams(criteria.getOrgUnits(), criteria.getOuMode());
 
     for (String orgUnit : criteria.getOrgUnits()) {
       OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(orgUnit);
@@ -332,15 +327,6 @@ public class TrackedEntityInstanceCriteriaMapper {
           throw new IllegalQueryException("Invalid order property: " + orderParam.getField());
         }
       }
-    }
-  }
-
-  private void validateOrgUnitParams(Set<String> orgUnits, OrganisationUnitSelectionMode ouMode) {
-    if (!orgUnits.isEmpty() && (ouMode == ACCESSIBLE || ouMode == CAPTURE)) {
-      throw new IllegalQueryException(
-          String.format(
-              "ouMode %s cannot be used with orgUnits. Please remove the ou parameter and try again.",
-              ouMode));
     }
   }
 }

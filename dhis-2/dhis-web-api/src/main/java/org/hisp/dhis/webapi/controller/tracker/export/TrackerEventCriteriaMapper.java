@@ -35,6 +35,7 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.p
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
 import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.getOrgUnitMode;
 import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.validateAccessibleOrgUnits;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.validateOrgUnitMode;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -150,6 +151,11 @@ class TrackerEventCriteriaMapper {
     OrganisationUnit requestedOrgUnit =
         applyIfNonEmpty(organisationUnitService::getOrganisationUnit, criteria.getOrgUnit());
     validateOrgUnit(criteria.getOrgUnit(), requestedOrgUnit);
+
+    if (criteria.getOuMode() != null) {
+      validateOrgUnitMode(criteria.getOuMode(), requestedOrgUnit, user);
+    }
+
     OrganisationUnitSelectionMode orgUnitMode =
         getOrgUnitMode(requestedOrgUnit, criteria.getOuMode());
     List<OrganisationUnit> accessibleOrgUnits =

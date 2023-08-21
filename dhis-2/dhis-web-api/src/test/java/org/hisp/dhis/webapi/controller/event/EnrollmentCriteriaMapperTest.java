@@ -27,14 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
@@ -42,6 +38,7 @@ import static org.mockito.Mockito.when;
 import java.util.HashSet;
 import java.util.Set;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -56,9 +53,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -216,64 +216,39 @@ class EnrollmentCriteriaMapperTest {
         "User does not have access to organisation unit: " + ORG_UNIT1, exception.getMessage());
   }
 
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"CAPTURE", "ACCESSIBLE", "ALL"})
+  void shouldPassWhenOuModeDoesNotNeedOrgUnitAndOrgUnitProvided(
+      OrganisationUnitSelectionMode orgUnitMode) {
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(organisationUnitService.getOrganisationUnit(ORG_UNIT1)).thenReturn(organisationUnit);
+    when(trackerAccessManager.canAccess(user, program, organisationUnit)).thenReturn(true);
+    when(trackedEntityTypeService.getTrackedEntityType(ENTITY_TYPE)).thenReturn(trackedEntityType);
+    when(trackedEntityInstanceService.getTrackedEntityInstance(ENTITY_INSTANCE))
+        .thenReturn(trackedEntityInstance);
 
-    Exception exception =
-        assertThrows(
-            IllegalQueryException.class,
-            () ->
-                mapper.getFromUrl(
-                    orgUnits,
-                    ACCESSIBLE,
-                    null,
-                    "lastUpdated",
-                    PROGRAM_UID,
-                    ProgramStatus.ACTIVE,
-                    null,
-                    null,
-                    ENTITY_TYPE,
-                    TRACKED_ENTITY.getName(),
-                    false,
-                    1,
-                    1,
-                    false,
-                    false,
-                    false,
-                    null));
-
-    assertStartsWith("ouMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-
-    Exception exception =
-        assertThrows(
-            IllegalQueryException.class,
-            () ->
-                mapper.getFromUrl(
-                    orgUnits,
-                    CAPTURE,
-                    null,
-                    "lastUpdated",
-                    PROGRAM_UID,
-                    ProgramStatus.ACTIVE,
-                    null,
-                    null,
-                    ENTITY_TYPE,
-                    TRACKED_ENTITY.getName(),
-                    false,
-                    1,
-                    1,
-                    false,
-                    false,
-                    false,
-                    null));
-
-    assertStartsWith("ouMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
+    Assertions.assertDoesNotThrow(
+        () ->
+            mapper.getFromUrl(
+                orgUnits,
+                orgUnitMode,
+                null,
+                "lastUpdated",
+                PROGRAM_UID,
+                ProgramStatus.ACTIVE,
+                null,
+                null,
+                ENTITY_TYPE,
+                ENTITY_INSTANCE,
+                false,
+                1,
+                1,
+                false,
+                false,
+                false,
+                null));
   }
 
   @Test
