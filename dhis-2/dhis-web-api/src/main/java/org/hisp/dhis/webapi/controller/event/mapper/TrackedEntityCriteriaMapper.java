@@ -56,7 +56,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
@@ -81,8 +80,6 @@ public class TrackedEntityCriteriaMapper {
 
   private final TrackedEntityAttributeService attributeService;
 
-  private final TrackerAccessManager trackerAccessManager;
-
   private static final TrackerTrackedEntityCriteriaMapper TRACKER_TRACKED_ENTITY_CRITERIA_MAPPER =
       Mappers.getMapper(TrackerTrackedEntityCriteriaMapper.class);
 
@@ -91,8 +88,7 @@ public class TrackedEntityCriteriaMapper {
       OrganisationUnitService organisationUnitService,
       ProgramService programService,
       TrackedEntityAttributeService attributeService,
-      TrackedEntityTypeService trackedEntityTypeService,
-      TrackerAccessManager trackerAccessManager) {
+      TrackedEntityTypeService trackedEntityTypeService) {
     checkNotNull(currentUserService);
     checkNotNull(organisationUnitService);
     checkNotNull(programService);
@@ -104,7 +100,6 @@ public class TrackedEntityCriteriaMapper {
     this.programService = programService;
     this.attributeService = attributeService;
     this.trackedEntityTypeService = trackedEntityTypeService;
-    this.trackerAccessManager = trackerAccessManager;
   }
 
   @Transactional(readOnly = true)
