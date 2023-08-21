@@ -504,12 +504,6 @@ public class RequestToSearchParamsMapper {
         if (user == null) {
           violation = "User is required for ouMode: " + selectedOuMode;
         }
-        if (orgUnit != null) {
-          violation =
-              String.format(
-                  "ouMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
-                  selectedOuMode);
-        }
         break;
       case CHILDREN:
       case SELECTED:
