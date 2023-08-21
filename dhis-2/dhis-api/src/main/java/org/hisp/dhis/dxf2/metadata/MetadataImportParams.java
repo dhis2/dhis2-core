@@ -44,6 +44,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -57,7 +58,9 @@ import org.hisp.dhis.scheduling.JobParameters;
 public class MetadataImportParams implements JobParameters {
 
   /** UID of the User to use for import job (important for threaded imports). */
-  @JsonProperty private UID user;
+  @OpenApi.Property({UID.class, User.class})
+  @JsonProperty
+  private UID user;
 
   /**
    * How should the user property be handled, by default it is left as is. You can override this to
@@ -66,7 +69,9 @@ public class MetadataImportParams implements JobParameters {
   @JsonProperty private UserOverrideMode userOverrideMode = UserOverrideMode.NONE;
 
   /** UID of the User to use for override, can be current or a selected user. */
-  @JsonProperty private UID overrideUser;
+  @OpenApi.Property({UID.class, User.class})
+  @JsonProperty
+  private UID overrideUser;
 
   /** Should import be imported or just validated. */
   @JsonProperty private ObjectBundleMode importMode = ObjectBundleMode.COMMIT;

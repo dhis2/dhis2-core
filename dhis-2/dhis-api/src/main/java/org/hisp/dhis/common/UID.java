@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
 
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -50,7 +51,7 @@ import lombok.Getter;
  */
 @Getter
 @EqualsAndHashCode
-public final class UID {
+public final class UID implements Serializable {
   private static final String VALID_UID_FORMAT =
       "UID must be an alphanumeric string of 11 characters starting with a letter.";
 
