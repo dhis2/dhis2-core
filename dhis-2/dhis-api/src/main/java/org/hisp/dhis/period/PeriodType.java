@@ -87,7 +87,7 @@ public abstract class PeriodType implements Serializable {
   }
 
   private String getCacheKey(
-          org.hisp.dhis.calendar.Calendar calendar, Date date, String customKey) {
+      org.hisp.dhis.calendar.Calendar calendar, Date date, String customKey) {
     return calendar.name() + getName() + date.getTime() + customKey;
   }
 
@@ -334,7 +334,7 @@ public abstract class PeriodType implements Serializable {
    */
   public Period createPeriod(Date date, String dateField) {
     return PERIOD_CACHE.get(
-            getCacheKey(date, dateField), s -> createPeriod(date, getCalendar(), dateField));
+        getCacheKey(date, dateField), s -> createPeriod(date, getCalendar(), dateField));
   }
 
   public Period createPeriod(Calendar cal) {
@@ -371,10 +371,10 @@ public abstract class PeriodType implements Serializable {
    * @return the valid Period based on the given date.
    */
   public Period createPeriod(
-          Date date, org.hisp.dhis.calendar.Calendar calendar, String dateField) {
+      Date date, org.hisp.dhis.calendar.Calendar calendar, String dateField) {
     return PERIOD_CACHE.get(
-            getCacheKey(calendar, date, dateField),
-            p -> createPeriod(calendar.fromIso(DateTimeUnit.fromJdkDate(date)), calendar));
+        getCacheKey(calendar, date, dateField),
+        p -> createPeriod(calendar.fromIso(DateTimeUnit.fromJdkDate(date)), calendar));
   }
 
   public Period toIsoPeriod(DateTimeUnit start, DateTimeUnit end) {
