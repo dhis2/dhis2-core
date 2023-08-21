@@ -415,7 +415,6 @@ public class HibernateJobConfigurationStore
             else schedulingtype end
         where jobstatus = 'RUNNING'
         and enabled = true
-        and lastalive > lastexecuted
         and now() > lastalive + :timeout * interval '1 minute'
         """;
     return nativeQuery(sql).setParameter("timeout", max(1, timeoutMinutes)).executeUpdate();

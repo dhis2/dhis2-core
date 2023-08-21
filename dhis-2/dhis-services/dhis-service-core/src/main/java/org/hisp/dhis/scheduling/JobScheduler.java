@@ -28,10 +28,13 @@
 package org.hisp.dhis.scheduling;
 
 import static java.lang.System.currentTimeMillis;
+import static java.util.stream.Collectors.groupingBy;
 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -110,7 +113,11 @@ public class JobScheduler implements Runnable, JobRunner {
       Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS).plusSeconds(1);
       if (service.tryBecomeLeader(TTL_SECONDS)) {
         service.assureAsLeader(TTL_SECONDS);
-        service.getDueJobConfigurations(LOOP_SECONDS).forEach(c -> runIfDue(now, c));
+        Map<JobType, List<JobConfiguration>> readyByType =
+            service.getDueJobConfigurations(LOOP_SECONDS).stream()
+                .collect(groupingBy(JobConfiguration::getJobType));
+        // only attempt to start one per type per loop invocation
+        readyByType.forEach((type, jobs) -> runIfDue(now, jobs.get(0)));
       }
     } catch (Exception ex) {
       log.error("Exceptions thrown in scheduler loop", ex);

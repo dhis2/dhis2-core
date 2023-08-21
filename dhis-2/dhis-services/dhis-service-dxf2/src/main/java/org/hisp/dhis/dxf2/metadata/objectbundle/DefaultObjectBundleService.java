@@ -190,7 +190,8 @@ public class DefaultObjectBundleService implements ObjectBundleService {
       return typeReport;
     }
 
-    progress.startingStage("Running preCreate bundle hooks", objects.size());
+    progress.startingStage(
+        "Running preCreate %s bundle hooks".formatted(klass.getSimpleName()), objects.size());
     progress.runStage(
         objects,
         IdentifiableObject::getName,
@@ -202,9 +203,8 @@ public class DefaultObjectBundleService implements ObjectBundleService {
     session.flush();
 
     String message =
-        "Creating %s object(s) of type %s (%s)"
-            .formatted(
-                objects.size(), objects.get(0).getClass().getSimpleName(), bundle.getUsername());
+        "Creating %d %s object(s) as %s"
+            .formatted(objects.size(), klass.getSimpleName(), bundle.getUsername());
     progress.startingStage(message, objects.size());
     progress.runStage(
         objects,
@@ -245,7 +245,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
 
     session.flush();
 
-    progress.startingStage("Running postCreate bundle hooks");
+    progress.startingStage("Running postCreate %s bundle hooks".formatted(klass.getSimpleName()));
     progress.runStage(
         objects,
         IdentifiableObject::getName,
@@ -267,7 +267,8 @@ public class DefaultObjectBundleService implements ObjectBundleService {
 
     List<ObjectBundleHook<T>> hooks = objectBundleHooks.getTypeImportHooks(klass);
 
-    progress.startingStage("Running preUpdate bundle hooks", objects.size());
+    progress.startingStage(
+        "Running preUpdate %s bundle hooks".formatted(klass.getSimpleName()), objects.size());
     progress.runStage(
         objects,
         IdentifiableObject::getName,
@@ -279,9 +280,8 @@ public class DefaultObjectBundleService implements ObjectBundleService {
     session.flush();
 
     String message =
-        "Updating %d object(s) of type %s (%s)"
-            .formatted(
-                objects.size(), objects.get(0).getClass().getSimpleName(), bundle.getUsername());
+        "Updating %d %s object(s) as %s"
+            .formatted(objects.size(), klass.getSimpleName(), bundle.getUsername());
     progress.startingStage(message, objects.size());
     progress.runStage(
         objects,
@@ -332,7 +332,8 @@ public class DefaultObjectBundleService implements ObjectBundleService {
 
     session.flush();
 
-    progress.startingStage("Running postUpdate bundle hooks", objects.size());
+    progress.startingStage(
+        "Running postUpdate %s bundle hooks".formatted(klass.getSimpleName()), objects.size());
     progress.runStage(
         objects,
         IdentifiableObject::getName,
@@ -357,9 +358,8 @@ public class DefaultObjectBundleService implements ObjectBundleService {
     List<ObjectBundleHook<T>> hooks = objectBundleHooks.getTypeImportHooks(klass);
 
     String message =
-        "Deleting %d object(s) of type %s (%s) "
-            .formatted(
-                objects.size(), objects.get(0).getClass().getSimpleName(), bundle.getUsername());
+        "Deleting %d %s object(s) as %s"
+            .formatted(objects.size(), klass.getSimpleName(), bundle.getUsername());
     progress.startingStage(message, persistedObjects.size());
     progress.runStage(
         persistedObjects,
