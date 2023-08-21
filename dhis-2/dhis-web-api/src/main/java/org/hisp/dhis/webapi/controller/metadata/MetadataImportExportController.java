@@ -30,8 +30,6 @@ package org.hisp.dhis.webapi.controller.metadata;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
-import static org.hisp.dhis.scheduling.JobType.GML_IMPORT;
-import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
@@ -264,7 +262,7 @@ public class MetadataImportExportController {
     metadataImporter.setParams(params);
     taskExecutor.executeTask(metadataImporter);
 
-    return jobConfigurationReport(params.getId()).setLocation("/system/tasks/" + METADATA_IMPORT);
+    return jobConfigurationReport(params.getId());
   }
 
   private WebMessage startAsyncGml(MetadataImportParams params, HttpServletRequest request)
@@ -274,7 +272,7 @@ public class MetadataImportExportController {
     gmlImporter.setParams(params);
     taskExecutor.executeTask(gmlImporter);
 
-    return jobConfigurationReport(params.getId()).setLocation("/system/tasks/" + GML_IMPORT);
+    return jobConfigurationReport(params.getId());
   }
 
   private void setTranslationParams(TranslateParams translateParams) {

@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-summary_uid: BQymdCGR1sz
 name: orgunits_multiple_spaces
 description: Organisation units should not have multiple spaces in their names or shortnames.
 section: Organisation units
@@ -39,7 +38,6 @@ summary_sql: >-
   COUNT(*) as value,
   100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM organisationunit), 0) as percent
   from orgunits_multiple_spaces;
-details_uid: spwhfsg5Kkn
 details_sql: >-
   SELECT uid, name, shortname as comment from organisationunit 
   where name ~('\s{2,}') OR shortname ~('\s{2,}');

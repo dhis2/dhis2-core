@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.event.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
@@ -40,12 +41,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
-import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -53,8 +53,8 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
+import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.event.Events;
-import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
@@ -75,22 +75,37 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = RESOURCE_PATH + "/" + EventsExportController.EVENTS)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequiredArgsConstructor
+@OpenApi.Ignore
 class EventsExportController {
   protected static final String EVENTS = "events";
 
   private static final EventMapper EVENTS_MAPPER = Mappers.getMapper(EventMapper.class);
 
-  @Nonnull private final org.hisp.dhis.tracker.export.event.EventService eventService;
+  private final EventService eventService;
 
-  @Nonnull private final EventRequestParamsMapper eventParamsMapper;
+  private final EventRequestParamsMapper eventParamsMapper;
 
-  @Nonnull
-  private final CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
+  private final CsvService<Event> csvEventService;
 
-  @Nonnull private final FieldFilterService fieldFilterService;
+  private final FieldFilterService fieldFilterService;
 
   private final EventFieldsParamMapper eventsMapper;
+
+  public EventsExportController(
+      EventService eventService,
+      EventRequestParamsMapper eventParamsMapper,
+      CsvService<Event> csvEventService,
+      FieldFilterService fieldFilterService,
+      EventFieldsParamMapper eventsMapper) {
+    this.eventService = eventService;
+    this.eventParamsMapper = eventParamsMapper;
+    this.csvEventService = csvEventService;
+    this.fieldFilterService = fieldFilterService;
+    this.eventsMapper = eventsMapper;
+
+    assertUserOrderableFieldsAreSupported(
+        "event", EventMapper.ORDERABLE_FIELDS, eventService.getOrderableFields());
+  }
 
   @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
   @GetMapping(produces = APPLICATION_JSON_VALUE)

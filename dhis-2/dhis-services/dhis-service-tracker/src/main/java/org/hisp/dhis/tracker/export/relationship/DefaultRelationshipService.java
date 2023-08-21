@@ -27,10 +27,17 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
+import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -40,15 +47,8 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.event.EventParams;
-import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,13 +61,48 @@ public class DefaultRelationshipService implements RelationshipService {
 
   private final TrackerAccessManager trackerAccessManager;
 
-  private final org.hisp.dhis.relationship.RelationshipStore relationshipStore;
+  private final RelationshipStore relationshipStore;
 
-  private final TrackedEntityService trackedEntityService;
+  private final RelationshipOperationParamsMapper mapper;
 
-  private final EnrollmentService enrollmentService;
+  @Override
+  public Relationships getRelationships(RelationshipOperationParams params)
+      throws ForbiddenException, NotFoundException {
+    RelationshipQueryParams queryParams = mapper.map(params);
 
-  private final EventService eventService;
+    Pager pager;
+    List<Relationship> relationships = getRelationships(queryParams);
+
+    if (queryParams.isSkipPaging()) {
+      return Relationships.withoutPagination(relationships);
+    }
+
+    if (queryParams.isTotalPages()) {
+      int count = countRelationships(queryParams);
+      pager =
+          new Pager(queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault());
+    } else {
+      pager = handleLastPageFlag(params, relationships);
+    }
+
+    return Relationships.of(relationships, pager);
+  }
+
+  private int countRelationships(RelationshipQueryParams queryParams) {
+    if (queryParams.getEntity() instanceof TrackedEntity te) {
+      return getRelationshipsByTrackedEntity(te, null).size();
+    }
+
+    if (queryParams.getEntity() instanceof Enrollment en) {
+      return getRelationshipsByEnrollment(en, null).size();
+    }
+
+    if (queryParams.getEntity() instanceof Event ev) {
+      return getRelationshipsByEvent(ev, null).size();
+    }
+
+    throw new IllegalArgumentException("Unkown type");
+  }
 
   @Override
   public Relationship getRelationship(String uid) throws ForbiddenException, NotFoundException {
@@ -86,68 +121,54 @@ public class DefaultRelationshipService implements RelationshipService {
     return map(relationship);
   }
 
-  @Override
-  public Optional<Relationship> findRelationshipByUid(String uid)
-      throws ForbiddenException, NotFoundException {
-    Relationship relationship = relationshipStore.getByUid(uid);
-
-    if (relationship == null) {
-      return Optional.empty();
-    }
-
-    User user = currentUserService.getCurrentUser();
-    List<String> errors = trackerAccessManager.canRead(user, relationship);
-
-    if (!errors.isEmpty()) {
-      return Optional.empty();
-    }
-
-    return Optional.of(map(relationship));
-  }
-
-  @Override
   public List<Relationship> getRelationshipsByTrackedEntity(
-      TrackedEntity trackedEntity, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter)
-      throws ForbiddenException, NotFoundException {
-
+      TrackedEntity trackedEntity, RelationshipQueryParams queryParams) {
     List<Relationship> relationships =
-        relationshipStore
-            .getByTrackedEntity(trackedEntity, pagingAndSortingCriteriaAdapter)
-            .stream()
+        relationshipStore.getByTrackedEntity(trackedEntity, queryParams).stream()
             .filter(
                 r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
             .toList();
     return map(relationships);
   }
 
-  @Override
   public List<Relationship> getRelationshipsByEnrollment(
-      Enrollment enrollment, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter)
-      throws ForbiddenException, NotFoundException {
-
+      Enrollment enrollment, RelationshipQueryParams queryParams) {
     List<Relationship> relationships =
-        relationshipStore.getByEnrollment(enrollment, pagingAndSortingCriteriaAdapter).stream()
+        relationshipStore.getByEnrollment(enrollment, queryParams).stream()
             .filter(
                 r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
             .toList();
     return map(relationships);
   }
 
-  @Override
   public List<Relationship> getRelationshipsByEvent(
-      Event event, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter)
-      throws ForbiddenException, NotFoundException {
+      Event event, RelationshipQueryParams queryParams) {
     List<Relationship> relationships =
-        relationshipStore.getByEvent(event, pagingAndSortingCriteriaAdapter).stream()
+        relationshipStore.getByEvent(event, queryParams).stream()
             .filter(
                 r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
             .toList();
     return map(relationships);
+  }
+
+  private List<Relationship> getRelationships(RelationshipQueryParams queryParams) {
+    if (queryParams.getEntity() instanceof TrackedEntity te) {
+      return getRelationshipsByTrackedEntity(te, queryParams);
+    }
+
+    if (queryParams.getEntity() instanceof Enrollment en) {
+      return getRelationshipsByEnrollment(en, queryParams);
+    }
+
+    if (queryParams.getEntity() instanceof Event ev) {
+      return getRelationshipsByEvent(ev, queryParams);
+    }
+
+    throw new IllegalArgumentException("Unkown type");
   }
 
   /** Map to a non-proxied Relationship to prevent hibernate exceptions. */
-  private List<Relationship> map(List<Relationship> relationships)
-      throws ForbiddenException, NotFoundException {
+  private List<Relationship> map(List<Relationship> relationships) {
     List<Relationship> result = new ArrayList<>(relationships.size());
     for (Relationship relationship : relationships) {
       result.add(map(relationship));
@@ -155,7 +176,7 @@ public class DefaultRelationshipService implements RelationshipService {
     return result;
   }
 
-  private Relationship map(Relationship relationship) throws ForbiddenException, NotFoundException {
+  private Relationship map(Relationship relationship) {
     Relationship result = new Relationship();
     result.setUid(relationship.getUid());
     result.setCreated(relationship.getCreated());
@@ -170,8 +191,7 @@ public class DefaultRelationshipService implements RelationshipService {
     return result;
   }
 
-  private RelationshipItem withNestedEntity(RelationshipItem item)
-      throws ForbiddenException, NotFoundException {
+  private RelationshipItem withNestedEntity(RelationshipItem item) {
     // relationships of relationship items are not mapped to JSON so there is no need to fetch them
     RelationshipItem result = new RelationshipItem();
 
@@ -179,24 +199,53 @@ public class DefaultRelationshipService implements RelationshipService {
     // attribute values
     // for tracked entity type attributes from enrollment.trackedEntity. Enrollment attributes are
     // actually
-    // owned by the TEI and cannot be set on the Enrollment. When returning enrollments in our API
+    // owned by the TE and cannot be set on the Enrollment. When returning enrollments in our API
     // an enrollment
     // should only have the program tracked entity attributes.
     if (item.getTrackedEntity() != null) {
-      result.setTrackedEntity(
-          trackedEntityService.getTrackedEntity(
-              item.getTrackedEntity(),
-              TrackedEntityParams.TRUE.withIncludeRelationships(false),
-              false));
+      result.setTrackedEntity(item.getTrackedEntity());
     } else if (item.getEnrollment() != null) {
-      result.setEnrollment(
-          enrollmentService.getEnrollment(
-              item.getEnrollment(), EnrollmentParams.TRUE.withIncludeRelationships(false), false));
+      result.setEnrollment(item.getEnrollment());
     } else if (item.getEvent() != null) {
-      result.setEvent(
-          eventService.getEvent(item.getEvent(), EventParams.TRUE.withIncludeRelationships(false)));
+      result.setEvent(item.getEvent());
     }
 
     return result;
+  }
+
+  /**
+   * This method will apply the logic related to the parameter 'totalPages=false'. This works in
+   * conjunction with methods in : {@link RelationshipService}
+   *
+   * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
+   * allow us to evaluate if we are in the last page or not. And this is what his method does,
+   * returning the respective Pager object.
+   *
+   * @param params the request params
+   * @param relationships the reference to the list of Relationships
+   * @return the populated SlimPager instance
+   */
+  private Pager handleLastPageFlag(
+      RelationshipOperationParams params, List<Relationship> relationships) {
+    Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
+    Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
+    boolean isLastPage = false;
+
+    if (isNotEmpty(relationships)) {
+      isLastPage = relationships.size() <= originalPageSize;
+      if (!isLastPage) {
+        // Get the same number of elements of the pageSize, forcing
+        // the removal of the last additional element added at querying
+        // time.
+        relationships.retainAll(relationships.subList(0, originalPageSize));
+      }
+    }
+
+    return new SlimPager(originalPage, originalPageSize, isLastPage);
+  }
+
+  @Override
+  public Set<String> getOrderableFields() {
+    return relationshipStore.getOrderableFields();
   }
 }

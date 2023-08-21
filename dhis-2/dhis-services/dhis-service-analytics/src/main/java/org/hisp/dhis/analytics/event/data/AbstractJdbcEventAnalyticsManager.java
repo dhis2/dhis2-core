@@ -541,6 +541,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       }
     } catch (BadSqlGrammarException ex) {
       log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
+      throw ex;
     } catch (DataAccessResourceFailureException ex) {
       log.warn(ErrorCode.E7131.getMessage(), ex);
       throw new QueryRuntimeException(ErrorCode.E7131);
@@ -908,6 +909,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       runnable.run();
     } catch (BadSqlGrammarException ex) {
       log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
+      throw ex;
     } catch (DataAccessResourceFailureException ex) {
       log.warn(ErrorCode.E7131.getMessage(), ex);
       throw new QueryRuntimeException(ErrorCode.E7131);
@@ -944,10 +946,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
         if (queryItem.isPresent()) {
           grid.addValue(
-              AnalyticsUtils.getRoundedValue(
-                  params,
-                  ((ProgramIndicator) queryItem.get().getItem()).getDecimals(),
-                  ((BigDecimal) value).doubleValue()));
+              BigDecimal.valueOf(
+                      AnalyticsUtils.getRoundedValue(
+                              params,
+                              ((ProgramIndicator) queryItem.get().getItem()).getDecimals(),
+                              ((BigDecimal) value))
+                          .doubleValue())
+                  .stripTrailingZeros()
+                  .toPlainString());
         } else {
           // toPlainString method prevents scientific notation (3E+2)
           grid.addValue(((BigDecimal) value).stripTrailingZeros().toPlainString());
@@ -957,7 +963,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       }
     } else if (header.getValueType() == ValueType.REFERENCE) {
       String json = sqlRowSet.getString(index);
-
       ObjectMapper mapper = new ObjectMapper();
 
       try {

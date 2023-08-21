@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.PersistenceException;
@@ -54,6 +55,7 @@ import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryRuntimeException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
@@ -66,6 +68,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
@@ -74,7 +77,6 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.common.UIDParamEditor;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
@@ -144,6 +146,15 @@ public class CrudControllerAdvice {
     this.enumClasses.forEach(c -> binder.registerCustomEditor(c, new ConvertEnum(c)));
     binder.registerCustomEditor(TrackerIdSchemeParam.class, new IdSchemeParamEditor());
     binder.registerCustomEditor(UID.class, new UIDParamEditor());
+  }
+
+  @ExceptionHandler
+  @ResponseBody
+  public WebMessage badSqlGrammarException(BadSqlGrammarException ex) {
+    return Optional.of(ex)
+        .map(BadSqlGrammarException::getSQLException)
+        .map(WebMessageUtils::createWebMessage)
+        .orElse(defaultExceptionHandler(ex));
   }
 
   @ExceptionHandler(org.hisp.dhis.feedback.BadRequestException.class)

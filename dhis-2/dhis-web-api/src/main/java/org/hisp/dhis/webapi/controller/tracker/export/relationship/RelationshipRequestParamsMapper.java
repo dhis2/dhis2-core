@@ -28,56 +28,105 @@
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
+import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
+import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
-import org.hisp.dhis.webapi.common.UID;
+import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams.RelationshipOperationParamsBuilder;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.export.enrollment.EnrollmentMapper;
 import org.springframework.stereotype.Component;
 
 /**
- * Maps query parameters from {@link RelationshipsExportController} stored in {@link
- * LegacyRequestParams} to {@link RelationshipOperationParams} which is used to fetch events from
- * the DB.
+ * Maps operation parameters from {@link RelationshipsExportController} stored in {@link
+ * RequestParams} to {@link RelationshipOperationParams} which is used to fetch relationships from
+ * the service.
  */
 @Component
 @RequiredArgsConstructor
 class RelationshipRequestParamsMapper {
+
+  private static final Set<String> ORDERABLE_FIELD_NAMES =
+      RelationshipMapper.ORDERABLE_FIELDS.keySet();
 
   public RelationshipOperationParams map(RequestParams requestParams) throws BadRequestException {
     UID trackedEntity =
         validateDeprecatedParameter(
             "tei", requestParams.getTei(), "trackedEntity", requestParams.getTrackedEntity());
 
-    int count = 0;
-    if (trackedEntity != null) {
-      count++;
-    }
-    if (requestParams.getEnrollment() != null) {
-      count++;
-    }
-    if (requestParams.getEvent() != null) {
-      count++;
-    }
-
-    if (count == 0) {
+    if (ObjectUtils.allNull(
+        trackedEntity, requestParams.getEnrollment(), requestParams.getEvent())) {
       throw new BadRequestException(
           "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.");
-    } else if (count > 1) {
+    }
+
+    if (hasMoreThanOneNotNull(
+        trackedEntity, requestParams.getEnrollment(), requestParams.getEvent())) {
       throw new BadRequestException(
           "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.");
     }
 
-    return RelationshipOperationParams.builder()
-        .trackedEntity(trackedEntity == null ? null : trackedEntity.getValue())
-        .enrollment(
-            requestParams.getEnrollment() == null ? null : requestParams.getEnrollment().getValue())
-        .event(requestParams.getEvent() == null ? null : requestParams.getEvent().getValue())
-        .page(requestParams.getPage())
-        .pageSize(requestParams.getPageSize())
-        .totalPages(requestParams.isTotalPages())
-        .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
-        .build();
+    validateOrderParams(requestParams.getOrder(), ORDERABLE_FIELD_NAMES);
+
+    RelationshipOperationParamsBuilder builder =
+        RelationshipOperationParams.builder()
+            .type(
+                getTrackerType(
+                    trackedEntity, requestParams.getEnrollment(), requestParams.getEvent()))
+            .identifier(
+                ObjectUtils.firstNonNull(
+                        trackedEntity, requestParams.getEnrollment(), requestParams.getEvent())
+                    .getValue())
+            .page(Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE))
+            .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
+            .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))
+            .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false));
+
+    mapOrderParam(builder, requestParams.getOrder());
+
+    return builder.build();
+  }
+
+  private TrackerType getTrackerType(UID trackedEntity, UID enrollment, UID event) {
+    if (Objects.nonNull(trackedEntity)) {
+      return TRACKED_ENTITY;
+    } else if (Objects.nonNull(enrollment)) {
+      return ENROLLMENT;
+    } else if (Objects.nonNull(event)) {
+      return EVENT;
+    }
+    return null;
+  }
+
+  private boolean hasMoreThanOneNotNull(Object... values) {
+    return Stream.of(values).filter(Objects::nonNull).count() > 1;
+  }
+
+  private void mapOrderParam(
+      RelationshipOperationParamsBuilder builder, List<OrderCriteria> orders) {
+    if (orders == null || orders.isEmpty()) {
+      return;
+    }
+
+    for (OrderCriteria order : orders) {
+      if (EnrollmentMapper.ORDERABLE_FIELDS.containsKey(order.getField())) {
+        builder.orderBy(
+            EnrollmentMapper.ORDERABLE_FIELDS.get(order.getField()), order.getDirection());
+      }
+    }
   }
 }

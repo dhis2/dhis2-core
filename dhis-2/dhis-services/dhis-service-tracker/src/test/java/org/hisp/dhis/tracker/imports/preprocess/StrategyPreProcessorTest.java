@@ -36,8 +36,8 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,9 +50,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class StrategyPreProcessorTest extends DhisConvenienceTest {
 
-  private static final String TEI_UID = "TeiUid";
+  private static final String TE_UID = "TeiUid";
 
-  private static final String NEW_TEI_UID = "NewTeiUid";
+  private static final String NEW_TE_UID = "NewTeiUid";
 
   private static final String ENROLLMENT_UID = "EnrollmentUid";
 
@@ -70,7 +70,7 @@ class StrategyPreProcessorTest extends DhisConvenienceTest {
 
   private Enrollment preheatEnrollment;
 
-  private TrackedEntity tei;
+  private TrackedEntity te;
 
   private Relationship relationship;
 
@@ -96,12 +96,12 @@ class StrategyPreProcessorTest extends DhisConvenienceTest {
 
   @BeforeEach
   void setUp() {
-    tei = new TrackedEntity();
-    tei.setUid(TEI_UID);
+    te = new TrackedEntity();
+    te.setUid(TE_UID);
     trackedEntity = new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
-    trackedEntity.setTrackedEntity(TEI_UID);
+    trackedEntity.setTrackedEntity(TE_UID);
     newTrackedEntity = new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
-    newTrackedEntity.setTrackedEntity(NEW_TEI_UID);
+    newTrackedEntity.setTrackedEntity(NEW_TE_UID);
     preheatEnrollment = new Enrollment();
     preheatEnrollment.setUid(ENROLLMENT_UID);
     enrollment = new org.hisp.dhis.tracker.imports.domain.Enrollment();
@@ -120,7 +120,7 @@ class StrategyPreProcessorTest extends DhisConvenienceTest {
     payloadRelationship.setRelationship(RELATIONSHIP_UID);
     newPayloadRelationship = new org.hisp.dhis.tracker.imports.domain.Relationship();
     newPayloadRelationship.setRelationship(NEW_RELATIONSHIP_UID);
-    Mockito.when(preheat.getTrackedEntity(TEI_UID)).thenReturn(tei);
+    Mockito.when(preheat.getTrackedEntity(TE_UID)).thenReturn(te);
     Mockito.when(preheat.getEnrollment(ENROLLMENT_UID)).thenReturn(preheatEnrollment);
     Mockito.when(preheat.getEvent(EVENT_UID)).thenReturn(dbEvent);
     Mockito.when(preheat.getRelationship(RELATIONSHIP_UID)).thenReturn(relationship);
@@ -139,10 +139,10 @@ class StrategyPreProcessorTest extends DhisConvenienceTest {
             .build();
     preProcessorToTest.process(bundle);
     assertThat(
-        bundle.getResolvedStrategyMap().get(TrackerType.TRACKED_ENTITY).get(TEI_UID),
+        bundle.getResolvedStrategyMap().get(TrackerType.TRACKED_ENTITY).get(TE_UID),
         Matchers.is(TrackerImportStrategy.UPDATE));
     assertThat(
-        bundle.getResolvedStrategyMap().get(TrackerType.TRACKED_ENTITY).get(NEW_TEI_UID),
+        bundle.getResolvedStrategyMap().get(TrackerType.TRACKED_ENTITY).get(NEW_TE_UID),
         Matchers.is(TrackerImportStrategy.CREATE));
     assertThat(
         bundle.getResolvedStrategyMap().get(TrackerType.ENROLLMENT).get(ENROLLMENT_UID),
@@ -177,10 +177,10 @@ class StrategyPreProcessorTest extends DhisConvenienceTest {
             .build();
     preProcessorToTest.process(bundle);
     assertThat(
-        bundle.getResolvedStrategyMap().get(TrackerType.TRACKED_ENTITY).get(TEI_UID),
+        bundle.getResolvedStrategyMap().get(TrackerType.TRACKED_ENTITY).get(TE_UID),
         Matchers.is(TrackerImportStrategy.DELETE));
     assertThat(
-        bundle.getResolvedStrategyMap().get(TrackerType.TRACKED_ENTITY).get(NEW_TEI_UID),
+        bundle.getResolvedStrategyMap().get(TrackerType.TRACKED_ENTITY).get(NEW_TE_UID),
         Matchers.is(TrackerImportStrategy.DELETE));
     assertThat(
         bundle.getResolvedStrategyMap().get(TrackerType.ENROLLMENT).get(ENROLLMENT_UID),

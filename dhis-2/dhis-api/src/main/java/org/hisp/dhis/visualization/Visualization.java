@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.visualization;
 
+import static com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY;
 import static com.google.common.base.Verify.verify;
 import static java.util.Arrays.asList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
@@ -51,7 +52,6 @@ import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -66,7 +66,6 @@ import java.util.Set;
 import org.hisp.dhis.analytics.NumberType;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseAnalyticalObject;
-import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -74,7 +73,6 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -217,18 +215,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   /** The name of the visualization (monthly based). */
   private transient String visualizationPeriodName;
 
-  private transient Map<String, String> parentGraphMap = new HashMap<>();
-
-  /*
-   * Common transient collections used to return the respective values to the
-   * client. They are the main attributes for any kind of visualization.
-   */
-  private transient List<DimensionalObject> columns = new ArrayList<>();
-
-  private transient List<DimensionalObject> rows = new ArrayList<>();
-
-  private transient List<DimensionalObject> filters = new ArrayList<>();
-
   /** The title for a possible tabulated data. */
   private transient String gridTitle;
 
@@ -244,7 +230,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   public Visualization() {}
 
-  public Visualization(final String name) {
+  public Visualization(String name) {
     this();
     this.name = name;
   }
@@ -258,9 +244,9 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    * @param reportingRates the reporting rates.
    * @param periods the periods. Cannot have the name property set.
    * @param organisationUnits the organisation units.
-   * @param doIndicators indicating whether indicators should be crosstabulated.
-   * @param doPeriods indicating whether periods should be crosstabulated.
-   * @param doUnits indicating whether organisation units should be crosstabulated.
+   * @param doIndicators indicating whether indicators should be cross-tabulated.
+   * @param doPeriods indicating whether periods should be cross-tabulated.
+   * @param doUnits indicating whether organisation units should be cross-tabulated.
    */
   public Visualization(
       String name,
@@ -296,60 +282,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     } else {
       rowDimensions.add(ORGUNIT_DIM_ID);
     }
-  }
-
-  @Override
-  @JsonProperty
-  @JsonDeserialize(contentAs = BaseDimensionalObject.class)
-  @JacksonXmlElementWrapper(localName = "columns", namespace = DXF_2_0)
-  @JacksonXmlProperty(localName = "column", namespace = DXF_2_0)
-  public List<DimensionalObject> getColumns() {
-    return columns;
-  }
-
-  @Override
-  public void setColumns(List<DimensionalObject> columns) {
-    this.columns = columns;
-  }
-
-  @Override
-  @JsonProperty
-  @JsonDeserialize(contentAs = BaseDimensionalObject.class)
-  @JacksonXmlElementWrapper(localName = "rows", namespace = DXF_2_0)
-  @JacksonXmlProperty(localName = "row", namespace = DXF_2_0)
-  public List<DimensionalObject> getRows() {
-    return rows;
-  }
-
-  @Override
-  public void setRows(List<DimensionalObject> rows) {
-    this.rows = rows;
-  }
-
-  @Override
-  @JsonProperty
-  @JsonDeserialize(contentAs = BaseDimensionalObject.class)
-  @JacksonXmlElementWrapper(localName = "filters", namespace = DXF_2_0)
-  @JacksonXmlProperty(localName = "filter", namespace = DXF_2_0)
-  public List<DimensionalObject> getFilters() {
-    return filters;
-  }
-
-  @Override
-  public void setFilters(List<DimensionalObject> filters) {
-    this.filters = filters;
-  }
-
-  @Override
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @JacksonXmlProperty(localName = "parentGraphMap", namespace = DxfNamespaces.DXF_2_0)
-  public Map<String, String> getParentGraphMap() {
-    return parentGraphMap;
-  }
-
-  @Override
-  public void setParentGraphMap(Map<String, String> parentGraphMap) {
-    this.parentGraphMap = parentGraphMap;
   }
 
   @JsonProperty
@@ -556,27 +488,27 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     this.series = series;
   }
 
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JsonProperty(access = READ_ONLY)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public String getDomainAxisLabel() {
     return domainAxisLabel;
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   @Translatable(propertyName = "domainAxisLabel")
   public String getDisplayDomainAxisLabel() {
     return getTranslation("domainAxisLabel", getDomainAxisLabel());
   }
 
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JsonProperty(access = READ_ONLY)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public String getRangeAxisLabel() {
     return rangeAxisLabel;
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   @Translatable(propertyName = "rangeAxisLabel")
   public String getDisplayRangeAxisLabel() {
     return getTranslation("rangeAxisLabel", getRangeAxisLabel());
@@ -592,13 +524,13 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     this.type = type;
   }
 
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JsonProperty(access = READ_ONLY)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public String getBaseLineLabel() {
     return baseLineLabel;
   }
 
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JsonProperty(access = READ_ONLY)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public String getTargetLineLabel() {
     return targetLineLabel;
@@ -624,41 +556,41 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     this.colorSet = colorSet;
   }
 
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JsonProperty(access = READ_ONLY)
   @JacksonXmlProperty(namespace = DXF_2_0)
   @PropertyRange(min = -Double.MAX_VALUE)
   public Double getTargetLineValue() {
     return targetLineValue;
   }
 
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JsonProperty(access = READ_ONLY)
   @JacksonXmlProperty(namespace = DXF_2_0)
   @PropertyRange(min = -Double.MAX_VALUE)
   public Double getBaseLineValue() {
     return baseLineValue;
   }
 
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JsonProperty(access = READ_ONLY)
   @JacksonXmlProperty(namespace = DXF_2_0)
   @PropertyRange(min = -Double.MAX_VALUE)
   public Double getRangeAxisMaxValue() {
     return rangeAxisMaxValue;
   }
 
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JsonProperty(access = READ_ONLY)
   @JacksonXmlProperty(namespace = DXF_2_0)
   @PropertyRange(min = -Double.MAX_VALUE)
   public Double getRangeAxisMinValue() {
     return rangeAxisMinValue;
   }
 
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JsonProperty(access = READ_ONLY)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public Integer getRangeAxisSteps() {
     return rangeAxisSteps;
   }
 
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JsonProperty(access = READ_ONLY)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public Integer getRangeAxisDecimals() {
     return rangeAxisDecimals;
@@ -726,7 +658,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    *     "{@link #rowDimensions}".
    * @param dimensionType the formal dimension type. See {@link DimensionType}
    */
-  public void addDimensionDescriptor(final String dimension, final DimensionType dimensionType) {
+  public void addDimensionDescriptor(String dimension, DimensionType dimensionType) {
     this.dimensionDescriptors.add(new DimensionDescriptor(dimension, dimensionType));
   }
 
@@ -749,7 +681,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   private void initializePivotTable(
       User user,
-      Date date,
+      Date periodDate,
       OrganisationUnit organisationUnit,
       List<OrganisationUnit> organisationUnitsAtLevel,
       List<OrganisationUnit> organisationUnitsInGroups,
@@ -758,7 +690,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
         (periods != null && !periods.isEmpty()) || hasRelativePeriods(),
         "Must contain periods or relative periods");
 
-    this.relativePeriodDate = date;
+    this.relativePeriodDate = periodDate;
     this.relativeOrganisationUnit = organisationUnit;
 
     if (organisationUnit != null
@@ -773,7 +705,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
       addTransientOrganisationUnit(organisationUnit);
     }
 
-    // Handle special dimension
+    // Handle special dimension.
     if (isDimensional()) {
       transientCategoryOptionCombos.addAll(
           Objects.requireNonNull(getFirstCategoryCombo()).getSortedOptionCombos());
@@ -782,20 +714,20 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
           "Category option combos size must be larger than 0");
     }
 
-    // Populate grid
+    // Populate grid.
     this.populateGridColumnsAndRows(
-        date, user, organisationUnitsAtLevel, organisationUnitsInGroups, format);
+        periodDate, user, organisationUnitsAtLevel, organisationUnitsInGroups, format);
   }
 
   private void initializeChart(
       User user,
-      Date date,
+      Date periodDate,
       OrganisationUnit organisationUnit,
       List<OrganisationUnit> organisationUnitsAtLevel,
       List<OrganisationUnit> organisationUnitsInGroups,
       I18nFormat format) {
     this.relativeUser = user;
-    this.relativePeriodDate = date;
+    this.relativePeriodDate = periodDate;
     this.relativeOrganisationUnit = organisationUnit;
     this.organisationUnitsAtLevel = organisationUnitsAtLevel;
     this.organisationUnitsInGroups = organisationUnitsInGroups;
@@ -805,7 +737,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   /**
    * Some Visualizations may not have columnDimensions.
    *
-   * <p>PIE, GAUGE and others don't not have rowsDimensions.
+   * <p>PIE, GAUGE and others don't have rowsDimensions.
    */
   @Override
   public void populateAnalyticalProperties() {
@@ -844,7 +776,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    * @return a list of DimensionalItemObject representing the Chart series
    */
   public List<DimensionalItemObject> chartSeries() {
-    // Chart must have one column dimension (series)
+    // Chart must have one column dimension (series).
     if (isEmpty(columnDimensions) || isBlank(columnDimensions.get(0))) {
       return null;
     }
@@ -874,7 +806,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    * @param dimension a given dimension
    * @return the list of DimensionalItemObject's
    */
-  private List<DimensionalItemObject> getDimensionalItemObjects(final String dimension) {
+  private List<DimensionalItemObject> getDimensionalItemObjects(String dimension) {
     DimensionalObject object =
         getDimensionalObject(
             dimension,
@@ -888,8 +820,18 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     return object != null ? object.getItems() : null;
   }
 
+  /**
+   * Based on the given arguments, this method will populate the current "gridColumns" and
+   * "gridRows" objects. It also sets the title of the grid ("gridTitle").
+   *
+   * @param periodDate the {@link Date} related to the period.
+   * @param user the current {@link User}.
+   * @param organisationUnitsAtLevel the list of org. units at level.
+   * @param organisationUnitsInGroups the list of org. units in groups.
+   * @param format the current i18n format {@link I18nFormat}.
+   */
   public void populateGridColumnsAndRows(
-      Date date,
+      Date periodDate,
       User user,
       List<OrganisationUnit> organisationUnitsAtLevel,
       List<OrganisationUnit> organisationUnitsInGroups,
@@ -903,7 +845,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
         tableColumns.add(
             getDimensionalObject(
                     dimension,
-                    date,
+                    periodDate,
                     user,
                     false,
                     organisationUnitsAtLevel,
@@ -918,7 +860,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
         tableRows.add(
             getDimensionalObject(
                     dimension,
-                    date,
+                    periodDate,
                     user,
                     true,
                     organisationUnitsAtLevel,
@@ -933,7 +875,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
         filterItems.addAll(
             getDimensionalObject(
                     filter,
-                    date,
+                    periodDate,
                     user,
                     true,
                     organisationUnitsAtLevel,
@@ -961,9 +903,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   }
 
   public List<Period> getAllPeriods() {
-    final List<Period> list = new ArrayList<>();
-
-    list.addAll(relativePeriodsList);
+    List<Period> list = new ArrayList<>(relativePeriodsList);
 
     for (Period period : periods) {
       if (!list.contains(period)) {
@@ -987,12 +927,12 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     return null;
   }
 
-  /** Returns the number of empty lists among the argument lists. */
+  /** Returns the number of non-empty lists among the argument lists. */
   private static int nonEmptyLists(List<?>... lists) {
     int nonEmpty = 0;
 
     for (List<?> list : lists) {
-      if (list != null && list.size() > 0) {
+      if (list != null && !list.isEmpty()) {
         ++nonEmpty;
       }
     }
@@ -1005,16 +945,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     return reportingParams != null;
   }
 
-  /**
-   * Simply checks if the given type matches the current object instance.
-   *
-   * @param type the VisualizationType.
-   * @return true if the type matches, false otherwise.
-   */
-  public boolean isType(final VisualizationType type) {
-    return this.type != null && this.type.equals(type);
-  }
-
   public boolean isTargetLine() {
     return targetLineValue != null;
   }
@@ -1025,7 +955,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   /** Adds an empty list of DimensionalItemObjects to the given list if empty. */
   public static void addListIfEmpty(final List<List<DimensionalItemObject>> list) {
-    if (list != null && list.size() == 0) {
+    if (list != null && list.isEmpty()) {
       list.add(asList(new DimensionalItemObject[0]));
     }
   }
@@ -1035,21 +965,18 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    *
    * @param grid the grid, should be empty and not null.
    * @param valueMap the mapping of identifiers to aggregate values.
-   * @param displayProperty the display property to use for meta data.
+   * @param displayProperty the display property to use for metadata.
    * @param reportParamColumns whether to include report parameter columns.
    * @return a grid.
    */
   public Grid getGrid(
-      final Grid grid,
+      Grid grid,
       Map<String, Object> valueMap,
-      final DisplayProperty displayProperty,
-      final boolean reportParamColumns) {
+      DisplayProperty displayProperty,
+      boolean reportParamColumns) {
     valueMap = getSortedKeysMap(valueMap);
 
-    // ---------------------------------------------------------------------
-    // Title
-    // ---------------------------------------------------------------------
-
+    // Set titles.
     if (name != null) {
       grid.setTitle(name);
       grid.setSubtitle(gridTitle);
@@ -1057,24 +984,151 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
       grid.setTitle(gridTitle);
     }
 
-    // ---------------------------------------------------------------------
-    // Headers
-    // ---------------------------------------------------------------------
+    // Add headers.
+    addHeadersForRows(grid);
+    addHeadersForReport(grid, reportParamColumns);
 
-    final Map<String, String> metaData = getMetaData();
-    metaData.putAll(PRETTY_NAMES);
+    final int startColumnIndex = grid.getHeaders().size();
+    final int numberOfColumns = getGridColumns().size();
 
-    for (String dimension : rowDimensions) {
-      final String dimensionId = getDimensionIdentifierFor(dimension, getDimensionDescriptors());
-      final String name = defaultIfEmpty(metaData.get(dimensionId), dimensionId);
-      final String col = defaultIfEmpty(COLUMN_NAMES.get(dimensionId), dimensionId);
+    addHeadersForColumns(grid, displayProperty);
 
-      grid.addHeader(new GridHeader(name + " ID", col + "id", TEXT, true, true));
-      grid.addHeader(new GridHeader(name, col + "name", TEXT, false, true));
-      grid.addHeader(new GridHeader(name + " code", col + "code", TEXT, true, true));
-      grid.addHeader(new GridHeader(name + " description", col + "description", TEXT, true, true));
+    // Add values.
+    for (List<DimensionalItemObject> rows : gridRows) {
+      grid.addRow();
+
+      addValuesForMetadata(grid, displayProperty, rows);
+      addValuesForReport(grid, reportParamColumns, rows);
+      addValuesForDimensions(grid, valueMap, rows);
+
+      // TODO hide empty columns
     }
 
+    // Apply boolean flags in the resulting grid.
+    applyFlags(grid, startColumnIndex, numberOfColumns);
+
+    return grid;
+  }
+
+  /**
+   * Applies the logics, related to the boolean flags supported, on top of the given {@link Grid}.
+   *
+   * @param grid the {@link Grid}.
+   * @param startColumnIndex the index required by one of the boolean flags.
+   * @param numberOfColumns the number of columns required by one of the flags.
+   */
+  private void applyFlags(Grid grid, int startColumnIndex, int numberOfColumns) {
+    if (hideEmptyColumns) {
+      grid.removeEmptyColumns();
+    }
+
+    if (regression) {
+      grid.addRegressionToGrid(startColumnIndex, numberOfColumns);
+    }
+
+    if (cumulativeValues) {
+      grid.addCumulativesToGrid(startColumnIndex, numberOfColumns);
+    }
+
+    if (sortOrder != NONE) {
+      grid.sortGrid(grid.getWidth(), sortOrder);
+    }
+
+    if (topLimit > 0) {
+      grid.limitGrid(topLimit);
+    }
+
+    if (showHierarchy
+        && rowDimensions.contains(ORGUNIT_DIM_ID)
+        && grid.hasInternalMetaDataKey(ORG_UNIT_ANCESTORS.getKey())) {
+      int ouIdColumnIndex = rowDimensions.indexOf(ORGUNIT_DIM_ID) * 4;
+
+      addHierarchyColumns(grid, ouIdColumnIndex);
+    }
+  }
+
+  /**
+   * Adds the values to the given {@link Grid}, based on the map of values and list of row.
+   *
+   * @param grid the {@link Grid}.
+   * @param valueMap the map of values.
+   * @param rows the list of {@link DimensionalItemObject}.
+   */
+  private void addValuesForDimensions(
+      Grid grid, Map<String, Object> valueMap, List<DimensionalItemObject> rows) {
+    boolean hasValue = false;
+
+    for (List<DimensionalItemObject> column : gridColumns) {
+      String key = DimensionalObjectUtils.getKey(column, rows);
+      Object value = valueMap.get(key);
+
+      grid.addValue(value);
+
+      hasValue = hasValue || value != null;
+    }
+
+    if (hideEmptyRows && !hasValue) {
+      grid.removeCurrentWriteRow();
+    }
+  }
+
+  /**
+   * Adds values, into the given {@link Grid}, related to reporting, if requested.
+   *
+   * @param grid the {@link Grid}.
+   * @param reportParamColumns if true, the values are added to the grid.
+   * @param rows the list of rows necessary to evaluate one of the values.
+   */
+  private void addValuesForReport(
+      Grid grid, boolean reportParamColumns, List<DimensionalItemObject> rows) {
+    if (reportParamColumns) {
+      grid.addValue(visualizationPeriodName);
+      grid.addValue(getParentOrganisationUnitName());
+      grid.addValue(isCurrentParent(rows) ? "Yes" : "No");
+    }
+  }
+
+  /**
+   * Adds headers into the given {@link Grid} based on the given "rows".
+   *
+   * @param grid the {@link Grid}.
+   * @param displayProperty the current {@link DisplayProperty}.
+   * @param rows the rows where the values are living.
+   */
+  private static void addValuesForMetadata(
+      Grid grid, DisplayProperty displayProperty, List<DimensionalItemObject> rows) {
+    for (DimensionalItemObject object : rows) {
+      grid.addValue(object.getDimensionItem());
+      grid.addValue(object.getDisplayProperty(displayProperty));
+      grid.addValue(object.getCode());
+      grid.addValue(object.getDisplayDescription());
+    }
+  }
+
+  /**
+   * Adds headers into the given {@link Grid} based on the current list of "gridColumns".
+   *
+   * @param grid the {@link Grid}.
+   */
+  private void addHeadersForColumns(Grid grid, DisplayProperty displayProperty) {
+    for (List<DimensionalItemObject> columns : gridColumns) {
+      grid.addHeader(
+          new GridHeader(
+              getColumnName(columns),
+              getPrettyColumnName(columns, displayProperty),
+              NUMBER,
+              false,
+              false));
+    }
+  }
+
+  /**
+   * Adds static headers into the given {@link Grid} based on the report params flag.
+   *
+   * @param reportParamColumns if true, add headers for report params.
+   * @param grid the {@link Grid}.
+   */
+  private static void addHeadersForReport(Grid grid, boolean reportParamColumns) {
     if (reportParamColumns) {
       grid.addHeader(
           new GridHeader("Reporting month", REPORTING_MONTH_COLUMN_NAME, TEXT, true, true));
@@ -1089,106 +1143,31 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
               true,
               true));
     }
-
-    final int startColumnIndex = grid.getHeaders().size();
-    final int numberOfColumns = getGridColumns().size();
-
-    for (List<DimensionalItemObject> column : gridColumns) {
-      grid.addHeader(
-          new GridHeader(
-              getColumnName(column),
-              getPrettyColumnName(column, displayProperty),
-              NUMBER,
-              false,
-              false));
-    }
-
-    // ---------------------------------------------------------------------
-    // Values
-    // ---------------------------------------------------------------------
-
-    for (List<DimensionalItemObject> row : gridRows) {
-      grid.addRow();
-
-      // -----------------------------------------------------------------
-      // Row meta data
-      // -----------------------------------------------------------------
-
-      for (DimensionalItemObject object : row) {
-        grid.addValue(object.getDimensionItem());
-        grid.addValue(object.getDisplayProperty(displayProperty));
-        grid.addValue(object.getCode());
-        grid.addValue(object.getDisplayDescription());
-      }
-
-      if (reportParamColumns) {
-        grid.addValue(visualizationPeriodName);
-        grid.addValue(getParentOrganisationUnitName());
-        grid.addValue(isCurrentParent(row) ? "Yes" : "No");
-      }
-
-      // -----------------------------------------------------------------
-      // Row data values
-      // -----------------------------------------------------------------
-
-      boolean hasValue = false;
-
-      for (List<DimensionalItemObject> column : gridColumns) {
-        final String key = DimensionalObjectUtils.getKey(column, row);
-
-        final Object value = valueMap.get(key);
-
-        grid.addValue(value);
-
-        hasValue = hasValue || value != null;
-      }
-
-      if (hideEmptyRows && !hasValue) {
-        grid.removeCurrentWriteRow();
-      }
-
-      // TODO hide empty columns
-    }
-
-    if (hideEmptyColumns) {
-      grid.removeEmptyColumns();
-    }
-
-    if (regression) {
-      grid.addRegressionToGrid(startColumnIndex, numberOfColumns);
-    }
-
-    if (cumulativeValues) {
-      grid.addCumulativesToGrid(startColumnIndex, numberOfColumns);
-    }
-
-    // ---------------------------------------------------------------------
-    // Sort and limit
-    // ---------------------------------------------------------------------
-
-    if (sortOrder != NONE) {
-      grid.sortGrid(grid.getWidth(), sortOrder);
-    }
-
-    if (topLimit > 0) {
-      grid.limitGrid(topLimit);
-    }
-
-    // ---------------------------------------------------------------------
-    // Show hierarchy option
-    // ---------------------------------------------------------------------
-
-    if (showHierarchy
-        && rowDimensions.contains(ORGUNIT_DIM_ID)
-        && grid.hasInternalMetaDataKey(ORG_UNIT_ANCESTORS.getKey())) {
-      final int ouIdColumnIndex = rowDimensions.indexOf(ORGUNIT_DIM_ID) * 4;
-
-      addHierarchyColumns(grid, ouIdColumnIndex);
-    }
-    return grid;
   }
 
-  /** Indicates whether this visualization is multi-dimensional. */
+  /**
+   * Adds headers into the given {@link Grid} based on the current list of "rowDimensions". It also
+   * populates the metadata so, it can be used to extract names for the header.
+   *
+   * @param grid the {@link Grid}.
+   */
+  private void addHeadersForRows(Grid grid) {
+    Map<String, String> metaData = getMetaData();
+    metaData.putAll(PRETTY_NAMES);
+
+    for (String dimension : rowDimensions) {
+      String dimensionId = getDimensionIdentifierFor(dimension, getDimensionDescriptors());
+      String name = defaultIfEmpty(metaData.get(dimensionId), dimensionId);
+      String col = defaultIfEmpty(COLUMN_NAMES.get(dimensionId), dimensionId);
+
+      grid.addHeader(new GridHeader(name + " ID", col + "id", TEXT, true, true));
+      grid.addHeader(new GridHeader(name, col + "name", TEXT, false, true));
+      grid.addHeader(new GridHeader(name + " code", col + "code", TEXT, true, true));
+      grid.addHeader(new GridHeader(name + " description", col + "description", TEXT, true, true));
+    }
+  }
+
+  /** Indicates whether this visualization is multidimensional. */
   public boolean isDimensional() {
     return !getDataElements().isEmpty()
         && (columnDimensions.contains(CATEGORYOPTIONCOMBO_DIM_ID)
@@ -1205,8 +1184,8 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    * Null arguments are ignored in the name.
    */
   public static String getPrettyColumnName(
-      final List<DimensionalItemObject> objects, final DisplayProperty displayProperty) {
-    final StringBuilder builder = new StringBuilder();
+      List<DimensionalItemObject> objects, DisplayProperty displayProperty) {
+    StringBuilder builder = new StringBuilder();
 
     for (DimensionalItemObject object : objects) {
       builder.append(object != null ? (object.getDisplayProperty(displayProperty) + SPACE) : EMPTY);
@@ -1220,21 +1199,22 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    * Generates a column name based on short-names of the argument objects. Null arguments are
    * ignored in the name.
    *
-   * <p>The period column name must be static when on columns so it can be re-used in reports, hence
-   * the name property is used which will be formatted only when the period dimension is on rows.
+   * <p>The period column name must be static when on columns, so it can be re-used in reports,
+   * hence the name property is used which will be formatted only when the period dimension is on
+   * rows.
    */
-  public static String getColumnName(final List<DimensionalItemObject> objects) {
-    final StringBuffer buffer = new StringBuffer();
+  public static String getColumnName(List<DimensionalItemObject> objects) {
+    StringBuilder sb = new StringBuilder();
 
     for (DimensionalItemObject object : objects) {
-      if (object != null && object instanceof Period) {
-        buffer.append(object.getName()).append(NAME_SEP);
+      if (object instanceof Period) {
+        sb.append(object.getName()).append(NAME_SEP);
       } else {
-        buffer.append(object != null ? (object.getShortName() + NAME_SEP) : EMPTY);
+        sb.append(object != null ? (object.getShortName() + NAME_SEP) : EMPTY);
       }
     }
 
-    final String column = columnEncode(buffer.toString());
+    String column = columnEncode(sb.toString());
 
     return column != null && column.length() > 0
         ? column.substring(0, column.lastIndexOf(NAME_SEP))
@@ -1244,8 +1224,8 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   /** Generates a string which is acceptable as a filename. */
   public static String columnEncode(String string) {
     if (string != null) {
-      string = string.replaceAll("<", "_lt");
-      string = string.replaceAll(">", "_gt");
+      string = string.replace("<", "_lt");
+      string = string.replace(">", "_gt");
       string = string.replaceAll(ILLEGAL_FILENAME_CHARS_REGEX, EMPTY);
       string = string.length() > 255 ? string.substring(0, 255) : string;
       string = string.toLowerCase();
@@ -1259,12 +1239,10 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    *
    * @param objects the List of IdentifiableObjects.
    */
-  public static boolean isCurrentParent(final List<? extends IdentifiableObject> objects) {
+  public static boolean isCurrentParent(List<? extends IdentifiableObject> objects) {
     for (IdentifiableObject object : objects) {
-      if (object != null
-          && object instanceof OrganisationUnit
-          && ((OrganisationUnit) object).isCurrentParent()) {
-        return true;
+      if (object instanceof OrganisationUnit organisationUnit) {
+        return organisationUnit.isCurrentParent();
       }
     }
     return false;
@@ -1277,14 +1255,14 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   /** Adds grid columns for each organisation unit level. */
   @SuppressWarnings("unchecked")
-  private void addHierarchyColumns(final Grid grid, final int ouIdColumnIndex) {
+  private void addHierarchyColumns(Grid grid, int ouIdColumnIndex) {
     Map<Object, List<?>> ancestorMap =
         (Map<Object, List<?>>) grid.getInternalMetaData().get(ORG_UNIT_ANCESTORS.getKey());
 
     Assert.notEmpty(
         ancestorMap, "Ancestor map cannot be null or empty when show hierarchy is enabled");
 
-    int newColumns = ancestorMap.values().stream().mapToInt(List::size).max().orElseGet(() -> 0);
+    int newColumns = ancestorMap.values().stream().mapToInt(List::size).max().orElse(0);
 
     List<GridHeader> headers = new ArrayList<>();
 
@@ -1317,14 +1295,14 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
       if (object != null) {
         String item = IdentifiableObjectUtils.join(object.getItems());
-        String filt = DimensionalObjectUtils.getPrettyFilter(object.getFilter());
+        String prettyFilter = DimensionalObjectUtils.getPrettyFilter(object.getFilter());
 
         if (item != null) {
           titleItems.add(item);
         }
 
-        if (filt != null) {
-          titleItems.add(filt);
+        if (prettyFilter != null) {
+          titleItems.add(prettyFilter);
         }
       }
     }

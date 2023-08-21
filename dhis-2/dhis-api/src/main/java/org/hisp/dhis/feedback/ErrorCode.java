@@ -272,6 +272,7 @@ public enum ErrorCode {
   E4067("Attribute UID is missing in filter"),
   E4068("No tracked entity attribute found for attribute: `{0}`"),
   E4069("DashboardItem `{0}` object reference `{1}` with id `{2}` not accessible"),
+  E4070("Dashboard `{0}` has a layout with more than 60 columns. `{1}` columns found"),
 
   /* SQL views */
   E4300("SQL query is null"),
@@ -420,6 +421,10 @@ public enum ErrorCode {
       "parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]"),
   E7141("parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]"),
   E7142("Program(s) `{0}` are not defined on Tracked Entity Type `{1}`"),
+  E7143("Organisation unit or organisation unit level is not valid"),
+  E7144(
+      "Query failed because a referenced table does not exist. Please ensure analytics job was run"),
+  E7145("Query failed because of a syntax error"),
 
   /* Event analytics */
   E7200(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
@@ -466,7 +471,7 @@ public enum ErrorCode {
   E7237("Sorting must have a valid dimension and a direction"),
   E7238("Sorting dimension ‘{0}’ is not a column"),
 
-  /* TEI analytics */
+  /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),
 
   /* Org unit analytics */

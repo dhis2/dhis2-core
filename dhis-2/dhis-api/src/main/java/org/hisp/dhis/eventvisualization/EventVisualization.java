@@ -408,9 +408,8 @@ public class EventVisualization extends BaseAnalyticalObject
 
   /** Validates the state of the current list of {@link Sorting} objects (if one is defined). */
   public void validateSortingState() {
-    getColumns();
     List<String> columns = getColumnDimensions();
-    List<Sorting> sortingList = getSorting().stream().toList();
+    List<Sorting> sortingList = getSorting();
 
     sortingList.forEach(
         s -> {
@@ -593,7 +592,7 @@ public class EventVisualization extends BaseAnalyticalObject
    * This attribute and its accessors were replaced by "type", but will remain here for
    * backward-compatibility with EventReport.
    *
-   * @return
+   * @return the current {@link EventDataType}.
    */
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)

@@ -38,29 +38,29 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
-import static org.hisp.dhis.feedback.Status.ERROR;
-import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 import static org.hisp.dhis.scheduling.JobType.ANALYTICS_TABLE;
 import static org.hisp.dhis.scheduling.JobType.MONITORING;
 import static org.hisp.dhis.scheduling.JobType.RESOURCE_TABLE;
-import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import java.util.HashSet;
 import java.util.Set;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.scheduling.JobConfigurationWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -73,15 +73,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("analytics")
 @Controller
-@RequestMapping(value = ResourceTableController.RESOURCE_PATH)
+@RequestMapping(value = "/resourceTables")
 @ApiVersion({DEFAULT, ALL})
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ResourceTableController {
-  public static final String RESOURCE_PATH = "/resourceTables";
-
-  private final SchedulingManager schedulingManager;
 
   private final CurrentUserService currentUserService;
+  private final JobConfigurationService jobConfigurationService;
+  private final JobSchedulerService jobSchedulerService;
 
   @RequestMapping(
       value = "/analytics",
@@ -95,7 +94,8 @@ public class ResourceTableController {
       @RequestParam(required = false) boolean skipEnrollment,
       @RequestParam(required = false) boolean executeTei,
       @RequestParam(required = false) boolean skipOrgUnitOwnership,
-      @RequestParam(required = false) Integer lastYears) {
+      @RequestParam(required = false) Integer lastYears)
+      throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
     Set<String> skipPrograms = new HashSet<>();
 
@@ -123,29 +123,22 @@ public class ResourceTableController {
       skipTableTypes.add(TRACKED_ENTITY_INSTANCE_ENROLLMENTS);
     }
 
-    AnalyticsJobParameters analyticsJobParameters =
-        new AnalyticsJobParameters(lastYears, skipTableTypes, skipPrograms, skipResourceTables);
+    JobConfiguration config = new JobConfiguration(ANALYTICS_TABLE);
+    config.setExecutedBy(currentUserService.getCurrentUser().getUid());
+    config.setJobParameters(
+        new AnalyticsJobParameters(lastYears, skipTableTypes, skipPrograms, skipResourceTables));
 
-    JobConfiguration analyticsTableJob =
-        new JobConfiguration(
-            "inMemoryAnalyticsJob", ANALYTICS_TABLE, "", analyticsJobParameters, true, true);
-    analyticsTableJob.setExecutedBy(currentUserService.getCurrentUser().getUid());
-
-    return execute(analyticsTableJob);
+    return execute(config);
   }
 
   @RequestMapping(method = {PUT, POST})
   @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseBody
-  public WebMessage resourceTables() {
-    JobConfiguration resourceTableJob =
-        new JobConfiguration(
-            "inMemoryResourceTableJob",
-            RESOURCE_TABLE,
-            currentUserService.getCurrentUser().getUid(),
-            true);
-
-    return execute(resourceTableJob);
+  public WebMessage resourceTables(@CurrentUser User currentUser)
+      throws ConflictException, @OpenApi.Ignore NotFoundException {
+    JobConfiguration config = new JobConfiguration(RESOURCE_TABLE);
+    config.setExecutedBy(currentUser.getUid());
+    return execute(config);
   }
 
   @RequestMapping(
@@ -153,22 +146,16 @@ public class ResourceTableController {
       method = {PUT, POST})
   @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseBody
-  public WebMessage monitoring() {
-    JobConfiguration monitoringJob =
-        new JobConfiguration(
-            "inMemoryMonitoringJob", MONITORING, "", new MonitoringJobParameters(), true, true);
-
-    return execute(monitoringJob);
+  public WebMessage monitoring() throws ConflictException, @OpenApi.Ignore NotFoundException {
+    JobConfiguration config = new JobConfiguration(MONITORING);
+    config.setJobParameters(new MonitoringJobParameters());
+    return execute(config);
   }
 
-  private WebMessage execute(JobConfiguration configuration) {
-    boolean success = schedulingManager.executeNow(configuration);
-    if (!success) {
-      configuration.setJobStatus(FAILED);
-      return createWebMessage(
-              "Job of type " + configuration.getJobType() + " is already running", ERROR, CONFLICT)
-          .setResponse(new JobConfigurationWebMessageResponse(configuration));
-    }
+  private WebMessage execute(JobConfiguration configuration)
+      throws ConflictException, NotFoundException {
+    jobSchedulerService.executeNow(jobConfigurationService.create(configuration));
+
     return jobConfigurationReport(configuration);
   }
 }

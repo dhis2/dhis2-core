@@ -863,7 +863,10 @@ public class DataQueryParams {
 
     if (dataPeriodType != null) {
       for (DimensionalItemObject aggregatePeriod : getDimensionOrFilterItems(PERIOD_DIM_ID)) {
-        Period dataPeriod = dataPeriodType.createPeriod(((Period) aggregatePeriod).getStartDate());
+        Period dataPeriod =
+            dataPeriodType.createPeriod(
+                ((Period) aggregatePeriod).getStartDate(),
+                ((Period) aggregatePeriod).getDateField());
 
         map.putValue(dataPeriod, aggregatePeriod);
 
@@ -873,7 +876,10 @@ public class DataQueryParams {
           // corresponding to the second part of the financial year so
           // that the query will count both years.
 
-          Period endYear = dataPeriodType.createPeriod(((Period) aggregatePeriod).getEndDate());
+          Period endYear =
+              dataPeriodType.createPeriod(
+                  ((Period) aggregatePeriod).getEndDate(),
+                  ((Period) aggregatePeriod).getDateField());
           map.putValue(endYear, aggregatePeriod);
         }
       }

@@ -87,7 +87,7 @@ public class TrackerImportParamsMapper {
 
     if (!isAsync) {
       JobConfiguration jobConfiguration =
-          new JobConfiguration("", JobType.TRACKER_IMPORT_JOB, userId, false);
+          new JobConfiguration("", JobType.TRACKER_IMPORT_JOB, userId);
       jobConfiguration.setUid(jobId);
       paramsBuilder.jobConfiguration(jobConfiguration);
     }

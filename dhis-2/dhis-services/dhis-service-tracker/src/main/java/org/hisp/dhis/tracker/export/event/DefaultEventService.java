@@ -64,7 +64,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.tracker.export.event.EventService")
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class DefaultEventService implements EventService {
+class DefaultEventService implements EventService {
 
   private final CurrentUserService currentUserService;
 
@@ -98,6 +98,7 @@ public class DefaultEventService implements EventService {
     }
 
     Event result = new Event();
+    result.setId(event.getId());
     result.setUid(event.getUid());
 
     result.setStatus(event.getStatus());
@@ -170,21 +171,21 @@ public class DefaultEventService implements EventService {
   @Override
   public Events getEvents(EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
-    EventSearchParams searchParams = paramsMapper.map(operationParams);
+    EventQueryParams queryParams = paramsMapper.map(operationParams);
 
     if (!operationParams.isPaging() && !operationParams.isSkipPaging()) {
       operationParams.setDefaultPaging();
     }
 
     if (operationParams.isSkipPaging()) {
-      return Events.withoutPagination(eventStore.getEvents(searchParams, emptyMap()));
+      return Events.withoutPagination(eventStore.getEvents(queryParams, emptyMap()));
     }
 
     Pager pager;
-    List<Event> eventList = new ArrayList<>(eventStore.getEvents(searchParams, emptyMap()));
+    List<Event> eventList = new ArrayList<>(eventStore.getEvents(queryParams, emptyMap()));
 
     if (operationParams.isTotalPages()) {
-      int count = eventStore.getEventCount(searchParams);
+      int count = eventStore.getEventCount(queryParams);
       pager =
           new Pager(
               operationParams.getPageWithDefault(),
@@ -197,9 +198,14 @@ public class DefaultEventService implements EventService {
     return Events.of(eventList, pager);
   }
 
+  @Override
+  public Set<String> getOrderableFields() {
+    return eventStore.getOrderableFields();
+  }
+
   /**
    * This method will apply the logic related to the parameter 'totalPages=false'. This works in
-   * conjunction with the method: {@link EventStore#getEvents(EventSearchParams,
+   * conjunction with the method: {@link EventStore#getEvents(EventQueryParams,
    * Map<String,Set<String>>)}
    *
    * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will

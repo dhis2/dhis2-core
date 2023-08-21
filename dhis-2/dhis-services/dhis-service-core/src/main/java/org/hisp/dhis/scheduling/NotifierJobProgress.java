@@ -39,9 +39,9 @@ import org.hisp.dhis.system.notification.Notifier;
 
 /**
  * A {@link JobProgress} implementation that forwards the tracking to a {@link Notifier}. It has no
- * flow control and should be wrapped in a {@link ControlledJobProgress} for that purpose.
+ * flow control and should be wrapped in a {@link RecordingJobProgress} for that purpose.
  *
- * @see ControlledJobProgress
+ * @see RecordingJobProgress
  */
 @RequiredArgsConstructor
 public class NotifierJobProgress implements JobProgress {
@@ -54,11 +54,6 @@ public class NotifierJobProgress implements JobProgress {
   private int stageItems;
 
   private int stageItem;
-
-  @Override
-  public boolean isCancellationRequested() {
-    return false;
-  }
 
   @Override
   public void startingProcess(String description) {

@@ -33,7 +33,6 @@ import java.util.Deque;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 
@@ -57,10 +56,6 @@ public class InMemoryNotifier implements Notifier {
     if (id != null && !level.isOff()) {
       Notification notification =
           new Notification(level, id.getJobType(), new Date(), message, completed, dataType, data);
-
-      if (id.isInMemoryJob() && !StringUtils.isEmpty(id.getUid())) {
-        notification.setUid(id.getUid());
-      }
 
       notificationMap.add(id, notification);
 

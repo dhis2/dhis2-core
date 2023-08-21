@@ -56,17 +56,17 @@ public class EmailDeliveryChannelStrategy extends DeliveryChannelStrategy {
 
     OrganisationUnit orgUnit = getOrganisationUnit(message);
 
-    TrackedEntity tei = getTrackedEntity(message);
+    TrackedEntity te = getTrackedEntity(message);
 
     if (orgUnit != null) {
       message.getRecipients().getEmailAddresses().add(getOrganisationUnitRecipient(orgUnit));
     }
 
-    if (tei != null) {
+    if (te != null) {
       message
           .getRecipients()
           .getEmailAddresses()
-          .add(getTrackedEntityRecipient(tei, ValueType.EMAIL));
+          .add(getTrackedEntityRecipient(te, ValueType.EMAIL));
     }
 
     return message;

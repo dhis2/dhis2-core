@@ -235,7 +235,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
 
       if (pagingAndSortingCriteriaAdapter.isPagingRequest()) {
         jpaQueryParameters.setFirstResult(pagingAndSortingCriteriaAdapter.getFirstResult());
-        jpaQueryParameters.setMaxResults(pagingAndSortingCriteriaAdapter.getPageSize());
+        jpaQueryParameters.setMaxResults(pagingAndSortingCriteriaAdapter.getPageSize() + 1);
       }
     }
 

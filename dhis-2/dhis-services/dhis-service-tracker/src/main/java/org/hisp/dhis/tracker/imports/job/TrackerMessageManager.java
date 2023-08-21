@@ -72,7 +72,7 @@ public class TrackerMessageManager {
     TrackerImportParams trackerImportParams = trackerMessage.getTrackerImportParams();
 
     JobConfiguration jobConfiguration =
-        new JobConfiguration("", JobType.TRACKER_IMPORT_JOB, trackerImportParams.getUserId(), true);
+        new JobConfiguration("", JobType.TRACKER_IMPORT_JOB, trackerImportParams.getUserId());
 
     jobConfiguration.setUid(trackerMessage.getUid());
     trackerImportParams.setJobConfiguration(jobConfiguration);

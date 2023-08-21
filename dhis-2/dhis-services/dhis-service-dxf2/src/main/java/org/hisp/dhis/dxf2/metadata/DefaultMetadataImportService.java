@@ -207,7 +207,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
     if (getBooleanWithDefault(parameters, "async", false)) {
       JobConfiguration jobId =
           new JobConfiguration(
-              "metadataImport", JobType.METADATA_IMPORT, params.getUser().getUid(), true);
+              "metadataImport", JobType.METADATA_IMPORT, params.getUser().getUid());
       notifier.clear(jobId);
       params.setId(jobId);
     }

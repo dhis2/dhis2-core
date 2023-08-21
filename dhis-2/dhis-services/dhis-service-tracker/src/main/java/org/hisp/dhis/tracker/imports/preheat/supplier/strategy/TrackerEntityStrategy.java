@@ -53,7 +53,7 @@ public class TrackerEntityStrategy implements ClassBasedSupplierStrategy {
   public void add(
       TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat) {
     for (List<String> ids : splitList) {
-      // Fetch all Tracked Entity Instance present in the payload
+      // Fetch all Tracked Entity present in the payload
       List<TrackedEntity> trackedEntities = trackedEntityStore.getIncludingDeleted(ids);
 
       // Add to preheat

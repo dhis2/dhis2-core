@@ -53,31 +53,31 @@ public class DefaultEventStore extends AbstractStore implements EventStore {
   private static final String GET_EVENTS_SQL = EventQuery.getQuery();
 
   private static final String GET_DATAVALUES_SQL =
-      "select psi.uid as key, "
-          + "psi.eventdatavalues "
-          + "from event psi "
-          + "where psi.eventid in (:ids)";
+      "select ev.uid as key, "
+          + "ev.eventdatavalues "
+          + "from event ev "
+          + "where ev.eventid in (:ids)";
 
   private static final String GET_NOTES_SQL =
-      "select psi.uid as key, tec.uid, tec.commenttext, "
+      "select ev.uid as key, tec.uid, tec.commenttext, "
           + "tec.creator, tec.created "
           + "from trackedentitycomment tec "
-          + "join eventcomments psic "
-          + "on tec.trackedentitycommentid = psic.trackedentitycommentid "
-          + "join event psi on psic.eventid = psi.eventid "
-          + "where psic.eventid in (:ids)";
+          + "join eventcomments evc "
+          + "on tec.trackedentitycommentid = evc.trackedentitycommentid "
+          + "join event ev on evc.eventid = ev.eventid "
+          + "where evc.eventid in (:ids)";
 
   private static final String ACL_FILTER_SQL =
       "CASE WHEN p.type = 'WITH_REGISTRATION' THEN "
           + "p.trackedentitytypeid in (:trackedEntityTypeIds) else true END "
-          + "AND psi.programstageid in (:programStageIds) AND pi.programid IN (:programIds)";
+          + "AND ev.programstageid in (:programStageIds) AND en.programid IN (:programIds)";
 
   private static final String ACL_FILTER_SQL_NO_PROGRAM_STAGE =
       "CASE WHEN p.type = 'WITH_REGISTRATION' THEN "
           + "p.trackedentitytypeid in (:trackedEntityTypeIds) else true END "
-          + "AND pi.programid IN (:programIds)";
+          + "AND en.programid IN (:programIds)";
 
-  private static final String FILTER_OUT_DELETED_EVENTS = "psi.deleted=false";
+  private static final String FILTER_OUT_DELETED_EVENTS = "ev.deleted=false";
 
   public DefaultEventStore(JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
@@ -101,7 +101,7 @@ public class DefaultEventStore extends AbstractStore implements EventStore {
   }
 
   private String getAttributeOptionComboClause(Context ctx) {
-    return " and psi.attributeoptioncomboid not in ("
+    return " and ev.attributeoptioncomboid not in ("
         + "select distinct(cocco.categoryoptioncomboid) "
         + "from categoryoptioncombos_categoryoptions as cocco "
         +

@@ -1338,7 +1338,14 @@
         }
       ],
       "userAccesses": [],
-      "teiSearchOrganisationUnits": [],
+      "teiSearchOrganisationUnits": [
+        {
+          "id": "h4w96yEMlzO"
+        },
+        {
+          "id": "DiszpKrYNg8"
+        }
+      ],
       "organisationUnits": [
         {
           "id": "h4w96yEMlzO"

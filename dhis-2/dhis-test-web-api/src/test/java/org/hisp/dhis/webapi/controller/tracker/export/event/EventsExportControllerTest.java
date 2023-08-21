@@ -290,8 +290,8 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
   @Test
   void getEventByIdContainsCreatedByAndUpdateByAndAssignedUserInDataValues() {
 
-    TrackedEntity tei = trackedEntity();
-    Enrollment enrollment = enrollment(tei);
+    TrackedEntity te = trackedEntity();
+    Enrollment enrollment = enrollment(te);
     Event programStageInstance = event(enrollment);
     programStageInstance.setCreatedByUserInfo(UserInfoSnapshot.from(user));
     programStageInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
@@ -372,21 +372,21 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   private TrackedEntity trackedEntity() {
-    TrackedEntity tei = trackedEntity(orgUnit);
-    manager.save(tei, false);
-    return tei;
+    TrackedEntity te = trackedEntity(orgUnit);
+    manager.save(te, false);
+    return te;
   }
 
   private TrackedEntity trackedEntityNotInSearchScope() {
-    TrackedEntity tei = trackedEntity(anotherOrgUnit);
-    manager.save(tei, false);
-    return tei;
+    TrackedEntity te = trackedEntity(anotherOrgUnit);
+    manager.save(te, false);
+    return te;
   }
 
   private TrackedEntity trackedEntity(TrackedEntityType trackedEntityType) {
-    TrackedEntity tei = trackedEntity(orgUnit, trackedEntityType);
-    manager.save(tei, false);
-    return tei;
+    TrackedEntity te = trackedEntity(orgUnit, trackedEntityType);
+    manager.save(te, false);
+    return te;
   }
 
   private TrackedEntity trackedEntity(OrganisationUnit orgUnit) {
@@ -395,15 +395,15 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
 
   private TrackedEntity trackedEntity(
       OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity tei = createTrackedEntity(orgUnit);
-    tei.setTrackedEntityType(trackedEntityType);
-    tei.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    tei.getSharing().setOwner(owner);
-    return tei;
+    TrackedEntity te = createTrackedEntity(orgUnit);
+    te.setTrackedEntityType(trackedEntityType);
+    te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    te.getSharing().setOwner(owner);
+    return te;
   }
 
-  private Enrollment enrollment(TrackedEntity tei) {
-    Enrollment enrollment = new Enrollment(program, tei, tei.getOrganisationUnit());
+  private Enrollment enrollment(TrackedEntity te) {
+    Enrollment enrollment = new Enrollment(program, te, te.getOrganisationUnit());
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
     enrollment.setIncidentDate(new Date());

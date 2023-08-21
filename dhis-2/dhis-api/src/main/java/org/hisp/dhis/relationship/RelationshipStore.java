@@ -45,7 +45,7 @@ public interface RelationshipStore extends IdentifiableObjectStore<Relationship>
   }
 
   List<Relationship> getByTrackedEntity(
-      TrackedEntity tei, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
+      TrackedEntity te, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
 
   default List<Relationship> getByEnrollment(Enrollment enrollment) {
     return getByEnrollment(enrollment, null);

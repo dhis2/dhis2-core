@@ -142,7 +142,7 @@ class ApiKeyTokenGeneratorTest {
       assertEquals(type.getLength(), code.length);
       char[] checksum = pair.getChecksum();
 
-      log.error(
+      log.info(
           "token: "
               + new String(token)
               + " code: "

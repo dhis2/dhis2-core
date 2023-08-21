@@ -61,7 +61,7 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
  * @author Lars Helge Overland
  */
 public class TrackedEntityQueryParams {
-  public static final String TRACKED_ENTITY_INSTANCE_ID = "instance";
+  public static final String TRACKED_ENTITY_ID = "instance";
 
   public static final String CREATED_ID = "created";
 
@@ -71,11 +71,7 @@ public class TrackedEntityQueryParams {
 
   public static final String ORG_UNIT_NAME = "ouname";
 
-  public static final String TRACKED_ENTITY_ID = "te";
-
-  public static final String TRACKED_ENTITY_ATTRIBUTE_ID = "teattribute";
-
-  public static final String TRACKED_ENTITY_ATTRIBUTE_VALUE_ID = "tevalue";
+  public static final String TRACKED_ENTITY_TYPE_ID = "te";
 
   public static final String INACTIVE_ID = "inactive";
 
@@ -91,7 +87,7 @@ public class TrackedEntityQueryParams {
 
   public static final int DEFAULT_PAGE_SIZE = 50;
 
-  public static final String MAIN_QUERY_ALIAS = "TEI";
+  public static final String MAIN_QUERY_ALIAS = "TE";
 
   public static final String PROGRAM_INSTANCE_ALIAS = "pi";
 
@@ -153,7 +149,7 @@ public class TrackedEntityQueryParams {
 
   private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
-  /** Set of tei uids to explicitly select. */
+  /** Set of te uids to explicitly select. */
   private Set<String> trackedEntityUids = new HashSet<>();
 
   /** ProgramStage to be used in conjunction with eventstatus. */
@@ -183,13 +179,13 @@ public class TrackedEntityQueryParams {
   /** Indicates whether paging should be skipped. */
   private boolean skipPaging;
 
-  /** Indicates if there is a maximum tei retrieval limit. 0 no limit. */
-  private int maxTeiLimit;
+  /** Indicates if there is a maximum te retrieval limit. 0 no limit. */
+  private int maxTeLimit;
 
   /** Indicates whether to include soft-deleted elements. Default to false */
   private boolean includeDeleted = false;
 
-  /** Indicates whether to include all TEI attributes */
+  /** Indicates whether to include all TE attributes */
   private boolean includeAllAttributes;
 
   /**
@@ -205,12 +201,12 @@ public class TrackedEntityQueryParams {
   private Date skipChangedBefore;
 
   /**
-   * Potential Duplicate query parameter value. If null, we don't check whether a TEI is a
+   * Potential Duplicate query parameter value. If null, we don't check whether a TE is a
    * potentialDuplicate or not
    */
   private Boolean potentialDuplicate;
 
-  /** TEI order params */
+  /** TE order params */
   private List<OrderParam> orders = new ArrayList<>();
 
   // -------------------------------------------------------------------------
@@ -867,12 +863,12 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public int getMaxTeiLimit() {
-    return maxTeiLimit;
+  public int getMaxTeLimit() {
+    return maxTeLimit;
   }
 
-  public TrackedEntityQueryParams setMaxTeiLimit(int maxTeiLimit) {
-    this.maxTeiLimit = maxTeiLimit;
+  public TrackedEntityQueryParams setMaxTeLimit(int maxTeLimit) {
+    this.maxTeLimit = maxTeLimit;
     return this;
   }
 
@@ -969,10 +965,7 @@ public class TrackedEntityQueryParams {
   @Getter
   @AllArgsConstructor
   public enum OrderColumn {
-    TRACKEDENTITY(
-        "trackedEntity",
-        "uid",
-        MAIN_QUERY_ALIAS), // Ordering by id is the same as ordering by created date
+    TRACKEDENTITY("trackedEntity", "uid", MAIN_QUERY_ALIAS),
     // TODO(tracker): remove with old tracker
     CREATED("created", CREATED_ID, MAIN_QUERY_ALIAS),
     CREATED_AT("createdAt", CREATED_ID, MAIN_QUERY_ALIAS),

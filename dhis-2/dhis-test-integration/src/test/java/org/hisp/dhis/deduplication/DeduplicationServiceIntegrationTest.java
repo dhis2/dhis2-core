@@ -76,7 +76,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase {
 
     PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
 
-    criteria.setTeis(potentialDuplicates);
+    criteria.setTrackedEntities(potentialDuplicates);
     assertEquals(
         potentialDuplicates.size(), deduplicationService.getPotentialDuplicates(criteria).size());
 
@@ -133,7 +133,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase {
     deduplicationService.updatePotentialDuplicate(potentialDuplicate1);
 
     PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
-    criteria.setTeis(Collections.singletonList(teiB));
+    criteria.setTrackedEntities(Collections.singletonList(teiB));
     criteria.setStatus(DeduplicationStatus.INVALID);
     assertEquals(
         Collections.singletonList(potentialDuplicate),
@@ -192,7 +192,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase {
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     deduplicationService.addPotentialDuplicate(potentialDuplicate1);
     deduplicationService.addPotentialDuplicate(potentialDuplicate2);
-    criteria.setTeis(Collections.singletonList(teiA));
+    criteria.setTrackedEntities(Collections.singletonList(teiA));
     List<PotentialDuplicate> list = deduplicationService.getPotentialDuplicates(criteria);
     assertEquals(2, list.size());
     assertTrue(list.contains(potentialDuplicate));
@@ -209,9 +209,9 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase {
     criteria.setStatus(DeduplicationStatus.ALL);
     assertEquals(2, deduplicationService.countPotentialDuplicates(criteria));
     criteria.setStatus(DeduplicationStatus.OPEN);
-    criteria.setTeis(Arrays.asList(teiA, teiC));
+    criteria.setTrackedEntities(Arrays.asList(teiA, teiC));
     assertEquals(2, deduplicationService.countPotentialDuplicates(criteria));
-    criteria.setTeis(Collections.singletonList(teiC));
+    criteria.setTrackedEntities(Collections.singletonList(teiC));
     assertEquals(1, deduplicationService.countPotentialDuplicates(criteria));
     criteria.setStatus(DeduplicationStatus.INVALID);
     assertEquals(0, deduplicationService.countPotentialDuplicates(criteria));

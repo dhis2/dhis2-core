@@ -32,15 +32,13 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nLocaleService;
-import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodTypePopulator;
 import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.scheduling.JobScheduler;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.startup.ConfigurationPopulator;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
@@ -127,19 +125,8 @@ public class StartupConfig {
 
   @Bean
   public SchedulerStart schedulerStart(
-      SystemSettingManager systemSettingManager,
-      JobConfigurationService jobConfigurationService,
-      SchedulingManager schedulingManager,
-      MessageService messageService,
-      DhisConfigurationProvider configurationProvider) {
-    SchedulerStart schedulerStart =
-        new SchedulerStart(
-            systemSettingManager,
-            configurationProvider.isEnabled(ConfigurationKey.REDIS_ENABLED),
-            configurationProvider.getProperty(ConfigurationKey.LEADER_TIME_TO_LIVE),
-            jobConfigurationService,
-            schedulingManager,
-            messageService);
+      JobScheduler scheduler, JobConfigurationService jobConfigurationService) {
+    SchedulerStart schedulerStart = new SchedulerStart(scheduler, jobConfigurationService);
     schedulerStart.setRunlevel(15);
     schedulerStart.setSkipInTests(true);
     return schedulerStart;

@@ -212,7 +212,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     String fromClause =
         "from enrollment pi "
             + "inner join program pr on pi.programid=pr.programid "
-            + "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid "
+            + "left join trackedentity tei on pi.trackedentityid=tei.trackedentityid "
             + "and tei.deleted is false "
             + "left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid "
             + "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid "

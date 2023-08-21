@@ -81,7 +81,12 @@ public enum SettingKey {
   EMAIL_SENDER("keyEmailSender", "", String.class),
   EMAIL_PASSWORD("keyEmailPassword", "", String.class, true, false),
   MIN_PASSWORD_LENGTH("minPasswordLength", 8, Integer.class),
-  MAX_PASSWORD_LENGTH("maxPasswordLength", 256, Integer.class),
+
+  /**
+   * The password max value is set to 60 to match the max value of the password column in the
+   * database, hence it can not be greater than 60.
+   */
+  MAX_PASSWORD_LENGTH("maxPasswordLength", 60, Integer.class),
   SMS_CONFIG("keySmsSetting", new SmsConfiguration(), SmsConfiguration.class),
   SMS_MAX_LENGTH("keySmsMaxLength", 1071, Integer.class),
   CACHE_STRATEGY("keyCacheStrategy", CacheStrategy.CACHE_1_MINUTE, CacheStrategy.class),
@@ -232,6 +237,19 @@ public enum SettingKey {
       "keyDashboardContextMenuItemViewFullscreen", Boolean.TRUE, Boolean.class),
   DEFAULT_BASE_MAP("keyDefaultBaseMap"),
   RULE_ENGINE_ASSIGN_OVERWRITE("ruleEngineAssignOverwrite", Boolean.FALSE, Boolean.class),
+
+  /**
+   * A job that has not been updating its "alive" timestamp for this number of minutes is reset to
+   * initial state of being scheduled by the heartbeat job. The run that was in progress is
+   * considered a failed run.
+   */
+  JOBS_RESCHEDULE_STALE_FOR_MINUTES("jobsRescheduleAfterMinutes", 10, Integer.class),
+
+  /**
+   * A job that only runs once (typical an import or manual request) is deleted after this number of
+   * minutes after it is finished by the heartbeat job.
+   */
+  JOBS_CLEANUP_AFTER_MINUTES("jobsCleanupAfterMinutes", 24 * 60, Integer.class),
 
   /**
    * Progressive caching factor for the analytics API. To enable, the {@link
