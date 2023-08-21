@@ -112,18 +112,18 @@ class Property {
   private static boolean isSetter(Method source) {
     String name = source.getName();
     boolean isSetter =
-            !isExcluded(source)
-                    && source.getParameterCount() == 1
-                    && name.startsWith("set")
-                    && name.length() > 3
-                    && isUpperCase(name.charAt(3));
+        !isExcluded(source)
+            && source.getParameterCount() == 1
+            && name.startsWith("set")
+            && name.length() > 3
+            && isUpperCase(name.charAt(3));
 
     if (isSetter) {
       Field field =
-              ReflectionUtils.findField(
-                      source.getDeclaringClass(),
-                      name.substring(3, 4).toLowerCase() + name.substring(4),
-                      source.getParameterTypes()[0]);
+          ReflectionUtils.findField(
+              source.getDeclaringClass(),
+              name.substring(3, 4).toLowerCase() + name.substring(4),
+              source.getParameterTypes()[0]);
       return field == null || !field.isAnnotationPresent(OpenApi.Ignore.class);
     }
 

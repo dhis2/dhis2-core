@@ -48,9 +48,7 @@ class PropertyTest {
 
   private static class IgnoredProperty {
 
-    @OpenApi.Ignore
-    @JsonProperty
-    private String openApiProperty;
+    @OpenApi.Ignore @JsonProperty private String openApiProperty;
 
     @JsonProperty
     public void setOpenApiProperty(String openApiProperty) {}
