@@ -49,6 +49,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.hisp.dhis.common.OpenApi;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Extracts the properties of "record" like objects.
@@ -110,10 +111,23 @@ class Property {
 
   private static boolean isSetter(Method source) {
     String name = source.getName();
-    return !isExcluded(source)
-        && name.startsWith("set")
-        && name.length() > 3
-        && isUpperCase(name.charAt(3));
+    boolean isSetter =
+        !isExcluded(source)
+            && source.getParameterCount() == 1
+            && name.startsWith("set")
+            && name.length() > 3
+            && isUpperCase(name.charAt(3));
+
+    if (isSetter) {
+      Field field =
+          ReflectionUtils.findField(
+              source.getDeclaringClass(),
+              name.substring(3, 4).toLowerCase() + name.substring(4),
+              source.getParameterTypes()[0]);
+      return field == null || !field.isAnnotationPresent(OpenApi.Ignore.class);
+    }
+
+    return false;
   }
 
   private static boolean isAccessor(Method source) {
