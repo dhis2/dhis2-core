@@ -81,8 +81,6 @@ public class TrackedEntityCriteriaMapper {
 
   private final TrackedEntityAttributeService attributeService;
 
-  private final TrackerAccessManager trackerAccessManager;
-
   private static final TrackerTrackedEntityCriteriaMapper TRACKER_TRACKED_ENTITY_CRITERIA_MAPPER =
       Mappers.getMapper(TrackerTrackedEntityCriteriaMapper.class);
 
@@ -105,7 +103,6 @@ public class TrackedEntityCriteriaMapper {
     this.programService = programService;
     this.attributeService = attributeService;
     this.trackedEntityTypeService = trackedEntityTypeService;
-    this.trackerAccessManager = trackerAccessManager;
   }
 
   @Transactional(readOnly = true)
@@ -151,9 +148,10 @@ public class TrackedEntityCriteriaMapper {
         throw new IllegalQueryException("Organisation unit does not exist: " + orgUnit);
       }
 
-      if (!trackerAccessManager.canAccess(user, program, organisationUnit)) {
+      if (!organisationUnitService.isInUserHierarchy(
+          organisationUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
         throw new IllegalQueryException(
-            "User does not have access to organisation unit: " + orgUnit);
+            "Organisation unit is not part of the search scope: " + orgUnit);
       }
 
       params.getOrganisationUnits().add(organisationUnit);
