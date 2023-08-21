@@ -52,6 +52,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.DefaultMessageService;
 import org.hisp.dhis.message.EmailMessageSender;
@@ -265,7 +266,9 @@ class DataSetNotificationServiceTest extends DhisConvenienceTest {
         .thenReturn(notificationMessage);
     when(externalMessageService.sendMessages(anyList())).thenReturn(successStatus);
     when(dsntService.getCompleteNotifications(any(DataSet.class))).thenReturn(templates);
-
+    I18nFormat format = Mockito.mock(I18nFormat.class);
+    when(i18nManager.getI18nFormat()).thenReturn(format);
+    when(format.formatPeriod(any())).thenReturn("2000-1-1");
     subject.sendCompleteDataSetNotifications(registrationA);
 
     verify(renderer).render(registrationCaptor.capture(), templateCaptor.capture());
@@ -319,7 +322,9 @@ class DataSetNotificationServiceTest extends DhisConvenienceTest {
     when(itr.next()).thenReturn(emailMessageSender);
 
     ArgumentCaptor<String> footerCaptor = ArgumentCaptor.forClass(String.class);
-
+    I18nFormat format = Mockito.mock(I18nFormat.class);
+    when(i18nManager.getI18nFormat()).thenReturn(format);
+    when(format.formatPeriod(any())).thenReturn("2000-1-1");
     // condition
     subject.sendCompleteDataSetNotifications(registration);
 
