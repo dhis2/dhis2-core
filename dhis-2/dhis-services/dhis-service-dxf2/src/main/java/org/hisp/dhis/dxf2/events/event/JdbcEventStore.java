@@ -429,17 +429,17 @@ public class JdbcEventStore implements EventStore {
 
         event.setStoredBy(rowSet.getString("psi_storedby"));
         event.setOrgUnitName(rowSet.getString("ou_name"));
-        event.setDueDate(DateUtils.getIso8601NoTz(rowSet.getDate("psi_duedate")));
-        event.setEventDate(DateUtils.getIso8601NoTz(rowSet.getDate("psi_executiondate")));
-        event.setCreated(DateUtils.getIso8601NoTz(rowSet.getDate("psi_created")));
+        event.setDueDate(DateUtils.getIso8601NoTz(rowSet.getTimestamp("psi_duedate")));
+        event.setEventDate(DateUtils.getIso8601NoTz(rowSet.getTimestamp("psi_executiondate")));
+        event.setCreated(DateUtils.getIso8601NoTz(rowSet.getTimestamp("psi_created")));
         event.setCreatedByUserInfo(
             jsonToUserInfo(rowSet.getString("psi_createdbyuserinfo"), jsonMapper));
-        event.setLastUpdated(DateUtils.getIso8601NoTz(rowSet.getDate("psi_lastupdated")));
+        event.setLastUpdated(DateUtils.getIso8601NoTz(rowSet.getTimestamp("psi_lastupdated")));
         event.setLastUpdatedByUserInfo(
             jsonToUserInfo(rowSet.getString("psi_lastupdatedbyuserinfo"), jsonMapper));
 
         event.setCompletedBy(rowSet.getString("psi_completedby"));
-        event.setCompletedDate(DateUtils.getIso8601NoTz(rowSet.getDate("psi_completeddate")));
+        event.setCompletedDate(DateUtils.getIso8601NoTz(rowSet.getTimestamp("psi_completeddate")));
 
         if (rowSet.getObject("psi_geometry") != null) {
           try {
