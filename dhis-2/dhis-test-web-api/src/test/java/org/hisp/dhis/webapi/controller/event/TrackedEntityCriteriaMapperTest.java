@@ -39,7 +39,6 @@ import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.HashSet;
 import org.apache.commons.lang3.time.DateUtils;
-import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -278,41 +277,18 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenProgramIsProtectedAndUserNotInCaptureScope() {
-    clearSecurityContext();
-    User mockUser = createUser("testUser2");
-    mockUser.setOrganisationUnits(new HashSet<>(Collections.singletonList(organisationUnit)));
-    injectSecurityContext(mockUser);
+  void verifyCriteriaMappingFailOnUserNonInOuHierarchy() {
+    // Force Current User Service to return a User without search org unit
+    ReflectionTestUtils.setField(
+        trackedEntityCriteriaMapper,
+        "currentUserService",
+        new MockCurrentUserService(createUser("testUser2")));
     TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
-    programA.setAccessLevel(AccessLevel.PROTECTED);
-    criteria.setProgram(programA.getUid());
-    criteria.setOu(organisationUnitB.getUid());
-
+    criteria.setOu(organisationUnit.getUid());
     IllegalQueryException e =
         assertThrows(IllegalQueryException.class, () -> trackedEntityCriteriaMapper.map(criteria));
-
     assertEquals(
-        "User does not have access to organisation unit: " + organisationUnitB.getUid(),
-        e.getMessage());
-  }
-
-  @Test
-  void shouldThrowExceptionWhenProgramIsOpenAndUserNotInSearchScope() {
-    clearSecurityContext();
-    User mockUser = createUser("testUser2");
-    mockUser.setTeiSearchOrganisationUnits(
-        new HashSet<>(Collections.singletonList(organisationUnit)));
-    injectSecurityContext(mockUser);
-    TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
-    programA.setAccessLevel(AccessLevel.OPEN);
-    criteria.setProgram(programA.getUid());
-    criteria.setOu(organisationUnitB.getUid());
-
-    IllegalQueryException e =
-        assertThrows(IllegalQueryException.class, () -> trackedEntityCriteriaMapper.map(criteria));
-
-    assertEquals(
-        "User does not have access to organisation unit: " + organisationUnitB.getUid(),
+        "Organisation unit is not part of the search scope: " + organisationUnit.getUid(),
         e.getMessage());
   }
 
