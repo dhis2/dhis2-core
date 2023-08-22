@@ -171,14 +171,15 @@ class TrackerEnrollmentCriteriaMapperTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenOrgUnitNotInScope() {
+  void shouldThrowExceptionWhenOrgUnitNotInSearchScope() {
     TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
     criteria.setOrgUnit(ORG_UNIT_1_UID);
-    when(trackerAccessManager.canAccess(user, program, orgUnit1)).thenReturn(false);
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnit2));
+    when(currentUserService.getCurrentUser()).thenReturn(user);
 
     Exception exception = assertThrows(ForbiddenException.class, () -> mapper.map(criteria));
     assertEquals(
-        "User does not have access to organisation unit: " + ORG_UNIT_1_UID,
+        "Organisation unit is not part of the search scope: " + ORG_UNIT_1_UID,
         exception.getMessage());
   }
 
