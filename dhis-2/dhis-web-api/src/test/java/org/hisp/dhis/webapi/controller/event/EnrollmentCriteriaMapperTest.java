@@ -45,7 +45,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.EnrollmentCriteriaMapper;
@@ -68,8 +67,6 @@ class EnrollmentCriteriaMapperTest {
   @Mock private TrackedEntityTypeService trackedEntityTypeService;
 
   @Mock private TrackedEntityInstanceService trackedEntityInstanceService;
-
-  @Mock private TrackerAccessManager trackerAccessManager;
 
   @InjectMocks private EnrollmentCriteriaMapper mapper;
 
@@ -114,10 +111,13 @@ class EnrollmentCriteriaMapperTest {
     Set<String> orgUnits = Set.of(ORG_UNIT1);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(organisationUnitService.getOrganisationUnit(ORG_UNIT1)).thenReturn(organisationUnit);
-    when(trackerAccessManager.canAccess(user, program, organisationUnit)).thenReturn(true);
     when(trackedEntityTypeService.getTrackedEntityType(ENTITY_TYPE)).thenReturn(trackedEntityType);
     when(trackedEntityInstanceService.getTrackedEntityInstance(ENTITY_INSTANCE))
         .thenReturn(trackedEntityInstance);
+    when(organisationUnitService.isInUserHierarchy(
+            organisationUnit.getUid(), Set.of(organisationUnit)))
+        .thenReturn(true);
+    user.setTeiSearchOrganisationUnits(Set.of(organisationUnit));
 
     ProgramInstanceQueryParams params =
         mapper.getFromUrl(
@@ -175,11 +175,14 @@ class EnrollmentCriteriaMapperTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenOrgUnitNotInScope() {
+  void shouldThrowExceptionWhenOrgUnitNotInSearchScope() {
     Set<String> orgUnits = Set.of(ORG_UNIT1);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(organisationUnitService.getOrganisationUnit(ORG_UNIT1)).thenReturn(organisationUnit);
-    when(trackerAccessManager.canAccess(user, program, organisationUnit)).thenReturn(false);
+    when(organisationUnitService.isInUserHierarchy(
+            organisationUnit.getUid(), Set.of(organisationUnit)))
+        .thenReturn(false);
+    user.setTeiSearchOrganisationUnits(Set.of(organisationUnit));
 
     Exception exception =
         assertThrows(
@@ -204,6 +207,6 @@ class EnrollmentCriteriaMapperTest {
                     false,
                     null));
     assertEquals(
-        "User does not have access to organisation unit: " + ORG_UNIT1, exception.getMessage());
+        "Organisation unit is not part of the search scope: " + ORG_UNIT1, exception.getMessage());
   }
 }
