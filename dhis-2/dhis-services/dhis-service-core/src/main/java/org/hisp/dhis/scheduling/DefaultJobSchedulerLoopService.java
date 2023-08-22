@@ -52,7 +52,6 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.AuthenticationService;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -129,7 +128,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional
   public boolean tryRun(@Nonnull String jobId) {
     if (!jobConfigurationStore.tryStart(jobId)) return false;
     JobConfiguration job = jobConfigurationStore.getByUid(jobId);
@@ -158,13 +157,13 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional
   public void updateAsRunning(@Nonnull String jobId) {
     updateProgress(jobId);
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional
   public boolean finishRunSuccess(@Nonnull String jobId) {
     if (!jobConfigurationStore.tryFinish(jobId, JobStatus.COMPLETED)) return false;
     JobConfiguration job = jobConfigurationStore.getByUid(jobId);
@@ -175,7 +174,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional
   public void finishRunFail(@Nonnull String jobId, @CheckForNull Exception ex) {
     if (jobConfigurationStore.tryFinish(jobId, JobStatus.FAILED)) {
       JobConfiguration job = jobConfigurationStore.getByUid(jobId);
@@ -194,7 +193,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional
   public void finishRunCancel(@Nonnull String jobId) {
     if (jobConfigurationStore.tryFinish(jobId, JobStatus.STOPPED)) {
       JobConfiguration job = jobConfigurationStore.getByUid(jobId);

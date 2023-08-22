@@ -162,13 +162,13 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional
   public int updateDisabledJobs() {
     return jobConfigurationStore.updateDisabledJobs();
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional
   public int deleteFinishedJobs(int ttlMinutes) {
     if (ttlMinutes <= 0) {
       ttlMinutes = systemSettings.getIntSetting(SettingKey.JOBS_CLEANUP_AFTER_MINUTES);
@@ -177,7 +177,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional
   public int rescheduleStaleJobs(int timeoutMinutes) {
     if (timeoutMinutes <= 0) {
       timeoutMinutes = systemSettings.getIntSetting(SettingKey.JOBS_RESCHEDULE_STALE_FOR_MINUTES);
