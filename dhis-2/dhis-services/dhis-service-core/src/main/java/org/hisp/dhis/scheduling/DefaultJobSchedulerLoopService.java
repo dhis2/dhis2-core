@@ -34,8 +34,10 @@ import static org.hisp.dhis.eventhook.EventUtils.schedulerStart;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -50,7 +52,7 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.AuthenticationService;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -107,7 +109,16 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   @Override
   @Transactional(readOnly = true)
   public List<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds) {
-    return jobConfigurationService.getDueJobConfigurations(dueInNextSeconds);
+    Set<JobType> types = EnumSet.noneOf(JobType.class);
+    return jobConfigurationService
+        .getDueJobConfigurations(dueInNextSeconds, false)
+        .filter(
+            config -> {
+              if (types.contains(config.getJobType())) return false;
+              types.add(config.getJobType());
+              return true;
+            })
+        .toList();
   }
 
   @Override
@@ -117,12 +128,8 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
     return jobConfigurationStore.getNextInQueue(queue, fromPosition);
   }
 
-  /**
-   * We do need {@link Isolation#SERIALIZABLE} to make sure no other TX transitions to running while
-   * we try transition as otherwise two of the same {@link JobType} might transition.
-   */
   @Override
-  @Transactional(isolation = Isolation.SERIALIZABLE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public boolean tryRun(@Nonnull String jobId) {
     if (!jobConfigurationStore.tryStart(jobId)) return false;
     JobConfiguration job = jobConfigurationStore.getByUid(jobId);
@@ -151,13 +158,13 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   }
 
   @Override
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void updateAsRunning(@Nonnull String jobId) {
     updateProgress(jobId);
   }
 
   @Override
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public boolean finishRunSuccess(@Nonnull String jobId) {
     if (!jobConfigurationStore.tryFinish(jobId, JobStatus.COMPLETED)) return false;
     JobConfiguration job = jobConfigurationStore.getByUid(jobId);
@@ -168,7 +175,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   }
 
   @Override
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void finishRunFail(@Nonnull String jobId, @CheckForNull Exception ex) {
     if (jobConfigurationStore.tryFinish(jobId, JobStatus.FAILED)) {
       JobConfiguration job = jobConfigurationStore.getByUid(jobId);
@@ -187,7 +194,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   }
 
   @Override
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void finishRunCancel(@Nonnull String jobId) {
     if (jobConfigurationStore.tryFinish(jobId, JobStatus.STOPPED)) {
       JobConfiguration job = jobConfigurationStore.getByUid(jobId);

@@ -30,8 +30,6 @@ package org.hisp.dhis.scheduling;
 import static java.lang.Math.max;
 import static java.util.stream.Collectors.toSet;
 
-import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -46,7 +44,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -56,20 +53,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class HibernateJobConfigurationStore
     extends HibernateIdentifiableObjectStore<JobConfiguration> implements JobConfigurationStore {
-
-  private static final RowMapper<JobConfiguration> TRIGGER_ROW_MAPPER =
-      (rs, index) -> {
-        JobConfiguration res = new JobConfiguration();
-        res.setName(rs.getString(1));
-        res.setJobType(JobType.valueOf(rs.getString(2)));
-        res.setUid(rs.getString(3));
-        res.setSchedulingType(SchedulingType.valueOf(rs.getString(4)));
-        Timestamp lastUpdated = rs.getTimestamp(5);
-        res.setLastExecuted(lastUpdated == null ? null : new Date(lastUpdated.getTime()));
-        res.setCronExpression(rs.getString(6));
-        res.setDelay(rs.getObject(7, Integer.class));
-        return res;
-      };
 
   public HibernateJobConfigurationStore(
       SessionFactory sessionFactory,
@@ -199,17 +182,27 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
-  public List<JobConfiguration> getAllTriggers() {
+  public Stream<JobConfiguration> getDueJobConfigurations(boolean includeWaiting) {
     // language=SQL
     String sql =
         """
-        select name, jobtype, uid, schedulingtype, lastexecuted, cronexpression, delay
-        from jobconfiguration j1
+        select * from jobconfiguration j1
         where enabled = true
         and jobstatus = 'SCHEDULED'
         and (queueposition is null or queueposition = 0 or schedulingtype = 'ONCE_ASAP')
+        and (schedulingtype != 'ONCE_ASAP' or lastfinished is null)
+        and (:waiting = true or not exists (
+          select 1 from jobconfiguration j2
+          where j2.jobtype = j1.jobtype
+          and j2.jobconfigurationid != j1.jobconfigurationid
+          and j2.jobstatus = 'RUNNING'
+        ))
+        order by jobtype, created
         """;
-    return jdbcTemplate.query(sql, TRIGGER_ROW_MAPPER);
+    return getSession()
+        .createNativeQuery(sql, JobConfiguration.class)
+        .setParameter("waiting", includeWaiting)
+        .stream();
   }
 
   @Override
@@ -374,7 +367,6 @@ public class HibernateJobConfigurationStore
         """
         delete from jobconfiguration
         where schedulingtype = 'ONCE_ASAP'
-        and enabled = false
         and cronexpression is null
         and delay is null
         and queueposition is null
@@ -415,6 +407,7 @@ public class HibernateJobConfigurationStore
             else schedulingtype end
         where jobstatus = 'RUNNING'
         and enabled = true
+        and (schedulingtype != 'ONCE_ASAP' or lastfinished is null)
         and now() > lastalive + :timeout * interval '1 minute'
         """;
     return nativeQuery(sql).setParameter("timeout", max(1, timeoutMinutes)).executeUpdate();

@@ -44,7 +44,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -163,13 +162,13 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   }
 
   @Override
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public int updateDisabledJobs() {
     return jobConfigurationStore.updateDisabledJobs();
   }
 
   @Override
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public int deleteFinishedJobs(int ttlMinutes) {
     if (ttlMinutes <= 0) {
       ttlMinutes = systemSettings.getIntSetting(SettingKey.JOBS_CLEANUP_AFTER_MINUTES);
@@ -178,7 +177,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   }
 
   @Override
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public int rescheduleStaleJobs(int timeoutMinutes) {
     if (timeoutMinutes <= 0) {
       timeoutMinutes = systemSettings.getIntSetting(SettingKey.JOBS_RESCHEDULE_STALE_FOR_MINUTES);
@@ -232,15 +231,17 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds) {
-    Set<String> due = new HashSet<>();
+  public Stream<JobConfiguration> getDueJobConfigurations(
+      int dueInNextSeconds, boolean includeWaiting) {
     Instant now = Instant.now();
     Instant endOfWindow = now.plusSeconds(dueInNextSeconds);
-    for (JobConfiguration trigger : jobConfigurationStore.getAllTriggers()) {
-      Instant dueTime = trigger.nextExecutionTime(now);
-      if (dueTime != null && dueTime.isBefore(endOfWindow)) due.add(trigger.getUid());
-    }
-    return due.isEmpty() ? List.of() : jobConfigurationStore.getByUid(due);
+    return jobConfigurationStore
+        .getDueJobConfigurations(includeWaiting)
+        .filter(
+            trigger -> {
+              Instant dueTime = trigger.nextExecutionTime(now);
+              return dueTime != null && dueTime.isBefore(endOfWindow);
+            });
   }
 
   @Override

@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.metadata;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.StreamUtils;
@@ -41,6 +42,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.feedback.Stats;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.render.RenderFormat;
@@ -100,7 +102,9 @@ public class MetadataImportJob implements Job {
       }
       notifier.addJobSummary(config, report, ImportReport.class);
       Stats count = report.getStats();
-      progress.completedProcess(
+      Consumer<String> endProcess =
+          report.getStatus() == Status.ERROR ? progress::failedProcess : progress::completedProcess;
+      endProcess.accept(
           "Import complete with status %s, %d created, %d updated, %d deleted, %d ignored"
               .formatted(
                   report.getStatus(),
