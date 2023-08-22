@@ -55,7 +55,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -78,15 +77,12 @@ public class TrackedEntityInstanceCriteriaMapper {
 
   private final TrackedEntityAttributeService attributeService;
 
-  private final TrackerAccessManager trackerAccessManager;
-
   public TrackedEntityInstanceCriteriaMapper(
       CurrentUserService currentUserService,
       OrganisationUnitService organisationUnitService,
       ProgramService programService,
       TrackedEntityAttributeService attributeService,
-      TrackedEntityTypeService trackedEntityTypeService,
-      TrackerAccessManager trackerAccessManager) {
+      TrackedEntityTypeService trackedEntityTypeService) {
     checkNotNull(currentUserService);
     checkNotNull(organisationUnitService);
     checkNotNull(programService);
@@ -98,7 +94,6 @@ public class TrackedEntityInstanceCriteriaMapper {
     this.programService = programService;
     this.attributeService = attributeService;
     this.trackedEntityTypeService = trackedEntityTypeService;
-    this.trackerAccessManager = trackerAccessManager;
   }
 
   @Transactional(readOnly = true)
@@ -144,9 +139,12 @@ public class TrackedEntityInstanceCriteriaMapper {
         throw new IllegalQueryException("Organisation unit does not exist: " + orgUnit);
       }
 
-      if (!trackerAccessManager.canAccess(user, program, organisationUnit)) {
+      if (user != null
+          && !user.isSuper()
+          && !organisationUnitService.isInUserHierarchy(
+              organisationUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
         throw new IllegalQueryException(
-            "User does not have access to organisation unit: " + orgUnit);
+            "Organisation unit is not part of the search scope: " + orgUnit);
       }
 
       params.getOrganisationUnits().add(organisationUnit);
