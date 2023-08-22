@@ -30,7 +30,9 @@ package org.hisp.dhis.tracker;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertHasTimeStamp;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -371,6 +373,36 @@ class EventExporterTest extends TrackerTest {
         "first page",
         () -> assertPager(1, 2, 6, events),
         () -> assertEquals(List.of("ck7DzdxqLqA", "OTmjvJDn0Fu"), eventUids(events)));
+  }
+
+  @Test
+  void testExportEventsWithDatesIncludingTimeStamp() {
+
+    EventQueryParams params = new EventQueryParams();
+
+    params.setEvents(Set.of("pTzf9KYMk72"));
+
+    Events events = eventService.getEvents(params);
+
+    assertNotEmpty(events.getEvents());
+
+    Event event = events.getEvents().get(0);
+
+    assertAll(
+        "All dates should include timestamp",
+        () ->
+            assertEquals(
+                "2019-01-25T12:10:38.100",
+                event.getEventDate(),
+                String.format(
+                    "Expected %s to be in %s", event.getEventDate(), "2019-01-25T12:10:38.100")),
+        () ->
+            assertEquals(
+                "2019-01-28T12:32:38.100",
+                event.getDueDate(),
+                String.format(
+                    "Expected %s to be in %s", event.getDueDate(), "2019-01-28T12:32:38.100")),
+        () -> assertHasTimeStamp(event.getCompletedDate()));
   }
 
   @Test
