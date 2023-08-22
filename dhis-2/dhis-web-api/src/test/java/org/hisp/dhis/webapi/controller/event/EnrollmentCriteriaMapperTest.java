@@ -114,7 +114,9 @@ class EnrollmentCriteriaMapperTest {
     Set<String> orgUnits = Set.of(ORG_UNIT1);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(organisationUnitService.getOrganisationUnit(ORG_UNIT1)).thenReturn(organisationUnit);
-    when(organisationUnitService.isInUserHierarchy(organisationUnit.getUid(), Set.of(organisationUnit))).thenReturn(true);
+    when(organisationUnitService.isInUserHierarchy(
+            organisationUnit.getUid(), Set.of(organisationUnit)))
+        .thenReturn(true);
     when(trackedEntityTypeService.getTrackedEntityType(ENTITY_TYPE)).thenReturn(trackedEntityType);
     when(trackedEntityInstanceService.getTrackedEntityInstance(ENTITY_INSTANCE))
         .thenReturn(trackedEntityInstance);
@@ -180,7 +182,9 @@ class EnrollmentCriteriaMapperTest {
     Set<String> orgUnits = Set.of(ORG_UNIT1);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(organisationUnitService.getOrganisationUnit(ORG_UNIT1)).thenReturn(organisationUnit);
-    when(organisationUnitService.isInUserHierarchy(organisationUnit.getUid(), Set.of(organisationUnit))).thenReturn(false);
+    when(organisationUnitService.isInUserHierarchy(
+            organisationUnit.getUid(), Set.of(organisationUnit)))
+        .thenReturn(false);
     user.setTeiSearchOrganisationUnits(Set.of(organisationUnit));
 
     Exception exception =

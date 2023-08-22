@@ -128,9 +128,10 @@ public class EnrollmentCriteriaMapper {
           throw new IllegalQueryException("Organisation unit does not exist: " + orgUnit);
         }
 
-        if ( !organisationUnitService.isInUserHierarchy( organisationUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback() ) )
-        {
-          throw new IllegalQueryException( "Organisation unit is not part of the search scope: " + orgUnit );
+        if (!organisationUnitService.isInUserHierarchy(
+            organisationUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
+          throw new IllegalQueryException(
+              "Organisation unit is not part of the search scope: " + orgUnit);
         }
 
         params.getOrganisationUnits().add(organisationUnit);
