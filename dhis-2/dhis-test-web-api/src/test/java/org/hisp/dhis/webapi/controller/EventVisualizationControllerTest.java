@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.web.HttpStatus.BAD_REQUEST;
@@ -513,5 +515,25 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
     response = GET("/eventVisualizations/" + uid + getParams).content();
     assertThat(response.get("sorting").toString(), containsString("pe"));
     assertThat(response.get("sorting").toString(), containsString("ASC"));
+  }
+
+  @Test
+  void testPost() {
+    // Given
+    String body =
+        "{'name': 'Test post', 'type': 'LINE_LIST', 'program': {'id': '"
+            + mockProgram.getUid()
+            + "'}, 'skipRounding': true}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    JsonObject response = GET("/eventVisualizations/" + uid).content();
+
+    assertThat(response.get("name").node().value(), is(equalTo("Test post")));
+    assertThat(response.get("type").node().value(), is(equalTo("LINE_LIST")));
+    assertThat(response.get("program").node().get("id").value(), is(equalTo(mockProgram.getUid())));
+    assertThat(response.get("skipRounding").node().value(), is(equalTo(true)));
   }
 }
