@@ -178,6 +178,9 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   /** Include completed events only. */
   protected boolean completedOnly;
 
+  /** Apply or not rounding. */
+  protected boolean skipRounding;
+
   /** Dimensions to use as filter. */
   protected List<String> filterDimensions = new ArrayList<>();
 
@@ -1475,6 +1478,16 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   public void setCompletedOnly(boolean completedOnly) {
     this.completedOnly = completedOnly;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isSkipRounding() {
+    return skipRounding;
+  }
+
+  public void setSkipRounding(boolean skipRounding) {
+    this.skipRounding = skipRounding;
   }
 
   @Override
