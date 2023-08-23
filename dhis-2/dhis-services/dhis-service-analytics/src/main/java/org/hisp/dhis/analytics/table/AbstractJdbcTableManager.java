@@ -170,7 +170,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   private void distributeTableIfNecessary(AnalyticsTable table) {
-    if (analyticsSettings.isCitusEnabled(jdbcTemplate)) {
+    if (analyticsSettings.isCitusExtensionEnabled(jdbcTemplate)) {
       String tableName = table.getTempTableName();
       String distributionColumn = table.getTableType().getDistributionColumn();
 
