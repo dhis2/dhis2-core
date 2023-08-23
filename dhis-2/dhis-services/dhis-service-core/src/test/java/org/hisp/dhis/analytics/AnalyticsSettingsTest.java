@@ -44,6 +44,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 
 @ExtendWith(MockitoExtension.class)
 class AnalyticsSettingsTest {
@@ -85,7 +86,9 @@ class AnalyticsSettingsTest {
 
   private JdbcTemplate mockTemplate(List<PgExtension> objects) {
     JdbcTemplate mockedJdbcTemplate = mock(JdbcTemplate.class);
-    when(mockedJdbcTemplate.queryForList(any(String.class), any(Class.class))).thenReturn(objects);
+
+    when(mockedJdbcTemplate.query(any(String.class), any(RowMapper.class))).thenReturn(objects);
+
     return mockedJdbcTemplate;
   }
 }
