@@ -59,7 +59,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
+import org.hisp.dhis.analytics.AnalyticsSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -110,7 +110,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
       JdbcTemplate jdbcTemplate,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityAttributeService trackedEntityAttributeService,
-      AnalyticsExportSettings settings,
+      AnalyticsSettings settings,
       PeriodDataProvider periodDataProvider) {
     super(
         idObjectManager,

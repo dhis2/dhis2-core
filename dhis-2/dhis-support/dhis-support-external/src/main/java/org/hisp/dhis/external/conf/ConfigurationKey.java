@@ -79,6 +79,9 @@ public enum ConfigurationKey {
   /** Hibernate SQL dialect. */
   CONNECTION_DIALECT("connection.dialect", "", false),
 
+  /** Key to explicitly disable Citus extension * */
+  CITUS_EXTENSION_DISABLED("citus.extension.disabled", Constants.OFF, false),
+
   /** JDBC driver class. */
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),
 

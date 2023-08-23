@@ -29,9 +29,17 @@ package org.hisp.dhis.analytics;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CITUS_EXTENSION_DISABLED;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.jdbc.core.DataClassRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,10 +50,12 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class AnalyticsExportSettings {
+@Slf4j
+public class AnalyticsSettings {
   private final DhisConfigurationProvider dhisConfigurationProvider;
 
   private static final String UNLOGGED = "unlogged";
+  private Boolean citusEnabled;
 
   /**
    * Returns the respective string that represents the table type to be exported. Two types are
@@ -60,4 +70,66 @@ public class AnalyticsExportSettings {
 
     return EMPTY;
   }
+
+  private boolean isCitusDisabledByConfig() {
+    return dhisConfigurationProvider.isEnabled(CITUS_EXTENSION_DISABLED);
+  }
+
+  public synchronized boolean isCitusEnabled(JdbcTemplate jdbcTemplate) {
+    if (Objects.isNull(citusEnabled)) {
+      if (isCitusDisabledByConfig()) {
+        log.info("Citus extension is disabled in dhis.conf");
+        citusEnabled = false;
+      } else {
+        citusEnabled = isCitusExtensionInstalledAndEnabled(jdbcTemplate);
+      }
+    }
+    return citusEnabled;
+  }
+
+  private boolean isCitusExtensionInstalledAndEnabled(JdbcTemplate jdbcTemplate) {
+    List<PgExtension> installedExtensions = getPostgresExtensions(jdbcTemplate);
+
+    logFoundExtensions(installedExtensions);
+
+    return installedExtensions.stream().anyMatch(this::isCitusEnabled);
+  }
+
+  private void logFoundExtensions(List<PgExtension> installedExtensions) {
+    if (!installedExtensions.isEmpty()) {
+      log.info(
+          "Found citus extensions in the database: {}",
+          StringUtils.join(installedExtensions, ", "));
+      return;
+    }
+    log.info(
+        "Citus extension software is not installed in the database. You need to install it first, depending on the OS: https://docs.citusdata.com/en/latest/installation/multi_node.html");
+  }
+
+  private List<PgExtension> getPostgresExtensions(JdbcTemplate jdbcTemplate) {
+    return jdbcTemplate.query(
+        "select name, installed_version "
+            + "from pg_available_extensions "
+            + "where lower(name) like 'citus%'",
+        new DataClassRowMapper<>(PgExtension.class));
+  }
+
+  private boolean isCitusEnabled(PgExtension e) {
+    boolean isCitusExtensionEnabled =
+        Optional.of(e)
+            .map(PgExtension::installedVersion)
+            .filter(StringUtils::isNotBlank)
+            .isPresent();
+
+    if (!isCitusExtensionEnabled) {
+      log.info(
+          "Citus extension was not created in the DHIS database. You need to run 'CREATE EXTENSION citus;' after the creation of the database");
+      return false;
+    }
+
+    log.info("Citus extension detected in the DHIS database");
+    return true;
+  }
+
+  public record PgExtension(String name, String installedVersion) {}
 }

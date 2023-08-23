@@ -46,8 +46,8 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsIndex;
+import org.hisp.dhis.analytics.AnalyticsSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
@@ -133,7 +133,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final JdbcTemplate jdbcTemplate;
 
-  protected final AnalyticsExportSettings analyticsExportSettings;
+  protected final AnalyticsSettings analyticsSettings;
 
   protected final PeriodDataProvider periodDataProvider;
 
@@ -166,6 +166,37 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   public void createTable(AnalyticsTable table) {
     createTempTable(table);
     createTempTablePartitions(table);
+    distributeTableIfNecessary(table);
+  }
+
+  private void distributeTableIfNecessary(AnalyticsTable table) {
+    if (analyticsSettings.isCitusEnabled(jdbcTemplate)) {
+      String tableName = table.getTempTableName();
+      String distributionColumn = table.getTableType().getDistributionColumn();
+
+      if (StringUtils.isBlank(distributionColumn)) {
+        log.warn(
+            "No distribution column defined for table "
+                + table.getTableName()
+                + " so it won't be distributed");
+        return;
+      }
+
+      try {
+        jdbcTemplate.execute(
+            "SELECT create_distributed_table('" + tableName + "', '" + distributionColumn + "')");
+
+        log.info(
+            "Successfully distributed table " + tableName + " on column " + distributionColumn);
+      } catch (Exception e) {
+        log.warn(
+            "Failed to distribute table "
+                + table.getTempTableName()
+                + " on column "
+                + distributionColumn,
+            e);
+      }
+    }
   }
 
   @Override
@@ -331,7 +362,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     sqlCreate
         .append("create ")
-        .append(analyticsExportSettings.getTableType())
+        .append(analyticsSettings.getTableType())
         .append(" table ")
         .append(tableName)
         .append(" (");
@@ -372,7 +403,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
       sqlCreate
           .append("create ")
-          .append(analyticsExportSettings.getTableType())
+          .append(analyticsSettings.getTableType())
           .append(" table ")
           .append(tableName)
           .append("(");

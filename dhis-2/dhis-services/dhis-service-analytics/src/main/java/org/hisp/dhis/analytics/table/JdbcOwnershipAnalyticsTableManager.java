@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
+import org.hisp.dhis.analytics.AnalyticsSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -99,7 +99,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
       DatabaseInfo databaseInfo,
       JdbcTemplate jdbcTemplate,
       JdbcConfiguration jdbcConfiguration,
-      AnalyticsExportSettings analyticsExportSettings,
+      AnalyticsSettings analyticsSettings,
       PeriodDataProvider periodDataProvider) {
     super(
         idObjectManager,
@@ -113,7 +113,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
         partitionManager,
         databaseInfo,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsSettings,
         periodDataProvider);
     this.jdbcConfiguration = jdbcConfiguration;
   }
