@@ -27,45 +27,55 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.utils.JavaToJson.toJson;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-
 import java.util.List;
-import java.util.Map;
-import org.hisp.dhis.utils.JavaToJson;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import javax.servlet.http.HttpServletResponse;
+import org.hisp.dhis.datastore.DatastoreParams;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
- * Base class for testing the {@link DatastoreController} providing helpers to set up entries in the
- * store.
+ * Tests specifically the {@code order} parameter aspect of the {@link
+ * UserDatastoreController#getEntries(String, String, String, boolean, DatastoreParams,
+ * HttpServletResponse)} method using (mocked) REST requests.
+ *
+ * <p>Tests will use {@code fields} parameter as it is a required parameter for the API.
  *
  * @author Jan Bernitt
  */
-abstract class AbstractDatastoreControllerTest extends DhisControllerConvenienceTest {
-
-  /**
-   * Creates a new entry with the given key and value in the given namespace.
-   *
-   * @param ns namespace
-   * @param key key of the entry
-   * @param value value of the entry, valid JSON - consider using {@link JavaToJson#toJson(Object)}
-   */
-  final void postEntry(String ns, String key, String value) {
-    assertStatus(HttpStatus.CREATED, POST("/dataStore/" + ns + "/" + key, value));
+class UserDatastoreOrderControllerTest extends AbstractUserDatastoreControllerTest {
+  @BeforeEach
+  void setUp() {
+    postPet("cat", "Miao", 9, List.of("tuna", "mice", "birds"));
+    postPet("cow", "Muuhh", 15, List.of("gras"));
+    postPet("dog", "Pluto", 2, List.of("rabbits"));
+    postPet("pig", "Oink", 6, List.of("carrots", "potatoes"));
   }
 
-  final void postPet(String key, String name, int age, List<String> eats) {
-    Map<String, Object> obj =
-        Map.of(
-            "name",
-            name,
-            "age",
-            age,
-            "cute",
-            true,
-            "eats",
-            eats == null ? List.of() : eats.stream().map(food -> Map.of("name", food)));
-    postEntry("pets", key, toJson(obj));
+  @Test
+  void testOrder_Asc_String() {
+    assertJson(
+        "[{'key':'cat'},{'key':'cow'},{'key':'pig'},{'key':'dog'}]",
+        GET("/userDataStore/pets?fields=&headless=true&order=name"));
+  }
+
+  @Test
+  void testOrder_Desc_String() {
+    assertJson(
+        "[{'key':'dog'},{'key':'pig'},{'key':'cow'},{'key':'cat'}]",
+        GET("/userDataStore/pets?fields=&headless=true&order=name:desc"));
+  }
+
+  @Test
+  void testOrder_Asc_Number() {
+    assertJson(
+        "[{'key':'dog'},{'key':'pig'},{'key':'cat'},{'key':'cow'}]",
+        GET("/userDataStore/pets?fields=&headless=true&order=age:nasc"));
+  }
+
+  @Test
+  void testOrder_Desc_Number() {
+    assertJson(
+        "[{'key':'cow'},{'key':'cat'},{'key':'pig'},{'key':'dog'}]",
+        GET("/userDataStore/pets?fields=&headless=true&order=age:ndesc"));
   }
 }
