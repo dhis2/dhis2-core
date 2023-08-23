@@ -27,36 +27,36 @@ Execute the following commands on each node:
 
     curl https://install.citusdata.com/community/deb.sh | sudo bash
     sudo apt install postgresql-15-citus-12.0 postgresql-15-postgis-3
-	sudo pg_conftool 15 main set shared_preload_libraries citus
-	sudo pg_conftool 15 main set listen_addresses '*'
+    sudo pg_conftool 15 main set shared_preload_libraries citus
+    sudo pg_conftool 15 main set listen_addresses '*'
 
 Edit the postgres `/etc/postgres/15/main/pg_hba.conf` file to allow unrestricted access to nodes in the local network:
 
-	# Allow unrestricted access to nodes in the local network. The following ranges
-	# correspond to 24, 20, and 16-bit blocks in Private IPv4 address spaces.
-	host  all  all  10.0.0.0/8  trust
-
-	# Also allow the host unrestricted access to connect to itself
-	host  all  all  127.0.0.1/32  trust
-	host  all  all  ::1/128  trust
+    # Allow unrestricted access to nodes in the local network. The following ranges
+    # correspond to 24, 20, and 16-bit blocks in Private IPv4 address spaces.
+    host  all  all  10.0.0.0/8  trust
+    
+    # Also allow the host unrestricted access to connect to itself
+    host  all  all  127.0.0.1/32  trust
+    host  all  all  ::1/128  trust
 
 #### 1.2.2 - Enable postgres service and start postgres server
 Execute
 
-	systemctl enable postgresql.service
-	systemctl start postgresql.service
+    systemctl enable postgresql.service
+    systemctl start postgresql.service
 
 #### 1.2.3 - Create DHIS database and DHIS user
 
 With postgres user, using `psql`
 
-	create user  dhis password 'password'
-	drop database if exists dhis;
-	create database dhis with owner dhis;
-	grant all privileges on dhis to dhis;
-	\c dhis
-	create extension postgis;
-	create extension citus;
+    create user  dhis password 'password'
+    drop database if exists dhis;
+    create database dhis with owner dhis;
+    grant all privileges on dhis to dhis;
+    \c dhis
+    create extension postgis;
+    create extension citus;
 
 Import a sample DHIS database like, for example:
 
@@ -65,22 +65,21 @@ Import a sample DHIS database like, for example:
 ### 1.3 - Steps to execute on the coordinator (`citus-1`)
 With postgres user, using `psql`
 
-	SELECT citus_set_coordinator_host('citus-1', 5432);
-	SELECT * from citus_add_node('citus-2', 5432);
-	SELECT * from citus_add_node('citus-3', 5432);
-	SELECT * from citus_add_node('citus-4', 5432);
+    SELECT citus_set_coordinator_host('citus-1', 5432);
+    SELECT * from citus_add_node('citus-2', 5432);
+    SELECT * from citus_add_node('citus-3', 5432);
+    SELECT * from citus_add_node('citus-4', 5432);
 
 ### 1.4 - Tests execution
 #### 1.4.1 - Setup analytics tables
 Run DHIS using `citus-1:5432` connection and run a full analytics export, including TEIs.
 To force TEI analytics table creation, it might help to use:
 
-	POST 'http://localhost:8080/dhis/api/resourceTables/analytics?executeTei=true
+    POST 'http://localhost:8080/dhis/api/resourceTables/analytics?executeTei=true
 
 #### 1.4.2 - Create distributed tables from analytics ones:
 In my test I just cloned the analytics TEI table to citus own  tables:
 Execute the following `SQL` commands using dhis user:
-
 
     create table public.analytics_tei_neenwmsyuep_citus  
     (  
@@ -157,7 +156,7 @@ Execute the following `SQL` commands using dhis user:
       
     SELECT create_distributed_table('analytics_tei_neenwmsyuep_citus', 'trackedentityinstanceid');   
     insert into analytics_tei_neenwmsyuep_citus select * from analytics_tei_neenwmsyuep;  
-
+    
     create table public.analytics_tei_enrollments_neenwmsyuep_citus  
     (  
       trackedentityinstanceuid char(11) not null,  
@@ -184,7 +183,7 @@ Execute the following `SQL` commands using dhis user:
       
     SELECT create_distributed_table('analytics_tei_enrollments_neenwmsyuep_citus', 'trackedentityinstanceuid');      
     insert into analytics_tei_enrollments_neenwmsyuep_citus select * from analytics_tei_enrollments_neenwmsyuep;  
-  
+    
     create table public.analytics_tei_events_neenwmsyuep_citus  
     (  
       trackedentityinstanceuid char(11) not null,  
@@ -215,9 +214,9 @@ Execute the following `SQL` commands using dhis user:
       
     SELECT create_distributed_table('analytics_tei_events_neenwmsyuep_citus', 'trackedentityinstanceuid');       
     insert into analytics_tei_events_neenwmsyuep_citus select * from analytics_tei_events_neenwmsyuep;  
-
-The query I used for testing is:
-
+    
+    The query I used for testing is:
+    
     select t_1."trackedentityinstanceuid" as "trackedentityinstanceuid",  
       t_1."lastupdated" as "lastupdated",  
       t_1."createdbydisplayname" as "createdbydisplayname",  
