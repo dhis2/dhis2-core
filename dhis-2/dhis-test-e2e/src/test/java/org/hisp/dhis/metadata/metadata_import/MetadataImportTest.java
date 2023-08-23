@@ -220,7 +220,7 @@ public class MetadataImportTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body(notNullValue())
-        .body("response.name", equalTo("metadataImport"))
+        .body("response.name", startsWith("METADATA_IMPORT"))
         .body("response.jobType", equalTo("METADATA_IMPORT"));
 
     String taskId = response.extractString("response.id");
@@ -230,8 +230,8 @@ public class MetadataImportTest extends ApiTest {
     systemActions
         .waitUntilTaskCompleted("METADATA_IMPORT", taskId)
         .validate()
-        .body("message", hasItem(containsString("Import:Start")))
-        .body("message", hasItem(containsString("Import:Done")));
+        .body("message", hasItem(containsString("Metadata import started")))
+        .body("message", hasItem(containsString("Import complete with status")));    ;
 
     // validate task summaries were created
     systemActions
@@ -275,7 +275,7 @@ public class MetadataImportTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body("response", notNullValue())
-        .body("response.name", equalTo("metadataImport"))
+        .body("response.name", startsWith("METADATA_IMPORT"))
         .body("response.jobType", equalTo("METADATA_IMPORT"));
 
     String taskId = response.extractString("response.id");
@@ -286,8 +286,8 @@ public class MetadataImportTest extends ApiTest {
         .waitUntilTaskCompleted("METADATA_IMPORT", taskId)
         .validate()
         .body("message", notNullValue())
-        .body("message", hasItem(containsString("Import:Start")))
-        .body("message", hasItem(containsString("Import:Done")));
+        .body("message", hasItem(containsString("Metadata import started")))
+        .body("message", hasItem(containsString("Import complete with status")));
 
     // validate task summaries were created
     systemActions
