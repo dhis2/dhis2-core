@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,12 +37,12 @@ import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 
 /**
- * Base class for testing the {@link DatastoreController} providing helpers to set up entries in the
- * store.
+ * Base class for testing the {@link UserDatastoreController} providing helpers to set up entries in
+ * the store.
  *
  * @author Jan Bernitt
  */
-abstract class AbstractDatastoreControllerTest extends DhisControllerConvenienceTest {
+abstract class AbstractUserDatastoreControllerTest extends DhisControllerConvenienceTest {
 
   /**
    * Creates a new entry with the given key and value in the given namespace.
@@ -52,11 +52,11 @@ abstract class AbstractDatastoreControllerTest extends DhisControllerConvenience
    * @param value value of the entry, valid JSON - consider using {@link JavaToJson#toJson(Object)}
    */
   final void postEntry(String ns, String key, String value) {
-    assertStatus(HttpStatus.CREATED, POST("/dataStore/" + ns + "/" + key, value));
+    assertStatus(HttpStatus.CREATED, POST("/userDataStore/" + ns + "/" + key, value));
   }
 
   final void postPet(String key, String name, int age, List<String> eats) {
-    Map<String, Object> obj =
+    Map<String, Object> objectMap =
         Map.of(
             "name",
             name,
@@ -66,6 +66,6 @@ abstract class AbstractDatastoreControllerTest extends DhisControllerConvenience
             true,
             "eats",
             eats == null ? List.of() : eats.stream().map(food -> Map.of("name", food)));
-    postEntry("pets", key, toJson(obj));
+    postEntry("pets", key, toJson(objectMap));
   }
 }

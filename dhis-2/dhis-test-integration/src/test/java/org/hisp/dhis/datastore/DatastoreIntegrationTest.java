@@ -306,14 +306,14 @@ class DatastoreIntegrationTest extends IntegrationTestBase {
         .build();
   }
 
-  private List<DatastoreFields> queryAsList(DatastoreQuery query) throws BadRequestException {
+  private List<DatastoreFields> queryAsList(DatastoreQuery query) throws ConflictException {
     return datastore.getEntries(query, stream -> stream.collect(toList()));
   }
 
   private void assertEntries(String filter, String... expectedKeys) {
     try {
       assertEntries(List.of(expectedKeys), queryAsList(createQuery(filter)));
-    } catch (BadRequestException ex) {
+    } catch (ConflictException ex) {
       fail(ex);
     }
   }
