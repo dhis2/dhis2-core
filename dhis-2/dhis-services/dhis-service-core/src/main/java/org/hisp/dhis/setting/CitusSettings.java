@@ -40,10 +40,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * Component responsible for exposing analytics table export settings. Can hold settings living in
+ * Component responsible for exposing citus extension settings. Can hold settings living in
  * configuration files (ie. dhis.conf) or in system settings.
  *
- * @author maikel arabori
+ * @author giuseppe nespolino
  */
 @Component
 @RequiredArgsConstructor
