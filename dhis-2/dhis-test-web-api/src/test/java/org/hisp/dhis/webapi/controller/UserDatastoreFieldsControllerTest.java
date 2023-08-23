@@ -38,14 +38,14 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests specifically the {@code fields} parameter aspect of the {@link
- * DatastoreController#getEntries(String, String, boolean, DatastoreParams, HttpServletResponse)}
- * method using (mocked) REST requests.
+ * UserDatastoreController#getEntries(String, String, String, boolean, DatastoreParams,
+ * HttpServletResponse)} method using (mocked) REST requests.
  *
  * <p>Tests will use {@code filter} but only to pick keys in order to reduce the matches.
  *
  * @author Jan Bernitt
  */
-class DatastoreFieldsControllerTest extends AbstractDatastoreControllerTest {
+class UserDatastoreFieldsControllerTest extends AbstractUserDatastoreControllerTest {
   @BeforeEach
   void setUp() {
     // simple values
@@ -64,55 +64,56 @@ class DatastoreFieldsControllerTest extends AbstractDatastoreControllerTest {
 
   @Test
   void testFields_KeyOnly() {
-    assertJson("[{'key':'cat'}]", GET("/dataStore/pets?fields=&headless=true&filter=_:eq:cat"));
+    assertJson("[{'key':'cat'}]", GET("/userDataStore/pets?fields=&headless=true&filter=_:eq:cat"));
   }
 
   @Test
   void testFields_RootBoolean() {
     assertJson(
         "[{'key':'dog','value':false}]",
-        GET("/dataStore/pets?fields=.&headless=true&filter=_:eq:dog"));
+        GET("/userDataStore/pets?fields=.&headless=true&filter=_:eq:dog"));
   }
 
   @Test
   void testFields_RootNull() {
     assertJson(
         "[{'key':'snake','value':null}]",
-        GET("/dataStore/pets?fields=.&headless=true&filter=_:eq:snake"));
+        GET("/userDataStore/pets?fields=.&headless=true&filter=_:eq:snake"));
   }
 
   @Test
   void testFields_RootNumber() {
     assertJson(
         "[{'key':'pidgin','value':42}]",
-        GET("/dataStore/pets?fields=.&headless=true&filter=_:eq:pidgin"));
+        GET("/userDataStore/pets?fields=.&headless=true&filter=_:eq:pidgin"));
   }
 
   @Test
   void testFields_RootString() {
     assertJson(
         "[{'key':'horse','value':'Fury'}]",
-        GET("/dataStore/pets?fields=.&headless=true&filter=_:eq:horse"));
+        GET("/userDataStore/pets?fields=.&headless=true&filter=_:eq:horse"));
   }
 
   @Test
   void testFields_RootAlias() {
     assertJson(
         "[{'key':'horse','name':'Fury'}]",
-        GET("/dataStore/pets?fields=.~hoist(name)&headless=true&filter=_:eq:horse"));
+        GET("/userDataStore/pets?fields=.~hoist(name)&headless=true&filter=_:eq:horse"));
   }
 
   @Test
   void testFields_PathBoolean() {
     assertJson(
         "[{'key':'hamster','cute':true}]",
-        GET("/dataStore/pets?fields=cute&headless=true&filter=_:eq:hamster"));
+        GET("/userDataStore/pets?fields=cute&headless=true&filter=_:eq:hamster"));
   }
 
   @Test
   void testFields_PathNumber() {
     assertJson(
-        "[{'key':'cat','age':9}]", GET("/dataStore/pets?fields=age&headless=true&filter=_:eq:cat"));
+        "[{'key':'cat','age':9}]",
+        GET("/userDataStore/pets?fields=age&headless=true&filter=_:eq:cat"));
   }
 
   @Test
@@ -122,7 +123,7 @@ class DatastoreFieldsControllerTest extends AbstractDatastoreControllerTest {
             + "{'key':'cow','name':'Muuhh'},"
             + "{'key':'hamster','name':'Speedy'},"
             + "{'key':'pig','name':'Oink'}]",
-        GET("/dataStore/pets?fields=name&headless=true"));
+        GET("/userDataStore/pets?fields=name&headless=true"));
   }
 
   @Test
@@ -134,9 +135,9 @@ class DatastoreFieldsControllerTest extends AbstractDatastoreControllerTest {
             + "{'key':'hamster','food':{'name':'veggies'}},"
             + "{'key':'pig','food':{'name':'carrots'}}"
             + "]";
-    assertJson(expected, GET("/dataStore/pets?fields=eats.0~hoist(food)&headless=true"));
-    assertJson(expected, GET("/dataStore/pets?fields=eats[0~hoist(food)]&headless=true"));
-    assertJson(expected, GET("/dataStore/pets?fields=eats(0~hoist(food))&headless=true"));
+    assertJson(expected, GET("/userDataStore/pets?fields=eats.0~hoist(food)&headless=true"));
+    assertJson(expected, GET("/userDataStore/pets?fields=eats[0~hoist(food)]&headless=true"));
+    assertJson(expected, GET("/userDataStore/pets?fields=eats(0~hoist(food))&headless=true"));
   }
 
   @Test
@@ -148,18 +149,19 @@ class DatastoreFieldsControllerTest extends AbstractDatastoreControllerTest {
             + "{'key':'hamster','name':'Speedy','food':'veggies'},"
             + "{'key':'pig','name':'Oink','food':'carrots'}"
             + "]";
-    assertJson(expected, GET("/dataStore/pets?fields=name,eats.0.name~hoist(food)&headless=true"));
     assertJson(
-        expected, GET("/dataStore/pets?fields=name,eats[0[name~hoist(food)]]&headless=true"));
+        expected, GET("/userDataStore/pets?fields=name,eats.0.name~hoist(food)&headless=true"));
     assertJson(
-        expected, GET("/dataStore/pets?fields=name,eats(0(name~hoist(food)))&headless=true"));
+        expected, GET("/userDataStore/pets?fields=name,eats[0[name~hoist(food)]]&headless=true"));
+    assertJson(
+        expected, GET("/userDataStore/pets?fields=name,eats(0(name~hoist(food)))&headless=true"));
   }
 
   @Test
   void testGetEntries_IncludeAllTrue() {
     assertJson(
         "[" + "{'key':'cat','name':'Miao'}," + "{'key':'dog','name':null}" + "]",
-        GET("/dataStore/pets?fields=name&includeAll=true&headless=true&filter=_:in:[cat,dog]"));
+        GET("/userDataStore/pets?fields=name&includeAll=true&headless=true&filter=_:in:[cat,dog]"));
   }
 
   @Test
@@ -169,6 +171,6 @@ class DatastoreFieldsControllerTest extends AbstractDatastoreControllerTest {
         409,
         "ERROR",
         "Illegal fields expression, expected `,`, `[` or `]` at position 7 but found `'`",
-        GET("/dataStore/pets?fields=illegal'&headless=true").content(HttpStatus.CONFLICT));
+        GET("/userDataStore/pets?fields=illegal'&headless=true").content(HttpStatus.CONFLICT));
   }
 }

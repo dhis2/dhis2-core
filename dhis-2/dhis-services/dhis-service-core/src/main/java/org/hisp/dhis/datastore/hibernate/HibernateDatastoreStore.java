@@ -103,7 +103,7 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
   }
 
   @Override
-  public List<DatastoreEntry> getEntryByNamespace(String namespace) {
+  public List<DatastoreEntry> getEntriesInNamespace(String namespace) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     return getList(
@@ -112,8 +112,9 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
   }
 
   @Override
-  public <T> T getFields(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform) {
-    DatastoreQueryBuilder builder = new DatastoreQueryBuilder(query);
+  public <T> T getEntries(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform) {
+    DatastoreQueryBuilder builder =
+        new DatastoreQueryBuilder("from DatastoreEntry where namespace = :namespace", query);
     String hql = builder.createFetchHQL();
 
     Query<?> hQuery =
@@ -148,6 +149,7 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   @Override
   public DatastoreEntry getEntry(String namespace, String key) {
+
     CriteriaBuilder builder = getCriteriaBuilder();
 
     return getSingleResult(
