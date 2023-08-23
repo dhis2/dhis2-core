@@ -27,108 +27,11 @@
  */
 package org.hisp.dhis.userdatastore;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.datastore.DatastoreEntry;
 
 /**
  * @author Stian Sandvold
  */
-public class UserDatastoreEntry extends BaseIdentifiableObject {
-  /** A namespace is a collection of keys for a given user */
-  private String namespace;
-
-  /** A key belongs to a namespace and user, and represent a value */
-  private String key;
-
-  /**
-   * A value referenced by a key, namespace and user, JSON-formatted data stored as a jsonb in db
-   */
-  private String jbPlainValue;
-
-  /** The encrypted value of the object, if encrypted is true */
-  private String encryptedValue;
-
-  /** Indicates whether the value should be encrypted or not. */
-  private Boolean encrypted = false;
-
-  /**
-   * Temporary variable to hold any new values set during session. Will be made into the correct
-   * type when being persisted by the persistence layer (encrypted or plain).
-   */
-  private String value;
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public UserDatastoreEntry() {}
-
-  public UserDatastoreEntry(
-      User user, String namespace, String key, String value, Boolean encrypted) {
-    this.namespace = namespace;
-    this.key = key;
-    this.value = value;
-    this.encrypted = encrypted;
-    this.setCreatedBy(user);
-  }
-
-  // -------------------------------------------------------------------------
-  // Get and set methods
-  // -------------------------------------------------------------------------
-
-  @JsonProperty
-  public String getNamespace() {
-    return namespace;
-  }
-
-  public void setNamespace(String namespace) {
-    this.namespace = namespace;
-  }
-
-  @JsonProperty
-  public String getKey() {
-    return key;
-  }
-
-  public void setKey(String key) {
-    this.key = key;
-  }
-
-  @JsonProperty
-  public String getValue() {
-    return isEncrypted() ? getEncryptedValue() : getJbPlainValue();
-  }
-
-  public void setValue(String value) {
-    this.value = value;
-  }
-
-  public String getJbPlainValue() {
-    return !isEncrypted() && value != null ? value : jbPlainValue;
-  }
-
-  public void setJbPlainValue(String jbPlainValue) {
-    this.jbPlainValue = jbPlainValue;
-  }
-
-  public String getEncryptedValue() {
-    return isEncrypted() && value != null ? value : encryptedValue;
-  }
-
-  public void setEncryptedValue(String encryptedValue) {
-    this.encryptedValue = encryptedValue;
-  }
-
-  public boolean getEncrypted() {
-    return encrypted;
-  }
-
-  public void setEncrypted(boolean encrypted) {
-    this.encrypted = encrypted;
-  }
-
-  private boolean isEncrypted() {
-    return encrypted != null && encrypted;
-  }
+public class UserDatastoreEntry extends DatastoreEntry {
+  // we only need a different class because of ORM mapping
 }

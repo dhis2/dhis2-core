@@ -29,10 +29,9 @@ package org.hisp.dhis.datastore;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.datastore.DatastoreQuery.Filter;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
  * Contains the {@link DatastoreQuery} semantic validation.
@@ -40,8 +39,8 @@ import org.hisp.dhis.feedback.ErrorMessage;
  * @author Jan Bernitt
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-class DatastoreQueryValidator {
-  public static void validate(DatastoreQuery query) {
+public class DatastoreQueryValidator {
+  public static void validate(DatastoreQuery query) throws BadRequestException {
     for (Filter f : query.getFilters()) {
       boolean isUnary = f.getOperator().isUnary();
       if (f.isKeyPath() && isUnary) {
@@ -57,7 +56,7 @@ class DatastoreQueryValidator {
     }
   }
 
-  private static IllegalQueryException filterException(Filter f, String msg) {
-    return new IllegalQueryException(new ErrorMessage(ErrorCode.E7653, f.toString(), msg));
+  private static BadRequestException filterException(Filter f, String msg) {
+    return new BadRequestException(ErrorCode.E7653, f.toString(), msg);
   }
 }

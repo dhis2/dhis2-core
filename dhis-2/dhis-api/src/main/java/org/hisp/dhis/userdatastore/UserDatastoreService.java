@@ -28,12 +28,21 @@
 package org.hisp.dhis.userdatastore;
 
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.datastore.DatastoreFields;
+import org.hisp.dhis.datastore.DatastoreQuery;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.user.User;
 
 /**
  * @author Stian Sandvold
  */
 public interface UserDatastoreService {
+
+  boolean isUsedNamespace(User user, String namespace);
 
   /**
    * Retrieves a KeyJsonValue based on a user and key
@@ -51,21 +60,21 @@ public interface UserDatastoreService {
    * @param entry the UserKeyJsonValue to be stored
    * @return the id of the UserKeyJsonValue stored
    */
-  long addUserEntry(UserDatastoreEntry entry);
+  long addEntry(UserDatastoreEntry entry) throws ConflictException, BadRequestException;
 
   /**
    * Updates a UserKeyJsonValue
    *
    * @param entry the updated UserKeyJsonValue
    */
-  void updateUserEntry(UserDatastoreEntry entry);
+  void updateEntry(UserDatastoreEntry entry) throws BadRequestException;
 
   /**
    * Deletes a UserKeyJsonValue
    *
    * @param entry the UserKeyJsonValue to be deleted.
    */
-  void deleteUserEntry(UserDatastoreEntry entry);
+  void deleteEntry(UserDatastoreEntry entry);
 
   /**
    * Returns a list of namespaces connected to the given user
@@ -90,5 +99,29 @@ public interface UserDatastoreService {
    * @param user the user associated with namespace to delete
    * @param namespace the namespace to delete
    */
-  void deleteNamespaceFromUser(User user, String namespace);
+  void deleteNamespace(User user, String namespace);
+
+  /**
+   * Validates and plans a {@link DatastoreQuery}. This might correct or otherwise update the
+   * provided query.
+   *
+   * @param query to validate and plan
+   * @throws IllegalQueryException when the query is not valid
+   */
+  DatastoreQuery plan(DatastoreQuery query) throws IllegalQueryException, BadRequestException;
+
+  /**
+   * Stream the matching entry fields to a transformer or consumer function.
+   *
+   * <p>Note that this API cannot return the {@link Stream} since it has to be processed within the
+   * transaction bounds of the function call. For the same reason a transformer function has to
+   * process the stream in a way that actually will evaluate the stream.
+   *
+   * @param query query parameters
+   * @param transform transformer or consumer for the stream of matches
+   * @param <T> type of the transformed stream
+   * @return the transformed stream
+   */
+  <T> T getEntries(User user, DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform)
+      throws BadRequestException;
 }
