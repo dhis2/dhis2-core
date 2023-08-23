@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datastore;
+package org.hisp.dhis.webapi.controller;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.datastore.DatastoreQuery.Filter;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ErrorCode;
+import static org.hisp.dhis.utils.JavaToJson.toJson;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+
+import java.util.List;
+import java.util.Map;
+import org.hisp.dhis.utils.JavaToJson;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 
 /**
- * Contains the {@link DatastoreQuery} semantic validation.
+ * Base class for testing the {@link UserDatastoreController} providing helpers to set up entries in
+ * the store.
  *
  * @author Jan Bernitt
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class DatastoreQueryValidator {
-  public static void validate(DatastoreQuery query) throws ConflictException {
-    for (Filter f : query.getFilters()) {
-      boolean isUnary = f.getOperator().isUnary();
-      if (f.isKeyPath() && isUnary) {
-        throw filterException(f, "key filters cannot be used with unary operators");
-      }
-      if (!isUnary && f.getValue().isBlank()) {
-        throw filterException(f, "the operator `" + f.getOperator() + "` requires a value");
-      }
-      if (isUnary && !f.getValue().isBlank()) {
-        throw filterException(
-            f, "the operator `" + f.getOperator() + "` is unary and does not require a value");
-      }
-    }
+abstract class AbstractUserDatastoreControllerTest extends DhisControllerConvenienceTest {
+
+  /**
+   * Creates a new entry with the given key and value in the given namespace.
+   *
+   * @param ns namespace
+   * @param key key of the entry
+   * @param value value of the entry, valid JSON - consider using {@link JavaToJson#toJson(Object)}
+   */
+  final void postEntry(String ns, String key, String value) {
+    assertStatus(HttpStatus.CREATED, POST("/userDataStore/" + ns + "/" + key, value));
   }
 
-  private static ConflictException filterException(Filter f, String msg) {
-    return new ConflictException(ErrorCode.E7653, f.toString(), msg);
+  final void postPet(String key, String name, int age, List<String> eats) {
+    Map<String, Object> objectMap =
+        Map.of(
+            "name",
+            name,
+            "age",
+            age,
+            "cute",
+            true,
+            "eats",
+            eats == null ? List.of() : eats.stream().map(food -> Map.of("name", food)));
+    postEntry("pets", key, toJson(objectMap));
   }
 }

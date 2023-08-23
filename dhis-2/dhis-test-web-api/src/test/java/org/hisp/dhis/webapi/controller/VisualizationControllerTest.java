@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datastore;
+package org.hisp.dhis.webapi.controller;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.datastore.DatastoreQuery.Filter;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ErrorCode;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Contains the {@link DatastoreQuery} semantic validation.
- *
- * @author Jan Bernitt
- */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class DatastoreQueryValidator {
-  public static void validate(DatastoreQuery query) throws ConflictException {
-    for (Filter f : query.getFilters()) {
-      boolean isUnary = f.getOperator().isUnary();
-      if (f.isKeyPath() && isUnary) {
-        throw filterException(f, "key filters cannot be used with unary operators");
-      }
-      if (!isUnary && f.getValue().isBlank()) {
-        throw filterException(f, "the operator `" + f.getOperator() + "` requires a value");
-      }
-      if (isUnary && !f.getValue().isBlank()) {
-        throw filterException(
-            f, "the operator `" + f.getOperator() + "` is unary and does not require a value");
-      }
-    }
-  }
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.web.WebClient;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
+import org.junit.jupiter.api.Test;
 
-  private static ConflictException filterException(Filter f, String msg) {
-    return new ConflictException(ErrorCode.E7653, f.toString(), msg);
+class VisualizationControllerTest extends DhisControllerConvenienceTest {
+
+  @Test
+  void testGetVisualizationWithNestedFilters() {
+    JsonImportSummary report =
+        POST("/metadata", WebClient.Body("metadata/metadata_with_visualization.json"))
+            .content(HttpStatus.OK)
+            .get("response")
+            .as(JsonImportSummary.class);
+    assertEquals("OK", report.getStatus());
+
+    JsonMixed response =
+        GET("/visualizations.json?filter=id:eq:qD72aBqsHvt&fields=filters").content();
+    JsonList<JsonObject> visualizations = response.getList("visualizations", JsonObject.class);
+    assertEquals(1, visualizations.size());
+    assertEquals(1, visualizations.get(0).getList("filters", JsonObject.class).size());
   }
 }
