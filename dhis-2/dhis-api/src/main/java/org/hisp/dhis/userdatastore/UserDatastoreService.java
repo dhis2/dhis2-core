@@ -108,7 +108,7 @@ public interface UserDatastoreService {
    * @param query to validate and plan
    * @throws IllegalQueryException when the query is not valid
    */
-  DatastoreQuery plan(DatastoreQuery query) throws IllegalQueryException, BadRequestException;
+  DatastoreQuery plan(DatastoreQuery query) throws ConflictException;
 
   /**
    * Stream the matching entry fields to a transformer or consumer function.
@@ -123,5 +123,5 @@ public interface UserDatastoreService {
    * @return the transformed stream
    */
   <T> T getEntries(User user, DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform)
-      throws BadRequestException;
+      throws ConflictException;
 }

@@ -31,8 +31,6 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreFields;
 import org.hisp.dhis.datastore.DatastoreQuery;
 import org.hisp.dhis.datastore.DatastoreQueryValidator;
@@ -109,8 +107,7 @@ public class DefaultUserDatastoreService implements UserDatastoreService {
   }
 
   @Override
-  public DatastoreQuery plan(DatastoreQuery query)
-      throws IllegalQueryException, BadRequestException {
+  public DatastoreQuery plan(DatastoreQuery query) throws ConflictException {
     DatastoreQueryValidator.validate(query);
     return query;
   }
@@ -119,12 +116,12 @@ public class DefaultUserDatastoreService implements UserDatastoreService {
   @Transactional(readOnly = true)
   public <T> T getEntries(
       User user, DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform)
-      throws BadRequestException {
+      throws ConflictException {
     DatastoreQueryValidator.validate(query);
     return store.getEntries(user, query, transform);
   }
 
-  private void validateEntry(DatastoreEntry entry) throws BadRequestException {
+  private void validateEntry(UserDatastoreEntry entry) throws BadRequestException {
     try {
       JsonNode.of(entry.getValue()).visit(JsonNode::value);
     } catch (RuntimeException e) {

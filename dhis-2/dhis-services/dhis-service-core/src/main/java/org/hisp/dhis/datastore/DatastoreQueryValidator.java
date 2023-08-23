@@ -30,7 +30,7 @@ package org.hisp.dhis.datastore;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.datastore.DatastoreQuery.Filter;
-import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 
 /**
@@ -40,7 +40,7 @@ import org.hisp.dhis.feedback.ErrorCode;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DatastoreQueryValidator {
-  public static void validate(DatastoreQuery query) throws BadRequestException {
+  public static void validate(DatastoreQuery query) throws ConflictException {
     for (Filter f : query.getFilters()) {
       boolean isUnary = f.getOperator().isUnary();
       if (f.isKeyPath() && isUnary) {
@@ -56,7 +56,7 @@ public class DatastoreQueryValidator {
     }
   }
 
-  private static BadRequestException filterException(Filter f, String msg) {
-    return new BadRequestException(ErrorCode.E7653, f.toString(), msg);
+  private static ConflictException filterException(Filter f, String msg) {
+    return new ConflictException(ErrorCode.E7653, f.toString(), msg);
   }
 }

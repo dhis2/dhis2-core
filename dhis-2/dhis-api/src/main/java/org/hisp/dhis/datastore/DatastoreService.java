@@ -105,7 +105,7 @@ public interface DatastoreService {
    * @return the transformed stream
    */
   <T> T getEntries(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform)
-      throws BadRequestException;
+      throws ConflictException;
 
   /**
    * Validates and plans a {@link DatastoreQuery}. This might correct or otherwise update the
@@ -114,7 +114,7 @@ public interface DatastoreService {
    * @param query to validate and plan
    * @throws IllegalQueryException when the query is not valid
    */
-  DatastoreQuery plan(DatastoreQuery query) throws IllegalQueryException, BadRequestException;
+  DatastoreQuery plan(DatastoreQuery query) throws ConflictException;
 
   /**
    * Retrieves a KeyJsonValue based on a namespace and key.

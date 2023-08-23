@@ -46,7 +46,7 @@ import org.hisp.dhis.datastore.DatastoreFields;
 import org.hisp.dhis.datastore.DatastoreQuery;
 import org.hisp.dhis.datastore.DatastoreQuery.Field;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.webapi.JsonWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -71,12 +71,12 @@ public abstract class AbstractDatastoreController {
   @FunctionalInterface
   interface DatastoreQueryExecutor {
     boolean getEntries(DatastoreQuery query, Predicate<Stream<DatastoreFields>> transform)
-        throws BadRequestException;
+        throws ConflictException;
   }
 
   void writeEntries(
       HttpServletResponse response, DatastoreQuery query, DatastoreQueryExecutor runQuery)
-      throws IOException, BadRequestException {
+      throws IOException {
     response.setContentType(APPLICATION_JSON_VALUE);
     setNoStore(response);
 
@@ -99,7 +99,7 @@ public abstract class AbstractDatastoreController {
         if (!query.isHeadless()) {
           writer.write("}");
         }
-      } catch (RuntimeException ex) {
+      } catch (RuntimeException | ConflictException ex) {
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         Throwable cause = ex.getCause();
         String msg =

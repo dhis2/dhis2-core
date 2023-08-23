@@ -135,7 +135,7 @@ public class DatastoreController extends AbstractDatastoreController {
       @RequestParam(required = false, defaultValue = "false") boolean includeAll,
       DatastoreParams params,
       HttpServletResponse response)
-      throws IOException, BadRequestException {
+      throws IOException, ConflictException {
     DatastoreQuery query =
         service.plan(
             DatastoreQuery.builder()
