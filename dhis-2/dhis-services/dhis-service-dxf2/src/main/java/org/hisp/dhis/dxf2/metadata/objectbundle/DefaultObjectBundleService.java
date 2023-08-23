@@ -36,12 +36,14 @@ import static org.hisp.dhis.eventhook.EventUtils.metadataUpdate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -361,6 +363,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
         "Deleting %d %s object(s) as %s"
             .formatted(objects.size(), klass.getSimpleName(), bundle.getUsername());
     progress.startingStage(message, persistedObjects.size());
+    AtomicReference<DeleteNotAllowedException> lastEx = new AtomicReference<>();
     progress.runStage(
         persistedObjects,
         IdentifiableObject::getName,
@@ -370,7 +373,12 @@ public class DefaultObjectBundleService implements ObjectBundleService {
           typeReport.addObjectReport(objectReport);
 
           hooks.forEach(hook -> hook.preDelete(object, bundle));
-          manager.delete(object, bundle.getUser());
+          try {
+            manager.delete(object, bundle.getUser());
+          } catch (DeleteNotAllowedException ex) {
+            lastEx.set(ex);
+            throw ex;
+          }
 
           bundle.getPreheat().remove(bundle.getPreheatIdentifier(), object);
 
@@ -387,6 +395,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
             session.flush();
           }
         });
+    if (lastEx.get() != null) throw lastEx.get();
 
     progress.startingStage("Publish deletion event for %s objects".formatted(objects.size()));
     progress.runStage(

@@ -231,7 +231,8 @@ public class MetadataImportTest extends ApiTest {
         .waitUntilTaskCompleted("METADATA_IMPORT", taskId)
         .validate()
         .body("message", hasItem(containsString("Metadata import started")))
-        .body("message", hasItem(containsString("Import complete with status")));    ;
+        .body("message", hasItem(containsString("Import complete with status")));
+    ;
 
     // validate task summaries were created
     systemActions
