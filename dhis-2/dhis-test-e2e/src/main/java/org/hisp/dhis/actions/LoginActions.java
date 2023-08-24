@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.actions;
 
-import static io.restassured.RestAssured.oauth2;
 import static org.hamcrest.CoreMatchers.equalTo;
 
 import io.restassured.RestAssured;
@@ -41,9 +40,6 @@ public class LoginActions {
   /**
    * Makes sure user with given name is logged in. Will throw assertion exception if authentication
    * is not successful.
-   *
-   * @param username
-   * @param password
    */
   public void loginAsUser(final String username, final String password) {
     ApiResponse loggedInUser = getLoggedInUserInfo();
@@ -87,28 +83,14 @@ public class LoginActions {
     return getLoggedInUserInfo().extractString("id");
   }
 
-  /**
-   * Adds authentication header that is used in all consecutive requests
-   *
-   * @param username
-   * @param password
-   */
-  public void addAuthenticationHeader(final String username, final String password) {
+  /** Adds authentication header that is used in all consecutive requests */
+  public static void addAuthenticationHeader(final String username, final String password) {
     RestAssured.authentication = RestAssured.preemptive().basic(username, password);
   }
 
   /** Removes authentication header */
-  public void removeAuthenticationHeader() {
+  public static void removeAuthenticationHeader() {
     RestAssured.authentication = RestAssured.DEFAULT_AUTH;
-  }
-
-  /**
-   * Logs in with oAuth2 token
-   *
-   * @param token
-   */
-  public void loginWithToken(String token) {
-    RestAssured.authentication = oauth2(token);
   }
 
   public void loginAsAdmin() {

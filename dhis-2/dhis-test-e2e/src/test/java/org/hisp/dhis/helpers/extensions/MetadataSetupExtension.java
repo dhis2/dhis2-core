@@ -30,7 +30,6 @@ package org.hisp.dhis.helpers.extensions;
 import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 
 import java.io.File;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -53,9 +52,9 @@ public class MetadataSetupExtension
     implements BeforeAllCallback, ExtensionContext.Store.CloseableResource {
   private static boolean started = false;
 
-  private static Map<String, String> createdData = new LinkedHashMap<>();
+  private static final Map<String, String> createdData = new LinkedHashMap<>();
 
-  private static Logger logger = LogManager.getLogger(MetadataSetupExtension.class.getName());
+  private static final Logger logger = LogManager.getLogger(MetadataSetupExtension.class.getName());
 
   @Override
   public void beforeAll(ExtensionContext context) {
@@ -120,10 +119,8 @@ public class MetadataSetupExtension
   }
 
   private void iterateCreatedData(Consumer<String> stringConsumer) {
-    Iterator<String> iterator = createdData.keySet().iterator();
 
-    while (iterator.hasNext()) {
-      String id = iterator.next();
+    for (String id : createdData.keySet()) {
       stringConsumer.accept(id);
     }
   }

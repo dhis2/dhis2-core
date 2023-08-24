@@ -35,15 +35,13 @@ import com.google.gson.JsonParser;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class JsonParserUtils {
-  private static JsonParser parser = new JsonParser();
+  private static final JsonParser parser = new JsonParser();
 
   public static JsonObject toJsonObject(Object object) {
-    if (object instanceof String) {
-      return parser.parse((String) object).getAsJsonObject();
+    if (object instanceof String s) {
+      return parser.parse(s).getAsJsonObject();
     }
 
-    JsonObject jsonObject = parser.parse(new Gson().toJson(object)).getAsJsonObject();
-
-    return jsonObject;
+    return parser.parse(new Gson().toJson(object)).getAsJsonObject();
   }
 }
