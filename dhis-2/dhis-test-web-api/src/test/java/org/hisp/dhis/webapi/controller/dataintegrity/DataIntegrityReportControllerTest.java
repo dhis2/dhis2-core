@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -44,6 +44,7 @@ import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.controller.DataIntegrityController;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-class DataIntegrityReportControllerTest extends AbstractDataIntegrityControllerTest {
+class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegrationTest {
   /** Needed to create cyclic references for org units */
   @Autowired private OrganisationUnitStore organisationUnitStore;
 

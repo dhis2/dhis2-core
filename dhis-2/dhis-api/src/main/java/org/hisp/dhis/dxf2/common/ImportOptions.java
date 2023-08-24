@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.common;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -42,6 +44,7 @@ import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.user.User;
 
@@ -57,13 +60,16 @@ import org.hisp.dhis.user.User;
 @Setter
 @Accessors(chain = true)
 @Builder(access = AccessLevel.PRIVATE, toBuilder = true)
-@ToString(exclude = "user")
+@ToString
+@JsonAutoDetect(isGetterVisibility = Visibility.NONE, getterVisibility = Visibility.NONE)
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class ImportOptions {
-  private User user;
+public class ImportOptions implements JobParameters {
+
+  @ToString.Exclude private transient User user;
 
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
+  @OpenApi.Ignore
   private IdSchemes idSchemes = new IdSchemes();
 
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -210,61 +216,73 @@ public class ImportOptions {
   // Set methods
   // --------------------------------------------------------------------------
 
+  @OpenApi.Property
   public ImportOptions setIdScheme(String idScheme) {
     idSchemes.setIdScheme(idScheme);
     return this;
   }
 
+  @OpenApi.Property
   public ImportOptions setDataElementIdScheme(String idScheme) {
     idSchemes.setDataElementIdScheme(idScheme);
     return this;
   }
 
+  @OpenApi.Property
   public ImportOptions setCategoryOptionComboIdScheme(String idScheme) {
     idSchemes.setCategoryOptionComboIdScheme(idScheme);
     return this;
   }
 
+  @OpenApi.Property
   public ImportOptions setCategoryOptionIdScheme(String idScheme) {
     idSchemes.setCategoryOptionIdScheme(idScheme);
     return this;
   }
 
+  @OpenApi.Property
   public ImportOptions setCategoryIdScheme(String idScheme) {
     idSchemes.setCategoryIdScheme(idScheme);
     return this;
   }
 
+  @OpenApi.Property
   public ImportOptions setOrgUnitIdScheme(String idScheme) {
     idSchemes.setOrgUnitIdScheme(idScheme);
     return this;
   }
 
+  @OpenApi.Property
   public ImportOptions setProgramIdScheme(String idScheme) {
     idSchemes.setProgramIdScheme(idScheme);
     return this;
   }
 
+  @OpenApi.Property
   public ImportOptions setProgramStageIdScheme(String idScheme) {
     idSchemes.setProgramStageIdScheme(idScheme);
     return this;
   }
 
+  @OpenApi.Property
   public ImportOptions setTrackedEntityIdScheme(String idScheme) {
     idSchemes.setTrackedEntityIdScheme(idScheme);
     return this;
   }
 
+  @OpenApi.Property
   public ImportOptions setTrackedEntityAttributeIdScheme(String idScheme) {
     idSchemes.setTrackedEntityAttributeIdScheme(idScheme);
     return this;
   }
 
+  @OpenApi.Property
   public ImportOptions setDataSetIdScheme(String idScheme) {
     idSchemes.setDataSetIdScheme(idScheme);
     return this;
   }
 
+  @OpenApi.Property
   public ImportOptions setEventIdScheme(String idScheme) {
     idSchemes.setProgramStageInstanceIdScheme(idScheme);
     return this;

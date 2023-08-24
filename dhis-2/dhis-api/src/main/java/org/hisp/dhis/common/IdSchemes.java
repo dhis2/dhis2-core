@@ -27,7 +27,14 @@
  */
 package org.hisp.dhis.common;
 
-import com.google.common.base.MoreObjects;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hisp.dhis.util.ObjectUtils;
 
 /**
@@ -36,38 +43,44 @@ import org.hisp.dhis.util.ObjectUtils;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class IdSchemes {
+@ToString
+@EqualsAndHashCode
+@JsonInclude(Include.NON_NULL)
+@JsonAutoDetect(setterVisibility = Visibility.NONE, getterVisibility = Visibility.NONE)
+public class IdSchemes implements Serializable {
   public static final IdScheme DEFAULT_ID_SCHEME = IdScheme.UID;
 
+  @OpenApi.Property(value = IdentifiableProperty.class)
+  @JsonProperty
   private IdScheme idScheme;
 
-  private IdScheme dataElementIdScheme;
+  @JsonProperty private IdScheme dataElementIdScheme;
 
-  private IdScheme dataElementGroupIdScheme;
+  @JsonProperty private IdScheme dataElementGroupIdScheme;
 
-  private IdScheme categoryOptionComboIdScheme;
+  @JsonProperty private IdScheme categoryOptionComboIdScheme;
 
-  private IdScheme categoryOptionIdScheme;
+  @JsonProperty private IdScheme categoryOptionIdScheme;
 
-  private IdScheme categoryIdScheme;
+  @JsonProperty private IdScheme categoryIdScheme;
 
-  private IdScheme orgUnitIdScheme;
+  @JsonProperty private IdScheme orgUnitIdScheme;
 
-  private IdScheme orgUnitGroupIdScheme;
+  @JsonProperty private IdScheme orgUnitGroupIdScheme;
 
-  private IdScheme programIdScheme;
+  @JsonProperty private IdScheme programIdScheme;
 
-  private IdScheme programStageIdScheme;
+  @JsonProperty private IdScheme programStageIdScheme;
 
-  private IdScheme trackedEntityIdScheme;
+  @JsonProperty private IdScheme trackedEntityIdScheme;
 
-  private IdScheme trackedEntityAttributeIdScheme;
+  @JsonProperty private IdScheme trackedEntityAttributeIdScheme;
 
-  private IdScheme dataSetIdScheme;
+  @JsonProperty private IdScheme dataSetIdScheme;
 
-  private IdScheme attributeOptionComboIdScheme;
+  @JsonProperty private IdScheme attributeOptionComboIdScheme;
 
-  private IdScheme programStageInstanceIdScheme;
+  @JsonProperty private IdScheme programStageInstanceIdScheme;
 
   public IdSchemes() {}
 
@@ -253,26 +266,5 @@ public class IdSchemes {
     }
 
     return null;
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("idScheme", idScheme)
-        .add("dataElementIdScheme", dataElementIdScheme)
-        .add("dataElementGroupIdScheme", dataElementGroupIdScheme)
-        .add("categoryOptionComboIdScheme", categoryOptionComboIdScheme)
-        .add("categoryOptionIdScheme", categoryOptionIdScheme)
-        .add("categoryIdScheme", categoryIdScheme)
-        .add("orgUnitIdScheme", orgUnitIdScheme)
-        .add("orgUnitGroupIdScheme", orgUnitGroupIdScheme)
-        .add("programIdScheme", programIdScheme)
-        .add("programStageIdScheme", programStageIdScheme)
-        .add("trackedEntityIdScheme", trackedEntityIdScheme)
-        .add("trackedEntityAttributeIdScheme", trackedEntityAttributeIdScheme)
-        .add("dataSetIdScheme", dataSetIdScheme)
-        .add("attributeOptionComboIdScheme", attributeOptionComboIdScheme)
-        .add("programStageInstanceIdScheme", programStageInstanceIdScheme)
-        .toString();
   }
 }

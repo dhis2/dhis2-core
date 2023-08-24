@@ -177,7 +177,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
   @OpenApi.Property({UID[].class, Enrollment.class})
   private Set<UID> enrollments = new HashSet<>();
 
-  private IdSchemes idSchemes = new IdSchemes();
+  @OpenApi.Ignore private IdSchemes idSchemes = new IdSchemes();
 
   @OpenApi.Property(value = String[].class)
   private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);

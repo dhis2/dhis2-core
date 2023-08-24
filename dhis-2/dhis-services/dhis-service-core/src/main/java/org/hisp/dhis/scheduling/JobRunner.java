@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.leader.election;
-
-import lombok.AllArgsConstructor;
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.scheduling;
 
 /**
- * Job that attempts to elect the current instance as the leader of the cluster.
+ * Motivation of this separate API is purely to decouple and allow for composition of services via
+ * spring.
  *
- * @author Ameen Mohamed (original)
- * @author Jan Bernitt (job progress tracking)
+ * <p>The {@link JobSchedulerService#executeNow(String)} needs access to synchronously run a job in
+ * a test setup. This is when it wants to call {@link #runDueJob(JobConfiguration)} directly.
+ * Whereas otherwise, in a production setup, this method is never called directly but the {@link
+ * JobScheduler} will internally run the jobs when they are due from its scheduling loop.
+ *
+ * @author Jan Bernitt
  */
-@Component
-@AllArgsConstructor
-public class LeaderElectionJob implements Job {
-  private final LeaderManager leaderManager;
+public interface JobRunner {
 
-  @Override
-  public JobType getJobType() {
-    return JobType.LEADER_ELECTION;
-  }
+  boolean isScheduling();
 
-  @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
-    progress.startingProcess("Elect leader node");
-    progress.endingProcess(progress.runStage(() -> leaderManager.electLeader(progress)));
-  }
+  void runDueJob(JobConfiguration config);
 }

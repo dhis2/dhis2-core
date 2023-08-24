@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -42,6 +42,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.controller.DataIntegrityController;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.Test;
@@ -57,7 +58,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  *
  * @author Jan Bernitt
  */
-class DataIntegrityCategoriesControllerTest extends AbstractDataIntegrityControllerTest {
+class DataIntegrityCategoriesControllerTest extends AbstractDataIntegrityIntegrationTest {
   @Autowired private CategoryService categoryService;
 
   @Autowired private CategoryStore categoryStore;

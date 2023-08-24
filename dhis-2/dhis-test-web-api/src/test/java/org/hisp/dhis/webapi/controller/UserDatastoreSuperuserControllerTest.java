@@ -66,7 +66,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
         "OK",
         200,
         "OK",
-        "All keys from namespace 'test' deleted.",
+        "Namespace deleted: 'test'",
         DELETE("/userDataStore/test?username=Paul").content(HttpStatus.OK));
 
     switchContextToUser(paul);
@@ -81,7 +81,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
         "Conflict",
         409,
         "ERROR",
-        "Only superusers can read or write other users data using the `user` parameter.",
+        "Only superusers can read or write other users data using the `username` parameter.",
         DELETE("/userDataStore/test?username=Paul").content(HttpStatus.CONFLICT));
   }
 
@@ -110,7 +110,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
         "Bad Request",
         400,
         "ERROR",
-        "The data is not valid JSON.",
+        "Invalid JSON value for key 'key1'",
         POST("/userDataStore/test/key1?username=Paul", "invalidJson")
             .content(HttpStatus.BAD_REQUEST)
             .as(JsonWebMessage.class));
@@ -125,7 +125,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
         "Conflict",
         409,
         "ERROR",
-        "The key 'key1' already exists in the namespace 'test'.",
+        "Key 'key1' already exists in namespace 'test'",
         POST("/userDataStore/test/key1?username=Paul", "true")
             .content(HttpStatus.CONFLICT)
             .as(JsonWebMessage.class));
@@ -137,7 +137,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
         "Conflict",
         409,
         "ERROR",
-        "Only superusers can read or write other users data using the `user` parameter.",
+        "Only superusers can read or write other users data using the `username` parameter.",
         POST("/userDataStore/test/key1?username=Paul", "true")
             .content(HttpStatus.CONFLICT)
             .as(JsonWebMessage.class));
@@ -149,11 +149,11 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
 
     switchToSuperuser();
     assertWebMessage(
-        "Created",
-        201,
         "OK",
-        "Key 'key1' in namespace 'test' updated.",
-        PUT("/userDataStore/test/key1?username=Paul", "false").content(HttpStatus.CREATED));
+        200,
+        "OK",
+        "Key updated: 'key1'",
+        PUT("/userDataStore/test/key1?username=Paul", "false").content(HttpStatus.OK));
 
     switchContextToUser(paul);
     assertFalse(
@@ -170,7 +170,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
         "Not Found",
         404,
         "ERROR",
-        "The key 'unknown' was not found in the namespace 'test'.",
+        "Key 'unknown' not found in namespace 'test'",
         PUT("/userDataStore/test/unknown?username=Paul", "false").content(HttpStatus.NOT_FOUND));
   }
 
@@ -183,7 +183,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
         "Bad Request",
         400,
         "ERROR",
-        "The data is not valid JSON.",
+        "Invalid JSON value for key 'key1'",
         PUT("/userDataStore/test/key1?username=Paul", "invalidJson")
             .error(HttpStatus.BAD_REQUEST)
             .as(JsonWebMessage.class));
@@ -197,7 +197,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
         "Conflict",
         409,
         "ERROR",
-        "Only superusers can read or write other users data using the `user` parameter.",
+        "Only superusers can read or write other users data using the `username` parameter.",
         PUT("/userDataStore/test/key1?username=Paul", "false")
             .error(HttpStatus.CONFLICT)
             .as(JsonWebMessage.class));
@@ -227,7 +227,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
         "Not Found",
         404,
         "ERROR",
-        "The key 'key1' was not found in the namespace 'test'.",
+        "Key 'key1' not found in namespace 'test'",
         DELETE("/userDataStore/test/key1?username=Paul").content(HttpStatus.NOT_FOUND));
   }
 
@@ -239,7 +239,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
         "Conflict",
         409,
         "ERROR",
-        "Only superusers can read or write other users data using the `user` parameter.",
+        "Only superusers can read or write other users data using the `username` parameter.",
         DELETE("/userDataStore/test/key1?username=Paul").content(HttpStatus.CONFLICT));
   }
 

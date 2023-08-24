@@ -53,9 +53,13 @@ class JobConfigurationServiceTest extends SingleSetupIntegrationTestBase {
 
   @Override
   protected void setUpTest() throws Exception {
-    jobA =
-        new JobConfiguration("jobA", JobType.MOCK, CRON_EVERY_MIN, new MockJobParameters("test"));
-    jobB = new JobConfiguration("jobB", JobType.DATA_INTEGRITY, CRON_EVERY_MIN, null);
+    jobA = new JobConfiguration("jobA", JobType.MOCK);
+    jobA.setCronExpression(CRON_EVERY_MIN);
+    jobA.setSchedulingType(SchedulingType.CRON);
+    jobA.setJobParameters(new MockJobParameters("test"));
+    jobB = new JobConfiguration("jobB", JobType.DATA_INTEGRITY);
+    jobB.setCronExpression(CRON_EVERY_MIN);
+    jobB.setSchedulingType(SchedulingType.CRON);
     jobConfigurationService.addJobConfiguration(jobA);
     jobConfigurationService.addJobConfiguration(jobB);
   }
@@ -71,8 +75,7 @@ class JobConfigurationServiceTest extends SingleSetupIntegrationTestBase {
             .findFirst()
             .get();
     assertNotNull(jobType);
-    assertEquals(
-        JobType.CONTINUOUS_ANALYTICS_TABLE.getSchedulingType(), jobType.getSchedulingType());
+    assertEquals(SchedulingType.FIXED_DELAY, jobType.getSchedulingType());
   }
 
   @Test

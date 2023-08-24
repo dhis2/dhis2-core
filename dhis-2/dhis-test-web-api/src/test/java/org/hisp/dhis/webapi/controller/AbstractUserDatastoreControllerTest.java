@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.startup;
+package org.hisp.dhis.webapi.controller;
+
+import static org.hisp.dhis.utils.JavaToJson.toJson;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+
+import java.util.List;
+import java.util.Map;
+import org.hisp.dhis.utils.JavaToJson;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 
 /**
- * Executes a collection of StartupRoutines when the system is started.
+ * Base class for testing the {@link UserDatastoreController} providing helpers to set up entries in
+ * the store.
  *
- * @author <a href="mailto:torgeilo@gmail.com">Torgeir Lorange Ostby</a>
+ * @author Jan Bernitt
  */
-public interface StartupRoutineExecutor {
-  String ID = StartupRoutineExecutor.class.getName();
+abstract class AbstractUserDatastoreControllerTest extends DhisControllerConvenienceTest {
 
   /**
-   * Executes the StartupRoutines.
+   * Creates a new entry with the given key and value in the given namespace.
    *
-   * @throws Exception on execution failure.
+   * @param ns namespace
+   * @param key key of the entry
+   * @param value value of the entry, valid JSON - consider using {@link JavaToJson#toJson(Object)}
    */
-  void execute() throws Exception;
+  final void postEntry(String ns, String key, String value) {
+    assertStatus(HttpStatus.CREATED, POST("/userDataStore/" + ns + "/" + key, value));
+  }
 
-  /**
-   * Executes the StartupRoutines for testing.
-   *
-   * @throws Exception on execution failure.
-   */
-  void executeForTesting() throws Exception;
+  final void postPet(String key, String name, int age, List<String> eats) {
+    Map<String, Object> objectMap =
+        Map.of(
+            "name",
+            name,
+            "age",
+            age,
+            "cute",
+            true,
+            "eats",
+            eats == null ? List.of() : eats.stream().map(food -> Map.of("name", food)));
+    postEntry("pets", key, toJson(objectMap));
+  }
 }

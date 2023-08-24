@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.scheduling;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsLast;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
@@ -68,7 +69,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * API for scheduler list and named queues (sequences).
+ * API for scheduler list and named queues (sequences). This is mostly a controller to directly
+ * support the needs of the scheduler app.
  *
  * @author Jan Bernitt
  */
@@ -78,14 +80,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class JobSchedulerController {
-  private final JobConfigurationService jobConfigurationService;
 
+  private final JobConfigurationService jobConfigurationService;
   private final JobQueueService jobQueueService;
 
   @GetMapping
   public List<SchedulerEntry> getSchedulerEntries(@RequestParam(required = false) String order) {
     Map<String, List<JobConfiguration>> configsByQueueNameOrUid =
         jobConfigurationService.getAllJobConfigurations().stream()
+            .filter(not(JobConfiguration::isRunOnce))
             .collect(groupingBy(JobConfiguration::getQueueIdentifier));
     Comparator<SchedulerEntry> sortBy =
         "name".equals(order)
@@ -105,7 +108,7 @@ public class JobSchedulerController {
             : config -> !name.equals(config.getQueueName());
     return jobConfigurationService.getAllJobConfigurations().stream()
         .filter(JobConfiguration::isConfigurable)
-        .filter(config -> config.getSchedulingType() != SchedulingType.FIXED_DELAY)
+        .filter(config -> config.getSchedulingType() == SchedulingType.CRON)
         .filter(config -> !config.isUsedInQueue())
         .filter(nameFilter)
         .map(SchedulerEntry::of)

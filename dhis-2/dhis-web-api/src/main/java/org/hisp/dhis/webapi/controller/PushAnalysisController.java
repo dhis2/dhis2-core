@@ -31,22 +31,25 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.schema.descriptors.PushAnalysisSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -63,14 +66,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping(PushAnalysisSchemaDescriptor.API_ENDPOINT)
 @Slf4j
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@RequiredArgsConstructor
 public class PushAnalysisController extends AbstractCrudController<PushAnalysis> {
-  @Autowired private PushAnalysisService pushAnalysisService;
 
-  @Autowired private ContextUtils contextUtils;
-
-  @Autowired private CurrentUserService currentUserService;
-
-  @Autowired private SchedulingManager schedulingManager;
+  private final PushAnalysisService pushAnalysisService;
+  private final ContextUtils contextUtils;
+  private final CurrentUserService currentUserService;
+  private final JobConfigurationService jobConfigurationService;
+  private final JobSchedulerService jobSchedulerService;
 
   @GetMapping("/{uid}/render")
   public void renderPushAnalytics(@PathVariable() String uid, HttpServletResponse response)
@@ -97,21 +100,18 @@ public class PushAnalysisController extends AbstractCrudController<PushAnalysis>
 
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @PostMapping("/{uid}/run")
-  public void sendPushAnalysis(@PathVariable() String uid) throws WebMessageException {
+  public void sendPushAnalysis(@PathVariable() String uid)
+      throws NotFoundException, ConflictException {
     PushAnalysis pushAnalysis = pushAnalysisService.getByUid(uid);
 
     if (pushAnalysis == null) {
-      throw new WebMessageException(notFound("Push analysis with uid " + uid + " was not found"));
+      throw new NotFoundException(PushAnalysis.class, uid);
     }
 
-    JobConfiguration config =
-        new JobConfiguration(
-            "pushAnalysisJob from controller",
-            JobType.PUSH_ANALYSIS,
-            "",
-            new PushAnalysisJobParameters(uid),
-            true,
-            true);
-    schedulingManager.executeNow(config);
+    JobConfiguration config = new JobConfiguration(JobType.PUSH_ANALYSIS);
+    config.setJobParameters(new PushAnalysisJobParameters(uid));
+    config.setExecutedBy(currentUserService.getCurrentUser().getUid());
+
+    jobSchedulerService.executeNow(jobConfigurationService.create(config));
   }
 }

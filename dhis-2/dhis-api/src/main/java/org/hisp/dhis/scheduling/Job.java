@@ -33,7 +33,7 @@ import org.hisp.dhis.feedback.ErrorReport;
  * This interface is used for jobs in the system which are scheduled or executed by the Spring
  * scheduler. The actual job will contain an execute method which performs the appropriate actions.
  *
- * <p>See {@link SchedulingManager} for more information about the scheduling.
+ * <p>See {@link JobSchedulerService} for more information about the scheduling.
  *
  * @see <a href= "https://github.com/dhis2/wow-backend/blob/master/docs/job_scheduling.md">Docs</a>
  * @author Henning Håkonsen

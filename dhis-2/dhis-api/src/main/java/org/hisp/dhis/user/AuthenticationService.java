@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.user;
 
-import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.NotFoundException;
 
 /**
@@ -43,12 +43,13 @@ public interface AuthenticationService {
    *
    * <p>A.k.a. "becoming" a certain user
    *
-   * <p>When user ID parameter is undefined the current thread is unlinked from any user.
-   *
-   * @param userId as this user, maybe {@code null} to unlink the current thread from a user
+   * @param userId as this user
    * @throws NotFoundException when no user with the provided ID exists
    */
-  void obtainAuthentication(@CheckForNull String userId) throws NotFoundException;
+  void obtainAuthentication(@Nonnull String userId) throws NotFoundException;
+
+  /** Internally "login" as a system user {@code ALL} with authority */
+  void obtainSystemAuthentication();
 
   /**
    * "Logout" or clear the current thread context.

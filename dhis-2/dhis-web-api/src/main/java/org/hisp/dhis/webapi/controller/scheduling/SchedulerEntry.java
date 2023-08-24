@@ -66,7 +66,7 @@ class SchedulerEntry {
         config.getNextExecutionTime(),
         config.getJobStatus(),
         config.isEnabled(),
-        config.getJobType().isConfigurable(),
+        config.getJobType().isUserDefined(),
         List.of(SchedulerEntryJob.of(config)));
   }
 

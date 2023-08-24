@@ -43,7 +43,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -57,7 +56,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class DefaultJobQueueService implements JobQueueService {
-  private final IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
+
+  private final JobConfigurationStore jobConfigurationStore;
 
   @Override
   @Transactional(readOnly = true)

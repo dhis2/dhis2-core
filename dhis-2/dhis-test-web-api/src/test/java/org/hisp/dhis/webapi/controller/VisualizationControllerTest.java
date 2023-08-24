@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.leader.election;
+package org.hisp.dhis.webapi.controller;
 
-import lombok.AllArgsConstructor;
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.stereotype.Component;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Job that attempts to elect the current instance as the leader of the cluster.
- *
- * @author Ameen Mohamed (original)
- * @author Jan Bernitt (job progress tracking)
- */
-@Component
-@AllArgsConstructor
-public class LeaderRenewalJob implements Job {
-  private final LeaderManager leaderManager;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.web.WebClient;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
+import org.junit.jupiter.api.Test;
 
-  @Override
-  public JobType getJobType() {
-    return JobType.LEADER_RENEWAL;
-  }
+class VisualizationControllerTest extends DhisControllerConvenienceTest {
 
-  @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
-    progress.startingProcess("Elect leader node");
-    progress.endingProcess(progress.runStage(() -> leaderManager.renewLeader(progress)));
+  @Test
+  void testGetVisualizationWithNestedFilters() {
+    JsonImportSummary report =
+        POST("/metadata", WebClient.Body("metadata/metadata_with_visualization.json"))
+            .content(HttpStatus.OK)
+            .get("response")
+            .as(JsonImportSummary.class);
+    assertEquals("OK", report.getStatus());
+
+    JsonMixed response =
+        GET("/visualizations.json?filter=id:eq:qD72aBqsHvt&fields=filters").content();
+    JsonList<JsonObject> visualizations = response.getList("visualizations", JsonObject.class);
+    assertEquals(1, visualizations.size());
+    assertEquals(1, visualizations.get(0).getList("filters", JsonObject.class).size());
   }
 }

@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Set;
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.webapi.controller.DataIntegrityController;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityCheck;
 import org.junit.jupiter.api.Test;
 
@@ -43,7 +44,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class DataIntegrityChecksControllerTest extends AbstractDataIntegrityControllerTest {
+class DataIntegrityChecksControllerTest extends AbstractDataIntegrityIntegrationTest {
   @Test
   void testGetAvailableChecks() {
     JsonList<JsonDataIntegrityCheck> checks =
