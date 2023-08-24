@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -201,5 +202,14 @@ public class OptionSet extends BaseIdentifiableObject implements VersionedObject
   @Override
   public void setVersion(int version) {
     this.version = version;
+  }
+
+  public boolean hasAllOptions(Collection<String> optionCodes) {
+    for (String code : optionCodes) {
+      if (getOptionByCode(code) == null) {
+        return false;
+      }
+    }
+    return true;
   }
 }

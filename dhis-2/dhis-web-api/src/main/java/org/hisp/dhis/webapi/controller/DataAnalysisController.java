@@ -49,6 +49,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dataanalysis.DataAnalysisParams;
 import org.hisp.dhis.dataanalysis.DataAnalysisService;
@@ -78,6 +79,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationResult;
@@ -438,7 +440,8 @@ public class DataAnalysisController {
         filename,
         false);
 
-    GridUtils.toPdf(grid, response.getOutputStream());
+    GridUtils.toPdf(
+        UserContext.getUserSetting(UserSettingKey.DB_LOCALE), grid, response.getOutputStream());
   }
 
   @GetMapping("/report.xls")
@@ -499,7 +502,8 @@ public class DataAnalysisController {
         filename,
         false);
 
-    GridUtils.toPdf(grid, response.getOutputStream());
+    GridUtils.toPdf(
+        UserContext.getUserSetting(UserSettingKey.DB_LOCALE), grid, response.getOutputStream());
   }
 
   @GetMapping("validationRules/report.xls")

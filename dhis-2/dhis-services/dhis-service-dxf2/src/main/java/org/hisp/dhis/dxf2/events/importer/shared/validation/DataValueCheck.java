@@ -191,7 +191,7 @@ public class DataValueCheck implements Checker {
       } else if (ValueType.ORGANISATION_UNIT == dataElement.getValueType()) {
         status = validateOrgUnitDataValue(dataValue, ctx);
       } else {
-        status = ValidationUtils.dataValueIsValid(dataValue.getValue(), dataElement);
+        status = ValidationUtils.valueIsValid(dataValue.getValue(), dataElement);
       }
 
       if (status != null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.webapi.controller.AbstractGistControllerTest.assertHasNoPager;
+import static org.hisp.dhis.webapi.controller.AbstractGistControllerTest.assertHasPager;
+import static org.hisp.dhis.webapi.controller.AbstractGistControllerTest.assertHasPagerLinks;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -37,8 +42,9 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -52,40 +58,165 @@ import org.springframework.http.HttpStatus;
 class DimensionControllerTest extends DhisControllerConvenienceTest {
 
   @Autowired private CategoryService categoryService;
-
-  private String ccId;
-
-  @BeforeEach
-  void setUp() {
-    CategoryOption categoryOptionA = new CategoryOption("Male");
-    CategoryOption categoryOptionB = new CategoryOption("Female");
-    categoryService.addCategoryOption(categoryOptionA);
-    categoryService.addCategoryOption(categoryOptionB);
-    Category categoryA = new Category("Gender", DataDimensionType.DISAGGREGATION);
-    categoryA.setShortName(categoryA.getName());
-    categoryA.addCategoryOption(categoryOptionA);
-    categoryA.addCategoryOption(categoryOptionB);
-    categoryService.addCategory(categoryA);
-    CategoryCombo categoryComboA = new CategoryCombo("Gender", DataDimensionType.DISAGGREGATION);
-    categoryComboA.addCategory(categoryA);
-    categoryService.addCategoryCombo(categoryComboA);
-    ccId = categoryComboA.getUid();
-  }
+  @Autowired private OrganisationUnitGroupService orgUnitGroupService;
 
   @Test
   void testGetDimensionsForDataSet() {
+    CategoryCombo categoryCombo = createCategoryCombo(0);
     String dsId =
         assertStatus(
             HttpStatus.CREATED,
             POST(
                 "/dataSets/",
-                "{'name':'My data set', 'periodType':'Monthly', 'categoryCombo':{'id':'"
-                    + ccId
+                "{'name':'My data set', 'shortName':'MDS', 'periodType':'Monthly', 'categoryCombo':{'id':'"
+                    + categoryCombo.getUid()
                     + "'}}"));
     JsonObject response = GET("/dimensions/dataSet/{ds}", dsId).content();
     JsonArray dimensions = response.getArray("dimensions");
     assertEquals(1, dimensions.size());
     JsonObject gender = dimensions.getObject(0);
-    assertEquals("Gender", gender.getString("name").string());
+    assertEquals("Gender0", gender.getString("name").string());
+  }
+
+  @Test
+  void testGetDimensions() {
+    addCategoryCombos(1);
+    JsonObject response = GET("/dimensions").content();
+    JsonArray dimensions = response.getArray("dimensions");
+    assertEquals(1, dimensions.size());
+    assertHasPager(response, 1, 50);
+  }
+
+  @Test
+  void testGetDimensionsWithDefaultPaging() {
+    addCategoryCombos(55);
+    JsonObject response = GET("/dimensions").content();
+    assertHasPager(response, 1, 50, 55);
+    assertHasPagerLinks(response, 1);
+  }
+
+  @Test
+  void testGetDimensionsPage2() {
+    addCategoryCombos(105);
+    JsonObject response = GET("/dimensions?page=2").content();
+    assertHasPager(response, 2, 50, 105);
+    assertHasPagerLinks(response, 2);
+  }
+
+  @Test
+  void testGetDimensionsWithCustomPageSize() {
+    addCategoryCombos(105);
+    JsonObject response = GET("/dimensions?pageSize=23").content();
+    JsonArray dimensions = response.getArray("dimensions");
+
+    assertEquals(23, dimensions.size());
+    assertHasPager(response, 1, 23, 105);
+    assertHasPagerLinks(response, 1);
+  }
+
+  @Test
+  void testGetDimensionsWithMultipleQueryParams() {
+    addCategoryCombos(105);
+    JsonObject response = GET("/dimensions?pageSize=44&fields=id&page=3").content();
+    JsonArray dimensions = response.getArray("dimensions");
+
+    JsonObject dimension = dimensions.getObject(0);
+    String displayName = dimension.getString("displayName").string();
+    String id = dimension.getString("id").string();
+
+    assertNull(displayName);
+    assertNotNull(id);
+    assertEquals(17, dimensions.size());
+    assertHasPager(response, 3, 44, 105);
+    assertHasPagerLinks(response, 3);
+  }
+
+  @Test
+  void testGetDimensionsFilteredByType() {
+    addCategoryCombos(105);
+    addOrganisationGroupSet(5);
+    JsonObject response =
+        GET("/dimensions?fields=id,dimensionType&filter=dimensionType:eq:ORGANISATION_UNIT_GROUP_SET")
+            .content();
+    JsonArray dimensions = response.getArray("dimensions");
+
+    assertNotNull(dimensions);
+    assertEquals(5, dimensions.size());
+
+    JsonObject dimension = dimensions.getObject(0);
+    String dimensionType = dimension.getString("dimensionType").string();
+    assertEquals("ORGANISATION_UNIT_GROUP_SET", dimensionType);
+
+    assertHasPager(response, 1, 50, 5);
+    assertHasPagerLinks(response, 1);
+  }
+
+  @Test
+  void testGetDimensionsWithNoPaging() {
+    addCategoryCombos(55);
+    JsonObject response = GET("/dimensions?paging=false").content();
+    JsonArray dimensions = response.getArray("dimensions");
+
+    assertEquals(55, dimensions.size());
+    assertHasNoPager(response);
+  }
+
+  @Test
+  void testGetFilteredDimensionsWithDisplayNameOnly() {
+    addCategoryCombos(55);
+    JsonObject response = GET("/dimensions?fields=displayName").content();
+    JsonArray dimensions = response.getArray("dimensions");
+    JsonObject dimension = dimensions.getObject(0);
+    String displayName = dimension.getString("displayName").string();
+    String id = dimension.getString("id").string();
+
+    assertNotNull(displayName);
+    assertNull(id);
+  }
+
+  @Test
+  void testGetDimensionsWhenNone() {
+    JsonObject response = GET("/dimensions").content();
+    JsonObject pager = response.getObject("pager");
+    assertEquals("{\"page\":1,\"pageCount\":1,\"total\":0,\"pageSize\":50}", pager.toString());
+    assertHasPagerLinks(response, 1);
+  }
+
+  private void addCategoryCombos(int counter) {
+    for (int i = 0; i < counter; i++) {
+      createCategoryCombo(i);
+    }
+  }
+
+  private void addOrganisationGroupSet(int counter) {
+    for (int i = 0; i < counter; i++) {
+      createOrganisationUnitGroupSet(i);
+    }
+  }
+
+  private OrganisationUnitGroupSet createOrganisationUnitGroupSet(int postfix) {
+    OrganisationUnitGroupSet ogs = createOrganisationUnitGroupSet('a');
+    ogs.setName(ogs.getName() + postfix);
+    ogs.setShortName(ogs.getShortName() + postfix);
+    ogs.setCode(ogs.getCode() + postfix);
+    orgUnitGroupService.addOrganisationUnitGroupSet(ogs);
+    return ogs;
+  }
+
+  private CategoryCombo createCategoryCombo(int postfix) {
+    CategoryOption categoryOptionA = new CategoryOption("Male" + postfix);
+    CategoryOption categoryOptionB = new CategoryOption("Female" + postfix);
+    categoryService.addCategoryOption(categoryOptionA);
+    categoryService.addCategoryOption(categoryOptionB);
+    Category categoryA = new Category("Gender" + postfix, DataDimensionType.DISAGGREGATION);
+    categoryA.setShortName(categoryA.getName());
+    categoryA.addCategoryOption(categoryOptionA);
+    categoryA.addCategoryOption(categoryOptionB);
+    categoryService.addCategory(categoryA);
+    CategoryCombo categoryComboA =
+        new CategoryCombo("Gender" + postfix, DataDimensionType.DISAGGREGATION);
+    categoryComboA.addCategory(categoryA);
+    categoryService.addCategoryCombo(categoryComboA);
+    return categoryComboA;
   }
 }

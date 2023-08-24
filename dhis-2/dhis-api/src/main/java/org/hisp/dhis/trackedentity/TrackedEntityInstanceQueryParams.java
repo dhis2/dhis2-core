@@ -148,7 +148,7 @@ public class TrackedEntityInstanceQueryParams {
   /** Tracked entity types to fetch. */
   private List<TrackedEntityType> trackedEntityTypes = Lists.newArrayList();
 
-  /** Selection mode for the specified organisation units, default is ACCESSIBLE. */
+  /** Selection mode for the specified organisation units, default is DESCENDANTS. */
   private OrganisationUnitSelectionMode organisationUnitMode =
       OrganisationUnitSelectionMode.DESCENDANTS;
 
@@ -284,9 +284,11 @@ public class TrackedEntityInstanceQueryParams {
 
   /**
    * Prepares the organisation units of the given parameters to simplify querying. Mode ACCESSIBLE
-   * is converted to DESCENDANTS for organisation units linked to the given user, and mode CHILDREN
-   * is converted to CHILDREN for organisation units including all their children. Mode can be
-   * DESCENDANTS, SELECTED, ALL only after invoking this method.
+   * is converted to DESCENDANTS for organisation units linked to the search scope of the given
+   * user. Mode CAPTURE is converted to DESCENDANTS too, but using organisation units linked to the
+   * user's capture scope, and mode CHILDREN is converted to SELECTED for organisation units
+   * including all their children. Mode can be DESCENDANTS, SELECTED, ALL only after invoking this
+   * method.
    */
   public void handleOrganisationUnits() {
     if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
@@ -296,13 +298,13 @@ public class TrackedEntityInstanceQueryParams {
       setOrganisationUnits(user.getOrganisationUnits());
       setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     } else if (isOrganisationUnitMode(CHILDREN)) {
-      Set<OrganisationUnit> organisationUnits = new HashSet<>(getOrganisationUnits());
+      Set<OrganisationUnit> orgUnits = new HashSet<>(getOrganisationUnits());
 
       for (OrganisationUnit organisationUnit : getOrganisationUnits()) {
-        organisationUnits.addAll(organisationUnit.getChildren());
+        orgUnits.addAll(organisationUnit.getChildren());
       }
 
-      setOrganisationUnits(organisationUnits);
+      setOrganisationUnits(orgUnits);
       setOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED);
     }
   }
@@ -1002,16 +1004,16 @@ public class TrackedEntityInstanceQueryParams {
   @AllArgsConstructor
   public enum OrderColumn {
     TRACKEDENTITY("trackedEntityInstance", "uid", MAIN_QUERY_ALIAS),
-    // Ordering by id is the same as ordering by created date
-    CREATED(CREATED_ID, "trackedentityinstanceid", MAIN_QUERY_ALIAS),
-    CREATED_AT("createdAt", "trackedentityinstanceid", MAIN_QUERY_ALIAS),
-    CREATED_AT_CLIENT("createdAtClient", "createdAtClient", MAIN_QUERY_ALIAS),
-    UPDATED_AT("lastUpdated", "lastUpdated", MAIN_QUERY_ALIAS),
-    UPDATED_AT_CLIENT("updatedAtClient", "lastUpdatedAtClient", MAIN_QUERY_ALIAS),
-    ENROLLED_AT("enrolledAt", "enrollmentDate", PROGRAM_INSTANCE_ALIAS),
-    // this works only for the new endpoint
-    // ORGUNIT_NAME( "orgUnitName",
-    // MAIN_QUERY_ALIAS+".organisationUnit.name" ),
+    CREATED("created", CREATED_ID, MAIN_QUERY_ALIAS),
+    CREATED_AT("createdAt", CREATED_ID, MAIN_QUERY_ALIAS),
+    CREATED_AT_CLIENT("createdAtClient", "createdatclient", MAIN_QUERY_ALIAS),
+    UPDATED_AT("lastUpdated", "lastupdated", MAIN_QUERY_ALIAS),
+    UPDATED_AT_CLIENT("updatedAtClient", "lastupdatedatclient", MAIN_QUERY_ALIAS),
+    ENROLLED_AT(
+        "enrolledAt",
+        "enrollmentdate",
+        PROGRAM_INSTANCE_ALIAS), // this works only for the new endpoint
+    // ORGUNIT_NAME( "orgUnitName", MAIN_QUERY_ALIAS+".organisationUnit.name" ),
     INACTIVE(INACTIVE_ID, "inactive", MAIN_QUERY_ALIAS);
 
     private final String propName;

@@ -93,7 +93,6 @@ public class DataOrgUnitMergeHandler {
   }
 
   private String getMergeDataValuesLastUpdatedSql(OrgUnitMergeRequest request) {
-    // @formatter:off
     return String.format(
         // Delete existing target data values
         "delete from datavalue where sourceid = :target_id; "
@@ -122,7 +121,6 @@ public class DataOrgUnitMergeHandler {
             // Delete source data values
             "delete from datavalue where sourceid in (:source_ids);",
         request.getTarget().getId());
-    // @formatter:on
   }
 
   public void mergeDataApprovalAudits(OrgUnitMergeRequest request) {
@@ -149,7 +147,6 @@ public class DataOrgUnitMergeHandler {
   }
 
   private String getMergeDataApprovalsLastUpdatedSql(OrgUnitMergeRequest request) {
-    // @formatter:offT
     return String.format(
         // Delete existing target data approvals
         "delete from dataapproval where organisationunitid = :target_id; "
@@ -177,7 +174,6 @@ public class DataOrgUnitMergeHandler {
             // Delete source data approvals
             "delete from dataapproval where organisationunitid in (:source_ids);",
         request.getTarget().getId());
-    // @formatter:on
   }
 
   public void mergeLockExceptions(OrgUnitMergeRequest request) {

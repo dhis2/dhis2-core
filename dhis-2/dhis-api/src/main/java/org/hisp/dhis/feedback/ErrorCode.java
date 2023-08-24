@@ -318,6 +318,7 @@ public enum ErrorCode {
   E7133("Query cannot be executed, possibly because of invalid types or invalid operation"),
   E7134("Cannot retrieve total value for data elements with skip total category combination"),
   E7135("Date time is not parsable: `{0}`"),
+  E7143("Organisation unit or organisation unit level is not valid"),
 
   /* Event analytics */
   E7200("At least one organisation unit must be specified"),
@@ -354,10 +355,10 @@ public enum ErrorCode {
   E7226("Dimension is not a valid query item: `{0}`"),
   E7227("Relationship entity type not supported: `{0}`"),
   E7228("Fallback coordinate field is invalid: `{0}` "),
-  E7229("Operator `{0}` does not allow missing value"),
+  E7229("Query operator `{0}` does not allow missing values"),
   E7230("Header param `{0}` does not exist"),
   E7231("Legacy `{0}` can be updated only through event visualizations"),
-
+  E7234("Query filter: `{0}` not valid for query item value type: `{1}`"),
   /* Org unit analytics */
   E7300("At least one organisation unit must be specified"),
   E7301("At least one organisation unit group set must be specified"),

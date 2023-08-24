@@ -28,7 +28,7 @@
     </tr>
     <tr>
         <td></td>
-        <td><input id="recoveryButton" type="button" value="$i18n.getString( 'recover' )" style="width:10em" onclick="recoverAccount()"></td>
+        <td><input id="recoveryButton" type="button" value="$i18n.getString( 'recover' )" style="width:10em"></td>
     </tr>
 </table>
 

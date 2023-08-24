@@ -157,7 +157,6 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
     String periodIds = getCommaDelimitedString(getIdentifiers(periods));
     String categoryOptionComboIds = getCommaDelimitedString(getIdentifiers(categoryOptionCombos));
 
-    // @formatter:off
     String sql =
         "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, "
             + "dv.value, dv.storedby, dv.lastupdated, "
@@ -189,7 +188,6 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
             + statementBuilder.getDoubleColumnType()
             + ") > mm.maximumvalue) "
             + "and (";
-    // @formatter:on
 
     for (OrganisationUnit parent : parents) {
       sql += "ou.path like '" + parent.getPath() + "%' or ";
@@ -239,7 +237,6 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
       Map<Long, Integer> upperBoundMap) {
     String periodIds = TextUtils.getCommaDelimitedString(getIdentifiers(periods));
 
-    // @formatter:off
     String sql =
         "select dv.dataelementid, dv.periodid, dv.sourceid, "
             + "dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, "
@@ -259,7 +256,6 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
             + "and dv.periodid in ("
             + periodIds
             + ") and (";
-    // @formatter:on
 
     for (Long orgUnitUid : organisationUnits) {
       sql +=
@@ -309,7 +305,6 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
     String periodIds = getCommaDelimitedString(getIdentifiers(periods));
     String categoryOptionComboIds = getCommaDelimitedString(getIdentifiers(categoryOptionCombos));
 
-    // @formatter:off
     String sql =
         "select dv.dataelementid, dv.periodid, dv.sourceid, "
             + "dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, "
@@ -334,7 +329,6 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
             + periodIds
             + ") "
             + "and (";
-    // @formatter:on
 
     for (OrganisationUnit parent : parents) {
       sql += "ou.path like '" + parent.getPath() + "%' or ";

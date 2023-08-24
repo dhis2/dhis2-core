@@ -34,12 +34,22 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.Map;
+import org.hisp.dhis.util.DateUtils;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 /**
  * @author Jan Bernitt
  */
 public final class Assertions {
+
+  private static final String DATE_WITH_TIMESTAMP_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+
+  private static final DateTimeFormatter DATE_WITH_TIMESTAMP =
+      DateTimeFormat.forPattern(DATE_WITH_TIMESTAMP_PATTERN).withZoneUTC();
+
   private Assertions() {
     throw new UnsupportedOperationException("util");
   }
@@ -75,6 +85,29 @@ public final class Assertions {
           expected.get(e.getKey()),
           String.format("Did not expect value in %s", actual));
     }
+  }
+
+  public static void assertHasTimeStamp(Date date) {
+    assertTrue(
+        hasTimeStamp(date),
+        String.format("Supported format is %s but found %s", DATE_WITH_TIMESTAMP_PATTERN, date));
+  }
+
+  public static void assertHasTimeStamp(String date) {
+    assertTrue(
+        hasTimeStamp(DateUtils.parseDate(date)),
+        String.format("Supported format is %s but found %s", DATE_WITH_TIMESTAMP_PATTERN, date));
+  }
+
+  private static boolean hasTimeStamp(Date date) {
+    try {
+
+      DATE_WITH_TIMESTAMP.parseDateTime(DateUtils.getLongGmtDateString(date));
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+
+    return true;
   }
 
   /**

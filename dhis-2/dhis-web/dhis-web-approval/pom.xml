@@ -1,36 +1,35 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  
+
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-web</artifactId>
     <version>2.38.5-SNAPSHOT</version>
   </parent>
-  
+
   <artifactId>dhis-web-approval</artifactId>
   <packaging>war</packaging>
   <name>DHIS Web Approval</name>
-  
-  <build>
-    <finalName>dhis-web-approval</finalName>
-  </build>
-  
+
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
+
   <dependencies>
-    
+
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
-	</dependency>
+    </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
     </dependency>
-	
+
     <!-- DHIS -->
-    
+
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-api</artifactId>
@@ -52,7 +51,7 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-core</artifactId>
-    </dependency>    
+    </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-reporting</artifactId>
@@ -61,10 +60,10 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-analytics</artifactId>
     </dependency>
-	
+
   </dependencies>
-  
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
+
+  <build>
+    <finalName>dhis-web-approval</finalName>
+  </build>
 </project>

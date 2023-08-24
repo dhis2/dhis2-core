@@ -95,7 +95,7 @@ class TrackerBundleParamsConverterTest {
     assertThat(b2.getTrackedEntities(), hasSize(1));
     assertThat(b2.getEnrollments(), hasSize(2));
     assertThat(b2.getEvents(), hasSize(10));
-    assertThat(b2.getRelationships(), hasSize(4));
+    assertThat(b2.getRelationships(), hasSize(6));
   }
 
   @Test
@@ -161,7 +161,7 @@ class TrackerBundleParamsConverterTest {
     assertThat(b2.getEnrollments().get(1).getEnrollment(), is(notNullValue()));
     assertThat(b2.getEvents().get(0).getEvent(), is(notNullValue()));
     assertThat(b2.getEvents().get(1).getEvent(), is(notNullValue()));
-    assertThat(b2.getRelationships(), hasSize(4));
+    assertThat(b2.getRelationships(), hasSize(6));
     b2.getRelationships().stream()
         .forEach(r -> assertThat(r.getRelationship(), is(notNullValue())));
   }

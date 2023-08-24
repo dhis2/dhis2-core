@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -39,13 +40,24 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class GistPagerControllerTest extends AbstractGistControllerTest {
-
   @Test
   void testPager_Total_ResultBased() {
     JsonObject gist =
         GET("/users/{uid}/userGroups/gist?fields=name,users&total=true", getSuperuserUid())
             .content();
     assertHasPager(gist, 1, 50, 1);
+  }
+
+  @Test
+  void testPager_CustomPageListName() {
+    JsonObject gist =
+        GET(
+                "/users/{uid}/userGroups/gist?fields=name,users&total=true&pageListName=matches",
+                getSuperuserUid())
+            .content();
+    JsonArray matches = gist.getArray("matches");
+    assertTrue(matches.exists());
+    assertTrue(matches.isArray());
   }
 
   @Test

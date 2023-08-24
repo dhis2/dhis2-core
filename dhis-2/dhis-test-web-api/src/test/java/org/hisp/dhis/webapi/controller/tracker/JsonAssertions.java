@@ -27,19 +27,27 @@
  */
 package org.hisp.dhis.webapi.controller.tracker;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerType;
 
 public class JsonAssertions {
 
@@ -153,5 +161,48 @@ public class JsonAssertions {
 
   public static void assertHasMember(JsonObject json, String name) {
     assertTrue(json.has(name), String.format("member \"%s\" should be in %s", name, json));
+  }
+
+  public static <E extends JsonValue, T> void assertContainsAll(
+      Collection<T> expected, JsonList<E> actual, Function<E, T> toValue) {
+    assertFalse(
+        actual.isEmpty(), () -> String.format("expected %s instead actual is empty", expected));
+    assertTrue(
+        actual.containsAll(toValue, expected),
+        () -> String.format("expected %s instead got %s", expected, actual));
+  }
+
+  public static void assertReportEntities(
+      List<String> expectedEntityUids, TrackerType trackerType, JsonImportReport importReport) {
+    JsonTypeReport jsonTypeReport = null;
+    switch (trackerType) {
+      case TRACKED_ENTITY:
+        jsonTypeReport = importReport.getBundleReport().getTrackedEntities();
+        break;
+      case ENROLLMENT:
+        jsonTypeReport = importReport.getBundleReport().getEnrollments();
+        break;
+      case EVENT:
+        jsonTypeReport = importReport.getBundleReport().getEvents();
+        break;
+      case RELATIONSHIP:
+        jsonTypeReport = importReport.getBundleReport().getRelationships();
+        break;
+    }
+    ;
+
+    List<String> reportEntityUids =
+        jsonTypeReport.getEntityReport().stream()
+            .map(JsonEntity::getUid)
+            .collect(Collectors.toList());
+    List<Integer> reportEntityIndexes =
+        jsonTypeReport.getEntityReport().stream()
+            .map(JsonEntity::getIndex)
+            .collect(Collectors.toList());
+    List<Integer> expectedIndexes =
+        IntStream.range(0, expectedEntityUids.size()).boxed().collect(Collectors.toList());
+    assertAll(
+        () -> assertEquals(expectedEntityUids, reportEntityUids),
+        () -> assertEquals(expectedIndexes, reportEntityIndexes));
   }
 }

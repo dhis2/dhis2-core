@@ -30,7 +30,9 @@ package org.hisp.dhis.tracker;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertHasTimeStamp;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,16 +50,21 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
+import org.hisp.dhis.dxf2.events.event.Note;
+import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +82,9 @@ class EventExporterTest extends TrackerTest {
 
   private OrganisationUnit orgUnit;
 
-  final Function<EventSearchParams, List<String>> eventsFunction =
+  private User importUser;
+
+  final Function<EventQueryParams, List<String>> eventsFunction =
       (params) ->
           eventService.getEvents(params).getEvents().stream()
               .map(Event::getEvent)
@@ -84,10 +93,10 @@ class EventExporterTest extends TrackerTest {
   @Override
   protected void initTest() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
-    User superuser = userService.getUser("M5zQapPyTZI");
+    importUser = userService.getUser("M5zQapPyTZI");
     assertNoImportErrors(
         trackerImportService.importTracker(
-            fromJson("tracker/event_and_enrollment.json", superuser.getUid())));
+            fromJson("tracker/event_and_enrollment.json", importUser.getUid())));
     orgUnit = manager.get(OrganisationUnit.class, "h4w96yEMlzO");
 
     // to test that events are only returned if the user has read access to
@@ -103,9 +112,79 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldReturnEventsWithRelationships() {
+    EventQueryParams params = new EventQueryParams();
+    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setEvents(Set.of("pTzf9KYMk72"));
+    params.setIncludeRelationships(true);
+
+    Events events = eventService.getEvents(params);
+
+    assertContainsOnly(eventUids(events), "pTzf9KYMk72");
+    List<String> relationships =
+        events.getEvents().get(0).getRelationships().stream()
+            .map(Relationship::getRelationship)
+            .collect(Collectors.toList());
+    assertContainsOnly(relationships, "oLT07jKRu9e", "yZxjxJli9mO");
+  }
+
+  @Test
+  void shouldReturnEventsWithNotes() {
+    EventQueryParams params = new EventQueryParams();
+    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setEvents(Set.of("pTzf9KYMk72"));
+    params.setIncludeRelationships(true);
+
+    Events events = eventService.getEvents(params);
+
+    assertContainsOnly(eventUids(events), "pTzf9KYMk72");
+    List<Note> notes = events.getEvents().get(0).getNotes();
+    assertContainsOnly(
+        notes.stream().map(Note::getNote).collect(Collectors.toList()),
+        "SGuCABkhpgn",
+        "DRKO4xUVrpr");
+    assertAll(
+        () -> assertNote(importUser, "comment value", notes.get(0)),
+        () -> assertNote(importUser, "comment value", notes.get(1)));
+  }
+
+  @Test
+  void shouldReturnPaginatedEventsWithNotesGivenNonDefaultPageSize() {
+    EventQueryParams params = new EventQueryParams();
+    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setEvents(Set.of("pTzf9KYMk72", "D9PbzJY8bJM"));
+    params.setOrders(List.of(orderBy("occurredAt", SortDirection.DESC)));
+
+    params.setPage(1);
+    params.setPageSize(1);
+
+    Events firstPage = eventService.getEvents(params);
+
+    assertAll(
+        "first page",
+        () -> assertSlimPager(1, 1, false, firstPage),
+        () -> assertEquals(List.of("D9PbzJY8bJM"), eventUids(firstPage)));
+
+    params.setPage(2);
+
+    Events secondPage = eventService.getEvents(params);
+
+    assertAll(
+        "second (last) page",
+        () -> assertSlimPager(2, 1, true, secondPage),
+        () -> assertEquals(List.of("pTzf9KYMk72"), eventUids(secondPage)));
+
+    params.setPage(2);
+    params.setPageSize(3);
+
+    assertIsEmpty(getEvents(params));
+  }
+
+  @Test
   void testExportEvents() {
-    EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    EventQueryParams params = new EventQueryParams();
+    params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
 
     List<String> events = eventsFunction.apply(params);
 
@@ -115,8 +194,9 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void testExportEventsWhenFilteringByEnrollment() {
-    EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    EventQueryParams params = new EventQueryParams();
+    params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setProgramInstances(Set.of("nxP7UnKhomJ"));
 
     List<String> events = eventsFunction.apply(params);
@@ -126,8 +206,8 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnNoEventsWhenParamStartDueDateLaterThanEventDueDate() {
-    EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    EventQueryParams params = new EventQueryParams();
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setDueDateStart(parseDate("2021-02-28T13:05:00.000"));
 
     Events events = eventService.getEvents(params);
@@ -138,19 +218,20 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnEventsWhenParamStartDueDateEarlierThanEventsDueDate() {
-    EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    EventQueryParams params = new EventQueryParams();
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setDueDateStart(parseDate("2018-02-28T13:05:00.000"));
 
     List<String> events = eventsFunction.apply(params);
 
-    assertContainsOnly(events, "D9PbzJY8bJM", "pTzf9KYMk72");
+    assertContainsOnly(
+        events, "D9PbzJY8bJM", "pTzf9KYMk72", "jxgFyJEMUPf", "JaRDIvcEcEx", "gvULMgNiAfM");
   }
 
   @Test
   void shouldReturnNoEventsWhenParamEndDueDateEarlierThanEventDueDate() {
-    EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    EventQueryParams params = new EventQueryParams();
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setDueDateEnd(parseDate("2018-02-28T13:05:00.000"));
 
     Events events = eventService.getEvents(params);
@@ -161,13 +242,14 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnEventsWhenParamEndDueDateLaterThanEventsDueDate() {
-    EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    EventQueryParams params = new EventQueryParams();
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setDueDateEnd(parseDate("2021-02-28T13:05:00.000"));
 
     List<String> events = eventsFunction.apply(params);
 
-    assertContainsOnly(events, "D9PbzJY8bJM", "pTzf9KYMk72");
+    assertContainsOnly(
+        events, "D9PbzJY8bJM", "pTzf9KYMk72", "jxgFyJEMUPf", "JaRDIvcEcEx", "gvULMgNiAfM");
   }
 
   @Test
@@ -176,8 +258,8 @@ class EventExporterTest extends TrackerTest {
     // user owns yMj2MnmNI8L and has user read access to OUUdG3sdOqb
     injectSecurityContext(userService.getUser("o1HMTIzBGo7"));
 
-    EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
+    EventQueryParams params = new EventQueryParams();
+    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
     params.setEvents(Set.of("lumVtWwwy0O", "cadc5eGj0j7"));
 
     Events events = eventService.getEvents(params);
@@ -207,8 +289,8 @@ class EventExporterTest extends TrackerTest {
     // user access
     injectSecurityContext(userService.getUser("CYVgFNKCaUS"));
 
-    EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
+    EventQueryParams params = new EventQueryParams();
+    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
     params.setEvents(Set.of("lumVtWwwy0O", "cadc5eGj0j7"));
 
     List<String> events = eventsFunction.apply(params);
@@ -217,12 +299,12 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnPublicEventsWithMultipleCategoryOptionsGivenNonDefaultPageSize() {
+  void shouldReturnPaginatedPublicEventsWithMultipleCategoryOptionsGivenNonDefaultPageSize() {
     OrganisationUnit orgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
     Program program = get(Program.class, "iS7eutanDry");
 
-    EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    EventQueryParams params = new EventQueryParams();
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setProgram(program);
 
     params.setOrders(List.of(orderBy("occurredAt", OrderParam.SortDirection.DESC)));
@@ -238,8 +320,8 @@ class EventExporterTest extends TrackerTest {
             assertEquals(
                 List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"), eventUids(firstPage)));
 
-    params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params = new EventQueryParams();
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setProgram(program);
 
     params.setOrders(List.of(orderBy("occurredAt", OrderParam.SortDirection.DESC)));
@@ -255,8 +337,8 @@ class EventExporterTest extends TrackerTest {
             assertEquals(
                 List.of("lumVtWwwy0O", "QRYjLTiJTrA", "cadc5eGj0j7"), eventUids(secondPage)));
 
-    params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    params = new EventQueryParams();
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setProgram(program);
 
     params.setOrders(List.of(orderBy("occurredAt", OrderParam.SortDirection.DESC)));
@@ -271,12 +353,13 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnEventsWithMultipleCategoryOptionsGivenNonDefaultPageSizeAndTotalPages() {
+  void
+      shouldReturnPaginatedEventsWithMultipleCategoryOptionsGivenNonDefaultPageSizeAndTotalPages() {
     OrganisationUnit orgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
     Program program = get(Program.class, "iS7eutanDry");
 
-    EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(orgUnit);
+    EventQueryParams params = new EventQueryParams();
+    params.setAccessibleOrgUnits(List.of(orgUnit));
     params.setProgram(program);
 
     params.setOrders(List.of(orderBy("occurredAt", OrderParam.SortDirection.DESC)));
@@ -293,9 +376,39 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
+  void testExportEventsWithDatesIncludingTimeStamp() {
+
+    EventQueryParams params = new EventQueryParams();
+
+    params.setEvents(Set.of("pTzf9KYMk72"));
+
+    Events events = eventService.getEvents(params);
+
+    assertNotEmpty(events.getEvents());
+
+    Event event = events.getEvents().get(0);
+
+    assertAll(
+        "All dates should include timestamp",
+        () ->
+            assertEquals(
+                "2019-01-25T12:10:38.100",
+                event.getEventDate(),
+                String.format(
+                    "Expected %s to be in %s", event.getEventDate(), "2019-01-25T12:10:38.100")),
+        () ->
+            assertEquals(
+                "2019-01-28T12:32:38.100",
+                event.getDueDate(),
+                String.format(
+                    "Expected %s to be in %s", event.getDueDate(), "2019-01-28T12:32:38.100")),
+        () -> assertHasTimeStamp(event.getCompletedDate()));
+  }
+
+  @Test
   void shouldReturnEventsGivenCategoryOptionCombo() {
-    EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
+    EventQueryParams params = new EventQueryParams();
+    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
     params.setCategoryOptionCombo(get(CategoryOptionCombo.class, "cr89ebDZrac"));
 
     Events events = eventService.getEvents(params);
@@ -326,8 +439,8 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void shouldFailIfCategoryOptionComboOfGivenEventDoesNotHaveAValueForGivenIdScheme() {
-    EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
+    EventQueryParams params = new EventQueryParams();
+    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
     IdSchemes idSchemes = new IdSchemes();
     idSchemes.setCategoryOptionComboIdScheme("ATTRIBUTE:GOLswS44mh8");
     params.setIdSchemes(idSchemes);
@@ -341,8 +454,8 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnEventsGivenIdSchemeCode() {
-    EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
+    EventQueryParams params = new EventQueryParams();
+    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
     params.setCategoryOptionCombo(get(CategoryOptionCombo.class, "cr89ebDZrac"));
     IdSchemes idSchemes = new IdSchemes();
     idSchemes.setProgramIdScheme("code");
@@ -382,8 +495,8 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnEventsGivenIdSchemeAttribute() {
-    EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
+    EventQueryParams params = new EventQueryParams();
+    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
     params.setCategoryOptionCombo(get(CategoryOptionCombo.class, "cr89ebDZrac"));
     IdSchemes idSchemes = new IdSchemes();
     idSchemes.setProgramIdScheme("ATTRIBUTE:j45AR9cBQKc");
@@ -431,8 +544,11 @@ class EventExporterTest extends TrackerTest {
     return t;
   }
 
-  private static List<String> eventUids(Events events) {
-    return events.getEvents().stream().map(Event::getEvent).collect(Collectors.toList());
+  private void assertNote(User expectedLastUpdatedBy, String expectedNote, Note actual) {
+    assertEquals(expectedNote, actual.getValue());
+    UserInfoSnapshot lastUpdatedBy = actual.getLastUpdatedBy();
+    assertEquals(expectedLastUpdatedBy.getUid(), lastUpdatedBy.getUid());
+    assertEquals(expectedLastUpdatedBy.getUsername(), lastUpdatedBy.getUsername());
   }
 
   private static void assertSlimPager(int pageNumber, int pageSize, boolean isLast, Events events) {
@@ -457,5 +573,13 @@ class EventExporterTest extends TrackerTest {
         () -> assertEquals(pageNumber, pager.getPage(), "number of current page"),
         () -> assertEquals(pageSize, pager.getPageSize(), "page size"),
         () -> assertEquals(totalCount, pager.getTotal(), "total page count"));
+  }
+
+  private List<String> getEvents(EventQueryParams params) {
+    return eventUids(eventService.getEvents(params));
+  }
+
+  private static List<String> eventUids(Events events) {
+    return events.getEvents().stream().map(Event::getEvent).collect(Collectors.toList());
   }
 }
