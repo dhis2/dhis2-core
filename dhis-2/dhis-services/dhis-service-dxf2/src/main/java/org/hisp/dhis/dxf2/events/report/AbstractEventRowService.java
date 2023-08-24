@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events.report;
 
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,7 +44,7 @@ public class AbstractEventRowService implements EventRowService {
   @Autowired private EventService eventService;
 
   @Override
-  public EventRows getEventRows(EventSearchParams params) {
+  public EventRows getEventRows(EventQueryParams params) {
     return eventService.getEventRows(params);
   }
 }

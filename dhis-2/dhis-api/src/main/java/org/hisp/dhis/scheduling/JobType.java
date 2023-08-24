@@ -178,6 +178,14 @@ public enum JobType {
   }
 
   /**
+   * @return when true, this job type should run on all nodes, if false it should only run on the
+   *     current leader node.
+   */
+  public boolean isRunOnAllNodes() {
+    return this == LEADER_ELECTION;
+  }
+
+  /**
    * @return when true, general information on job progress should be logged on debug level,
    *     otherwise when false it is logged on info level
    */

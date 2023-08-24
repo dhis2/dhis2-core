@@ -51,9 +51,7 @@ public class RuleEngineValidator implements Validator<TrackerBundle> {
   private final EventRuleEngineValidator eventValidator;
 
   private Validator<TrackerBundle> bundleValidator() {
-    // @formatter:off
     return all(trackedEntityValidator, enrollmentValidator, eventValidator);
-    // @formatter:on
   }
 
   @Override

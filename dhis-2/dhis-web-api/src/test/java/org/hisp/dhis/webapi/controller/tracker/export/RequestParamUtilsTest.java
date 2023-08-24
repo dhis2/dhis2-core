@@ -41,6 +41,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,8 @@ class RequestParamUtilsTest {
   private static final String TEA_2_UID = "cy2oRh2sNr6";
 
   private Map<String, TrackedEntityAttribute> attributes;
+
+  private static final OrganisationUnit orgUnit = new OrganisationUnit();
 
   @BeforeEach
   void setUp() {

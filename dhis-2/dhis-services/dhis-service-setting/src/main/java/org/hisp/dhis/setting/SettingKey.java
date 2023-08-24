@@ -81,7 +81,12 @@ public enum SettingKey {
   EMAIL_SENDER("keyEmailSender", "no-reply@dhis2.org", String.class),
   EMAIL_PASSWORD("keyEmailPassword", "", String.class, true, false),
   MIN_PASSWORD_LENGTH("minPasswordLength", 8, Integer.class),
-  MAX_PASSWORD_LENGTH("maxPasswordLength", 40, Integer.class),
+
+  /**
+   * The password max value is set to 60 to match the max value of the password column in the
+   * database, hence it can not be greater than 60.
+   */
+  MAX_PASSWORD_LENGTH("maxPasswordLength", 60, Integer.class),
   SMS_CONFIG("keySmsSetting", new SmsConfiguration(), SmsConfiguration.class),
   SMS_MAX_LENGTH("keySmsMaxLength", 1071, Integer.class),
   CACHE_STRATEGY("keyCacheStrategy", CacheStrategy.CACHE_1_MINUTE, CacheStrategy.class),

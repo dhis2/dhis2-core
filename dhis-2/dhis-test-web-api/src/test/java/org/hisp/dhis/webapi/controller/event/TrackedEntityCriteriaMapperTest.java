@@ -31,6 +31,10 @@ import static com.google.common.collect.Sets.newHashSet;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -66,6 +70,8 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -142,7 +148,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
     criteria.setAttribute(newHashSet(attrD.getUid(), attrE.getUid()));
     criteria.setFilter(newHashSet(filtF.getUid(), filtG.getUid()));
     criteria.setOu(organisationUnit.getUid());
-    criteria.setOuMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    criteria.setOuMode(DESCENDANTS);
     criteria.setProgram(programA.getUid());
     criteria.setProgramStatus(ProgramStatus.ACTIVE);
     criteria.setFollowUp(true);
@@ -271,7 +277,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenProgramIsProtectedAndUserNotInCaptureScope() {
+  void shouldThrowExceptionWhenProgramIsProtectedSearchScopeIsEmptyAndUserNotInCaptureScope() {
     clearSecurityContext();
     User mockUser = createUserWithAuth("testUser2");
     mockUser.setOrganisationUnits(Set.of(organisationUnit));
@@ -285,7 +291,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
         assertThrows(IllegalQueryException.class, () -> trackedEntityCriteriaMapper.map(criteria));
 
     assertEquals(
-        "User does not have access to organisation unit: " + organisationUnitB.getUid(),
+        "Organisation unit is not part of the search scope: " + organisationUnitB.getUid(),
         e.getMessage());
   }
 
@@ -304,7 +310,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
         assertThrows(IllegalQueryException.class, () -> trackedEntityCriteriaMapper.map(criteria));
 
     assertEquals(
-        "User does not have access to organisation unit: " + organisationUnitB.getUid(),
+        "Organisation unit is not part of the search scope: " + organisationUnitB.getUid(),
         e.getMessage());
   }
 
@@ -318,5 +324,52 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
     assertEquals(
         "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED",
         e.getMessage());
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"CAPTURE", "ACCESSIBLE", "ALL"})
+  void shouldPassWhenOuModeDoesNotNeedOrgUnitAndOrgUnitProvided(
+      OrganisationUnitSelectionMode mode) {
+    TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+
+    criteria.setOu(organisationUnit.getUid());
+    criteria.setOuMode(mode);
+
+    assertDoesNotThrow(() -> trackedEntityCriteriaMapper.map(criteria));
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeSelected() {
+    TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+    criteria.setOu(organisationUnit.getUid());
+    criteria.setOuMode(SELECTED);
+
+    TrackedEntityInstanceQueryParams queryParams = trackedEntityCriteriaMapper.map(criteria);
+
+    assertEquals(SELECTED, queryParams.getOrganisationUnitMode());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeDescendants() {
+    TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+    criteria.setOu(organisationUnit.getUid());
+    criteria.setOuMode(DESCENDANTS);
+
+    TrackedEntityInstanceQueryParams queryParams = trackedEntityCriteriaMapper.map(criteria);
+
+    assertEquals(DESCENDANTS, queryParams.getOrganisationUnitMode());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeChildren() {
+    TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+    criteria.setOu(organisationUnit.getUid());
+    criteria.setOuMode(CHILDREN);
+
+    TrackedEntityInstanceQueryParams queryParams = trackedEntityCriteriaMapper.map(criteria);
+
+    assertEquals(CHILDREN, queryParams.getOrganisationUnitMode());
   }
 }

@@ -32,26 +32,26 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_BY_USER_INFO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ENROLLMENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_GEOMETRY;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_BY_USER_INFO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_COMPLETED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_COMPLETED_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_CREATED_BY_USER_INFO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_CREATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_DELETED;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_DUE_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_ENROLLMENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_EXECUTION_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_GEOMETRY;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_LAST_UPDATED_BY_USER_INFO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_LAST_UPDATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_ORG_UNIT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_ORG_UNIT_NAME;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_PROGRAM_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_PROGRAM_STAGE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_STATUS_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_STORED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventQueryParams.PAGER_META_KEY;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
@@ -81,7 +81,6 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SlimPager;
@@ -121,7 +120,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -293,12 +291,10 @@ public abstract class AbstractEventService implements EventService {
 
   @Transactional(readOnly = true)
   @Override
-  public Events getEvents(EventSearchParams params) {
+  public Events getEvents(EventQueryParams params) {
     User user = currentUserService.getCurrentUser();
 
     validate(params, user);
-
-    List<OrganisationUnit> organisationUnits = getOrganisationUnits(params, user);
 
     if (!params.isPaging() && !params.isSkipPaging()) {
       params.setDefaultPaging();
@@ -308,15 +304,15 @@ public abstract class AbstractEventService implements EventService {
     List<Event> eventList = new ArrayList<>();
 
     if (params.isSkipPaging()) {
-      events.setEvents(eventStore.getEvents(params, organisationUnits, emptyMap()));
+      events.setEvents(eventStore.getEvents(params, params.getAccessibleOrgUnits(), emptyMap()));
       return events;
     }
 
     Pager pager;
-    eventList.addAll(eventStore.getEvents(params, organisationUnits, emptyMap()));
+    eventList.addAll(eventStore.getEvents(params, params.getAccessibleOrgUnits(), emptyMap()));
 
     if (params.isTotalPages()) {
-      int count = eventStore.getEventCount(params, organisationUnits);
+      int count = eventStore.getEventCount(params, params.getAccessibleOrgUnits());
       pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
     } else {
       pager = handleLastPageFlag(params, eventList);
@@ -331,7 +327,7 @@ public abstract class AbstractEventService implements EventService {
   /**
    * This method will apply the logic related to the parameter 'totalPages=false'. This works in
    * conjunction with the method: {@link
-   * EventStore#getEvents(EventSearchParams,List<OrganisationUnit>,Map<String,Set<String>>)}
+   * EventStore#getEvents(EventQueryParams,List<OrganisationUnit>,Map<String,Set<String>>)}
    *
    * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
    * allow us to evaluate if we are in the last page or not. And this is what his method does,
@@ -341,7 +337,7 @@ public abstract class AbstractEventService implements EventService {
    * @param eventList the reference to the list of Event
    * @return the populated SlimPager instance
    */
-  private Pager handleLastPageFlag(EventSearchParams params, List<Event> eventList) {
+  private Pager handleLastPageFlag(EventQueryParams params, List<Event> eventList) {
     Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
     Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
     boolean isLastPage = false;
@@ -361,9 +357,7 @@ public abstract class AbstractEventService implements EventService {
 
   @Transactional(readOnly = true)
   @Override
-  public Grid getEventsGrid(EventSearchParams params) {
-    User user = currentUserService.getCurrentUser();
-
+  public Grid getEventsGrid(EventQueryParams params) {
     if (params.getProgramStage() == null || params.getProgramStage().getProgram() == null) {
       throw new IllegalQueryException("Program stage can not be null");
     }
@@ -371,8 +365,6 @@ public abstract class AbstractEventService implements EventService {
     if (params.getProgramStage().getProgramStageDataElements() == null) {
       throw new IllegalQueryException("Program stage should have at least one data element");
     }
-
-    List<OrganisationUnit> organisationUnits = getOrganisationUnits(params, user);
 
     // ---------------------------------------------------------------------
     // If includeAllDataElements is set to true, return all data elements.
@@ -423,7 +415,8 @@ public abstract class AbstractEventService implements EventService {
       grid.addHeader(new GridHeader(item.getItem().getUid(), item.getItem().getName()));
     }
 
-    List<Map<String, String>> events = eventStore.getEventsGrid(params, organisationUnits);
+    List<Map<String, String>> events =
+        eventStore.getEventsGrid(params, params.getAccessibleOrgUnits());
 
     // ---------------------------------------------------------------------
     // Grid rows
@@ -447,7 +440,7 @@ public abstract class AbstractEventService implements EventService {
       final Pager pager;
 
       if (params.isTotalPages()) {
-        int count = eventStore.getEventCount(params, organisationUnits);
+        int count = eventStore.getEventCount(params, params.getAccessibleOrgUnits());
         pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
       } else {
         pager = handleLastPageFlag(params, grid);
@@ -464,7 +457,7 @@ public abstract class AbstractEventService implements EventService {
   /**
    * This method will apply the logic related to the parameter 'totalPages=false'. This works in
    * conjunction with the method: {@link
-   * org.hisp.dhis.dxf2.events.event.JdbcEventStore#getEventPagingQuery(EventSearchParams)}
+   * org.hisp.dhis.dxf2.events.event.JdbcEventStore#getEventPagingQuery(EventQueryParams)}
    *
    * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
    * allow us to evaluate if we are in the last page or not. And this is what his method does,
@@ -474,7 +467,7 @@ public abstract class AbstractEventService implements EventService {
    * @param grid the populated Grid object
    * @return the populated SlimPager instance
    */
-  private Pager handleLastPageFlag(final EventSearchParams params, final Grid grid) {
+  private Pager handleLastPageFlag(final EventQueryParams params, final Grid grid) {
     final Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
     final Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
     boolean isLastPage = false;
@@ -495,8 +488,8 @@ public abstract class AbstractEventService implements EventService {
   @Transactional(readOnly = true)
   @Override
   public int getAnonymousEventReadyForSynchronizationCount(Date skipChangedBefore) {
-    EventSearchParams params =
-        new EventSearchParams()
+    EventQueryParams params =
+        new EventQueryParams()
             .setProgramType(ProgramType.WITHOUT_REGISTRATION)
             .setIncludeDeleted(true)
             .setSynchronizationQuery(true)
@@ -512,8 +505,8 @@ public abstract class AbstractEventService implements EventService {
     // after a successful sync of few pages, as total count will change
     // and offset won't be valid.
 
-    EventSearchParams params =
-        new EventSearchParams()
+    EventQueryParams params =
+        new EventQueryParams()
             .setProgramType(ProgramType.WITHOUT_REGISTRATION)
             .setIncludeDeleted(true)
             .setSynchronizationQuery(true)
@@ -528,14 +521,12 @@ public abstract class AbstractEventService implements EventService {
 
   @Transactional(readOnly = true)
   @Override
-  public EventRows getEventRows(EventSearchParams params) {
+  public EventRows getEventRows(EventQueryParams params) {
     User user = currentUserService.getCurrentUser();
-
-    List<OrganisationUnit> organisationUnits = getOrganisationUnits(params, user);
 
     EventRows eventRows = new EventRows();
 
-    List<EventRow> eventRowList = eventStore.getEventRows(params, organisationUnits);
+    List<EventRow> eventRowList = eventStore.getEventRows(params, params.getAccessibleOrgUnits());
 
     EventContext eventContext = eventServiceContextBuilder.build(eventRowList, user);
 
@@ -871,112 +862,6 @@ public abstract class AbstractEventService implements EventService {
   // -------------------------------------------------------------------------
   // HELPERS
   // -------------------------------------------------------------------------
-
-  private List<OrganisationUnit> getOrganisationUnits(EventSearchParams params, User user) {
-    OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
-
-    if (orgUnitSelectionMode == null) {
-      if (params.getOrgUnit() != null) {
-        return Collections.emptyList();
-      }
-
-      return getAccessibleOrgUnits(params, user);
-    }
-
-    List<OrganisationUnit> organisationUnits;
-
-    switch (orgUnitSelectionMode) {
-      case ALL:
-        organisationUnits = getAllOrgUnits(params, user);
-        break;
-      case CHILDREN:
-        organisationUnits = getChildrenOrgUnits(params);
-        break;
-      case DESCENDANTS:
-        organisationUnits = getDescendantOrgUnits(params);
-        break;
-      case CAPTURE:
-        organisationUnits = getCaptureOrgUnits(params, user);
-        break;
-      case SELECTED:
-        organisationUnits = getSelectedOrgUnits(params);
-        break;
-      default:
-        organisationUnits = getAccessibleOrgUnits(params, user);
-        break;
-    }
-
-    return organisationUnits;
-  }
-
-  private List<OrganisationUnit> getAllOrgUnits(EventSearchParams params, User user) {
-    if (params.getOrgUnit() != null) {
-      return Collections.emptyList();
-    }
-
-    if (!userCanSearchOuModeALL(user)) {
-      throw new IllegalQueryException("User is not authorized to use ALL organisation units. ");
-    }
-
-    return Collections.emptyList();
-  }
-
-  private List<OrganisationUnit> getChildrenOrgUnits(EventSearchParams params) {
-    if (params.getOrgUnit() == null) {
-      throw new IllegalQueryException("Organisation unit is required to use CHILDREN scope.");
-    }
-
-    return Arrays.asList(params.getOrgUnit());
-  }
-
-  private List<OrganisationUnit> getSelectedOrgUnits(EventSearchParams params) {
-    if (params.getOrgUnit() == null) {
-      throw new IllegalQueryException("Organisation unit is required to use SELECTED scope. ");
-    }
-
-    return Collections.emptyList();
-  }
-
-  private List<OrganisationUnit> getDescendantOrgUnits(EventSearchParams params) {
-    if (params.getOrgUnit() == null) {
-      throw new IllegalQueryException("Organisation unit is required to use DESCENDANTS scope. ");
-    }
-
-    return Arrays.asList(params.getOrgUnit());
-  }
-
-  private List<OrganisationUnit> getCaptureOrgUnits(EventSearchParams params, User user) {
-    if (params.getOrgUnit() != null) {
-      return Collections.emptyList();
-    }
-
-    if (user == null) {
-      throw new IllegalQueryException("User is required to use CAPTURE scope.");
-    }
-
-    return user.getOrganisationUnits().stream().collect(Collectors.toList());
-  }
-
-  private List<OrganisationUnit> getAccessibleOrgUnits(EventSearchParams params, User user) {
-    if (params.getOrgUnit() != null) {
-      return Collections.emptyList();
-    }
-
-    if (user == null) {
-      throw new IllegalQueryException("User is required to use ACCESSIBLE scope.");
-    }
-
-    params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.ACCESSIBLE);
-
-    if (params.getProgram() == null
-        || params.getProgram().isClosed()
-        || params.getProgram().isProtected()) {
-      return user.getOrganisationUnits().stream().collect(Collectors.toList());
-    }
-
-    return user.getTeiSearchOrganisationUnitsWithFallback().stream().collect(Collectors.toList());
-  }
-
   private void saveTrackedEntityComment(
       ProgramStageInstance programStageInstance, Event event, User user, String storedBy) {
     for (Note note : event.getNotes()) {
@@ -1042,7 +927,7 @@ public abstract class AbstractEventService implements EventService {
   }
 
   @Override
-  public void validate(EventSearchParams params, User user) throws IllegalQueryException {
+  public void validate(EventQueryParams params, User user) throws IllegalQueryException {
     String violation = null;
 
     if (params.hasLastUpdatedDuration()
@@ -1057,56 +942,11 @@ public abstract class AbstractEventService implements EventService {
       violation = "Duration is not valid: " + params.getLastUpdatedDuration();
     }
 
-    if (violation == null
-        && params.getOrgUnit() != null
-        && !trackerAccessManager.canAccess(user, params.getProgram(), params.getOrgUnit())) {
-      violation = "User does not have access to orgUnit: " + params.getOrgUnit().getUid();
-    }
-
-    if (violation == null && params.getOrgUnitSelectionMode() != null) {
-      violation = getOuModeViolation(params, user);
-    }
-
     if (violation != null) {
       log.warn("Validation failed: " + violation);
 
       throw new IllegalQueryException(violation);
     }
-  }
-
-  private String getOuModeViolation(EventSearchParams params, User user) {
-    OrganisationUnitSelectionMode selectedOuMode = params.getOrgUnitSelectionMode();
-
-    String violation = null;
-
-    switch (selectedOuMode) {
-      case ALL:
-        violation =
-            userCanSearchOuModeALL(user)
-                ? null
-                : "Current user is not authorized to query across all organisation units";
-        break;
-      case ACCESSIBLE:
-      case CAPTURE:
-        violation =
-            user == null
-                ? "User is required for ouMode: " + params.getOrgUnitSelectionMode()
-                : null;
-        break;
-      case CHILDREN:
-      case SELECTED:
-      case DESCENDANTS:
-        violation =
-            params.getOrgUnit() == null
-                ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
-                : null;
-        break;
-      default:
-        violation = "Invalid ouMode:  " + params.getOrgUnitSelectionMode();
-        break;
-    }
-
-    return violation;
   }
 
   /**
@@ -1190,14 +1030,5 @@ public abstract class AbstractEventService implements EventService {
     }
 
     importOptions.setUser(userService.getUser(importOptions.getUser().getId()));
-  }
-
-  private boolean userCanSearchOuModeALL(User user) {
-    if (user == null) {
-      return false;
-    }
-
-    return user.isSuper()
-        || user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
   }
 }

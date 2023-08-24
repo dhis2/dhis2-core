@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import com.google.common.collect.Lists;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -47,7 +48,7 @@ import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -223,9 +224,9 @@ class RegistrationMultiEventsServiceTest extends TransactionalIntegrationTest {
             dataElementB.getUid());
     importSummary = eventService.addEvent(event, null, false);
     assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
     params.setProgram(programA);
-    params.setOrgUnit(organisationUnitA);
+    params.setAccessibleOrgUnits(List.of(organisationUnitA));
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
     assertEquals(2, eventService.getEvents(params).getEvents().size());
     event =
@@ -260,9 +261,9 @@ class RegistrationMultiEventsServiceTest extends TransactionalIntegrationTest {
     Enrollment retrievedEnrlollment =
         enrollmentService.getEnrollment(
             tei.getEnrollments().get(0).getEnrollment(), EnrollmentParams.FALSE);
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
     params.setProgram(programA);
-    params.setOrgUnit(organisationUnitA);
+    params.setAccessibleOrgUnits(List.of(organisationUnitA));
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
     Event retrievedEvent = enrollment.getEvents().get(0);
     assertNotNull(retrievedEnrlollment);
@@ -300,9 +301,9 @@ class RegistrationMultiEventsServiceTest extends TransactionalIntegrationTest {
             dataElementB.getUid());
     importSummary = eventService.addEvent(event, null, false);
     assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
     params.setProgram(programA);
-    params.setOrgUnit(organisationUnitA);
+    params.setAccessibleOrgUnits(List.of(organisationUnitA));
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
     assertEquals(2, eventService.getEvents(params).getEvents().size());
     event =
@@ -332,9 +333,9 @@ class RegistrationMultiEventsServiceTest extends TransactionalIntegrationTest {
   void testSaveEventToCompletedEnrollment() {
     ImportOptions importOptions = new ImportOptions();
     importOptions.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
     params.setProgram(programA);
-    params.setOrgUnit(organisationUnitA);
+    params.setAccessibleOrgUnits(List.of(organisationUnitA));
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
     Enrollment enrollment =
         createEnrollment(programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance());

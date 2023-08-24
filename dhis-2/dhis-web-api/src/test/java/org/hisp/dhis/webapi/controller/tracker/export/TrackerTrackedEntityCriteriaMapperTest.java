@@ -77,10 +77,13 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -495,7 +498,7 @@ class TrackerTrackedEntityCriteriaMapperTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenOrgUnitNotInScope() {
+  void shouldThrowExceptionWhenOrgUnitNotInSearchScope() {
     when(organisationUnitService.isInUserHierarchy(
             orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
         .thenReturn(false);
@@ -504,7 +507,7 @@ class TrackerTrackedEntityCriteriaMapperTest {
 
     ForbiddenException e = assertThrows(ForbiddenException.class, () -> mapper.map(criteria));
     assertEquals(
-        "User does not have access to organisation unit: " + ORG_UNIT_1_UID, e.getMessage());
+        "Organisation unit is not part of the search scope: " + ORG_UNIT_1_UID, e.getMessage());
   }
 
   @Test
@@ -651,5 +654,18 @@ class TrackerTrackedEntityCriteriaMapperTest {
             new QueryFilter(QueryOperator.LIKE, "value1:"),
             new QueryFilter(QueryOperator.LIKE, "value2")),
         actualFilters);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"CAPTURE", "ACCESSIBLE", "ALL"})
+  void shouldPassWhenOuModeDoesNotNeedOrgUnitAndOrgUnitProvided(
+      OrganisationUnitSelectionMode mode) {
+    when(trackerAccessManager.canAccess(user, null, orgUnit1)).thenReturn(true);
+
+    criteria.setOrgUnit(orgUnit1.getUid());
+    criteria.setOuMode(mode);
+    Assertions.assertDoesNotThrow(() -> mapper.map(criteria));
   }
 }

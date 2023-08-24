@@ -77,13 +77,11 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
     // query
     // argument
     //
-    // @formatter:off
     final Set<String> orgUnitUids =
         events.stream()
             .filter(e -> e.getOrgUnit() != null)
             .map(Event::getOrgUnit)
             .collect(Collectors.toSet());
-    // @formatter:on
 
     if (isEmpty(orgUnitUids)) {
       return new HashMap<>();

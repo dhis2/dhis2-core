@@ -33,6 +33,9 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.p
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseDataElementQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.getOrgUnitMode;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.validateAccessibleOrgUnits;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.validateOrgUnitMode;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,12 +52,13 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -72,6 +76,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -82,7 +87,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Maps query parameters from {@link TrackerEventsExportController} stored in {@link
- * TrackerEventCriteria} to {@link EventSearchParams} which is used to fetch events from the DB.
+ * TrackerEventCriteria} to {@link EventQueryParams} which is used to fetch events from the DB.
  */
 @Component("org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapper")
 @RequiredArgsConstructor
@@ -107,6 +112,8 @@ class TrackerEventCriteriaMapper {
 
   private final AclService aclService;
 
+  private final TrackerAccessManager trackerAccessManager;
+
   private final TrackedEntityInstanceService entityInstanceService;
 
   private final TrackedEntityAttributeService attributeService;
@@ -128,8 +135,9 @@ class TrackerEventCriteriaMapper {
     }
   }
 
-  public EventSearchParams map(TrackerEventCriteria criteria)
+  public EventQueryParams map(TrackerEventCriteria criteria)
       throws BadRequestException, ForbiddenException {
+
     Program program = applyIfNonEmpty(programService::getProgram, criteria.getProgram());
     validateProgram(criteria.getProgram(), program);
 
@@ -137,12 +145,27 @@ class TrackerEventCriteriaMapper {
         applyIfNonEmpty(programStageService::getProgramStage, criteria.getProgramStage());
     validateProgramStage(criteria.getProgramStage(), programStage);
 
-    OrganisationUnit orgUnit =
-        applyIfNonEmpty(organisationUnitService::getOrganisationUnit, criteria.getOrgUnit());
-    validateOrgUnit(criteria.getOrgUnit(), orgUnit);
-
     User user = currentUserService.getCurrentUser();
     validateUser(user, program, programStage);
+
+    OrganisationUnit requestedOrgUnit =
+        applyIfNonEmpty(organisationUnitService::getOrganisationUnit, criteria.getOrgUnit());
+    validateOrgUnit(criteria.getOrgUnit(), requestedOrgUnit);
+
+    if (criteria.getOuMode() != null) {
+      validateOrgUnitMode(criteria.getOuMode(), requestedOrgUnit, user);
+    }
+
+    OrganisationUnitSelectionMode orgUnitMode =
+        getOrgUnitMode(requestedOrgUnit, criteria.getOuMode());
+    List<OrganisationUnit> accessibleOrgUnits =
+        validateAccessibleOrgUnits(
+            user,
+            requestedOrgUnit,
+            orgUnitMode,
+            program,
+            organisationUnitService::getOrganisationUnitWithChildren,
+            trackerAccessManager);
 
     TrackedEntityInstance trackedEntityInstance =
         applyIfNonEmpty(
@@ -182,16 +205,16 @@ class TrackerEventCriteriaMapper {
             .filter(CodeGenerator::isValidUid)
             .collect(Collectors.toSet());
 
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
 
     return params
         .setProgram(program)
         .setProgramStage(programStage)
-        .setOrgUnit(orgUnit)
+        .setAccessibleOrgUnits(accessibleOrgUnits)
         .setTrackedEntityInstance(trackedEntityInstance)
         .setProgramStatus(criteria.getProgramStatus())
         .setFollowUp(criteria.getFollowUp())
-        .setOrgUnitSelectionMode(criteria.getOuMode())
+        .setOrgUnitSelectionMode(orgUnitMode)
         .setUserWithAssignedUsers(criteria.getAssignedUserMode(), user, assignedUserIds)
         .setStartDate(criteria.getOccurredAfter())
         .setEndDate(criteria.getOccurredBefore())
@@ -246,13 +269,18 @@ class TrackerEventCriteriaMapper {
     }
   }
 
-  private void validateUser(User user, Program pr, ProgramStage ps) throws ForbiddenException {
-    if (pr != null && !user.isSuper() && !aclService.canDataRead(user, pr)) {
-      throw new ForbiddenException("User has no access to program: " + pr.getUid());
+  private void validateUser(User user, Program program, ProgramStage programStage)
+      throws ForbiddenException {
+
+    if (user.isSuper()) {
+      return;
+    }
+    if (program != null && !aclService.canDataRead(user, program)) {
+      throw new ForbiddenException("User has no access to program: " + program.getUid());
     }
 
-    if (ps != null && !user.isSuper() && !aclService.canDataRead(user, ps)) {
-      throw new ForbiddenException("User has no access to program stage: " + ps.getUid());
+    if (programStage != null && !aclService.canDataRead(user, programStage)) {
+      throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
     }
   }
 

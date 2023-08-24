@@ -96,16 +96,16 @@ import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.SecurityService;
-import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.PasswordValidationResult;
+import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -137,13 +137,7 @@ public class UserController extends AbstractCrudController<User> {
 
   public static final String BULK_INVITE_PATH = "/invites";
 
-  private static final String KEY_USERNAME = "username";
-
-  private static final String KEY_PASSWORD = "password";
-
   @Autowired protected DbmsManager dbmsManager;
-
-  @Autowired private UserService userService;
 
   @Autowired private UserGroupService userGroupService;
 
@@ -153,7 +147,7 @@ public class UserController extends AbstractCrudController<User> {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired private UserSettingService userSettingService;
+  @Autowired private PasswordValidationService passwordValidationService;
 
   // -------------------------------------------------------------------------
   // GET
@@ -449,8 +443,8 @@ public class UserController extends AbstractCrudController<User> {
 
     Map<String, String> auth = renderService.fromJson(request.getInputStream(), Map.class);
 
-    String username = StringUtils.trimToNull(auth != null ? auth.get(KEY_USERNAME) : null);
-    String password = StringUtils.trimToNull(auth != null ? auth.get(KEY_PASSWORD) : null);
+    String username = StringUtils.trimToNull(auth != null ? auth.get("username") : null);
+    String password = StringUtils.trimToNull(auth != null ? auth.get("password") : null);
 
     if (auth == null || username == null) {
       return conflict("Username must be specified");
@@ -464,8 +458,17 @@ public class UserController extends AbstractCrudController<User> {
       return conflict("Password must be specified");
     }
 
-    if (!ValidationUtils.passwordIsValid(password)) {
-      return conflict("Password must have at least 8 characters, one digit, one uppercase");
+    CredentialsInfo credentialsInfo =
+        new CredentialsInfo(
+            username,
+            password,
+            existingUser.getEmail() != null ? existingUser.getEmail() : "",
+            false);
+
+    PasswordValidationResult result = passwordValidationService.validate(credentialsInfo);
+
+    if (!result.isValid()) {
+      return conflict(result.getErrorMessage());
     }
 
     User userReplica = new User();
@@ -476,6 +479,7 @@ public class UserController extends AbstractCrudController<User> {
     userReplica.setUid(CodeGenerator.generateUid());
     userReplica.setCode(null);
     userReplica.setCreated(new Date());
+    userReplica.setCreatedBy(currentUser);
     userReplica.setLdapId(null);
     userReplica.setOpenId(null);
     userReplica.setUsername(username);

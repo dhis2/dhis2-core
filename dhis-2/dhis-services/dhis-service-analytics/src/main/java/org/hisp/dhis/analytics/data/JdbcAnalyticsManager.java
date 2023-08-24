@@ -251,7 +251,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
             periods,
             String.format(
                 "Period list cannot be null, key: '%s', map: '%s'",
-                key, dataPeriodAggregationPeriodMap.toString()));
+                key, dataPeriodAggregationPeriodMap));
 
         Object value = dataValueMap.get(key);
 

@@ -48,7 +48,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
@@ -76,6 +76,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = RESOURCE_PATH + "/" + TrackerEventsExportController.EVENTS)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
+@OpenApi.Ignore
 public class TrackerEventsExportController {
   protected static final String EVENTS = "events";
 
@@ -101,13 +102,13 @@ public class TrackerEventsExportController {
       TrackerEventCriteria eventCriteria,
       @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields)
       throws BadRequestException, ForbiddenException {
-    EventSearchParams eventSearchParams = requestToSearchParams.map(eventCriteria);
+    EventQueryParams eventQueryParams = requestToSearchParams.map(eventCriteria);
 
-    if (areAllEnrollmentsInvalid(eventCriteria, eventSearchParams)) {
+    if (areAllEnrollmentsInvalid(eventCriteria, eventQueryParams)) {
       return new PagingWrapper<ObjectNode>().withInstances(Collections.emptyList());
     }
 
-    Events events = eventService.getEvents(eventSearchParams);
+    Events events = eventService.getEvents(eventQueryParams);
 
     PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
@@ -128,13 +129,13 @@ public class TrackerEventsExportController {
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
       HttpServletRequest request)
       throws IOException, BadRequestException, ForbiddenException {
-    EventSearchParams eventSearchParams = requestToSearchParams.map(eventCriteria);
+    EventQueryParams eventQueryParams = requestToSearchParams.map(eventCriteria);
 
-    if (areAllEnrollmentsInvalid(eventCriteria, eventSearchParams)) {
+    if (areAllEnrollmentsInvalid(eventCriteria, eventQueryParams)) {
       return;
     }
 
-    Events events = eventService.getEvents(eventSearchParams);
+    Events events = eventService.getEvents(eventQueryParams);
 
     OutputStream outputStream = response.getOutputStream();
     response.setContentType(CONTENT_TYPE_CSV);
@@ -152,9 +153,9 @@ public class TrackerEventsExportController {
   }
 
   private boolean areAllEnrollmentsInvalid(
-      TrackerEventCriteria eventCriteria, EventSearchParams eventSearchParams) {
+      TrackerEventCriteria eventCriteria, EventQueryParams eventQueryParams) {
     return !CollectionUtils.isEmpty(eventCriteria.getEnrollments())
-        && CollectionUtils.isEmpty(eventSearchParams.getProgramInstances());
+        && CollectionUtils.isEmpty(eventQueryParams.getProgramInstances());
   }
 
   @GetMapping("{uid}")

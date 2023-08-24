@@ -29,6 +29,7 @@ package org.hisp.dhis.commons.util;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.commons.util.TextUtils.removeAnyTrailingSlash;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -254,5 +255,19 @@ class TextUtilsTest {
     assertEquals(2, lines.size());
     assertEquals("one,two,three", lines.get(0));
     assertEquals("aa,bb,cc", lines.get(1));
+  }
+
+  @Test
+  void testRemoveTrailingSlash() {
+    String strWithSlash = "/path/";
+    String slashRemoved = removeAnyTrailingSlash(strWithSlash);
+    assertEquals("/path", slashRemoved);
+  }
+
+  @Test
+  void testRemoveNoTrailingSlash() {
+    String strWithSlash = "/path";
+    String slashRemoved = removeAnyTrailingSlash(strWithSlash);
+    assertEquals("/path", slashRemoved);
   }
 }

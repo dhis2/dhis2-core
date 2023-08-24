@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.validation;
 import static org.hisp.dhis.tracker.validation.PersistablesFilter.filter;
 
 import java.util.HashSet;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
@@ -70,7 +71,13 @@ public class DefaultValidationService implements ValidationService {
           "Skipping validation for metadata import by user '"
               + bundle.getUsername()
               + "'. Not recommended.");
-      return Result.empty();
+      return new Result(
+          bundle.getTrackedEntities(),
+          bundle.getEnrollments(),
+          bundle.getEvents(),
+          bundle.getRelationships(),
+          Set.of(),
+          Set.of());
     }
 
     Reporter reporter =

@@ -147,6 +147,7 @@ public class TrackerEnrollmentCriteriaMapper {
 
     Set<OrganisationUnit> orgUnits = new HashSet<>();
     if (orgUnitIds != null) {
+
       for (String orgUnitId : orgUnitIds) {
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(orgUnitId);
 

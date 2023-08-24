@@ -134,7 +134,6 @@ class TrackerBundleImportReportTest {
     TrackerTypeReport typeReport = new TrackerTypeReport(TRACKED_ENTITY);
     Entity entity = new Entity(TRACKED_ENTITY);
 
-    entity.setIndex(0);
     entity.setUid("BltTZV9HvEZ");
     typeReport.addEntity(entity);
     typeReport.getStats().setCreated(1);
@@ -213,9 +212,6 @@ class TrackerBundleImportReportTest {
     assertEquals(
         serializedReportTrackerTypeReport.getTrackerType(),
         deserializedReportTrackerTypeReport.getTrackerType());
-    assertEquals(
-        serializedReportTrackerTypeReport.getEntityReportMap(),
-        deserializedReportTrackerTypeReport.getEntityReportMap());
     assertEquals(
         serializedReportTrackerTypeReport.getEntityReport(),
         deserializedReportTrackerTypeReport.getEntityReport());

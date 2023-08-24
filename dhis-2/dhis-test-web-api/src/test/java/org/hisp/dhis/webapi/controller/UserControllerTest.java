@@ -301,6 +301,29 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  void testReplicateUserCreatedByUpdated() throws JsonProcessingException {
+    User newUser = createUserWithAuth("test", "ALL");
+
+    switchToNewUser(newUser);
+
+    String replicatedUsername = "peter2";
+
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "User replica created",
+        POST(
+                "/users/" + peter.getUid() + "/replica",
+                "{'username':'" + replicatedUsername + "','password':'Saf€sEcre1'}")
+            .content());
+
+    User replicatedUser = userService.getUserByUsername(replicatedUsername);
+
+    assertEquals(newUser.getUsername(), replicatedUser.getCreatedBy().getUsername());
+  }
+
+  @Test
   void testReplicateUser_UserNameAlreadyTaken() {
     assertWebMessage(
         "Conflict",
@@ -352,7 +375,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         "Conflict",
         409,
         "ERROR",
-        "Password must have at least 8 characters, one digit, one uppercase",
+        "Password must have at least 8, and at most 60 characters",
         POST("/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'lame'}")
             .content(HttpStatus.CONFLICT));
   }

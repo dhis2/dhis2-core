@@ -83,7 +83,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
@@ -100,6 +100,7 @@ import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
@@ -151,6 +152,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping(value = EventController.RESOURCE_PATH)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
+@OpenApi.Ignore
 public class EventController {
   public static final String RESOURCE_PATH = "/events";
 
@@ -251,7 +253,7 @@ public class EventController {
       Model model,
       HttpServletResponse response,
       HttpServletRequest request)
-      throws WebMessageException {
+      throws WebMessageException, ForbiddenException {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
@@ -276,7 +278,7 @@ public class EventController {
 
     skipPaging = PagerUtils.isSkipPaging(skipPaging, paging);
 
-    EventSearchParams params =
+    EventQueryParams params =
         requestToSearchParamsMapper.map(
             program,
             programStage,
@@ -380,7 +382,7 @@ public class EventController {
 
     skipPaging = PagerUtils.isSkipPaging(skipPaging, paging);
 
-    EventSearchParams params =
+    EventQueryParams params =
         requestToSearchParamsMapper.map(
             program,
             programStage,
@@ -483,7 +485,7 @@ public class EventController {
 
     skipPaging = PagerUtils.isSkipPaging(skipPaging, paging);
 
-    EventSearchParams params =
+    EventQueryParams params =
         requestToSearchParamsMapper.map(
             program,
             programStage,
@@ -587,7 +589,7 @@ public class EventController {
 
     skipPaging = PagerUtils.isSkipPaging(skipPaging, paging);
 
-    EventSearchParams params =
+    EventQueryParams params =
         requestToSearchParamsMapper.map(
             program,
             programStage,
@@ -638,7 +640,8 @@ public class EventController {
       @RequestParam Map<String, String> parameters,
       Model model,
       HttpServletResponse response,
-      HttpServletRequest request) {
+      HttpServletRequest request)
+      throws ForbiddenException {
     WebOptions options = new WebOptions(parameters);
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
@@ -647,7 +650,7 @@ public class EventController {
           "event,uid,program,programStage,programType,status,assignedUser,orgUnit,orgUnitName,eventDate,orgUnit,orgUnitName,created,lastUpdated,followup,deleted,dataValues");
     }
 
-    EventSearchParams params = requestToSearchParamsMapper.map(eventCriteria);
+    EventQueryParams params = requestToSearchParamsMapper.map(eventCriteria);
 
     setParamBasedOnFieldParameters(params, fields);
 
@@ -694,7 +697,7 @@ public class EventController {
       Model model,
       HttpServletResponse response,
       HttpServletRequest request)
-      throws WebMessageException {
+      throws ForbiddenException {
     WebOptions options = new WebOptions(parameters);
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
@@ -702,7 +705,7 @@ public class EventController {
       fields.addAll(Preset.ALL.getFields());
     }
 
-    EventSearchParams params = requestToSearchParamsMapper.map(eventCriteria);
+    EventQueryParams params = requestToSearchParamsMapper.map(eventCriteria);
 
     Events events = eventService.getEvents(params);
 
@@ -749,7 +752,7 @@ public class EventController {
    * @param rootNode
    */
   private void addPager(
-      final EventSearchParams params, final Events events, final RootNode rootNode) {
+      final EventQueryParams params, final Events events, final RootNode rootNode) {
     if (events.getPager() != null) {
       if (params.isTotalPages()) {
         rootNode.addChild(NodeUtils.createPager(events.getPager()));
@@ -766,8 +769,8 @@ public class EventController {
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
       HttpServletResponse response,
       HttpServletRequest request)
-      throws IOException, WebMessageException {
-    EventSearchParams params = requestToSearchParamsMapper.map(eventCriteria);
+      throws IOException, ForbiddenException {
+    EventQueryParams params = requestToSearchParamsMapper.map(eventCriteria);
 
     Events events = eventService.getEvents(params);
 
@@ -820,13 +823,13 @@ public class EventController {
       @RequestParam Map<String, String> parameters,
       IdSchemes idSchemes,
       Model model)
-      throws WebMessageException {
+      throws ForbiddenException {
     CategoryOptionCombo attributeOptionCombo =
         inputUtils.getAttributeOptionCombo(attributeCc, attributeCos, true);
 
     skipPaging = PagerUtils.isSkipPaging(skipPaging, paging);
 
-    EventSearchParams params =
+    EventQueryParams params =
         requestToSearchParamsMapper.map(
             program,
             null,
@@ -1268,7 +1271,7 @@ public class EventController {
     return params.get(key) != null ? params.get(key).get(0) : null;
   }
 
-  private void setParamBasedOnFieldParameters(EventSearchParams params, List<String> fields) {
+  private void setParamBasedOnFieldParameters(EventQueryParams params, List<String> fields) {
     String joined = Joiner.on("").join(fields);
 
     if (joined.contains("*")) {

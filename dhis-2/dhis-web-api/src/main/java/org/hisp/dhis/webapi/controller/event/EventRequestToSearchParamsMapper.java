@@ -28,6 +28,9 @@
 package org.hisp.dhis.webapi.controller.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.getOrgUnitMode;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.validateAccessibleOrgUnits;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.validateOrgUnitMode;
 
 import java.util.Collections;
 import java.util.Date;
@@ -56,9 +59,10 @@ import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -72,6 +76,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -104,6 +109,8 @@ class EventRequestToSearchParamsMapper {
 
   private final SchemaService schemaService;
 
+  private final TrackerAccessManager trackerAccessManager;
+
   private Schema schema;
 
   @PostConstruct
@@ -113,7 +120,7 @@ class EventRequestToSearchParamsMapper {
     }
   }
 
-  public EventSearchParams map(
+  public EventQueryParams map(
       String program,
       String programStage,
       ProgramStatus programStatus,
@@ -145,7 +152,8 @@ class EventRequestToSearchParamsMapper {
       Set<String> filters,
       Set<String> dataElements,
       boolean includeAllDataElements,
-      boolean includeDeleted) {
+      boolean includeDeleted)
+      throws ForbiddenException {
     return map(
         program,
         programStage,
@@ -182,7 +190,7 @@ class EventRequestToSearchParamsMapper {
         includeDeleted);
   }
 
-  public EventSearchParams map(
+  public EventQueryParams map(
       String program,
       String programStage,
       ProgramStatus programStatus,
@@ -215,10 +223,11 @@ class EventRequestToSearchParamsMapper {
       Set<String> filters,
       Set<String> dataElements,
       boolean includeAllDataElements,
-      boolean includeDeleted) {
+      boolean includeDeleted)
+      throws ForbiddenException {
     User user = currentUserService.getCurrentUser();
 
-    EventSearchParams params = new EventSearchParams();
+    EventQueryParams params = new EventQueryParams();
 
     Program pr = programService.getProgram(program);
 
@@ -234,10 +243,23 @@ class EventRequestToSearchParamsMapper {
     }
 
     OrganisationUnit ou = organisationUnitService.getOrganisationUnit(orgUnit);
-
     if (!StringUtils.isEmpty(orgUnit) && ou == null) {
       throw new IllegalQueryException("Org unit is specified but does not exist: " + orgUnit);
     }
+
+    if (orgUnitSelectionMode != null) {
+      validateOrgUnitMode(orgUnitSelectionMode, ou, user);
+    }
+
+    OrganisationUnitSelectionMode orgUnitMode = getOrgUnitMode(ou, orgUnitSelectionMode);
+    List<OrganisationUnit> accessibleOrgUnits =
+        validateAccessibleOrgUnits(
+            user,
+            ou,
+            orgUnitMode,
+            pr,
+            organisationUnitService::getOrganisationUnitWithChildren,
+            trackerAccessManager);
 
     if (pr != null && !user.isSuper() && !aclService.canDataRead(user, pr)) {
       throw new IllegalQueryException("User has no access to program: " + pr.getUid());
@@ -304,11 +326,11 @@ class EventRequestToSearchParamsMapper {
     return params
         .setProgram(pr)
         .setProgramStage(ps)
-        .setOrgUnit(ou)
+        .setAccessibleOrgUnits(accessibleOrgUnits)
         .setTrackedEntityInstance(tei)
         .setProgramStatus(programStatus)
         .setFollowUp(followUp)
-        .setOrgUnitSelectionMode(orgUnitSelectionMode)
+        .setOrgUnitSelectionMode(orgUnitMode)
         .setUserWithAssignedUsers(assignedUserSelectionMode, user, assignedUsers)
         .setStartDate(startDate)
         .setEndDate(endDate)
@@ -363,7 +385,7 @@ class EventRequestToSearchParamsMapper {
     return new QueryItem(de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet());
   }
 
-  public EventSearchParams map(EventCriteria eventCriteria) {
+  public EventQueryParams map(EventCriteria eventCriteria) throws ForbiddenException {
 
     CategoryOptionCombo attributeOptionCombo =
         inputUtils.getAttributeOptionCombo(

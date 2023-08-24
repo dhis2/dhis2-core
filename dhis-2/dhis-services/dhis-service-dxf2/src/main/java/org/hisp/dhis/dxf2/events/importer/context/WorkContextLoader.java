@@ -75,7 +75,6 @@ public class WorkContextLoader {
   private final SessionFactory sessionFactory;
 
   public WorkContextLoader(
-      // @formatter:off
       ProgramSupplier programSupplier,
       OrganisationUnitSupplier organisationUnitSupplier,
       TrackedEntityInstanceSupplier trackedEntityInstanceSupplier,
@@ -87,9 +86,7 @@ public class WorkContextLoader {
       AssignedUserSupplier assignedUserSupplier,
       ServiceDelegatorSupplier serviceDelegatorSupplier,
       ProgramOrgUnitSupplier programOrgUnitSupplier,
-      SessionFactory sessionFactory
-      // @formatter:on
-      ) {
+      SessionFactory sessionFactory) {
     this.programSupplier = programSupplier;
     this.organisationUnitSupplier = organisationUnitSupplier;
     this.trackedEntityInstanceSupplier = trackedEntityInstanceSupplier;
