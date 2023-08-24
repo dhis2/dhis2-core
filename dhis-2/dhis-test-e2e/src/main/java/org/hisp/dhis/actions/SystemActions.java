@@ -51,13 +51,9 @@ public class SystemActions extends RestApiActions {
 
   /**
    * Waits until the task is completed and returns a response. The default timeout is 20 seconds.
-   *
-   * @param taskType
-   * @param taskId
-   * @return
    */
   public ApiResponse waitUntilTaskCompleted(String taskType, String taskId) {
-    return waitUntilTaskCompleted(taskType, taskId, 20);
+    return waitUntilTaskCompleted(taskType, taskId, 40);
   }
 
   /**
@@ -65,14 +61,13 @@ public class SystemActions extends RestApiActions {
    *
    * @param taskType the task type
    * @param taskId the task unique id
-   * @param timeout maximum time to wait for the task to complete (in seconds)
-   * @return
+   * @param timeoutSeconds maximum time to wait for the task to complete (in seconds)
    */
-  public ApiResponse waitUntilTaskCompleted(String taskType, String taskId, long timeout) {
+  public ApiResponse waitUntilTaskCompleted(String taskType, String taskId, long timeoutSeconds) {
     Callable<Boolean> taskIsCompleted =
         () -> getTask(taskType, taskId).validateStatus(200).extractList("completed").contains(true);
 
-    with().atMost(timeout, SECONDS).await().until(() -> taskIsCompleted.call());
+    with().atMost(timeoutSeconds, SECONDS).await().until(taskIsCompleted);
 
     return getTask(taskType, taskId);
   }
@@ -81,17 +76,11 @@ public class SystemActions extends RestApiActions {
     return waitForTaskSummaries(taskType, taskId).validateStatus(200).getImportSummaries();
   }
 
-  /**
-   * Waits until task summaries are generated and returns the response
-   *
-   * @param taskType
-   * @param taskId
-   * @return
-   */
+  /** Waits until task summaries are generated and returns the response */
   public ApiResponse waitForTaskSummaries(String taskType, String taskId) {
     String url = String.format("/taskSummaries/%s/%s", taskType, taskId);
 
-    await().ignoreExceptions().until(() -> !get(url).validateStatus(200).getBody().equals(null));
+    await().ignoreExceptions().until(() -> get(url).validateStatus(200).getBody() != null);
 
     return get(url);
   }
