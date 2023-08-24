@@ -35,6 +35,7 @@ import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +53,6 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -139,21 +139,7 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
       @CurrentUser User currentUser) {
 
     WebRequestData requestData = applyRequestSetup(rpParameters, orderParams);
-
-    WebMetadata metadata = new WebMetadata();
-    List<DimensionalObject> entities = dimensionService.getAllDimensions();
-
-    Query filteredQuery =
-        queryService.getQueryFromUrl(
-            DimensionalObject.class, requestData.filters(), requestData.orders());
-    filteredQuery.setObjects(entities);
-
-    List<DimensionalObject> filteredEntities =
-        (List<DimensionalObject>) queryService.query(filteredQuery);
-
-    PagedEntities<DimensionalObject> pagedEntities =
-        PaginationUtils.addPagingIfEnabled(metadata, requestData.options(), filteredEntities);
-    linkService.generatePagerLinks(pagedEntities.pager(), RESOURCE_PATH);
+    PagedEntities<DimensionalObject> pagedEntities = getPagedEntities(requestData);
 
     return ResponseEntity.ok(
         new StreamingJsonRoot<>(
@@ -161,6 +147,30 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
             getSchema().getCollectionName(),
             org.hisp.dhis.fieldfiltering.FieldFilterParams.of(
                 pagedEntities.entities(), requestData.fields())));
+  }
+
+  @Override
+  @OpenApi.Param(name = "fields", value = String[].class)
+  @OpenApi.Param(name = "filter", value = String[].class)
+  @OpenApi.Params(WebOptions.class)
+  @GetMapping(produces = {"text/csv", "application/text"})
+  public ResponseEntity<String> getObjectListCsv(
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      @CurrentUser User currentUser,
+      @RequestParam(defaultValue = ",") char separator,
+      @RequestParam(defaultValue = ";") String arraySeparator,
+      @RequestParam(defaultValue = "false") boolean skipHeader,
+      HttpServletResponse response)
+      throws IOException {
+
+    WebRequestData requestData = applyRequestSetup(rpParameters, orderParams);
+    PagedEntities<DimensionalObject> pagedEntities = getPagedEntities(requestData);
+    String csv =
+        applyCsvSteps(
+            requestData.fields(), pagedEntities.entities(), separator, arraySeparator, skipHeader);
+
+    return ResponseEntity.ok(csv);
   }
 
   @SuppressWarnings("unchecked")
@@ -286,6 +296,20 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
     return ResponseEntity.ok(new JsonRoot("dimensions", objectNodes));
   }
 
+  private PagedEntities<DimensionalObject> getPagedEntities(WebRequestData requestData) {
+    List<DimensionalObject> entities = dimensionService.getAllDimensions();
+    WebMetadata metadata = new WebMetadata();
+
+    Query filteredQuery =
+        queryService.getQueryFromUrl(
+            DimensionalObject.class, requestData.filters(), requestData.orders());
+    filteredQuery.setObjects(entities);
+
+    List<DimensionalObject> filteredEntities =
+        (List<DimensionalObject>) queryService.query(filteredQuery);
+    return PaginationUtils.addPagingIfEnabled(metadata, requestData.options(), filteredEntities);
+  }
+
   /**
    * This method performs some generic steps. It can be moved into the {@link
    * org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController} so other Controllers can use it
@@ -294,7 +318,6 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
    * @param rpParameters request parameters
    * @return {@link WebRequestData} record purely for data packaging purposes, containing {@link
    *     WebOptions}, {@link List} of fields and {@link List} of filters
-   * @throws ForbiddenException if no permission
    */
   protected WebRequestData applyRequestSetup(
       Map<String, String> rpParameters, OrderParams orderParams) {

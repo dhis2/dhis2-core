@@ -34,16 +34,19 @@ import static org.hisp.dhis.webapi.controller.AbstractGistControllerTest.assertH
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
@@ -172,6 +175,42 @@ class DimensionControllerTest extends DhisControllerConvenienceTest {
 
     assertNotNull(displayName);
     assertNull(id);
+  }
+
+  @Test
+  void testGetCsvDimensions() {
+    addCategoryCombos(55);
+    String response = GET("/dimensions.csv").content("text/csv");
+    int firstNewLine = response.indexOf("\n");
+    int secondComma = response.indexOf(",", 3);
+
+    assertNotNull(response);
+    assertTrue(response.contains("id,displayName"));
+    // confirms valid UID if created
+    UID.of(response.substring(firstNewLine + 1, secondComma));
+    assertTrue(response.contains("Gender0"));
+  }
+
+  @Test
+  void testGetCsvDimensionsWithFields() {
+    addCategoryCombos(55);
+    String response = GET("/dimensions.csv?fields=id,name,dimensionType").content("text/csv");
+
+    assertNotNull(response);
+    assertTrue(response.contains("id,name,dimensionType"));
+    assertTrue(response.contains("Gender0"));
+    assertTrue(response.contains("CATEGORY"));
+  }
+
+  @Test
+  void testGetCsvDimensionsWithOrdering() {
+    addCategoryCombos(55);
+    String response = GET("/dimensions.csv?order=displayName:asc").content("text/csv");
+
+    String valueFromCsv = CsvUtils.getValueFromCsv(1, 3, response);
+
+    assertNotNull(response);
+    assertEquals("Gender10", valueFromCsv);
   }
 
   @Test

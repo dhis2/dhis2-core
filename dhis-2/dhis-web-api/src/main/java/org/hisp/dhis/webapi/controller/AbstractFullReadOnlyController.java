@@ -308,6 +308,19 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     List<T> entities = getEntityList(metadata, options, filters, orders);
 
+    try {
+      String string = applyCsvSteps(fields, entities, separator, arraySeparator, skipHeader);
+      return ResponseEntity.ok(string);
+    } catch (CsvWriteException ex) {
+      response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+      throw new ConflictException(
+              "Invalid property selected. Make sure all properties are either simple or collections of refs / simple.")
+          .setDevMessage(ex.getMessage());
+    }
+  }
+
+  protected String applyCsvSteps(List<String> fields, List<T> entities, char separator, String arraySeparator, boolean skipHeader) throws IOException {
     CsvSchema schema;
     CsvSchema.Builder schemaBuilder = CsvSchema.builder();
     Map<String, Function<T, Object>> obj2valueByProperty = new LinkedHashMap<>();
@@ -374,14 +387,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       }
 
       seqW.close();
-
-      return ResponseEntity.ok(strW.toString());
-    } catch (CsvWriteException ex) {
-      response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-
-      throw new ConflictException(
-              "Invalid property selected. Make sure all properties are either simple or collections of refs / simple.")
-          .setDevMessage(ex.getMessage());
+      return strW.toString();
     }
   }
 
