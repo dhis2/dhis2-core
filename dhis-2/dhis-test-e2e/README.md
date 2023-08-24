@@ -4,9 +4,10 @@
 
 DHIS2 e2e tests are written and executed using the following libraries and tools
 
- - [REST-assured](http://rest-assured.io) - provides rest client, handles logging and validation
- - [JUnit 5](https://junit.org/junit5/) - runs the e2e tests
- - [Docker Compose](https://docs.docker.com/compose/) - defines and runs DHIS2 multi-container environment
+- [REST-assured](http://rest-assured.io) - provides rest client, handles logging and validation
+- [JUnit 5](https://junit.org/junit5/) - runs the e2e tests
+- [Docker Compose](https://docs.docker.com/compose/) - defines and runs DHIS2 multi-container
+  environment
 
 ## Running Tests
 

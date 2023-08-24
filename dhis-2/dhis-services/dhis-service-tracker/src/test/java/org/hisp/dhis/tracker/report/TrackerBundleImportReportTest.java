@@ -153,7 +153,6 @@ class TrackerBundleImportReportTest {
     trackerErrorReports.add(errorReport1);
     trackerErrorReports.add(errorReport2);
     trackerObjectReport.getErrorReports().addAll(trackerErrorReports);
-    trackerObjectReport.setIndex(0);
     trackerObjectReport.setUid("BltTZV9HvEZ");
     typeReport.addObjectReport(trackerObjectReport);
     typeReport.getStats().setCreated(1);
@@ -236,11 +235,8 @@ class TrackerBundleImportReportTest {
         serializedReportTrackerTypeReport.getTrackerType(),
         deserializedReportTrackerTypeReport.getTrackerType());
     assertEquals(
-        serializedReportTrackerTypeReport.getObjectReportMap(),
-        deserializedReportTrackerTypeReport.getObjectReportMap());
-    assertEquals(
-        serializedReportTrackerTypeReport.getObjectReports(),
-        deserializedReportTrackerTypeReport.getObjectReports());
+        serializedReportTrackerTypeReport.getEntityReport(),
+        deserializedReportTrackerTypeReport.getEntityReport());
     assertEquals(
         serializedReportTrackerTypeReport.getStats(),
         deserializedReportTrackerTypeReport.getStats());

@@ -29,9 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import com.fasterxml.jackson.databind.util.StdConverter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
@@ -94,38 +92,31 @@ class TrackerBundleParamsConverter extends StdConverter<TrackerBundleParams, Tra
    */
   @Override
   public TrackerBundleParams convert(TrackerBundleParams dataBundle) {
-    Map<String, TrackedEntity> trackedEntityMap = new HashMap<>();
-    Map<String, Enrollment> enrollmentHashMap = new HashMap<>();
-    Map<String, Event> eventHashMap = new HashMap<>();
-    Map<String, Relationship> relationshipHashMap = new HashMap<>();
+    List<TrackedEntity> trackedEntities = new ArrayList<>();
+    List<Enrollment> enrollments = new ArrayList<>();
+    List<Event> events = new ArrayList<>();
+    List<Relationship> relationships = new ArrayList<>();
 
     // Extract all enrollments and relationships, and set parent reference.
     for (TrackedEntity te : dataBundle.getTrackedEntities()) {
       updateTrackedEntityReferences(te);
-      trackedEntityMap.put(te.getTrackedEntity(), te);
+      trackedEntities.add(te);
 
-      extractEnrollments(te)
-          .forEach(enrollment -> enrollmentHashMap.put(enrollment.getEnrollment(), enrollment));
+      enrollments.addAll(extractEnrollments(te));
 
-      extractRelationships(te)
-          .forEach(
-              relationship ->
-                  relationshipHashMap.put(relationship.getRelationship(), relationship));
+      relationships.addAll(extractRelationships(te));
     }
 
     // Set UID for all enrollments and notes
     dataBundle.getEnrollments().stream()
-        .peek(enrollment -> updateEnrollmentReferences(enrollment, enrollment.getTrackedEntity()))
-        .forEach(enrollment -> enrollmentHashMap.put(enrollment.getEnrollment(), enrollment));
+        .map(enrollment -> updateEnrollmentReferences(enrollment, enrollment.getTrackedEntity()))
+        .forEach(enrollments::add);
 
     // Extract all events and relationships, and set parent references
-    for (Enrollment enrollment : enrollmentHashMap.values()) {
-      extractEvents(enrollment).forEach(event -> eventHashMap.put(event.getEvent(), event));
+    for (Enrollment enrollment : enrollments) {
+      events.addAll(extractEvents(enrollment));
 
-      extractRelationships(enrollment)
-          .forEach(
-              relationship ->
-                  relationshipHashMap.put(relationship.getRelationship(), relationship));
+      relationships.addAll(extractRelationships(enrollment));
 
       enrollment.setNotes(
           enrollment.getNotes().stream()
@@ -136,15 +127,12 @@ class TrackerBundleParamsConverter extends StdConverter<TrackerBundleParams, Tra
 
     // Set UID for all events and notes
     dataBundle.getEvents().stream()
-        .peek(event -> updateEventReferences(event, event.getEnrollment()))
-        .forEach(event -> eventHashMap.put(event.getEvent(), event));
+        .map(event -> updateEventReferences(event, event.getEnrollment()))
+        .forEach(events::add);
 
     // Extract all relationships
-    for (Event event : eventHashMap.values()) {
-      extractRelationships(event)
-          .forEach(
-              relationship ->
-                  relationshipHashMap.put(relationship.getRelationship(), relationship));
+    for (Event event : events) {
+      relationships.addAll(extractRelationships(event));
 
       event.setNotes(
           event.getNotes().stream()
@@ -155,15 +143,14 @@ class TrackerBundleParamsConverter extends StdConverter<TrackerBundleParams, Tra
 
     // Set UID for all relationships
     dataBundle.getRelationships().stream()
-        .peek(this::updateRelationshipReferences)
-        .forEach(
-            relationship -> relationshipHashMap.put(relationship.getRelationship(), relationship));
+        .map(this::updateRelationshipReferences)
+        .forEach(relationships::add);
 
     return TrackerBundleParams.builder()
-        .trackedEntities(new ArrayList<>(trackedEntityMap.values()))
-        .enrollments(new ArrayList<>(enrollmentHashMap.values()))
-        .events(new ArrayList<>(eventHashMap.values()))
-        .relationships(new ArrayList<>(relationshipHashMap.values()))
+        .trackedEntities(trackedEntities)
+        .enrollments(enrollments)
+        .events(events)
+        .relationships(relationships)
         .build();
   }
 
@@ -275,8 +262,9 @@ class TrackerBundleParamsConverter extends StdConverter<TrackerBundleParams, Tra
    *
    * @param relationship the relationship to update references for
    */
-  private void updateRelationshipReferences(Relationship relationship) {
+  private Relationship updateRelationshipReferences(Relationship relationship) {
     relationship.setRelationship(updateReference(relationship.getRelationship()));
+    return relationship;
   }
 
   /**
@@ -285,10 +273,10 @@ class TrackerBundleParamsConverter extends StdConverter<TrackerBundleParams, Tra
    * @param event the event to check and update references for
    * @param enrollment the parent enrollment uid
    */
-  private void updateEventReferences(Event event, String enrollment) {
+  private Event updateEventReferences(Event event, String enrollment) {
     event.setEvent(updateReference(event.getEvent()));
     event.setEnrollment(StringUtils.isEmpty(enrollment) ? null : enrollment);
-    event.setEnrollment(StringUtils.isEmpty(enrollment) ? null : enrollment);
+    return event;
   }
 
   /**
@@ -297,9 +285,10 @@ class TrackerBundleParamsConverter extends StdConverter<TrackerBundleParams, Tra
    * @param enrollment the enrollment to check and update references for
    * @param trackedEntity the parent trackedEntity uid
    */
-  private void updateEnrollmentReferences(Enrollment enrollment, String trackedEntity) {
+  private Enrollment updateEnrollmentReferences(Enrollment enrollment, String trackedEntity) {
     enrollment.setEnrollment(updateReference(enrollment.getEnrollment()));
     enrollment.setTrackedEntity(StringUtils.isEmpty(trackedEntity) ? null : trackedEntity);
+    return enrollment;
   }
 
   /**

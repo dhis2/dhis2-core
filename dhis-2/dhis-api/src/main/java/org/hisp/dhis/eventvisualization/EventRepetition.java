@@ -56,7 +56,7 @@ public class EventRepetition implements Serializable, EmbeddedObject {
   @NotNull
   private Attribute parent;
 
-  /** The dimension associated with the event repedition. */
+  /** The dimension associated with the event repetition. */
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
   @NotNull
@@ -66,12 +66,15 @@ public class EventRepetition implements Serializable, EmbeddedObject {
    * Represents the list of event indexes to be queried. It holds a list of integers that are
    * interpreted as follows:
    *
-   * <p>// @formatter:off
-   *
-   * <p>1 = First event 2 = Second event 3 = Third event ... -2 = Third latest event -1 = Second
-   * latest event 0 = Latest event (default)
-   *
-   * <p>// @formatter:on
+   * <ul>
+   *   <li>1 = First event
+   *   <li>2 = Second event
+   *   <li>3 = Third event
+   *   <li>...
+   *   <li>-2 = Third latest event
+   *   <li>-1 = Second latest event
+   *   <li>0 = Latest event (default)
+   * </ul>
    */
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)

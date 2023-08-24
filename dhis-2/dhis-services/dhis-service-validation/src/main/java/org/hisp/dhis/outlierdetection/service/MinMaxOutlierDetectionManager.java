@@ -68,7 +68,6 @@ public class MinMaxOutlierDetectionManager {
   public List<OutlierValue> getOutlierValues(OutlierDetectionRequest request) {
     final String ouPathClause = getOrgUnitPathClause(request.getOrgUnits());
 
-    // @formatter:off
     final String sql =
         "select de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, "
             + "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, "
@@ -103,7 +102,6 @@ public class MinMaxOutlierDetectionManager {
             // Order and limit
             "order by bound_abs_dev desc "
             + "limit :max_results;";
-    // @formatter:on
 
     final SqlParameterSource params =
         new MapSqlParameterSource()

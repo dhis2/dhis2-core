@@ -125,7 +125,7 @@ public class EventDataValuesValidationHook implements TrackerValidationHook {
     } else if (dataElement.getValueType().isOrganisationUnit()) {
       validateOrgUnitValueType(reporter, bundle, event, dataValue, dataElement);
     } else {
-      status = ValidationUtils.dataValueIsValid(dataValue.getValue(), dataElement);
+      status = ValidationUtils.valueIsValid(dataValue.getValue(), dataElement);
     }
 
     if (status != null) {

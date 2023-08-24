@@ -90,7 +90,6 @@ public class ZScoreOutlierDetectionManager {
             ? "middle_value_abs_dev"
             : request.getOrderBy().getKey();
 
-    // @formatter:off
     final String sql =
         "select dvs.de_uid, dvs.ou_uid, dvs.coc_uid, dvs.aoc_uid, "
             + "dvs.de_name, dvs.ou_name, dvs.coc_name, dvs.aoc_name, dvs.value, dvs.follow_up, "
@@ -162,7 +161,6 @@ public class ZScoreOutlierDetectionManager {
             + order
             + " desc "
             + "limit :max_results;";
-    // @formatter:on
 
     final SqlParameterSource params =
         new MapSqlParameterSource()

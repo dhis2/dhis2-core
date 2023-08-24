@@ -60,6 +60,7 @@ import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -85,7 +86,8 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       PartitionManager partitionManager,
       DatabaseInfo databaseInfo,
       JdbcTemplate jdbcTemplate,
-      AnalyticsExportSettings analyticsExportSettings) {
+      AnalyticsExportSettings analyticsExportSettings,
+      PeriodDataProvider periodDataProvider) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -98,7 +100,8 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
         partitionManager,
         databaseInfo,
         jdbcTemplate,
-        analyticsExportSettings);
+        analyticsExportSettings,
+        periodDataProvider);
   }
 
   private static final List<AnalyticsTableColumn> FIXED_COLS =

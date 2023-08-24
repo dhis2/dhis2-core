@@ -254,7 +254,7 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
       dv.setLastUpdated(new java.util.Date());
       dv.setStoredBy(storedBy);
 
-      if (ValidationUtils.dataValueIsValid(value, dv.getDataElement()) != null) {
+      if (ValidationUtils.valueIsValid(value, dv.getDataElement()) != null) {
         return; // not a valid value for data element
       }
 

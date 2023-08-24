@@ -66,7 +66,6 @@ import org.junit.jupiter.api.Test;
 class PersistablesFilterTest {
   @Test
   void testCreateAndUpdateValidEntitiesCanBePersisted() {
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")
@@ -94,7 +93,6 @@ class PersistablesFilterTest {
 
   @Test
   void testCreateAndUpdateValidEntitiesReferencingParentsNotInPayload() {
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")
@@ -121,7 +119,6 @@ class PersistablesFilterTest {
 
   @Test
   void testCreateAndUpdateValidEntitiesCanBePersistedIfTheyExist() {
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")
@@ -144,7 +141,6 @@ class PersistablesFilterTest {
 
   @Test
   void testCreateAndUpdateValidEnrollmentOfInvalidTeiCanBeUpdatedIfTeiExists() {
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")
@@ -164,7 +160,6 @@ class PersistablesFilterTest {
 
   @Test
   void testCreateAndUpdateValidEnrollmentOfInvalidTeiCannotBeUpdatedIfTeiDoesNotExist() {
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")
@@ -189,7 +184,6 @@ class PersistablesFilterTest {
 
   @Test
   void testCreateAndUpdateValidEventOfInvalidEnrollmentCanBeUpdatedIfEnrollmentExists() {
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")
@@ -211,7 +205,6 @@ class PersistablesFilterTest {
 
   @Test
   void testCreateAndUpdateValidEventOfInvalidEnrollmentCannotBeCreatedIfEnrollmentDoesNotExist() {
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")
@@ -234,7 +227,6 @@ class PersistablesFilterTest {
 
   @Test
   void testCreateAndUpdateInvalidEventOfValidEnrollmentCannotBePersisted() {
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")
@@ -255,7 +247,6 @@ class PersistablesFilterTest {
 
   @Test
   void testCreateAndUpdateInvalidRelationshipCannotBePersisted() {
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")
@@ -275,7 +266,6 @@ class PersistablesFilterTest {
 
   @Test
   void testCreateAndUpdateValidRelationshipWithInvalidButExistingFrom() {
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")
@@ -296,7 +286,6 @@ class PersistablesFilterTest {
 
   @Test
   void testCreateAndUpdateValidRelationshipWithInvalidFromCannotBeCreated() {
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")
@@ -322,7 +311,6 @@ class PersistablesFilterTest {
 
   @Test
   void testCreateAndUpdateValidRelationshipWithInvalidToCannotBeCreated() {
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")
@@ -355,7 +343,6 @@ class PersistablesFilterTest {
     // validation report. Only add errors if it would not be clear why an entity cannot be
     // persisted.
 
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")
@@ -378,7 +365,6 @@ class PersistablesFilterTest {
 
   @Test
   void testDeleteValidEntitiesCanBeDeleted() {
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")
@@ -406,7 +392,6 @@ class PersistablesFilterTest {
 
   @Test
   void testDeleteInvalidTrackedEntityCannotBeDeletedButItsChildrenCan() {
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")
@@ -433,7 +418,6 @@ class PersistablesFilterTest {
     // validation report. Only add errors if it would not be clear why an entity cannot be
     // persisted.
 
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")
@@ -456,7 +440,6 @@ class PersistablesFilterTest {
 
   @Test
   void testDeleteInvalidRelationshipPreventsDeletionOfTrackedEntityAndEvent() {
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")
@@ -497,7 +480,6 @@ class PersistablesFilterTest {
 
   @Test
   void testDeleteInvalidRelationshipPreventsDeletionOfEnrollmentAndEvent() {
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")
@@ -535,7 +517,6 @@ class PersistablesFilterTest {
 
   @Test
   void testDeleteValidRelationshipWithInvalidFrom() {
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("QxGbKYwChDM")
@@ -556,7 +537,6 @@ class PersistablesFilterTest {
 
   @Test
   void testDeleteValidEntitiesReferencingParentsNotInPayload() {
-    // @formatter:off
     Setup setup =
         new Setup.Builder()
             .trackedEntity("xK7H53f4Hc2")

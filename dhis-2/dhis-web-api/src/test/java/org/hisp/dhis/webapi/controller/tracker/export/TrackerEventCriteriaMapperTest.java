@@ -53,7 +53,7 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -69,10 +69,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -87,6 +89,7 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 class TrackerEventCriteriaMapperTest {
 
+  private static final String DE_1_UID = "OBzmpRP6YUh";
   public static final String TEA_1_UID = "TvjwTPToKHO";
 
   public static final String TEA_2_UID = "cy2oRh2sNr6";
@@ -113,6 +116,8 @@ class TrackerEventCriteriaMapperTest {
 
   @Mock private SchemaService schemaService;
 
+  @Mock private TrackerAccessManager trackerAccessManager;
+
   @InjectMocks private TrackerEventCriteriaMapper mapper;
 
   private Program program;
@@ -122,6 +127,17 @@ class TrackerEventCriteriaMapperTest {
   private TrackedEntityInstance trackedEntityInstance;
 
   private TrackedEntityAttribute tea1;
+
+  private OrganisationUnit orgUnit;
+
+  private final String orgUnitId = "orgUnitId";
+
+  private final List<OrganisationUnit> orgUnitDescendants =
+      List.of(
+          createOrgUnit("orgUnit1", "uid1"),
+          createOrgUnit("orgUnit2", "uid2"),
+          createOrgUnit("captureScopeOrgUnit", "uid3"),
+          createOrgUnit("searchScopeOrgUnit", "uid4"));
 
   @BeforeEach
   public void setUp() {
@@ -138,11 +154,11 @@ class TrackerEventCriteriaMapperTest {
     when(programStageService.getProgramStage("programstageuid")).thenReturn(programStage);
     when(aclService.canDataRead(user, programStage)).thenReturn(true);
 
-    OrganisationUnit ou = new OrganisationUnit();
-    DataElement de = new DataElement();
-
-    when(organisationUnitService.getOrganisationUnit(any())).thenReturn(ou);
-    when(organisationUnitService.isInUserHierarchy(ou)).thenReturn(true);
+    orgUnit = createOrgUnit("orgUnit", orgUnitId);
+    orgUnit.setChildren(
+        Set.of(
+            createOrgUnit("captureScopeChild", "captureScopeChildUid"),
+            createOrgUnit("searchScopeChild", "searchScopeChildUid")));
 
     trackedEntityInstance = new TrackedEntityInstance();
     when(entityInstanceService.getTrackedEntityInstance("teiuid"))
@@ -154,7 +170,10 @@ class TrackerEventCriteriaMapperTest {
     when(attributeService.getAllTrackedEntityAttributes()).thenReturn(List.of(tea1, tea2));
     when(attributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
 
-    when(dataElementService.getDataElement(any())).thenReturn(de);
+    DataElement de1 = new DataElement();
+    de1.setUid(DE_1_UID);
+    when(dataElementService.getDataElement(DE_1_UID)).thenReturn(de1);
+    when(dataElementService.getDataElement(any())).thenReturn(de1);
 
     Schema eventSchema = new Schema(Event.class, "event", "events");
     Property prop1 = new Property();
@@ -174,7 +193,7 @@ class TrackerEventCriteriaMapperTest {
   }
 
   @Test
-  void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB() {
+  void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
 
     mapper.map(criteria);
@@ -186,11 +205,11 @@ class TrackerEventCriteriaMapperTest {
   }
 
   @Test
-  void testMappingProgram() {
+  void testMappingProgram() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
     criteria.setProgram(PROGRAM_UID);
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertEquals(program, params.getProgram());
   }
@@ -205,13 +224,47 @@ class TrackerEventCriteriaMapperTest {
   }
 
   @Test
-  void testMappingProgramStage() {
+  void testMappingProgramStage() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
     criteria.setProgramStage("programstageuid");
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertEquals(programStage, params.getProgramStage());
+  }
+
+  @Test
+  void testMappingUnknownTrackedEntity() {
+    TrackerEventCriteria criteria = new TrackerEventCriteria();
+    criteria.setProgramStage("unknown");
+
+    Exception exception = assertThrows(IllegalQueryException.class, () -> mapper.map(criteria));
+    assertEquals("Program stage is specified but does not exist: unknown", exception.getMessage());
+  }
+
+  @Test
+  void shouldReturnOrgUnitWhenCorrectOrgUnitMapped() {
+    TrackerEventCriteria criteria = new TrackerEventCriteria();
+    criteria.setOrgUnit(orgUnit.getUid());
+
+    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
+    when(trackerAccessManager.canAccess(currentUserService.getCurrentUser(), null, orgUnit))
+        .thenReturn(true);
+
+    EventQueryParams params = mapper.map(criteria);
+
+    assertContainsOnly(List.of(orgUnit), params.getAccessibleOrgUnits());
+  }
+
+  @Test
+  void shouldFailWithBadRequestExceptionWhenMappingCriteriaWithUnknownOrgUnit() {
+    TrackerEventCriteria criteria = new TrackerEventCriteria();
+    criteria.setOrgUnit("unknown");
+    when(organisationUnitService.getOrganisationUnit(any())).thenReturn(null);
+
+    Exception exception = assertThrows(IllegalQueryException.class, () -> mapper.map(criteria));
+
+    assertEquals("Org unit is specified but does not exist: unknown", exception.getMessage());
   }
 
   @Test
@@ -219,13 +272,13 @@ class TrackerEventCriteriaMapperTest {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
     criteria.setTrackedEntity("teiuid");
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertEquals(trackedEntityInstance, params.getTrackedEntityInstance());
   }
 
   @Test
-  void testMappingOccurredAfterBefore() {
+  void testMappingOccurredAfterBefore() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
 
     Date occurredAfter = parseDate("2020-01-01");
@@ -233,14 +286,14 @@ class TrackerEventCriteriaMapperTest {
     Date occurredBefore = parseDate("2020-09-12");
     criteria.setOccurredBefore(occurredBefore);
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertEquals(occurredAfter, params.getStartDate());
     assertEquals(occurredBefore, params.getEndDate());
   }
 
   @Test
-  void testMappingScheduledAfterBefore() {
+  void testMappingScheduledAfterBefore() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
 
     Date scheduledAfter = parseDate("2021-01-01");
@@ -248,14 +301,14 @@ class TrackerEventCriteriaMapperTest {
     Date scheduledBefore = parseDate("2021-09-12");
     criteria.setScheduledBefore(scheduledBefore);
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertEquals(scheduledAfter, params.getDueDateStart());
     assertEquals(scheduledBefore, params.getDueDateEnd());
   }
 
   @Test
-  void testMappingUpdatedDates() {
+  void testMappingUpdatedDates() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
 
     Date updatedAfter = parseDate("2022-01-01");
@@ -265,7 +318,7 @@ class TrackerEventCriteriaMapperTest {
     String updatedWithin = "P6M";
     criteria.setUpdatedWithin(updatedWithin);
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertEquals(updatedAfter, params.getLastUpdatedStartDate());
     assertEquals(updatedBefore, params.getLastUpdatedEndDate());
@@ -273,7 +326,7 @@ class TrackerEventCriteriaMapperTest {
   }
 
   @Test
-  void testMappingEnrollmentEnrolledAtDates() {
+  void testMappingEnrollmentEnrolledAtDates() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
 
     Date enrolledBefore = parseDate("2022-01-01");
@@ -281,14 +334,14 @@ class TrackerEventCriteriaMapperTest {
     Date enrolledAfter = parseDate("2022-02-01");
     criteria.setEnrollmentEnrolledAfter(enrolledAfter);
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertEquals(enrolledBefore, params.getEnrollmentEnrolledBefore());
     assertEquals(enrolledAfter, params.getEnrollmentEnrolledAfter());
   }
 
   @Test
-  void testMappingEnrollmentOcurredAtDates() {
+  void testMappingEnrollmentOcurredAtDates() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
 
     Date enrolledBefore = parseDate("2022-01-01");
@@ -296,14 +349,14 @@ class TrackerEventCriteriaMapperTest {
     Date enrolledAfter = parseDate("2022-02-01");
     criteria.setEnrollmentOccurredAfter(enrolledAfter);
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertEquals(enrolledBefore, params.getEnrollmentOccurredBefore());
     assertEquals(enrolledAfter, params.getEnrollmentOccurredAfter());
   }
 
   @Test
-  void testMappingAttributeOrdering() {
+  void testMappingAttributeOrdering() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
 
     OrderCriteria attributeOrder = OrderCriteria.of(TEA_1_UID, OrderParam.SortDirection.ASC);
@@ -311,7 +364,7 @@ class TrackerEventCriteriaMapperTest {
         OrderCriteria.of("unknownAtt1", OrderParam.SortDirection.ASC);
     criteria.setOrder(List.of(attributeOrder, unknownAttributeOrder));
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertAll(
         () ->
@@ -322,91 +375,91 @@ class TrackerEventCriteriaMapperTest {
   }
 
   @Test
-  void testMappingEnrollments() {
+  void testMappingEnrollments() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
 
     Set<String> enrollments = Set.of("NQnuK2kLm6e");
     criteria.setEnrollments(enrollments);
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertEquals(enrollments, params.getProgramInstances());
   }
 
   @Test
-  void testMappingEvents() {
+  void testMappingEvents() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
     criteria.setEvent("XKrcfuM4Hcw;M4pNmLabtXl");
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertEquals(Set.of("XKrcfuM4Hcw", "M4pNmLabtXl"), params.getEvents());
   }
 
   @Test
-  void testMappingEventsStripsInvalidUid() {
+  void testMappingEventsStripsInvalidUid() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
     criteria.setEvent("invalidUid;M4pNmLabtXl");
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertEquals(Set.of("M4pNmLabtXl"), params.getEvents());
   }
 
   @Test
-  void testMappingEventIsNull() {
+  void testMappingEventIsNull() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertIsEmpty(params.getEvents());
   }
 
   @Test
-  void testMappingEventIsEmpty() {
+  void testMappingEventIsEmpty() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
     criteria.setEvent(" ");
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertIsEmpty(params.getEvents());
   }
 
   @Test
-  void testMappingAssignedUser() {
+  void testMappingAssignedUser() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
     criteria.setAssignedUser("XKrcfuM4Hcw;M4pNmLabtXl");
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertContainsOnly(Set.of("XKrcfuM4Hcw", "M4pNmLabtXl"), params.getAssignedUsers());
   }
 
   @Test
-  void testMappingAssignedUserStripsInvalidUid() {
+  void testMappingAssignedUserStripsInvalidUid() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
     criteria.setAssignedUser("invalidUid;M4pNmLabtXl");
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertEquals(Set.of("M4pNmLabtXl"), params.getAssignedUsers());
   }
 
   @Test
-  void testMappingAssignedUserIsNull() {
+  void testMappingAssignedUserIsNull() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertIsEmpty(params.getAssignedUsers());
   }
 
   @Test
-  void testMappingAssignedUserIsEmpty() {
+  void testMappingAssignedUserIsEmpty() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
     criteria.setAssignedUser(" ");
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertIsEmpty(params.getAssignedUsers());
   }
@@ -423,11 +476,11 @@ class TrackerEventCriteriaMapperTest {
   }
 
   @Test
-  void testOrderByEventSchemaProperties() {
+  void testOrderByEventSchemaProperties() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
     criteria.setOrder(OrderCriteria.fromOrderString("programStage:desc,dueDate:asc"));
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertContainsOnly(
         List.of(
@@ -437,11 +490,11 @@ class TrackerEventCriteriaMapperTest {
   }
 
   @Test
-  void testOrderBySupportedPropertyNotInEventSchema() {
+  void testOrderBySupportedPropertyNotInEventSchema() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
     criteria.setOrder(OrderCriteria.fromOrderString("enrolledAt:asc"));
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertContainsOnly(
         List.of(new OrderParam("enrolledAt", OrderParam.SortDirection.ASC)), params.getOrders());
@@ -473,12 +526,12 @@ class TrackerEventCriteriaMapperTest {
   }
 
   @Test
-  void testFilterAttributes() {
+  void testFilterAttributes() throws BadRequestException {
 
     TrackerEventCriteria criteria = new TrackerEventCriteria();
     criteria.setFilterAttributes(Set.of(TEA_1_UID + ":eq:2", TEA_2_UID + ":like:foo"));
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     List<QueryItem> items = params.getFilterAttributes();
     assertNotNull(items);
@@ -515,11 +568,11 @@ class TrackerEventCriteriaMapperTest {
   }
 
   @Test
-  void testFilterAttributesWhenTEAHasMultipleFilters() {
+  void testFilterAttributesWhenTEAHasMultipleFilters() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
     criteria.setFilterAttributes(Set.of(TEA_1_UID + ":gt:10:lt:20"));
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     List<QueryItem> items = params.getFilterAttributes();
     assertNotNull(items);
@@ -589,12 +642,12 @@ class TrackerEventCriteriaMapperTest {
   }
 
   @Test
-  void testFilterAttributesUsingOnlyUID() {
+  void testFilterAttributesUsingOnlyUID() throws BadRequestException {
 
     TrackerEventCriteria criteria = new TrackerEventCriteria();
     criteria.setFilterAttributes(Set.of(TEA_1_UID));
 
-    EventSearchParams params = mapper.map(criteria);
+    EventQueryParams params = mapper.map(criteria);
 
     assertContainsOnly(
         List.of(
@@ -606,5 +659,11 @@ class TrackerEventCriteriaMapperTest {
                 tea1.getOptionSet(),
                 tea1.isUnique())),
         params.getFilterAttributes());
+  }
+
+  private OrganisationUnit createOrgUnit(String name, String uid) {
+    OrganisationUnit orgUnit = new OrganisationUnit(name);
+    orgUnit.setUid(uid);
+    return orgUnit;
   }
 }

@@ -41,6 +41,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -271,6 +273,7 @@ public class AggregateDataExchangeService {
         .addDimension(toDimensionalObject(PERIOD_DIM_ID, request.getPe(), format, inputIdScheme))
         .addDimension(toDimensionalObject(ORGUNIT_DIM_ID, request.getOu(), format, inputIdScheme))
         .addFilters(filters)
+        .withAggregationType(toAnalyticsAggregationType(request.getAggregationType()))
         .withOutputDataElementIdScheme(outputDataElementIdScheme)
         .withOutputOrgUnitIdScheme(outputOrgUnitIdScheme)
         .withOutputIdScheme(outputIdScheme)
@@ -304,6 +307,18 @@ public class AggregateDataExchangeService {
       Filter filter, I18nFormat format, IdScheme inputIdScheme) {
     return dataQueryService.getDimension(
         filter.getDimension(), filter.getItems(), new Date(), null, format, false, inputIdScheme);
+  }
+
+  /**
+   * Returns the {@link AnalyticsAggregationType} based on the given {@link AggregationType}.
+   *
+   * @param aggregationType the {@link AggregationType}.
+   * @return the {@link AnalyticsAggregationType}.
+   */
+  AnalyticsAggregationType toAnalyticsAggregationType(AggregationType aggregationType) {
+    return aggregationType != null
+        ? AnalyticsAggregationType.fromAggregationType(aggregationType)
+        : null;
   }
 
   /**

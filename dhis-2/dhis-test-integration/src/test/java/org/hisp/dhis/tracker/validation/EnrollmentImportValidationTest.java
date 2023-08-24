@@ -147,8 +147,7 @@ class EnrollmentImportValidationTest extends TrackerTest {
             .getBundleReport()
             .getTypeReportMap()
             .get(TrackerType.ENROLLMENT)
-            .getObjectReportMap()
-            .values()
+            .getObjectReports()
             .size());
   }
 

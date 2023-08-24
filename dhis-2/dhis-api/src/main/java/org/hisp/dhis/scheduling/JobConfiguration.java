@@ -428,13 +428,9 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   }
 
   @JacksonXmlProperty
-  @JsonProperty
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   public boolean isLeaderOnlyJob() {
-    return leaderOnlyJob;
-  }
-
-  public void setLeaderOnlyJob(boolean leaderOnlyJob) {
-    this.leaderOnlyJob = leaderOnlyJob;
+    return !jobType.isRunOnAllNodes();
   }
 
   public boolean isInMemoryJob() {
