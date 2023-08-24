@@ -210,6 +210,9 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest {
                 "{'cronExpression':'0 0 1 ? * *','sequence':['%s','%s','%s']}",
                 jobIdA, jobIdB, jobIdC)));
 
+    // we use SQL to find queue names so we have to make sure the creation is visible
+    dbmsManager.flushSession();
+
     assertEquals(List.of("testQueue"), GET("/scheduler/queues/").content().stringValues());
   }
 

@@ -125,6 +125,17 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
   Set<JobType> getCompletedTypes();
 
   /**
+   * @return a set of all queue names
+   */
+  Set<String> getAllQueueNames();
+
+  /**
+   * @param queue of the queue to list
+   * @return All jobs in a queue ordered by their position
+   */
+  List<JobConfiguration> getJobsInQueue(@Nonnull String queue);
+
+  /**
    * @param queue name of the queue
    * @param fromPosition current position in the queue (executed last)
    * @return the job next in line if exists or null otherwise
