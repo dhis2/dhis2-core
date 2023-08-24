@@ -148,12 +148,26 @@ public class Notification implements Comparable<Notification> {
     return data;
   }
 
+  /**
+   * When comparing {@link Notification}s with the same time & {@link JobType}, we want the {@link
+   * Notification} marked as completed to be seen as the latest {@link Notification}. This ensures
+   * the UI doesn't 'hang' if the order is not as expected. This is an edge case but has been seen
+   * locally.
+   *
+   * @param other the object to be compared.
+   * @return comparison result
+   */
   @Override
   public int compareTo(@Nonnull Notification other) {
     if (category != other.category) {
       return category.compareTo(other.category);
     }
     // flip this/other => newest first
-    return other.time.compareTo(time);
+    int result = other.time.compareTo(time);
+
+    if (result != 0) return result;
+
+    if (completed) return -1;
+    return result;
   }
 }
