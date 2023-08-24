@@ -46,6 +46,7 @@ import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.SecondaryMetadataObject;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
@@ -252,6 +253,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
       defaultImpl = java.lang.Void.class)
   @JsonSubTypes(
       value = {
+        @JsonSubTypes.Type(value = MetadataImportParams.class, name = "METADATA_IMPORT"),
         @JsonSubTypes.Type(value = ImportOptions.class, name = "DATAVALUE_IMPORT"),
         @JsonSubTypes.Type(value = AnalyticsJobParameters.class, name = "ANALYTICS_TABLE"),
         @JsonSubTypes.Type(

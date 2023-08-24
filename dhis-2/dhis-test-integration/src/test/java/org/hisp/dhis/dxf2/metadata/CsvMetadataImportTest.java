@@ -251,10 +251,10 @@ class CsvMetadataImportTest extends SingleSetupIntegrationTestBase {
       preCondition.accept(metadata);
     }
     MetadataImportParams params = new MetadataImportParams();
-    params.addMetadata(schemaService.getMetadataSchemas(), metadata);
     if (modifier != null) {
       modifier.accept(params);
     }
-    return importService.importMetadata(params);
+    return importService.importMetadata(
+        params, new MetadataObjects().addMetadata(schemaService.getMetadataSchemas(), metadata));
   }
 }
