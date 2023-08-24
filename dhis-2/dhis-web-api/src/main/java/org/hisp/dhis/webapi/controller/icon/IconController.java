@@ -110,30 +110,12 @@ public class IconController {
 
   @GetMapping(value = "/{uid}/icon")
   public void getCustomIconData(@PathVariable String uid, HttpServletResponse response)
-      throws NotFoundException, WebMessageException {
-    FileResource fileResource = fileResourceService.getFileResource(uid);
+      throws NotFoundException, WebMessageException, IOException {
 
-    if (fileResource == null) {
-      throw new NotFoundException(FileResource.class, uid);
-    }
-
-    response.setContentType(fileResource.getContentType());
-    response.setHeader(
-        HttpHeaders.CONTENT_LENGTH,
-        String.valueOf(fileResourceService.getFileResourceContentLength(fileResource)));
-    response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
-    HeaderUtils.setSecurityHeaders(
-        response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
-
-    try {
-      fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
-    } catch (IOException e) {
-      log.error("Could not retrieve file.", e);
-      throw new WebMessageException(
-          error(
-              "Failed fetching the file from storage",
-              "There was an exception when trying to fetch the file from the storage backend. "
-                  + "Depending on the provider the root cause could be network or file system related."));
+    if (iconService.iconExists(uid)) {
+      downloadDefaultIcon(uid, response);
+    } else {
+      downloadCustomIcon(uid, response);
     }
   }
 
@@ -183,5 +165,43 @@ public class IconController {
     WebMessage webMessage = new WebMessage(Status.OK, HttpStatus.OK);
     webMessage.setMessage(String.format("Icon %s deleted", iconKey));
     return webMessage;
+  }
+
+  private void downloadDefaultIcon(String defaultIcon, HttpServletResponse response)
+      throws IOException, NotFoundException {
+    Resource icon = iconService.getDefaultIconResource(defaultIcon);
+
+    response.setHeader("Cache-Control", CacheControl.maxAge(TTL, TimeUnit.DAYS).getHeaderValue());
+    response.setContentType(MediaType.SVG_UTF_8.toString());
+
+    StreamUtils.copyThenCloseInputStream(icon.getInputStream(), response.getOutputStream());
+  }
+
+  private void downloadCustomIcon(String customIcon, HttpServletResponse response)
+      throws NotFoundException, WebMessageException {
+    FileResource fileResource = fileResourceService.getFileResource(customIcon);
+
+    if (fileResource == null) {
+      throw new NotFoundException(FileResource.class, customIcon);
+    }
+
+    response.setContentType(fileResource.getContentType());
+    response.setHeader(
+        HttpHeaders.CONTENT_LENGTH,
+        String.valueOf(fileResourceService.getFileResourceContentLength(fileResource)));
+    response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
+    HeaderUtils.setSecurityHeaders(
+        response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
+
+    try {
+      fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
+    } catch (IOException e) {
+      log.error("Could not retrieve file.", e);
+      throw new WebMessageException(
+          error(
+              "Failed fetching the file from storage",
+              "There was an exception when trying to fetch the file from the storage backend. "
+                  + "Depending on the provider the root cause could be network or file system related."));
+    }
   }
 }
