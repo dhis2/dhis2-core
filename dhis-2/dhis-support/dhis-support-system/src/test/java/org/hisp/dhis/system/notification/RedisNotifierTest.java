@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.system.notification;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -103,5 +104,47 @@ class RedisNotifierTest extends DhisConvenienceTest {
     assertTrue(latestNotification.getTime().after(middleNotification.getTime()));
     assertTrue(latestNotification.getTime().after(earliestNotification.getTime()));
     assertTrue(middleNotification.getTime().after(earliestNotification.getTime()));
+  }
+
+  @Test
+  void getNotificationsByJobIdTest_OrderedByTimeAndCompleted() {
+    notifier = new RedisNotifier(redisTemplate, new ObjectMapper());
+    JobType jobType = JobType.ANALYTICS_TABLE;
+    String jobId = "job1d1";
+    Set<String> dataFromRedis = new HashSet<>();
+
+    // 3 Notifications, 2 with the same 'time' value (1 of which is 'complete')
+    String notificationEarliest =
+        "{\"uid\":\"ju8WSUHJKHO\",\"level\": \"INFO\",\"category\":\"ANALYTICS_TABLE\",\"time\":\"2023-07-05T10:16:33.554\",\"message\":\"1 Analytics tables updated\",\"completed\":false}";
+    String notificationLatestComplete =
+        "{\"uid\":\"zM8zxPLTKaY\",\"level\":\"INFO\",\"category\":\"ANALYTICS_TABLE\",\"time\":\"2023-07-05T10:16:33.555\",\"message\":\"2 Drop SQL views\",\"completed\":true}";
+    String notificationLatestNotComplete =
+        "{\"uid\":\"aM8zxPLTKaY\",\"level\":\"INFO\",\"category\":\"ANALYTICS_TABLE\",\"time\":\"2023-07-05T10:16:33.555\",\"message\":\"3 Drop SQL views\",\"completed\":false}";
+
+    // add notifications unordered
+    dataFromRedis.add(notificationEarliest);
+    dataFromRedis.add(notificationLatestComplete);
+    dataFromRedis.add(notificationLatestNotComplete);
+
+    when(redisTemplate.boundZSetOps(any())).thenReturn(boundZSetOperations);
+    when(redisTemplate.boundZSetOps(any()).range(0, -1)).thenReturn(dataFromRedis);
+
+    // Notifications should be returned in an ordered Queue from this call
+    Deque<Notification> result = notifier.getNotificationsByJobId(jobType, jobId);
+
+    assertFalse(result.isEmpty());
+    // check first Notification is completed
+    Notification peek = result.peek();
+    assertTrue(peek.isCompleted());
+
+    // confirm the ordering of each Notification and that first two times are equal
+    Notification latestNotificationComplete = result.removeFirst();
+    Notification latestNotificationCompleteNotComplete = result.removeFirst();
+    Notification earliestNotification = result.removeFirst();
+    assertEquals(
+        latestNotificationComplete.getTime(), latestNotificationCompleteNotComplete.getTime());
+    assertTrue(latestNotificationComplete.getTime().after(earliestNotification.getTime()));
+    assertTrue(
+        latestNotificationCompleteNotComplete.getTime().after(earliestNotification.getTime()));
   }
 }
