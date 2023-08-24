@@ -45,12 +45,7 @@ public class QueryParamsBuilder {
     return this.add(param + "=" + value);
   }
 
-  /**
-   * Adds or updates the query param. Format: key=value
-   *
-   * @param param
-   * @return
-   */
+  /** Adds or updates the query param. Format: key=value */
   public QueryParamsBuilder add(String param) {
     String[] split = param.split("=");
     MutablePair pair = getByKey(split[0]);
@@ -78,7 +73,7 @@ public class QueryParamsBuilder {
   }
 
   public String build() {
-    if (queryParams.size() == 0) {
+    if (queryParams.isEmpty()) {
       return "";
     }
 

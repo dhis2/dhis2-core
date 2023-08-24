@@ -30,7 +30,6 @@ package org.hisp.dhis.helpers.file;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.File;
-import java.io.IOException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.actions.IdGenerator;
@@ -40,7 +39,7 @@ import org.hisp.dhis.utils.DataGenerator;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class FileReaderUtils {
-  private Logger logger = LogManager.getLogger(FileReaderUtils.class.getName());
+  private final Logger logger = LogManager.getLogger(FileReaderUtils.class.getName());
 
   public FileReader read(File file) throws Exception {
 
@@ -67,10 +66,6 @@ public class FileReaderUtils {
   /**
    * Reads json file and generates data where needed. Json file should indicate what data should be
    * generated. Format: %string%, %id%
-   *
-   * @param file
-   * @return
-   * @throws IOException
    */
   public JsonObject readJsonAndGenerateData(File file) throws Exception {
     return read(file)

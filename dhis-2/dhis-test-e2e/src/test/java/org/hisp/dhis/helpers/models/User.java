@@ -36,11 +36,11 @@ import org.apache.commons.collections4.ListUtils;
  * @author Stian Sandvold
  */
 public class User {
-  private String username;
+  private final String username;
 
-  private String uid;
+  private final String uid;
 
-  private String password;
+  private final String password;
 
   private Map<String, List<String>> dataRead;
 
