@@ -28,7 +28,11 @@
 package org.hisp.dhis.userdatastore;
 
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.datastore.DatastoreFields;
+import org.hisp.dhis.datastore.DatastoreQuery;
 import org.hisp.dhis.user.User;
 
 /**
@@ -43,7 +47,7 @@ public interface UserDatastoreStore extends IdentifiableObjectStore<UserDatastor
    * @param key the key referencing the value
    * @return the KeyJsonValue retrieved
    */
-  UserDatastoreEntry getUserKeyJsonValue(User user, String namespace, String key);
+  UserDatastoreEntry getEntry(User user, String namespace, String key);
 
   /**
    * Retrieves a list of namespaces associated with a user
@@ -51,7 +55,7 @@ public interface UserDatastoreStore extends IdentifiableObjectStore<UserDatastor
    * @param user to search namespaces for
    * @return a list of strings representing namespaces
    */
-  List<String> getNamespacesByUser(User user);
+  List<String> getNamespaces(User user);
 
   /**
    * Retrieves a list of keys associated with a given user and namespace.
@@ -60,7 +64,7 @@ public interface UserDatastoreStore extends IdentifiableObjectStore<UserDatastor
    * @param namespace the namespace to search
    * @return a list of strings representing the different keys stored on the user
    */
-  List<String> getKeysByUserAndNamespace(User user, String namespace);
+  List<String> getKeysInNamespace(User user, String namespace);
 
   /**
    * Retrieves all UserKeyJsonvalues from a given user and namespace
@@ -68,5 +72,15 @@ public interface UserDatastoreStore extends IdentifiableObjectStore<UserDatastor
    * @param user to search
    * @param namespace to search
    */
-  List<UserDatastoreEntry> getUserKeyJsonValueByUserAndNamespace(User user, String namespace);
+  List<UserDatastoreEntry> getEntriesInNamespace(User user, String namespace);
+
+  /**
+   * Counts the entries in a given namespace.
+   *
+   * @param namespace the namespace to count
+   * @return number of entries in the given namespace.
+   */
+  int countKeysInNamespace(User user, String namespace);
+
+  <T> T getEntries(User user, DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform);
 }

@@ -33,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.UncheckedIOException;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +51,7 @@ class DatastoreServiceTest extends SingleSetupIntegrationTestBase {
   @Autowired private ObjectMapper jsonMapper;
 
   @Test
-  void testAddGetObject() {
+  void testAddGetObject() throws ConflictException, BadRequestException {
     Dog dogA = new Dog("1", "Fido", "Brown");
     Dog dogB = new Dog("2", "Aldo", "Black");
     addValue(namespace, dogA.getId(), dogA);
@@ -65,7 +67,7 @@ class DatastoreServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testAddUpdateObject() {
+  void testAddUpdateObject() throws ConflictException, BadRequestException {
     Dog dogA = new Dog("1", "Fido", "Brown");
     Dog dogB = new Dog("2", "Aldo", "Black");
     addValue(namespace, dogA.getId(), dogA);
@@ -88,13 +90,14 @@ class DatastoreServiceTest extends SingleSetupIntegrationTestBase {
     return mapJsonValueTo(type, service.getEntry(namespace, key));
   }
 
-  private <T> DatastoreEntry addValue(String namespace, String key, T object) {
+  private <T> DatastoreEntry addValue(String namespace, String key, T object)
+      throws ConflictException, BadRequestException {
     DatastoreEntry entry = new DatastoreEntry(namespace, key, mapValueToJson(object), false);
     service.addEntry(entry);
     return entry;
   }
 
-  public <T> void updateValue(String namespace, String key, T object) {
+  public <T> void updateValue(String namespace, String key, T object) throws BadRequestException {
     DatastoreEntry entry = service.getEntry(namespace, key);
     if (entry == null) {
       throw new IllegalStateException(
