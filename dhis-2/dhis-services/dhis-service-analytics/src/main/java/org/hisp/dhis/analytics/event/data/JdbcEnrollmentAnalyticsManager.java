@@ -259,6 +259,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       }
     } catch (BadSqlGrammarException ex) {
       log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
+      throw ex;
     } catch (DataAccessResourceFailureException ex) {
       log.warn(ErrorCode.E7131.getMessage(), ex);
       throw new QueryRuntimeException(ErrorCode.E7131);
@@ -301,7 +302,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // Periods
     // ---------------------------------------------------------------------
 
-    sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
+    String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
+
+    if (StringUtils.isNotBlank(timeFieldSql)) {
+      sql += hlp.whereAnd() + " " + timeFieldSql;
+    }
 
     // ---------------------------------------------------------------------
     // Organisation units

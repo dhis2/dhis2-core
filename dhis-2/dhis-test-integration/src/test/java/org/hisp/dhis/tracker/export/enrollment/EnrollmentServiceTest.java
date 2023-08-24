@@ -79,8 +79,6 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   private User admin;
 
-  private User user;
-
   private User userWithoutOrgUnit;
 
   private Program programA;
@@ -115,7 +113,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     OrganisationUnit orgUnitC = createOrganisationUnit('C');
     manager.save(orgUnitC, false);
 
-    user = createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "F_EXPORT_DATA");
+    User user =
+        createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "F_EXPORT_DATA");
     user.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB, orgUnitC));
     userWithoutOrgUnit = createUserWithAuth("userWithoutOrgUnit");
 

@@ -162,7 +162,7 @@ public abstract class AttributeValidator {
       boolean hasTheSameValue = Objects.equals(uniqueAttributeValue.getValue(), value);
       boolean isNotSameTei =
           trackedEntity == null
-              || !Objects.equals(trackedEntity.getUid(), uniqueAttributeValue.getTeiUid());
+              || !Objects.equals(trackedEntity.getUid(), uniqueAttributeValue.getTeUid());
 
       if (isTeaUniqueInOrgUnitScope && isTheSameTea && hasTheSameValue && isNotSameTei) {
         reporter.addError(dto, ValidationCode.E1064, value, trackedEntityAttribute);

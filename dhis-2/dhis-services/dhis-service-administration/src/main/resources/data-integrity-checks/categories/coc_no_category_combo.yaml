@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  summary_uid: hNesjuZiLI7
   name: catoptioncombos_no_catcombo
   description: Category options combinations with no category combination.
   section: Categories
@@ -39,7 +38,6 @@
       100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*)
       FROM categoryoptioncombo), 0 )  percent
       FROM catoptioncombos_no_catcombo;
-  details_uid: JVz8Rh6xgaB
   details_sql: >-
     SELECT uid,name FROM categoryoptioncombo
     WHERE categoryoptioncomboid NOT IN (SELECT categoryoptioncomboid

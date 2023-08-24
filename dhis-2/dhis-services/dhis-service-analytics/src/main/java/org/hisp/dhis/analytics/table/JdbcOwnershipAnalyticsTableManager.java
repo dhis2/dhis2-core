@@ -232,7 +232,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
     return sb.append(
             " from ("
-                + "select h.trackedentityinstanceid, '"
+                + "select h.trackedentityid, '"
                 + HISTORY_TABLE_ID
                 + "' as startdate, h.enddate as enddate, h.organisationunitid "
                 + "from programownershiphistory h "
@@ -241,7 +241,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
                 + SPACE
                 + "and h.organisationunitid is not null "
                 + "union "
-                + "select o.trackedentityinstanceid, '"
+                + "select o.trackedentityid, '"
                 + TEI_OWN_TABLE_ID
                 + "' as startdate, null as enddate, o.organisationunitid "
                 + "from trackedentityprogramowner o "
@@ -249,13 +249,13 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
                 + program.getId()
                 + SPACE
                 + "and exists (select 1 from programownershiphistory p "
-                + "where o.trackedentityinstanceid = p.trackedentityinstanceid "
+                + "where o.trackedentityid = p.trackedentityid "
                 + "and p.programid="
                 + program.getId()
                 + SPACE
                 + "and p.organisationunitid is not null)"
                 + ") a "
-                + "inner join trackedentityinstance tei on a.trackedentityinstanceid = tei.trackedentityinstanceid "
+                + "inner join trackedentity tei on a.trackedentityid = tei.trackedentityid "
                 + "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid "
                 + "left join _orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
                 + "left join _organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "

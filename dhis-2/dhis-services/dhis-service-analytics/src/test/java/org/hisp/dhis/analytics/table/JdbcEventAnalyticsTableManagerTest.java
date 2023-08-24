@@ -469,7 +469,7 @@ class JdbcEventAnalyticsTableManagerTest {
     String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
     String aliasTea1 =
         "(select %s from organisationunit ou where ou.uid = (select value from "
-            + "trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+            + "trackedentityattributevalue where trackedentityid=pi.trackedentityid and "
             + "trackedentityattributeid=%d)) as \"%s\"";
 
     AnalyticsTableUpdateParams params =
@@ -598,7 +598,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
     String ouQuery =
         "(select ou.%s from organisationunit ou where ou.uid = "
-            + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+            + "(select value from trackedentityattributevalue where trackedentityid=pi.trackedentityid and "
             + "trackedentityattributeid=9999)) as \""
             + tea.getUid()
             + "\"";
@@ -674,7 +674,7 @@ class JdbcEventAnalyticsTableManagerTest {
             "select temp.supportedyear from (select distinct extract(year from "
                 + getDateLinkedToStatus()
                 + ") as supportedyear "
-                + "from event psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
+                + "from event psi inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
                 + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and ("
                 + getDateLinkedToStatus()
                 + ") is not null "
@@ -855,7 +855,7 @@ class JdbcEventAnalyticsTableManagerTest {
             "select temp.supportedyear from (select distinct extract(year from "
                 + getDateLinkedToStatus()
                 + ") as supportedyear "
-                + "from event psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
+                + "from event psi inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
                 + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and ("
                 + getDateLinkedToStatus()
                 + ") is not null "
@@ -885,7 +885,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
     String ouQuery =
         "(select ou.%s from organisationunit ou where ou.uid = "
-            + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+            + "(select value from trackedentityattributevalue where trackedentityid=pi.trackedentityid and "
             + "trackedentityattributeid=9999)) as \""
             + tea.getUid()
             + "\"";
@@ -913,7 +913,7 @@ class JdbcEventAnalyticsTableManagerTest {
             + getDateLinkedToStatus()
             + ") as supportedyear "
             + "from event psi inner join "
-            + "programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '"
+            + "enrollment pi on psi.enrollmentid = pi.enrollmentid where psi.lastupdated <= '"
             + "2019-08-01T00:00:00' and pi.programid = "
             + program.getId()
             + " and ("

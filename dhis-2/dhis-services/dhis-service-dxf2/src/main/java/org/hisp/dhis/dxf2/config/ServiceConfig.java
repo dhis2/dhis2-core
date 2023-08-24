@@ -219,7 +219,8 @@ public class ServiceConfig {
                 getValidationCheckByClass(TranslationsCheck.class),
                 getValidationCheckByClass(GeoJsonAttributesCheck.class),
                 getValidationCheckByClass(MetadataAttributeCheck.class),
-                getValidationCheckByClass(UidFormatCheck.class)),
+                getValidationCheckByClass(UidFormatCheck.class),
+                getValidationCheckByClass(DashboardCheck.class)),
         CREATE,
             newArrayList(
                 getValidationCheckByClass(DuplicateIdsCheck.class),
@@ -236,7 +237,8 @@ public class ServiceConfig {
                 getValidationCheckByClass(TranslationsCheck.class),
                 getValidationCheckByClass(GeoJsonAttributesCheck.class),
                 getValidationCheckByClass(MetadataAttributeCheck.class),
-                getValidationCheckByClass(UidFormatCheck.class)),
+                getValidationCheckByClass(UidFormatCheck.class),
+                getValidationCheckByClass(DashboardCheck.class)),
         UPDATE,
             newArrayList(
                 getValidationCheckByClass(DuplicateIdsCheck.class),

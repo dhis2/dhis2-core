@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
 public class JdbcTrackedEntityAttributeTableManager implements TrackedEntityAttributeTableManager {
   private static final String TRIGRAM_INDEX_CREATE_QUERY =
       "CREATE INDEX CONCURRENTLY IF NOT EXISTS in_gin_teavalue_%d ON "
-          + "trackedentityattributevalue USING gin (trackedentityinstanceid,lower(value) gin_trgm_ops) where trackedentityattributeid = %d";
+          + "trackedentityattributevalue USING gin (trackedentityid,lower(value) gin_trgm_ops) where trackedentityattributeid = %d";
 
   private static final String TRIGRAM_INDEX_DROP_QUERY = "DROP INDEX IF EXISTS in_gin_teavalue_%d";
 

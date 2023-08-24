@@ -30,8 +30,8 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 import java.util.List;
 import lombok.Builder;
 import lombok.Value;
-import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
 
 /**
  * @author Luciano Fiandesio
@@ -63,9 +63,9 @@ class Context {
   /** A List of Relationship ID to which the user has READ ONLY access */
   List<Long> relationshipTypes;
 
-  /** The tei params to specify depth of tei graph */
+  /** The te params to specify depth of te graph */
   TrackedEntityParams params;
 
-  /** The query parameters to filter teis */
+  /** The query parameters to filter tracked entities */
   TrackedEntityQueryParams queryParams;
 }

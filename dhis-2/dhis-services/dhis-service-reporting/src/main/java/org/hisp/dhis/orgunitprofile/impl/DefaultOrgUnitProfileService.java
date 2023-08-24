@@ -54,6 +54,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreService;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -137,7 +138,7 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
     try {
       entry.setValue(jsonMapper.writeValueAsString(profile));
       dataStore.saveOrUpdateEntry(entry);
-    } catch (JsonProcessingException e) {
+    } catch (JsonProcessingException | BadRequestException e) {
       log.error(DebugUtils.getStackTrace(e));
       throw new IllegalArgumentException(
           String.format("Can't serialize OrgUnitProfile: %s", profile));

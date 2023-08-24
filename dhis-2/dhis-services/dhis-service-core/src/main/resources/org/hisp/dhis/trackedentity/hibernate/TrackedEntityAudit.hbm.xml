@@ -4,14 +4,14 @@
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-	<class name="org.hisp.dhis.audit.payloads.TrackedEntityAudit" table="trackedentityinstanceaudit">
-        <id name="id" column="trackedentityinstanceauditid">
+	<class name="org.hisp.dhis.audit.payloads.TrackedEntityAudit" table="trackedentityaudit">
+        <id name="id" column="trackedentityauditid">
             <generator class="sequence">
               <param name="sequence_name">trackedentityinstanceaudit_sequence</param>
             </generator>
         </id>
 
-        <property name="trackedEntity" column="trackedEntityInstance"/>
+        <property name="trackedEntity" column="trackedEntity"/>
 
         <property name="created" type="timestamp"/>
 

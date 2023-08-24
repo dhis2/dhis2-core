@@ -52,7 +52,7 @@ class RuleEngineErrorExecutorTest extends DhisConvenienceTest {
 
   private static final String ENROLLMENT_ID = "EnrollmentUid";
 
-  private static final String TEI_ID = "TeiId";
+  private static final String TE_ID = "TeiId";
 
   private final RuleEngineErrorExecutor executor =
       new RuleEngineErrorExecutor(RULE_ENROLLMENT_ID, ENROLLMENT_ERROR_MESSAGE);
@@ -76,6 +76,6 @@ class RuleEngineErrorExecutorTest extends DhisConvenienceTest {
   }
 
   private Enrollment getEnrollment() {
-    return Enrollment.builder().enrollment(ENROLLMENT_ID).trackedEntity(TEI_ID).build();
+    return Enrollment.builder().enrollment(ENROLLMENT_ID).trackedEntity(TE_ID).build();
   }
 }

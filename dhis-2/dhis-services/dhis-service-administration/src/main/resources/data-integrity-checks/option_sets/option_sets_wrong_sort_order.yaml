@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-summary_uid: xPFtcXBvQfk
 name:  option_sets_wrong_sort_order
 description: Option sets with possibly wrong sort order.
 section: Option sets
@@ -44,7 +43,6 @@ summary_sql: >-
     from option_sets_wrong_sort_order ) as bar) /
     NULLIF( (SELECT COUNT(*) from optionset), 0)  as percent
     FROM option_sets_wrong_sort_order;
-details_uid: NxtEkZcmLl0
 details_sql: >-
     SELECT a.uid, a.name, b.sort_order || ' != ' || b.row_number as comment from
     optionset a

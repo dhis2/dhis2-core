@@ -49,6 +49,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.hisp.dhis.common.OpenApi;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Extracts the properties of "record" like objects.
@@ -75,7 +76,11 @@ class Property {
   }
 
   private Property(Method m) {
-    this(getName(m), getType(m, m.getGenericReturnType()), m, isRequired(m, m.getReturnType()));
+    this(
+        getName(m),
+        getType(m, isSetter(m) ? m.getGenericParameterTypes()[0] : m.getGenericReturnType()),
+        m,
+        isRequired(m, m.getReturnType()));
   }
 
   static Collection<Property> getProperties(Class<?> in) {
@@ -90,9 +95,12 @@ class Property {
     Consumer<Method> addMethod = method -> add.accept(new Property(method));
 
     fieldsIn(object).filter(Property::isProperty).filter(Property::isIncluded).forEach(addField);
-    methodsIn(object).filter(Property::isProperty).filter(Property::isIncluded).forEach(addMethod);
+    methodsIn(object)
+        .filter(o -> Property.isAccessor(o) || Property.isSetter(o))
+        .filter(Property::isIncluded)
+        .forEach(addMethod);
     if (properties.isEmpty() || object.isAnnotationPresent(OpenApi.Property.class)) {
-      methodsIn(object).filter(Property::isProperty).forEach(addMethod);
+      methodsIn(object).filter(Property::isAccessor).forEach(addMethod);
     }
     return List.copyOf(properties.values());
   }
@@ -101,7 +109,28 @@ class Property {
     return !isExcluded(source);
   }
 
-  private static boolean isProperty(Method source) {
+  private static boolean isSetter(Method source) {
+    String name = source.getName();
+    boolean isSetter =
+        !isExcluded(source)
+            && source.getParameterCount() == 1
+            && name.startsWith("set")
+            && name.length() > 3
+            && isUpperCase(name.charAt(3));
+
+    if (isSetter) {
+      Field field =
+          ReflectionUtils.findField(
+              source.getDeclaringClass(),
+              name.substring(3, 4).toLowerCase() + name.substring(4),
+              source.getParameterTypes()[0]);
+      return field == null || !field.isAnnotationPresent(OpenApi.Ignore.class);
+    }
+
+    return false;
+  }
+
+  private static boolean isAccessor(Method source) {
     String name = source.getName();
     return !isExcluded(source)
         && source.getParameterCount() == 0
@@ -130,6 +159,10 @@ class Property {
     if (source.isAnnotationPresent(OpenApi.Property.class)) {
       OpenApi.Property a = source.getAnnotation(OpenApi.Property.class);
       return a.value().length > 0 ? a.value()[0] : type;
+    } else if (type instanceof Class<?>
+        && ((Class<?>) type).isAnnotationPresent(OpenApi.Property.class)
+        && ((Class<?>) type).getAnnotation(OpenApi.Property.class).value().length > 0) {
+      return ((Class<?>) type).getAnnotation(OpenApi.Property.class).value()[0];
     }
     return type;
   }

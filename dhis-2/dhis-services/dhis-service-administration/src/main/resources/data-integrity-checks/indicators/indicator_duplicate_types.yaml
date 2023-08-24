@@ -29,7 +29,6 @@ name: indicator_types_duplicated
 description: Indicator types with the same factor.
 section: Indicators
 section_order: 5
-summary_uid: ZQkHZ64zNc7
 summary_sql: >-
     WITH duplicate_indicator_factors AS (
     SELECT uid,name from indicatortype where 
@@ -41,7 +40,6 @@ summary_sql: >-
     select count(*) as value,
      100 * COUNT(*) / NULLIF( ( SELECT COUNT(*) FROM indicatortype) ,0)  as percent
     FROM duplicate_indicator_factors;
-details_uid: RkNRuWIjT3z
 details_sql: >-
       SELECT uid,name from indicatortype where 
       indicatorfactor IN (

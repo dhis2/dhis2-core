@@ -70,10 +70,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdScheme;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.user.User;
@@ -552,16 +552,16 @@ public class TrackerPreheat {
   }
 
   private void addProgramOwner(
-      String teiUid, String programUid, TrackedEntityProgramOwnerOrgUnit tepo) {
-    programOwner.computeIfAbsent(teiUid, k -> new HashMap<>()).put(programUid, tepo);
+      String teUid, String programUid, TrackedEntityProgramOwnerOrgUnit tepo) {
+    programOwner.computeIfAbsent(teUid, k -> new HashMap<>()).put(programUid, tepo);
   }
 
-  public void addProgramOwner(String teiUid, String programUid, OrganisationUnit orgUnit) {
-    programOwner.computeIfAbsent(teiUid, k -> new HashMap<>());
-    if (!programOwner.get(teiUid).containsKey(programUid)) {
+  public void addProgramOwner(String teUid, String programUid, OrganisationUnit orgUnit) {
+    programOwner.computeIfAbsent(teUid, k -> new HashMap<>());
+    if (!programOwner.get(teUid).containsKey(programUid)) {
       TrackedEntityProgramOwnerOrgUnit tepo =
-          new TrackedEntityProgramOwnerOrgUnit(teiUid, programUid, orgUnit);
-      programOwner.get(teiUid).put(programUid, tepo);
+          new TrackedEntityProgramOwnerOrgUnit(teUid, programUid, orgUnit);
+      programOwner.get(teUid).put(programUid, tepo);
     }
   }
 

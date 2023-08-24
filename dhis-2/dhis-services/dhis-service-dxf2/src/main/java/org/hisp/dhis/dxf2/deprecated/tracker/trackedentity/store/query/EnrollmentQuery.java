@@ -67,7 +67,7 @@ public class EnrollmentQuery {
       ImmutableMap.<COLUMNS, QueryElement>builder()
           .put(COLUMNS.TEI_UID, new TableColumn("tei", "uid", "tei_uid"))
           .put(COLUMNS.GEOMETRY, new Function("ST_AsBinary", "pi", "geometry", "geometry"))
-          .put(COLUMNS.ID, new TableColumn("pi", "programinstanceid"))
+          .put(COLUMNS.ID, new TableColumn("pi", "enrollmentid"))
           .put(COLUMNS.UID, new TableColumn("pi", "uid"))
           .put(COLUMNS.CREATED, new TableColumn("pi", "created"))
           .put(COLUMNS.CREATEDCLIENT, new TableColumn("pi", "createdatclient"))
@@ -94,12 +94,12 @@ public class EnrollmentQuery {
 
   public static String getQuery() {
     return getSelect()
-        + "from programinstance pi "
+        + "from enrollment pi "
         + "join program p on pi.programid = p.programid "
-        + "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid "
+        + "join trackedentity tei on pi.trackedentityid = tei.trackedentityid "
         + "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid "
         + "join organisationunit o on tei.organisationunitid = o.organisationunitid "
-        + "where pi.trackedentityinstanceid in (:ids) ";
+        + "where pi.trackedentityid in (:ids) ";
   }
 
   private static String getSelect() {

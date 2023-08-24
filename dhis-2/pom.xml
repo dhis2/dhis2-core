@@ -94,28 +94,28 @@
     <dhis-json-tree.version>0.9.0</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.8.4</spring-security.version>
+    <spring-security.version>5.8.5</spring-security.version>
 
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
     <nimbus.jose.jwt.version>9.31</nimbus.jose.jwt.version>
-    <com.google.zxing.core.version>3.5.1</com.google.zxing.core.version>
-    <com.google.zxing.javase.version>3.5.1</com.google.zxing.javase.version>
+    <com.google.zxing.core.version>3.5.2</com.google.zxing.core.version>
+    <com.google.zxing.javase.version>3.5.2</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>5.3.28</spring.version>
-    <spring-data-redis.version>2.7.13</spring-data-redis.version>
+    <spring.version>5.3.29</spring.version>
+    <spring-data-redis.version>2.7.14</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.2</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
     <spring-retry.version>1.3.4</spring-retry.version>
     <spring-restdocs.version>2.0.7.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.1</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.2.4.RELEASE</lettuce.version>
+    <lettuce.version>6.2.5.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.20.0</flyway-core.version>
+    <flyway-core.version>9.21.1</flyway-core.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -160,13 +160,13 @@
     <batik-transcoder.version>1.16</batik-transcoder.version>
     <fop.version>2.8</fop.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
-    <geotools.version>29.1</geotools.version>
+    <geotools.version>29.2</geotools.version>
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis.version>2.29.0</artemis.version>
-    <netty-all.version>4.1.94.Final</netty-all.version>
-    <classgraph.version>4.8.161</classgraph.version>
+    <artemis.version>2.30.0</artemis.version>
+    <netty-all.version>4.1.96.Final</netty-all.version>
+    <classgraph.version>4.8.162</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.2.1.1</sms-compression.version>
@@ -178,7 +178,7 @@
     <jetty.version>10.0.15</jetty.version>
 
     <!-- Div. utils -->
-    <guava.version>32.1.1-jre</guava.version>
+    <guava.version>32.1.2-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
     <google-api-client.version>2.2.0</google-api-client.version>
@@ -188,7 +188,7 @@
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
-    <commons-lang3.version>3.12.0</commons-lang3.version>
+    <commons-lang3.version>3.13.0</commons-lang3.version>
     <commons-text.version>1.10.0</commons-text.version>
     <commons-fileupload.version>1.5</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
@@ -199,11 +199,11 @@
     <commons-email.version>1.5</commons-email.version>
     <httpcomponents-core.version>4.4.16</httpcomponents-core.version>
     <httpcomponents-client.version>4.5.14</httpcomponents-client.version>
-    <kafka.version>3.5.0</kafka.version>
+    <kafka.version>3.5.1</kafka.version>
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
-    <micrometer.version>1.11.1</micrometer.version>
+    <micrometer.version>1.11.2</micrometer.version>
 
     <!-- Logging -->
     <log4j.version>2.20.0</log4j.version>
@@ -233,11 +233,11 @@
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
-    <restrict-imports-enforcer.version>2.3.1</restrict-imports-enforcer.version>
+    <restrict-imports-enforcer.version>2.4.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.16.0</versions-maven-plugin.version>
     <dependency-check-maven.version>8.3.1</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.7.3.5</spotbugs-maven-plugin.version>
-    <spotless.version>2.37.0</spotless.version>
+    <spotless.version>2.38.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.34</dhis-antlr-expression-parser.version>
@@ -1926,13 +1926,13 @@
                     <arg value="--short=7"/>
                     <arg value="HEAD"/>
                   </exec>
-                  <!-- formatter:off -->
+                  <!-- @formatter:off -->
                   <echo file="${project.build.outputDirectory}/build.properties">
 build.version=${project.version}
 build.time=${now}
 build.revision=${revision}
 jasperreports.version=${jasperreports.version}
-                  <!-- formatter:on -->
+                  <!-- @formatter:on -->
                   </echo>
                 </target>
               </configuration>
@@ -1973,7 +1973,8 @@ jasperreports.version=${jasperreports.version}
             </java>
             <pom>
               <toggleOffOn>
-                <off>formatter:off</off><on>formatter:on</on>
+                <off>@formatter:off</off>
+                <on>@formatter:on</on>
               </toggleOffOn>
               <includes>
                 <include>pom.xml</include>

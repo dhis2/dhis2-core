@@ -35,6 +35,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.hisp.dhis.analytics.AggregationType;
 
 @Getter
 @Setter
@@ -58,6 +59,9 @@ public class SourceRequest implements Serializable {
 
   /** Request filters. */
   @JsonProperty private List<Filter> filters = new ArrayList<>();
+
+  /** Aggregation type. */
+  @JsonProperty private AggregationType aggregationType;
 
   /** Input identifier scheme. */
   @JsonProperty private String inputIdScheme;

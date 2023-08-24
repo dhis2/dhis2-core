@@ -143,7 +143,13 @@ public @interface OpenApi {
    * <p>Annotate a controller endpoint method parameter to ignore that parameter.
    */
   @Inherited
-  @Target({ElementType.METHOD, ElementType.TYPE, ElementType.PARAMETER, ElementType.FIELD})
+  @Target({
+    ElementType.METHOD,
+    ElementType.TYPE,
+    ElementType.PARAMETER,
+    ElementType.FIELD,
+    ElementType.TYPE_USE
+  })
   @Retention(RetentionPolicy.RUNTIME)
   @interface Ignore {
     // marker annotation
@@ -324,7 +330,8 @@ public @interface OpenApi {
     enum Pattern {
       DEFAULT(""),
       INFO("%sInfo"),
-      TRACKER("Tracker%s");
+      TRACKER("Tracker%s"),
+      DEPRECATED_TRACKER("Deprecated_Tracker%s");
 
       private final String template;
     }

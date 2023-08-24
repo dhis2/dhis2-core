@@ -68,7 +68,7 @@ public interface DatastoreStore extends IdentifiableObjectStore<DatastoreEntry> 
    * @param namespace the namespace to retrieve KeyJsonValues from
    * @return a List of KeyJsonValues
    */
-  List<DatastoreEntry> getEntryByNamespace(String namespace);
+  List<DatastoreEntry> getEntriesInNamespace(String namespace);
 
   /**
    * Stream the matching entries to a transformer or consumer function.
@@ -82,7 +82,7 @@ public interface DatastoreStore extends IdentifiableObjectStore<DatastoreEntry> 
    * @param <T> type of the transformed stream
    * @return the transformed stream
    */
-  <T> T getFields(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform);
+  <T> T getEntries(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform);
 
   /**
    * Retrieves a KeyJsonValue based on the associated key and namespace

@@ -28,6 +28,7 @@
 package org.hisp.dhis.eventvisualization;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.common.AnalyticsType.EVENT;
@@ -66,7 +67,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.HideEmptyItemStrategy;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.RegressionType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -82,55 +82,16 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.visualization.LegendDefinitions;
 
 @JacksonXmlRootElement(localName = "eventVisualization", namespace = DXF_2_0)
 public class EventVisualization extends BaseAnalyticalObject
     implements MetadataObject, EventAnalyticalObject {
-  protected String domainAxisLabel;
-
-  protected String rangeAxisLabel;
 
   protected EventVisualizationType type;
-
-  protected boolean hideLegend;
-
-  protected boolean noSpaceBetweenColumns;
-
-  protected RegressionType regressionType = RegressionType.NONE;
-
-  protected Double targetLineValue;
-
-  protected String targetLineLabel;
-
-  protected Double baseLineValue;
-
-  protected String baseLineLabel;
-
-  protected boolean showData;
-
-  protected HideEmptyItemStrategy hideEmptyRowItems = HideEmptyItemStrategy.NONE;
-
-  protected boolean percentStackedValues;
-
-  protected boolean cumulativeValues;
-
-  protected Double rangeAxisMaxValue;
-
-  protected Double rangeAxisMinValue;
-
-  protected Integer rangeAxisSteps; // Minimum 1
-
-  protected Integer rangeAxisDecimals;
-
-  /** The legend and legend set definitions. */
-  private LegendDefinitions legendDefinitions;
 
   // -------------------------------------------------------------------------
   // Dimensional properties
   // -------------------------------------------------------------------------
-
-  private List<String> filterDimensions = new ArrayList<>();
 
   /** Stores the sorting state in the current object. */
   private List<Sorting> sorting = new ArrayList<>();
@@ -139,17 +100,7 @@ public class EventVisualization extends BaseAnalyticalObject
   // Transient properties
   // -------------------------------------------------------------------------
 
-  protected transient I18nFormat format;
-
   protected transient List<Period> relativePeriods = new ArrayList<>();
-
-  protected transient User relativeUser;
-
-  protected transient List<OrganisationUnit> organisationUnitsAtLevel = new ArrayList<>();
-
-  protected transient List<OrganisationUnit> organisationUnitsInGroups = new ArrayList<>();
-
-  protected transient Grid dataItemGrid = null;
 
   /** Program. Required. */
   private Program program;
@@ -207,33 +158,6 @@ public class EventVisualization extends BaseAnalyticalObject
   private transient DimensionalItemObject value;
 
   private EventDataType dataType;
-
-  /** Indicates rendering of sub-totals for the table. */
-  private boolean rowTotals;
-
-  /** Indicates rendering of sub-totals for the table. */
-  private boolean colTotals;
-
-  /** Indicates rendering of row sub-totals for the table. */
-  private boolean rowSubTotals;
-
-  /** Indicates rendering of column sub-totals for the table. */
-  private boolean colSubTotals;
-
-  /** Indicates rendering of empty rows for the table. */
-  private boolean hideEmptyRows;
-
-  /** Indicates rendering of empty rows for the table. */
-  private boolean showHierarchy;
-
-  /** The display density of the text in the table. */
-  private DisplayDensity displayDensity;
-
-  /** The font size of the text in the table. */
-  private FontSize fontSize;
-
-  /** The font size of the text in the table. */
-  private boolean showDimensionLabels;
 
   public EventVisualization() {}
 
@@ -312,11 +236,6 @@ public class EventVisualization extends BaseAnalyticalObject
   // -------------------------------------------------------------------------
 
   @JsonIgnore
-  public I18nFormat getFormat() {
-    return format;
-  }
-
-  @JsonIgnore
   public void setFormat(I18nFormat format) {
     this.format = format;
   }
@@ -332,11 +251,6 @@ public class EventVisualization extends BaseAnalyticalObject
   }
 
   @JsonIgnore
-  public Grid getDataItemGrid() {
-    return dataItemGrid;
-  }
-
-  @JsonIgnore
   public void setDataItemGrid(Grid dataItemGrid) {
     this.dataItemGrid = dataItemGrid;
   }
@@ -349,10 +263,6 @@ public class EventVisualization extends BaseAnalyticalObject
   @JacksonXmlProperty(namespace = DXF_2_0)
   public String getDomainAxisLabel() {
     return domainAxisLabel;
-  }
-
-  public void setDomainAxisLabel(String domainAxisLabel) {
-    this.domainAxisLabel = domainAxisLabel;
   }
 
   @JsonProperty
@@ -375,10 +285,6 @@ public class EventVisualization extends BaseAnalyticalObject
     return getTranslation("rangeAxisLabel", getRangeAxisLabel());
   }
 
-  public void setRangeAxisLabel(String rangeAxisLabel) {
-    this.rangeAxisLabel = rangeAxisLabel;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
   @Property(value = CONSTANT, required = TRUE)
@@ -392,42 +298,8 @@ public class EventVisualization extends BaseAnalyticalObject
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isHideLegend() {
-    return hideLegend;
-  }
-
-  public void setHideLegend(boolean hideLegend) {
-    this.hideLegend = hideLegend;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isNoSpaceBetweenColumns() {
-    return noSpaceBetweenColumns;
-  }
-
-  public void setNoSpaceBetweenColumns(boolean noSpaceBetweenColumns) {
-    this.noSpaceBetweenColumns = noSpaceBetweenColumns;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public RegressionType getRegressionType() {
-    return regressionType;
-  }
-
-  public void setRegressionType(RegressionType regressionType) {
-    this.regressionType = regressionType;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
   public Double getTargetLineValue() {
     return targetLineValue;
-  }
-
-  public void setTargetLineValue(Double targetLineValue) {
-    this.targetLineValue = targetLineValue;
   }
 
   @JsonProperty
@@ -438,23 +310,8 @@ public class EventVisualization extends BaseAnalyticalObject
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
-  @Translatable(propertyName = "targetLineLabel")
-  public String getDisplayTargetLineLabel() {
-    return getTranslation("targetLineLabel", getTargetLineLabel());
-  }
-
-  public void setTargetLineLabel(String targetLineLabel) {
-    this.targetLineLabel = targetLineLabel;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
   public Double getBaseLineValue() {
     return baseLineValue;
-  }
-
-  public void setBaseLineValue(Double baseLineValue) {
-    this.baseLineValue = baseLineValue;
   }
 
   @JsonProperty
@@ -465,63 +322,8 @@ public class EventVisualization extends BaseAnalyticalObject
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
-  @Translatable(propertyName = "baseLineLabel")
-  public String getDisplayBaseLineLabel() {
-    return getTranslation("baseLineLabel", getBaseLineLabel());
-  }
-
-  public void setBaseLineLabel(String baseLineLabel) {
-    this.baseLineLabel = baseLineLabel;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isShowData() {
-    return showData;
-  }
-
-  public void setShowData(boolean showData) {
-    this.showData = showData;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public HideEmptyItemStrategy getHideEmptyRowItems() {
-    return hideEmptyRowItems;
-  }
-
-  public void setHideEmptyRowItems(HideEmptyItemStrategy hideEmptyRowItems) {
-    this.hideEmptyRowItems = hideEmptyRowItems;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isPercentStackedValues() {
-    return percentStackedValues;
-  }
-
-  public void setPercentStackedValues(boolean percentStackedValues) {
-    this.percentStackedValues = percentStackedValues;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isCumulativeValues() {
-    return cumulativeValues;
-  }
-
-  public void setCumulativeValues(boolean cumulativeValues) {
-    this.cumulativeValues = cumulativeValues;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
   public Double getRangeAxisMaxValue() {
     return rangeAxisMaxValue;
-  }
-
-  public void setRangeAxisMaxValue(Double rangeAxisMaxValue) {
-    this.rangeAxisMaxValue = rangeAxisMaxValue;
   }
 
   @JsonProperty
@@ -531,49 +333,16 @@ public class EventVisualization extends BaseAnalyticalObject
     return rangeAxisMinValue;
   }
 
-  public void setRangeAxisMinValue(Double rangeAxisMinValue) {
-    this.rangeAxisMinValue = rangeAxisMinValue;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
   public Integer getRangeAxisSteps() {
     return rangeAxisSteps;
   }
 
-  public void setRangeAxisSteps(Integer rangeAxisSteps) {
-    this.rangeAxisSteps = rangeAxisSteps;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
   public Integer getRangeAxisDecimals() {
     return rangeAxisDecimals;
-  }
-
-  public void setRangeAxisDecimals(Integer rangeAxisDecimals) {
-    this.rangeAxisDecimals = rangeAxisDecimals;
-  }
-
-  @JsonProperty("legend")
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public LegendDefinitions getLegendDefinitions() {
-    return legendDefinitions;
-  }
-
-  public void setLegendDefinitions(LegendDefinitions legendDefinitions) {
-    this.legendDefinitions = legendDefinitions;
-  }
-
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "filterDimensions", namespace = DXF_2_0)
-  @JacksonXmlProperty(localName = "filterDimension", namespace = DXF_2_0)
-  public List<String> getFilterDimensions() {
-    return filterDimensions;
-  }
-
-  public void setFilterDimensions(List<String> filterDimensions) {
-    this.filterDimensions = filterDimensions;
   }
 
   @JsonProperty("sorting")
@@ -640,13 +409,13 @@ public class EventVisualization extends BaseAnalyticalObject
   /** Validates the state of the current list of {@link Sorting} objects (if one is defined). */
   public void validateSortingState() {
     List<String> columns = getColumnDimensions();
-    List<Sorting> sortings = getSorting().stream().toList();
+    List<Sorting> sortingList = getSorting();
 
-    sortings.forEach(
+    sortingList.forEach(
         s -> {
           if (isBlank(s.getDimension()) || s.getDirection() == null) {
             throw new IllegalArgumentException("Sorting is not valid");
-          } else if (!columns.contains(s.getDimension())) {
+          } else if (columns.stream().noneMatch(c -> contains(s.getDimension().split("\\."), c))) {
             throw new IllegalStateException(s.getDimension());
           }
         });
@@ -823,7 +592,7 @@ public class EventVisualization extends BaseAnalyticalObject
    * This attribute and its accessors were replaced by "type", but will remain here for
    * backward-compatibility with EventReport.
    *
-   * @return
+   * @return the current {@link EventDataType}.
    */
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
@@ -837,92 +606,14 @@ public class EventVisualization extends BaseAnalyticalObject
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isRowTotals() {
-    return rowTotals;
-  }
-
-  public void setRowTotals(boolean rowTotals) {
-    this.rowTotals = rowTotals;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isColTotals() {
-    return colTotals;
-  }
-
-  public void setColTotals(boolean colTotals) {
-    this.colTotals = colTotals;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isRowSubTotals() {
-    return rowSubTotals;
-  }
-
-  public void setRowSubTotals(boolean rowSubTotals) {
-    this.rowSubTotals = rowSubTotals;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isColSubTotals() {
-    return colSubTotals;
-  }
-
-  public void setColSubTotals(boolean colSubTotals) {
-    this.colSubTotals = colSubTotals;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isHideEmptyRows() {
-    return hideEmptyRows;
-  }
-
-  public void setHideEmptyRows(boolean hideEmptyRows) {
-    this.hideEmptyRows = hideEmptyRows;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isShowHierarchy() {
-    return showHierarchy;
-  }
-
-  public void setShowHierarchy(boolean showHierarchy) {
-    this.showHierarchy = showHierarchy;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
   public DisplayDensity getDisplayDensity() {
     return displayDensity;
-  }
-
-  public void setDisplayDensity(DisplayDensity displayDensity) {
-    this.displayDensity = displayDensity;
   }
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
   public FontSize getFontSize() {
     return fontSize;
-  }
-
-  public void setFontSize(FontSize fontSize) {
-    this.fontSize = fontSize;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isShowDimensionLabels() {
-    return showDimensionLabels;
-  }
-
-  public void setShowDimensionLabels(boolean showDimensionLabels) {
-    this.showDimensionLabels = showDimensionLabels;
   }
 
   @JsonProperty

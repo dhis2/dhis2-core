@@ -64,6 +64,7 @@ import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.collection.CollectionService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
@@ -246,9 +247,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
     MetadataImportParams params = importService.getParamsFromMap(parameterValuesMap);
-    params.setUser(currentUser).setImportStrategy(ImportStrategy.UPDATE).addObject(patchedObject);
+    params.setUser(UID.of(currentUser)).setImportStrategy(ImportStrategy.UPDATE);
 
-    ImportReport importReport = importService.importMetadata(params);
+    ImportReport importReport =
+        importService.importMetadata(params, new MetadataObjects().addObject(patchedObject));
     if (importReport.getStatus() != Status.OK) {
       throw new ConflictException("Import has errors.")
           .setObjectReport(importReport.getFirstObjectReport());
@@ -315,9 +317,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     MetadataImportParams params = importService.getParamsFromMap(parameterValuesMap);
 
-    params.setUser(currentUser).setImportStrategy(ImportStrategy.UPDATE).addObject(patchedObject);
+    params.setUser(UID.of(currentUser)).setImportStrategy(ImportStrategy.UPDATE);
 
-    ImportReport importReport = importService.importMetadata(params);
+    ImportReport importReport =
+        importService.importMetadata(params, new MetadataObjects().addObject(patchedObject));
     WebMessage webMessage = objectReport(importReport);
 
     if (importReport.getStatus() == Status.OK) {
@@ -392,11 +395,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     MetadataImportParams params = importService.getParamsFromMap(parameterValuesMap);
 
     params
-        .setUser(currentUserService.getCurrentUser())
-        .setImportStrategy(ImportStrategy.UPDATE)
-        .addObjects(patchedObjects);
+        .setUser(UID.of(currentUserService.getCurrentUser()))
+        .setImportStrategy(ImportStrategy.UPDATE);
 
-    ImportReport importReport = importService.importMetadata(params);
+    ImportReport importReport =
+        importService.importMetadata(params, new MetadataObjects().addObjects(patchedObjects));
 
     if (patchParams.hasErrorReports()) {
       importReport.addTypeReports(patchParams.getTypeReports());
@@ -454,11 +457,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         importService
             .getParamsFromMap(contextService.getParameterValuesMap())
             .setImportReportMode(ImportReportMode.FULL)
-            .setUser(user)
-            .setImportStrategy(ImportStrategy.CREATE)
-            .addObject(parsed);
+            .setUser(UID.of(user))
+            .setImportStrategy(ImportStrategy.CREATE);
 
-    return postObject(getObjectReport(importService.importMetadata(params)));
+    return postObject(
+        getObjectReport(
+            importService.importMetadata(params, new MetadataObjects().addObject(parsed))));
   }
 
   protected final WebMessage postObject(ObjectReport objectReport) {
@@ -547,14 +551,15 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     MetadataImportParams params =
         importService.getParamsFromMap(contextService.getParameterValuesMap());
 
-    params.setUser(currentUser).setImportStrategy(ImportStrategy.UPDATE).addObject(parsed);
+    params.setUser(UID.of(currentUser)).setImportStrategy(ImportStrategy.UPDATE);
 
     // default to FULL unless ERRORS_NOT_OWNER has been requested
     if (ImportReportMode.ERRORS_NOT_OWNER != params.getImportReportMode()) {
       params.setImportReportMode(ImportReportMode.FULL);
     }
 
-    ImportReport importReport = importService.importMetadata(params);
+    ImportReport importReport =
+        importService.importMetadata(params, new MetadataObjects().addObject(parsed));
     WebMessage webMessage = objectReport(importReport);
 
     if (importReport.getStatus() == Status.OK) {
@@ -593,11 +598,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         importService
             .getParamsFromMap(contextService.getParameterValuesMap())
             .setImportReportMode(ImportReportMode.FULL)
-            .setUser(currentUser)
-            .setImportStrategy(ImportStrategy.UPDATE)
-            .addObject(parsed);
+            .setUser(UID.of(currentUser))
+            .setImportStrategy(ImportStrategy.UPDATE);
 
-    ImportReport importReport = importService.importMetadata(params);
+    ImportReport importReport =
+        importService.importMetadata(params, new MetadataObjects().addObject(parsed));
     WebMessage webMessage = objectReport(importReport);
 
     if (importReport.getStatus() == Status.OK) {
@@ -670,11 +675,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     MetadataImportParams params =
         new MetadataImportParams()
             .setImportReportMode(ImportReportMode.FULL)
-            .setUser(currentUser)
-            .setImportStrategy(ImportStrategy.DELETE)
-            .addObject(persistedObject);
+            .setUser(UID.of(currentUser))
+            .setImportStrategy(ImportStrategy.DELETE);
 
-    ImportReport importReport = importService.importMetadata(params);
+    ImportReport importReport =
+        importService.importMetadata(params, new MetadataObjects().addObject(persistedObject));
 
     postDeleteEntity(pvUid);
 

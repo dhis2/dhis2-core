@@ -32,6 +32,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Objects;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 
 /**
@@ -39,6 +41,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
  * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
  *     "old" tracker. Make sure to plan migrating to new tracker.
  */
+@OpenApi.Shared(pattern = Pattern.DEPRECATED_TRACKER)
 @Deprecated(since = "2.41")
 @JacksonXmlRootElement(localName = "programOwner", namespace = DxfNamespaces.DXF_2_0)
 public class ProgramOwner {

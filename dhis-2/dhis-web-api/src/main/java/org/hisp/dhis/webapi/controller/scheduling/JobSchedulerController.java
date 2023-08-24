@@ -69,7 +69,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * API for scheduler list and named queues (sequences).
+ * API for scheduler list and named queues (sequences). This is mostly a controller to directly
+ * support the needs of the scheduler app.
  *
  * @author Jan Bernitt
  */
@@ -79,14 +80,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class JobSchedulerController {
-  private final JobConfigurationService jobConfigurationService;
 
+  private final JobConfigurationService jobConfigurationService;
   private final JobQueueService jobQueueService;
 
   @GetMapping
   public List<SchedulerEntry> getSchedulerEntries(@RequestParam(required = false) String order) {
     Map<String, List<JobConfiguration>> configsByQueueNameOrUid =
         jobConfigurationService.getAllJobConfigurations().stream()
+            .filter(not(JobConfiguration::isRunOnce))
             .collect(groupingBy(JobConfiguration::getQueueIdentifier));
     Comparator<SchedulerEntry> sortBy =
         "name".equals(order)
@@ -106,8 +108,7 @@ public class JobSchedulerController {
             : config -> !name.equals(config.getQueueName());
     return jobConfigurationService.getAllJobConfigurations().stream()
         .filter(JobConfiguration::isConfigurable)
-        .filter(not(JobConfiguration::isLeaderOnlyJob))
-        .filter(config -> config.getSchedulingType() != SchedulingType.FIXED_DELAY)
+        .filter(config -> config.getSchedulingType() == SchedulingType.CRON)
         .filter(config -> !config.isUsedInQueue())
         .filter(nameFilter)
         .map(SchedulerEntry::of)
@@ -156,7 +157,8 @@ public class JobSchedulerController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void updateQueue(@PathVariable String name, @RequestBody SchedulerQueue queue)
       throws NotFoundException, ConflictException {
-    jobQueueService.updateQueue(name, queue.getCronExpression(), queue.getSequence());
+    jobQueueService.updateQueue(
+        name, queue.getName(), queue.getCronExpression(), queue.getSequence());
   }
 
   @DeleteMapping("/queues/{name}")

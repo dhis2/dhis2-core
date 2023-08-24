@@ -27,17 +27,71 @@
  */
 package org.hisp.dhis.scheduling;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.schema.Property;
+import org.springframework.util.MimeType;
 
 /**
  * Simple service for {@link JobConfiguration} objects.
  *
- * @author Henning Håkonsen
+ * @author Henning Håkonsen (original)
+ * @author Jan Bernitt (rework with scheduling based on DB)
  */
 public interface JobConfigurationService {
-  String ID = JobConfiguration.class.getName();
+
+  String create(JobConfiguration config) throws ConflictException;
+
+  String create(JobConfiguration config, MimeType contentType, InputStream content)
+      throws ConflictException;
+
+  /**
+   * Creates the default {@link JobConfiguration} for all {@link JobType}s which have a {@link
+   * JobType.Defaults} configuration and which do not yet exist in the DB.
+   *
+   * @return number of created entries
+   */
+  int createDefaultJobs();
+
+  /**
+   * Make sure the {@link JobType#HEARTBEAT} entry exists as it is responsible for spawning the
+   * other system jobs when needed using {@link #createDefaultJobs()}.
+   */
+  void createHeartbeatJob();
+
+  /**
+   * Updates all {@link JobConfiguration}s that are not {@link JobConfiguration#isEnabled()} to
+   * state {@link JobStatus#DISABLED} in case they are in state {@link JobStatus#SCHEDULED}.
+   *
+   * @return number of updated entries
+   */
+  int updateDisabledJobs();
+
+  /**
+   * Removes {@link JobConfiguration}s of {@link SchedulingType#ONCE_ASAP} when they have been
+   * finished for at least the given time.
+   *
+   * @param ttlMinutes minimum duration in minutes since matches finished running
+   * @return number of deleted entries
+   */
+  int deleteFinishedJobs(int ttlMinutes);
+
+  /**
+   * Jobs that apparently are stuck in {@link JobStatus#RUNNING} are "force reset" to {@link
+   * JobStatus#SCHEDULED}. Such run then counts as {@link JobStatus#FAILED}.
+   *
+   * <p>This will only affect jobs which had updated the {@link JobConfiguration#getLastAlive()} at
+   * least once. This is to protect against aborting a job that does not support alive signals as it
+   * does not yet use the {@link JobProgress} tracking.
+   *
+   * @param timeoutMinutes duration in minutes for which the job has not been updated for it to be
+   *     considered stale and changed back to {@link JobStatus#SCHEDULED}.
+   * @return number of job configurations that were affected
+   */
+  int rescheduleStaleJobs(int timeoutMinutes);
 
   /**
    * Add a job configuration
@@ -46,13 +100,6 @@ public interface JobConfigurationService {
    * @return id
    */
   long addJobConfiguration(JobConfiguration jobConfiguration);
-
-  /**
-   * Add a collection of job configurations
-   *
-   * @param jobConfigurations the job configurations to add
-   */
-  void addJobConfigurations(List<JobConfiguration> jobConfigurations);
 
   /**
    * Update an existing job configuration
@@ -101,6 +148,24 @@ public interface JobConfigurationService {
   List<JobConfiguration> getJobConfigurations(JobType type);
 
   /**
+   * Get all job configurations that should start within the next n seconds.
+   *
+   * @param dueInNextSeconds number of seconds from now the job should start
+   * @param includeWaiting true to also list jobs that cannot run because another job of the same
+   *     type is already running
+   * @return only jobs that should start soon within the given number of seconds
+   */
+  Stream<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds, boolean includeWaiting);
+
+  /**
+   * Finds stale jobs.
+   *
+   * @param staleForSeconds the duration for which the job has not been updated (alive).
+   * @return all jobs that appear to be stale (hanging) considering the given timeout
+   */
+  List<JobConfiguration> getStaleConfigurations(int staleForSeconds);
+
+  /**
    * Get a map of parameter classes with appropriate properties This can be used for a frontend app
    * or for other appropriate applications which needs information about the jobs in the system.
    *
@@ -116,11 +181,4 @@ public interface JobConfigurationService {
    * @return a list of {@link JobTypeInfo}.
    */
   List<JobTypeInfo> getJobTypeInfo();
-
-  /**
-   * Update the state of the jobConfiguration.
-   *
-   * @param jobConfiguration
-   */
-  void refreshScheduling(JobConfiguration jobConfiguration);
 }

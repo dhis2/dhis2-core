@@ -30,12 +30,15 @@ package org.hisp.dhis.webapi.controller.deprecated.tracker;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.ObjectUtils;
@@ -136,6 +139,8 @@ public class TrackedEntityInstanceCriteriaMapper {
       }
     }
 
+    validateOrgUnitParams(criteria.getOrgUnits(), criteria.getOuMode());
+
     for (String orgUnit : criteria.getOrgUnits()) {
       OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(orgUnit);
 
@@ -148,11 +153,11 @@ public class TrackedEntityInstanceCriteriaMapper {
             "User does not have access to organisation unit: " + orgUnit);
       }
 
-      params.getOrganisationUnits().add(organisationUnit);
+      params.getOrgUnits().add(organisationUnit);
     }
 
     if (criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null) {
-      params.getOrganisationUnits().addAll(user.getOrganisationUnits());
+      params.getOrgUnits().addAll(user.getOrganisationUnits());
     }
 
     List<OrderParam> orderParams = toOrderParams(criteria.getOrder());
@@ -173,7 +178,7 @@ public class TrackedEntityInstanceCriteriaMapper {
         .setProgramIncidentStartDate(criteria.getProgramIncidentStartDate())
         .setProgramIncidentEndDate(criteria.getProgramIncidentEndDate())
         .setTrackedEntityType(validateTrackedEntityType(criteria))
-        .setOrganisationUnitMode(criteria.getOuMode())
+        .setOrgUnitMode(criteria.getOuMode())
         .setEventStatus(criteria.getEventStatus())
         .setEventStartDate(criteria.getEventStartDate())
         .setEventEndDate(criteria.getEventEndDate())
@@ -326,6 +331,15 @@ public class TrackedEntityInstanceCriteriaMapper {
           throw new IllegalQueryException("Invalid order property: " + orderParam.getField());
         }
       }
+    }
+  }
+
+  private void validateOrgUnitParams(Set<String> orgUnits, OrganisationUnitSelectionMode ouMode) {
+    if (!orgUnits.isEmpty() && (ouMode == ACCESSIBLE || ouMode == CAPTURE)) {
+      throw new IllegalQueryException(
+          String.format(
+              "ouMode %s cannot be used with orgUnits. Please remove the ou parameter and try again.",
+              ouMode));
     }
   }
 }

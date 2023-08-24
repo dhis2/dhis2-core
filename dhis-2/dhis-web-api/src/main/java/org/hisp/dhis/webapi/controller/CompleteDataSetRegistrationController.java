@@ -315,8 +315,7 @@ public class CompleteDataSetRegistrationController {
         new JobConfiguration(
             "inMemoryCompleteDataSetRegistrationImport",
             COMPLETE_DATA_SET_REGISTRATION_IMPORT,
-            currentUserService.getCurrentUser().getUid(),
-            true);
+            currentUserService.getCurrentUser().getUid());
 
     taskExecutor.executeTask(
         new ImportCompleteDataSetRegistrationsTask(
@@ -328,8 +327,7 @@ public class CompleteDataSetRegistrationController {
             format,
             jobId));
 
-    return jobConfigurationReport(jobId)
-        .setLocation("/system/tasks/" + COMPLETE_DATA_SET_REGISTRATION_IMPORT);
+    return jobConfigurationReport(jobId);
   }
 
   private Pair<InputStream, Path> saveTmpFile(InputStream in) throws IOException {

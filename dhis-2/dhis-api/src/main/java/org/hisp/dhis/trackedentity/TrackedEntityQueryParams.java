@@ -61,7 +61,7 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
  * @author Lars Helge Overland
  */
 public class TrackedEntityQueryParams {
-  public static final String TRACKED_ENTITY_INSTANCE_ID = "instance";
+  public static final String TRACKED_ENTITY_ID = "instance";
 
   public static final String CREATED_ID = "created";
 
@@ -71,11 +71,7 @@ public class TrackedEntityQueryParams {
 
   public static final String ORG_UNIT_NAME = "ouname";
 
-  public static final String TRACKED_ENTITY_ID = "te";
-
-  public static final String TRACKED_ENTITY_ATTRIBUTE_ID = "teattribute";
-
-  public static final String TRACKED_ENTITY_ATTRIBUTE_VALUE_ID = "tevalue";
+  public static final String TRACKED_ENTITY_TYPE_ID = "te";
 
   public static final String INACTIVE_ID = "inactive";
 
@@ -91,7 +87,7 @@ public class TrackedEntityQueryParams {
 
   public static final int DEFAULT_PAGE_SIZE = 50;
 
-  public static final String MAIN_QUERY_ALIAS = "TEI";
+  public static final String MAIN_QUERY_ALIAS = "TE";
 
   public static final String PROGRAM_INSTANCE_ALIAS = "pi";
 
@@ -108,7 +104,7 @@ public class TrackedEntityQueryParams {
    * Organisation units for which instances in the response were registered at. Is related to the
    * specified OrganisationUnitMode.
    */
-  private Set<OrganisationUnit> organisationUnits = new HashSet<>();
+  private Set<OrganisationUnit> orgUnits = new HashSet<>();
 
   /** Program for which instances in the response must be enrolled in. */
   private Program program;
@@ -148,13 +144,12 @@ public class TrackedEntityQueryParams {
   /** Tracked entity types to fetch. */
   private List<TrackedEntityType> trackedEntityTypes = Lists.newArrayList();
 
-  /** Selection mode for the specified organisation units, default is ACCESSIBLE. */
-  private OrganisationUnitSelectionMode organisationUnitMode =
-      OrganisationUnitSelectionMode.DESCENDANTS;
+  /** Selection mode for the specified organisation units, default is DESCENDANTS. */
+  private OrganisationUnitSelectionMode orgUnitMode = OrganisationUnitSelectionMode.DESCENDANTS;
 
-  @Getter private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
+  private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
-  /** Set of tei uids to explicitly select. */
+  /** Set of te uids to explicitly select. */
   private Set<String> trackedEntityUids = new HashSet<>();
 
   /** ProgramStage to be used in conjunction with eventstatus. */
@@ -184,13 +179,13 @@ public class TrackedEntityQueryParams {
   /** Indicates whether paging should be skipped. */
   private boolean skipPaging;
 
-  /** Indicates if there is a maximum tei retrieval limit. 0 no limit. */
-  private int maxTeiLimit;
+  /** Indicates if there is a maximum te retrieval limit. 0 no limit. */
+  private int maxTeLimit;
 
   /** Indicates whether to include soft-deleted elements. Default to false */
   private boolean includeDeleted = false;
 
-  /** Indicates whether to include all TEI attributes */
+  /** Indicates whether to include all TE attributes */
   private boolean includeAllAttributes;
 
   /**
@@ -206,12 +201,12 @@ public class TrackedEntityQueryParams {
   private Date skipChangedBefore;
 
   /**
-   * Potential Duplicate query parameter value. If null, we don't check whether a TEI is a
+   * Potential Duplicate query parameter value. If null, we don't check whether a TE is a
    * potentialDuplicate or not
    */
   private Boolean potentialDuplicate;
 
-  /** TEI order params */
+  /** TE order params */
   private List<OrderParam> orders = new ArrayList<>();
 
   // -------------------------------------------------------------------------
@@ -245,7 +240,7 @@ public class TrackedEntityQueryParams {
 
   /** Adds an organisation unit to the parameters. */
   public TrackedEntityQueryParams addOrganisationUnit(OrganisationUnit unit) {
-    this.organisationUnits.add(unit);
+    this.orgUnits.add(unit);
     return this;
   }
 
@@ -280,26 +275,28 @@ public class TrackedEntityQueryParams {
 
   /**
    * Prepares the organisation units of the given parameters to simplify querying. Mode ACCESSIBLE
-   * is converted to DESCENDANTS for organisation units linked to the given user, and mode CHILDREN
-   * is converted to CHILDREN for organisation units including all their children. Mode can be
-   * DESCENDANTS, SELECTED, ALL only after invoking this method.
+   * is converted to DESCENDANTS for organisation units linked to the search scope of the given
+   * user. Mode CAPTURE is converted to DESCENDANTS too, but using organisation units linked to the
+   * user's capture scope, and mode CHILDREN is converted to SELECTED for organisation units
+   * including all their children. Mode can be DESCENDANTS, SELECTED, ALL only after invoking this
+   * method.
    */
   public void handleOrganisationUnits() {
     if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
-      setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+      setOrgUnits(user.getTeiSearchOrganisationUnitsWithFallback());
+      setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     } else if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.CAPTURE)) {
-      setOrganisationUnits(user.getOrganisationUnits());
-      setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+      setOrgUnits(user.getOrganisationUnits());
+      setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     } else if (isOrganisationUnitMode(CHILDREN)) {
-      Set<OrganisationUnit> organisationUnits = new HashSet<>(getOrganisationUnits());
+      Set<OrganisationUnit> orgUnits = new HashSet<>(getOrgUnits());
 
-      for (OrganisationUnit organisationUnit : getOrganisationUnits()) {
-        organisationUnits.addAll(organisationUnit.getChildren());
+      for (OrganisationUnit organisationUnit : getOrgUnits()) {
+        orgUnits.addAll(organisationUnit.getChildren());
       }
 
-      setOrganisationUnits(organisationUnits);
-      setOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED);
+      setOrgUnits(orgUnits);
+      setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
     }
   }
 
@@ -412,7 +409,7 @@ public class TrackedEntityQueryParams {
 
   /** Indicates whether this parameters specifies any organisation units. */
   public boolean hasOrganisationUnits() {
-    return organisationUnits != null && !organisationUnits.isEmpty();
+    return orgUnits != null && !orgUnits.isEmpty();
   }
 
   /** Indicates whether this parameters specifies a program. */
@@ -475,7 +472,7 @@ public class TrackedEntityQueryParams {
 
   /** Indicates whether this parameters is of the given organisation unit mode. */
   public boolean isOrganisationUnitMode(OrganisationUnitSelectionMode mode) {
-    return organisationUnitMode != null && organisationUnitMode.equals(mode);
+    return orgUnitMode != null && orgUnitMode.equals(mode);
   }
 
   /** Indicates whether this parameters specifies a programStage. */
@@ -571,7 +568,7 @@ public class TrackedEntityQueryParams {
         .add("query", query)
         .add("attributes", attributes)
         .add("filters", filters)
-        .add("organisationUnits", organisationUnits)
+        .add("orgUnits", orgUnits)
         .add("program", program)
         .add("programStatus", programStatus)
         .add("followUp", followUp)
@@ -583,7 +580,7 @@ public class TrackedEntityQueryParams {
         .add("programIncidentStartDate", programIncidentStartDate)
         .add("programIncidentEndDate", programIncidentEndDate)
         .add("trackedEntityType", trackedEntityType)
-        .add("organisationUnitMode", organisationUnitMode)
+        .add("orgUnitMode", orgUnitMode)
         .add("assignedUserQueryParam", assignedUserQueryParam)
         .add("eventStatus", eventStatus)
         .add("eventStartDate", eventStartDate)
@@ -635,17 +632,17 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public Set<OrganisationUnit> getOrganisationUnits() {
-    return organisationUnits;
+  public Set<OrganisationUnit> getOrgUnits() {
+    return orgUnits;
   }
 
-  public TrackedEntityQueryParams addOrganisationUnits(Set<OrganisationUnit> organisationUnits) {
-    this.organisationUnits.addAll(organisationUnits);
+  public TrackedEntityQueryParams addOrgUnits(Set<OrganisationUnit> orgUnits) {
+    this.orgUnits.addAll(orgUnits);
     return this;
   }
 
-  public TrackedEntityQueryParams setOrganisationUnits(Set<OrganisationUnit> organisationUnits) {
-    this.organisationUnits = organisationUnits;
+  public TrackedEntityQueryParams setOrgUnits(Set<OrganisationUnit> orgUnits) {
+    this.orgUnits = orgUnits;
     return this;
   }
 
@@ -770,13 +767,27 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public OrganisationUnitSelectionMode getOrganisationUnitMode() {
-    return organisationUnitMode;
+  public OrganisationUnitSelectionMode getOrgUnitMode() {
+    return orgUnitMode;
   }
 
-  public TrackedEntityQueryParams setOrganisationUnitMode(
-      OrganisationUnitSelectionMode organisationUnitMode) {
-    this.organisationUnitMode = organisationUnitMode;
+  public TrackedEntityQueryParams setOrgUnitMode(OrganisationUnitSelectionMode orgUnitMode) {
+    this.orgUnitMode = orgUnitMode;
+    return this;
+  }
+
+  public AssignedUserQueryParam getAssignedUserQueryParam() {
+    return this.assignedUserQueryParam;
+  }
+
+  public TrackedEntityQueryParams setAssignedUserQueryParam(
+      AssignedUserQueryParam assignedUserQueryParam) {
+    this.assignedUserQueryParam = assignedUserQueryParam;
+    return this;
+  }
+
+  public TrackedEntityQueryParams setUser(User user) {
+    this.user = user;
     return this;
   }
 
@@ -852,12 +863,12 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public int getMaxTeiLimit() {
-    return maxTeiLimit;
+  public int getMaxTeLimit() {
+    return maxTeLimit;
   }
 
-  public TrackedEntityQueryParams setMaxTeiLimit(int maxTeiLimit) {
-    this.maxTeiLimit = maxTeiLimit;
+  public TrackedEntityQueryParams setMaxTeLimit(int maxTeLimit) {
+    this.maxTeLimit = maxTeLimit;
     return this;
   }
 
@@ -955,14 +966,16 @@ public class TrackedEntityQueryParams {
   @AllArgsConstructor
   public enum OrderColumn {
     TRACKEDENTITY("trackedEntity", "uid", MAIN_QUERY_ALIAS),
-    // Ordering by id is the same as ordering by created date
-    CREATED(CREATED_ID, "trackedentityinstanceid", MAIN_QUERY_ALIAS),
-    CREATED_AT("createdAt", "trackedentityinstanceid", MAIN_QUERY_ALIAS),
-    CREATED_AT_CLIENT("createdAtClient", "createdAtClient", MAIN_QUERY_ALIAS),
-    UPDATED_AT("updatedAt", "lastUpdated", MAIN_QUERY_ALIAS),
-    UPDATED_AT_CLIENT("updatedAtClient", "lastUpdatedAtClient", MAIN_QUERY_ALIAS),
-    ENROLLED_AT("enrolledAt", "enrollmentDate", PROGRAM_INSTANCE_ALIAS),
-    // this works only for the new endpoint
+    // TODO(tracker): remove with old tracker
+    CREATED("created", CREATED_ID, MAIN_QUERY_ALIAS),
+    CREATED_AT("createdAt", CREATED_ID, MAIN_QUERY_ALIAS),
+    CREATED_AT_CLIENT("createdAtClient", "createdatclient", MAIN_QUERY_ALIAS),
+    UPDATED_AT("updatedAt", "lastupdated", MAIN_QUERY_ALIAS),
+    UPDATED_AT_CLIENT("updatedAtClient", "lastupdatedatclient", MAIN_QUERY_ALIAS),
+    ENROLLED_AT(
+        "enrolledAt",
+        "enrollmentdate",
+        PROGRAM_INSTANCE_ALIAS), // this works only for the new endpoint
     // ORGUNIT_NAME( "orgUnitName", MAIN_QUERY_ALIAS+".organisationUnit.name" ),
     INACTIVE(INACTIVE_ID, "inactive", MAIN_QUERY_ALIAS);
 

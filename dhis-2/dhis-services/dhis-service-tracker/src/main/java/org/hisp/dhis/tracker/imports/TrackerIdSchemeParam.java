@@ -35,15 +35,21 @@ import lombok.Builder;
 import lombok.Value;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 
 /**
  * @author Stian Sandvold
  */
+@SuppressWarnings("java:S1135")
 @Value
 @Builder
 @JsonDeserialize(builder = TrackerIdSchemeParam.TrackerIdSchemeParamBuilder.class)
 @AllArgsConstructor(staticName = "of", access = AccessLevel.PRIVATE)
+// TODO: omitting this will result in a complex type for the query param in the OpenAPI definition
+// which is invalid. Drop @OpenApi.Property annotation after implementing support for the unpacking
+// of query param classes in OpenApiGenerator
+@OpenApi.Property(value = TrackerIdScheme.class)
 public class TrackerIdSchemeParam {
   public static final TrackerIdSchemeParam UID = TrackerIdSchemeParam.of(TrackerIdScheme.UID, null);
 

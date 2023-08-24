@@ -63,7 +63,7 @@ class TrackerImporterImplTest {
   void shouldCreateReportSync() {
     TrackerImportParams params =
         TrackerImportParams.builder()
-            .jobConfiguration(new JobConfiguration("", JobType.TRACKER_IMPORT_JOB, "userId", false))
+            .jobConfiguration(new JobConfiguration("", JobType.TRACKER_IMPORT_JOB, "userId"))
             .reportMode(TrackerBundleReportMode.FULL)
             .build();
 
@@ -85,7 +85,7 @@ class TrackerImporterImplTest {
 
     TrackerImportParams params =
         TrackerImportParams.builder()
-            .jobConfiguration(new JobConfiguration("", JobType.TRACKER_IMPORT_JOB, "userId", true))
+            .jobConfiguration(new JobConfiguration("", JobType.TRACKER_IMPORT_JOB, "userId"))
             .build();
 
     asyncImporter.importTracker(params, null, "");

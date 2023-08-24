@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -44,6 +45,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -110,7 +112,7 @@ class GmlImportServiceTest extends TransactionalIntegrationTest {
     forskOrgUnit.setName("Forskningsparken");
     organisationUnitService.addOrganisationUnit(forskOrgUnit);
     user = createAndInjectAdminUser();
-    id = new JobConfiguration("gmlImportTest", JobType.METADATA_IMPORT, user.getUid(), true);
+    id = new JobConfiguration("gmlImportTest", JobType.METADATA_IMPORT, user.getUid());
     importOptions = new ImportOptions().setImportStrategy(ImportStrategy.UPDATE);
     importOptions.setDryRun(false);
     importOptions.setPreheatCache(true);
@@ -122,9 +124,8 @@ class GmlImportServiceTest extends TransactionalIntegrationTest {
   @Test
   void testImportGml() {
     MetadataImportParams importParams = new MetadataImportParams();
-    importParams.setId(id);
-    importParams.setUser(user);
-    gmlImportService.importGml(inputStream, importParams);
+    importParams.setUser(UID.of(user));
+    gmlImportService.importGml(inputStream, importParams, NoopJobProgress.INSTANCE);
     assertNotNull(boOrgUnit.getGeometry());
     assertNotNull(bontheOrgUnit.getGeometry());
     assertNotNull(ojdOrgUnit.getGeometry());
