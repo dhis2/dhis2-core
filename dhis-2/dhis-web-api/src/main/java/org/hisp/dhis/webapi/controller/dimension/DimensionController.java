@@ -140,6 +140,7 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
 
     WebRequestData requestData = applyRequestSetup(rpParameters, orderParams);
     PagedEntities<DimensionalObject> pagedEntities = getPagedEntities(requestData);
+    linkService.generatePagerLinks(pagedEntities.pager(), RESOURCE_PATH);
 
     return ResponseEntity.ok(
         new StreamingJsonRoot<>(
@@ -150,9 +151,6 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
   }
 
   @Override
-  @OpenApi.Param(name = "fields", value = String[].class)
-  @OpenApi.Param(name = "filter", value = String[].class)
-  @OpenApi.Params(WebOptions.class)
   @GetMapping(produces = {"text/csv", "application/text"})
   public ResponseEntity<String> getObjectListCsv(
       @RequestParam Map<String, String> rpParameters,

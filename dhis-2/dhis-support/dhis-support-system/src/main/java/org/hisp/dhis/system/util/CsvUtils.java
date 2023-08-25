@@ -102,11 +102,4 @@ public class CsvUtils {
   public static CsvWriter getWriter(Writer writer) {
     return new CsvWriter(writer, DELIMITER);
   }
-
-  public static String getValueFromCsv(int column, int row, String csv) {
-    String[] split = csv.split("\n");
-    String rowchoice = split[row];
-    String[] split1 = rowchoice.split(",");
-    return split1[column];
-  }
 }
