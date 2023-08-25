@@ -34,12 +34,16 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@OpenApi.Shared
 @JacksonXmlRootElement(localName = "programMessageBatch", namespace = DxfNamespaces.DXF_2_0)
 public class ProgramMessageBatch {
+
+  @OpenApi.Property(value = ProgramMessage[].class)
   private List<ProgramMessage> programMessages = new ArrayList<>();
 
   public ProgramMessageBatch() {}
