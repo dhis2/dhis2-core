@@ -100,12 +100,7 @@ public class IconController {
   @GetMapping("/{iconKey}/icon.svg")
   public void getIconData(HttpServletResponse response, @PathVariable String iconKey)
       throws IOException, NotFoundException {
-    Resource icon = iconService.getDefaultIconResource(iconKey);
-
-    response.setHeader("Cache-Control", CacheControl.maxAge(TTL, TimeUnit.DAYS).getHeaderValue());
-    response.setContentType(MediaType.SVG_UTF_8.toString());
-
-    StreamUtils.copyThenCloseInputStream(icon.getInputStream(), response.getOutputStream());
+    downloadDefaultIcon(iconKey, response);
   }
 
   @GetMapping(value = "/{uid}/icon")
