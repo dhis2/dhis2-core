@@ -310,8 +310,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     List<T> entities = getEntityList(metadata, options, filters, orders);
 
     try {
-      String string = applyCsvSteps(fields, entities, separator, arraySeparator, skipHeader);
-      return ResponseEntity.ok(string);
+      String csv = applyCsvSteps(fields, entities, separator, arraySeparator, skipHeader);
+      return ResponseEntity.ok(csv);
     } catch (CsvWriteException ex) {
       response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
