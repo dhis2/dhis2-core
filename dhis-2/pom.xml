@@ -158,7 +158,7 @@
 
     <!-- GIS -->
     <batik-transcoder.version>1.16</batik-transcoder.version>
-    <fop.version>2.8</fop.version>
+    <fop.version>2.9</fop.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
     <geotools.version>29.2</geotools.version>
     <jts.version>1.19.0</jts.version>
