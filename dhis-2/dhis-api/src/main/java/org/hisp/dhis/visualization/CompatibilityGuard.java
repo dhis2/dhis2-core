@@ -99,9 +99,9 @@ public class CompatibilityGuard {
 
       visualization.setRangeAxisDecimals(firstAxis.getDecimals());
       visualization.setRangeAxisMaxValue(
-          firstAxis.getMaxValue() != null ? Double.valueOf(firstAxis.getMaxValue()) : null);
+          firstAxis.getMaxValue() != null ? firstAxis.getMaxValue() : null);
       visualization.setRangeAxisMinValue(
-          firstAxis.getMinValue() != null ? Double.valueOf(firstAxis.getMinValue()) : null);
+          firstAxis.getMinValue() != null ? firstAxis.getMinValue() : null);
       visualization.setRangeAxisSteps(firstAxis.getSteps());
     }
   }
@@ -112,9 +112,7 @@ public class CompatibilityGuard {
         .setTargetLineLabel(firstAxis.getTargetLine().getTitle().getFontStyle());
     visualization.setTargetLineLabel(firstAxis.getTargetLine().getTitle().getText());
     visualization.setTargetLineValue(
-        firstAxis.getTargetLine().getValue() != null
-            ? Double.valueOf(firstAxis.getTargetLine().getValue())
-            : null);
+        firstAxis.getTargetLine().getValue() != null ? firstAxis.getTargetLine().getValue() : null);
   }
 
   private static void copyBaseLine(final Visualization visualization, final AxisV2 firstAxis) {
@@ -123,8 +121,6 @@ public class CompatibilityGuard {
         .setBaseLineLabel(firstAxis.getBaseLine().getTitle().getFontStyle());
     visualization.setBaseLineLabel(firstAxis.getBaseLine().getTitle().getText());
     visualization.setBaseLineValue(
-        firstAxis.getBaseLine().getValue() != null
-            ? Double.valueOf(firstAxis.getBaseLine().getValue())
-            : null);
+        firstAxis.getBaseLine().getValue() != null ? firstAxis.getBaseLine().getValue() : null);
   }
 }
