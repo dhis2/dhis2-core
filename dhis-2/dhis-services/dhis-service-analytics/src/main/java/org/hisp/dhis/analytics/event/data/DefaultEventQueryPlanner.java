@@ -48,6 +48,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.util.ObjectUtils;
@@ -73,10 +74,10 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
 
     List<Function<EventQueryParams, List<EventQueryParams>>> groupers =
         new ImmutableList.Builder<Function<EventQueryParams, List<EventQueryParams>>>()
-            .add(q -> groupByQueryItems(q))
-            .add(q -> groupByOrgUnitLevel(q))
-            .add(q -> groupByPeriodType(q))
-            .add(q -> groupByPeriod(q))
+            .add(this::groupByQueryItems)
+            .add(this::groupByOrgUnitLevel)
+            .add(this::groupByPeriodType)
+            .add(this::groupByPeriod)
             .build();
 
     for (Function<EventQueryParams, List<EventQueryParams>> grouper : groupers) {
@@ -121,6 +122,8 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
 
     String baseName =
         params.hasEnrollmentProgramIndicatorDimension()
+                || (params.getEndpointAction() == RequestTypeAware.EndpointAction.AGGREGATE
+                    && params.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT)
             ? AnalyticsTableType.ENROLLMENT.getTableName()
             : AnalyticsTableType.EVENT.getTableName();
 

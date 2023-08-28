@@ -463,7 +463,6 @@ public class EventQueryParams extends DataQueryParams {
     for (List<DateRange> ranges : timeDateRanges.values()) {
       ranges.sort(Comparator.comparing(DateRange::getStartDate));
     }
-
     removeDimensionOrFilter(PERIOD_DIM_ID);
   }
 

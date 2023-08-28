@@ -28,10 +28,14 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.common.ValueType.DATE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
@@ -42,6 +46,7 @@ import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.event.LabelMapper;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
@@ -113,6 +118,11 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
 
   @Override
   protected Grid createGridWithHeaders(EventQueryParams params) {
+    if (params.getEndpointAction() == RequestTypeAware.EndpointAction.AGGREGATE) {
+      return new ListGrid()
+          .addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, NUMBER, false, false));
+    }
+
     return new ListGrid()
         .addHeader(new GridHeader(ITEM_PI, NAME_PI, TEXT, false, true))
         .addHeader(new GridHeader(ITEM_TEI, NAME_TEI, TEXT, false, true))
@@ -157,19 +167,25 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
   protected long addEventData(Grid grid, EventQueryParams params) {
     Timer timer = new Timer().start().disablePrint();
 
-    params = queryPlanner.planEnrollmentQuery(params);
+    List<EventQueryParams> paramsList = new ArrayList<>();
 
-    timer.getSplitTime("Planned event query, got partitions: " + params.getPartitions());
-
-    long count = 0;
-
-    if (params.isTotalPages()) {
-      count += enrollmentAnalyticsManager.getEnrollmentCount(params);
+    if (params.getEndpointAction() == RequestTypeAware.EndpointAction.AGGREGATE) {
+      paramsList.addAll(queryPlanner.planAggregateQuery(params));
+    } else {
+      paramsList.add(queryPlanner.planEnrollmentQuery(params));
     }
 
-    enrollmentAnalyticsManager.getEnrollments(params, grid, queryValidator.getMaxLimit());
+    long count = 0;
+    for (EventQueryParams p : paramsList) {
+      timer.getSplitTime("Planned event query, got partitions: " + p.getPartitions());
+      if (p.isTotalPages()) {
+        count += enrollmentAnalyticsManager.getEnrollmentCount(p);
+      }
 
-    timer.getTime("Got enrollments " + grid.getHeight());
+      enrollmentAnalyticsManager.getEnrollments(p, grid, queryValidator.getMaxLimit());
+
+      timer.getTime("Got enrollments " + grid.getHeight());
+    }
 
     return count;
   }

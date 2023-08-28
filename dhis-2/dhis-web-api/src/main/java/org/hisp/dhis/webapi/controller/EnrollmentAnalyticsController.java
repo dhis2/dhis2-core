@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -93,6 +94,45 @@ public class EnrollmentAnalyticsController {
   @Nonnull private DimensionMapperService dimensionMapperService;
 
   @Nonnull private final SystemSettingManager systemSettingManager;
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @GetMapping(
+      value = "/aggregate/{program}/explain",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Grid getExplainAggregatedJson( // JSON, JSONP
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true, AGGREGATE);
+
+    Grid grid = analyticsService.getEnrollments(params);
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
+
+    if (params.analyzeOnly()) {
+      String key = params.getExplainOrderId();
+      grid.addPerformanceMetrics(executionPlanStore.getExecutionPlans(key));
+    }
+
+    return grid;
+  }
+
+  @GetMapping(
+      value = "/aggregate/{program}",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Grid getAggregatedJson( // JSON, JSONP
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
+
+    return analyticsService.getEnrollments(params);
+  }
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
   @GetMapping(

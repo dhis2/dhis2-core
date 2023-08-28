@@ -72,6 +72,7 @@ import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
@@ -82,6 +83,7 @@ import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
@@ -129,6 +131,14 @@ public abstract class AbstractAnalyticsService {
             .flatMap(dk -> dk.getKeywords().stream())
             .collect(toList());
 
+    List<DimensionalObject> periods =
+        params.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT
+                && params.getEndpointAction() == RequestTypeAware.EndpointAction.AGGREGATE
+            ? params.getDimensions().stream()
+                .filter(d -> d.getDimensionType() == DimensionType.PERIOD)
+                .toList()
+            : new ArrayList<>();
+
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     // ---------------------------------------------------------------------
@@ -138,6 +148,16 @@ public abstract class AbstractAnalyticsService {
     Grid grid = createGridWithHeaders(params);
 
     for (DimensionalObject dimension : params.getDimensions()) {
+      grid.addHeader(
+          new GridHeader(
+              dimension.getDimension(),
+              dimension.getDimensionDisplayName(),
+              ValueType.TEXT,
+              false,
+              true));
+    }
+
+    for (DimensionalObject dimension : periods) {
       grid.addHeader(
           new GridHeader(
               dimension.getDimension(),
@@ -217,6 +237,12 @@ public abstract class AbstractAnalyticsService {
     long count = 0;
 
     if (!params.isSkipData() || params.analyzeOnly()) {
+      if (!periods.isEmpty()) {
+        params =
+            new EventQueryParams.Builder(params)
+                .withPeriods(periods.stream().flatMap(p -> p.getItems().stream()).toList(), "")
+                .build();
+      }
       count = addEventData(grid, params);
     }
 
