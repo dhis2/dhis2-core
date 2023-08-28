@@ -239,9 +239,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   /** Used by charts to hide or not data/values within the rendered model. */
   private boolean showData;
 
-  /** Apply or not rounding. */
-  private boolean skipRounding;
-
   /**
    * Indicates whether the visualization contains regression columns. More likely to be applicable
    * to pivot and reports.
@@ -655,16 +652,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   public void setShowDimensionLabels(boolean showDimensionLabels) {
     this.showDimensionLabels = showDimensionLabels;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isSkipRounding() {
-    return skipRounding;
-  }
-
-  public void setSkipRounding(boolean skipRounding) {
-    this.skipRounding = skipRounding;
   }
 
   @JsonIgnore
