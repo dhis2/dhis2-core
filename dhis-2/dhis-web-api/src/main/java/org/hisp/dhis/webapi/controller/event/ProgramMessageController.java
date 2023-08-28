@@ -30,9 +30,12 @@ package org.hisp.dhis.webapi.controller.event;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.OpenApi;
@@ -47,16 +50,13 @@ import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
-import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -67,7 +67,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/messages")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class ProgramMessageController extends AbstractFullReadOnlyController<ProgramMessage> {
+public class ProgramMessageController extends AbstractCrudController<ProgramMessage> {
   // -------------------------------------------------------------------------
   // Dependencies
   // -------------------------------------------------------------------------
@@ -89,16 +89,10 @@ public class ProgramMessageController extends AbstractFullReadOnlyController<Pro
   @ResponseBody
   public List<ProgramMessage> getProgramMessages(
       @RequestParam(required = false) Set<String> ou,
-      @OpenApi.Param(value = Enrollment.class)
-          @Deprecated(since = "2.41")
-          @RequestParam(required = false)
-          UID programInstance,
-      @OpenApi.Param({UID.class, Enrollment.class}) @RequestParam(required = false) UID enrollment,
-      @OpenApi.Param(value = Event.class)
-          @Deprecated(since = "2.41")
-          @RequestParam(required = false)
-          UID programStageInstance,
-      @OpenApi.Param({UID.class, Event.class}) @RequestParam(required = false) UID event,
+      @Deprecated(since = "2.41") @RequestParam(required = false) UID programInstance,
+      @RequestParam(required = false) UID enrollment,
+      @Deprecated(since = "2.41") @RequestParam(required = false) UID programStageInstance,
+      @RequestParam(required = false) UID event,
       @RequestParam(required = false) ProgramMessageStatus messageStatus,
       @RequestParam(required = false) Date afterDate,
       @RequestParam(required = false) Date beforeDate,
@@ -132,16 +126,10 @@ public class ProgramMessageController extends AbstractFullReadOnlyController<Pro
   @GetMapping(value = "/scheduled/sent", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public List<ProgramMessage> getScheduledSentMessage(
-      @OpenApi.Param(value = Enrollment.class)
-          @Deprecated(since = "2.41")
-          @RequestParam(required = false)
-          UID programInstance,
-      @OpenApi.Param({UID.class, Enrollment.class}) @RequestParam(required = false) UID enrollment,
-      @OpenApi.Param(value = Event.class)
-          @Deprecated(since = "2.41")
-          @RequestParam(required = false)
-          UID programStageInstance,
-      @OpenApi.Param({UID.class, Event.class}) @RequestParam(required = false) UID event,
+      @Deprecated(since = "2.41") @RequestParam(required = false) UID programInstance,
+      @RequestParam(required = false) UID enrollment,
+      @Deprecated(since = "2.41") @RequestParam(required = false) UID programStageInstance,
+      @RequestParam(required = false) UID event,
       @RequestParam(required = false) Date afterDate,
       @RequestParam(required = false) Integer page,
       @RequestParam(required = false) Integer pageSize)
@@ -172,7 +160,10 @@ public class ProgramMessageController extends AbstractFullReadOnlyController<Pro
   @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS') or hasRole('F_SEND_EMAIL')")
   @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public BatchResponseStatus sendMessages(@RequestBody ProgramMessageBatch batch) {
+  public BatchResponseStatus saveMessages(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
+    ProgramMessageBatch batch =
+        renderService.fromJson(request.getInputStream(), ProgramMessageBatch.class);
 
     for (ProgramMessage programMessage : batch.getProgramMessages()) {
       programMessageService.validatePayload(programMessage);
