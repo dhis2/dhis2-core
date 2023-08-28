@@ -337,10 +337,15 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
     return cronExpression == null && delay == null && queueName == null;
   }
 
+  public boolean isDueBetween(@Nonnull Instant now, @Nonnull Instant then) {
+    Instant dueTime = nextExecutionTime(now);
+    return dueTime != null && dueTime.isBefore(then);
+  }
+
   /**
    * @return the next time this job should run based on the {@link #getLastExecuted()} time
    */
-  public Instant nextExecutionTime(Instant now) {
+  public Instant nextExecutionTime(@Nonnull Instant now) {
     // for good measure we offset the last time by 1 second
     Instant since = lastExecuted == null ? now : lastExecuted.toInstant().plusSeconds(1);
     if (isUsedInQueue() && getQueuePosition() > 0) return null;

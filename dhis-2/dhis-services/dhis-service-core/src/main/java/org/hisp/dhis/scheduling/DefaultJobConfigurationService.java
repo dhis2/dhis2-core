@@ -239,11 +239,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     Stream<JobConfiguration> dueJobs =
         jobConfigurationStore
             .getDueJobConfigurations(includeWaiting)
-            .filter(
-                trigger -> {
-                  Instant dueTime = trigger.nextExecutionTime(now);
-                  return dueTime != null && dueTime.isBefore(endOfWindow);
-                });
+            .filter(c -> c.isDueBetween(now, endOfWindow));
     if (!limitToNext1) return dueJobs.toList();
     Set<JobType> types = EnumSet.noneOf(JobType.class);
     return dueJobs
