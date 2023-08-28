@@ -138,6 +138,23 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
+  public Set<String> getAllQueueNames() {
+    // language=SQL
+    String sql = "select distinct queuename from jobconfiguration where queuename is not null";
+    return getResultSet(nativeQuery(sql), Object::toString);
+  }
+
+  @Override
+  public List<JobConfiguration> getJobsInQueue(@Nonnull String queue) {
+    // language=SQL
+    String sql = "select * from jobconfiguration where queuename = :queue order by queueposition;";
+    return getSession()
+        .createNativeQuery(sql, JobConfiguration.class)
+        .setParameter("queue", queue)
+        .list();
+  }
+
+  @Override
   @CheckForNull
   public JobConfiguration getNextInQueue(@Nonnull String queue, int fromPosition) {
     // language=SQL
