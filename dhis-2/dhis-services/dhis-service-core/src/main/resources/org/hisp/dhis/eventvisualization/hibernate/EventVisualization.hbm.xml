@@ -309,6 +309,8 @@
 
         <property name="simpleDimensions" type="jblSimpleEventDimensions"/>
 
+        <property name="sorting" type="jblSorting"/>
+
         <property name="eventRepetitions" type="jblEventRepetition"/>
 
         <!-- Dynamic attribute values -->

@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.eventvisualization;
 
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.ArrayUtils.contains;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.common.AnalyticsType.EVENT;
 import static org.hisp.dhis.common.DimensionalObjectUtils.TITLE_ITEM_SEP;
@@ -129,6 +132,9 @@ public class EventVisualization extends BaseAnalyticalObject
   // -------------------------------------------------------------------------
 
   private List<String> filterDimensions = new ArrayList<>();
+
+  /** Stores the sorting state in the current object. */
+  private List<Sorting> sorting = new ArrayList<>();
 
   // -------------------------------------------------------------------------
   // Transient properties
@@ -571,6 +577,19 @@ public class EventVisualization extends BaseAnalyticalObject
     this.filterDimensions = filterDimensions;
   }
 
+  @JsonProperty("sorting")
+  @JacksonXmlElementWrapper(localName = "sorting", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "sortingItem", namespace = DXF_2_0)
+  public List<Sorting> getSorting() {
+    return sorting;
+  }
+
+  public void setSorting(List<Sorting> sorting) {
+    if (sorting != null) {
+      this.sorting = sorting.stream().distinct().collect(toList());
+    }
+  }
+
   // -------------------------------------------------------------------------
   // AnalyticalObject
   // -------------------------------------------------------------------------
@@ -617,6 +636,21 @@ public class EventVisualization extends BaseAnalyticalObject
     setDimensionItemsForFilters(object, dataItemGrid, true);
 
     return object != null ? object.getItems() : null;
+  }
+
+  /** Validates the state of the current list of {@link Sorting} objects (if one is defined). */
+  public void validateSortingState() {
+    List<String> columns = getColumnDimensions();
+    List<Sorting> sortingList = getSorting().stream().collect(toList());
+
+    sortingList.forEach(
+        s -> {
+          if (isBlank(s.getDimension()) || s.getDirection() == null) {
+            throw new IllegalArgumentException("Sorting is not valid");
+          } else if (columns.stream().noneMatch(c -> contains(s.getDimension().split("\\."), c))) {
+            throw new IllegalStateException(s.getDimension());
+          }
+        });
   }
 
   public AnalyticsType getAnalyticsType() {
