@@ -28,11 +28,13 @@
 package org.hisp.dhis.utils;
 
 import javax.annotation.Nonnull;
-import lombok.experimental.UtilityClass;
 
 /** Utility class enabling easier testing of CSV endpoints */
-@UtilityClass
 public class CsvUtils {
+
+  private CsvUtils() {
+    throw new IllegalStateException("Utility class");
+  }
 
   public static String getValueFromCsv(int column, int row, @Nonnull String csv) {
     return getValueFromCsv(column, row, "\n", ",", csv);
