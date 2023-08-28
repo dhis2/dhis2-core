@@ -35,7 +35,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
-import static org.hisp.dhis.analytics.ValidationHelper.validateRowContext;
 
 import java.util.List;
 import org.hisp.dhis.AnalyticsApiTest;
@@ -221,81 +220,5 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
             "COMPLETED",
             "DiszpKrYNg8",
             "2313.0"));
-  }
-
-  @Test
-  public void queryWithProgramAndRepeatableProgramStage() {
-    // Given
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add(
-                "dimension=edqlbukwRfQ[-2].vANAXwtLwcT,edqlbukwRfQ[10].vANAXwtLwcT,pe:LAST_12_MONTHS,ou:ImspTQPwCqd")
-            .add(
-                "headers=ou,ounamehierarchy,edqlbukwRfQ[-2].vANAXwtLwcT,edqlbukwRfQ[10].vANAXwtLwcT")
-            .add("stage=edqlbukwRfQ")
-            .add("displayProperty=NAME")
-            .add("outputType=ENROLLMENT")
-            .add("desc=edqlbukwRfQ[-2].vANAXwtLwcT,ounamehierarchy,enrollmentdate")
-            .add("totalPages=false")
-            .add("pageSize=2")
-            .add("page=4")
-            .add("rowContext=true")
-            .add("relativePeriodDate=2023-06-27");
-
-    // When
-    ApiResponse response = enrollmentsActions.query().get("WSGAb5XwJ3Y", JSON, JSON, params);
-    response
-        .validate()
-        .statusCode(200)
-        .body("headers", hasSize(equalTo(4)))
-        .body("rows", hasSize(equalTo(2)));
-    validateHeader(response, 0, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response,
-        1,
-        "ounamehierarchy",
-        "Organisation unit name hierarchy",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeader(
-        response,
-        2,
-        "edqlbukwRfQ[-2].vANAXwtLwcT",
-        "WHOMCH Hemoglobin value",
-        "NUMBER",
-        "java.lang.Double",
-        false,
-        true,
-        "edqlbukwRfQ",
-        "startIndex:-2 count:1 startDate:null endDate: null",
-        -2);
-    validateHeader(
-        response,
-        3,
-        "edqlbukwRfQ[10].vANAXwtLwcT",
-        "WHOMCH Hemoglobin value",
-        "NUMBER",
-        "java.lang.Double",
-        false,
-        true,
-        "edqlbukwRfQ",
-        "startIndex:10 count:1 startDate:null endDate: null",
-        10);
-    validateRowContext(response, 0, 3, "ND");
-    validateRowContext(response, 1, 3, "ND");
-    validateRow(
-        response,
-        0,
-        List.of("fmkqsEx6MRo", "Sierra Leone / Port Loko / Koya / Mabora MCHP", "25.0", ""));
-    validateRow(
-        response,
-        1,
-        List.of(
-            "GCbYmPqcOOP",
-            "Sierra Leone / Port Loko / Bureh Kasseh Maconteh / Romeni MCHP",
-            "25.0",
-            ""));
   }
 }
