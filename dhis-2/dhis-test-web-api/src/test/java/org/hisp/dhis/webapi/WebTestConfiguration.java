@@ -50,8 +50,8 @@ import org.hisp.dhis.h2.H2SqlFunction;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
-import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.hisp.dhis.webapi.mvc.ContentNegotiationConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -197,6 +197,6 @@ public class WebTestConfiguration {
 
   @Bean
   public SystemAuthoritiesProvider systemAuthoritiesProvider() {
-    return () -> DefaultAdminUserPopulator.ALL_AUTHORITIES;
+    return Authorities::getAllAuthorities;
   }
 }
