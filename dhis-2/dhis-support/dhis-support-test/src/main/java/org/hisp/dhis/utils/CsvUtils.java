@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.message;
+package org.hisp.dhis.utils;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.ArrayList;
-import java.util.List;
-import org.hisp.dhis.common.DxfNamespaces;
+import javax.annotation.Nonnull;
 
-/**
- * @author Zubair <rajazubair.asghar@gmail.com>
- */
-@JacksonXmlRootElement(localName = "programMessageBatch", namespace = DxfNamespaces.DXF_2_0)
-public class ProgramMessageBatch {
-  private List<ProgramMessage> programMessages = new ArrayList<>();
+/** Utility class enabling easier testing of CSV endpoints */
+public class CsvUtils {
 
-  public ProgramMessageBatch() {}
-
-  public ProgramMessageBatch(List<ProgramMessage> programMessages) {
-    this.programMessages = programMessages;
+  private CsvUtils() {
+    throw new IllegalStateException("Utility class");
   }
 
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "programMessages", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "programMessage", namespace = DxfNamespaces.DXF_2_0)
-  public List<ProgramMessage> getProgramMessages() {
-    return programMessages;
+  public static String getValueFromCsv(int column, int row, @Nonnull String csv) {
+    return getValueFromCsv(column, row, "\n", ",", csv);
   }
 
-  public void setProgramMessages(List<ProgramMessage> programMessages) {
-    this.programMessages = programMessages;
+  public static String getValueFromCsv(
+      int column,
+      int row,
+      @Nonnull String lineSeparator,
+      @Nonnull String valueSeparator,
+      @Nonnull String csv) {
+    String[] rows = csv.split(lineSeparator);
+    String selectedRow = rows[row];
+    String[] rowValues = selectedRow.split(valueSeparator);
+    return rowValues[column];
+  }
+
+  public static String getRowFromCsv(int row, @Nonnull String csv) {
+    String[] rows = csv.split("\n");
+    return rows[row];
+  }
+
+  public static int getRowCountFromCsv(@Nonnull String csv) {
+    return csv.split("\n").length;
   }
 }
