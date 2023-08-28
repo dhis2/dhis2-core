@@ -442,7 +442,10 @@ public class JCloudsAppStorageService implements AppStorageService {
       blobStore.removeBlob(config.container, resource.getName());
     }
 
-    reservedNamespaces.remove(app.getActivities().getDhis().getNamespace(), app);
+    String namespace = app.getActivities().getDhis().getNamespace();
+    if (namespace != null) {
+      reservedNamespaces.remove(namespace, app);
+    }
 
     log.info("Deleted app " + app.getName());
   }
