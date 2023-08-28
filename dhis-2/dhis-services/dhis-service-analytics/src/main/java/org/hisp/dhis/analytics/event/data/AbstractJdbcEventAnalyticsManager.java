@@ -980,9 +980,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             .collect(joining(","));
 
     String columns =
-        headerColumns
-            + (!isBlank(orgColumns) ? "," + orgColumns : ",ou")
-            + (!isBlank(periodColumns) ? "," + periodColumns : "");
+            (!isBlank(orgColumns) ? orgColumns : ",ou")
+            + (!isBlank(periodColumns) ? "," + periodColumns : "")
+            + "," + headerColumns;
 
     sql = "select count(t1.pi) as value, " + columns + " from (" + sql + ") t1 group by " + columns;
 
