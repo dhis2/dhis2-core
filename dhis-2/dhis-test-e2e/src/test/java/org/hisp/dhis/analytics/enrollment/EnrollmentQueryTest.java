@@ -35,6 +35,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRowContext;
 
 import java.util.List;
 import org.hisp.dhis.AnalyticsApiTest;
