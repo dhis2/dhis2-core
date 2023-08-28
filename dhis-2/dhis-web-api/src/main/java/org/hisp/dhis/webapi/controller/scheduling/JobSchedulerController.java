@@ -35,6 +35,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -55,6 +56,8 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobQueueService;
 import org.hisp.dhis.scheduling.SchedulingType;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -83,6 +86,7 @@ public class JobSchedulerController {
 
   private final JobConfigurationService jobConfigurationService;
   private final JobQueueService jobQueueService;
+  private final SystemSettingManager systemSettings;
 
   @GetMapping
   public List<SchedulerEntry> getSchedulerEntries(@RequestParam(required = false) String order) {
@@ -94,8 +98,10 @@ public class JobSchedulerController {
         "name".equals(order)
             ? comparing(SchedulerEntry::getName)
             : comparing(SchedulerEntry::getNextExecutionTime, nullsLast(naturalOrder()));
+    Duration maxCronDelay =
+        Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
     return configsByQueueNameOrUid.values().stream()
-        .map(SchedulerEntry::of)
+        .map(config -> SchedulerEntry.of(config, maxCronDelay))
         .sorted(sortBy)
         .collect(toList());
   }
@@ -106,12 +112,14 @@ public class JobSchedulerController {
         name == null || name.isEmpty()
             ? config -> true
             : config -> !name.equals(config.getQueueName());
+    Duration maxCronDelay =
+        Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
     return jobConfigurationService.getAllJobConfigurations().stream()
         .filter(JobConfiguration::isConfigurable)
         .filter(config -> config.getSchedulingType() == SchedulingType.CRON)
         .filter(config -> !config.isUsedInQueue())
         .filter(nameFilter)
-        .map(SchedulerEntry::of)
+        .map(config -> SchedulerEntry.of(config, maxCronDelay))
         .sorted(comparing(SchedulerEntry::getName))
         .collect(toList());
   }

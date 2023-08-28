@@ -40,6 +40,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -236,10 +237,12 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
       int dueInNextSeconds, boolean limitToNext1, boolean includeWaiting) {
     Instant now = Instant.now();
     Instant endOfWindow = now.plusSeconds(dueInNextSeconds);
+    Duration maxCronDelay =
+        Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
     Stream<JobConfiguration> dueJobs =
         jobConfigurationStore
             .getDueJobConfigurations(includeWaiting)
-            .filter(c -> c.isDueBetween(now, endOfWindow));
+            .filter(c -> c.isDueBetween(now, endOfWindow, maxCronDelay));
     if (!limitToNext1) return dueJobs.toList();
     Set<JobType> types = EnumSet.noneOf(JobType.class);
     return dueJobs

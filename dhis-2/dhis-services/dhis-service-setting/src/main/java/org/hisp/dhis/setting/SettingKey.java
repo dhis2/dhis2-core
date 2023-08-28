@@ -247,6 +247,13 @@ public enum SettingKey {
   JOBS_CLEANUP_AFTER_MINUTES("jobsCleanupAfterMinutes", 24 * 60, Integer.class),
 
   /**
+   * The maximum number of hours a CRON based job may trigger on the same day after it has missed
+   * its intended time of the day to trigger. If time has passed past this point the execution for
+   * that day is skipped, and it will trigger on the intended time the day after.
+   */
+  JOBS_MAX_CRON_DELAY_HOURS("jobsMaxCronDelayHours", 4, Integer.class),
+
+  /**
    * Progressive caching factor for the analytics API. To enable, the {@link
    * #ANALYTICS_CACHE_TTL_MODE} must be set to PROGRESSIVE.
    */
