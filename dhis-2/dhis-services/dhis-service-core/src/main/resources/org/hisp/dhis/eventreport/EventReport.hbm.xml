@@ -144,6 +144,8 @@
 
         <property name="completedOnly" column="completedonly"/>
 
+        <property name="skipRounding"/>
+
         <property name="timeField" column="timefield"/>
 
         <property name="orgUnitField" column="orgunitfield"/>

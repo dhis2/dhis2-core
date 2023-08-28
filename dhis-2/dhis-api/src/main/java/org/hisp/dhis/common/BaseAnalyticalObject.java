@@ -175,6 +175,9 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   protected boolean completedOnly;
 
+  /** Apply or not rounding. */
+  protected boolean skipRounding;
+
   protected String timeField;
 
   protected String orgUnitField;
@@ -1136,6 +1139,16 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   public void setCompletedOnly(boolean completedOnly) {
     this.completedOnly = completedOnly;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isSkipRounding() {
+    return skipRounding;
+  }
+
+  public void setSkipRounding(boolean skipRounding) {
+    this.skipRounding = skipRounding;
   }
 
   @Override
