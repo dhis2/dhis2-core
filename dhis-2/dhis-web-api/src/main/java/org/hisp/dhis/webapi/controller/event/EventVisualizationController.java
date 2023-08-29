@@ -34,6 +34,8 @@ import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE_LIST;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABLE;
+import static org.hisp.dhis.feedback.ErrorCode.E7237;
+import static org.hisp.dhis.feedback.ErrorCode.E7238;
 import static org.hisp.dhis.schema.descriptors.EventVisualizationSchemaDescriptor.API_ENDPOINT;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PNG;
@@ -51,6 +53,9 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
+import org.hisp.dhis.eventvisualization.Sorting;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendSetService;
@@ -175,22 +180,52 @@ public class EventVisualizationController extends AbstractCrudController<EventVi
   }
 
   @Override
-  protected void preCreateEntity(EventVisualization newEventVisualization) {
+  protected void preCreateEntity(EventVisualization newEventVisualization)
+      throws ConflictException {
     /**
      * Once a legacy EventVisualization is CREATED through this new endpoint, it will automatically
      * become a non-legacy EventVisualization.
      */
     forceNonLegacy(newEventVisualization);
+
+    validateSorting(newEventVisualization);
   }
 
   @Override
   protected void preUpdateEntity(
-      EventVisualization eventVisualization, EventVisualization newEventVisualization) {
+      EventVisualization eventVisualization, EventVisualization newEventVisualization)
+      throws ConflictException {
     /**
      * Once a legacy EventVisualization is UPDATED through this new endpoint, it will automatically
      * become a non-legacy EventVisualization.
      */
     forceNonLegacy(newEventVisualization);
+
+    validateSorting(newEventVisualization);
+  }
+
+  @Override
+  protected void prePatchEntity(
+      EventVisualization eventVisualization, EventVisualization newEventVisualization)
+      throws ConflictException {
+    validateSorting(newEventVisualization);
+  }
+
+  /**
+   * Simply validates the state of the {@link Sorting} attribute in the given {@link
+   * EventVisualization} object.
+   *
+   * @param eventVisualization the {@link EventVisualization}.
+   * @throws ConflictException if the {@link Sorting} attribute is not valid.
+   */
+  private void validateSorting(EventVisualization eventVisualization) throws ConflictException {
+    try {
+      eventVisualization.validateSortingState();
+    } catch (IllegalArgumentException e) {
+      throw new ConflictException(new ErrorMessage(E7237));
+    } catch (IllegalStateException e) {
+      throw new ConflictException(new ErrorMessage(E7238, e.getMessage()));
+    }
   }
 
   private void forceNonLegacy(EventVisualization eventVisualization) {

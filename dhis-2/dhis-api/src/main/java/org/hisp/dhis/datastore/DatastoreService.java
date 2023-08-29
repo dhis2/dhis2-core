@@ -33,6 +33,8 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.springframework.security.access.AccessDeniedException;
 
 /**
@@ -102,7 +104,8 @@ public interface DatastoreService {
    * @param <T> type of the transformed stream
    * @return the transformed stream
    */
-  <T> T getFields(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform);
+  <T> T getEntries(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform)
+      throws ConflictException;
 
   /**
    * Validates and plans a {@link DatastoreQuery}. This might correct or otherwise update the
@@ -111,7 +114,7 @@ public interface DatastoreService {
    * @param query to validate and plan
    * @throws IllegalQueryException when the query is not valid
    */
-  DatastoreQuery plan(DatastoreQuery query) throws IllegalQueryException;
+  DatastoreQuery plan(DatastoreQuery query) throws ConflictException;
 
   /**
    * Retrieves a KeyJsonValue based on a namespace and key.
@@ -131,7 +134,7 @@ public interface DatastoreService {
    * @throws IllegalArgumentException when the entry value is not valid JSON
    * @throws AccessDeniedException when user lacks authority for namespace or entry
    */
-  void addEntry(DatastoreEntry entry);
+  void addEntry(DatastoreEntry entry) throws ConflictException, BadRequestException;
 
   /**
    * Updates an entry.
@@ -140,7 +143,7 @@ public interface DatastoreService {
    * @throws IllegalArgumentException when the entry value is not valid JSON
    * @throws AccessDeniedException when user lacks authority for namespace or entry
    */
-  void updateEntry(DatastoreEntry entry);
+  void updateEntry(DatastoreEntry entry) throws BadRequestException;
 
   /**
    * Deletes an entry.
@@ -156,7 +159,7 @@ public interface DatastoreService {
    * @param entry the KeyJsonValue entry to be saved or updated.
    * @throws IllegalArgumentException when the entry value is not valid JSON
    */
-  void saveOrUpdateEntry(DatastoreEntry entry);
+  void saveOrUpdateEntry(DatastoreEntry entry) throws BadRequestException;
 
   /**
    * Deletes all entries associated with a given namespace.

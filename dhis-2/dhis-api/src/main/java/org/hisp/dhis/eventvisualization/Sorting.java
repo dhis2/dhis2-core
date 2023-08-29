@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datastore;
+package org.hisp.dhis.eventvisualization;
 
-import lombok.AccessLevel;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.io.Serializable;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.datastore.DatastoreQuery.Filter;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.analytics.SortOrder;
 
-/**
- * Contains the {@link DatastoreQuery} semantic validation.
- *
- * @author Jan Bernitt
- */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class DatastoreQueryValidator {
-  public static void validate(DatastoreQuery query) throws ConflictException {
-    for (Filter f : query.getFilters()) {
-      boolean isUnary = f.getOperator().isUnary();
-      if (f.isKeyPath() && isUnary) {
-        throw filterException(f, "key filters cannot be used with unary operators");
-      }
-      if (!isUnary && f.getValue().isBlank()) {
-        throw filterException(f, "the operator `" + f.getOperator() + "` requires a value");
-      }
-      if (isUnary && !f.getValue().isBlank()) {
-        throw filterException(
-            f, "the operator `" + f.getOperator() + "` is unary and does not require a value");
-      }
-    }
-  }
+/** This class is responsible for the encapsulation of objects and attributes related to sorting. */
+@Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@NoArgsConstructor
+public class Sorting implements Serializable {
+  /** A dimension can have the format "uid", "uid.uid1", "uid.uid1.uid2" or "uid[-2].uid1". */
+  @EqualsAndHashCode.Include
+  @JsonProperty(required = true)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String dimension;
 
-  private static ConflictException filterException(Filter f, String msg) {
-    return new ConflictException(ErrorCode.E7653, f.toString(), msg);
-  }
+  @JsonProperty(required = true)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private SortOrder direction;
 }

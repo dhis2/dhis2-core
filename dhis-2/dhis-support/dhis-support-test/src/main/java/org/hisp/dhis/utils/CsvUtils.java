@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datastore;
+package org.hisp.dhis.utils;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.datastore.DatastoreQuery.Filter;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ErrorCode;
+import javax.annotation.Nonnull;
 
-/**
- * Contains the {@link DatastoreQuery} semantic validation.
- *
- * @author Jan Bernitt
- */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class DatastoreQueryValidator {
-  public static void validate(DatastoreQuery query) throws ConflictException {
-    for (Filter f : query.getFilters()) {
-      boolean isUnary = f.getOperator().isUnary();
-      if (f.isKeyPath() && isUnary) {
-        throw filterException(f, "key filters cannot be used with unary operators");
-      }
-      if (!isUnary && f.getValue().isBlank()) {
-        throw filterException(f, "the operator `" + f.getOperator() + "` requires a value");
-      }
-      if (isUnary && !f.getValue().isBlank()) {
-        throw filterException(
-            f, "the operator `" + f.getOperator() + "` is unary and does not require a value");
-      }
-    }
+/** Utility class enabling easier testing of CSV endpoints */
+public class CsvUtils {
+
+  private CsvUtils() {
+    throw new IllegalStateException("Utility class");
   }
 
-  private static ConflictException filterException(Filter f, String msg) {
-    return new ConflictException(ErrorCode.E7653, f.toString(), msg);
+  public static String getValueFromCsv(int column, int row, @Nonnull String csv) {
+    return getValueFromCsv(column, row, "\n", ",", csv);
+  }
+
+  public static String getValueFromCsv(
+      int column,
+      int row,
+      @Nonnull String lineSeparator,
+      @Nonnull String valueSeparator,
+      @Nonnull String csv) {
+    String[] rows = csv.split(lineSeparator);
+    String selectedRow = rows[row];
+    String[] rowValues = selectedRow.split(valueSeparator);
+    return rowValues[column];
+  }
+
+  public static String getRowFromCsv(int row, @Nonnull String csv) {
+    String[] rows = csv.split("\n");
+    return rows[row];
+  }
+
+  public static int getRowCountFromCsv(@Nonnull String csv) {
+    return csv.split("\n").length;
   }
 }

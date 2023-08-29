@@ -78,8 +78,8 @@ class DatastoreEntryStoreTest extends SingleSetupIntegrationTestBase {
     DatastoreEntry entryA2 = addEntry("A", "2");
     DatastoreEntry entryA3 = addEntry("A", "3");
     DatastoreEntry entryB1 = addEntry("B", "1");
-    assertContainsOnly(List.of(entryA1, entryA2, entryA3), store.getEntryByNamespace("A"));
-    assertFalse(store.getEntryByNamespace("A").contains(entryB1));
+    assertContainsOnly(List.of(entryA1, entryA2, entryA3), store.getEntriesInNamespace("A"));
+    assertFalse(store.getEntriesInNamespace("A").contains(entryB1));
   }
 
   @Test
