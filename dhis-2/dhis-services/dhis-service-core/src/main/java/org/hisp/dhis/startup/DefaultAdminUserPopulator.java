@@ -87,7 +87,8 @@ public class DefaultAdminUserPopulator extends TransactionContextStartupRoutine 
           "F_ORG_UNIT_PROFILE_ADD",
           "F_TRACKED_ENTITY_MERGE",
           "F_DATAVALUE_ADD",
-          "F_DATAVALUE_DELETE");
+          "F_DATAVALUE_DELETE",
+          "F_SYSTEM_SETTING");
 
   private final UserService userService;
 
