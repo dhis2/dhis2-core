@@ -54,6 +54,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Objects;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
@@ -65,6 +66,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -112,7 +115,10 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private UserService _userService;
 
+  @Autowired private FileResourceService fileResourceService;
+
   private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
+  private org.hisp.dhis.trackedentity.TrackedEntityInstance maleC;
 
   private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
 
@@ -138,22 +144,32 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
 
   private TrackedEntityInstance teiFemaleA;
 
+  private TrackedEntityAttribute imageAttribute;
+
   private TrackedEntityAttribute uniqueIdAttribute;
 
   private TrackedEntityAttribute trackedEntityAttributeB;
 
   private TrackedEntityType trackedEntityType;
 
+  private FileResource fileResource;
+
   private User user;
 
   @Override
   protected void setUpTest() throws Exception {
+
+    fileResource = createFileResource('F', "fileResource".getBytes());
+    fileResourceService.saveFileResource(fileResource, "fileResource".getBytes());
+
     userService = _userService;
     user = createAndAddAdminUser(AUTHORITY_ALL);
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
     organisationUnitB.setParent(organisationUnitA);
+    imageAttribute = createTrackedEntityAttribute('I');
+    imageAttribute.setValueType(ValueType.IMAGE);
     uniqueIdAttribute = createTrackedEntityAttribute('A');
     uniqueIdAttribute.setGenerated(true);
     // uniqueIdAttribute.setPattern( "RANDOM(#####)" );
@@ -163,15 +179,25 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
     textPattern.setOwnerUid(uniqueIdAttribute.getUid());
     uniqueIdAttribute.setTextPattern(textPattern);
     trackedEntityAttributeService.addTrackedEntityAttribute(uniqueIdAttribute);
+    trackedEntityAttributeService.addTrackedEntityAttribute(imageAttribute);
+
     trackedEntityAttributeB = createTrackedEntityAttribute('B');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttributeB);
     trackedEntityType = createTrackedEntityType('A');
+
     TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
     trackedEntityTypeAttribute.setTrackedEntityAttribute(uniqueIdAttribute);
     trackedEntityTypeAttribute.setTrackedEntityType(trackedEntityType);
-    trackedEntityType.setTrackedEntityTypeAttributes(List.of(trackedEntityTypeAttribute));
+
+    TrackedEntityTypeAttribute imageTrackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
+    imageTrackedEntityTypeAttribute.setTrackedEntityAttribute(imageAttribute);
+    imageTrackedEntityTypeAttribute.setTrackedEntityType(trackedEntityType);
+
+    trackedEntityType.setTrackedEntityTypeAttributes(
+        List.of(trackedEntityTypeAttribute, imageTrackedEntityTypeAttribute));
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     maleA = createTrackedEntityInstance(organisationUnitA);
+    maleC = createTrackedEntityInstance(organisationUnitA);
     maleB = createTrackedEntityInstance(organisationUnitB);
     femaleA = createTrackedEntityInstance(organisationUnitA);
     femaleB = createTrackedEntityInstance(organisationUnitB);
@@ -179,8 +205,15 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
     TrackedEntityAttributeValue uniqueId =
         createTrackedEntityAttributeValue('A', maleA, uniqueIdAttribute);
     uniqueId.setValue("12345");
+
+    TrackedEntityAttributeValue imageTrackedEntityAttributeValue =
+        createTrackedEntityAttributeValue('I', maleC, imageAttribute);
+    imageTrackedEntityAttributeValue.setValue(fileResource.getUid());
+
     maleA.setTrackedEntityType(trackedEntityType);
+    maleC.setTrackedEntityType(trackedEntityType);
     maleA.setTrackedEntityAttributeValues(Set.of(uniqueId));
+    maleC.setTrackedEntityAttributeValues(Set.of(imageTrackedEntityAttributeValue));
     maleB.setTrackedEntityType(trackedEntityType);
     femaleA.setTrackedEntityType(trackedEntityType);
     femaleB.setTrackedEntityType(trackedEntityType);
@@ -194,6 +227,7 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
     manager.save(organisationUnitA);
     manager.save(organisationUnitB);
     manager.save(maleA);
+    manager.save(maleC);
     manager.save(maleB);
     manager.save(femaleA);
     manager.save(femaleB);
@@ -205,6 +239,8 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
     teiMaleB = trackedEntityInstanceService.getTrackedEntityInstance(maleB);
     teiFemaleA = trackedEntityInstanceService.getTrackedEntityInstance(femaleA);
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(uniqueId);
+    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(
+        imageTrackedEntityAttributeValue);
     programInstanceService.enrollTrackedEntityInstance(
         maleA, programA, null, null, organisationUnitA);
     programInstanceService.enrollTrackedEntityInstance(
@@ -268,6 +304,24 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
     assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
     // assertEquals( "UPDATED_NAME", personService.getTrackedEntityInstance(
     // maleA.getUid() ).getName() );
+  }
+
+  @Test
+  void testUpdateTeiByProvidingNullValueToImageAttribute() {
+    TrackedEntityInstance trackedEntityInstance =
+        trackedEntityInstanceService.getTrackedEntityInstance(maleC.getUid());
+
+    Attribute attribute =
+        trackedEntityInstance.getAttributes().stream()
+            .filter(a -> a.getValueType() == ValueType.IMAGE)
+            .findFirst()
+            .orElse(null);
+    attribute.setValue(null);
+
+    ImportSummary importSummary =
+        trackedEntityInstanceService.updateTrackedEntityInstance(
+            trackedEntityInstance, null, null, true);
+    assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
   }
 
   @Test
