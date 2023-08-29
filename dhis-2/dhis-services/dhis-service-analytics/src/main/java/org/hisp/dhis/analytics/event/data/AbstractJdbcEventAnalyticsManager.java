@@ -988,8 +988,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String columns =
         (!isBlank(orgColumns) ? orgColumns : "," + COL_ORGANIZATION)
             + (!isBlank(periodColumns) ? "," + periodColumns : EMPTY)
-            + ","
-            + headerColumns;
+            + (!isBlank(headerColumns) ? "," + headerColumns : EMPTY);
 
     sql =
         "select count("
