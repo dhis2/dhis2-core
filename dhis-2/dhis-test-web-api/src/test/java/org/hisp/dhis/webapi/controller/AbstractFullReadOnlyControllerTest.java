@@ -70,7 +70,7 @@ class AbstractFullReadOnlyControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testGetCsvDimensionsSkipHeader() {
+  void testGetCsvSkipHeader() {
     createDataElements(36);
     String response = GET("/dataElements.csv?skipHeader=true").content("text/csv");
 
@@ -82,7 +82,7 @@ class AbstractFullReadOnlyControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testGetCsvDimensionsWithFields() {
+  void testGetCsvWithFields() {
     createDataElements(36);
     String response = GET("/dataElements.csv?fields=id,name,domainType").content("text/csv");
 
@@ -95,7 +95,7 @@ class AbstractFullReadOnlyControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testGetCsvDimensionsOrderAsc() {
+  void testGetCsvOrderAsc() {
     createDataElements(36);
     String response = GET("/dataElements.csv?order=displayName:asc").content("text/csv");
 
@@ -105,7 +105,7 @@ class AbstractFullReadOnlyControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testGetCsvDimensionsOrderDesc() {
+  void testGetCsvOrderDesc() {
     createDataElements(36);
     String response = GET("/dataElements.csv?order=displayName:desc").content("text/csv");
 
@@ -115,7 +115,7 @@ class AbstractFullReadOnlyControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testGetCsvDimensionsFilterByDisplayName() {
+  void testGetCsvFilterByDisplayName() {
     createDataElements(36);
     String response =
         GET("/dataElements.csv?filter=displayName:eq:DataElement0&skipHeader=true")
@@ -129,7 +129,7 @@ class AbstractFullReadOnlyControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testGetCsvDimensionsWithPageSize() {
+  void testGetCsvWithPageSize() {
     createDataElements(36);
     String response = GET("/dataElements.csv?pageSize=10&skipHeader=true").content("text/csv");
 
