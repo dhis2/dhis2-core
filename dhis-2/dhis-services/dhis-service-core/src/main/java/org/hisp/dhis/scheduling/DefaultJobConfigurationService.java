@@ -40,10 +40,12 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -231,17 +233,26 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
 
   @Override
   @Transactional(readOnly = true)
-  public Stream<JobConfiguration> getDueJobConfigurations(
-      int dueInNextSeconds, boolean includeWaiting) {
+  public List<JobConfiguration> getDueJobConfigurations(
+      int dueInNextSeconds, boolean limitToNext1, boolean includeWaiting) {
     Instant now = Instant.now();
     Instant endOfWindow = now.plusSeconds(dueInNextSeconds);
-    return jobConfigurationStore
-        .getDueJobConfigurations(includeWaiting)
+    Duration maxCronDelay =
+        Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
+    Stream<JobConfiguration> dueJobs =
+        jobConfigurationStore
+            .getDueJobConfigurations(includeWaiting)
+            .filter(c -> c.isDueBetween(now, endOfWindow, maxCronDelay));
+    if (!limitToNext1) return dueJobs.toList();
+    Set<JobType> types = EnumSet.noneOf(JobType.class);
+    return dueJobs
         .filter(
-            trigger -> {
-              Instant dueTime = trigger.nextExecutionTime(now);
-              return dueTime != null && dueTime.isBefore(endOfWindow);
-            });
+            config -> {
+              if (types.contains(config.getJobType())) return false;
+              types.add(config.getJobType());
+              return true;
+            })
+        .toList();
   }
 
   @Override
