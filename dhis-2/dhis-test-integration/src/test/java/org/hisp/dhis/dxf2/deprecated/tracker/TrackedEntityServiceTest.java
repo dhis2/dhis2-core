@@ -312,7 +312,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void testDeleteImageAttribute() {
+  void testUpdateTeiByProvidingNullValueToImageAttribute() {
     TrackedEntityInstance trackedEntityInstance =
         trackedEntityInstanceService.getTrackedEntityInstance(maleC.getUid());
 
