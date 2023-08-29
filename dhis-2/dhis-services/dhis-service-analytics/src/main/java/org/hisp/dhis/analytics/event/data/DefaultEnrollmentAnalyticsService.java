@@ -34,7 +34,6 @@ import static org.hisp.dhis.common.ValueType.DATE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
-import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
@@ -167,22 +166,22 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
   protected long addEventData(Grid grid, EventQueryParams params) {
     Timer timer = new Timer().start().disablePrint();
 
-    List<EventQueryParams> paramsList = new ArrayList<>();
+    List<EventQueryParams> paramsList;
 
     if (params.getEndpointAction() == RequestTypeAware.EndpointAction.AGGREGATE) {
-      paramsList.addAll(queryPlanner.planAggregateQuery(params));
+      paramsList = queryPlanner.planAggregateQuery(params);
     } else {
-      paramsList.add(queryPlanner.planEnrollmentQuery(params));
+      paramsList = List.of(queryPlanner.planEnrollmentQuery(params));
     }
 
     long count = 0;
-    for (EventQueryParams p : paramsList) {
-      timer.getSplitTime("Planned event query, got partitions: " + p.getPartitions());
-      if (p.isTotalPages()) {
-        count += enrollmentAnalyticsManager.getEnrollmentCount(p);
+    for (EventQueryParams queryParams : paramsList) {
+      timer.getSplitTime("Planned event query, got partitions: " + queryParams.getPartitions());
+      if (queryParams.isTotalPages()) {
+        count += enrollmentAnalyticsManager.getEnrollmentCount(queryParams);
       }
 
-      enrollmentAnalyticsManager.getEnrollments(p, grid, queryValidator.getMaxLimit());
+      enrollmentAnalyticsManager.getEnrollments(queryParams, grid, queryValidator.getMaxLimit());
 
       timer.getTime("Got enrollments " + grid.getHeight());
     }

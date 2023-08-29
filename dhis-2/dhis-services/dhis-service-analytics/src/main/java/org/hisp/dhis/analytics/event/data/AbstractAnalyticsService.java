@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
@@ -83,7 +84,6 @@ import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
-import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
@@ -132,8 +132,7 @@ public abstract class AbstractAnalyticsService {
             .collect(toList());
 
     List<DimensionalObject> periods =
-        params.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT
-                && params.getEndpointAction() == RequestTypeAware.EndpointAction.AGGREGATE
+        params.isAggregatedEnrollments()
             ? params.getDimensions().stream()
                 .filter(d -> d.getDimensionType() == DimensionType.PERIOD)
                 .toList()
@@ -240,7 +239,7 @@ public abstract class AbstractAnalyticsService {
       if (!periods.isEmpty()) {
         params =
             new EventQueryParams.Builder(params)
-                .withPeriods(periods.stream().flatMap(p -> p.getItems().stream()).toList(), "")
+                .withPeriods(periods.stream().flatMap(p -> p.getItems().stream()).toList(), EMPTY)
                 .build();
       }
       count = addEventData(grid, params);

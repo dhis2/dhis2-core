@@ -107,7 +107,6 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.RepeatableStageParams;
-import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -141,6 +140,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected static final int LAST_VALUE_YEARS_OFFSET = -10;
 
   private static final String COL_VALUE = "value";
+
+  private static final String COL_PERIOD = "pe";
+
+  private static final String COL_ORGANIZATION = "ou";
+
+  private static final String OUTER_SQL_ALIAS = "t1";
 
   private static final String AND = " and ";
 
@@ -331,8 +336,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         .getDimensions()
         .forEach(
             dimension -> {
-              if (params.getEndpointItem() == ENROLLMENT
-                  && params.getEndpointAction() == RequestTypeAware.EndpointAction.AGGREGATE
+              if (params.isAggregatedEnrollments()
                   && dimension.getDimensionType() == DimensionType.PERIOD) {
                 dimension
                     .getItems()
@@ -902,7 +906,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param maxLimit max number of records to return.
    * @return a SQL query.
    */
-  protected String getEventsOrEnrollmentsSql(EventQueryParams params, int maxLimit) {
+  protected String getAggregatedEnrollmentsSql(EventQueryParams params, int maxLimit) {
     String sql = getSelectClause(params);
 
     sql += getFromClause(params);
@@ -917,13 +921,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
-   * Template method that generates a SQL query for retrieving events or enrollments.
+   * Template method that generates a SQL query for retrieving aggregated enrollments.
    *
    * @param params the {@link List<GridHeader>} to drive the query generation.
    * @param params the {@link EventQueryParams} to drive the query generation.
    * @return a SQL query.
    */
-  protected String getEventsOrEnrollmentsSql(List<GridHeader> headers, EventQueryParams params) {
+  protected String getAggregatedEnrollmentsSql(List<GridHeader> headers, EventQueryParams params) {
     String sql = getSelectClause(params);
 
     sql += getFromClause(params);
@@ -936,24 +940,24 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         headers.stream()
             .filter(
                 header ->
-                    !header.getName().equalsIgnoreCase("value")
-                        && !header.getName().equalsIgnoreCase("pe")
-                        && !header.getName().equalsIgnoreCase("ou"))
+                    !header.getName().equalsIgnoreCase(COL_VALUE)
+                        && !header.getName().equalsIgnoreCase(COL_PERIOD)
+                        && !header.getName().equalsIgnoreCase(COL_ORGANIZATION))
             .map(
                 header -> {
                   String headerName = header.getName();
                   if (tempSql.contains(headerName)) {
-                    return "t1.\"" + headerName + "\"";
+                    return OUTER_SQL_ALIAS + "." + quote(headerName);
                   }
                   if (headerName.contains(".")) {
                     headerName = headerName.split("\\.")[1];
                   }
 
-                  return "t1." + quote(headerName);
+                  return OUTER_SQL_ALIAS + "." + quote(headerName);
                 })
             .collect(joining(","));
 
-    String orgColumns = "";
+    String orgColumns = EMPTY;
 
     if (!params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)
         && !params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
@@ -973,19 +977,33 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                     d.getItems().stream()
                         .map(
                             it ->
-                                "t1." + ((Period) it).getPeriodType().getPeriodTypeEnum().getName())
+                                OUTER_SQL_ALIAS
+                                    + "."
+                                    + ((Period) it).getPeriodType().getPeriodTypeEnum().getName())
                         .toList()
                         .stream()
                         .distinct())
             .collect(joining(","));
 
     String columns =
-        (!isBlank(orgColumns) ? orgColumns : ",ou")
-            + (!isBlank(periodColumns) ? "," + periodColumns : "")
+        (!isBlank(orgColumns) ? orgColumns : "," + COL_ORGANIZATION)
+            + (!isBlank(periodColumns) ? "," + periodColumns : EMPTY)
             + ","
             + headerColumns;
 
-    sql = "select count(t1.pi) as value, " + columns + " from (" + sql + ") t1 group by " + columns;
+    sql =
+        "select count("
+            + OUTER_SQL_ALIAS
+            + ".pi) as "
+            + COL_VALUE
+            + ", "
+            + columns
+            + " from ("
+            + sql
+            + ") "
+            + OUTER_SQL_ALIAS
+            + " group by "
+            + columns;
 
     return sql;
   }

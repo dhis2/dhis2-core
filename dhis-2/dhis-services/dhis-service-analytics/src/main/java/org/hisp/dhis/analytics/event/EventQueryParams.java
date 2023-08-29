@@ -843,6 +843,11 @@ public class EventQueryParams extends DataQueryParams {
     return DESC == sortOrder ? 1 : 0;
   }
 
+  /** Returns true when parameters are incoming from analytics enrollments/aggregate entry point */
+  public boolean isAggregatedEnrollments() {
+    return endpointAction == EndpointAction.AGGREGATE && endpointItem == EndpointItem.ENROLLMENT;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)

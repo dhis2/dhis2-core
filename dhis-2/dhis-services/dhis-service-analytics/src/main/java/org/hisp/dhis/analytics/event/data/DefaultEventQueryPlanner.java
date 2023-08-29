@@ -48,7 +48,6 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.util.ObjectUtils;
@@ -121,9 +120,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
             : PartitionUtils.getPartitions(params.getAllPeriods());
 
     String baseName =
-        params.hasEnrollmentProgramIndicatorDimension()
-                || (params.getEndpointAction() == RequestTypeAware.EndpointAction.AGGREGATE
-                    && params.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT)
+        params.hasEnrollmentProgramIndicatorDimension() || params.isAggregatedEnrollments()
             ? AnalyticsTableType.ENROLLMENT.getTableName()
             : AnalyticsTableType.EVENT.getTableName();
 

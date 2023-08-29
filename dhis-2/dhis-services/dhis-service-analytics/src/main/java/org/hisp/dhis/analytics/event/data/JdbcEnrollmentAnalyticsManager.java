@@ -64,7 +64,6 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
-import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -133,10 +132,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   @Override
   public void getEnrollments(EventQueryParams params, Grid grid, int maxLimit) {
     String sql =
-        params.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT
-                && params.getEndpointAction() == RequestTypeAware.EndpointAction.AGGREGATE
-            ? getEventsOrEnrollmentsSql(grid.getHeaders(), params)
-            : getEventsOrEnrollmentsSql(params, maxLimit);
+        params.isAggregatedEnrollments()
+            ? getAggregatedEnrollmentsSql(grid.getHeaders(), params)
+            : getAggregatedEnrollmentsSql(params, maxLimit);
 
     if (params.analyzeOnly()) {
       executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql);
