@@ -45,9 +45,7 @@ public class SchemasActions extends RestApiActions {
   public List<SchemaProperty> getRequiredProperties(String resource) {
     List<SchemaProperty> list = get(resource).extractList("properties", SchemaProperty.class);
 
-    return list.stream()
-        .filter((schemaProperty -> schemaProperty.isRequired()))
-        .collect(Collectors.toList());
+    return list.stream().filter((SchemaProperty::isRequired)).collect(Collectors.toList());
   }
 
   public Schema getSchema(String resource) {

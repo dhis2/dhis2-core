@@ -44,7 +44,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
  */
 public class CoverageLoggerExtension
     implements BeforeAllCallback, ExtensionContext.Store.CloseableResource {
-  private static Logger logger = Logger.getLogger(CoverageLoggerExtension.class.getName());
+  private static final Logger logger = Logger.getLogger(CoverageLoggerExtension.class.getName());
 
   @Override
   public void beforeAll(ExtensionContext context) throws Exception {

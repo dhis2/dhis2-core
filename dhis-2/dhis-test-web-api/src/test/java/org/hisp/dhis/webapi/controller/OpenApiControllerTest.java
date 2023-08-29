@@ -104,6 +104,8 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
             .setInputSpec(tmpFile.toAbsolutePath().toString())
             .setGeneratorName("r");
 
-    assertNotNull(new DefaultGenerator(true).opts(configurator.toClientOptInput()).generate());
+    assertNotNull(
+        new DefaultGenerator(true).opts(configurator.toClientOptInput()).generate(),
+        "Like due to a query parameter which is complex, needs debugging to find out, insert breakpoint at RClientCodegen.constructExampleCode(RClientCodegen.java:950)");
   }
 }

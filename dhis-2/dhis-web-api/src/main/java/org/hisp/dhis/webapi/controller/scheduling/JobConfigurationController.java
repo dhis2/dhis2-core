@@ -46,6 +46,7 @@ import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.JobTypes;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -70,8 +71,10 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   private final JobSchedulerService jobSchedulerService;
 
   @GetMapping("/due")
-  public List<JobConfiguration> getDueJobConfigurations(@RequestParam int seconds) {
-    return jobConfigurationService.getDueJobConfigurations(seconds);
+  public List<JobConfiguration> getDueJobConfigurations(
+      @RequestParam int seconds,
+      @RequestParam(required = false, defaultValue = "false") boolean includeWaiting) {
+    return jobConfigurationService.getDueJobConfigurations(seconds, includeWaiting).toList();
   }
 
   @GetMapping("/stale")
@@ -112,6 +115,13 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   @GetMapping("{uid}/progress")
   public Progress getProgress(@PathVariable("uid") String uid) {
     return jobSchedulerService.getProgress(uid);
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @PostMapping("clean")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteDoneJobs(@RequestParam int minutes) {
+    jobConfigurationService.deleteFinishedJobs(minutes);
   }
 
   @Override

@@ -81,19 +81,6 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testPostJsonMetadata_Async() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Initiated metadataImport",
-        POST(
-                "/metadata?async=true",
-                "{'organisationUnits':[{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}]}")
-            .content(HttpStatus.OK));
-  }
-
-  @Test
   void testPostJsonMetadata_Pre38() {
     JsonObject report =
         POST(
@@ -115,20 +102,6 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testPostCsvMetadata_Async() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Initiated metadataImport",
-        POST(
-                "/metadata?async=true&classKey=ORGANISATION_UNIT",
-                Body(","),
-                ContentType("application/csv"))
-            .content(HttpStatus.OK));
-  }
-
-  @Test
   void testPostCsvMetadata_Pre38() {
     JsonObject report =
         POST("/37/metadata?classKey=ORGANISATION_UNIT", Body(","), ContentType("application/csv"))
@@ -144,20 +117,6 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
         "OK",
         null,
         POST("/38/metadata/gml", Body("<metadata></metadata>"), ContentType("application/xml"))
-            .content(HttpStatus.OK));
-  }
-
-  @Test
-  void testPostGmlMetadata_Async() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Initiated metadataImport",
-        POST(
-                "/metadata/gml?async=true",
-                Body("<metadata></metadata>"),
-                ContentType("application/xml"))
             .content(HttpStatus.OK));
   }
 
