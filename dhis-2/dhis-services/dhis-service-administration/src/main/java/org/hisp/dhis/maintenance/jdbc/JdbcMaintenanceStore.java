@@ -118,7 +118,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
               + pmSelect,
           // delete related PSIs comments
           "delete from eventcomments where eventid in " + eventSelect,
-          "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from eventcomments union all select trackedentitycommentid from enrollmentcomments)",
+          "delete from note where trackedentitycommentid not in (select trackedentitycommentid from eventcomments union all select trackedentitycommentid from enrollmentcomments)",
           // delete other objects related to PSIs
           "delete from relationshipitem where eventid in " + eventSelect,
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
@@ -198,7 +198,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           // delete comments linked to both enrollments and PSIs
           "delete from eventcomments where eventid in " + eventSelect,
           "delete from enrollmentcomments where enrollmentid in " + enrollmentSelect,
-          "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from eventcomments union all select trackedentitycommentid from enrollmentcomments)",
+          "delete from note where trackedentitycommentid not in (select trackedentitycommentid from eventcomments union all select trackedentitycommentid from enrollmentcomments)",
           // delete other entries linked to PSIs
           "delete from relationshipitem where eventid in " + eventSelect,
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
@@ -285,7 +285,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           // delete comments related to any obsolete enrollments or PSIs
           "delete from eventcomments where eventid in " + eventSelect,
           "delete from enrollmentcomments where enrollmentid in " + enrollmentSelect,
-          "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from eventcomments union all select trackedentitycommentid from enrollmentcomments)",
+          "delete from note where trackedentitycommentid not in (select trackedentitycommentid from eventcomments union all select trackedentitycommentid from enrollmentcomments)",
           // delete other objects related to obsolete PSIs
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
           // delete other objects related to obsolete enrollments

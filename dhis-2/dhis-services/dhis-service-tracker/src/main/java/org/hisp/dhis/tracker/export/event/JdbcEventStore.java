@@ -119,22 +119,22 @@ class JdbcEventStore implements EventStore {
 
   private static final String EVENT_COMMENT_QUERY =
       "select evc.eventid as evc_id,"
-          + " evnote.trackedentitycommentid as evnote_id,"
-          + " evnote.commenttext            as evnote_value,"
-          + " evnote.created                as evnote_storeddate,"
-          + " evnote.creator                as evnote_storedby,"
-          + " evnote.uid                    as evnote_uid,"
-          + " evnote.lastupdated            as evnote_lastupdated,"
-          + " userinfo.userinfoid            as evnote_user_id,"
-          + " userinfo.code                  as evnote_user_code,"
-          + " userinfo.uid                   as evnote_user_uid,"
-          + " userinfo.username              as evnote_user_username,"
-          + " userinfo.firstname             as evnote_user_firstname,"
-          + " userinfo.surname               as evnote_user_surname"
+          + " n.trackedentitycommentid as note_id,"
+          + " n.commenttext            as note_value,"
+          + " n.created                as note_storeddate,"
+          + " n.creator                as note_storedby,"
+          + " n.uid                    as note_uid,"
+          + " n.lastupdated            as note_lastupdated,"
+          + " userinfo.userinfoid            as note_user_id,"
+          + " userinfo.code                  as note_user_code,"
+          + " userinfo.uid                   as note_user_uid,"
+          + " userinfo.username              as note_user_username,"
+          + " userinfo.firstname             as note_user_firstname,"
+          + " userinfo.surname               as note_user_surname"
           + " from eventcomments evc"
-          + " inner join trackedentitycomment evnote"
-          + " on evc.trackedentitycommentid = evnote.trackedentitycommentid"
-          + " left join userinfo on evnote.lastupdatedby = userinfo.userinfoid ";
+          + " inner join note n"
+          + " on evc.trackedentitycommentid = n.trackedentitycommentid"
+          + " left join userinfo on n.lastupdatedby = userinfo.userinfoid ";
 
   private static final String EVENT_STATUS_EQ = " ev.status = ";
 
@@ -376,29 +376,29 @@ class JdbcEventStore implements EventStore {
               events.add(event);
             }
 
-            if (resultSet.getString("evnote_value") != null
-                && !notes.contains(resultSet.getString("evnote_id"))) {
+            if (resultSet.getString("note_value") != null
+                && !notes.contains(resultSet.getString("note_id"))) {
               TrackedEntityComment note = new TrackedEntityComment();
-              note.setUid(resultSet.getString("evnote_uid"));
-              note.setCommentText(resultSet.getString("evnote_value"));
-              note.setCreated(resultSet.getDate("evnote_storeddate"));
-              note.setCreator(resultSet.getString("evnote_storedby"));
+              note.setUid(resultSet.getString("note_uid"));
+              note.setCommentText(resultSet.getString("note_value"));
+              note.setCreated(resultSet.getDate("note_storeddate"));
+              note.setCreator(resultSet.getString("note_storedby"));
 
-              if (resultSet.getObject("evnote_user_id") != null) {
+              if (resultSet.getObject("note_user_id") != null) {
                 User noteLastUpdatedBy = new User();
-                noteLastUpdatedBy.setId(resultSet.getLong("evnote_user_id"));
-                noteLastUpdatedBy.setCode(resultSet.getString("evnote_user_code"));
-                noteLastUpdatedBy.setUid(resultSet.getString("evnote_user_uid"));
-                noteLastUpdatedBy.setUsername(resultSet.getString("evnote_user_username"));
-                noteLastUpdatedBy.setFirstName(resultSet.getString("evnote_user_firstname"));
-                noteLastUpdatedBy.setSurname(resultSet.getString("evnote_user_surname"));
+                noteLastUpdatedBy.setId(resultSet.getLong("note_user_id"));
+                noteLastUpdatedBy.setCode(resultSet.getString("note_user_code"));
+                noteLastUpdatedBy.setUid(resultSet.getString("note_user_uid"));
+                noteLastUpdatedBy.setUsername(resultSet.getString("note_user_username"));
+                noteLastUpdatedBy.setFirstName(resultSet.getString("note_user_firstname"));
+                noteLastUpdatedBy.setSurname(resultSet.getString("note_user_surname"));
                 note.setLastUpdatedBy(noteLastUpdatedBy);
               }
 
-              note.setLastUpdated(resultSet.getDate("evnote_lastupdated"));
+              note.setLastUpdated(resultSet.getDate("note_lastupdated"));
 
               event.getComments().add(note);
-              notes.add(resultSet.getString("evnote_id"));
+              notes.add(resultSet.getString("note_id"));
             }
           }
 

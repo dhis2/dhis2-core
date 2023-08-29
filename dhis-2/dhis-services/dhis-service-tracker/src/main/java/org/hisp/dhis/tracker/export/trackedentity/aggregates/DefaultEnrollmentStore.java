@@ -53,10 +53,10 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
   private static final String GET_ATTRIBUTES = ProgramAttributeQuery.getQuery();
 
   private static final String GET_NOTES_SQL =
-      "select en.uid as key, tec.uid, tec.commenttext, "
-          + "tec.creator, tec.created "
-          + "from trackedentitycomment tec join enrollmentcomments enc "
-          + "on tec.trackedentitycommentid = enc.trackedentitycommentid "
+      "select en.uid as key, n.uid, n.commenttext, "
+          + "n.creator, n.created "
+          + "from note n join enrollmentcomments enc "
+          + "on n.trackedentitycommentid = enc.trackedentitycommentid "
           + "join enrollment en on enc.enrollmentid = en.enrollmentid "
           + "where enc.enrollmentid in (:ids)";
 

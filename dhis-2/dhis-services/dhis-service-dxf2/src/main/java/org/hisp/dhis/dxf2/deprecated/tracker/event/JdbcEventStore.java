@@ -169,7 +169,7 @@ public class JdbcEventStore implements EventStore {
           + " userinfo.firstname             as userinfo_firstname,"
           + " userinfo.surname               as userinfo_surname"
           + " from eventcomments psic"
-          + " inner join trackedentitycomment psinote"
+          + " inner join note psinote"
           + " on psic.trackedentitycommentid = psinote.trackedentitycommentid"
           + " left join userinfo on psinote.lastupdatedby = userinfo.userinfoid ";
 

@@ -65,7 +65,7 @@ public class HibernateTrackedEntityCommentStore
     return (boolean)
         sessionFactory
             .getCurrentSession()
-            .createNativeQuery("select exists(select 1 from trackedentitycomment where uid=:uid)")
+            .createNativeQuery("select exists(select 1 from note where uid=:uid)")
             .setParameter("uid", uid)
             .getSingleResult();
   }

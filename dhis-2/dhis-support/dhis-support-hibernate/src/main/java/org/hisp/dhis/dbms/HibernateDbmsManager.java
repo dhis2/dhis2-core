@@ -323,7 +323,7 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("previouspasswords");
     emptyTable("usersetting");
     emptyTable("fileresource");
-    emptyTable("trackedentitycomment");
+    emptyTable("note");
     emptyTable("userinfo");
     emptyTable("route");
 

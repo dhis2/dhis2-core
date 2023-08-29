@@ -54,7 +54,7 @@ public class JdbcEventCommentStore implements EventCommentStore {
   private final JdbcTemplate jdbcTemplate;
 
   private final String INSERT_EVENT_NOTE_SQL =
-      "INSERT INTO TRACKEDENTITYCOMMENT (trackedentitycommentid, "
+      "INSERT INTO note (trackedentitycommentid, "
           + // 0
           "uid, "
           + // 1

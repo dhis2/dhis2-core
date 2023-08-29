@@ -62,7 +62,7 @@ public class DefaultEventStore extends AbstractStore implements EventStore {
   private static final String GET_NOTES_SQL =
       "select psi.uid as key, tec.uid, tec.commenttext, "
           + "tec.creator, tec.created "
-          + "from trackedentitycomment tec "
+          + "from note tec "
           + "join eventcomments psic "
           + "on tec.trackedentitycommentid = psic.trackedentitycommentid "
           + "join event psi on psic.eventid = psi.eventid "
