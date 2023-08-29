@@ -88,7 +88,8 @@ public class DefaultAdminUserPopulator extends TransactionContextStartupRoutine 
           "F_TRACKED_ENTITY_MERGE",
           "F_DATAVALUE_ADD",
           "F_DATAVALUE_DELETE",
-          "F_IMPERSONATE_USER");
+          "F_IMPERSONATE_USER",
+          "F_SYSTEM_SETTING");
 
   public static final Set<String> ALL_RESTRICTIONS =
       Set.of(TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME);
