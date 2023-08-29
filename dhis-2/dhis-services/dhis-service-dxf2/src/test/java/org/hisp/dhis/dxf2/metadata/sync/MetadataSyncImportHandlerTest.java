@@ -110,7 +110,7 @@ class MetadataSyncImportHandlerTest {
     syncParams.setImportParams(new MetadataImportParams());
     syncParams.setVersion(metadataVersion);
 
-    when(metadataImportService.importMetadata(syncParams.getImportParams()))
+    when(metadataImportService.importMetadata(eq(syncParams.getImportParams()), any()))
         .thenThrow(new MetadataSyncServiceException(""));
     assertThrows(
         MetadataSyncImportException.class,
@@ -125,7 +125,7 @@ class MetadataSyncImportHandlerTest {
     MetadataSyncSummary metadataSyncSummary = new MetadataSyncSummary();
     importReport.setStatus(Status.OK);
 
-    when(metadataImportService.importMetadata(syncParams.getImportParams()))
+    when(metadataImportService.importMetadata(eq(syncParams.getImportParams()), any()))
         .thenReturn(importReport);
 
     metadataSyncSummary.setImportReport(importReport);
@@ -159,7 +159,7 @@ class MetadataSyncImportHandlerTest {
     importReport.setStatus(Status.WARNING);
     metadataVersion.setType(VersionType.BEST_EFFORT);
 
-    when(metadataImportService.importMetadata(syncParams.getImportParams()))
+    when(metadataImportService.importMetadata(eq(syncParams.getImportParams()), any()))
         .thenReturn(importReport);
 
     metadataSyncSummary.setImportReport(importReport);
@@ -198,7 +198,7 @@ class MetadataSyncImportHandlerTest {
         () -> metadataSyncImportHandler.importMetadata(syncParams, expectedMetadataSnapshot),
         "ClassListMap can't be null");
 
-    verify(metadataImportService, never()).importMetadata(syncParams.getImportParams());
+    verify(metadataImportService, never()).importMetadata(eq(syncParams.getImportParams()), any());
     verify(metadataVersionDelegate, never()).addNewMetadataVersion(metadataVersion);
     verify(metadataVersionDelegate, never()).addNewMetadataVersion(metadataVersion);
   }
@@ -217,7 +217,7 @@ class MetadataSyncImportHandlerTest {
         () -> metadataSyncImportHandler.importMetadata(syncParams, expectedMetadataSnapshot),
         "Exception occurred while trying to do JSON conversion while parsing class list map");
 
-    verify(metadataImportService, never()).importMetadata(syncParams.getImportParams());
+    verify(metadataImportService, never()).importMetadata(eq(syncParams.getImportParams()), any());
     verify(metadataVersionDelegate, never()).addNewMetadataVersion(metadataVersion);
     verify(metadataVersionDelegate, never()).addNewMetadataVersion(metadataVersion);
   }
@@ -233,7 +233,7 @@ class MetadataSyncImportHandlerTest {
 
     importReport.setStatus(Status.ERROR);
 
-    when(metadataImportService.importMetadata(syncParams.getImportParams()))
+    when(metadataImportService.importMetadata(eq(syncParams.getImportParams()), any()))
         .thenReturn(importReport);
 
     MetadataSyncSummary actualMetadataSyncSummary =

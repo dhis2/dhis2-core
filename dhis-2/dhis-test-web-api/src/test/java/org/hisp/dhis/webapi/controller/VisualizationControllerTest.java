@@ -25,46 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.webapi.controller;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.eventhook.EventHookPublisher;
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.user.AuthenticationService;
-import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.stereotype.Component;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Component
-@Getter
-@RequiredArgsConstructor
-public class SchedulingManagerSupport {
-  private final UserService userService;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.web.WebClient;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
+import org.junit.jupiter.api.Test;
 
-  private final AuthenticationService authenticationService;
+class VisualizationControllerTest extends DhisControllerConvenienceTest {
 
-  private final JobService jobService;
+  @Test
+  void testGetVisualizationWithNestedFilters() {
+    JsonImportSummary report =
+        POST("/metadata", WebClient.Body("metadata/metadata_with_visualization.json"))
+            .content(HttpStatus.OK)
+            .get("response")
+            .as(JsonImportSummary.class);
+    assertEquals("OK", report.getStatus());
 
-  private final JobConfigurationService jobConfigurationService;
-
-  private final MessageService messageService;
-
-  private final LeaderManager leaderManager;
-
-  private final Notifier notifier;
-
-  private final EventHookPublisher eventHookPublisher;
-
-  private final CacheProvider cacheProvider;
-
-  private final AsyncTaskExecutor taskExecutor;
-
-  @Qualifier("taskScheduler")
-  private final TaskScheduler jobScheduler;
+    JsonMixed response =
+        GET("/visualizations.json?filter=id:eq:qD72aBqsHvt&fields=filters").content();
+    JsonList<JsonObject> visualizations = response.getList("visualizations", JsonObject.class);
+    assertEquals(1, visualizations.size());
+    assertEquals(1, visualizations.get(0).getList("filters", JsonObject.class).size());
+  }
 }

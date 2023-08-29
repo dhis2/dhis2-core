@@ -195,7 +195,7 @@ public enum ErrorCode {
   E4002("Allowed length range for property `{0}` is [{1} to {2}], but given length was {3}"),
   E4003("Property `{0}` requires a valid email address, was given `{1}`"),
   E4004("Property `{0}` requires a valid URL, was given `{1}`"),
-  E4005("Property `{0}` requires a valid password, was given `{1}`"),
+  E4005("Property `{0}` requires a valid password, `{1}`"),
   E4006("Property `{0}` requires a valid HEX color, was given `{1}`"),
   E4007("Allowed size range for collection property `{0}` is [{1} to {2}], but size given was {3}"),
   E4008("Allowed range for numeric property `{0}` is [{1} to {2}], but number given was {3}"),

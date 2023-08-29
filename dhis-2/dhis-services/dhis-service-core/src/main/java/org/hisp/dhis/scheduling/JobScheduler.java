@@ -28,10 +28,14 @@
 package org.hisp.dhis.scheduling;
 
 import static java.lang.System.currentTimeMillis;
+import static java.util.stream.Collectors.groupingBy;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -40,6 +44,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
 /**
@@ -84,6 +90,7 @@ public class JobScheduler implements Runnable, JobRunner {
 
   private final JobService jobService;
   private final JobSchedulerLoopService service;
+  private final SystemSettingManager systemSettings;
   private final ExecutorService workers = Executors.newCachedThreadPool();
 
   public void start() {
@@ -110,7 +117,11 @@ public class JobScheduler implements Runnable, JobRunner {
       Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS).plusSeconds(1);
       if (service.tryBecomeLeader(TTL_SECONDS)) {
         service.assureAsLeader(TTL_SECONDS);
-        service.getDueJobConfigurations(LOOP_SECONDS).forEach(c -> runIfDue(now, c));
+        Map<JobType, List<JobConfiguration>> readyByType =
+            service.getDueJobConfigurations(LOOP_SECONDS).stream()
+                .collect(groupingBy(JobConfiguration::getJobType));
+        // only attempt to start one per type per loop invocation
+        readyByType.forEach((type, jobs) -> runIfDue(now, jobs.get(0)));
       }
     } catch (Exception ex) {
       log.error("Exceptions thrown in scheduler loop", ex);
@@ -119,7 +130,9 @@ public class JobScheduler implements Runnable, JobRunner {
   }
 
   private void runIfDue(Instant now, JobConfiguration config) {
-    Instant dueTime = config.nextExecutionTime(now);
+    Duration maxCronDelay =
+        Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
+    Instant dueTime = config.nextExecutionTime(now, maxCronDelay);
     if (dueTime != null && !dueTime.isAfter(now)) {
       workers.submit(() -> runDueJob(config, dueTime));
     }

@@ -45,6 +45,7 @@ import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
@@ -243,8 +244,9 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
     MetadataImportParams importParams = new MetadataImportParams();
     importParams.setSkipSharing(true);
     importParams.setAtomicMode(AtomicMode.NONE);
-    importParams.addMetadata(schemaService.getMetadataSchemas(), metadata);
 
-    return importService.importMetadata(importParams);
+    return importService.importMetadata(
+        importParams,
+        new MetadataObjects().addMetadata(schemaService.getMetadataSchemas(), metadata));
   }
 }

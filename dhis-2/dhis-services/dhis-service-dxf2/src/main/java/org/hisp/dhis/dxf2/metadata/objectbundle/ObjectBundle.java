@@ -51,7 +51,6 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
 
 /**
@@ -109,9 +108,6 @@ public class ObjectBundle implements ObjectIndexProvider {
   /** Is this import request from MetadataSync service; */
   private final boolean metadataSyncImport;
 
-  /** Job id to use for threaded imports. */
-  private JobConfiguration jobId;
-
   /** Current status of object bundle. */
   private ObjectBundleStatus objectBundleStatus = ObjectBundleStatus.CREATED;
 
@@ -154,7 +150,6 @@ public class ObjectBundle implements ObjectIndexProvider {
     this.skipSharing = params.isSkipSharing();
     this.skipTranslation = params.isSkipTranslation();
     this.skipValidation = params.isSkipValidation();
-    this.jobId = params.getJobId();
     this.preheat = preheat;
     this.metadataSyncImport = params.isMetadataSyncImport();
 
@@ -227,14 +222,6 @@ public class ObjectBundle implements ObjectIndexProvider {
 
   public boolean isMetadataSyncImport() {
     return metadataSyncImport;
-  }
-
-  public JobConfiguration getJobId() {
-    return jobId;
-  }
-
-  public boolean hasJobId() {
-    return jobId != null;
   }
 
   public ObjectBundleStatus getObjectBundleStatus() {

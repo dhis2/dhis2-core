@@ -29,6 +29,7 @@ package org.hisp.dhis.scheduling;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
@@ -104,10 +105,12 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    *
    * <p>OBS! The {@link JobConfiguration}s returned are not fully initialized.
    *
+   * @param includeWaiting true to also list jobs that cannot run because another job of the same
+   *     type is already running
    * @return all job configurations that could potentially be started based on their cron expression
    *     or delay time
    */
-  List<JobConfiguration> getAllTriggers();
+  Stream<JobConfiguration> getDueJobConfigurations(boolean includeWaiting);
 
   /**
    * @return A list of all job types that are currently in {@link JobStatus#RUNNING} state.
@@ -120,6 +123,17 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    *     completed run.
    */
   Set<JobType> getCompletedTypes();
+
+  /**
+   * @return a set of all queue names
+   */
+  Set<String> getAllQueueNames();
+
+  /**
+   * @param queue of the queue to list
+   * @return All jobs in a queue ordered by their position
+   */
+  List<JobConfiguration> getJobsInQueue(@Nonnull String queue);
 
   /**
    * @param queue name of the queue

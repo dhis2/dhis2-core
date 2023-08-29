@@ -188,9 +188,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   // Flags
   // -------------------------------------------------------------------------
 
-  /** Apply or not rounding. */
-  private boolean skipRounding;
-
   /**
    * Indicates whether the visualization contains regression columns. More likely to be applicable
    * to pivot and reports.
@@ -408,16 +405,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   public void setNumberType(NumberType numberType) {
     this.numberType = numberType;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public boolean isSkipRounding() {
-    return skipRounding;
-  }
-
-  public void setSkipRounding(boolean skipRounding) {
-    this.skipRounding = skipRounding;
   }
 
   public void setFormat(I18nFormat format) {

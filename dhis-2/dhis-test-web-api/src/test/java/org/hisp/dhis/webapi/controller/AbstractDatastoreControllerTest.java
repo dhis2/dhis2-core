@@ -56,18 +56,16 @@ abstract class AbstractDatastoreControllerTest extends DhisControllerConvenience
   }
 
   final void postPet(String key, String name, int age, List<String> eats) {
-    postEntry(
-        "pets",
-        key,
-        toJson(
-            Map.of(
-                "name",
-                name,
-                "age",
-                age,
-                "cute",
-                true,
-                "eats",
-                eats == null ? List.of() : eats.stream().map(food -> Map.of("name", food)))));
+    Map<String, Object> obj =
+        Map.of(
+            "name",
+            name,
+            "age",
+            age,
+            "cute",
+            true,
+            "eats",
+            eats == null ? List.of() : eats.stream().map(food -> Map.of("name", food)));
+    postEntry("pets", key, toJson(obj));
   }
 }
