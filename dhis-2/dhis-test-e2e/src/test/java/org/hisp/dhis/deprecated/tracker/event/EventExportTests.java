@@ -399,7 +399,7 @@ public class EventExportTests extends DeprecatedTrackerApiTest {
     eventActions
         .get(
             String.format(
-                "?program=%s&ouMode=%s&orgUnit", withoutRegistrationProgram, "ALL", "ImspTQPwCqd"))
+                "?program=%s&ouMode=%s", withoutRegistrationProgram, "ALL", "ImspTQPwCqd"))
         .validate()
         .statusCode(409)
         .body(
