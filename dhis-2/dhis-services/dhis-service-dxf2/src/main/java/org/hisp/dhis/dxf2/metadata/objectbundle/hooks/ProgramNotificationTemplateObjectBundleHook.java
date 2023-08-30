@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -43,84 +42,80 @@ import org.springframework.stereotype.Component;
  * @author Halvdan Hoem Grelland
  */
 @Component
-public class ProgramNotificationTemplateObjectBundleHook extends AbstractObjectBundleHook<ProgramNotificationTemplate>
-{
-    private static final Map<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>> RECIPIENT_TO_VALUETYPE_RESOLVER = Map
-        .of(
-            ProgramNotificationRecipient.PROGRAM_ATTRIBUTE,
-            template -> template.getRecipientProgramAttribute().getValueType(),
-            ProgramNotificationRecipient.DATA_ELEMENT, template -> template.getRecipientDataElement().getValueType(),
-            ProgramNotificationRecipient.WEB_HOOK, template -> ValueType.URL );
+public class ProgramNotificationTemplateObjectBundleHook
+    extends AbstractObjectBundleHook<ProgramNotificationTemplate> {
+  private static final Map<
+          ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>>
+      RECIPIENT_TO_VALUETYPE_RESOLVER =
+          Map.of(
+              ProgramNotificationRecipient.PROGRAM_ATTRIBUTE,
+              template -> template.getRecipientProgramAttribute().getValueType(),
+              ProgramNotificationRecipient.DATA_ELEMENT,
+              template -> template.getRecipientDataElement().getValueType(),
+              ProgramNotificationRecipient.WEB_HOOK,
+              template -> ValueType.URL);
 
-    private static final Map<ValueType, Set<DeliveryChannel>> CHANNEL_MAPPER = Map.of(
-        ValueType.PHONE_NUMBER, Set.of( DeliveryChannel.SMS ),
-        ValueType.EMAIL, Set.of( DeliveryChannel.EMAIL ),
-        ValueType.URL, Set.of( DeliveryChannel.HTTP ) );
+  private static final Map<ValueType, Set<DeliveryChannel>> CHANNEL_MAPPER =
+      Map.of(
+          ValueType.PHONE_NUMBER, Set.of(DeliveryChannel.SMS),
+          ValueType.EMAIL, Set.of(DeliveryChannel.EMAIL),
+          ValueType.URL, Set.of(DeliveryChannel.HTTP));
 
-    @Override
-    public void preCreate( ProgramNotificationTemplate template, ObjectBundle bundle )
-    {
-        preProcess( template );
+  @Override
+  public void preCreate(ProgramNotificationTemplate template, ObjectBundle bundle) {
+    preProcess(template);
+  }
+
+  @Override
+  public void preUpdate(
+      ProgramNotificationTemplate template,
+      ProgramNotificationTemplate persistedObject,
+      ObjectBundle bundle) {
+    preProcess(template);
+  }
+
+  @Override
+  public void postCreate(ProgramNotificationTemplate template, ObjectBundle bundle) {
+    postProcess(template);
+  }
+
+  @Override
+  public void postUpdate(ProgramNotificationTemplate template, ObjectBundle bundle) {
+    postProcess(template);
+  }
+
+  /** Removes any non-valid combinations of properties on the template object. */
+  private void preProcess(ProgramNotificationTemplate template) {
+    if (template.getNotificationTrigger().isImmediate()) {
+      template.setRelativeScheduledDays(null);
     }
 
-    @Override
-    public void preUpdate( ProgramNotificationTemplate template, ProgramNotificationTemplate persistedObject,
-        ObjectBundle bundle )
-    {
-        preProcess( template );
+    if (ProgramNotificationRecipient.USER_GROUP != template.getNotificationRecipient()) {
+      template.setRecipientUserGroup(null);
     }
 
-    @Override
-    public void postCreate( ProgramNotificationTemplate template, ObjectBundle bundle )
-    {
-        postProcess( template );
+    if (ProgramNotificationRecipient.PROGRAM_ATTRIBUTE != template.getNotificationRecipient()) {
+      template.setRecipientProgramAttribute(null);
     }
 
-    @Override
-    public void postUpdate( ProgramNotificationTemplate template, ObjectBundle bundle )
-    {
-        postProcess( template );
+    if (ProgramNotificationRecipient.DATA_ELEMENT != template.getNotificationRecipient()) {
+      template.setRecipientDataElement(null);
     }
 
-    /**
-     * Removes any non-valid combinations of properties on the template object.
-     */
-    private void preProcess( ProgramNotificationTemplate template )
-    {
-        if ( template.getNotificationTrigger().isImmediate() )
-        {
-            template.setRelativeScheduledDays( null );
-        }
-
-        if ( ProgramNotificationRecipient.USER_GROUP != template.getNotificationRecipient() )
-        {
-            template.setRecipientUserGroup( null );
-        }
-
-        if ( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE != template.getNotificationRecipient() )
-        {
-            template.setRecipientProgramAttribute( null );
-        }
-
-        if ( ProgramNotificationRecipient.DATA_ELEMENT != template.getNotificationRecipient() )
-        {
-            template.setRecipientDataElement( null );
-        }
-
-        if ( !(template.getNotificationRecipient().isExternalRecipient()) )
-        {
-            template.setDeliveryChannels( new HashSet<>() );
-        }
+    if (!(template.getNotificationRecipient().isExternalRecipient())) {
+      template.setDeliveryChannels(new HashSet<>());
     }
+  }
 
-    private void postProcess( ProgramNotificationTemplate template )
-    {
-        ProgramNotificationRecipient recipient = template.getNotificationRecipient();
-        Function<ProgramNotificationTemplate, ValueType> toValueType = RECIPIENT_TO_VALUETYPE_RESOLVER.get( recipient );
+  private void postProcess(ProgramNotificationTemplate template) {
+    ProgramNotificationRecipient recipient = template.getNotificationRecipient();
+    Function<ProgramNotificationTemplate, ValueType> toValueType =
+        RECIPIENT_TO_VALUETYPE_RESOLVER.get(recipient);
 
-        ValueType valueType = toValueType == null ? null : toValueType.apply( template );
+    ValueType valueType = toValueType == null ? null : toValueType.apply(template);
 
-        Set<DeliveryChannel> deliveryChannels = valueType == null ? null : CHANNEL_MAPPER.get( valueType );
-        template.setDeliveryChannels( deliveryChannels == null ? new HashSet<>() : deliveryChannels );
-    }
+    Set<DeliveryChannel> deliveryChannels =
+        valueType == null ? null : CHANNEL_MAPPER.get(valueType);
+    template.setDeliveryChannels(deliveryChannels == null ? new HashSet<>() : deliveryChannels);
+  }
 }

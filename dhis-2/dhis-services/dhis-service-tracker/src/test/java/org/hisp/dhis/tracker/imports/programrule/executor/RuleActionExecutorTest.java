@@ -32,65 +32,59 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.stream.Stream;
-
 import org.hisp.dhis.common.ValueType;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-class RuleActionExecutorTest
-{
-    private static Stream<Arguments> equalValues()
-    {
-        return Stream.of(
-            Arguments.of( "first_dose", ValueType.TEXT ),
-            Arguments.of( "2020-01-01", ValueType.DATE ),
-            Arguments.of( "true", ValueType.BOOLEAN ),
-            Arguments.of( "26.4", ValueType.TEXT ),
-            Arguments.of( "24.8", ValueType.NUMBER ),
-            Arguments.of( "32", ValueType.INTEGER ) );
-    }
+class RuleActionExecutorTest {
+  private static Stream<Arguments> equalValues() {
+    return Stream.of(
+        Arguments.of("first_dose", ValueType.TEXT),
+        Arguments.of("2020-01-01", ValueType.DATE),
+        Arguments.of("true", ValueType.BOOLEAN),
+        Arguments.of("26.4", ValueType.TEXT),
+        Arguments.of("24.8", ValueType.NUMBER),
+        Arguments.of("32", ValueType.INTEGER));
+  }
 
-    private static Stream<Arguments> differentValues()
-    {
-        return Stream.of(
-            Arguments.of( "first_dose", "second_dose", ValueType.TEXT ),
-            Arguments.of( "2020-01-01", "2020-01-02", ValueType.DATE ),
-            Arguments.of( "true", "false", ValueType.BOOLEAN ),
-            Arguments.of( "26.4", "26.5", ValueType.TEXT ),
-            Arguments.of( "24.8", "24.9", ValueType.NUMBER ),
-            Arguments.of( "32", "33", ValueType.INTEGER ) );
-    }
+  private static Stream<Arguments> differentValues() {
+    return Stream.of(
+        Arguments.of("first_dose", "second_dose", ValueType.TEXT),
+        Arguments.of("2020-01-01", "2020-01-02", ValueType.DATE),
+        Arguments.of("true", "false", ValueType.BOOLEAN),
+        Arguments.of("26.4", "26.5", ValueType.TEXT),
+        Arguments.of("24.8", "24.9", ValueType.NUMBER),
+        Arguments.of("32", "33", ValueType.INTEGER));
+  }
 
-    private static Stream<Arguments> valuesOfDifferentTypes()
-    {
-        return Stream.of(
-            Arguments.of( "first_dose", "46.2", ValueType.NUMBER ),
-            Arguments.of( "24", "second_dose", ValueType.NUMBER ),
-            Arguments.of( null, "46.2", ValueType.NUMBER ),
-            Arguments.of( "26.4", null, ValueType.NUMBER ),
-            Arguments.of( "first_dose", null, ValueType.TEXT ),
-            Arguments.of( null, "second_dose", ValueType.TEXT ) );
-    }
+  private static Stream<Arguments> valuesOfDifferentTypes() {
+    return Stream.of(
+        Arguments.of("first_dose", "46.2", ValueType.NUMBER),
+        Arguments.of("24", "second_dose", ValueType.NUMBER),
+        Arguments.of(null, "46.2", ValueType.NUMBER),
+        Arguments.of("26.4", null, ValueType.NUMBER),
+        Arguments.of("first_dose", null, ValueType.TEXT),
+        Arguments.of(null, "second_dose", ValueType.TEXT));
+  }
 
-    @ParameterizedTest
-    @MethodSource( "equalValues" )
-    void shouldCheckValuesAreEqual( String value, ValueType valueType )
-    {
-        assertTrue( isEqual( value, value, valueType ) );
-    }
+  @ParameterizedTest
+  @MethodSource("equalValues")
+  void shouldCheckValuesAreEqual(String value, ValueType valueType) {
+    assertTrue(isEqual(value, value, valueType));
+  }
 
-    @ParameterizedTest
-    @MethodSource( "differentValues" )
-    void shouldCheckDifferentValuesOfSameTypeAreDifferent( String value1, String value2, ValueType valueType )
-    {
-        assertFalse( isEqual( value1, value2, valueType ) );
-    }
+  @ParameterizedTest
+  @MethodSource("differentValues")
+  void shouldCheckDifferentValuesOfSameTypeAreDifferent(
+      String value1, String value2, ValueType valueType) {
+    assertFalse(isEqual(value1, value2, valueType));
+  }
 
-    @ParameterizedTest
-    @MethodSource( "valuesOfDifferentTypes" )
-    void shouldTestIsEqualIsComparingCorrectlyDifferentTypeValues( String value1, String value2, ValueType valueType )
-    {
-        assertFalse( isEqual( value1, value2, valueType ) );
-    }
+  @ParameterizedTest
+  @MethodSource("valuesOfDifferentTypes")
+  void shouldTestIsEqualIsComparingCorrectlyDifferentTypeValues(
+      String value1, String value2, ValueType valueType) {
+    assertFalse(isEqual(value1, value2, valueType));
+  }
 }

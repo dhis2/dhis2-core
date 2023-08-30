@@ -31,17 +31,15 @@ import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.hisp.dhis.dxf2.deprecated.tracker.aggregates.ThreadPoolManager.getPool;
 
+import com.google.common.collect.Multimap;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.dxf2.deprecated.tracker.event.DataValue;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Note;
@@ -49,89 +47,80 @@ import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.EventStore;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Multimap;
-
 /**
  * @author Luciano Fiandesio
- *
- * @deprecated this is a class related to "old" (deprecated) tracker which will
- *             be removed with "old" tracker. Make sure to plan migrating to new
- *             tracker.
+ * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
+ *     "old" tracker. Make sure to plan migrating to new tracker.
  */
 @Component
 @RequiredArgsConstructor
-@Deprecated( since = "2.41" )
-public class EventAggregate
-    extends
-    AbstractAggregate
-{
-    @Nonnull
-    private final EventStore eventStore;
+@Deprecated(since = "2.41")
+public class EventAggregate extends AbstractAggregate {
+  @Nonnull private final EventStore eventStore;
 
-    /**
-     * Key: enrollment uid -> Value: Event
-     *
-     * @param ids a List of {@see Enrollment} Primary Keys
-     * @param ctx the {@see AggregateContext}
-     * @return a Map where the key is a Enrollment Primary Key, and the value is
-     *         a List of {@see Event}
-     */
-    Multimap<String, Event> findByEnrollmentIds( List<Long> ids, AggregateContext ctx )
-    {
-        // Fetch all the Events that are linked to the given Enrollment IDs
+  /**
+   * Key: enrollment uid -> Value: Event
+   *
+   * @param ids a List of {@see Enrollment} Primary Keys
+   * @param ctx the {@see AggregateContext}
+   * @return a Map where the key is a Enrollment Primary Key, and the value is a List of {@see
+   *     Event}
+   */
+  Multimap<String, Event> findByEnrollmentIds(List<Long> ids, AggregateContext ctx) {
+    // Fetch all the Events that are linked to the given Enrollment IDs
 
-        Multimap<String, Event> events = this.eventStore.getEventsByEnrollmentIds( ids, ctx );
+    Multimap<String, Event> events = this.eventStore.getEventsByEnrollmentIds(ids, ctx);
 
-        if ( events.isEmpty() )
-        {
-            return events;
-        }
-
-        List<Long> eventIds = events.values().stream().map( Event::getId ).collect( Collectors.toList() );
-
-        /*
-         * Async fetch Relationships for the given Event ids (only if
-         * isIncludeRelationships = true)
-         */
-        final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(
-            ctx.getParams().getEventParams().isIncludeRelationships(),
-            () -> eventStore.getRelationships( eventIds, ctx ), getPool() );
-
-        /*
-         * Async fetch Notes for the given Event ids
-         */
-        final CompletableFuture<Multimap<String, Note>> notesAsync = asyncFetch(
-            () -> eventStore.getNotes( eventIds ), getPool() );
-
-        /*
-         * Async fetch DataValues for the given Event ids
-         */
-        final CompletableFuture<Map<String, List<DataValue>>> dataValuesAsync = supplyAsync(
-            () -> eventStore.getDataValues( eventIds ), getPool() );
-
-        return allOf( dataValuesAsync, notesAsync, relationshipAsync ).thenApplyAsync( fn -> {
-
-            Map<String, List<DataValue>> dataValues = dataValuesAsync.join();
-            Multimap<String, Note> notes = notesAsync.join();
-            Multimap<String, Relationship> relationships = relationshipAsync.join();
-
-            for ( Event event : events.values() )
-            {
-                if ( ctx.getParams().isIncludeRelationships() )
-                {
-                    event.setRelationships( new HashSet<>( relationships.get( event.getEvent() ) ) );
-                }
-
-                List<DataValue> dataValuesForEvent = dataValues.get( event.getEvent() );
-                if ( dataValuesForEvent != null && !dataValuesForEvent.isEmpty() )
-                {
-                    event.setDataValues( new HashSet<>( dataValues.get( event.getEvent() ) ) );
-                }
-                event.setNotes( new ArrayList<>( notes.get( event.getEvent() ) ) );
-            }
-
-            return events;
-
-        }, getPool() ).join();
+    if (events.isEmpty()) {
+      return events;
     }
+
+    List<Long> eventIds = events.values().stream().map(Event::getId).collect(Collectors.toList());
+
+    /*
+     * Async fetch Relationships for the given Event ids (only if
+     * isIncludeRelationships = true)
+     */
+    final CompletableFuture<Multimap<String, Relationship>> relationshipAsync =
+        conditionalAsyncFetch(
+            ctx.getParams().getEventParams().isIncludeRelationships(),
+            () -> eventStore.getRelationships(eventIds, ctx),
+            getPool());
+
+    /*
+     * Async fetch Notes for the given Event ids
+     */
+    final CompletableFuture<Multimap<String, Note>> notesAsync =
+        asyncFetch(() -> eventStore.getNotes(eventIds), getPool());
+
+    /*
+     * Async fetch DataValues for the given Event ids
+     */
+    final CompletableFuture<Map<String, List<DataValue>>> dataValuesAsync =
+        supplyAsync(() -> eventStore.getDataValues(eventIds), getPool());
+
+    return allOf(dataValuesAsync, notesAsync, relationshipAsync)
+        .thenApplyAsync(
+            fn -> {
+              Map<String, List<DataValue>> dataValues = dataValuesAsync.join();
+              Multimap<String, Note> notes = notesAsync.join();
+              Multimap<String, Relationship> relationships = relationshipAsync.join();
+
+              for (Event event : events.values()) {
+                if (ctx.getParams().isIncludeRelationships()) {
+                  event.setRelationships(new HashSet<>(relationships.get(event.getEvent())));
+                }
+
+                List<DataValue> dataValuesForEvent = dataValues.get(event.getEvent());
+                if (dataValuesForEvent != null && !dataValuesForEvent.isEmpty()) {
+                  event.setDataValues(new HashSet<>(dataValues.get(event.getEvent())));
+                }
+                event.setNotes(new ArrayList<>(notes.get(event.getEvent())));
+              }
+
+              return events;
+            },
+            getPool())
+        .join();
+  }
 }

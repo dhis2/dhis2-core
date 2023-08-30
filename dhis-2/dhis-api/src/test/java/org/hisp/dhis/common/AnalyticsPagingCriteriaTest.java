@@ -36,85 +36,79 @@ import org.junit.jupiter.api.Test;
  *
  * @author maikel arabori
  */
-class AnalyticsPagingCriteriaTest
-{
-    @Test
-    void testDefinePageSizeWithLimitWhenPagingIsFalse()
-    {
-        // Given
-        int maxLimit = 50000;
-        AnalyticsPagingCriteria analyticsPagingCriteria = new AnalyticsPagingCriteria();
-        analyticsPagingCriteria.setPageSize( 50 );
-        analyticsPagingCriteria.setPaging( false );
+class AnalyticsPagingCriteriaTest {
+  @Test
+  void testDefinePageSizeWithLimitWhenPagingIsFalse() {
+    // Given
+    int maxLimit = 50000;
+    AnalyticsPagingCriteria analyticsPagingCriteria = new AnalyticsPagingCriteria();
+    analyticsPagingCriteria.setPageSize(50);
+    analyticsPagingCriteria.setPaging(false);
 
-        // When
-        analyticsPagingCriteria.definePageSize( maxLimit );
+    // When
+    analyticsPagingCriteria.definePageSize(maxLimit);
 
-        // Then
-        assertEquals( maxLimit, analyticsPagingCriteria.getPageSize() );
-    }
+    // Then
+    assertEquals(maxLimit, analyticsPagingCriteria.getPageSize());
+  }
 
-    @Test
-    void testDefinePageSizeWithLimitWhenPagingIsTrue()
-    {
-        // Given
-        int maxLimit = 50000;
-        AnalyticsPagingCriteria analyticsPagingCriteria = new AnalyticsPagingCriteria();
-        analyticsPagingCriteria.setPageSize( 50 );
-        analyticsPagingCriteria.setPaging( true );
+  @Test
+  void testDefinePageSizeWithLimitWhenPagingIsTrue() {
+    // Given
+    int maxLimit = 50000;
+    AnalyticsPagingCriteria analyticsPagingCriteria = new AnalyticsPagingCriteria();
+    analyticsPagingCriteria.setPageSize(50);
+    analyticsPagingCriteria.setPaging(true);
 
-        // When
-        analyticsPagingCriteria.definePageSize( maxLimit );
+    // When
+    analyticsPagingCriteria.definePageSize(maxLimit);
 
-        // Then
-        assertEquals( 50, analyticsPagingCriteria.getPageSize() );
-    }
+    // Then
+    assertEquals(50, analyticsPagingCriteria.getPageSize());
+  }
 
-    @Test
-    void testDefinePageSizeWithLimitGreaterThanMaxAllowedWhenPagingIsFalse()
-    {
-        // Given
-        int maxLimit = 50000;
-        AnalyticsPagingCriteria analyticsPagingCriteria = new AnalyticsPagingCriteria();
-        analyticsPagingCriteria.setPageSize( 60000 );
-        analyticsPagingCriteria.setPaging( false );
+  @Test
+  void testDefinePageSizeWithLimitGreaterThanMaxAllowedWhenPagingIsFalse() {
+    // Given
+    int maxLimit = 50000;
+    AnalyticsPagingCriteria analyticsPagingCriteria = new AnalyticsPagingCriteria();
+    analyticsPagingCriteria.setPageSize(60000);
+    analyticsPagingCriteria.setPaging(false);
 
-        // When
-        analyticsPagingCriteria.definePageSize( maxLimit );
+    // When
+    analyticsPagingCriteria.definePageSize(maxLimit);
 
-        // Then
-        assertEquals( maxLimit, analyticsPagingCriteria.getPageSize() );
-    }
+    // Then
+    assertEquals(maxLimit, analyticsPagingCriteria.getPageSize());
+  }
 
-    @Test
-    void testDefinePageSizeWithLimitGreaterThanMaxAllowedWhenPagingIsTrue()
-    {
-        // Given
-        int maxLimit = 50000;
-        AnalyticsPagingCriteria analyticsPagingCriteria = new AnalyticsPagingCriteria();
-        analyticsPagingCriteria.setPageSize( 60000 );
-        analyticsPagingCriteria.setPaging( true );
+  @Test
+  void testDefinePageSizeWithLimitGreaterThanMaxAllowedWhenPagingIsTrue() {
+    // Given
+    int maxLimit = 50000;
+    AnalyticsPagingCriteria analyticsPagingCriteria = new AnalyticsPagingCriteria();
+    analyticsPagingCriteria.setPageSize(60000);
+    analyticsPagingCriteria.setPaging(true);
 
-        // When
-        analyticsPagingCriteria.definePageSize( maxLimit );
+    // When
+    analyticsPagingCriteria.definePageSize(maxLimit);
 
-        // Then
-        assertEquals( maxLimit, analyticsPagingCriteria.getPageSize() );
-    }
+    // Then
+    assertEquals(maxLimit, analyticsPagingCriteria.getPageSize());
+  }
 
-    @Test
-    void testDefinePageSizeUnlimitedWhenPagingIsFalse()
-    {
-        // Given
-        int unlimited = 0;
-        AnalyticsPagingCriteria analyticsPagingCriteria = new AnalyticsPagingCriteria();
-        analyticsPagingCriteria.setPageSize( 50 );
-        analyticsPagingCriteria.setPaging( false );
+  @Test
+  void testDefinePageSizeUnlimitedWhenPagingIsFalse() {
+    // Given
+    int unlimited = 0;
+    AnalyticsPagingCriteria analyticsPagingCriteria = new AnalyticsPagingCriteria();
+    analyticsPagingCriteria.setPageSize(50);
+    analyticsPagingCriteria.setPaging(false);
 
-        // When
-        analyticsPagingCriteria.definePageSize( unlimited );
+    // When
+    analyticsPagingCriteria.definePageSize(unlimited);
 
-        // Then
-        assertEquals( unlimited, analyticsPagingCriteria.getPageSize() );
-    }
+    // Then
+    assertEquals(unlimited, analyticsPagingCriteria.getPageSize());
+  }
 }

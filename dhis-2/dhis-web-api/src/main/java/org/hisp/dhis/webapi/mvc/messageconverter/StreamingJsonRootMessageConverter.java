@@ -34,15 +34,15 @@ import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.ge
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.getExtensibleAttachmentFilename;
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.isAttachment;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import javax.annotation.Nonnull;
-
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -54,125 +54,113 @@ import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Morten Olav Hansen
  */
-public class StreamingJsonRootMessageConverter extends AbstractHttpMessageConverter<StreamingJsonRoot<?>>
-{
-    private final FieldFilterService fieldFilterService;
+public class StreamingJsonRootMessageConverter
+    extends AbstractHttpMessageConverter<StreamingJsonRoot<?>> {
+  private final FieldFilterService fieldFilterService;
 
-    private final Compression compression;
+  private final Compression compression;
 
-    public StreamingJsonRootMessageConverter( FieldFilterService fieldFilterService, Compression compression )
-    {
-        this.fieldFilterService = fieldFilterService;
-        this.compression = compression;
+  public StreamingJsonRootMessageConverter(
+      FieldFilterService fieldFilterService, Compression compression) {
+    this.fieldFilterService = fieldFilterService;
+    this.compression = compression;
 
-        switch ( compression )
-        {
-        case NONE:
-            setSupportedMediaTypes( JSON_SUPPORTED_MEDIA_TYPES );
-            break;
-        case GZIP:
-            setSupportedMediaTypes( JSON_GZIP_SUPPORTED_MEDIA_TYPES );
-            break;
-        case ZIP:
-            setSupportedMediaTypes( JSON_ZIP_SUPPORTED_MEDIA_TYPES );
-        }
+    switch (compression) {
+      case NONE:
+        setSupportedMediaTypes(JSON_SUPPORTED_MEDIA_TYPES);
+        break;
+      case GZIP:
+        setSupportedMediaTypes(JSON_GZIP_SUPPORTED_MEDIA_TYPES);
+        break;
+      case ZIP:
+        setSupportedMediaTypes(JSON_ZIP_SUPPORTED_MEDIA_TYPES);
     }
+  }
 
-    @Override
-    protected boolean supports( Class<?> clazz )
-    {
-        return StreamingJsonRoot.class.equals( clazz );
+  @Override
+  protected boolean supports(Class<?> clazz) {
+    return StreamingJsonRoot.class.equals(clazz);
+  }
+
+  @Override
+  protected StreamingJsonRoot<?> readInternal(
+      Class<? extends StreamingJsonRoot<?>> clazz, HttpInputMessage inputMessage)
+      throws IOException, HttpMessageNotReadableException {
+    return null;
+  }
+
+  @Override
+  protected void writeInternal(
+      @Nonnull StreamingJsonRoot<?> jsonRoot, HttpOutputMessage outputMessage)
+      throws IOException, HttpMessageNotWritableException {
+    ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+
+    final String contentDisposition =
+        outputMessage.getHeaders().getFirst(ContextUtils.HEADER_CONTENT_DISPOSITION);
+    final boolean attachment = isAttachment(contentDisposition);
+    final String extensibleAttachmentFilename =
+        getExtensibleAttachmentFilename(contentDisposition, List.of("metadata"));
+
+    if (Compression.GZIP == compression) {
+      if (!attachment || (extensibleAttachmentFilename != null)) {
+        outputMessage
+            .getHeaders()
+            .set(
+                ContextUtils.HEADER_CONTENT_DISPOSITION,
+                getContentDispositionHeaderValue(extensibleAttachmentFilename, "gz"));
+        outputMessage.getHeaders().set(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
+      }
+
+      GZIPOutputStream outputStream = new GZIPOutputStream(outputMessage.getBody());
+      writeJsonRoot(jsonMapper, jsonRoot, outputStream);
+      outputStream.close();
+    } else if (Compression.ZIP == compression) {
+      if (!attachment || (extensibleAttachmentFilename != null)) {
+        outputMessage
+            .getHeaders()
+            .set(
+                ContextUtils.HEADER_CONTENT_DISPOSITION,
+                getContentDispositionHeaderValue(extensibleAttachmentFilename, "zip"));
+        outputMessage.getHeaders().set(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
+      }
+
+      ZipOutputStream outputStream = new ZipOutputStream(outputMessage.getBody());
+      outputStream.putNextEntry(new ZipEntry("metadata.json"));
+      writeJsonRoot(jsonMapper, jsonRoot, outputStream);
+      outputStream.close();
+    } else {
+      if (extensibleAttachmentFilename != null) {
+        outputMessage
+            .getHeaders()
+            .set(
+                ContextUtils.HEADER_CONTENT_DISPOSITION,
+                getContentDispositionHeaderValue(extensibleAttachmentFilename, null));
+      }
+
+      writeJsonRoot(jsonMapper, jsonRoot, outputMessage.getBody());
+      outputMessage.getBody().close();
     }
+  }
 
-    @Override
-    protected StreamingJsonRoot<?> readInternal( Class<? extends StreamingJsonRoot<?>> clazz,
-        HttpInputMessage inputMessage )
-        throws IOException,
-        HttpMessageNotReadableException
-    {
-        return null;
+  private void writeJsonRoot(
+      ObjectMapper jsonMapper, StreamingJsonRoot<?> jsonRoot, OutputStream outputStream)
+      throws IOException {
+    try (JsonGenerator generator = jsonMapper.getFactory().createGenerator(outputStream)) {
+      if (jsonRoot.getPager() == null && jsonRoot.getWrapperName() == null) {
+        fieldFilterService.toObjectNodesStream(jsonRoot.getParams(), generator);
+      } else {
+        generator.writeStartObject();
+        if (jsonRoot.getPager() != null) {
+          generator.writeObjectField("pager", jsonRoot.getPager());
+        }
+        generator.writeArrayFieldStart(jsonRoot.getWrapperName());
+        fieldFilterService.toObjectNodesStream(jsonRoot.getParams(), generator);
+        generator.writeEndArray();
+        generator.writeEndObject();
+      }
     }
-
-    @Override
-    protected void writeInternal( @Nonnull StreamingJsonRoot<?> jsonRoot, HttpOutputMessage outputMessage )
-        throws IOException,
-        HttpMessageNotWritableException
-    {
-        ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
-
-        final String contentDisposition = outputMessage.getHeaders()
-            .getFirst( ContextUtils.HEADER_CONTENT_DISPOSITION );
-        final boolean attachment = isAttachment( contentDisposition );
-        final String extensibleAttachmentFilename = getExtensibleAttachmentFilename(
-            contentDisposition, List.of( "metadata" ) );
-
-        if ( Compression.GZIP == compression )
-        {
-            if ( !attachment || (extensibleAttachmentFilename != null) )
-            {
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION,
-                    getContentDispositionHeaderValue( extensibleAttachmentFilename, "gz" ) );
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
-            }
-
-            GZIPOutputStream outputStream = new GZIPOutputStream( outputMessage.getBody() );
-            writeJsonRoot( jsonMapper, jsonRoot, outputStream );
-            outputStream.close();
-        }
-        else if ( Compression.ZIP == compression )
-        {
-            if ( !attachment || (extensibleAttachmentFilename != null) )
-            {
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION,
-                    getContentDispositionHeaderValue( extensibleAttachmentFilename, "zip" ) );
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
-            }
-
-            ZipOutputStream outputStream = new ZipOutputStream( outputMessage.getBody() );
-            outputStream.putNextEntry( new ZipEntry( "metadata.json" ) );
-            writeJsonRoot( jsonMapper, jsonRoot, outputStream );
-            outputStream.close();
-        }
-        else
-        {
-            if ( extensibleAttachmentFilename != null )
-            {
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION,
-                    getContentDispositionHeaderValue( extensibleAttachmentFilename, null ) );
-            }
-
-            writeJsonRoot( jsonMapper, jsonRoot, outputMessage.getBody() );
-            outputMessage.getBody().close();
-        }
-    }
-
-    private void writeJsonRoot( ObjectMapper jsonMapper, StreamingJsonRoot<?> jsonRoot, OutputStream outputStream )
-        throws IOException
-    {
-        try ( JsonGenerator generator = jsonMapper.getFactory().createGenerator( outputStream ) )
-        {
-            if ( jsonRoot.getPager() == null && jsonRoot.getWrapperName() == null )
-            {
-                fieldFilterService.toObjectNodesStream( jsonRoot.getParams(), generator );
-            }
-            else
-            {
-                generator.writeStartObject();
-                if ( jsonRoot.getPager() != null )
-                {
-                    generator.writeObjectField( "pager", jsonRoot.getPager() );
-                }
-                generator.writeArrayFieldStart( jsonRoot.getWrapperName() );
-                fieldFilterService.toObjectNodesStream( jsonRoot.getParams(), generator );
-                generator.writeEndArray();
-                generator.writeEndObject();
-            }
-        }
-    }
+  }
 }

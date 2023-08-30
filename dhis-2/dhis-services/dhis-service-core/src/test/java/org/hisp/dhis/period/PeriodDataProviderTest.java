@@ -37,7 +37,6 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,53 +50,48 @@ import org.springframework.jdbc.core.JdbcTemplate;
  *
  * @author Abyot Asalefew Gizaw
  */
-@ExtendWith( MockitoExtension.class )
-class PeriodDataProviderTest
-{
-    private PeriodDataProvider periodDataProvider;
+@ExtendWith(MockitoExtension.class)
+class PeriodDataProviderTest {
+  private PeriodDataProvider periodDataProvider;
 
-    @Mock
-    private JdbcTemplate jdbcTemplate;
+  @Mock private JdbcTemplate jdbcTemplate;
 
-    @BeforeEach
-    void setUp()
-    {
-        periodDataProvider = new PeriodDataProvider( jdbcTemplate );
-    }
+  @BeforeEach
+  void setUp() {
+    periodDataProvider = new PeriodDataProvider(jdbcTemplate);
+  }
 
-    @Test
-    void shouldReturnFiveExtraYearsBeforeAndAfterDataYears()
-    {
-        int currentYear = now().getYear();
+  @Test
+  void shouldReturnFiveExtraYearsBeforeAndAfterDataYears() {
+    int currentYear = now().getYear();
 
-        List<Integer> storedDataYears = Arrays.asList( currentYear - 1, currentYear );
+    List<Integer> storedDataYears = Arrays.asList(currentYear - 1, currentYear);
 
-        when( jdbcTemplate.queryForList( anyString(), ArgumentMatchers.<Class<Integer>> any() ) )
-            .thenReturn( storedDataYears );
+    when(jdbcTemplate.queryForList(anyString(), ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(storedDataYears);
 
-        List<Integer> dataYears = periodDataProvider.getAvailableYears();
+    List<Integer> dataYears = periodDataProvider.getAvailableYears();
 
-        assertEquals( 12, dataYears.size() );
-        assertTrue( dataYears.contains( (dataYears.get( storedDataYears.size() - 1 ) + 5) ) );
-        assertTrue( dataYears.contains( (storedDataYears.get( 0 ) - 5) ) );
-        assertFalse( dataYears.contains( (storedDataYears.get( 0 ) - 6) ) );
-    }
+    assertEquals(12, dataYears.size());
+    assertTrue(dataYears.contains((dataYears.get(storedDataYears.size() - 1) + 5)));
+    assertTrue(dataYears.contains((storedDataYears.get(0) - 5)));
+    assertFalse(dataYears.contains((storedDataYears.get(0) - 6)));
+  }
 
-    @Test
-    void shouldReturnFiveExtraYearsBeforeAndAfterCurrentYearWhenNoDataExists()
-    {
-        int currentYear = now().getYear();
+  @Test
+  void shouldReturnFiveExtraYearsBeforeAndAfterCurrentYearWhenNoDataExists() {
+    int currentYear = now().getYear();
 
-        List<Integer> storedDataYears = new ArrayList<>();
+    List<Integer> storedDataYears = new ArrayList<>();
 
-        when( jdbcTemplate.queryForList( anyString(), ArgumentMatchers.<Class<Integer>> any() ) )
-            .thenReturn( storedDataYears );
+    when(jdbcTemplate.queryForList(anyString(), ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(storedDataYears);
 
-        List<Integer> dataYears = periodDataProvider.getAvailableYears();
+    List<Integer> dataYears = periodDataProvider.getAvailableYears();
 
-        assertEquals( 11, dataYears.size() );
-        assertTrue( dataYears.contains( currentYear + 5 ) );
-        assertTrue( dataYears.contains( currentYear - 5 ) );
-        assertFalse( dataYears.contains( currentYear - 6 ) );
-    }
+    assertEquals(11, dataYears.size());
+    assertTrue(dataYears.contains(currentYear + 5));
+    assertTrue(dataYears.contains(currentYear - 5));
+    assertFalse(dataYears.contains(currentYear - 6));
+  }
 }

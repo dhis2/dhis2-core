@@ -29,34 +29,28 @@ package org.hisp.dhis.programrule.engine;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.springframework.stereotype.Component;
 
 /**
  * @Author Zubair Asghar
  */
-@Component( "org.hisp.dhis.programrule.engine.RuleVariableInMemoryMap" )
-public class RuleVariableInMemoryMap
-{
-    private Map<String, Map<String, String>> variables = new HashMap<>();
+@Component("org.hisp.dhis.programrule.engine.RuleVariableInMemoryMap")
+public class RuleVariableInMemoryMap {
+  private Map<String, Map<String, String>> variables = new HashMap<>();
 
-    public void put( String key, Map<String, String> value )
-    {
-        variables.put( key, value );
-    }
+  public void put(String key, Map<String, String> value) {
+    variables.put(key, value);
+  }
 
-    public Map<String, String> get( String key )
-    {
-        return variables.getOrDefault( key, new HashMap<>() );
-    }
+  public Map<String, String> get(String key) {
+    return variables.getOrDefault(key, new HashMap<>());
+  }
 
-    public boolean containsKey( String key )
-    {
-        return variables.containsKey( key );
-    }
+  public boolean containsKey(String key) {
+    return variables.containsKey(key);
+  }
 
-    public Map<String, Map<String, String>> getVariablesMap()
-    {
-        return this.variables;
-    }
+  public Map<String, Map<String, String>> getVariablesMap() {
+    return this.variables;
+  }
 }

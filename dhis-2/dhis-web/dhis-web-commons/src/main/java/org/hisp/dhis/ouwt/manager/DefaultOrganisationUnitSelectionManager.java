@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.util.SessionUtils;
@@ -39,231 +38,200 @@ import org.hisp.dhis.util.SessionUtils;
 /**
  * @author Torgeir Lorange Ostby
  */
-public class DefaultOrganisationUnitSelectionManager
-    implements OrganisationUnitSelectionManager
-{
-    private static final String SESSION_KEY_SELECTED_ORG_UNITS = "dhis-ouwt-selected-org-units";
+public class DefaultOrganisationUnitSelectionManager implements OrganisationUnitSelectionManager {
+  private static final String SESSION_KEY_SELECTED_ORG_UNITS = "dhis-ouwt-selected-org-units";
 
-    private static final String SESSION_KEY_ROOT_ORG_UNITS = "dhis-ouwt-root-org-units";
+  private static final String SESSION_KEY_ROOT_ORG_UNITS = "dhis-ouwt-root-org-units";
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private OrganisationUnitService organisationUnitService;
+  private OrganisationUnitService organisationUnitService;
 
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
-        this.organisationUnitService = organisationUnitService;
+  public void setOrganisationUnitService(OrganisationUnitService organisationUnitService) {
+    this.organisationUnitService = organisationUnitService;
+  }
+
+  // -------------------------------------------------------------------------
+  // OrganisationUnitSelectionManager implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public void setRootOrganisationUnits(Collection<OrganisationUnit> organisationUnits) {
+    if (organisationUnits == null) {
+      throw new IllegalArgumentException("Root OrganisationUnit cannot be null");
     }
 
-    // -------------------------------------------------------------------------
-    // OrganisationUnitSelectionManager implementation
-    // -------------------------------------------------------------------------
+    SessionUtils.setSessionVar(SESSION_KEY_ROOT_ORG_UNITS, new HashSet<>(organisationUnits));
 
-    @Override
-    public void setRootOrganisationUnits( Collection<OrganisationUnit> organisationUnits )
-    {
-        if ( organisationUnits == null )
-        {
-            throw new IllegalArgumentException( "Root OrganisationUnit cannot be null" );
+    clearSelectedOrganisationUnits();
+  }
+
+  @Override
+  public void setRootOrganisationUnitsParent(OrganisationUnit rootUnitsParent) {
+    if (rootUnitsParent == null) {
+      throw new IllegalArgumentException("Root OrganisationUnits parent cannot be null");
+    }
+
+    OrganisationUnit reloadedRootUnitsParent = reloadOrganisationUnit(rootUnitsParent);
+
+    SessionUtils.setSessionVar(SESSION_KEY_ROOT_ORG_UNITS, reloadedRootUnitsParent.getChildren());
+
+    clearSelectedOrganisationUnits();
+  }
+
+  @Override
+  public Collection<OrganisationUnit> getRootOrganisationUnits() {
+    Collection<OrganisationUnit> rootUnits = getCollectionFromSession(SESSION_KEY_ROOT_ORG_UNITS);
+
+    if (rootUnits == null) {
+      return organisationUnitService.getRootOrganisationUnits();
+    }
+
+    return reloadOrganisationUnits(rootUnits);
+  }
+
+  @Override
+  public OrganisationUnit getRootOrganisationUnitsParent() {
+    Collection<OrganisationUnit> rootUnits = getCollectionFromSession(SESSION_KEY_ROOT_ORG_UNITS);
+
+    if (rootUnits == null || rootUnits.isEmpty()) {
+      return null;
+    }
+
+    OrganisationUnit randomRootUnit = rootUnits.iterator().next();
+
+    OrganisationUnit reloadedRootUnit = reloadOrganisationUnit(randomRootUnit);
+
+    return reloadedRootUnit.getParent();
+  }
+
+  @Override
+  public void resetRootOrganisationUnits() {
+    SessionUtils.removeSessionVar(SESSION_KEY_ROOT_ORG_UNITS);
+  }
+
+  @Override
+  public void setSelectedOrganisationUnits(Collection<OrganisationUnit> selectedUnits) {
+    if (selectedUnits == null) {
+      throw new IllegalArgumentException("Selected OrganisationUnits cannot be null");
+    }
+
+    // ---------------------------------------------------------------------
+    // Reload the units to ensure it is loaded within the current session
+    // ---------------------------------------------------------------------
+
+    Collection<OrganisationUnit> reloadedSelectedUnits = reloadOrganisationUnits(selectedUnits);
+
+    // ---------------------------------------------------------------------
+    // Remove all selected units that are not in the trees
+    // ---------------------------------------------------------------------
+
+    Collection<OrganisationUnit> rootUnits = getRootOrganisationUnits();
+
+    if (rootUnits != null) {
+      reloadedSelectedUnits = getUnitsInTree(rootUnits, reloadedSelectedUnits);
+
+      SessionUtils.setSessionVar(SESSION_KEY_SELECTED_ORG_UNITS, reloadedSelectedUnits);
+    }
+  }
+
+  @Override
+  public Collection<OrganisationUnit> getSelectedOrganisationUnits() {
+    Collection<OrganisationUnit> selectedUnits =
+        getCollectionFromSession(SESSION_KEY_SELECTED_ORG_UNITS);
+
+    if (selectedUnits == null) {
+      return new HashSet<>();
+    }
+
+    return reloadOrganisationUnits(selectedUnits);
+  }
+
+  @Override
+  public void clearSelectedOrganisationUnits() {
+    SessionUtils.removeSessionVar(SESSION_KEY_SELECTED_ORG_UNITS);
+  }
+
+  @Override
+  public OrganisationUnit getSelectedOrganisationUnit() {
+    Collection<OrganisationUnit> selectedUnits = getSelectedOrganisationUnits();
+
+    if (selectedUnits.isEmpty()) {
+      return null;
+    }
+
+    return selectedUnits.iterator().next();
+  }
+
+  @Override
+  public void setSelectedOrganisationUnit(OrganisationUnit selectedUnit) {
+    if (selectedUnit == null) {
+      throw new IllegalArgumentException("Selected OrganisationUnit cannot be null");
+    }
+
+    Set<OrganisationUnit> set = new HashSet<>(1);
+    set.add(selectedUnit);
+    setSelectedOrganisationUnits(set);
+  }
+
+  // -------------------------------------------------------------------------
+  // Session methods
+  // -------------------------------------------------------------------------
+
+  @SuppressWarnings("unchecked")
+  private final Collection<OrganisationUnit> getCollectionFromSession(String key) {
+    return (Collection<OrganisationUnit>) SessionUtils.getSessionVar(key);
+  }
+
+  // -------------------------------------------------------------------------
+  // Reload methods
+  // -------------------------------------------------------------------------
+
+  private OrganisationUnit reloadOrganisationUnit(OrganisationUnit unit) {
+    return organisationUnitService.getOrganisationUnit(unit.getId());
+  }
+
+  private Collection<OrganisationUnit> reloadOrganisationUnits(Collection<OrganisationUnit> units) {
+    Set<OrganisationUnit> reloadedUnits = new HashSet<>();
+
+    for (OrganisationUnit unit : units) {
+      OrganisationUnit reloadedUnit = reloadOrganisationUnit(unit);
+
+      if (reloadedUnit != null) {
+        reloadedUnits.add(reloadedUnit);
+      }
+    }
+
+    return reloadedUnits;
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  private Collection<OrganisationUnit> getUnitsInTree(
+      Collection<OrganisationUnit> rootUnits, Collection<OrganisationUnit> selectedUnits) {
+    Collection<OrganisationUnit> unitsInTree = new ArrayList<>();
+
+    for (OrganisationUnit selectedUnit : selectedUnits) {
+      if (rootUnits.contains(selectedUnit)) {
+        unitsInTree.add(selectedUnit);
+        continue;
+      }
+
+      OrganisationUnit parent = selectedUnit.getParent();
+
+      while (parent != null) {
+        if (rootUnits.contains(parent)) {
+          unitsInTree.add(selectedUnit);
         }
 
-        SessionUtils.setSessionVar( SESSION_KEY_ROOT_ORG_UNITS, new HashSet<>( organisationUnits ) );
-
-        clearSelectedOrganisationUnits();
+        parent = parent.getParent();
+      }
     }
 
-    @Override
-    public void setRootOrganisationUnitsParent( OrganisationUnit rootUnitsParent )
-    {
-        if ( rootUnitsParent == null )
-        {
-            throw new IllegalArgumentException( "Root OrganisationUnits parent cannot be null" );
-        }
-
-        OrganisationUnit reloadedRootUnitsParent = reloadOrganisationUnit( rootUnitsParent );
-
-        SessionUtils.setSessionVar( SESSION_KEY_ROOT_ORG_UNITS, reloadedRootUnitsParent.getChildren() );
-
-        clearSelectedOrganisationUnits();
-    }
-
-    @Override
-    public Collection<OrganisationUnit> getRootOrganisationUnits()
-    {
-        Collection<OrganisationUnit> rootUnits = getCollectionFromSession( SESSION_KEY_ROOT_ORG_UNITS );
-
-        if ( rootUnits == null )
-        {
-            return organisationUnitService.getRootOrganisationUnits();
-        }
-
-        return reloadOrganisationUnits( rootUnits );
-    }
-
-    @Override
-    public OrganisationUnit getRootOrganisationUnitsParent()
-    {
-        Collection<OrganisationUnit> rootUnits = getCollectionFromSession( SESSION_KEY_ROOT_ORG_UNITS );
-
-        if ( rootUnits == null || rootUnits.isEmpty() )
-        {
-            return null;
-        }
-
-        OrganisationUnit randomRootUnit = rootUnits.iterator().next();
-
-        OrganisationUnit reloadedRootUnit = reloadOrganisationUnit( randomRootUnit );
-
-        return reloadedRootUnit.getParent();
-    }
-
-    @Override
-    public void resetRootOrganisationUnits()
-    {
-        SessionUtils.removeSessionVar( SESSION_KEY_ROOT_ORG_UNITS );
-    }
-
-    @Override
-    public void setSelectedOrganisationUnits( Collection<OrganisationUnit> selectedUnits )
-    {
-        if ( selectedUnits == null )
-        {
-            throw new IllegalArgumentException( "Selected OrganisationUnits cannot be null" );
-        }
-
-        // ---------------------------------------------------------------------
-        // Reload the units to ensure it is loaded within the current session
-        // ---------------------------------------------------------------------
-
-        Collection<OrganisationUnit> reloadedSelectedUnits = reloadOrganisationUnits( selectedUnits );
-
-        // ---------------------------------------------------------------------
-        // Remove all selected units that are not in the trees
-        // ---------------------------------------------------------------------
-
-        Collection<OrganisationUnit> rootUnits = getRootOrganisationUnits();
-
-        if ( rootUnits != null )
-        {
-            reloadedSelectedUnits = getUnitsInTree( rootUnits, reloadedSelectedUnits );
-
-            SessionUtils.setSessionVar( SESSION_KEY_SELECTED_ORG_UNITS, reloadedSelectedUnits );
-        }
-    }
-
-    @Override
-    public Collection<OrganisationUnit> getSelectedOrganisationUnits()
-    {
-        Collection<OrganisationUnit> selectedUnits = getCollectionFromSession( SESSION_KEY_SELECTED_ORG_UNITS );
-
-        if ( selectedUnits == null )
-        {
-            return new HashSet<>();
-        }
-
-        return reloadOrganisationUnits( selectedUnits );
-    }
-
-    @Override
-    public void clearSelectedOrganisationUnits()
-    {
-        SessionUtils.removeSessionVar( SESSION_KEY_SELECTED_ORG_UNITS );
-    }
-
-    @Override
-    public OrganisationUnit getSelectedOrganisationUnit()
-    {
-        Collection<OrganisationUnit> selectedUnits = getSelectedOrganisationUnits();
-
-        if ( selectedUnits.isEmpty() )
-        {
-            return null;
-        }
-
-        return selectedUnits.iterator().next();
-    }
-
-    @Override
-    public void setSelectedOrganisationUnit( OrganisationUnit selectedUnit )
-    {
-        if ( selectedUnit == null )
-        {
-            throw new IllegalArgumentException( "Selected OrganisationUnit cannot be null" );
-        }
-
-        Set<OrganisationUnit> set = new HashSet<>( 1 );
-        set.add( selectedUnit );
-        setSelectedOrganisationUnits( set );
-    }
-
-    // -------------------------------------------------------------------------
-    // Session methods
-    // -------------------------------------------------------------------------
-
-    @SuppressWarnings( "unchecked" )
-    private final Collection<OrganisationUnit> getCollectionFromSession( String key )
-    {
-        return (Collection<OrganisationUnit>) SessionUtils.getSessionVar( key );
-    }
-
-    // -------------------------------------------------------------------------
-    // Reload methods
-    // -------------------------------------------------------------------------
-
-    private OrganisationUnit reloadOrganisationUnit( OrganisationUnit unit )
-    {
-        return organisationUnitService.getOrganisationUnit( unit.getId() );
-    }
-
-    private Collection<OrganisationUnit> reloadOrganisationUnits( Collection<OrganisationUnit> units )
-    {
-        Set<OrganisationUnit> reloadedUnits = new HashSet<>();
-
-        for ( OrganisationUnit unit : units )
-        {
-            OrganisationUnit reloadedUnit = reloadOrganisationUnit( unit );
-
-            if ( reloadedUnit != null )
-            {
-                reloadedUnits.add( reloadedUnit );
-            }
-        }
-
-        return reloadedUnits;
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private Collection<OrganisationUnit> getUnitsInTree( Collection<OrganisationUnit> rootUnits,
-        Collection<OrganisationUnit> selectedUnits )
-    {
-        Collection<OrganisationUnit> unitsInTree = new ArrayList<>();
-
-        for ( OrganisationUnit selectedUnit : selectedUnits )
-        {
-            if ( rootUnits.contains( selectedUnit ) )
-            {
-                unitsInTree.add( selectedUnit );
-                continue;
-            }
-
-            OrganisationUnit parent = selectedUnit.getParent();
-
-            while ( parent != null )
-            {
-                if ( rootUnits.contains( parent ) )
-                {
-                    unitsInTree.add( selectedUnit );
-                }
-
-                parent = parent.getParent();
-            }
-        }
-
-        return unitsInTree;
-    }
+    return unitsInTree;
+  }
 }

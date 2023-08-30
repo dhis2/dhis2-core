@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.deprecated.tracker.importer.audit;
 
 import java.time.LocalDateTime;
-
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.AuditableEntity;
@@ -42,33 +41,33 @@ import org.hisp.dhis.program.Event;
 
 /**
  * This is the base implementation for AuditProcessor. Insert, Update and Delete
- * EventAuditProcessors (which are implementation of this class) will provide a
- * value for AuditType and will inherit shared process logic.
+ * EventAuditProcessors (which are implementation of this class) will provide a value for AuditType
+ * and will inherit shared process logic.
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public abstract class AbstractEventAuditPostProcessor implements Processor
-{
+public abstract class AbstractEventAuditPostProcessor implements Processor {
 
-    @Override
-    public void process( final org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, final WorkContext ctx )
-    {
-        final AuditManager auditManager = ctx.getServiceDelegator().getAuditManager();
-        final EventImporterUserService eventImporterUserService = ctx.getServiceDelegator()
-            .getEventImporterUserService();
-        final ProgramStageInstanceMapper programStageInstanceMapper = new ProgramStageInstanceMapper( ctx );
-        final Event programStageInstance = programStageInstanceMapper.map( event );
+  @Override
+  public void process(
+      final org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, final WorkContext ctx) {
+    final AuditManager auditManager = ctx.getServiceDelegator().getAuditManager();
+    final EventImporterUserService eventImporterUserService =
+        ctx.getServiceDelegator().getEventImporterUserService();
+    final ProgramStageInstanceMapper programStageInstanceMapper =
+        new ProgramStageInstanceMapper(ctx);
+    final Event programStageInstance = programStageInstanceMapper.map(event);
 
-        auditManager.send( Audit.builder()
-            .auditType( getAuditType() )
-            .auditScope( AuditScope.TRACKER )
-            .createdAt( LocalDateTime.now() )
-            .createdBy( eventImporterUserService.getAuditUsername() )
-            .object( programStageInstance )
-            .auditableEntity( new AuditableEntity( Event.class, programStageInstance ) )
-            .build() );
-    }
+    auditManager.send(
+        Audit.builder()
+            .auditType(getAuditType())
+            .auditScope(AuditScope.TRACKER)
+            .createdAt(LocalDateTime.now())
+            .createdBy(eventImporterUserService.getAuditUsername())
+            .object(programStageInstance)
+            .auditableEntity(new AuditableEntity(Event.class, programStageInstance))
+            .build());
+  }
 
-    protected abstract AuditType getAuditType();
-
+  protected abstract AuditType getAuditType();
 }

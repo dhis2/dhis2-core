@@ -28,7 +28,6 @@
 package org.hisp.dhis;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.hibernate.FlushMode;
@@ -53,107 +52,82 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@ExtendWith( SpringExtension.class )
+@ExtendWith(SpringExtension.class)
 @Slf4j
-public abstract class BaseSpringTest extends DhisConvenienceTest implements ApplicationContextAware
-{
+public abstract class BaseSpringTest extends DhisConvenienceTest
+    implements ApplicationContextAware {
 
-    public static final String ORG_HISP_DHIS_DATASOURCE_QUERY = "org.hisp.dhis.datasource.query";
+  public static final String ORG_HISP_DHIS_DATASOURCE_QUERY = "org.hisp.dhis.datasource.query";
 
-    protected ApplicationContext applicationContext;
+  protected ApplicationContext applicationContext;
 
-    @Autowired
-    protected DbmsManager dbmsManager;
+  @Autowired protected DbmsManager dbmsManager;
 
-    @Autowired
-    protected TransactionTemplate transactionTemplate;
+  @Autowired protected TransactionTemplate transactionTemplate;
 
-    @Override
-    public void setApplicationContext( ApplicationContext applicationContext )
-        throws BeansException
-    {
-        this.applicationContext = applicationContext;
+  @Override
+  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    this.applicationContext = applicationContext;
+  }
+
+  @Autowired protected DhisConfigurationProvider dhisConfigurationProvider;
+
+  @BeforeAll
+  static void beforeClass() {
+    // We usually don't want all the create db/tables statements in the
+    // query logger
+    Configurator.setLevel(ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN);
+  }
+
+  /** Method to override. */
+  protected void setUpTest() throws Exception {}
+
+  /** Method to override. */
+  protected void tearDownTest() throws Exception {}
+
+  protected void nonTransactionalAfter() throws Exception {
+    clearSecurityContext();
+    tearDownTest();
+    try {
+      dbmsManager.clearSession();
+    } catch (Exception e) {
+      log.info("Failed to clear hibernate session, reason:" + e.getMessage());
     }
+    unbindSession();
+    // We normally don't want all the delete/empty db statements in the
+    // query logger
+    Configurator.setLevel(ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN);
+    transactionTemplate.execute(
+        status -> {
+          dbmsManager.emptyDatabase();
+          return null;
+        });
+  }
 
-    @Autowired
-    protected DhisConfigurationProvider dhisConfigurationProvider;
-
-    @BeforeAll
-    static void beforeClass()
-    {
-        // We usually don't want all the create db/tables statements in the
-        // query logger
-        Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN );
+  protected void integrationTestBefore() throws Exception {
+    TestUtils.executeStartupRoutines(applicationContext);
+    boolean enableQueryLogging =
+        dhisConfigurationProvider.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING);
+    // Enable to query logger to log only what's happening inside the test
+    // method
+    if (enableQueryLogging) {
+      Configurator.setLevel(ORG_HISP_DHIS_DATASOURCE_QUERY, Level.INFO);
+      Configurator.setRootLevel(Level.INFO);
     }
+    setUpTest();
+  }
 
-    /**
-     * Method to override.
-     */
-    protected void setUpTest()
-        throws Exception
-    {
-    }
+  protected void bindSession() {
+    SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
+    Session session = sessionFactory.openSession();
+    session.setHibernateFlushMode(FlushMode.AUTO);
+    TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(session));
+  }
 
-    /**
-     * Method to override.
-     */
-    protected void tearDownTest()
-        throws Exception
-    {
-    }
-
-    protected void nonTransactionalAfter()
-        throws Exception
-    {
-        clearSecurityContext();
-        tearDownTest();
-        try
-        {
-            dbmsManager.clearSession();
-        }
-        catch ( Exception e )
-        {
-            log.info( "Failed to clear hibernate session, reason:" + e.getMessage() );
-        }
-        unbindSession();
-        // We normally don't want all the delete/empty db statements in the
-        // query logger
-        Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN );
-        transactionTemplate.execute( status -> {
-            dbmsManager.emptyDatabase();
-            return null;
-        } );
-    }
-
-    protected void integrationTestBefore()
-        throws Exception
-    {
-        TestUtils.executeStartupRoutines( applicationContext );
-        boolean enableQueryLogging = dhisConfigurationProvider.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
-        // Enable to query logger to log only what's happening inside the test
-        // method
-        if ( enableQueryLogging )
-        {
-            Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.INFO );
-            Configurator.setRootLevel( Level.INFO );
-        }
-        setUpTest();
-    }
-
-    protected void bindSession()
-    {
-        SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean( "sessionFactory" );
-        Session session = sessionFactory.openSession();
-        session.setHibernateFlushMode( FlushMode.AUTO );
-        TransactionSynchronizationManager.bindResource( sessionFactory, new SessionHolder( session ) );
-    }
-
-    protected void unbindSession()
-    {
-        SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean( "sessionFactory" );
-        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager
-            .unbindResource( sessionFactory );
-        SessionFactoryUtils.closeSession( sessionHolder.getSession() );
-    }
-
+  protected void unbindSession() {
+    SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
+    SessionHolder sessionHolder =
+        (SessionHolder) TransactionSynchronizationManager.unbindResource(sessionFactory);
+    SessionFactoryUtils.closeSession(sessionHolder.getSession());
+  }
 }

@@ -32,27 +32,20 @@ import static org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.query.Te
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Attribute;
 
 /**
  * @author Luciano Fiandesio
  */
-public class TrackedEntityAttributeRowCallbackHandler
-    extends
-    AbstractMapper<Attribute>
-    implements AttributeMapper
-{
-    @Override
-    Attribute getItem( ResultSet rs )
-        throws SQLException
-    {
-        return getAttribute( rs );
-    }
+public class TrackedEntityAttributeRowCallbackHandler extends AbstractMapper<Attribute>
+    implements AttributeMapper {
+  @Override
+  Attribute getItem(ResultSet rs) throws SQLException {
+    return getAttribute(rs);
+  }
 
-    @Override
-    String getKeyColumn()
-    {
-        return getColumnName( TEI_UID );
-    }
+  @Override
+  String getKeyColumn() {
+    return getColumnName(TEI_UID);
+  }
 }

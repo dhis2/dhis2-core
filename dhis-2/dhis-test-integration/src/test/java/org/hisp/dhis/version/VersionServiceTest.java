@@ -33,89 +33,79 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class VersionServiceTest extends TransactionalIntegrationTest
-{
-    @Autowired
-    private VersionService versionService;
+class VersionServiceTest extends TransactionalIntegrationTest {
+  @Autowired private VersionService versionService;
 
-    private Version versionA;
+  private Version versionA;
 
-    private Version versionB;
+  private Version versionB;
 
-    @Override
-    protected void setUpTest()
-    {
-        versionA = new Version();
-        versionA.setKey( "keyA" );
-        versionA.setValue( "valueA" );
-        versionB = new Version();
-        versionB.setKey( "keyB" );
-        versionB.setValue( "valueB" );
-    }
+  @Override
+  protected void setUpTest() {
+    versionA = new Version();
+    versionA.setKey("keyA");
+    versionA.setValue("valueA");
+    versionB = new Version();
+    versionB.setKey("keyB");
+    versionB.setValue("valueB");
+  }
 
-    @Test
-    void testAddVersion()
-    {
-        long idA = versionService.addVersion( versionA );
-        long idB = versionService.addVersion( versionB );
-        assertTrue( idA >= 0 );
-        assertTrue( idB >= 0 );
-        versionA = versionService.getVersion( idA );
-        versionB = versionService.getVersion( idB );
-        assertNotNull( versionA );
-        assertNotNull( versionB );
-        assertEquals( "valueA", versionA.getValue() );
-        assertEquals( "valueB", versionB.getValue() );
-    }
+  @Test
+  void testAddVersion() {
+    long idA = versionService.addVersion(versionA);
+    long idB = versionService.addVersion(versionB);
+    assertTrue(idA >= 0);
+    assertTrue(idB >= 0);
+    versionA = versionService.getVersion(idA);
+    versionB = versionService.getVersion(idB);
+    assertNotNull(versionA);
+    assertNotNull(versionB);
+    assertEquals("valueA", versionA.getValue());
+    assertEquals("valueB", versionB.getValue());
+  }
 
-    @Test
-    void testUpdateVersion()
-    {
-        long id = versionService.addVersion( versionA );
-        versionService.updateVersion( "keyA", "changedValueA" );
-        versionA = versionService.getVersion( id );
-        assertNotNull( versionA );
-        assertEquals( "changedValueA", versionA.getValue() );
-    }
+  @Test
+  void testUpdateVersion() {
+    long id = versionService.addVersion(versionA);
+    versionService.updateVersion("keyA", "changedValueA");
+    versionA = versionService.getVersion(id);
+    assertNotNull(versionA);
+    assertEquals("changedValueA", versionA.getValue());
+  }
 
-    @Test
-    void testDeleteVersion()
-    {
-        long id = versionService.addVersion( versionA );
-        versionService.deleteVersion( versionA );
-        assertNull( versionService.getVersion( id ) );
-    }
+  @Test
+  void testDeleteVersion() {
+    long id = versionService.addVersion(versionA);
+    versionService.deleteVersion(versionA);
+    assertNull(versionService.getVersion(id));
+  }
 
-    @Test
-    void testGetVersion()
-    {
-        long id = versionService.addVersion( versionA );
-        versionA = versionService.getVersion( id );
-        assertNotNull( versionA );
-        assertEquals( "valueA", versionA.getValue() );
-    }
+  @Test
+  void testGetVersion() {
+    long id = versionService.addVersion(versionA);
+    versionA = versionService.getVersion(id);
+    assertNotNull(versionA);
+    assertEquals("valueA", versionA.getValue());
+  }
 
-    @Test
-    void testGetVersionByKey()
-    {
-        versionService.addVersion( versionA );
-        versionA = versionService.getVersionByKey( "keyA" );
-        assertNotNull( versionA );
-        assertEquals( "valueA", versionA.getValue() );
-    }
+  @Test
+  void testGetVersionByKey() {
+    versionService.addVersion(versionA);
+    versionA = versionService.getVersionByKey("keyA");
+    assertNotNull(versionA);
+    assertEquals("valueA", versionA.getValue());
+  }
 
-    @Test
-    void testGetAllVersions()
-    {
-        versionService.addVersion( versionA );
-        versionService.addVersion( versionB );
-        List<Version> versions = versionService.getAllVersions();
-        assertNotNull( versions );
-        assertEquals( 2, versions.size() );
-    }
+  @Test
+  void testGetAllVersions() {
+    versionService.addVersion(versionA);
+    versionService.addVersion(versionB);
+    List<Version> versions = versionService.getAllVersions();
+    assertNotNull(versions);
+    assertEquals(2, versions.size());
+  }
 }

@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.io.InputStream;
-
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.web.HttpStatus;
@@ -42,94 +41,111 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 
-class IconControllerTest extends DhisControllerIntegrationTest
-{
-    private static final String iconKey = "iconKey";
+class IconControllerTest extends DhisControllerIntegrationTest {
+  private static final String iconKey = "iconKey";
 
-    private static final String description = "description";
+  private static final String description = "description";
 
-    private static final String keywords = "[\"k1\",\"k2\"]";
+  private static final String keywords = "[\"k1\",\"k2\"]";
 
-    @Autowired
-    private CurrentUserService currentUserService;
+  @Autowired private CurrentUserService currentUserService;
 
-    @Autowired
-    private ContextService contextService;
+  @Autowired private ContextService contextService;
 
-    @Test
-    void shouldCreateCustomIconWhenFileResourceExist()
-        throws IOException
-    {
-        JsonWebMessage message = POST( "/icons/",
-            "{'key':'" + iconKey + "', 'description':'" + description + "', 'fileResourceUid':'" + createFileResource()
-                + "', 'keywords':" + keywords + "}" )
-            .content( HttpStatus.CREATED ).as( JsonWebMessage.class );
+  @Test
+  void shouldCreateCustomIconWhenFileResourceExist() throws IOException {
+    JsonWebMessage message =
+        POST(
+                "/icons/",
+                "{'key':'"
+                    + iconKey
+                    + "', 'description':'"
+                    + description
+                    + "', 'fileResourceUid':'"
+                    + createFileResource()
+                    + "', 'keywords':"
+                    + keywords
+                    + "}")
+            .content(HttpStatus.CREATED)
+            .as(JsonWebMessage.class);
 
-        assertEquals( String.format( "Icon %s created", iconKey ), message.getMessage() );
-    }
+    assertEquals(String.format("Icon %s created", iconKey), message.getMessage());
+  }
 
-    @Test
-    void shouldGetIconWhenIconKeyExists()
-        throws IOException
-    {
-        String fileResourceId = createFileResource();
-        createIcon( fileResourceId );
+  @Test
+  void shouldGetIconWhenIconKeyExists() throws IOException {
+    String fileResourceId = createFileResource();
+    createIcon(fileResourceId);
 
-        JsonObject response = GET( String.format( "/icons/%s", iconKey ) ).content();
+    JsonObject response = GET(String.format("/icons/%s", iconKey)).content();
 
-        assertEquals( iconKey, response.getString( "key" ).string() );
-        assertEquals( description, response.getString( "description" ).string() );
-        assertEquals( fileResourceId, response.getString( "fileResourceUid" ).string() );
-        assertEquals( keywords, response.getArray( "keywords" ).toString() );
-        assertEquals( currentUserService.getCurrentUser().getUid(), response.getString( "userUid" ).string() );
-        assertEquals( String.format( contextService.getApiPath() + "/fileResources/%s/data", fileResourceId ),
-            response.getString( "href" ).string() );
-    }
+    assertEquals(iconKey, response.getString("key").string());
+    assertEquals(description, response.getString("description").string());
+    assertEquals(fileResourceId, response.getString("fileResourceUid").string());
+    assertEquals(keywords, response.getArray("keywords").toString());
+    assertEquals(
+        currentUserService.getCurrentUser().getUid(), response.getString("userUid").string());
+    assertEquals(
+        String.format(contextService.getApiPath() + "/fileResources/%s/data", fileResourceId),
+        response.getString("href").string());
+  }
 
-    @Test
-    void shouldUpdateIconWhenKeyExists()
-        throws IOException
-    {
-        String updatedDescription = "updatedDescription";
-        String updatedKeywords = "['new k1', 'new k2']";
-        createIcon( createFileResource() );
+  @Test
+  void shouldUpdateIconWhenKeyExists() throws IOException {
+    String updatedDescription = "updatedDescription";
+    String updatedKeywords = "['new k1', 'new k2']";
+    createIcon(createFileResource());
 
-        JsonObject response = PUT( "/icons", "{'key':'" + iconKey + "', 'description':'" + updatedDescription
-            + "', 'keywords':" + updatedKeywords + "}" ).content();
+    JsonObject response =
+        PUT(
+                "/icons",
+                "{'key':'"
+                    + iconKey
+                    + "', 'description':'"
+                    + updatedDescription
+                    + "', 'keywords':"
+                    + updatedKeywords
+                    + "}")
+            .content();
 
-        assertEquals( String.format( "Icon %s updated", iconKey ), response.getString( "message" ).string() );
-    }
+    assertEquals(String.format("Icon %s updated", iconKey), response.getString("message").string());
+  }
 
-    @Test
-    void shouldDeleteIconWhenKeyExists()
-        throws IOException
-    {
-        createIcon( createFileResource() );
+  @Test
+  void shouldDeleteIconWhenKeyExists() throws IOException {
+    createIcon(createFileResource());
 
-        JsonObject response = DELETE( String.format( "/icons/%s", iconKey ) ).content();
+    JsonObject response = DELETE(String.format("/icons/%s", iconKey)).content();
 
-        assertEquals( String.format( "Icon %s deleted", iconKey ), response.getString( "message" ).string() );
-    }
+    assertEquals(String.format("Icon %s deleted", iconKey), response.getString("message").string());
+  }
 
-    private String createIcon( String fileResourceId )
-    {
-        JsonWebMessage message = POST( "/icons/",
-            "{'key':'" + iconKey + "', 'description':'" + description + "', 'fileResourceUid':'" + fileResourceId
-                + "', 'keywords':" + keywords + "}" )
-            .content( HttpStatus.CREATED ).as( JsonWebMessage.class );
-        return message.getMessage();
-    }
+  private String createIcon(String fileResourceId) {
+    JsonWebMessage message =
+        POST(
+                "/icons/",
+                "{'key':'"
+                    + iconKey
+                    + "', 'description':'"
+                    + description
+                    + "', 'fileResourceUid':'"
+                    + fileResourceId
+                    + "', 'keywords':"
+                    + keywords
+                    + "}")
+            .content(HttpStatus.CREATED)
+            .as(JsonWebMessage.class);
+    return message.getMessage();
+  }
 
-    private String createFileResource()
-        throws IOException
-    {
-        InputStream in = getClass().getResourceAsStream( "/icon/test-image.png" );
-        MockMultipartFile image = new MockMultipartFile( "file", "test-image.png", "image/png", in );
+  private String createFileResource() throws IOException {
+    InputStream in = getClass().getResourceAsStream("/icon/test-image.png");
+    MockMultipartFile image = new MockMultipartFile("file", "test-image.png", "image/png", in);
 
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=CUSTOM_ICON", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
+    HttpResponse response = POST_MULTIPART("/fileResources?domain=CUSTOM_ICON", image);
+    JsonObject savedObject =
+        response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
 
-        return savedObject.getString( "id" ).string();
-    }
+    return savedObject.getString("id").string();
+  }
 }

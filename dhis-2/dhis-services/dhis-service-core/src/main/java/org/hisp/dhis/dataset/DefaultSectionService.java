@@ -28,9 +28,7 @@
 package org.hisp.dhis.dataset;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,60 +37,52 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class DefaultSectionService implements SectionService
-{
-    private final SectionStore sectionStore;
+public class DefaultSectionService implements SectionService {
+  private final SectionStore sectionStore;
 
-    private final DataSetService dataSetService;
+  private final DataSetService dataSetService;
 
-    @Override
-    @Transactional
-    public long addSection( Section section )
-    {
-        sectionStore.save( section );
+  @Override
+  @Transactional
+  public long addSection(Section section) {
+    sectionStore.save(section);
 
-        return section.getId();
-    }
+    return section.getId();
+  }
 
-    @Override
-    @Transactional
-    public void deleteSection( Section section )
-    {
-        sectionStore.delete( section );
-    }
+  @Override
+  @Transactional
+  public void deleteSection(Section section) {
+    sectionStore.delete(section);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<Section> getAllSections()
-    {
-        return sectionStore.getAll();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<Section> getAllSections() {
+    return sectionStore.getAll();
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Section getSection( long id )
-    {
-        return sectionStore.get( id );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public Section getSection(long id) {
+    return sectionStore.get(id);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Section getSection( String uid )
-    {
-        return sectionStore.getByUid( uid );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public Section getSection(String uid) {
+    return sectionStore.getByUid(uid);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Section getSectionByName( String name, Integer dataSetId )
-    {
-        return sectionStore.getSectionByName( name, dataSetService.getDataSet( dataSetId ) );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public Section getSectionByName(String name, Integer dataSetId) {
+    return sectionStore.getSectionByName(name, dataSetService.getDataSet(dataSetId));
+  }
 
-    @Override
-    @Transactional
-    public void updateSection( Section section )
-    {
-        sectionStore.update( section );
-    }
+  @Override
+  @Transactional
+  public void updateSection(Section section) {
+    sectionStore.update(section);
+  }
 }

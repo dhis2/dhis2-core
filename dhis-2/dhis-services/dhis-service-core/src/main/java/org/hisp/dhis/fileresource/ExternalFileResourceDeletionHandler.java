@@ -30,7 +30,6 @@ package org.hisp.dhis.fileresource;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Map;
-
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
@@ -39,29 +38,26 @@ import org.springframework.stereotype.Component;
  * @author Kristian Wærstad <kristian@dhis2.org>
  */
 @Component
-public class ExternalFileResourceDeletionHandler extends JdbcDeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( ExternalFileResource.class );
+public class ExternalFileResourceDeletionHandler extends JdbcDeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(ExternalFileResource.class);
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( FileResource.class, this::allowDeleteFileResource );
-        whenDeleting( FileResource.class, this::deleteFileResource );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(FileResource.class, this::allowDeleteFileResource);
+    whenDeleting(FileResource.class, this::deleteFileResource);
+  }
 
-    private DeletionVeto allowDeleteFileResource( FileResource fileResource )
-    {
-        if ( fileResource.getStorageStatus() != FileResourceStorageStatus.STORED )
-        {
-            return ACCEPT;
-        }
-        String sql = "select 1 from externalfileresource where fileresourceid=:id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", fileResource.getId() ) );
+  private DeletionVeto allowDeleteFileResource(FileResource fileResource) {
+    if (fileResource.getStorageStatus() != FileResourceStorageStatus.STORED) {
+      return ACCEPT;
     }
+    String sql = "select 1 from externalfileresource where fileresourceid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", fileResource.getId()));
+  }
 
-    private void deleteFileResource( FileResource fileResource )
-    {
-        delete( "delete from externalfileresource where fileresourceid=:id", Map.of( "id", fileResource.getId() ) );
-    }
+  private void deleteFileResource(FileResource fileResource) {
+    delete(
+        "delete from externalfileresource where fileresourceid=:id",
+        Map.of("id", fileResource.getId()));
+  }
 }

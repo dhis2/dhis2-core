@@ -27,35 +27,28 @@
  */
 package org.hisp.dhis.hibernate.jsonb.type;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
-public class JsonListBinaryType
-    extends JsonBinaryType
-{
-    static final ObjectMapper MAPPER = new ObjectMapper();
+public class JsonListBinaryType extends JsonBinaryType {
+  static final ObjectMapper MAPPER = new ObjectMapper();
 
-    static
-    {
-        MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
-    }
+  static {
+    MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+  }
 
-    @Override
-    protected ObjectMapper getResultingMapper()
-    {
-        return MAPPER;
-    }
+  @Override
+  protected ObjectMapper getResultingMapper() {
+    return MAPPER;
+  }
 
-    @Override
-    protected JavaType getResultingJavaType( Class<?> returnedClass )
-    {
-        return MAPPER.getTypeFactory().constructCollectionType( List.class, returnedClass );
-    }
+  @Override
+  protected JavaType getResultingJavaType(Class<?> returnedClass) {
+    return MAPPER.getTypeFactory().constructCollectionType(List.class, returnedClass);
+  }
 }

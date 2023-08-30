@@ -39,7 +39,6 @@ import static org.mockito.Mockito.when;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -55,76 +54,74 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class EventAnalyticsDimensionsServiceTest
-{
-    private EventAnalyticsDimensionsService eventAnalyticsDimensionsService;
+class EventAnalyticsDimensionsServiceTest {
+  private EventAnalyticsDimensionsService eventAnalyticsDimensionsService;
 
-    private final static String PROGRAM_UID = "aProgramUid";
+  private static final String PROGRAM_UID = "aProgramUid";
 
-    @BeforeEach
-    void setup()
-    {
-        ProgramService programService = mock( ProgramService.class );
-        ProgramStageService programStageService = mock( ProgramStageService.class );
-        CategoryService categoryService = mock( CategoryService.class );
+  @BeforeEach
+  void setup() {
+    ProgramService programService = mock(ProgramService.class);
+    ProgramStageService programStageService = mock(ProgramStageService.class);
+    CategoryService categoryService = mock(CategoryService.class);
 
-        Program program = mock( Program.class );
-        ProgramStage programStage = mock( ProgramStage.class );
+    Program program = mock(Program.class);
+    ProgramStage programStage = mock(ProgramStage.class);
 
-        when( programService.getProgram( any() ) ).thenReturn( program );
-        when( program.getUid() ).thenReturn( PROGRAM_UID );
-        when( programStageService.getProgramStage( any() ) ).thenReturn( programStage );
-        when( programStage.getProgram() ).thenReturn( program );
-        when( program.getDataElements() ).thenReturn( allValueTypeDataElements() );
-        when( program.getProgramIndicators() ).thenReturn( Collections.emptySet() );
-        when( program.getTrackedEntityAttributes() ).thenReturn( allValueTypeTEAs() );
+    when(programService.getProgram(any())).thenReturn(program);
+    when(program.getUid()).thenReturn(PROGRAM_UID);
+    when(programStageService.getProgramStage(any())).thenReturn(programStage);
+    when(programStage.getProgram()).thenReturn(program);
+    when(program.getDataElements()).thenReturn(allValueTypeDataElements());
+    when(program.getProgramIndicators()).thenReturn(Collections.emptySet());
+    when(program.getTrackedEntityAttributes()).thenReturn(allValueTypeTEAs());
 
-        eventAnalyticsDimensionsService = new DefaultEventAnalyticsDimensionsService( programStageService,
+    eventAnalyticsDimensionsService =
+        new DefaultEventAnalyticsDimensionsService(
+            programStageService,
             programService,
-            categoryService, mock( AclService.class ), mock( CurrentUserService.class ) );
-    }
+            categoryService,
+            mock(AclService.class),
+            mock(CurrentUserService.class));
+  }
 
-    @Test
-    void testQueryDoesntContainDisallowedValueTypes()
-    {
-        Collection<BaseIdentifiableObject> analyticsDimensions = eventAnalyticsDimensionsService
-            .getQueryDimensionsByProgramStageId( PROGRAM_UID, "anUid" ).stream()
-            .map( PrefixedDimension::getItem )
-            .collect( Collectors.toList() );
+  @Test
+  void testQueryDoesntContainDisallowedValueTypes() {
+    Collection<BaseIdentifiableObject> analyticsDimensions =
+        eventAnalyticsDimensionsService
+            .getQueryDimensionsByProgramStageId(PROGRAM_UID, "anUid")
+            .stream()
+            .map(PrefixedDimension::getItem)
+            .collect(Collectors.toList());
 
-        assertTrue(
-            analyticsDimensions
-                .stream()
-                .filter( b -> b instanceof DataElement )
-                .map( de -> ((DataElement) de).getValueType() )
-                .noneMatch( queryDisallowedValueTypesPredicate() ) );
-        assertTrue(
-            analyticsDimensions
-                .stream()
-                .filter( b -> b instanceof TrackedEntityAttribute )
-                .map( tea -> ((TrackedEntityAttribute) tea).getValueType() )
-                .noneMatch( queryDisallowedValueTypesPredicate() ) );
-    }
+    assertTrue(
+        analyticsDimensions.stream()
+            .filter(b -> b instanceof DataElement)
+            .map(de -> ((DataElement) de).getValueType())
+            .noneMatch(queryDisallowedValueTypesPredicate()));
+    assertTrue(
+        analyticsDimensions.stream()
+            .filter(b -> b instanceof TrackedEntityAttribute)
+            .map(tea -> ((TrackedEntityAttribute) tea).getValueType())
+            .noneMatch(queryDisallowedValueTypesPredicate()));
+  }
 
-    @Test
-    void testAggregateOnlyContainsAllowedValueTypes()
-    {
-        Collection<BaseIdentifiableObject> analyticsDimensions = eventAnalyticsDimensionsService
-            .getAggregateDimensionsByProgramStageId( "anUid" ).stream()
-            .map( PrefixedDimension::getItem )
-            .collect( Collectors.toList() );
+  @Test
+  void testAggregateOnlyContainsAllowedValueTypes() {
+    Collection<BaseIdentifiableObject> analyticsDimensions =
+        eventAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId("anUid").stream()
+            .map(PrefixedDimension::getItem)
+            .collect(Collectors.toList());
 
-        assertTrue(
-            analyticsDimensions
-                .stream()
-                .filter( b -> b instanceof DataElement )
-                .map( de -> ((DataElement) de).getValueType() )
-                .allMatch( aggregateAllowedValueTypesPredicate() ) );
-        assertTrue(
-            analyticsDimensions
-                .stream()
-                .filter( b -> b instanceof TrackedEntityAttribute )
-                .map( tea -> ((TrackedEntityAttribute) tea).getValueType() )
-                .allMatch( aggregateAllowedValueTypesPredicate() ) );
-    }
+    assertTrue(
+        analyticsDimensions.stream()
+            .filter(b -> b instanceof DataElement)
+            .map(de -> ((DataElement) de).getValueType())
+            .allMatch(aggregateAllowedValueTypesPredicate()));
+    assertTrue(
+        analyticsDimensions.stream()
+            .filter(b -> b instanceof TrackedEntityAttribute)
+            .map(tea -> ((TrackedEntityAttribute) tea).getValueType())
+            .allMatch(aggregateAllowedValueTypesPredicate()));
+  }
 }

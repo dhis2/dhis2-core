@@ -32,19 +32,19 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = {
-    DebugMapper.class,
-    OrganisationUnitMapper.class,
-    AttributeValueMapper.class,
-    SharingMapper.class
-} )
-public interface CategoryOptionMapper extends PreheatMapper<CategoryOption>
-{
-    CategoryOptionMapper INSTANCE = Mappers.getMapper( CategoryOptionMapper.class );
+@Mapper(
+    uses = {
+      DebugMapper.class,
+      OrganisationUnitMapper.class,
+      AttributeValueMapper.class,
+      SharingMapper.class
+    })
+public interface CategoryOptionMapper extends PreheatMapper<CategoryOption> {
+  CategoryOptionMapper INSTANCE = Mappers.getMapper(CategoryOptionMapper.class);
 
-    @Mapping( target = "publicAccess", ignore = true )
-    @Mapping( target = "userAccesses", ignore = true )
-    @Mapping( target = "userGroupAccesses", ignore = true )
-    @Mapping( target = "externalAccess", ignore = true )
-    CategoryOption map( CategoryOption categoryOption );
+  @Mapping(target = "publicAccess", ignore = true)
+  @Mapping(target = "userAccesses", ignore = true)
+  @Mapping(target = "userGroupAccesses", ignore = true)
+  @Mapping(target = "externalAccess", ignore = true)
+  CategoryOption map(CategoryOption categoryOption);
 }

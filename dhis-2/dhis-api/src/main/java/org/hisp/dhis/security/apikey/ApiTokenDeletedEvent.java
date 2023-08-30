@@ -32,18 +32,15 @@ import org.springframework.context.ApplicationEvent;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ApiTokenDeletedEvent extends ApplicationEvent
-{
-    private String tokenHash;
+public class ApiTokenDeletedEvent extends ApplicationEvent {
+  private String tokenHash;
 
-    public ApiTokenDeletedEvent( Object source, String tokenHash )
-    {
-        super( source );
-        this.tokenHash = tokenHash;
-    }
+  public ApiTokenDeletedEvent(Object source, String tokenHash) {
+    super(source);
+    this.tokenHash = tokenHash;
+  }
 
-    public String getTokenHash()
-    {
-        return tokenHash;
-    }
+  public String getTokenHash() {
+    return tokenHash;
+  }
 }

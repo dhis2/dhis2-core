@@ -31,13 +31,12 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -46,7 +45,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
@@ -57,183 +55,136 @@ import org.hisp.dhis.webapi.controller.tracker.view.User;
  *
  * @author Giuseppe Nespolino
  */
-@OpenApi.Shared( name = "TrackedEntityRequestParams" )
+@OpenApi.Shared(name = "TrackedEntityRequestParams")
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-class RequestParams extends PagingAndSortingCriteriaAdapter
-{
-    static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!enrollments,!events,!programOwners";
+class RequestParams extends PagingAndSortingCriteriaAdapter {
+  static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!enrollments,!events,!programOwners";
 
-    /**
-     * Query filter for attributes
-     */
-    private String query;
+  /** Query filter for attributes */
+  private String query;
 
-    /**
-     * Comma separated list of attribute UIDs
-     */
-    @OpenApi.Property( { UID[].class, Attribute.class } )
-    private String attribute;
+  /** Comma separated list of attribute UIDs */
+  @OpenApi.Property({UID[].class, Attribute.class})
+  private String attribute;
 
-    /**
-     * Comma separated list of attribute filters
-     */
-    private String filter;
+  /** Comma separated list of attribute filters */
+  private String filter;
 
-    /**
-     * Semicolon-delimited list of organisation unit UIDs.
-     *
-     * @deprecated use {@link #orgUnits} instead which is comma instead of
-     *             semicolon separated.
-     */
-    @Deprecated( since = "2.41" )
-    @OpenApi.Property( { UID[].class, OrganisationUnit.class } )
-    private String orgUnit;
+  /**
+   * Semicolon-delimited list of organisation unit UIDs.
+   *
+   * @deprecated use {@link #orgUnits} instead which is comma instead of semicolon separated.
+   */
+  @Deprecated(since = "2.41")
+  @OpenApi.Property({UID[].class, OrganisationUnit.class})
+  private String orgUnit;
 
-    @OpenApi.Property( { UID[].class, OrganisationUnit.class } )
-    private Set<UID> orgUnits = new HashSet<>();
+  @OpenApi.Property({UID[].class, OrganisationUnit.class})
+  private Set<UID> orgUnits = new HashSet<>();
 
-    /**
-     * Selection mode for the specified organisation units, default is
-     * ACCESSIBLE.
-     */
-    private OrganisationUnitSelectionMode ouMode;
+  /**
+   * @deprecated use {@link #orgUnitMode} instead.
+   */
+  @Deprecated(since = "2.41")
+  private OrganisationUnitSelectionMode ouMode;
 
-    /**
-     * a Program UID for which instances in the response must be enrolled in.
-     */
-    @OpenApi.Property( { UID.class, Program.class } )
-    private UID program;
+  private OrganisationUnitSelectionMode orgUnitMode;
 
-    /**
-     * The {@see ProgramStatus} of the Tracked Entity Instance in the given
-     * program.
-     */
-    private ProgramStatus programStatus;
+  /** a Program UID for which instances in the response must be enrolled in. */
+  @OpenApi.Property({UID.class, Program.class})
+  private UID program;
 
-    /**
-     * Indicates whether the Tracked Entity Instance is marked for follow up for
-     * the specified Program.
-     */
-    private Boolean followUp;
+  /** The {@see ProgramStatus} of the Tracked Entity Instance in the given program. */
+  private ProgramStatus programStatus;
 
-    /**
-     * Start date for last updated.
-     */
-    private Date updatedAfter;
+  /**
+   * Indicates whether the Tracked Entity Instance is marked for follow up for the specified
+   * Program.
+   */
+  private Boolean followUp;
 
-    /**
-     * End date for last updated.
-     */
-    private Date updatedBefore;
+  /** Start date for last updated. */
+  private Date updatedAfter;
 
-    /**
-     * The last updated duration filter.
-     */
-    private String updatedWithin;
+  /** End date for last updated. */
+  private Date updatedBefore;
 
-    /**
-     * The given Program start date.
-     */
-    private Date enrollmentEnrolledAfter;
+  /** The last updated duration filter. */
+  private String updatedWithin;
 
-    /**
-     * The given Program end date.
-     */
-    private Date enrollmentEnrolledBefore;
+  /** The given Program start date. */
+  private Date enrollmentEnrolledAfter;
 
-    /**
-     * Start date for incident in the given program.
-     */
-    private Date enrollmentOccurredAfter;
+  /** The given Program end date. */
+  private Date enrollmentEnrolledBefore;
 
-    /**
-     * End date for incident in the given program.
-     */
-    private Date enrollmentOccurredBefore;
+  /** Start date for incident in the given program. */
+  private Date enrollmentOccurredAfter;
 
-    /**
-     * Only returns Tracked Entity Instances of this type.
-     */
-    @OpenApi.Property( { UID.class, TrackedEntityType.class } )
-    private UID trackedEntityType;
+  /** End date for incident in the given program. */
+  private Date enrollmentOccurredBefore;
 
-    /**
-     * Semicolon-delimited list of Tracked Entity Instance UIDs
-     *
-     * @deprecated use {@link #trackedEntities} instead which is comma instead
-     *             of semicolon separated.
-     */
-    @Deprecated( since = "2.41" )
-    @OpenApi.Property( { UID[].class, TrackedEntity.class } )
-    private String trackedEntity;
+  /** Only returns Tracked Entity Instances of this type. */
+  @OpenApi.Property({UID.class, TrackedEntityType.class})
+  private UID trackedEntityType;
 
-    @OpenApi.Property( { UID[].class, TrackedEntity.class } )
-    private Set<UID> trackedEntities = new HashSet<>();
+  /**
+   * Semicolon-delimited list of Tracked Entity Instance UIDs
+   *
+   * @deprecated use {@link #trackedEntities} instead which is comma instead of semicolon separated.
+   */
+  @Deprecated(since = "2.41")
+  @OpenApi.Property({UID[].class, TrackedEntity.class})
+  private String trackedEntity;
 
-    /**
-     * Selection mode for user assignment of events.
-     */
-    private AssignedUserSelectionMode assignedUserMode;
+  @OpenApi.Property({UID[].class, TrackedEntity.class})
+  private Set<UID> trackedEntities = new HashSet<>();
 
-    /**
-     * Semicolon-delimited list of user UIDs to filter based on events assigned
-     * to the users.
-     *
-     * @deprecated use {@link #assignedUsers} instead which is comma instead of
-     *             semicolon separated.
-     */
-    @Deprecated( since = "2.41" )
-    @OpenApi.Property( { UID[].class, User.class } )
-    private String assignedUser;
+  /** Selection mode for user assignment of events. */
+  private AssignedUserSelectionMode assignedUserMode;
 
-    @OpenApi.Property( { UID[].class, User.class } )
-    private Set<UID> assignedUsers = new HashSet<>();
+  /**
+   * Semicolon-delimited list of user UIDs to filter based on events assigned to the users.
+   *
+   * @deprecated use {@link #assignedUsers} instead which is comma instead of semicolon separated.
+   */
+  @Deprecated(since = "2.41")
+  @OpenApi.Property({UID[].class, User.class})
+  private String assignedUser;
 
-    /**
-     * Program Stage UID, used for filtering TEIs based on the selected Program
-     * Stage
-     */
-    @OpenApi.Property( { UID.class, ProgramStage.class } )
-    private UID programStage;
+  @OpenApi.Property({UID[].class, User.class})
+  private Set<UID> assignedUsers = new HashSet<>();
 
-    /**
-     * Status of any events in the specified program.
-     */
-    private EventStatus eventStatus;
+  /** Program Stage UID, used for filtering TEIs based on the selected Program Stage */
+  @OpenApi.Property({UID.class, ProgramStage.class})
+  private UID programStage;
 
-    /**
-     * Start date for Event for the given Program.
-     */
-    private Date eventOccurredAfter;
+  /** Status of any events in the specified program. */
+  private EventStatus eventStatus;
 
-    /**
-     * End date for Event for the given Program.
-     */
-    private Date eventOccurredBefore;
+  /** Start date for Event for the given Program. */
+  private Date eventOccurredAfter;
 
-    /**
-     * Indicates whether not to include metadata in the response.
-     */
-    private boolean skipMeta;
+  /** End date for Event for the given Program. */
+  private Date eventOccurredBefore;
 
-    /**
-     * Indicates whether to include soft-deleted elements
-     */
-    private boolean includeDeleted;
+  /** Indicates whether not to include metadata in the response. */
+  private boolean skipMeta;
 
-    /**
-     * Indicates whether to include all TEI attributes
-     */
-    private boolean includeAllAttributes;
+  /** Indicates whether to include soft-deleted elements */
+  private boolean includeDeleted;
 
-    /**
-     * Potential Duplicate value for TEI. If null, we don't check whether a TEI
-     * is a potentialDuplicate or not
-     */
-    private Boolean potentialDuplicate;
+  /** Indicates whether to include all TEI attributes */
+  private boolean includeAllAttributes;
 
-    @OpenApi.Property( value = String[].class )
-    private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
+  /**
+   * Potential Duplicate value for TEI. If null, we don't check whether a TEI is a
+   * potentialDuplicate or not
+   */
+  private Boolean potentialDuplicate;
+
+  @OpenApi.Property(value = String[].class)
+  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
 }

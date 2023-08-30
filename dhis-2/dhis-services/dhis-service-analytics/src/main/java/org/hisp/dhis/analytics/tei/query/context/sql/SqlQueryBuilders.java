@@ -29,30 +29,25 @@ package org.hisp.dhis.analytics.tei.query.context.sql;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType;
 
-/**
- * Utility class of common methods used in the sql query builders.
- */
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
-public class SqlQueryBuilders
-{
-    public static boolean isNotPeriodDimension( DimensionIdentifier<DimensionParam> dimensionIdentifier )
-    {
-        return !dimensionIdentifier.getDimension().isPeriodDimension();
-    }
+/** Utility class of common methods used in the sql query builders. */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class SqlQueryBuilders {
+  public static boolean isNotPeriodDimension(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return !dimensionIdentifier.getDimension().isPeriodDimension();
+  }
 
-    public static boolean hasRestrictions( DimensionIdentifier<DimensionParam> dimensionIdentifier )
-    {
-        return dimensionIdentifier.getDimension().hasRestrictions();
-    }
+  public static boolean hasRestrictions(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return dimensionIdentifier.getDimension().hasRestrictions();
+  }
 
-    public static boolean isOfType( DimensionIdentifier<DimensionParam> dimensionParamDimensionIdentifier,
-        DimensionParamObjectType type )
-    {
-        return dimensionParamDimensionIdentifier.getDimension().isOfType( type );
-    }
+  public static boolean isOfType(
+      DimensionIdentifier<DimensionParam> dimensionParamDimensionIdentifier,
+      DimensionParamObjectType type) {
+    return dimensionParamDimensionIdentifier.getDimension().isOfType(type);
+  }
 }

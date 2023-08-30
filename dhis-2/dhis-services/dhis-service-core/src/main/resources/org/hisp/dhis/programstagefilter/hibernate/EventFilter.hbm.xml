@@ -5,11 +5,11 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.programstagefilter.EventFilter" table="programstageinstancefilter">
+  <class name="org.hisp.dhis.programstagefilter.EventFilter" table="eventfilter">
 
     <cache usage="read-write" />
 
-    <id name="id" column="programstageinstancefilterid">
+    <id name="id" column="eventfilterid">
       <generator class="native" />
     </id>
     

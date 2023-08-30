@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hamcrest.Matchers;
 import org.hisp.dhis.translation.Translation;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,45 +43,41 @@ import org.junit.jupiter.api.Test;
  *
  * @author Volker Schmidt
  */
-class JsonSetBinaryTypeTest
-{
+class JsonSetBinaryTypeTest {
 
-    private JsonSetBinaryType jsonBinaryType;
+  private JsonSetBinaryType jsonBinaryType;
 
-    private Set<Translation> translations;
+  private Set<Translation> translations;
 
-    private Translation translation1;
+  private Translation translation1;
 
-    private Translation translation2;
+  private Translation translation2;
 
-    @BeforeEach
-    void setUp()
-    {
-        translation1 = new Translation();
-        translation1.setLocale( "en" );
-        translation1.setValue( "English Test 1" );
-        translation2 = new Translation();
-        translation2.setLocale( "no" );
-        translation2.setValue( "Norwegian Test 1" );
-        translations = new HashSet<>();
-        translations.add( translation1 );
-        translations.add( translation2 );
-        jsonBinaryType = new JsonSetBinaryType();
-        jsonBinaryType.init( Translation.class );
-    }
+  @BeforeEach
+  void setUp() {
+    translation1 = new Translation();
+    translation1.setLocale("en");
+    translation1.setValue("English Test 1");
+    translation2 = new Translation();
+    translation2.setLocale("no");
+    translation2.setValue("Norwegian Test 1");
+    translations = new HashSet<>();
+    translations.add(translation1);
+    translations.add(translation2);
+    jsonBinaryType = new JsonSetBinaryType();
+    jsonBinaryType.init(Translation.class);
+  }
 
-    @SuppressWarnings( "unchecked" )
-    @Test
-    void deepCopy()
-    {
-        final Set<Translation> result = (Set<Translation>) jsonBinaryType.deepCopy( translations );
-        assertNotSame( translations, result );
-        assertThat( result, Matchers.containsInAnyOrder( translation1, translation2 ) );
-    }
+  @SuppressWarnings("unchecked")
+  @Test
+  void deepCopy() {
+    final Set<Translation> result = (Set<Translation>) jsonBinaryType.deepCopy(translations);
+    assertNotSame(translations, result);
+    assertThat(result, Matchers.containsInAnyOrder(translation1, translation2));
+  }
 
-    @Test
-    void deepCopyNull()
-    {
-        assertNull( jsonBinaryType.deepCopy( null ) );
-    }
+  @Test
+  void deepCopyNull() {
+    assertNull(jsonBinaryType.deepCopy(null));
+  }
 }

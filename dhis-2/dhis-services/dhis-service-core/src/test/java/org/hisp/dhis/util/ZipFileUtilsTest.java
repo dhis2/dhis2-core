@@ -33,84 +33,76 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
-
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Austin McGee
  */
-class ZipFileUtilsTest
-{
+class ZipFileUtilsTest {
 
-    @Test
-    void testGetTopLevelDirectorySlash()
-    {
-        List<ZipEntry> entries = new ArrayList<ZipEntry>();
-        entries.add( new ZipEntry( "test-dir/manifest.webapp" ) );
-        entries.add( new ZipEntry( "test-dir/index.html" ) );
-        entries.add( new ZipEntry( "test-dir/js/bundle.js" ) );
-        String prefix = getTopLevelDirectory( entries.iterator() );
+  @Test
+  void testGetTopLevelDirectorySlash() {
+    List<ZipEntry> entries = new ArrayList<ZipEntry>();
+    entries.add(new ZipEntry("test-dir/manifest.webapp"));
+    entries.add(new ZipEntry("test-dir/index.html"));
+    entries.add(new ZipEntry("test-dir/js/bundle.js"));
+    String prefix = getTopLevelDirectory(entries.iterator());
 
-        assertEquals( "test-dir/", prefix );
-    }
+    assertEquals("test-dir/", prefix);
+  }
 
-    @Test
-    void testGetTopLevelDirectoryBackslash()
-    {
-        List<ZipEntry> entries = new ArrayList<ZipEntry>();
-        entries.add( new ZipEntry( "test-dir\\manifest.webapp" ) );
-        entries.add( new ZipEntry( "test-dir\\index.html" ) );
-        entries.add( new ZipEntry( "test-dir\\js/bundle.js" ) );
-        String prefix = getTopLevelDirectory( entries.iterator() );
+  @Test
+  void testGetTopLevelDirectoryBackslash() {
+    List<ZipEntry> entries = new ArrayList<ZipEntry>();
+    entries.add(new ZipEntry("test-dir\\manifest.webapp"));
+    entries.add(new ZipEntry("test-dir\\index.html"));
+    entries.add(new ZipEntry("test-dir\\js/bundle.js"));
+    String prefix = getTopLevelDirectory(entries.iterator());
 
-        assertEquals( "test-dir\\", prefix );
-    }
+    assertEquals("test-dir\\", prefix);
+  }
 
-    @Test
-    void testGetTopLevelDirectoryNone()
-    {
-        List<ZipEntry> entries = new ArrayList<ZipEntry>();
-        entries.add( new ZipEntry( "manifest.webapp" ) );
-        entries.add( new ZipEntry( "index.html" ) );
-        entries.add( new ZipEntry( "js/bundle.js" ) );
-        String prefix = getTopLevelDirectory( entries.iterator() );
+  @Test
+  void testGetTopLevelDirectoryNone() {
+    List<ZipEntry> entries = new ArrayList<ZipEntry>();
+    entries.add(new ZipEntry("manifest.webapp"));
+    entries.add(new ZipEntry("index.html"));
+    entries.add(new ZipEntry("js/bundle.js"));
+    String prefix = getTopLevelDirectory(entries.iterator());
 
-        assertEquals( "", prefix );
-    }
+    assertEquals("", prefix);
+  }
 
-    @Test
-    void testGetTopLevelDirectoryMixed()
-    {
-        List<ZipEntry> entries = new ArrayList<ZipEntry>();
-        entries.add( new ZipEntry( "test-dir/manifest.webapp" ) );
-        entries.add( new ZipEntry( "test-dir/index.html" ) );
-        entries.add( new ZipEntry( "another-dir/bundle.js" ) );
-        String prefix = getTopLevelDirectory( entries.iterator() );
+  @Test
+  void testGetTopLevelDirectoryMixed() {
+    List<ZipEntry> entries = new ArrayList<ZipEntry>();
+    entries.add(new ZipEntry("test-dir/manifest.webapp"));
+    entries.add(new ZipEntry("test-dir/index.html"));
+    entries.add(new ZipEntry("another-dir/bundle.js"));
+    String prefix = getTopLevelDirectory(entries.iterator());
 
-        assertEquals( "", prefix );
-    }
+    assertEquals("", prefix);
+  }
 
-    @Test
-    void testGetTopLevelDirectorySome()
-    {
-        List<ZipEntry> entries = new ArrayList<ZipEntry>();
-        entries.add( new ZipEntry( "test-dir/manifest.webapp" ) );
-        entries.add( new ZipEntry( "test-dir/index.html" ) );
-        entries.add( new ZipEntry( "top-level-bundle.js" ) );
-        String prefix = getTopLevelDirectory( entries.iterator() );
+  @Test
+  void testGetTopLevelDirectorySome() {
+    List<ZipEntry> entries = new ArrayList<ZipEntry>();
+    entries.add(new ZipEntry("test-dir/manifest.webapp"));
+    entries.add(new ZipEntry("test-dir/index.html"));
+    entries.add(new ZipEntry("top-level-bundle.js"));
+    String prefix = getTopLevelDirectory(entries.iterator());
 
-        assertEquals( "", prefix );
-    }
+    assertEquals("", prefix);
+  }
 
-    @Test
-    void testGetTopLevelDirectorySomeReversed()
-    {
-        List<ZipEntry> entries = new ArrayList<ZipEntry>();
-        entries.add( new ZipEntry( "top-level-bundle.js" ) );
-        entries.add( new ZipEntry( "test-dir/manifest.webapp" ) );
-        entries.add( new ZipEntry( "test-dir/index.html" ) );
-        String prefix = getTopLevelDirectory( entries.iterator() );
+  @Test
+  void testGetTopLevelDirectorySomeReversed() {
+    List<ZipEntry> entries = new ArrayList<ZipEntry>();
+    entries.add(new ZipEntry("top-level-bundle.js"));
+    entries.add(new ZipEntry("test-dir/manifest.webapp"));
+    entries.add(new ZipEntry("test-dir/index.html"));
+    String prefix = getTopLevelDirectory(entries.iterator());
 
-        assertEquals( "", prefix );
-    }
+    assertEquals("", prefix);
+  }
 }

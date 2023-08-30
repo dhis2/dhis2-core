@@ -32,29 +32,25 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author mortenoh
  */
-public class GetPingAction
-    implements Action
-{
-    // -------------------------------------------------------------------------
-    // Input & Output
-    // -------------------------------------------------------------------------
+public class GetPingAction implements Action {
+  // -------------------------------------------------------------------------
+  // Input & Output
+  // -------------------------------------------------------------------------
 
-    private Boolean loggedIn = true;
+  private Boolean loggedIn = true;
 
-    public Boolean isLoggedIn()
-    {
-        return loggedIn;
-    }
+  public Boolean isLoggedIn() {
+    return loggedIn;
+  }
 
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public String execute()
-    {
-        loggedIn = true;
+  @Override
+  public String execute() {
+    loggedIn = true;
 
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

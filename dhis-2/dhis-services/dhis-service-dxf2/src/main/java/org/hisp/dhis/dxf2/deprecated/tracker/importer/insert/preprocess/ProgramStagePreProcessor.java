@@ -41,30 +41,26 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class ProgramStagePreProcessor implements Processor
-{
-    @Override
-    public void process( Event event, WorkContext ctx )
-    {
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
-        if ( program == null )
-        {
-            return; // Program is a mandatory value, it will be caught by the
-                   // validation
-        }
-        ProgramStage programStage = ctx.getProgramStage(
-            ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme(), event.getProgramStage() );
-
-        if ( programStage == null && program.isWithoutRegistration() )
-        {
-            programStage = program.getProgramStageByStage( 1 );
-
-        }
-        if ( programStage != null )
-        {
-            event.setProgramStage(
-                IdentifiableObjectUtils.getIdentifierBasedOnIdScheme( programStage,
-                    ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme() ) );
-        }
+public class ProgramStagePreProcessor implements Processor {
+  @Override
+  public void process(Event event, WorkContext ctx) {
+    Program program = ctx.getProgramsMap().get(event.getProgram());
+    if (program == null) {
+      return; // Program is a mandatory value, it will be caught by the
+      // validation
     }
+    ProgramStage programStage =
+        ctx.getProgramStage(
+            ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme(),
+            event.getProgramStage());
+
+    if (programStage == null && program.isWithoutRegistration()) {
+      programStage = program.getProgramStageByStage(1);
+    }
+    if (programStage != null) {
+      event.setProgramStage(
+          IdentifiableObjectUtils.getIdentifierBasedOnIdScheme(
+              programStage, ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme()));
+    }
+  }
 }

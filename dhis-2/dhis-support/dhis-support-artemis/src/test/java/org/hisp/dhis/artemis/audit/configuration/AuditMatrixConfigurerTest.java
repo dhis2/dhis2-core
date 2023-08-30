@@ -44,7 +44,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
-
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -58,127 +57,118 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class AuditMatrixConfigurerTest
-{
-    @Mock
-    private DhisConfigurationProvider config;
+@ExtendWith(MockitoExtension.class)
+class AuditMatrixConfigurerTest {
+  @Mock private DhisConfigurationProvider config;
 
-    private AuditMatrixConfigurer subject;
+  private AuditMatrixConfigurer subject;
 
-    private Map<AuditScope, Map<AuditType, Boolean>> matrix;
+  private Map<AuditScope, Map<AuditType, Boolean>> matrix;
 
-    @BeforeEach
-    public void setUp()
-    {
-        this.subject = new AuditMatrixConfigurer( config );
+  @BeforeEach
+  public void setUp() {
+    this.subject = new AuditMatrixConfigurer(config);
+  }
+
+  @Test
+  void verifyConfigurationForMatrixIsIngested() {
+    when(config.getProperty(ConfigurationKey.AUDIT_METADATA_MATRIX)).thenReturn("READ;");
+    when(config.getProperty(ConfigurationKey.AUDIT_TRACKER_MATRIX))
+        .thenReturn("CREATE;READ;UPDATE;DELETE");
+    when(config.getProperty(ConfigurationKey.AUDIT_AGGREGATE_MATRIX))
+        .thenReturn("CREATE;UPDATE;DELETE");
+
+    matrix = this.subject.configure();
+
+    assertThat(matrix.get(METADATA).keySet(), hasSize(6));
+    assertMatrixEnabled(METADATA, READ);
+    assertMatrixDisabled(METADATA, CREATE, UPDATE, DELETE);
+
+    assertThat(matrix.get(TRACKER).keySet(), hasSize(6));
+    assertMatrixDisabled(TRACKER, SEARCH, SECURITY);
+    assertMatrixEnabled(TRACKER, CREATE, UPDATE, DELETE, READ);
+
+    assertThat(matrix.get(AGGREGATE).keySet(), hasSize(6));
+    assertMatrixDisabled(AGGREGATE, READ, SECURITY, SEARCH);
+    assertMatrixEnabled(AGGREGATE, CREATE, UPDATE, DELETE);
+  }
+
+  @Test
+  void allDisabled() {
+    when(config.getProperty(ConfigurationKey.AUDIT_METADATA_MATRIX)).thenReturn("DISABLED");
+    when(config.getProperty(ConfigurationKey.AUDIT_TRACKER_MATRIX)).thenReturn("DISABLED");
+    when(config.getProperty(ConfigurationKey.AUDIT_AGGREGATE_MATRIX)).thenReturn("DISABLED");
+
+    matrix = this.subject.configure();
+
+    assertMatrixAllDisabled(METADATA);
+    assertMatrixAllDisabled(TRACKER);
+    assertMatrixAllDisabled(AGGREGATE);
+  }
+
+  @Test
+  void verifyInvalidConfigurationIsIgnored() {
+    when(config.getProperty(ConfigurationKey.AUDIT_METADATA_MATRIX)).thenReturn("READX;UPDATE");
+
+    matrix = this.subject.configure();
+    assertThat(matrix.get(METADATA).keySet(), hasSize(6));
+    assertAllFalseBut(matrix.get(METADATA), UPDATE);
+  }
+
+  @Test
+  void verifyDefaultAuditingConfiguration() {
+    matrix = this.subject.configure();
+    assertMatrixDisabled(METADATA, READ);
+    assertMatrixEnabled(METADATA, CREATE);
+    assertMatrixEnabled(METADATA, UPDATE);
+    assertMatrixEnabled(METADATA, DELETE);
+
+    assertMatrixDisabled(TRACKER, READ);
+    assertMatrixEnabled(TRACKER, CREATE);
+    assertMatrixEnabled(TRACKER, UPDATE);
+    assertMatrixEnabled(TRACKER, DELETE);
+
+    assertMatrixDisabled(AGGREGATE, READ);
+    assertMatrixEnabled(AGGREGATE, CREATE);
+    assertMatrixEnabled(AGGREGATE, UPDATE);
+    assertMatrixEnabled(AGGREGATE, DELETE);
+  }
+
+  private void assertAllFalseBut(
+      Map<AuditType, Boolean> auditTypeBooleanMap, AuditType trueAuditType) {
+    for (AuditType auditType : auditTypeBooleanMap.keySet()) {
+      if (!auditType.name().equals(trueAuditType.name())) {
+        assertFalse(auditTypeBooleanMap.get(auditType));
+      } else {
+        assertTrue(auditTypeBooleanMap.get(auditType));
+      }
     }
+  }
 
-    @Test
-    void verifyConfigurationForMatrixIsIngested()
-    {
-        when( config.getProperty( ConfigurationKey.AUDIT_METADATA_MATRIX ) ).thenReturn( "READ;" );
-        when( config.getProperty( ConfigurationKey.AUDIT_TRACKER_MATRIX ) ).thenReturn( "CREATE;READ;UPDATE;DELETE" );
-        when( config.getProperty( ConfigurationKey.AUDIT_AGGREGATE_MATRIX ) ).thenReturn( "CREATE;UPDATE;DELETE" );
-
-        matrix = this.subject.configure();
-
-        assertThat( matrix.get( METADATA ).keySet(), hasSize( 6 ) );
-        assertMatrixEnabled( METADATA, READ );
-        assertMatrixDisabled( METADATA, CREATE, UPDATE, DELETE );
-
-        assertThat( matrix.get( TRACKER ).keySet(), hasSize( 6 ) );
-        assertMatrixDisabled( TRACKER, SEARCH, SECURITY );
-        assertMatrixEnabled( TRACKER, CREATE, UPDATE, DELETE, READ );
-
-        assertThat( matrix.get( AGGREGATE ).keySet(), hasSize( 6 ) );
-        assertMatrixDisabled( AGGREGATE, READ, SECURITY, SEARCH );
-        assertMatrixEnabled( AGGREGATE, CREATE, UPDATE, DELETE );
+  private void assertMatrixEnabled(AuditScope auditScope, AuditType... auditTypes) {
+    for (AuditType auditType : auditTypes) {
+      assertThat(
+          "Expecting true for audit type: " + auditType.name(),
+          matrix.get(auditScope).get(auditType),
+          is(true));
     }
+  }
 
-    @Test
-    void allDisabled()
-    {
-        when( config.getProperty( ConfigurationKey.AUDIT_METADATA_MATRIX ) ).thenReturn( "DISABLED" );
-        when( config.getProperty( ConfigurationKey.AUDIT_TRACKER_MATRIX ) ).thenReturn( "DISABLED" );
-        when( config.getProperty( ConfigurationKey.AUDIT_AGGREGATE_MATRIX ) ).thenReturn( "DISABLED" );
-
-        matrix = this.subject.configure();
-
-        assertMatrixAllDisabled( METADATA );
-        assertMatrixAllDisabled( TRACKER );
-        assertMatrixAllDisabled( AGGREGATE );
+  private void assertMatrixDisabled(AuditScope auditScope, AuditType... auditTypes) {
+    for (AuditType auditType : auditTypes) {
+      assertThat(
+          "Expecting false for audit type: " + auditType.name(),
+          matrix.get(auditScope).get(auditType),
+          is(false));
     }
+  }
 
-    @Test
-    void verifyInvalidConfigurationIsIgnored()
-    {
-        when( config.getProperty( ConfigurationKey.AUDIT_METADATA_MATRIX ) ).thenReturn( "READX;UPDATE" );
-
-        matrix = this.subject.configure();
-        assertThat( matrix.get( METADATA ).keySet(), hasSize( 6 ) );
-        assertAllFalseBut( matrix.get( METADATA ), UPDATE );
+  private void assertMatrixAllDisabled(AuditScope auditScope) {
+    for (AuditType auditType : AuditType.values()) {
+      assertThat(
+          "Expecting false for audit type: " + auditType.name(),
+          matrix.get(auditScope).get(auditType),
+          is(false));
     }
-
-    @Test
-    void verifyDefaultAuditingConfiguration()
-    {
-        matrix = this.subject.configure();
-        assertMatrixDisabled( METADATA, READ );
-        assertMatrixEnabled( METADATA, CREATE );
-        assertMatrixEnabled( METADATA, UPDATE );
-        assertMatrixEnabled( METADATA, DELETE );
-
-        assertMatrixDisabled( TRACKER, READ );
-        assertMatrixEnabled( TRACKER, CREATE );
-        assertMatrixEnabled( TRACKER, UPDATE );
-        assertMatrixEnabled( TRACKER, DELETE );
-
-        assertMatrixDisabled( AGGREGATE, READ );
-        assertMatrixEnabled( AGGREGATE, CREATE );
-        assertMatrixEnabled( AGGREGATE, UPDATE );
-        assertMatrixEnabled( AGGREGATE, DELETE );
-    }
-
-    private void assertAllFalseBut( Map<AuditType, Boolean> auditTypeBooleanMap, AuditType trueAuditType )
-    {
-        for ( AuditType auditType : auditTypeBooleanMap.keySet() )
-        {
-            if ( !auditType.name().equals( trueAuditType.name() ) )
-            {
-                assertFalse( auditTypeBooleanMap.get( auditType ) );
-            }
-            else
-            {
-                assertTrue( auditTypeBooleanMap.get( auditType ) );
-            }
-        }
-    }
-
-    private void assertMatrixEnabled( AuditScope auditScope, AuditType... auditTypes )
-    {
-        for ( AuditType auditType : auditTypes )
-        {
-            assertThat( "Expecting true for audit type: " + auditType.name(), matrix.get( auditScope ).get( auditType ),
-                is( true ) );
-        }
-    }
-
-    private void assertMatrixDisabled( AuditScope auditScope, AuditType... auditTypes )
-    {
-        for ( AuditType auditType : auditTypes )
-        {
-            assertThat( "Expecting false for audit type: " + auditType.name(),
-                matrix.get( auditScope ).get( auditType ), is( false ) );
-        }
-    }
-
-    private void assertMatrixAllDisabled( AuditScope auditScope )
-    {
-        for ( AuditType auditType : AuditType.values() )
-        {
-            assertThat( "Expecting false for audit type: " + auditType.name(),
-                matrix.get( auditScope ).get( auditType ), is( false ) );
-        }
-    }
+  }
 }

@@ -13,7 +13,7 @@
     </id>
 
     <many-to-one name="event" class="org.hisp.dhis.program.Event"
-        column="programstageinstanceid" foreign-key="fk_entityinstancedatavalueaudit_programstageinstanceid" />
+        column="eventid" foreign-key="fk_entityinstancedatavalueaudit_programstageinstanceid" />
     
     <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
         foreign-key="fk_entityinstancedatavalueaudit_dataelementid" />

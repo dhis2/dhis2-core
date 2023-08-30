@@ -30,81 +30,96 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import java.util.Set;
-
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test metadata check for minimum validation rule group size.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/groups/group_size_validation_rule_groups.yaml}
+ * Test metadata check for minimum validation rule group size. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/groups/group_size_validation_rule_groups.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityGroupSizeValidationRuleGroupsControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityGroupSizeValidationRuleGroupsControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
 
-    private static final String check = "validation_rule_groups_scarce";
+  private static final String check = "validation_rule_groups_scarce";
 
-    private static final String detailsIdType = "validationRuleGroups";
+  private static final String detailsIdType = "validationRuleGroups";
 
-    private String validationRuleA;
+  private String validationRuleA;
 
-    @Test
-    void testValidationRuleGroupsTooSmall()
-    {
+  @Test
+  void testValidationRuleGroupsTooSmall() {
 
-        setUpTest();
-        String indicatorGroupA = assertStatus( HttpStatus.CREATED,
-            POST( "/validationRuleGroups",
+    setUpTest();
+    String indicatorGroupA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/validationRuleGroups",
                 "{ 'name' : 'One', 'shortName' : 'One', 'validationRules' : [{'id' : '"
-                    + validationRuleA + "'}]}" ) );
+                    + validationRuleA
+                    + "'}]}"));
 
-        String indicatorGroupB = assertStatus( HttpStatus.CREATED,
-            POST( "/validationRuleGroups",
-                "{ 'name' : 'None', 'shortName' : 'None'} " ) );
+    String indicatorGroupB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/validationRuleGroups", "{ 'name' : 'None', 'shortName' : 'None'} "));
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 66,
-            Set.of( indicatorGroupA, indicatorGroupB ), Set.of( "One", "None" ), Set.of( "0", "1" ), true );
-    }
+    assertHasDataIntegrityIssues(
+        detailsIdType,
+        check,
+        66,
+        Set.of(indicatorGroupA, indicatorGroupB),
+        Set.of("One", "None"),
+        Set.of("0", "1"),
+        true);
+  }
 
-    @Test
-    void testValidationRuleGroupsSizeOK()
-    {
+  @Test
+  void testValidationRuleGroupsSizeOK() {
 
-        setUpTest();
+    setUpTest();
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
-    }
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    @Test
-    void testIndicatorsInGroupsRuns()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-    }
+  @Test
+  void testIndicatorsInGroupsRuns() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 
-    void setUpTest()
-    {
+  void setUpTest() {
 
-        validationRuleA = assertStatus( HttpStatus.CREATED,
-            POST( "/validationRules",
-                "{'importance':'MEDIUM','operator':'not_equal_to','leftSide':{'missingValueStrategy':'NEVER_SKIP', " +
-                    "'description':'Test','expression':'abc123'}," +
-                    "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test2'," +
-                    "'expression':'xyz456'},'periodType':'Monthly','name':'Test rule A'}" ) );
+    validationRuleA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/validationRules",
+                "{'importance':'MEDIUM','operator':'not_equal_to','leftSide':{'missingValueStrategy':'NEVER_SKIP', "
+                    + "'description':'Test','expression':'abc123'},"
+                    + "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test2',"
+                    + "'expression':'xyz456'},'periodType':'Monthly','name':'Test rule A'}"));
 
-        String validationRuleB = assertStatus( HttpStatus.CREATED,
-            POST( "/validationRules",
-                "{'importance':'MEDIUM','operator':'not_equal_to','leftSide':{'missingValueStrategy':'NEVER_SKIP', " +
-                    "'description':'Test 3','expression':'abc123'}," +
-                    "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test 4'," +
-                    "'expression':'xyz456'},'periodType':'Monthly','name':'Test rule B'}" ) );
+    String validationRuleB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/validationRules",
+                "{'importance':'MEDIUM','operator':'not_equal_to','leftSide':{'missingValueStrategy':'NEVER_SKIP', "
+                    + "'description':'Test 3','expression':'abc123'},"
+                    + "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test 4',"
+                    + "'expression':'xyz456'},'periodType':'Monthly','name':'Test rule B'}"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/validationRuleGroups",
-                "{ 'name' : 'A validation rule group', 'shortName' : 'A validation rule group', 'validationRules' : [{'id' : '"
-                    + validationRuleA + "'}, " +
-                    "{'id' : '" + validationRuleB + "'}]}" ) );
-
-    }
-
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/validationRuleGroups",
+            "{ 'name' : 'A validation rule group', 'shortName' : 'A validation rule group', 'validationRules' : [{'id' : '"
+                + validationRuleA
+                + "'}, "
+                + "{'id' : '"
+                + validationRuleB
+                + "'}]}"));
+  }
 }

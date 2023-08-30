@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
 
 import java.util.List;
-
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -40,26 +39,21 @@ import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
 import org.springframework.stereotype.Service;
 
-/**
- * This class is responsible for building the SQL statement for the main TEI
- * table.
- */
+/** This class is responsible for building the SQL statement for the main TEI table. */
 @Service
-public class MainTableQueryBuilder implements SqlQueryBuilder
-{
-    @Override
-    public RenderableSqlQuery buildSqlQuery( QueryContext queryContext,
-        List<DimensionIdentifier<DimensionParam>> unusedOne,
-        List<AnalyticsSortingParams> unusedTwo )
-    {
-        return RenderableSqlQuery.builder()
-            .mainTable( Table.ofStrings( queryContext.getMainTableName(), TEI_ALIAS ) )
-            .build();
-    }
+public class MainTableQueryBuilder implements SqlQueryBuilder {
+  @Override
+  public RenderableSqlQuery buildSqlQuery(
+      QueryContext queryContext,
+      List<DimensionIdentifier<DimensionParam>> unusedOne,
+      List<AnalyticsSortingParams> unusedTwo) {
+    return RenderableSqlQuery.builder()
+        .mainTable(Table.ofStrings(queryContext.getMainTableName(), TEI_ALIAS))
+        .build();
+  }
 
-    @Override
-    public boolean alwaysRun()
-    {
-        return true;
-    }
+  @Override
+  public boolean alwaysRun() {
+    return true;
+  }
 }

@@ -32,11 +32,8 @@ import org.hisp.dhis.hibernate.EnumUserType;
 /**
  * @author Chau Thu Tran
  */
-public class ProgramTypeUserType
-    extends EnumUserType<ProgramType>
-{
-    public ProgramTypeUserType()
-    {
-        super( ProgramType.class );
-    }
+public class ProgramTypeUserType extends EnumUserType<ProgramType> {
+  public ProgramTypeUserType() {
+    super(ProgramType.class);
+  }
 }

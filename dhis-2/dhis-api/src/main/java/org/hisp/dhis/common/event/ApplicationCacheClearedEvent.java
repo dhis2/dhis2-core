@@ -32,16 +32,12 @@ import org.springframework.context.ApplicationEvent;
 /**
  * @author Lars Helge Overland
  */
-public class ApplicationCacheClearedEvent
-    extends ApplicationEvent
-{
-    public ApplicationCacheClearedEvent()
-    {
-        super( "ApplicationCacheCleared" );
-    }
+public class ApplicationCacheClearedEvent extends ApplicationEvent {
+  public ApplicationCacheClearedEvent() {
+    super("ApplicationCacheCleared");
+  }
 
-    public ApplicationCacheClearedEvent( Object source )
-    {
-        super( source );
-    }
+  public ApplicationCacheClearedEvent(Object source) {
+    super(source);
+  }
 }

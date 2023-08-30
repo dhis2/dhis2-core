@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -43,46 +42,44 @@ import org.junit.jupiter.api.Test;
 /**
  * @author David Mackessy
  */
-class ProgramTrackedEntityAttributeTest
-{
+class ProgramTrackedEntityAttributeTest {
 
-    @Test
-    void testCopyOf()
-    {
-        Program programOriginal = getNewProgram();
-        Program programCopy = Program.shallowCopy( programOriginal, Map.of() );
-        ProgramTrackedEntityAttribute original = getNewProgramAttribute( programOriginal );
-        ProgramTrackedEntityAttribute copy = ProgramTrackedEntityAttribute.copyOf.apply( original, programCopy );
+  @Test
+  void testCopyOf() {
+    Program programOriginal = getNewProgram();
+    Program programCopy = Program.shallowCopy(programOriginal, Map.of());
+    ProgramTrackedEntityAttribute original = getNewProgramAttribute(programOriginal);
+    ProgramTrackedEntityAttribute copy =
+        ProgramTrackedEntityAttribute.copyOf.apply(original, programCopy);
 
-        assertNotEquals( original, copy );
-        assertNotEquals( original.getUid(), copy.getUid() );
-        assertNotEquals( original.getProgram().getUid(), copy.getProgram().getUid() );
-        assertNotSame( original, copy );
+    assertNotEquals(original, copy);
+    assertNotEquals(original.getUid(), copy.getUid());
+    assertNotEquals(original.getProgram().getUid(), copy.getProgram().getUid());
+    assertNotSame(original, copy);
 
-        assertEquals( original.getAttribute(), copy.getAttribute() );
-        assertEquals( "Copy of Program Name tracked entity attr 1", copy.getName() );
-    }
+    assertEquals(original.getAttribute(), copy.getAttribute());
+    assertEquals("Copy of Program Name tracked entity attr 1", copy.getName());
+  }
 
-    private ProgramTrackedEntityAttribute getNewProgramAttribute( Program program )
-    {
-        ProgramTrackedEntityAttribute ptea = new ProgramTrackedEntityAttribute();
-        TrackedEntityAttribute tea = new TrackedEntityAttribute();
-        tea.setAutoFields();
-        tea.setName( "tracked entity attr 1" );
+  private ProgramTrackedEntityAttribute getNewProgramAttribute(Program program) {
+    ProgramTrackedEntityAttribute ptea = new ProgramTrackedEntityAttribute();
+    TrackedEntityAttribute tea = new TrackedEntityAttribute();
+    tea.setAutoFields();
+    tea.setName("tracked entity attr 1");
 
-        ptea.setAttribute( tea );
-        ptea.setAutoFields();
-        ptea.setProgram( program );
-        ptea.setName( "indicator 1" );
-        ptea.setSortOrder( 2 );
-        ptea.setMandatory( false );
-        ptea.setAllowFutureDate( false );
-        ptea.setSearchable( true );
-        ptea.setAccess( new Access() );
-        ptea.setPublicAccess( "rw------" );
-        ptea.setAttributeValues( Set.of() );
-        ptea.setSharing( new Sharing() );
-        ptea.setTranslations( Set.of() );
-        return ptea;
-    }
+    ptea.setAttribute(tea);
+    ptea.setAutoFields();
+    ptea.setProgram(program);
+    ptea.setName("indicator 1");
+    ptea.setSortOrder(2);
+    ptea.setMandatory(false);
+    ptea.setAllowFutureDate(false);
+    ptea.setSearchable(true);
+    ptea.setAccess(new Access());
+    ptea.setPublicAccess("rw------");
+    ptea.setAttributeValues(Set.of());
+    ptea.setSharing(new Sharing());
+    ptea.setTranslations(Set.of());
+    return ptea;
+  }
 }

@@ -31,40 +31,39 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Luciano Fiandesio
  */
-public class SupplierUtils
-{
+public class SupplierUtils {
 
-    static OrganisationUnit getParentHierarchy( OrganisationUnit ou, String path )
-    {
-        if ( path.startsWith( "/" ) )
-        {
-            path = path.substring( 1 );
-        }
-        List<String> list = Arrays.asList( path.split( "/" ) );
-        if ( list.size() == 1 && list.get( 0 ).equals( ou.getUid() ) )
-        {
-            return null;
-        }
-        Collections.reverse( list );
-
-        List<OrganisationUnit> ous = list.stream().filter( uid -> !uid.equals( ou.getUid() ) ).map( ouUid -> {
-            OrganisationUnit o = new OrganisationUnit();
-            o.setUid( ouUid );
-            return o;
-        } ).collect( Collectors.toList() );
-        OrganisationUnit parent = ous.get( 0 );
-        for ( OrganisationUnit organisationUnit : ous )
-        {
-            parent.setParent( organisationUnit );
-            parent = organisationUnit;
-        }
-
-        return ous.get( 0 );
+  static OrganisationUnit getParentHierarchy(OrganisationUnit ou, String path) {
+    if (path.startsWith("/")) {
+      path = path.substring(1);
     }
+    List<String> list = Arrays.asList(path.split("/"));
+    if (list.size() == 1 && list.get(0).equals(ou.getUid())) {
+      return null;
+    }
+    Collections.reverse(list);
+
+    List<OrganisationUnit> ous =
+        list.stream()
+            .filter(uid -> !uid.equals(ou.getUid()))
+            .map(
+                ouUid -> {
+                  OrganisationUnit o = new OrganisationUnit();
+                  o.setUid(ouUid);
+                  return o;
+                })
+            .collect(Collectors.toList());
+    OrganisationUnit parent = ous.get(0);
+    for (OrganisationUnit organisationUnit : ous) {
+      parent.setParent(organisationUnit);
+      parent = organisationUnit;
+    }
+
+    return ous.get(0);
+  }
 }

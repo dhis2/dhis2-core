@@ -34,38 +34,35 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.junit.jupiter.api.Test;
 
-class InternalImportSummaryResponseTest
-{
-    @Test
-    void testGetImportSummary238()
-    {
-        InternalImportSummaryResponse response = new InternalImportSummaryResponse();
-        response.setResponse( new ImportSummary(
-            ImportStatus.WARNING, "One more conflicts encountered", new ImportCount( 8, 4, 2, 0 ) ) );
+class InternalImportSummaryResponseTest {
+  @Test
+  void testGetImportSummary238() {
+    InternalImportSummaryResponse response = new InternalImportSummaryResponse();
+    response.setResponse(
+        new ImportSummary(
+            ImportStatus.WARNING, "One more conflicts encountered", new ImportCount(8, 4, 2, 0)));
 
-        assertEquals( ImportStatus.WARNING, response.getImportSummary().getStatus() );
-        assertEquals( 4, response.getImportSummary().getImportCount().getUpdated() );
-    }
+    assertEquals(ImportStatus.WARNING, response.getImportSummary().getStatus());
+    assertEquals(4, response.getImportSummary().getImportCount().getUpdated());
+  }
 
-    @Test
-    void testGetImportSummary237()
-    {
-        InternalImportSummaryResponse response = new InternalImportSummaryResponse();
-        response.setStatus( Status.WARNING );
-        response.setDescription( "One more conflicts encountered" );
-        response.setImportCount( new ImportCount( 4, 2, 6, 0 ) );
+  @Test
+  void testGetImportSummary237() {
+    InternalImportSummaryResponse response = new InternalImportSummaryResponse();
+    response.setStatus(Status.WARNING);
+    response.setDescription("One more conflicts encountered");
+    response.setImportCount(new ImportCount(4, 2, 6, 0));
 
-        assertEquals( ImportStatus.WARNING, response.getImportSummary().getStatus() );
-        assertEquals( 2, response.getImportSummary().getImportCount().getUpdated() );
-    }
+    assertEquals(ImportStatus.WARNING, response.getImportSummary().getStatus());
+    assertEquals(2, response.getImportSummary().getImportCount().getUpdated());
+  }
 
-    @Test
-    void testToImportStatus()
-    {
-        InternalImportSummaryResponse response = new InternalImportSummaryResponse();
+  @Test
+  void testToImportStatus() {
+    InternalImportSummaryResponse response = new InternalImportSummaryResponse();
 
-        assertEquals( ImportStatus.SUCCESS, response.toImportStatus( Status.SUCCESS ) );
-        assertEquals( ImportStatus.WARNING, response.toImportStatus( Status.WARNING ) );
-        assertEquals( ImportStatus.ERROR, response.toImportStatus( Status.ERROR ) );
-    }
+    assertEquals(ImportStatus.SUCCESS, response.toImportStatus(Status.SUCCESS));
+    assertEquals(ImportStatus.WARNING, response.toImportStatus(Status.WARNING));
+    assertEquals(ImportStatus.ERROR, response.toImportStatus(Status.ERROR));
+  }
 }

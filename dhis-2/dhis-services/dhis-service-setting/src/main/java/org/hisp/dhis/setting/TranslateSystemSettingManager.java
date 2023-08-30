@@ -32,7 +32,6 @@ import java.util.Map;
 /**
  * @author James Chang
  */
-public interface TranslateSystemSettingManager
-{
-    Map<String, String> getTranslationSystemAppearanceSettings( String locale );
+public interface TranslateSystemSettingManager {
+  Map<String, String> getTranslationSystemAppearanceSettings(String locale);
 }

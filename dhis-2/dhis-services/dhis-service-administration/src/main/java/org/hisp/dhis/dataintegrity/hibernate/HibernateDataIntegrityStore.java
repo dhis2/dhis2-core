@@ -31,9 +31,7 @@ import static java.util.stream.Collectors.toUnmodifiableList;
 
 import java.util.Date;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dataintegrity.DataIntegrityCheck;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
@@ -44,86 +42,78 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * As we want each check to be its own transaction the @{@link Transactional}
- * annotation is used on the store and not the service level in this case.
+ * As we want each check to be its own transaction the @{@link Transactional} annotation is used on
+ * the store and not the service level in this case.
  *
  * @author Jan Bernitt
  */
 @Repository
 @RequiredArgsConstructor
-public class HibernateDataIntegrityStore implements DataIntegrityStore
-{
-    private final SessionFactory sessionFactory;
+public class HibernateDataIntegrityStore implements DataIntegrityStore {
+  private final SessionFactory sessionFactory;
 
-    @Override
-    @Transactional( readOnly = true )
-    public DataIntegritySummary querySummary( DataIntegrityCheck check, String sql )
-    {
-        Date startTime = new Date();
-        Object summary = sessionFactory.getCurrentSession()
-            .createNativeQuery( sql ).getSingleResult();
-        return new DataIntegritySummary( check, startTime, new Date(), null, parseCount( summary ),
-            parsePercentage( summary ) );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public DataIntegritySummary querySummary(DataIntegrityCheck check, String sql) {
+    Date startTime = new Date();
+    Object summary = sessionFactory.getCurrentSession().createNativeQuery(sql).getSingleResult();
+    return new DataIntegritySummary(
+        check, startTime, new Date(), null, parseCount(summary), parsePercentage(summary));
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public DataIntegrityDetails queryDetails( DataIntegrityCheck check, String sql )
-    {
-        Date startTime = new Date();
-        @SuppressWarnings( "unchecked" )
-        List<Object[]> rows = sessionFactory.getCurrentSession().createNativeQuery( sql )
-            .getResultList();
-        return new DataIntegrityDetails( check, startTime, new Date(), null, rows.stream()
-            .map( row -> new DataIntegrityIssue(
-                getIndex( row, 0 ), getIndex( row, 1 ), getIndex( row, 2 ), getRefs( row, 3 ) ) )
-            .collect( toUnmodifiableList() ) );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public DataIntegrityDetails queryDetails(DataIntegrityCheck check, String sql) {
+    Date startTime = new Date();
+    @SuppressWarnings("unchecked")
+    List<Object[]> rows = sessionFactory.getCurrentSession().createNativeQuery(sql).getResultList();
+    return new DataIntegrityDetails(
+        check,
+        startTime,
+        new Date(),
+        null,
+        rows.stream()
+            .map(
+                row ->
+                    new DataIntegrityIssue(
+                        getIndex(row, 0), getIndex(row, 1), getIndex(row, 2), getRefs(row, 3)))
+            .collect(toUnmodifiableList()));
+  }
 
-    private static String getIndex( Object[] row, int index )
-    {
-        return row.length <= index ? null : (String) row[index];
-    }
+  private static String getIndex(Object[] row, int index) {
+    return row.length <= index ? null : (String) row[index];
+  }
 
-    private static List<String> getRefs( Object[] row, int index )
-    {
-        return row.length <= index ? null : List.of( (String[]) row[index] );
-    }
+  private static List<String> getRefs(Object[] row, int index) {
+    return row.length <= index ? null : List.of((String[]) row[index]);
+  }
 
-    private static Double parsePercentage( Object value )
-    {
-        if ( !(value instanceof Object[]) )
-        {
-            return null;
-        }
-        Object[] row = (Object[]) value;
-        if ( row.length < 2 || row[1] == null )
-        {
-            return null;
-        }
-        value = row[1];
-        if ( value instanceof String )
-        {
-            return Double.parseDouble( value.toString().replace( "%", "" ) );
-        }
-        return ((Number) value).doubleValue();
+  private static Double parsePercentage(Object value) {
+    if (!(value instanceof Object[])) {
+      return null;
     }
+    Object[] row = (Object[]) value;
+    if (row.length < 2 || row[1] == null) {
+      return null;
+    }
+    value = row[1];
+    if (value instanceof String) {
+      return Double.parseDouble(value.toString().replace("%", ""));
+    }
+    return ((Number) value).doubleValue();
+  }
 
-    private static int parseCount( Object value )
-    {
-        if ( value instanceof Object[] )
-        {
-            Object[] row = (Object[]) value;
-            return row.length == 0 ? -1 : parseCount( row[0] );
-        }
-        if ( value == null )
-        {
-            return 0;
-        }
-        if ( value instanceof String )
-        {
-            return Integer.parseInt( (String) value );
-        }
-        return ((Number) value).intValue();
+  private static int parseCount(Object value) {
+    if (value instanceof Object[]) {
+      Object[] row = (Object[]) value;
+      return row.length == 0 ? -1 : parseCount(row[0]);
     }
+    if (value == null) {
+      return 0;
+    }
+    if (value instanceof String) {
+      return Integer.parseInt((String) value);
+    }
+    return ((Number) value).intValue();
+  }
 }

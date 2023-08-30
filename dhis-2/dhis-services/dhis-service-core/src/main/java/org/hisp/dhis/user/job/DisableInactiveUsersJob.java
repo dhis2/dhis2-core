@@ -42,9 +42,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.i18n.I18n;
@@ -60,109 +58,116 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 /**
- * Disables users that have been inactive for too long as well as sending emails
- * to those users that soon would become inactive on certain days before this
- * happens.
+ * Disables users that have been inactive for too long as well as sending emails to those users that
+ * soon would become inactive on certain days before this happens.
  *
  * @author Jan Bernitt
  */
 @AllArgsConstructor
-@Component( "disableInactiveUsersJob" )
-public class DisableInactiveUsersJob implements Job
-{
-    private final UserService userService;
+@Component("disableInactiveUsersJob")
+public class DisableInactiveUsersJob implements Job {
+  private final UserService userService;
 
-    private final EmailService emailService;
+  private final EmailService emailService;
 
-    private final LocaleManager localeManager;
+  private final LocaleManager localeManager;
 
-    private final I18nManager i18nManager;
+  private final I18nManager i18nManager;
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.DISABLE_INACTIVE_USERS;
+  @Override
+  public JobType getJobType() {
+    return JobType.DISABLE_INACTIVE_USERS;
+  }
+
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    progress.startingProcess("Disable inactive users");
+    DisableInactiveUsersJobParameters parameters =
+        (DisableInactiveUsersJobParameters) jobConfiguration.getJobParameters();
+    LocalDate today = LocalDate.now();
+    LocalDate since = today.minusMonths(parameters.getInactiveMonths());
+    Date nMonthsAgo = Date.from(since.atStartOfDay(systemDefault()).toInstant());
+
+    progress.startingStage("Disabling inactive users", SKIP_STAGE);
+    progress.runStage(
+        0,
+        count ->
+            format(
+                "Disabled %d users with %d months of inactivity",
+                count, parameters.getInactiveMonths()),
+        () -> userService.disableUsersInactiveSince(nMonthsAgo));
+
+    Integer reminderDaysBefore = parameters.getReminderDaysBefore();
+    if (reminderDaysBefore == null) {
+      progress.completedProcess("Skipping reminder emails. Done.");
+      return; // done
     }
+    int daysUntilDisable = reminderDaysBefore;
+    do {
+      sendReminderEmail(since, daysUntilDisable, progress);
+      daysUntilDisable = daysUntilDisable / 2;
+    } while (daysUntilDisable > 0);
+    progress.completedProcess(null);
+  }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        progress.startingProcess( "Disable inactive users" );
-        DisableInactiveUsersJobParameters parameters = (DisableInactiveUsersJobParameters) jobConfiguration
-            .getJobParameters();
-        LocalDate today = LocalDate.now();
-        LocalDate since = today.minusMonths( parameters.getInactiveMonths() );
-        Date nMonthsAgo = Date.from( since.atStartOfDay( systemDefault() ).toInstant() );
+  private void sendReminderEmail(LocalDate since, int daysUntilDisable, JobProgress progress) {
+    LocalDate referenceDay = since.plusDays(daysUntilDisable);
+    ZonedDateTime nDaysPriorToDisabling = referenceDay.atStartOfDay(systemDefault());
+    ZonedDateTime nDaysPriorToDisablingEod = referenceDay.plusDays(1).atStartOfDay(systemDefault());
 
-        progress.startingStage( "Disabling inactive users", SKIP_STAGE );
-        progress.runStage( 0,
-            count -> format( "Disabled %d users with %d months of inactivity", count, parameters.getInactiveMonths() ),
-            () -> userService.disableUsersInactiveSince( nMonthsAgo ) );
-
-        Integer reminderDaysBefore = parameters.getReminderDaysBefore();
-        if ( reminderDaysBefore == null )
-        {
-            progress.completedProcess( "Skipping reminder emails. Done." );
-            return; // done
-        }
-        int daysUntilDisable = reminderDaysBefore;
-        do
-        {
-            sendReminderEmail( since, daysUntilDisable, progress );
-            daysUntilDisable = daysUntilDisable / 2;
-        }
-        while ( daysUntilDisable > 0 );
-        progress.completedProcess( null );
+    progress.startingStage(
+        format("Fetching users for reminder, %d days until disable", daysUntilDisable), SKIP_STAGE);
+    Map<String, Optional<Locale>> receivers =
+        progress.runStage(
+            Map.of(),
+            map -> format("Found %d receivers", map.size()),
+            () ->
+                userService.findNotifiableUsersWithLastLoginBetween(
+                    Date.from(nDaysPriorToDisabling.toInstant()),
+                    Date.from(nDaysPriorToDisablingEod.toInstant())));
+    if (receivers.isEmpty()) {
+      return;
     }
-
-    private void sendReminderEmail( LocalDate since, int daysUntilDisable, JobProgress progress )
-    {
-        LocalDate referenceDay = since.plusDays( daysUntilDisable );
-        ZonedDateTime nDaysPriorToDisabling = referenceDay.atStartOfDay( systemDefault() );
-        ZonedDateTime nDaysPriorToDisablingEod = referenceDay.plusDays( 1 ).atStartOfDay( systemDefault() );
-
-        progress.startingStage( format( "Fetching users for reminder, %d days until disable", daysUntilDisable ),
-            SKIP_STAGE );
-        Map<String, Optional<Locale>> receivers = progress.runStage( Map.of(),
-            map -> format( "Found %d receivers", map.size() ),
-            () -> userService.findNotifiableUsersWithLastLoginBetween(
-                Date.from( nDaysPriorToDisabling.toInstant() ),
-                Date.from( nDaysPriorToDisablingEod.toInstant() ) ) );
-        if ( receivers.isEmpty() )
-        {
-            return;
-        }
-        // send reminders by language
-        Locale fallback = localeManager.getFallbackLocale();
-        Map<Locale, Set<String>> receiversByLocale = new HashMap<>();
-        for ( Map.Entry<String, Optional<Locale>> e : receivers.entrySet() )
-        {
-            receiversByLocale.computeIfAbsent( e.getValue().orElse( fallback ), key -> new HashSet<>() )
-                .add( e.getKey() );
-        }
-        progress.startingStage( format( "Sending reminder for %d days until disable", daysUntilDisable ),
-            receiversByLocale.size(), JobProgress.FailurePolicy.SKIP_ITEM );
-        progress.runStage( receiversByLocale.entrySet().stream(),
-            e -> format( "Sending email to %d user(s) in %s", e.getValue().size(), e.getKey().getDisplayLanguage() ),
-            OutboundMessageResponse::getDescription,
-            e -> sendReminderEmailInLanguage( e.getKey(), e.getValue(), daysUntilDisable ), null );
+    // send reminders by language
+    Locale fallback = localeManager.getFallbackLocale();
+    Map<Locale, Set<String>> receiversByLocale = new HashMap<>();
+    for (Map.Entry<String, Optional<Locale>> e : receivers.entrySet()) {
+      receiversByLocale
+          .computeIfAbsent(e.getValue().orElse(fallback), key -> new HashSet<>())
+          .add(e.getKey());
     }
+    progress.startingStage(
+        format("Sending reminder for %d days until disable", daysUntilDisable),
+        receiversByLocale.size(),
+        JobProgress.FailurePolicy.SKIP_ITEM);
+    progress.runStage(
+        receiversByLocale.entrySet().stream(),
+        e ->
+            format(
+                "Sending email to %d user(s) in %s",
+                e.getValue().size(), e.getKey().getDisplayLanguage()),
+        OutboundMessageResponse::getDescription,
+        e -> sendReminderEmailInLanguage(e.getKey(), e.getValue(), daysUntilDisable),
+        null);
+  }
 
-    private OutboundMessageResponse sendReminderEmailInLanguage( Locale language, Set<String> receiverEmails,
-        int daysUntilDisable )
-    {
-        I18n i18n = i18nManager.getI18n( language );
-        String subject = i18n.getString( "notification.user_inactive.subject",
-            "Your DHIS2 account gets disabled soon" );
-        String body = i18n.getString( "notification.user_inactive.body",
-            "Your DHIS2 user account was inactive for a while. Login during the next {0} days to prevent your account from being disabled." );
-        OutboundMessageResponse response = emailService.sendEmail( subject,
-            format( body.replace( "{0}", "%d" ), daysUntilDisable ), receiverEmails );
+  private OutboundMessageResponse sendReminderEmailInLanguage(
+      Locale language, Set<String> receiverEmails, int daysUntilDisable) {
+    I18n i18n = i18nManager.getI18n(language);
+    String subject =
+        i18n.getString(
+            "notification.user_inactive.subject", "Your DHIS2 account gets disabled soon");
+    String body =
+        i18n.getString(
+            "notification.user_inactive.body",
+            "Your DHIS2 user account was inactive for a while. Login during the next {0} days to prevent your account from being disabled.");
+    OutboundMessageResponse response =
+        emailService.sendEmail(
+            subject, format(body.replace("{0}", "%d"), daysUntilDisable), receiverEmails);
 
-        if ( response.getResponseObject() != EmailResponse.SENT )
-        {
-            throw new UncheckedIOException( response.getDescription(), new IOException() );
-        }
-        return response;
+    if (response.getResponseObject() != EmailResponse.SENT) {
+      throw new UncheckedIOException(response.getDescription(), new IOException());
     }
+    return response;
+  }
 }

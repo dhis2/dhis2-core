@@ -28,7 +28,6 @@
 package org.hisp.dhis.programrule.action.validation;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -43,61 +42,68 @@ import org.springframework.stereotype.Component;
 /**
  * @author Zubair Asghar
  */
-
 @Slf4j
 @Component
-public class HideSectionProgramRuleActionValidator implements ProgramRuleActionValidator
-{
-    @Override
-    public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationContext validationContext )
-    {
-        ProgramRule rule = validationContext.getProgramRule();
+public class HideSectionProgramRuleActionValidator implements ProgramRuleActionValidator {
+  @Override
+  public ProgramRuleActionValidationResult validate(
+      ProgramRuleAction programRuleAction, ProgramRuleActionValidationContext validationContext) {
+    ProgramRule rule = validationContext.getProgramRule();
 
-        if ( !programRuleAction.hasProgramStageSection() )
-        {
-            log.debug( String.format( "ProgramStageSection cannot be null for program rule: %s ",
-                rule.getName() ) );
+    if (!programRuleAction.hasProgramStageSection()) {
+      log.debug(
+          String.format(
+              "ProgramStageSection cannot be null for program rule: %s ", rule.getName()));
 
-            return ProgramRuleActionValidationResult.builder()
-                .valid( false )
-                .errorReport( new ErrorReport( ProgramStageSection.class, ErrorCode.E4036,
-                    rule.getName() ) )
-                .build();
-        }
-
-        ProgramStageSection stageSection = validationContext.getProgramStageSection();
-
-        if ( stageSection == null )
-        {
-            stageSection = validationContext.getProgramRuleActionValidationService().getSectionService()
-                .getProgramStageSection( programRuleAction.getProgramStageSection().getUid() );
-        }
-
-        if ( stageSection == null )
-        {
-            log.debug( String.format( "ProgramStageSection: %s associated with program rule: %s does not exist",
-                programRuleAction.getProgramStageSection().getUid(),
-                rule.getName() ) );
-
-            return ProgramRuleActionValidationResult.builder()
-                .valid( false )
-                .errorReport( new ErrorReport( ProgramStageSection.class, ErrorCode.E4037,
-                    programRuleAction.getProgramStageSection().getUid(),
-                    rule.getName() ) )
-                .build();
-        }
-
-        if ( ObjectUtils.anyNotNull( programRuleAction.getDataElement(), programRuleAction.getOption(),
-            programRuleAction.getOptionGroup(), programRuleAction.getProgramStage() ) )
-        {
-            return ProgramRuleActionValidationResult.builder()
-                .valid( false )
-                .errorReport( new ErrorReport( Option.class, ErrorCode.E4058,
-                    rule.getName(), ProgramRuleActionType.HIDESECTION.name() ) )
-                .build();
-        }
-
-        return ProgramRuleActionValidationResult.builder().valid( true ).build();
+      return ProgramRuleActionValidationResult.builder()
+          .valid(false)
+          .errorReport(new ErrorReport(ProgramStageSection.class, ErrorCode.E4036, rule.getName()))
+          .build();
     }
+
+    ProgramStageSection stageSection = validationContext.getProgramStageSection();
+
+    if (stageSection == null) {
+      stageSection =
+          validationContext
+              .getProgramRuleActionValidationService()
+              .getSectionService()
+              .getProgramStageSection(programRuleAction.getProgramStageSection().getUid());
+    }
+
+    if (stageSection == null) {
+      log.debug(
+          String.format(
+              "ProgramStageSection: %s associated with program rule: %s does not exist",
+              programRuleAction.getProgramStageSection().getUid(), rule.getName()));
+
+      return ProgramRuleActionValidationResult.builder()
+          .valid(false)
+          .errorReport(
+              new ErrorReport(
+                  ProgramStageSection.class,
+                  ErrorCode.E4037,
+                  programRuleAction.getProgramStageSection().getUid(),
+                  rule.getName()))
+          .build();
+    }
+
+    if (ObjectUtils.anyNotNull(
+        programRuleAction.getDataElement(),
+        programRuleAction.getOption(),
+        programRuleAction.getOptionGroup(),
+        programRuleAction.getProgramStage())) {
+      return ProgramRuleActionValidationResult.builder()
+          .valid(false)
+          .errorReport(
+              new ErrorReport(
+                  Option.class,
+                  ErrorCode.E4058,
+                  rule.getName(),
+                  ProgramRuleActionType.HIDESECTION.name()))
+          .build();
+    }
+
+    return ProgramRuleActionValidationResult.builder().valid(true).build();
+  }
 }

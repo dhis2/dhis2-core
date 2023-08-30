@@ -28,7 +28,6 @@
 package org.hisp.dhis.relationship.hibernate;
 
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -42,24 +41,33 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Abyot Asalefew Gizaw
  */
-@Repository( "org.hisp.dhis.relationship.RelationshipTypeStore" )
+@Repository("org.hisp.dhis.relationship.RelationshipTypeStore")
 public class HibernateRelationshipTypeStore
-    extends HibernateIdentifiableObjectStore<RelationshipType>
-    implements RelationshipTypeStore
-{
-    public HibernateRelationshipTypeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, RelationshipType.class, currentUserService, aclService, true );
-    }
+    extends HibernateIdentifiableObjectStore<RelationshipType> implements RelationshipTypeStore {
+  public HibernateRelationshipTypeStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        RelationshipType.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public RelationshipType getRelationshipType( String aIsToB, String bIsToA )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public RelationshipType getRelationshipType(String aIsToB, String bIsToA) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "aIsToB" ), aIsToB ) )
-            .addPredicate( root -> builder.equal( root.get( "bIsToA" ), bIsToA ) ) );
-    }
+    return getSingleResult(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("aIsToB"), aIsToB))
+            .addPredicate(root -> builder.equal(root.get("bIsToA"), bIsToA)));
+  }
 }

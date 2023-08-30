@@ -34,29 +34,29 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
-
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.Test;
 
-class TrackedEntityAttributeMapperTest
-{
+class TrackedEntityAttributeMapperTest {
 
-    @Test
-    void testIdSchemeRelatedFieldsAreMapped()
-    {
+  @Test
+  void testIdSchemeRelatedFieldsAreMapped() {
 
-        TrackedEntityAttribute trackedEntityAttribute = setIdSchemeFields(
+    TrackedEntityAttribute trackedEntityAttribute =
+        setIdSchemeFields(
             new TrackedEntityAttribute(),
             "HpSAvRWtdDR",
             "meet",
             "green",
-            attributeValues( "m0GpPuMUfFW", "purple" ) );
+            attributeValues("m0GpPuMUfFW", "purple"));
 
-        TrackedEntityAttribute mapped = TrackedEntityAttributeMapper.INSTANCE.map( trackedEntityAttribute );
+    TrackedEntityAttribute mapped =
+        TrackedEntityAttributeMapper.INSTANCE.map(trackedEntityAttribute);
 
-        assertEquals( "HpSAvRWtdDR", mapped.getUid() );
-        assertEquals( "meet", mapped.getName() );
-        assertEquals( "green", mapped.getCode() );
-        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "purple" ) ), mapped.getAttributeValues() );
-    }
+    assertEquals("HpSAvRWtdDR", mapped.getUid());
+    assertEquals("meet", mapped.getName());
+    assertEquals("green", mapped.getCode());
+    assertContainsOnly(
+        Set.of(attributeValue("m0GpPuMUfFW", "purple")), mapped.getAttributeValues());
+  }
 }

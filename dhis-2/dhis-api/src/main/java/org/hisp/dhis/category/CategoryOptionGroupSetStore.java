@@ -28,7 +28,6 @@
 package org.hisp.dhis.category;
 
 import java.util.List;
-
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 
@@ -36,8 +35,7 @@ import org.hisp.dhis.common.GenericDimensionalObjectStore;
  * @author Lars Helge Overland
  */
 public interface CategoryOptionGroupSetStore
-    extends GenericDimensionalObjectStore<CategoryOptionGroupSet>
-{
-    List<CategoryOptionGroupSet> getCategoryOptionGroupSetsNoAcl( DataDimensionType dataDimensionType,
-        boolean dataDimension );
+    extends GenericDimensionalObjectStore<CategoryOptionGroupSet> {
+  List<CategoryOptionGroupSet> getCategoryOptionGroupSetsNoAcl(
+      DataDimensionType dataDimensionType, boolean dataDimension);
 }

@@ -28,9 +28,7 @@
 package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.mapper;
 
 import java.util.Optional;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.geotools.geometry.jts.WKBReader;
 import org.locationtech.jts.geom.Geometry;
@@ -40,22 +38,16 @@ import org.locationtech.jts.io.ParseException;
  * @author Luciano Fiandesio
  */
 @Slf4j
-public class MapperGeoUtils
-{
-    public static Optional<Geometry> resolveGeometry( byte[] geometry )
-    {
-        if ( ObjectUtils.isEmpty( geometry ) )
-        {
-            return Optional.empty();
-        }
-        try
-        {
-            return Optional.of( new WKBReader().read( geometry ) );
-        }
-        catch ( ParseException e )
-        {
-            log.error( "An error occurred parsing a geometry field", e );
-        }
-        return Optional.empty();
+public class MapperGeoUtils {
+  public static Optional<Geometry> resolveGeometry(byte[] geometry) {
+    if (ObjectUtils.isEmpty(geometry)) {
+      return Optional.empty();
     }
+    try {
+      return Optional.of(new WKBReader().read(geometry));
+    } catch (ParseException e) {
+      log.error("An error occurred parsing a geometry field", e);
+    }
+    return Optional.empty();
+  }
 }

@@ -29,10 +29,8 @@ package org.hisp.dhis.icon.jdbc;
 
 import java.util.List;
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.CustomIconStore;
@@ -42,90 +40,93 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 @Slf4j
-@Repository( "org.hisp.dhis.icon.CustomIconStore" )
+@Repository("org.hisp.dhis.icon.CustomIconStore")
 @RequiredArgsConstructor
-public class JdbcCustomIconStore implements CustomIconStore
-{
-    private final JdbcTemplate jdbcTemplate;
+public class JdbcCustomIconStore implements CustomIconStore {
+  private final JdbcTemplate jdbcTemplate;
 
-    private static final RowMapper<CustomIcon> customIconRowMapper = ( rs, rowNum ) -> {
+  private static final RowMapper<CustomIcon> customIconRowMapper =
+      (rs, rowNum) -> {
         CustomIcon customIcon = new CustomIcon();
 
-        customIcon.setKey( rs.getString( "iconkey" ) );
-        customIcon.setDescription( rs.getString( "icondescription" ) );
-        customIcon.setKeywords( (String[]) rs.getArray( "keywords" ).getArray() );
-        customIcon.setFileResourceUid( rs.getString( "fileresourceuid" ) );
-        customIcon.setCreatedByUserUid( rs.getString( "useruid" ) );
+        customIcon.setKey(rs.getString("iconkey"));
+        customIcon.setDescription(rs.getString("icondescription"));
+        customIcon.setKeywords((String[]) rs.getArray("keywords").getArray());
+        customIcon.setFileResourceUid(rs.getString("fileresourceuid"));
+        customIcon.setCreatedByUserUid(rs.getString("useruid"));
 
         return customIcon;
-    };
+      };
 
-    @Override
-    public CustomIcon getIconByKey( String key )
-    {
-        final String sql = """
+  @Override
+  public CustomIcon getIconByKey(String key) {
+    final String sql =
+        """
             select c.key as iconkey, c.description as icondescription, c.keywords as keywords, f.uid as fileresourceuid, u.uid as useruid
             from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
             join userinfo u on u.userinfoid = c.createdby
             where key = ?
             """;
 
-        List<CustomIcon> customIcons = jdbcTemplate.query( sql, customIconRowMapper, key );
+    List<CustomIcon> customIcons = jdbcTemplate.query(sql, customIconRowMapper, key);
 
-        return customIcons.isEmpty() ? null : customIcons.get( 0 );
-    }
+    return customIcons.isEmpty() ? null : customIcons.get(0);
+  }
 
-    @Override
-    public List<CustomIcon> getIconsByKeywords( String[] keywords )
-    {
-        final String sql = """
+  @Override
+  public List<CustomIcon> getIconsByKeywords(String[] keywords) {
+    final String sql =
+        """
             select c.key as iconkey, c.description as icondescription, c.keywords as keywords, f.uid as fileresourceuid, u.uid as useruid
             from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
             join userinfo u on u.userinfoid = c.createdby
             where keywords @> string_to_array(?,',')
             """;
 
-        return jdbcTemplate.query( sql, customIconRowMapper, String.join( ",", keywords ) );
-    }
+    return jdbcTemplate.query(sql, customIconRowMapper, String.join(",", keywords));
+  }
 
-    @Override
-    public List<CustomIcon> getAllIcons()
-    {
-        final String sql = """
+  @Override
+  public List<CustomIcon> getAllIcons() {
+    final String sql =
+        """
             select c.key as iconkey, c.description as icondescription, c.keywords as keywords, f.uid as fileresourceuid, u.uid as useruid
             from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
             join userinfo u on u.userinfoid = c.createdby
             """;
 
-        return jdbcTemplate.query( sql, customIconRowMapper );
-    }
+    return jdbcTemplate.query(sql, customIconRowMapper);
+  }
 
-    @Override
-    public Set<String> getKeywords()
-    {
-        return Set
-            .copyOf( jdbcTemplate.queryForList( "select distinct unnest(keywords) from customicon", String.class ) );
-    }
+  @Override
+  public Set<String> getKeywords() {
+    return Set.copyOf(
+        jdbcTemplate.queryForList(
+            "select distinct unnest(keywords) from customicon", String.class));
+  }
 
-    @Override
-    public void save( CustomIcon customIcon, FileResource fileResource, User createdByUser )
-    {
-        jdbcTemplate.update(
-            "INSERT INTO customicon (key, description, keywords, fileresourceid, createdby) VALUES (?, ?, ?, ?, ?)",
-            customIcon.getKey(), customIcon.getDescription(), customIcon.getKeywords(), fileResource.getId(),
-            createdByUser.getId() );
-    }
+  @Override
+  public void save(CustomIcon customIcon, FileResource fileResource, User createdByUser) {
+    jdbcTemplate.update(
+        "INSERT INTO customicon (key, description, keywords, fileresourceid, createdby) VALUES (?, ?, ?, ?, ?)",
+        customIcon.getKey(),
+        customIcon.getDescription(),
+        customIcon.getKeywords(),
+        fileResource.getId(),
+        createdByUser.getId());
+  }
 
-    @Override
-    public void delete( String customIconKey )
-    {
-        jdbcTemplate.update( "delete from customicon where key = ?", customIconKey );
-    }
+  @Override
+  public void delete(String customIconKey) {
+    jdbcTemplate.update("delete from customicon where key = ?", customIconKey);
+  }
 
-    @Override
-    public void update( CustomIcon customIcon )
-    {
-        jdbcTemplate.update( "update customicon set description = ?, keywords = ? where key = ?",
-            customIcon.getDescription(), customIcon.getKeywords(), customIcon.getKey() );
-    }
+  @Override
+  public void update(CustomIcon customIcon) {
+    jdbcTemplate.update(
+        "update customicon set description = ?, keywords = ? where key = ?",
+        customIcon.getDescription(),
+        customIcon.getKeywords(),
+        customIcon.getKey());
+  }
 }

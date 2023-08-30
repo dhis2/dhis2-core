@@ -40,15 +40,22 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Luciano Fiandesio
  */
-@Configuration( "reportingStoreConfig" )
-public class StoreConfig
-{
-    @Bean( "org.hisp.dhis.pushanalysis.PushAnalysisStore" )
-    public HibernateIdentifiableObjectStore<PushAnalysis> indicatorTypeStore( SessionFactory sessionFactory,
-        JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        AclService aclService )
-    {
-        return new HibernateIdentifiableObjectStore<PushAnalysis>( sessionFactory,
-            jdbcTemplate, publisher, PushAnalysis.class, currentUserService, aclService, false );
-    }
+@Configuration("reportingStoreConfig")
+public class StoreConfig {
+  @Bean("org.hisp.dhis.pushanalysis.PushAnalysisStore")
+  public HibernateIdentifiableObjectStore<PushAnalysis> indicatorTypeStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    return new HibernateIdentifiableObjectStore<PushAnalysis>(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        PushAnalysis.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 }

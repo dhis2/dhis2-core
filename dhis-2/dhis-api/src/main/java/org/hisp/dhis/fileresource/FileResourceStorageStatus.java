@@ -30,10 +30,9 @@ package org.hisp.dhis.fileresource;
 /**
  * @author Halvdan Hoem Grelland
  */
-public enum FileResourceStorageStatus
-{
-    NONE, // No content stored
-    PENDING, // In transit to store, not available
-    FAILED, // Storing the resource failed
-    STORED // Is available from store
+public enum FileResourceStorageStatus {
+  NONE, // No content stored
+  PENDING, // In transit to store, not available
+  FAILED, // Storing the resource failed
+  STORED // Is available from store
 }

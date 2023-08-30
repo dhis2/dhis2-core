@@ -32,23 +32,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-class AggregationTypeTest
-{
-    @Test
-    void testIsFirst()
-    {
-        assertTrue( AggregationType.FIRST.isFirst() );
-        assertTrue( AggregationType.FIRST_AVERAGE_ORG_UNIT.isFirst() );
-        assertFalse( AggregationType.SUM.isFirst() );
-        assertFalse( AggregationType.LAST.isFirst() );
-    }
+class AggregationTypeTest {
+  @Test
+  void testIsFirst() {
+    assertTrue(AggregationType.FIRST.isFirst());
+    assertTrue(AggregationType.FIRST_AVERAGE_ORG_UNIT.isFirst());
+    assertFalse(AggregationType.SUM.isFirst());
+    assertFalse(AggregationType.LAST.isFirst());
+  }
 
-    @Test
-    void testIsLast()
-    {
-        assertTrue( AggregationType.LAST.isLast() );
-        assertTrue( AggregationType.LAST_AVERAGE_ORG_UNIT.isLast() );
-        assertFalse( AggregationType.SUM.isLast() );
-        assertFalse( AggregationType.FIRST.isLast() );
-    }
+  @Test
+  void testIsLast() {
+    assertTrue(AggregationType.LAST.isLast());
+    assertTrue(AggregationType.LAST_AVERAGE_ORG_UNIT.isLast());
+    assertFalse(AggregationType.SUM.isLast());
+    assertFalse(AggregationType.FIRST.isLast());
+  }
 }

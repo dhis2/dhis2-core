@@ -18,15 +18,15 @@
                         cascade="delete"/>
 
         <many-to-one name="trackedEntity" class="org.hisp.dhis.trackedentity.TrackedEntity"
-                     column="trackedentityinstanceid"
+                     column="trackedentityid"
                      foreign-key="fk_relationshipitem_trackedentityinstanceid"/>
 
         <many-to-one name="enrollment" class="org.hisp.dhis.program.Enrollment"
-                     column="programinstanceid"
+                     column="enrollmentid"
                      foreign-key="fk_relationshipitem_programinstanceid"/>
 
         <many-to-one name="event" class="org.hisp.dhis.program.Event"
-                     column="programstageinstanceid"
+                     column="eventid"
                      foreign-key="fk_relationshipitem_programstageinstanceid"/>
     </class>
 </hibernate-mapping>

@@ -27,39 +27,23 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
-import java.util.List;
-import java.util.Optional;
-
+import java.util.Set;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
-public interface RelationshipService
-{
-    Relationship getRelationship( String id )
-        throws ForbiddenException,
-        NotFoundException;
+public interface RelationshipService {
 
-    Optional<Relationship> findRelationshipByUid( String id )
-        throws ForbiddenException,
-        NotFoundException;
+  Relationships getRelationships(RelationshipOperationParams params)
+      throws ForbiddenException, NotFoundException;
 
-    List<Relationship> getRelationshipsByTrackedEntity( TrackedEntity tei,
-        PagingAndSortingCriteriaAdapter criteria )
-        throws ForbiddenException,
-        NotFoundException;
+  /**
+   * Fields the {@link #getRelationships(RelationshipOperationParams)} can order relationships by.
+   * Ordering by fields other than these is considered a programmer error. Validation of user
+   * provided field names should occur before calling {@link
+   * #getRelationships(RelationshipOperationParams)}.
+   */
+  Set<String> getOrderableFields();
 
-    List<Relationship> getRelationshipsByEnrollment( Enrollment enrollment,
-        PagingAndSortingCriteriaAdapter criteria )
-        throws ForbiddenException,
-        NotFoundException;
-
-    List<Relationship> getRelationshipsByEvent( Event event,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
-        throws ForbiddenException,
-        NotFoundException;
+  Relationship getRelationship(String id) throws ForbiddenException, NotFoundException;
 }

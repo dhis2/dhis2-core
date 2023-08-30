@@ -32,6 +32,4 @@ import org.hisp.dhis.jsontree.JsonObject;
 /**
  * @author David Mackessy
  */
-public interface JsonProgramStageDataElement extends JsonObject, JsonNameableObject
-{
-}
+public interface JsonProgramStageDataElement extends JsonObject, JsonNameableObject {}

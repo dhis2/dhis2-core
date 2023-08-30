@@ -34,14 +34,13 @@ import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = { InstantMapper.class, UserMapper.class } )
-public interface DataValueMapper extends ViewMapper<EventDataValue, DataValue>
-{
+@Mapper(uses = {InstantMapper.class, UserMapper.class})
+public interface DataValueMapper extends ViewMapper<EventDataValue, DataValue> {
 
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    @Override
-    DataValue from( EventDataValue dataValue );
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "updatedAt", source = "lastUpdated")
+  @Mapping(target = "createdBy", source = "createdByUserInfo")
+  @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
+  @Override
+  DataValue from(EventDataValue dataValue);
 }

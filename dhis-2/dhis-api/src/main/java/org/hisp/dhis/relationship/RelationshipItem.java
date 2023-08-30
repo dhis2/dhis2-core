@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.relationship;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -34,89 +37,71 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
  * @author Stian Sandvold
  */
-public class RelationshipItem implements EmbeddedObject
-{
-    private int id;
+public class RelationshipItem implements EmbeddedObject {
+  private int id;
 
-    private Relationship relationship;
+  private Relationship relationship;
 
-    private TrackedEntity trackedEntity;
+  private TrackedEntity trackedEntity;
 
-    private Enrollment enrollment;
+  private Enrollment enrollment;
 
-    private Event event;
+  private Event event;
 
-    public RelationshipItem()
-    {
+  public RelationshipItem() {}
 
-    }
+  public int getId() {
+    return id;
+  }
 
-    public int getId()
-    {
-        return id;
-    }
+  public void setId(int id) {
+    this.id = id;
+  }
 
-    public void setId( int id )
-    {
-        this.id = id;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  public Relationship getRelationship() {
+    return relationship;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public Relationship getRelationship()
-    {
-        return relationship;
-    }
+  public void setRelationship(Relationship relationship) {
+    this.relationship = relationship;
+  }
 
-    public void setRelationship( Relationship relationship )
-    {
-        this.relationship = relationship;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  public TrackedEntity getTrackedEntity() {
+    return trackedEntity;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public TrackedEntity getTrackedEntity()
-    {
-        return trackedEntity;
-    }
+  public void setTrackedEntity(TrackedEntity trackedEntity) {
+    this.trackedEntity = trackedEntity;
+  }
 
-    public void setTrackedEntity( TrackedEntity trackedEntity )
-    {
-        this.trackedEntity = trackedEntity;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  public Enrollment getEnrollment() {
+    return enrollment;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public Enrollment getEnrollment()
-    {
-        return enrollment;
-    }
+  public void setEnrollment(Enrollment enrollment) {
+    this.enrollment = enrollment;
+  }
 
-    public void setEnrollment( Enrollment enrollment )
-    {
-        this.enrollment = enrollment;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  public Event getEvent() {
+    return event;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public Event getEvent()
-    {
-        return event;
-    }
-
-    public void setEvent( Event event )
-    {
-        this.event = event;
-    }
+  public void setEvent(Event event) {
+    this.event = event;
+  }
 }

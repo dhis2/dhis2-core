@@ -31,9 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Map;
 import java.util.function.Consumer;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsListener;
@@ -44,69 +42,63 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Transactional
-public abstract class BaseSMSListener implements IncomingSmsListener
-{
-    private static final String NO_SMS_CONFIG = "No sms configuration found";
+public abstract class BaseSMSListener implements IncomingSmsListener {
+  private static final String NO_SMS_CONFIG = "No sms configuration found";
 
-    protected static final int INFO = 1;
+  protected static final int INFO = 1;
 
-    protected static final int WARNING = 2;
+  protected static final int WARNING = 2;
 
-    protected static final int ERROR = 3;
+  protected static final int ERROR = 3;
 
-    private static final Map<Integer, Consumer<String>> LOGGER = Map.of(
-        1, log::info,
-        2, log::warn,
-        3, log::error );
+  private static final Map<Integer, Consumer<String>> LOGGER =
+      Map.of(
+          1, log::info,
+          2, log::warn,
+          3, log::error);
 
-    protected final IncomingSmsService incomingSmsService;
+  protected final IncomingSmsService incomingSmsService;
 
-    protected final MessageSender smsSender;
+  protected final MessageSender smsSender;
 
-    protected BaseSMSListener( IncomingSmsService incomingSmsService, MessageSender smsSender )
-    {
-        checkNotNull( incomingSmsService );
-        checkNotNull( smsSender );
+  protected BaseSMSListener(IncomingSmsService incomingSmsService, MessageSender smsSender) {
+    checkNotNull(incomingSmsService);
+    checkNotNull(smsSender);
 
-        this.incomingSmsService = incomingSmsService;
-        this.smsSender = smsSender;
+    this.incomingSmsService = incomingSmsService;
+    this.smsSender = smsSender;
+  }
+
+  protected void sendFeedback(String message, String sender, int logType) {
+    LOGGER.getOrDefault(logType, log::info).accept(message);
+
+    if (smsSender.isConfigured()) {
+      smsSender.sendMessage(null, message, sender);
+      return;
     }
 
-    protected void sendFeedback( String message, String sender, int logType )
-    {
-        LOGGER.getOrDefault( logType, log::info ).accept( message );
+    LOGGER.getOrDefault(WARNING, log::info).accept(NO_SMS_CONFIG);
+  }
 
-        if ( smsSender.isConfigured() )
-        {
-            smsSender.sendMessage( null, message, sender );
-            return;
-        }
+  protected void sendSMSResponse(SmsResponse resp, IncomingSms sms, int messageID) {
+    // A response code < 100 is either success or just a warning
+    SmsMessageStatus status =
+        resp.getCode() < 100 ? SmsMessageStatus.PROCESSED : SmsMessageStatus.FAILED;
+    update(sms, status, true);
 
-        LOGGER.getOrDefault( WARNING, log::info ).accept( NO_SMS_CONFIG );
+    if (smsSender.isConfigured()) {
+      String msg = String.format("%d:%s", messageID, resp.toString());
+      smsSender.sendMessage(null, msg, sms.getOriginator());
+      return;
     }
 
-    protected void sendSMSResponse( SmsResponse resp, IncomingSms sms, int messageID )
-    {
-        // A response code < 100 is either success or just a warning
-        SmsMessageStatus status = resp.getCode() < 100 ? SmsMessageStatus.PROCESSED : SmsMessageStatus.FAILED;
-        update( sms, status, true );
+    LOGGER.getOrDefault(WARNING, log::info).accept(NO_SMS_CONFIG);
+  }
 
-        if ( smsSender.isConfigured() )
-        {
-            String msg = String.format( "%d:%s", messageID, resp.toString() );
-            smsSender.sendMessage( null, msg, sms.getOriginator() );
-            return;
-        }
+  protected void update(IncomingSms sms, SmsMessageStatus status, boolean parsed) {
+    sms.setStatus(status);
+    sms.setParsed(parsed);
 
-        LOGGER.getOrDefault( WARNING, log::info ).accept( NO_SMS_CONFIG );
-    }
-
-    protected void update( IncomingSms sms, SmsMessageStatus status, boolean parsed )
-    {
-        sms.setStatus( status );
-        sms.setParsed( parsed );
-
-        incomingSmsService.update( sms );
-    }
-
+    incomingSmsService.update(sms);
+  }
 }

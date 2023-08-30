@@ -27,63 +27,53 @@
  */
 package org.hisp.dhis.trackedentitycomment;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Chau Thu Tran
  */
-@JacksonXmlRootElement( localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0 )
-public class TrackedEntityComment
-    extends BaseIdentifiableObject
-{
-    private String commentText;
+@JacksonXmlRootElement(localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0)
+public class TrackedEntityComment extends BaseIdentifiableObject {
+  private String commentText;
 
-    private String creator;
+  private String creator;
 
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructor
+  // -------------------------------------------------------------------------
 
-    public TrackedEntityComment()
-    {
-    }
+  public TrackedEntityComment() {}
 
-    public TrackedEntityComment( String commentText, String creator )
-    {
-        this.commentText = commentText;
-        this.creator = creator;
-    }
+  public TrackedEntityComment(String commentText, String creator) {
+    this.commentText = commentText;
+    this.creator = creator;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters/Setters
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Getters/Setters
+  // -------------------------------------------------------------------------
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getCommentText()
-    {
-        return commentText;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getCommentText() {
+    return commentText;
+  }
 
-    public void setCommentText( String commentText )
-    {
-        this.commentText = commentText;
-    }
+  public void setCommentText(String commentText) {
+    this.commentText = commentText;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getCreator()
-    {
-        return creator;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getCreator() {
+    return creator;
+  }
 
-    public void setCreator( String creator )
-    {
-        this.creator = creator;
-    }
+  public void setCreator(String creator) {
+    this.creator = creator;
+  }
 }

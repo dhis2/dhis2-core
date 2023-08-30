@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
+import io.lettuce.core.pubsub.RedisPubSubListener;
 import java.io.Serializable;
 import java.util.Objects;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.PaginationCacheManager;
 import org.hisp.dhis.cache.QueryCacheManager;
@@ -56,220 +55,190 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import io.lettuce.core.pubsub.RedisPubSubListener;
-
 /**
- * Listens for messages on a Redis pub/sub channel, and when it receives a
- * message, it invalidates the cache for the entity that was changed.
+ * Listens for messages on a Redis pub/sub channel, and when it receives a message, it invalidates
+ * the cache for the entity that was changed.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
 @Component
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = CacheInvalidationEnabledCondition.class )
-public class CacheInvalidationListener
-    extends BaseCacheEvictionService
-    implements RedisPubSubListener<String, String>
-{
-    protected String serverInstanceId;
+@Profile({"!test", "!test-h2"})
+@Conditional(value = CacheInvalidationEnabledCondition.class)
+public class CacheInvalidationListener extends BaseCacheEvictionService
+    implements RedisPubSubListener<String, String> {
+  protected String serverInstanceId;
 
-    public CacheInvalidationListener( SessionFactory sessionFactory,
-        PaginationCacheManager paginationCacheManager,
-        QueryCacheManager queryCacheManager,
-        IdentifiableObjectManager idObjectManager,
-        TrackedEntityAttributeService trackedEntityAttributeService,
-        TrackedEntityService trackedEntityService,
-        PeriodService periodService,
-        @Qualifier( "cacheInvalidationServerId" ) String serverInstanceId )
-    {
-        super( sessionFactory, paginationCacheManager, queryCacheManager, idObjectManager,
-            trackedEntityAttributeService,
-            trackedEntityService, periodService );
+  public CacheInvalidationListener(
+      SessionFactory sessionFactory,
+      PaginationCacheManager paginationCacheManager,
+      QueryCacheManager queryCacheManager,
+      IdentifiableObjectManager idObjectManager,
+      TrackedEntityAttributeService trackedEntityAttributeService,
+      TrackedEntityService trackedEntityService,
+      PeriodService periodService,
+      @Qualifier("cacheInvalidationServerId") String serverInstanceId) {
+    super(
+        sessionFactory,
+        paginationCacheManager,
+        queryCacheManager,
+        idObjectManager,
+        trackedEntityAttributeService,
+        trackedEntityService,
+        periodService);
 
-        this.serverInstanceId = serverInstanceId;
+    this.serverInstanceId = serverInstanceId;
+  }
+
+  @Override
+  public void message(String channel, String message) {
+    log.debug("Got {} on channel {}", message, channel);
+
+    try {
+      handleMessage(message);
+    } catch (Exception e) {
+      log.error("Error handling message: " + message, e);
+    }
+  }
+
+  private void handleMessage(String message) throws Exception {
+    log.debug("Handling Redis cache invalidation message: " + message);
+
+    String[] parts = message.split(":");
+
+    String uid = parts[0];
+    // If the UID is the same, it means the event is coming from this
+    // server.
+    if (serverInstanceId.equals(uid)) {
+      log.debug("Message came from this server, ignoring.");
+      return;
     }
 
-    @Override
-    public void message( String channel, String message )
-    {
-        log.debug( "Got {} on channel {}", message, channel );
+    log.debug("Incoming invalidating cache message from other server with UID: " + uid);
 
-        try
-        {
-            handleMessage( message );
-        }
-        catch ( Exception e )
-        {
-            log.error( "Error handling message: " + message, e );
-        }
+    CacheEventOperation operationType = CacheEventOperation.valueOf(parts[1].toUpperCase());
+
+    if (CacheEventOperation.COLLECTION == operationType) {
+      String role = parts[3];
+      Long ownerEntityId = Long.parseLong(parts[4]);
+      sessionFactory.getCache().evictCollectionData(role, ownerEntityId);
+      return;
     }
 
-    private void handleMessage( String message )
-        throws Exception
-    {
-        log.debug( "Handling Redis cache invalidation message: " + message );
+    Serializable entityId = getEntityId(message);
 
-        String[] parts = message.split( ":" );
+    Class<?> entityClass = Class.forName(parts[2]);
+    Objects.requireNonNull(entityClass, "Entity class can't be null");
 
-        String uid = parts[0];
-        // If the UID is the same, it means the event is coming from this
-        // server.
-        if ( serverInstanceId.equals( uid ) )
-        {
-            log.debug( "Message came from this server, ignoring." );
-            return;
-        }
-
-        log.debug( "Incoming invalidating cache message from other server with UID: " + uid );
-
-        CacheEventOperation operationType = CacheEventOperation.valueOf( parts[1].toUpperCase() );
-
-        if ( CacheEventOperation.COLLECTION == operationType )
-        {
-            String role = parts[3];
-            Long ownerEntityId = Long.parseLong( parts[4] );
-            sessionFactory.getCache().evictCollectionData( role, ownerEntityId );
-            return;
-        }
-
-        Serializable entityId = getEntityId( message );
-
-        Class<?> entityClass = Class.forName( parts[2] );
-        Objects.requireNonNull( entityClass, "Entity class can't be null" );
-
-        if ( CacheEventOperation.INSERT == operationType )
-        {
-            // Make sure queries will refetch to capture the new object.
-            queryCacheManager.evictQueryCache( sessionFactory.getCache(), entityClass );
-            paginationCacheManager.evictCache( entityClass.getName() );
-            // Try to fetch the new entity, so it might get cached.
-            tryFetchNewEntity( entityId, entityClass );
-        }
-        else if ( CacheEventOperation.UPDATE == operationType )
-        {
-            sessionFactory.getCache().evict( entityClass, entityId );
-        }
-        else if ( CacheEventOperation.DELETE == operationType )
-        {
-            queryCacheManager.evictQueryCache( sessionFactory.getCache(), entityClass );
-            paginationCacheManager.evictCache( entityClass.getName() );
-            sessionFactory.getCache().evict( entityClass, entityId );
-        }
+    if (CacheEventOperation.INSERT == operationType) {
+      // Make sure queries will refetch to capture the new object.
+      queryCacheManager.evictQueryCache(sessionFactory.getCache(), entityClass);
+      paginationCacheManager.evictCache(entityClass.getName());
+      // Try to fetch the new entity, so it might get cached.
+      tryFetchNewEntity(entityId, entityClass);
+    } else if (CacheEventOperation.UPDATE == operationType) {
+      sessionFactory.getCache().evict(entityClass, entityId);
+    } else if (CacheEventOperation.DELETE == operationType) {
+      queryCacheManager.evictQueryCache(sessionFactory.getCache(), entityClass);
+      paginationCacheManager.evictCache(entityClass.getName());
+      sessionFactory.getCache().evict(entityClass, entityId);
     }
+  }
 
-    private Serializable getEntityId( String message )
-        throws ClassNotFoundException
-    {
-        String[] parts = message.split( ":" );
+  private Serializable getEntityId(String message) throws ClassNotFoundException {
+    String[] parts = message.split(":");
 
-        String idPart = parts[3];
-        Class<?> entityClass = Class.forName( parts[2] );
-        Objects.requireNonNull( entityClass, "Entity class can't be null" );
+    String idPart = parts[3];
+    Class<?> entityClass = Class.forName(parts[2]);
+    Objects.requireNonNull(entityClass, "Entity class can't be null");
 
-        if ( DataValue.class.isAssignableFrom( entityClass ) )
-        {
-            return getDataValueId( idPart );
-        }
-        else if ( TrackedEntityAttributeValue.class.isAssignableFrom( entityClass ) )
-        {
-            return getTrackedEntityAttributeValueId( idPart );
-        }
-        else if ( CompleteDataSetRegistration.class.isAssignableFrom( entityClass ) )
-        {
-            return getCompleteDataSetRegistrationId( idPart );
-        }
-        else if ( DataStatisticsEvent.class.isAssignableFrom( entityClass ) )
-        {
-            return Integer.parseInt( idPart );
-        }
-        else
-        {
-            return Long.parseLong( idPart );
-        }
+    if (DataValue.class.isAssignableFrom(entityClass)) {
+      return getDataValueId(idPart);
+    } else if (TrackedEntityAttributeValue.class.isAssignableFrom(entityClass)) {
+      return getTrackedEntityAttributeValueId(idPart);
+    } else if (CompleteDataSetRegistration.class.isAssignableFrom(entityClass)) {
+      return getCompleteDataSetRegistrationId(idPart);
+    } else if (DataStatisticsEvent.class.isAssignableFrom(entityClass)) {
+      return Integer.parseInt(idPart);
+    } else {
+      return Long.parseLong(idPart);
     }
+  }
 
-    private Serializable getCompleteDataSetRegistrationId( String idPart )
-    {
-        String[] parts = idPart.split( ";" );
-        long dataSetId = Long.parseLong( parts[0] );
-        long periodId = Long.parseLong( parts[1] );
-        long orgUnitID = Long.parseLong( parts[2] );
-        long attributeOptionComboId = Long.parseLong( parts[3] );
+  private Serializable getCompleteDataSetRegistrationId(String idPart) {
+    String[] parts = idPart.split(";");
+    long dataSetId = Long.parseLong(parts[0]);
+    long periodId = Long.parseLong(parts[1]);
+    long orgUnitID = Long.parseLong(parts[2]);
+    long attributeOptionComboId = Long.parseLong(parts[3]);
 
-        DataSet dataSet = idObjectManager.get( DataSet.class, dataSetId );
-        Period period = idObjectManager.get( Period.class, periodId );
-        OrganisationUnit organisationUnit = idObjectManager.get( OrganisationUnit.class, orgUnitID );
-        CategoryOptionCombo categoryOptionCombo = idObjectManager.get( CategoryOptionCombo.class,
-            attributeOptionComboId );
+    DataSet dataSet = idObjectManager.get(DataSet.class, dataSetId);
+    Period period = idObjectManager.get(Period.class, periodId);
+    OrganisationUnit organisationUnit = idObjectManager.get(OrganisationUnit.class, orgUnitID);
+    CategoryOptionCombo categoryOptionCombo =
+        idObjectManager.get(CategoryOptionCombo.class, attributeOptionComboId);
 
-        return new CompleteDataSetRegistration( dataSet, period, organisationUnit, categoryOptionCombo, false );
-    }
+    return new CompleteDataSetRegistration(
+        dataSet, period, organisationUnit, categoryOptionCombo, false);
+  }
 
-    private Serializable getDataValueId( String entityIds )
-    {
-        String[] parts = entityIds.split( ";" );
+  private Serializable getDataValueId(String entityIds) {
+    String[] parts = entityIds.split(";");
 
-        long dataElementId = Long.parseLong( parts[0] );
-        long periodId = Long.parseLong( parts[1] );
-        long organisationUnitId = Long.parseLong( parts[2] );
-        long categoryOptionComboId = Long.parseLong( parts[3] );
-        long attributeOptionComboId = Long.parseLong( parts[4] );
+    long dataElementId = Long.parseLong(parts[0]);
+    long periodId = Long.parseLong(parts[1]);
+    long organisationUnitId = Long.parseLong(parts[2]);
+    long categoryOptionComboId = Long.parseLong(parts[3]);
+    long attributeOptionComboId = Long.parseLong(parts[4]);
 
-        DataElement dataElement = idObjectManager.get( DataElement.class, dataElementId );
-        OrganisationUnit organisationUnit = idObjectManager.get( OrganisationUnit.class, organisationUnitId );
-        CategoryOptionCombo categoryOptionCombo = idObjectManager.get( CategoryOptionCombo.class,
-            categoryOptionComboId );
-        CategoryOptionCombo attributeOptionCombo = idObjectManager.get( CategoryOptionCombo.class,
-            attributeOptionComboId );
-        Period period = periodService.getPeriod( periodId );
+    DataElement dataElement = idObjectManager.get(DataElement.class, dataElementId);
+    OrganisationUnit organisationUnit =
+        idObjectManager.get(OrganisationUnit.class, organisationUnitId);
+    CategoryOptionCombo categoryOptionCombo =
+        idObjectManager.get(CategoryOptionCombo.class, categoryOptionComboId);
+    CategoryOptionCombo attributeOptionCombo =
+        idObjectManager.get(CategoryOptionCombo.class, attributeOptionComboId);
+    Period period = periodService.getPeriod(periodId);
 
-        return new DataValue( dataElement, period, organisationUnit, categoryOptionCombo,
-            attributeOptionCombo );
-    }
+    return new DataValue(
+        dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo);
+  }
 
-    private Serializable getTrackedEntityAttributeValueId( String entityIds )
-    {
-        String[] parts = entityIds.split( ";" );
+  private Serializable getTrackedEntityAttributeValueId(String entityIds) {
+    String[] parts = entityIds.split(";");
 
-        long trackedEntityAttributeId = Long.parseLong( parts[0] );
-        long entityInstanceId = Long.parseLong( parts[1] );
+    long trackedEntityAttributeId = Long.parseLong(parts[0]);
+    long entityInstanceId = Long.parseLong(parts[1]);
 
-        TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute(
-            trackedEntityAttributeId );
-        TrackedEntity entityInstance = trackedEntityService.getTrackedEntity(
-            entityInstanceId );
+    TrackedEntityAttribute trackedEntityAttribute =
+        trackedEntityAttributeService.getTrackedEntityAttribute(trackedEntityAttributeId);
+    TrackedEntity entityInstance = trackedEntityService.getTrackedEntity(entityInstanceId);
 
-        return new TrackedEntityAttributeValue( trackedEntityAttribute, entityInstance );
-    }
+    return new TrackedEntityAttributeValue(trackedEntityAttribute, entityInstance);
+  }
 
-    @Override
-    public void message( String pattern, String channel, String message )
-    {
-        log.debug( "Got {} on channel {}", message, channel );
-    }
+  @Override
+  public void message(String pattern, String channel, String message) {
+    log.debug("Got {} on channel {}", message, channel);
+  }
 
-    @Override
-    public void subscribed( String channel, long count )
-    {
-        log.debug( "Subscribed to {}", channel );
-    }
+  @Override
+  public void subscribed(String channel, long count) {
+    log.debug("Subscribed to {}", channel);
+  }
 
-    @Override
-    public void psubscribed( String pattern, long count )
-    {
-        log.debug( "Subscribed to pattern {}", pattern );
-    }
+  @Override
+  public void psubscribed(String pattern, long count) {
+    log.debug("Subscribed to pattern {}", pattern);
+  }
 
-    @Override
-    public void unsubscribed( String channel, long count )
-    {
-        log.debug( "Unsubscribed from {}", channel );
-    }
+  @Override
+  public void unsubscribed(String channel, long count) {
+    log.debug("Unsubscribed from {}", channel);
+  }
 
-    @Override
-    public void punsubscribed( String pattern, long count )
-    {
-        log.debug( "Unsubscribed from pattern {}", pattern );
-    }
+  @Override
+  public void punsubscribed(String pattern, long count) {
+    log.debug("Unsubscribed from pattern {}", pattern);
+  }
 }

@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -46,47 +45,40 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-class SectionStoreTest extends SingleSetupIntegrationTestBase
-{
-    @Autowired
-    private SectionStore sectionStore;
+class SectionStoreTest extends SingleSetupIntegrationTestBase {
+  @Autowired private SectionStore sectionStore;
 
-    @Autowired
-    private DataElementService dataElementService;
+  @Autowired private DataElementService dataElementService;
 
-    @Autowired
-    private DataSetService dataSetService;
+  @Autowired private DataSetService dataSetService;
 
-    private DataElement de;
+  private DataElement de;
 
-    private DataSet ds;
+  private DataSet ds;
 
-    @BeforeEach
-    void setUp()
-    {
-        de = createDataElement( 'A' );
-        dataElementService.addDataElement( de );
+  @BeforeEach
+  void setUp() {
+    de = createDataElement('A');
+    dataElementService.addDataElement(de);
 
-        ds = createDataSet( 'A' );
-        dataSetService.addDataSet( ds );
-    }
+    ds = createDataSet('A');
+    dataSetService.addDataSet(ds);
+  }
 
-    @Test
-    void testGetSectionsByDataElement_SectionOfDataElement()
-    {
-        Section s = new Section( "test", ds, List.of( de ), Set.of() );
-        assertDoesNotThrow( () -> sectionStore.save( s ) );
+  @Test
+  void testGetSectionsByDataElement_SectionOfDataElement() {
+    Section s = new Section("test", ds, List.of(de), Set.of());
+    assertDoesNotThrow(() -> sectionStore.save(s));
 
-        assertEquals( 1, sectionStore.getSectionsByDataElement( de.getUid() ).size() );
-    }
+    assertEquals(1, sectionStore.getSectionsByDataElement(de.getUid()).size());
+  }
 
-    @Test
-    void testGetSectionsByDataElement_SectionOfDataElementOperand()
-    {
-        DataElementOperand deo = new DataElementOperand( de );
-        Section s = new Section( "test", ds, List.of(), Set.of( deo ) );
-        assertDoesNotThrow( () -> sectionStore.save( s ) );
+  @Test
+  void testGetSectionsByDataElement_SectionOfDataElementOperand() {
+    DataElementOperand deo = new DataElementOperand(de);
+    Section s = new Section("test", ds, List.of(), Set.of(deo));
+    assertDoesNotThrow(() -> sectionStore.save(s));
 
-        assertEquals( 1, sectionStore.getSectionsByDataElement( de.getUid() ).size() );
-    }
+    assertEquals(1, sectionStore.getSectionsByDataElement(de.getUid()).size());
+  }
 }

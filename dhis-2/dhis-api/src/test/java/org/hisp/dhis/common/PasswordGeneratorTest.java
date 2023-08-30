@@ -34,53 +34,48 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class PasswordGeneratorTest
-{
-    @Test
-    void testValidPasswordGenerationToSmall()
-    {
-        Exception exception = assertThrows( IllegalArgumentException.class,
-            () -> PasswordGenerator.generateValidPassword( 3 ) );
+class PasswordGeneratorTest {
+  @Test
+  void testValidPasswordGenerationToSmall() {
+    Exception exception =
+        assertThrows(
+            IllegalArgumentException.class, () -> PasswordGenerator.generateValidPassword(3));
 
-        String expectedMessage = "Password must be at least 8 characters long";
+    String expectedMessage = "Password must be at least 8 characters long";
 
-        assertEquals( expectedMessage, exception.getMessage() );
+    assertEquals(expectedMessage, exception.getMessage());
+  }
+
+  @Test
+  void testValidPasswordGenerationMinLength() {
+    char[] chars = PasswordGenerator.generateValidPassword(8);
+    assertEquals(8, chars.length);
+  }
+
+  @Test
+  void testValidPasswordGeneration() {
+    for (int i = 0; i < 100; i++) {
+      char[] password = PasswordGenerator.generateValidPassword(12);
+      testPassword(password);
     }
+  }
 
-    @Test
-    void testValidPasswordGenerationMinLength()
-    {
-        char[] chars = PasswordGenerator.generateValidPassword( 8 );
-        assertEquals( 8, chars.length );
-    }
+  private static void testPassword(char[] password) {
+    String passwordString = new String(password);
 
-    @Test
-    void testValidPasswordGeneration()
-    {
-        for ( int i = 0; i < 100; i++ )
-        {
-            char[] password = PasswordGenerator.generateValidPassword( 12 );
-            testPassword( password );
-        }
-    }
+    boolean containsDigit = PasswordGenerator.containsDigit(password);
+    boolean containsSpecial = PasswordGenerator.containsSpecialCharacter(password);
+    boolean hasUppercase = PasswordGenerator.containsUppercaseCharacter(password);
+    boolean hasLowercase = PasswordGenerator.containsLowercaseCharacter(password);
+    assertTrue(containsSpecial && containsDigit && hasUppercase && hasLowercase);
 
-    private static void testPassword( char[] password )
-    {
-        String passwordString = new String( password );
-
-        boolean containsDigit = PasswordGenerator.containsDigit( password );
-        boolean containsSpecial = PasswordGenerator.containsSpecialCharacter( password );
-        boolean hasUppercase = PasswordGenerator.containsUppercaseCharacter( password );
-        boolean hasLowercase = PasswordGenerator.containsLowercaseCharacter( password );
-        assertTrue( containsSpecial && containsDigit && hasUppercase && hasLowercase );
-
-        Matcher threeConsecutiveLetters = Pattern.compile( "[a-zA-Z][a-zA-Z][a-zA-Z]+" ).matcher( passwordString );
-        assertFalse( threeConsecutiveLetters.find() );
-    }
+    Matcher threeConsecutiveLetters =
+        Pattern.compile("[a-zA-Z][a-zA-Z][a-zA-Z]+").matcher(passwordString);
+    assertFalse(threeConsecutiveLetters.find());
+  }
 }

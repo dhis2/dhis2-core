@@ -35,47 +35,41 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class AccessStringHelperTest
-{
+class AccessStringHelperTest {
 
-    @Test
-    void testCanRead()
-    {
-        String access = "r-------";
-        String access_will_fail = "--------";
-        assertTrue( AccessStringHelper.canRead( access ) );
-        assertFalse( AccessStringHelper.canRead( access_will_fail ) );
-    }
+  @Test
+  void testCanRead() {
+    String access = "r-------";
+    String access_will_fail = "--------";
+    assertTrue(AccessStringHelper.canRead(access));
+    assertFalse(AccessStringHelper.canRead(access_will_fail));
+  }
 
-    @Test
-    void testCanWrite()
-    {
-        String access1 = "rw------";
-        String access2 = "-w------";
-        String access_will_fail = "--------";
-        assertTrue( AccessStringHelper.canWrite( access1 ) );
-        assertTrue( AccessStringHelper.canWrite( access2 ) );
-        assertFalse( AccessStringHelper.canWrite( access_will_fail ) );
-    }
+  @Test
+  void testCanWrite() {
+    String access1 = "rw------";
+    String access2 = "-w------";
+    String access_will_fail = "--------";
+    assertTrue(AccessStringHelper.canWrite(access1));
+    assertTrue(AccessStringHelper.canWrite(access2));
+    assertFalse(AccessStringHelper.canWrite(access_will_fail));
+  }
 
-    @Test
-    void staticRead()
-    {
-        assertTrue( AccessStringHelper.canRead( AccessStringHelper.READ ) );
-        assertFalse( AccessStringHelper.canWrite( AccessStringHelper.READ ) );
-    }
+  @Test
+  void staticRead() {
+    assertTrue(AccessStringHelper.canRead(AccessStringHelper.READ));
+    assertFalse(AccessStringHelper.canWrite(AccessStringHelper.READ));
+  }
 
-    @Test
-    void staticWrite()
-    {
-        assertFalse( AccessStringHelper.canRead( AccessStringHelper.WRITE ) );
-        assertTrue( AccessStringHelper.canWrite( AccessStringHelper.WRITE ) );
-    }
+  @Test
+  void staticWrite() {
+    assertFalse(AccessStringHelper.canRead(AccessStringHelper.WRITE));
+    assertTrue(AccessStringHelper.canWrite(AccessStringHelper.WRITE));
+  }
 
-    @Test
-    void staticReadWrite()
-    {
-        assertTrue( AccessStringHelper.canRead( AccessStringHelper.READ_WRITE ) );
-        assertTrue( AccessStringHelper.canWrite( AccessStringHelper.READ_WRITE ) );
-    }
+  @Test
+  void staticReadWrite() {
+    assertTrue(AccessStringHelper.canRead(AccessStringHelper.READ_WRITE));
+    assertTrue(AccessStringHelper.canWrite(AccessStringHelper.READ_WRITE));
+  }
 }

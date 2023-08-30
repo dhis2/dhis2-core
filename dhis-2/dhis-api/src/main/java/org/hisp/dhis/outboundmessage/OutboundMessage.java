@@ -32,48 +32,40 @@ import java.util.Set;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-public class OutboundMessage
-{
-    private String subject;
+public class OutboundMessage {
+  private String subject;
 
-    private String text;
+  private String text;
 
-    private Set<String> recipients;
+  private Set<String> recipients;
 
-    public OutboundMessage( String subject, String text, Set<String> recipients )
-    {
-        this.subject = subject;
-        this.text = text;
-        this.recipients = recipients;
-    }
+  public OutboundMessage(String subject, String text, Set<String> recipients) {
+    this.subject = subject;
+    this.text = text;
+    this.recipients = recipients;
+  }
 
-    public String getText()
-    {
-        return text;
-    }
+  public String getText() {
+    return text;
+  }
 
-    public void setText( String text )
-    {
-        this.text = text;
-    }
+  public void setText(String text) {
+    this.text = text;
+  }
 
-    public Set<String> getRecipients()
-    {
-        return recipients;
-    }
+  public Set<String> getRecipients() {
+    return recipients;
+  }
 
-    public void setRecipients( Set<String> recipients )
-    {
-        this.recipients = recipients;
-    }
+  public void setRecipients(Set<String> recipients) {
+    this.recipients = recipients;
+  }
 
-    public String getSubject()
-    {
-        return subject;
-    }
+  public String getSubject() {
+    return subject;
+  }
 
-    public void setSubject( String subject )
-    {
-        this.subject = subject;
-    }
+  public void setSubject(String subject) {
+    this.subject = subject;
+  }
 }

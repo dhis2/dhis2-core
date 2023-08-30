@@ -30,43 +30,37 @@ package org.hisp.dhis.tracker.imports.preheat.mappers;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * Decorator to be applied to {@link OrganisationUnitMapper} to correctly map
- * the recursive parent field
+ * Decorator to be applied to {@link OrganisationUnitMapper} to correctly map the recursive parent
+ * field
  */
-public abstract class OrgUnitDecorator implements OrganisationUnitMapper
-{
+public abstract class OrgUnitDecorator implements OrganisationUnitMapper {
 
-    private final OrganisationUnitMapper delegate;
+  private final OrganisationUnitMapper delegate;
 
-    protected OrgUnitDecorator( OrganisationUnitMapper delegate )
-    {
-        this.delegate = delegate;
+  protected OrgUnitDecorator(OrganisationUnitMapper delegate) {
+    this.delegate = delegate;
+  }
+
+  @Override
+  public OrganisationUnit map(OrganisationUnit organisationUnit) {
+    if (organisationUnit == null) {
+      return null;
     }
 
-    @Override
-    public OrganisationUnit map( OrganisationUnit organisationUnit )
-    {
-        if ( organisationUnit == null )
-        {
-            return null;
-        }
+    OrganisationUnit organisationUnit1 = delegate.map(organisationUnit);
+    organisationUnit1.setParent(fetchParent(organisationUnit.getParent()));
+    return organisationUnit1;
+  }
 
-        OrganisationUnit organisationUnit1 = delegate.map( organisationUnit );
-        organisationUnit1.setParent( fetchParent( organisationUnit.getParent() ) );
-        return organisationUnit1;
+  private OrganisationUnit fetchParent(OrganisationUnit organisationUnit) {
+    if (organisationUnit == null) {
+      return null;
     }
 
-    private OrganisationUnit fetchParent( OrganisationUnit organisationUnit )
-    {
-        if ( organisationUnit == null )
-        {
-            return null;
-        }
+    OrganisationUnit organisationUnit1 = new OrganisationUnit();
+    organisationUnit1.setUid(organisationUnit.getUid());
+    organisationUnit1.setParent(fetchParent(organisationUnit.getParent()));
 
-        OrganisationUnit organisationUnit1 = new OrganisationUnit();
-        organisationUnit1.setUid( organisationUnit.getUid() );
-        organisationUnit1.setParent( fetchParent( organisationUnit.getParent() ) );
-
-        return organisationUnit1;
-    }
+    return organisationUnit1;
+  }
 }

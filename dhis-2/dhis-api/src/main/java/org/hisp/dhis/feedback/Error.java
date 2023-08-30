@@ -30,34 +30,25 @@ package org.hisp.dhis.feedback;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface Error
-{
-    ErrorCode getCode();
+public interface Error {
+  ErrorCode getCode();
 
-    String getMessage();
+  String getMessage();
 
-    static <V, R extends RuntimeException, E extends Exception> V rethrow( Class<R> exception, Function<String, E> as,
-        Supplier<V> operation )
-        throws E
-    {
-        return rethrowMapped( exception, ex -> as.apply( ex.getMessage() ), operation );
+  static <V, R extends RuntimeException, E extends Exception> V rethrow(
+      Class<R> exception, Function<String, E> as, Supplier<V> operation) throws E {
+    return rethrowMapped(exception, ex -> as.apply(ex.getMessage()), operation);
+  }
+
+  static <V, R extends RuntimeException, E extends Exception> V rethrowMapped(
+      Class<R> whenThrown, Function<R, E> wrapAs, Supplier<V> operation) throws E {
+    try {
+      return operation.get();
+    } catch (RuntimeException ex) {
+      if (whenThrown.isAssignableFrom(ex.getClass())) {
+        throw wrapAs.apply(whenThrown.cast(ex));
+      }
+      throw ex;
     }
-
-    static <V, R extends RuntimeException, E extends Exception> V rethrowMapped( Class<R> whenThrown,
-        Function<R, E> wrapAs, Supplier<V> operation )
-        throws E
-    {
-        try
-        {
-            return operation.get();
-        }
-        catch ( RuntimeException ex )
-        {
-            if ( whenThrown.isAssignableFrom( ex.getClass() ) )
-            {
-                throw wrapAs.apply( whenThrown.cast( ex ) );
-            }
-            throw ex;
-        }
-    }
+  }
 }

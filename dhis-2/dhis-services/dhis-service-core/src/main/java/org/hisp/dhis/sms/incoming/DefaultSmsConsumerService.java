@@ -28,47 +28,38 @@
 package org.hisp.dhis.sms.incoming;
 
 import javax.annotation.PostConstruct;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.sms.SmsPublisher;
 import org.springframework.stereotype.Service;
 
-/**
- * Zubair <rajazubair.asghar@gmail.com>
- */
+/** Zubair <rajazubair.asghar@gmail.com> */
 @Slf4j
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.sms.incoming.SmsConsumerService" )
-public class DefaultSmsConsumerService
-    implements SmsConsumerService
-{
-    private final SmsPublisher smsPublisher;
+@Service("org.hisp.dhis.sms.incoming.SmsConsumerService")
+public class DefaultSmsConsumerService implements SmsConsumerService {
+  private final SmsPublisher smsPublisher;
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
 
-    @PostConstruct
-    public void init()
-    {
-        startSmsConsumer();
-    }
+  @PostConstruct
+  public void init() {
+    startSmsConsumer();
+  }
 
-    @Override
-    public void startSmsConsumer()
-    {
-        smsPublisher.start();
+  @Override
+  public void startSmsConsumer() {
+    smsPublisher.start();
 
-        log.info( "SMS consumer started" );
-    }
+    log.info("SMS consumer started");
+  }
 
-    @Override
-    public void stopSmsConsumer()
-    {
-        smsPublisher.stop();
+  @Override
+  public void stopSmsConsumer() {
+    smsPublisher.stop();
 
-        log.info( "SMS consumer stopped" );
-    }
+    log.info("SMS consumer stopped");
+  }
 }

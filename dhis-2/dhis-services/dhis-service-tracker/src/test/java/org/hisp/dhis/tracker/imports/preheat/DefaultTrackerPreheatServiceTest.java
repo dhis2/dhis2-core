@@ -36,7 +36,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
@@ -58,87 +57,78 @@ import org.springframework.context.ApplicationContext;
 /**
  * @author Cambi Luca
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class DefaultTrackerPreheatServiceTest
-{
-    @Mock
-    private IdentifiableObjectManager manager;
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class DefaultTrackerPreheatServiceTest {
+  @Mock private IdentifiableObjectManager manager;
 
-    @Mock
-    private ClassBasedSupplier classBasedSupplier;
+  @Mock private ClassBasedSupplier classBasedSupplier;
 
-    @Mock
-    private ApplicationContext applicationContext;
+  @Mock private ApplicationContext applicationContext;
 
-    @Captor
-    private ArgumentCaptor<Class<PreheatSupplier>> preheatSupplierClassCaptor;
+  @Captor private ArgumentCaptor<Class<PreheatSupplier>> preheatSupplierClassCaptor;
 
-    @Captor
-    private ArgumentCaptor<String> bean;
+  @Captor private ArgumentCaptor<String> bean;
 
-    private DefaultTrackerPreheatService preheatService;
+  private DefaultTrackerPreheatService preheatService;
 
-    private final TrackerImportParams preheatParams = TrackerImportParams.builder()
-        .user( getUser() )
-        .trackedEntities( Collections.singletonList( new TrackedEntity() ) )
-        .build();
+  private final TrackerImportParams preheatParams =
+      TrackerImportParams.builder()
+          .user(getUser())
+          .trackedEntities(Collections.singletonList(new TrackedEntity()))
+          .build();
 
-    @BeforeEach
-    public void setUp()
-    {
-        preheatService = new DefaultTrackerPreheatService( manager, List.of(
-            ClassBasedSupplier.class.getSimpleName() ) );
+  @BeforeEach
+  public void setUp() {
+    preheatService =
+        new DefaultTrackerPreheatService(
+            manager, List.of(ClassBasedSupplier.class.getSimpleName()));
 
-        preheatService.setApplicationContext( applicationContext );
-        when( manager.get( User.class, getUser().getUid() ) ).thenReturn( getUser() );
-    }
+    preheatService.setApplicationContext(applicationContext);
+    when(manager.get(User.class, getUser().getUid())).thenReturn(getUser());
+  }
 
-    @Test
-    void shouldGetFromContextAndAdd()
-    {
-        when( applicationContext.getBean( bean.capture(), preheatSupplierClassCaptor.capture() ) )
-            .thenReturn( classBasedSupplier );
+  @Test
+  void shouldGetFromContextAndAdd() {
+    when(applicationContext.getBean(bean.capture(), preheatSupplierClassCaptor.capture()))
+        .thenReturn(classBasedSupplier);
 
-        doCallRealMethod().when( classBasedSupplier ).add( any(), any() );
+    doCallRealMethod().when(classBasedSupplier).add(any(), any());
 
-        preheatService.preheat( preheatParams );
+    preheatService.preheat(preheatParams);
 
-        verify( applicationContext ).getBean( bean.getValue(), preheatSupplierClassCaptor.getValue() );
-        verify( classBasedSupplier ).add( any(), any() );
-        verify( classBasedSupplier ).preheatAdd( any(), any() );
-    }
+    verify(applicationContext).getBean(bean.getValue(), preheatSupplierClassCaptor.getValue());
+    verify(classBasedSupplier).add(any(), any());
+    verify(classBasedSupplier).preheatAdd(any(), any());
+  }
 
-    @Test
-    void shouldDoNothingWhenSupplierBeanNotFound()
-    {
-        when( applicationContext.getBean( bean.capture(), preheatSupplierClassCaptor.capture() ) )
-            .thenThrow( new BeanCreationException( "e" ) );
+  @Test
+  void shouldDoNothingWhenSupplierBeanNotFound() {
+    when(applicationContext.getBean(bean.capture(), preheatSupplierClassCaptor.capture()))
+        .thenThrow(new BeanCreationException("e"));
 
-        preheatService.preheat( preheatParams );
+    preheatService.preheat(preheatParams);
 
-        verify( applicationContext ).getBean( bean.getValue(), preheatSupplierClassCaptor.getValue() );
-        verify( classBasedSupplier, times( 0 ) ).add( any(), any() );
-        verify( classBasedSupplier, times( 0 ) ).preheatAdd( any(), any() );
-    }
+    verify(applicationContext).getBean(bean.getValue(), preheatSupplierClassCaptor.getValue());
+    verify(classBasedSupplier, times(0)).add(any(), any());
+    verify(classBasedSupplier, times(0)).preheatAdd(any(), any());
+  }
 
-    @Test
-    void shouldDoNothingWhenAddException()
-    {
-        when( applicationContext.getBean( bean.capture(), preheatSupplierClassCaptor.capture() ) )
-            .thenReturn( classBasedSupplier );
-        doThrow( new RuntimeException( "e" ) ).when( classBasedSupplier ).add( any(), any() );
+  @Test
+  void shouldDoNothingWhenAddException() {
+    when(applicationContext.getBean(bean.capture(), preheatSupplierClassCaptor.capture()))
+        .thenReturn(classBasedSupplier);
+    doThrow(new RuntimeException("e")).when(classBasedSupplier).add(any(), any());
 
-        preheatService.preheat( preheatParams );
+    preheatService.preheat(preheatParams);
 
-        verify( applicationContext ).getBean( bean.getValue(), preheatSupplierClassCaptor.getValue() );
-        verify( classBasedSupplier ).add( any(), any() );
-    }
+    verify(applicationContext).getBean(bean.getValue(), preheatSupplierClassCaptor.getValue());
+    verify(classBasedSupplier).add(any(), any());
+  }
 
-    private User getUser()
-    {
-        User user = new User();
-        user.setUid( "user1234" );
-        return user;
-    }
+  private User getUser() {
+    User user = new User();
+    user.setUid("user1234");
+    return user;
+  }
 }

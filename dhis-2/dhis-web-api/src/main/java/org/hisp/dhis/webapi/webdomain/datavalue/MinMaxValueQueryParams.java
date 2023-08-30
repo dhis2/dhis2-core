@@ -33,7 +33,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -50,15 +49,14 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 @Setter
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class MinMaxValueQueryParams
-{
-    @OpenApi.Property( { UID.class, DataElement.class } )
-    private String de;
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class MinMaxValueQueryParams {
+  @OpenApi.Property({UID.class, DataElement.class})
+  private String de;
 
-    @OpenApi.Property( { UID.class, OrganisationUnit.class } )
-    private String ou;
+  @OpenApi.Property({UID.class, OrganisationUnit.class})
+  private String ou;
 
-    @OpenApi.Property( { UID.class, CategoryOptionCombo.class } )
-    private String co;
+  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+  private String co;
 }

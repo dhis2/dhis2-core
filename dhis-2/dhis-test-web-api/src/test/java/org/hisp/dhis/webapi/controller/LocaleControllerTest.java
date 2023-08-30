@@ -41,122 +41,127 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class LocaleControllerTest extends DhisControllerConvenienceTest
-{
+class LocaleControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testAddLocale()
-    {
-        assertWebMessage( "Created", 201, "OK", "Locale created successfully",
-            POST( "/locales/dbLocales?language=en&country=GB" ).content( HttpStatus.CREATED ) );
-    }
+  @Test
+  void testAddLocale() {
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "Locale created successfully",
+        POST("/locales/dbLocales?language=en&country=GB").content(HttpStatus.CREATED));
+  }
 
-    @Test
-    void testAddLocale_InvalidCountry()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "Invalid country or language code.",
-            POST( "/locales/dbLocales?language=en&country=" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testAddLocale_InvalidCountry() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Invalid country or language code.",
+        POST("/locales/dbLocales?language=en&country=").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testAddLocale_InvalidLanguage()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "Invalid country or language code.",
-            POST( "/locales/dbLocales?language=&country=GB" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testAddLocale_InvalidLanguage() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Invalid country or language code.",
+        POST("/locales/dbLocales?language=&country=GB").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testAddLocale_AlreadyExists()
-    {
-        assertStatus( HttpStatus.CREATED, POST( "/locales/dbLocales?language=en&country=GB" ) );
-        assertWebMessage( "Conflict", 409, "ERROR", "Locale code existed.",
-            POST( "/locales/dbLocales?language=en&country=GB" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testAddLocale_AlreadyExists() {
+    assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=en&country=GB"));
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Locale code existed.",
+        POST("/locales/dbLocales?language=en&country=GB").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testGetUiLocales()
-    {
-        JsonArray response = GET( "/locales/ui" ).content();
-        assertEquals( 38, response.size() );
-    }
+  @Test
+  void testGetUiLocales() {
+    JsonArray response = GET("/locales/ui").content();
+    assertEquals(38, response.size());
+  }
 
-    @Test
-    void testGetUiLocalesInUserLanguage()
-    {
-        String userEnglishLocale = GET( "/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID )
-            .content( "text/plain; charset=UTF-8" );
-        assertEquals( "en", userEnglishLocale );
+  @Test
+  void testGetUiLocalesInUserLanguage() {
+    String userEnglishLocale =
+        GET("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID)
+            .content("text/plain; charset=UTF-8");
+    assertEquals("en", userEnglishLocale);
 
-        JsonArray response = GET( "/locales/ui" ).content();
-        JsonWebLocale firstElement = response.getObject( 0 ).as( JsonWebLocale.class );
-        assertEquals( "ar", firstElement.getLocale() );
-        assertEquals( "العربية", firstElement.getName() );
-        assertEquals( "Arabic", firstElement.getDisplayName() );
-    }
+    JsonArray response = GET("/locales/ui").content();
+    JsonWebLocale firstElement = response.getObject(0).as(JsonWebLocale.class);
+    assertEquals("ar", firstElement.getLocale());
+    assertEquals("العربية", firstElement.getName());
+    assertEquals("Arabic", firstElement.getDisplayName());
+  }
 
-    @Test
-    void testGetUiLocaleAfterUserLanguageChange()
-    {
-        POST( "/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=fr" );
-        JsonArray response = GET( "/locales/ui" ).content();
-        JsonWebLocale firstElement = response.getObject( 0 ).as( JsonWebLocale.class );
-        assertEquals( "en", firstElement.getLocale() );
-        assertEquals( "English", firstElement.getName() );
-        assertEquals( "anglais", firstElement.getDisplayName() );
-    }
+  @Test
+  void testGetUiLocaleAfterUserLanguageChange() {
+    POST("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=fr");
+    JsonArray response = GET("/locales/ui").content();
+    JsonWebLocale firstElement = response.getObject(0).as(JsonWebLocale.class);
+    assertEquals("en", firstElement.getLocale());
+    assertEquals("English", firstElement.getName());
+    assertEquals("anglais", firstElement.getDisplayName());
+  }
 
-    @Test
-    void testGetUiLocalesInServerLanguageWhenUserLanguageNotSet()
-    {
-        DELETE( "/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID );
-        POST( "/systemSettings/keyUiLocale/?value=es" );
-        JsonArray response = GET( "/locales/ui" ).content();
-        JsonWebLocale firstElement = response.getObject( 0 ).as( JsonWebLocale.class );
-        assertEquals( "bn", firstElement.getLocale() );
-        assertEquals( "বাংলা", firstElement.getName() );
-        assertEquals( "bengalí", firstElement.getDisplayName() );
-    }
+  @Test
+  void testGetUiLocalesInServerLanguageWhenUserLanguageNotSet() {
+    DELETE("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID);
+    POST("/systemSettings/keyUiLocale/?value=es");
+    JsonArray response = GET("/locales/ui").content();
+    JsonWebLocale firstElement = response.getObject(0).as(JsonWebLocale.class);
+    assertEquals("bn", firstElement.getLocale());
+    assertEquals("বাংলা", firstElement.getName());
+    assertEquals("bengalí", firstElement.getDisplayName());
+  }
 
-    @Test
-    void testGetUiLocalesInEnglishWhenUserAndServerLanguageNotSet()
-    {
-        DELETE( "/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID );
-        DELETE( "/systemSettings/keyUiLocale" );
-        JsonArray response = GET( "/locales/ui" ).content();
-        JsonWebLocale firstElement = response.getObject( 0 ).as( JsonWebLocale.class );
-        assertEquals( "ar", firstElement.getLocale() );
-        assertEquals( "العربية", firstElement.getName() );
-        assertEquals( "Arabic", firstElement.getDisplayName() );
-    }
+  @Test
+  void testGetUiLocalesInEnglishWhenUserAndServerLanguageNotSet() {
+    DELETE("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID);
+    DELETE("/systemSettings/keyUiLocale");
+    JsonArray response = GET("/locales/ui").content();
+    JsonWebLocale firstElement = response.getObject(0).as(JsonWebLocale.class);
+    assertEquals("ar", firstElement.getLocale());
+    assertEquals("العربية", firstElement.getName());
+    assertEquals("Arabic", firstElement.getDisplayName());
+  }
 
-    @Test
-    void testGetDbLocales()
-    {
-        POST( "/locales/dbLocales?country=IE&language=en" );
-        JsonArray response = GET( "/locales/db" ).content();
-        assertEquals( 1, response.size() );
-        JsonWebLocale firstElement = response.getObject( 0 ).as( JsonWebLocale.class );
-        assertEquals( "en_IE", firstElement.getLocale() );
-        assertEquals( "English (Ireland)", firstElement.getName() );
-        assertEquals( "English (Ireland)", firstElement.getDisplayName() );
-    }
+  @Test
+  void testGetDbLocales() {
+    POST("/locales/dbLocales?country=IE&language=en");
+    JsonArray response = GET("/locales/db").content();
+    assertEquals(1, response.size());
+    JsonWebLocale firstElement = response.getObject(0).as(JsonWebLocale.class);
+    assertEquals("en_IE", firstElement.getLocale());
+    assertEquals("English (Ireland)", firstElement.getName());
+    assertEquals("English (Ireland)", firstElement.getDisplayName());
+  }
 
-    @Test
-    void testGetDbLocalesAfterUserLanguageChange()
-    {
-        POST( "/locales/dbLocales?country=IE&language=en" );
-        JsonArray response = GET( "/locales/db" ).content();
-        assertEquals( 1, response.size() );
-        JsonWebLocale firstElement = response.getObject( 0 ).as( JsonWebLocale.class );
-        assertEquals( "en_IE", firstElement.getLocale() );
-        assertEquals( "English (Ireland)", firstElement.getName() );
-        assertEquals( "English (Ireland)", firstElement.getDisplayName() );
+  @Test
+  void testGetDbLocalesAfterUserLanguageChange() {
+    POST("/locales/dbLocales?country=IE&language=en");
+    JsonArray response = GET("/locales/db").content();
+    assertEquals(1, response.size());
+    JsonWebLocale firstElement = response.getObject(0).as(JsonWebLocale.class);
+    assertEquals("en_IE", firstElement.getLocale());
+    assertEquals("English (Ireland)", firstElement.getName());
+    assertEquals("English (Ireland)", firstElement.getDisplayName());
 
-        POST( "/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=fr" );
-        JsonArray response2 = GET( "/locales/db" ).content();
-        JsonWebLocale dbLocaleElement = response2.getObject( 0 ).as( JsonWebLocale.class );
-        assertEquals( "en_IE", dbLocaleElement.getLocale() );
-        assertEquals( "English (Ireland)", dbLocaleElement.getName() );
-        assertEquals( "anglais (Irlande)", dbLocaleElement.getDisplayName() );
-    }
+    POST("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=fr");
+    JsonArray response2 = GET("/locales/db").content();
+    JsonWebLocale dbLocaleElement = response2.getObject(0).as(JsonWebLocale.class);
+    assertEquals("en_IE", dbLocaleElement.getLocale());
+    assertEquals("English (Ireland)", dbLocaleElement.getName());
+    assertEquals("anglais (Irlande)", dbLocaleElement.getDisplayName());
+  }
 }

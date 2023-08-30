@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-summary_uid: lFkN6LopXcz
 name: orgunits_compulsory_group_count
 description: Orgunits that are not in all compulsory orgunit group sets
 section: Organisation units
@@ -50,7 +49,6 @@ summary_sql: >-
     100 * COUNT(*)/NULLIF( ( SELECT COUNT(*) FROM organisationunit), 0) as percent
     FROM ougs_compulsory_members
     where has_compulsory IS FALSE;
-details_uid: HnmKIwXFWy5
 details_sql: >-
     WITH orgunits_not_in_compulsory_groups as (
     SELECT ou.uid,ou.name,

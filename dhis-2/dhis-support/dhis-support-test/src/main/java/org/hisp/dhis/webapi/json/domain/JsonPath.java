@@ -29,14 +29,13 @@ package org.hisp.dhis.webapi.json.domain;
 
 import java.util.Arrays;
 import java.util.List;
-
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * A utility for an {@link OrganisationUnit#getPath()} value.
  *
- * Values use the format (starting with the root):
+ * <p>Values use the format (starting with the root):
  *
  * <pre>
  * /{uid}/{uid}
@@ -45,15 +44,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  *
  * @author Jan Bernitt
  */
-public interface JsonPath extends JsonString
-{
-    default List<String> ids()
-    {
-        return parsed( str -> Arrays.asList( str.split( "/" ) ) );
-    }
+public interface JsonPath extends JsonString {
+  default List<String> ids() {
+    return parsed(str -> Arrays.asList(str.split("/")));
+  }
 
-    default boolean contains( String uid )
-    {
-        return ids().contains( uid );
-    }
+  default boolean contains(String uid) {
+    return ids().contains(uid);
+  }
 }

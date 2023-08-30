@@ -31,82 +31,99 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
-
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests metadata check for potentially duplicated indicator formulas. The check
- * should identify formulas with the same term, regardless of order and spaces.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/indicators/indicator_duplicated_terms.yaml}
+ * Tests metadata check for potentially duplicated indicator formulas. The check should identify
+ * formulas with the same term, regardless of order and spaces. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/indicators/indicator_duplicated_terms.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityIndicatorsDuplicatedTermsControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityIndicatorsDuplicatedTermsControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
 
-    private static final String check = "indicators_duplicated_terms";
+  private static final String check = "indicators_duplicated_terms";
 
-    @Test
-    void testIndicatorsDuplicatedTermsExist()
-    {
-        String indicatorTypeA = assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorTypes",
-                "{ 'name': 'Per cent', 'factor' : 100, 'number' : false }" ) );
+  @Test
+  void testIndicatorsDuplicatedTermsExist() {
+    String indicatorTypeA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/indicatorTypes", "{ 'name': 'Per cent', 'factor' : 100, 'number' : false }"));
 
-        String indicatorA = assertStatus( HttpStatus.CREATED,
-            POST( "/indicators",
-                "{ 'name': 'Indicator A', 'shortName': 'Indicator A',  'indicatorType' : {'id' : '" + indicatorTypeA
-                    + "'}," +
-                    " 'numerator' : 'abc123 + def456', 'numeratorDescription' : 'One', 'denominator' : '1', " +
-                    "'denominatorDescription' : 'One'} }" ) );
+    String indicatorA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators",
+                "{ 'name': 'Indicator A', 'shortName': 'Indicator A',  'indicatorType' : {'id' : '"
+                    + indicatorTypeA
+                    + "'},"
+                    + " 'numerator' : 'abc123 + def456', 'numeratorDescription' : 'One', 'denominator' : '1', "
+                    + "'denominatorDescription' : 'One'} }"));
 
-        String indicatorB = assertStatus( HttpStatus.CREATED,
-            POST( "/indicators",
-                "{ 'name': 'Indicator B', 'shortName': 'Indicator B',  'indicatorType' : {'id' : '" + indicatorTypeA
-                    + "'}," +
-                    " 'numerator' : ' def456 + abc123 ', 'numeratorDescription' : 'One', 'denominator' : '1', " +
-                    "'denominatorDescription' : 'One'} }" ) );
+    String indicatorB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators",
+                "{ 'name': 'Indicator B', 'shortName': 'Indicator B',  'indicatorType' : {'id' : '"
+                    + indicatorTypeA
+                    + "'},"
+                    + " 'numerator' : ' def456 + abc123 ', 'numeratorDescription' : 'One', 'denominator' : '1', "
+                    + "'denominatorDescription' : 'One'} }"));
 
-        postDetails( check );
-        JsonDataIntegrityDetails details = getDetails( check );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
+    postDetails(check);
+    JsonDataIntegrityDetails details = getDetails(check);
+    JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
+    assertTrue(issues.exists());
 
-        assertHasDataIntegrityIssues( "indicators", check, 100, Set.of( indicatorA, indicatorB ),
-            Set.of( "Indicator A", "Indicator B" ), Set.of(), true );
-    }
+    assertHasDataIntegrityIssues(
+        "indicators",
+        check,
+        100,
+        Set.of(indicatorA, indicatorB),
+        Set.of("Indicator A", "Indicator B"),
+        Set.of(),
+        true);
+  }
 
-    @Test
-    void testIndicatorFactorsUnique()
-    {
-        String indicatorTypeA = assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorTypes",
-                "{ 'name': 'Per cent', 'factor' : 100, 'number' : false }" ) );
+  @Test
+  void testIndicatorFactorsUnique() {
+    String indicatorTypeA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/indicatorTypes", "{ 'name': 'Per cent', 'factor' : 100, 'number' : false }"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/indicators",
-                "{ 'name': 'Indicator A', 'shortName': 'Indicator A',  'indicatorType' : {'id' : '" + indicatorTypeA
-                    + "'}," +
-                    " 'numerator' : 'abc123 + def456', 'numeratorDescription' : 'One', 'denominator' : '1', " +
-                    "'denominatorDescription' : 'One'} }" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/indicators",
+            "{ 'name': 'Indicator A', 'shortName': 'Indicator A',  'indicatorType' : {'id' : '"
+                + indicatorTypeA
+                + "'},"
+                + " 'numerator' : 'abc123 + def456', 'numeratorDescription' : 'One', 'denominator' : '1', "
+                + "'denominatorDescription' : 'One'} }"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/indicators",
-                "{ 'name': 'Indicator B', 'shortName': 'Indicator B',  'indicatorType' : {'id' : '" + indicatorTypeA
-                    + "'}," +
-                    " 'numerator' : 'abc123 + def456', 'numeratorDescription' : 'One', 'denominator' : 'xyz675', " +
-                    "'denominatorDescription' : 'One'} }" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/indicators",
+            "{ 'name': 'Indicator B', 'shortName': 'Indicator B',  'indicatorType' : {'id' : '"
+                + indicatorTypeA
+                + "'},"
+                + " 'numerator' : 'abc123 + def456', 'numeratorDescription' : 'One', 'denominator' : 'xyz675', "
+                + "'denominatorDescription' : 'One'} }"));
 
-        assertHasNoDataIntegrityIssues( "indicators", check, true );
-    }
+    assertHasNoDataIntegrityIssues("indicators", check, true);
+  }
 
-    @Test
-    void testDuplicatedIndicatorFactorsRuns()
-    {
-        assertHasNoDataIntegrityIssues( "indicators", check, false );
-    }
-
+  @Test
+  void testDuplicatedIndicatorFactorsRuns() {
+    assertHasNoDataIntegrityIssues("indicators", check, false);
+  }
 }

@@ -28,56 +28,49 @@
 package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
 import java.util.Map;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityOuInfo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 
 /**
- * @deprecated this is a class related to "old" (deprecated) tracker which will
- *             be removed with "old" tracker. Make sure to plan migrating to new
- *             tracker.
+ * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
+ *     "old" tracker. Make sure to plan migrating to new tracker.
  */
-@Deprecated( since = "2.41" )
-public class EventContext
-{
-    private final Map<String, TrackedEntityOuInfo> trackedEntityOuInfoByUid;
+@Deprecated(since = "2.41")
+public class EventContext {
+  private final Map<String, TrackedEntityOuInfo> trackedEntityOuInfoByUid;
 
-    private final Map<String, Program> programsByUid;
+  private final Map<String, Program> programsByUid;
 
-    private final Map<Pair<String, String>, String> orgUnitByTeiUidAndProgramUidPairs;
+  private final Map<Pair<String, String>, String> orgUnitByTeiUidAndProgramUidPairs;
 
-    private final Map<String, OrganisationUnit> orgUnitsByUid;
+  private final Map<String, OrganisationUnit> orgUnitsByUid;
 
-    public EventContext( Map<String, TrackedEntityOuInfo> trackedEntityOuInfoByUid,
-        Map<String, Program> programsByUid,
-        Map<Pair<String, String>, String> orgUnitByTeiUidAndProgramUidPairs,
-        Map<String, OrganisationUnit> orgUnitsByUid )
-    {
-        this.trackedEntityOuInfoByUid = trackedEntityOuInfoByUid;
-        this.programsByUid = programsByUid;
-        this.orgUnitByTeiUidAndProgramUidPairs = orgUnitByTeiUidAndProgramUidPairs;
-        this.orgUnitsByUid = orgUnitsByUid;
-    }
+  public EventContext(
+      Map<String, TrackedEntityOuInfo> trackedEntityOuInfoByUid,
+      Map<String, Program> programsByUid,
+      Map<Pair<String, String>, String> orgUnitByTeiUidAndProgramUidPairs,
+      Map<String, OrganisationUnit> orgUnitsByUid) {
+    this.trackedEntityOuInfoByUid = trackedEntityOuInfoByUid;
+    this.programsByUid = programsByUid;
+    this.orgUnitByTeiUidAndProgramUidPairs = orgUnitByTeiUidAndProgramUidPairs;
+    this.orgUnitsByUid = orgUnitsByUid;
+  }
 
-    public Map<String, TrackedEntityOuInfo> getTrackedEntityOuInfoByUid()
-    {
-        return trackedEntityOuInfoByUid;
-    }
+  public Map<String, TrackedEntityOuInfo> getTrackedEntityOuInfoByUid() {
+    return trackedEntityOuInfoByUid;
+  }
 
-    public Map<String, Program> getProgramsByUid()
-    {
-        return programsByUid;
-    }
+  public Map<String, Program> getProgramsByUid() {
+    return programsByUid;
+  }
 
-    public Map<Pair<String, String>, String> getOrgUnitByTeiUidAndProgramUidPairs()
-    {
-        return orgUnitByTeiUidAndProgramUidPairs;
-    }
+  public Map<Pair<String, String>, String> getOrgUnitByTeiUidAndProgramUidPairs() {
+    return orgUnitByTeiUidAndProgramUidPairs;
+  }
 
-    public Map<String, OrganisationUnit> getOrgUnitsByUid()
-    {
-        return orgUnitsByUid;
-    }
+  public Map<String, OrganisationUnit> getOrgUnitsByUid() {
+    return orgUnitsByUid;
+  }
 }

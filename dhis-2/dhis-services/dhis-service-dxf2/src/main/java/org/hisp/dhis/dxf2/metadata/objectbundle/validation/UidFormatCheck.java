@@ -31,7 +31,6 @@ import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtil
 
 import java.util.List;
 import java.util.function.Consumer;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -41,35 +40,44 @@ import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.springframework.stereotype.Component;
 
-/**
- * Validate UID format for creation of new object only.
- */
+/** Validate UID format for creation of new object only. */
 @Component
-public class UidFormatCheck implements ObjectValidationCheck
-{
-    @Override
-    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
-        List<T> persistedObjects, List<T> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
-    {
-        if ( persistedObjects.isEmpty() && nonPersistedObjects.isEmpty() )
-        {
-            return;
-        }
-
-        run( bundle, ctx, nonPersistedObjects, addReports );
+public class UidFormatCheck implements ObjectValidationCheck {
+  @Override
+  public <T extends IdentifiableObject> void check(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects,
+      ImportStrategy importStrategy,
+      ValidationContext ctx,
+      Consumer<ObjectReport> addReports) {
+    if (persistedObjects.isEmpty() && nonPersistedObjects.isEmpty()) {
+      return;
     }
 
-    private void run( ObjectBundle bundle, ValidationContext ctx, Iterable<? extends IdentifiableObject> list,
-        Consumer<ObjectReport> addReports )
-    {
-        list.forEach( object -> {
-            if ( !CodeGenerator.isValidUid( object.getUid() ) )
-            {
-                addReports.accept( createObjectReport( new ErrorReport( object.getClass(), ErrorCode.E4014,
-                    object.getUid(), object.getClass().getSimpleName() ), object, bundle ) );
-                ctx.markForRemoval( object );
-            }
-        } );
-    }
+    run(bundle, ctx, nonPersistedObjects, addReports);
+  }
+
+  private void run(
+      ObjectBundle bundle,
+      ValidationContext ctx,
+      Iterable<? extends IdentifiableObject> list,
+      Consumer<ObjectReport> addReports) {
+    list.forEach(
+        object -> {
+          if (!CodeGenerator.isValidUid(object.getUid())) {
+            addReports.accept(
+                createObjectReport(
+                    new ErrorReport(
+                        object.getClass(),
+                        ErrorCode.E4014,
+                        object.getUid(),
+                        object.getClass().getSimpleName()),
+                    object,
+                    bundle));
+            ctx.markForRemoval(object);
+          }
+        });
+  }
 }

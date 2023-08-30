@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.eventhook;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.PostConstruct;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.eventhook.handlers.ConsoleHandler;
 import org.hisp.dhis.eventhook.handlers.JmsHandler;
 import org.hisp.dhis.eventhook.handlers.KafkaHandler;
@@ -52,111 +52,85 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 /**
  * @author Morten Olav Hansen
  */
 @Component
 @RequiredArgsConstructor
-public class EventHookListener
-{
-    private final ObjectMapper objectMapper;
+public class EventHookListener {
+  private final ObjectMapper objectMapper;
 
-    private final FieldFilterService fieldFilterService;
+  private final FieldFilterService fieldFilterService;
 
-    private EventHookContext eventHookContext = EventHookContext.builder().build();
+  private EventHookContext eventHookContext = EventHookContext.builder().build();
 
-    private final EventHookService eventHookService;
+  private final EventHookService eventHookService;
 
-    @Async( "eventHookTaskExecutor" )
-    @TransactionalEventListener( classes = Event.class, phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true )
-    public void eventListener( Event event )
-        throws JsonProcessingException
-    {
-        for ( EventHook eventHook : eventHookContext.getEventHooks() )
-        {
-            if ( event.getPath().startsWith( eventHook.getSource().getPath() ) )
-            {
-                if ( !eventHookContext.hasTarget( eventHook.getUid() ) )
-                {
-                    continue;
-                }
-
-                if ( event.getObject() instanceof Collection )
-                {
-                    List<ObjectNode> objects = new ArrayList<>();
-
-                    for ( Object object : ((Collection<?>) event.getObject()) )
-                    {
-                        objects.add( fieldFilterService.toObjectNode( object, eventHook.getSource().getFields() ) );
-                    }
-
-                    event = event.withObject( objects );
-                }
-                else
-                {
-                    ObjectNode objectNode = fieldFilterService.toObjectNode( event.getObject(),
-                        eventHook.getSource().getFields() );
-                    event = event.withObject( objectNode );
-                }
-
-                String payload = objectMapper.writeValueAsString( event );
-
-                List<Handler> handlers = eventHookContext.getTarget( eventHook.getUid() );
-
-                for ( Handler handler : handlers )
-                {
-                    handler.run( eventHook, event, payload );
-                }
-            }
-        }
-    }
-
-    @PostConstruct
-    @EventListener( ReloadEventHookListeners.class )
-    public void reload()
-    {
-        eventHookContext.closeTargets();
-
-        List<EventHook> eventHooks = eventHookService.getAll();
-        Map<String, List<Handler>> targets = new HashMap<>();
-
-        for ( EventHook eh : eventHooks )
-        {
-            if ( eh.isDisabled() )
-            {
-                continue;
-            }
-
-            targets.put( eh.getUid(), new ArrayList<>() );
-
-            for ( Target target : eh.getTargets() )
-            {
-                if ( WebhookTarget.TYPE.equals( target.getType() ) )
-                {
-                    targets.get( eh.getUid() ).add( new WebhookHandler( (WebhookTarget) target ) );
-                }
-                else if ( ConsoleTarget.TYPE.equals( target.getType() ) )
-                {
-                    targets.get( eh.getUid() ).add( new ConsoleHandler( (ConsoleTarget) target ) );
-                }
-                else if ( JmsTarget.TYPE.equals( target.getType() ) )
-                {
-                    targets.get( eh.getUid() ).add( new JmsHandler( (JmsTarget) target ) );
-                }
-                else if ( KafkaTarget.TYPE.equals( target.getType() ) )
-                {
-                    targets.get( eh.getUid() ).add( new KafkaHandler( (KafkaTarget) target ) );
-                }
-            }
+  @Async("eventHookTaskExecutor")
+  @TransactionalEventListener(
+      classes = Event.class,
+      phase = TransactionPhase.AFTER_COMMIT,
+      fallbackExecution = true)
+  public void eventListener(Event event) throws JsonProcessingException {
+    for (EventHook eventHook : eventHookContext.getEventHooks()) {
+      if (event.getPath().startsWith(eventHook.getSource().getPath())) {
+        if (!eventHookContext.hasTarget(eventHook.getUid())) {
+          continue;
         }
 
-        eventHookContext = EventHookContext.builder()
-            .eventHooks( eventHooks )
-            .targets( targets )
-            .build();
+        if (event.getObject() instanceof Collection) {
+          List<ObjectNode> objects = new ArrayList<>();
+
+          for (Object object : ((Collection<?>) event.getObject())) {
+            objects.add(fieldFilterService.toObjectNode(object, eventHook.getSource().getFields()));
+          }
+
+          event = event.withObject(objects);
+        } else {
+          ObjectNode objectNode =
+              fieldFilterService.toObjectNode(event.getObject(), eventHook.getSource().getFields());
+          event = event.withObject(objectNode);
+        }
+
+        String payload = objectMapper.writeValueAsString(event);
+
+        List<Handler> handlers = eventHookContext.getTarget(eventHook.getUid());
+
+        for (Handler handler : handlers) {
+          handler.run(eventHook, event, payload);
+        }
+      }
     }
+  }
+
+  @PostConstruct
+  @EventListener(ReloadEventHookListeners.class)
+  public void reload() {
+    eventHookContext.closeTargets();
+
+    List<EventHook> eventHooks = eventHookService.getAll();
+    Map<String, List<Handler>> targets = new HashMap<>();
+
+    for (EventHook eh : eventHooks) {
+      if (eh.isDisabled()) {
+        continue;
+      }
+
+      targets.put(eh.getUid(), new ArrayList<>());
+
+      for (Target target : eh.getTargets()) {
+        if (WebhookTarget.TYPE.equals(target.getType())) {
+          targets.get(eh.getUid()).add(new WebhookHandler((WebhookTarget) target));
+        } else if (ConsoleTarget.TYPE.equals(target.getType())) {
+          targets.get(eh.getUid()).add(new ConsoleHandler((ConsoleTarget) target));
+        } else if (JmsTarget.TYPE.equals(target.getType())) {
+          targets.get(eh.getUid()).add(new JmsHandler((JmsTarget) target));
+        } else if (KafkaTarget.TYPE.equals(target.getType())) {
+          targets.get(eh.getUid()).add(new KafkaHandler((KafkaTarget) target));
+        }
+      }
+    }
+
+    eventHookContext = EventHookContext.builder().eventHooks(eventHooks).targets(targets).build();
+  }
 }

@@ -31,32 +31,29 @@ import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TE
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.query.AndCondition;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.Field;
 
 /**
- * A condition that checks if the given entity has coordinates. Renders to
- * tei."latitude" is not null and tei."longitude" is not null"
+ * A condition that checks if the given entity has coordinates. Renders to tei."latitude" is not
+ * null and tei."longitude" is not null"
  */
-public class CoordinatesOnlyCondition extends BaseRenderable
-{
-    public static final CoordinatesOnlyCondition INSTANCE = new CoordinatesOnlyCondition();
+public class CoordinatesOnlyCondition extends BaseRenderable {
+  public static final CoordinatesOnlyCondition INSTANCE = new CoordinatesOnlyCondition();
 
-    private static final String LATITUDE = "latitude";
+  private static final String LATITUDE = "latitude";
 
-    private static final String LONGITUDE = "longitude";
+  private static final String LONGITUDE = "longitude";
 
-    @Override
-    public String render()
-    {
-        return AndCondition.of(
-            Stream.of( LATITUDE, LONGITUDE )
-                .map( field -> Field.of( TEI_ALIAS, () -> field, StringUtils.EMPTY ) )
-                .map( IsNotNullCondition::of )
-                .collect( Collectors.toList() ) )
-            .render();
-    }
+  @Override
+  public String render() {
+    return AndCondition.of(
+            Stream.of(LATITUDE, LONGITUDE)
+                .map(field -> Field.of(TEI_ALIAS, () -> field, StringUtils.EMPTY))
+                .map(IsNotNullCondition::of)
+                .collect(Collectors.toList()))
+        .render();
+  }
 }

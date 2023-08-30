@@ -44,73 +44,61 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
- * Configuration registered if {@link RedisEnabledCondition} matches to true.
- * This class deals with the configuration properties for establishing
- * connection to a redis server.
+ * Configuration registered if {@link RedisEnabledCondition} matches to true. This class deals with
+ * the configuration properties for establishing connection to a redis server.
  *
  * @author Ameen Mohamed
- *
  */
 @Configuration
-@Conditional( RedisEnabledCondition.class )
-public class RedisConfiguration
-{
-    @Bean
-    public LettuceConnectionFactory lettuceConnectionFactory()
-    {
-        LettuceClientConfigurationBuilder builder = LettuceClientConfiguration.builder();
-        if ( DhisConfigurationProvider.isOn( (String) redisSslEnabled().getObject() ) )
-        {
-            builder.useSsl();
-        }
-        LettuceClientConfiguration clientConfiguration = builder.build();
-        RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration();
-        standaloneConfig.setHostName( (String) redisHost().getObject() );
-        standaloneConfig.setPassword( (String) redisPassword().getObject() );
-        standaloneConfig.setPort( Integer.parseInt( (String) redisPort().getObject() ) );
-        return new LettuceConnectionFactory( standaloneConfig, clientConfiguration );
+@Conditional(RedisEnabledCondition.class)
+public class RedisConfiguration {
+  @Bean
+  public LettuceConnectionFactory lettuceConnectionFactory() {
+    LettuceClientConfigurationBuilder builder = LettuceClientConfiguration.builder();
+    if (DhisConfigurationProvider.isOn((String) redisSslEnabled().getObject())) {
+      builder.useSsl();
     }
+    LettuceClientConfiguration clientConfiguration = builder.build();
+    RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration();
+    standaloneConfig.setHostName((String) redisHost().getObject());
+    standaloneConfig.setPassword((String) redisPassword().getObject());
+    standaloneConfig.setPort(Integer.parseInt((String) redisPort().getObject()));
+    return new LettuceConnectionFactory(standaloneConfig, clientConfiguration);
+  }
 
-    @Bean
-    public ConfigurationPropertyFactoryBean redisHost()
-    {
-        return new ConfigurationPropertyFactoryBean( ConfigurationKey.REDIS_HOST );
-    }
+  @Bean
+  public ConfigurationPropertyFactoryBean redisHost() {
+    return new ConfigurationPropertyFactoryBean(ConfigurationKey.REDIS_HOST);
+  }
 
-    @Bean
-    public ConfigurationPropertyFactoryBean redisPort()
-    {
-        return new ConfigurationPropertyFactoryBean( ConfigurationKey.REDIS_PORT );
-    }
+  @Bean
+  public ConfigurationPropertyFactoryBean redisPort() {
+    return new ConfigurationPropertyFactoryBean(ConfigurationKey.REDIS_PORT);
+  }
 
-    @Bean
-    public ConfigurationPropertyFactoryBean redisPassword()
-    {
-        return new ConfigurationPropertyFactoryBean( ConfigurationKey.REDIS_PASSWORD );
-    }
+  @Bean
+  public ConfigurationPropertyFactoryBean redisPassword() {
+    return new ConfigurationPropertyFactoryBean(ConfigurationKey.REDIS_PASSWORD);
+  }
 
-    @Bean
-    public ConfigurationPropertyFactoryBean redisSslEnabled()
-    {
-        return new ConfigurationPropertyFactoryBean( ConfigurationKey.REDIS_USE_SSL );
-    }
+  @Bean
+  public ConfigurationPropertyFactoryBean redisSslEnabled() {
+    return new ConfigurationPropertyFactoryBean(ConfigurationKey.REDIS_USE_SSL);
+  }
 
-    @Bean( name = "redisTemplate" )
-    @Primary
-    public RedisTemplate<?, ?> redisTemplate()
-    {
-        RedisTemplate<?, ?> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setConnectionFactory( lettuceConnectionFactory() );
-        redisTemplate.setKeySerializer( new StringRedisSerializer() );
-        return redisTemplate;
-    }
+  @Bean(name = "redisTemplate")
+  @Primary
+  public RedisTemplate<?, ?> redisTemplate() {
+    RedisTemplate<?, ?> redisTemplate = new RedisTemplate<>();
+    redisTemplate.setConnectionFactory(lettuceConnectionFactory());
+    redisTemplate.setKeySerializer(new StringRedisSerializer());
+    return redisTemplate;
+  }
 
-    @Bean( name = "stringRedisTemplate" )
-    public StringRedisTemplate stringRedisTemplate()
-    {
-        StringRedisTemplate stringRedisTemplate = new StringRedisTemplate();
-        stringRedisTemplate.setConnectionFactory( lettuceConnectionFactory() );
-        return stringRedisTemplate;
-    }
-
+  @Bean(name = "stringRedisTemplate")
+  public StringRedisTemplate stringRedisTemplate() {
+    StringRedisTemplate stringRedisTemplate = new StringRedisTemplate();
+    stringRedisTemplate.setConnectionFactory(lettuceConnectionFactory());
+    return stringRedisTemplate;
+  }
 }

@@ -27,42 +27,40 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import java.util.List;
-
+import java.util.Set;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 
-public interface TrackedEntityService
-{
-    TrackedEntity getTrackedEntity( String uid, TrackedEntityParams params )
-        throws NotFoundException,
-        ForbiddenException;
+public interface TrackedEntityService {
 
-    TrackedEntity getTrackedEntity( TrackedEntity trackedEntity, TrackedEntityParams params )
-        throws NotFoundException,
-        ForbiddenException;
+  TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params, boolean includeDeleted)
+      throws NotFoundException, ForbiddenException;
 
-    TrackedEntity getTrackedEntity( String uid, String programIdentifier, TrackedEntityParams params )
-        throws NotFoundException,
-        ForbiddenException;
+  TrackedEntity getTrackedEntity(
+      TrackedEntity trackedEntity, TrackedEntityParams params, boolean includeDeleted)
+      throws ForbiddenException;
 
-    /**
-     * Fetches {@see TrackedEntity}s based on the specified parameters.
-     *
-     * @param queryParams a {@see TrackedEntityQueryParams} instance with the
-     *        query parameters
-     * @param params a {@see TrackedEntityParams} instance containing the
-     *        directives for how much data should be fetched (e.g. Enrollments,
-     *        Events, Relationships)
-     * @return {@see TrackedEntity}s
-     */
-    List<TrackedEntity> getTrackedEntities( TrackedEntityQueryParams queryParams,
-        TrackedEntityParams params )
-        throws ForbiddenException,
-        NotFoundException;
+  TrackedEntity getTrackedEntity(
+      String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
+      throws NotFoundException, ForbiddenException;
 
-    int getTrackedEntityCount( TrackedEntityQueryParams params, boolean skipAccessValidation,
-        boolean skipSearchScopeValidation );
+  /**
+   * Fetches {@see TrackedEntity}s based on the specified parameters.
+   *
+   * @param operationParams a {@see TrackedEntityOperationParams} instance with the operation
+   *     parameters
+   * @return {@see TrackedEntity}s
+   */
+  TrackedEntities getTrackedEntities(TrackedEntityOperationParams operationParams)
+      throws ForbiddenException, NotFoundException, BadRequestException;
+
+  /**
+   * Fields the {@link #getTrackedEntities(TrackedEntityOperationParams)} can order tracked entities
+   * by. Ordering by fields other than these is considered a programmer error. Validation of user
+   * provided field names should occur before calling {@link
+   * #getTrackedEntities(TrackedEntityOperationParams)}.
+   */
+  Set<String> getOrderableFields();
 }

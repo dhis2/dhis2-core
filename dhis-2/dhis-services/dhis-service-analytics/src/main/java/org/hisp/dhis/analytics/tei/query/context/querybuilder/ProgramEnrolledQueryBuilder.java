@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
 import java.util.List;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
@@ -40,31 +39,25 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.stereotype.Service;
 
 /**
- * This class is responsible for adding the "is enrolled in program" filter to
- * the sql query. The generated conditions are "ungrouped", since each one needs
- * to be a separate "AND" condition.
+ * This class is responsible for adding the "is enrolled in program" filter to the sql query. The
+ * generated conditions are "ungrouped", since each one needs to be a separate "AND" condition.
  */
 @Service
-public class ProgramEnrolledQueryBuilder extends SqlQueryBuilderAdaptor
-{
-    @Override
-    protected Stream<GroupableCondition> getWhereClauses( QueryContext queryContext,
-        List<DimensionIdentifier<DimensionParam>> unused )
-    {
-        return queryContext.getTeiQueryParams().getCommonParams()
-            .getPrograms().stream()
-            .map( IdentifiableObject::getUid )
-            .map( ProgramEnrolledQueryBuilder::asUngroupedEnrolledInProgramCondition );
-    }
+public class ProgramEnrolledQueryBuilder extends SqlQueryBuilderAdaptor {
+  @Override
+  protected Stream<GroupableCondition> getWhereClauses(
+      QueryContext queryContext, List<DimensionIdentifier<DimensionParam>> unused) {
+    return queryContext.getTeiQueryParams().getCommonParams().getPrograms().stream()
+        .map(IdentifiableObject::getUid)
+        .map(ProgramEnrolledQueryBuilder::asUngroupedEnrolledInProgramCondition);
+  }
 
-    private static GroupableCondition asUngroupedEnrolledInProgramCondition( String programUid )
-    {
-        return GroupableCondition.ofUngroupedCondition( EnrolledInProgramCondition.of( programUid ) );
-    }
+  private static GroupableCondition asUngroupedEnrolledInProgramCondition(String programUid) {
+    return GroupableCondition.ofUngroupedCondition(EnrolledInProgramCondition.of(programUid));
+  }
 
-    @Override
-    public boolean alwaysRun()
-    {
-        return true;
-    }
+  @Override
+  public boolean alwaysRun() {
+    return true;
+  }
 }

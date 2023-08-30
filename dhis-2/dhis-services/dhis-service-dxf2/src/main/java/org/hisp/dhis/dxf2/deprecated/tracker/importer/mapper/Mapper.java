@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.deprecated.tracker.importer.mapper;
 /**
  * @author Luciano Fiandesio
  */
-public interface Mapper<T, E>
-{
-    E map( T object );
+public interface Mapper<T, E> {
+  E map(T object);
 }

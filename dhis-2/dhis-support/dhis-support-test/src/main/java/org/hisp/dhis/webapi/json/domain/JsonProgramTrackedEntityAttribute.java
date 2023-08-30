@@ -32,6 +32,4 @@ import org.hisp.dhis.jsontree.JsonObject;
 /**
  * @author David Mackessy
  */
-public interface JsonProgramTrackedEntityAttribute extends JsonObject, JsonNameableObject
-{
-}
+public interface JsonProgramTrackedEntityAttribute extends JsonObject, JsonNameableObject {}

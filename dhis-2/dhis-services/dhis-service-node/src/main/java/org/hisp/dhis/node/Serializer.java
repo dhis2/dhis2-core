@@ -33,10 +33,8 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface Serializer<T>
-{
-    List<String> contentTypes();
+public interface Serializer<T> {
+  List<String> contentTypes();
 
-    void serialize( T object, OutputStream outputStream )
-        throws Exception;
+  void serialize(T object, OutputStream outputStream) throws Exception;
 }

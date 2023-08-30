@@ -31,53 +31,50 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
-
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.junit.jupiter.api.Test;
 
-class ConstantValuesRendererTest
-{
-    @Test
-    void testSingleValue()
-    {
-        SqlParameterManager parameterManager = new SqlParameterManager();
-        QueryContext queryContext = QueryContext.of( null, parameterManager );
-        String render = ConstantValuesRenderer.of( "test", ValueTypeMapping.STRING, queryContext ).render();
-        assertEquals( ":1", render );
-        assertEquals( "test", parameterManager.getParametersPlaceHolder().get( "1" ) );
-    }
+class ConstantValuesRendererTest {
+  @Test
+  void testSingleValue() {
+    SqlParameterManager parameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, parameterManager);
+    String render =
+        ConstantValuesRenderer.of("test", ValueTypeMapping.STRING, queryContext).render();
+    assertEquals(":1", render);
+    assertEquals("test", parameterManager.getParametersPlaceHolder().get("1"));
+  }
 
-    @Test
-    void testSingleValueNV()
-    {
-        SqlParameterManager parameterManager = new SqlParameterManager();
-        QueryContext queryContext = QueryContext.of( null, parameterManager );
-        String render = ConstantValuesRenderer.of( "NV", ValueTypeMapping.STRING, queryContext ).render();
-        assertEquals( "", render );
-        assertNull( parameterManager.getParametersPlaceHolder().get( "1" ) );
-    }
+  @Test
+  void testSingleValueNV() {
+    SqlParameterManager parameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, parameterManager);
+    String render = ConstantValuesRenderer.of("NV", ValueTypeMapping.STRING, queryContext).render();
+    assertEquals("", render);
+    assertNull(parameterManager.getParametersPlaceHolder().get("1"));
+  }
 
-    @Test
-    void testMultipleValues()
-    {
-        SqlParameterManager parameterManager = new SqlParameterManager();
-        QueryContext queryContext = QueryContext.of( null, parameterManager );
-        List<String> arguments = List.of( "test1", "test2" );
-        String render = ConstantValuesRenderer.of( arguments, ValueTypeMapping.STRING, queryContext ).render();
-        assertEquals( ":1", render );
-        assertEquals( arguments, parameterManager.getParametersPlaceHolder().get( "1" ) );
-    }
+  @Test
+  void testMultipleValues() {
+    SqlParameterManager parameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, parameterManager);
+    List<String> arguments = List.of("test1", "test2");
+    String render =
+        ConstantValuesRenderer.of(arguments, ValueTypeMapping.STRING, queryContext).render();
+    assertEquals(":1", render);
+    assertEquals(arguments, parameterManager.getParametersPlaceHolder().get("1"));
+  }
 
-    @Test
-    void testMultipleValuesNV()
-    {
-        SqlParameterManager parameterManager = new SqlParameterManager();
-        QueryContext queryContext = QueryContext.of( null, parameterManager );
-        List<String> arguments = List.of( "test1", "test2", "NV" );
-        String render = ConstantValuesRenderer.of( arguments, ValueTypeMapping.STRING, queryContext ).render();
-        assertEquals( ":1", render );
-        assertEquals( arguments.subList( 0, 2 ), parameterManager.getParametersPlaceHolder().get( "1" ) );
-    }
+  @Test
+  void testMultipleValuesNV() {
+    SqlParameterManager parameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, parameterManager);
+    List<String> arguments = List.of("test1", "test2", "NV");
+    String render =
+        ConstantValuesRenderer.of(arguments, ValueTypeMapping.STRING, queryContext).render();
+    assertEquals(":1", render);
+    assertEquals(arguments.subList(0, 2), parameterManager.getParametersPlaceHolder().get("1"));
+  }
 }

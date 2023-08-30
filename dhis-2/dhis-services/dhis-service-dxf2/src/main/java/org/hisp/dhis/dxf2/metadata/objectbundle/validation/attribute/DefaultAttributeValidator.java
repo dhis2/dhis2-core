@@ -33,9 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -44,64 +42,65 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 /**
- * Validate {@link AttributeValue} using series of predefined validator function
- * such as {@link NumberCheck}, {@link DateCheck}, {@link TextCheck},
- * {@link EntityCheck}, {@link UserCheck}.
+ * Validate {@link AttributeValue} using series of predefined validator function such as {@link
+ * NumberCheck}, {@link DateCheck}, {@link TextCheck}, {@link EntityCheck}, {@link UserCheck}.
  *
  * @author viet
  */
 @Component
 @RequiredArgsConstructor
-public class DefaultAttributeValidator implements AttributeValidator
-{
-    private final IdentifiableObjectManager manager;
+public class DefaultAttributeValidator implements AttributeValidator {
+  private final IdentifiableObjectManager manager;
 
-    private final UserService userService;
+  private final UserService userService;
 
-    private final Map<ValueType, Function<String, List<ErrorReport>>> mapValidators = Map.ofEntries(
-        new SimpleImmutableEntry<>( ValueType.INTEGER, NumberCheck.isInteger ),
-        new SimpleImmutableEntry<>( ValueType.INTEGER_POSITIVE, NumberCheck.isPositiveInteger ),
-        new SimpleImmutableEntry<>( ValueType.INTEGER_NEGATIVE, NumberCheck.isNegativeInteger ),
-        new SimpleImmutableEntry<>( ValueType.NUMBER, NumberCheck.isNumber ),
-        new SimpleImmutableEntry<>( ValueType.INTEGER_ZERO_OR_POSITIVE, NumberCheck.isZeroOrPositiveInteger ),
-        new SimpleImmutableEntry<>( ValueType.PERCENTAGE, NumberCheck.isPercentage ),
-        new SimpleImmutableEntry<>( ValueType.UNIT_INTERVAL, NumberCheck.isUnitInterval ),
-        new SimpleImmutableEntry<>( ValueType.PHONE_NUMBER, NumberCheck.isPhoneNumber ),
-        new SimpleImmutableEntry<>( ValueType.DATE, DateCheck.isDate ),
-        new SimpleImmutableEntry<>( ValueType.DATETIME, DateCheck.isDateTime ),
-        new SimpleImmutableEntry<>( ValueType.BOOLEAN, TextCheck.isBoolean ),
-        new SimpleImmutableEntry<>( ValueType.TRUE_ONLY, TextCheck.isTrueOnly ),
-        new SimpleImmutableEntry<>( ValueType.EMAIL, TextCheck.isEmail ) );
+  private final Map<ValueType, Function<String, List<ErrorReport>>> mapValidators =
+      Map.ofEntries(
+          new SimpleImmutableEntry<>(ValueType.INTEGER, NumberCheck.isInteger),
+          new SimpleImmutableEntry<>(ValueType.INTEGER_POSITIVE, NumberCheck.isPositiveInteger),
+          new SimpleImmutableEntry<>(ValueType.INTEGER_NEGATIVE, NumberCheck.isNegativeInteger),
+          new SimpleImmutableEntry<>(ValueType.NUMBER, NumberCheck.isNumber),
+          new SimpleImmutableEntry<>(
+              ValueType.INTEGER_ZERO_OR_POSITIVE, NumberCheck.isZeroOrPositiveInteger),
+          new SimpleImmutableEntry<>(ValueType.PERCENTAGE, NumberCheck.isPercentage),
+          new SimpleImmutableEntry<>(ValueType.UNIT_INTERVAL, NumberCheck.isUnitInterval),
+          new SimpleImmutableEntry<>(ValueType.PHONE_NUMBER, NumberCheck.isPhoneNumber),
+          new SimpleImmutableEntry<>(ValueType.DATE, DateCheck.isDate),
+          new SimpleImmutableEntry<>(ValueType.DATETIME, DateCheck.isDateTime),
+          new SimpleImmutableEntry<>(ValueType.BOOLEAN, TextCheck.isBoolean),
+          new SimpleImmutableEntry<>(ValueType.TRUE_ONLY, TextCheck.isTrueOnly),
+          new SimpleImmutableEntry<>(ValueType.EMAIL, TextCheck.isEmail));
 
-    private final Map<ValueType, EntityCheck> mapEntityCheck = Map.ofEntries(
-        new SimpleImmutableEntry<>( ValueType.ORGANISATION_UNIT, EntityCheck.isOrganisationUnitExist ),
-        new SimpleImmutableEntry<>( ValueType.FILE_RESOURCE, EntityCheck.isFileResourceExist ) );
+  private final Map<ValueType, EntityCheck> mapEntityCheck =
+      Map.ofEntries(
+          new SimpleImmutableEntry<>(
+              ValueType.ORGANISATION_UNIT, EntityCheck.isOrganisationUnitExist),
+          new SimpleImmutableEntry<>(ValueType.FILE_RESOURCE, EntityCheck.isFileResourceExist));
 
-    private final Map<ValueType, UserCheck.Function> mapUserCheck = Map.ofEntries(
-        new SimpleImmutableEntry<>( ValueType.USERNAME, UserCheck.isUserNameExist ) );
+  private final Map<ValueType, UserCheck.Function> mapUserCheck =
+      Map.ofEntries(new SimpleImmutableEntry<>(ValueType.USERNAME, UserCheck.isUserNameExist));
 
-    /**
-     * Call all predefined map of validators for checking given value and
-     * {@link ValueType}.
-     * <p>
-     * If there is no validator defined for given {@link ValueType} then return
-     * emptyList.
-     *
-     * @param valueType Metadata Attribute {@link ValueType}.
-     * @param value the value for validating.
-     * @param addError {@link Consumer} which will accept generated
-     *        {@link ErrorReport}
-     */
-    @Override
-    public void validate( ValueType valueType, String value, Consumer<ErrorReport> addError )
-    {
-        mapValidators.getOrDefault( valueType, str -> List.of() ).apply( value ).forEach( addError::accept );
+  /**
+   * Call all predefined map of validators for checking given value and {@link ValueType}.
+   *
+   * <p>If there is no validator defined for given {@link ValueType} then return emptyList.
+   *
+   * @param valueType Metadata Attribute {@link ValueType}.
+   * @param value the value for validating.
+   * @param addError {@link Consumer} which will accept generated {@link ErrorReport}
+   */
+  @Override
+  public void validate(ValueType valueType, String value, Consumer<ErrorReport> addError) {
+    mapValidators.getOrDefault(valueType, str -> List.of()).apply(value).forEach(addError::accept);
 
-        mapEntityCheck.getOrDefault( valueType, EntityCheck.empty )
-            .apply( value, klass -> manager.get( klass, value ) != null ).forEach( addError::accept );
+    mapEntityCheck
+        .getOrDefault(valueType, EntityCheck.empty)
+        .apply(value, klass -> manager.get(klass, value) != null)
+        .forEach(addError::accept);
 
-        mapUserCheck.getOrDefault( valueType, UserCheck.empty )
-            .apply( value, userService )
-            .forEach( addError::accept );
-    }
+    mapUserCheck
+        .getOrDefault(valueType, UserCheck.empty)
+        .apply(value, userService)
+        .forEach(addError::accept);
+  }
 }

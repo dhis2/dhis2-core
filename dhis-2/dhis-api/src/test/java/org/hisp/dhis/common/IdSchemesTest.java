@@ -29,29 +29,49 @@ package org.hisp.dhis.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
-class IdSchemesTest
-{
+class IdSchemesTest {
 
-    @Test
-    void testGetIdScheme()
-    {
-        IdSchemes schemes = new IdSchemes();
-        schemes.setDataElementIdScheme( IdScheme.UID.name() );
-        schemes.setIdScheme( IdScheme.CODE.name() );
-        assertEquals( IdScheme.UID, schemes.getDataElementIdScheme() );
-        assertEquals( IdScheme.CODE, schemes.getOrgUnitIdScheme() );
-        assertEquals( IdScheme.CODE, schemes.getIdScheme() );
-    }
+  @Test
+  void testGetIdScheme() {
+    IdSchemes schemes = new IdSchemes();
+    schemes.setDataElementIdScheme(IdScheme.UID.name());
+    schemes.setIdScheme(IdScheme.CODE.name());
+    assertEquals(IdScheme.UID, schemes.getDataElementIdScheme());
+    assertEquals(IdScheme.CODE, schemes.getOrgUnitIdScheme());
+    assertEquals(IdScheme.CODE, schemes.getIdScheme());
+  }
 
-    @Test
-    void testFrom()
-    {
-        IdScheme schemeA = IdScheme.from( IdScheme.ATTR_ID_SCHEME_PREFIX + "abcdefghijA" );
-        IdScheme schemeB = IdScheme.from( "CODE" );
-        assertEquals( IdentifiableProperty.ATTRIBUTE, schemeA.getIdentifiableProperty() );
-        assertEquals( "abcdefghijA", schemeA.getAttribute() );
-        assertEquals( IdentifiableProperty.CODE, schemeB.getIdentifiableProperty() );
-    }
+  @Test
+  void testFrom() {
+    IdScheme schemeA = IdScheme.from(IdScheme.ATTR_ID_SCHEME_PREFIX + "abcdefghijA");
+    IdScheme schemeB = IdScheme.from("CODE");
+    assertEquals(IdentifiableProperty.ATTRIBUTE, schemeA.getIdentifiableProperty());
+    assertEquals("abcdefghijA", schemeA.getAttribute());
+    assertEquals(IdentifiableProperty.CODE, schemeB.getIdentifiableProperty());
+  }
+
+  @Test
+  void testSerializeIdSchemes() throws JsonProcessingException {
+    IdSchemes original = new IdSchemes();
+    original.setProgramIdScheme("CODE");
+    // language=JSON
+    String expected = """
+        {"programIdScheme":{"type":"CODE"}}""";
+    assertEquals(expected, new ObjectMapper().writeValueAsString(original));
+  }
+
+  @Test
+  void testDeserializeIdSchemes() throws JsonProcessingException {
+    IdSchemes expected = new IdSchemes();
+    expected.setProgramIdScheme("CODE");
+
+    ObjectMapper mapper = new ObjectMapper();
+    IdSchemes actual = mapper.readValue(mapper.writeValueAsString(expected), IdSchemes.class);
+    assertEquals(expected, actual);
+    assertEquals(IdentifiableProperty.CODE, actual.getProgramIdScheme().getIdentifiableProperty());
+  }
 }

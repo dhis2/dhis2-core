@@ -27,65 +27,54 @@
  */
 package org.hisp.dhis.sms.command;
 
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Nguyen Kim Lai
  */
-@JacksonXmlRootElement( localName = "smsspecialcharacter", namespace = DxfNamespaces.DXF_2_0 )
-public class SMSSpecialCharacter
-{
-    private int id;
+@JacksonXmlRootElement(localName = "smsspecialcharacter", namespace = DxfNamespaces.DXF_2_0)
+public class SMSSpecialCharacter {
+  private int id;
 
-    private String name;
+  private String name;
 
-    private String value;
+  private String value;
 
-    public SMSSpecialCharacter()
-    {
-    }
+  public SMSSpecialCharacter() {}
 
-    public SMSSpecialCharacter( String name, String value )
-    {
-        this.name = name;
-        this.value = value;
-    }
+  public SMSSpecialCharacter(String name, String value) {
+    this.name = name;
+    this.value = value;
+  }
 
-    public int getId()
-    {
-        return id;
-    }
+  public int getId() {
+    return id;
+  }
 
-    public void setId( int id )
-    {
-        this.id = id;
-    }
+  public void setId(int id) {
+    this.id = id;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty
-    public String getName()
-    {
-        return name;
-    }
+  @JsonProperty
+  @JacksonXmlProperty
+  public String getName() {
+    return name;
+  }
 
-    public void setName( String name )
-    {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty
-    public String getValue()
-    {
-        return value;
-    }
+  @JsonProperty
+  @JacksonXmlProperty
+  public String getValue() {
+    return value;
+  }
 
-    public void setValue( String value )
-    {
-        this.value = value;
-    }
+  public void setValue(String value) {
+    this.value = value;
+  }
 }

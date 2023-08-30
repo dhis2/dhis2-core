@@ -29,34 +29,25 @@ package org.hisp.dhis.webapi.controller.tracker;
 
 import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * Representation of
- * {@link org.hisp.dhis.webapi.controller.tracker.view.Relationship}.
- */
-public interface JsonRelationship extends JsonObject
-{
-    default String getRelationship()
-    {
-        return getString( "relationship" ).string();
-    }
+/** Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.Relationship}. */
+public interface JsonRelationship extends JsonObject {
+  default String getRelationship() {
+    return getString("relationship").string();
+  }
 
-    default String getRelationshipName()
-    {
-        return getString( "relationshipName" ).string();
-    }
+  default String getRelationshipName() {
+    return getString("relationshipName").string();
+  }
 
-    default String getRelationshipType()
-    {
-        return getString( "relationshipType" ).string();
-    }
+  default String getRelationshipType() {
+    return getString("relationshipType").string();
+  }
 
-    default JsonRelationshipItem getFrom()
-    {
-        return get( "from" ).as( JsonRelationshipItem.class );
-    }
+  default JsonRelationshipItem getFrom() {
+    return get("from").as(JsonRelationshipItem.class);
+  }
 
-    default JsonRelationshipItem getTo()
-    {
-        return get( "to" ).as( JsonRelationshipItem.class );
-    }
+  default JsonRelationshipItem getTo() {
+    return get("to").as(JsonRelationshipItem.class);
+  }
 }

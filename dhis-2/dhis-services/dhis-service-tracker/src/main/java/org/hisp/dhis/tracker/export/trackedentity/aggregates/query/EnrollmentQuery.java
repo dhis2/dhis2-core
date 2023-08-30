@@ -27,86 +27,83 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates.query;
 
-import java.util.Map;
-
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 
 /**
  * @author Luciano Fiandesio
  */
-public class EnrollmentQuery
-{
-    public enum COLUMNS
-    {
-        TEI_UID,
-        ID,
-        UID,
-        CREATED,
-        CREATEDCLIENT,
-        CREATED_BY,
-        UPDATED,
-        UPDATEDCLIENT,
-        LAST_UPDATED_BY,
-        STATUS,
-        GEOMETRY,
-        ENROLLMENTDATE,
-        INCIDENTDATE,
-        FOLLOWUP,
-        COMPLETED,
-        COMPLETEDBY,
-        STOREDBY,
-        DELETED,
-        PROGRAM_UID,
-        PROGRAM_FEATURE_TYPE,
-        TEI_TYPE_UID,
-        ORGUNIT_UID,
-        ORGUNIT_NAME
-    }
+public class EnrollmentQuery {
+  public enum COLUMNS {
+    TE_UID,
+    ID,
+    UID,
+    CREATED,
+    CREATEDCLIENT,
+    CREATED_BY,
+    UPDATED,
+    UPDATEDCLIENT,
+    LAST_UPDATED_BY,
+    STATUS,
+    GEOMETRY,
+    ENROLLMENTDATE,
+    INCIDENTDATE,
+    FOLLOWUP,
+    COMPLETED,
+    COMPLETEDBY,
+    STOREDBY,
+    DELETED,
+    PROGRAM_UID,
+    PROGRAM_FEATURE_TYPE,
+    TE_TYPE_UID,
+    ORGUNIT_UID,
+    ORGUNIT_NAME
+  }
 
-    public static final Map<COLUMNS, ? extends QueryElement> columnMap = ImmutableMap.<COLUMNS, QueryElement> builder()
-        .put( COLUMNS.TEI_UID, new TableColumn( "tei", "uid", "tei_uid" ) )
-        .put( COLUMNS.GEOMETRY, new Function( "ST_AsBinary", "pi", "geometry", "geometry" ) )
-        .put( COLUMNS.ID, new TableColumn( "pi", "programinstanceid" ) )
-        .put( COLUMNS.UID, new TableColumn( "pi", "uid" ) )
-        .put( COLUMNS.CREATED, new TableColumn( "pi", "created" ) )
-        .put( COLUMNS.CREATEDCLIENT, new TableColumn( "pi", "createdatclient" ) )
-        .put( COLUMNS.CREATED_BY, new TableColumn( "pi", "createdbyuserinfo" ) )
-        .put( COLUMNS.UPDATED, new TableColumn( "pi", "lastupdated" ) )
-        .put( COLUMNS.UPDATEDCLIENT, new TableColumn( "pi", "lastupdatedatclient" ) )
-        .put( COLUMNS.LAST_UPDATED_BY, new TableColumn( "pi", "lastupdatedbyuserinfo" ) )
-        .put( COLUMNS.STATUS, new TableColumn( "pi", "status" ) )
-        .put( COLUMNS.ENROLLMENTDATE, new TableColumn( "pi", "enrollmentdate" ) )
-        .put( COLUMNS.INCIDENTDATE, new TableColumn( "pi", "incidentdate" ) )
-        .put( COLUMNS.FOLLOWUP, new TableColumn( "pi", "followup" ) )
-        .put( COLUMNS.COMPLETED, new TableColumn( "pi", "enddate" ) )
-        .put( COLUMNS.COMPLETEDBY, new TableColumn( "pi", "completedby" ) )
-        .put( COLUMNS.STOREDBY, new TableColumn( "pi", "storedby" ) )
-        .put( COLUMNS.DELETED, new TableColumn( "pi", "deleted" ) )
-        .put( COLUMNS.PROGRAM_UID, new TableColumn( "p", "uid", "program_uid" ) )
-        .put( COLUMNS.PROGRAM_FEATURE_TYPE, new TableColumn( "p", "featuretype", "program_feature_type" ) )
-        .put( COLUMNS.TEI_TYPE_UID, new TableColumn( "tet", "uid", "type_uid" ) )
-        .put( COLUMNS.ORGUNIT_UID, new TableColumn( "o", "uid", "ou_uid" ) )
-        .put( COLUMNS.ORGUNIT_NAME, new TableColumn( "o", "name", "ou_name" ) )
-        .build();
+  public static final Map<COLUMNS, ? extends QueryElement> columnMap =
+      ImmutableMap.<COLUMNS, QueryElement>builder()
+          .put(COLUMNS.TE_UID, new TableColumn("te", "uid", "te_uid"))
+          .put(COLUMNS.GEOMETRY, new Function("ST_AsBinary", "en", "geometry", "geometry"))
+          .put(COLUMNS.ID, new TableColumn("en", "enrollmentid"))
+          .put(COLUMNS.UID, new TableColumn("en", "uid"))
+          .put(COLUMNS.CREATED, new TableColumn("en", "created"))
+          .put(COLUMNS.CREATEDCLIENT, new TableColumn("en", "createdatclient"))
+          .put(COLUMNS.CREATED_BY, new TableColumn("en", "createdbyuserinfo"))
+          .put(COLUMNS.UPDATED, new TableColumn("en", "lastupdated"))
+          .put(COLUMNS.UPDATEDCLIENT, new TableColumn("en", "lastupdatedatclient"))
+          .put(COLUMNS.LAST_UPDATED_BY, new TableColumn("en", "lastupdatedbyuserinfo"))
+          .put(COLUMNS.STATUS, new TableColumn("en", "status"))
+          .put(COLUMNS.ENROLLMENTDATE, new TableColumn("en", "enrollmentdate"))
+          .put(COLUMNS.INCIDENTDATE, new TableColumn("en", "incidentdate"))
+          .put(COLUMNS.FOLLOWUP, new TableColumn("en", "followup"))
+          .put(COLUMNS.COMPLETED, new TableColumn("en", "enddate"))
+          .put(COLUMNS.COMPLETEDBY, new TableColumn("en", "completedby"))
+          .put(COLUMNS.STOREDBY, new TableColumn("en", "storedby"))
+          .put(COLUMNS.DELETED, new TableColumn("en", "deleted"))
+          .put(COLUMNS.PROGRAM_UID, new TableColumn("p", "uid", "program_uid"))
+          .put(
+              COLUMNS.PROGRAM_FEATURE_TYPE,
+              new TableColumn("p", "featuretype", "program_feature_type"))
+          .put(COLUMNS.TE_TYPE_UID, new TableColumn("tet", "uid", "type_uid"))
+          .put(COLUMNS.ORGUNIT_UID, new TableColumn("o", "uid", "ou_uid"))
+          .put(COLUMNS.ORGUNIT_NAME, new TableColumn("o", "name", "ou_name"))
+          .build();
 
-    public static String getQuery()
-    {
-        return getSelect() +
-            "from programinstance pi " +
-            "join program p on pi.programid = p.programid " +
-            "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid " +
-            "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid " +
-            "join organisationunit o on tei.organisationunitid = o.organisationunitid " +
-            "where pi.trackedentityinstanceid in (:ids) ";
-    }
+  public static String getQuery() {
+    return getSelect()
+        + "from enrollment en "
+        + "join program p on en.programid = p.programid "
+        + "join trackedentity te on en.trackedentityid = te.trackedentityid "
+        + "join trackedentitytype tet on te.trackedentitytypeid = tet.trackedentitytypeid "
+        + "join organisationunit o on te.organisationunitid = o.organisationunitid "
+        + "where en.trackedentityid in (:ids) ";
+  }
 
-    private static String getSelect()
-    {
-        return QueryUtils.getSelect( columnMap.values() );
-    }
+  private static String getSelect() {
+    return QueryUtils.getSelect(columnMap.values());
+  }
 
-    public static String getColumnName( COLUMNS columns )
-    {
-        return columnMap.get( columns ).getResultsetValue();
-    }
+  public static String getColumnName(COLUMNS columns) {
+    return columnMap.get(columns).getResultsetValue();
+  }
 }

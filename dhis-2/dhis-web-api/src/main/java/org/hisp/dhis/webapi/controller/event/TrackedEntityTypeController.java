@@ -37,10 +37,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( "tracker" )
+@OpenApi.Tags("tracker")
 @Controller
-@RequestMapping( value = TrackedEntityTypeSchemaDescriptor.API_ENDPOINT )
-public class TrackedEntityTypeController
-    extends AbstractCrudController<TrackedEntityType>
-{
-}
+@RequestMapping(value = TrackedEntityTypeSchemaDescriptor.API_ENDPOINT)
+public class TrackedEntityTypeController extends AbstractCrudController<TrackedEntityType> {}

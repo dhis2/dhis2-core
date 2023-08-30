@@ -30,26 +30,22 @@ package org.hisp.dhis.common;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum MergeMode
-{
-    MERGE_ALWAYS,
-    MERGE_IF_NOT_NULL,
-    MERGE,
-    REPLACE,
-    NONE;
+public enum MergeMode {
+  MERGE_ALWAYS,
+  MERGE_IF_NOT_NULL,
+  MERGE,
+  REPLACE,
+  NONE;
 
-    public boolean isMerge()
-    {
-        return this == MERGE_IF_NOT_NULL || this == MERGE;
-    }
+  public boolean isMerge() {
+    return this == MERGE_IF_NOT_NULL || this == MERGE;
+  }
 
-    public boolean isReplace()
-    {
-        return this == MERGE_ALWAYS || this == REPLACE;
-    }
+  public boolean isReplace() {
+    return this == MERGE_ALWAYS || this == REPLACE;
+  }
 
-    public boolean isNone()
-    {
-        return this == NONE;
-    }
+  public boolean isNone() {
+    return this == NONE;
+  }
 }

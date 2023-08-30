@@ -30,9 +30,7 @@ package org.hisp.dhis.tracker.imports.programrule.executor.enrollment;
 import static org.hisp.dhis.tracker.imports.programrule.IssueType.WARNING;
 
 import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
@@ -42,32 +40,25 @@ import org.hisp.dhis.tracker.imports.programrule.executor.ValidationExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.ValidationRuleAction;
 
 /**
- * This executor shows warnings on a completed enrollment calculated by Rule
- * Engine.
- *
- * @Author Enrico Colasante
+ * This executor shows warnings on a completed enrollment calculated by Rule Engine. @Author Enrico
+ * Colasante
  */
 @RequiredArgsConstructor
-public class ShowWarningOnCompleteExecutor implements ValidationExecutor<Enrollment>
-{
-    private final ValidationRuleAction ruleAction;
+public class ShowWarningOnCompleteExecutor implements ValidationExecutor<Enrollment> {
+  private final ValidationRuleAction ruleAction;
 
-    @Override
-    public boolean needsToRun( Enrollment enrollment )
-    {
-        return EnrollmentStatus.COMPLETED == enrollment.getStatus();
-    }
+  @Override
+  public boolean needsToRun(Enrollment enrollment) {
+    return EnrollmentStatus.COMPLETED == enrollment.getStatus();
+  }
 
-    @Override
-    public IssueType getIssueType()
-    {
-        return WARNING;
-    }
+  @Override
+  public IssueType getIssueType() {
+    return WARNING;
+  }
 
-    @Override
-    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle,
-        Enrollment enrollment )
-    {
-        return execute( ruleAction, enrollment );
-    }
+  @Override
+  public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Enrollment enrollment) {
+    return execute(ruleAction, enrollment);
+  }
 }

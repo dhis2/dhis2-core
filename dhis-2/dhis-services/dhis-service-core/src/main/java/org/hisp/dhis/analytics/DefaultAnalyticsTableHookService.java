@@ -28,9 +28,7 @@
 package org.hisp.dhis.analytics;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,46 +37,39 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Lars Helge Overland
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.analytics.AnalyticsTableHookService" )
-public class DefaultAnalyticsTableHookService
-    implements AnalyticsTableHookService
-{
-    private final AnalyticsTableHookStore analyticsTableHookStore;
+@Service("org.hisp.dhis.analytics.AnalyticsTableHookService")
+public class DefaultAnalyticsTableHookService implements AnalyticsTableHookService {
+  private final AnalyticsTableHookStore analyticsTableHookStore;
 
-    @Override
-    @Transactional( readOnly = true )
-    public AnalyticsTableHook getByUid( String uid )
-    {
-        return analyticsTableHookStore.getByUid( uid );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public AnalyticsTableHook getByUid(String uid) {
+    return analyticsTableHookStore.getByUid(uid);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<AnalyticsTableHook> getByPhase( AnalyticsTablePhase phase )
-    {
-        return analyticsTableHookStore.getByPhase( phase );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<AnalyticsTableHook> getByPhase(AnalyticsTablePhase phase) {
+    return analyticsTableHookStore.getByPhase(phase);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<AnalyticsTableHook> getByPhaseAndResourceTableType( AnalyticsTablePhase phase,
-        ResourceTableType resourceTableType )
-    {
-        return analyticsTableHookStore.getByPhaseAndResourceTableType( phase, resourceTableType );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<AnalyticsTableHook> getByPhaseAndResourceTableType(
+      AnalyticsTablePhase phase, ResourceTableType resourceTableType) {
+    return analyticsTableHookStore.getByPhaseAndResourceTableType(phase, resourceTableType);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<AnalyticsTableHook> getByPhaseAndAnalyticsTableType( AnalyticsTablePhase phase,
-        AnalyticsTableType analyticsTableType )
-    {
-        return analyticsTableHookStore.getByPhaseAndAnalyticsTableType( phase, analyticsTableType );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<AnalyticsTableHook> getByPhaseAndAnalyticsTableType(
+      AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType) {
+    return analyticsTableHookStore.getByPhaseAndAnalyticsTableType(phase, analyticsTableType);
+  }
 
-    @Override
-    @Transactional
-    public void executeAnalyticsTableSqlHooks( List<AnalyticsTableHook> hooks )
-    {
-        analyticsTableHookStore.executeAnalyticsTableSqlHooks( hooks );
-    }
+  @Override
+  @Transactional
+  public void executeAnalyticsTableSqlHooks(List<AnalyticsTableHook> hooks) {
+    analyticsTableHookStore.executeAnalyticsTableSqlHooks(hooks);
+  }
 }

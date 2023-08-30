@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
@@ -41,65 +40,58 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Paulo Martins <martins.tuga@gmail.com>
  */
-class AbstractNodeTest
-{
+class AbstractNodeTest {
 
-    private static final String NODE_1 = "node1";
+  private static final String NODE_1 = "node1";
 
-    private static final String NODE_2 = "node2";
+  private static final String NODE_2 = "node2";
 
-    @Test
-    void testRootNodeEquals()
-    {
-        final RootNode rootNode1 = createRootNode( NODE_1, "propName1", "propValue1" );
-        final RootNode rootNode2 = createRootNode( NODE_1, "propName1", "propValue1" );
-        assertEquals( rootNode1, rootNode2 );
-    }
+  @Test
+  void testRootNodeEquals() {
+    final RootNode rootNode1 = createRootNode(NODE_1, "propName1", "propValue1");
+    final RootNode rootNode2 = createRootNode(NODE_1, "propName1", "propValue1");
+    assertEquals(rootNode1, rootNode2);
+  }
 
-    @Test
-    void testRootNodeNotEquals()
-    {
-        final RootNode rootNode1 = createRootNode( NODE_1, "propName1", "propValue1" );
-        final RootNode rootNode2 = createRootNode( NODE_1, "propName2", "propValue2" );
-        assertNotEquals( rootNode1, rootNode2 );
-    }
+  @Test
+  void testRootNodeNotEquals() {
+    final RootNode rootNode1 = createRootNode(NODE_1, "propName1", "propValue1");
+    final RootNode rootNode2 = createRootNode(NODE_1, "propName2", "propValue2");
+    assertNotEquals(rootNode1, rootNode2);
+  }
 
-    private RootNode createRootNode( String nodeName, String propertyName, String propertyValue )
-    {
-        RootNode rootNode = new RootNode( createComplexNode( nodeName ) );
-        rootNode.setDefaultNamespace( "testNamespace" );
-        rootNode.getConfig().getProperties().put( propertyName, propertyValue );
-        return rootNode;
-    }
+  private RootNode createRootNode(String nodeName, String propertyName, String propertyValue) {
+    RootNode rootNode = new RootNode(createComplexNode(nodeName));
+    rootNode.setDefaultNamespace("testNamespace");
+    rootNode.getConfig().getProperties().put(propertyName, propertyValue);
+    return rootNode;
+  }
 
-    @Test
-    void testComplexNodeEquals()
-    {
-        // Instantiating object 1
-        ComplexNode complexNode1 = createComplexNode( NODE_1 );
-        // Instantiating object 2
-        ComplexNode complexNode2 = createComplexNode( NODE_1 );
-        assertEquals( complexNode1, complexNode2 );
-    }
+  @Test
+  void testComplexNodeEquals() {
+    // Instantiating object 1
+    ComplexNode complexNode1 = createComplexNode(NODE_1);
+    // Instantiating object 2
+    ComplexNode complexNode2 = createComplexNode(NODE_1);
+    assertEquals(complexNode1, complexNode2);
+  }
 
-    @Test
-    void testComplexNodeNotEquals()
-    {
-        // Instantiating object 1
-        ComplexNode complexNode1 = createComplexNode( NODE_1 );
-        // Instantiating object 2
-        ComplexNode complexNode2 = createComplexNode( NODE_2 );
-        assertNotEquals( complexNode1, complexNode2 );
-    }
+  @Test
+  void testComplexNodeNotEquals() {
+    // Instantiating object 1
+    ComplexNode complexNode1 = createComplexNode(NODE_1);
+    // Instantiating object 2
+    ComplexNode complexNode2 = createComplexNode(NODE_2);
+    assertNotEquals(complexNode1, complexNode2);
+  }
 
-    private ComplexNode createComplexNode( String node1 )
-    {
-        ComplexNode complexNode1;
-        List<Node> children1 = new ArrayList<>();
-        children1.add( new SimpleNode( "id", node1 ) );
-        complexNode1 = new ComplexNode( "dataElement" );
-        complexNode1.setMetadata( false );
-        complexNode1.setChildren( children1 );
-        return complexNode1;
-    }
+  private ComplexNode createComplexNode(String node1) {
+    ComplexNode complexNode1;
+    List<Node> children1 = new ArrayList<>();
+    children1.add(new SimpleNode("id", node1));
+    complexNode1 = new ComplexNode("dataElement");
+    complexNode1.setMetadata(false);
+    complexNode1.setChildren(children1);
+    return complexNode1;
+  }
 }

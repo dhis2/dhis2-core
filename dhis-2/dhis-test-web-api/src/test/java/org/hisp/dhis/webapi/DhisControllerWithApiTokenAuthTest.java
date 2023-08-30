@@ -51,59 +51,53 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Base class for convenient testing of the web API on basis of
- * {@link org.hisp.dhis.jsontree.JsonMixed} responses, with API tokens.
- * <p>
- * This class differs from {@link DhisControllerConvenienceTest} in that this
- * base class also includes the {@link FilterChainProxy} so that we can
- * authenticate the request like it would in a normal running server.
+ * Base class for convenient testing of the web API on basis of {@link
+ * org.hisp.dhis.jsontree.JsonMixed} responses, with API tokens.
+ *
+ * <p>This class differs from {@link DhisControllerConvenienceTest} in that this base class also
+ * includes the {@link FilterChainProxy} so that we can authenticate the request like it would in a
+ * normal running server.
  *
  * @author Morten Svanæs
  */
-
-@ExtendWith( SpringExtension.class )
+@ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-@ContextConfiguration( classes = { ConfigProviderConfiguration.class, WebMvcConfig.class } )
-@ActiveProfiles( "test-h2" )
+@ContextConfiguration(classes = {ConfigProviderConfiguration.class, WebMvcConfig.class})
+@ActiveProfiles("test-h2")
 @IntegrationH2Test
 @Transactional
-public abstract class DhisControllerWithApiTokenAuthTest extends DhisMockMvcControllerTest
-{
+public abstract class DhisControllerWithApiTokenAuthTest extends DhisMockMvcControllerTest {
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
+  @Autowired private WebApplicationContext webApplicationContext;
 
-    @Autowired
-    private FilterChainProxy springSecurityFilterChain;
+  @Autowired private FilterChainProxy springSecurityFilterChain;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    protected MockMvc mvc;
+  protected MockMvc mvc;
 
-    protected User adminUser;
+  protected User adminUser;
 
-    @BeforeEach
-    public void setup()
-        throws Exception
-    {
-        userService = _userService;
+  @BeforeEach
+  public void setup() throws Exception {
+    userService = _userService;
 
-        clearSecurityContext();
-        adminUser = createAndAddAdminUser( "ALL" );
+    clearSecurityContext();
+    adminUser = createAndAddAdminUser("ALL");
 
-        mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).addFilter( springSecurityFilterChain )
+    mvc =
+        MockMvcBuilders.webAppContextSetup(webApplicationContext)
+            .addFilter(springSecurityFilterChain)
             .build();
 
-        injectSecurityContext( adminUser );
+    injectSecurityContext(adminUser);
 
-        TestUtils.executeStartupRoutines( webApplicationContext );
-    }
+    TestUtils.executeStartupRoutines(webApplicationContext);
+  }
 
-    @Override
-    protected final HttpResponse webRequest( MockHttpServletRequestBuilder request )
-    {
-        return failOnException(
-            () -> new HttpResponse( toResponse( mvc.perform( request ).andReturn().getResponse() ) ) );
-    }
+  @Override
+  protected final HttpResponse webRequest(MockHttpServletRequestBuilder request) {
+    return failOnException(
+        () -> new HttpResponse(toResponse(mvc.perform(request).andReturn().getResponse())));
+  }
 }

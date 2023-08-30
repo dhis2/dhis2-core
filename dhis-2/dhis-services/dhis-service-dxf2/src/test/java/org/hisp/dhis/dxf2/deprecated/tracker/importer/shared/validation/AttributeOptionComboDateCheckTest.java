@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.ImmutableEvent;
@@ -49,88 +48,82 @@ import org.mockito.quality.Strictness;
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-class AttributeOptionComboDateCheckTest extends BaseValidationTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+class AttributeOptionComboDateCheckTest extends BaseValidationTest {
 
-    private AttributeOptionComboDateCheck rule;
+  private AttributeOptionComboDateCheck rule;
 
-    private Program program;
+  private Program program;
 
-    private final String PROGRAM_UID = "ProgramUidA";
+  private final String PROGRAM_UID = "ProgramUidA";
 
-    @BeforeEach
-    void setUp()
-    {
-        rule = new AttributeOptionComboDateCheck();
-        program = new Program();
-        program.setUid( PROGRAM_UID );
-        program.setName( "TestProgram" );
-        event.setProgram( PROGRAM_UID );
+  @BeforeEach
+  void setUp() {
+    rule = new AttributeOptionComboDateCheck();
+    program = new Program();
+    program.setUid(PROGRAM_UID);
+    program.setName("TestProgram");
+    event.setProgram(PROGRAM_UID);
+  }
+
+  @Test
+  void failOnCategoryOptionStartDateBeforeEventDate() {
+    event.setEventDate("2019-05-01");
+    event.setDueDate("2019-05-10");
+    CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo("2020-01-01", true);
+    mockContext(categoryOptionCombo);
+    ImportSummary importSummary = rule.check(new ImmutableEvent(event), this.workContext);
+    assertHasError(
+        importSummary,
+        event,
+        "Event date 2019-05-01 is before start date 2020-01-01 for attributeOption 'test'");
+  }
+
+  @Test
+  void failOnCategoryOptionEndDateBeforeEventDate() {
+    event.setEventDate("2019-05-01");
+    event.setDueDate("2019-05-10");
+    CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo("2019-04-01", false);
+    mockContext(categoryOptionCombo);
+    ImportSummary importSummary = rule.check(new ImmutableEvent(event), this.workContext);
+    assertHasError(
+        importSummary,
+        event,
+        "Event date 2019-05-01 is after end date 2019-04-01 for attributeOption 'test' in program 'TestProgram'");
+  }
+
+  @Test
+  void succeedBeforeOpenDaysAfterCoEndDate() {
+    event.setEventDate("2019-05-01");
+    event.setDueDate("2019-05-10");
+    program.setOpenDaysAfterCoEndDate(31);
+    CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo("2019-04-01", false);
+    mockContext(categoryOptionCombo);
+    ImportSummary importSummary = rule.check(new ImmutableEvent(event), this.workContext);
+    assertNoError(importSummary);
+  }
+
+  private void mockContext(CategoryOptionCombo categoryOptionCombo) {
+    Map<String, CategoryOptionCombo> cocMap = new HashMap<>();
+    cocMap.put(event.getUid(), categoryOptionCombo);
+    when(workContext.getCategoryOptionComboMap()).thenReturn(cocMap);
+    Map<String, Program> programsMap = new HashMap<>();
+    programsMap.put(PROGRAM_UID, program);
+    when(workContext.getProgramsMap()).thenReturn(programsMap);
+  }
+
+  private CategoryOptionCombo createCategoryOptionCombo(String date, boolean startDate) {
+    CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
+    Set<CategoryOption> catOptions = new HashSet<>();
+    CategoryOption categoryOptionA = new CategoryOption();
+    categoryOptionA.setName("test");
+    if (startDate) {
+      categoryOptionA.setStartDate(DateUtils.parseDate(date));
+    } else {
+      categoryOptionA.setEndDate(DateUtils.parseDate(date));
     }
-
-    @Test
-    void failOnCategoryOptionStartDateBeforeEventDate()
-    {
-        event.setEventDate( "2019-05-01" );
-        event.setDueDate( "2019-05-10" );
-        CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( "2020-01-01", true );
-        mockContext( categoryOptionCombo );
-        ImportSummary importSummary = rule.check( new ImmutableEvent( event ), this.workContext );
-        assertHasError( importSummary, event,
-            "Event date 2019-05-01 is before start date 2020-01-01 for attributeOption 'test'" );
-    }
-
-    @Test
-    void failOnCategoryOptionEndDateBeforeEventDate()
-    {
-        event.setEventDate( "2019-05-01" );
-        event.setDueDate( "2019-05-10" );
-        CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( "2019-04-01", false );
-        mockContext( categoryOptionCombo );
-        ImportSummary importSummary = rule.check( new ImmutableEvent( event ), this.workContext );
-        assertHasError( importSummary, event,
-            "Event date 2019-05-01 is after end date 2019-04-01 for attributeOption 'test' in program 'TestProgram'" );
-    }
-
-    @Test
-    void succeedBeforeOpenDaysAfterCoEndDate()
-    {
-        event.setEventDate( "2019-05-01" );
-        event.setDueDate( "2019-05-10" );
-        program.setOpenDaysAfterCoEndDate( 31 );
-        CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( "2019-04-01", false );
-        mockContext( categoryOptionCombo );
-        ImportSummary importSummary = rule.check( new ImmutableEvent( event ), this.workContext );
-        assertNoError( importSummary );
-    }
-
-    private void mockContext( CategoryOptionCombo categoryOptionCombo )
-    {
-        Map<String, CategoryOptionCombo> cocMap = new HashMap<>();
-        cocMap.put( event.getUid(), categoryOptionCombo );
-        when( workContext.getCategoryOptionComboMap() ).thenReturn( cocMap );
-        Map<String, Program> programsMap = new HashMap<>();
-        programsMap.put( PROGRAM_UID, program );
-        when( workContext.getProgramsMap() ).thenReturn( programsMap );
-    }
-
-    private CategoryOptionCombo createCategoryOptionCombo( String date, boolean startDate )
-    {
-        CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
-        Set<CategoryOption> catOptions = new HashSet<>();
-        CategoryOption categoryOptionA = new CategoryOption();
-        categoryOptionA.setName( "test" );
-        if ( startDate )
-        {
-            categoryOptionA.setStartDate( DateUtils.parseDate( date ) );
-        }
-        else
-        {
-            categoryOptionA.setEndDate( DateUtils.parseDate( date ) );
-        }
-        catOptions.add( categoryOptionA );
-        categoryOptionCombo.setCategoryOptions( catOptions );
-        return categoryOptionCombo;
-    }
+    catOptions.add(categoryOptionA);
+    categoryOptionCombo.setCategoryOptions(catOptions);
+    return categoryOptionCombo;
+  }
 }

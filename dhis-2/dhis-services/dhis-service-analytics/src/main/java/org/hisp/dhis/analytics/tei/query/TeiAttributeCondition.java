@@ -29,9 +29,7 @@ package org.hisp.dhis.analytics.tei.query;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -42,33 +40,31 @@ import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.OrCondition;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class TeiAttributeCondition extends BaseRenderable
-{
-    private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
+@RequiredArgsConstructor(staticName = "of")
+public class TeiAttributeCondition extends BaseRenderable {
+  private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
-    private final QueryContext queryContext;
+  private final QueryContext queryContext;
 
-    @Override
-    public String render()
-    {
-        List<BinaryConditionRenderer> renderers = new ArrayList<>();
+  @Override
+  public String render() {
+    List<BinaryConditionRenderer> renderers = new ArrayList<>();
 
-        ValueTypeMapping valueTypeMapping = ValueTypeMapping
-            .fromValueType( dimensionIdentifier.getDimension().getValueType() );
+    ValueTypeMapping valueTypeMapping =
+        ValueTypeMapping.fromValueType(dimensionIdentifier.getDimension().getValueType());
 
-        for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
-        {
-            BinaryConditionRenderer binaryConditionRenderer = BinaryConditionRenderer.of(
-                Field.of( dimensionIdentifier.getDimension().getUid() ),
-                item.getOperator(),
-                item.getValues(),
-                valueTypeMapping,
-                queryContext );
+    for (DimensionParamItem item : dimensionIdentifier.getDimension().getItems()) {
+      BinaryConditionRenderer binaryConditionRenderer =
+          BinaryConditionRenderer.of(
+              Field.of(dimensionIdentifier.getDimension().getUid()),
+              item.getOperator(),
+              item.getValues(),
+              valueTypeMapping,
+              queryContext);
 
-            renderers.add( binaryConditionRenderer );
-        }
-
-        return OrCondition.of( renderers ).render();
+      renderers.add(binaryConditionRenderer);
     }
+
+    return OrCondition.of(renderers).render();
+  }
 }

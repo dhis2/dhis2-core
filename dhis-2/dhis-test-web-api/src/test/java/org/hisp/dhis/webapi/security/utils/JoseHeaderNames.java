@@ -30,31 +30,28 @@ package org.hisp.dhis.webapi.security.utils;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public final class JoseHeaderNames
-{
-    public static final String ALG = "alg";
+public final class JoseHeaderNames {
+  public static final String ALG = "alg";
 
-    public static final String JKU = "jku";
+  public static final String JKU = "jku";
 
-    public static final String JWK = "jwk";
+  public static final String JWK = "jwk";
 
-    public static final String KID = "kid";
+  public static final String KID = "kid";
 
-    public static final String X5U = "x5u";
+  public static final String X5U = "x5u";
 
-    public static final String X5C = "x5c";
+  public static final String X5C = "x5c";
 
-    public static final String X5T = "x5t";
+  public static final String X5T = "x5t";
 
-    public static final String X5T_S256 = "x5t#S256";
+  public static final String X5T_S256 = "x5t#S256";
 
-    public static final String TYP = "typ";
+  public static final String TYP = "typ";
 
-    public static final String CTY = "cty";
+  public static final String CTY = "cty";
 
-    public static final String CRIT = "crit";
+  public static final String CRIT = "crit";
 
-    private JoseHeaderNames()
-    {
-    }
+  private JoseHeaderNames() {}
 }

@@ -31,112 +31,103 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.scheduling.JobProgress;
-
-import com.google.common.collect.Lists;
 
 /**
  * Evaluates validation rules.
  *
  * @author Jim Grace
  */
-public class Validator
-{
-    /**
-     * Evaluates validation rules for a collection of organisation units. This
-     * method breaks the job down by organisation unit. It assigns the
-     * evaluation for each organisation unit to a task that can be evaluated
-     * independently in a multi-threaded environment.
-     * <p/>
-     * Return early with no results if there are no organisation units or no
-     * validation rules.
-     *
-     * @return a collection of any validations that were found
-     */
-    public static List<ValidationResult> validate( ValidationRunContext context, DataValidationRunner runner,
-        JobProgress progress )
-    {
-        int threadPoolSize = getThreadPoolSize( context );
+public class Validator {
+  /**
+   * Evaluates validation rules for a collection of organisation units. This method breaks the job
+   * down by organisation unit. It assigns the evaluation for each organisation unit to a task that
+   * can be evaluated independently in a multi-threaded environment.
+   *
+   * <p>Return early with no results if there are no organisation units or no validation rules.
+   *
+   * @return a collection of any validations that were found
+   */
+  public static List<ValidationResult> validate(
+      ValidationRunContext context, DataValidationRunner runner, JobProgress progress) {
+    int threadPoolSize = getThreadPoolSize(context);
 
-        if ( threadPoolSize == 0 || context.getPeriodTypeXs().isEmpty() )
-        {
-            return new ArrayList<>( context.getValidationResults() );
-        }
-
-        int chunkSize = ValidationRunContext.ORG_UNITS_PER_TASK;
-        List<ValidationChunk> orgUnitLists = splitIntoChunks( context, chunkSize );
-
-        progress.startingStage( "Evaluating validation rules in chunks of " + chunkSize, orgUnitLists.size(),
-            SKIP_ITEM_OUTLIER );
-        progress.runStageInParallel( threadPoolSize, orgUnitLists, ValidationChunk::toString,
-            chunk -> runner.run( chunk.getOrgUnits(), context ) );
-
-        progress.startingStage( "Reloading attribute option combos" );
-        progress.runStage(
-            () -> reloadAttributeOptionCombos( context.getValidationResults(), runner.getCategoryService() ) );
-
-        return new ArrayList<>( context.getValidationResults() );
+    if (threadPoolSize == 0 || context.getPeriodTypeXs().isEmpty()) {
+      return new ArrayList<>(context.getValidationResults());
     }
 
-    private static List<ValidationChunk> splitIntoChunks( ValidationRunContext context, int chunkSize )
-    {
-        List<ValidationChunk> chunks = new ArrayList<>();
-        for ( List<OrganisationUnit> partition : Lists.partition( context.getOrgUnits(), chunkSize ) )
-        {
-            chunks.add( new ValidationChunk( chunks.size(), chunkSize, partition ) );
-        }
-        return chunks;
+    int chunkSize = ValidationRunContext.ORG_UNITS_PER_TASK;
+    List<ValidationChunk> orgUnitLists = splitIntoChunks(context, chunkSize);
+
+    progress.startingStage(
+        "Evaluating validation rules in chunks of " + chunkSize,
+        orgUnitLists.size(),
+        SKIP_ITEM_OUTLIER);
+    progress.runStageInParallel(
+        threadPoolSize,
+        orgUnitLists,
+        ValidationChunk::toString,
+        chunk -> runner.run(chunk.getOrgUnits(), context));
+
+    progress.startingStage("Reloading attribute option combos");
+    progress.runStage(
+        () ->
+            reloadAttributeOptionCombos(
+                context.getValidationResults(), runner.getCategoryService()));
+
+    return new ArrayList<>(context.getValidationResults());
+  }
+
+  private static List<ValidationChunk> splitIntoChunks(
+      ValidationRunContext context, int chunkSize) {
+    List<ValidationChunk> chunks = new ArrayList<>();
+    for (List<OrganisationUnit> partition : Lists.partition(context.getOrgUnits(), chunkSize)) {
+      chunks.add(new ValidationChunk(chunks.size(), chunkSize, partition));
     }
+    return chunks;
+  }
 
-    /**
-     * Determines how many threads we should use for testing validation rules.
-     *
-     * @param context validation run context
-     * @return number of threads we should use for testing validation rules
-     */
-    private static int getThreadPoolSize( ValidationRunContext context )
-    {
-        return min( max( 2, SystemUtils.getCpuCores() - 1 ), context.getNumberOfTasks() );
+  /**
+   * Determines how many threads we should use for testing validation rules.
+   *
+   * @param context validation run context
+   * @return number of threads we should use for testing validation rules
+   */
+  private static int getThreadPoolSize(ValidationRunContext context) {
+    return min(max(2, SystemUtils.getCpuCores() - 1), context.getNumberOfTasks());
+  }
+
+  /** Reload attribute category option combos into this Hibernate context. */
+  private static void reloadAttributeOptionCombos(
+      Collection<ValidationResult> results, CategoryService categoryService) {
+    for (ValidationResult result : results) {
+      result.setAttributeOptionCombo(
+          categoryService.getCategoryOptionCombo(result.getAttributeOptionCombo().getId()));
     }
+  }
 
-    /**
-     * Reload attribute category option combos into this Hibernate context.
-     */
-    private static void reloadAttributeOptionCombos( Collection<ValidationResult> results,
-        CategoryService categoryService )
-    {
-        for ( ValidationResult result : results )
-        {
-            result.setAttributeOptionCombo( categoryService
-                .getCategoryOptionCombo( result.getAttributeOptionCombo().getId() ) );
-        }
+  @Getter
+  @AllArgsConstructor
+  private static class ValidationChunk {
+    private final int chunkNo;
+
+    private final int chunkSize;
+
+    private final List<OrganisationUnit> orgUnits;
+
+    @Override
+    public String toString() {
+      int offset = chunkNo * chunkSize;
+      return offset + "-" + (offset + orgUnits.size() - 1);
     }
-
-    @Getter
-    @AllArgsConstructor
-    private static class ValidationChunk
-    {
-        private final int chunkNo;
-
-        private final int chunkSize;
-
-        private final List<OrganisationUnit> orgUnits;
-
-        @Override
-        public String toString()
-        {
-            int offset = chunkNo * chunkSize;
-            return offset + "-" + (offset + orgUnits.size() - 1);
-        }
-    }
+  }
 }

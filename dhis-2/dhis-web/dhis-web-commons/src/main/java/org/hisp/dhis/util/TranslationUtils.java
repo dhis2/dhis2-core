@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
@@ -43,46 +42,39 @@ import org.hisp.dhis.translation.Translation;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public class TranslationUtils
-{
-    public static Map<String, String> getObjectPropertyValues( Schema schema, Object object )
-    {
-        if ( object == null )
-        {
-            return null;
-        }
-
-        List<Property> properties = schema.getTranslatableProperties();
-
-        Map<String, String> translations = new HashMap<>();
-
-        for ( Property property : properties )
-        {
-            translations.put( property.getName(), getProperty( object, property.getName() ) );
-        }
-
-        return translations;
+public class TranslationUtils {
+  public static Map<String, String> getObjectPropertyValues(Schema schema, Object object) {
+    if (object == null) {
+      return null;
     }
 
-    public static Map<String, String> convertTranslations( Set<Translation> translations, Locale locale )
-    {
+    List<Property> properties = schema.getTranslatableProperties();
 
-        if ( !ObjectUtils.allNonNull( translations, locale ) )
-        {
-            return null;
-        }
+    Map<String, String> translations = new HashMap<>();
 
-        Map<String, String> translationMap = new HashMap<>();
-
-        for ( Translation translation : translations )
-        {
-            if ( StringUtils.isNotEmpty( translation.getValue() )
-                && translation.getLocale().equalsIgnoreCase( locale.toString() ) )
-            {
-                translationMap.put( translation.getProperty(), translation.getValue() );
-            }
-        }
-
-        return translationMap;
+    for (Property property : properties) {
+      translations.put(property.getName(), getProperty(object, property.getName()));
     }
+
+    return translations;
+  }
+
+  public static Map<String, String> convertTranslations(
+      Set<Translation> translations, Locale locale) {
+
+    if (!ObjectUtils.allNonNull(translations, locale)) {
+      return null;
+    }
+
+    Map<String, String> translationMap = new HashMap<>();
+
+    for (Translation translation : translations) {
+      if (StringUtils.isNotEmpty(translation.getValue())
+          && translation.getLocale().equalsIgnoreCase(locale.toString())) {
+        translationMap.put(translation.getProperty(), translation.getValue());
+      }
+    }
+
+    return translationMap;
+  }
 }

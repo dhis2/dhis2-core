@@ -49,59 +49,52 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class MetaValidatorTest
-{
-    private static final String RELATIONSHIP_TYPE_UID = "RelationshipTypeUid";
+@ExtendWith(MockitoExtension.class)
+class MetaValidatorTest {
+  private static final String RELATIONSHIP_TYPE_UID = "RelationshipTypeUid";
 
-    private MetaValidator validator;
+  private MetaValidator validator;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    public void setUp()
-    {
-        validator = new MetaValidator();
+  @BeforeEach
+  public void setUp() {
+    validator = new MetaValidator();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
+    when(bundle.getPreheat()).thenReturn(preheat);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
-    }
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
+  }
 
-    @Test
-    void verifyRelationshipValidationSuccess()
-    {
-        Relationship relationship = validRelationship();
-        when( preheat.getRelationshipType( MetadataIdentifier.ofUid( RELATIONSHIP_TYPE_UID ) ) )
-            .thenReturn( new RelationshipType() );
+  @Test
+  void verifyRelationshipValidationSuccess() {
+    Relationship relationship = validRelationship();
+    when(preheat.getRelationshipType(MetadataIdentifier.ofUid(RELATIONSHIP_TYPE_UID)))
+        .thenReturn(new RelationshipType());
 
-        validator.validate( reporter, bundle, relationship );
+    validator.validate(reporter, bundle, relationship);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyRelationshipValidationFailsWhenRelationshipTypeIsNotPresentInDb()
-    {
-        Relationship relationship = validRelationship();
+  @Test
+  void verifyRelationshipValidationFailsWhenRelationshipTypeIsNotPresentInDb() {
+    Relationship relationship = validRelationship();
 
-        validator.validate( reporter, bundle, relationship );
+    validator.validate(reporter, bundle, relationship);
 
-        assertHasError( reporter, relationship, E4006 );
-    }
+    assertHasError(reporter, relationship, E4006);
+  }
 
-    private Relationship validRelationship()
-    {
-        return Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .relationshipType( MetadataIdentifier.ofUid( RELATIONSHIP_TYPE_UID ) )
-            .build();
-    }
+  private Relationship validRelationship() {
+    return Relationship.builder()
+        .relationship(CodeGenerator.generateUid())
+        .relationshipType(MetadataIdentifier.ofUid(RELATIONSHIP_TYPE_UID))
+        .build();
+  }
 }

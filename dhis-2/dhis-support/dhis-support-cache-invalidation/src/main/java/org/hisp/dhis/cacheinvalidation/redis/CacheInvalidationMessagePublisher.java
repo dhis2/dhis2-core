@@ -30,7 +30,6 @@ package org.hisp.dhis.cacheinvalidation.redis;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface CacheInvalidationMessagePublisher
-{
-    void publish( String channel, String message );
+public interface CacheInvalidationMessagePublisher {
+  void publish(String channel, String message);
 }

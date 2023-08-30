@@ -32,6 +32,4 @@ import org.hisp.dhis.jsontree.JsonObject;
 /**
  * @author David Mackessy
  */
-public interface JsonProgramSection extends JsonObject, JsonIdentifiableObject
-{
-}
+public interface JsonProgramSection extends JsonObject, JsonIdentifiableObject {}

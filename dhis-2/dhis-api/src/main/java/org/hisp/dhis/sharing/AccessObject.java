@@ -27,66 +27,54 @@
  */
 package org.hisp.dhis.sharing;
 
-import java.io.Serializable;
-
-import lombok.NoArgsConstructor;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.io.Serializable;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.DxfNamespaces;
 
 @NoArgsConstructor
-public abstract class AccessObject
-    implements Serializable
-{
-    protected String displayName;
+public abstract class AccessObject implements Serializable {
+  protected String displayName;
 
-    protected String access;
+  protected String access;
 
-    protected String id;
+  protected String id;
 
-    public AccessObject( String access, String id )
-    {
-        this.access = access;
-        this.id = id;
-    }
+  public AccessObject(String access, String id) {
+    this.access = access;
+    this.id = id;
+  }
 
-    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDisplayName()
-    {
-        return displayName;
-    }
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDisplayName() {
+    return displayName;
+  }
 
-    public void setDisplayName( String displayName )
-    {
-        this.displayName = displayName;
-    }
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getAccess()
-    {
-        return access;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getAccess() {
+    return access;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getId()
-    {
-        return id;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getId() {
+    return id;
+  }
 
-    public void setAccess( String access )
-    {
-        this.access = access;
-    }
+  public void setAccess(String access) {
+    this.access = access;
+  }
 
-    public void setId( String id )
-    {
-        this.id = id;
-    }
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    public abstract <T extends AccessObject> T copy();
+  public abstract <T extends AccessObject> T copy();
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.programrule.action.validation;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -39,31 +38,28 @@ import org.springframework.stereotype.Component;
 /**
  * @author Zubair Asghar
  */
-
 @Slf4j
 @Component
-public class AssignProgramRuleActionValidator implements ProgramRuleActionValidator
-{
-    @Override
-    public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationContext validationContext )
-    {
-        ProgramRule rule = validationContext.getProgramRule();
+public class AssignProgramRuleActionValidator implements ProgramRuleActionValidator {
+  @Override
+  public ProgramRuleActionValidationResult validate(
+      ProgramRuleAction programRuleAction, ProgramRuleActionValidationContext validationContext) {
+    ProgramRule rule = validationContext.getProgramRule();
 
-        if ( !programRuleAction.hasDataElement() && !programRuleAction.hasTrackedEntityAttribute()
-            && !programRuleAction.hasContent() )
-        {
-            log.debug( String.format(
-                "DataElement or TrackedEntityAttribute or ProgramRuleVariable cannot be null for program rule: %s ",
-                rule.getName() ) );
+    if (!programRuleAction.hasDataElement()
+        && !programRuleAction.hasTrackedEntityAttribute()
+        && !programRuleAction.hasContent()) {
+      log.debug(
+          String.format(
+              "DataElement or TrackedEntityAttribute or ProgramRuleVariable cannot be null for program rule: %s ",
+              rule.getName()));
 
-            return ProgramRuleActionValidationResult.builder()
-                .valid( false )
-                .errorReport( new ErrorReport( ProgramRuleAction.class, ErrorCode.E4050,
-                    rule.getName() ) )
-                .build();
-        }
-
-        return ProgramRuleActionValidationResult.builder().valid( true ).build();
+      return ProgramRuleActionValidationResult.builder()
+          .valid(false)
+          .errorReport(new ErrorReport(ProgramRuleAction.class, ErrorCode.E4050, rule.getName()))
+          .build();
     }
+
+    return ProgramRuleActionValidationResult.builder().valid(true).build();
+  }
 }

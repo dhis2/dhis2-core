@@ -28,18 +28,15 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 public interface TrackedEntityTypeAttributeStore
-    extends IdentifiableObjectStore<TrackedEntityTypeAttribute>
-{
-    /**
-     * Get all TrackedEntityAttribute filtered by given List of
-     * TrackedEntityType
-     *
-     * @param trackedEntityTypes
-     * @return List of TrackedEntityAttribute
-     */
-    List<TrackedEntityAttribute> getAttributes( List<TrackedEntityType> trackedEntityTypes );
+    extends IdentifiableObjectStore<TrackedEntityTypeAttribute> {
+  /**
+   * Get all TrackedEntityAttribute filtered by given List of TrackedEntityType
+   *
+   * @param trackedEntityTypes
+   * @return List of TrackedEntityAttribute
+   */
+  List<TrackedEntityAttribute> getAttributes(List<TrackedEntityType> trackedEntityTypes);
 }

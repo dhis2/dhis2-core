@@ -27,111 +27,96 @@
  */
 package org.hisp.dhis.setting;
 
+import com.google.common.collect.Lists;
 import java.io.File;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.SortedMap;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
 @RequiredArgsConstructor
-public class DefaultStyleManager
-    implements StyleManager
-{
-    private static final String SEPARATOR = "/";
+public class DefaultStyleManager implements StyleManager {
+  private static final String SEPARATOR = "/";
 
-    private static final String SYSTEM_SEPARATOR = File.separator;
+  private static final String SYSTEM_SEPARATOR = File.separator;
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final SystemSettingManager systemSettingManager;
+  private final SystemSettingManager systemSettingManager;
 
-    private final UserSettingService userSettingService;
+  private final UserSettingService userSettingService;
 
-    /**
-     * Map for styles. The key refers to the user setting key and the value
-     * refers to the path to the CSS file of the style relative to
-     * /dhis-web-commons/.
-     */
-    private final SortedMap<String, String> styles;
+  /**
+   * Map for styles. The key refers to the user setting key and the value refers to the path to the
+   * CSS file of the style relative to /dhis-web-commons/.
+   */
+  private final SortedMap<String, String> styles;
 
-    private final I18nManager i18nManager;
+  private final I18nManager i18nManager;
 
-    // -------------------------------------------------------------------------
-    // StyleManager implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // StyleManager implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public void setSystemStyle( String style )
-    {
-        systemSettingManager.saveSystemSetting( SettingKey.STYLE, style );
+  @Override
+  public void setSystemStyle(String style) {
+    systemSettingManager.saveSystemSetting(SettingKey.STYLE, style);
+  }
+
+  @Override
+  public void setUserStyle(String style) {
+    userSettingService.saveUserSetting(UserSettingKey.STYLE, style);
+  }
+
+  @Override
+  public String getCurrentStyle() {
+    String style = (String) userSettingService.getUserSetting(UserSettingKey.STYLE);
+
+    return ObjectUtils.firstNonNull(style, getSystemStyle());
+  }
+
+  @Override
+  public String getSystemStyle() {
+    return systemSettingManager.getStringSetting(SettingKey.STYLE);
+  }
+
+  @Override
+  public String getCurrentStyleDirectory() {
+    String currentStyle = getCurrentStyle();
+
+    if (currentStyle.lastIndexOf(SEPARATOR) != -1) {
+      return currentStyle.substring(0, currentStyle.lastIndexOf(SEPARATOR));
     }
 
-    @Override
-    public void setUserStyle( String style )
-    {
-        userSettingService.saveUserSetting( UserSettingKey.STYLE, style );
+    if (currentStyle.lastIndexOf(SYSTEM_SEPARATOR) != -1) {
+      return currentStyle.substring(0, currentStyle.lastIndexOf(SYSTEM_SEPARATOR));
     }
 
-    @Override
-    public String getCurrentStyle()
-    {
-        String style = (String) userSettingService.getUserSetting( UserSettingKey.STYLE );
+    return currentStyle;
+  }
 
-        return ObjectUtils.firstNonNull( style, getSystemStyle() );
+  @Override
+  public List<StyleObject> getStyles() {
+    I18n i18n = i18nManager.getI18n();
+
+    List<StyleObject> list = Lists.newArrayList();
+
+    for (Entry<String, String> entry : styles.entrySet()) {
+      String name = i18n.getString(entry.getKey());
+
+      list.add(new StyleObject(name, entry.getKey(), entry.getValue()));
     }
 
-    @Override
-    public String getSystemStyle()
-    {
-        return systemSettingManager.getStringSetting( SettingKey.STYLE );
-    }
-
-    @Override
-    public String getCurrentStyleDirectory()
-    {
-        String currentStyle = getCurrentStyle();
-
-        if ( currentStyle.lastIndexOf( SEPARATOR ) != -1 )
-        {
-            return currentStyle.substring( 0, currentStyle.lastIndexOf( SEPARATOR ) );
-        }
-
-        if ( currentStyle.lastIndexOf( SYSTEM_SEPARATOR ) != -1 )
-        {
-            return currentStyle.substring( 0, currentStyle.lastIndexOf( SYSTEM_SEPARATOR ) );
-        }
-
-        return currentStyle;
-    }
-
-    @Override
-    public List<StyleObject> getStyles()
-    {
-        I18n i18n = i18nManager.getI18n();
-
-        List<StyleObject> list = Lists.newArrayList();
-
-        for ( Entry<String, String> entry : styles.entrySet() )
-        {
-            String name = i18n.getString( entry.getKey() );
-
-            list.add( new StyleObject( name, entry.getKey(), entry.getValue() ) );
-        }
-
-        return list;
-    }
+    return list;
+  }
 }

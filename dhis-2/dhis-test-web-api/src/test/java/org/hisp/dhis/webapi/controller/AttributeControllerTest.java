@@ -42,35 +42,50 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class AttributeControllerTest extends DhisControllerIntegrationTest
-{
+class AttributeControllerTest extends DhisControllerIntegrationTest {
 
-    @Test
-    void testGistList()
-    {
-        String uid = assertStatus( HttpStatus.CREATED, POST( "/attributes", "{"
-            + "'name':'" + ObjectType.DATA_ELEMENT + "', "
-            + "'valueType':'INTEGER', " + "'" + ObjectType.DATA_ELEMENT.getPropertyName() + "':true}" ) );
-        JsonObject attr = GET( "/attributes/{id}/gist", uid ).content();
-        assertTrue( attr.getBoolean( "dataElementAttribute" ).booleanValue() );
-    }
+  @Test
+  void testGistList() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/attributes",
+                "{"
+                    + "'name':'"
+                    + ObjectType.DATA_ELEMENT
+                    + "', "
+                    + "'valueType':'INTEGER', "
+                    + "'"
+                    + ObjectType.DATA_ELEMENT.getPropertyName()
+                    + "':true}"));
+    JsonObject attr = GET("/attributes/{id}/gist", uid).content();
+    assertTrue(attr.getBoolean("dataElementAttribute").booleanValue());
+  }
 
-    /**
-     * Tests that each type only sets the property the type relates to
-     */
-    @Test
-    void testObjectTypes()
-    {
-        for ( ObjectType testedType : ObjectType.values() )
-        {
-            String propertyName = testedType.getPropertyName();
-            String uid = assertStatus( HttpStatus.CREATED, POST( "/attributes",
-                "{" + "'name':'" + testedType + "', " + "'valueType':'INTEGER', " + "'" + propertyName + "':true}" ) );
-            JsonObject attr = GET( "/attributes/{uid}", uid ).content();
-            for ( ObjectType otherType : ObjectType.values() )
-            {
-                assertEquals( testedType == otherType, attr.getBoolean( otherType.getPropertyName() ).booleanValue() );
-            }
-        }
+  /** Tests that each type only sets the property the type relates to */
+  @Test
+  void testObjectTypes() {
+    for (ObjectType testedType : ObjectType.values()) {
+      String propertyName = testedType.getPropertyName();
+      String uid =
+          assertStatus(
+              HttpStatus.CREATED,
+              POST(
+                  "/attributes",
+                  "{"
+                      + "'name':'"
+                      + testedType
+                      + "', "
+                      + "'valueType':'INTEGER', "
+                      + "'"
+                      + propertyName
+                      + "':true}"));
+      JsonObject attr = GET("/attributes/{uid}", uid).content();
+      for (ObjectType otherType : ObjectType.values()) {
+        assertEquals(
+            testedType == otherType, attr.getBoolean(otherType.getPropertyName()).booleanValue());
+      }
     }
+  }
 }

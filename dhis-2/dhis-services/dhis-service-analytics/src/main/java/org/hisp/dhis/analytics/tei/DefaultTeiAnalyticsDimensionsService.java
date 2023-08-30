@@ -36,11 +36,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -53,54 +50,47 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsService
-{
-    @Nonnull
-    private final TrackedEntityTypeService trackedEntityTypeService;
+class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsService {
+  @Nonnull private final TrackedEntityTypeService trackedEntityTypeService;
 
-    @Nonnull
-    private final EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
+  @Nonnull private final EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
 
-    @Nonnull
-    private final ProgramService programService;
+  @Nonnull private final ProgramService programService;
 
-    @Override
-    public List<PrefixedDimension> getQueryDimensionsByTrackedEntityTypeId( String trackedEntityTypeId,
-        Set<String> programUids )
-    {
-        TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType( trackedEntityTypeId );
+  @Override
+  public List<PrefixedDimension> getQueryDimensionsByTrackedEntityTypeId(
+      String trackedEntityTypeId, Set<String> programUids) {
+    TrackedEntityType trackedEntityType =
+        trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeId);
 
-        if ( Objects.nonNull( trackedEntityType ) )
-        {
-            Stream<Program> programs;
+    if (Objects.nonNull(trackedEntityType)) {
+      Stream<Program> programs;
 
-            if ( isEmpty( programUids ) )
-            {
-                programs = programService.getAllPrograms().stream();
-            }
-            else
-            {
-                programs = programService.getPrograms( programUids ).stream();
-            }
+      if (isEmpty(programUids)) {
+        programs = programService.getAllPrograms().stream();
+      } else {
+        programs = programService.getPrograms(programUids).stream();
+      }
 
-            // Dimensions by programs defined on the given tracked entity type.
-            return programs
-                .filter( program -> isDefinedOnTrackedEntityType( program, trackedEntityTypeId ) )
-                .map( program -> enrollmentAnalyticsDimensionsService
-                    .getQueryDimensionsByProgramId( program.getUid() ) )
-                .flatMap( List::stream )
-                .collect( toList() );
-        }
-
-        return emptyList();
+      // Dimensions by programs defined on the given tracked entity type.
+      return programs
+          .filter(program -> isDefinedOnTrackedEntityType(program, trackedEntityTypeId))
+          .map(
+              program ->
+                  enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramId(
+                      program.getUid()))
+          .flatMap(List::stream)
+          .collect(toList());
     }
 
-    private boolean isDefinedOnTrackedEntityType( Program program, String trackedEntityTypeId )
-    {
-        return Optional.of( program )
-            .map( Program::getTrackedEntityType )
-            .map( IdentifiableObject::getUid )
-            .filter( uid -> StringUtils.equals( uid, trackedEntityTypeId ) )
-            .isPresent();
-    }
+    return emptyList();
+  }
+
+  private boolean isDefinedOnTrackedEntityType(Program program, String trackedEntityTypeId) {
+    return Optional.of(program)
+        .map(Program::getTrackedEntityType)
+        .map(IdentifiableObject::getUid)
+        .filter(uid -> StringUtils.equals(uid, trackedEntityTypeId))
+        .isPresent();
+  }
 }

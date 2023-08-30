@@ -36,67 +36,65 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Tests for orgunits whose closed dates are after their opening dates
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunit_open_date_gt_closed_date.yaml}
+ * Tests for orgunits whose closed dates are after their opening dates {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunit_open_date_gt_closed_date.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    @Autowired
-    private OrganisationUnitService orgUnitService;
+class DataIntegrityOrganisationUnitOpenClosedDateControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
+  @Autowired private OrganisationUnitService orgUnitService;
 
-    private static final String check = "orgunits_openingdate_gt_closeddate";
+  private static final String check = "orgunits_openingdate_gt_closeddate";
 
-    private static final String detailsIdType = "organisationUnits";
+  private static final String detailsIdType = "organisationUnits";
 
-    @Test
-    void testOrgUnitOpeningDateAfterClosedDate()
-    {
+  @Test
+  void testOrgUnitOpeningDateAfterClosedDate() {
 
-        OrganisationUnit unitA = createOrganisationUnit( 'A' );
-        unitA.setOpeningDate( getDate( "2022-01-01" ) );
-        unitA.setClosedDate( getDate( "2020-01-01" ) );
-        orgUnitService.addOrganisationUnit( unitA );
+    OrganisationUnit unitA = createOrganisationUnit('A');
+    unitA.setOpeningDate(getDate("2022-01-01"));
+    unitA.setClosedDate(getDate("2020-01-01"));
+    orgUnitService.addOrganisationUnit(unitA);
 
-        OrganisationUnit unitB = createOrganisationUnit( 'B' );
-        unitB.setOpeningDate( getDate( "2022-01-01" ) );
-        unitB.setClosedDate( getDate( "2023-01-01" ) );
-        orgUnitService.addOrganisationUnit( unitB );
+    OrganisationUnit unitB = createOrganisationUnit('B');
+    unitB.setOpeningDate(getDate("2022-01-01"));
+    unitB.setClosedDate(getDate("2023-01-01"));
+    orgUnitService.addOrganisationUnit(unitB);
 
-        OrganisationUnit unitC = createOrganisationUnit( 'C' );
-        unitC.setOpeningDate( getDate( "2022-01-01" ) );
-        unitC.setClosedDate( null );
-        orgUnitService.addOrganisationUnit( unitC );
+    OrganisationUnit unitC = createOrganisationUnit('C');
+    unitC.setOpeningDate(getDate("2022-01-01"));
+    unitC.setClosedDate(null);
+    orgUnitService.addOrganisationUnit(unitC);
 
-        dbmsManager.clearSession();
+    dbmsManager.clearSession();
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 33, unitA.getUid(), unitA.getName(), null, true );
-    }
+    assertHasDataIntegrityIssues(
+        detailsIdType, check, 33, unitA.getUid(), unitA.getName(), null, true);
+  }
 
-    @Test
-    void testOrgunitsWithOpenClosedDates()
-    {
+  @Test
+  void testOrgunitsWithOpenClosedDates() {
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Null Island', 'shortName': 'Null Island', " +
-                    "'openingDate' : '2022-01-01', 'closedDate' : '2023-02-22', 'geometry' : {'type' : 'Point', 'coordinates' : [5,6]} }" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits",
+            "{ 'name': 'Null Island', 'shortName': 'Null Island', "
+                + "'openingDate' : '2022-01-01', 'closedDate' : '2023-02-22', 'geometry' : {'type' : 'Point', 'coordinates' : [5,6]} }"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits",
+            "{ 'name': 'Not Null Island', 'shortName': 'Null Island', "
+                + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }"));
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    }
-
-    @Test
-    void testOrgunitsOpenClosedDateRuns()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-
-    }
-
+  @Test
+  void testOrgunitsOpenClosedDateRuns() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 }

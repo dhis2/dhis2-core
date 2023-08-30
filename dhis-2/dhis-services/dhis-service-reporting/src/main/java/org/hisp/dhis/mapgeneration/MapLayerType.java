@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.mapgeneration;
 
-public enum MapLayerType
-{
-    THEMATIC,
-    BOUNDARY,
-    SYMBOL
+public enum MapLayerType {
+  THEMATIC,
+  BOUNDARY,
+  SYMBOL
 }

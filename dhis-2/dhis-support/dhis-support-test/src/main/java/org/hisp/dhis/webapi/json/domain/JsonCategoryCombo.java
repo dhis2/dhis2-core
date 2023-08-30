@@ -36,15 +36,12 @@ import org.hisp.dhis.jsontree.JsonList;
  * @author Jan Bernitt
  * @author Jason P. Pickering
  */
-public interface JsonCategoryCombo extends JsonIdentifiableObject
-{
-    default JsonList<JsonCategory> getCategories()
-    {
-        return getList( "categories", JsonCategory.class );
-    }
+public interface JsonCategoryCombo extends JsonIdentifiableObject {
+  default JsonList<JsonCategory> getCategories() {
+    return getList("categories", JsonCategory.class);
+  }
 
-    default DimensionType getDimensionType()
-    {
-        return getString( "dimensionType" ).parsed( DimensionType::valueOf );
-    }
+  default DimensionType getDimensionType() {
+    return getString("dimensionType").parsed(DimensionType::valueOf);
+  }
 }

@@ -45,79 +45,78 @@ import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = {
-    AttributeMapper.class,
-    CategoryOptionMapper.class,
-    DataValueMapper.class,
-    InstantMapper.class,
-    NoteMapper.class,
-    ProgramOwnerMapper.class,
-    UserMapper.class,
-} )
+@Mapper(
+    uses = {
+      AttributeMapper.class,
+      CategoryOptionMapper.class,
+      DataValueMapper.class,
+      InstantMapper.class,
+      NoteMapper.class,
+      ProgramOwnerMapper.class,
+      UserMapper.class,
+    })
 interface RelationshipItemMapper
-    extends ViewMapper<org.hisp.dhis.relationship.RelationshipItem, RelationshipItem>
-{
-    @Override
-    RelationshipItem from( org.hisp.dhis.relationship.RelationshipItem relationshipItem );
+    extends ViewMapper<org.hisp.dhis.relationship.RelationshipItem, RelationshipItem> {
+  @Override
+  RelationshipItem from(org.hisp.dhis.relationship.RelationshipItem relationshipItem);
 
-    @Mapping( target = "trackedEntity", source = "uid" )
-    @Mapping( target = "trackedEntityType", source = "trackedEntityType.uid" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "orgUnit", source = "organisationUnit.uid" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    @Mapping( target = "attributes", source = "trackedEntityAttributeValues" )
-    RelationshipItem.TrackedEntity from( TrackedEntity trackedEntity );
+  @Mapping(target = "trackedEntity", source = "uid")
+  @Mapping(target = "trackedEntityType", source = "trackedEntityType.uid")
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "createdAtClient", source = "createdAtClient")
+  @Mapping(target = "updatedAt", source = "lastUpdated")
+  @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
+  @Mapping(target = "orgUnit", source = "organisationUnit.uid")
+  @Mapping(target = "createdBy", source = "createdByUserInfo")
+  @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
+  @Mapping(target = "attributes", source = "trackedEntityAttributeValues")
+  RelationshipItem.TrackedEntity from(TrackedEntity trackedEntity);
 
-    @Mapping( target = "enrollment", source = "uid" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "trackedEntity", source = "trackedEntity.uid" )
-    @Mapping( target = "program", source = "program.uid" )
-    @Mapping( target = "orgUnit", source = "organisationUnit.uid" )
-    @Mapping( target = "orgUnitName", source = "organisationUnit.name" )
-    @Mapping( target = "enrolledAt", source = "enrollmentDate" )
-    @Mapping( target = "occurredAt", source = "incidentDate" )
-    @Mapping( target = "followUp", source = "followup" )
-    @Mapping( target = "completedAt", source = "endDate" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    @Mapping( target = "attributes", source = "trackedEntity.trackedEntityAttributeValues" )
-    @Mapping( target = "notes", source = "comments" )
-    RelationshipItem.Enrollment from( Enrollment enrollment );
+  @Mapping(target = "enrollment", source = "uid")
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "createdAtClient", source = "createdAtClient")
+  @Mapping(target = "updatedAt", source = "lastUpdated")
+  @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
+  @Mapping(target = "trackedEntity", source = "trackedEntity.uid")
+  @Mapping(target = "program", source = "program.uid")
+  @Mapping(target = "orgUnit", source = "organisationUnit.uid")
+  @Mapping(target = "orgUnitName", source = "organisationUnit.name")
+  @Mapping(target = "enrolledAt", source = "enrollmentDate")
+  @Mapping(target = "occurredAt", source = "incidentDate")
+  @Mapping(target = "followUp", source = "followup")
+  @Mapping(target = "completedAt", source = "endDate")
+  @Mapping(target = "createdBy", source = "createdByUserInfo")
+  @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
+  @Mapping(target = "attributes", source = "trackedEntity.trackedEntityAttributeValues")
+  @Mapping(target = "notes", source = "comments")
+  RelationshipItem.Enrollment from(Enrollment enrollment);
 
-    default EnrollmentStatus from( ProgramStatus programStatus )
-    {
-        return EnrollmentStatus.fromProgramStatus( programStatus );
-    }
+  default EnrollmentStatus from(ProgramStatus programStatus) {
+    return EnrollmentStatus.fromProgramStatus(programStatus);
+  }
 
-    @Mapping( target = "event", source = "uid" )
-    @Mapping( target = "program", source = "enrollment.program.uid" )
-    @Mapping( target = "programStage", source = "programStage.uid" )
-    @Mapping( target = "enrollment", source = "enrollment.uid" )
-    @Mapping( target = "orgUnit", source = "organisationUnit.uid" )
-    @Mapping( target = "orgUnitName", source = "organisationUnit.name" )
-    @Mapping( target = "occurredAt", source = "executionDate" )
-    @Mapping( target = "scheduledAt", source = "dueDate" )
-    @Mapping( target = "followup", source = "enrollment.followup" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "attributeOptionCombo", source = "attributeOptionCombo.uid" )
-    @Mapping( target = "attributeCategoryOptions", source = "attributeOptionCombo.categoryOptions" )
-    @Mapping( target = "completedAt", source = "completedDate" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    @Mapping( target = "dataValues", source = "eventDataValues" )
-    @Mapping( target = "notes", source = "comments" )
-    RelationshipItem.Event from( Event event );
+  @Mapping(target = "event", source = "uid")
+  @Mapping(target = "program", source = "enrollment.program.uid")
+  @Mapping(target = "programStage", source = "programStage.uid")
+  @Mapping(target = "enrollment", source = "enrollment.uid")
+  @Mapping(target = "orgUnit", source = "organisationUnit.uid")
+  @Mapping(target = "orgUnitName", source = "organisationUnit.name")
+  @Mapping(target = "occurredAt", source = "executionDate")
+  @Mapping(target = "scheduledAt", source = "dueDate")
+  @Mapping(target = "followup", source = "enrollment.followup")
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "createdAtClient", source = "createdAtClient")
+  @Mapping(target = "updatedAt", source = "lastUpdated")
+  @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
+  @Mapping(target = "attributeOptionCombo", source = "attributeOptionCombo.uid")
+  @Mapping(target = "attributeCategoryOptions", source = "attributeOptionCombo.categoryOptions")
+  @Mapping(target = "completedAt", source = "completedDate")
+  @Mapping(target = "createdBy", source = "createdByUserInfo")
+  @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
+  @Mapping(target = "dataValues", source = "eventDataValues")
+  @Mapping(target = "notes", source = "comments")
+  RelationshipItem.Event from(Event event);
 
-    @Mapping( target = "displayName", source = "name" )
-    User from( org.hisp.dhis.user.User user );
+  @Mapping(target = "displayName", source = "name")
+  User from(org.hisp.dhis.user.User user);
 }

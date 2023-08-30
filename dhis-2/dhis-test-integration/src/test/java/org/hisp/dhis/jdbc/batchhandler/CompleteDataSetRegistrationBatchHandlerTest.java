@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -57,153 +56,181 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class CompleteDataSetRegistrationBatchHandlerTest extends IntegrationTestBase
-{
+class CompleteDataSetRegistrationBatchHandlerTest extends IntegrationTestBase {
 
-    @Autowired
-    private BatchHandlerFactory batchHandlerFactory;
+  @Autowired private BatchHandlerFactory batchHandlerFactory;
 
-    @Autowired
-    private PeriodService periodService;
+  @Autowired private PeriodService periodService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private CategoryService categoryService;
+  @Autowired private CategoryService categoryService;
 
-    @Autowired
-    private CompleteDataSetRegistrationService registrationService;
+  @Autowired private CompleteDataSetRegistrationService registrationService;
 
-    private BatchHandler<CompleteDataSetRegistration> batchHandler;
+  private BatchHandler<CompleteDataSetRegistration> batchHandler;
 
-    private PeriodType periodTypeA;
+  private PeriodType periodTypeA;
 
-    private DataSet dataSetA;
+  private DataSet dataSetA;
 
-    private Period periodA;
+  private Period periodA;
 
-    private Period periodB;
+  private Period periodB;
 
-    private OrganisationUnit unitA;
+  private OrganisationUnit unitA;
 
-    private OrganisationUnit unitB;
+  private OrganisationUnit unitB;
 
-    private CategoryOptionCombo attributeOptionCombo;
+  private CategoryOptionCombo attributeOptionCombo;
 
-    private CompleteDataSetRegistration regA;
+  private CompleteDataSetRegistration regA;
 
-    private CompleteDataSetRegistration regB;
+  private CompleteDataSetRegistration regB;
 
-    private CompleteDataSetRegistration regC;
+  private CompleteDataSetRegistration regC;
 
-    private CompleteDataSetRegistration regD;
+  private CompleteDataSetRegistration regD;
 
-    private Date now = new Date();
+  private Date now = new Date();
 
-    private String storedBy = "johndoe";
+  private String storedBy = "johndoe";
 
-    private String lastUpdatedBy = "johndoe";
+  private String lastUpdatedBy = "johndoe";
 
-    // -------------------------------------------------------------------------
-    // Fixture
-    // -------------------------------------------------------------------------
-    @Override
-    public void setUpTest()
-    {
-        batchHandler = batchHandlerFactory.createBatchHandler( CompleteDataSetRegistrationBatchHandler.class );
-        periodTypeA = PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY );
-        dataSetA = createDataSet( 'A', periodTypeA );
-        idObjectManager.save( dataSetA );
-        periodA = createPeriod( periodTypeA, getDate( 2000, 1, 1 ), getDate( 2000, 1, 31 ) );
-        periodB = createPeriod( periodTypeA, getDate( 2000, 2, 1 ), getDate( 2000, 2, 28 ) );
-        periodService.addPeriod( periodA );
-        periodService.addPeriod( periodB );
-        unitA = createOrganisationUnit( 'A' );
-        unitB = createOrganisationUnit( 'B' );
-        idObjectManager.save( unitA );
-        idObjectManager.save( unitB );
-        attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-        regA = new CompleteDataSetRegistration( dataSetA, periodA, unitA, attributeOptionCombo, now, storedBy, now,
-            lastUpdatedBy, true );
-        regB = new CompleteDataSetRegistration( dataSetA, periodA, unitB, attributeOptionCombo, now, storedBy, now,
-            lastUpdatedBy, true );
-        regC = new CompleteDataSetRegistration( dataSetA, periodB, unitA, attributeOptionCombo, now, storedBy, now,
-            lastUpdatedBy, true );
-        regD = new CompleteDataSetRegistration( dataSetA, periodB, unitB, attributeOptionCombo, now, storedBy, now,
-            lastUpdatedBy, true );
-        batchHandler.init();
-    }
+  // -------------------------------------------------------------------------
+  // Fixture
+  // -------------------------------------------------------------------------
+  @Override
+  public void setUpTest() {
+    batchHandler =
+        batchHandlerFactory.createBatchHandler(CompleteDataSetRegistrationBatchHandler.class);
+    periodTypeA = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY);
+    dataSetA = createDataSet('A', periodTypeA);
+    idObjectManager.save(dataSetA);
+    periodA = createPeriod(periodTypeA, getDate(2000, 1, 1), getDate(2000, 1, 31));
+    periodB = createPeriod(periodTypeA, getDate(2000, 2, 1), getDate(2000, 2, 28));
+    periodService.addPeriod(periodA);
+    periodService.addPeriod(periodB);
+    unitA = createOrganisationUnit('A');
+    unitB = createOrganisationUnit('B');
+    idObjectManager.save(unitA);
+    idObjectManager.save(unitB);
+    attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+    regA =
+        new CompleteDataSetRegistration(
+            dataSetA,
+            periodA,
+            unitA,
+            attributeOptionCombo,
+            now,
+            storedBy,
+            now,
+            lastUpdatedBy,
+            true);
+    regB =
+        new CompleteDataSetRegistration(
+            dataSetA,
+            periodA,
+            unitB,
+            attributeOptionCombo,
+            now,
+            storedBy,
+            now,
+            lastUpdatedBy,
+            true);
+    regC =
+        new CompleteDataSetRegistration(
+            dataSetA,
+            periodB,
+            unitA,
+            attributeOptionCombo,
+            now,
+            storedBy,
+            now,
+            lastUpdatedBy,
+            true);
+    regD =
+        new CompleteDataSetRegistration(
+            dataSetA,
+            periodB,
+            unitB,
+            attributeOptionCombo,
+            now,
+            storedBy,
+            now,
+            lastUpdatedBy,
+            true);
+    batchHandler.init();
+  }
 
-    @Override
-    public void tearDownTest()
-    {
-        batchHandler.flush();
-    }
+  @Override
+  public void tearDownTest() {
+    batchHandler.flush();
+  }
 
-    // -------------------------------------------------------------------------
-    // Tests
-    // -------------------------------------------------------------------------
-    @Test
-    void testAddObject()
-    {
-        batchHandler.addObject( regA );
-        batchHandler.addObject( regB );
-        batchHandler.addObject( regC );
-        batchHandler.addObject( regD );
-        batchHandler.flush();
-        List<CompleteDataSetRegistration> registrations = registrationService.getAllCompleteDataSetRegistrations();
-        assertNotNull( registrations );
-        assertEquals( 4, registrations.size() );
-        assertTrue( registrations.contains( regA ) );
-        assertTrue( registrations.contains( regB ) );
-        assertTrue( registrations.contains( regC ) );
-        assertTrue( registrations.contains( regD ) );
-    }
+  // -------------------------------------------------------------------------
+  // Tests
+  // -------------------------------------------------------------------------
+  @Test
+  void testAddObject() {
+    batchHandler.addObject(regA);
+    batchHandler.addObject(regB);
+    batchHandler.addObject(regC);
+    batchHandler.addObject(regD);
+    batchHandler.flush();
+    List<CompleteDataSetRegistration> registrations =
+        registrationService.getAllCompleteDataSetRegistrations();
+    assertNotNull(registrations);
+    assertEquals(4, registrations.size());
+    assertTrue(registrations.contains(regA));
+    assertTrue(registrations.contains(regB));
+    assertTrue(registrations.contains(regC));
+    assertTrue(registrations.contains(regD));
+  }
 
-    @Test
-    void testFindObject()
-    {
-        registrationService.saveCompleteDataSetRegistration( regA );
-        registrationService.saveCompleteDataSetRegistration( regD );
-        CompleteDataSetRegistration retrievedRegA = batchHandler.findObject( regA );
-        CompleteDataSetRegistration retrievedRegB = batchHandler.findObject( regB );
-        assertNotNull( retrievedRegA.getStoredBy() );
-        assertEquals( retrievedRegA.getStoredBy(), regA.getStoredBy() );
-        assertNull( retrievedRegB );
-    }
+  @Test
+  void testFindObject() {
+    registrationService.saveCompleteDataSetRegistration(regA);
+    registrationService.saveCompleteDataSetRegistration(regD);
+    CompleteDataSetRegistration retrievedRegA = batchHandler.findObject(regA);
+    CompleteDataSetRegistration retrievedRegB = batchHandler.findObject(regB);
+    assertNotNull(retrievedRegA.getStoredBy());
+    assertEquals(retrievedRegA.getStoredBy(), regA.getStoredBy());
+    assertNull(retrievedRegB);
+  }
 
-    @Test
-    void testObjectExists()
-    {
-        registrationService.saveCompleteDataSetRegistration( regA );
-        registrationService.saveCompleteDataSetRegistration( regD );
-        assertTrue( batchHandler.objectExists( regA ) );
-        assertTrue( batchHandler.objectExists( regD ) );
-        assertFalse( batchHandler.objectExists( regB ) );
-        assertFalse( batchHandler.objectExists( regC ) );
-    }
+  @Test
+  void testObjectExists() {
+    registrationService.saveCompleteDataSetRegistration(regA);
+    registrationService.saveCompleteDataSetRegistration(regD);
+    assertTrue(batchHandler.objectExists(regA));
+    assertTrue(batchHandler.objectExists(regD));
+    assertFalse(batchHandler.objectExists(regB));
+    assertFalse(batchHandler.objectExists(regC));
+  }
 
-    @Test
-    @Disabled( "ERROR: cannot execute UPDATE in a read-only transaction" )
-    void testUpdateObject()
-    {
-        registrationService.saveCompleteDataSetRegistration( regA );
-        regA.setStoredBy( "tom" );
-        batchHandler.updateObject( regA );
-        assertEquals( "tom", registrationService
-            .getCompleteDataSetRegistration( dataSetA, periodA, unitA, attributeOptionCombo ).getStoredBy() );
-    }
+  @Test
+  @Disabled("ERROR: cannot execute UPDATE in a read-only transaction")
+  void testUpdateObject() {
+    registrationService.saveCompleteDataSetRegistration(regA);
+    regA.setStoredBy("tom");
+    batchHandler.updateObject(regA);
+    assertEquals(
+        "tom",
+        registrationService
+            .getCompleteDataSetRegistration(dataSetA, periodA, unitA, attributeOptionCombo)
+            .getStoredBy());
+  }
 
-    @Test
-    void testDeleteObject()
-    {
-        registrationService.saveCompleteDataSetRegistration( regA );
-        registrationService.saveCompleteDataSetRegistration( regD );
-        assertTrue( batchHandler.objectExists( regA ) );
-        assertTrue( batchHandler.objectExists( regD ) );
-        batchHandler.deleteObject( regD );
-        assertTrue( batchHandler.objectExists( regA ) );
-        assertFalse( batchHandler.objectExists( regD ) );
-    }
+  @Test
+  void testDeleteObject() {
+    registrationService.saveCompleteDataSetRegistration(regA);
+    registrationService.saveCompleteDataSetRegistration(regD);
+    assertTrue(batchHandler.objectExists(regA));
+    assertTrue(batchHandler.objectExists(regD));
+    batchHandler.deleteObject(regD);
+    assertTrue(batchHandler.objectExists(regA));
+    assertFalse(batchHandler.objectExists(regD));
+  }
 }

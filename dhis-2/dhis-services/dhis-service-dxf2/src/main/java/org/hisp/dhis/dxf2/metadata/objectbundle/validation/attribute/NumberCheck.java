@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -43,29 +42,29 @@ import org.hisp.dhis.system.util.ValidationUtils;
  * @author viet
  */
 @FunctionalInterface
-public interface NumberCheck extends Function<String, List<ErrorReport>>
-{
-    NumberCheck empty = str -> List.of();
+public interface NumberCheck extends Function<String, List<ErrorReport>> {
+  NumberCheck empty = str -> List.of();
 
-    NumberCheck isInteger = check( MathUtils::isInteger, ErrorCode.E6006 );
+  NumberCheck isInteger = check(MathUtils::isInteger, ErrorCode.E6006);
 
-    NumberCheck isPositiveInteger = check( MathUtils::isPositiveInteger, ErrorCode.E6007 );
+  NumberCheck isPositiveInteger = check(MathUtils::isPositiveInteger, ErrorCode.E6007);
 
-    NumberCheck isNegativeInteger = check( MathUtils::isNegativeInteger, ErrorCode.E6013 );
+  NumberCheck isNegativeInteger = check(MathUtils::isNegativeInteger, ErrorCode.E6013);
 
-    NumberCheck isNumber = check( MathUtils::isNumeric, ErrorCode.E6008 );
+  NumberCheck isNumber = check(MathUtils::isNumeric, ErrorCode.E6008);
 
-    NumberCheck isZeroOrPositiveInteger = check( MathUtils::isZeroOrPositiveInteger, ErrorCode.E6009 );
+  NumberCheck isZeroOrPositiveInteger = check(MathUtils::isZeroOrPositiveInteger, ErrorCode.E6009);
 
-    NumberCheck isPercentage = check( MathUtils::isPercentage, ErrorCode.E6010 );
+  NumberCheck isPercentage = check(MathUtils::isPercentage, ErrorCode.E6010);
 
-    NumberCheck isUnitInterval = check( MathUtils::isUnitInterval, ErrorCode.E6011 );
+  NumberCheck isUnitInterval = check(MathUtils::isUnitInterval, ErrorCode.E6011);
 
-    NumberCheck isPhoneNumber = check( ValidationUtils::isPhoneNumber, ErrorCode.E6021 );
+  NumberCheck isPhoneNumber = check(ValidationUtils::isPhoneNumber, ErrorCode.E6021);
 
-    static NumberCheck check( final Predicate<String> predicate, ErrorCode errorCode )
-    {
-        return str -> !predicate.test( str ) ? List.of( new ErrorReport( AttributeValue.class, errorCode, str ) )
+  static NumberCheck check(final Predicate<String> predicate, ErrorCode errorCode) {
+    return str ->
+        !predicate.test(str)
+            ? List.of(new ErrorReport(AttributeValue.class, errorCode, str))
             : List.of();
-    }
+  }
 }

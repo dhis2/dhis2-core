@@ -34,11 +34,10 @@ import org.hisp.dhis.common.DimensionalObject;
  *
  * @author Lars Helge Overland
  */
-public interface QueryParamsBuilder
-{
-    QueryParamsBuilder addDimension( DimensionalObject dimension );
+public interface QueryParamsBuilder {
+  QueryParamsBuilder addDimension(DimensionalObject dimension);
 
-    QueryParamsBuilder removeDimensionOrFilter( String dimension );
+  QueryParamsBuilder removeDimensionOrFilter(String dimension);
 
-    QueryParamsBuilder addFilter( DimensionalObject filter );
+  QueryParamsBuilder addFilter(DimensionalObject filter);
 }

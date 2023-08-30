@@ -27,40 +27,34 @@
  */
 package org.hisp.dhis.user;
 
-import javax.annotation.CheckForNull;
-
+import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.NotFoundException;
 
 /**
- * Service that handles user authentication related actions. For example,
- * switching the thread context in such a way that the thread effectively
- * executing as a certain user.
+ * Service that handles user authentication related actions. For example, switching the thread
+ * context in such a way that the thread effectively executing as a certain user.
  *
  * @author Jan Bernitt
  */
-public interface AuthenticationService
-{
-    /**
-     * Internally "login" as the provided user in the current thread without
-     * providing credentials of some sort. The created context authority will
-     * not have credentials.
-     * <p>
-     * A.k.a. "becoming" a certain user
-     * <p>
-     * When user ID parameter is undefined the current thread is unlinked from
-     * any user.
-     *
-     * @param userId as this user, maybe {@code null} to unlink the current
-     *        thread from a user
-     * @throws NotFoundException when no user with the provided ID exists
-     */
-    void obtainAuthentication( @CheckForNull String userId )
-        throws NotFoundException;
+public interface AuthenticationService {
+  /**
+   * Internally "login" as the provided user in the current thread without providing credentials of
+   * some sort. The created context authority will not have credentials.
+   *
+   * <p>A.k.a. "becoming" a certain user
+   *
+   * @param userId as this user
+   * @throws NotFoundException when no user with the provided ID exists
+   */
+  void obtainAuthentication(@Nonnull String userId) throws NotFoundException;
 
-    /**
-     * "Logout" or clear the current thread context.
-     * <p>
-     * A.k.a. unbecoming a any specific user.
-     */
-    void clearAuthentication();
+  /** Internally "login" as a system user {@code ALL} with authority */
+  void obtainSystemAuthentication();
+
+  /**
+   * "Logout" or clear the current thread context.
+   *
+   * <p>A.k.a. unbecoming a any specific user.
+   */
+  void clearAuthentication();
 }

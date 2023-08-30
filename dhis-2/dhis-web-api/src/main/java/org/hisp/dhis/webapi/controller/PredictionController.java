@@ -32,18 +32,19 @@ import static org.hisp.dhis.scheduling.JobType.PREDICTOR;
 
 import java.util.Date;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
@@ -59,51 +60,51 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Jim Grace
  */
-@OpenApi.Tags( "analytics" )
+@OpenApi.Tags("analytics")
 @Controller
-@RequestMapping( value = "/predictions" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequestMapping(value = "/predictions")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
-public class PredictionController
-{
-    private final PredictionService predictionService;
+public class PredictionController {
 
-    private final SchedulingManager schedulingManager;
+  private final PredictionService predictionService;
+  private final JobConfigurationService jobConfigurationService;
+  private final JobSchedulerService jobSchedulerService;
 
-    @RequestMapping( method = { RequestMethod.POST, RequestMethod.PUT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
-    @ResponseBody
-    public WebMessage runPredictors(
-        @RequestParam Date startDate,
-        @RequestParam Date endDate,
-        @RequestParam( value = "predictor", required = false ) List<String> predictors,
-        @RequestParam( value = "predictorGroup", required = false ) List<String> predictorGroups,
-        @RequestParam( defaultValue = "false", required = false ) boolean async,
-        @CurrentUser User currentUser )
-    {
+  @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT})
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PREDICTOR_RUN')")
+  @ResponseBody
+  public WebMessage runPredictors(
+      @RequestParam Date startDate,
+      @RequestParam Date endDate,
+      @RequestParam(value = "predictor", required = false) List<String> predictors,
+      @RequestParam(value = "predictorGroup", required = false) List<String> predictorGroups,
+      @RequestParam(defaultValue = "false", required = false) boolean async,
+      @CurrentUser User currentUser)
+      throws ConflictException, @OpenApi.Ignore NotFoundException {
 
-        if ( async )
-        {
-            JobConfiguration prediction = new JobConfiguration( "inMemoryPrediction", PREDICTOR,
-                currentUser.getUid(), true );
-            PredictorJobParameters params = PredictorJobParameters.builder()
-                .startDate( startDate )
-                .endDate( endDate )
-                .predictors( predictors )
-                .predictorGroups( predictorGroups )
-                .build();
-            prediction.setJobParameters( params );
+    if (async) {
+      JobConfiguration config = new JobConfiguration(PREDICTOR);
+      PredictorJobParameters params =
+          PredictorJobParameters.builder()
+              .startDate(startDate)
+              .endDate(endDate)
+              .predictors(predictors)
+              .predictorGroups(predictorGroups)
+              .build();
+      config.setJobParameters(params);
+      config.setExecutedBy(currentUser.getUid());
 
-            schedulingManager.executeNow( prediction );
+      jobSchedulerService.executeNow(jobConfigurationService.create(config));
 
-            return jobConfigurationReport( prediction )
-                .setLocation( "/system/tasks/" + PREDICTOR );
-        }
-        PredictionSummary predictionSummary = predictionService.predictTask( startDate, endDate, predictors,
-            predictorGroups, NoopJobProgress.INSTANCE );
-
-        return new WebMessage( Status.OK, HttpStatus.OK )
-            .setResponse( predictionSummary )
-            .withPlainResponseBefore( DhisApiVersion.V38 );
+      return jobConfigurationReport(config);
     }
+    PredictionSummary predictionSummary =
+        predictionService.predictTask(
+            startDate, endDate, predictors, predictorGroups, NoopJobProgress.INSTANCE);
+
+    return new WebMessage(Status.OK, HttpStatus.OK)
+        .setResponse(predictionSummary)
+        .withPlainResponseBefore(DhisApiVersion.V38);
+  }
 }

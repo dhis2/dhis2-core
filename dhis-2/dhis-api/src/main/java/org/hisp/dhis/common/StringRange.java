@@ -32,25 +32,21 @@ package org.hisp.dhis.common;
  *
  * @author Jim Grace
  */
-public class StringRange
-{
-    private String start;
+public class StringRange {
+  private String start;
 
-    private String end;
+  private String end;
 
-    public StringRange( String start, String end )
-    {
-        this.start = start;
-        this.end = end;
-    }
+  public StringRange(String start, String end) {
+    this.start = start;
+    this.end = end;
+  }
 
-    public String getStart()
-    {
-        return start;
-    }
+  public String getStart() {
+    return start;
+  }
 
-    public String getEnd()
-    {
-        return end;
-    }
+  public String getEnd() {
+    return end;
+  }
 }

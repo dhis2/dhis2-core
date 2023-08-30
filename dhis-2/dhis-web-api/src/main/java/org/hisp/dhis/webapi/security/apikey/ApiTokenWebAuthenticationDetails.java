@@ -28,17 +28,13 @@
 package org.hisp.dhis.webapi.security.apikey;
 
 import javax.servlet.http.HttpServletRequest;
-
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ApiTokenWebAuthenticationDetails
-    extends ForwardedIpAwareWebAuthenticationDetails
-{
-    public ApiTokenWebAuthenticationDetails( HttpServletRequest request )
-    {
-        super( request );
-    }
+public class ApiTokenWebAuthenticationDetails extends ForwardedIpAwareWebAuthenticationDetails {
+  public ApiTokenWebAuthenticationDetails(HttpServletRequest request) {
+    super(request);
+  }
 }

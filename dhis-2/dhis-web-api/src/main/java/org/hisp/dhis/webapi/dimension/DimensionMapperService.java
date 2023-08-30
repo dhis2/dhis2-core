@@ -32,32 +32,30 @@ import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import java.util.Collection;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.PrefixedDimension;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class DimensionMapperService
-{
-    private final Collection<DimensionMapper> mappers;
+public class DimensionMapperService {
+  private final Collection<DimensionMapper> mappers;
 
-    public List<DimensionResponse> toDimensionResponse( Collection<PrefixedDimension> dimensions,
-        PrefixStrategy prefixStrategy )
-    {
-        return mapToList( dimensions,
-            pDimension -> toDimensionResponse( pDimension, prefixStrategy.apply( pDimension ) ) );
-    }
+  public List<DimensionResponse> toDimensionResponse(
+      Collection<PrefixedDimension> dimensions, PrefixStrategy prefixStrategy) {
+    return mapToList(
+        dimensions,
+        pDimension -> toDimensionResponse(pDimension, prefixStrategy.apply(pDimension)));
+  }
 
-    private DimensionResponse toDimensionResponse( PrefixedDimension dimension, String prefix )
-    {
-        return mappers.stream()
-            .filter( dimensionMapper -> dimensionMapper.supports( dimension.getItem() ) )
-            .findFirst()
-            .map( dimensionMapper -> dimensionMapper.map( dimension, prefix ) )
-            .orElseThrow( () -> new IllegalArgumentException(
-                "Unsupported dimension type: " + getRealClass( dimension ) ) );
-    }
+  private DimensionResponse toDimensionResponse(PrefixedDimension dimension, String prefix) {
+    return mappers.stream()
+        .filter(dimensionMapper -> dimensionMapper.supports(dimension.getItem()))
+        .findFirst()
+        .map(dimensionMapper -> dimensionMapper.map(dimension, prefix))
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "Unsupported dimension type: " + getRealClass(dimension)));
+  }
 }

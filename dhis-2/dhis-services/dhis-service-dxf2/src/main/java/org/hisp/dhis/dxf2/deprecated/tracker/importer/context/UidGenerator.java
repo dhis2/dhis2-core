@@ -33,7 +33,6 @@ import static org.hisp.dhis.common.CodeGenerator.generateUid;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 
 import java.util.List;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Note;
@@ -43,53 +42,43 @@ import org.hisp.dhis.dxf2.deprecated.tracker.event.Note;
  *
  * @author Luciano Fiandesio
  */
-public class UidGenerator
-{
-    /**
-     * Generates a valid uid and assign it to the uid field of each event.
-     *
-     * If the event has the 'event' field populated, it will be used for the
-     * 'uid' value
-     *
-     * Generates a valid uid and assign it to all the notes of each event (if
-     * the UID is missing)
-     *
-     * @param events a List of {@see Events}
-     * @return a List of {@see Events} with the uid field populated
-     */
-    public List<Event> assignUidToEvents( List<Event> events )
-    {
-        for ( Event event : events )
-        {
-            doAssignUid( event );
-        }
-        return events;
+public class UidGenerator {
+  /**
+   * Generates a valid uid and assign it to the uid field of each event.
+   *
+   * <p>If the event has the 'event' field populated, it will be used for the 'uid' value
+   *
+   * <p>Generates a valid uid and assign it to all the notes of each event (if the UID is missing)
+   *
+   * @param events a List of {@see Events}
+   * @return a List of {@see Events} with the uid field populated
+   */
+  public List<Event> assignUidToEvents(List<Event> events) {
+    for (Event event : events) {
+      doAssignUid(event);
+    }
+    return events;
+  }
+
+  public Event assignUidToEvent(Event event) {
+    doAssignUid(event);
+    return event;
+  }
+
+  private void doAssignUid(Event event) {
+    if (isNotEmpty(event.getEvent()) && isValidUid(event.getEvent())) {
+      event.setUid(event.getEvent());
     }
 
-    public Event assignUidToEvent( Event event )
-    {
-        doAssignUid( event );
-        return event;
+    if (isEmpty(event.getUid())) {
+      final String uid = CodeGenerator.generateUid();
+      event.setUid(uid);
+      event.setEvent(uid);
     }
 
-    private void doAssignUid( Event event )
-    {
-        if ( isNotEmpty( event.getEvent() ) && isValidUid( event.getEvent() ) )
-        {
-            event.setUid( event.getEvent() );
-        }
-
-        if ( isEmpty( event.getUid() ) )
-        {
-            final String uid = CodeGenerator.generateUid();
-            event.setUid( uid );
-            event.setEvent( uid );
-        }
-
-        List<Note> notes = event.getNotes();
-        for ( Note note : notes )
-        {
-            note.setNote( isValidUid( note.getNote() ) ? note.getNote() : generateUid() );
-        }
+    List<Note> notes = event.getNotes();
+    for (Note note : notes) {
+      note.setNote(isValidUid(note.getNote()) ? note.getNote() : generateUid());
     }
+  }
 }

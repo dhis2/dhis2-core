@@ -29,9 +29,9 @@ package org.hisp.dhis.dataset.comparator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.List;
-
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -40,74 +40,71 @@ import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Lists;
+class DataSetApprovalFrequencyComparatorTest {
 
-class DataSetApprovalFrequencyComparatorTest
-{
+  @Test
+  void testA() {
+    DataSet dsA = new DataSet("DataSetA", new YearlyPeriodType());
+    DataSet dsB = new DataSet("DataSetB", new YearlyPeriodType());
+    DataSet dsC = new DataSet("DataSetC", new MonthlyPeriodType());
+    DataSet dsD = new DataSet("DataSetD", new QuarterlyPeriodType());
+    DataApprovalWorkflow workflow =
+        new DataApprovalWorkflow("Workflow A", new QuarterlyPeriodType(), null);
+    dsA.assignWorkflow(workflow);
+    dsD.assignWorkflow(workflow);
+    List<DataSet> list = Lists.newArrayList(dsA, dsC, dsB, dsD);
+    Collections.sort(list, DataSetApprovalFrequencyComparator.INSTANCE);
+    assertEquals(dsD, list.get(0));
+    assertEquals(dsA, list.get(1));
+    assertEquals(dsC, list.get(2));
+    assertEquals(dsB, list.get(3));
+  }
 
-    @Test
-    void testA()
-    {
-        DataSet dsA = new DataSet( "DataSetA", new YearlyPeriodType() );
-        DataSet dsB = new DataSet( "DataSetB", new YearlyPeriodType() );
-        DataSet dsC = new DataSet( "DataSetC", new MonthlyPeriodType() );
-        DataSet dsD = new DataSet( "DataSetD", new QuarterlyPeriodType() );
-        DataApprovalWorkflow workflow = new DataApprovalWorkflow( "Workflow A", new QuarterlyPeriodType(), null );
-        dsA.assignWorkflow( workflow );
-        dsD.assignWorkflow( workflow );
-        List<DataSet> list = Lists.newArrayList( dsA, dsC, dsB, dsD );
-        Collections.sort( list, DataSetApprovalFrequencyComparator.INSTANCE );
-        assertEquals( dsD, list.get( 0 ) );
-        assertEquals( dsA, list.get( 1 ) );
-        assertEquals( dsC, list.get( 2 ) );
-        assertEquals( dsB, list.get( 3 ) );
-    }
+  @Test
+  void testB() {
+    DataSet dsA = new DataSet("EA: Expenditures Site Level", new QuarterlyPeriodType());
+    DataSet dsB = new DataSet("MER Results: Facility Based", new QuarterlyPeriodType());
+    DataSet dsC = new DataSet("MER Results: Facility Based - DoD ONLY", new QuarterlyPeriodType());
+    DataApprovalWorkflow workflow =
+        new DataApprovalWorkflow("Workflow A", new QuarterlyPeriodType(), null);
+    dsB.assignWorkflow(workflow);
+    List<DataSet> list = Lists.newArrayList(dsB, dsC, dsA);
+    Collections.sort(list, DataSetApprovalFrequencyComparator.INSTANCE);
+    assertEquals(dsB, list.get(0));
+    assertEquals(dsA, list.get(1));
+    assertEquals(dsC, list.get(2));
+  }
 
-    @Test
-    void testB()
-    {
-        DataSet dsA = new DataSet( "EA: Expenditures Site Level", new QuarterlyPeriodType() );
-        DataSet dsB = new DataSet( "MER Results: Facility Based", new QuarterlyPeriodType() );
-        DataSet dsC = new DataSet( "MER Results: Facility Based - DoD ONLY", new QuarterlyPeriodType() );
-        DataApprovalWorkflow workflow = new DataApprovalWorkflow( "Workflow A", new QuarterlyPeriodType(), null );
-        dsB.assignWorkflow( workflow );
-        List<DataSet> list = Lists.newArrayList( dsB, dsC, dsA );
-        Collections.sort( list, DataSetApprovalFrequencyComparator.INSTANCE );
-        assertEquals( dsB, list.get( 0 ) );
-        assertEquals( dsA, list.get( 1 ) );
-        assertEquals( dsC, list.get( 2 ) );
-    }
+  @Test
+  void testC() {
+    DataSet dsA = new DataSet("DataSetA", new YearlyPeriodType());
+    DataSet dsB = new DataSet("DataSetB", new YearlyPeriodType());
+    DataSet dsC = new DataSet("DataSetC", new MonthlyPeriodType());
+    DataSet dsD = new DataSet("DataSetD", new QuarterlyPeriodType());
+    DataApprovalWorkflow workflow =
+        new DataApprovalWorkflow("Workflow A", new QuarterlyPeriodType(), null);
+    dsA.assignWorkflow(workflow);
+    dsD.assignWorkflow(workflow);
+    DataElement deA = new DataElement();
+    dsA.addDataSetElement(deA);
+    dsB.addDataSetElement(deA);
+    dsC.addDataSetElement(deA);
+    dsD.addDataSetElement(deA);
+    assertEquals(dsD, deA.getApprovalDataSet());
+  }
 
-    @Test
-    void testC()
-    {
-        DataSet dsA = new DataSet( "DataSetA", new YearlyPeriodType() );
-        DataSet dsB = new DataSet( "DataSetB", new YearlyPeriodType() );
-        DataSet dsC = new DataSet( "DataSetC", new MonthlyPeriodType() );
-        DataSet dsD = new DataSet( "DataSetD", new QuarterlyPeriodType() );
-        DataApprovalWorkflow workflow = new DataApprovalWorkflow( "Workflow A", new QuarterlyPeriodType(), null );
-        dsA.assignWorkflow( workflow );
-        dsD.assignWorkflow( workflow );
-        DataElement deA = new DataElement();
-        dsA.addDataSetElement( deA );
-        dsB.addDataSetElement( deA );
-        dsC.addDataSetElement( deA );
-        dsD.addDataSetElement( deA );
-        assertEquals( dsD, deA.getApprovalDataSet() );
-    }
-
-    @Test
-    void testD()
-    {
-        DataSet dsA = new DataSet( "EA: Expenditures Site Level", new QuarterlyPeriodType() );
-        DataSet dsB = new DataSet( "MER Results: Facility Based", new QuarterlyPeriodType() );
-        DataSet dsC = new DataSet( "MER Results: Facility Based - DoD ONLY", new QuarterlyPeriodType() );
-        DataApprovalWorkflow workflow = new DataApprovalWorkflow( "Workflow A", new QuarterlyPeriodType(), null );
-        dsB.assignWorkflow( workflow );
-        DataElement deA = new DataElement();
-        dsA.addDataSetElement( deA );
-        dsB.addDataSetElement( deA );
-        dsC.addDataSetElement( deA );
-        assertEquals( dsB, deA.getApprovalDataSet() );
-    }
+  @Test
+  void testD() {
+    DataSet dsA = new DataSet("EA: Expenditures Site Level", new QuarterlyPeriodType());
+    DataSet dsB = new DataSet("MER Results: Facility Based", new QuarterlyPeriodType());
+    DataSet dsC = new DataSet("MER Results: Facility Based - DoD ONLY", new QuarterlyPeriodType());
+    DataApprovalWorkflow workflow =
+        new DataApprovalWorkflow("Workflow A", new QuarterlyPeriodType(), null);
+    dsB.assignWorkflow(workflow);
+    DataElement deA = new DataElement();
+    dsA.addDataSetElement(deA);
+    dsB.addDataSetElement(deA);
+    dsC.addDataSetElement(deA);
+    assertEquals(dsB, deA.getApprovalDataSet());
+  }
 }

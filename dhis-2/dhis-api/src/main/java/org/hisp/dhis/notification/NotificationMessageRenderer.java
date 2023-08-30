@@ -30,7 +30,6 @@ package org.hisp.dhis.notification;
 /**
  * @author Halvdan Hoem Grelland
  */
-public interface NotificationMessageRenderer<T>
-{
-    NotificationMessage render( T entity, NotificationTemplate template );
+public interface NotificationMessageRenderer<T> {
+  NotificationMessage render(T entity, NotificationTemplate template);
 }

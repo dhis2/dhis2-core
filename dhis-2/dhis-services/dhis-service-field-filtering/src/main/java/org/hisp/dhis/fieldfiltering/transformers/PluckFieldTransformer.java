@@ -27,65 +27,54 @@
  */
 package org.hisp.dhis.fieldfiltering.transformers;
 
-import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
-import org.hisp.dhis.fieldfiltering.FieldTransformer;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
+import org.hisp.dhis.fieldfiltering.FieldTransformer;
 
 /**
  * Field transformer that plucks out a property from an array.
  *
- * Usage: "?fields=id,name,dataElementGroups::pluck(id)"
+ * <p>Usage: "?fields=id,name,dataElementGroups::pluck(id)"
  *
  * @author Morten Olav Hansen
  */
-public class PluckFieldTransformer implements FieldTransformer
-{
-    private final FieldPathTransformer fieldPathTransformer;
+public class PluckFieldTransformer implements FieldTransformer {
+  private final FieldPathTransformer fieldPathTransformer;
 
-    public PluckFieldTransformer( FieldPathTransformer fieldPathTransformer )
-    {
-        this.fieldPathTransformer = fieldPathTransformer;
+  public PluckFieldTransformer(FieldPathTransformer fieldPathTransformer) {
+    this.fieldPathTransformer = fieldPathTransformer;
+  }
+
+  @Override
+  public JsonNode apply(String path, JsonNode value, JsonNode parent) {
+    if (!parent.isObject()) {
+      return value;
     }
 
-    @Override
-    public JsonNode apply( String path, JsonNode value, JsonNode parent )
-    {
-        if ( !parent.isObject() )
-        {
-            return value;
-        }
+    String pluckFieldName = "id";
 
-        String pluckFieldName = "id";
-
-        if ( !fieldPathTransformer.getParameters().isEmpty() )
-        {
-            pluckFieldName = fieldPathTransformer.getParameters().get( 0 );
-        }
-
-        String fieldName = getFieldName( path );
-
-        if ( value.isArray() )
-        {
-            ArrayNode arrayNode = ((ArrayNode) value).arrayNode();
-
-            for ( JsonNode node : value )
-            {
-                if ( node.isObject() && node.has( pluckFieldName ) )
-                {
-                    arrayNode.add( node.get( pluckFieldName ) );
-                }
-                else
-                {
-                    arrayNode.add( node );
-                }
-            }
-
-            ((ObjectNode) parent).replace( fieldName, arrayNode );
-        }
-
-        return value;
+    if (!fieldPathTransformer.getParameters().isEmpty()) {
+      pluckFieldName = fieldPathTransformer.getParameters().get(0);
     }
+
+    String fieldName = getFieldName(path);
+
+    if (value.isArray()) {
+      ArrayNode arrayNode = ((ArrayNode) value).arrayNode();
+
+      for (JsonNode node : value) {
+        if (node.isObject() && node.has(pluckFieldName)) {
+          arrayNode.add(node.get(pluckFieldName));
+        } else {
+          arrayNode.add(node);
+        }
+      }
+
+      ((ObjectNode) parent).replace(fieldName, arrayNode);
+    }
+
+    return value;
+  }
 }

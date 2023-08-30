@@ -27,38 +27,38 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DataElementGroupSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "dataElementGroup";
+public class DataElementGroupSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "dataElementGroup";
 
-    public static final String PLURAL = "dataElementGroups";
+  public static final String PLURAL = "dataElementGroups";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( DataElementGroup.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1210 );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(DataElementGroup.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1210);
 
-        schema
-            .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_DATAELEMENTGROUP_PUBLIC_ADD" ) ) );
-        schema.add(
-            new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_DATAELEMENTGROUP_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_DATAELEMENTGROUP_DELETE" ) ) );
+    schema.add(
+        new Authority(
+            AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_DATAELEMENTGROUP_PUBLIC_ADD")));
+    schema.add(
+        new Authority(
+            AuthorityType.CREATE_PRIVATE, Lists.newArrayList("F_DATAELEMENTGROUP_PRIVATE_ADD")));
+    schema.add(
+        new Authority(AuthorityType.DELETE, Lists.newArrayList("F_DATAELEMENTGROUP_DELETE")));
 
-        return schema;
-    }
+    return schema;
+  }
 }

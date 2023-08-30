@@ -31,8 +31,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.google.gson.JsonObject;
 import java.io.File;
-
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.IdGenerator;
@@ -46,160 +46,165 @@ import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventImportDataValueValidationTests
-    extends DeprecatedTrackerApiTest
-{
-    private static String OU_ID = Constants.ORG_UNIT_IDS[0];
+public class EventImportDataValueValidationTests extends DeprecatedTrackerApiTest {
+  private static String OU_ID = Constants.ORG_UNIT_IDS[0];
 
-    private DataElementActions dataElementActions;
+  private DataElementActions dataElementActions;
 
-    private String programId;
+  private String programId;
 
-    private String programStageId;
+  private String programStageId;
 
-    private String mandatoryDataElementId;
+  private String mandatoryDataElementId;
 
-    @BeforeAll
-    public void beforeAll()
-        throws Exception
-    {
-        dataElementActions = new DataElementActions();
+  @BeforeAll
+  public void beforeAll() throws Exception {
+    dataElementActions = new DataElementActions();
 
-        loginActions.loginAsAdmin();
+    loginActions.loginAsAdmin();
 
-        setupData();
-    }
+    setupData();
+  }
 
-    @Test
-    public void shouldNotValidateDataValuesOnUpdateWithOnCompleteStrategy()
-    {
-        programActions.programStageActions.setValidationStrategy( programStageId, "ON_COMPLETE" );
+  @Test
+  public void shouldNotValidateDataValuesOnUpdateWithOnCompleteStrategy() {
+    programActions.programStageActions.setValidationStrategy(programStageId, "ON_COMPLETE");
 
-        JsonObject events = eventActions.createEventBody( OU_ID, programId, programStageId );
+    JsonObject events = eventActions.createEventBody(OU_ID, programId, programStageId);
 
-        ApiResponse response = eventActions.post( events, new QueryParamsBuilder().add( "skipCache=true" ) );
+    ApiResponse response =
+        eventActions.post(events, new QueryParamsBuilder().add("skipCache=true"));
 
-        response.validate().statusCode( 200 )
-            .body( "status", equalTo( "OK" ) )
-            .body( "response.ignored", equalTo( 0 ) )
-            .body( "response.imported", equalTo( 1 ) );
-    }
+    response
+        .validate()
+        .statusCode(200)
+        .body("status", equalTo("OK"))
+        .body("response.ignored", equalTo(0))
+        .body("response.imported", equalTo(1));
+  }
 
-    @Test
-    public void shouldValidateDataValuesOnCompleteWhenEventIsCompleted()
-    {
-        programActions.programStageActions.setValidationStrategy( programStageId, "ON_COMPLETE" );
+  @Test
+  public void shouldValidateDataValuesOnCompleteWhenEventIsCompleted() {
+    programActions.programStageActions.setValidationStrategy(programStageId, "ON_COMPLETE");
 
-        JsonObject event = eventActions.createEventBody( OU_ID, programId, programStageId );
-        event.addProperty( "status", "COMPLETED" );
+    JsonObject event = eventActions.createEventBody(OU_ID, programId, programStageId);
+    event.addProperty("status", "COMPLETED");
 
-        ApiResponse response = eventActions.post( event, new QueryParamsBuilder().add( "skipCache=true" ) );
+    ApiResponse response = eventActions.post(event, new QueryParamsBuilder().add("skipCache=true"));
 
-        response.validate().statusCode( 409 )
-            .body( "status", equalTo( "ERROR" ) )
-            .rootPath( "response" )
-            .body( "ignored", equalTo( 1 ) )
-            .body( "imported", equalTo( 0 ) )
-            .body( "importSummaries[0].conflicts[0].value", equalTo( "value_required_but_not_provided" ) );
-    }
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .rootPath("response")
+        .body("ignored", equalTo(1))
+        .body("imported", equalTo(0))
+        .body("importSummaries[0].conflicts[0].value", equalTo("value_required_but_not_provided"));
+  }
 
-    @Test
-    public void shouldValidateCompletedOnInsert()
-    {
-        programActions.programStageActions.setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
+  @Test
+  public void shouldValidateCompletedOnInsert() {
+    programActions.programStageActions.setValidationStrategy(
+        programStageId, "ON_UPDATE_AND_INSERT");
 
-        JsonObject event = eventActions.createEventBody( OU_ID, programId, programStageId );
-        event.addProperty( "status", "COMPLETED" );
+    JsonObject event = eventActions.createEventBody(OU_ID, programId, programStageId);
+    event.addProperty("status", "COMPLETED");
 
-        ApiResponse response = eventActions.post( event, new QueryParamsBuilder().add( "skipCache=true" ) );
+    ApiResponse response = eventActions.post(event, new QueryParamsBuilder().add("skipCache=true"));
 
-        response.validate().statusCode( 409 )
-            .body( "status", equalTo( "ERROR" ) )
-            .rootPath( "response" )
-            .body( "ignored", equalTo( 1 ) )
-            .body( "imported", equalTo( 0 ) )
-            .body( "importSummaries[0].conflicts[0].value", equalTo( "value_required_but_not_provided" ) );
-    }
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .rootPath("response")
+        .body("ignored", equalTo(1))
+        .body("imported", equalTo(0))
+        .body("importSummaries[0].conflicts[0].value", equalTo("value_required_but_not_provided"));
+  }
 
-    @Test
-    public void shouldValidateDataValuesOnUpdate()
-    {
-        programActions.programStageActions.setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
+  @Test
+  public void shouldValidateDataValuesOnUpdate() {
+    programActions.programStageActions.setValidationStrategy(
+        programStageId, "ON_UPDATE_AND_INSERT");
 
-        JsonObject events = eventActions.createEventBody( OU_ID, programId, programStageId );
+    JsonObject events = eventActions.createEventBody(OU_ID, programId, programStageId);
 
-        ApiResponse response = eventActions.post( events, new QueryParamsBuilder().add( "skipCache=true" ) );
+    ApiResponse response =
+        eventActions.post(events, new QueryParamsBuilder().add("skipCache=true"));
 
-        response.validate().statusCode( 409 )
-            .body( "status", equalTo( "ERROR" ) )
-            .rootPath( "response" )
-            .body( "ignored", equalTo( 1 ) )
-            .body( "imported", equalTo( 0 ) )
-            .body( "importSummaries[0].conflicts[0].value", equalTo( "value_required_but_not_provided" ) );
-    }
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .rootPath("response")
+        .body("ignored", equalTo(1))
+        .body("imported", equalTo(0))
+        .body("importSummaries[0].conflicts[0].value", equalTo("value_required_but_not_provided"));
+  }
 
-    @Test
-    public void shouldImportEventsWithCompulsoryDataValues()
-    {
-        JsonObject events = eventActions.createEventBody( OU_ID, programId, programStageId );
+  @Test
+  public void shouldImportEventsWithCompulsoryDataValues() {
+    JsonObject events = eventActions.createEventBody(OU_ID, programId, programStageId);
 
-        addDataValue( events, mandatoryDataElementId, "TEXT VALUE" );
+    addDataValue(events, mandatoryDataElementId, "TEXT VALUE");
 
-        ApiResponse response = eventActions.post( events );
+    ApiResponse response = eventActions.post(events);
 
-        response.validate().statusCode( 200 )
-            .body( "status", equalTo( "OK" ) )
-            .body( "response.imported", equalTo( 1 ) );
+    response
+        .validate()
+        .statusCode(200)
+        .body("status", equalTo("OK"))
+        .body("response.imported", equalTo(1));
 
-        String eventID = response.extractString( "response.importSummaries.reference[0]" );
-        assertNotNull( eventID, "Failed to extract eventId" );
+    String eventID = response.extractString("response.importSummaries.reference[0]");
+    assertNotNull(eventID, "Failed to extract eventId");
 
-        eventActions.get( eventID )
-            .validate()
-            .statusCode( 200 )
-            .body( "dataValues", not( Matchers.emptyArray() ) );
-    }
+    eventActions
+        .get(eventID)
+        .validate()
+        .statusCode(200)
+        .body("dataValues", not(Matchers.emptyArray()));
+  }
 
-    private void setupData()
-        throws Exception
-    {
-        programId = new IdGenerator().generateUniqueId();
-        programStageId = new IdGenerator().generateUniqueId();
+  private void setupData() throws Exception {
+    programId = new IdGenerator().generateUniqueId();
+    programStageId = new IdGenerator().generateUniqueId();
 
-        JsonObject jsonObject = new JsonObjectBuilder(
-            new FileReaderUtils()
-                .readJsonAndGenerateData( new File( "src/test/resources/tracker/eventProgram.json" ) ) )
-            .addPropertyByJsonPath( "programStages[0].program.id", programId )
-            .addPropertyByJsonPath( "programs[0].id", programId )
-            .addPropertyByJsonPath( "programs[0].programStages[0].id", programStageId )
-            .addPropertyByJsonPath( "programStages[0].id", programStageId )
-            .addPropertyByJsonPath( "programStages[0].programStageDataElements", null )
+    JsonObject jsonObject =
+        new JsonObjectBuilder(
+                new FileReaderUtils()
+                    .readJsonAndGenerateData(
+                        new File("src/test/resources/tracker/eventProgram.json")))
+            .addPropertyByJsonPath("programStages[0].program.id", programId)
+            .addPropertyByJsonPath("programs[0].id", programId)
+            .addPropertyByJsonPath("programs[0].programStages[0].id", programStageId)
+            .addPropertyByJsonPath("programStages[0].id", programStageId)
+            .addPropertyByJsonPath("programStages[0].programStageDataElements", null)
             .build();
 
-        new MetadataActions().importAndValidateMetadata( jsonObject );
+    new MetadataActions().importAndValidateMetadata(jsonObject);
 
-        String dataElementId = dataElementActions
-            .get( "?fields=id&filter=domainType:eq:TRACKER&filter=valueType:eq:TEXT&pageSize=1" )
-            .extractString( "dataElements.id[0]" );
+    String dataElementId =
+        dataElementActions
+            .get("?fields=id&filter=domainType:eq:TRACKER&filter=valueType:eq:TEXT&pageSize=1")
+            .extractString("dataElements.id[0]");
 
-        assertNotNull( dataElementId, "Failed to create data elements" );
-        mandatoryDataElementId = dataElementId;
+    assertNotNull(dataElementId, "Failed to create data elements");
+    mandatoryDataElementId = dataElementId;
 
-        programActions.addDataElement( programStageId, dataElementId, true ).validate().statusCode( 200 );
-    }
+    programActions.addDataElement(programStageId, dataElementId, true).validate().statusCode(200);
+  }
 
-    private void addDataValue( JsonObject body, String dataElementId, String value )
-    {
-        JsonObjectBuilder.jsonObject( body )
-            .addArray( "dataValues", new JsonObjectBuilder()
-                .addProperty( "dataElement", dataElementId )
-                .addProperty( "value", value )
-                .build() );
-
-    }
+  private void addDataValue(JsonObject body, String dataElementId, String value) {
+    JsonObjectBuilder.jsonObject(body)
+        .addArray(
+            "dataValues",
+            new JsonObjectBuilder()
+                .addProperty("dataElement", dataElementId)
+                .addProperty("value", value)
+                .build());
+  }
 }

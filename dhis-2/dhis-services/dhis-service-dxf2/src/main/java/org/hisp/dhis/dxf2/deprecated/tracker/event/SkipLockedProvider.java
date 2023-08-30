@@ -28,15 +28,13 @@
 package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
 /**
- * Provide the SQL for SKIP LOCKED option. H2 does not support this option so we
- * need a different implementation for the integration tests
+ * Provide the SQL for SKIP LOCKED option. H2 does not support this option so we need a different
+ * implementation for the integration tests
  *
- * @deprecated this is a class related to "old" (deprecated) tracker which will
- *             be removed with "old" tracker. Make sure to plan migrating to new
- *             tracker.
+ * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
+ *     "old" tracker. Make sure to plan migrating to new tracker.
  */
-@Deprecated( since = "2.41" )
-public interface SkipLockedProvider
-{
-    String getSkipLocked();
+@Deprecated(since = "2.41")
+public interface SkipLockedProvider {
+  String getSkipLocked();
 }

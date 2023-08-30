@@ -29,7 +29,6 @@ package org.hisp.dhis.cache;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationMessagePublisher;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -38,19 +37,16 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-@Profile( { "cache-invalidation-test" } )
-public class TestableMessagePublisher implements CacheInvalidationMessagePublisher
-{
-    private final List<String> messages = new ArrayList<>();
+@Profile({"cache-invalidation-test"})
+public class TestableMessagePublisher implements CacheInvalidationMessagePublisher {
+  private final List<String> messages = new ArrayList<>();
 
-    @Override
-    public void publish( String channel, String message )
-    {
-        messages.add( message );
-    }
+  @Override
+  public void publish(String channel, String message) {
+    messages.add(message);
+  }
 
-    public List<String> getMessages()
-    {
-        return messages;
-    }
+  public List<String> getMessages() {
+    return messages;
+  }
 }

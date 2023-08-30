@@ -27,11 +27,8 @@
  */
 package org.hisp.dhis.analytics;
 
-/**
- * The possible caching TTL (expiration time) mode.
- */
-public enum AnalyticsCacheTtlMode
-{
-    FIXED,
-    PROGRESSIVE
+/** The possible caching TTL (expiration time) mode. */
+public enum AnalyticsCacheTtlMode {
+  FIXED,
+  PROGRESSIVE
 }

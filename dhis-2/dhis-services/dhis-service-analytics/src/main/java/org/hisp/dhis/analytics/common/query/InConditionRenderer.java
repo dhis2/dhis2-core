@@ -32,16 +32,14 @@ import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class InConditionRenderer extends BaseRenderable
-{
-    private final Renderable field;
+@RequiredArgsConstructor(staticName = "of")
+public class InConditionRenderer extends BaseRenderable {
+  private final Renderable field;
 
-    private final Renderable values;
+  private final Renderable values;
 
-    @Override
-    public String render()
-    {
-        return field.render() + SPACE + IN.getValue() + " (" + values.render() + ")";
-    }
+  @Override
+  public String render() {
+    return field.render() + SPACE + IN.getValue() + " (" + values.render() + ")";
+  }
 }

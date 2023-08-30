@@ -28,72 +28,47 @@
 package org.hisp.dhis.dxf2.deprecated.tracker.aggregates;
 
 import java.util.List;
-
 import lombok.Builder;
 import lombok.Value;
-
 import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 
 /**
  * @author Luciano Fiandesio
- *
- * @deprecated this is a class related to "old" (deprecated) tracker which will
- *             be removed with "old" tracker. Make sure to plan migrating to new
- *             tracker.
+ * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
+ *     "old" tracker. Make sure to plan migrating to new tracker.
  */
 @Value
-@Builder( toBuilder = true )
-@Deprecated( since = "2.41" )
-public class AggregateContext
-{
-    /**
-     * returns true if user is Super User
-     */
-    boolean superUser;
+@Builder(toBuilder = true)
+@Deprecated(since = "2.41")
+public class AggregateContext {
+  /** returns true if user is Super User */
+  boolean superUser;
 
-    /**
-     * The current user id
-     */
-    Long userId;
+  /** The current user id */
+  Long userId;
 
-    /**
-     * The current user uid
-     */
-    String userUid;
+  /** The current user uid */
+  String userUid;
 
-    /**
-     * A list of group ID to which the user belongs
-     */
-    List<String> userGroups;
+  /** A list of group ID to which the user belongs */
+  List<String> userGroups;
 
-    /**
-     * A List of Tracked Entity Types ID to which the user has READ ONLY access
-     */
-    List<Long> trackedEntityTypes;
+  /** A List of Tracked Entity Types ID to which the user has READ ONLY access */
+  List<Long> trackedEntityTypes;
 
-    /**
-     * A List of Programs ID to which the user has READ ONLY access
-     */
-    List<Long> programs;
+  /** A List of Programs ID to which the user has READ ONLY access */
+  List<Long> programs;
 
-    /**
-     * A List of Program Stages ID to which the user has READ ONLY access
-     */
-    List<Long> programStages;
+  /** A List of Program Stages ID to which the user has READ ONLY access */
+  List<Long> programStages;
 
-    /**
-     * A List of Relationship ID to which the user has READ ONLY access
-     */
-    List<Long> relationshipTypes;
+  /** A List of Relationship ID to which the user has READ ONLY access */
+  List<Long> relationshipTypes;
 
-    /**
-     * The tei params to specify depth of tei graph
-     */
-    TrackedEntityInstanceParams params;
+  /** The tei params to specify depth of tei graph */
+  TrackedEntityInstanceParams params;
 
-    /**
-     * The query parameters to filter teis
-     */
-    TrackedEntityQueryParams queryParams;
+  /** The query parameters to filter teis */
+  TrackedEntityQueryParams queryParams;
 }

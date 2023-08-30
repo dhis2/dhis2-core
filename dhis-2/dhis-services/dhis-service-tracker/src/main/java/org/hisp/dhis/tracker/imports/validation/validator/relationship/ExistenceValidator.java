@@ -40,65 +40,77 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class ExistenceValidator
-    implements Validator<Relationship>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle,
-        Relationship relationship )
-    {
+class ExistenceValidator implements Validator<Relationship> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
 
-        org.hisp.dhis.relationship.Relationship existingRelationship = bundle.getPreheat()
-            .getRelationship( relationship.getRelationship() );
-        TrackerImportStrategy importStrategy = bundle.getStrategy( relationship );
+    org.hisp.dhis.relationship.Relationship existingRelationship =
+        bundle.getPreheat().getRelationship(relationship.getRelationship());
+    TrackerImportStrategy importStrategy = bundle.getStrategy(relationship);
 
-        validateRelationshipNotDeleted( reporter, existingRelationship, relationship );
-        validateRelationshipNotUpdated( reporter, existingRelationship, relationship, importStrategy );
-        validateNewRelationshipNotExistAlready( reporter, existingRelationship, relationship, importStrategy );
-        validateUpdatedOrDeletedRelationshipExists( reporter, existingRelationship, relationship, importStrategy );
-    }
+    validateRelationshipNotDeleted(reporter, existingRelationship, relationship);
+    validateRelationshipNotUpdated(reporter, existingRelationship, relationship, importStrategy);
+    validateNewRelationshipNotExistAlready(
+        reporter, existingRelationship, relationship, importStrategy);
+    validateUpdatedOrDeletedRelationshipExists(
+        reporter, existingRelationship, relationship, importStrategy);
+  }
 
-    private void validateRelationshipNotDeleted( Reporter reporter,
-        org.hisp.dhis.relationship.Relationship existingRelationship,
-        Relationship relationship )
-    {
-        reporter.addErrorIf( () -> existingRelationship != null && existingRelationship.isDeleted(), relationship,
-            E4017, relationship.getRelationship() );
-    }
+  private void validateRelationshipNotDeleted(
+      Reporter reporter,
+      org.hisp.dhis.relationship.Relationship existingRelationship,
+      Relationship relationship) {
+    reporter.addErrorIf(
+        () -> existingRelationship != null && existingRelationship.isDeleted(),
+        relationship,
+        E4017,
+        relationship.getRelationship());
+  }
 
-    private void validateRelationshipNotUpdated( Reporter reporter,
-        org.hisp.dhis.relationship.Relationship existingRelationship,
-        Relationship relationship,
-        TrackerImportStrategy importStrategy )
-    {
-        reporter.addWarningIf(
-            () -> existingRelationship != null && !existingRelationship.isDeleted() && importStrategy.isUpdate(),
-            relationship, E4015, relationship.getRelationship() );
-    }
+  private void validateRelationshipNotUpdated(
+      Reporter reporter,
+      org.hisp.dhis.relationship.Relationship existingRelationship,
+      Relationship relationship,
+      TrackerImportStrategy importStrategy) {
+    reporter.addWarningIf(
+        () ->
+            existingRelationship != null
+                && !existingRelationship.isDeleted()
+                && importStrategy.isUpdate(),
+        relationship,
+        E4015,
+        relationship.getRelationship());
+  }
 
-    private void validateNewRelationshipNotExistAlready( Reporter reporter,
-        org.hisp.dhis.relationship.Relationship existingRelationship,
-        Relationship relationship,
-        TrackerImportStrategy importStrategy )
-    {
-        reporter.addErrorIf(
-            () -> existingRelationship != null && !existingRelationship.isDeleted() && importStrategy.isCreate(),
-            relationship, E4015, relationship.getRelationship() );
-    }
+  private void validateNewRelationshipNotExistAlready(
+      Reporter reporter,
+      org.hisp.dhis.relationship.Relationship existingRelationship,
+      Relationship relationship,
+      TrackerImportStrategy importStrategy) {
+    reporter.addErrorIf(
+        () ->
+            existingRelationship != null
+                && !existingRelationship.isDeleted()
+                && importStrategy.isCreate(),
+        relationship,
+        E4015,
+        relationship.getRelationship());
+  }
 
-    private void validateUpdatedOrDeletedRelationshipExists( Reporter reporter,
-        org.hisp.dhis.relationship.Relationship existingRelationship,
-        Relationship relationship,
-        TrackerImportStrategy importStrategy )
-    {
-        reporter.addErrorIf( () -> existingRelationship == null && importStrategy.isUpdateOrDelete(), relationship,
-            E4016, relationship.getRelationship() );
-    }
+  private void validateUpdatedOrDeletedRelationshipExists(
+      Reporter reporter,
+      org.hisp.dhis.relationship.Relationship existingRelationship,
+      Relationship relationship,
+      TrackerImportStrategy importStrategy) {
+    reporter.addErrorIf(
+        () -> existingRelationship == null && importStrategy.isUpdateOrDelete(),
+        relationship,
+        E4016,
+        relationship.getRelationship());
+  }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true;
-    }
-
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true;
+  }
 }

@@ -31,8 +31,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.google.gson.JsonObject;
 import java.io.File;
-
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
@@ -47,137 +47,133 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class UserAssignmentTests
-    extends DeprecatedTrackerApiTest
-{
-    private MetadataActions metadataActions;
+public class UserAssignmentTests extends DeprecatedTrackerApiTest {
+  private MetadataActions metadataActions;
 
-    private LoginActions loginActions;
+  private LoginActions loginActions;
 
-    private String userAssignmentProperty = "enableUserAssignment";
+  private String userAssignmentProperty = "enableUserAssignment";
 
-    private String orgUnit = Constants.ORG_UNIT_IDS[0];
+  private String orgUnit = Constants.ORG_UNIT_IDS[0];
 
-    @BeforeAll
-    public void beforeAll()
-    {
-        metadataActions = new MetadataActions();
-        loginActions = new LoginActions();
+  @BeforeAll
+  public void beforeAll() {
+    metadataActions = new MetadataActions();
+    loginActions = new LoginActions();
 
-        loginActions.loginAsSuperUser();
-        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
-    }
+    loginActions.loginAsSuperUser();
+    metadataActions.importAndValidateMetadata(
+        new File("src/test/resources/tracker/eventProgram.json"));
+  }
 
-    @ParameterizedTest
-    @ValueSource( strings = { "WITHOUT_REGISTRATION", "WITH_REGISTRATION" } )
-    public void shouldBeEnabledOnProgramStage( String programType )
-    {
-        // arrange
-        String programId = programActions.get( "?filter=programStages:ge:1&filter=programType:eq:" + programType )
-            .extractString( "programs.id[0]" );
+  @ParameterizedTest
+  @ValueSource(strings = {"WITHOUT_REGISTRATION", "WITH_REGISTRATION"})
+  public void shouldBeEnabledOnProgramStage(String programType) {
+    // arrange
+    String programId =
+        programActions
+            .get("?filter=programStages:ge:1&filter=programType:eq:" + programType)
+            .extractString("programs.id[0]");
 
-        String programStageId = programActions.get( programId ).extractString( "programStages.id[0]" );
+    String programStageId = programActions.get(programId).extractString("programStages.id[0]");
 
-        // act - enabling user assignment
-        ApiResponse response = programActions.programStageActions.enableUserAssignment( programStageId, true );
+    // act - enabling user assignment
+    ApiResponse response =
+        programActions.programStageActions.enableUserAssignment(programStageId, true);
 
-        // assert
-        ResponseValidationHelper.validateObjectUpdate( response, 200 );
+    // assert
+    ResponseValidationHelper.validateObjectUpdate(response, 200);
 
-        response = programActions.programStageActions.get( programStageId );
+    response = programActions.programStageActions.get(programStageId);
 
-        response.validate()
-            .statusCode( 200 )
-            .body( userAssignmentProperty, equalTo( true ) );
+    response.validate().statusCode(200).body(userAssignmentProperty, equalTo(true));
 
-        // act - disabling user assignment
-        response = programActions.programStageActions.enableUserAssignment( programStageId, false );
+    // act - disabling user assignment
+    response = programActions.programStageActions.enableUserAssignment(programStageId, false);
 
-        // assert
-        ResponseValidationHelper.validateObjectUpdate( response, 200 );
+    // assert
+    ResponseValidationHelper.validateObjectUpdate(response, 200);
 
-        response = programActions.programStageActions.get( programStageId );
+    response = programActions.programStageActions.get(programStageId);
 
-        response.validate().statusCode( 200 )
-            .body( userAssignmentProperty, equalTo( false ) );
-    }
+    response.validate().statusCode(200).body(userAssignmentProperty, equalTo(false));
+  }
 
-    @ParameterizedTest
-    @ValueSource( strings = { "true", "false" } )
-    public void eventImportWithUserAssignmentShouldSucceed( String userAssignmentEnabled )
-        throws Exception
-    {
-        String programStageId = "l8oDIfJJhtg";
-        String programId = "BJ42SUrAvHo";
-        String loggedInUser = loginActions.getLoggedInUserId();
+  @ParameterizedTest
+  @ValueSource(strings = {"true", "false"})
+  public void eventImportWithUserAssignmentShouldSucceed(String userAssignmentEnabled)
+      throws Exception {
+    String programStageId = "l8oDIfJJhtg";
+    String programId = "BJ42SUrAvHo";
+    String loggedInUser = loginActions.getLoggedInUserId();
 
-        programActions.programStageActions.enableUserAssignment( programStageId,
-            Boolean.parseBoolean( userAssignmentEnabled ) );
+    programActions.programStageActions.enableUserAssignment(
+        programStageId, Boolean.parseBoolean(userAssignmentEnabled));
 
-        ApiResponse eventResponse = createEvents( programId, programStageId, loggedInUser );
+    ApiResponse eventResponse = createEvents(programId, programStageId, loggedInUser);
 
-        assertNotNull( eventResponse.getImportSummaries(), "No import summaries returned when creating event." );
-        eventResponse.getImportSummaries().forEach( importSummary -> {
-            ApiResponse response = eventActions.get( importSummary.getReference() );
+    assertNotNull(
+        eventResponse.getImportSummaries(), "No import summaries returned when creating event.");
+    eventResponse
+        .getImportSummaries()
+        .forEach(
+            importSummary -> {
+              ApiResponse response = eventActions.get(importSummary.getReference());
 
-            if ( !Boolean.parseBoolean( userAssignmentEnabled ) )
-            {
-                response.validate().body( "assignedUser", nullValue() );
+              if (!Boolean.parseBoolean(userAssignmentEnabled)) {
+                response.validate().body("assignedUser", nullValue());
                 return;
-            }
+              }
 
-            response.validate().body( "assignedUser", equalTo( loggedInUser ) );
-        } );
-    }
+              response.validate().body("assignedUser", equalTo(loggedInUser));
+            });
+  }
 
-    @Test
-    public void eventUserAssignmentShouldBeRemoved()
-        throws Exception
-    {
-        // arrange
-        String programStageId = "l8oDIfJJhtg";
-        String programId = "BJ42SUrAvHo";
-        String loggedInUser = loginActions.getLoggedInUserId();
+  @Test
+  public void eventUserAssignmentShouldBeRemoved() throws Exception {
+    // arrange
+    String programStageId = "l8oDIfJJhtg";
+    String programId = "BJ42SUrAvHo";
+    String loggedInUser = loginActions.getLoggedInUserId();
 
-        programActions.programStageActions.enableUserAssignment( programStageId, true );
-        createEvents( programId, programStageId, loggedInUser );
+    programActions.programStageActions.enableUserAssignment(programStageId, true);
+    createEvents(programId, programStageId, loggedInUser);
 
-        JsonObject event = eventActions
-            .get( String.format( "?program=%s&orgUnit=%s&assignedUserMode=CURRENT", programId, orgUnit ) )
-            .validateStatus( 200 )
-            .extractJsonObject( "events[0]" );
+    JsonObject event =
+        eventActions
+            .get(
+                String.format(
+                    "?program=%s&orgUnit=%s&assignedUserMode=CURRENT", programId, orgUnit))
+            .validateStatus(200)
+            .extractJsonObject("events[0]");
 
-        assertNotNull( event, "no events matching the query." );
+    assertNotNull(event, "no events matching the query.");
 
-        String eventId = event.get( "event" ).getAsString();
-        event.add( "assignedUser", null );
+    String eventId = event.get("event").getAsString();
+    event.add("assignedUser", null);
 
-        eventActions.update( eventId, event )
-            .validate().statusCode( 200 );
+    eventActions.update(eventId, event).validate().statusCode(200);
 
-        eventActions.get( eventId )
-            .validate()
-            .statusCode( 200 )
-            .body( "assignedUser", Matchers.nullValue() );
-    }
+    eventActions.get(eventId).validate().statusCode(200).body("assignedUser", Matchers.nullValue());
+  }
 
-    private ApiResponse createEvents( String programId, String programStageId, String assignedUserId )
-        throws Exception
-    {
-        Object file = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/events.json" ) )
-            .replacePropertyValuesWithIds( "event" )
-            .replacePropertyValuesWith( "orgUnit", orgUnit )
-            .replacePropertyValuesWith( "program", programId )
-            .replacePropertyValuesWith( "programStage", programStageId )
-            .replacePropertyValuesWith( "assignedUser", assignedUserId )
+  private ApiResponse createEvents(String programId, String programStageId, String assignedUserId)
+      throws Exception {
+    Object file =
+        new FileReaderUtils()
+            .read(new File("src/test/resources/tracker/events/events.json"))
+            .replacePropertyValuesWithIds("event")
+            .replacePropertyValuesWith("orgUnit", orgUnit)
+            .replacePropertyValuesWith("program", programId)
+            .replacePropertyValuesWith("programStage", programStageId)
+            .replacePropertyValuesWith("assignedUser", assignedUserId)
             .get();
 
-        return eventActions.post( file, new QueryParamsBuilder().add( "skipCache", "true" ) )
-            .validateStatus( 200 );
-    }
+    return eventActions
+        .post(file, new QueryParamsBuilder().add("skipCache", "true"))
+        .validateStatus(200);
+  }
 }

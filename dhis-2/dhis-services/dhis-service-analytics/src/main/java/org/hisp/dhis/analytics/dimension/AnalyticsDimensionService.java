@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.dimension;
 
 import java.util.List;
-
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionalObject;
@@ -36,9 +35,8 @@ import org.hisp.dhis.common.DimensionalObject;
 /**
  * @author Lars Helge Overland
  */
-public interface AnalyticsDimensionService
-{
-    List<DimensionalObject> getRecommendedDimensions( DataQueryRequest request );
+public interface AnalyticsDimensionService {
+  List<DimensionalObject> getRecommendedDimensions(DataQueryRequest request);
 
-    List<DimensionalObject> getRecommendedDimensions( DataQueryParams params );
+  List<DimensionalObject> getRecommendedDimensions(DataQueryParams params);
 }

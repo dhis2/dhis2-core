@@ -29,7 +29,6 @@ package org.hisp.dhis.eventreport;
 
 import java.util.Collection;
 import java.util.List;
-
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -46,65 +45,56 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class EventReportDeletionHandler
-    extends GenericAnalyticalObjectDeletionHandler<EventReport, EventReportService>
-{
-    public EventReportDeletionHandler( EventReportService eventReportService )
-    {
-        super( new DeletionVeto( EventReport.class ), eventReportService );
+    extends GenericAnalyticalObjectDeletionHandler<EventReport, EventReportService> {
+  public EventReportDeletionHandler(EventReportService eventReportService) {
+    super(new DeletionVeto(EventReport.class), eventReportService);
+  }
+
+  @Override
+  protected void registerHandler() {
+    // generic
+    whenDeleting(Period.class, this::deletePeriod);
+    whenVetoing(Period.class, this::allowDeletePeriod);
+    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
+    whenDeleting(OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup);
+    whenDeleting(OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet);
+    // special
+    whenDeleting(DataElement.class, this::deleteDataElementSpecial);
+    whenDeleting(ProgramStage.class, this::deleteProgramStage);
+    whenDeleting(Program.class, this::deleteProgram);
+  }
+
+  private void deleteDataElementSpecial(DataElement dataElement) {
+    List<EventReport> eventReports = service.getAnalyticalObjectsByDataDimension(dataElement);
+
+    for (EventReport report : eventReports) {
+      report
+          .getDataElementDimensions()
+          .removeIf(
+              trackedEntityDataElementDimension ->
+                  trackedEntityDataElementDimension.getDataElement().equals(dataElement));
+
+      service.update(report);
     }
+  }
 
-    @Override
-    protected void registerHandler()
-    {
-        // generic
-        whenDeleting( Period.class, this::deletePeriod );
-        whenVetoing( Period.class, this::allowDeletePeriod );
-        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
-        whenDeleting( OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup );
-        whenDeleting( OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet );
-        // special
-        whenDeleting( DataElement.class, this::deleteDataElementSpecial );
-        whenDeleting( ProgramStage.class, this::deleteProgramStage );
-        whenDeleting( Program.class, this::deleteProgram );
+  private void deleteProgramStage(ProgramStage programStage) {
+    Collection<EventReport> charts = service.getAllEventReports();
+
+    for (EventReport report : charts) {
+      if (report.getProgramStage() != null && report.getProgramStage().equals(programStage)) {
+        service.deleteEventReport(report);
+      }
     }
+  }
 
-    private void deleteDataElementSpecial( DataElement dataElement )
-    {
-        List<EventReport> eventReports = service.getAnalyticalObjectsByDataDimension( dataElement );
+  private void deleteProgram(Program program) {
+    Collection<EventReport> charts = service.getAllEventReports();
 
-        for ( EventReport report : eventReports )
-        {
-            report.getDataElementDimensions()
-                .removeIf( trackedEntityDataElementDimension -> trackedEntityDataElementDimension.getDataElement()
-                    .equals( dataElement ) );
-
-            service.update( report );
-        }
+    for (EventReport report : charts) {
+      if (report.getProgram() != null && report.getProgram().equals(program)) {
+        service.deleteEventReport(report);
+      }
     }
-
-    private void deleteProgramStage( ProgramStage programStage )
-    {
-        Collection<EventReport> charts = service.getAllEventReports();
-
-        for ( EventReport report : charts )
-        {
-            if ( report.getProgramStage() != null && report.getProgramStage().equals( programStage ) )
-            {
-                service.deleteEventReport( report );
-            }
-        }
-    }
-
-    private void deleteProgram( Program program )
-    {
-        Collection<EventReport> charts = service.getAllEventReports();
-
-        for ( EventReport report : charts )
-        {
-            if ( report.getProgram() != null && report.getProgram().equals( program ) )
-            {
-                service.deleteEventReport( report );
-            }
-        }
-    }
+  }
 }

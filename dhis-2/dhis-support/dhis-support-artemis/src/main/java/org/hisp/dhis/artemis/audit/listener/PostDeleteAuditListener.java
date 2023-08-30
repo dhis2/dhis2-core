@@ -28,9 +28,7 @@
 package org.hisp.dhis.artemis.audit.listener;
 
 import java.time.LocalDateTime;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.persister.entity.EntityPersister;
@@ -48,48 +46,47 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class PostDeleteAuditListener
-    extends AbstractHibernateListener
-    implements PostCommitDeleteEventListener
-{
-    public PostDeleteAuditListener(
-        AuditManager auditManager,
-        AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier,
-        SchemaService schemaService )
-    {
-        super( auditManager, auditObjectFactory, userNameSupplier, schemaService );
-    }
+public class PostDeleteAuditListener extends AbstractHibernateListener
+    implements PostCommitDeleteEventListener {
+  public PostDeleteAuditListener(
+      AuditManager auditManager,
+      AuditObjectFactory auditObjectFactory,
+      UsernameSupplier userNameSupplier,
+      SchemaService schemaService) {
+    super(auditManager, auditObjectFactory, userNameSupplier, schemaService);
+  }
 
-    @Override
-    AuditType getAuditType()
-    {
-        return AuditType.DELETE;
-    }
+  @Override
+  AuditType getAuditType() {
+    return AuditType.DELETE;
+  }
 
-    @Override
-    public void onPostDelete( PostDeleteEvent postDeleteEvent )
-    {
-        getAuditable( postDeleteEvent.getEntity(), "delete" ).ifPresent( auditable -> auditManager.send( Audit.builder()
-            .auditType( getAuditType() )
-            .auditScope( auditable.scope() )
-            .createdAt( LocalDateTime.now() )
-            .createdBy( getCreatedBy() )
-            .object( postDeleteEvent.getEntity() )
-            .auditableEntity(
-                new AuditableEntity( postDeleteEvent.getEntity().getClass(), createAuditEntry( postDeleteEvent ) ) )
-            .build() ) );
-    }
+  @Override
+  public void onPostDelete(PostDeleteEvent postDeleteEvent) {
+    getAuditable(postDeleteEvent.getEntity(), "delete")
+        .ifPresent(
+            auditable ->
+                auditManager.send(
+                    Audit.builder()
+                        .auditType(getAuditType())
+                        .auditScope(auditable.scope())
+                        .createdAt(LocalDateTime.now())
+                        .createdBy(getCreatedBy())
+                        .object(postDeleteEvent.getEntity())
+                        .auditableEntity(
+                            new AuditableEntity(
+                                postDeleteEvent.getEntity().getClass(),
+                                createAuditEntry(postDeleteEvent)))
+                        .build()));
+  }
 
-    @Override
-    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
-    {
-        return true;
-    }
+  @Override
+  public boolean requiresPostCommitHanding(EntityPersister entityPersister) {
+    return true;
+  }
 
-    @Override
-    public void onPostDeleteCommitFailed( PostDeleteEvent event )
-    {
-        log.debug( "onPostDeleteCommitFailed: " + event );
-    }
+  @Override
+  public void onPostDeleteCommitFailed(PostDeleteEvent event) {
+    log.debug("onPostDeleteCommitFailed: " + event);
+  }
 }

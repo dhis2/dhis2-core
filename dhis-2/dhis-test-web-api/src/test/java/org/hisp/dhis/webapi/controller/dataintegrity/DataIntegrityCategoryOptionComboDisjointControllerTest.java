@@ -37,94 +37,102 @@ import org.hisp.dhis.webapi.json.domain.JsonCategoryOptionCombo;
 import org.junit.jupiter.api.Test;
 
 /**
- *
- * Tests metadata integrity check category option combinations with incorrect
- * cardinality.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/categories/category_option_combinations_disjoint.yaml
+ * Tests metadata integrity check category option combinations with incorrect cardinality. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/categories/category_option_combinations_disjoint.yaml
  * }
  *
- * @implNote The test for disjoint category option combinations is impossible to
- *           set up in current versions of DHIS2, as when a category option is
- *           deleted from a category, any corresponding category option
- *           combinations associated with it are also deleted. If there is data
- *           associated with the category option combination, the DELETE
- *           operation will not succeed. Here we test for that scenario, which
- *           does not result in any integrity violations.
+ * @implNote The test for disjoint category option combinations is impossible to set up in current
+ *     versions of DHIS2, as when a category option is deleted from a category, any corresponding
+ *     category option combinations associated with it are also deleted. If there is data associated
+ *     with the category option combination, the DELETE operation will not succeed. Here we test for
+ *     that scenario, which does not result in any integrity violations.
  * @author Jason P. Pickering
  */
+class DataIntegrityCategoryOptionComboDisjointControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
+  private final String check = "category_option_combos_disjoint";
 
-class DataIntegrityCategoryOptionComboDisjointControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    private final String check = "category_option_combos_disjoint";
+  private final String detailsIdType = "categoryOptionCombos";
 
-    private final String detailsIdType = "categoryOptionCombos";
+  private String categoryOptionSweet;
 
-    private String categoryOptionSweet;
+  @Test
+  void testCanDeleteCategoryOptionCascadeCatOptionCombo() {
 
-    @Test
-    void testCanDeleteCategoryOptionCascadeCatOptionCombo()
-    {
+    setupTest();
+    // We should have three cat option combos now. The two we created and default.
+    JsonObject response = GET("/categoryOptionCombos?fields=id,name").content();
+    JsonList<JsonCategoryOptionCombo> catOptionCombos =
+        response.getList("categoryOptionCombos", JsonCategoryOptionCombo.class);
+    assertEquals(3, catOptionCombos.size());
 
-        setupTest();
-        //We should have three cat option combos now. The two we created and default.
-        JsonObject response = GET( "/categoryOptionCombos?fields=id,name" ).content();
-        JsonList<JsonCategoryOptionCombo> catOptionCombos = response.getList( "categoryOptionCombos",
-            JsonCategoryOptionCombo.class );
-        assertEquals( 3, catOptionCombos.size() );
+    // Delete the category option
+    assertStatus(HttpStatus.OK, DELETE("/categoryOptions/" + categoryOptionSweet));
 
-        //Delete the category option
-        assertStatus( HttpStatus.OK,
-            DELETE( "/categoryOptions/" + categoryOptionSweet ) );
+    assertStatus(HttpStatus.NOT_FOUND, GET("/categoryOptions/" + categoryOptionSweet));
 
-        assertStatus( HttpStatus.NOT_FOUND,
-            GET( "/categoryOptions/" + categoryOptionSweet ) );
+    // The deletion of the category option cascades to the category option combo.
+    response = GET("/categoryOptionCombos?fields=id,name").content();
+    catOptionCombos = response.getList("categoryOptionCombos", JsonCategoryOptionCombo.class);
+    assertEquals(2, catOptionCombos.size());
 
-        //The deletion of the category option cascades to the category option combo.
-        response = GET( "/categoryOptionCombos?fields=id,name" ).content();
-        catOptionCombos = response.getList( "categoryOptionCombos", JsonCategoryOptionCombo.class );
-        assertEquals( 2, catOptionCombos.size() );
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
-    }
+  @Test
+  void setTestCatCombosWrongCardinalityDoesNotExist() {
 
-    @Test
-    void setTestCatCombosWrongCardinalityDoesNotExist()
-    {
+    setupTest();
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-        setupTest();
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
+  void setupTest() {
+    String categoryOptionSour =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/categoryOptions", "{ 'name': 'Sour', 'shortName': 'Sour' }"));
 
-    }
+    categoryOptionSweet =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/categoryOptions", "{ 'name': 'Sweet', 'shortName': 'Sweet' }"));
 
-    void setupTest()
-    {
-        String categoryOptionSour = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptions",
-                "{ 'name': 'Sour', 'shortName': 'Sour' }" ) );
+    String categoryOptionRed =
+        assertStatus(
+            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
 
-        categoryOptionSweet = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptions",
-                "{ 'name': 'Sweet', 'shortName': 'Sweet' }" ) );
+    String categoryColor =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ,"
+                    + "'categoryOptions' : [{'id' : '"
+                    + categoryOptionRed
+                    + "'} ] }"));
 
-        String categoryOptionRed = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptions",
-                "{ 'name': 'Red', 'shortName': 'Red' }" ) );
+    String categoryTaste =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{ 'name': 'Taste', 'shortName': 'Taste', 'dataDimensionType': 'DISAGGREGATION' ,"
+                    + "'categoryOptions' : [{'id' : '"
+                    + categoryOptionSour
+                    + "'}, {'id' : '"
+                    + categoryOptionSweet
+                    + "'} ] }"));
 
-        String categoryColor = assertStatus( HttpStatus.CREATED,
-            POST( "/categories",
-                "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ," +
-                    "'categoryOptions' : [{'id' : '" + categoryOptionRed + "'} ] }" ) );
-
-        String categoryTaste = assertStatus( HttpStatus.CREATED,
-            POST( "/categories",
-                "{ 'name': 'Taste', 'shortName': 'Taste', 'dataDimensionType': 'DISAGGREGATION' ," +
-                    "'categoryOptions' : [{'id' : '" + categoryOptionSour + "'}, {'id' : '" +
-                    categoryOptionSweet + "'} ] }" ) );
-
-        assertStatus( HttpStatus.CREATED,
-            POST( "/categoryCombos", "{ 'name' : 'Taste and color', " +
-                "'dataDimensionType' : 'DISAGGREGATION', 'categories' : [" +
-                "{'id' : '" + categoryColor + "'} , {'id' : '" + categoryTaste + "'}]} " ) );
-    }
-
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/categoryCombos",
+            "{ 'name' : 'Taste and color', "
+                + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
+                + "{'id' : '"
+                + categoryColor
+                + "'} , {'id' : '"
+                + categoryTaste
+                + "'}]} "));
+  }
 }

@@ -40,15 +40,23 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Chau Thu Tran
  */
-@Repository( "org.hisp.dhis.program.ProgramStageSectionStore" )
+@Repository("org.hisp.dhis.program.ProgramStageSectionStore")
 public class HibernateProgramStageSectionStore
     extends HibernateIdentifiableObjectStore<ProgramStageSection>
-    implements ProgramStageSectionStore
-{
-    public HibernateProgramStageSectionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramStageSection.class, currentUserService, aclService,
-            true );
-    }
+    implements ProgramStageSectionStore {
+  public HibernateProgramStageSectionStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        ProgramStageSection.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 }

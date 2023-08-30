@@ -39,77 +39,70 @@ import org.junit.jupiter.api.Test;
  *
  * @author maikel arabori
  */
-class OutputFormatterTest
-{
+class OutputFormatterTest {
 
-    @Test
-    void testMaybeFormatWhenObjectIsDoubleUnder10Million()
-    {
-        // Given
-        final Double under10Million = 10000d;
-        // When
-        final Object result = maybeFormat( under10Million );
-        // Then
-        assertInstanceOf( String.class, result );
-        assertThat( result, is( "10000.0" ) );
-    }
+  @Test
+  void testMaybeFormatWhenObjectIsDoubleUnder10Million() {
+    // Given
+    final Double under10Million = 10000d;
+    // When
+    final Object result = maybeFormat(under10Million);
+    // Then
+    assertInstanceOf(String.class, result);
+    assertThat(result, is("10000.0"));
+  }
 
-    @Test
-    void testMaybeFormatWhenObjectIsDoubleOver10Million()
-    {
-        // Given
-        final Double over10Million = 10000001d;
-        // When
-        final Object result = maybeFormat( over10Million );
-        // Then
-        assertInstanceOf( String.class, result );
-        assertThat( result, is( "10000001.0" ) );
-    }
+  @Test
+  void testMaybeFormatWhenObjectIsDoubleOver10Million() {
+    // Given
+    final Double over10Million = 10000001d;
+    // When
+    final Object result = maybeFormat(over10Million);
+    // Then
+    assertInstanceOf(String.class, result);
+    assertThat(result, is("10000001.0"));
+  }
 
-    @Test
-    void testMaybeFormatWhenObjectIsDoubleWithDecimalDigitsOver10Million()
-    {
-        // Given
-        final Double over10Million = 10000000.2575899d;
-        // When
-        final Object result = maybeFormat( over10Million );
-        // Then
-        assertInstanceOf( String.class, result );
-        assertThat( result, is( "10000000.2575899" ) );
-    }
+  @Test
+  void testMaybeFormatWhenObjectIsDoubleWithDecimalDigitsOver10Million() {
+    // Given
+    final Double over10Million = 10000000.2575899d;
+    // When
+    final Object result = maybeFormat(over10Million);
+    // Then
+    assertInstanceOf(String.class, result);
+    assertThat(result, is("10000000.2575899"));
+  }
 
-    @Test
-    void testMaybeFormatWhenObjectIsNull()
-    {
-        // Given
-        final Object nullObject = null;
-        // When
-        final Object result = maybeFormat( nullObject );
-        // Then
-        assertThat( result, is( nullObject ) );
-    }
+  @Test
+  void testMaybeFormatWhenObjectIsNull() {
+    // Given
+    final Object nullObject = null;
+    // When
+    final Object result = maybeFormat(nullObject);
+    // Then
+    assertThat(result, is(nullObject));
+  }
 
-    @Test
-    void testMaybeFormatWhenObjectIsNotSupportedShort()
-    {
-        // Given
-        final Short notSupportedObject = 44;
-        // When
-        final Object result = maybeFormat( notSupportedObject );
-        // Then
-        assertInstanceOf( Short.class, result );
-        assertThat( result, is( notSupportedObject ) );
-    }
+  @Test
+  void testMaybeFormatWhenObjectIsNotSupportedShort() {
+    // Given
+    final Short notSupportedObject = 44;
+    // When
+    final Object result = maybeFormat(notSupportedObject);
+    // Then
+    assertInstanceOf(Short.class, result);
+    assertThat(result, is(notSupportedObject));
+  }
 
-    @Test
-    void testMaybeFormatWhenObjectIsNotSupportedLong()
-    {
-        // Given
-        final Long notSupportedObject = 4455555l;
-        // When
-        final Object result = maybeFormat( notSupportedObject );
-        // Then
-        assertInstanceOf( Long.class, result );
-        assertThat( result, is( notSupportedObject ) );
-    }
+  @Test
+  void testMaybeFormatWhenObjectIsNotSupportedLong() {
+    // Given
+    final Long notSupportedObject = 4455555l;
+    // When
+    final Object result = maybeFormat(notSupportedObject);
+    // Then
+    assertInstanceOf(Long.class, result);
+    assertThat(result, is(notSupportedObject));
+  }
 }

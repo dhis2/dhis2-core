@@ -32,7 +32,6 @@ import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
@@ -43,25 +42,21 @@ import org.springframework.stereotype.Component;
 /**
  * @author Enrico Colasante
  */
-@Component( "org.hisp.dhis.tracker.imports.validation.validator.event.RuleEngineValidator" )
-class RuleEngineValidator
-    implements Validator<Event>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
-    {
-        if ( !bundle.getEventRuleActionExecutors().containsKey( event ) )
-        {
-            return;
-        }
-
-        List<ProgramRuleIssue> programRuleIssues = bundle.getEventRuleActionExecutors().get( event )
-            .stream()
-            .map( e -> e.executeRuleAction( bundle, event ) )
-            .filter( Optional::isPresent )
-            .map( Optional::get )
-            .collect( Collectors.toList() );
-
-        addIssuesToReporter( reporter, event, programRuleIssues );
+@Component("org.hisp.dhis.tracker.imports.validation.validator.event.RuleEngineValidator")
+class RuleEngineValidator implements Validator<Event> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
+    if (!bundle.getEventRuleActionExecutors().containsKey(event)) {
+      return;
     }
+
+    List<ProgramRuleIssue> programRuleIssues =
+        bundle.getEventRuleActionExecutors().get(event).stream()
+            .map(e -> e.executeRuleAction(bundle, event))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toList());
+
+    addIssuesToReporter(reporter, event, programRuleIssues);
+  }
 }

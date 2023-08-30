@@ -34,10 +34,10 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.google.gson.JsonObject;
 import java.io.File;
 import java.util.List;
 import java.util.stream.Stream;
-
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
@@ -55,194 +55,225 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class RelationshipsTest
-    extends DeprecatedTrackerApiTest
-{
-    private static List<String> teis;
+public class RelationshipsTest extends DeprecatedTrackerApiTest {
+  private static List<String> teis;
 
-    private static List<String> events;
+  private static List<String> events;
 
-    private TrackedEntityInstancesAction trackedEntityInstanceActions;
+  private TrackedEntityInstancesAction trackedEntityInstanceActions;
 
-    private MetadataActions metadataActions;
+  private MetadataActions metadataActions;
 
-    private String createdRelationship;
+  private String createdRelationship;
 
-    private RestApiActions eventActions;
+  private RestApiActions eventActions;
 
-    private RelationshipActions relationshipActions;
+  private RelationshipActions relationshipActions;
 
-    private static Stream<Arguments> provideRelationshipData()
-    {
-        return Stream.of(
-            Arguments.arguments( "HrS7b5Lis6E", "event", events.get( 0 ), "trackedEntityInstance", teis.get( 0 ) ), // event
-            // to
-            // tei
-            Arguments.arguments( "HrS7b5Lis6w", "trackedEntityInstance", teis.get( 0 ), "event", events.get( 0 ) ), // tei
-            // to
-            // event
-            Arguments.arguments( "HrS7b5Lis6P", "event", events.get( 0 ), "event", events.get( 1 ) ), // event
-            // to
-            // event
-            Arguments.arguments( "WmNgnmedbQK", "trackedEntityInstance", teis.get( 0 ), "trackedEntityInstance",
-                teis.get( 1 ) ) ); // tei to tei
-    }
+  private static Stream<Arguments> provideRelationshipData() {
+    return Stream.of(
+        Arguments.arguments(
+            "HrS7b5Lis6E", "event", events.get(0), "trackedEntityInstance", teis.get(0)), // event
+        // to
+        // tei
+        Arguments.arguments(
+            "HrS7b5Lis6w", "trackedEntityInstance", teis.get(0), "event", events.get(0)), // tei
+        // to
+        // event
+        Arguments.arguments("HrS7b5Lis6P", "event", events.get(0), "event", events.get(1)), // event
+        // to
+        // event
+        Arguments.arguments(
+            "WmNgnmedbQK",
+            "trackedEntityInstance",
+            teis.get(0),
+            "trackedEntityInstance",
+            teis.get(1))); // tei to tei
+  }
 
-    @BeforeAll
-    public void before()
-        throws Exception
-    {
-        relationshipActions = new RelationshipActions();
-        trackedEntityInstanceActions = new TrackedEntityInstancesAction();
-        metadataActions = new MetadataActions();
-        eventActions = new EventActions();
+  @BeforeAll
+  public void before() throws Exception {
+    relationshipActions = new RelationshipActions();
+    trackedEntityInstanceActions = new TrackedEntityInstancesAction();
+    metadataActions = new MetadataActions();
+    eventActions = new EventActions();
 
-        new LoginActions().loginAsSuperUser();
+    new LoginActions().loginAsSuperUser();
 
-        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/relationshipTypes.json" ) );
+    metadataActions.importAndValidateMetadata(
+        new File("src/test/resources/tracker/relationshipTypes.json"));
 
-        JsonObject teiObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/teis/teis.json" ) )
-            .replacePropertyValuesWithIds( "trackedEntityInstance" ).get( JsonObject.class );
+    JsonObject teiObject =
+        new FileReaderUtils()
+            .read(new File("src/test/resources/tracker/teis/teis.json"))
+            .replacePropertyValuesWithIds("trackedEntityInstance")
+            .get(JsonObject.class);
 
-        teis = trackedEntityInstanceActions.post( teiObject ).extractUids();
+    teis = trackedEntityInstanceActions.post(teiObject).extractUids();
 
-        JsonObject eventObject = new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/events/events.json" ) )
-            .replacePropertyValuesWithIds( "event" ).get( JsonObject.class );
+    JsonObject eventObject =
+        new FileReaderUtils()
+            .read(new File("src/test/resources/tracker/events/events.json"))
+            .replacePropertyValuesWithIds("event")
+            .get(JsonObject.class);
 
-        ApiResponse response = eventActions.post( eventObject ).validateStatus( 200 );
-        events = response.extractUids();
-    }
+    ApiResponse response = eventActions.post(eventObject).validateStatus(200);
+    events = response.extractUids();
+  }
 
-    @Test
-    public void duplicateRelationshipsShouldNotBeAdded()
-    {
-        // create a relationship
-        JsonObject object = relationshipActions
-            .createRelationshipBody( "xLmPUYJX8Ks", "trackedEntityInstance", teis.get( 0 ), "trackedEntityInstance",
-                teis.get( 1 ) );
+  @Test
+  public void duplicateRelationshipsShouldNotBeAdded() {
+    // create a relationship
+    JsonObject object =
+        relationshipActions.createRelationshipBody(
+            "xLmPUYJX8Ks",
+            "trackedEntityInstance",
+            teis.get(0),
+            "trackedEntityInstance",
+            teis.get(1));
 
-        ApiResponse response = relationshipActions.post( object );
+    ApiResponse response = relationshipActions.post(object);
 
-        response.validate().statusCode( 200 );
-        createdRelationship = response.extractUid();
-        assertNotNull( createdRelationship, "First relationship was not created." );
+    response.validate().statusCode(200);
+    createdRelationship = response.extractUid();
+    assertNotNull(createdRelationship, "First relationship was not created.");
 
-        // create a second relationship
-        response = relationshipActions.post( object );
+    // create a second relationship
+    response = relationshipActions.post(object);
 
-        response.validate().statusCode( 409 )
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "response.status", equalTo( "ERROR" ) )
-            .body( "response.ignored", equalTo( 1 ) )
-            .body( "response.total", equalTo( 1 ) )
-            .rootPath( "response.importSummaries[0]" )
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "description", Matchers.stringContainsInOrder( "Relationship", "already exist" ) )
-            .body( "importCount.ignored", equalTo( 1 ) );
-    }
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .body("response.status", equalTo("ERROR"))
+        .body("response.ignored", equalTo(1))
+        .body("response.total", equalTo(1))
+        .rootPath("response.importSummaries[0]")
+        .body("status", equalTo("ERROR"))
+        .body("description", Matchers.stringContainsInOrder("Relationship", "already exist"))
+        .body("importCount.ignored", equalTo(1));
+  }
 
-    @Test
-    public void softDeletedRelationshipsShouldNotBeUpdated()
-    {
-        // create a relationship
-        JsonObject object = relationshipActions
-            .createRelationshipBody( "xLmPUYJX8Ks", "trackedEntityInstance", teis.get( 0 ), "trackedEntityInstance",
-                teis.get( 1 ) );
+  @Test
+  public void softDeletedRelationshipsShouldNotBeUpdated() {
+    // create a relationship
+    JsonObject object =
+        relationshipActions.createRelationshipBody(
+            "xLmPUYJX8Ks",
+            "trackedEntityInstance",
+            teis.get(0),
+            "trackedEntityInstance",
+            teis.get(1));
 
-        ApiResponse response = relationshipActions.post( object );
+    ApiResponse response = relationshipActions.post(object);
 
-        response.validate().statusCode( 200 );
-        createdRelationship = response.extractUid();
+    response.validate().statusCode(200);
+    createdRelationship = response.extractUid();
 
-        relationshipActions.softDelete( createdRelationship );
+    relationshipActions.softDelete(createdRelationship);
 
-        // Update soft deleted relationship
-        object.addProperty( "relationship", createdRelationship );
-        response = relationshipActions.post( object );
+    // Update soft deleted relationship
+    object.addProperty("relationship", createdRelationship);
+    response = relationshipActions.post(object);
 
-        response.validate().statusCode( 409 )
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "response.status", equalTo( "ERROR" ) )
-            .body( "response.ignored", equalTo( 1 ) )
-            .body( "response.total", equalTo( 1 ) )
-            .rootPath( "response.importSummaries[0]" )
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "description", Matchers.containsString(
-                "Relationship '" + createdRelationship + "' is already deleted and cannot be modified." ) )
-            .body( "importCount.ignored", equalTo( 1 ) );
-    }
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .body("response.status", equalTo("ERROR"))
+        .body("response.ignored", equalTo(1))
+        .body("response.total", equalTo(1))
+        .rootPath("response.importSummaries[0]")
+        .body("status", equalTo("ERROR"))
+        .body(
+            "description",
+            Matchers.containsString(
+                "Relationship '"
+                    + createdRelationship
+                    + "' is already deleted and cannot be modified."))
+        .body("importCount.ignored", equalTo(1));
+  }
 
-    @MethodSource( "provideRelationshipData" )
-    @ParameterizedTest( name = "{index} {1} to {3}" )
-    public void bidirectionalRelationshipFromTrackedEntityInstanceToEventCanBeAdded( String relationshipType,
-        String fromInstance,
-        String fromInstanceId, String toInstance, String toInstanceId )
-    {
-        // add relationship
-        JsonObject relationship = relationshipActions
-            .createRelationshipBody( relationshipType, fromInstance, fromInstanceId, toInstance, toInstanceId );
+  @MethodSource("provideRelationshipData")
+  @ParameterizedTest(name = "{index} {1} to {3}")
+  public void bidirectionalRelationshipFromTrackedEntityInstanceToEventCanBeAdded(
+      String relationshipType,
+      String fromInstance,
+      String fromInstanceId,
+      String toInstance,
+      String toInstanceId) {
+    // add relationship
+    JsonObject relationship =
+        relationshipActions.createRelationshipBody(
+            relationshipType, fromInstance, fromInstanceId, toInstance, toInstanceId);
 
-        ApiResponse response = relationshipActions.post( relationship );
+    ApiResponse response = relationshipActions.post(relationship);
 
-        response.validate().statusCode( 200 );
+    response.validate().statusCode(200);
 
-        createdRelationship = response.extractUid();
+    createdRelationship = response.extractUid();
 
-        assertNotNull( createdRelationship, "Relationship id was not returned" );
-        assertEquals( 1, response.getSuccessfulImportSummaries().size(), "Relationship import was not successful" );
+    assertNotNull(createdRelationship, "Relationship id was not returned");
+    assertEquals(
+        1,
+        response.getSuccessfulImportSummaries().size(),
+        "Relationship import was not successful");
 
-        // validate created on both sides
-        response = getEntityInRelationship( toInstance, toInstanceId );
-        validateRelationship( response, relationshipType, fromInstance, fromInstanceId, toInstance, toInstanceId );
+    // validate created on both sides
+    response = getEntityInRelationship(toInstance, toInstanceId);
+    validateRelationship(
+        response, relationshipType, fromInstance, fromInstanceId, toInstance, toInstanceId);
 
-        response = getEntityInRelationship( fromInstance, fromInstanceId );
-        validateRelationship( response, relationshipType, fromInstance, fromInstanceId, toInstance, toInstanceId );
-    }
+    response = getEntityInRelationship(fromInstance, fromInstanceId);
+    validateRelationship(
+        response, relationshipType, fromInstance, fromInstanceId, toInstance, toInstanceId);
+  }
 
-    private ApiResponse getEntityInRelationship( String toOrFromInstance, String id )
-    {
-        switch ( toOrFromInstance )
+  private ApiResponse getEntityInRelationship(String toOrFromInstance, String id) {
+    switch (toOrFromInstance) {
+      case "trackedEntityInstance":
         {
-        case "trackedEntityInstance":
-        {
-            return trackedEntityInstanceActions.get( id, new QueryParamsBuilder().add( "fields=relationships" ) );
+          return trackedEntityInstanceActions.get(
+              id, new QueryParamsBuilder().add("fields=relationships"));
         }
 
-        case "event":
+      case "event":
         {
-            return eventActions.get( id );
+          return eventActions.get(id);
         }
 
-        default:
+      default:
         {
-            return null;
+          return null;
         }
-        }
     }
+  }
 
-    private void validateRelationship( ApiResponse response, String relationshipTypeId, String fromInstance,
-        String fromInstanceId,
-        String toInstance, String toInstanceId )
-    {
-        response.validate()
-            .statusCode( 200 )
-            .body( "relationships", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "relationships.relationshipType", hasItem( relationshipTypeId ) )
-            .body( String.format( "relationships.from.%s.%s", fromInstance, fromInstance ),
-                hasItem( Matchers.equalTo( fromInstanceId ) ) )
-            .body( String.format( "relationships.to.%s.%s", toInstance, toInstance ),
-                hasItem( equalTo( toInstanceId ) ) );
-    }
+  private void validateRelationship(
+      ApiResponse response,
+      String relationshipTypeId,
+      String fromInstance,
+      String fromInstanceId,
+      String toInstance,
+      String toInstanceId) {
+    response
+        .validate()
+        .statusCode(200)
+        .body("relationships", hasSize(greaterThanOrEqualTo(1)))
+        .body("relationships.relationshipType", hasItem(relationshipTypeId))
+        .body(
+            String.format("relationships.from.%s.%s", fromInstance, fromInstance),
+            hasItem(Matchers.equalTo(fromInstanceId)))
+        .body(
+            String.format("relationships.to.%s.%s", toInstance, toInstance),
+            hasItem(equalTo(toInstanceId)));
+  }
 
-    @AfterEach
-    public void cleanup()
-    {
-        relationshipActions.delete( createdRelationship );
-    }
+  @AfterEach
+  public void cleanup() {
+    relationshipActions.delete(createdRelationship);
+  }
 }

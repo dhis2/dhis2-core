@@ -39,9 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.DimensionsServiceCommon;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.PrefixedDimension;
@@ -56,72 +54,77 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class DefaultEnrollmentAnalyticsDimensionsService implements EnrollmentAnalyticsDimensionsService
-{
-    private final ProgramService programService;
+public class DefaultEnrollmentAnalyticsDimensionsService
+    implements EnrollmentAnalyticsDimensionsService {
+  private final ProgramService programService;
 
-    private final AclService aclService;
+  private final AclService aclService;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    @Override
-    public List<PrefixedDimension> getQueryDimensionsByProgramId( String programId )
-    {
-        User user = currentUserService.getCurrentUser();
+  @Override
+  public List<PrefixedDimension> getQueryDimensionsByProgramId(String programId) {
+    User user = currentUserService.getCurrentUser();
 
-        return Optional.of( programId )
-            .map( programService::getProgram )
-            .filter( Program::isRegistration )
-            .map( program -> collectDimensions(
-                List.of(
-                    ofItemsWithProgram( program, program.getProgramIndicators().stream()
-                        .filter( pi -> aclService.canRead( user, pi ) )
-                        .collect( Collectors.toSet() ) ),
-                    getProgramStageDataElements( QUERY, program ),
-                    filterByValueType(
-                        QUERY,
-                        ofItemsWithProgram( program, getTeasIfRegistrationAndNotConfidential( program ) ) ) ) ) )
-            .orElse( Collections.emptyList() );
-    }
+    return Optional.of(programId)
+        .map(programService::getProgram)
+        .filter(Program::isRegistration)
+        .map(
+            program ->
+                collectDimensions(
+                    List.of(
+                        ofItemsWithProgram(
+                            program,
+                            program.getProgramIndicators().stream()
+                                .filter(pi -> aclService.canRead(user, pi))
+                                .collect(Collectors.toSet())),
+                        getProgramStageDataElements(QUERY, program),
+                        filterByValueType(
+                            QUERY,
+                            ofItemsWithProgram(
+                                program, getTeasIfRegistrationAndNotConfidential(program))))))
+        .orElse(Collections.emptyList());
+  }
 
-    private Collection<PrefixedDimension> getProgramStageDataElements(
-        DimensionsServiceCommon.OperationType operationType, Program program )
-    {
-        return program.getProgramStages().stream()
-            .map( ProgramStage::getProgramStageDataElements )
-            .map( programStageDataElements -> filterByValueType(
-                operationType,
-                ofProgramStageDataElements( programStageDataElements ) ) )
-            .flatMap( Collection::stream )
-            .collect( Collectors.toList() );
-    }
+  private Collection<PrefixedDimension> getProgramStageDataElements(
+      DimensionsServiceCommon.OperationType operationType, Program program) {
+    return program.getProgramStages().stream()
+        .map(ProgramStage::getProgramStageDataElements)
+        .map(
+            programStageDataElements ->
+                filterByValueType(
+                    operationType, ofProgramStageDataElements(programStageDataElements)))
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
+  }
 
-    @Override
-    public List<PrefixedDimension> getAggregateDimensionsByProgramStageId( String programId )
-    {
-        return Optional.of( programId )
-            .map( programService::getProgram )
-            .map( program -> collectDimensions(
-                List.of(
-                    getProgramStageDataElements( AGGREGATE, program ),
-                    filterByValueType( AGGREGATE,
-                        ofItemsWithProgram( program, program.getTrackedEntityAttributes() ) ) ) ) )
-            .orElse( Collections.emptyList() );
-    }
+  @Override
+  public List<PrefixedDimension> getAggregateDimensionsByProgramStageId(String programId) {
+    return Optional.of(programId)
+        .map(programService::getProgram)
+        .map(
+            program ->
+                collectDimensions(
+                    List.of(
+                        getProgramStageDataElements(AGGREGATE, program),
+                        filterByValueType(
+                            AGGREGATE,
+                            ofItemsWithProgram(program, program.getTrackedEntityAttributes())))))
+        .orElse(Collections.emptyList());
+  }
 
-    private Collection<TrackedEntityAttribute> getTeasIfRegistrationAndNotConfidential( Program program )
-    {
-        return Optional.of( program )
-            .filter( Program::isRegistration )
-            .map( Program::getTrackedEntityAttributes )
-            .orElse( Collections.emptyList() )
-            .stream()
-            .filter( this::isNotConfidential )
-            .collect( Collectors.toList() );
-    }
+  private Collection<TrackedEntityAttribute> getTeasIfRegistrationAndNotConfidential(
+      Program program) {
+    return Optional.of(program)
+        .filter(Program::isRegistration)
+        .map(Program::getTrackedEntityAttributes)
+        .orElse(Collections.emptyList())
+        .stream()
+        .filter(this::isNotConfidential)
+        .collect(Collectors.toList());
+  }
 
-    private boolean isNotConfidential( TrackedEntityAttribute trackedEntityAttribute )
-    {
-        return !trackedEntityAttribute.isConfidentialBool();
-    }
+  private boolean isNotConfidential(TrackedEntityAttribute trackedEntityAttribute) {
+    return !trackedEntityAttribute.isConfidentialBool();
+  }
 }

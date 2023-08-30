@@ -40,33 +40,27 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 /**
  * @author Luciano Fiandesio
  */
-@Configuration( "externalServiceConfig" )
+@Configuration("externalServiceConfig")
 @EnableAsync
 @EnableScheduling
-public class ServiceConfig
-{
-    @Bean
-    public LocationManager locationManager()
-    {
-        return DefaultLocationManager.getDefault();
-    }
+public class ServiceConfig {
+  @Bean
+  public LocationManager locationManager() {
+    return DefaultLocationManager.getDefault();
+  }
 
-    @Bean( "maxAttempts" )
-    public ConfigurationPropertyFactoryBean maxAttempts()
-    {
-        return new ConfigurationPropertyFactoryBean( META_DATA_SYNC_RETRY );
-    }
+  @Bean("maxAttempts")
+  public ConfigurationPropertyFactoryBean maxAttempts() {
+    return new ConfigurationPropertyFactoryBean(META_DATA_SYNC_RETRY);
+  }
 
-    @Bean( "initialInterval" )
-    public ConfigurationPropertyFactoryBean initialInterval()
-    {
-        return new ConfigurationPropertyFactoryBean( META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC );
-    }
+  @Bean("initialInterval")
+  public ConfigurationPropertyFactoryBean initialInterval() {
+    return new ConfigurationPropertyFactoryBean(META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC);
+  }
 
-    @Bean( "sessionTimeout" )
-    public ConfigurationPropertyFactoryBean sessionTimeout()
-    {
-        return new ConfigurationPropertyFactoryBean( SYSTEM_SESSION_TIMEOUT );
-    }
-
+  @Bean("sessionTimeout")
+  public ConfigurationPropertyFactoryBean sessionTimeout() {
+    return new ConfigurationPropertyFactoryBean(SYSTEM_SESSION_TIMEOUT);
+  }
 }

@@ -31,10 +31,8 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.user.sharing.Sharing;
 
-/**
- * Contains functions for managing {@link Sharing}
- */
-public interface SharingService
-{
-    <T extends IdentifiableObject> ObjectReport saveSharing( Class<T> entityClass, T entity, Sharing sharing );
+/** Contains functions for managing {@link Sharing} */
+public interface SharingService {
+  <T extends IdentifiableObject> ObjectReport saveSharing(
+      Class<T> entityClass, T entity, Sharing sharing);
 }

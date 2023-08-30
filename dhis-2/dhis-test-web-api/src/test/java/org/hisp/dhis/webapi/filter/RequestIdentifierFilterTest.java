@@ -35,12 +35,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.function.Consumer;
-
 import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,60 +50,50 @@ import org.slf4j.MDC;
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class RequestIdentifierFilterTest
-{
-    @Mock
-    private DhisConfigurationProvider dhisConfigurationProvider;
+@ExtendWith(MockitoExtension.class)
+class RequestIdentifierFilterTest {
+  @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
-    private RequestIdentifierFilter subject;
+  private RequestIdentifierFilter subject;
 
-    @BeforeEach
-    public void setUp()
-    {
-        MDC.clear();
-    }
+  @BeforeEach
+  public void setUp() {
+    MDC.clear();
+  }
 
-    @Test
-    void testIsDisabled()
-        throws Exception
-    {
-        init( false );
-        doFilter( request -> {
-        } );
+  @Test
+  void testIsDisabled() throws Exception {
+    init(false);
+    doFilter(request -> {});
 
-        assertNull( MDC.get( "sessionId" ) );
-    }
+    assertNull(MDC.get("sessionId"));
+  }
 
-    @Test
-    void testIsEnabled()
-        throws Exception
-    {
-        init( true );
-        doFilter( request -> {
-            HttpSession session = mock( HttpSession.class );
-            when( request.getSession() ).thenReturn( session );
-            when( session.getId() ).thenReturn( "ABCDEFGHILMNO" );
-        } );
+  @Test
+  void testIsEnabled() throws Exception {
+    init(true);
+    doFilter(
+        request -> {
+          HttpSession session = mock(HttpSession.class);
+          when(request.getSession()).thenReturn(session);
+          when(session.getId()).thenReturn("ABCDEFGHILMNO");
+        });
 
-        assertEquals( "ID" + hashToBase64( "ABCDEFGHILMNO" ), MDC.get( "sessionId" ) );
-    }
+    assertEquals("ID" + hashToBase64("ABCDEFGHILMNO"), MDC.get("sessionId"));
+  }
 
-    private void doFilter( Consumer<HttpServletRequest> withRequest )
-        throws Exception
-    {
-        HttpServletRequest req = mock( HttpServletRequest.class );
-        HttpServletResponse res = mock( HttpServletResponse.class );
-        FilterChain filterChain = mock( FilterChain.class );
+  private void doFilter(Consumer<HttpServletRequest> withRequest) throws Exception {
+    HttpServletRequest req = mock(HttpServletRequest.class);
+    HttpServletResponse res = mock(HttpServletResponse.class);
+    FilterChain filterChain = mock(FilterChain.class);
 
-        withRequest.accept( req );
+    withRequest.accept(req);
 
-        subject.doFilter( req, res, filterChain );
-    }
+    subject.doFilter(req, res, filterChain);
+  }
 
-    private void init( boolean enabled )
-    {
-        when( dhisConfigurationProvider.isEnabled( LOGGING_REQUEST_ID_ENABLED ) ).thenReturn( enabled );
-        subject = new RequestIdentifierFilter( dhisConfigurationProvider );
-    }
+  private void init(boolean enabled) {
+    when(dhisConfigurationProvider.isEnabled(LOGGING_REQUEST_ID_ENABLED)).thenReturn(enabled);
+    subject = new RequestIdentifierFilter(dhisConfigurationProvider);
+  }
 }

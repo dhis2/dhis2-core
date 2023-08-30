@@ -33,76 +33,73 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test metadata check for indicators not used in any analysis
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/indicators/indicator_noanalysis.yaml}
+ * Test metadata check for indicators not used in any analysis {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/indicators/indicator_noanalysis.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityIndicatorsNoAnalysisControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityIndicatorsNoAnalysisControllerTest extends AbstractDataIntegrityIntegrationTest {
 
-    private static final String check = "indicator_no_analysis";
+  private static final String check = "indicator_no_analysis";
 
-    private String indicatorA;
+  private String indicatorA;
 
-    @Test
-    void testIndicatorsWithoutAnalysisExist()
-    {
+  @Test
+  void testIndicatorsWithoutAnalysisExist() {
 
-        setUpTest();
-        assertHasDataIntegrityIssues( "indicators", check, 100, indicatorA,
-            null, null, true );
-    }
+    setUpTest();
+    assertHasDataIntegrityIssues("indicators", check, 100, indicatorA, null, null, true);
+  }
 
-    @Test
-    void testIndicatorUsedInAnalysis()
-    {
+  @Test
+  void testIndicatorUsedInAnalysis() {
 
-        setUpTest();
-        //Create a visualization with the provided indicator
-        assertStatus( HttpStatus.CREATED,
-            POST( "/visualizations?skipTranslations=true&skipSharing=true",
-                "{'type':'SINGLE_VALUE','columns':[{'dimension':'dx','items':[{'id':'" + indicatorA +
-                    "'}]}],'rows':[],'filters':[{'dimension':'ou','items':[{'id':'USER_ORGUNIT'}]}, " +
-                    "{'dimension':'pe','items':[{'id':'LAST_12_MONTHS'}]}],'axes':[],'colorSet':'DEFAULT', " +
-                    "'cumulativeValues':false,'hideEmptyRowItems':'NONE','seriesKey':{},'legend':{}," +
-                    "'noSpaceBetweenColumns':false,'percentStackedValues':false,'regressionType':'NONE', " +
-                    "'showData':true,'aggregationType':'DEFAULT','completedOnly':false,'hideSubtitle':false," +
-                    "'hideTitle':false,'sortOrder':0,'series':[],'fontStyle':{},'outlierAnalysis':null,'colTotals':false,"
-                    +
-                    "'colSubTotals':false,'rowTotals':false,'rowSubTotals':false,'showDimensionLabels':false," +
-                    "'hideEmptyColumns':false,'hideEmptyRows':false,'skipRounding':false,'numberType':'VALUE', " +
-                    "'showHierarchy':false,'displayDensity':'NORMAL','fontSize':'NORMAL','digitGroupSeparator':'SPACE',"
-                    +
-                    "'fixColumnHeaders':false,'fixRowHeaders':false,'regression':false,'cumulative':false,'topLimit':0,'"
-                    + "" +
-                    "reportingParams':{'organisationUnit':false,'reportingPeriod':false,'parentOrganisationUnit':false,"
-                    +
-                    "'grandParentOrganisationUnit':false},'name':'Test viz'}" ) );
+    setUpTest();
+    // Create a visualization with the provided indicator
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/visualizations?skipTranslations=true&skipSharing=true",
+            "{'type':'SINGLE_VALUE','columns':[{'dimension':'dx','items':[{'id':'"
+                + indicatorA
+                + "'}]}],'rows':[],'filters':[{'dimension':'ou','items':[{'id':'USER_ORGUNIT'}]}, "
+                + "{'dimension':'pe','items':[{'id':'LAST_12_MONTHS'}]}],'axes':[],'colorSet':'DEFAULT', "
+                + "'cumulativeValues':false,'hideEmptyRowItems':'NONE','seriesKey':{},'legend':{},"
+                + "'noSpaceBetweenColumns':false,'percentStackedValues':false,'regressionType':'NONE', "
+                + "'showData':true,'aggregationType':'DEFAULT','completedOnly':false,'hideSubtitle':false,"
+                + "'hideTitle':false,'sortOrder':0,'series':[],'fontStyle':{},'outlierAnalysis':null,'colTotals':false,"
+                + "'colSubTotals':false,'rowTotals':false,'rowSubTotals':false,'showDimensionLabels':false,"
+                + "'hideEmptyColumns':false,'hideEmptyRows':false,'skipRounding':false,'numberType':'VALUE', "
+                + "'showHierarchy':false,'displayDensity':'NORMAL','fontSize':'NORMAL','digitGroupSeparator':'SPACE',"
+                + "'fixColumnHeaders':false,'fixRowHeaders':false,'regression':false,'cumulative':false,'topLimit':0,'"
+                + ""
+                + "reportingParams':{'organisationUnit':false,'reportingPeriod':false,'parentOrganisationUnit':false,"
+                + "'grandParentOrganisationUnit':false},'name':'Test viz'}"));
 
-        assertHasNoDataIntegrityIssues( "indicators", check, true );
-    }
+    assertHasNoDataIntegrityIssues("indicators", check, true);
+  }
 
-    @Test
-    void testIndicatorsInAnalysisRuns()
-    {
-        assertHasNoDataIntegrityIssues( "indicators", check, false );
-    }
+  @Test
+  void testIndicatorsInAnalysisRuns() {
+    assertHasNoDataIntegrityIssues("indicators", check, false);
+  }
 
-    void setUpTest()
-    {
+  void setUpTest() {
 
-        String indicatorTypeA = assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorTypes",
-                "{ 'name': 'Per cent', 'factor' : 100, 'number' : false }" ) );
+    String indicatorTypeA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/indicatorTypes", "{ 'name': 'Per cent', 'factor' : 100, 'number' : false }"));
 
-        indicatorA = assertStatus( HttpStatus.CREATED,
-            POST( "/indicators",
-                "{ 'name': 'Indicator A', 'shortName': 'Indicator A',  'indicatorType' : {'id' : '" + indicatorTypeA
-                    + "'}," +
-                    " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', " +
-                    "'denominatorDescription' : 'Zero'} }" ) );
-
-    }
-
+    indicatorA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators",
+                "{ 'name': 'Indicator A', 'shortName': 'Indicator A',  'indicatorType' : {'id' : '"
+                    + indicatorTypeA
+                    + "'},"
+                    + " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', "
+                    + "'denominatorDescription' : 'Zero'} }"));
+  }
 }

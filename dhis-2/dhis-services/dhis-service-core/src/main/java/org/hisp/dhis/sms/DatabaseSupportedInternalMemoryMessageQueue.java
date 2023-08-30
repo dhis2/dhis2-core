@@ -30,57 +30,47 @@ package org.hisp.dhis.sms;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
-@Component( "org.hisp.dhis.sms.MessageQueue" )
-public class DatabaseSupportedInternalMemoryMessageQueue
-    implements MessageQueue
-{
-    private List<IncomingSms> queue = new ArrayList<>();
+@Component("org.hisp.dhis.sms.MessageQueue")
+public class DatabaseSupportedInternalMemoryMessageQueue implements MessageQueue {
+  private List<IncomingSms> queue = new ArrayList<>();
 
-    private final IncomingSmsService incomingSmsService;
+  private final IncomingSmsService incomingSmsService;
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public void put( IncomingSms message )
-    {
-        queue.add( message );
+  @Override
+  public void put(IncomingSms message) {
+    queue.add(message);
+  }
+
+  @Override
+  public IncomingSms get() {
+    if (queue != null && queue.size() > 0) {
+      return queue.get(0);
     }
 
-    @Override
-    public IncomingSms get()
-    {
-        if ( queue != null && queue.size() > 0 )
-        {
-            return queue.get( 0 );
-        }
+    return null;
+  }
 
-        return null;
+  @Override
+  public void remove(IncomingSms message) {
+    queue.remove(message);
+  }
+
+  @Override
+  public void initialize() {
+    Collection<IncomingSms> messages = incomingSmsService.getAllUnparsedMessages();
+
+    if (messages != null) {
+      queue.addAll(messages);
     }
-
-    @Override
-    public void remove( IncomingSms message )
-    {
-        queue.remove( message );
-    }
-
-    @Override
-    public void initialize()
-    {
-        Collection<IncomingSms> messages = incomingSmsService.getAllUnparsedMessages();
-
-        if ( messages != null )
-        {
-            queue.addAll( messages );
-        }
-    }
+  }
 }

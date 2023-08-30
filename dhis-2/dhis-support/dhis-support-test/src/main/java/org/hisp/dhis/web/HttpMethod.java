@@ -30,19 +30,17 @@ package org.hisp.dhis.web;
 /**
  * Valid HTTP methods.
  *
- * Basically a copy of springs enum to not being dependent on spring web where
- * this is used.
+ * <p>Basically a copy of springs enum to not being dependent on spring web where this is used.
  *
  * @author Jan Bernitt
  */
-public enum HttpMethod
-{
-    GET,
-    HEAD,
-    POST,
-    PUT,
-    PATCH,
-    DELETE,
-    OPTIONS,
-    TRACE
+public enum HttpMethod {
+  GET,
+  HEAD,
+  POST,
+  PUT,
+  PATCH,
+  DELETE,
+  OPTIONS,
+  TRACE
 }

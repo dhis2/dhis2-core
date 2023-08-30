@@ -40,15 +40,23 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Repository( "org.hisp.dhis.organisationunit.OrganisationUnitGroupSetStore" )
+@Repository("org.hisp.dhis.organisationunit.OrganisationUnitGroupSetStore")
 public class HibernateOrganisationUnitGroupSetStore
     extends HibernateIdentifiableObjectStore<OrganisationUnitGroupSet>
-    implements OrganisationUnitGroupSetStore
-{
-    public HibernateOrganisationUnitGroupSetStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, OrganisationUnitGroupSet.class, currentUserService, aclService,
-            true );
-    }
+    implements OrganisationUnitGroupSetStore {
+  public HibernateOrganisationUnitGroupSetStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        OrganisationUnitGroupSet.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 }

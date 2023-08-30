@@ -34,46 +34,58 @@ import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.PS
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.P_UID;
 
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
-/**
- * Utility class for the
- * {@link org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder}.
- */
-@NoArgsConstructor( access = PRIVATE )
-class ContextUtils
-{
-    static String enrollmentSelect( ElementWithOffset<Program> program,
-        TrackedEntityType trackedEntityType, SqlParameterManager sqlParameterManager )
-    {
-        int offset = program.hasOffset() ? program.getOffset() : 1;
+/** Utility class for the {@link org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder}. */
+@NoArgsConstructor(access = PRIVATE)
+class ContextUtils {
+  static String enrollmentSelect(
+      ElementWithOffset<Program> program,
+      TrackedEntityType trackedEntityType,
+      SqlParameterManager sqlParameterManager) {
+    int offset = program.hasOffset() ? program.getOffset() : 1;
 
-        return "select innermost_enr.*" +
-            " from (select *," +
-            " row_number() over (partition by trackedentityinstanceuid order by enrollmentdate "
-            + (offset > 0 ? "desc" : "asc") + ") as rn " +
-            " from " + ANALYTICS_TEI_ENR + trackedEntityType.getUid().toLowerCase() +
-            " where " + P_UID + " = " + sqlParameterManager.bindParamAndGetIndex( program.getElement().getUid() )
-            + ") innermost_enr" +
-            " where innermost_enr.rn = " + Math.abs( offset );
-    }
+    return "select innermost_enr.*"
+        + " from (select *,"
+        + " row_number() over (partition by trackedentityinstanceuid order by enrollmentdate "
+        + (offset > 0 ? "desc" : "asc")
+        + ") as rn "
+        + " from "
+        + ANALYTICS_TEI_ENR
+        + trackedEntityType.getUid().toLowerCase()
+        + " where "
+        + P_UID
+        + " = "
+        + sqlParameterManager.bindParamAndGetIndex(program.getElement().getUid())
+        + ") innermost_enr"
+        + " where innermost_enr.rn = "
+        + Math.abs(offset);
+  }
 
-    static String eventSelect( ElementWithOffset<Program> program,
-        ElementWithOffset<ProgramStage> programStage,
-        TrackedEntityType trackedEntityType, SqlParameterManager sqlParameterManager )
-    {
-        return "select innermost_evt.*" +
-            " from (select *," +
-            " row_number() over (partition by programinstanceuid order by executiondate desc) as rn" +
-            " from " + ANALYTICS_TEI_EVT + trackedEntityType.getUid().toLowerCase() +
-            " where " + P_UID + " = " + sqlParameterManager.bindParamAndGetIndex( program.getElement().getUid() ) +
-            " and " + PS_UID + " = " + sqlParameterManager.bindParamAndGetIndex( programStage.getElement().getUid() )
-            + ") innermost_evt" +
-            " where innermost_evt.rn = 1";
-    }
+  static String eventSelect(
+      ElementWithOffset<Program> program,
+      ElementWithOffset<ProgramStage> programStage,
+      TrackedEntityType trackedEntityType,
+      SqlParameterManager sqlParameterManager) {
+    return "select innermost_evt.*"
+        + " from (select *,"
+        + " row_number() over (partition by programinstanceuid order by executiondate desc) as rn"
+        + " from "
+        + ANALYTICS_TEI_EVT
+        + trackedEntityType.getUid().toLowerCase()
+        + " where "
+        + P_UID
+        + " = "
+        + sqlParameterManager.bindParamAndGetIndex(program.getElement().getUid())
+        + " and "
+        + PS_UID
+        + " = "
+        + sqlParameterManager.bindParamAndGetIndex(programStage.getElement().getUid())
+        + ") innermost_evt"
+        + " where innermost_evt.rn = 1";
+  }
 }

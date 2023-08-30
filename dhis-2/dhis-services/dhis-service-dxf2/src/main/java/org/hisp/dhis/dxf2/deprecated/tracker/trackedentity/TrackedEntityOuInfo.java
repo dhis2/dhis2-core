@@ -27,5 +27,4 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity;
 
-public record TrackedEntityOuInfo(Long trackerEntityId, String trackedEntityUid, Long orgUnitId) {
-}
+public record TrackedEntityOuInfo(Long trackerEntityId, String trackedEntityUid, Long orgUnitId) {}

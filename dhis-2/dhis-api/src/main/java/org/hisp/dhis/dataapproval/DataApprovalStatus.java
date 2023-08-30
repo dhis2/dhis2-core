@@ -28,105 +28,80 @@
 package org.hisp.dhis.dataapproval;
 
 import java.util.Date;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-
 import org.hisp.dhis.user.User;
 
 /**
- * Current status of data approval for a given selection of data from a data
- * set. Returns the approval state and, if approved for this particular
- * selection, approval information.
+ * Current status of data approval for a given selection of data from a data set. Returns the
+ * approval state and, if approved for this particular selection, approval information.
  *
  * @author Jim Grace
  */
 @Getter
 @Builder
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class DataApprovalStatus
-{
-    /**
-     * State of data approval for a given selection of data from a data set.
-     */
-    @Setter
-    private DataApprovalState state;
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class DataApprovalStatus {
+  /** State of data approval for a given selection of data from a data set. */
+  @Setter private DataApprovalState state;
 
-    /**
-     * If the selection of data is approved, the data approval level object at
-     * which it is approved. If the selection is approved at more than one
-     * level, this is for the highest level of approval.
-     */
-    private final DataApprovalLevel approvedLevel;
+  /**
+   * If the selection of data is approved, the data approval level object at which it is approved.
+   * If the selection is approved at more than one level, this is for the highest level of approval.
+   */
+  private final DataApprovalLevel approvedLevel;
 
-    /**
-     * If the selection of data is approved, the ID of the highest organisation
-     * unit at which there is approval.
-     */
-    private final int approvedOrgUnitId;
+  /**
+   * If the selection of data is approved, the ID of the highest organisation unit at which there is
+   * approval.
+   */
+  private final int approvedOrgUnitId;
 
-    /**
-     * If the selection of data is approved, the approval level (same as above)
-     * but if the selection is not approved, the level for this orgUnit at which
-     * it could be approved (if any).
-     */
-    private final DataApprovalLevel actionLevel;
+  /**
+   * If the selection of data is approved, the approval level (same as above) but if the selection
+   * is not approved, the level for this orgUnit at which it could be approved (if any).
+   */
+  private final DataApprovalLevel actionLevel;
 
-    /**
-     * If the selection is approved, the OrganisationUnit UID.
-     */
-    private final String organisationUnitUid;
+  /** If the selection is approved, the OrganisationUnit UID. */
+  private final String organisationUnitUid;
 
-    /**
-     * If the selection is approved, the OrganisationUnit name.
-     */
-    private final String organisationUnitName;
+  /** If the selection is approved, the OrganisationUnit name. */
+  private final String organisationUnitName;
 
-    /**
-     * If the selection is approved, the attribute category option combo UID.
-     */
-    private final String attributeOptionComboUid;
+  /** If the selection is approved, the attribute category option combo UID. */
+  private final String attributeOptionComboUid;
 
-    /**
-     * If the selection is approved, whether or not it is accepted at the
-     * highest level approved.
-     */
-    private final boolean accepted;
+  /** If the selection is approved, whether or not it is accepted at the highest level approved. */
+  private final boolean accepted;
 
-    /**
-     * Permissions granted for current user for the this approval state.
-     */
-    @Setter
-    private DataApprovalPermissions permissions;
+  /** Permissions granted for current user for the this approval state. */
+  @Setter private DataApprovalPermissions permissions;
 
-    /**
-     * If the selection is approved, and if present (not always needed), the
-     * date at which the highest level of approval was created.
-     */
-    @Setter
-    private Date created;
+  /**
+   * If the selection is approved, and if present (not always needed), the date at which the highest
+   * level of approval was created.
+   */
+  @Setter private Date created;
 
-    /**
-     * If the selection is approved, and if present (not always needed), The
-     * user who made this approval.
-     */
-    @Setter
-    private User creator;
+  /**
+   * If the selection is approved, and if present (not always needed), The user who made this
+   * approval.
+   */
+  @Setter private User creator;
 
-    /**
-     * If the selection is approved, and if present (not always needed), the
-     * date at which the highest level of approval was last updated.
-     */
-    @Setter
-    private Date lastUpdated;
+  /**
+   * If the selection is approved, and if present (not always needed), the date at which the highest
+   * level of approval was last updated.
+   */
+  @Setter private Date lastUpdated;
 
-    /**
-     * If the selection is approved, and if present (not always needed), The
-     * user who made the last update.
-     */
-    @Setter
-    private User lastUpdatedBy;
+  /**
+   * If the selection is approved, and if present (not always needed), The user who made the last
+   * update.
+   */
+  @Setter private User lastUpdatedBy;
 }

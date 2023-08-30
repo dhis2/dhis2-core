@@ -31,7 +31,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -40,11 +39,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-
 import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -59,247 +58,194 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @RequiredArgsConstructor
 @Service
-public class DefaultDatastoreService
-    implements DatastoreService
-{
-    private final Map<String, DatastoreNamespaceProtection> protectionByNamespace = new ConcurrentHashMap<>();
+public class DefaultDatastoreService implements DatastoreService {
+  private final Map<String, DatastoreNamespaceProtection> protectionByNamespace =
+      new ConcurrentHashMap<>();
 
-    private final DatastoreStore store;
+  private final DatastoreStore store;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    private final AclService aclService;
+  private final AclService aclService;
 
-    private final RenderService renderService;
+  private final RenderService renderService;
 
-    @Override
-    public void addProtection( DatastoreNamespaceProtection protection )
-    {
-        protectionByNamespace.put( protection.getNamespace(), protection );
+  @Override
+  public void addProtection(DatastoreNamespaceProtection protection) {
+    protectionByNamespace.put(protection.getNamespace(), protection);
+  }
+
+  @Override
+  public void removeProtection(String namespace) {
+    protectionByNamespace.remove(namespace);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getNamespaces() {
+    return store.getNamespaces().stream().filter(this::isNamespaceVisible).collect(toList());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean isUsedNamespace(String namespace) {
+    return readProtectedIn(namespace, false, () -> store.countKeysInNamespace(namespace) > 0);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getKeysInNamespace(String namespace, Date lastUpdated) {
+    return readProtectedIn(
+        namespace, emptyList(), () -> store.getKeysInNamespace(namespace, lastUpdated));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public <T> T getEntries(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform)
+      throws ConflictException {
+    DatastoreQueryValidator.validate(query);
+    return readProtectedIn(query.getNamespace(), null, () -> store.getEntries(query, transform));
+  }
+
+  @Override
+  public DatastoreQuery plan(DatastoreQuery query) throws ConflictException {
+    DatastoreQueryValidator.validate(query);
+    return query;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public DatastoreEntry getEntry(String namespace, String key) {
+    return readProtectedIn(namespace, null, () -> store.getEntry(namespace, key));
+  }
+
+  @Override
+  @Transactional
+  public void addEntry(DatastoreEntry entry) throws ConflictException, BadRequestException {
+    if (getEntry(entry.getNamespace(), entry.getKey()) != null) {
+      throw new ConflictException(
+          String.format(
+              "Key '%s' already exists in namespace '%s'", entry.getKey(), entry.getNamespace()));
     }
+    validateEntry(entry);
+    writeProtectedIn(entry.getNamespace(), () -> singletonList(entry), () -> store.save(entry));
+  }
 
-    @Override
-    public void removeProtection( String namespace )
-    {
-        protectionByNamespace.remove( namespace );
+  @Override
+  @Transactional
+  public void updateEntry(DatastoreEntry entry) throws BadRequestException {
+    validateEntry(entry);
+    DatastoreNamespaceProtection protection = protectionByNamespace.get(entry.getNamespace());
+    Runnable update =
+        protection == null || protection.isSharingRespected()
+            ? () -> store.update(entry)
+            : () -> store.updateNoAcl(entry);
+    writeProtectedIn(entry.getNamespace(), () -> singletonList(entry), update);
+  }
+
+  @Override
+  @Transactional
+  public void saveOrUpdateEntry(DatastoreEntry entry) throws BadRequestException {
+    validateEntry(entry);
+    DatastoreEntry existing = getEntry(entry.getNamespace(), entry.getKey());
+    if (existing != null) {
+      existing.setValue(entry.getValue());
+      writeProtectedIn(
+          entry.getNamespace(), () -> singletonList(existing), () -> store.update(existing));
+    } else {
+      writeProtectedIn(entry.getNamespace(), () -> singletonList(entry), () -> store.save(entry));
     }
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<String> getNamespaces()
-    {
-        return store.getNamespaces().stream().filter( this::isNamespaceVisible ).collect( toList() );
-    }
+  @Override
+  @Transactional
+  public void deleteNamespace(String namespace) {
+    writeProtectedIn(
+        namespace,
+        () -> store.getEntriesInNamespace(namespace),
+        () -> store.deleteNamespace(namespace));
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public boolean isUsedNamespace( String namespace )
-    {
-        return readProtectedIn( namespace, false,
-            () -> store.countKeysInNamespace( namespace ) > 0 );
-    }
+  @Override
+  @Transactional
+  public void deleteEntry(DatastoreEntry entry) {
+    writeProtectedIn(entry.getNamespace(), () -> singletonList(entry), () -> store.delete(entry));
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<String> getKeysInNamespace( String namespace, Date lastUpdated )
-    {
-        return readProtectedIn( namespace, emptyList(),
-            () -> store.getKeysInNamespace( namespace, lastUpdated ) );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public <T> T getFields( DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform )
-    {
-        DatastoreQueryValidator.validate( query );
-        return readProtectedIn( query.getNamespace(), null,
-            () -> store.getFields( query, transform ) );
-    }
-
-    @Override
-    public DatastoreQuery plan( DatastoreQuery query )
-        throws IllegalQueryException
-    {
-        DatastoreQueryValidator.validate( query );
-        return query;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public DatastoreEntry getEntry( String namespace, String key )
-    {
-        return readProtectedIn( namespace, null,
-            () -> store.getEntry( namespace, key ) );
-    }
-
-    @Override
-    @Transactional
-    public void addEntry( DatastoreEntry entry )
-    {
-        if ( getEntry( entry.getNamespace(), entry.getKey() ) != null )
-        {
-            throw new IllegalStateException( String.format(
-                "Key '%s' already exists in namespace '%s'", entry.getKey(), entry.getNamespace() ) );
+  private <T> T readProtectedIn(String namespace, T whenHidden, Supplier<T> read) {
+    DatastoreNamespaceProtection protection = protectionByNamespace.get(namespace);
+    if (protection == null
+        || protection.getReads() == ProtectionType.NONE
+        || currentUserHasAuthority(protection.getAuthorities())) {
+      T res = read.get();
+      if (res instanceof DatastoreEntry && protection != null && protection.isSharingRespected()) {
+        DatastoreEntry entry = (DatastoreEntry) res;
+        if (!aclService.canRead(currentUserService.getCurrentUser(), entry)) {
+          throw new AccessDeniedException(
+              String.format(
+                  "Access denied for key '%s' in namespace '%s'", entry.getKey(), namespace));
         }
-        validateEntry( entry );
-        writeProtectedIn( entry.getNamespace(),
-            () -> singletonList( entry ),
-            () -> store.save( entry ) );
+      }
+      return res;
+    } else if (protection.getReads() == ProtectionType.RESTRICTED) {
+      throw accessDeniedTo(namespace);
     }
+    return whenHidden;
+  }
 
-    @Override
-    @Transactional
-    public void updateEntry( DatastoreEntry entry )
-    {
-        validateEntry( entry );
-        DatastoreNamespaceProtection protection = protectionByNamespace.get( entry.getNamespace() );
-        Runnable update = protection == null || protection.isSharingRespected()
-            ? () -> store.update( entry )
-            : () -> store.updateNoAcl( entry );
-        writeProtectedIn( entry.getNamespace(),
-            () -> singletonList( entry ),
-            update );
-    }
-
-    @Override
-    @Transactional
-    public void saveOrUpdateEntry( DatastoreEntry entry )
-    {
-        validateEntry( entry );
-        DatastoreEntry existing = getEntry( entry.getNamespace(), entry.getKey() );
-        if ( existing != null )
-        {
-            existing.setValue( entry.getValue() );
-            writeProtectedIn( entry.getNamespace(),
-                () -> singletonList( existing ),
-                () -> store.update( existing ) );
+  private void writeProtectedIn(
+      String namespace, Supplier<List<DatastoreEntry>> whenSharing, Runnable write) {
+    DatastoreNamespaceProtection protection = protectionByNamespace.get(namespace);
+    if (protection == null || protection.getWrites() == ProtectionType.NONE) {
+      write.run();
+    } else if (currentUserHasAuthority(protection.getAuthorities())) {
+      // might also need to check sharing
+      if (protection.isSharingRespected()) {
+        for (DatastoreEntry entry : whenSharing.get()) {
+          if (!aclService.canWrite(currentUserService.getCurrentUser(), entry)) {
+            throw accessDeniedTo(namespace, entry.getKey());
+          }
         }
-        else
-        {
-            writeProtectedIn( entry.getNamespace(),
-                () -> singletonList( entry ),
-                () -> store.save( entry ) );
-        }
+      }
+      write.run();
+    } else if (protection.getWrites() == ProtectionType.RESTRICTED) {
+      throw accessDeniedTo(namespace);
     }
+    // HIDDEN: the operation silently just isn't run
+  }
 
-    @Override
-    @Transactional
-    public void deleteNamespace( String namespace )
-    {
-        writeProtectedIn( namespace,
-            () -> store.getEntryByNamespace( namespace ),
-            () -> store.deleteNamespace( namespace ) );
-    }
+  private AccessDeniedException accessDeniedTo(String namespace) {
+    return new AccessDeniedException(
+        String.format("Namespace '%s' is protected, access denied", namespace));
+  }
 
-    @Override
-    @Transactional
-    public void deleteEntry( DatastoreEntry entry )
-    {
-        writeProtectedIn( entry.getNamespace(),
-            () -> singletonList( entry ),
-            () -> store.delete( entry ) );
-    }
+  private AccessDeniedException accessDeniedTo(String namespace, String key) {
+    return new AccessDeniedException(
+        String.format("Access denied for key '%s' in namespace '%s'", key, namespace));
+  }
 
-    private <T> T readProtectedIn( String namespace, T whenHidden, Supplier<T> read )
-    {
-        DatastoreNamespaceProtection protection = protectionByNamespace.get( namespace );
-        if ( protection == null
-            || protection.getReads() == ProtectionType.NONE
-            || currentUserHasAuthority( protection.getAuthorities() ) )
-        {
-            T res = read.get();
-            if ( res instanceof DatastoreEntry && protection != null && protection.isSharingRespected() )
-            {
-                DatastoreEntry entry = (DatastoreEntry) res;
-                if ( !aclService.canRead( currentUserService.getCurrentUser(), entry ) )
-                {
-                    throw new AccessDeniedException( String.format(
-                        "Access denied for key '%s' in namespace '%s'", entry.getKey(), namespace ) );
-                }
-            }
-            return res;
-        }
-        else if ( protection.getReads() == ProtectionType.RESTRICTED )
-        {
-            throw accessDeniedTo( namespace );
-        }
-        return whenHidden;
-    }
+  private boolean isNamespaceVisible(String namespace) {
+    DatastoreNamespaceProtection protection = protectionByNamespace.get(namespace);
+    return protection == null
+        || protection.getReads() != ProtectionType.HIDDEN
+        || currentUserHasAuthority(protection.getAuthorities());
+  }
 
-    private void writeProtectedIn( String namespace, Supplier<List<DatastoreEntry>> whenSharing, Runnable write )
-    {
-        DatastoreNamespaceProtection protection = protectionByNamespace.get( namespace );
-        if ( protection == null || protection.getWrites() == ProtectionType.NONE )
-        {
-            write.run();
-        }
-        else if ( currentUserHasAuthority( protection.getAuthorities() ) )
-        {
-            // might also need to check sharing
-            if ( protection.isSharingRespected() )
-            {
-                for ( DatastoreEntry entry : whenSharing.get() )
-                {
-                    if ( !aclService.canWrite( currentUserService.getCurrentUser(), entry ) )
-                    {
-                        throw accessDeniedTo( namespace, entry.getKey() );
-                    }
-                }
-            }
-            write.run();
-        }
-        else if ( protection.getWrites() == ProtectionType.RESTRICTED )
-        {
-            throw accessDeniedTo( namespace );
-        }
-        // HIDDEN: the operation silently just isn't run
+  private boolean currentUserHasAuthority(Set<String> authorities) {
+    User currentUser = currentUserService.getCurrentUser();
+    if (currentUser == null) {
+      return false;
     }
+    return currentUser.isSuper()
+        || !authorities.isEmpty() && currentUser.hasAnyAuthority(authorities);
+  }
 
-    private AccessDeniedException accessDeniedTo( String namespace )
-    {
-        return new AccessDeniedException( String.format(
-            "Namespace '%s' is protected, access denied", namespace ) );
+  private void validateEntry(DatastoreEntry entry) throws BadRequestException {
+    try {
+      JsonNode.of(entry.getValue()).visit(JsonNode::value);
+    } catch (RuntimeException e) {
+      throw new BadRequestException(
+          String.format("Invalid JSON value for key '%s'", entry.getKey()));
     }
-
-    private AccessDeniedException accessDeniedTo( String namespace, String key )
-    {
-        return new AccessDeniedException( String.format(
-            "Access denied for key '%s' in namespace '%s'", key, namespace ) );
-    }
-
-    private boolean isNamespaceVisible( String namespace )
-    {
-        DatastoreNamespaceProtection protection = protectionByNamespace.get( namespace );
-        return protection == null
-            || protection.getReads() != ProtectionType.HIDDEN
-            || currentUserHasAuthority( protection.getAuthorities() );
-    }
-
-    private boolean currentUserHasAuthority( Set<String> authorities )
-    {
-        User currentUser = currentUserService.getCurrentUser();
-        if ( currentUser == null )
-        {
-            return false;
-        }
-        return currentUser.isSuper() || !authorities.isEmpty() && currentUser.hasAnyAuthority( authorities );
-    }
-
-    private void validateEntry( DatastoreEntry entry )
-    {
-        String json = entry.getValue();
-        try
-        {
-            if ( json != null && !renderService.isValidJson( json ) )
-            {
-                throw new IllegalArgumentException( String.format(
-                    "Invalid JSON value for key '%s'", entry.getKey() ) );
-            }
-        }
-        catch ( IOException ex )
-        {
-            throw new IllegalArgumentException( String.format(
-                "Invalid JSON value for key '%s'", entry.getKey() ), ex );
-        }
-    }
+  }
 }

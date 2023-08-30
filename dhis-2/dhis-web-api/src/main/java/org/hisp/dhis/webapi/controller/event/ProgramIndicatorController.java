@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.event;
 import static org.springframework.http.MediaType.*;
 
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
@@ -53,117 +52,108 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags( "tracker" )
+@OpenApi.Tags("tracker")
 @Controller
-@RequestMapping( value = ProgramIndicatorSchemaDescriptor.API_ENDPOINT )
+@RequestMapping(value = ProgramIndicatorSchemaDescriptor.API_ENDPOINT)
 @RequiredArgsConstructor
-public class ProgramIndicatorController
-    extends AbstractCrudController<ProgramIndicator>
-{
-    private final ProgramIndicatorService programIndicatorService;
+public class ProgramIndicatorController extends AbstractCrudController<ProgramIndicator> {
+  private final ProgramIndicatorService programIndicatorService;
 
-    private final I18nManager i18nManager;
+  private final I18nManager i18nManager;
 
-    @PostMapping( value = "/expression/description", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage getExpressionDescription( @RequestBody Expression expression )
-    {
-        I18n i18n = i18nManager.getI18n();
+  @PostMapping(
+      value = "/expression/description",
+      produces = APPLICATION_JSON_VALUE,
+      consumes = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage getExpressionDescription(@RequestBody Expression expression) {
+    I18n i18n = i18nManager.getI18n();
 
-        if ( expression == null || StringUtils.isEmpty( expression.getExpression() ) )
-        {
-            return new DescriptiveWebMessage( Status.OK, HttpStatus.OK )
-                .setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
-        }
-        try
-        {
-            return new DescriptiveWebMessage( Status.OK, HttpStatus.OK )
-                .setDescription( programIndicatorService.getExpressionDescription( expression.getExpression() ) )
-                .setMessage( i18n.getString( ProgramIndicator.VALID ) );
-        }
-        catch ( IllegalStateException e )
-        {
-            return new DescriptiveWebMessage( Status.ERROR, HttpStatus.OK )
-                .setDescription( e.getMessage() )
-                .setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
-        }
+    if (expression == null || StringUtils.isEmpty(expression.getExpression())) {
+      return new DescriptiveWebMessage(Status.OK, HttpStatus.OK)
+          .setMessage(i18n.getString(ProgramIndicator.EXPRESSION_NOT_VALID));
+    }
+    try {
+      return new DescriptiveWebMessage(Status.OK, HttpStatus.OK)
+          .setDescription(
+              programIndicatorService.getExpressionDescription(expression.getExpression()))
+          .setMessage(i18n.getString(ProgramIndicator.VALID));
+    } catch (IllegalStateException e) {
+      return new DescriptiveWebMessage(Status.ERROR, HttpStatus.OK)
+          .setDescription(e.getMessage())
+          .setMessage(i18n.getString(ProgramIndicator.EXPRESSION_NOT_VALID));
+    }
+  }
+
+  @PostMapping(
+      value = "/expression/description",
+      produces = APPLICATION_JSON_VALUE,
+      consumes = TEXT_PLAIN_VALUE)
+  @ResponseBody
+  public WebMessage getExpressionDescription(@RequestBody String expression) {
+    I18n i18n = i18nManager.getI18n();
+
+    if (StringUtils.isEmpty(expression)) {
+      return new DescriptiveWebMessage(Status.OK, HttpStatus.OK)
+          .setMessage(i18n.getString(ProgramIndicator.EXPRESSION_NOT_VALID));
     }
 
-    @PostMapping( value = "/expression/description", produces = APPLICATION_JSON_VALUE, consumes = TEXT_PLAIN_VALUE )
-    @ResponseBody
-    public WebMessage getExpressionDescription( @RequestBody String expression )
-    {
-        I18n i18n = i18nManager.getI18n();
+    try {
+      return new DescriptiveWebMessage(Status.OK, HttpStatus.OK)
+          .setDescription(programIndicatorService.getExpressionDescription(expression))
+          .setMessage(i18n.getString(ProgramIndicator.VALID));
+    } catch (IllegalStateException e) {
+      return new DescriptiveWebMessage(Status.ERROR, HttpStatus.OK)
+          .setDescription(e.getMessage())
+          .setMessage(i18n.getString(ProgramIndicator.EXPRESSION_NOT_VALID));
+    }
+  }
 
-        if ( StringUtils.isEmpty( expression ) )
-        {
-            return new DescriptiveWebMessage( Status.OK, HttpStatus.OK )
-                .setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
-        }
+  @PostMapping(
+      value = "/filter/description",
+      produces = APPLICATION_JSON_VALUE,
+      consumes = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage validateFilter(@RequestBody Expression expression) {
+    I18n i18n = i18nManager.getI18n();
 
-        try
-        {
-            return new DescriptiveWebMessage( Status.OK, HttpStatus.OK )
-                .setDescription( programIndicatorService.getExpressionDescription( expression ) )
-                .setMessage( i18n.getString( ProgramIndicator.VALID ) );
-        }
-        catch ( IllegalStateException e )
-        {
-            return new DescriptiveWebMessage( Status.ERROR, HttpStatus.OK )
-                .setDescription( e.getMessage() )
-                .setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
-        }
+    if (expression == null || StringUtils.isEmpty(expression.getExpression())) {
+      return new DescriptiveWebMessage(Status.OK, HttpStatus.OK)
+          .setMessage(i18n.getString(ProgramIndicator.EXPRESSION_NOT_VALID));
     }
 
-    @PostMapping( value = "/filter/description", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage validateFilter( @RequestBody Expression expression )
-    {
-        I18n i18n = i18nManager.getI18n();
+    try {
+      return new DescriptiveWebMessage(Status.OK, HttpStatus.OK)
+          .setDescription(programIndicatorService.getFilterDescription(expression.getExpression()))
+          .setMessage(i18n.getString(ProgramIndicator.VALID));
+    } catch (IllegalStateException e) {
+      return new DescriptiveWebMessage(Status.ERROR, HttpStatus.OK)
+          .setDescription(e.getMessage())
+          .setMessage(i18n.getString(ProgramIndicator.EXPRESSION_NOT_VALID));
+    }
+  }
 
-        if ( expression == null || StringUtils.isEmpty( expression.getExpression() ) )
-        {
-            return new DescriptiveWebMessage( Status.OK, HttpStatus.OK )
-                .setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
-        }
+  @PostMapping(
+      value = "/filter/description",
+      produces = APPLICATION_JSON_VALUE,
+      consumes = TEXT_PLAIN_VALUE)
+  @ResponseBody
+  public WebMessage validateFilter(@RequestBody String expression) {
+    I18n i18n = i18nManager.getI18n();
 
-        try
-        {
-            return new DescriptiveWebMessage( Status.OK, HttpStatus.OK )
-                .setDescription( programIndicatorService.getFilterDescription( expression.getExpression() ) )
-                .setMessage( i18n.getString( ProgramIndicator.VALID ) );
-        }
-        catch ( IllegalStateException e )
-        {
-            return new DescriptiveWebMessage( Status.ERROR, HttpStatus.OK )
-                .setDescription( e.getMessage() )
-                .setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
-        }
+    if (StringUtils.isEmpty(expression)) {
+      return new DescriptiveWebMessage(Status.OK, HttpStatus.OK)
+          .setMessage(i18n.getString(ProgramIndicator.EXPRESSION_NOT_VALID));
     }
 
-    @PostMapping( value = "/filter/description", produces = APPLICATION_JSON_VALUE, consumes = TEXT_PLAIN_VALUE )
-    @ResponseBody
-    public WebMessage validateFilter( @RequestBody String expression )
-    {
-        I18n i18n = i18nManager.getI18n();
-
-        if ( StringUtils.isEmpty( expression ) )
-        {
-            return new DescriptiveWebMessage( Status.OK, HttpStatus.OK )
-                .setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
-        }
-
-        try
-        {
-            return new DescriptiveWebMessage( Status.OK, HttpStatus.OK )
-                .setDescription( programIndicatorService.getFilterDescription( expression ) )
-                .setMessage( i18n.getString( ProgramIndicator.VALID ) );
-        }
-        catch ( IllegalStateException e )
-        {
-            return new DescriptiveWebMessage( Status.ERROR, HttpStatus.OK )
-                .setDescription( e.getMessage() )
-                .setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
-        }
+    try {
+      return new DescriptiveWebMessage(Status.OK, HttpStatus.OK)
+          .setDescription(programIndicatorService.getFilterDescription(expression))
+          .setMessage(i18n.getString(ProgramIndicator.VALID));
+    } catch (IllegalStateException e) {
+      return new DescriptiveWebMessage(Status.ERROR, HttpStatus.OK)
+          .setDescription(e.getMessage())
+          .setMessage(i18n.getString(ProgramIndicator.EXPRESSION_NOT_VALID));
     }
+  }
 }

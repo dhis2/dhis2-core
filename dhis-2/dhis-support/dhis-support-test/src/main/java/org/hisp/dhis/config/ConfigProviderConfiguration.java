@@ -32,11 +32,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ConfigProviderConfiguration
-{
-    @Bean( name = "dhisConfigurationProvider" )
-    public DhisConfigurationProvider dhisConfigurationProvider()
-    {
-        return new H2DhisConfigurationProvider();
-    }
+public class ConfigProviderConfiguration {
+  @Bean(name = "dhisConfigurationProvider")
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new H2DhisConfigurationProvider();
+  }
 }

@@ -28,77 +28,60 @@
 package org.hisp.dhis.helpers.matchers;
 
 import java.util.List;
-
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class CustomMatchers
-{
+public class CustomMatchers {
 
-    public static TypeSafeDiagnosingMatcher<String> startsWithOneOf( List<String> strings )
-    {
-        return new TypeSafeDiagnosingMatcher<>()
-        {
-            @Override
-            protected boolean matchesSafely( String item, Description mismatchDescription )
-            {
-                if ( strings != null )
-                {
-                    return strings.stream().anyMatch( item::startsWith );
-                }
-                return false;
-            }
+  public static TypeSafeDiagnosingMatcher<String> startsWithOneOf(List<String> strings) {
+    return new TypeSafeDiagnosingMatcher<>() {
+      @Override
+      protected boolean matchesSafely(String item, Description mismatchDescription) {
+        if (strings != null) {
+          return strings.stream().anyMatch(item::startsWith);
+        }
+        return false;
+      }
 
-            @Override
-            public void describeTo( Description description )
-            {
-                description.appendText( "a string that starts with one of " + strings.toString() );
-            }
-        };
-    }
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("a string that starts with one of " + strings.toString());
+      }
+    };
+  }
 
-    public static TypeSafeDiagnosingMatcher<String> containsOneOf( List<String> strings )
-    {
-        return new TypeSafeDiagnosingMatcher<>()
-        {
-            @Override
-            protected boolean matchesSafely( String item, Description mismatchDescription )
-            {
-                if ( strings != null )
-                {
-                    return strings.stream().anyMatch( item::contains );
-                }
-                return false;
-            }
+  public static TypeSafeDiagnosingMatcher<String> containsOneOf(List<String> strings) {
+    return new TypeSafeDiagnosingMatcher<>() {
+      @Override
+      protected boolean matchesSafely(String item, Description mismatchDescription) {
+        if (strings != null) {
+          return strings.stream().anyMatch(item::contains);
+        }
+        return false;
+      }
 
-            @Override
-            public void describeTo( Description description )
-            {
-                description.appendText( "a string that contains one of " + strings.toString() );
-            }
-        };
-    }
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("a string that contains one of " + strings.toString());
+      }
+    };
+  }
 
-    public static TypeSafeDiagnosingMatcher<Object> hasToStringContaining( List<String> substrings )
-    {
-        return new TypeSafeDiagnosingMatcher<Object>()
-        {
-            @Override
-            protected boolean matchesSafely( Object item, Description mismatchDescription )
-            {
-                String toString = item.toString();
-                return substrings.stream().allMatch( toString::contains );
-            }
+  public static TypeSafeDiagnosingMatcher<Object> hasToStringContaining(List<String> substrings) {
+    return new TypeSafeDiagnosingMatcher<Object>() {
+      @Override
+      protected boolean matchesSafely(Object item, Description mismatchDescription) {
+        String toString = item.toString();
+        return substrings.stream().allMatch(toString::contains);
+      }
 
-            @Override
-            public void describeTo( Description description )
-            {
-                description.appendValue( "a toString() that contains substrings in any order " + substrings );
-            }
-        };
-    }
-
+      @Override
+      public void describeTo(Description description) {
+        description.appendValue("a toString() that contains substrings in any order " + substrings);
+      }
+    };
+  }
 }

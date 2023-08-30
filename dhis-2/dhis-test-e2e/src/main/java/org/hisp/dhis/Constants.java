@@ -28,52 +28,48 @@
 package org.hisp.dhis;
 
 import java.util.Arrays;
-
 import org.hisp.dhis.dto.Program;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class Constants
-{
-    public static final String USER_PASSWORD = "Test1212?";
+public class Constants {
+  public static final String USER_PASSWORD = "Test1212?";
 
-    public static final String TRACKED_ENTITY_TYPE = "Q9GufDoplCL";
+  public static final String TRACKED_ENTITY_TYPE = "Q9GufDoplCL";
 
-    public static String ORG_UNIT_GROUP_ID = "n9bh3KM5wmu";
+  public static String ORG_UNIT_GROUP_ID = "n9bh3KM5wmu";
 
-    public static String SUPER_USER_ID = "PQD6wXJ2r5j";
+  public static String SUPER_USER_ID = "PQD6wXJ2r5j";
 
-    public static String ADMIN_ID = "PQD6wXJ2r5k";
+  public static String ADMIN_ID = "PQD6wXJ2r5k";
 
-    public static String USER_GROUP_ID = "OPVIvvXzNTw";
+  public static String USER_GROUP_ID = "OPVIvvXzNTw";
 
-    public static String USER_ROLE_ID = "yrB6vc5Ip7r";
+  public static String USER_ROLE_ID = "yrB6vc5Ip7r";
 
-    public static String EVENT_PROGRAM_ID = "Zd2rkv8FsWq";
+  public static String EVENT_PROGRAM_ID = "Zd2rkv8FsWq";
 
-    public static String EVENT_PROGRAM_STAGE_ID = "jKLB23QZS4I";
+  public static String EVENT_PROGRAM_STAGE_ID = "jKLB23QZS4I";
 
-    public static Program TRACKER_PROGRAM = new Program()
-        .setUid( "f1AyMswryyQ" )
-        .setTrackedEntityType( Constants.TRACKED_ENTITY_TYPE )
-        .setProgramStages( Arrays.asList( "PaOOjwLVW23", "nlXNK4b7LVr" ) );
+  public static Program TRACKER_PROGRAM =
+      new Program()
+          .setUid("f1AyMswryyQ")
+          .setTrackedEntityType(Constants.TRACKED_ENTITY_TYPE)
+          .setProgramStages(Arrays.asList("PaOOjwLVW23", "nlXNK4b7LVr"));
 
-    public static String TRACKER_PROGRAM_ID = "f1AyMswryyQ"; // todo: remove and
-                                                            // use
-                                                            // TRACKER_PROGRAM
-                                                            // with associated
-                                                            // program stages
-                                                            // to avoid GET
-                                                            // /programs/id/programStages
-                                                            // calls
+  public static String TRACKER_PROGRAM_ID = "f1AyMswryyQ"; // todo: remove and
+  // use
+  // TRACKER_PROGRAM
+  // with associated
+  // program stages
+  // to avoid GET
+  // /programs/id/programStages
+  // calls
 
-    public static String ANOTHER_TRACKER_PROGRAM_ID = "f1AyMswryyX";
+  public static String ANOTHER_TRACKER_PROGRAM_ID = "f1AyMswryyX";
 
-    public static String[] ORG_UNIT_IDS = {
-        "DiszpKrYNg8",
-        "g8upMTyEZGZ",
-        "O6uvpzGd5pu",
-        "YuQRtpLP10I"
-    };
+  public static String[] ORG_UNIT_IDS = {
+    "DiszpKrYNg8", "g8upMTyEZGZ", "O6uvpzGd5pu", "YuQRtpLP10I"
+  };
 }

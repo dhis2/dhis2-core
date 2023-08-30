@@ -28,9 +28,7 @@
 package org.hisp.dhis.category.hibernate;
 
 import java.util.List;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
@@ -46,36 +44,46 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Lars Helge Overland
  */
-@Repository( "org.hisp.dhis.category.CategoryOptionStore" )
-public class HibernateCategoryOptionStore
-    extends HibernateIdentifiableObjectStore<CategoryOption>
-    implements CategoryOptionStore
-{
-    public HibernateCategoryOptionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, CategoryOption.class, currentUserService, aclService, true );
-    }
+@Repository("org.hisp.dhis.category.CategoryOptionStore")
+public class HibernateCategoryOptionStore extends HibernateIdentifiableObjectStore<CategoryOption>
+    implements CategoryOptionStore {
+  public HibernateCategoryOptionStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        CategoryOption.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public List<CategoryOption> getCategoryOptions( Category category )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<CategoryOption> getCategoryOptions(Category category) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> builder.equal( root.join( "categories" ).get( "id" ), category.getId() ) ) );
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicates(getSharingPredicates(builder))
+            .addPredicate(
+                root -> builder.equal(root.join("categories").get("id"), category.getId())));
+  }
 
-    }
+  @Override
+  public List<CategoryOption> getDataWriteCategoryOptions(Category category, User user) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-    @Override
-    public List<CategoryOption> getDataWriteCategoryOptions( Category category, User user )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicates( getDataSharingPredicates( builder, user, AclService.LIKE_WRITE_DATA ) )
-            .addPredicate( root -> builder.equal( root.join( "categories" ).get( "id" ), category.getId() ) ) );
-
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicates(getDataSharingPredicates(builder, user, AclService.LIKE_WRITE_DATA))
+            .addPredicate(
+                root -> builder.equal(root.join("categories").get("id"), category.getId())));
+  }
 }

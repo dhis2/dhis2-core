@@ -28,10 +28,8 @@
 package org.hisp.dhis.tracker.imports.validation.validator;
 
 import java.util.List;
-
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
@@ -39,90 +37,94 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 
 /**
- * All is a {@link Validator} applying a sequence of {@link Validator}s to given
- * input. All {@link Validator}s are called irrespective of whether they added
- * an error to {@link Reporter} or not. Using {@link All} conveys that the
- * {@link Validator}s are independent. Use {@link Seq} if you want to express a
- * dependency between {@link Validator}s.
- * <p>
- * Note: in theory {@link #validators} could run concurrently. Right now they
- * are run sequentially.
- * </p>
+ * All is a {@link Validator} applying a sequence of {@link Validator}s to given input. All {@link
+ * Validator}s are called irrespective of whether they added an error to {@link Reporter} or not.
+ * Using {@link All} conveys that the {@link Validator}s are independent. Use {@link Seq} if you
+ * want to express a dependency between {@link Validator}s.
+ *
+ * <p>Note: in theory {@link #validators} could run concurrently. Right now they are run
+ * sequentially.
  *
  * @param <T> type of input to be validated
  */
-@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
-public class All<T> implements Validator<T>
-{
-    private final List<Validator<T>> validators;
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class All<T> implements Validator<T> {
+  private final List<Validator<T>> validators;
 
-    public static <T> All<T> all( List<Validator<T>> validators )
-    {
-        return new All<>( validators );
+  public static <T> All<T> all(List<Validator<T>> validators) {
+    return new All<>(validators);
+  }
+
+  public static <T> All<T> all(Validator<T> v1) {
+    return new All<>(List.of(v1));
+  }
+
+  public static <T> All<T> all(Validator<T> v1, Validator<T> v2) {
+    return new All<>(List.of(v1, v2));
+  }
+
+  public static <T> All<T> all(Validator<T> v1, Validator<T> v2, Validator<T> v3) {
+    return new All<>(List.of(v1, v2, v3));
+  }
+
+  public static <T> All<T> all(Validator<T> v1, Validator<T> v2, Validator<T> v3, Validator<T> v4) {
+    return new All<>(List.of(v1, v2, v3, v4));
+  }
+
+  public static <T> All<T> all(
+      Validator<T> v1, Validator<T> v2, Validator<T> v3, Validator<T> v4, Validator<T> v5) {
+    return new All<>(List.of(v1, v2, v3, v4, v5));
+  }
+
+  public static <T> All<T> all(
+      Validator<T> v1,
+      Validator<T> v2,
+      Validator<T> v3,
+      Validator<T> v4,
+      Validator<T> v5,
+      Validator<T> v6) {
+    return new All<>(List.of(v1, v2, v3, v4, v5, v6));
+  }
+
+  public static <T> All<T> all(
+      Validator<T> v1,
+      Validator<T> v2,
+      Validator<T> v3,
+      Validator<T> v4,
+      Validator<T> v5,
+      Validator<T> v6,
+      Validator<T> v7) {
+    return new All<>(List.of(v1, v2, v3, v4, v5, v6, v7));
+  }
+
+  public static <T> All<T> all(
+      Validator<T> v1,
+      Validator<T> v2,
+      Validator<T> v3,
+      Validator<T> v4,
+      Validator<T> v5,
+      Validator<T> v6,
+      Validator<T> v7,
+      Validator<T> v8) {
+    return new All<>(List.of(v1, v2, v3, v4, v5, v6, v7, v8));
+  }
+
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, T input) {
+    for (Validator<T> validator : validators) {
+      if ((input instanceof TrackerDto
+              && !validator.needsToRun(bundle.getStrategy((TrackerDto) input)))
+          || (!(input instanceof TrackerDto)
+              && !validator.needsToRun(bundle.getImportStrategy()))) {
+        continue;
+      }
+
+      validator.validate(reporter, bundle, input);
     }
+  }
 
-    public static <T> All<T> all( Validator<T> v1 )
-    {
-        return new All<>( List.of( v1 ) );
-    }
-
-    public static <T> All<T> all( Validator<T> v1, Validator<T> v2 )
-    {
-        return new All<>( List.of( v1, v2 ) );
-    }
-
-    public static <T> All<T> all( Validator<T> v1, Validator<T> v2, Validator<T> v3 )
-    {
-        return new All<>( List.of( v1, v2, v3 ) );
-    }
-
-    public static <T> All<T> all( Validator<T> v1, Validator<T> v2, Validator<T> v3, Validator<T> v4 )
-    {
-        return new All<>( List.of( v1, v2, v3, v4 ) );
-    }
-
-    public static <T> All<T> all( Validator<T> v1, Validator<T> v2, Validator<T> v3, Validator<T> v4,
-        Validator<T> v5 )
-    {
-        return new All<>( List.of( v1, v2, v3, v4, v5 ) );
-    }
-
-    public static <T> All<T> all( Validator<T> v1, Validator<T> v2, Validator<T> v3, Validator<T> v4,
-        Validator<T> v5, Validator<T> v6 )
-    {
-        return new All<>( List.of( v1, v2, v3, v4, v5, v6 ) );
-    }
-
-    public static <T> All<T> all( Validator<T> v1, Validator<T> v2, Validator<T> v3, Validator<T> v4,
-        Validator<T> v5, Validator<T> v6, Validator<T> v7 )
-    {
-        return new All<>( List.of( v1, v2, v3, v4, v5, v6, v7 ) );
-    }
-
-    public static <T> All<T> all( Validator<T> v1, Validator<T> v2, Validator<T> v3, Validator<T> v4,
-        Validator<T> v5, Validator<T> v6, Validator<T> v7, Validator<T> v8 )
-    {
-        return new All<>( List.of( v1, v2, v3, v4, v5, v6, v7, v8 ) );
-    }
-
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, T input )
-    {
-        for ( Validator<T> validator : validators )
-        {
-            if ( (input instanceof TrackerDto && !validator.needsToRun( bundle.getStrategy( (TrackerDto) input ) ))
-                || (!(input instanceof TrackerDto) && !validator.needsToRun( bundle.getImportStrategy() )) )
-            {
-                continue;
-            }
-
-            validator.validate( reporter, bundle, input );
-        }
-    }
-
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true; // All is used to compose other Validators, so it should always run
-    }
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true; // All is used to compose other Validators, so it should always run
+  }
 }

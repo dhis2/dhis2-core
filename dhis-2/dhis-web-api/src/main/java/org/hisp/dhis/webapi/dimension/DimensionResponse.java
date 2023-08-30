@@ -27,49 +27,35 @@
  */
 package org.hisp.dhis.webapi.dimension;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
-
 import lombok.Builder;
 import lombok.Data;
 import lombok.With;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 @Data
 @Builder
 @With
-public class DimensionResponse
-{
-    @JsonProperty
-    private final String valueType;
+public class DimensionResponse {
+  @JsonProperty private final String valueType;
 
-    @JsonProperty
-    private final String dimensionType;
+  @JsonProperty private final String dimensionType;
 
-    @JsonProperty
-    private final Date created;
+  @JsonProperty private final Date created;
 
-    @JsonProperty
-    private final Date lastUpdated;
+  @JsonProperty private final Date lastUpdated;
 
-    @JsonProperty
-    private final String name;
+  @JsonProperty private final String name;
 
-    @JsonProperty
-    private final String displayName;
+  @JsonProperty private final String displayName;
 
-    @JsonProperty
-    private final String id;
+  @JsonProperty private final String id;
 
-    @JsonProperty
-    private final String uid;
+  @JsonProperty private final String uid;
 
-    @JsonProperty
-    private final String code;
+  @JsonProperty private final String code;
 
-    @JsonProperty
-    private final String displayShortName;
+  @JsonProperty private final String displayShortName;
 
-    @JsonProperty
-    private final String optionSet;
+  @JsonProperty private final String optionSet;
 }

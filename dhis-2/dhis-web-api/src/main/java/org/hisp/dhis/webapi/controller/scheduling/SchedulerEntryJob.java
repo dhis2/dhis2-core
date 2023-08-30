@@ -27,52 +27,41 @@
  */
 package org.hisp.dhis.webapi.controller.scheduling;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
-
 import lombok.Value;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 @Value
-class SchedulerEntryJob
-{
-    @JsonProperty
-    @OpenApi.Property( { UID.class, JobConfiguration.class } )
-    String id;
+class SchedulerEntryJob {
+  @JsonProperty
+  @OpenApi.Property({UID.class, JobConfiguration.class})
+  String id;
 
-    @JsonProperty
-    String name;
+  @JsonProperty String name;
 
-    @JsonProperty
-    JobType type;
+  @JsonProperty JobType type;
 
-    @JsonProperty
-    String cronExpression;
+  @JsonProperty String cronExpression;
 
-    @JsonProperty
-    Integer delay;
+  @JsonProperty Integer delay;
 
-    @JsonProperty
-    Date nextExecutionTime;
+  @JsonProperty Date nextExecutionTime;
 
-    @JsonProperty
-    JobStatus status;
+  @JsonProperty JobStatus status;
 
-    static SchedulerEntryJob of( JobConfiguration config )
-    {
-        return new SchedulerEntryJob(
-            config.getUid(),
-            config.getName(),
-            config.getJobType(),
-            config.getCronExpression(),
-            config.getDelay(),
-            config.getNextExecutionTime(),
-            config.getJobStatus() );
-    }
+  static SchedulerEntryJob of(JobConfiguration config) {
+    return new SchedulerEntryJob(
+        config.getUid(),
+        config.getName(),
+        config.getJobType(),
+        config.getCronExpression(),
+        config.getDelay(),
+        config.getNextExecutionTime(),
+        config.getJobStatus());
+  }
 }

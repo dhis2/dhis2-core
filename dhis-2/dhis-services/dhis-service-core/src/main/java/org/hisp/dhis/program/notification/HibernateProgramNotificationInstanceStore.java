@@ -30,11 +30,9 @@ package org.hisp.dhis.program.notification;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
@@ -47,75 +45,79 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Zubair Asghar
  */
-
-@Repository( "org.hisp.dhis.program.ProgramNotificationInstanceStore" )
+@Repository("org.hisp.dhis.program.ProgramNotificationInstanceStore")
 public class HibernateProgramNotificationInstanceStore
     extends HibernateIdentifiableObjectStore<ProgramNotificationInstance>
-    implements ProgramNotificationInstanceStore
-{
-    public HibernateProgramNotificationInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramNotificationInstance.class, currentUserService,
-            aclService, true );
+    implements ProgramNotificationInstanceStore {
+  public HibernateProgramNotificationInstanceStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        ProgramNotificationInstance.class,
+        currentUserService,
+        aclService,
+        true);
+  }
+
+  @Override
+  public List<ProgramNotificationInstance> getProgramNotificationInstances(
+      ProgramNotificationInstanceParam params) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+
+    JpaQueryParameters<ProgramNotificationInstance> jpaParameters =
+        newJpaParameters()
+            .addPredicates(getPredicates(params, builder))
+            .addOrder(root -> builder.desc(root.get("created")));
+
+    if (!params.isSkipPaging()) {
+      jpaParameters
+          .setFirstResult(
+              params.getPage() != null
+                  ? params.getPage()
+                  : ProgramNotificationInstanceParam.DEFAULT_PAGE)
+          .setMaxResults(
+              params.getPageSize() != null
+                  ? params.getPageSize()
+                  : ProgramNotificationInstanceParam.DEFAULT_PAGE_SIZE);
     }
 
-    @Override
-    public List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramNotificationInstanceParam params )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+    return getList(builder, jpaParameters);
+  }
 
-        JpaQueryParameters<ProgramNotificationInstance> jpaParameters = newJpaParameters()
-            .addPredicates( getPredicates( params, builder ) )
-            .addOrder( root -> builder.desc( root.get( "created" ) ) );
+  @Override
+  public Long countProgramNotificationInstances(ProgramNotificationInstanceParam params) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        if ( !params.isSkipPaging() )
-        {
-            jpaParameters
-                .setFirstResult(
-                    params.getPage() != null ? params.getPage() : ProgramNotificationInstanceParam.DEFAULT_PAGE )
-                .setMaxResults( params.getPageSize() != null ? params.getPageSize()
-                    : ProgramNotificationInstanceParam.DEFAULT_PAGE_SIZE );
-        }
+    JpaQueryParameters<ProgramNotificationInstance> jpaParameters =
+        newJpaParameters()
+            .addPredicates(getPredicates(params, builder))
+            .addOrder(root -> builder.desc(root.get("created")));
 
-        return getList( builder, jpaParameters );
+    return getCount(builder, jpaParameters);
+  }
+
+  private List<Function<Root<ProgramNotificationInstance>, Predicate>> getPredicates(
+      ProgramNotificationInstanceParam params, CriteriaBuilder builder) {
+    List<Function<Root<ProgramNotificationInstance>, Predicate>> predicates = new ArrayList<>();
+
+    if (params.hasEvent()) {
+      predicates.add(root -> builder.equal(root.get("event"), params.getEvent()));
     }
 
-    @Override
-    public Long countProgramNotificationInstances( ProgramNotificationInstanceParam params )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        JpaQueryParameters<ProgramNotificationInstance> jpaParameters = newJpaParameters()
-            .addPredicates( getPredicates( params, builder ) )
-            .addOrder( root -> builder.desc( root.get( "created" ) ) );
-
-        return getCount( builder, jpaParameters );
+    if (params.hasEnrollment()) {
+      predicates.add(root -> builder.equal(root.get("enrollment"), params.getEnrollment()));
     }
 
-    private List<Function<Root<ProgramNotificationInstance>, Predicate>> getPredicates(
-        ProgramNotificationInstanceParam params, CriteriaBuilder builder )
-    {
-        List<Function<Root<ProgramNotificationInstance>, Predicate>> predicates = new ArrayList<>();
-
-        if ( params.hasEvent() )
-        {
-            predicates.add( root -> builder.equal( root.get( "event" ),
-                params.getEvent() ) );
-        }
-
-        if ( params.hasEnrollment() )
-        {
-            predicates.add( root -> builder.equal( root.get( "enrollment" ),
-                params.getEnrollment() ) );
-        }
-
-        if ( params.hasScheduledAt() )
-        {
-            predicates.add( root -> builder.equal( root.get( "scheduledAt" ),
-                params.getScheduledAt() ) );
-        }
-
-        return predicates;
+    if (params.hasScheduledAt()) {
+      predicates.add(root -> builder.equal(root.get("scheduledAt"), params.getScheduledAt()));
     }
+
+    return predicates;
+  }
 }

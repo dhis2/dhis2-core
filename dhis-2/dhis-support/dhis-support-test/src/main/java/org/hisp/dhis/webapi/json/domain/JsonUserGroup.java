@@ -34,20 +34,20 @@ import org.hisp.dhis.jsontree.JsonList;
  *
  * @author Jan Bernitt
  */
-public interface JsonUserGroup extends JsonIdentifiableObject
-{
-    default JsonList<JsonUser> getUsers()
-    {
-        return getList( "users", JsonUser.class );
-    }
+public interface JsonUserGroup extends JsonIdentifiableObject {
+  default JsonList<JsonUser> getUsers() {
+    return getList("users", JsonUser.class);
+  }
 
-    default JsonList<JsonUserGroup> getManagedGroups()
-    {
-        return getList( "managedGroups", JsonUserGroup.class );
-    }
+  default JsonList<JsonUserGroup> getManagedGroups() {
+    return getList("managedGroups", JsonUserGroup.class);
+  }
 
-    default JsonList<JsonUserGroup> getManagedByGroups()
-    {
-        return getList( "managedByGroups", JsonUserGroup.class );
-    }
+  default JsonList<JsonUserGroup> getManagedByGroups() {
+    return getList("managedByGroups", JsonUserGroup.class);
+  }
+
+  default String getUsername() {
+    return getString("username").string();
+  }
 }

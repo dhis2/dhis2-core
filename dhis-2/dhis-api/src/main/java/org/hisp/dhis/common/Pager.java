@@ -34,144 +34,133 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "pager", namespace = DxfNamespaces.DXF_2_0 )
-public class Pager
-{
-    public static final int DEFAULT_PAGE_SIZE = 50;
+@JacksonXmlRootElement(localName = "pager", namespace = DxfNamespaces.DXF_2_0)
+public class Pager {
+  public static final int DEFAULT_PAGE_SIZE = 50;
 
-    private int page = 1;
+  private int page = 1;
 
-    private long total = 0;
+  private long total = 0;
 
-    private int pageSize = Pager.DEFAULT_PAGE_SIZE;
+  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
 
-    private String nextPage;
+  private String nextPage;
 
-    private String prevPage;
+  private String prevPage;
 
-    public Pager()
-    {
+  public Pager() {}
 
-    }
+  public Pager(int page, long total) {
+    this.total = Math.max(total, 0);
+    this.page = getPageInternal(page);
+  }
 
-    public Pager( int page, long total )
-    {
-        this.total = Math.max( total, 0 );
-        this.page = getPageInternal( page );
-    }
+  public Pager(int page, long total, int pageSize) {
+    this.total = Math.max(total, 0);
+    this.pageSize = Math.max(pageSize, 1);
+    this.page = getPageInternal(page);
+  }
 
-    public Pager( int page, long total, int pageSize )
-    {
-        this.total = Math.max( total, 0 );
-        this.pageSize = Math.max( pageSize, 1 );
-        this.page = getPageInternal( page );
-    }
+  @Override
+  public String toString() {
+    return "[Page: "
+        + page
+        + " total: "
+        + total
+        + " size: "
+        + pageSize
+        + " offset: "
+        + getOffset()
+        + "]";
+  }
 
-    @Override
-    public String toString()
-    {
-        return "[Page: " + page + " total: " + total + " size: " + pageSize + " offset: " + getOffset() + "]";
-    }
+  /**
+   * Returns the page, ensuring the value is less or equal to total page count and greater or equal
+   * to 1.
+   *
+   * @param page the page.
+   * @return the page.
+   */
+  private int getPageInternal(int page) {
+    page = Math.min(page, getPageCount());
+    return Math.max(page, 1);
+  }
 
-    /**
-     * Returns the page, ensuring the value is less or equal to total page count
-     * and greater or equal to 1.
-     *
-     * @param page the page.
-     * @return the page.
-     */
-    private int getPageInternal( int page )
-    {
-        page = Math.min( page, getPageCount() );
-        return Math.max( page, 1 );
-    }
+  public boolean pageSizeIsDefault() {
+    return pageSize == Pager.DEFAULT_PAGE_SIZE;
+  }
 
-    public boolean pageSizeIsDefault()
-    {
-        return pageSize == Pager.DEFAULT_PAGE_SIZE;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getPage() {
+    return page;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getPage()
-    {
-        return page;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public long getTotal() {
+    return total;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public long getTotal()
-    {
-        return total;
-    }
+  /**
+   * Returns the number of items per page.
+   *
+   * @return The number of items per page.
+   */
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getPageSize() {
+    return pageSize;
+  }
 
-    /**
-     * Returns the number of items per page.
-     *
-     * @return The number of items per page.
-     */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getPageSize()
-    {
-        return pageSize;
-    }
+  /**
+   * Returns the total number of pages.
+   *
+   * @return The total number of pages.
+   */
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getPageCount() {
+    return (int) Math.ceil(total / (double) pageSize);
+  }
 
-    /**
-     * Returns the total number of pages.
-     *
-     * @return The total number of pages.
-     */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getPageCount()
-    {
-        return (int) Math.ceil( total / (double) pageSize );
-    }
+  /**
+   * Return the current offset to start at.
+   *
+   * @return The offset to start at.
+   */
+  public int getOffset() {
+    return (page * pageSize) - pageSize;
+  }
 
-    /**
-     * Return the current offset to start at.
-     *
-     * @return The offset to start at.
-     */
-    public int getOffset()
-    {
-        return (page * pageSize) - pageSize;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getNextPage() {
+    return nextPage;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getNextPage()
-    {
-        return nextPage;
-    }
+  public void setNextPage(String nextPage) {
+    this.nextPage = nextPage;
+  }
 
-    public void setNextPage( String nextPage )
-    {
-        this.nextPage = nextPage;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getPrevPage() {
+    return prevPage;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getPrevPage()
-    {
-        return prevPage;
-    }
+  public void setPrevPage(String prevPage) {
+    this.prevPage = prevPage;
+  }
 
-    public void setPrevPage( String prevPage )
-    {
-        this.prevPage = prevPage;
-    }
-
-    /**
-     * Sets pagination directly.
-     *
-     * @param page the page.
-     * @param pageSize the page size.
-     */
-    public void force( int page, int pageSize )
-    {
-        this.page = page;
-        this.pageSize = pageSize;
-    }
+  /**
+   * Sets pagination directly.
+   *
+   * @param page the page.
+   * @param pageSize the page size.
+   */
+  public void force(int page, int pageSize) {
+    this.page = page;
+    this.pageSize = pageSize;
+  }
 }

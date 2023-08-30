@@ -47,170 +47,156 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class TrackedAttributeValidationServiceTest
-{
+@ExtendWith(MockitoExtension.class)
+class TrackedAttributeValidationServiceTest {
 
-    private TrackedAttributeValidationService trackedEntityAttributeService;
+  private TrackedAttributeValidationService trackedEntityAttributeService;
 
-    @Mock
-    private UserService userService;
+  @Mock private UserService userService;
 
-    @Mock
-    private FileResourceService fileResourceService;
+  @Mock private FileResourceService fileResourceService;
 
-    @Mock
-    private FileResource fileResource;
+  @Mock private FileResource fileResource;
 
-    private TrackedEntityAttribute tea;
+  private TrackedEntityAttribute tea;
 
-    @BeforeEach
-    public void setUp()
-    {
+  @BeforeEach
+  public void setUp() {
 
-        trackedEntityAttributeService = new TrackedAttributeValidationService( userService, fileResourceService );
+    trackedEntityAttributeService =
+        new TrackedAttributeValidationService(userService, fileResourceService);
 
-        tea = new TrackedEntityAttribute();
-        tea.setUid( "TeaUid12345" );
-        tea.setUnique( true );
-        tea.setValueType( ValueType.TEXT );
-        tea.setOrgunitScope( false );
+    tea = new TrackedEntityAttribute();
+    tea.setUid("TeaUid12345");
+    tea.setUnique(true);
+    tea.setValueType(ValueType.TEXT);
+    tea.setOrgunitScope(false);
+  }
+
+  @Test
+  void shouldThrowWhenTeaIsNull() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> trackedEntityAttributeService.validateValueType(null, ""));
+  }
+
+  @Test
+  void shouldThrowWhenNotAValidDate() {
+    tea.setValueType(ValueType.DATE);
+    String teaValue = "Firstname";
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> trackedEntityAttributeService.validateValueType(tea, teaValue));
+  }
+
+  @Test
+  void shouldThrowWhenNullValue() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> trackedEntityAttributeService.validateValueType(tea, null));
+  }
+
+  @Test
+  void shouldFailValueOverMaxLength() {
+    StringBuilder stringBuilder = new StringBuilder();
+
+    for (int i = 0; i < Constant.ATTRIBUTE_VALUE_MAX_LENGTH + 1; i++) {
+      stringBuilder.append("a");
     }
 
-    @Test
-    void shouldThrowWhenTeaIsNull()
-    {
-        assertThrows( IllegalArgumentException.class,
-            () -> trackedEntityAttributeService.validateValueType( null, "" ) );
-    }
+    assertNotNull(trackedEntityAttributeService.validateValueType(tea, stringBuilder.toString()));
+  }
 
-    @Test
-    void shouldThrowWhenNotAValidDate()
-    {
-        tea.setValueType( ValueType.DATE );
-        String teaValue = "Firstname";
-        assertThrows( IllegalArgumentException.class,
-            () -> trackedEntityAttributeService.validateValueType( tea, teaValue ) );
-    }
+  @Test
+  void shouldFailValidationWhenTextValueAndDifferentValueType() {
+    tea.setValueType(ValueType.NUMBER);
+    assertNotNull(trackedEntityAttributeService.validateValueType(tea, "value"));
 
-    @Test
-    void shouldThrowWhenNullValue()
-    {
-        assertThrows( IllegalArgumentException.class,
-            () -> trackedEntityAttributeService.validateValueType( tea, null ) );
-    }
+    tea.setValueType(ValueType.BOOLEAN);
+    assertNotNull(trackedEntityAttributeService.validateValueType(tea, "value"));
+  }
 
-    @Test
-    void shouldFailValueOverMaxLength()
-    {
-        StringBuilder stringBuilder = new StringBuilder();
+  @Test
+  void shouldFailValidationWhenInvalidDate() {
+    tea.setValueType(ValueType.DATE);
+    assertThrows(
+        IllegalFieldValueException.class,
+        () -> assertNotNull(trackedEntityAttributeService.validateValueType(tea, "1970-01-32")));
+  }
 
-        for ( int i = 0; i < Constant.ATTRIBUTE_VALUE_MAX_LENGTH + 1; i++ )
-        {
-            stringBuilder.append( "a" );
-        }
+  @Test
+  void shouldFailValidationWhenInvalidDateFormat() {
+    tea.setValueType(ValueType.DATE);
+    assertNotNull(trackedEntityAttributeService.validateValueType(tea, "19700131"));
+    assertNotNull(trackedEntityAttributeService.validateValueType(tea, "1970"));
+  }
 
-        assertNotNull( trackedEntityAttributeService.validateValueType( tea, stringBuilder.toString() ) );
-    }
+  @Test
+  void successValidationWhenValidDate() {
+    tea.setValueType(ValueType.DATE);
+    assertNull(trackedEntityAttributeService.validateValueType(tea, "1970-01-01"));
+    assertNull(
+        trackedEntityAttributeService.validateValueType(tea, "1970-01-01T00:00:00.000+02:00"));
+  }
 
-    @Test
-    void shouldFailValidationWhenTextValueAndDifferentValueType()
-    {
-        tea.setValueType( ValueType.NUMBER );
-        assertNotNull( trackedEntityAttributeService.validateValueType( tea, "value" ) );
+  @Test
+  void successWhenTextValueIsCorrect() {
+    tea.setValueType(ValueType.TEXT);
+    assertNull(trackedEntityAttributeService.validateValueType(tea, "Firstname"));
 
-        tea.setValueType( ValueType.BOOLEAN );
-        assertNotNull( trackedEntityAttributeService.validateValueType( tea, "value" ) );
-    }
+    tea.setValueType(ValueType.NUMBER);
+    assertNull(trackedEntityAttributeService.validateValueType(tea, "123"));
 
-    @Test
-    void shouldFailValidationWhenInvalidDate()
-    {
-        tea.setValueType( ValueType.DATE );
-        assertThrows( IllegalFieldValueException.class,
-            () -> assertNotNull( trackedEntityAttributeService.validateValueType( tea, "1970-01-32" ) ) );
-    }
+    tea.setValueType(ValueType.BOOLEAN);
+    assertNull(trackedEntityAttributeService.validateValueType(tea, String.valueOf(true)));
 
-    @Test
-    void shouldFailValidationWhenInvalidDateFormat()
-    {
-        tea.setValueType( ValueType.DATE );
-        assertNotNull( trackedEntityAttributeService.validateValueType( tea, "19700131" ) );
-        assertNotNull( trackedEntityAttributeService.validateValueType( tea, "1970" ) );
-    }
+    tea.setValueType(ValueType.DATE);
+    assertNull(trackedEntityAttributeService.validateValueType(tea, "2019-01-01"));
+  }
 
-    @Test
-    void successValidationWhenValidDate()
-    {
-        tea.setValueType( ValueType.DATE );
-        assertNull( trackedEntityAttributeService.validateValueType( tea, "1970-01-01" ) );
-        assertNull( trackedEntityAttributeService.validateValueType( tea, "1970-01-01T00:00:00.000+02:00" ) );
-    }
+  @Test
+  void shouldFailWhenUserNotFound() {
+    when(userService.getUserByUsername("user")).thenReturn(null);
 
-    @Test
-    void successWhenTextValueIsCorrect()
-    {
-        tea.setValueType( ValueType.TEXT );
-        assertNull( trackedEntityAttributeService.validateValueType( tea, "Firstname" ) );
+    tea.setValueType(ValueType.USERNAME);
+    assertNotNull(trackedEntityAttributeService.validateValueType(tea, "user"));
+  }
 
-        tea.setValueType( ValueType.NUMBER );
-        assertNull( trackedEntityAttributeService.validateValueType( tea, "123" ) );
+  @Test
+  void successWhenUserExists() {
+    when(userService.getUserByUsername("user")).thenReturn(new User());
 
-        tea.setValueType( ValueType.BOOLEAN );
-        assertNull( trackedEntityAttributeService.validateValueType( tea, String.valueOf( true ) ) );
+    tea.setValueType(ValueType.USERNAME);
+    assertNull(trackedEntityAttributeService.validateValueType(tea, "user"));
+  }
 
-        tea.setValueType( ValueType.DATE );
-        assertNull( trackedEntityAttributeService.validateValueType( tea, "2019-01-01" ) );
-    }
+  @Test
+  void shouldFailWhenInvalidDateTime() {
+    tea.setValueType(ValueType.DATETIME);
+    assertNotNull(trackedEntityAttributeService.validateValueType(tea, "1970-01-01"));
+  }
 
-    @Test
-    void shouldFailWhenUserNotFound()
-    {
-        when( userService.getUserByUsername( "user" ) ).thenReturn( null );
+  @Test
+  void successWhenValidDateTime() {
+    tea.setValueType(ValueType.DATETIME);
+    assertNull(
+        trackedEntityAttributeService.validateValueType(tea, "1970-01-01T00:00:00.000+02:00"));
+    assertNull(trackedEntityAttributeService.validateValueType(tea, "1970-01-01T00:00:00"));
+  }
 
-        tea.setValueType( ValueType.USERNAME );
-        assertNotNull( trackedEntityAttributeService.validateValueType( tea, "user" ) );
-    }
+  @Test
+  void shouldFailWhenImageValidationFail() {
+    when(fileResourceService.getFileResource("uid")).thenReturn(null);
 
-    @Test
-    void successWhenUserExists()
-    {
-        when( userService.getUserByUsername( "user" ) ).thenReturn( new User() );
+    tea.setValueType(ValueType.IMAGE);
+    assertNotNull(trackedEntityAttributeService.validateValueType(tea, "uid"));
+  }
 
-        tea.setValueType( ValueType.USERNAME );
-        assertNull( trackedEntityAttributeService.validateValueType( tea, "user" ) );
-    }
+  @Test
+  void shouldFailWhenInvalidImageFormat() {
+    when(fileResourceService.getFileResource("uid")).thenReturn(fileResource);
 
-    @Test
-    void shouldFailWhenInvalidDateTime()
-    {
-        tea.setValueType( ValueType.DATETIME );
-        assertNotNull( trackedEntityAttributeService.validateValueType( tea, "1970-01-01" ) );
-    }
-
-    @Test
-    void successWhenValidDateTime()
-    {
-        tea.setValueType( ValueType.DATETIME );
-        assertNull( trackedEntityAttributeService.validateValueType( tea, "1970-01-01T00:00:00.000+02:00" ) );
-        assertNull( trackedEntityAttributeService.validateValueType( tea, "1970-01-01T00:00:00" ) );
-    }
-
-    @Test
-    void shouldFailWhenImageValidationFail()
-    {
-        when( fileResourceService.getFileResource( "uid" ) ).thenReturn( null );
-
-        tea.setValueType( ValueType.IMAGE );
-        assertNotNull( trackedEntityAttributeService.validateValueType( tea, "uid" ) );
-    }
-
-    @Test
-    void shouldFailWhenInvalidImageFormat()
-    {
-        when( fileResourceService.getFileResource( "uid" ) ).thenReturn( fileResource );
-
-        tea.setValueType( ValueType.IMAGE );
-        assertNotNull( trackedEntityAttributeService.validateValueType( tea, "uid" ) );
-    }
+    tea.setValueType(ValueType.IMAGE);
+    assertNotNull(trackedEntityAttributeService.validateValueType(tea, "uid"));
+  }
 }

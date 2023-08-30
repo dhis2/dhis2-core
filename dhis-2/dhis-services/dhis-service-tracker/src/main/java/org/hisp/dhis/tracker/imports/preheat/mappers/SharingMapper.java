@@ -33,16 +33,15 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = { DebugMapper.class, UserAccessMapper.class, UserGroupAccessMapper.class } )
-public interface SharingMapper extends PreheatMapper<Sharing>
-{
-    SharingMapper INSTANCE = Mappers.getMapper( SharingMapper.class );
+@Mapper(uses = {DebugMapper.class, UserAccessMapper.class, UserGroupAccessMapper.class})
+public interface SharingMapper extends PreheatMapper<Sharing> {
+  SharingMapper INSTANCE = Mappers.getMapper(SharingMapper.class);
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "publicAccess" )
-    @Mapping( target = "external" )
-    @Mapping( target = "owner" )
-    @Mapping( target = "users" )
-    @Mapping( target = "userGroups" )
-    Sharing map( Sharing sharing );
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "publicAccess")
+  @Mapping(target = "external")
+  @Mapping(target = "owner")
+  @Mapping(target = "users")
+  @Mapping(target = "userGroups")
+  Sharing map(Sharing sharing);
 }

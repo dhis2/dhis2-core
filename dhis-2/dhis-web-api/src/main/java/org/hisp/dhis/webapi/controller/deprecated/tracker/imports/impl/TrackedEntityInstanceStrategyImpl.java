@@ -28,9 +28,7 @@
 package org.hisp.dhis.webapi.controller.deprecated.tracker.imports.impl;
 
 import java.io.IOException;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.webapi.controller.deprecated.tracker.imports.TrackedEntityInstanceStrategyHandler;
@@ -44,28 +42,21 @@ import org.springframework.stereotype.Component;
 @Primary
 @Component
 @RequiredArgsConstructor
-public class TrackedEntityInstanceStrategyImpl implements TrackedEntityInstanceStrategyHandler
-{
-    final TrackedEntityInstanceSyncStrategyImpl trackedEntityInstanceSyncStrategy;
+public class TrackedEntityInstanceStrategyImpl implements TrackedEntityInstanceStrategyHandler {
+  final TrackedEntityInstanceSyncStrategyImpl trackedEntityInstanceSyncStrategy;
 
-    final TrackedEntityInstanceAsyncStrategyImpl trackedEntityInstanceAsyncStrategy;
+  final TrackedEntityInstanceAsyncStrategyImpl trackedEntityInstanceAsyncStrategy;
 
-    @Override
-    public ImportSummaries mergeOrDeleteTrackedEntityInstances(
-        TrackerEntityInstanceRequest trackerEntityInstanceRequest )
-        throws IOException,
-        BadRequestException
-    {
-        if ( trackerEntityInstanceRequest.getImportOptions().isAsync() )
-        {
-            return trackedEntityInstanceAsyncStrategy
-                .mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
-        }
-        else
-        {
-            return trackedEntityInstanceSyncStrategy
-                .mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
-        }
+  @Override
+  public ImportSummaries mergeOrDeleteTrackedEntityInstances(
+      TrackerEntityInstanceRequest trackerEntityInstanceRequest)
+      throws IOException, BadRequestException {
+    if (trackerEntityInstanceRequest.getImportOptions().isAsync()) {
+      return trackedEntityInstanceAsyncStrategy.mergeOrDeleteTrackedEntityInstances(
+          trackerEntityInstanceRequest);
+    } else {
+      return trackedEntityInstanceSyncStrategy.mergeOrDeleteTrackedEntityInstances(
+          trackerEntityInstanceRequest);
     }
-
+  }
 }

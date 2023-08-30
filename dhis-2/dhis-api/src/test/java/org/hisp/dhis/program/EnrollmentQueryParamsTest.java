@@ -30,22 +30,18 @@ package org.hisp.dhis.program;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.ImmutableList;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.ImmutableList;
+class EnrollmentQueryParamsTest {
 
-class EnrollmentQueryParamsTest
-{
-
-    @Test
-    void verifyIsSorting()
-    {
-        EnrollmentQueryParams enrollmentQueryParams = new EnrollmentQueryParams();
-        assertFalse( enrollmentQueryParams.isSorting() );
-        enrollmentQueryParams.setOrder( ImmutableList
-            .of( new OrderParam( "aField", SortDirection.ASC ) ) );
-        assertTrue( enrollmentQueryParams.isSorting() );
-    }
+  @Test
+  void verifyIsSorting() {
+    EnrollmentQueryParams enrollmentQueryParams = new EnrollmentQueryParams();
+    assertFalse(enrollmentQueryParams.isSorting());
+    enrollmentQueryParams.setOrder(ImmutableList.of(new OrderParam("aField", SortDirection.ASC)));
+    assertTrue(enrollmentQueryParams.isSorting());
+  }
 }

@@ -34,12 +34,9 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
  *
  * @author Dusan Bernat
  */
-public class vScheduledEventCount
-    extends ProgramDoubleVariable
-{
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        return " case when psistatus = 'SCHEDULE' then 1 end ";
-    }
+public class vScheduledEventCount extends ProgramDoubleVariable {
+  @Override
+  public Object getSql(CommonExpressionVisitor visitor) {
+    return " case when psistatus = 'SCHEDULE' then 1 end ";
+  }
 }

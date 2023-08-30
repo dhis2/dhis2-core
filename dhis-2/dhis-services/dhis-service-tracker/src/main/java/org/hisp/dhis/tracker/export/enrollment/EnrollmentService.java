@@ -27,21 +27,27 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import java.util.Set;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 
-public interface EnrollmentService
-{
-    Enrollment getEnrollment( String uid, EnrollmentParams params, boolean includeDeleted )
-        throws NotFoundException,
-        ForbiddenException;
+public interface EnrollmentService {
+  Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
+      throws NotFoundException, ForbiddenException;
 
-    Enrollment getEnrollment( Enrollment enrollment, EnrollmentParams params, boolean includeDeleted )
-        throws ForbiddenException;
+  Enrollment getEnrollment(Enrollment enrollment, EnrollmentParams params, boolean includeDeleted)
+      throws ForbiddenException;
 
-    Enrollments getEnrollments( EnrollmentOperationParams params )
-        throws ForbiddenException,
-        BadRequestException;
+  Enrollments getEnrollments(EnrollmentOperationParams params)
+      throws ForbiddenException, BadRequestException;
+
+  /**
+   * Fields the {@link #getEnrollments(EnrollmentOperationParams)} can order enrollments by.
+   * Ordering by fields other than these is considered a programmer error. Validation of user
+   * provided field names should occur before calling {@link
+   * #getEnrollments(EnrollmentOperationParams)}.
+   */
+  Set<String> getOrderableFields();
 }

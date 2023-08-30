@@ -31,35 +31,32 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
- * Interface responsible for providing the basic and necessary methods regarding
- * general data item queries.
+ * Interface responsible for providing the basic and necessary methods regarding general data item
+ * queries.
  *
  * @author maikel arabori
  */
-public interface DataItemQuery
-{
-    /**
-     * Builds and returns the SQL statement required by the implementation.
-     *
-     * @param paramsMap
-     * @return the full SQL statement
-     */
-    String getStatement( MapSqlParameterSource paramsMap );
+public interface DataItemQuery {
+  /**
+   * Builds and returns the SQL statement required by the implementation.
+   *
+   * @param paramsMap
+   * @return the full SQL statement
+   */
+  String getStatement(MapSqlParameterSource paramsMap);
 
-    /**
-     * Checks if the query rules match the required conditions so the query can
-     * be executed.
-     *
-     * @param paramsMap
-     * @return true if matches, false otherwise
-     */
-    boolean matchQueryRules( MapSqlParameterSource paramsMap );
+  /**
+   * Checks if the query rules match the required conditions so the query can be executed.
+   *
+   * @param paramsMap
+   * @return true if matches, false otherwise
+   */
+  boolean matchQueryRules(MapSqlParameterSource paramsMap);
 
-    /**
-     * Simply returns the entity associated with the respective interface/query
-     * implementation.
-     *
-     * @return the entity associated to the interface implementation
-     */
-    Class<? extends BaseIdentifiableObject> getRootEntity();
+  /**
+   * Simply returns the entity associated with the respective interface/query implementation.
+   *
+   * @return the entity associated to the interface implementation
+   */
+  Class<? extends BaseIdentifiableObject> getRootEntity();
 }

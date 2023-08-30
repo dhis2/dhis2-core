@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.dataentry;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
@@ -44,29 +43,27 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags( "data" )
+@OpenApi.Tags("data")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping( "/dataEntry" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class CustomDataEntryFormController
-{
-    private final DataEntryFormService dataEntryFormService;
+@RequestMapping("/dataEntry")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class CustomDataEntryFormController {
+  private final DataEntryFormService dataEntryFormService;
 
-    private final IdentifiableObjectManager idObjectManager;
+  private final IdentifiableObjectManager idObjectManager;
 
-    @GetMapping( "/customForms/{uid}" )
-    public CustomDataEntryFormDto getForm( @PathVariable String uid )
-    {
-        DataSet dataSet = idObjectManager.load( DataSet.class, uid );
+  @GetMapping("/customForms/{uid}")
+  public CustomDataEntryFormDto getForm(@PathVariable String uid) {
+    DataSet dataSet = idObjectManager.load(DataSet.class, uid);
 
-        String form = dataEntryFormService.prepareDataEntryFormForEntry( dataSet );
+    String form = dataEntryFormService.prepareDataEntryFormForEntry(dataSet);
 
-        return new CustomDataEntryFormDto()
-            .setId( dataSet.getDataEntryForm().getUid() )
-            .setDataSetId( dataSet.getUid() )
-            .setVersion( dataSet.getVersion() )
-            .setDisplayDensity( dataSet.getDataEntryForm().getStyle() )
-            .setForm( form );
-    }
+    return new CustomDataEntryFormDto()
+        .setId(dataSet.getDataEntryForm().getUid())
+        .setDataSetId(dataSet.getUid())
+        .setVersion(dataSet.getVersion())
+        .setDisplayDensity(dataSet.getDataEntryForm().getStyle())
+        .setForm(form);
+  }
 }

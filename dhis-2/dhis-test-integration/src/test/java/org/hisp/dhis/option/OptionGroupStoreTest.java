@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
@@ -44,108 +43,98 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-class OptionGroupStoreTest extends SingleSetupIntegrationTestBase
-{
-    @Autowired
-    private OptionGroupStore store;
+class OptionGroupStoreTest extends SingleSetupIntegrationTestBase {
+  @Autowired private OptionGroupStore store;
 
-    @Autowired
-    private OptionStore optionStore;
+  @Autowired private OptionStore optionStore;
 
-    @Autowired
-    private IdentifiableObjectStore<OptionSet> optionSetStore;
+  @Autowired private IdentifiableObjectStore<OptionSet> optionSetStore;
 
-    private OptionGroup optionGroupA;
+  private OptionGroup optionGroupA;
 
-    private OptionGroup optionGroupB;
+  private OptionGroup optionGroupB;
 
-    private OptionGroup optionGroupC;
+  private OptionGroup optionGroupC;
 
-    @BeforeEach
-    public void setUpTest()
-    {
-        optionGroupA = new OptionGroup( "OptionGroupA" );
-        optionGroupA.setShortName( "ShortNameA" );
-        optionGroupB = new OptionGroup( "OptionGroupB" );
-        optionGroupB.setShortName( "ShortNameB" );
-        optionGroupC = new OptionGroup( "OptionGroupC" );
-        optionGroupC.setShortName( "ShortNameC" );
-    }
+  @BeforeEach
+  public void setUpTest() {
+    optionGroupA = new OptionGroup("OptionGroupA");
+    optionGroupA.setShortName("ShortNameA");
+    optionGroupB = new OptionGroup("OptionGroupB");
+    optionGroupB.setShortName("ShortNameB");
+    optionGroupC = new OptionGroup("OptionGroupC");
+    optionGroupC.setShortName("ShortNameC");
+  }
 
-    @Test
-    void tetAddOptionGroup()
-    {
-        store.save( optionGroupA );
-        long idA = optionGroupA.getId();
-        store.save( optionGroupB );
-        long idB = optionGroupB.getId();
-        store.save( optionGroupC );
-        long idC = optionGroupC.getId();
-        assertEquals( optionGroupA, store.get( idA ) );
-        assertEquals( optionGroupB, store.get( idB ) );
-        assertEquals( optionGroupC, store.get( idC ) );
-    }
+  @Test
+  void tetAddOptionGroup() {
+    store.save(optionGroupA);
+    long idA = optionGroupA.getId();
+    store.save(optionGroupB);
+    long idB = optionGroupB.getId();
+    store.save(optionGroupC);
+    long idC = optionGroupC.getId();
+    assertEquals(optionGroupA, store.get(idA));
+    assertEquals(optionGroupB, store.get(idB));
+    assertEquals(optionGroupC, store.get(idC));
+  }
 
-    @Test
-    void testDeleteOptionGroup()
-    {
-        store.save( optionGroupA );
-        long idA = optionGroupA.getId();
-        store.save( optionGroupB );
-        long idB = optionGroupB.getId();
-        store.delete( optionGroupA );
-        assertNull( store.get( idA ) );
-        assertNotNull( store.get( idB ) );
-    }
+  @Test
+  void testDeleteOptionGroup() {
+    store.save(optionGroupA);
+    long idA = optionGroupA.getId();
+    store.save(optionGroupB);
+    long idB = optionGroupB.getId();
+    store.delete(optionGroupA);
+    assertNull(store.get(idA));
+    assertNotNull(store.get(idB));
+  }
 
-    @Test
-    void genericGetAll()
-    {
-        store.save( optionGroupA );
-        store.save( optionGroupB );
-        store.save( optionGroupC );
-        Collection<OptionGroup> objects = store.getAll();
-        assertNotNull( objects );
-        assertEquals( 3, objects.size() );
-        assertTrue( objects.contains( optionGroupA ) );
-        assertTrue( objects.contains( optionGroupB ) );
-        assertTrue( objects.contains( optionGroupC ) );
-    }
+  @Test
+  void genericGetAll() {
+    store.save(optionGroupA);
+    store.save(optionGroupB);
+    store.save(optionGroupC);
+    Collection<OptionGroup> objects = store.getAll();
+    assertNotNull(objects);
+    assertEquals(3, objects.size());
+    assertTrue(objects.contains(optionGroupA));
+    assertTrue(objects.contains(optionGroupB));
+    assertTrue(objects.contains(optionGroupC));
+  }
 
-    @Test
-    void testGetByOptionId()
-    {
-        OptionSet optionSet = createOptionSet( 'A' );
-        optionSet.setValueType( ValueType.TEXT );
-        optionSetStore.save( optionSet );
+  @Test
+  void testGetByOptionId() {
+    OptionSet optionSet = createOptionSet('A');
+    optionSet.setValueType(ValueType.TEXT);
+    optionSetStore.save(optionSet);
 
-        Option option = createOption( 'A' );
-        option.setOptionSet( optionSet );
-        optionStore.save( option );
+    Option option = createOption('A');
+    option.setOptionSet(optionSet);
+    optionStore.save(option);
 
-        optionGroupA.setOptionSet( optionSet );
-        optionGroupA.addOption( option );
-        store.save( optionGroupA );
+    optionGroupA.setOptionSet(optionSet);
+    optionGroupA.addOption(option);
+    store.save(optionGroupA);
 
-        assertNotNull( store.getOptionGroupsByOptionId( option.getUid() ) );
-    }
+    assertNotNull(store.getOptionGroupsByOptionId(option.getUid()));
+  }
 
-    @Test
-    void testDeleteOption()
-    {
-        OptionSet optionSet = createOptionSet( 'A' );
-        optionSet.setValueType( ValueType.TEXT );
-        optionSetStore.save( optionSet );
-        Option option = createOption( 'A' );
-        option.setOptionSet( optionSet );
-        optionStore.save( option );
+  @Test
+  void testDeleteOption() {
+    OptionSet optionSet = createOptionSet('A');
+    optionSet.setValueType(ValueType.TEXT);
+    optionSetStore.save(optionSet);
+    Option option = createOption('A');
+    option.setOptionSet(optionSet);
+    optionStore.save(option);
 
-        optionGroupA.setOptionSet( optionSet );
-        optionGroupA.addOption( option );
-        store.save( optionGroupA );
+    optionGroupA.setOptionSet(optionSet);
+    optionGroupA.addOption(option);
+    store.save(optionGroupA);
 
-        optionStore.delete( option );
-        optionGroupA = store.get( optionGroupA.getId() );
-        assertTrue( optionGroupA.getMembers().isEmpty() );
-    }
+    optionStore.delete(option);
+    optionGroupA = store.get(optionGroupA.getId());
+    assertTrue(optionGroupA.getMembers().isEmpty());
+  }
 }

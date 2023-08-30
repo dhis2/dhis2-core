@@ -34,13 +34,11 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class PersistenceReportTest
-{
+class PersistenceReportTest {
 
-    @Test
-    void testEmptyReport()
-    {
-        PersistenceReport report = PersistenceReport.emptyReport();
-        assertNotNull( report.getTypeReportMap() );
-    }
+  @Test
+  void testEmptyReport() {
+    PersistenceReport report = PersistenceReport.emptyReport();
+    assertNotNull(report.getTypeReportMap());
+  }
 }

@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.message;
 
-public enum MessageConversationPriority
-{
-    NONE,
-    LOW,
-    MEDIUM,
-    HIGH
+public enum MessageConversationPriority {
+  NONE,
+  LOW,
+  MEDIUM,
+  HIGH
 }

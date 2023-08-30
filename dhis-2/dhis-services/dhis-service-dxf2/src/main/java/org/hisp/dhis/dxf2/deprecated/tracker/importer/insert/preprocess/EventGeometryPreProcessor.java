@@ -39,14 +39,11 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class EventGeometryPreProcessor implements Processor
-{
-    @Override
-    public void process( Event event, WorkContext ctx )
-    {
-        if ( event.getGeometry() != null )
-        {
-            event.getGeometry().setSRID( GeoUtils.SRID );
-        }
+public class EventGeometryPreProcessor implements Processor {
+  @Override
+  public void process(Event event, WorkContext ctx) {
+    if (event.getGeometry() != null) {
+      event.getGeometry().setSRID(GeoUtils.SRID);
     }
+  }
 }

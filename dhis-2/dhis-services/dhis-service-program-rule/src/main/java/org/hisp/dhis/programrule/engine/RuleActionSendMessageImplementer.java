@@ -48,115 +48,109 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ *
+ *
  * <ol>
- * <li>Handle notifications related to enrollment/event</li>
- * <li>Trigger spring event to handle notification delivery in separate thread
- * <li/>
- * <li>Log and entry in {@link ExternalNotificationLogEntry}</li>
+ *   <li>Handle notifications related to enrollment/event
+ *   <li>Trigger spring event to handle notification delivery in separate thread
+ *   <li/>
+ *   <li>Log and entry in {@link ExternalNotificationLogEntry}
  * </ol>
  *
  * @author Zubair Asghar
  */
-@Component( "org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" )
+@Component("org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer")
 @Transactional
-public class RuleActionSendMessageImplementer extends NotificationRuleActionImplementer
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class RuleActionSendMessageImplementer extends NotificationRuleActionImplementer {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final ApplicationEventPublisher publisher;
+  private final ApplicationEventPublisher publisher;
 
-    public RuleActionSendMessageImplementer( ProgramNotificationTemplateService programNotificationTemplateService,
-        NotificationLoggingService notificationLoggingService,
-        EnrollmentService enrollmentService,
-        EventService eventService,
-        ApplicationEventPublisher publisher )
-    {
-        super( programNotificationTemplateService, notificationLoggingService, enrollmentService,
-            eventService );
-        this.publisher = publisher;
+  public RuleActionSendMessageImplementer(
+      ProgramNotificationTemplateService programNotificationTemplateService,
+      NotificationLoggingService notificationLoggingService,
+      EnrollmentService enrollmentService,
+      EventService eventService,
+      ApplicationEventPublisher publisher) {
+    super(
+        programNotificationTemplateService,
+        notificationLoggingService,
+        enrollmentService,
+        eventService);
+    this.publisher = publisher;
+  }
+
+  @Override
+  public boolean accept(RuleAction ruleAction) {
+    return ruleAction instanceof RuleActionSendMessage;
+  }
+
+  @Override
+  public void implement(RuleEffect ruleEffect, Enrollment enrollment) {
+    NotificationValidationResult result = validate(ruleEffect, enrollment);
+
+    if (!result.isValid()) {
+      return;
     }
 
-    @Override
-    public boolean accept( RuleAction ruleAction )
-    {
-        return ruleAction instanceof RuleActionSendMessage;
+    ProgramNotificationTemplate template = result.getTemplate();
+
+    String key = generateKey(template, enrollment);
+
+    publisher.publishEvent(new ProgramRuleEnrollmentEvent(this, template.getId(), enrollment));
+
+    if (result.getLogEntry() != null) {
+      return;
     }
 
-    @Override
-    public void implement( RuleEffect ruleEffect, Enrollment enrollment )
-    {
-        NotificationValidationResult result = validate( ruleEffect, enrollment );
+    ExternalNotificationLogEntry entry = createLogEntry(key, template.getUid());
+    entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM);
+    entry.setAllowMultiple(template.isSendRepeatable());
 
-        if ( !result.isValid() )
-        {
-            return;
-        }
+    notificationLoggingService.save(entry);
+  }
 
-        ProgramNotificationTemplate template = result.getTemplate();
+  @Override
+  public void implement(RuleEffect ruleEffect, Event event) {
+    checkNotNull(event, "Event cannot be null");
 
-        String key = generateKey( template, enrollment );
+    NotificationValidationResult result = validate(ruleEffect, event.getEnrollment());
 
-        publisher.publishEvent( new ProgramRuleEnrollmentEvent( this, template.getId(), enrollment ) );
-
-        if ( result.getLogEntry() != null )
-        {
-            return;
-        }
-
-        ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
-        entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
-        entry.setAllowMultiple( template.isSendRepeatable() );
-
-        notificationLoggingService.save( entry );
+    // For program without registration
+    if (event.getProgramStage().getProgram().isWithoutRegistration()) {
+      handleSingleEvent(ruleEffect, event);
+      return;
     }
 
-    @Override
-    public void implement( RuleEffect ruleEffect, Event event )
-    {
-        checkNotNull( event, "Event cannot be null" );
-
-        NotificationValidationResult result = validate( ruleEffect, event.getEnrollment() );
-
-        // For program without registration
-        if ( event.getProgramStage().getProgram().isWithoutRegistration() )
-        {
-            handleSingleEvent( ruleEffect, event );
-            return;
-        }
-
-        if ( !result.isValid() )
-        {
-            return;
-        }
-
-        ProgramNotificationTemplate template = result.getTemplate();
-        String key = generateKey( template, event.getEnrollment() );
-
-        publisher.publishEvent( new ProgramRuleStageEvent( this, template.getId(), event ) );
-
-        if ( result.getLogEntry() != null )
-        {
-            return;
-        }
-
-        ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
-        entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );
-        entry.setAllowMultiple( template.isSendRepeatable() );
-
-        notificationLoggingService.save( entry );
+    if (!result.isValid()) {
+      return;
     }
 
-    private void handleSingleEvent( RuleEffect ruleEffect, Event event )
-    {
-        ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
+    ProgramNotificationTemplate template = result.getTemplate();
+    String key = generateKey(template, event.getEnrollment());
 
-        if ( template == null )
-        {
-            return;
-        }
+    publisher.publishEvent(new ProgramRuleStageEvent(this, template.getId(), event));
 
-        publisher.publishEvent( new ProgramRuleStageEvent( this, template.getId(), event ) );
+    if (result.getLogEntry() != null) {
+      return;
     }
+
+    ExternalNotificationLogEntry entry = createLogEntry(key, template.getUid());
+    entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM_STAGE);
+    entry.setAllowMultiple(template.isSendRepeatable());
+
+    notificationLoggingService.save(entry);
+  }
+
+  private void handleSingleEvent(RuleEffect ruleEffect, Event event) {
+    ProgramNotificationTemplate template = getNotificationTemplate(ruleEffect.ruleAction());
+
+    if (template == null) {
+      return;
+    }
+
+    publisher.publishEvent(new ProgramRuleStageEvent(this, template.getId(), event));
+  }
 }

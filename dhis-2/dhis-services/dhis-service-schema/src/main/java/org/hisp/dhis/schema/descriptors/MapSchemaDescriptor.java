@@ -27,36 +27,33 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class MapSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "map";
+public class MapSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "map";
 
-    public static final String PLURAL = "maps";
+  public static final String PLURAL = "maps";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( Map.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 2000 );
-        schema.setImplicitPrivateAuthority( true );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(Map.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(2000);
+    schema.setImplicitPrivateAuthority(true);
 
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_MAP_PUBLIC_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( "F_MAP_EXTERNAL" ) ) );
+    schema.add(new Authority(AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_MAP_PUBLIC_ADD")));
+    schema.add(new Authority(AuthorityType.EXTERNALIZE, Lists.newArrayList("F_MAP_EXTERNAL")));
 
-        return schema;
-    }
+    return schema;
+  }
 }

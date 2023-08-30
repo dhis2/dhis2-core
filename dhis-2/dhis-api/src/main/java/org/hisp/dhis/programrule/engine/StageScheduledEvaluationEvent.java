@@ -32,18 +32,15 @@ import org.springframework.context.ApplicationEvent;
 /**
  * @author Zubair Asghar
  */
-public class StageScheduledEvaluationEvent extends ApplicationEvent
-{
-    private final String event;
+public class StageScheduledEvaluationEvent extends ApplicationEvent {
+  private final String event;
 
-    public StageScheduledEvaluationEvent( Object source, String event )
-    {
-        super( source );
-        this.event = event;
-    }
+  public StageScheduledEvaluationEvent(Object source, String event) {
+    super(source);
+    this.event = event;
+  }
 
-    public String getEvent()
-    {
-        return event;
-    }
+  public String getEvent() {
+    return event;
+  }
 }

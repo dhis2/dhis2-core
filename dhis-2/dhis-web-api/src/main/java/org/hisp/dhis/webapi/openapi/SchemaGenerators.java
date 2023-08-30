@@ -35,18 +35,20 @@ import static org.hisp.dhis.webapi.openapi.Property.getProperties;
  *
  * @author Jan Bernitt
  */
-public interface SchemaGenerators
-{
+public interface SchemaGenerators {
 
-    Api.SchemaGenerator UID = ( endpoint, source, args ) -> {
+  Api.SchemaGenerator UID =
+      (endpoint, source, args) -> {
         Class<?> uidOf = args.length == 0 ? endpoint.getEntityType() : args[0];
-        return Api.Schema.uid( uidOf );
-    };
+        return Api.Schema.uid(uidOf);
+      };
 
-    Api.SchemaGenerator PROPERTY_NAMES = ( endpoint, source, args ) -> {
+  Api.SchemaGenerator PROPERTY_NAMES =
+      (endpoint, source, args) -> {
         Class<?> ofType = args.length == 0 ? endpoint.getEntityType() : args[0];
-        return Api.Schema.enumeration( Api.PropertyNames.class, ofType, getProperties( ofType ).stream()
-            .map( Property::getName )
-            .collect( toList() ) );
-    };
+        return Api.Schema.enumeration(
+            Api.PropertyNames.class,
+            ofType,
+            getProperties(ofType).stream().map(Property::getName).collect(toList()));
+      };
 }

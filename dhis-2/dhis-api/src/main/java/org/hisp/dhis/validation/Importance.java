@@ -30,9 +30,8 @@ package org.hisp.dhis.validation;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum Importance
-{
-    HIGH,
-    MEDIUM,
-    LOW
+public enum Importance {
+  HIGH,
+  MEDIUM,
+  LOW
 }

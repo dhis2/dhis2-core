@@ -32,78 +32,68 @@ import static org.hisp.dhis.parser.expression.ParserUtils.*;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
 import java.util.Set;
-
 import org.hisp.dhis.parser.expression.antlr.ExpressionBaseListener;
 
 /**
- * Traverse the ANTLR4 parse tree for a program expression to collect the UIDs
- * for data elements and program attributes.
- * <p/>
- * Uses the ANTLR4 listener pattern.
+ * Traverse the ANTLR4 parse tree for a program expression to collect the UIDs for data elements and
+ * program attributes.
+ *
+ * <p>Uses the ANTLR4 listener pattern.
  *
  * @author Jim Grace
  */
-public class ProgramElementsAndAttributesCollecter
-    extends ExpressionBaseListener
-{
-    private Set<String> items;
+public class ProgramElementsAndAttributesCollecter extends ExpressionBaseListener {
+  private Set<String> items;
 
-    private AnalyticsType analyticsType;
+  private AnalyticsType analyticsType;
 
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructor
+  // -------------------------------------------------------------------------
 
-    public ProgramElementsAndAttributesCollecter( Set<String> items, AnalyticsType analyticsType )
-    {
-        checkNotNull( items );
-        checkNotNull( analyticsType );
+  public ProgramElementsAndAttributesCollecter(Set<String> items, AnalyticsType analyticsType) {
+    checkNotNull(items);
+    checkNotNull(analyticsType);
 
-        this.items = items;
-        this.analyticsType = analyticsType;
+    this.items = items;
+    this.analyticsType = analyticsType;
+  }
+
+  // -------------------------------------------------------------------------
+  // ANTLR Listener methods
+  // -------------------------------------------------------------------------
+
+  @Override
+  public void enterExpr(ExprContext ctx) {
+    if (ctx.it == null) {
+      return;
     }
 
-    // -------------------------------------------------------------------------
-    // ANTLR Listener methods
-    // -------------------------------------------------------------------------
+    switch (ctx.it.getType()) {
+      case HASH_BRACE:
+        assumeStageElementSyntax(ctx);
 
-    @Override
-    public void enterExpr( ExprContext ctx )
-    {
-        if ( ctx.it == null )
-        {
-            return;
+        String programStageId = ctx.uid0.getText();
+        String dataElementId = ctx.uid1.getText();
+
+        if (AnalyticsType.ENROLLMENT.equals(analyticsType)) {
+          items.add(programStageId + "_" + dataElementId);
+        } else {
+          items.add(dataElementId);
         }
+        break;
 
-        switch ( ctx.it.getType() )
-        {
-        case HASH_BRACE:
-            assumeStageElementSyntax( ctx );
+      case A_BRACE:
+        assumeProgramExpressionProgramAttribute(ctx);
 
-            String programStageId = ctx.uid0.getText();
-            String dataElementId = ctx.uid1.getText();
+        String attributeId = ctx.uid0.getText();
 
-            if ( AnalyticsType.ENROLLMENT.equals( analyticsType ) )
-            {
-                items.add( programStageId + "_" + dataElementId );
-            }
-            else
-            {
-                items.add( dataElementId );
-            }
-            break;
+        items.add(attributeId);
 
-        case A_BRACE:
-            assumeProgramExpressionProgramAttribute( ctx );
+        break;
 
-            String attributeId = ctx.uid0.getText();
-
-            items.add( attributeId );
-
-            break;
-
-        default:
-            break;
-        }
+      default:
+        break;
     }
+  }
 }

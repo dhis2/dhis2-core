@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Set;
-
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.dataelement.DataElement;
@@ -46,41 +45,38 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jim Grace
  */
-class SubexpressionDimenstionItemTest
-{
-    @Test
-    void testConstructor()
-    {
-        String subexSql = "dummy SQL";
-        Set<DimensionalItemObject> items = Set.of( new DataElement( "DE Name" ) );
-        QueryModifiers queryMods = QueryModifiers.builder().aggregationType( AVERAGE ).build();
+class SubexpressionDimenstionItemTest {
+  @Test
+  void testConstructor() {
+    String subexSql = "dummy SQL";
+    Set<DimensionalItemObject> items = Set.of(new DataElement("DE Name"));
+    QueryModifiers queryMods = QueryModifiers.builder().aggregationType(AVERAGE).build();
 
-        SubexpressionDimensionItem target = new SubexpressionDimensionItem( subexSql, items, queryMods );
+    SubexpressionDimensionItem target = new SubexpressionDimensionItem(subexSql, items, queryMods);
 
-        assertEquals( subexSql, target.getSubexSql() );
-        assertEquals( items, target.getItems() );
-        assertEquals( queryMods, target.getQueryMods() );
-        assertNotNull( target.getUid() );
-        assertEquals( 11, target.getUid().length() );
-        assertEquals( AVERAGE, target.getAggregationType() );
-        assertEquals( SUBEXPRESSION_DIMENSION_ITEM, target.getDimensionItemType() );
-    }
+    assertEquals(subexSql, target.getSubexSql());
+    assertEquals(items, target.getItems());
+    assertEquals(queryMods, target.getQueryMods());
+    assertNotNull(target.getUid());
+    assertEquals(11, target.getUid().length());
+    assertEquals(AVERAGE, target.getAggregationType());
+    assertEquals(SUBEXPRESSION_DIMENSION_ITEM, target.getDimensionItemType());
+  }
 
-    @Test
-    void testGetItemColumnName()
-    {
-        // Test for coc and aoc = null when missing
-        assertEquals( "\"de\"", getItemColumnName( "de", null, null, null ) );
-        assertEquals( "\"de_co\"", getItemColumnName( "de", "co", null, null ) );
-        assertEquals( "\"de_co_ao\"", getItemColumnName( "de", "co", "ao", null ) );
-        assertEquals( "\"de__ao\"", getItemColumnName( "de", null, "ao", null ) );
+  @Test
+  void testGetItemColumnName() {
+    // Test for coc and aoc = null when missing
+    assertEquals("\"de\"", getItemColumnName("de", null, null, null));
+    assertEquals("\"de_co\"", getItemColumnName("de", "co", null, null));
+    assertEquals("\"de_co_ao\"", getItemColumnName("de", "co", "ao", null));
+    assertEquals("\"de__ao\"", getItemColumnName("de", null, "ao", null));
 
-        QueryModifiers mods = QueryModifiers.builder().aggregationType( MAX ).build();
+    QueryModifiers mods = QueryModifiers.builder().aggregationType(MAX).build();
 
-        // Test for coc and aoc = empty string when missing
-        assertEquals( "\"deMAX\"", getItemColumnName( "de", "", "", mods ) );
-        assertEquals( "\"de_coMAX\"", getItemColumnName( "de", "co", "", mods ) );
-        assertEquals( "\"de_co_aoMAX\"", getItemColumnName( "de", "co", "ao", mods ) );
-        assertEquals( "\"de__aoMAX\"", getItemColumnName( "de", "", "ao", mods ) );
-    }
+    // Test for coc and aoc = empty string when missing
+    assertEquals("\"deMAX\"", getItemColumnName("de", "", "", mods));
+    assertEquals("\"de_coMAX\"", getItemColumnName("de", "co", "", mods));
+    assertEquals("\"de_co_aoMAX\"", getItemColumnName("de", "co", "ao", mods));
+    assertEquals("\"de__aoMAX\"", getItemColumnName("de", "", "ao", mods));
+  }
 }

@@ -27,160 +27,127 @@
  */
 package org.hisp.dhis.dataentryform;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Objects;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Bharath Kumar
  */
-@JacksonXmlRootElement( localName = "dataEntryForm", namespace = DxfNamespaces.DXF_2_0 )
-public class DataEntryForm
-    extends BaseIdentifiableObject
-    implements MetadataObject
-{
-    public static final int CURRENT_FORMAT = 2;
+@JacksonXmlRootElement(localName = "dataEntryForm", namespace = DxfNamespaces.DXF_2_0)
+public class DataEntryForm extends BaseIdentifiableObject implements MetadataObject {
+  public static final int CURRENT_FORMAT = 2;
 
-    /**
-     * Name of DataEntryForm. Required and unique.
-     */
-    private String name;
+  /** Name of DataEntryForm. Required and unique. */
+  private String name;
 
-    /**
-     * The display style to use to render the form.
-     */
-    private DisplayDensity style;
+  /** The display style to use to render the form. */
+  private DisplayDensity style;
 
-    /**
-     * HTML Code of DataEntryForm
-     */
-    private String htmlCode;
+  /** HTML Code of DataEntryForm */
+  private String htmlCode;
 
-    /**
-     * The format of the DataEntryForm.
-     */
-    private int format;
+  /** The format of the DataEntryForm. */
+  private int format;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public DataEntryForm()
-    {
+  public DataEntryForm() {}
 
-    }
+  public DataEntryForm(String name) {
+    this();
+    this.name = name;
+  }
 
-    public DataEntryForm( String name )
-    {
-        this();
-        this.name = name;
-    }
+  public DataEntryForm(String name, String htmlCode) {
+    this(name);
+    this.htmlCode = htmlCode;
+  }
 
-    public DataEntryForm( String name, String htmlCode )
-    {
-        this( name );
-        this.htmlCode = htmlCode;
-    }
+  public DataEntryForm(String name, DisplayDensity style, String htmlCode) {
+    this(name, htmlCode);
+    this.style = style;
+  }
 
-    public DataEntryForm( String name, DisplayDensity style, String htmlCode )
-    {
-        this( name, htmlCode );
-        this.style = style;
-    }
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  /** Indicates whether this data entry form has custom form HTML code. */
+  public boolean hasForm() {
+    return htmlCode != null && !htmlCode.trim().isEmpty();
+  }
 
-    /**
-     * Indicates whether this data entry form has custom form HTML code.
-     */
-    public boolean hasForm()
-    {
-        return htmlCode != null && !htmlCode.trim().isEmpty();
-    }
+  // -------------------------------------------------------------------------
+  // hashCode and equals
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // hashCode and equals
-    // -------------------------------------------------------------------------
+  @Override
+  public int hashCode() {
+    return 31 * super.hashCode() + Objects.hash(name, style, htmlCode, format);
+  }
 
-    @Override
-    public int hashCode()
-    {
-        return 31 * super.hashCode() + Objects.hash( name, style, htmlCode, format );
-    }
+  @Override
+  public boolean equals(Object obj) {
+    return this == obj
+        || obj instanceof DataEntryForm && super.equals(obj) && objectEquals((DataEntryForm) obj);
+  }
 
-    @Override
-    public boolean equals( Object obj )
-    {
-        return this == obj
-            || obj instanceof DataEntryForm && super.equals( obj ) && objectEquals( (DataEntryForm) obj );
-    }
+  private boolean objectEquals(DataEntryForm other) {
+    return Objects.equals(name, other.name)
+        && Objects.equals(style, other.style)
+        && Objects.equals(htmlCode, other.htmlCode)
+        && Objects.equals(format, other.format);
+  }
 
-    private boolean objectEquals( DataEntryForm other )
-    {
-        return Objects.equals( name, other.name )
-            && Objects.equals( style, other.style )
-            && Objects.equals( htmlCode, other.htmlCode )
-            && Objects.equals( format, other.format );
-    }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getName() {
+    return name;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getName()
-    {
-        return name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public void setName( String name )
-    {
-        this.name = name;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public DisplayDensity getStyle() {
+    return style;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DisplayDensity getStyle()
-    {
-        return style;
-    }
+  public void setStyle(DisplayDensity style) {
+    this.style = style;
+  }
 
-    public void setStyle( DisplayDensity style )
-    {
-        this.style = style;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getHtmlCode() {
+    return htmlCode;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getHtmlCode()
-    {
-        return htmlCode;
-    }
+  public void setHtmlCode(String htmlCode) {
+    this.htmlCode = htmlCode;
+  }
 
-    public void setHtmlCode( String htmlCode )
-    {
-        this.htmlCode = htmlCode;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getFormat() {
+    return format;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getFormat()
-    {
-        return format;
-    }
-
-    public void setFormat( int format )
-    {
-        this.format = format;
-    }
+  public void setFormat(int format) {
+    this.format = format;
+  }
 }

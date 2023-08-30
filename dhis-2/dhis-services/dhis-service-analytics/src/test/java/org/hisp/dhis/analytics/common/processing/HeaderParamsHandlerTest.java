@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
@@ -53,97 +52,97 @@ import org.mockito.junit.jupiter.MockitoExtension;
  *
  * @author maikel arabori
  */
-@ExtendWith( MockitoExtension.class )
-class HeaderParamsHandlerTest
-{
-    private HeaderParamsHandler headerParamsHandler;
+@ExtendWith(MockitoExtension.class)
+class HeaderParamsHandlerTest {
+  private HeaderParamsHandler headerParamsHandler;
 
-    @BeforeEach
-    void setUp()
-    {
-        headerParamsHandler = new HeaderParamsHandler();
-    }
+  @BeforeEach
+  void setUp() {
+    headerParamsHandler = new HeaderParamsHandler();
+  }
 
-    @Test
-    void testHandleWithOneFieldColumn()
-    {
-        // Given
-        String column = "oucode";
-        Grid grid = new ListGrid();
-        TeiQueryParams teiQueryParams = TeiQueryParams.builder().commonParams( CommonParams.builder().build() ).build();
-        List<Field> fields = List.of( ofUnquoted( "ev", of( "anyName" ), column ) );
+  @Test
+  void testHandleWithOneFieldColumn() {
+    // Given
+    String column = "oucode";
+    Grid grid = new ListGrid();
+    TeiQueryParams teiQueryParams =
+        TeiQueryParams.builder().commonParams(CommonParams.builder().build()).build();
+    List<Field> fields = List.of(ofUnquoted("ev", of("anyName"), column));
 
-        // When
-        headerParamsHandler.handle( grid, teiQueryParams, fields );
+    // When
+    headerParamsHandler.handle(grid, teiQueryParams, fields);
 
-        // Then
-        assertEquals( 1, grid.getHeaders().size() );
-        assertEquals( column, grid.getHeaders().get( 0 ).getName() );
-    }
+    // Then
+    assertEquals(1, grid.getHeaders().size());
+    assertEquals(column, grid.getHeaders().get(0).getName());
+  }
 
-    @Test
-    void testHandleWithNoFieldColumn()
-    {
-        // Given
-        Grid grid = new ListGrid();
-        TeiQueryParams teiQueryParams = TeiQueryParams.builder().commonParams( CommonParams.builder().build() ).build();
-        List<Field> fields = List.of();
+  @Test
+  void testHandleWithNoFieldColumn() {
+    // Given
+    Grid grid = new ListGrid();
+    TeiQueryParams teiQueryParams =
+        TeiQueryParams.builder().commonParams(CommonParams.builder().build()).build();
+    List<Field> fields = List.of();
 
-        // When
-        headerParamsHandler.handle( grid, teiQueryParams, fields );
+    // When
+    headerParamsHandler.handle(grid, teiQueryParams, fields);
 
-        // Then
-        assertTrue( grid.getHeaders().isEmpty() );
-    }
+    // Then
+    assertTrue(grid.getHeaders().isEmpty());
+  }
 
-    @Test
-    void testHandleWithParamHeaders()
-    {
-        // Given
-        Grid grid = new ListGrid();
-        TeiQueryParams teiQueryParams = TeiQueryParams.builder().commonParams( stubCommonParamsWithHeaders() ).build();
-        List<Field> fields = List.of(
-            ofUnquoted( "ev", of( "anyName" ), "oucode" ),
-            ofUnquoted( "ev", of( "anyName" ), "ouname" ),
-            ofUnquoted( "ev", of( "anyName" ), "lastupdated" ) );
+  @Test
+  void testHandleWithParamHeaders() {
+    // Given
+    Grid grid = new ListGrid();
+    TeiQueryParams teiQueryParams =
+        TeiQueryParams.builder().commonParams(stubCommonParamsWithHeaders()).build();
+    List<Field> fields =
+        List.of(
+            ofUnquoted("ev", of("anyName"), "oucode"),
+            ofUnquoted("ev", of("anyName"), "ouname"),
+            ofUnquoted("ev", of("anyName"), "lastupdated"));
 
-        // When
-        headerParamsHandler.handle( grid, teiQueryParams, fields );
+    // When
+    headerParamsHandler.handle(grid, teiQueryParams, fields);
 
-        // Then
-        assertEquals( 3, grid.getHeaders().size() );
-        assertEquals( "oucode", grid.getHeaders().get( 0 ).getName() );
-        assertEquals( "ouname", grid.getHeaders().get( 1 ).getName() );
-        assertEquals( "lastupdated", grid.getHeaders().get( 2 ).getName() );
-    }
+    // Then
+    assertEquals(3, grid.getHeaders().size());
+    assertEquals("oucode", grid.getHeaders().get(0).getName());
+    assertEquals("ouname", grid.getHeaders().get(1).getName());
+    assertEquals("lastupdated", grid.getHeaders().get(2).getName());
+  }
 
-    @Test
-    void testHandleWithNonExistingParamHeader()
-    {
-        // Given
-        CommonParams commonParams = stubCommonParamsWithHeaders();
-        commonParams.getHeaders().add( "non-existing" );
+  @Test
+  void testHandleWithNonExistingParamHeader() {
+    // Given
+    CommonParams commonParams = stubCommonParamsWithHeaders();
+    commonParams.getHeaders().add("non-existing");
 
-        Grid grid = new ListGrid();
-        TeiQueryParams teiQueryParams = TeiQueryParams.builder().commonParams( commonParams ).build();
-        List<Field> fields = List.of(
-            ofUnquoted( "ev", of( "anyName" ), "oucode" ),
-            ofUnquoted( "ev", of( "anyName" ), "ouname" ),
-            ofUnquoted( "ev", of( "anyName" ), "lastupdated" ) );
+    Grid grid = new ListGrid();
+    TeiQueryParams teiQueryParams = TeiQueryParams.builder().commonParams(commonParams).build();
+    List<Field> fields =
+        List.of(
+            ofUnquoted("ev", of("anyName"), "oucode"),
+            ofUnquoted("ev", of("anyName"), "ouname"),
+            ofUnquoted("ev", of("anyName"), "lastupdated"));
 
-        // When
-        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
-            () -> headerParamsHandler.handle( grid, teiQueryParams, fields ),
-            "Expected exception not thrown: handle()" );
+    // When
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> headerParamsHandler.handle(grid, teiQueryParams, fields),
+            "Expected exception not thrown: handle()");
 
-        // Then
-        assertTrue( ex.getMessage().contains( "Header param `non-existing` does not exist" ) );
-    }
+    // Then
+    assertTrue(ex.getMessage().contains("Header param `non-existing` does not exist"));
+  }
 
-    private CommonParams stubCommonParamsWithHeaders()
-    {
-        Set<String> headers = new LinkedHashSet<>( List.of( "oucode", "ouname", "lastupdated" ) );
+  private CommonParams stubCommonParamsWithHeaders() {
+    Set<String> headers = new LinkedHashSet<>(List.of("oucode", "ouname", "lastupdated"));
 
-        return CommonParams.builder().headers( headers ).build();
-    }
+    return CommonParams.builder().headers(headers).build();
+  }
 }

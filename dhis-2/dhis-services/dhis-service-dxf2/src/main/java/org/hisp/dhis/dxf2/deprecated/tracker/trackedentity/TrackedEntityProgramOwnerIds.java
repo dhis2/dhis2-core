@@ -27,33 +27,29 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity;
 
-public class TrackedEntityProgramOwnerIds
-{
-    private final String trackedEntityUid;
+public class TrackedEntityProgramOwnerIds {
+  private final String trackedEntityUid;
 
-    private final String programUid;
+  private final String programUid;
 
-    private final String orgUnitUid;
+  private final String orgUnitUid;
 
-    public TrackedEntityProgramOwnerIds( String trackedEntityUid, String programUid, String orgUnitUid )
-    {
-        this.trackedEntityUid = trackedEntityUid;
-        this.programUid = programUid;
-        this.orgUnitUid = orgUnitUid;
-    }
+  public TrackedEntityProgramOwnerIds(
+      String trackedEntityUid, String programUid, String orgUnitUid) {
+    this.trackedEntityUid = trackedEntityUid;
+    this.programUid = programUid;
+    this.orgUnitUid = orgUnitUid;
+  }
 
-    public String getTrackedEntityUid()
-    {
-        return trackedEntityUid;
-    }
+  public String getTrackedEntityUid() {
+    return trackedEntityUid;
+  }
 
-    public String getProgramUid()
-    {
-        return programUid;
-    }
+  public String getProgramUid() {
+    return programUid;
+  }
 
-    public String getOrgUnitUid()
-    {
-        return orgUnitUid;
-    }
+  public String getOrgUnitUid() {
+    return orgUnitUid;
+  }
 }

@@ -30,9 +30,8 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates.query;
 /**
  * @author Luciano Fiandesio
  */
-interface QueryElement
-{
-    String useInSelect();
+interface QueryElement {
+  String useInSelect();
 
-    String getResultsetValue();
+  String getResultsetValue();
 }

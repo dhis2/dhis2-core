@@ -39,7 +39,6 @@ import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.SHORT_NAME_ORDER;
 
 import lombok.NoArgsConstructor;
-
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -47,67 +46,59 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
-@NoArgsConstructor( access = PRIVATE )
-public class OrderingStatement
-{
-    private static final String ORDER_BY = " order by ";
+@NoArgsConstructor(access = PRIVATE)
+public class OrderingStatement {
+  private static final String ORDER_BY = " order by ";
 
-    public static String ordering( String displayNameOrderingColumns, String nameOrderingColumns,
-        String displayShortNameOrderingColumns, String shortNameOrderingColumns,
-        MapSqlParameterSource paramsMap )
-    {
-        if ( hasNonBlankStringPresence( paramsMap, DISPLAY_NAME_ORDER ) && isNotBlank( displayNameOrderingColumns ) )
-        {
-            return buildOrderByStatement( displayNameOrderingColumns,
-                (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) );
-        }
-        else if ( hasNonBlankStringPresence( paramsMap, NAME_ORDER ) && isNotBlank( nameOrderingColumns ) )
-        {
-            return buildOrderByStatement( nameOrderingColumns, (String) paramsMap.getValue( NAME_ORDER ) );
-        }
-        else if ( hasNonBlankStringPresence( paramsMap, SHORT_NAME_ORDER ) && isNotBlank( nameOrderingColumns ) )
-        {
-            return buildOrderByStatement( shortNameOrderingColumns, (String) paramsMap.getValue( SHORT_NAME_ORDER ) );
-        }
-        else if ( hasNonBlankStringPresence( paramsMap, DISPLAY_SHORT_NAME_ORDER )
-            && isNotBlank( displayShortNameOrderingColumns ) )
-        {
-            return buildOrderByStatement( displayShortNameOrderingColumns,
-                (String) paramsMap.getValue( DISPLAY_SHORT_NAME_ORDER ) );
-        }
-
-        return EMPTY;
+  public static String ordering(
+      String displayNameOrderingColumns,
+      String nameOrderingColumns,
+      String displayShortNameOrderingColumns,
+      String shortNameOrderingColumns,
+      MapSqlParameterSource paramsMap) {
+    if (hasNonBlankStringPresence(paramsMap, DISPLAY_NAME_ORDER)
+        && isNotBlank(displayNameOrderingColumns)) {
+      return buildOrderByStatement(
+          displayNameOrderingColumns, (String) paramsMap.getValue(DISPLAY_NAME_ORDER));
+    } else if (hasNonBlankStringPresence(paramsMap, NAME_ORDER)
+        && isNotBlank(nameOrderingColumns)) {
+      return buildOrderByStatement(nameOrderingColumns, (String) paramsMap.getValue(NAME_ORDER));
+    } else if (hasNonBlankStringPresence(paramsMap, SHORT_NAME_ORDER)
+        && isNotBlank(nameOrderingColumns)) {
+      return buildOrderByStatement(
+          shortNameOrderingColumns, (String) paramsMap.getValue(SHORT_NAME_ORDER));
+    } else if (hasNonBlankStringPresence(paramsMap, DISPLAY_SHORT_NAME_ORDER)
+        && isNotBlank(displayShortNameOrderingColumns)) {
+      return buildOrderByStatement(
+          displayShortNameOrderingColumns, (String) paramsMap.getValue(DISPLAY_SHORT_NAME_ORDER));
     }
 
-    private static String buildOrderByStatement( String displayOrderingColumns, String ascOrDesc )
-    {
-        StringBuilder orderBy = new StringBuilder();
-        String[] columns = trimToEmpty( displayOrderingColumns ).split( "," );
-        boolean hasElement = false;
+    return EMPTY;
+  }
 
-        if ( columns != null && columns.length > 0 )
-        {
-            for ( String column : columns )
-            {
-                if ( isNotBlank( column ) )
-                {
-                    if ( !hasElement )
-                    {
-                        orderBy.append( ORDER_BY );
-                    }
+  private static String buildOrderByStatement(String displayOrderingColumns, String ascOrDesc) {
+    StringBuilder orderBy = new StringBuilder();
+    String[] columns = trimToEmpty(displayOrderingColumns).split(",");
+    boolean hasElement = false;
 
-                    orderBy.append( column + SPACE + ascOrDesc + "," );
-                    hasElement = true;
-                }
-            }
+    if (columns != null && columns.length > 0) {
+      for (String column : columns) {
+        if (isNotBlank(column)) {
+          if (!hasElement) {
+            orderBy.append(ORDER_BY);
+          }
 
-            if ( hasElement )
-            {
-                // Delete last extra comma.
-                orderBy.deleteCharAt( orderBy.length() - 1 );
-            }
+          orderBy.append(column + SPACE + ascOrDesc + ",");
+          hasElement = true;
         }
+      }
 
-        return orderBy.toString();
+      if (hasElement) {
+        // Delete last extra comma.
+        orderBy.deleteCharAt(orderBy.length() - 1);
+      }
     }
+
+    return orderBy.toString();
+  }
 }

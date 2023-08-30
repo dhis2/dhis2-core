@@ -36,27 +36,22 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class CacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition
-{
-    @Override
-    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
-    {
-        if ( SystemUtils.isCacheInvalidationInTest( context.getEnvironment().getActiveProfiles() ) )
-        {
-            return true;
-        }
-
-        if ( SystemUtils.isTestRun( context.getEnvironment().getActiveProfiles() ) )
-        {
-            return false;
-        }
-
-        return getConfiguration().isEnabled( ConfigurationKey.REDIS_CACHE_INVALIDATION_ENABLED );
+public class CacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition {
+  @Override
+  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+    if (SystemUtils.isCacheInvalidationInTest(context.getEnvironment().getActiveProfiles())) {
+      return true;
     }
 
-    @Override
-    public ConfigurationPhase getConfigurationPhase()
-    {
-        return ConfigurationPhase.PARSE_CONFIGURATION;
+    if (SystemUtils.isTestRun(context.getEnvironment().getActiveProfiles())) {
+      return false;
     }
+
+    return getConfiguration().isEnabled(ConfigurationKey.REDIS_CACHE_INVALIDATION_ENABLED);
+  }
+
+  @Override
+  public ConfigurationPhase getConfigurationPhase() {
+    return ConfigurationPhase.PARSE_CONFIGURATION;
+  }
 }

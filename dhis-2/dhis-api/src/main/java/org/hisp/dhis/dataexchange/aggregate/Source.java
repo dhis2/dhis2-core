@@ -27,36 +27,25 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.common.OpenApi;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-@OpenApi.Shared( name = "ExchangeSource" )
+@OpenApi.Shared(name = "ExchangeSource")
 @Getter
 @Setter
 @NoArgsConstructor
-@Accessors( chain = true )
-public class Source
-    implements Serializable
-{
-    /**
-     * Source parameter constraints.
-     */
-    @JsonProperty
-    private SourceParams params;
+@Accessors(chain = true)
+public class Source implements Serializable {
+  /** Source parameter constraints. */
+  @JsonProperty private SourceParams params;
 
-    /**
-     * Source requests.
-     */
-    @JsonProperty
-    private List<SourceRequest> requests = new ArrayList<>();
+  /** Source requests. */
+  @JsonProperty private List<SourceRequest> requests = new ArrayList<>();
 }

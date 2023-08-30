@@ -30,75 +30,89 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import java.util.Set;
-
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for metadata check for orgunit groups with fewer than two members.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/groups/group_size_organisation_unit_groups.yaml}
+ * Test for metadata check for orgunit groups with fewer than two members. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/groups/group_size_organisation_unit_groups.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityGroupSizeOrganisationUnitGroupsControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    private static final String check = "orgunit_groups_scarce";
+class DataIntegrityGroupSizeOrganisationUnitGroupsControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
+  private static final String check = "orgunit_groups_scarce";
 
-    private static final String detailsIdType = "organisationUnitGroups";
+  private static final String detailsIdType = "organisationUnitGroups";
 
-    private String orgunitB;
+  private String orgunitB;
 
-    @Test
-    void testOrgunitGroupSizeTooLow()
-    {
+  @Test
+  void testOrgunitGroupSizeTooLow() {
 
-        setUpTest();
+    setUpTest();
 
-        String testOrgUnitGroupB = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroups",
-                "{'name': 'Type B', 'shortName': 'Type B', 'organisationUnits' : [{'id' : '" + orgunitB
-                    + "'}]}" ) );
+    String testOrgUnitGroupB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnitGroups",
+                "{'name': 'Type B', 'shortName': 'Type B', 'organisationUnits' : [{'id' : '"
+                    + orgunitB
+                    + "'}]}"));
 
-        String testOrgUnitGroupC = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroups",
-                "{'name': 'Type C', 'shortName': 'Type C' }" ) );
+    String testOrgUnitGroupC =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/organisationUnitGroups", "{'name': 'Type C', 'shortName': 'Type C' }"));
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 66, Set.of( testOrgUnitGroupB, testOrgUnitGroupC ),
-            Set.of( "Type B", "Type C" ), Set.of( "0", "1" ), true );
+    assertHasDataIntegrityIssues(
+        detailsIdType,
+        check,
+        66,
+        Set.of(testOrgUnitGroupB, testOrgUnitGroupC),
+        Set.of("Type B", "Type C"),
+        Set.of("0", "1"),
+        true);
+  }
 
-    }
+  @Test
+  void testOrgunitGroupSizeOK() {
 
-    @Test
-    void testOrgunitGroupSizeOK()
-    {
+    setUpTest();
 
-        setUpTest();
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
+  @Test
+  void testOrgunitGroupSizeRuns() {
 
-    }
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 
-    @Test
-    void testOrgunitGroupSizeRuns()
-    {
+  void setUpTest() {
+    String orgunitA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}"));
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
+    orgunitB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}"));
 
-    }
-
-    void setUpTest()
-    {
-        String orgunitA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}" ) );
-
-        orgunitB = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}" ) );
-
-        assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroups",
-                "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '" +
-                    orgunitA + "'}, {'id' : '" + orgunitB + "'}]}" ) );
-    }
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnitGroups",
+            "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '"
+                + orgunitA
+                + "'}, {'id' : '"
+                + orgunitB
+                + "'}]}"));
+  }
 }

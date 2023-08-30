@@ -29,65 +29,61 @@ package org.hisp.dhis.analytics.resolver;
 
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
+import com.google.common.base.Joiner;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupStore;
 import org.hisp.dhis.expression.ExpressionService;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Joiner;
-
 /**
  * @author Dusan Bernat
  */
-@Service( "org.hisp.dhis.analytics.resolver.DataElementGroupResolver" )
+@Service("org.hisp.dhis.analytics.resolver.DataElementGroupResolver")
 @RequiredArgsConstructor
-public class DataElementGroupResolver implements ExpressionResolver
-{
-    private static final String LEFT_BRACKET = "(";
+public class DataElementGroupResolver implements ExpressionResolver {
+  private static final String LEFT_BRACKET = "(";
 
-    private static final String RIGHT_BRACKET = ")";
+  private static final String RIGHT_BRACKET = ")";
 
-    private static final String DATA_ELEMENT_GROUP_PREFIX = "deGroup:";
+  private static final String DATA_ELEMENT_GROUP_PREFIX = "deGroup:";
 
-    private static final String EMPTY_STRING = "";
+  private static final String EMPTY_STRING = "";
 
-    private final ExpressionService expressionService;
+  private final ExpressionService expressionService;
 
-    private final DataElementGroupStore dataElementGroupStore;
+  private final DataElementGroupStore dataElementGroupStore;
 
-    @Override
-    public String resolve( String expression )
-    {
-        Set<DimensionalItemId> dimItemIds = expressionService.getExpressionDimensionalItemIds( expression,
-            INDICATOR_EXPRESSION );
+  @Override
+  public String resolve(String expression) {
+    Set<DimensionalItemId> dimItemIds =
+        expressionService.getExpressionDimensionalItemIds(expression, INDICATOR_EXPRESSION);
 
-        for ( DimensionalItemId id : dimItemIds )
-        {
-            if ( id.getItem() != null && id.getId0() != null && id.getId0().startsWith( DATA_ELEMENT_GROUP_PREFIX ) )
-            {
-                DataElementGroup deGroup = dataElementGroupStore
-                    .getByUid( id.getId0().replace( DATA_ELEMENT_GROUP_PREFIX, EMPTY_STRING ) );
+    for (DimensionalItemId id : dimItemIds) {
+      if (id.getItem() != null
+          && id.getId0() != null
+          && id.getId0().startsWith(DATA_ELEMENT_GROUP_PREFIX)) {
+        DataElementGroup deGroup =
+            dataElementGroupStore.getByUid(
+                id.getId0().replace(DATA_ELEMENT_GROUP_PREFIX, EMPTY_STRING));
 
-                if ( deGroup != null )
-                {
-                    List<String> resolved = deGroup.getMembers()
-                        .stream()
-                        .map( de -> id.getItem().replace( id.getId0(), de.getUid() ) )
-                        .collect( Collectors.toList() );
+        if (deGroup != null) {
+          List<String> resolved =
+              deGroup.getMembers().stream()
+                  .map(de -> id.getItem().replace(id.getId0(), de.getUid()))
+                  .collect(Collectors.toList());
 
-                    expression = expression.replace( id.getItem(),
-                        LEFT_BRACKET + Joiner.on( "+" ).join( resolved ) + RIGHT_BRACKET );
-                }
-            }
+          expression =
+              expression.replace(
+                  id.getItem(), LEFT_BRACKET + Joiner.on("+").join(resolved) + RIGHT_BRACKET);
         }
-
-        return expression;
+      }
     }
+
+    return expression;
+  }
 }

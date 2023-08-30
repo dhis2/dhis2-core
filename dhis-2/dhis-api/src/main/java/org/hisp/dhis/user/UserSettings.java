@@ -27,23 +27,19 @@
  */
 package org.hisp.dhis.user;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Locale;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.DxfNamespaces;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
- * User Settings transfer object for settings as defined by
- * {@link UserSettingKey}.
+ * User Settings transfer object for settings as defined by {@link UserSettingKey}.
  *
  * @author Jan Bernitt
  */
@@ -51,34 +47,33 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @Setter
 @NoArgsConstructor
 @ToString
-@JacksonXmlRootElement( localName = "settings", namespace = DxfNamespaces.DXF_2_0 )
-public class UserSettings
-{
-    @JsonAlias( "keyStyle" )
-    @JsonProperty
-    private String style;
+@JacksonXmlRootElement(localName = "settings", namespace = DxfNamespaces.DXF_2_0)
+public class UserSettings {
+  @JsonAlias("keyStyle")
+  @JsonProperty
+  private String style;
 
-    @JsonAlias( "keyMessageEmailNotification" )
-    @JsonProperty
-    private Boolean messageEmailNotification;
+  @JsonAlias("keyMessageEmailNotification")
+  @JsonProperty
+  private Boolean messageEmailNotification;
 
-    @JsonAlias( "keyMessageSmsNotification" )
-    @JsonProperty
-    private Boolean messageSmsNotification;
+  @JsonAlias("keyMessageSmsNotification")
+  @JsonProperty
+  private Boolean messageSmsNotification;
 
-    @JsonAlias( "keyUiLocale" )
-    @JsonProperty
-    private Locale uiLocale;
+  @JsonAlias("keyUiLocale")
+  @JsonProperty
+  private Locale uiLocale;
 
-    @JsonAlias( "keyDbLocale" )
-    @JsonProperty
-    private Locale dbLocale;
+  @JsonAlias("keyDbLocale")
+  @JsonProperty
+  private Locale dbLocale;
 
-    @JsonAlias( "keyAnalysisDisplayProperty" )
-    @JsonProperty
-    private DisplayProperty analysisDisplayProperty;
+  @JsonAlias("keyAnalysisDisplayProperty")
+  @JsonProperty
+  private DisplayProperty analysisDisplayProperty;
 
-    @JsonAlias( "keyTrackerDashboardLayout" )
-    @JsonProperty
-    private String trackerDashboardLayout;
+  @JsonAlias("keyTrackerDashboardLayout")
+  @JsonProperty
+  private String trackerDashboardLayout;
 }

@@ -40,14 +40,22 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@Repository( "org.hisp.dhis.option.OptionGroupSetStore" )
-public class HibernateOptionGroupSetStore
-    extends HibernateIdentifiableObjectStore<OptionGroupSet>
-    implements OptionGroupSetStore
-{
-    public HibernateOptionGroupSetStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, OptionGroupSet.class, currentUserService, aclService, true );
-    }
+@Repository("org.hisp.dhis.option.OptionGroupSetStore")
+public class HibernateOptionGroupSetStore extends HibernateIdentifiableObjectStore<OptionGroupSet>
+    implements OptionGroupSetStore {
+  public HibernateOptionGroupSetStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        OptionGroupSet.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 }

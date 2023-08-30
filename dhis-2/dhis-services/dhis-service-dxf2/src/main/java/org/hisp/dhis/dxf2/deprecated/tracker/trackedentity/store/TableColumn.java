@@ -35,29 +35,25 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public class TableColumn implements QueryElement
-{
-    private String prefix;
+public class TableColumn implements QueryElement {
+  private String prefix;
 
-    private String column;
+  private String column;
 
-    private String alias;
+  private String alias;
 
-    public TableColumn( String prefix, String column )
-    {
-        this.prefix = prefix;
-        this.column = column;
-    }
+  public TableColumn(String prefix, String column) {
+    this.prefix = prefix;
+    this.column = column;
+  }
 
-    @Override
-    public String useInSelect()
-    {
-        return prefix + "." + column + (alias == null ? "" : " as " + alias);
-    }
+  @Override
+  public String useInSelect() {
+    return prefix + "." + column + (alias == null ? "" : " as " + alias);
+  }
 
-    @Override
-    public String getResultsetValue()
-    {
-        return alias == null ? column : alias;
-    }
+  @Override
+  public String getResultsetValue() {
+    return alias == null ? column : alias;
+  }
 }

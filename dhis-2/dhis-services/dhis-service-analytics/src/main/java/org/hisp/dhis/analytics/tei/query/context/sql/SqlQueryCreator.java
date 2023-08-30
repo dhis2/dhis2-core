@@ -29,32 +29,25 @@ package org.hisp.dhis.analytics.tei.query.context.sql;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.SqlQuery;
 
 /**
- * Class to create a {@link SqlQuery} from a {@link RenderableSqlQuery}. It uses
- * the {@link QueryContext} to get the parameter placeholders. Supports both
- * select and count queries. A select query can be converted to a count query by
- * calling {@link #createForCount()}.
+ * Class to create a {@link SqlQuery} from a {@link RenderableSqlQuery}. It uses the {@link
+ * QueryContext} to get the parameter placeholders. Supports both select and count queries. A select
+ * query can be converted to a count query by calling {@link #createForCount()}.
  */
-@RequiredArgsConstructor( staticName = "of" )
-public class SqlQueryCreator
-{
-    private final QueryContext queryContext;
+@RequiredArgsConstructor(staticName = "of")
+public class SqlQueryCreator {
+  private final QueryContext queryContext;
 
-    @Getter
-    private final RenderableSqlQuery renderableSqlQuery;
+  @Getter private final RenderableSqlQuery renderableSqlQuery;
 
-    public SqlQuery createForSelect()
-    {
-        return new SqlQuery( renderableSqlQuery.render(),
-            queryContext.getParametersPlaceHolder() );
-    }
+  public SqlQuery createForSelect() {
+    return new SqlQuery(renderableSqlQuery.render(), queryContext.getParametersPlaceHolder());
+  }
 
-    public SqlQuery createForCount()
-    {
-        return new SqlQuery( renderableSqlQuery.forCount().render(),
-            queryContext.getParametersPlaceHolder() );
-    }
+  public SqlQuery createForCount() {
+    return new SqlQuery(
+        renderableSqlQuery.forCount().render(), queryContext.getParametersPlaceHolder());
+  }
 }

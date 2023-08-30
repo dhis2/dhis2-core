@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -46,34 +45,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Zubair Asghar
  */
-class TrackerSideEffectHandlerServiceTest extends TrackerTest
-{
-    @Autowired
-    private TrackerImportService trackerImportService;
+class TrackerSideEffectHandlerServiceTest extends TrackerTest {
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/tracker_metadata_with_program_rules.json" );
-        injectAdminUser();
-    }
+  @Override
+  protected void initTest() throws IOException {
+    setUpMetadata("tracker/tracker_metadata_with_program_rules.json");
+    injectAdminUser();
+  }
 
-    @Test
-    @Disabled( "Needs to be added once rule engine PR is merged" )
-    void testRuleEngineSideEffectHandlerService()
-        throws IOException
-    {
-        ImportReport importReport = trackerImportService.importTracker( fromJson(
-            "tracker/enrollment_data_with_program_rule_side_effects.json" ) );
-        assertNoErrors( importReport );
+  @Test
+  @Disabled("Needs to be added once rule engine PR is merged")
+  void testRuleEngineSideEffectHandlerService() throws IOException {
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            fromJson("tracker/enrollment_data_with_program_rule_side_effects.json"));
+    assertNoErrors(importReport);
 
-        List<ProgramNotificationInstance> instances = manager.getAll( ProgramNotificationInstance.class );
-        assertFalse( instances.isEmpty() );
-        ProgramNotificationInstance instance = instances.get( 0 );
-        assertEquals( "FdIeUL4gyoB", instance.getProgramNotificationTemplateSnapshot().getUid() );
-    }
+    List<ProgramNotificationInstance> instances = manager.getAll(ProgramNotificationInstance.class);
+    assertFalse(instances.isEmpty());
+    ProgramNotificationInstance instance = instances.get(0);
+    assertEquals("FdIeUL4gyoB", instance.getProgramNotificationTemplateSnapshot().getUid());
+  }
 }

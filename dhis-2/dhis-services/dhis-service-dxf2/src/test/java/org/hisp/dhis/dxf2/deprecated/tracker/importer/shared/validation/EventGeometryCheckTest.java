@@ -48,52 +48,50 @@ import org.mockito.quality.Strictness;
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-class EventGeometryCheckTest extends BaseValidationTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+class EventGeometryCheckTest extends BaseValidationTest {
 
-    private EventGeometryCheck rule;
+  private EventGeometryCheck rule;
 
-    @BeforeEach
-    void setUp()
-    {
-        rule = new EventGeometryCheck();
-    }
+  @BeforeEach
+  void setUp() {
+    rule = new EventGeometryCheck();
+  }
 
-    @Test
-    void allowEventWithNoGeometry()
-    {
-        ProgramStage programStage = createProgramStage();
-        when( workContext.getProgramStage( programStageIdScheme, event.getProgramStage() ) ).thenReturn( programStage );
-        ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
-        assertNoError( importSummary );
-    }
+  @Test
+  void allowEventWithNoGeometry() {
+    ProgramStage programStage = createProgramStage();
+    when(workContext.getProgramStage(programStageIdScheme, event.getProgramStage()))
+        .thenReturn(programStage);
+    ImportSummary importSummary = rule.check(new ImmutableEvent(event), workContext);
+    assertNoError(importSummary);
+  }
 
-    @Test
-    void failOnEventWithGeometryAndProgramStageWithNoGeometry()
-    {
-        event.setGeometry( createRandomPoint() );
-        ProgramStage programStage = createProgramStage();
-        programStage.setFeatureType( FeatureType.NONE );
-        when( workContext.getProgramStage( programStageIdScheme, event.getProgramStage() ) ).thenReturn( programStage );
-        ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
-        assertHasError( importSummary, event,
-            "Geometry (Point) does not conform to the feature type (None) specified for the program stage: "
-                + programStage.getUid() );
-    }
+  @Test
+  void failOnEventWithGeometryAndProgramStageWithNoGeometry() {
+    event.setGeometry(createRandomPoint());
+    ProgramStage programStage = createProgramStage();
+    programStage.setFeatureType(FeatureType.NONE);
+    when(workContext.getProgramStage(programStageIdScheme, event.getProgramStage()))
+        .thenReturn(programStage);
+    ImportSummary importSummary = rule.check(new ImmutableEvent(event), workContext);
+    assertHasError(
+        importSummary,
+        event,
+        "Geometry (Point) does not conform to the feature type (None) specified for the program stage: "
+            + programStage.getUid());
+  }
 
-    private ProgramStage createProgramStage()
-    {
-        Program program = createProgram( 'P' );
-        return DhisConvenienceTest.createProgramStage( 'A', program );
-    }
+  private ProgramStage createProgramStage() {
+    Program program = createProgram('P');
+    return DhisConvenienceTest.createProgramStage('A', program);
+  }
 
-    public static Point createRandomPoint()
-    {
-        double latitude = (Math.random() * 180.0) - 90.0;
-        double longitude = (Math.random() * 360.0) - 180.0;
-        GeometryFactory geometryFactory = new GeometryFactory();
-        /* Longitude (= x coord) first ! */
-        return geometryFactory.createPoint( new Coordinate( longitude, latitude ) );
-    }
+  public static Point createRandomPoint() {
+    double latitude = (Math.random() * 180.0) - 90.0;
+    double longitude = (Math.random() * 360.0) - 180.0;
+    GeometryFactory geometryFactory = new GeometryFactory();
+    /* Longitude (= x coord) first ! */
+    return geometryFactory.createPoint(new Coordinate(longitude, latitude));
+  }
 }

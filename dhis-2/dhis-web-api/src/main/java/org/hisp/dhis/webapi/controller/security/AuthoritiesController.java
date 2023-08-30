@@ -34,9 +34,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -54,47 +52,40 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Jan Bernitt
  */
-@OpenApi.Tags( { "user", "query" } )
+@OpenApi.Tags({"user", "query"})
 @RestController
-@RequestMapping( value = "/authorities" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class AuthoritiesController
-{
-    @Autowired
-    private I18nManager i18nManager;
+@RequestMapping(value = "/authorities")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class AuthoritiesController {
+  @Autowired private I18nManager i18nManager;
 
-    @Autowired
-    private SystemAuthoritiesProvider authoritiesProvider;
+  @Autowired private SystemAuthoritiesProvider authoritiesProvider;
 
-    @GetMapping
-    public Map<String, List<Map<String, String>>> getAuthorities( HttpServletResponse response )
-    {
-        I18n i18n = i18nManager.getI18n();
-        List<String> authorities = new ArrayList<>( authoritiesProvider.getSystemAuthorities() );
-        Collections.sort( authorities );
-        List<Map<String, String>> entries = new ArrayList<>();
-        for ( String auth : authorities )
-        {
-            String name = getAuthName( auth, i18n );
+  @GetMapping
+  public Map<String, List<Map<String, String>>> getAuthorities(HttpServletResponse response) {
+    I18n i18n = i18nManager.getI18n();
+    List<String> authorities = new ArrayList<>(authoritiesProvider.getSystemAuthorities());
+    Collections.sort(authorities);
+    List<Map<String, String>> entries = new ArrayList<>();
+    for (String auth : authorities) {
+      String name = getAuthName(auth, i18n);
 
-            Map<String, String> authority = new LinkedHashMap<>();
-            authority.put( "id", auth );
-            authority.put( "name", name );
-            entries.add( authority );
-        }
-        return singletonMap( "systemAuthorities", entries );
+      Map<String, String> authority = new LinkedHashMap<>();
+      authority.put("id", auth);
+      authority.put("name", name);
+      entries.add(authority);
+    }
+    return singletonMap("systemAuthorities", entries);
+  }
+
+  private static String getAuthName(String auth, I18n i18n) {
+    auth = i18n.getString(auth);
+
+    // Custom App doesn't have translation for See App authority
+    if (auth.startsWith(App.SEE_APP_AUTHORITY_PREFIX)) {
+      auth = auth.replaceFirst(App.SEE_APP_AUTHORITY_PREFIX, "").replace("_", " ") + " app";
     }
 
-    private static String getAuthName( String auth, I18n i18n )
-    {
-        auth = i18n.getString( auth );
-
-        // Custom App doesn't have translation for See App authority
-        if ( auth.startsWith( App.SEE_APP_AUTHORITY_PREFIX ) )
-        {
-            auth = auth.replaceFirst( App.SEE_APP_AUTHORITY_PREFIX, "" ).replace( "_", " " ) + " app";
-        }
-
-        return auth;
-    }
+    return auth;
+  }
 }

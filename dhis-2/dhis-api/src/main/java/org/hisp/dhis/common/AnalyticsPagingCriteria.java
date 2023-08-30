@@ -30,50 +30,39 @@ package org.hisp.dhis.common;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * This class contains paging criteria that can be used to execute an analytics
- * query.
- */
+/** This class contains paging criteria that can be used to execute an analytics query. */
 @Getter
 @Setter
-public class AnalyticsPagingCriteria extends RequestTypeAware
-{
-    /**
-     * The page number. Default page is 1.
-     */
-    private Integer page = 1;
+public class AnalyticsPagingCriteria extends RequestTypeAware {
+  /** The page number. Default page is 1. */
+  private Integer page = 1;
 
-    /**
-     * The page size.
-     */
-    private Integer pageSize = 50;
+  /** The page size. */
+  private Integer pageSize = 50;
 
-    /**
-     * The paging parameter. When set to false we should not paginate. The
-     * default is true (paginate).
-     */
-    private boolean paging = true;
+  /**
+   * The paging parameter. When set to false we should not paginate. The default is true (paginate).
+   */
+  private boolean paging = true;
 
-    /**
-     * The paging parameter. When set to false we should not count total pages.
-     * The default is true (count total pages).
-     */
-    private boolean totalPages = true;
+  /**
+   * The paging parameter. When set to false we should not count total pages. The default is true
+   * (count total pages).
+   */
+  private boolean totalPages = true;
 
-    /**
-     * Sets the page size, taking the configurable max records limit into
-     * account. Note that a value of 0 represents unlimited records.
-     *
-     * @param maxLimit the max limit as defined in the system setting
-     *        'ANALYTICS_MAX_LIMIT'.
-     */
-    public void definePageSize( int maxLimit )
-    {
-        final int unlimited = 0;
+  /**
+   * Sets the page size, taking the configurable max records limit into account. Note that a value
+   * of 0 represents unlimited records.
+   *
+   * @param maxLimit the max limit as defined in the system setting 'ANALYTICS_MAX_LIMIT'.
+   */
+  public void definePageSize(int maxLimit) {
+    final int unlimited = 0;
 
-        if ( (isPaging() && getPageSize() != null && maxLimit != unlimited && getPageSize() > maxLimit) || !isPaging() )
-        {
-            setPageSize( maxLimit );
-        }
+    if ((isPaging() && getPageSize() != null && maxLimit != unlimited && getPageSize() > maxLimit)
+        || !isPaging()) {
+      setPageSize(maxLimit);
     }
+  }
 }

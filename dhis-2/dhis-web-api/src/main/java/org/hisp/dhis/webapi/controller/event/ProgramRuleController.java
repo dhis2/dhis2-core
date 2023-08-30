@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.event;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -52,45 +51,38 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- *
  * @author markusbekken
  */
-@OpenApi.Tags( "tracker" )
+@OpenApi.Tags("tracker")
 @Controller
 @AllArgsConstructor
-@RequestMapping( value = ProgramRuleSchemaDescriptor.API_ENDPOINT )
-public class ProgramRuleController
-    extends AbstractCrudController<ProgramRule>
-{
-    private final I18nManager i18nManager;
+@RequestMapping(value = ProgramRuleSchemaDescriptor.API_ENDPOINT)
+public class ProgramRuleController extends AbstractCrudController<ProgramRule> {
+  private final I18nManager i18nManager;
 
-    private final ProgramRuleEngineService programRuleEngineService;
+  private final ProgramRuleEngineService programRuleEngineService;
 
-    @PostMapping( value = "/condition/description", produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage validateCondition( @RequestBody String condition, @RequestParam String programId )
-    {
-        I18n i18n = i18nManager.getI18n();
+  @PostMapping(value = "/condition/description", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage validateCondition(
+      @RequestBody String condition, @RequestParam String programId) {
+    I18n i18n = i18nManager.getI18n();
 
-        RuleValidationResult result = programRuleEngineService.getDescription( condition, programId );
+    RuleValidationResult result = programRuleEngineService.getDescription(condition, programId);
 
-        if ( result.isValid() )
-        {
-            return new DescriptiveWebMessage( Status.OK, HttpStatus.OK )
-                .setDescription( result.getDescription() )
-                .setMessage( i18n.getString( ProgramIndicator.VALID ) );
-        }
-        String description = null;
-        if ( result.getErrorMessage() != null )
-        {
-            description = result.getErrorMessage();
-        }
-        else if ( result.getException() != null )
-        {
-            description = result.getException().getMessage();
-        }
-        return new DescriptiveWebMessage( Status.ERROR, HttpStatus.OK )
-            .setDescription( description )
-            .setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
+    if (result.isValid()) {
+      return new DescriptiveWebMessage(Status.OK, HttpStatus.OK)
+          .setDescription(result.getDescription())
+          .setMessage(i18n.getString(ProgramIndicator.VALID));
     }
+    String description = null;
+    if (result.getErrorMessage() != null) {
+      description = result.getErrorMessage();
+    } else if (result.getException() != null) {
+      description = result.getException().getMessage();
+    }
+    return new DescriptiveWebMessage(Status.ERROR, HttpStatus.OK)
+        .setDescription(description)
+        .setMessage(i18n.getString(ProgramIndicator.EXPRESSION_NOT_VALID));
+  }
 }

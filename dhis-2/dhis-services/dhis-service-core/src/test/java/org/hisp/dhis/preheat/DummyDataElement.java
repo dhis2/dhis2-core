@@ -37,39 +37,32 @@ import org.hisp.dhis.option.OptionSet;
  * @author Luciano Fiandesio
  */
 public class DummyDataElement extends BaseDimensionalItemObject
-    implements MetadataObject, ValueTypedDimensionalItemObject
-{
-    private String url;
+    implements MetadataObject, ValueTypedDimensionalItemObject {
+  private String url;
 
-    @Override
-    public boolean hasOptionSet()
-    {
-        return false;
-    }
+  @Override
+  public boolean hasOptionSet() {
+    return false;
+  }
 
-    @Override
-    public OptionSet getOptionSet()
-    {
-        return null;
-    }
+  @Override
+  public OptionSet getOptionSet() {
+    return null;
+  }
 
-    @Override
-    public ValueType getValueType()
-    {
-        return null;
-    }
+  @Override
+  public ValueType getValueType() {
+    return null;
+  }
 
-    public String getUrl()
-    {
-        return url;
-    }
+  public String getUrl() {
+    return url;
+  }
 
-    public void setUrl( String url )
-    {
-        if ( url.endsWith( "-exception" ) )
-        {
-            throw new NullPointerException();
-        }
-        this.url = url;
+  public void setUrl(String url) {
+    if (url.endsWith("-exception")) {
+      throw new NullPointerException();
     }
+    this.url = url;
+  }
 }

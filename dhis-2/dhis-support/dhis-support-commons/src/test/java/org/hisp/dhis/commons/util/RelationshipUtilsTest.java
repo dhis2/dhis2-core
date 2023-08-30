@@ -38,166 +38,152 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class RelationshipUtilsTest
-{
-    private static final String TEIA_UID = "TEIA_UID";
+class RelationshipUtilsTest {
+  private static final String TEIA_UID = "TEIA_UID";
 
-    private static final String TEIB_UID = "TEIB_UID";
+  private static final String TEIB_UID = "TEIB_UID";
 
-    private static final String PI_UID = "PI_UID";
+  private static final String PI_UID = "PI_UID";
 
-    private static final String PSI_UID = "PSI_UID";
+  private static final String PSI_UID = "PSI_UID";
 
-    private static final String RELATIONSHIP_TYPE_UID = "RELATIONSHIP_TYPE_UID";
+  private static final String RELATIONSHIP_TYPE_UID = "RELATIONSHIP_TYPE_UID";
 
-    private TrackedEntity teiA, teiB;
+  private TrackedEntity teiA, teiB;
 
-    private Enrollment enrollmentA;
+  private Enrollment enrollmentA;
 
-    private Event eventA;
+  private Event eventA;
 
-    private RelationshipType relationshipType;
+  private RelationshipType relationshipType;
 
-    @BeforeEach
-    void setup()
-    {
-        teiA = new TrackedEntity();
-        teiA.setUid( TEIA_UID );
-        teiB = new TrackedEntity();
-        teiB.setUid( TEIB_UID );
-        enrollmentA = new Enrollment();
-        enrollmentA.setUid( PI_UID );
-        eventA = new Event();
-        eventA.setUid( PSI_UID );
-        relationshipType = new RelationshipType();
-        relationshipType.setUid( RELATIONSHIP_TYPE_UID );
-    }
+  @BeforeEach
+  void setup() {
+    teiA = new TrackedEntity();
+    teiA.setUid(TEIA_UID);
+    teiB = new TrackedEntity();
+    teiB.setUid(TEIB_UID);
+    enrollmentA = new Enrollment();
+    enrollmentA.setUid(PI_UID);
+    eventA = new Event();
+    eventA.setUid(PSI_UID);
+    relationshipType = new RelationshipType();
+    relationshipType.setUid(RELATIONSHIP_TYPE_UID);
+  }
 
-    @Test
-    void testExtractRelationshipItemUid()
-    {
-        RelationshipItem itemA = new RelationshipItem();
-        RelationshipItem itemB = new RelationshipItem();
-        RelationshipItem itemC = new RelationshipItem();
-        itemA.setTrackedEntity( teiA );
-        itemB.setEnrollment( enrollmentA );
-        itemC.setEvent( eventA );
-        assertEquals( teiA.getUid(), RelationshipUtils.extractRelationshipItemUid( itemA ) );
-        assertEquals( enrollmentA.getUid(), RelationshipUtils.extractRelationshipItemUid( itemB ) );
-        assertEquals( eventA.getUid(), RelationshipUtils.extractRelationshipItemUid( itemC ) );
-    }
+  @Test
+  void testExtractRelationshipItemUid() {
+    RelationshipItem itemA = new RelationshipItem();
+    RelationshipItem itemB = new RelationshipItem();
+    RelationshipItem itemC = new RelationshipItem();
+    itemA.setTrackedEntity(teiA);
+    itemB.setEnrollment(enrollmentA);
+    itemC.setEvent(eventA);
+    assertEquals(teiA.getUid(), RelationshipUtils.extractRelationshipItemUid(itemA));
+    assertEquals(enrollmentA.getUid(), RelationshipUtils.extractRelationshipItemUid(itemB));
+    assertEquals(eventA.getUid(), RelationshipUtils.extractRelationshipItemUid(itemC));
+  }
 
-    @Test
-    void testGenerateRelationshipKeyForTeiToTei()
-    {
-        Relationship relationship = teiAToTeiBRelationship();
-        String key = relationshipType.getUid() + "_" + teiA.getUid() + "_" + teiB.getUid();
-        assertEquals( key, RelationshipUtils.generateRelationshipKey( relationship ) );
-    }
+  @Test
+  void testGenerateRelationshipKeyForTeiToTei() {
+    Relationship relationship = teiAToTeiBRelationship();
+    String key = relationshipType.getUid() + "_" + teiA.getUid() + "_" + teiB.getUid();
+    assertEquals(key, RelationshipUtils.generateRelationshipKey(relationship));
+  }
 
-    @Test
-    void testGenerateRelationshipInvertedKeyForTeiToTei()
-    {
-        Relationship relationship = teiAToTeiBRelationship();
-        String invertedKey = relationshipType.getUid() + "_" + teiB.getUid() + "_" + teiA.getUid();
-        assertEquals( invertedKey, RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
-    }
+  @Test
+  void testGenerateRelationshipInvertedKeyForTeiToTei() {
+    Relationship relationship = teiAToTeiBRelationship();
+    String invertedKey = relationshipType.getUid() + "_" + teiB.getUid() + "_" + teiA.getUid();
+    assertEquals(invertedKey, RelationshipUtils.generateRelationshipInvertedKey(relationship));
+  }
 
-    @Test
-    void testGenerateRelationshipKeyForTeiToEnrollemnt()
-    {
-        Relationship relationship = teiToEnrollmentRelationship();
-        String key = relationshipType.getUid() + "_" + teiA.getUid() + "_" + enrollmentA.getUid();
-        assertEquals( key, RelationshipUtils.generateRelationshipKey( relationship ) );
-    }
+  @Test
+  void testGenerateRelationshipKeyForTeiToEnrollemnt() {
+    Relationship relationship = teiToEnrollmentRelationship();
+    String key = relationshipType.getUid() + "_" + teiA.getUid() + "_" + enrollmentA.getUid();
+    assertEquals(key, RelationshipUtils.generateRelationshipKey(relationship));
+  }
 
-    @Test
-    void testGenerateRelationshipInvertedKeyForTeiToEnrollment()
-    {
-        Relationship relationship = teiToEnrollmentRelationship();
-        String invertedKey = relationshipType.getUid() + "_" + enrollmentA.getUid() + "_" + teiA.getUid();
-        assertEquals( invertedKey, RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
-    }
+  @Test
+  void testGenerateRelationshipInvertedKeyForTeiToEnrollment() {
+    Relationship relationship = teiToEnrollmentRelationship();
+    String invertedKey =
+        relationshipType.getUid() + "_" + enrollmentA.getUid() + "_" + teiA.getUid();
+    assertEquals(invertedKey, RelationshipUtils.generateRelationshipInvertedKey(relationship));
+  }
 
-    @Test
-    void testGenerateRelationshipKeyForTeiToEvent()
-    {
-        Relationship relationship = teiToEventRelationship();
-        String key = relationshipType.getUid() + "_" + teiA.getUid() + "_" + eventA.getUid();
-        assertEquals( key, RelationshipUtils.generateRelationshipKey( relationship ) );
-    }
+  @Test
+  void testGenerateRelationshipKeyForTeiToEvent() {
+    Relationship relationship = teiToEventRelationship();
+    String key = relationshipType.getUid() + "_" + teiA.getUid() + "_" + eventA.getUid();
+    assertEquals(key, RelationshipUtils.generateRelationshipKey(relationship));
+  }
 
-    @Test
-    void testGenerateRelationshipInvertedKeyForTeiToEvent()
-    {
-        Relationship relationship = teiToEventRelationship();
-        String invertedKey = relationshipType.getUid() + "_" + eventA.getUid() + "_" + teiA.getUid();
-        assertEquals( invertedKey, RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
-    }
+  @Test
+  void testGenerateRelationshipInvertedKeyForTeiToEvent() {
+    Relationship relationship = teiToEventRelationship();
+    String invertedKey = relationshipType.getUid() + "_" + eventA.getUid() + "_" + teiA.getUid();
+    assertEquals(invertedKey, RelationshipUtils.generateRelationshipInvertedKey(relationship));
+  }
 
-    @Test
-    void testGenerateRelationshipKeyForEnrollmentToEvent()
-    {
-        Relationship relationship = enrollmentToEventRelationship();
-        String key = relationshipType.getUid() + "_" + enrollmentA.getUid() + "_" + eventA.getUid();
-        assertEquals( key, RelationshipUtils.generateRelationshipKey( relationship ) );
-    }
+  @Test
+  void testGenerateRelationshipKeyForEnrollmentToEvent() {
+    Relationship relationship = enrollmentToEventRelationship();
+    String key = relationshipType.getUid() + "_" + enrollmentA.getUid() + "_" + eventA.getUid();
+    assertEquals(key, RelationshipUtils.generateRelationshipKey(relationship));
+  }
 
-    @Test
-    void testGenerateRelationshipInvertedKeyForEnrollmentToEvent()
-    {
-        Relationship relationship = enrollmentToEventRelationship();
-        String invertedKey = relationshipType.getUid() + "_" + eventA.getUid() + "_" + enrollmentA.getUid();
-        assertEquals( invertedKey, RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
-    }
+  @Test
+  void testGenerateRelationshipInvertedKeyForEnrollmentToEvent() {
+    Relationship relationship = enrollmentToEventRelationship();
+    String invertedKey =
+        relationshipType.getUid() + "_" + eventA.getUid() + "_" + enrollmentA.getUid();
+    assertEquals(invertedKey, RelationshipUtils.generateRelationshipInvertedKey(relationship));
+  }
 
-    private Relationship teiAToTeiBRelationship()
-    {
-        RelationshipItem from = new RelationshipItem();
-        RelationshipItem to = new RelationshipItem();
-        from.setTrackedEntity( teiA );
-        to.setTrackedEntity( teiB );
+  private Relationship teiAToTeiBRelationship() {
+    RelationshipItem from = new RelationshipItem();
+    RelationshipItem to = new RelationshipItem();
+    from.setTrackedEntity(teiA);
+    to.setTrackedEntity(teiB);
 
-        return relationship( from, to );
-    }
+    return relationship(from, to);
+  }
 
-    private Relationship teiToEnrollmentRelationship()
-    {
-        RelationshipItem from = new RelationshipItem();
-        RelationshipItem to = new RelationshipItem();
-        from.setTrackedEntity( teiA );
-        to.setEnrollment( enrollmentA );
+  private Relationship teiToEnrollmentRelationship() {
+    RelationshipItem from = new RelationshipItem();
+    RelationshipItem to = new RelationshipItem();
+    from.setTrackedEntity(teiA);
+    to.setEnrollment(enrollmentA);
 
-        return relationship( from, to );
-    }
+    return relationship(from, to);
+  }
 
-    private Relationship teiToEventRelationship()
-    {
-        RelationshipItem from = new RelationshipItem();
-        RelationshipItem to = new RelationshipItem();
-        from.setTrackedEntity( teiA );
-        to.setEvent( eventA );
+  private Relationship teiToEventRelationship() {
+    RelationshipItem from = new RelationshipItem();
+    RelationshipItem to = new RelationshipItem();
+    from.setTrackedEntity(teiA);
+    to.setEvent(eventA);
 
-        return relationship( from, to );
-    }
+    return relationship(from, to);
+  }
 
-    private Relationship enrollmentToEventRelationship()
-    {
-        RelationshipItem from = new RelationshipItem();
-        RelationshipItem to = new RelationshipItem();
-        from.setEnrollment( enrollmentA );
-        to.setEvent( eventA );
+  private Relationship enrollmentToEventRelationship() {
+    RelationshipItem from = new RelationshipItem();
+    RelationshipItem to = new RelationshipItem();
+    from.setEnrollment(enrollmentA);
+    to.setEvent(eventA);
 
-        return relationship( from, to );
-    }
+    return relationship(from, to);
+  }
 
-    private Relationship relationship( RelationshipItem from, RelationshipItem to )
-    {
-        Relationship relationship = new Relationship();
-        relationship.setRelationshipType( relationshipType );
-        relationship.setFrom( from );
-        relationship.setTo( to );
+  private Relationship relationship(RelationshipItem from, RelationshipItem to) {
+    Relationship relationship = new Relationship();
+    relationship.setRelationshipType(relationshipType);
+    relationship.setFrom(from);
+    relationship.setTo(to);
 
-        return relationship;
-    }
+    return relationship;
+  }
 }

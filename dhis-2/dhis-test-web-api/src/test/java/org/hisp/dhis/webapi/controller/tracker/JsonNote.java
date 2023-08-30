@@ -29,23 +29,17 @@ package org.hisp.dhis.webapi.controller.tracker;
 
 import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.Note}.
- */
-public interface JsonNote extends JsonObject
-{
-    default String getNote()
-    {
-        return getString( "note" ).string();
-    }
+/** Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.Note}. */
+public interface JsonNote extends JsonObject {
+  default String getNote() {
+    return getString("note").string();
+  }
 
-    default String getValue()
-    {
-        return getString( "value" ).string();
-    }
+  default String getValue() {
+    return getString("value").string();
+  }
 
-    default String getStoredBy()
-    {
-        return getString( "storedBy" ).string();
-    }
+  default String getStoredBy() {
+    return getString("storedBy").string();
+  }
 }

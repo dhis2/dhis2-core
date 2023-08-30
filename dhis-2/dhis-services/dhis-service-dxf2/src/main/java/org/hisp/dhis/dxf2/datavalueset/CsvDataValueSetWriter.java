@@ -27,12 +27,10 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
+import com.csvreader.CsvWriter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-
 import lombok.AllArgsConstructor;
-
-import com.csvreader.CsvWriter;
 
 /**
  * Write {@link DataValueSet}s as CSV data.
@@ -40,61 +38,63 @@ import com.csvreader.CsvWriter;
  * @author Jan Bernitt
  */
 @AllArgsConstructor
-final class CsvDataValueSetWriter implements DataValueSetWriter
-{
+final class CsvDataValueSetWriter implements DataValueSetWriter {
 
-    private static final String[] HEADER_ROW = {
-        "dataelement", "period", "orgunit",
-        "categoryoptioncombo", "attributeoptioncombo", "value",
-        "storedby", "lastupdated", "comment", "followup", "deleted" };
+  private static final String[] HEADER_ROW = {
+    "dataelement",
+    "period",
+    "orgunit",
+    "categoryoptioncombo",
+    "attributeoptioncombo",
+    "value",
+    "storedby",
+    "lastupdated",
+    "comment",
+    "followup",
+    "deleted"
+  };
 
-    private final CsvWriter writer;
+  private final CsvWriter writer;
 
-    @Override
-    public void writeHeader()
-    {
-        appendRow( HEADER_ROW );
+  @Override
+  public void writeHeader() {
+    appendRow(HEADER_ROW);
+  }
+
+  @Override
+  public void writeHeader(
+      String dataSetId, String completeDate, String isoPeriod, String orgUnitId) {
+    appendRow(HEADER_ROW);
+  }
+
+  @Override
+  public void writeValue(DataValueEntry entry) {
+    appendRow(
+        new String[] {
+          entry.getDataElement(),
+          entry.getPeriod(),
+          entry.getOrgUnit(),
+          entry.getCategoryOptionCombo(),
+          entry.getAttributeOptionCombo(),
+          entry.getValue(),
+          entry.getStoredBy(),
+          entry.getLastUpdated(),
+          entry.getComment(),
+          String.valueOf(entry.getFollowup()),
+          String.valueOf(entry.getDeleted())
+        });
+  }
+
+  @Override
+  public void close() {
+    writer.close();
+  }
+
+  private void appendRow(String[] row) {
+    try {
+      writer.writeRecord(row);
+    } catch (IOException ex) {
+      throw new UncheckedIOException("Failed to write CSV data", ex);
     }
-
-    @Override
-    public void writeHeader( String dataSetId, String completeDate, String isoPeriod, String orgUnitId )
-    {
-        appendRow( HEADER_ROW );
-    }
-
-    @Override
-    public void writeValue( DataValueEntry entry )
-    {
-        appendRow( new String[] {
-            entry.getDataElement(),
-            entry.getPeriod(),
-            entry.getOrgUnit(),
-            entry.getCategoryOptionCombo(),
-            entry.getAttributeOptionCombo(),
-            entry.getValue(),
-            entry.getStoredBy(),
-            entry.getLastUpdated(),
-            entry.getComment(),
-            String.valueOf( entry.getFollowup() ),
-            String.valueOf( entry.getDeleted() )
-        } );
-    }
-
-    @Override
-    public void close()
-    {
-        writer.close();
-    }
-
-    private void appendRow( String[] row )
-    {
-        try
-        {
-            writer.writeRecord( row );
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( "Failed to write CSV data", ex );
-        }
-    }
+  }
 }

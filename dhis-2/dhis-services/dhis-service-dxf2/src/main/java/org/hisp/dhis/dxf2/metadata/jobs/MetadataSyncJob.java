@@ -31,10 +31,8 @@ import static java.lang.String.format;
 
 import java.util.Date;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
@@ -56,9 +54,8 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * This is the runnable that takes care of the Metadata Synchronization.
- * Leverages Spring RetryTemplate to exhibit retries. The retries are
- * configurable through the dhis.conf.
+ * This is the runnable that takes care of the Metadata Synchronization. Leverages Spring
+ * RetryTemplate to exhibit retries. The retries are configurable through the dhis.conf.
  *
  * @author anilkumk
  * @author David Katuscak <katuscak.d@gmail.com>
@@ -66,173 +63,166 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @AllArgsConstructor
-public class MetadataSyncJob implements Job
-{
-    public static final String VERSION_KEY = "version";
+public class MetadataSyncJob implements Job {
+  public static final String VERSION_KEY = "version";
 
-    public static final String DATA_PUSH_SUMMARY = "dataPushSummary";
+  public static final String DATA_PUSH_SUMMARY = "dataPushSummary";
 
-    public static final String EVENT_PUSH_SUMMARY = "eventPushSummary";
+  public static final String EVENT_PUSH_SUMMARY = "eventPushSummary";
 
-    public static final String TRACKER_PUSH_SUMMARY = "trackerPushSummary";
+  public static final String TRACKER_PUSH_SUMMARY = "trackerPushSummary";
 
-    public static final String GET_METADATAVERSION = "getMetadataVersion";
+  public static final String GET_METADATAVERSION = "getMetadataVersion";
 
-    public static final String GET_METADATAVERSIONSLIST = "getMetadataVersionsList";
+  public static final String GET_METADATAVERSIONSLIST = "getMetadataVersionsList";
 
-    public static final String METADATA_SYNC = "metadataSync";
+  public static final String METADATA_SYNC = "metadataSync";
 
-    public static final String METADATA_SYNC_REPORT = "metadataSyncReport";
+  public static final String METADATA_SYNC_REPORT = "metadataSyncReport";
 
-    public static final String[] keys = { DATA_PUSH_SUMMARY, EVENT_PUSH_SUMMARY, GET_METADATAVERSION,
-        GET_METADATAVERSIONSLIST, METADATA_SYNC, VERSION_KEY };
+  public static final String[] keys = {
+    DATA_PUSH_SUMMARY,
+    EVENT_PUSH_SUMMARY,
+    GET_METADATAVERSION,
+    GET_METADATAVERSIONSLIST,
+    METADATA_SYNC,
+    VERSION_KEY
+  };
 
-    private final SystemSettingManager systemSettingManager;
+  private final SystemSettingManager systemSettingManager;
 
-    private final RetryTemplate retryTemplate;
+  private final RetryTemplate retryTemplate;
 
-    private final SynchronizationManager synchronizationManager;
+  private final SynchronizationManager synchronizationManager;
 
-    private final MetadataSyncPreProcessor metadataSyncPreProcessor;
+  private final MetadataSyncPreProcessor metadataSyncPreProcessor;
 
-    private final MetadataSyncPostProcessor metadataSyncPostProcessor;
+  private final MetadataSyncPostProcessor metadataSyncPostProcessor;
 
-    private final MetadataSyncService metadataSyncService;
+  private final MetadataSyncService metadataSyncService;
 
-    private final MetadataRetryContext metadataRetryContext;
+  private final MetadataRetryContext metadataRetryContext;
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.META_DATA_SYNC;
+  @Override
+  public JobType getJobType() {
+    return JobType.META_DATA_SYNC;
+  }
+
+  @Override
+  public void execute(JobConfiguration config, JobProgress progress) {
+    log.info("Metadata Sync cron Job started");
+
+    try {
+      MetadataSyncJobParameters params = (MetadataSyncJobParameters) config.getJobParameters();
+      retryTemplate.execute(
+          retryContext -> {
+            metadataRetryContext.setRetryContext(retryContext);
+            clearFailedVersionSettings();
+            runSyncTask(metadataRetryContext, params, progress);
+            return null;
+          },
+          retryContext -> {
+            log.info("Metadata Sync failed! Sending mail to Admin");
+            updateMetadataVersionFailureDetails(metadataRetryContext);
+            metadataSyncPostProcessor.sendFailureMailToAdmin(metadataRetryContext);
+            return null;
+          });
+    } catch (Exception e) {
+      String customMessage =
+          "Exception occurred while executing metadata sync task." + e.getMessage();
+      log.error(customMessage, e);
     }
+  }
 
-    @Override
-    public void execute( JobConfiguration config, JobProgress progress )
-    {
-        log.info( "Metadata Sync cron Job started" );
+  protected void runSyncTask(
+      MetadataRetryContext context, MetadataSyncJobParameters params, JobProgress progress)
+      throws MetadataSyncServiceException, DhisVersionMismatchException {
+    metadataSyncPreProcessor.setUp(context, progress);
+    metadataSyncPreProcessor.handleDataValuePush(context, params, progress);
+    metadataSyncPreProcessor.handleEventProgramsDataPush(context, params, progress);
+    metadataSyncPreProcessor.handleCompleteDataSetRegistrationDataPush(context, progress);
+    metadataSyncPreProcessor.handleTrackerProgramsDataPush(context, params, progress);
 
-        try
-        {
-            MetadataSyncJobParameters params = (MetadataSyncJobParameters) config.getJobParameters();
-            retryTemplate.execute( retryContext -> {
-                metadataRetryContext.setRetryContext( retryContext );
-                clearFailedVersionSettings();
-                runSyncTask( metadataRetryContext, params, progress );
-                return null;
-            }, retryContext -> {
-                log.info( "Metadata Sync failed! Sending mail to Admin" );
-                updateMetadataVersionFailureDetails( metadataRetryContext );
-                metadataSyncPostProcessor.sendFailureMailToAdmin( metadataRetryContext );
-                return null;
-            } );
+    MetadataVersion version =
+        metadataSyncPreProcessor.handleCurrentMetadataVersion(context, progress);
+
+    List<MetadataVersion> versions =
+        metadataSyncPreProcessor.handleMetadataVersionsList(context, version, progress);
+
+    handleMetadataSync(context, versions, progress);
+
+    log.info("Metadata sync cron job ended ");
+  }
+
+  private void handleMetadataSync(
+      MetadataRetryContext context, List<MetadataVersion> versions, JobProgress progress)
+      throws DhisVersionMismatchException {
+    if (versions != null) {
+      progress.startingProcess("Synchronize metadata");
+      for (MetadataVersion dataVersion : versions) {
+        MetadataSyncParams syncParams =
+            new MetadataSyncParams(new MetadataImportParams(), dataVersion);
+        boolean isSyncRequired = metadataSyncService.isSyncRequired(syncParams);
+        MetadataSyncSummary metadataSyncSummary = null;
+
+        if (isSyncRequired) {
+          metadataSyncSummary = handleMetadataSync(context, dataVersion, progress);
+        } else {
+          metadataSyncPostProcessor.handleVersionAlreadyExists(context, dataVersion);
+          break;
         }
-        catch ( Exception e )
-        {
-            String customMessage = "Exception occurred while executing metadata sync task." + e.getMessage();
-            log.error( customMessage, e );
+
+        boolean abortStatus =
+            metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus(
+                metadataSyncSummary, context, dataVersion);
+
+        if (abortStatus) {
+          break;
         }
+
+        clearFailedVersionSettings();
+      }
+      progress.completedProcess(null);
     }
+  }
 
-    protected void runSyncTask( MetadataRetryContext context, MetadataSyncJobParameters params,
-        JobProgress progress )
-        throws MetadataSyncServiceException,
-        DhisVersionMismatchException
-    {
-        metadataSyncPreProcessor.setUp( context, progress );
-        metadataSyncPreProcessor.handleDataValuePush( context, params, progress );
-        metadataSyncPreProcessor.handleEventProgramsDataPush( context, params, progress );
-        metadataSyncPreProcessor.handleCompleteDataSetRegistrationDataPush( context, progress );
-        metadataSyncPreProcessor.handleTrackerProgramsDataPush( context, params, progress );
+  // ----------------------------------------------------------------------------------------
+  // Private Methods
+  // ----------------------------------------------------------------------------------------
 
-        MetadataVersion version = metadataSyncPreProcessor.handleCurrentMetadataVersion( context, progress );
+  private MetadataSyncSummary handleMetadataSync(
+      MetadataRetryContext context, MetadataVersion dataVersion, JobProgress progress)
+      throws DhisVersionMismatchException {
+    progress.startingStage(
+        format(
+            "Synchronizing metadata for version %s %s ",
+            dataVersion.getName(), dataVersion.getType()));
+    MetadataSyncParams syncParams = new MetadataSyncParams(new MetadataImportParams(), dataVersion);
 
-        List<MetadataVersion> versions = metadataSyncPreProcessor.handleMetadataVersionsList( context, version,
-            progress );
-
-        handleMetadataSync( context, versions, progress );
-
-        log.info( "Metadata sync cron job ended " );
+    try {
+      MetadataSyncSummary summary = metadataSyncService.doMetadataSync(syncParams);
+      progress.completedStage("" + summary.getImportReport().getStatus());
+      return summary;
+    } catch (MetadataSyncServiceException | DhisVersionMismatchException ex) {
+      progress.failedStage(ex);
+      context.updateRetryContext(METADATA_SYNC, ex.getMessage(), dataVersion);
+      throw ex;
     }
+  }
 
-    private void handleMetadataSync( MetadataRetryContext context, List<MetadataVersion> versions,
-        JobProgress progress )
-        throws DhisVersionMismatchException
-    {
-        if ( versions != null )
-        {
-            progress.startingProcess( "Synchronize metadata" );
-            for ( MetadataVersion dataVersion : versions )
-            {
-                MetadataSyncParams syncParams = new MetadataSyncParams( new MetadataImportParams(), dataVersion );
-                boolean isSyncRequired = metadataSyncService.isSyncRequired( syncParams );
-                MetadataSyncSummary metadataSyncSummary = null;
+  private void updateMetadataVersionFailureDetails(MetadataRetryContext retryContext) {
+    Object version = retryContext.getRetryContext().getAttribute(VERSION_KEY);
 
-                if ( isSyncRequired )
-                {
-                    metadataSyncSummary = handleMetadataSync( context, dataVersion, progress );
-                }
-                else
-                {
-                    metadataSyncPostProcessor.handleVersionAlreadyExists( context, dataVersion );
-                    break;
-                }
-
-                boolean abortStatus = metadataSyncPostProcessor
-                    .handleSyncNotificationsAndAbortStatus( metadataSyncSummary, context, dataVersion );
-
-                if ( abortStatus )
-                {
-                    break;
-                }
-
-                clearFailedVersionSettings();
-            }
-            progress.completedProcess( null );
-        }
+    if (version != null) {
+      MetadataVersion metadataVersion = (MetadataVersion) version;
+      systemSettingManager.saveSystemSetting(
+          SettingKey.METADATA_FAILED_VERSION, metadataVersion.getName());
+      systemSettingManager.saveSystemSetting(SettingKey.METADATA_LAST_FAILED_TIME, new Date());
     }
+  }
 
-    // ----------------------------------------------------------------------------------------
-    // Private Methods
-    // ----------------------------------------------------------------------------------------
-
-    private MetadataSyncSummary handleMetadataSync( MetadataRetryContext context, MetadataVersion dataVersion,
-        JobProgress progress )
-        throws DhisVersionMismatchException
-    {
-        progress.startingStage(
-            format( "Synchronizing metadata for version %s %s ", dataVersion.getName(), dataVersion.getType() ) );
-        MetadataSyncParams syncParams = new MetadataSyncParams( new MetadataImportParams(), dataVersion );
-
-        try
-        {
-            MetadataSyncSummary summary = metadataSyncService.doMetadataSync( syncParams );
-            progress.completedStage( "" + summary.getImportReport().getStatus() );
-            return summary;
-        }
-        catch ( MetadataSyncServiceException | DhisVersionMismatchException ex )
-        {
-            progress.failedStage( ex );
-            context.updateRetryContext( METADATA_SYNC, ex.getMessage(), dataVersion );
-            throw ex;
-        }
-    }
-
-    private void updateMetadataVersionFailureDetails( MetadataRetryContext retryContext )
-    {
-        Object version = retryContext.getRetryContext().getAttribute( VERSION_KEY );
-
-        if ( version != null )
-        {
-            MetadataVersion metadataVersion = (MetadataVersion) version;
-            systemSettingManager.saveSystemSetting( SettingKey.METADATA_FAILED_VERSION, metadataVersion.getName() );
-            systemSettingManager.saveSystemSetting( SettingKey.METADATA_LAST_FAILED_TIME, new Date() );
-        }
-    }
-
-    private void clearFailedVersionSettings()
-    {
-        systemSettingManager.deleteSystemSetting( SettingKey.METADATA_FAILED_VERSION );
-        systemSettingManager.deleteSystemSetting( SettingKey.METADATA_LAST_FAILED_TIME );
-    }
+  private void clearFailedVersionSettings() {
+    systemSettingManager.deleteSystemSetting(SettingKey.METADATA_FAILED_VERSION);
+    systemSettingManager.deleteSystemSetting(SettingKey.METADATA_LAST_FAILED_TIME);
+  }
 }

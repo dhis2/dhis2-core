@@ -27,150 +27,125 @@
  */
 package org.hisp.dhis.period;
 
+import com.google.common.collect.Lists;
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
-import com.google.common.collect.Lists;
-
 /**
- * PeriodType for daily Periods. A valid daily Period has equal startDate and
- * endDate.
+ * PeriodType for daily Periods. A valid daily Period has equal startDate and endDate.
  *
  * @author Torgeir Lorange Ostby
  */
-public class DailyPeriodType
-    extends CalendarPeriodType
-{
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = 5371766471215556241L;
+public class DailyPeriodType extends CalendarPeriodType {
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = 5371766471215556241L;
 
-    public static final String ISO_FORMAT = "yyyyMMdd";
+  public static final String ISO_FORMAT = "yyyyMMdd";
 
-    private static final String ISO8601_DURATION = "P1D";
+  private static final String ISO8601_DURATION = "P1D";
 
-    public static final int FREQUENCY_ORDER = 1;
+  public static final int FREQUENCY_ORDER = 1;
 
-    public static final String SQL_INTERVAL = "1 day";
+  public static final String SQL_INTERVAL = "1 day";
 
-    // -------------------------------------------------------------------------
-    // PeriodType functionality
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // PeriodType functionality
+  // -------------------------------------------------------------------------
 
-    @Override
-    public PeriodTypeEnum getPeriodTypeEnum()
-    {
-        return PeriodTypeEnum.DAILY;
+  @Override
+  public PeriodTypeEnum getPeriodTypeEnum() {
+    return PeriodTypeEnum.DAILY;
+  }
+
+  @Override
+  public Period createPeriod(DateTimeUnit dateTimeUnit, Calendar calendar) {
+    return toIsoPeriod(dateTimeUnit, dateTimeUnit, calendar);
+  }
+
+  @Override
+  public int getFrequencyOrder() {
+    return FREQUENCY_ORDER;
+  }
+
+  @Override
+  public String getSqlInterval() {
+    return SQL_INTERVAL;
+  }
+
+  // -------------------------------------------------------------------------
+  // CalendarPeriodType functionality
+  // -------------------------------------------------------------------------
+
+  @Override
+  public DateTimeUnit getDateWithOffset(DateTimeUnit dateTimeUnit, int offset, Calendar calendar) {
+    return calendar.plusDays(dateTimeUnit, offset);
+  }
+
+  /** Generates daily Periods for the whole year in which the given Period's startDate exists. */
+  @Override
+  public List<Period> generatePeriods(DateTimeUnit dateTimeUnit) {
+    dateTimeUnit.setMonth(1);
+    dateTimeUnit.setDay(1);
+
+    List<Period> periods = Lists.newArrayList();
+
+    int year = dateTimeUnit.getYear();
+
+    Calendar calendar = getCalendar();
+
+    while (year == dateTimeUnit.getYear()) {
+      periods.add(createPeriod(dateTimeUnit, calendar));
+      dateTimeUnit = calendar.plusDays(dateTimeUnit, 1);
     }
 
-    @Override
-    public Period createPeriod( DateTimeUnit dateTimeUnit, Calendar calendar )
-    {
-        return toIsoPeriod( dateTimeUnit, dateTimeUnit, calendar );
+    return periods;
+  }
+
+  /** Generates the last 365 days where the last one is the day of the given date. */
+  @Override
+  public List<Period> generateRollingPeriods(DateTimeUnit dateTimeUnit, Calendar calendar) {
+    Calendar cal = getCalendar();
+
+    DateTimeUnit iterationDateTimeUnit = cal.minusDays(dateTimeUnit, 364);
+
+    List<Period> periods = Lists.newArrayList();
+
+    for (int i = 0; i < 365; i++) {
+      periods.add(createPeriod(iterationDateTimeUnit, calendar));
+      iterationDateTimeUnit = cal.plusDays(iterationDateTimeUnit, 1);
     }
 
-    @Override
-    public int getFrequencyOrder()
-    {
-        return FREQUENCY_ORDER;
-    }
+    return periods;
+  }
 
-    @Override
-    public String getSqlInterval()
-    {
-        return SQL_INTERVAL;
-    }
+  @Override
+  public String getIsoDate(DateTimeUnit dateTimeUnit, Calendar calendar) {
+    return String.format(
+        "%d%02d%02d", dateTimeUnit.getYear(), dateTimeUnit.getMonth(), dateTimeUnit.getDay());
+  }
 
-    // -------------------------------------------------------------------------
-    // CalendarPeriodType functionality
-    // -------------------------------------------------------------------------
+  @Override
+  public String getIsoFormat() {
+    return ISO_FORMAT;
+  }
 
-    @Override
-    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
-    {
-        return calendar.plusDays( dateTimeUnit, offset );
-    }
+  @Override
+  public String getIso8601Duration() {
+    return ISO8601_DURATION;
+  }
 
-    /**
-     * Generates daily Periods for the whole year in which the given Period's
-     * startDate exists.
-     */
-    @Override
-    public List<Period> generatePeriods( DateTimeUnit dateTimeUnit )
-    {
-        dateTimeUnit.setMonth( 1 );
-        dateTimeUnit.setDay( 1 );
+  @Override
+  public Date getRewindedDate(Date date, Integer rewindedPeriods) {
+    Calendar cal = getCalendar();
 
-        List<Period> periods = Lists.newArrayList();
+    date = date != null ? date : new Date();
+    rewindedPeriods = rewindedPeriods != null ? rewindedPeriods : 1;
 
-        int year = dateTimeUnit.getYear();
+    DateTimeUnit dateTimeUnit = createLocalDateUnitInstance(date, cal);
+    dateTimeUnit = cal.minusDays(dateTimeUnit, rewindedPeriods);
 
-        Calendar calendar = getCalendar();
-
-        while ( year == dateTimeUnit.getYear() )
-        {
-            periods.add( createPeriod( dateTimeUnit, calendar ) );
-            dateTimeUnit = calendar.plusDays( dateTimeUnit, 1 );
-        }
-
-        return periods;
-    }
-
-    /**
-     * Generates the last 365 days where the last one is the day of the given
-     * date.
-     */
-    @Override
-    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )
-    {
-        Calendar cal = getCalendar();
-
-        DateTimeUnit iterationDateTimeUnit = cal.minusDays( dateTimeUnit, 364 );
-
-        List<Period> periods = Lists.newArrayList();
-
-        for ( int i = 0; i < 365; i++ )
-        {
-            periods.add( createPeriod( iterationDateTimeUnit, calendar ) );
-            iterationDateTimeUnit = cal.plusDays( iterationDateTimeUnit, 1 );
-        }
-
-        return periods;
-    }
-
-    @Override
-    public String getIsoDate( DateTimeUnit dateTimeUnit, Calendar calendar )
-    {
-        return String.format( "%d%02d%02d", dateTimeUnit.getYear(), dateTimeUnit.getMonth(), dateTimeUnit.getDay() );
-    }
-
-    @Override
-    public String getIsoFormat()
-    {
-        return ISO_FORMAT;
-    }
-
-    @Override
-    public String getIso8601Duration()
-    {
-        return ISO8601_DURATION;
-    }
-
-    @Override
-    public Date getRewindedDate( Date date, Integer rewindedPeriods )
-    {
-        Calendar cal = getCalendar();
-
-        date = date != null ? date : new Date();
-        rewindedPeriods = rewindedPeriods != null ? rewindedPeriods : 1;
-
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( date, cal );
-        dateTimeUnit = cal.minusDays( dateTimeUnit, rewindedPeriods );
-
-        return cal.toIso( dateTimeUnit ).toJdkDate();
-    }
+    return cal.toIso(dateTimeUnit).toJdkDate();
+  }
 }

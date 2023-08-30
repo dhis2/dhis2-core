@@ -38,39 +38,32 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
 
 /**
- * Authenticator which checks whether LDAP authentication is configured. If not,
- * the authentication will be aborted, otherwise authentication is delegated to
- * Spring BindAuthenticator.
+ * Authenticator which checks whether LDAP authentication is configured. If not, the authentication
+ * will be aborted, otherwise authentication is delegated to Spring BindAuthenticator.
  *
  * @author Lars Helge Overland
  */
-public class DhisBindAuthenticator
-    extends BindAuthenticator
-{
-    @Autowired
-    private UserService userService;
+public class DhisBindAuthenticator extends BindAuthenticator {
+  @Autowired private UserService userService;
 
-    public DhisBindAuthenticator( BaseLdapPathContextSource contextSource )
-    {
-        super( contextSource );
+  public DhisBindAuthenticator(BaseLdapPathContextSource contextSource) {
+    super(contextSource);
+  }
+
+  @Override
+  public DirContextOperations authenticate(Authentication authentication) {
+    User user = userService.getUserByUsername(authentication.getName());
+
+    if (user == null) {
+      throw new BadCredentialsException("Incorrect user credentials");
     }
 
-    @Override
-    public DirContextOperations authenticate( Authentication authentication )
-    {
-        User user = userService.getUserByUsername( authentication.getName() );
-
-        if ( user == null )
-        {
-            throw new BadCredentialsException( "Incorrect user credentials" );
-        }
-
-        if ( user.hasLdapId() )
-        {
-            authentication = new UsernamePasswordAuthenticationToken( user.getLdapId(),
-                authentication.getCredentials() );
-        }
-
-        return super.authenticate( authentication );
+    if (user.hasLdapId()) {
+      authentication =
+          new UsernamePasswordAuthenticationToken(
+              user.getLdapId(), authentication.getCredentials());
     }
+
+    return super.authenticate(authentication);
+  }
 }

@@ -47,13 +47,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.tei.query.context.TeiHeaderProvider;
 import org.hisp.dhis.analytics.tei.query.context.TeiStaticField;
@@ -63,284 +61,250 @@ import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.common.ValueType;
 
 /**
- * Object responsible to wrap/encapsulate instances of
- * DimensionObject|QueryItem|StaticDimension.
+ * Object responsible to wrap/encapsulate instances of DimensionObject|QueryItem|StaticDimension.
  */
 @Data
 @Slf4j
-@Builder( access = PRIVATE )
-@RequiredArgsConstructor( access = PRIVATE )
-public class DimensionParam implements UidObject
-{
-    private final DimensionalObject dimensionalObject;
+@Builder(access = PRIVATE)
+@RequiredArgsConstructor(access = PRIVATE)
+public class DimensionParam implements UidObject {
+  private final DimensionalObject dimensionalObject;
 
-    private final QueryItem queryItem;
+  private final QueryItem queryItem;
 
-    private final StaticDimension staticDimension;
+  private final StaticDimension staticDimension;
 
-    private final DimensionParamType type;
+  private final DimensionParamType type;
 
-    @Builder.Default
-    private final List<DimensionParamItem> items = new ArrayList<>();
+  @Builder.Default private final List<DimensionParamItem> items = new ArrayList<>();
 
-    /**
-     * Allows to create an instance of DimensionParam. We should pass the object
-     * to be wrapped (a {@link DimensionalObject}, a {@link QueryItem} or a
-     * static dimension), the type ({@link DimensionParamType}) and a list of
-     * filters ({@link List<String>}). This last can be empty.
-     *
-     * @param dimensionalObjectOrQueryItem either a {@link DimensionalObject} or
-     *        {@link QueryItem}, or a static dimension.
-     * @param dimensionParamType the {@link DimensionParamType} for the
-     *        {@link DimensionParam} returned (weather it's a filter or a
-     *        dimension).
-     * @param items the list of items parameters for this DimensionParam.
-     * @return a new instance of {@link DimensionParam}.
-     */
-    public static DimensionParam ofObject( Object dimensionalObjectOrQueryItem, DimensionParamType dimensionParamType,
-        List<String> items )
-    {
-        Objects.requireNonNull( dimensionalObjectOrQueryItem );
-        Objects.requireNonNull( dimensionParamType );
+  /**
+   * Allows to create an instance of DimensionParam. We should pass the object to be wrapped (a
+   * {@link DimensionalObject}, a {@link QueryItem} or a static dimension), the type ({@link
+   * DimensionParamType}) and a list of filters ({@link List<String>}). This last can be empty.
+   *
+   * @param dimensionalObjectOrQueryItem either a {@link DimensionalObject} or {@link QueryItem}, or
+   *     a static dimension.
+   * @param dimensionParamType the {@link DimensionParamType} for the {@link DimensionParam}
+   *     returned (weather it's a filter or a dimension).
+   * @param items the list of items parameters for this DimensionParam.
+   * @return a new instance of {@link DimensionParam}.
+   */
+  public static DimensionParam ofObject(
+      Object dimensionalObjectOrQueryItem,
+      DimensionParamType dimensionParamType,
+      List<String> items) {
+    Objects.requireNonNull(dimensionalObjectOrQueryItem);
+    Objects.requireNonNull(dimensionParamType);
 
-        if ( dimensionParamType == DATE_FILTERS )
-        {
-            items = items.stream().map( item -> EQ + ":" + item ).collect( Collectors.toList() );
-        }
+    if (dimensionParamType == DATE_FILTERS) {
+      items = items.stream().map(item -> EQ + ":" + item).collect(Collectors.toList());
+    }
 
-        DimensionParamBuilder builder = DimensionParam.builder()
-            .type( dimensionParamType )
-            .items( DimensionParamItem.ofStrings( items ) );
+    DimensionParamBuilder builder =
+        DimensionParam.builder()
+            .type(dimensionParamType)
+            .items(DimensionParamItem.ofStrings(items));
 
-        if ( dimensionalObjectOrQueryItem instanceof DimensionalObject )
-        {
-            return builder.dimensionalObject( (DimensionalObject) dimensionalObjectOrQueryItem ).build();
-        }
+    if (dimensionalObjectOrQueryItem instanceof DimensionalObject) {
+      return builder.dimensionalObject((DimensionalObject) dimensionalObjectOrQueryItem).build();
+    }
 
-        if ( dimensionalObjectOrQueryItem instanceof QueryItem )
-        {
-            return builder
-                .queryItem( (QueryItem) dimensionalObjectOrQueryItem )
-                .build();
-        }
+    if (dimensionalObjectOrQueryItem instanceof QueryItem) {
+      return builder.queryItem((QueryItem) dimensionalObjectOrQueryItem).build();
+    }
 
-        // If this is neither a DimensionalObject nor a QueryItem, we try to see if it's a static Dimension.
-        Optional<StaticDimension> staticDimension = StaticDimension.of( dimensionalObjectOrQueryItem.toString() );
+    // If this is neither a DimensionalObject nor a QueryItem, we try to see if it's a static
+    // Dimension.
+    Optional<StaticDimension> staticDimension =
+        StaticDimension.of(dimensionalObjectOrQueryItem.toString());
 
-        if ( staticDimension.isPresent() )
-        {
-            return builder.staticDimension( staticDimension.get() ).build();
-        }
+    if (staticDimension.isPresent()) {
+      return builder.staticDimension(staticDimension.get()).build();
+    }
 
-        String receivedIdentifier = dimensionalObjectOrQueryItem.getClass().equals( String.class )
+    String receivedIdentifier =
+        dimensionalObjectOrQueryItem.getClass().equals(String.class)
             ? dimensionalObjectOrQueryItem.toString()
             : dimensionalObjectOrQueryItem.getClass().getName();
 
-        throw new IllegalArgumentException(
-            "Only DimensionalObject, QueryItem or static dimensions are allowed. Received " + receivedIdentifier
-                + " instead" );
+    throw new IllegalArgumentException(
+        "Only DimensionalObject, QueryItem or static dimensions are allowed. Received "
+            + receivedIdentifier
+            + " instead");
+  }
+
+  public static boolean isStaticDimensionIdentifier(String dimensionIdentifier) {
+    return StaticDimension.of(dimensionIdentifier).isPresent();
+  }
+
+  /**
+   * @return true if this DimensionParams has some items on it.
+   */
+  public boolean hasRestrictions() {
+    return isNotEmpty(items);
+  }
+
+  /**
+   * @return true if this DimensionParam is a filter.
+   */
+  public boolean isFilter() {
+    return type == FILTERS;
+  }
+
+  /**
+   * @return true if this DimensionParam is a dimension
+   */
+  public boolean isDimension() {
+    return type == DIMENSIONS;
+  }
+
+  public boolean isDimensionalObject() {
+    return nonNull(dimensionalObject);
+  }
+
+  public boolean isQueryItem() {
+    return nonNull(queryItem);
+  }
+
+  public boolean isStaticDimension() {
+    return !isQueryItem() && !isDimensionalObject();
+  }
+
+  /**
+   * Returns the type of the current {@link DimensionParam} instance.
+   *
+   * @return the respective {@link DimensionParamObjectType}.
+   */
+  public DimensionParamObjectType getDimensionParamObjectType() {
+    if (isDimensionalObject()) {
+      return byForeignType(dimensionalObject.getDimensionType());
     }
 
-    public static boolean isStaticDimensionIdentifier( String dimensionIdentifier )
-    {
-        return StaticDimension.of( dimensionIdentifier ).isPresent();
+    if (isQueryItem()) {
+      return byForeignType(queryItem.getItem().getDimensionItemType());
     }
 
-    /**
-     * @return true if this DimensionParams has some items on it.
-     */
-    public boolean hasRestrictions()
-    {
-        return isNotEmpty( items );
+    return staticDimension.getDimensionParamObjectType();
+  }
+
+  public boolean isOfType(DimensionParamObjectType type) {
+    return getDimensionParamObjectType() == type;
+  }
+
+  public ValueType getValueType() {
+    if (isDimensionalObject()) {
+      return dimensionalObject.getValueType();
     }
 
-    /**
-     * @return true if this DimensionParam is a filter.
-     */
-    public boolean isFilter()
-    {
-        return type == FILTERS;
+    if (isQueryItem()) {
+      return queryItem.getValueType();
     }
 
-    /**
-     * @return true if this DimensionParam is a dimension
-     */
-    public boolean isDimension()
-    {
-        return type == DIMENSIONS;
+    return staticDimension.valueType;
+  }
+
+  @Override
+  public String getUid() {
+    if (isDimensionalObject()) {
+      return dimensionalObject.getUid();
     }
 
-    public boolean isDimensionalObject()
-    {
-        return nonNull( dimensionalObject );
+    if (isQueryItem()) {
+      return queryItem.getItem().getUid();
     }
 
-    public boolean isQueryItem()
-    {
-        return nonNull( queryItem );
+    return staticDimension.getColumnName();
+  }
+
+  public boolean isPeriodDimension() {
+    return isDimensionalObject() && dimensionalObject.getDimensionType() == PERIOD
+        || isStaticDimension()
+            && staticDimension.getDimensionParamObjectType() == DimensionParamObjectType.PERIOD;
+  }
+
+  public String getName() {
+    if (isDimensionalObject()) {
+      return dimensionalObject.getName();
     }
 
-    public boolean isStaticDimension()
-    {
-        return !isQueryItem() && !isDimensionalObject();
+    if (isQueryItem()) {
+      return queryItem.getItem().getName();
     }
 
-    /**
-     * Returns the type of the current {@link DimensionParam} instance.
-     *
-     * @return the respective {@link DimensionParamObjectType}.
-     */
-    public DimensionParamObjectType getDimensionParamObjectType()
-    {
-        if ( isDimensionalObject() )
-        {
-            return byForeignType( dimensionalObject.getDimensionType() );
-        }
+    return staticDimension.name();
+  }
 
-        if ( isQueryItem() )
-        {
-            return byForeignType( queryItem.getItem().getDimensionItemType() );
-        }
+  @RequiredArgsConstructor
+  public enum StaticDimension implements TeiHeaderProvider {
+    OUNAME(TEXT, ORGANISATION_UNIT, TeiStaticField.ORG_UNIT_NAME),
+    OUCODE(TEXT, ORGANISATION_UNIT, TeiStaticField.ORG_UNIT_CODE),
+    OUNAMEHIERARCHY(TEXT, ORGANISATION_UNIT, TeiStaticField.ORG_UNIT_NAME_HIERARCHY),
+    ENROLLMENTDATE(DATETIME, DimensionParamObjectType.PERIOD),
+    ENDDATE(DATETIME, DimensionParamObjectType.PERIOD),
+    INCIDENTDATE(DATETIME, DimensionParamObjectType.PERIOD),
+    EXECUTIONDATE(DATETIME, DimensionParamObjectType.PERIOD),
+    LASTUPDATED(DATETIME, DimensionParamObjectType.PERIOD),
+    CREATED(DATETIME, DimensionParamObjectType.PERIOD),
+    ENROLLMENT_STATUS(TEXT, DimensionParamObjectType.STATIC, null, "enrollmentstatus"),
+    EVENT_STATUS(TEXT, DimensionParamObjectType.STATIC, null, "status");
 
-        return staticDimension.getDimensionParamObjectType();
+    private final ValueType valueType;
+
+    @Getter private final String columnName;
+
+    @Getter private final DimensionParamObjectType dimensionParamObjectType;
+
+    private final TeiStaticField teiStaticField;
+
+    StaticDimension(ValueType valueType, DimensionParamObjectType dimensionParamObjectType) {
+      this(valueType, dimensionParamObjectType, null);
     }
 
-    public boolean isOfType( DimensionParamObjectType type )
-    {
-        return getDimensionParamObjectType() == type;
+    StaticDimension(
+        ValueType valueType,
+        DimensionParamObjectType dimensionParamObjectType,
+        TeiStaticField teiStaticField) {
+      this.valueType = valueType;
+
+      // By default, columnName is its own "name" in lowercase.
+      this.columnName = lowerCase(name());
+
+      this.dimensionParamObjectType = dimensionParamObjectType;
+
+      this.teiStaticField = teiStaticField;
     }
 
-    public ValueType getValueType()
-    {
-        if ( isDimensionalObject() )
-        {
-            return dimensionalObject.getValueType();
-        }
+    StaticDimension(
+        ValueType valueType,
+        DimensionParamObjectType dimensionParamObjectType,
+        TeiStaticField teiStaticField,
+        String columnName) {
+      this.valueType = valueType;
+      this.columnName = columnName;
+      this.dimensionParamObjectType = dimensionParamObjectType;
+      this.teiStaticField = teiStaticField;
+    }
 
-        if ( isQueryItem() )
-        {
-            return queryItem.getValueType();
-        }
-
-        return staticDimension.valueType;
+    static Optional<StaticDimension> of(String value) {
+      return Arrays.stream(StaticDimension.values())
+          .filter(sd -> StringUtils.equalsIgnoreCase(sd.name(), value))
+          .findFirst();
     }
 
     @Override
-    public String getUid()
-    {
-        if ( isDimensionalObject() )
-        {
-            return dimensionalObject.getUid();
-        }
-
-        if ( isQueryItem() )
-        {
-            return queryItem.getItem().getUid();
-        }
-
-        return staticDimension.getColumnName();
+    public String getAlias() {
+      return Optional.ofNullable(teiStaticField).map(TeiStaticField::getAlias).orElse(name());
     }
 
-    public boolean isPeriodDimension()
-    {
-        return isDimensionalObject() && dimensionalObject.getDimensionType() == PERIOD ||
-            isStaticDimension() && staticDimension.getDimensionParamObjectType() == DimensionParamObjectType.PERIOD;
+    @Override
+    public String getFullName() {
+      return Optional.ofNullable(teiStaticField).map(TeiStaticField::getFullName).orElse(name());
     }
 
-    public String getName()
-    {
-        if ( isDimensionalObject() )
-        {
-            return dimensionalObject.getName();
-        }
-
-        if ( isQueryItem() )
-        {
-            return queryItem.getItem().getName();
-        }
-
-        return staticDimension.name();
+    @Override
+    public ValueType getType() {
+      return valueType;
     }
-
-    @RequiredArgsConstructor
-    public enum StaticDimension implements TeiHeaderProvider
-    {
-        OUNAME( TEXT, ORGANISATION_UNIT, TeiStaticField.ORG_UNIT_NAME ),
-        OUCODE( TEXT, ORGANISATION_UNIT, TeiStaticField.ORG_UNIT_CODE ),
-        OUNAMEHIERARCHY( TEXT, ORGANISATION_UNIT, TeiStaticField.ORG_UNIT_NAME_HIERARCHY ),
-        ENROLLMENTDATE( DATETIME, DimensionParamObjectType.PERIOD ),
-        ENDDATE( DATETIME, DimensionParamObjectType.PERIOD ),
-        INCIDENTDATE( DATETIME, DimensionParamObjectType.PERIOD ),
-        EXECUTIONDATE( DATETIME, DimensionParamObjectType.PERIOD ),
-        LASTUPDATED( DATETIME, DimensionParamObjectType.PERIOD ),
-        CREATED( DATETIME, DimensionParamObjectType.PERIOD ),
-        ENROLLMENT_STATUS( TEXT, DimensionParamObjectType.STATIC, null, "enrollmentstatus" ),
-        EVENT_STATUS( TEXT, DimensionParamObjectType.STATIC, null, "status" );
-
-        private final ValueType valueType;
-
-        @Getter
-        private final String columnName;
-
-        @Getter
-        private final DimensionParamObjectType dimensionParamObjectType;
-
-        private final TeiStaticField teiStaticField;
-
-        StaticDimension( ValueType valueType, DimensionParamObjectType dimensionParamObjectType )
-        {
-            this( valueType, dimensionParamObjectType, null );
-        }
-
-        StaticDimension( ValueType valueType, DimensionParamObjectType dimensionParamObjectType,
-            TeiStaticField teiStaticField )
-        {
-            this.valueType = valueType;
-
-            // By default, columnName is its own "name" in lowercase.
-            this.columnName = lowerCase( name() );
-
-            this.dimensionParamObjectType = dimensionParamObjectType;
-
-            this.teiStaticField = teiStaticField;
-        }
-
-        StaticDimension( ValueType valueType, DimensionParamObjectType dimensionParamObjectType,
-            TeiStaticField teiStaticField, String columnName )
-        {
-            this.valueType = valueType;
-            this.columnName = columnName;
-            this.dimensionParamObjectType = dimensionParamObjectType;
-            this.teiStaticField = teiStaticField;
-        }
-
-        static Optional<StaticDimension> of( String value )
-        {
-            return Arrays.stream( StaticDimension.values() )
-                .filter( sd -> StringUtils.equalsIgnoreCase( sd.name(), value ) )
-                .findFirst();
-        }
-
-        @Override
-        public String getAlias()
-        {
-            return Optional.ofNullable( teiStaticField )
-                .map( TeiStaticField::getAlias )
-                .orElse( name() );
-        }
-
-        @Override
-        public String getFullName()
-        {
-            return Optional.ofNullable( teiStaticField )
-                .map( TeiStaticField::getFullName )
-                .orElse( name() );
-        }
-
-        @Override
-        public ValueType getType()
-        {
-            return valueType;
-        }
-    }
+  }
 }

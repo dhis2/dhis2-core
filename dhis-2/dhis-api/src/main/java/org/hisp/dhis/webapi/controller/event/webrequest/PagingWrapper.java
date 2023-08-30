@@ -27,93 +27,74 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest;
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
 
 @Getter
-public class PagingWrapper<T>
-{
-    @JsonIgnore
-    private String identifier;
+public class PagingWrapper<T> {
+  @JsonIgnore private String identifier;
 
-    @JsonIgnore
-    @JsonAnyGetter
-    private Map<String, Collection<T>> elements = new LinkedHashMap<>();
+  @JsonIgnore @JsonAnyGetter private Map<String, Collection<T>> elements = new LinkedHashMap<>();
 
-    @JsonUnwrapped
-    private Pager pager;
+  @JsonUnwrapped private Pager pager;
 
-    public PagingWrapper()
-    {
-        this( "instances" );
-        this.identifier = "instances";
+  public PagingWrapper() {
+    this("instances");
+    this.identifier = "instances";
+  }
+
+  public PagingWrapper(String identifier) {
+    this.identifier = identifier;
+  }
+
+  public PagingWrapper<T> withPager(Pager pager) {
+    PagingWrapper<T> pagingWrapper = new PagingWrapper<>(identifier);
+    pagingWrapper.pager = pager;
+    pagingWrapper.elements = elements;
+    return pagingWrapper;
+  }
+
+  public PagingWrapper<T> withInstances(Collection<T> elements) {
+    PagingWrapper<T> pagingWrapper = new PagingWrapper<>(identifier);
+    pagingWrapper.pager = pager;
+    pagingWrapper.elements.put(identifier, elements);
+    return pagingWrapper;
+  }
+
+  @Data
+  @Builder
+  public static class Pager {
+    @Builder.Default @JsonProperty private Integer page = 1;
+
+    @JsonProperty private Long total;
+
+    @JsonProperty private Integer pageCount;
+
+    @Builder.Default @JsonProperty
+    private Integer pageSize = org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
+
+    @JsonProperty private String nextPage;
+
+    @JsonProperty private String prevPage;
+
+    public static Pager fromLegacy(
+        PagingCriteria pagingCriteria, org.hisp.dhis.common.Pager pager) {
+      return Pager.builder()
+          .prevPage(pager.getPrevPage())
+          .page(pager.getPage())
+          .pageSize(pager.getPageSize())
+          .pageCount(pagingCriteria.isTotalPages() ? pager.getPageCount() : null)
+          .total(pagingCriteria.isTotalPages() ? pager.getTotal() : null)
+          .nextPage(pager.getNextPage())
+          .build();
     }
-
-    public PagingWrapper( String identifier )
-    {
-        this.identifier = identifier;
-    }
-
-    public PagingWrapper<T> withPager( Pager pager )
-    {
-        PagingWrapper<T> pagingWrapper = new PagingWrapper<>( identifier );
-        pagingWrapper.pager = pager;
-        pagingWrapper.elements = elements;
-        return pagingWrapper;
-    }
-
-    public PagingWrapper<T> withInstances( Collection<T> elements )
-    {
-        PagingWrapper<T> pagingWrapper = new PagingWrapper<>( identifier );
-        pagingWrapper.pager = pager;
-        pagingWrapper.elements.put( identifier, elements );
-        return pagingWrapper;
-    }
-
-    @Data
-    @Builder
-    public static class Pager
-    {
-        @Builder.Default
-        @JsonProperty
-        private Integer page = 1;
-
-        @JsonProperty
-        private Long total;
-
-        @JsonProperty
-        private Integer pageCount;
-
-        @Builder.Default
-        @JsonProperty
-        private Integer pageSize = org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
-
-        @JsonProperty
-        private String nextPage;
-
-        @JsonProperty
-        private String prevPage;
-
-        public static Pager fromLegacy( PagingCriteria pagingCriteria, org.hisp.dhis.common.Pager pager )
-        {
-            return Pager.builder()
-                .prevPage( pager.getPrevPage() )
-                .page( pager.getPage() )
-                .pageSize( pager.getPageSize() )
-                .pageCount( pagingCriteria.isTotalPages() ? pager.getPageCount() : null )
-                .total( pagingCriteria.isTotalPages() ? pager.getTotal() : null )
-                .nextPage( pager.getNextPage() )
-                .build();
-        }
-    }
+  }
 }

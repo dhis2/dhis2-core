@@ -42,33 +42,37 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Luca Cambi
  */
-class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
-{
-    @Test
-    void shouldGenerateRandomValuesOrgUnitCodeAndRandom()
-        throws Exception
-    {
+class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest {
+  @Test
+  void shouldGenerateRandomValuesOrgUnitCodeAndRandom() throws Exception {
 
-        TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'A' );
-        trackedEntityAttribute.setGenerated( true );
+    TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
+    trackedEntityAttribute.setGenerated(true);
 
-        String pattern = "ORG_UNIT_CODE() + RANDOM(#######)";
+    String pattern = "ORG_UNIT_CODE() + RANDOM(#######)";
 
-        TextPattern textPattern = TextPatternParser.parse( pattern );
+    TextPattern textPattern = TextPatternParser.parse(pattern);
 
-        textPattern.setOwnerObject( Objects.fromClass( trackedEntityAttribute.getClass() ) );
-        textPattern.setOwnerUid( trackedEntityAttribute.getUid() );
+    textPattern.setOwnerObject(Objects.fromClass(trackedEntityAttribute.getClass()));
+    textPattern.setOwnerUid(trackedEntityAttribute.getUid());
 
-        trackedEntityAttribute.setTextPattern( textPattern );
-        trackedEntityAttribute.setPattern( pattern );
+    trackedEntityAttribute.setTextPattern(textPattern);
+    trackedEntityAttribute.setPattern(pattern);
 
-        String uid = assertStatus( HttpStatus.CREATED,
-            POST( TrackedEntityAttributeSchemaDescriptor.API_ENDPOINT,
-                new String( TestUtils.convertObjectToJsonBytes( trackedEntityAttribute ) ) ) );
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                TrackedEntityAttributeSchemaDescriptor.API_ENDPOINT,
+                new String(TestUtils.convertObjectToJsonBytes(trackedEntityAttribute))));
 
-        assertStatus( HttpStatus.OK, GET(
-            TrackedEntityAttributeSchemaDescriptor.API_ENDPOINT + "/" + uid + "/generateAndReserve"
-                + "?ORG_UNIT_CODE=A030101" ) );
-    }
-
+    assertStatus(
+        HttpStatus.OK,
+        GET(
+            TrackedEntityAttributeSchemaDescriptor.API_ENDPOINT
+                + "/"
+                + uid
+                + "/generateAndReserve"
+                + "?ORG_UNIT_CODE=A030101"));
+  }
 }

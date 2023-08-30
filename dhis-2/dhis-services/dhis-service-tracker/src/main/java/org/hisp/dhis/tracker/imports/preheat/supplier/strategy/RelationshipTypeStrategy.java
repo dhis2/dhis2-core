@@ -39,12 +39,18 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor( value = RelationshipType.class, mapper = RelationshipTypeMapper.class, cache = true, ttl = 10, capacity = 10 )
-public class RelationshipTypeStrategy extends AbstractSchemaStrategy
-{
-    public RelationshipTypeStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager, PreheatCacheService cacheService )
-    {
-        super( schemaService, queryService, manager, cacheService );
-    }
+@StrategyFor(
+    value = RelationshipType.class,
+    mapper = RelationshipTypeMapper.class,
+    cache = true,
+    ttl = 10,
+    capacity = 10)
+public class RelationshipTypeStrategy extends AbstractSchemaStrategy {
+  public RelationshipTypeStrategy(
+      SchemaService schemaService,
+      QueryService queryService,
+      IdentifiableObjectManager manager,
+      PreheatCacheService cacheService) {
+    super(schemaService, queryService, manager, cacheService);
+  }
 }

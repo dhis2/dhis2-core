@@ -31,11 +31,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import java.util.Collection;
 import java.util.stream.Collectors;
-
 import lombok.SneakyThrows;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -44,139 +44,128 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+class PrefixedDimensionsTest {
 
-class PrefixedDimensionsTest
-{
+  @Test
+  void testOfItemsWithProgram() {
+    Program program = buildBaseIdentifiableObject("programUid", Program.class);
 
-    @Test
-    void testOfItemsWithProgram()
-    {
-        Program program = buildBaseIdentifiableObject( "programUid", Program.class );
+    DataElement dataElement = buildBaseIdentifiableObject("dataElement", DataElement.class);
+    ProgramStageDataElement programStageDataElement =
+        buildBaseIdentifiableObject("programStageDataElement", ProgramStageDataElement.class);
+    TrackedEntityAttribute trackedEntityAttribute =
+        buildBaseIdentifiableObject("trackedEntityAttribute", TrackedEntityAttribute.class);
 
-        DataElement dataElement = buildBaseIdentifiableObject( "dataElement", DataElement.class );
-        ProgramStageDataElement programStageDataElement = buildBaseIdentifiableObject( "programStageDataElement",
-            ProgramStageDataElement.class );
-        TrackedEntityAttribute trackedEntityAttribute = buildBaseIdentifiableObject( "trackedEntityAttribute",
-            TrackedEntityAttribute.class );
+    Collection<PrefixedDimension> prefixedDimensions =
+        PrefixedDimensions.ofItemsWithProgram(
+            program,
+            ImmutableList.of(dataElement, programStageDataElement, trackedEntityAttribute));
 
-        Collection<PrefixedDimension> prefixedDimensions = PrefixedDimensions.ofItemsWithProgram( program,
-            ImmutableList.of(
-                dataElement,
-                programStageDataElement,
-                trackedEntityAttribute ) );
+    assertThat(prefixedDimensions, hasSize(3));
 
-        assertThat( prefixedDimensions, hasSize( 3 ) );
+    assertThat(
+        prefixedDimensions.stream().map(PrefixedDimension::getPrefix).collect(Collectors.toList()),
+        containsInAnyOrder("programUid", "programUid", "programUid"));
 
-        assertThat( prefixedDimensions.stream()
-            .map( PrefixedDimension::getPrefix )
-            .collect( Collectors.toList() ),
-            containsInAnyOrder( "programUid", "programUid", "programUid" ) );
+    assertThat(
+        prefixedDimensions.stream().map(PrefixedDimension::getItem).collect(Collectors.toList()),
+        containsInAnyOrder(dataElement, programStageDataElement, trackedEntityAttribute));
+  }
 
-        assertThat( prefixedDimensions.stream()
-            .map( PrefixedDimension::getItem )
-            .collect( Collectors.toList() ),
-            containsInAnyOrder( dataElement, programStageDataElement, trackedEntityAttribute ) );
-    }
+  @Test
+  void testOfProgramIndicators() {
 
-    @Test
-    void testOfProgramIndicators()
-    {
+    ProgramIndicator programIndicator =
+        buildBaseIdentifiableObject("programIndicator", ProgramIndicator.class);
+    Program program = buildBaseIdentifiableObject("programUid", Program.class);
+    programIndicator.setProgram(program);
 
-        ProgramIndicator programIndicator = buildBaseIdentifiableObject( "programIndicator", ProgramIndicator.class );
-        Program program = buildBaseIdentifiableObject( "programUid", Program.class );
-        programIndicator.setProgram( program );
+    Collection<PrefixedDimension> prefixedDimensions =
+        PrefixedDimensions.ofProgramIndicators(ImmutableSet.of(programIndicator));
 
-        Collection<PrefixedDimension> prefixedDimensions = PrefixedDimensions.ofProgramIndicators(
-            ImmutableSet.of( programIndicator ) );
+    assertThat(prefixedDimensions, hasSize(1));
+    assertThat(
+        prefixedDimensions.stream().map(PrefixedDimension::getPrefix).collect(Collectors.toList()),
+        containsInAnyOrder("programUid"));
+    assertThat(
+        prefixedDimensions.stream().map(PrefixedDimension::getItem).collect(Collectors.toList()),
+        containsInAnyOrder(programIndicator));
+    assertThat(
+        prefixedDimensions.stream().map(PrefixedDimension::getProgram).collect(Collectors.toList()),
+        containsInAnyOrder(program));
+  }
 
-        assertThat( prefixedDimensions, hasSize( 1 ) );
-        assertThat( prefixedDimensions.stream()
-            .map( PrefixedDimension::getPrefix )
-            .collect( Collectors.toList() ),
-            containsInAnyOrder( "programUid" ) );
-        assertThat( prefixedDimensions.stream()
-            .map( PrefixedDimension::getItem )
-            .collect( Collectors.toList() ),
-            containsInAnyOrder( programIndicator ) );
-        assertThat( prefixedDimensions.stream()
-            .map( PrefixedDimension::getProgram )
-            .collect( Collectors.toList() ),
-            containsInAnyOrder( program ) );
-    }
+  @Test
+  void testOfDataElements() {
 
-    @Test
-    void testOfDataElements()
-    {
+    ProgramStage programStage = buildBaseIdentifiableObject("programStageUid", ProgramStage.class);
+    Program program = buildBaseIdentifiableObject("programUid", Program.class);
 
-        ProgramStage programStage = buildBaseIdentifiableObject( "programStageUid", ProgramStage.class );
-        Program program = buildBaseIdentifiableObject( "programUid", Program.class );
+    DataElement dataElement1 = buildBaseIdentifiableObject("de1", DataElement.class);
+    DataElement dataElement2 = buildBaseIdentifiableObject("de2", DataElement.class);
 
-        DataElement dataElement1 = buildBaseIdentifiableObject( "de1", DataElement.class );
-        DataElement dataElement2 = buildBaseIdentifiableObject( "de2", DataElement.class );
+    programStage.setProgram(program);
+    programStage.setProgramStageDataElements(
+        ImmutableSet.of(
+            new ProgramStageDataElement(programStage, dataElement1),
+            new ProgramStageDataElement(programStage, dataElement2)));
 
-        programStage.setProgram( program );
-        programStage.setProgramStageDataElements(
-            ImmutableSet.of(
-                new ProgramStageDataElement( programStage, dataElement1 ),
-                new ProgramStageDataElement( programStage, dataElement2 ) ) );
+    Collection<PrefixedDimension> prefixedDimensions =
+        PrefixedDimensions.ofDataElements(programStage);
 
-        Collection<PrefixedDimension> prefixedDimensions = PrefixedDimensions.ofDataElements( programStage );
+    assertThat(prefixedDimensions, hasSize(2));
+    assertThat(
+        prefixedDimensions.stream().map(PrefixedDimension::getPrefix).collect(Collectors.toList()),
+        containsInAnyOrder("programUid.programStageUid", "programUid.programStageUid"));
 
-        assertThat( prefixedDimensions, hasSize( 2 ) );
-        assertThat( prefixedDimensions.stream()
-            .map( PrefixedDimension::getPrefix )
-            .collect( Collectors.toList() ),
-            containsInAnyOrder( "programUid.programStageUid", "programUid.programStageUid" ) );
+    assertThat(
+        prefixedDimensions.stream().map(PrefixedDimension::getItem).collect(Collectors.toList()),
+        containsInAnyOrder(dataElement1, dataElement2));
+  }
 
-        assertThat( prefixedDimensions.stream()
-            .map( PrefixedDimension::getItem )
-            .collect( Collectors.toList() ),
-            containsInAnyOrder( dataElement1, dataElement2 ) );
-    }
+  @Test
+  void testOfProgramStageDataElements() {
 
-    @Test
-    void testOfProgramStageDataElements()
-    {
+    ProgramStage programStage1 =
+        buildBaseIdentifiableObject("programStageUid1", ProgramStage.class);
+    ProgramStage programStage2 =
+        buildBaseIdentifiableObject("programStageUid2", ProgramStage.class);
 
-        ProgramStage programStage1 = buildBaseIdentifiableObject( "programStageUid1", ProgramStage.class );
-        ProgramStage programStage2 = buildBaseIdentifiableObject( "programStageUid2", ProgramStage.class );
+    Program program = buildBaseIdentifiableObject("programUid", Program.class);
 
-        Program program = buildBaseIdentifiableObject( "programUid", Program.class );
+    DataElement dataElement1 = buildBaseIdentifiableObject("de1", DataElement.class);
+    DataElement dataElement2 = buildBaseIdentifiableObject("de2", DataElement.class);
 
-        DataElement dataElement1 = buildBaseIdentifiableObject( "de1", DataElement.class );
-        DataElement dataElement2 = buildBaseIdentifiableObject( "de2", DataElement.class );
+    programStage1.setProgram(program);
+    programStage2.setProgram(program);
 
-        programStage1.setProgram( program );
-        programStage2.setProgram( program );
+    ProgramStageDataElement ps1 = new ProgramStageDataElement(programStage1, dataElement1);
+    ProgramStageDataElement ps2 = new ProgramStageDataElement(programStage1, dataElement2);
+    ProgramStageDataElement ps3 = new ProgramStageDataElement(programStage2, dataElement1);
+    ProgramStageDataElement ps4 = new ProgramStageDataElement(programStage2, dataElement2);
 
-        ProgramStageDataElement ps1 = new ProgramStageDataElement( programStage1, dataElement1 );
-        ProgramStageDataElement ps2 = new ProgramStageDataElement( programStage1, dataElement2 );
-        ProgramStageDataElement ps3 = new ProgramStageDataElement( programStage2, dataElement1 );
-        ProgramStageDataElement ps4 = new ProgramStageDataElement( programStage2, dataElement2 );
+    Collection<PrefixedDimension> prefixedDimensions =
+        PrefixedDimensions.ofProgramStageDataElements(ImmutableSet.of(ps1, ps2, ps3, ps4));
 
-        Collection<PrefixedDimension> prefixedDimensions = PrefixedDimensions.ofProgramStageDataElements(
-            ImmutableSet.of( ps1, ps2, ps3, ps4 ) );
+    assertThat(prefixedDimensions, hasSize(4));
+    assertThat(
+        prefixedDimensions.stream().map(PrefixedDimension::getPrefix).collect(Collectors.toList()),
+        containsInAnyOrder(
+            "programUid.programStageUid1",
+            "programUid.programStageUid2",
+            "programUid.programStageUid1",
+            "programUid.programStageUid2"));
 
-        assertThat( prefixedDimensions, hasSize( 4 ) );
-        assertThat( prefixedDimensions.stream()
-            .map( PrefixedDimension::getPrefix )
-            .collect( Collectors.toList() ),
-            containsInAnyOrder( "programUid.programStageUid1", "programUid.programStageUid2",
-                "programUid.programStageUid1", "programUid.programStageUid2" ) );
+    assertThat(
+        prefixedDimensions.stream().map(PrefixedDimension::getItem).collect(Collectors.toList()),
+        containsInAnyOrder(ps1, ps2, ps3, ps4));
+  }
 
-        assertThat( prefixedDimensions.stream()
-            .map( PrefixedDimension::getItem )
-            .collect( Collectors.toList() ),
-            containsInAnyOrder( ps1, ps2, ps3, ps4 ) );
-    }
-
-    @SneakyThrows
-    private <T extends BaseIdentifiableObject> T buildBaseIdentifiableObject( String uid, Class<T> tClass )
-    {
-        T t = tClass.getDeclaredConstructor().newInstance();
-        t.setUid( uid );
-        return t;
-    }
+  @SneakyThrows
+  private <T extends BaseIdentifiableObject> T buildBaseIdentifiableObject(
+      String uid, Class<T> tClass) {
+    T t = tClass.getDeclaredConstructor().newInstance();
+    t.setUid(uid);
+    return t;
+  }
 }

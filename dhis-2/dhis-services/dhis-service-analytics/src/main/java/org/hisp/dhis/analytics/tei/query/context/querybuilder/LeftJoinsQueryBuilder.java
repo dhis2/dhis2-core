@@ -44,9 +44,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.annotation.Nonnull;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -63,88 +61,92 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.springframework.stereotype.Service;
 
-/**
- * This class is responsible for building the SQL statement for the main TEI
- * table.
- */
+/** This class is responsible for building the SQL statement for the main TEI table. */
 @Service
-public class LeftJoinsQueryBuilder implements SqlQueryBuilder
-{
-    @Nonnull
-    @Override
-    public List<Predicate<DimensionIdentifier<DimensionParam>>> getDimensionFilters()
-    {
-        return List.of(
-            dimensionIdentifier -> dimensionIdentifier.isEventDimension() ||
-                dimensionIdentifier.isEnrollmentDimension(),
-            dimensionIdentifier -> !isOfType( dimensionIdentifier, PROGRAM_INDICATOR ) );
+public class LeftJoinsQueryBuilder implements SqlQueryBuilder {
+  @Nonnull
+  @Override
+  public List<Predicate<DimensionIdentifier<DimensionParam>>> getDimensionFilters() {
+    return List.of(
+        dimensionIdentifier ->
+            dimensionIdentifier.isEventDimension() || dimensionIdentifier.isEnrollmentDimension(),
+        dimensionIdentifier -> !isOfType(dimensionIdentifier, PROGRAM_INDICATOR));
+  }
+
+  @Nonnull
+  @Override
+  public List<Predicate<AnalyticsSortingParams>> getSortingFilters() {
+    return List.of(
+        sortingParams ->
+            sortingParams.getOrderBy().isEventDimension()
+                || sortingParams.getOrderBy().isEnrollmentDimension(),
+        sortingParams -> !isOfType(sortingParams.getOrderBy(), PROGRAM_INDICATOR));
+  }
+
+  @Override
+  public RenderableSqlQuery buildSqlQuery(
+      QueryContext queryContext,
+      List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers,
+      List<AnalyticsSortingParams> analyticsSortingParams) {
+    RenderableSqlQueryBuilder renderableSqlQuery = RenderableSqlQuery.builder();
+
+    List<DimensionIdentifier<DimensionParam>> allDimensions =
+        Stream.concat(
+                dimensionIdentifiers.stream(),
+                analyticsSortingParams.stream().map(AnalyticsSortingParams::getOrderBy))
+            .filter(dimensionIdentifier -> !isOfType(dimensionIdentifier, PROGRAM_ATTRIBUTE))
+            .collect(Collectors.toList());
+
+    Set<ElementWithOffset<Program>> allDeclaredPrograms =
+        allDimensions.stream().map(DimensionIdentifier::getProgram).collect(Collectors.toSet());
+
+    Set<Pair<ElementWithOffset<Program>, ElementWithOffset<ProgramStage>>>
+        allDeclaredProgramStages =
+            allDimensions.stream()
+                .filter(DimensionIdentifier::isEventDimension)
+                .map(
+                    dimensionIdentifier ->
+                        Pair.of(
+                            dimensionIdentifier.getProgram(),
+                            dimensionIdentifier.getProgramStage()))
+                .collect(Collectors.toSet());
+
+    TrackedEntityType trackedEntityType = queryContext.getTeiQueryParams().getTrackedEntityType();
+    SqlParameterManager sqlParameterManager = queryContext.getSqlParameterManager();
+
+    for (ElementWithOffset<Program> program : allDeclaredPrograms) {
+      String enrollmentAlias = doubleQuote(program.toString());
+      renderableSqlQuery.leftJoin(
+          LeftJoin.of(
+              () ->
+                  "("
+                      + enrollmentSelect(program, trackedEntityType, sqlParameterManager)
+                      + ") as "
+                      + enrollmentAlias,
+              fieldsEqual(TEI_ALIAS, TEI_UID, enrollmentAlias, TEI_UID)));
     }
 
-    @Nonnull
-    @Override
-    public List<Predicate<AnalyticsSortingParams>> getSortingFilters()
-    {
-        return List.of(
-            sortingParams -> sortingParams.getOrderBy().isEventDimension() ||
-                sortingParams.getOrderBy().isEnrollmentDimension(),
-            sortingParams -> !isOfType( sortingParams.getOrderBy(), PROGRAM_INDICATOR ) );
+    for (Pair<ElementWithOffset<Program>, ElementWithOffset<ProgramStage>> programStage :
+        allDeclaredProgramStages) {
+      String enrollmentAlias = doubleQuote(programStage.getLeft().toString());
+      String eventAlias =
+          doubleQuote(
+              programStage.getLeft().toString()
+                  + DIMENSION_SEPARATOR
+                  + programStage.getRight().toString());
+      renderableSqlQuery.leftJoin(
+          LeftJoin.of(
+              () ->
+                  "("
+                      + eventSelect(
+                          programStage.getLeft(),
+                          programStage.getRight(),
+                          trackedEntityType,
+                          sqlParameterManager)
+                      + ") as "
+                      + eventAlias,
+              fieldsEqual(enrollmentAlias, PI_UID, eventAlias, PI_UID)));
     }
-
-    @Override
-    public RenderableSqlQuery buildSqlQuery( QueryContext queryContext,
-        List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers,
-        List<AnalyticsSortingParams> analyticsSortingParams )
-    {
-        RenderableSqlQueryBuilder renderableSqlQuery = RenderableSqlQuery.builder();
-
-        List<DimensionIdentifier<DimensionParam>> allDimensions = Stream.concat(
-            dimensionIdentifiers.stream(),
-            analyticsSortingParams.stream()
-                .map( AnalyticsSortingParams::getOrderBy ) )
-            .filter( dimensionIdentifier -> !isOfType( dimensionIdentifier, PROGRAM_ATTRIBUTE ) )
-            .collect( Collectors.toList() );
-
-        Set<ElementWithOffset<Program>> allDeclaredPrograms = allDimensions.stream()
-            .map( DimensionIdentifier::getProgram )
-            .collect( Collectors.toSet() );
-
-        Set<Pair<ElementWithOffset<Program>, ElementWithOffset<ProgramStage>>> allDeclaredProgramStages = allDimensions
-            .stream()
-            .filter( DimensionIdentifier::isEventDimension )
-            .map( dimensionIdentifier -> Pair.of( dimensionIdentifier.getProgram(),
-                dimensionIdentifier.getProgramStage() ) )
-            .collect( Collectors.toSet() );
-
-        TrackedEntityType trackedEntityType = queryContext.getTeiQueryParams().getTrackedEntityType();
-        SqlParameterManager sqlParameterManager = queryContext.getSqlParameterManager();
-
-        for ( ElementWithOffset<Program> program : allDeclaredPrograms )
-        {
-            String enrollmentAlias = doubleQuote( program.toString() );
-            renderableSqlQuery.leftJoin(
-                LeftJoin.of(
-                    () -> "(" + enrollmentSelect(
-                        program,
-                        trackedEntityType,
-                        sqlParameterManager ) + ") as " + enrollmentAlias,
-                    fieldsEqual( TEI_ALIAS, TEI_UID, enrollmentAlias, TEI_UID ) ) );
-        }
-
-        for ( Pair<ElementWithOffset<Program>, ElementWithOffset<ProgramStage>> programStage : allDeclaredProgramStages )
-        {
-            String enrollmentAlias = doubleQuote( programStage.getLeft().toString() );
-            String eventAlias = doubleQuote(
-                programStage.getLeft().toString() + DIMENSION_SEPARATOR + programStage.getRight().toString() );
-            renderableSqlQuery.leftJoin(
-                LeftJoin.of(
-                    () -> "(" + eventSelect(
-                        programStage.getLeft(),
-                        programStage.getRight(),
-                        trackedEntityType,
-                        sqlParameterManager ) + ") as " + eventAlias,
-                    fieldsEqual(
-                        enrollmentAlias, PI_UID, eventAlias, PI_UID ) ) );
-        }
-        return renderableSqlQuery.build();
-    }
+    return renderableSqlQuery.build();
+  }
 }

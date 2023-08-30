@@ -38,44 +38,35 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.springframework.stereotype.Component;
 
-/**
- * Validator to validate all {@link TrackedEntity}s in the
- * {@link TrackerBundle}.
- */
-@Component( "org.hisp.dhis.tracker.imports.validation.validator.trackedentity.TrackedEntityValidator" )
-public class TrackedEntityValidator implements Validator<TrackerBundle>
-{
-    private final Validator<TrackerBundle> validator;
+/** Validator to validate all {@link TrackedEntity}s in the {@link TrackerBundle}. */
+@Component(
+    "org.hisp.dhis.tracker.imports.validation.validator.trackedentity.TrackedEntityValidator")
+public class TrackedEntityValidator implements Validator<TrackerBundle> {
+  private final Validator<TrackerBundle> validator;
 
-    public TrackedEntityValidator( SecurityOwnershipValidator securityOwnershipValidator,
-        AttributeValidator attributeValidator )
-    {
-        // @formatter:off
-        validator = each( TrackerBundle::getTrackedEntities,
-                        seq(
-                                new UidValidator(),
-                                new ExistenceValidator(),
-                                new MandatoryFieldsValidator(),
-                                new MetaValidator(),
-                                new UpdatableFieldsValidator(),
-                                securityOwnershipValidator,
-                                all(
-                                        attributeValidator
-                                )
-                        )
-                );
-        // @formatter:on
-    }
+  public TrackedEntityValidator(
+      SecurityOwnershipValidator securityOwnershipValidator,
+      AttributeValidator attributeValidator) {
+    validator =
+        each(
+            TrackerBundle::getTrackedEntities,
+            seq(
+                new UidValidator(),
+                new ExistenceValidator(),
+                new MandatoryFieldsValidator(),
+                new MetaValidator(),
+                new UpdatableFieldsValidator(),
+                securityOwnershipValidator,
+                all(attributeValidator)));
+  }
 
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
-    {
-        validator.validate( reporter, bundle, input );
-    }
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
+    validator.validate(reporter, bundle, input);
+  }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true; // this main validator should always run
-    }
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true; // this main validator should always run
+  }
 }

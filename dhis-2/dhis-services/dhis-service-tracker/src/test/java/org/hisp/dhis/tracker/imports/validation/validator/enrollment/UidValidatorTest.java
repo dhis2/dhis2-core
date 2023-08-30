@@ -31,6 +31,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1048;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -41,65 +42,64 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Enrico Colasante
  */
-class UidValidatorTest
-{
+class UidValidatorTest {
 
-    private static final String INVALID_UID = "InvalidUID";
+  private static final String INVALID_UID = "InvalidUID";
 
-    private UidValidator validator;
+  private UidValidator validator;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    void setUp()
-    {
-        TrackerPreheat preheat = new TrackerPreheat();
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        preheat.setIdSchemes( idSchemes );
-        reporter = new Reporter( idSchemes );
-        bundle = TrackerBundle.builder().preheat( preheat ).build();
+  @BeforeEach
+  void setUp() {
+    TrackerPreheat preheat = new TrackerPreheat();
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    preheat.setIdSchemes(idSchemes);
+    reporter = new Reporter(idSchemes);
+    bundle = TrackerBundle.builder().preheat(preheat).build();
 
-        validator = new UidValidator();
-    }
+    validator = new UidValidator();
+  }
 
-    @Test
-    void verifyEnrollmentValidationSuccess()
-    {
-        Note note = Note.builder().note( CodeGenerator.generateUid() ).build();
-        Enrollment enrollment = Enrollment.builder().enrollment( CodeGenerator.generateUid() )
-            .notes( Lists.newArrayList( note ) ).build();
+  @Test
+  void verifyEnrollmentValidationSuccess() {
+    Note note = Note.builder().note(CodeGenerator.generateUid()).build();
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .notes(Lists.newArrayList(note))
+            .build();
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyEnrollmentWithInvalidUidFails()
-    {
-        Enrollment enrollment = Enrollment.builder().enrollment( INVALID_UID ).build();
+  @Test
+  void verifyEnrollmentWithInvalidUidFails() {
+    Enrollment enrollment = Enrollment.builder().enrollment(INVALID_UID).build();
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, E1048 );
-    }
+    assertHasError(reporter, enrollment, E1048);
+  }
 
-    @Test
-    void verifyEnrollmentWithNoteWithInvalidUidFails()
-    {
-        Note note = Note.builder().note( INVALID_UID ).build();
-        Enrollment enrollment = Enrollment.builder().enrollment( CodeGenerator.generateUid() )
-            .notes( Lists.newArrayList( note ) ).build();
+  @Test
+  void verifyEnrollmentWithNoteWithInvalidUidFails() {
+    Note note = Note.builder().note(INVALID_UID).build();
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .notes(Lists.newArrayList(note))
+            .build();
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, E1048 );
-    }
+    assertHasError(reporter, enrollment, E1048);
+  }
 }

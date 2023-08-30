@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.eventhook;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen
@@ -42,13 +40,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 @EqualsAndHashCode
-@Accessors( chain = true )
-public class Source
-    implements Serializable
-{
-    @JsonProperty( required = true )
-    private String path;
+@Accessors(chain = true)
+public class Source implements Serializable {
+  @JsonProperty(required = true)
+  private String path;
 
-    @JsonProperty( required = true )
-    private String fields = "*";
+  @JsonProperty(required = true)
+  private String fields = "*";
 }

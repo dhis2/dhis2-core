@@ -27,40 +27,36 @@
  */
 package org.hisp.dhis.dxf2.webmessage.responses;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.feedback.ErrorReport;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ErrorReportsWebMessageResponse
-    extends AbstractWebMessageResponse
-{
-    private List<ErrorReport> errorReports = new ArrayList<>();
+public class ErrorReportsWebMessageResponse extends AbstractWebMessageResponse {
+  private List<ErrorReport> errorReports = new ArrayList<>();
 
-    public ErrorReportsWebMessageResponse( List<ErrorReport> errorReports )
-    {
-        this.errorReports = errorReports;
-    }
+  public ErrorReportsWebMessageResponse(List<ErrorReport> errorReports) {
+    this.errorReports = errorReports;
+  }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "errorReports", namespace = DxfNamespaces.DXF_2_0, useWrapping = false )
-    @JacksonXmlProperty( localName = "errorReport", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ErrorReport> getErrorReports()
-    {
-        return errorReports;
-    }
+  @JsonProperty
+  @JacksonXmlElementWrapper(
+      localName = "errorReports",
+      namespace = DxfNamespaces.DXF_2_0,
+      useWrapping = false)
+  @JacksonXmlProperty(localName = "errorReport", namespace = DxfNamespaces.DXF_2_0)
+  public List<ErrorReport> getErrorReports() {
+    return errorReports;
+  }
 
-    public void setErrorReports( List<ErrorReport> errorReports )
-    {
-        this.errorReports = errorReports;
-    }
+  public void setErrorReports(List<ErrorReport> errorReports) {
+    this.errorReports = errorReports;
+  }
 }

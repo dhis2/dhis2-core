@@ -35,13 +35,12 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
  *
  * @author Enrico Colasante
  */
-public interface ProgramRuleService
-{
-    /**
-     * It feeds in all enrollments and event from the {@link TrackerBundle} into
-     * rule engine and return a list of rule effects by tracker object.
-     *
-     * @return Enhance bundle with rule effects.
-     */
-    void calculateRuleEffects( TrackerBundle bundle, TrackerPreheat preheat );
+public interface ProgramRuleService {
+  /**
+   * It feeds in all enrollments and event from the {@link TrackerBundle} into rule engine and
+   * return a list of rule effects by tracker object.
+   *
+   * @return Enhance bundle with rule effects.
+   */
+  void calculateRuleEffects(TrackerBundle bundle, TrackerPreheat preheat);
 }

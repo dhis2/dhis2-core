@@ -35,9 +35,7 @@ import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isO
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
 import lombok.Getter;
-
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -53,105 +51,95 @@ import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders;
 import org.springframework.stereotype.Service;
 
 /**
- * This builder is responsible for building the SQL query for the TEI table. It
- * will generate the relevant SQL parts related to
- * dimensions/filters/sortingParameters having one the following structure: -
- * {teiField} - {programUid}.{programAttribute}
+ * This builder is responsible for building the SQL query for the TEI table. It will generate the
+ * relevant SQL parts related to dimensions/filters/sortingParameters having one the following
+ * structure: - {teiField} - {programUid}.{programAttribute}
  */
 @Service
-@org.springframework.core.annotation.Order( 1 )
-public class TeiQueryBuilder extends SqlQueryBuilderAdaptor
-{
-    @Override
-    public boolean alwaysRun()
-    {
-        return true;
-    }
+@org.springframework.core.annotation.Order(1)
+public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
+  @Override
+  public boolean alwaysRun() {
+    return true;
+  }
 
-    @Getter
-    private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters = List.of(
-        SqlQueryBuilders::isNotPeriodDimension,
-        OrgUnitQueryBuilder::isNotOuDimension,
-        TeiQueryBuilder::isTeiRestriction );
+  @Getter
+  private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters =
+      List.of(
+          SqlQueryBuilders::isNotPeriodDimension,
+          OrgUnitQueryBuilder::isNotOuDimension,
+          TeiQueryBuilder::isTeiRestriction);
 
-    @Getter
-    private final List<Predicate<AnalyticsSortingParams>> sortingFilters = List.of(
-        sortingParams -> SqlQueryBuilders.isNotPeriodDimension( sortingParams.getOrderBy() ),
-        sortingParams -> OrgUnitQueryBuilder.isNotOuDimension( sortingParams.getOrderBy() ),
-        TeiQueryBuilder::isTeiOrder );
+  @Getter
+  private final List<Predicate<AnalyticsSortingParams>> sortingFilters =
+      List.of(
+          sortingParams -> SqlQueryBuilders.isNotPeriodDimension(sortingParams.getOrderBy()),
+          sortingParams -> OrgUnitQueryBuilder.isNotOuDimension(sortingParams.getOrderBy()),
+          TeiQueryBuilder::isTeiOrder);
 
-    @Override
-    protected Stream<Field> getSelect( QueryContext queryContext )
-    {
-        return Stream.concat(
-            // Static fields column.
-            TeiFields.getStaticFields(),
+  @Override
+  protected Stream<Field> getSelect(QueryContext queryContext) {
+    return Stream.concat(
+        // Static fields column.
+        TeiFields.getStaticFields(),
 
-            // Tei/Program attributes.
-            TeiFields.getDimensionFields( queryContext.getTeiQueryParams() ) );
-    }
+        // Tei/Program attributes.
+        TeiFields.getDimensionFields(queryContext.getTeiQueryParams()));
+  }
 
-    @Override
-    protected Stream<GroupableCondition> getWhereClauses( QueryContext queryContext,
-        List<DimensionIdentifier<DimensionParam>> acceptedDimensions )
-    {
-        return acceptedDimensions.stream()
-            .map( dimId -> GroupableCondition.of(
-                dimId.getGroupId(),
-                TeiAttributeCondition.of( dimId, queryContext ) ) );
-    }
+  @Override
+  protected Stream<GroupableCondition> getWhereClauses(
+      QueryContext queryContext, List<DimensionIdentifier<DimensionParam>> acceptedDimensions) {
+    return acceptedDimensions.stream()
+        .map(
+            dimId ->
+                GroupableCondition.of(
+                    dimId.getGroupId(), TeiAttributeCondition.of(dimId, queryContext)));
+  }
 
-    /**
-     * Returns true if the given dimension identifier has restrictions and is
-     * either a TEI dimension or a Program indicator
-     *
-     * @param dimensionIdentifier the dimension identifier
-     * @return true if the given dimension identifier has restrictions and is
-     *         either a TEI dimension or a Program indicator
-     */
-    private static boolean isTeiRestriction( DimensionIdentifier<DimensionParam> dimensionIdentifier )
-    {
-        return hasRestrictions( dimensionIdentifier ) && isTei( dimensionIdentifier );
-    }
+  /**
+   * Returns true if the given dimension identifier has restrictions and is either a TEI dimension
+   * or a Program indicator
+   *
+   * @param dimensionIdentifier the dimension identifier
+   * @return true if the given dimension identifier has restrictions and is either a TEI dimension
+   *     or a Program indicator
+   */
+  private static boolean isTeiRestriction(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return hasRestrictions(dimensionIdentifier) && isTei(dimensionIdentifier);
+  }
 
-    /**
-     * Returns true if the given dimension identifier is either a TEI dimension
-     * or a Program indicator
-     *
-     * @param dimensionIdentifier the dimension identifier
-     * @return true if the given dimension identifier is either a TEI dimension
-     *         or a Program indicator
-     */
-    private static boolean isTei( DimensionIdentifier<DimensionParam> dimensionIdentifier )
-    {
-        return
-        // Will match all dimensionIdentifiers like {dimensionUid}.
-        dimensionIdentifier.getDimensionIdentifierType() == TEI ||
+  /**
+   * Returns true if the given dimension identifier is either a TEI dimension or a Program indicator
+   *
+   * @param dimensionIdentifier the dimension identifier
+   * @return true if the given dimension identifier is either a TEI dimension or a Program indicator
+   */
+  private static boolean isTei(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return
+    // Will match all dimensionIdentifiers like {dimensionUid}.
+    dimensionIdentifier.getDimensionIdentifierType() == TEI
+        ||
         // Will match all dimensionIdentifiers whose type is PROGRAM_ATTRIBUTE.
         // e.g. {programUid}.{attributeUid}
-            isOfType( dimensionIdentifier, PROGRAM_ATTRIBUTE );
-    }
+        isOfType(dimensionIdentifier, PROGRAM_ATTRIBUTE);
+  }
 
-    @Override
-    protected Stream<IndexedOrder> getOrderClauses( QueryContext queryContext,
-        List<AnalyticsSortingParams> acceptedSortingParams )
-    {
-        return acceptedSortingParams.stream()
-            .map( this::toIndexedOrder );
-    }
+  @Override
+  protected Stream<IndexedOrder> getOrderClauses(
+      QueryContext queryContext, List<AnalyticsSortingParams> acceptedSortingParams) {
+    return acceptedSortingParams.stream().map(this::toIndexedOrder);
+  }
 
-    private IndexedOrder toIndexedOrder( AnalyticsSortingParams param )
-    {
-        // Here, we can assume that param is either a static dimension or
-        // a TEI/Program attribute in the form asc=pUid.dimension (or desc=pUid.dimension)
-        // in both cases the column for the select is the same.
-        String column = param.getOrderBy().getDimension().getUid();
-        return IndexedOrder.of( param.getIndex(),
-            Order.of( Field.of( column ), param.getSortDirection() ) );
-    }
+  private IndexedOrder toIndexedOrder(AnalyticsSortingParams param) {
+    // Here, we can assume that param is either a static dimension or
+    // a TEI/Program attribute in the form asc=pUid.dimension (or desc=pUid.dimension)
+    // in both cases the column for the select is the same.
+    String column = param.getOrderBy().getDimension().getUid();
+    return IndexedOrder.of(param.getIndex(), Order.of(Field.of(column), param.getSortDirection()));
+  }
 
-    private static boolean isTeiOrder( AnalyticsSortingParams analyticsSortingParams )
-    {
-        return isTei( analyticsSortingParams.getOrderBy() );
-    }
+  private static boolean isTeiOrder(AnalyticsSortingParams analyticsSortingParams) {
+    return isTei(analyticsSortingParams.getOrderBy());
+  }
 }

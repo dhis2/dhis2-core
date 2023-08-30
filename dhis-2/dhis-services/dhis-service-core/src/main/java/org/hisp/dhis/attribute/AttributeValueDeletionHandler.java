@@ -30,7 +30,6 @@ package org.hisp.dhis.attribute;
 import static java.util.Collections.singletonList;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -39,26 +38,22 @@ import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class AttributeValueDeletionHandler extends DeletionHandler
-{
-    private final IdentifiableObjectManager identifiableObjectManager;
+public class AttributeValueDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager identifiableObjectManager;
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( Attribute.class, this::allowDeleteAttribute );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(Attribute.class, this::allowDeleteAttribute);
+  }
 
-    private DeletionVeto allowDeleteAttribute( Attribute attribute )
-    {
-        for ( Class<? extends IdentifiableObject> supportedClass : attribute.getSupportedClasses() )
-        {
-            if ( identifiableObjectManager.countAllValuesByAttributes( supportedClass,
-                singletonList( attribute ) ) > 0 )
-            {
-                return new DeletionVeto( supportedClass, Attribute.class );
-            }
-        }
-        return DeletionVeto.ACCEPT;
+  private DeletionVeto allowDeleteAttribute(Attribute attribute) {
+    for (Class<? extends IdentifiableObject> supportedClass : attribute.getSupportedClasses()) {
+      if (identifiableObjectManager.countAllValuesByAttributes(
+              supportedClass, singletonList(attribute))
+          > 0) {
+        return new DeletionVeto(supportedClass, Attribute.class);
+      }
     }
+    return DeletionVeto.ACCEPT;
+  }
 }

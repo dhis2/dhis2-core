@@ -39,132 +39,145 @@ import lombok.NoArgsConstructor;
  *
  * @author maikel arabori
  */
-@NoArgsConstructor( access = PRIVATE )
-public class NameTranslationStatement
-{
-    /**
-     * This method will join the translations column for the given table.
-     *
-     * @param table the table containing the translation columns
-     * @return the joins responsible to bring translated names
-     */
-    public static String translationNamesJoinsOn( String table )
-    {
-        if ( isNotBlank( table ) )
-        {
-            return translationNamesJoinsOn( table, false );
-        }
-
-        return EMPTY;
+@NoArgsConstructor(access = PRIVATE)
+public class NameTranslationStatement {
+  /**
+   * This method will join the translations column for the given table.
+   *
+   * @param table the table containing the translation columns
+   * @return the joins responsible to bring translated names
+   */
+  public static String translationNamesJoinsOn(String table) {
+    if (isNotBlank(table)) {
+      return translationNamesJoinsOn(table, false);
     }
 
-    /**
-     * This method will join the translations column for the given table.
-     * Depending on the program flag it will also join the program table.
-     *
-     * @param table the table containing the translation columns
-     * @param includeProgram if true, it will also join the program table
-     * @return the joins responsible to bring translated names
-     */
-    public static String translationNamesJoinsOn( String table, boolean includeProgram )
-    {
-        StringBuilder joins = new StringBuilder();
+    return EMPTY;
+  }
 
-        if ( isNotBlank( table ) )
-        {
-            joins
-                .append(
-                    " left join jsonb_to_recordset(" + table + ".translations) as " + table
-                        + "_displayname(value TEXT, locale TEXT, property TEXT) on " + table + "_displayname.locale = :"
-                        + LOCALE + " and " + table + "_displayname.property = 'NAME'" )
-                .append(
-                    " left join jsonb_to_recordset(" + table + ".translations) as " + table
-                        + "_displayshortname(value TEXT, locale TEXT, property TEXT) on " + table
-                        + "_displayshortname.locale = :"
-                        + LOCALE + " and " + table + "_displayshortname.property = 'SHORT_NAME'" );
+  /**
+   * This method will join the translations column for the given table. Depending on the program
+   * flag it will also join the program table.
+   *
+   * @param table the table containing the translation columns
+   * @param includeProgram if true, it will also join the program table
+   * @return the joins responsible to bring translated names
+   */
+  public static String translationNamesJoinsOn(String table, boolean includeProgram) {
+    StringBuilder joins = new StringBuilder();
 
-            if ( includeProgram )
-            {
-                joins
-                    .append(
-                        " left join jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) on p_displayname.locale = :"
-                            + LOCALE + " and p_displayname.property = 'NAME'" )
-                    .append(
-                        " left join jsonb_to_recordset(program.translations) as p_displayshortname(value TEXT, locale TEXT, property TEXT) on p_displayshortname.locale = :"
-                            + LOCALE + " and p_displayshortname.property = 'SHORT_NAME'" );
-            }
-        }
+    if (isNotBlank(table)) {
+      joins
+          .append(
+              " left join jsonb_to_recordset("
+                  + table
+                  + ".translations) as "
+                  + table
+                  + "_displayname(value TEXT, locale TEXT, property TEXT) on "
+                  + table
+                  + "_displayname.locale = :"
+                  + LOCALE
+                  + " and "
+                  + table
+                  + "_displayname.property = 'NAME'")
+          .append(
+              " left join jsonb_to_recordset("
+                  + table
+                  + ".translations) as "
+                  + table
+                  + "_displayshortname(value TEXT, locale TEXT, property TEXT) on "
+                  + table
+                  + "_displayshortname.locale = :"
+                  + LOCALE
+                  + " and "
+                  + table
+                  + "_displayshortname.property = 'SHORT_NAME'");
 
-        return joins.toString();
+      if (includeProgram) {
+        joins
+            .append(
+                " left join jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) on p_displayname.locale = :"
+                    + LOCALE
+                    + " and p_displayname.property = 'NAME'")
+            .append(
+                " left join jsonb_to_recordset(program.translations) as p_displayshortname(value TEXT, locale TEXT, property TEXT) on p_displayshortname.locale = :"
+                    + LOCALE
+                    + " and p_displayshortname.property = 'SHORT_NAME'");
+      }
     }
 
-    /**
-     * This method defines the values for the translatable columns, for the
-     * given table.
-     *
-     * @param table the table containing the translation columns
-     * @return the columns containing the translated names
-     */
-    public static String translationNamesColumnsFor( String table )
-    {
-        if ( isNotBlank( table ) )
-        {
-            return translationNamesColumnsFor( table, false );
-        }
+    return joins.toString();
+  }
 
-        return EMPTY;
+  /**
+   * This method defines the values for the translatable columns, for the given table.
+   *
+   * @param table the table containing the translation columns
+   * @return the columns containing the translated names
+   */
+  public static String translationNamesColumnsFor(String table) {
+    if (isNotBlank(table)) {
+      return translationNamesColumnsFor(table, false);
     }
 
-    /**
-     * This method defines the values for the translatable columns, for the
-     * given table. Depending on the program flag it will also bring
-     * translatable columns from the program table.
-     *
-     * @param table the table containing the translation columns
-     * @param includeProgram if true, it will also bring program columns
-     * @return the columns containing the translated names
-     */
-    public static String translationNamesColumnsFor( String table, boolean includeProgram )
-    {
-        StringBuilder columns = new StringBuilder();
+    return EMPTY;
+  }
 
-        if ( isNotBlank( table ) )
-        {
-            if ( includeProgram )
-            {
-                columns
-                    .append(
-                        ", (case when p_displayname.value is not null then p_displayname.value else program.name end) as i18n_first_name" )
-                    .append(
-                        ", (case when p_displayshortname.value is not null then p_displayshortname.value else program.shortname end) as i18n_first_shortname" )
-                    .append( translationNamesColumnsForItem( table, "i18n_second" ) );
-            }
-            else
-            {
-                columns
-                    .append( translationNamesColumnsForItem( table, "i18n_first" ) )
-                    .append( ", cast (null as text) as i18n_second_name" )
-                    .append( ", cast (null as text) as i18n_second_shortname" );
-            }
-        }
+  /**
+   * This method defines the values for the translatable columns, for the given table. Depending on
+   * the program flag it will also bring translatable columns from the program table.
+   *
+   * @param table the table containing the translation columns
+   * @param includeProgram if true, it will also bring program columns
+   * @return the columns containing the translated names
+   */
+  public static String translationNamesColumnsFor(String table, boolean includeProgram) {
+    StringBuilder columns = new StringBuilder();
 
-        return columns.toString();
-    }
-
-    private static String translationNamesColumnsForItem( String table, String i18nColumnPrefix )
-    {
-        StringBuilder columns = new StringBuilder();
-
+    if (isNotBlank(table)) {
+      if (includeProgram) {
         columns
             .append(
-                ", (case when " + table + "_displayname.value is not null then " + table
-                    + "_displayname.value else "
-                    + table + ".name end) as " + i18nColumnPrefix + "_name" )
+                ", (case when p_displayname.value is not null then p_displayname.value else program.name end) as i18n_first_name")
             .append(
-                ", (case when " + table + "_displayshortname.value is not null then " + table
-                    + "_displayshortname.value else " + table + ".shortname end) as " + i18nColumnPrefix
-                    + "_shortname" );
-
-        return columns.toString();
+                ", (case when p_displayshortname.value is not null then p_displayshortname.value else program.shortname end) as i18n_first_shortname")
+            .append(translationNamesColumnsForItem(table, "i18n_second"));
+      } else {
+        columns
+            .append(translationNamesColumnsForItem(table, "i18n_first"))
+            .append(", cast (null as text) as i18n_second_name")
+            .append(", cast (null as text) as i18n_second_shortname");
+      }
     }
+
+    return columns.toString();
+  }
+
+  private static String translationNamesColumnsForItem(String table, String i18nColumnPrefix) {
+    StringBuilder columns = new StringBuilder();
+
+    columns
+        .append(
+            ", (case when "
+                + table
+                + "_displayname.value is not null then "
+                + table
+                + "_displayname.value else "
+                + table
+                + ".name end) as "
+                + i18nColumnPrefix
+                + "_name")
+        .append(
+            ", (case when "
+                + table
+                + "_displayshortname.value is not null then "
+                + table
+                + "_displayshortname.value else "
+                + table
+                + ".shortname end) as "
+                + i18nColumnPrefix
+                + "_shortname");
+
+    return columns.toString();
+  }
 }

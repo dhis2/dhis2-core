@@ -28,7 +28,6 @@
 package org.hisp.dhis.programrule.engine;
 
 import java.util.List;
-
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.program.Program;
@@ -38,28 +37,23 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ServerSideImplementableRuleService
-    extends ImplementableRuleService
-{
-    private final Cache<Boolean> programHasRulesCache;
+public class ServerSideImplementableRuleService extends ImplementableRuleService {
+  private final Cache<Boolean> programHasRulesCache;
 
-    public ServerSideImplementableRuleService( ProgramRuleService programRuleService,
-        final CacheProvider cacheProvider )
-    {
-        super( programRuleService );
-        this.programHasRulesCache = cacheProvider.createProgramHasRulesCache();
-    }
+  public ServerSideImplementableRuleService(
+      ProgramRuleService programRuleService, final CacheProvider cacheProvider) {
+    super(programRuleService);
+    this.programHasRulesCache = cacheProvider.createProgramHasRulesCache();
+  }
 
-    @Override
-    public List<ProgramRule> getProgramRulesByActionTypes( Program program, String programStageUid )
-    {
-        return getProgramRulesByActionTypes( program, ProgramRuleActionType.SERVER_SUPPORTED_TYPES,
-            programStageUid );
-    }
+  @Override
+  public List<ProgramRule> getProgramRulesByActionTypes(Program program, String programStageUid) {
+    return getProgramRulesByActionTypes(
+        program, ProgramRuleActionType.SERVER_SUPPORTED_TYPES, programStageUid);
+  }
 
-    @Override
-    Cache<Boolean> getProgramHasRulesCache()
-    {
-        return this.programHasRulesCache;
-    }
+  @Override
+  Cache<Boolean> getProgramHasRulesCache() {
+    return this.programHasRulesCache;
+  }
 }

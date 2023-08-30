@@ -33,15 +33,15 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = { DebugMapper.class, TrackedEntityAttributeMapper.class } )
+@Mapper(uses = {DebugMapper.class, TrackedEntityAttributeMapper.class})
 public interface TrackedEntityTypeAttributeMapper
-    extends PreheatMapper<TrackedEntityTypeAttribute>
-{
-    TrackedEntityTypeAttributeMapper INSTANCE = Mappers.getMapper( TrackedEntityTypeAttributeMapper.class );
+    extends PreheatMapper<TrackedEntityTypeAttribute> {
+  TrackedEntityTypeAttributeMapper INSTANCE =
+      Mappers.getMapper(TrackedEntityTypeAttributeMapper.class);
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "uid" )
-    @Mapping( target = "mandatory" )
-    @Mapping( target = "trackedEntityAttribute" )
-    TrackedEntityTypeAttribute map( TrackedEntityTypeAttribute trackedEntityTypeAttribute );
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "uid")
+  @Mapping(target = "mandatory")
+  @Mapping(target = "trackedEntityAttribute")
+  TrackedEntityTypeAttribute map(TrackedEntityTypeAttribute trackedEntityTypeAttribute);
 }

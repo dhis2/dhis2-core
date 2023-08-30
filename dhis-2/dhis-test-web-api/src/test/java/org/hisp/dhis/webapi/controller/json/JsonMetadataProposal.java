@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.json;
 
 import java.time.LocalDateTime;
-
 import org.hisp.dhis.jsontree.Expected;
 import org.hisp.dhis.jsontree.JsonDate;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -37,76 +36,63 @@ import org.hisp.dhis.metadata.MetadataProposalTarget;
 import org.hisp.dhis.metadata.MetadataProposalType;
 
 /**
- * JSON representation of a {@link org.hisp.dhis.metadata.MetadataProposal} as
- * returned by the REST API.
+ * JSON representation of a {@link org.hisp.dhis.metadata.MetadataProposal} as returned by the REST
+ * API.
  *
  * @author Jan Bernitt
  */
-public interface JsonMetadataProposal extends JsonObject
-{
-    @Expected
-    default String getId()
-    {
-        return getString( "id" ).string();
-    }
+public interface JsonMetadataProposal extends JsonObject {
+  @Expected
+  default String getId() {
+    return getString("id").string();
+  }
 
-    @Expected
-    default MetadataProposalType getType()
-    {
-        return getString( "type" ).parsed( MetadataProposalType::valueOf );
-    }
+  @Expected
+  default MetadataProposalType getType() {
+    return getString("type").parsed(MetadataProposalType::valueOf);
+  }
 
-    @Expected
-    default MetadataProposalStatus getStatus()
-    {
-        return getString( "status" ).parsed( MetadataProposalStatus::valueOf );
-    }
+  @Expected
+  default MetadataProposalStatus getStatus() {
+    return getString("status").parsed(MetadataProposalStatus::valueOf);
+  }
 
-    @Expected
-    default MetadataProposalTarget getTarget()
-    {
-        return getString( "target" ).parsed( MetadataProposalTarget::valueOf );
-    }
+  @Expected
+  default MetadataProposalTarget getTarget() {
+    return getString("target").parsed(MetadataProposalTarget::valueOf);
+  }
 
-    default String getTargetId()
-    {
-        return getString( "targetId" ).string();
-    }
+  default String getTargetId() {
+    return getString("targetId").string();
+  }
 
-    default JsonObject getChange()
-    {
-        return getObject( "change" );
-    }
+  default JsonObject getChange() {
+    return getObject("change");
+  }
 
-    default String getComment()
-    {
-        return getString( "comment" ).string();
-    }
+  default String getComment() {
+    return getString("comment").string();
+  }
 
-    default String getReason()
-    {
-        return getString( "reason" ).string();
-    }
+  default String getReason() {
+    return getString("reason").string();
+  }
 
-    @Expected
-    default String getCreatedBy()
-    {
-        return getString( "createdBy" ).string();
-    }
+  @Expected
+  default String getCreatedBy() {
+    return getString("createdBy").string();
+  }
 
-    default String getFinalisedBy()
-    {
-        return getString( "finalisedBy" ).string();
-    }
+  default String getFinalisedBy() {
+    return getString("finalisedBy").string();
+  }
 
-    @Expected
-    default LocalDateTime getCreated()
-    {
-        return get( "created", JsonDate.class ).date();
-    }
+  @Expected
+  default LocalDateTime getCreated() {
+    return get("created", JsonDate.class).date();
+  }
 
-    default LocalDateTime getFinalised()
-    {
-        return get( "finalised", JsonDate.class ).date();
-    }
+  default LocalDateTime getFinalised() {
+    return get("finalised", JsonDate.class).date();
+  }
 }

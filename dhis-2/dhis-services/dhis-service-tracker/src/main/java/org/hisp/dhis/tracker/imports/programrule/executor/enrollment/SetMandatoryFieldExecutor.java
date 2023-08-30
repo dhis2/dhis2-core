@@ -30,9 +30,7 @@ package org.hisp.dhis.tracker.imports.programrule.executor.enrollment;
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.error;
 
 import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -44,31 +42,32 @@ import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 
 /**
- * This executor checks if a field is not empty in the {@link TrackerBundle}
- *
- * @Author Enrico Colasante
+ * This executor checks if a field is not empty in the {@link TrackerBundle} @Author Enrico
+ * Colasante
  */
 @RequiredArgsConstructor
-public class SetMandatoryFieldExecutor implements RuleActionExecutor<Enrollment>
-{
-    private final String ruleUid;
+public class SetMandatoryFieldExecutor implements RuleActionExecutor<Enrollment> {
+  private final String ruleUid;
 
-    private final String attributeUid;
+  private final String attributeUid;
 
-    @Override
-    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Enrollment enrollment )
-    {
-        TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
-        TrackedEntityAttribute ruleAttribute = bundle.getPreheat().getTrackedEntityAttribute( attributeUid );
-        Optional<Attribute> any = enrollment.getAttributes().stream()
-            .filter( attribute -> attribute.getAttribute().isEqualTo( ruleAttribute ) )
+  @Override
+  public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Enrollment enrollment) {
+    TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
+    TrackedEntityAttribute ruleAttribute =
+        bundle.getPreheat().getTrackedEntityAttribute(attributeUid);
+    Optional<Attribute> any =
+        enrollment.getAttributes().stream()
+            .filter(attribute -> attribute.getAttribute().isEqualTo(ruleAttribute))
             .findAny();
 
-        if ( any.isEmpty() || StringUtils.isEmpty( any.get().getValue() ) )
-        {
-            return Optional.of( error( ruleUid, ValidationCode.E1306,
-                idSchemes.toMetadataIdentifier( ruleAttribute ).getIdentifierOrAttributeValue() ) );
-        }
-        return Optional.empty();
+    if (any.isEmpty() || StringUtils.isEmpty(any.get().getValue())) {
+      return Optional.of(
+          error(
+              ruleUid,
+              ValidationCode.E1306,
+              idSchemes.toMetadataIdentifier(ruleAttribute).getIdentifierOrAttributeValue()));
     }
+    return Optional.empty();
+  }
 }

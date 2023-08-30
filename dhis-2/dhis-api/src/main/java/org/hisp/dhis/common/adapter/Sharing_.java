@@ -28,18 +28,16 @@
 package org.hisp.dhis.common.adapter;
 
 /**
- * This class defines metadata model property's names of
- * {@link org.hisp.dhis.user.sharing.Sharing}
+ * This class defines metadata model property's names of {@link org.hisp.dhis.user.sharing.Sharing}
  */
-public class Sharing_
-{
-    public static final String PUBLIC = "public";
+public class Sharing_ {
+  public static final String PUBLIC = "public";
 
-    public static final String OWNER = "owner";
+  public static final String OWNER = "owner";
 
-    public static final String EXTERNAL = "external";
+  public static final String EXTERNAL = "external";
 
-    public static final String USERS = "users";
+  public static final String USERS = "users";
 
-    public static final String USER_GROUPS = "userGroups";
+  public static final String USER_GROUPS = "userGroups";
 }

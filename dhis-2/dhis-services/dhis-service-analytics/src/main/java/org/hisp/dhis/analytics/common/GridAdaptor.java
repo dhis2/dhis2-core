@@ -31,9 +31,7 @@ import static org.springframework.util.Assert.notNull;
 
 import java.util.List;
 import java.util.Optional;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.analytics.common.processing.HeaderParamsHandler;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.common.query.Field;
@@ -45,57 +43,56 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
 
 /**
- * Component that provides operations for generation or manipulation of Grid
- * objects. It basically encapsulates any required Grid logic that is not
- * supported by the Grid itself.
+ * Component that provides operations for generation or manipulation of Grid objects. It basically
+ * encapsulates any required Grid logic that is not supported by the Grid itself.
  *
  * @author maikel arabori
  */
 @AllArgsConstructor
 @Component
-public class GridAdaptor
-{
-    private final HeaderParamsHandler headerParamsHandler;
+public class GridAdaptor {
+  private final HeaderParamsHandler headerParamsHandler;
 
-    private final MetadataParamsHandler metadataParamsHandler;
+  private final MetadataParamsHandler metadataParamsHandler;
 
-    private final SchemeIdResponseMapper schemeIdResponseMapper;
+  private final SchemeIdResponseMapper schemeIdResponseMapper;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    /**
-     * Based on the given headers and result map, this method takes care of the
-     * logic needed to create a valid {@link Grid} object. If the given
-     * "sqlQueryResult" is not present, the resulting {@link Grid} will have
-     * empty rows.
-     *
-     * @param sqlQueryResult the optional of {@link SqlQueryResult}.
-     * @param teiQueryParams the {@link TeiQueryParams}.
-     * @return the {@link Grid} object.
-     * @throws IllegalArgumentException if headers is null/empty or contain at
-     *         least one null element, or if the queryResult is null.
-     */
-    public Grid createGrid( Optional<SqlQueryResult> sqlQueryResult, long rowsCount,
-        TeiQueryParams teiQueryParams, List<Field> fields )
-    {
-        notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
+  /**
+   * Based on the given headers and result map, this method takes care of the logic needed to create
+   * a valid {@link Grid} object. If the given "sqlQueryResult" is not present, the resulting {@link
+   * Grid} will have empty rows.
+   *
+   * @param sqlQueryResult the optional of {@link SqlQueryResult}.
+   * @param teiQueryParams the {@link TeiQueryParams}.
+   * @return the {@link Grid} object.
+   * @throws IllegalArgumentException if headers is null/empty or contain at least one null element,
+   *     or if the queryResult is null.
+   */
+  public Grid createGrid(
+      Optional<SqlQueryResult> sqlQueryResult,
+      long rowsCount,
+      TeiQueryParams teiQueryParams,
+      List<Field> fields) {
+    notNull(teiQueryParams, "The 'teiQueryParams' must not be null");
 
-        Grid grid = new ListGrid();
+    Grid grid = new ListGrid();
 
-        // Adding headers.
-        headerParamsHandler.handle( grid, teiQueryParams, fields );
+    // Adding headers.
+    headerParamsHandler.handle(grid, teiQueryParams, fields);
 
-        // Adding rows.
-        sqlQueryResult.ifPresent( queryResult -> grid.addNamedRows( queryResult.result() ) );
+    // Adding rows.
+    sqlQueryResult.ifPresent(queryResult -> grid.addNamedRows(queryResult.result()));
 
-        // Adding metadata info.
-        metadataParamsHandler.handle( grid, teiQueryParams.getCommonParams(), currentUserService.getCurrentUser(),
-            rowsCount );
+    // Adding metadata info.
+    metadataParamsHandler.handle(
+        grid, teiQueryParams.getCommonParams(), currentUserService.getCurrentUser(), rowsCount);
 
-        schemeIdResponseMapper.applyCustomIdScheme( teiQueryParams.getCommonParams(), grid );
-        schemeIdResponseMapper.applyOptionAndLegendSetMapping( grid,
-            teiQueryParams.getCommonParams().getDataIdScheme() );
+    schemeIdResponseMapper.applyCustomIdScheme(teiQueryParams.getCommonParams(), grid);
+    schemeIdResponseMapper.applyOptionAndLegendSetMapping(
+        grid, teiQueryParams.getCommonParams().getDataIdScheme());
 
-        return grid;
-    }
+    return grid;
+  }
 }

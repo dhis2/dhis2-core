@@ -29,18 +29,15 @@ package org.hisp.dhis.node;
 
 import java.io.OutputStream;
 import java.util.List;
-
 import org.hisp.dhis.node.types.RootNode;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface NodeSerializer extends Serializer<RootNode>
-{
-    @Override
-    List<String> contentTypes();
+public interface NodeSerializer extends Serializer<RootNode> {
+  @Override
+  List<String> contentTypes();
 
-    @Override
-    void serialize( RootNode rootNode, OutputStream outputStream )
-        throws Exception;
+  @Override
+  void serialize(RootNode rootNode, OutputStream outputStream) throws Exception;
 }

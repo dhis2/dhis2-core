@@ -29,8 +29,6 @@ package org.hisp.dhis.leader.election;
 
 import org.hisp.dhis.condition.RedisDisabledCondition;
 import org.hisp.dhis.condition.RedisEnabledCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -43,34 +41,22 @@ import org.springframework.data.redis.core.StringRedisTemplate;
  * Configures leaderManager that takes care of node leader elections.
  *
  * @author Ameen Mohamed
- *
  */
 @Configuration
-public class LeaderElectionConfiguration
-{
-    @Autowired
-    private DhisConfigurationProvider dhisConfigurationProvider;
+public class LeaderElectionConfiguration {
+  @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
 
-    @Bean( name = "leaderTimeToLive" )
-    public ConfigurationPropertyFactoryBean leaderTimeToLive()
-    {
-        return new ConfigurationPropertyFactoryBean( ConfigurationKey.LEADER_TIME_TO_LIVE );
-    }
+  @Bean(name = "leaderManager")
+  @Conditional(RedisEnabledCondition.class)
+  public LeaderManager redisLeaderManager(
+      @Autowired(required = false) @Qualifier("stringRedisTemplate")
+          StringRedisTemplate stringRedisTemplate) {
+    return new RedisLeaderManager(stringRedisTemplate, dhisConfigurationProvider);
+  }
 
-    @Bean( name = "leaderManager" )
-    @Conditional( RedisEnabledCondition.class )
-    public LeaderManager redisLeaderManager(
-        @Autowired( required = false ) @Qualifier( "stringRedisTemplate" ) StringRedisTemplate stringRedisTemplate )
-    {
-        return new RedisLeaderManager( Long.parseLong( (String) leaderTimeToLive().getObject() ), stringRedisTemplate,
-            dhisConfigurationProvider );
-    }
-
-    @Bean( name = "leaderManager" )
-    @Conditional( RedisDisabledCondition.class )
-    public LeaderManager noOpLeaderManager()
-    {
-        return new NoOpLeaderManager( dhisConfigurationProvider );
-    }
-
+  @Bean(name = "leaderManager")
+  @Conditional(RedisDisabledCondition.class)
+  public LeaderManager noOpLeaderManager() {
+    return new NoOpLeaderManager(dhisConfigurationProvider);
+  }
 }

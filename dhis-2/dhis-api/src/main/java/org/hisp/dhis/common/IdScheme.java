@@ -27,155 +27,146 @@
  */
 package org.hisp.dhis.common;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableMap;
+import java.io.Serializable;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-
+import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
-
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@ToString
+@EqualsAndHashCode
 @Getter
-public class IdScheme
-{
-    public static final IdScheme NULL = new IdScheme( null );
+@JsonInclude(Include.NON_NULL)
+@JsonAutoDetect(getterVisibility = Visibility.NONE, isGetterVisibility = Visibility.NONE)
+@OpenApi.Property(value = IdentifiableProperty.class)
+public class IdScheme implements Serializable {
 
-    public static final IdScheme ID = new IdScheme( IdentifiableProperty.ID );
+  public static final IdScheme NULL = new IdScheme(null);
 
-    public static final IdScheme UID = new IdScheme( IdentifiableProperty.UID );
+  public static final IdScheme ID = new IdScheme(IdentifiableProperty.ID);
 
-    public static final IdScheme UUID = new IdScheme( IdentifiableProperty.UUID );
+  public static final IdScheme UID = new IdScheme(IdentifiableProperty.UID);
 
-    public static final IdScheme CODE = new IdScheme( IdentifiableProperty.CODE );
+  public static final IdScheme UUID = new IdScheme(IdentifiableProperty.UUID);
 
-    public static final IdScheme NAME = new IdScheme( IdentifiableProperty.NAME );
+  public static final IdScheme CODE = new IdScheme(IdentifiableProperty.CODE);
 
-    public static final ImmutableMap<IdentifiableProperty, IdScheme> IDPROPERTY_IDSCHEME_MAP = ImmutableMap
-        .<IdentifiableProperty, IdScheme> builder().put( IdentifiableProperty.ID, IdScheme.ID )
-        .put( IdentifiableProperty.UID, IdScheme.UID ).put( IdentifiableProperty.UUID, IdScheme.UUID )
-        .put( IdentifiableProperty.CODE, IdScheme.CODE ).put( IdentifiableProperty.NAME, IdScheme.NAME ).build();
+  public static final IdScheme NAME = new IdScheme(IdentifiableProperty.NAME);
 
-    public static final String ATTR_ID_SCHEME_PREFIX = "ATTRIBUTE:";
+  public static final ImmutableMap<IdentifiableProperty, IdScheme> IDPROPERTY_IDSCHEME_MAP =
+      ImmutableMap.<IdentifiableProperty, IdScheme>builder()
+          .put(IdentifiableProperty.ID, IdScheme.ID)
+          .put(IdentifiableProperty.UID, IdScheme.UID)
+          .put(IdentifiableProperty.UUID, IdScheme.UUID)
+          .put(IdentifiableProperty.CODE, IdScheme.CODE)
+          .put(IdentifiableProperty.NAME, IdScheme.NAME)
+          .build();
 
-    private final IdentifiableProperty identifiableProperty;
+  public static final String ATTR_ID_SCHEME_PREFIX = "ATTRIBUTE:";
 
-    private String attribute;
+  @JsonProperty("type")
+  private final IdentifiableProperty identifiableProperty;
 
-    public static IdScheme from( IdScheme idScheme )
-    {
-        if ( idScheme == null )
-        {
-            return IdScheme.NULL;
-        }
+  @JsonProperty private String attribute;
 
-        return idScheme;
+  public static IdScheme from(IdScheme idScheme) {
+    if (idScheme == null) {
+      return IdScheme.NULL;
     }
 
-    public static IdScheme from( String scheme )
-    {
-        if ( scheme == null )
-        {
-            return IdScheme.NULL;
-        }
+    return idScheme;
+  }
 
-        if ( IdScheme.isAttribute( scheme ) )
-        {
-            return new IdScheme( IdentifiableProperty.ATTRIBUTE, scheme.substring( 10 ) );
-        }
-
-        return IdScheme.from( IdentifiableProperty.valueOf( scheme.toUpperCase() ) );
+  public static IdScheme from(String scheme) {
+    if (scheme == null) {
+      return IdScheme.NULL;
     }
 
-    public static IdScheme from( IdentifiableProperty property )
-    {
-        if ( property == null )
-        {
-            return IdScheme.NULL;
-        }
-
-        return IDPROPERTY_IDSCHEME_MAP.containsKey( property ) ? IDPROPERTY_IDSCHEME_MAP.get( property )
-            : new IdScheme( property );
+    if (IdScheme.isAttribute(scheme)) {
+      return new IdScheme(IdentifiableProperty.ATTRIBUTE, scheme.substring(10));
     }
 
-    public static IdScheme from( Attribute attribute )
-    {
-        return new IdScheme( IdentifiableProperty.ATTRIBUTE, attribute.getUid() );
+    return IdScheme.from(IdentifiableProperty.valueOf(scheme.toUpperCase()));
+  }
+
+  public static IdScheme from(IdentifiableProperty property) {
+    if (property == null) {
+      return IdScheme.NULL;
     }
 
-    private IdScheme( IdentifiableProperty identifiableProperty )
-    {
-        this.identifiableProperty = identifiableProperty;
-    }
+    return IDPROPERTY_IDSCHEME_MAP.containsKey(property)
+        ? IDPROPERTY_IDSCHEME_MAP.get(property)
+        : new IdScheme(property);
+  }
 
-    private IdScheme( IdentifiableProperty identifiableProperty, String attribute )
-    {
-        this.identifiableProperty = identifiableProperty;
-        this.attribute = attribute;
-    }
+  public static IdScheme from(Attribute attribute) {
+    return new IdScheme(IdentifiableProperty.ATTRIBUTE, attribute.getUid());
+  }
 
-    public String getIdentifiableString()
-    {
-        return identifiableProperty != null ? identifiableProperty.toString() : null;
-    }
+  private IdScheme(IdentifiableProperty identifiableProperty) {
+    this.identifiableProperty = identifiableProperty;
+  }
 
-    public void setAttribute( String attribute )
-    {
-        this.attribute = attribute;
-    }
+  @JsonCreator
+  public IdScheme(
+      @JsonProperty("type") IdentifiableProperty identifiableProperty,
+      @JsonProperty("attribute") String attribute) {
+    this.identifiableProperty = identifiableProperty;
+    this.attribute = attribute;
+  }
 
-    public boolean is( IdentifiableProperty identifiableProperty )
-    {
-        return this.identifiableProperty == identifiableProperty;
-    }
+  public String getIdentifiableString() {
+    return identifiableProperty != null ? identifiableProperty.toString() : null;
+  }
 
-    public boolean isNull()
-    {
-        return null == this.identifiableProperty;
-    }
+  public void setAttribute(String attribute) {
+    this.attribute = attribute;
+  }
 
-    public boolean isNotNull()
-    {
-        return !isNull();
-    }
+  public boolean is(IdentifiableProperty identifiableProperty) {
+    return this.identifiableProperty == identifiableProperty;
+  }
 
-    public boolean isAttribute()
-    {
-        return IdentifiableProperty.ATTRIBUTE == identifiableProperty && !StringUtils.isEmpty( attribute );
-    }
+  public boolean isNull() {
+    return null == this.identifiableProperty;
+  }
 
-    /**
-     * Returns a canonical name representation of this ID scheme.
-     *
-     * @return a canonical name representation of this ID scheme.
-     */
-    public String name()
-    {
-        if ( IdentifiableProperty.ATTRIBUTE == identifiableProperty && attribute != null )
-        {
-            return ATTR_ID_SCHEME_PREFIX + attribute;
-        }
-        else
-        {
-            return identifiableProperty.name();
-        }
-    }
+  public boolean isNotNull() {
+    return !isNull();
+  }
 
-    public static boolean isAttribute( String str )
-    {
-        return !StringUtils.isEmpty( str ) &&
-            str.toUpperCase().startsWith( ATTR_ID_SCHEME_PREFIX ) &&
-            str.length() == 21;
-    }
+  public boolean isAttribute() {
+    return IdentifiableProperty.ATTRIBUTE == identifiableProperty
+        && !StringUtils.isEmpty(attribute);
+  }
 
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "identifiableProperty", identifiableProperty )
-            .add( "attribute", attribute )
-            .toString();
+  /**
+   * Returns a canonical name representation of this ID scheme.
+   *
+   * @return a canonical name representation of this ID scheme.
+   */
+  public String name() {
+    if (IdentifiableProperty.ATTRIBUTE == identifiableProperty && attribute != null) {
+      return ATTR_ID_SCHEME_PREFIX + attribute;
+    } else {
+      return identifiableProperty.name();
     }
+  }
+
+  public static boolean isAttribute(String str) {
+    return !StringUtils.isEmpty(str)
+        && str.toUpperCase().startsWith(ATTR_ID_SCHEME_PREFIX)
+        && str.length() == 21;
+  }
 }

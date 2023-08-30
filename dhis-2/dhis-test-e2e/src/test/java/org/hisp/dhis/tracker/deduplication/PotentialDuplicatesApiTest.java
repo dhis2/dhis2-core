@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.deduplication;
 
+import com.google.gson.JsonObject;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.UserActions;
@@ -39,80 +40,77 @@ import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class PotentialDuplicatesApiTest
-    extends TrackerApiTest
-{
-    protected static final String TRACKER_PROGRAM_ID = Constants.TRACKER_PROGRAM_ID;
+public class PotentialDuplicatesApiTest extends TrackerApiTest {
+  protected static final String TRACKER_PROGRAM_ID = Constants.TRACKER_PROGRAM_ID;
 
-    protected static final String TRACKER_PROGRAM_STAGE_ID = "nlXNK4b7LVr";
+  protected static final String TRACKER_PROGRAM_STAGE_ID = "nlXNK4b7LVr";
 
-    protected static final String MERGE_AUTHORITY = "F_TRACKED_ENTITY_MERGE";
+  protected static final String MERGE_AUTHORITY = "F_TRACKED_ENTITY_MERGE";
 
-    protected static final String USER_PASSWORD = Constants.USER_PASSWORD;
+  protected static final String USER_PASSWORD = Constants.USER_PASSWORD;
 
-    protected UserActions userActions;
+  protected UserActions userActions;
 
-    protected TrackerImportExportActions trackerImportExportActions;
+  protected TrackerImportExportActions trackerImportExportActions;
 
-    protected PotentialDuplicatesActions potentialDuplicatesActions;
+  protected PotentialDuplicatesActions potentialDuplicatesActions;
 
-    @BeforeEach
-    public void beforeEachPotentialDuplicateTest()
-    {
-        trackerImportExportActions = new TrackerImportExportActions();
-        userActions = new UserActions();
-        potentialDuplicatesActions = new PotentialDuplicatesActions();
-    }
+  @BeforeEach
+  public void beforeEachPotentialDuplicateTest() {
+    trackerImportExportActions = new TrackerImportExportActions();
+    userActions = new UserActions();
+    potentialDuplicatesActions = new PotentialDuplicatesActions();
+  }
 
-    protected String createUserWithAccessToMerge()
-    {
-        String username = (DataGenerator.randomString()).toLowerCase();
-        String userid = userActions.addUserFull( "firstNameA", "lastNameB", username, USER_PASSWORD,
-            MERGE_AUTHORITY );
+  protected String createUserWithAccessToMerge() {
+    String username = (DataGenerator.randomString()).toLowerCase();
+    String userid =
+        userActions.addUserFull(
+            "firstNameA", "lastNameB", username, USER_PASSWORD, MERGE_AUTHORITY);
 
-        userActions.grantUserAccessToTAOrgUnits( userid );
-        userActions.addUserToUserGroup( userid, Constants.USER_GROUP_ID );
+    userActions.grantUserAccessToTAOrgUnits(userid);
+    userActions.addUserToUserGroup(userid, Constants.USER_GROUP_ID);
 
-        return username;
-    }
+    return username;
+  }
 
-    protected String createTei()
-    {
-        JsonObject object = new TeiDataBuilder().array( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0] );
+  protected String createTei() {
+    JsonObject object =
+        new TeiDataBuilder().array(Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0]);
 
-        return trackerImportExportActions.postAndGetJobReport( object ).extractImportedTeis().get( 0 );
-    }
+    return trackerImportExportActions.postAndGetJobReport(object).extractImportedTeis().get(0);
+  }
 
-    protected String createTei( String teiType )
-    {
-        JsonObject object = new TeiDataBuilder().array( teiType, Constants.ORG_UNIT_IDS[0] );
+  protected String createTei(String teiType) {
+    JsonObject object = new TeiDataBuilder().array(teiType, Constants.ORG_UNIT_IDS[0]);
 
-        return trackerImportExportActions.postAndGetJobReport( object ).extractImportedTeis().get( 0 );
-    }
+    return trackerImportExportActions.postAndGetJobReport(object).extractImportedTeis().get(0);
+  }
 
-    protected TrackerApiResponse createTeiWithEnrollmentsAndEvents()
-    {
-        return createTeiWithEnrollmentsAndEvents( TRACKER_PROGRAM_ID, TRACKER_PROGRAM_STAGE_ID );
-    }
+  protected TrackerApiResponse createTeiWithEnrollmentsAndEvents() {
+    return createTeiWithEnrollmentsAndEvents(TRACKER_PROGRAM_ID, TRACKER_PROGRAM_STAGE_ID);
+  }
 
-    protected TrackerApiResponse createTeiWithEnrollmentsAndEvents( String program, String programStage )
-    {
-        return trackerImportExportActions.postAndGetJobReport( new TeiDataBuilder()
-            .buildWithEnrollmentAndEvent( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0], program,
-                programStage ) )
-            .validateSuccessfulImport();
-    }
+  protected TrackerApiResponse createTeiWithEnrollmentsAndEvents(
+      String program, String programStage) {
+    return trackerImportExportActions
+        .postAndGetJobReport(
+            new TeiDataBuilder()
+                .buildWithEnrollmentAndEvent(
+                    Constants.TRACKED_ENTITY_TYPE,
+                    Constants.ORG_UNIT_IDS[0],
+                    program,
+                    programStage))
+        .validateSuccessfulImport();
+  }
 
-    @AfterEach
-    public void afterEachPotentialDuplicateTest()
-    {
-        // DELETE is not implemented on PotentialDuplicatesController, so
-        // there's no point to clean up
-        TestRunStorage.removeEntities( "/potentialDuplicates" );
-    }
+  @AfterEach
+  public void afterEachPotentialDuplicateTest() {
+    // DELETE is not implemented on PotentialDuplicatesController, so
+    // there's no point to clean up
+    TestRunStorage.removeEntities("/potentialDuplicates");
+  }
 }

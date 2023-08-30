@@ -37,115 +37,99 @@ import java.util.Map;
 /**
  * @author Lars Helge Overland
  */
-public class NameableObjectUtils
-{
-    /**
-     * Returns a list of NameableObjects.
-     *
-     * @param objects the NameableObjects to include in the list.
-     * @return a list of NameableObjects.
-     */
-    public static List<NameableObject> getList( NameableObject... objects )
-    {
-        List<NameableObject> list = new ArrayList<>();
+public class NameableObjectUtils {
+  /**
+   * Returns a list of NameableObjects.
+   *
+   * @param objects the NameableObjects to include in the list.
+   * @return a list of NameableObjects.
+   */
+  public static List<NameableObject> getList(NameableObject... objects) {
+    List<NameableObject> list = new ArrayList<>();
 
-        if ( objects != null )
-        {
-            Collections.addAll( list, objects );
-        }
-
-        return list;
+    if (objects != null) {
+      Collections.addAll(list, objects);
     }
 
-    /**
-     * Returns a list with erasure NameableObject based on the given collection.
-     *
-     * @param collection the collection.
-     * @return a list of NameableObjects.
-     */
-    public static List<NameableObject> asList( Collection<? extends NameableObject> collection )
-    {
-        List<NameableObject> list = new ArrayList<>();
-        list.addAll( collection );
-        return list;
+    return list;
+  }
+
+  /**
+   * Returns a list with erasure NameableObject based on the given collection.
+   *
+   * @param collection the collection.
+   * @return a list of NameableObjects.
+   */
+  public static List<NameableObject> asList(Collection<? extends NameableObject> collection) {
+    List<NameableObject> list = new ArrayList<>();
+    list.addAll(collection);
+    return list;
+  }
+
+  /**
+   * Returns a list of BaseNameableObjects based on the given list of NameableObjects.
+   *
+   * @param objects the list of NameableObjects.
+   * @return a list of BaseNameableObejcts.
+   */
+  public static List<NameableObject> getAsNameableObjects(List<? extends NameableObject> objects) {
+    List<NameableObject> list = new ArrayList<>();
+
+    for (NameableObject object : objects) {
+      if (object != null) {
+        list.add(new BaseNameableObject(object));
+      }
     }
 
-    /**
-     * Returns a list of BaseNameableObjects based on the given list of
-     * NameableObjects.
-     *
-     * @param objects the list of NameableObjects.
-     * @return a list of BaseNameableObejcts.
-     */
-    public static List<NameableObject> getAsNameableObjects( List<? extends NameableObject> objects )
-    {
-        List<NameableObject> list = new ArrayList<>();
+    return list;
+  }
 
-        for ( NameableObject object : objects )
-        {
-            if ( object != null )
-            {
-                list.add( new BaseNameableObject( object ) );
-            }
-        }
+  /**
+   * Returns a mapping between the UID and the nameable objects.
+   *
+   * @param objects the nameable objects.
+   * @return mapping between the UID and the nameable objects.
+   */
+  public static Map<String, NameableObject> getUidObjectMap(
+      List<? extends NameableObject> objects) {
+    Map<String, NameableObject> map = new HashMap<>();
 
-        return list;
+    if (objects != null) {
+      for (NameableObject object : objects) {
+        map.put(object.getUid(), object);
+      }
     }
 
-    /**
-     * Returns a mapping between the UID and the nameable objects.
-     *
-     * @param objects the nameable objects.
-     * @return mapping between the UID and the nameable objects.
-     */
-    public static Map<String, NameableObject> getUidObjectMap( List<? extends NameableObject> objects )
-    {
-        Map<String, NameableObject> map = new HashMap<>();
+    return map;
+  }
 
-        if ( objects != null )
-        {
-            for ( NameableObject object : objects )
-            {
-                map.put( object.getUid(), object );
-            }
-        }
+  /**
+   * Returns a mapping between the UID and the property defined by the given display property.
+   *
+   * @param objects the objects.
+   * @param displayProperty the property to use as value.
+   * @return mapping between the uid and the property of the given objects.
+   */
+  public static Map<String, String> getUidDisplayPropertyMap(
+      Collection<? extends NameableObject> objects, DisplayProperty displayProperty) {
+    Map<String, String> map = new HashMap<>();
 
-        return map;
+    if (objects != null) {
+      for (NameableObject object : objects) {
+        map.put(object.getUid(), object.getDisplayProperty(displayProperty));
+      }
     }
 
-    /**
-     * Returns a mapping between the UID and the property defined by the given
-     * display property.
-     *
-     * @param objects the objects.
-     * @param displayProperty the property to use as value.
-     * @return mapping between the uid and the property of the given objects.
-     */
-    public static Map<String, String> getUidDisplayPropertyMap( Collection<? extends NameableObject> objects,
-        DisplayProperty displayProperty )
-    {
-        Map<String, String> map = new HashMap<>();
+    return map;
+  }
 
-        if ( objects != null )
-        {
-            for ( NameableObject object : objects )
-            {
-                map.put( object.getUid(), object.getDisplayProperty( displayProperty ) );
-            }
-        }
-
-        return map;
-    }
-
-    /**
-     * Returns a copy of the given list. Returns an empty list if the argument
-     * is null.
-     *
-     * @param objects a list.
-     * @return a list of objects.
-     */
-    public static <T extends NameableObject> List<T> getCopyNullSafe( List<T> objects )
-    {
-        return objects != null ? new ArrayList<>( objects ) : new ArrayList<>();
-    }
+  /**
+   * Returns a copy of the given list. Returns an empty list if the argument is null.
+   *
+   * @param objects a list.
+   * @return a list of objects.
+   */
+  public static <T extends NameableObject> List<T> getCopyNullSafe(List<T> objects) {
+    return objects != null ? new ArrayList<>(objects) : new ArrayList<>();
+  }
 }

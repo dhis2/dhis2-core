@@ -31,11 +31,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -51,47 +48,48 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
 @RequiredArgsConstructor
 @Component
-public class UsernameValueTypeSupplier extends AbstractPreheatSupplier
-{
+public class UsernameValueTypeSupplier extends AbstractPreheatSupplier {
 
-    @Nonnull
-    private final UserService userService;
+  @Nonnull private final UserService userService;
 
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
-    {
-        List<TrackedEntityAttribute> attributes = preheat.getAll( TrackedEntityAttribute.class );
+  @Override
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+    List<TrackedEntityAttribute> attributes = preheat.getAll(TrackedEntityAttribute.class);
 
-        TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
-        List<MetadataIdentifier> usernameAttributes = attributes.stream()
-            .filter( at -> at.getValueType() == ValueType.USERNAME )
-            .map( idSchemes::toMetadataIdentifier )
-            .collect( Collectors.toList() );
+    TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
+    List<MetadataIdentifier> usernameAttributes =
+        attributes.stream()
+            .filter(at -> at.getValueType() == ValueType.USERNAME)
+            .map(idSchemes::toMetadataIdentifier)
+            .collect(Collectors.toList());
 
-        List<String> usernames = new ArrayList<>();
+    List<String> usernames = new ArrayList<>();
 
-        params.getTrackedEntities()
-            .forEach( te -> collectResourceIds( usernameAttributes, usernames, te.getAttributes() ) );
-        params.getEnrollments()
-            .forEach( en -> collectResourceIds( usernameAttributes, usernames, en.getAttributes() ) );
+    params
+        .getTrackedEntities()
+        .forEach(te -> collectResourceIds(usernameAttributes, usernames, te.getAttributes()));
+    params
+        .getEnrollments()
+        .forEach(en -> collectResourceIds(usernameAttributes, usernames, en.getAttributes()));
 
-        List<User> users = userService.getUsersByUsernames( usernames );
+    List<User> users = userService.getUsersByUsernames(usernames);
 
-        preheat.addUsers( new HashSet<>( DetachUtils.detach( UserMapper.INSTANCE, users ) ) );
-    }
+    preheat.addUsers(new HashSet<>(DetachUtils.detach(UserMapper.INSTANCE, users)));
+  }
 
-    private void collectResourceIds( List<MetadataIdentifier> usernameAttributes, List<String> usernames,
-        List<Attribute> attributes )
-    {
-        attributes.forEach( at -> {
-            if ( usernameAttributes.contains( at.getAttribute() ) && !StringUtils.isEmpty( at.getValue() ) )
-            {
-                usernames.add( at.getValue() );
-            }
-        } );
-    }
+  private void collectResourceIds(
+      List<MetadataIdentifier> usernameAttributes,
+      List<String> usernames,
+      List<Attribute> attributes) {
+    attributes.forEach(
+        at -> {
+          if (usernameAttributes.contains(at.getAttribute())
+              && !StringUtils.isEmpty(at.getValue())) {
+            usernames.add(at.getValue());
+          }
+        });
+  }
 }

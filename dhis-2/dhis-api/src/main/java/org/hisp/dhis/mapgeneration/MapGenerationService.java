@@ -29,7 +29,6 @@ package org.hisp.dhis.mapgeneration;
 
 import java.awt.image.BufferedImage;
 import java.util.Date;
-
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -38,50 +37,46 @@ import org.hisp.dhis.user.User;
 /**
  * The MapGenerationService interface generates map images from Map objects.
  *
- * Map objects may be built by adding layers to them, and once passed to
- * generateMapImage it will render an image representing the map according to
- * the properties defined by Map and MapView.
+ * <p>Map objects may be built by adding layers to them, and once passed to generateMapImage it will
+ * render an image representing the map according to the properties defined by Map and MapView.
  *
- * TODO Extend with more configuration options, e.g. width
+ * <p>TODO Extend with more configuration options, e.g. width
  *
  * @author Kenneth Solbø Andersen <kennetsa@ifi.uio.no>
  * @author Olai Solheim <olais@ifi.uio.no>
  */
-public interface MapGenerationService
-{
-    String ID = MapGenerationService.class.getName();
+public interface MapGenerationService {
+  String ID = MapGenerationService.class.getName();
 
-    /**
-     * Generate an image that represents this map.
-     *
-     * @param mapView the map view that will be rendered,
-     * @return the rendered map image or null if there is no data for the map
-     *         view.
-     */
-    BufferedImage generateMapImage( MapView mapView );
+  /**
+   * Generate an image that represents this map.
+   *
+   * @param mapView the map view that will be rendered,
+   * @return the rendered map image or null if there is no data for the map view.
+   */
+  BufferedImage generateMapImage(MapView mapView);
 
-    /**
-     * Generate an image that represents this map.
-     *
-     * @param map the map that will be rendered,
-     * @return the rendered map image or null if there is no data for the map
-     *         view.
-     */
-    BufferedImage generateMapImage( Map map );
+  /**
+   * Generate an image that represents this map.
+   *
+   * @param map the map that will be rendered,
+   * @return the rendered map image or null if there is no data for the map view.
+   */
+  BufferedImage generateMapImage(Map map);
 
-    /**
-     * Generate an image that represents this map.
-     *
-     * @param map the map that will be rendered.
-     * @param date the date for relative periods.
-     * @param unit the organisation unit.
-     * @param width the maximum width of the map image.
-     * @param height the maximum height of the map image.
-     * @return the rendered map image or null if there is no data for the map
-     *         view.
-     */
-    BufferedImage generateMapImage( Map map, Date date, OrganisationUnit unit, Integer width, Integer height );
+  /**
+   * Generate an image that represents this map.
+   *
+   * @param map the map that will be rendered.
+   * @param date the date for relative periods.
+   * @param unit the organisation unit.
+   * @param width the maximum width of the map image.
+   * @param height the maximum height of the map image.
+   * @return the rendered map image or null if there is no data for the map view.
+   */
+  BufferedImage generateMapImage(
+      Map map, Date date, OrganisationUnit unit, Integer width, Integer height);
 
-    BufferedImage generateMapImageForUser( Map map, Date date, OrganisationUnit unit, Integer width, Integer height,
-        User user );
+  BufferedImage generateMapImageForUser(
+      Map map, Date date, OrganisationUnit unit, Integer width, Integer height, User user);
 }

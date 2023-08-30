@@ -27,33 +27,32 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.Lists;
+public class DataApprovalLevelSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "dataApprovalLevel";
 
-public class DataApprovalLevelSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "dataApprovalLevel";
+  public static final String PLURAL = "dataApprovalLevels";
 
-    public static final String PLURAL = "dataApprovalLevels";
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(DataApprovalLevel.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1370);
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( DataApprovalLevel.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1370 );
+    schema.add(
+        new Authority(AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_DATA_APPROVAL_LEVEL")));
+    schema.add(
+        new Authority(AuthorityType.CREATE_PRIVATE, Lists.newArrayList("F_DATA_APPROVAL_LEVEL")));
+    schema.add(new Authority(AuthorityType.DELETE, Lists.newArrayList("F_DATA_APPROVAL_LEVEL")));
 
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_DATA_APPROVAL_LEVEL" ) ) );
-        schema.add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_DATA_APPROVAL_LEVEL" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_DATA_APPROVAL_LEVEL" ) ) );
-
-        return schema;
-    }
+    return schema;
+  }
 }

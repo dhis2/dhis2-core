@@ -35,110 +35,91 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * A No operation implementation of {@link Cache}. The implementation will not
- * cache anything and can be used during system testing when caching has to be
- * disabled.
+ * A No operation implementation of {@link Cache}. The implementation will not cache anything and
+ * can be used during system testing when caching has to be disabled.
  *
  * @author Ameen Mohamed
  */
-public class NoOpCache<V> implements Cache<V>
-{
-    private static final String VALUE_CANNOT_BE_NULL = "Value cannot be null";
+public class NoOpCache<V> implements Cache<V> {
+  private static final String VALUE_CANNOT_BE_NULL = "Value cannot be null";
 
-    private final V defaultValue;
+  private final V defaultValue;
 
-    public NoOpCache( CacheBuilder<V> cacheBuilder )
-    {
-        this( cacheBuilder.getDefaultValue() );
+  public NoOpCache(CacheBuilder<V> cacheBuilder) {
+    this(cacheBuilder.getDefaultValue());
+  }
+
+  public NoOpCache() {
+    this((V) null);
+  }
+
+  public NoOpCache(V defaultValue) {
+    this.defaultValue = defaultValue;
+  }
+
+  @Override
+  public Optional<V> getIfPresent(String key) {
+    return Optional.empty();
+  }
+
+  @Override
+  public Optional<V> get(String key) {
+    return Optional.ofNullable(defaultValue);
+  }
+
+  @Override
+  public V get(String key, Function<String, V> mappingFunction) {
+    if (null == mappingFunction) {
+      throw new IllegalArgumentException("MappingFunction cannot be null");
     }
+    return Optional.ofNullable(mappingFunction.apply(key)).orElse(defaultValue);
+  }
 
-    public NoOpCache()
-    {
-        this( (V) null );
-    }
+  @Override
+  public Stream<V> getAll() {
+    return Stream.empty();
+  }
 
-    public NoOpCache( V defaultValue )
-    {
-        this.defaultValue = defaultValue;
-    }
+  @Override
+  public Iterable<String> keys() {
+    return emptySet();
+  }
 
-    @Override
-    public Optional<V> getIfPresent( String key )
-    {
-        return Optional.empty();
+  @Override
+  public void put(String key, V value) {
+    if (null == value) {
+      throw new IllegalArgumentException(VALUE_CANNOT_BE_NULL);
     }
+    // No operation
+  }
 
-    @Override
-    public Optional<V> get( String key )
-    {
-        return Optional.ofNullable( defaultValue );
-    }
+  @Override
+  public void put(String key, V value, long ttlInSeconds) {
+    hasText(key, VALUE_CANNOT_BE_NULL);
+    // No operation
+  }
 
-    @Override
-    public V get( String key, Function<String, V> mappingFunction )
-    {
-        if ( null == mappingFunction )
-        {
-            throw new IllegalArgumentException( "MappingFunction cannot be null" );
-        }
-        return Optional.ofNullable( mappingFunction.apply( key ) ).orElse( defaultValue );
+  @Override
+  public boolean putIfAbsent(String key, V value) {
+    if (null == value) {
+      throw new IllegalArgumentException(VALUE_CANNOT_BE_NULL);
     }
+    // No operation
+    return false;
+  }
 
-    @Override
-    public Stream<V> getAll()
-    {
-        return Stream.empty();
-    }
+  @Override
+  public void invalidate(String key) {
+    // No operation
+  }
 
-    @Override
-    public Iterable<String> keys()
-    {
-        return emptySet();
-    }
+  @Override
+  public void invalidateAll() {
+    // No operation
+  }
 
-    @Override
-    public void put( String key, V value )
-    {
-        if ( null == value )
-        {
-            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
-        }
-        // No operation
-    }
-
-    @Override
-    public void put( String key, V value, long ttlInSeconds )
-    {
-        hasText( key, VALUE_CANNOT_BE_NULL );
-        // No operation
-    }
-
-    @Override
-    public boolean putIfAbsent( String key, V value )
-    {
-        if ( null == value )
-        {
-            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
-        }
-        // No operation
-        return false;
-    }
-
-    @Override
-    public void invalidate( String key )
-    {
-        // No operation
-    }
-
-    @Override
-    public void invalidateAll()
-    {
-        // No operation
-    }
-
-    @Override
-    public CacheType getCacheType()
-    {
-        return CacheType.NONE;
-    }
+  @Override
+  public CacheType getCacheType() {
+    return CacheType.NONE;
+  }
 }

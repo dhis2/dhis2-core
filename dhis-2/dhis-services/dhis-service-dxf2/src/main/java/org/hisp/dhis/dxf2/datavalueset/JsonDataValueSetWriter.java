@@ -27,15 +27,13 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UncheckedIOException;
-
-import lombok.RequiredArgsConstructor;
-
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Write {@link DataValueSet}s as CSV data.
@@ -43,107 +41,85 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Jan Bernitt
  */
 @RequiredArgsConstructor
-final class JsonDataValueSetWriter implements DataValueSetWriter
-{
-    private final JsonGenerator generator;
+final class JsonDataValueSetWriter implements DataValueSetWriter {
+  private final JsonGenerator generator;
 
-    JsonDataValueSetWriter( OutputStream out )
-    {
-        this( createGenerator( out ) );
-    }
+  JsonDataValueSetWriter(OutputStream out) {
+    this(createGenerator(out));
+  }
 
-    private static JsonGenerator createGenerator( OutputStream out )
-    {
-        try
-        {
-            JsonFactory factory = new ObjectMapper().getFactory();
-            // Disables flushing every time that an object property is written
-            // to the stream
-            factory.disable( JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM );
-            // Do not attempt to balance unclosed tags
-            factory.disable( JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT );
-            return factory.createGenerator( out );
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+  private static JsonGenerator createGenerator(OutputStream out) {
+    try {
+      JsonFactory factory = new ObjectMapper().getFactory();
+      // Disables flushing every time that an object property is written
+      // to the stream
+      factory.disable(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM);
+      // Do not attempt to balance unclosed tags
+      factory.disable(JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT);
+      return factory.createGenerator(out);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
+  }
 
-    @Override
-    public void writeHeader()
-    {
-        try
-        {
-            generator.writeStartObject();
-            generator.writeArrayFieldStart( "dataValues" );
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+  @Override
+  public void writeHeader() {
+    try {
+      generator.writeStartObject();
+      generator.writeArrayFieldStart("dataValues");
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
+  }
 
-    @Override
-    public void writeHeader( String dataSetId, String completeDate, String isoPeriod, String orgUnitId )
-    {
-        try
-        {
-            generator.writeStartObject();
-            generator.writeStringField( "dataSet", dataSetId );
-            generator.writeStringField( "completeDate", completeDate );
-            generator.writeStringField( "period", isoPeriod );
-            generator.writeStringField( "orgUnit", orgUnitId );
-            generator.writeArrayFieldStart( "dataValues" );
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+  @Override
+  public void writeHeader(
+      String dataSetId, String completeDate, String isoPeriod, String orgUnitId) {
+    try {
+      generator.writeStartObject();
+      generator.writeStringField("dataSet", dataSetId);
+      generator.writeStringField("completeDate", completeDate);
+      generator.writeStringField("period", isoPeriod);
+      generator.writeStringField("orgUnit", orgUnitId);
+      generator.writeArrayFieldStart("dataValues");
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
+  }
 
-    @Override
-    public void writeValue( DataValueEntry entry )
-    {
-        try
-        {
-            generator.writeStartObject();
-            generator.writeStringField( "dataElement", entry.getDataElement() );
-            generator.writeStringField( "period", entry.getPeriod() );
-            generator.writeStringField( "orgUnit", entry.getOrgUnit() );
-            generator.writeStringField( "categoryOptionCombo", entry.getCategoryOptionCombo() );
-            generator.writeStringField( "attributeOptionCombo", entry.getAttributeOptionCombo() );
-            generator.writeStringField( "value", entry.getValue() );
-            generator.writeStringField( "storedBy", entry.getStoredBy() );
-            generator.writeStringField( "created", entry.getCreated() );
-            generator.writeStringField( "lastUpdated", entry.getLastUpdated() );
-            generator.writeStringField( "comment", entry.getComment() );
-            generator.writeBooleanField( "followup", entry.getFollowup() );
-            Boolean deleted = entry.getDeleted();
-            if ( deleted != null )
-            {
-                generator.writeBooleanField( "deleted", deleted );
-            }
-            generator.writeEndObject();
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+  @Override
+  public void writeValue(DataValueEntry entry) {
+    try {
+      generator.writeStartObject();
+      generator.writeStringField("dataElement", entry.getDataElement());
+      generator.writeStringField("period", entry.getPeriod());
+      generator.writeStringField("orgUnit", entry.getOrgUnit());
+      generator.writeStringField("categoryOptionCombo", entry.getCategoryOptionCombo());
+      generator.writeStringField("attributeOptionCombo", entry.getAttributeOptionCombo());
+      generator.writeStringField("value", entry.getValue());
+      generator.writeStringField("storedBy", entry.getStoredBy());
+      generator.writeStringField("created", entry.getCreated());
+      generator.writeStringField("lastUpdated", entry.getLastUpdated());
+      generator.writeStringField("comment", entry.getComment());
+      generator.writeBooleanField("followup", entry.getFollowup());
+      Boolean deleted = entry.getDeleted();
+      if (deleted != null) {
+        generator.writeBooleanField("deleted", deleted);
+      }
+      generator.writeEndObject();
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
+  }
 
-    @Override
-    public void close()
-    {
-        try
-        {
-            generator.writeEndArray();
-            generator.writeEndObject();
-            generator.close();
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+  @Override
+  public void close() {
+    try {
+      generator.writeEndArray();
+      generator.writeEndObject();
+      generator.close();
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
+  }
 }

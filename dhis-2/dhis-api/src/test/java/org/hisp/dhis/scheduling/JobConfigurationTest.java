@@ -27,9 +27,15 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.sql.Date;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,96 +45,123 @@ import org.junit.jupiter.api.Test;
  *
  * @author Volker Schmidt
  */
-class JobConfigurationTest
-{
+class JobConfigurationTest {
 
-    private JobParameters jobParameters;
+  private JobParameters jobParameters;
 
-    private JobConfiguration jobConfiguration;
+  private JobConfiguration jobConfiguration;
 
-    @BeforeEach
-    void setUp()
-    {
-        jobParameters = new MockJobParameters();
-        jobConfiguration = new JobConfiguration();
-        jobConfiguration.setJobType( JobType.ANALYTICS_TABLE );
-        jobConfiguration.setJobStatus( JobStatus.COMPLETED );
-        jobConfiguration.setJobParameters( jobParameters );
-        jobConfiguration.setEnabled( true );
-        jobConfiguration.setLeaderOnlyJob( true );
-        jobConfiguration.setCronExpression( "0 0 6 * * ?" );
-    }
+  @BeforeEach
+  void setUp() {
+    jobParameters = new MockJobParameters();
+    jobConfiguration = new JobConfiguration();
+    jobConfiguration.setJobType(JobType.ANALYTICS_TABLE);
+    jobConfiguration.setJobStatus(JobStatus.COMPLETED);
+    jobConfiguration.setJobParameters(jobParameters);
+    jobConfiguration.setEnabled(true);
+    jobConfiguration.setCronExpression("0 0 6 * * ?");
+  }
 
-    @Test
-    void hasNonConfigurableJobChangesFalse()
-    {
-        final JobConfiguration jc = new JobConfiguration();
-        jc.setJobType( JobType.ANALYTICS_TABLE );
-        jc.setJobStatus( JobStatus.COMPLETED );
-        jc.setJobParameters( jobParameters );
-        jc.setEnabled( true );
-        jc.setLeaderOnlyJob( false );
-        assertFalse( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
-    }
+  @Test
+  void hasNonConfigurableJobChangesFalse() {
+    final JobConfiguration jc = new JobConfiguration();
+    jc.setJobType(JobType.ANALYTICS_TABLE);
+    jc.setJobStatus(JobStatus.COMPLETED);
+    jc.setJobParameters(jobParameters);
+    jc.setEnabled(true);
+    assertFalse(jobConfiguration.hasNonConfigurableJobChanges(jc));
+  }
 
-    @Test
-    void hasNonConfigurableJobChangesCron()
-    {
-        final JobConfiguration jc = new JobConfiguration();
-        jc.setJobType( JobType.ANALYTICS_TABLE );
-        jc.setJobStatus( JobStatus.COMPLETED );
-        jc.setJobParameters( jobParameters );
-        jc.setEnabled( true );
-        jc.setLeaderOnlyJob( true );
-        jc.setCronExpression( "0 0 12 * * ?" );
-        assertFalse( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
-    }
+  @Test
+  void hasNonConfigurableJobChangesCron() {
+    final JobConfiguration jc = new JobConfiguration();
+    jc.setJobType(JobType.ANALYTICS_TABLE);
+    jc.setJobStatus(JobStatus.COMPLETED);
+    jc.setJobParameters(jobParameters);
+    jc.setEnabled(true);
+    jc.setCronExpression("0 0 12 * * ?");
+    assertFalse(jobConfiguration.hasNonConfigurableJobChanges(jc));
+  }
 
-    @Test
-    void hasNonConfigurableEnabled()
-    {
-        final JobConfiguration jc = new JobConfiguration();
-        jc.setJobType( JobType.ANALYTICS_TABLE );
-        jc.setJobStatus( JobStatus.COMPLETED );
-        jc.setJobParameters( jobParameters );
-        jc.setEnabled( false );
-        jc.setLeaderOnlyJob( true );
-        assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
-    }
+  @Test
+  void hasNonConfigurableEnabled() {
+    final JobConfiguration jc = new JobConfiguration();
+    jc.setJobType(JobType.ANALYTICS_TABLE);
+    jc.setJobStatus(JobStatus.COMPLETED);
+    jc.setJobParameters(jobParameters);
+    jc.setEnabled(false);
+    assertTrue(jobConfiguration.hasNonConfigurableJobChanges(jc));
+  }
 
-    @Test
-    void hasNonConfigurableJobChangesJobType()
-    {
-        final JobConfiguration jc = new JobConfiguration();
-        jc.setJobType( JobType.DATA_INTEGRITY );
-        jc.setJobStatus( JobStatus.COMPLETED );
-        jc.setJobParameters( jobParameters );
-        jc.setEnabled( true );
-        jc.setLeaderOnlyJob( true );
-        assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
-    }
+  @Test
+  void hasNonConfigurableJobChangesJobType() {
+    final JobConfiguration jc = new JobConfiguration();
+    jc.setJobType(JobType.DATA_INTEGRITY);
+    jc.setJobStatus(JobStatus.COMPLETED);
+    jc.setJobParameters(jobParameters);
+    jc.setEnabled(true);
+    assertTrue(jobConfiguration.hasNonConfigurableJobChanges(jc));
+  }
 
-    @Test
-    void hasNonConfigurableJobChangesJobStatus()
-    {
-        final JobConfiguration jc = new JobConfiguration();
-        jc.setJobType( JobType.ANALYTICS_TABLE );
-        jc.setJobStatus( JobStatus.STOPPED );
-        jc.setJobParameters( jobParameters );
-        jc.setEnabled( true );
-        jc.setLeaderOnlyJob( true );
-        assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
-    }
+  @Test
+  void hasNonConfigurableJobChangesJobStatus() {
+    final JobConfiguration jc = new JobConfiguration();
+    jc.setJobType(JobType.ANALYTICS_TABLE);
+    jc.setJobStatus(JobStatus.STOPPED);
+    jc.setJobParameters(jobParameters);
+    jc.setEnabled(true);
+    assertTrue(jobConfiguration.hasNonConfigurableJobChanges(jc));
+  }
 
-    @Test
-    void hasNonConfigurableJobChangesJobParameters()
-    {
-        final JobConfiguration jc = new JobConfiguration();
-        jc.setJobType( JobType.ANALYTICS_TABLE );
-        jc.setJobStatus( JobStatus.COMPLETED );
-        jc.setJobParameters( new MockJobParameters() );
-        jc.setEnabled( true );
-        jc.setLeaderOnlyJob( true );
-        assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
-    }
+  @Test
+  void hasNonConfigurableJobChangesJobParameters() {
+    final JobConfiguration jc = new JobConfiguration();
+    jc.setJobType(JobType.ANALYTICS_TABLE);
+    jc.setJobStatus(JobStatus.COMPLETED);
+    jc.setJobParameters(new MockJobParameters());
+    jc.setEnabled(true);
+    assertTrue(jobConfiguration.hasNonConfigurableJobChanges(jc));
+  }
+
+  @Test
+  void cronNextExecutionTimeWithDelay() {
+    JobConfiguration config = new JobConfiguration(JobType.DATA_INTEGRITY);
+    config.setCronExpression("0 40 8 ? * *"); // daily 8:40am
+
+    ZonedDateTime todayMidnight = LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault());
+    ZonedDateTime today8am = todayMidnight.withHour(8);
+    Duration maxCronDelay = Duration.ofHours(2);
+    ZonedDateTime today8_40am = todayMidnight.withHour(8).withMinute(40);
+    assertEquals(
+        today8_40am.toInstant(), config.nextExecutionTime(today8am.toInstant(), maxCronDelay));
+    ZonedDateTime today10am = todayMidnight.withHour(10);
+    ZonedDateTime tomorrow8_40am = today8_40am.plusDays(1);
+
+    // when the job never executed the next execution is on the next day the intended time
+    // if now is already after the intended time
+    assertEquals(
+        tomorrow8_40am.toInstant(), config.nextExecutionTime(today10am.toInstant(), maxCronDelay));
+
+    // when the job did execute last yesterday the intended time,
+    // and we are still in the 2h window after 8:40am at 10am
+    // the job still wants to run today 8:40am (immediately as that time has passed)
+    config.setLastExecuted(Date.from(today8_40am.minusDays(1).toInstant()));
+    assertEquals(
+        today8_40am.toInstant(), config.nextExecutionTime(today10am.toInstant(), maxCronDelay));
+
+    // if however, time has passed beyond the 2h window, today's execution is skipped
+    // and the next execution will be tomorrow at the intended time
+    ZonedDateTime today10_41am = todayMidnight.withHour(10).withMinute(41);
+    assertEquals(
+        tomorrow8_40am.toInstant(),
+        config.nextExecutionTime(today10_41am.toInstant(), maxCronDelay));
+  }
+
+  @Test
+  void jobStatusIsScheduledWhenJobStatusIsDisabledButEnabled() {
+    JobConfiguration config = new JobConfiguration(JobType.DATA_INTEGRITY);
+    config.setJobStatus(JobStatus.DISABLED);
+
+    assertEquals(JobStatus.SCHEDULED, config.getJobStatus());
+  }
 }

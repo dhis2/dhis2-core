@@ -30,7 +30,6 @@ package org.hisp.dhis.commons.action;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.user.User;
@@ -40,67 +39,58 @@ import org.hisp.dhis.user.UserGroupService;
 /*
  * @author mortenoh
  */
-public class GetUserGroupsAction
-    extends ActionPagingSupport<UserGroup>
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetUserGroupsAction extends ActionPagingSupport<UserGroup> {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private UserGroupService userGroupService;
+  private UserGroupService userGroupService;
 
-    public void setUserGroupService( UserGroupService userGroupService )
-    {
-        this.userGroupService = userGroupService;
+  public void setUserGroupService(UserGroupService userGroupService) {
+    this.userGroupService = userGroupService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Input & Output
+  // -------------------------------------------------------------------------
+
+  private String key;
+
+  public void setKey(String key) {
+    this.key = key;
+  }
+
+  private List<UserGroup> userGroups;
+
+  public List<UserGroup> getUserGroups() {
+    return userGroups;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action Implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() throws Exception {
+    canReadType(UserGroup.class);
+
+    userGroups = new ArrayList<>(userGroupService.getAllUserGroups());
+
+    User currentUser = currentUserService.getCurrentUser();
+    userGroups.forEach(instance -> canReadInstance(instance, currentUser));
+
+    if (key != null) {
+      userGroups = IdentifiableObjectUtils.filterNameByKey(userGroups, key, true);
     }
 
-    // -------------------------------------------------------------------------
-    // Input & Output
-    // -------------------------------------------------------------------------
+    Collections.sort(userGroups);
 
-    private String key;
+    if (usePaging) {
+      this.paging = createPaging(userGroups.size());
 
-    public void setKey( String key )
-    {
-        this.key = key;
+      userGroups = userGroups.subList(paging.getStartPos(), paging.getEndPos());
     }
 
-    private List<UserGroup> userGroups;
-
-    public List<UserGroup> getUserGroups()
-    {
-        return userGroups;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action Implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-        throws Exception
-    {
-        canReadType( UserGroup.class );
-
-        userGroups = new ArrayList<>( userGroupService.getAllUserGroups() );
-
-        User currentUser = currentUserService.getCurrentUser();
-        userGroups.forEach( instance -> canReadInstance( instance, currentUser ) );
-
-        if ( key != null )
-        {
-            userGroups = IdentifiableObjectUtils.filterNameByKey( userGroups, key, true );
-        }
-
-        Collections.sort( userGroups );
-
-        if ( usePaging )
-        {
-            this.paging = createPaging( userGroups.size() );
-
-            userGroups = userGroups.subList( paging.getStartPos(), paging.getEndPos() );
-        }
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

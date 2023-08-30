@@ -35,26 +35,67 @@ import org.hisp.dhis.gist.GistQuery.Filter;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link GistQuery} API methods to compose a {@link GistQuery}
- * object.
+ * Tests the {@link GistQuery} API methods to compose a {@link GistQuery} object.
  *
  * @author Jan Bernitt
  */
-class GistQueryTest
-{
+class GistQueryTest {
 
-    @Test
-    void testFilterParse()
-    {
-        assertFilterEquals( Filter.parse( "name:eq:2" ), 0, "name", Comparison.EQ, "2" );
-        assertFilterEquals( Filter.parse( "1:name:eq:2" ), 1, "name", Comparison.EQ, "2" );
-    }
+  @Test
+  void testFilterParse_SimpleValue() {
+    assertFilterEquals("name:eq:2", -1, "name", Comparison.EQ, "2");
+    assertFilterEquals("name::eq::2", -1, "name", Comparison.EQ, "2");
+    assertFilterEquals("name~eq~2", -1, "name", Comparison.EQ, "2");
+    assertFilterEquals("name@eq@2", -1, "name", Comparison.EQ, "2");
+  }
 
-    private void assertFilterEquals( Filter actual, int group, String name, Comparison op, String... value )
-    {
-        assertEquals( group, actual.getGroup() );
-        assertEquals( name, actual.getPropertyPath() );
-        assertEquals( op, actual.getOperator() );
-        assertArrayEquals( value, actual.getValue() );
-    }
+  @Test
+  void testFilterParse_SimpleValueWithDelimiter() {
+    assertFilterEquals("name:eq:2:3", -1, "name", Comparison.EQ, "2:3");
+  }
+
+  @Test
+  void testFilterParse_GroupSimpleValue() {
+    assertFilterEquals("1:name:eq:2", 1, "name", Comparison.EQ, "2");
+    assertFilterEquals("1~name~eq~2", 1, "name", Comparison.EQ, "2");
+    assertFilterEquals("1@name@eq@2", 1, "name", Comparison.EQ, "2");
+  }
+
+  @Test
+  void testFilterParse_GroupValueWithDelimiter() {
+    assertFilterEquals("1:name:eq:2:3", 1, "name", Comparison.EQ, "2:3");
+  }
+
+  @Test
+  void testFilterParse_ArrayValue() {
+    assertFilterEquals("name:eq:[1,2]", -1, "name", Comparison.EQ, "1", "2");
+  }
+
+  @Test
+  void testFilterParse_ArrayValueWithDelimiters() {
+    assertFilterEquals("name:eq:[1:1,2:2]", -1, "name", Comparison.EQ, "1:1", "2:2");
+  }
+
+  @Test
+  void testFilterParse_GroupArray() {
+    assertFilterEquals("1:name:eq:[1,2]", 1, "name", Comparison.EQ, "1", "2");
+  }
+
+  @Test
+  void testFilterParse_GroupArrayValueWithDelimiters() {
+    assertFilterEquals("2:name:eq:[1:1,2:2]", 2, "name", Comparison.EQ, "1:1", "2:2");
+  }
+
+  private void assertFilterEquals(
+      String filter, int group, String name, Comparison op, String... value) {
+    assertFilterEquals(Filter.parse(filter), group, name, op, value);
+  }
+
+  private void assertFilterEquals(
+      Filter actual, int group, String name, Comparison op, String... value) {
+    assertEquals(group, actual.getGroup());
+    assertEquals(name, actual.getPropertyPath());
+    assertEquals(op, actual.getOperator());
+    assertArrayEquals(value, actual.getValue());
+  }
 }

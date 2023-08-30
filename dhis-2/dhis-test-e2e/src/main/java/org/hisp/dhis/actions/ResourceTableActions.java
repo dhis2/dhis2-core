@@ -28,16 +28,13 @@
 package org.hisp.dhis.actions;
 
 /**
- * Encapsulates the operations/actions related to the "/resourceTables"
- * endpoint.
+ * Encapsulates the operations/actions related to the "/resourceTables" endpoint.
  *
  * @author maikel arabori
  */
-public class ResourceTableActions extends RestApiActions
-{
+public class ResourceTableActions extends RestApiActions {
 
-    public ResourceTableActions()
-    {
-        super( "/resourceTables" );
-    }
+  public ResourceTableActions() {
+    super("/resourceTables");
+  }
 }

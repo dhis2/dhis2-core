@@ -32,7 +32,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -45,151 +44,145 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service( "org.hisp.dhis.attribute.AttributeService" )
-public class DefaultAttributeService implements AttributeService
-{
-    private final Cache<Attribute> attributeCache;
+@Service("org.hisp.dhis.attribute.AttributeService")
+public class DefaultAttributeService implements AttributeService {
+  private final Cache<Attribute> attributeCache;
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final AttributeStore attributeStore;
+  private final AttributeStore attributeStore;
 
-    private final IdentifiableObjectManager manager;
+  private final IdentifiableObjectManager manager;
 
-    public DefaultAttributeService( AttributeStore attributeStore, IdentifiableObjectManager manager,
-        CacheProvider cacheProvider )
-    {
-        checkNotNull( attributeStore );
-        checkNotNull( manager );
+  public DefaultAttributeService(
+      AttributeStore attributeStore,
+      IdentifiableObjectManager manager,
+      CacheProvider cacheProvider) {
+    checkNotNull(attributeStore);
+    checkNotNull(manager);
 
-        this.attributeStore = attributeStore;
-        this.manager = manager;
-        this.attributeCache = cacheProvider.createMetadataAttributesCache();
+    this.attributeStore = attributeStore;
+    this.manager = manager;
+    this.attributeCache = cacheProvider.createMetadataAttributesCache();
+  }
+
+  // -------------------------------------------------------------------------
+  // Attribute implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional
+  public void addAttribute(Attribute attribute) {
+    attributeStore.save(attribute);
+  }
+
+  @Override
+  @Transactional
+  public void deleteAttribute(Attribute attribute) {
+    attributeStore.delete(attribute);
+    attributeCache.invalidate(attribute.getUid());
+  }
+
+  @Override
+  public void invalidateCachedAttribute(String attributeUid) {
+    attributeCache.invalidate(attributeUid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Attribute getAttribute(long id) {
+    return attributeStore.get(id);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Attribute getAttribute(String uid) {
+    return attributeCache.get(
+        uid,
+        attr -> {
+          Attribute attribute = attributeStore.getByUid(uid);
+          HibernateProxyUtils.unproxy(attribute);
+          return attribute;
+        });
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Attribute getAttributeByName(String name) {
+    return attributeStore.getByName(name);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Attribute getAttributeByCode(String code) {
+    return attributeStore.getByCode(code);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Attribute> getAllAttributes() {
+    return attributeStore.getAll();
+  }
+
+  // -------------------------------------------------------------------------
+  // AttributeValue implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  public <T extends IdentifiableObject> void addAttributeValue(
+      T object, AttributeValue attributeValue) throws NonUniqueAttributeValueException {
+    if (object == null || attributeValue == null || attributeValue.getAttribute() == null) {
+      return;
     }
 
-    // -------------------------------------------------------------------------
-    // Attribute implementation
-    // -------------------------------------------------------------------------
+    Attribute attribute = getAttribute(attributeValue.getAttribute().getUid());
 
-    @Override
-    @Transactional
-    public void addAttribute( Attribute attribute )
-    {
-        attributeStore.save( attribute );
+    Class realClass = HibernateProxyUtils.getRealClass(object);
+
+    if (Objects.isNull(attribute) || !attribute.getSupportedClasses().contains(realClass)) {
+      return;
     }
 
-    @Override
-    @Transactional
-    public void deleteAttribute( Attribute attribute )
-    {
-        attributeStore.delete( attribute );
-        attributeCache.invalidate( attribute.getUid() );
+    if (attribute.isUnique()
+        && !manager.isAttributeValueUnique(realClass, object, attributeValue)) {
+      throw new NonUniqueAttributeValueException(attributeValue);
     }
 
-    @Override
-    public void invalidateCachedAttribute( String attributeUid )
-    {
-        attributeCache.invalidate( attributeUid );
-    }
+    object.getAttributeValues().add(attributeValue);
+    manager.update(object);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Attribute getAttribute( long id )
-    {
-        return attributeStore.get( id );
-    }
+  @Override
+  @Transactional
+  public <T extends IdentifiableObject> void deleteAttributeValue(
+      T object, AttributeValue attributeValue) {
+    object.getAttributeValues().removeIf(a -> a.getAttribute() == attributeValue.getAttribute());
+    manager.update(object);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Attribute getAttribute( String uid )
-    {
-        return attributeCache.get( uid, attr -> {
-            Attribute attribute = attributeStore.getByUid( uid );
-            HibernateProxyUtils.unproxy( attribute );
-            return attribute;
-        } );
-    }
+  @Override
+  @Transactional
+  public <T extends IdentifiableObject> void deleteAttributeValues(
+      T object, Set<AttributeValue> attributeValues) {
+    object.getAttributeValues().removeAll(attributeValues);
 
-    @Override
-    @Transactional( readOnly = true )
-    public Attribute getAttributeByName( String name )
-    {
-        return attributeStore.getByName( name );
-    }
+    manager.update(object);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Attribute getAttributeByCode( String code )
-    {
-        return attributeStore.getByCode( code );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<Attribute> getAllAttributes()
-    {
-        return attributeStore.getAll();
-    }
-
-    // -------------------------------------------------------------------------
-    // AttributeValue implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    @Transactional
-    @SuppressWarnings( { "unchecked", "rawtypes" } )
-    public <T extends IdentifiableObject> void addAttributeValue( T object, AttributeValue attributeValue )
-        throws NonUniqueAttributeValueException
-    {
-        if ( object == null || attributeValue == null || attributeValue.getAttribute() == null )
-        {
-            return;
-        }
-
-        Attribute attribute = getAttribute( attributeValue.getAttribute().getUid() );
-
-        Class realClass = HibernateProxyUtils.getRealClass( object );
-
-        if ( Objects.isNull( attribute ) || !attribute.getSupportedClasses().contains( realClass ) )
-        {
-            return;
-        }
-
-        if ( attribute.isUnique() && !manager.isAttributeValueUnique( realClass, object, attributeValue ) )
-        {
-            throw new NonUniqueAttributeValueException( attributeValue );
-        }
-
-        object.getAttributeValues().add( attributeValue );
-        manager.update( object );
-    }
-
-    @Override
-    @Transactional
-    public <T extends IdentifiableObject> void deleteAttributeValue( T object, AttributeValue attributeValue )
-    {
-        object.getAttributeValues()
-            .removeIf( a -> a.getAttribute() == attributeValue.getAttribute() );
-        manager.update( object );
-    }
-
-    @Override
-    @Transactional
-    public <T extends IdentifiableObject> void deleteAttributeValues( T object, Set<AttributeValue> attributeValues )
-    {
-        object.getAttributeValues().removeAll( attributeValues );
-
-        manager.update( object );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public <T extends IdentifiableObject> void generateAttributes( List<T> entityList )
-    {
-        entityList.forEach( entity -> entity.getAttributeValues()
-            .forEach( attributeValue -> attributeValue
-                .setAttribute( getAttribute( attributeValue.getAttribute().getUid() ) ) ) );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public <T extends IdentifiableObject> void generateAttributes(List<T> entityList) {
+    entityList.forEach(
+        entity ->
+            entity
+                .getAttributeValues()
+                .forEach(
+                    attributeValue ->
+                        attributeValue.setAttribute(
+                            getAttribute(attributeValue.getAttribute().getUid()))));
+  }
 }

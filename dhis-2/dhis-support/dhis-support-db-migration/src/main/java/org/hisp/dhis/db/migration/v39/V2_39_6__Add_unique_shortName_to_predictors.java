@@ -33,17 +33,14 @@ import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 
 /**
- * Initialises the {@code shortname} column with a unique name based on the
- * {@code name} column for {@link org.hisp.dhis.predictor.Predictor}s.
+ * Initialises the {@code shortname} column with a unique name based on the {@code name} column for
+ * {@link org.hisp.dhis.predictor.Predictor}s.
  *
  * @author Jan Bernitt
  */
-public class V2_39_6__Add_unique_shortName_to_predictors extends BaseJavaMigration
-{
-    @Override
-    public void migrate( Context context )
-        throws Exception
-    {
-        copyUniqueValue( context, "predictor", "predictorid", "name", "shortname", 50 );
-    }
+public class V2_39_6__Add_unique_shortName_to_predictors extends BaseJavaMigration {
+  @Override
+  public void migrate(Context context) throws Exception {
+    copyUniqueValue(context, "predictor", "predictorid", "name", "shortname", 50);
+  }
 }

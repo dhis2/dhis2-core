@@ -39,37 +39,28 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * @author Lars Helge Overland
  * @version $Id$
  */
-public class DbmsUtils
-{
-    public static void bindSessionToThread( SessionFactory sessionFactory )
-    {
-        Session session = sessionFactory.openSession();
+public class DbmsUtils {
+  public static void bindSessionToThread(SessionFactory sessionFactory) {
+    Session session = sessionFactory.openSession();
 
-        TransactionSynchronizationManager.bindResource( sessionFactory, new SessionHolder( session ) );
+    TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(session));
+  }
+
+  public static void unbindSessionFromThread(SessionFactory sessionFactory) {
+    SessionHolder sessionHolder =
+        (SessionHolder) TransactionSynchronizationManager.unbindResource(sessionFactory);
+
+    SessionFactoryUtils.closeSession(sessionHolder.getSession());
+  }
+
+  public static void closeStatelessSession(StatelessSession session) {
+    try {
+      session.getTransaction().commit();
+    } catch (Exception exception) {
+      session.getTransaction().rollback();
+      DebugUtils.getStackTrace(exception);
+    } finally {
+      session.close();
     }
-
-    public static void unbindSessionFromThread( SessionFactory sessionFactory )
-    {
-        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager
-            .unbindResource( sessionFactory );
-
-        SessionFactoryUtils.closeSession( sessionHolder.getSession() );
-    }
-
-    public static void closeStatelessSession( StatelessSession session )
-    {
-        try
-        {
-            session.getTransaction().commit();
-        }
-        catch ( Exception exception )
-        {
-            session.getTransaction().rollback();
-            DebugUtils.getStackTrace( exception );
-        }
-        finally
-        {
-            session.close();
-        }
-    }
+  }
 }

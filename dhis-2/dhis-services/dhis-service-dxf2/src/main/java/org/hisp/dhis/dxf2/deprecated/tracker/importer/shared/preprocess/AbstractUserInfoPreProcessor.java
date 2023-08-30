@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.DataValue;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.EventImporterUserService;
@@ -43,79 +42,75 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.user.User;
 
-public abstract class AbstractUserInfoPreProcessor implements Processor
-{
+public abstract class AbstractUserInfoPreProcessor implements Processor {
 
-    @Override
-    public void process( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, WorkContext workContext )
-    {
-        User user = findUserFromImportOptions( workContext.getImportOptions() )
-            .orElseGet( () -> getUser( workContext ) );
+  @Override
+  public void process(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, WorkContext workContext) {
+    User user =
+        findUserFromImportOptions(workContext.getImportOptions())
+            .orElseGet(() -> getUser(workContext));
 
-        if ( user != null )
-        {
-            UserInfoSnapshot userInfo = UserInfoSnapshot.from( user );
-            updateEventUserInfo( event, userInfo );
+    if (user != null) {
+      UserInfoSnapshot userInfo = UserInfoSnapshot.from(user);
+      updateEventUserInfo(event, userInfo);
 
-            Set<String> updatableDataValues = Optional.ofNullable( event )
-                .map( org.hisp.dhis.dxf2.deprecated.tracker.event.Event::getDataValues )
-                .orElse( Collections.emptySet() )
-                .stream()
-                .map( DataValue::getDataElement )
-                .collect( Collectors.toSet() );
+      Set<String> updatableDataValues =
+          Optional.ofNullable(event)
+              .map(org.hisp.dhis.dxf2.deprecated.tracker.event.Event::getDataValues)
+              .orElse(Collections.emptySet())
+              .stream()
+              .map(DataValue::getDataElement)
+              .collect(Collectors.toSet());
 
-            Set<EventDataValue> eventDataValuesToUpdate = getWorkContextDataValueMapEntry( workContext, event.getUid() )
-                .stream()
-                .filter( eventDataValue -> updatableDataValues.contains( eventDataValue.getDataElement() ) )
-                .collect( Collectors.toSet() );
+      Set<EventDataValue> eventDataValuesToUpdate =
+          getWorkContextDataValueMapEntry(workContext, event.getUid()).stream()
+              .filter(
+                  eventDataValue -> updatableDataValues.contains(eventDataValue.getDataElement()))
+              .collect(Collectors.toSet());
 
-            updateDataValuesUserInfo( getExistingPsi( workContext, event.getUid() ),
-                eventDataValuesToUpdate, userInfo );
-        }
+      updateDataValuesUserInfo(
+          getExistingPsi(workContext, event.getUid()), eventDataValuesToUpdate, userInfo);
     }
+  }
 
-    private Event getExistingPsi( WorkContext workContext, String uid )
-    {
-        return Optional.ofNullable( workContext )
-            .map( WorkContext::getProgramStageInstanceMap )
-            .orElse( Collections.emptyMap() )
-            .get( uid );
-    }
+  private Event getExistingPsi(WorkContext workContext, String uid) {
+    return Optional.ofNullable(workContext)
+        .map(WorkContext::getProgramStageInstanceMap)
+        .orElse(Collections.emptyMap())
+        .get(uid);
+  }
 
-    protected Set<EventDataValue> getWorkContextDataValueMapEntry( WorkContext workContext, String uid )
-    {
-        return Optional.ofNullable( workContext )
-            .map( WorkContext::getEventDataValueMap )
-            .orElse( Collections.emptyMap() )
-            .get( uid );
-    }
+  protected Set<EventDataValue> getWorkContextDataValueMapEntry(
+      WorkContext workContext, String uid) {
+    return Optional.ofNullable(workContext)
+        .map(WorkContext::getEventDataValueMap)
+        .orElse(Collections.emptyMap())
+        .get(uid);
+  }
 
-    protected void updateDataValuesUserInfo( Event existingPsi, Set<EventDataValue> eventDataValueMap,
-        UserInfoSnapshot userInfo )
-    {
-        Optional.ofNullable( eventDataValueMap )
-            .orElse( Collections.emptySet() )
-            .forEach( dataValue -> updateDataValueUserInfo( existingPsi, dataValue, userInfo ) );
-    }
+  protected void updateDataValuesUserInfo(
+      Event existingPsi, Set<EventDataValue> eventDataValueMap, UserInfoSnapshot userInfo) {
+    Optional.ofNullable(eventDataValueMap)
+        .orElse(Collections.emptySet())
+        .forEach(dataValue -> updateDataValueUserInfo(existingPsi, dataValue, userInfo));
+  }
 
-    protected abstract void updateDataValueUserInfo( Event existingPsi, EventDataValue dataValue,
-        UserInfoSnapshot userInfo );
+  protected abstract void updateDataValueUserInfo(
+      Event existingPsi, EventDataValue dataValue, UserInfoSnapshot userInfo);
 
-    protected abstract void updateEventUserInfo( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,
-        UserInfoSnapshot eventUserInfo );
+  protected abstract void updateEventUserInfo(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, UserInfoSnapshot eventUserInfo);
 
-    private User getUser( WorkContext workContext )
-    {
-        return Optional.ofNullable( workContext )
-            .map( WorkContext::getServiceDelegator )
-            .map( ServiceDelegator::getEventImporterUserService )
-            .map( EventImporterUserService::getCurrentUser )
-            .orElse( null );
-    }
+  private User getUser(WorkContext workContext) {
+    return Optional.ofNullable(workContext)
+        .map(WorkContext::getServiceDelegator)
+        .map(ServiceDelegator::getEventImporterUserService)
+        .map(EventImporterUserService::getCurrentUser)
+        .orElse(null);
+  }
 
-    private Optional<User> findUserFromImportOptions( ImportOptions importOptions )
-    {
-        return Optional.ofNullable( importOptions )
-            .map( ImportOptions::getUser );
-    }
+  private Optional<User> findUserFromImportOptions(ImportOptions importOptions) {
+    return Optional.ofNullable(importOptions).map(ImportOptions::getUser);
+  }
 }

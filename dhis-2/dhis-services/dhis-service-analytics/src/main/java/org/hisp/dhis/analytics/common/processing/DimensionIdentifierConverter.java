@@ -32,7 +32,6 @@ import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.
 
 import java.util.List;
 import java.util.Optional;
-
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.params.dimension.StringDimensionIdentifier;
@@ -42,86 +41,91 @@ import org.hisp.dhis.program.ProgramStage;
 import org.springframework.stereotype.Component;
 
 /**
- * Component responsible for converting string representations of dimensions
- * into {@link DimensionIdentifier} objects.
+ * Component responsible for converting string representations of dimensions into {@link
+ * DimensionIdentifier} objects.
  */
 @Component
-public class DimensionIdentifierConverter
-{
-    /**
-     * Based on the given list of {@link Program} and the "fullDimensionId",
-     * this method will apply some conversions in order to build a
-     * {@link DimensionIdentifier}.
-     *
-     * @param allowedPrograms list of programs allowed to be present in
-     *        "fullDimensionId"
-     * @param fullDimensionId string representation of a dimension. Examples:
-     *        abcde[1].fghi[4].jklm, abcde.fghi.jklm, abcde.jklm or jklm
-     * @return the built {@link DimensionIdentifier}
-     * @throws IllegalArgumentException if the programUid in the
-     *         "fullDimensionId" does not belong the list of "programsAllowed"
-     */
-    public DimensionIdentifier<StringUid> fromString( List<Program> allowedPrograms, String fullDimensionId )
-    {
-        StringDimensionIdentifier dimensionIdentifier = fromFullDimensionId(
-            fullDimensionId );
+public class DimensionIdentifierConverter {
+  /**
+   * Based on the given list of {@link Program} and the "fullDimensionId", this method will apply
+   * some conversions in order to build a {@link DimensionIdentifier}.
+   *
+   * @param allowedPrograms list of programs allowed to be present in "fullDimensionId"
+   * @param fullDimensionId string representation of a dimension. Examples: abcde[1].fghi[4].jklm,
+   *     abcde.fghi.jklm, abcde.jklm or jklm
+   * @return the built {@link DimensionIdentifier}
+   * @throws IllegalArgumentException if the programUid in the "fullDimensionId" does not belong the
+   *     list of "programsAllowed"
+   */
+  public DimensionIdentifier<StringUid> fromString(
+      List<Program> allowedPrograms, String fullDimensionId) {
+    StringDimensionIdentifier dimensionIdentifier = fromFullDimensionId(fullDimensionId);
 
-        Optional<Program> programOptional = Optional.of( dimensionIdentifier )
-            .map( StringDimensionIdentifier::getProgram )
-            .map( ElementWithOffset::getElement )
-            .flatMap( programUid -> allowedPrograms.stream()
-                .filter( program -> program.getUid().equals( programUid.getUid() ) )
-                .findFirst() );
+    Optional<Program> programOptional =
+        Optional.of(dimensionIdentifier)
+            .map(StringDimensionIdentifier::getProgram)
+            .map(ElementWithOffset::getElement)
+            .flatMap(
+                programUid ->
+                    allowedPrograms.stream()
+                        .filter(program -> program.getUid().equals(programUid.getUid()))
+                        .findFirst());
 
-        ElementWithOffset<StringUid> programWithOffset = dimensionIdentifier.getProgram();
-        ElementWithOffset<StringUid> programStageWithOffset = dimensionIdentifier.getProgramStage();
-        StringUid dimensionId = dimensionIdentifier.getDimension();
+    ElementWithOffset<StringUid> programWithOffset = dimensionIdentifier.getProgram();
+    ElementWithOffset<StringUid> programStageWithOffset = dimensionIdentifier.getProgramStage();
+    StringUid dimensionId = dimensionIdentifier.getDimension();
 
-        if ( !dimensionIdentifier.getProgramStage().isPresent() )
-        {
-            if ( !dimensionIdentifier.getProgram().isPresent() )
-            { // Contains only a dimension.
-                return DimensionIdentifier.of( emptyElementWithOffset(), emptyElementWithOffset(), dimensionId );
-            }
+    if (!dimensionIdentifier.getProgramStage().isPresent()) {
+      if (!dimensionIdentifier.getProgram().isPresent()) { // Contains only a dimension.
+        return DimensionIdentifier.of(
+            emptyElementWithOffset(), emptyElementWithOffset(), dimensionId);
+      }
 
-            Program program = programOptional
-                .orElseThrow( () -> new IllegalArgumentException(
-                    ("Specified program " + programWithOffset + " does not exist") ) );
+      Program program =
+          programOptional.orElseThrow(
+              () ->
+                  new IllegalArgumentException(
+                      ("Specified program " + programWithOffset + " does not exist")));
 
-            return DimensionIdentifier.of(
-                ElementWithOffset.of( program, programWithOffset.getOffset() ),
-                emptyElementWithOffset(),
-                dimensionId );
-        }
-        if ( programOptional.isEmpty() )
-        {
-            throw new IllegalArgumentException( "Specified program " + programWithOffset + " does not exist" );
-        }
-
-        Program program = programOptional.get();
-
-        return extractProgramStageIfExists( program, programStageWithOffset.getElement() )
-            .map( programStage -> DimensionIdentifier.of(
-                ElementWithOffset.of( program, programWithOffset.getOffset() ),
-                ElementWithOffset.of( programStage, programStageWithOffset.getOffset() ),
-                dimensionId ) )
-            .orElseThrow( () -> new IllegalArgumentException(
-                "Program stage " + programStageWithOffset + " is not defined in program "
-                    + programWithOffset ) );
+      return DimensionIdentifier.of(
+          ElementWithOffset.of(program, programWithOffset.getOffset()),
+          emptyElementWithOffset(),
+          dimensionId);
+    }
+    if (programOptional.isEmpty()) {
+      throw new IllegalArgumentException(
+          "Specified program " + programWithOffset + " does not exist");
     }
 
-    /**
-     * Extracts the {@link ProgramStage} object from the given {@link Program},
-     * if any.
-     *
-     * @param program
-     * @param programStageUid
-     * @return the {@link ProgramStage} found or empty
-     */
-    private Optional<ProgramStage> extractProgramStageIfExists( Program program, StringUid programStageUid )
-    {
-        return program.getProgramStages().stream()
-            .filter( programStage -> programStage.getUid().equals( programStageUid.getUid() ) )
-            .findFirst();
-    }
+    Program program = programOptional.get();
+
+    return extractProgramStageIfExists(program, programStageWithOffset.getElement())
+        .map(
+            programStage ->
+                DimensionIdentifier.of(
+                    ElementWithOffset.of(program, programWithOffset.getOffset()),
+                    ElementWithOffset.of(programStage, programStageWithOffset.getOffset()),
+                    dimensionId))
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "Program stage "
+                        + programStageWithOffset
+                        + " is not defined in program "
+                        + programWithOffset));
+  }
+
+  /**
+   * Extracts the {@link ProgramStage} object from the given {@link Program}, if any.
+   *
+   * @param program
+   * @param programStageUid
+   * @return the {@link ProgramStage} found or empty
+   */
+  private Optional<ProgramStage> extractProgramStageIfExists(
+      Program program, StringUid programStageUid) {
+    return program.getProgramStages().stream()
+        .filter(programStage -> programStage.getUid().equals(programStageUid.getUid()))
+        .findFirst();
+  }
 }

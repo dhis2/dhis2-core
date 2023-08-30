@@ -28,7 +28,6 @@
 package org.hisp.dhis.program.notification;
 
 import java.util.Date;
-
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -36,84 +35,77 @@ import org.hisp.dhis.scheduling.JobProgress;
 /**
  * @author Halvdan Hoem Grelland
  */
-public interface ProgramNotificationService
-{
-    /**
-     * Send all scheduled notifications for the given day.
-     *
-     * Queries for any upcoming events or Enrollments which have a
-     * {@link ProgramNotificationTemplate} scheduled for the given day, creates
-     * the messages and immediately dispatches them.
-     *
-     * Potentially a time consuming job, depending on the amount of configured
-     * notifications, the amount of recipients, the message types (SMS, email,
-     * dhis message) and the amount of events resolved by the query.
-     *
-     * Due to the time consuming nature of the process this method should be
-     * wrapped in an asynchronous task.
-     *
-     * @param day the Date representing the day relative to the scheduled
-     *        notifications for which to send messages.
-     * @param progress tracking of job progress
-     */
-    void sendScheduledNotificationsForDay( Date day, JobProgress progress );
+public interface ProgramNotificationService {
+  /**
+   * Send all scheduled notifications for the given day.
+   *
+   * <p>Queries for any upcoming events or Enrollments which have a {@link
+   * ProgramNotificationTemplate} scheduled for the given day, creates the messages and immediately
+   * dispatches them.
+   *
+   * <p>Potentially a time consuming job, depending on the amount of configured notifications, the
+   * amount of recipients, the message types (SMS, email, dhis message) and the amount of events
+   * resolved by the query.
+   *
+   * <p>Due to the time consuming nature of the process this method should be wrapped in an
+   * asynchronous task.
+   *
+   * @param day the Date representing the day relative to the scheduled notifications for which to
+   *     send messages.
+   * @param progress tracking of job progress
+   */
+  void sendScheduledNotificationsForDay(Date day, JobProgress progress);
 
-    /**
-     * Sends all notifications which are scheduled by program rule and having
-     * scheduledDate for today.
-     *
-     * @param progress tracking of job progress
-     */
-    void sendScheduledNotifications( JobProgress progress );
+  /**
+   * Sends all notifications which are scheduled by program rule and having scheduledDate for today.
+   *
+   * @param progress tracking of job progress
+   */
+  void sendScheduledNotifications(JobProgress progress);
 
-    /**
-     * Send completion notifications for the Event. If the ProgramStage is not
-     * configured with suitable {@link ProgramNotificationTemplate templates},
-     * nothing will happen.
-     *
-     * @param eventId the event id.
-     */
-    void sendEventCompletionNotifications( long eventId );
+  /**
+   * Send completion notifications for the Event. If the ProgramStage is not configured with
+   * suitable {@link ProgramNotificationTemplate templates}, nothing will happen.
+   *
+   * @param eventId the event id.
+   */
+  void sendEventCompletionNotifications(long eventId);
 
-    /**
-     * Send completion notifications for the Enrollment triggered by ProgramRule
-     * evaluation. {@link ProgramNotificationTemplate templates}, nothing will
-     * happen.
-     *
-     * @param pnt ProgramNotificationTemplate id to send
-     * @param enrollment the Enrollment id.
-     */
-    void sendProgramRuleTriggeredNotifications( long pnt, long enrollment );
+  /**
+   * Send completion notifications for the Enrollment triggered by ProgramRule evaluation. {@link
+   * ProgramNotificationTemplate templates}, nothing will happen.
+   *
+   * @param pnt ProgramNotificationTemplate id to send
+   * @param enrollment the Enrollment id.
+   */
+  void sendProgramRuleTriggeredNotifications(long pnt, long enrollment);
 
-    void sendProgramRuleTriggeredNotifications( long pnt, Enrollment enrollment );
+  void sendProgramRuleTriggeredNotifications(long pnt, Enrollment enrollment);
 
-    /**
-     * Send completion notifications for the Event triggered by ProgramRule
-     * evaluation. {@link ProgramNotificationTemplate templates}, nothing will
-     * happen.
-     *
-     * @param pnt ProgramNotificationTemplate id to send
-     * @param eventId the event id.
-     */
-    void sendProgramRuleTriggeredEventNotifications( long pnt, long eventId );
+  /**
+   * Send completion notifications for the Event triggered by ProgramRule evaluation. {@link
+   * ProgramNotificationTemplate templates}, nothing will happen.
+   *
+   * @param pnt ProgramNotificationTemplate id to send
+   * @param eventId the event id.
+   */
+  void sendProgramRuleTriggeredEventNotifications(long pnt, long eventId);
 
-    void sendProgramRuleTriggeredEventNotifications( long pnt, Event event );
+  void sendProgramRuleTriggeredEventNotifications(long pnt, Event event);
 
-    /**
-     * Send completion notifications for the Enrollment. If the Program is not
-     * configured with suitable {@link ProgramNotificationTemplate templates},
-     * nothing will happen.
-     *
-     * @param enrollment the Enrollment id.
-     */
-    void sendEnrollmentCompletionNotifications( long enrollment );
+  /**
+   * Send completion notifications for the Enrollment. If the Program is not configured with
+   * suitable {@link ProgramNotificationTemplate templates}, nothing will happen.
+   *
+   * @param enrollment the Enrollment id.
+   */
+  void sendEnrollmentCompletionNotifications(long enrollment);
 
-    /**
-     * Send enrollment notifications for the Enrollment. If the Program is not
-     * configured with suitable {@link ProgramNotificationTemplate templates},
-     * nothing will happen.
-     *
-     * @param enrollment the Enrollment id.
-     */
-    void sendEnrollmentNotifications( long enrollment );
+  /**
+   * Send enrollment notifications for the Enrollment. If the Program is not configured with
+   * suitable {@link ProgramNotificationTemplate templates}, nothing will happen.
+   *
+   * @param enrollment the Enrollment id.
+   */
+  void sendEnrollmentNotifications(long enrollment);
 }

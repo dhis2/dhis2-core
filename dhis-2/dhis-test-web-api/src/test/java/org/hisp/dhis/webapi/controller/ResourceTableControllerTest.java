@@ -27,77 +27,35 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.WebTestConfiguration.TestSchedulingManager;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Tests the {@link ResourceTableController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-class ResourceTableControllerTest extends DhisControllerConvenienceTest
-{
+class ResourceTableControllerTest extends DhisControllerIntegrationTest {
 
-    @Autowired
-    private SchedulingManager schedulingManager;
+  @Test
+  void testAnalytics() {
+    JsonWebMessage msg = assertWebMessage(HttpStatus.OK, POST("/resourceTables/analytics"));
+    assertStartsWith("Initiated ANALYTICS_TABLE", msg.getMessage());
+  }
 
-    @BeforeEach
-    void setUp()
-    {
-        ((TestSchedulingManager) schedulingManager).setEnabled( false );
-    }
+  @Test
+  void testResourceTables() {
+    JsonWebMessage msg = assertWebMessage(HttpStatus.OK, POST("/resourceTables"));
+    assertStartsWith("Initiated RESOURCE_TABLE", msg.getMessage());
+  }
 
-    @AfterEach
-    void tearDown()
-    {
-        TestSchedulingManager testSchedulingManager = (TestSchedulingManager) schedulingManager;
-        testSchedulingManager.setEnabled( true );
-        testSchedulingManager.setRunning( false );
-    }
-
-    @Test
-    void testAnalytics()
-    {
-        assertWebMessage( "OK", 200, "OK", "Initiated inMemoryAnalyticsJob",
-            POST( "/resourceTables/analytics" ).content( HttpStatus.OK ) );
-    }
-
-    @Test
-    void testAnalytics_SecondRequestWhileRunning()
-    {
-        assertWebMessage( "OK", 200, "OK", "Initiated inMemoryAnalyticsJob",
-            POST( "/resourceTables/analytics" ).content( HttpStatus.OK ) );
-
-        // we fake that the first request above would internally still run (in
-        // tests it never starts)
-        ((TestSchedulingManager) schedulingManager).setRunning( true );
-
-        JsonWebMessage message = assertWebMessage( "Conflict", 409, "ERROR",
-            "Job of type ANALYTICS_TABLE is already running",
-            POST( "/resourceTables/analytics" ).content( HttpStatus.CONFLICT ) );
-        assertEquals( "FAILED", message.getResponse().getString( "jobStatus" ).string() );
-    }
-
-    @Test
-    void testResourceTables()
-    {
-        assertWebMessage( "OK", 200, "OK", "Initiated inMemoryResourceTableJob",
-            POST( "/resourceTables" ).content( HttpStatus.OK ) );
-    }
-
-    @Test
-    void testMonitoring()
-    {
-        assertWebMessage( "OK", 200, "OK", "Initiated inMemoryMonitoringJob",
-            POST( "/resourceTables/monitoring" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testMonitoring() {
+    JsonWebMessage msg = assertWebMessage(HttpStatus.OK, POST("/resourceTables/monitoring"));
+    assertStartsWith("Initiated MONITORING", msg.getMessage());
+  }
 }

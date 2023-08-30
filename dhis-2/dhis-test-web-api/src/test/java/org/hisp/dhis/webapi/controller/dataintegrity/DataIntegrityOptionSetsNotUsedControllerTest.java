@@ -39,106 +39,120 @@ import org.hisp.dhis.webapi.json.domain.JsonOptionSet;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for option sets which are not used.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/option_sets/unused_option_sets.yaml}
+ * Test for option sets which are not used. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/option_sets/unused_option_sets.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOptionSetsNotUsedControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    private static final String check = "options_sets_unused";
+class DataIntegrityOptionSetsNotUsedControllerTest extends AbstractDataIntegrityIntegrationTest {
+  private static final String check = "options_sets_unused";
 
-    private static final String detailsIdType = "optionSets";
+  private static final String detailsIdType = "optionSets";
 
-    private String goodOptionSet;
+  private String goodOptionSet;
 
-    @Test
-    void testOptionSetNotUsed()
-    {
+  @Test
+  void testOptionSetNotUsed() {
 
-        goodOptionSet = assertStatus( HttpStatus.CREATED,
-            POST( "/optionSets",
-                "{ 'name': 'Taste', 'shortName': 'Taste', 'valueType' : 'TEXT' }" ) );
+    goodOptionSet =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/optionSets", "{ 'name': 'Taste', 'shortName': 'Taste', 'valueType' : 'TEXT' }"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/options",
-                "{ 'code': 'SWEET'," +
-                    "  'sortOrder': 1," +
-                    "  'name': 'Sweet'," +
-                    "  'optionSet': { " +
-                    "    'id': '" + goodOptionSet + "'" +
-                    "  }}" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/options",
+            "{ 'code': 'SWEET',"
+                + "  'sortOrder': 1,"
+                + "  'name': 'Sweet',"
+                + "  'optionSet': { "
+                + "    'id': '"
+                + goodOptionSet
+                + "'"
+                + "  }}"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/options",
-                "{ 'code': 'SOUR'," +
-                    "  'sortOrder': 2," +
-                    "  'name': 'Sour'," +
-                    "  'optionSet': { " +
-                    "    'id': '" + goodOptionSet + "'" +
-                    "  }}" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/options",
+            "{ 'code': 'SOUR',"
+                + "  'sortOrder': 2,"
+                + "  'name': 'Sour',"
+                + "  'optionSet': { "
+                + "    'id': '"
+                + goodOptionSet
+                + "'"
+                + "  }}"));
 
-        JsonObject content = GET( "/optionSets?fields=id,name,options[id]" ).content();
-        JsonList<JsonOptionSet> myOptionSets = content.getList( detailsIdType, JsonOptionSet.class );
-        assertEquals( 1, myOptionSets.size() );
-        JsonOptionSet myOptionSet = myOptionSets.get( 0 );
-        assertEquals( goodOptionSet, myOptionSet.getId() );
-        JsonList<JsonOption> optionSetOptions = myOptionSet.getOptions();
-        assertEquals( 2, optionSetOptions.size() );
+    JsonObject content = GET("/optionSets?fields=id,name,options[id]").content();
+    JsonList<JsonOptionSet> myOptionSets = content.getList(detailsIdType, JsonOptionSet.class);
+    assertEquals(1, myOptionSets.size());
+    JsonOptionSet myOptionSet = myOptionSets.get(0);
+    assertEquals(goodOptionSet, myOptionSet.getId());
+    JsonList<JsonOption> optionSetOptions = myOptionSet.getOptions();
+    assertEquals(2, optionSetOptions.size());
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 100, goodOptionSet, "Taste", null,
-            true );
+    assertHasDataIntegrityIssues(detailsIdType, check, 100, goodOptionSet, "Taste", null, true);
+  }
 
-    }
+  @Test
+  void testOptionSetsUsed() {
 
-    @Test
-    void testOptionSetsUsed()
-    {
+    goodOptionSet =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/optionSets", "{ 'name': 'Taste', 'shortName': 'Taste', 'valueType' : 'TEXT' }"));
 
-        goodOptionSet = assertStatus( HttpStatus.CREATED,
-            POST( "/optionSets",
-                "{ 'name': 'Taste', 'shortName': 'Taste', 'valueType' : 'TEXT' }" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/options",
+            "{ 'code': 'SWEET',"
+                + "  'sortOrder': 1,"
+                + "  'name': 'Sweet',"
+                + "  'optionSet': { "
+                + "    'id': '"
+                + goodOptionSet
+                + "'"
+                + "  }}"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/options",
-                "{ 'code': 'SWEET'," +
-                    "  'sortOrder': 1," +
-                    "  'name': 'Sweet'," +
-                    "  'optionSet': { " +
-                    "    'id': '" + goodOptionSet + "'" +
-                    "  }}" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/options",
+            "{ 'code': 'SOUR',"
+                + "  'sortOrder': 2,"
+                + "  'name': 'Sour',"
+                + "  'optionSet': { "
+                + "    'id': '"
+                + goodOptionSet
+                + "'"
+                + "  }}"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/options",
-                "{ 'code': 'SOUR'," +
-                    "  'sortOrder': 2," +
-                    "  'name': 'Sour'," +
-                    "  'optionSet': { " +
-                    "    'id': '" + goodOptionSet + "'" +
-                    "  }}" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataElements",
+            "{ 'name': 'Candy', 'shortName': 'Candy', 'valueType' : 'TEXT',  "
+                + "'domainType' : 'AGGREGATE', 'aggregationType' : 'NONE',"
+                + "'optionSet' : { 'id' : '"
+                + goodOptionSet
+                + "'}  }"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'Candy', 'shortName': 'Candy', 'valueType' : 'TEXT',  " +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'NONE'," +
-                    "'optionSet' : { 'id' : '" + goodOptionSet + "'}  }" ) );
+    JsonObject content = GET("/dataElements/?fields=id,name,optionSet").content();
+    JsonList<JsonDataElement> testDataElementJSON =
+        content.getList("dataElements", JsonDataElement.class);
+    assertEquals(1, testDataElementJSON.size());
+    assertEquals("Candy", testDataElementJSON.get(0).getName());
+    assertEquals(goodOptionSet, testDataElementJSON.get(0).getOptionSet().getId());
 
-        JsonObject content = GET( "/dataElements/?fields=id,name,optionSet" ).content();
-        JsonList<JsonDataElement> testDataElementJSON = content.getList( "dataElements", JsonDataElement.class );
-        assertEquals( 1, testDataElementJSON.size() );
-        assertEquals( "Candy", testDataElementJSON.get( 0 ).getName() );
-        assertEquals( goodOptionSet, testDataElementJSON.get( 0 ).getOptionSet().getId() );
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
+  @Test
+  void testInvalidCategoriesDivideByZero() {
 
-    }
-
-    @Test
-    void testInvalidCategoriesDivideByZero()
-    {
-
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-
-    }
-
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 }

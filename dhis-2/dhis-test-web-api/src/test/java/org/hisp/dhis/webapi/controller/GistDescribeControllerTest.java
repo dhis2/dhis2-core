@@ -39,101 +39,94 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class GistDescribeControllerTest extends AbstractGistControllerTest
-{
+class GistDescribeControllerTest extends AbstractGistControllerTest {
 
-    @Test
-    void testDescribe_Object()
-    {
-        JsonObject description = GET( "/users/{uid}/gist?describe=true", getSuperuserUid() ).content();
-        assertBaseDescription( description );
-        assertFalse( description.getObject( "hql" ).has( "count" ) );
-    }
+  @Test
+  void testDescribe_Object() {
+    JsonObject description = GET("/users/{uid}/gist?describe=true", getSuperuserUid()).content();
+    assertBaseDescription(description);
+    assertFalse(description.getObject("hql").has("count"));
+  }
 
-    @Test
-    void testDescribe_ObjectList()
-    {
-        JsonObject description = GET( "/users/gist?describe=true", getSuperuserUid() ).content();
-        assertBaseDescription( description );
-        assertFalse( description.getObject( "hql" ).has( "count" ) );
-    }
+  @Test
+  void testDescribe_ObjectList() {
+    JsonObject description = GET("/users/gist?describe=true", getSuperuserUid()).content();
+    assertBaseDescription(description);
+    assertFalse(description.getObject("hql").has("count"));
+  }
 
-    @Test
-    void testDescribe_ObjectCollectionList()
-    {
-        JsonObject description = GET( "/users/{uid}/userGroups/gist?describe=true", getSuperuserUid() ).content();
-        assertBaseDescription( description );
-        assertFalse( description.getObject( "hql" ).has( "count" ) );
-    }
+  @Test
+  void testDescribe_ObjectCollectionList() {
+    JsonObject description =
+        GET("/users/{uid}/userGroups/gist?describe=true", getSuperuserUid()).content();
+    assertBaseDescription(description);
+    assertFalse(description.getObject("hql").has("count"));
+  }
 
-    @Test
-    void testDescribe_Error_PlanningFailed()
-    {
-        JsonObject description = GET( "/users/{uid}/userGroups/gist?describe=true&filter=foo:eq:bar",
-            getSuperuserUid() ).content();
-        assertTrue( description.has( "error", "unplanned", "status" ) );
-        assertTrue( description.getObject( "error" ).has( "type", "message" ) );
-        assertTrue( description.getObject( "unplanned" ).has( "fields", "filters", "orders" ) );
-        assertEquals( "planning-failed", description.getString( "status" ).string() );
-    }
-
-    @Test
-    void testDescribe_Error_ValidationFailed()
-    {
-        JsonObject description = GET( "/users/gist?describe=true&fields=password", getSuperuserUid() )
+  @Test
+  void testDescribe_Error_PlanningFailed() {
+    JsonObject description =
+        GET("/users/{uid}/userGroups/gist?describe=true&filter=foo:eq:bar", getSuperuserUid())
             .content();
-        assertTrue( description.has( "error", "unplanned", "planned", "status" ) );
-        assertTrue( description.getObject( "error" ).has( "type", "message" ) );
-        assertTrue( description.getObject( "unplanned" ).has( "fields", "filters", "orders" ) );
-        assertEquals( "validation-failed", description.getString( "status" ).string() );
-        assertEquals( "Property `password` is not readable.",
-            description.getObject( "error" ).getString( "message" ).string() );
-    }
+    assertTrue(description.has("error", "unplanned", "status"));
+    assertTrue(description.getObject("error").has("type", "message"));
+    assertTrue(description.getObject("unplanned").has("fields", "filters", "orders"));
+    assertEquals("planning-failed", description.getString("status").string());
+  }
 
-    @Test
-    void testDescribe_Total()
-    {
-        JsonObject description = GET( "/users/gist?describe=true&total=true", getSuperuserUid() ).content();
-        assertBaseDescription( description );
-        assertTrue( description.getObject( "hql" ).has( "count" ) );
-    }
+  @Test
+  void testDescribe_Error_ValidationFailed() {
+    JsonObject description =
+        GET("/users/gist?describe=true&fields=password", getSuperuserUid()).content();
+    assertTrue(description.has("error", "unplanned", "planned", "status"));
+    assertTrue(description.getObject("error").has("type", "message"));
+    assertTrue(description.getObject("unplanned").has("fields", "filters", "orders"));
+    assertEquals("validation-failed", description.getString("status").string());
+    assertEquals(
+        "Property `password` is not readable.",
+        description.getObject("error").getString("message").string());
+  }
 
-    @Test
-    void testDescribe_FetchParameters()
-    {
-        JsonObject description = GET( "/users/gist?describe=true&filter=surname:startsWith:Jo", getSuperuserUid() )
-            .content();
-        assertBaseDescription( description );
-        JsonObject hql = description.getObject( "hql" );
-        assertTrue( hql.has( "parameters" ) );
-        JsonObject parameters = hql.getObject( "parameters" );
-        assertTrue( parameters.isObject() );
-        assertEquals( 1, parameters.size() );
-        // starts with is case-insensitive so both term and DB field are lowered
-        assertEquals( "jo%", parameters.getString( "f_0" ).string() );
-    }
+  @Test
+  void testDescribe_Total() {
+    JsonObject description =
+        GET("/users/gist?describe=true&total=true", getSuperuserUid()).content();
+    assertBaseDescription(description);
+    assertTrue(description.getObject("hql").has("count"));
+  }
 
-    @Test
-    void testDescribe_Authorisation_Guest()
-    {
-        switchToGuestUser();
-        JsonObject description = GET( "/users/{uid}/gist?describe=true", getSuperuserUid() ).content();
-        assertFalse( description.has( "hql" ) );
-    }
+  @Test
+  void testDescribe_FetchParameters() {
+    JsonObject description =
+        GET("/users/gist?describe=true&filter=surname:startsWith:Jo", getSuperuserUid()).content();
+    assertBaseDescription(description);
+    JsonObject hql = description.getObject("hql");
+    assertTrue(hql.has("parameters"));
+    JsonObject parameters = hql.getObject("parameters");
+    assertTrue(parameters.isObject());
+    assertEquals(1, parameters.size());
+    // starts with is case-insensitive so both term and DB field are lowered
+    assertEquals("jo%", parameters.getString("f_0").string());
+  }
 
-    @Test
-    void testDescribe_Authorisation_Admin()
-    {
-        switchToNewUser( "guest", "Test_skipSharingCheck", "F_METADATA_EXPORT" );
-        assertBaseDescription( GET( "/users/{uid}/gist?describe=true", getSuperuserUid() ).content() );
-    }
+  @Test
+  void testDescribe_Authorisation_Guest() {
+    switchToGuestUser();
+    JsonObject description = GET("/users/{uid}/gist?describe=true", getSuperuserUid()).content();
+    assertFalse(description.has("hql"));
+  }
 
-    private void assertBaseDescription( JsonObject description )
-    {
-        assertTrue( description.has( "status", "hql", "planned", "unplanned" ) );
-        assertTrue( description.getObject( "hql" ).has( "fetch", "parameters" ) );
-        assertTrue( description.getObject( "planned" ).has( "fields", "filters", "orders", "summary" ) );
-        assertTrue( description.getObject( "planned" ).has( "fields", "filters", "orders" ) );
-        assertEquals( "ok", description.getString( "status" ).string() );
-    }
+  @Test
+  void testDescribe_Authorisation_Admin() {
+    switchToNewUser("guest", "Test_skipSharingCheck", "F_METADATA_EXPORT");
+    assertBaseDescription(GET("/users/{uid}/gist?describe=true", getSuperuserUid()).content());
+  }
+
+  private void assertBaseDescription(JsonObject description) {
+    assertTrue(description.has("status", "hql", "planned", "unplanned"));
+    assertTrue(description.getObject("hql").has("fetch", "parameters"));
+    assertTrue(description.getObject("planned").has("fields", "filters", "orders", "summary"));
+    assertTrue(description.getObject("planned").has("fields", "filters", "orders"));
+    assertEquals("ok", description.getString("status").string());
+  }
 }

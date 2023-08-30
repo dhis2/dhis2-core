@@ -30,62 +30,56 @@ package org.hisp.dhis.dxf2.deprecated.tracker.event;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRow;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- *
- * @deprecated this is a class related to "old" (deprecated) tracker which will
- *             be removed with "old" tracker. Make sure to plan migrating to new
- *             tracker.
+ * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
+ *     "old" tracker. Make sure to plan migrating to new tracker.
  */
-@Deprecated( since = "2.41" )
-public interface EventStore
-{
-    /**
-     * Inserts a List of {@see Event}. Notes are not stored at this stage.
-     *
-     * @param events a List of {@see Event}
-     *
-     * @return a list of saved program stage instances
-     */
-    List<Event> saveEvents( List<Event> events );
+@Deprecated(since = "2.41")
+public interface EventStore {
+  /**
+   * Inserts a List of {@see Event}. Notes are not stored at this stage.
+   *
+   * @param events a List of {@see Event}
+   * @return a list of saved program stage instances
+   */
+  List<Event> saveEvents(List<Event> events);
 
-    /**
-     * Updates a List of {@see Event}. Notes are not stored at this stage.
-     *
-     * @param events a List of {@see Event}
-     *
-     * @return a list of saved program stage instances
-     */
-    List<Event> updateEvents( List<Event> events );
+  /**
+   * Updates a List of {@see Event}. Notes are not stored at this stage.
+   *
+   * @param events a List of {@see Event}
+   * @return a list of saved program stage instances
+   */
+  List<Event> updateEvents(List<Event> events);
 
-    List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> getEvents( EventSearchParams params,
-        Map<String, Set<String>> psdesWithSkipSyncTrue );
+  List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> getEvents(
+      EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue);
 
-    List<Map<String, String>> getEventsGrid( EventSearchParams params );
+  List<Map<String, String>> getEventsGrid(EventSearchParams params);
 
-    List<EventRow> getEventRows( EventSearchParams params );
+  List<EventRow> getEventRows(EventSearchParams params);
 
-    int getEventCount( EventSearchParams params );
+  int getEventCount(EventSearchParams params);
 
-    /**
-     * Delete list of given events to be removed. This operation also remove
-     * comments connected to each Event.
-     *
-     * @param events List to be removed
-     */
-    void delete( List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events );
+  /**
+   * Delete list of given events to be removed. This operation also remove comments connected to
+   * each Event.
+   *
+   * @param events List to be removed
+   */
+  void delete(List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events);
 
-    /**
-     * Updates the "last updated" and "last updated By" of the Tracked Entity
-     * Instances matching the provided list of UIDs
-     *
-     * @param teiUid a List of Tracked Entity Instance uid
-     * @param user the User to use for the last update by value. Can be null.
-     */
-    void updateTrackedEntityInstances( List<String> teiUid, User user );
+  /**
+   * Updates the "last updated" and "last updated By" of the Tracked Entity Instances matching the
+   * provided list of UIDs
+   *
+   * @param teiUid a List of Tracked Entity Instance uid
+   * @param user the User to use for the last update by value. Can be null.
+   */
+  void updateTrackedEntityInstances(List<String> teiUid, User user);
 }

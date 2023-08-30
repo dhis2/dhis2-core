@@ -31,7 +31,6 @@ import static org.hisp.dhis.analytics.common.query.GroupableCondition.ofUngroupe
 
 import java.util.List;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
@@ -41,27 +40,22 @@ import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilderAdaptor;
 import org.springframework.stereotype.Service;
 
 /**
- * This class is responsible for adding the where clause for the geometry only
- * query. This happens we want to return only TEI with geometry.
+ * This class is responsible for adding the where clause for the geometry only query. This happens
+ * we want to return only TEI with geometry.
  */
 @Service
-public class GeometryOnlyQueryBuilder extends SqlQueryBuilderAdaptor
-{
-    @Override
-    protected Stream<GroupableCondition> getWhereClauses( QueryContext queryContext,
-        List<DimensionIdentifier<DimensionParam>> unused )
-    {
-        if ( queryContext.getTeiQueryParams().getCommonParams().isGeometryOnly() )
-        {
-            return Stream.of( ofUngroupedCondition( GeometryOnlyCondition.INSTANCE ) );
-        }
-        return Stream.empty();
+public class GeometryOnlyQueryBuilder extends SqlQueryBuilderAdaptor {
+  @Override
+  protected Stream<GroupableCondition> getWhereClauses(
+      QueryContext queryContext, List<DimensionIdentifier<DimensionParam>> unused) {
+    if (queryContext.getTeiQueryParams().getCommonParams().isGeometryOnly()) {
+      return Stream.of(ofUngroupedCondition(GeometryOnlyCondition.INSTANCE));
     }
+    return Stream.empty();
+  }
 
-    @Override
-    public boolean alwaysRun()
-    {
-        return true;
-    }
-
+  @Override
+  public boolean alwaysRun() {
+    return true;
+  }
 }

@@ -40,43 +40,57 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for the Gist API that need a real database because they use DB functions
- * that are not supported by H2.
+ * Test for the Gist API that need a real database because they use DB functions that are not
+ * supported by H2.
  *
  * @author Jan Bernitt
  */
-class GistPostgresControllerTest extends DhisControllerIntegrationTest
-{
-    private String orgUnitId;
+class GistPostgresControllerTest extends DhisControllerIntegrationTest {
+  private String orgUnitId;
 
-    private User userA;
+  private User userA;
 
-    @BeforeEach
-    void setUp()
-    {
-        userA = createUserWithAuth( "userA", "ALL" );
+  @BeforeEach
+  void setUp() {
+    userA = createUserWithAuth("userA", "ALL");
 
-        switchContextToUser( userA );
+    switchContextToUser(userA);
 
-        String userGroupId = assertStatus( HttpStatus.CREATED,
-            POST( "/userGroups/", "{'name':'groupX', 'users':[{'id':'" + getSuperuserUid() + "'}]}" ) );
-        assertStatus( HttpStatus.OK, PATCH( "/users/{id}?importReportMode=ERRORS", getSuperuserUid(),
-            Body( "[{'op': 'add', 'path': '/birthday', 'value': '1980-12-12'}]" ) ) );
-        orgUnitId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'unitA', 'shortName':'unitA', 'openingDate':'2021-01-01'}" ) );
-        String dataSetId = assertStatus( HttpStatus.CREATED, POST( "/dataSets/",
-            "{'name':'set1', 'shortName':'set1', 'organisationUnits': [{'id':'" + orgUnitId
-                + "'}], 'periodType':'Daily'}" ) );
-    }
+    String userGroupId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/userGroups/", "{'name':'groupX', 'users':[{'id':'" + getSuperuserUid() + "'}]}"));
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/users/{id}?importReportMode=ERRORS",
+            getSuperuserUid(),
+            Body("[{'op': 'add', 'path': '/birthday', 'value': '1980-12-12'}]")));
+    orgUnitId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'unitA', 'shortName':'unitA', 'openingDate':'2021-01-01'}"));
+    String dataSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                "{'name':'set1', 'shortName':'set1', 'organisationUnits': [{'id':'"
+                    + orgUnitId
+                    + "'}], 'periodType':'Daily'}"));
+  }
 
-    @Test
-    void testTransform_Pluck_Multi()
-    {
-        JsonObject gist = GET( "/users/{uid}/userGroups/gist?fields=name,users::pluck(id,surname)", getSuperuserUid() )
+  @Test
+  void testTransform_Pluck_Multi() {
+    JsonObject gist =
+        GET("/users/{uid}/userGroups/gist?fields=name,users::pluck(id,surname)", getSuperuserUid())
             .content();
-        JsonArray users = gist.getArray( "userGroups" ).getObject( 0 ).getArray( "users" );
-        JsonObject user0 = users.getObject( 0 );
-        assertEquals( "Surnameadmin", user0.getString( "surname" ).string() );
-        assertEquals( getSuperuserUid(), user0.getString( "id" ).string() );
-    }
+    JsonArray users = gist.getArray("userGroups").getObject(0).getArray("users");
+    JsonObject user0 = users.getObject(0);
+    assertEquals("Surnameadmin", user0.getString("surname").string());
+    assertEquals(getSuperuserUid(), user0.getString("id").string());
+  }
 }

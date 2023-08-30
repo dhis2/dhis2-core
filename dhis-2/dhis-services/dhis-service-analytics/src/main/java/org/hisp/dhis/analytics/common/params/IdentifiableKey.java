@@ -27,12 +27,10 @@
  */
 package org.hisp.dhis.analytics.common.params;
 
-public interface IdentifiableKey
-{
-    String getKey();
+public interface IdentifiableKey {
+  String getKey();
 
-    default String wrappedKey()
-    {
-        return "[" + getKey() + "]";
-    }
+  default String wrappedKey() {
+    return "[" + getKey() + "]";
+  }
 }

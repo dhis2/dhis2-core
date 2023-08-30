@@ -27,31 +27,28 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Morten Olav Hansen
  */
 @Data
 @AllArgsConstructor
-@JsonRootName( value = "resource", namespace = DxfNamespaces.DXF_2_0 )
-public class IndexResource
-{
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final String displayName;
+@JsonRootName(value = "resource", namespace = DxfNamespaces.DXF_2_0)
+public class IndexResource {
+  @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
+  private final String displayName;
 
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final String singular;
+  @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
+  private final String singular;
 
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final String plural;
+  @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
+  private final String plural;
 
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final String href;
+  @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
+  private final String href;
 }

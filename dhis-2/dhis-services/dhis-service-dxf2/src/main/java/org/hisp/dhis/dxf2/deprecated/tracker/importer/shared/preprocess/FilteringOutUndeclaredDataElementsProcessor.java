@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -44,54 +43,53 @@ import org.hisp.dhis.program.ProgramStage;
 import org.springframework.stereotype.Component;
 
 /**
- * Remove data elements from event and context map which are not present in the
- * program stage that is linked to it.
+ * Remove data elements from event and context map which are not present in the program stage that
+ * is linked to it.
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
 @Component
-public class FilteringOutUndeclaredDataElementsProcessor implements Processor
-{
-    @Override
-    public void process( final Event event, final WorkContext ctx )
-    {
-        if ( StringUtils.isNotBlank( event.getProgramStage() ) )
-        {
-            updateDataValuesInEventAndContext( event, ctx );
-        }
+public class FilteringOutUndeclaredDataElementsProcessor implements Processor {
+  @Override
+  public void process(final Event event, final WorkContext ctx) {
+    if (StringUtils.isNotBlank(event.getProgramStage())) {
+      updateDataValuesInEventAndContext(event, ctx);
     }
+  }
 
-    private void updateDataValuesInEventAndContext( Event event, WorkContext ctx )
-    {
+  private void updateDataValuesInEventAndContext(Event event, WorkContext ctx) {
 
-        Set<String> programStageDataElementUids = getDataElementUidsFromProgramStage( event.getProgramStage(),
-            ctx );
+    Set<String> programStageDataElementUids =
+        getDataElementUidsFromProgramStage(event.getProgramStage(), ctx);
 
-        Set<EventDataValue> ctxEventDataValues = ctx.getEventDataValueMap().get( event.getUid() );
+    Set<EventDataValue> ctxEventDataValues = ctx.getEventDataValueMap().get(event.getUid());
 
-        ctx.getEventDataValueMap().put( event.getUid(), ctxEventDataValues.stream()
-            .filter( eventDataValue -> programStageDataElementUids.contains( eventDataValue.getDataElement() ) )
-            .collect( Collectors.toSet() ) );
-    }
+    ctx.getEventDataValueMap()
+        .put(
+            event.getUid(),
+            ctxEventDataValues.stream()
+                .filter(
+                    eventDataValue ->
+                        programStageDataElementUids.contains(eventDataValue.getDataElement()))
+                .collect(Collectors.toSet()));
+  }
 
-    public static Set<DataValue> getFilteredDataValues( Set<DataValue> dataValues,
-        Set<String> programStageDataElementUids )
-    {
-        return Optional.ofNullable( dataValues ).orElse( Collections.emptySet() ).stream()
-            .filter( dataValue -> programStageDataElementUids.contains( dataValue.getDataElement() ) )
-            .collect( Collectors.toSet() );
-    }
+  public static Set<DataValue> getFilteredDataValues(
+      Set<DataValue> dataValues, Set<String> programStageDataElementUids) {
+    return Optional.ofNullable(dataValues).orElse(Collections.emptySet()).stream()
+        .filter(dataValue -> programStageDataElementUids.contains(dataValue.getDataElement()))
+        .collect(Collectors.toSet());
+  }
 
-    public static Set<String> getDataElementUidsFromProgramStage( String programStageUid, WorkContext ctx )
-    {
-        IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
-        ProgramStage programStage = ctx.getProgramStage( scheme, programStageUid );
-        return Optional.ofNullable( programStage )
-            .map( ProgramStage::getDataElements )
-            .orElse( Collections.emptySet() )
-            .stream()
-            .map( IdentifiableObject::getUid )
-            .collect( Collectors.toSet() );
-    }
-
+  public static Set<String> getDataElementUidsFromProgramStage(
+      String programStageUid, WorkContext ctx) {
+    IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
+    ProgramStage programStage = ctx.getProgramStage(scheme, programStageUid);
+    return Optional.ofNullable(programStage)
+        .map(ProgramStage::getDataElements)
+        .orElse(Collections.emptySet())
+        .stream()
+        .map(IdentifiableObject::getUid)
+        .collect(Collectors.toSet());
+  }
 }

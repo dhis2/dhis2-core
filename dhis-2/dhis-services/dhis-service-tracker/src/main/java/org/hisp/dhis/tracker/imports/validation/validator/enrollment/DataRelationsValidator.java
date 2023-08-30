@@ -33,7 +33,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1041;
 
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -46,63 +45,55 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class DataRelationsValidator
-    implements Validator<Enrollment>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
-        OrganisationUnit organisationUnit = bundle.getPreheat()
-            .getOrganisationUnit( enrollment.getOrgUnit() );
+class DataRelationsValidator implements Validator<Enrollment> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    Program program = bundle.getPreheat().getProgram(enrollment.getProgram());
+    OrganisationUnit organisationUnit =
+        bundle.getPreheat().getOrganisationUnit(enrollment.getOrgUnit());
 
-        reporter.addErrorIf( () -> !program.isRegistration(), enrollment, E1014, program );
+    reporter.addErrorIf(() -> !program.isRegistration(), enrollment, E1014, program);
 
-        TrackerPreheat preheat = bundle.getPreheat();
-        if ( programDoesNotHaveOrgUnit( program, organisationUnit, preheat.getProgramWithOrgUnitsMap() ) )
-        {
-            reporter.addError( enrollment, E1041, organisationUnit, program );
-        }
-
-        validateTrackedEntityTypeMatchesPrograms( reporter, bundle, program, enrollment );
+    TrackerPreheat preheat = bundle.getPreheat();
+    if (programDoesNotHaveOrgUnit(program, organisationUnit, preheat.getProgramWithOrgUnitsMap())) {
+      reporter.addError(enrollment, E1041, organisationUnit, program);
     }
 
-    private boolean programDoesNotHaveOrgUnit( Program program, OrganisationUnit orgUnit,
-        Map<String, List<String>> programAndOrgUnitsMap )
-    {
-        return !programAndOrgUnitsMap.containsKey( program.getUid() )
-            || !programAndOrgUnitsMap.get( program.getUid() ).contains( orgUnit.getUid() );
+    validateTrackedEntityTypeMatchesPrograms(reporter, bundle, program, enrollment);
+  }
+
+  private boolean programDoesNotHaveOrgUnit(
+      Program program, OrganisationUnit orgUnit, Map<String, List<String>> programAndOrgUnitsMap) {
+    return !programAndOrgUnitsMap.containsKey(program.getUid())
+        || !programAndOrgUnitsMap.get(program.getUid()).contains(orgUnit.getUid());
+  }
+
+  private void validateTrackedEntityTypeMatchesPrograms(
+      Reporter reporter, TrackerBundle bundle, Program program, Enrollment enrollment) {
+
+    if (program.getTrackedEntityType() == null) {
+      return;
     }
 
-    private void validateTrackedEntityTypeMatchesPrograms( Reporter reporter, TrackerBundle bundle,
-        Program program,
-        Enrollment enrollment )
-    {
+    if (!trackedEntityTypesMatch(bundle, program, enrollment)) {
+      reporter.addError(enrollment, E1022, enrollment.getTrackedEntity(), program);
+    }
+  }
 
-        if ( program.getTrackedEntityType() == null )
-        {
-            return;
-        }
-
-        if ( !trackedEntityTypesMatch( bundle, program, enrollment ) )
-        {
-            reporter.addError( enrollment, E1022, enrollment.getTrackedEntity(), program );
-        }
+  private boolean trackedEntityTypesMatch(
+      TrackerBundle bundle, Program program, Enrollment enrollment) {
+    final TrackedEntity trackedEntity =
+        bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity());
+    if (trackedEntity != null) {
+      return program
+          .getTrackedEntityType()
+          .getUid()
+          .equals(trackedEntity.getTrackedEntityType().getUid());
     }
 
-    private boolean trackedEntityTypesMatch( TrackerBundle bundle, Program program, Enrollment enrollment )
-    {
-        final TrackedEntity trackedEntity = bundle
-            .getPreheat().getTrackedEntity( enrollment.getTrackedEntity() );
-        if ( trackedEntity != null )
-        {
-            return program.getTrackedEntityType().getUid()
-                .equals( trackedEntity.getTrackedEntityType().getUid() );
-        }
-
-        return bundle.findTrackedEntityByUid( enrollment.getTrackedEntity() )
-            .map( te -> te.getTrackedEntityType().isEqualTo( program.getTrackedEntityType() ) )
-            .orElse( false );
-    }
-
+    return bundle
+        .findTrackedEntityByUid(enrollment.getTrackedEntity())
+        .map(te -> te.getTrackedEntityType().isEqualTo(program.getTrackedEntityType()))
+        .orElse(false);
+  }
 }

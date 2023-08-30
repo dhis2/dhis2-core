@@ -28,7 +28,6 @@
 package org.hisp.dhis.fileresource;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,30 +37,27 @@ import org.springframework.util.Assert;
  * @author Stian Sandvold
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.fileresource.ExternalFileResourceService" )
-public class DefaultExternalFileResourceService
-    implements ExternalFileResourceService
-{
-    private final ExternalFileResourceStore externalFileResourceStore;
+@Service("org.hisp.dhis.fileresource.ExternalFileResourceService")
+public class DefaultExternalFileResourceService implements ExternalFileResourceService {
+  private final ExternalFileResourceStore externalFileResourceStore;
 
-    @Override
-    @Transactional( readOnly = true )
-    public ExternalFileResource getExternalFileResourceByAccessToken( String accessToken )
-    {
-        return externalFileResourceStore.getExternalFileResourceByAccessToken( accessToken );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public ExternalFileResource getExternalFileResourceByAccessToken(String accessToken) {
+    return externalFileResourceStore.getExternalFileResourceByAccessToken(accessToken);
+  }
 
-    @Override
-    @Transactional
-    public String saveExternalFileResource( ExternalFileResource externalFileResource )
-    {
-        Assert.notNull( externalFileResource, "External file resource cannot be null" );
-        Assert.notNull( externalFileResource.getFileResource(), "External file resource entity cannot be null" );
+  @Override
+  @Transactional
+  public String saveExternalFileResource(ExternalFileResource externalFileResource) {
+    Assert.notNull(externalFileResource, "External file resource cannot be null");
+    Assert.notNull(
+        externalFileResource.getFileResource(), "External file resource entity cannot be null");
 
-        externalFileResource.setAccessToken( CodeGenerator.getRandomSecureToken() );
+    externalFileResource.setAccessToken(CodeGenerator.getRandomSecureToken());
 
-        externalFileResourceStore.save( externalFileResource );
+    externalFileResourceStore.save(externalFileResource);
 
-        return externalFileResource.getAccessToken();
-    }
+    return externalFileResource.getAccessToken();
+  }
 }

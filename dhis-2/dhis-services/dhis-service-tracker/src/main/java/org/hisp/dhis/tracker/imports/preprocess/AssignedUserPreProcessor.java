@@ -29,45 +29,37 @@ package org.hisp.dhis.tracker.imports.preprocess;
 
 import java.util.Objects;
 import java.util.Optional;
-
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.springframework.stereotype.Component;
 
 /**
- * This preprocessor is responsible to fill the assigned user with missing
- * information.
+ * This preprocessor is responsible to fill the assigned user with missing information.
  *
  * @author Enrico Colasante
  */
 @Component
-public class AssignedUserPreProcessor
-    implements BundlePreProcessor
-{
-    @Override
-    public void process( TrackerBundle bundle )
-    {
-        for ( Event event : bundle.getEvents() )
-        {
-            User assignedUser = event.getAssignedUser();
+public class AssignedUserPreProcessor implements BundlePreProcessor {
+  @Override
+  public void process(TrackerBundle bundle) {
+    for (Event event : bundle.getEvents()) {
+      User assignedUser = event.getAssignedUser();
 
-            if ( Objects.isNull( assignedUser ) )
-            {
-                return;
-            }
+      if (Objects.isNull(assignedUser)) {
+        return;
+      }
 
-            if ( Objects.isNull( assignedUser.getUid() ) )
-            {
-                Optional<org.hisp.dhis.user.User> user = bundle.getPreheat()
-                    .getUserByUsername( assignedUser.getUsername() );
-                user.ifPresent( u -> assignedUser.setUid( u.getUid() ) );
-            }
-            if ( Objects.isNull( assignedUser.getUsername() ) )
-            {
-                Optional<org.hisp.dhis.user.User> user = bundle.getPreheat().getUserByUid( assignedUser.getUid() );
-                user.ifPresent( u -> assignedUser.setUsername( u.getUsername() ) );
-            }
-        }
+      if (Objects.isNull(assignedUser.getUid())) {
+        Optional<org.hisp.dhis.user.User> user =
+            bundle.getPreheat().getUserByUsername(assignedUser.getUsername());
+        user.ifPresent(u -> assignedUser.setUid(u.getUid()));
+      }
+      if (Objects.isNull(assignedUser.getUsername())) {
+        Optional<org.hisp.dhis.user.User> user =
+            bundle.getPreheat().getUserByUid(assignedUser.getUid());
+        user.ifPresent(u -> assignedUser.setUsername(u.getUsername()));
+      }
     }
+  }
 }

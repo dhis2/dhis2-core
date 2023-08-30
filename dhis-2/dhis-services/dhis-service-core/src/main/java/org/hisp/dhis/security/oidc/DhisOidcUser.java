@@ -30,7 +30,6 @@ package org.hisp.dhis.security.oidc;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
@@ -41,102 +40,87 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class DhisOidcUser
-    extends DefaultOAuth2User
-    implements OidcUser, CurrentUserDetails
-{
-    private final OidcIdToken oidcIdToken;
+public class DhisOidcUser extends DefaultOAuth2User implements OidcUser, CurrentUserDetails {
+  private final OidcIdToken oidcIdToken;
 
-    private final CurrentUserDetails user;
+  private final CurrentUserDetails user;
 
-    public DhisOidcUser( CurrentUserDetails user, Map<String, Object> attributes, String nameAttributeKey,
-        OidcIdToken idToken )
-    {
-        super( user.getAuthorities(), attributes, nameAttributeKey );
-        this.oidcIdToken = idToken;
-        this.user = user;
-    }
+  public DhisOidcUser(
+      CurrentUserDetails user,
+      Map<String, Object> attributes,
+      String nameAttributeKey,
+      OidcIdToken idToken) {
+    super(user.getAuthorities(), attributes, nameAttributeKey);
+    this.oidcIdToken = idToken;
+    this.user = user;
+  }
 
-    @Override
-    public Map<String, Object> getClaims()
-    {
-        return this.getAttributes();
-    }
+  @Override
+  public Map<String, Object> getClaims() {
+    return this.getAttributes();
+  }
 
-    @Override
-    public OidcUserInfo getUserInfo()
-    {
-        return null;
-    }
+  @Override
+  public OidcUserInfo getUserInfo() {
+    return null;
+  }
 
-    @Override
-    public OidcIdToken getIdToken()
-    {
-        return oidcIdToken;
-    }
+  @Override
+  public OidcIdToken getIdToken() {
+    return oidcIdToken;
+  }
 
-    public UserDetails getUser()
-    {
-        return user;
-    }
+  public UserDetails getUser() {
+    return user;
+  }
 
-    @Override
-    public String getUsername()
-    {
-        return user.getUsername();
-    }
+  @Override
+  public String getUsername() {
+    return user.getUsername();
+  }
 
-    @Override
-    public String getPassword()
-    {
-        return user.getPassword();
-    }
+  @Override
+  public String getPassword() {
+    return user.getPassword();
+  }
 
-    @Override
-    public boolean isAccountNonExpired()
-    {
-        return user.isAccountNonExpired();
-    }
+  @Override
+  public boolean isAccountNonExpired() {
+    return user.isAccountNonExpired();
+  }
 
-    @Override
-    public boolean isAccountNonLocked()
-    {
-        return user.isAccountNonLocked();
-    }
+  @Override
+  public boolean isAccountNonLocked() {
+    return user.isAccountNonLocked();
+  }
 
-    @Override
-    public boolean isCredentialsNonExpired()
-    {
-        return user.isCredentialsNonExpired();
-    }
+  @Override
+  public boolean isCredentialsNonExpired() {
+    return user.isCredentialsNonExpired();
+  }
 
-    @Override
-    public boolean isEnabled()
-    {
-        return user.isEnabled();
-    }
+  @Override
+  public boolean isEnabled() {
+    return user.isEnabled();
+  }
 
-    @Override
-    public boolean isSuper()
-    {
-        return user.isSuper();
-    }
+  @Override
+  public boolean isSuper() {
+    return user.isSuper();
+  }
 
-    @Override
-    public String getUid()
-    {
-        return user.getUid();
-    }
+  @Override
+  public String getUid() {
+    return user.getUid();
+  }
 
-    @Override
-    public Set<String> getUserGroupIds()
-    {
-        return user.getUserGroupIds();
-    }
+  @Override
+  public Set<String> getUserGroupIds() {
+    return user.getUserGroupIds();
+  }
 
-    @Override
-    public Map<String, Serializable> getUserSettings()
-    {
-        return user.getUserSettings();
-    }
+  @Override
+  public Map<String, Serializable> getUserSettings() {
+    return user.getUserSettings();
+  }
 }

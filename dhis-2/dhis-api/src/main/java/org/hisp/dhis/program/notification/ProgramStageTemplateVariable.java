@@ -30,74 +30,66 @@ package org.hisp.dhis.program.notification;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.notification.TemplateVariable;
 
 /**
- * Defines the variable expression names for a
- * {@link ProgramNotificationTemplate} on a
- * {@link org.hisp.dhis.program.ProgramStage ProgramStage}.
+ * Defines the variable expression names for a {@link ProgramNotificationTemplate} on a {@link
+ * org.hisp.dhis.program.ProgramStage ProgramStage}.
  *
- * The supported variable names are:
+ * <p>The supported variable names are:
  *
  * <ul>
- * <li>program_name</li>
- * <li>program_stage_name</li>
- * <li>org_unit_name</li>
- * <li>due_date</li>
- * <li>days_since_due_date</li>
- * <li>days_until_due_date</li>
- * <li>current_date</li>
+ *   <li>program_name
+ *   <li>program_stage_name
+ *   <li>org_unit_name
+ *   <li>due_date
+ *   <li>days_since_due_date
+ *   <li>days_until_due_date
+ *   <li>current_date
  * </ul>
  *
  * @author Halvdan Hoem Grelland
  */
-public enum ProgramStageTemplateVariable
-    implements TemplateVariable
-{
-    PROGRAM_NAME( "program_name" ),
-    PROGRAM_STAGE_NAME( "program_stage_name" ),
-    ORG_UNIT_NAME( "org_unit_name" ),
-    ORG_UNIT_ID( "org_unit_id" ),
-    ORG_UNIT_CODE( "org_unit_code" ),
-    DUE_DATE( "due_date" ),
-    DAYS_SINCE_DUE_DATE( "days_since_due_date" ),
-    DAYS_UNTIL_DUE_DATE( "days_until_due_date" ),
-    CURRENT_DATE( "current_date" ),
-    EVENT_DATE( "event_date" ),
-    PROGRAM_ID( "program_id" ),
-    EVENT_ORG_UNIT_ID( "event_org_unit_id" ),
-    ENROLLMENT_ORG_UNIT_ID( "enrollment_org_unit_id" ),
-    ENROLLMENT_ORG_UNIT_NAME( "enrollment_org_unit_name" ),
-    ENROLLMENT_ORG_UNIT_CODE( "enrollment_org_unit_code" ),
-    PROGRAM_STAGE_ID( "program_stage_id" ),
-    ENROLLMENT_ID( "enrollment_id" ),
-    TRACKED_ENTITY_ID( "tracked_entity_id" );
+public enum ProgramStageTemplateVariable implements TemplateVariable {
+  PROGRAM_NAME("program_name"),
+  PROGRAM_STAGE_NAME("program_stage_name"),
+  ORG_UNIT_NAME("org_unit_name"),
+  ORG_UNIT_ID("org_unit_id"),
+  ORG_UNIT_CODE("org_unit_code"),
+  DUE_DATE("due_date"),
+  DAYS_SINCE_DUE_DATE("days_since_due_date"),
+  DAYS_UNTIL_DUE_DATE("days_until_due_date"),
+  CURRENT_DATE("current_date"),
+  EVENT_DATE("event_date"),
+  PROGRAM_ID("program_id"),
+  EVENT_ORG_UNIT_ID("event_org_unit_id"),
+  ENROLLMENT_ORG_UNIT_ID("enrollment_org_unit_id"),
+  ENROLLMENT_ORG_UNIT_NAME("enrollment_org_unit_name"),
+  ENROLLMENT_ORG_UNIT_CODE("enrollment_org_unit_code"),
+  PROGRAM_STAGE_ID("program_stage_id"),
+  ENROLLMENT_ID("enrollment_id"),
+  TRACKED_ENTITY_ID("tracked_entity_id");
 
-    private static final Map<String, ProgramStageTemplateVariable> variableNameMap = EnumSet
-        .allOf( ProgramStageTemplateVariable.class ).stream()
-        .collect( Collectors.toMap( ProgramStageTemplateVariable::getVariableName, e -> e ) );
+  private static final Map<String, ProgramStageTemplateVariable> variableNameMap =
+      EnumSet.allOf(ProgramStageTemplateVariable.class).stream()
+          .collect(Collectors.toMap(ProgramStageTemplateVariable::getVariableName, e -> e));
 
-    private final String variableName;
+  private final String variableName;
 
-    ProgramStageTemplateVariable( String variableName )
-    {
-        this.variableName = variableName;
-    }
+  ProgramStageTemplateVariable(String variableName) {
+    this.variableName = variableName;
+  }
 
-    @Override
-    public String getVariableName()
-    {
-        return variableName;
-    }
+  @Override
+  public String getVariableName() {
+    return variableName;
+  }
 
-    public static boolean isValidVariableName( String expressionName )
-    {
-        return variableNameMap.containsKey( expressionName );
-    }
+  public static boolean isValidVariableName(String expressionName) {
+    return variableNameMap.containsKey(expressionName);
+  }
 
-    public static ProgramStageTemplateVariable fromVariableName( String variableName )
-    {
-        return variableNameMap.get( variableName );
-    }
+  public static ProgramStageTemplateVariable fromVariableName(String variableName) {
+    return variableNameMap.get(variableName);
+  }
 }

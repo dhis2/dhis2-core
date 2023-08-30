@@ -36,110 +36,99 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import lombok.Builder;
 import lombok.Getter;
-
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.batchhandler.AbstractBatchHandler;
 
 /**
- * A batch handler that can write to any database table by using a value map for
- * each row. The table schema need not be known in the source.
- * <p>
- * If only inserting is desired, then only the JDBC configuration, table name,
- * and list of columns need to be specified. If other operations are desired,
- * then other fields must be specified as needed.
+ * A batch handler that can write to any database table by using a value map for each row. The table
+ * schema need not be known in the source.
+ *
+ * <p>If only inserting is desired, then only the JDBC configuration, table name, and list of
+ * columns need to be specified. If other operations are desired, then other fields must be
+ * specified as needed.
  *
  * @author Jim Grace
  */
 @Builder
 @Getter // Several getters override abstract methods from superclass
-public class MappingBatchHandler
-    extends AbstractBatchHandler<Map<String, Object>>
-{
-    // Needed here only to include it in the builder
-    private final JdbcConfiguration jdbcConfiguration;
+public class MappingBatchHandler extends AbstractBatchHandler<Map<String, Object>> {
+  // Needed here only to include it in the builder
+  private final JdbcConfiguration jdbcConfiguration;
 
-    private final String tableName;
+  private final String tableName;
 
-    private final List<String> columns;
+  private final List<String> columns;
 
-    @Builder.Default
-    private String autoIncrementColumn = null;
+  @Builder.Default private String autoIncrementColumn = null;
 
-    @Builder.Default
-    private boolean inclusiveUniqueColumns = true;
+  @Builder.Default private boolean inclusiveUniqueColumns = true;
 
-    @Builder.Default
-    private List<String> identifierColumns = emptyList();
+  @Builder.Default private List<String> identifierColumns = emptyList();
 
-    @Builder.Default
-    private List<String> uniqueColumns = emptyList();
+  @Builder.Default private List<String> uniqueColumns = emptyList();
 
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructor
+  // -------------------------------------------------------------------------
 
-    // Lombok builder will use this constructor which must call super()
-    public MappingBatchHandler( JdbcConfiguration jdbcConfiguration, String tableName, List<String> columns,
-        String autoIncrementColumn, boolean inclusiveUniqueColumns, List<String> identifierColumns,
-        List<String> uniqueColumns )
-    {
-        super( jdbcConfiguration );
-        this.jdbcConfiguration = jdbcConfiguration;
-        this.tableName = tableName;
-        this.columns = columns;
-        this.autoIncrementColumn = autoIncrementColumn;
-        this.inclusiveUniqueColumns = inclusiveUniqueColumns;
-        this.identifierColumns = identifierColumns;
-        this.uniqueColumns = uniqueColumns;
+  // Lombok builder will use this constructor which must call super()
+  public MappingBatchHandler(
+      JdbcConfiguration jdbcConfiguration,
+      String tableName,
+      List<String> columns,
+      String autoIncrementColumn,
+      boolean inclusiveUniqueColumns,
+      List<String> identifierColumns,
+      List<String> uniqueColumns) {
+    super(jdbcConfiguration);
+    this.jdbcConfiguration = jdbcConfiguration;
+    this.tableName = tableName;
+    this.columns = columns;
+    this.autoIncrementColumn = autoIncrementColumn;
+    this.inclusiveUniqueColumns = inclusiveUniqueColumns;
+    this.identifierColumns = identifierColumns;
+    this.uniqueColumns = uniqueColumns;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  @Override
+  public List<Object> getIdentifierValues(Map<String, Object> row) {
+    return getValueList(identifierColumns, row);
+  }
+
+  @Override
+  public List<Object> getUniqueValues(Map<String, Object> row) {
+    return getValueList(uniqueColumns, row);
+  }
+
+  @Override
+  public List<Object> getValues(Map<String, Object> row) {
+    return getValueList(columns, row);
+  }
+
+  @Override
+  public Map<String, Object> mapRow(ResultSet resultSet) throws SQLException {
+    ResultSetMetaData metaData = resultSet.getMetaData();
+
+    Map<String, Object> row = new HashMap<>();
+
+    for (int i = 0; i < metaData.getColumnCount(); i++) {
+      row.put(metaData.getColumnName(i), resultSet.getObject(i));
     }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+    return row;
+  }
 
-    @Override
-    public List<Object> getIdentifierValues( Map<String, Object> row )
-    {
-        return getValueList( identifierColumns, row );
-    }
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-    @Override
-    public List<Object> getUniqueValues( Map<String, Object> row )
-    {
-        return getValueList( uniqueColumns, row );
-    }
-
-    @Override
-    public List<Object> getValues( Map<String, Object> row )
-    {
-        return getValueList( columns, row );
-    }
-
-    @Override
-    public Map<String, Object> mapRow( ResultSet resultSet )
-        throws SQLException
-    {
-        ResultSetMetaData metaData = resultSet.getMetaData();
-
-        Map<String, Object> row = new HashMap<>();
-
-        for ( int i = 0; i < metaData.getColumnCount(); i++ )
-        {
-            row.put( metaData.getColumnName( i ), resultSet.getObject( i ) );
-        }
-
-        return row;
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private List<Object> getValueList( List<String> cols, Map<String, Object> row )
-    {
-        return cols.stream().map( row::get ).collect( toList() );
-    }
+  private List<Object> getValueList(List<String> cols, Map<String, Object> row) {
+    return cols.stream().map(row::get).collect(toList());
+  }
 }

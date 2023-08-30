@@ -30,9 +30,7 @@ package org.hisp.dhis.program;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
@@ -43,55 +41,49 @@ import org.springframework.stereotype.Component;
 /**
  * @author Zubair Asghar
  */
-
 @Component
 @RequiredArgsConstructor
-public class ProgramNotificationInstanceDeletionHandler extends IdObjectDeletionHandler<ProgramNotificationInstance>
-{
-    private final ProgramNotificationInstanceService programNotificationInstanceService;
+public class ProgramNotificationInstanceDeletionHandler
+    extends IdObjectDeletionHandler<ProgramNotificationInstance> {
+  private final ProgramNotificationInstanceService programNotificationInstanceService;
 
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( Enrollment.class, this::deleteEnrollment );
-        whenDeleting( Event.class, this::deleteEvent );
-        whenVetoing( Enrollment.class, this::allowDeleteEnrollment );
-        whenVetoing( Event.class, this::allowDeleteEvent );
-    }
+  @Override
+  protected void registerHandler() {
+    whenDeleting(Enrollment.class, this::deleteEnrollment);
+    whenDeleting(Event.class, this::deleteEvent);
+    whenVetoing(Enrollment.class, this::allowDeleteEnrollment);
+    whenVetoing(Event.class, this::allowDeleteEvent);
+  }
 
-    private void deleteEnrollment( Enrollment enrollment )
-    {
-        List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceService
-            .getProgramNotificationInstances(
-                ProgramNotificationInstanceParam.builder().enrollment( enrollment ).build() );
+  private void deleteEnrollment(Enrollment enrollment) {
+    List<ProgramNotificationInstance> notificationInstances =
+        programNotificationInstanceService.getProgramNotificationInstances(
+            ProgramNotificationInstanceParam.builder().enrollment(enrollment).build());
 
-        notificationInstances.forEach( programNotificationInstanceService::delete );
-    }
+    notificationInstances.forEach(programNotificationInstanceService::delete);
+  }
 
-    private void deleteEvent( Event event )
-    {
-        List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceService
-            .getProgramNotificationInstances(
-                ProgramNotificationInstanceParam.builder().event( event ).build() );
+  private void deleteEvent(Event event) {
+    List<ProgramNotificationInstance> notificationInstances =
+        programNotificationInstanceService.getProgramNotificationInstances(
+            ProgramNotificationInstanceParam.builder().event(event).build());
 
-        notificationInstances.forEach( programNotificationInstanceService::delete );
-    }
+    notificationInstances.forEach(programNotificationInstanceService::delete);
+  }
 
-    private DeletionVeto allowDeleteEnrollment( Enrollment enrollment )
-    {
-        List<ProgramNotificationInstance> instances = programNotificationInstanceService
-            .getProgramNotificationInstances(
-                ProgramNotificationInstanceParam.builder().enrollment( enrollment ).build() );
+  private DeletionVeto allowDeleteEnrollment(Enrollment enrollment) {
+    List<ProgramNotificationInstance> instances =
+        programNotificationInstanceService.getProgramNotificationInstances(
+            ProgramNotificationInstanceParam.builder().enrollment(enrollment).build());
 
-        return instances == null || instances.isEmpty() ? ACCEPT : VETO;
-    }
+    return instances == null || instances.isEmpty() ? ACCEPT : VETO;
+  }
 
-    private DeletionVeto allowDeleteEvent( Event event )
-    {
-        List<ProgramNotificationInstance> instances = programNotificationInstanceService
-            .getProgramNotificationInstances(
-                ProgramNotificationInstanceParam.builder().event( event ).build() );
+  private DeletionVeto allowDeleteEvent(Event event) {
+    List<ProgramNotificationInstance> instances =
+        programNotificationInstanceService.getProgramNotificationInstances(
+            ProgramNotificationInstanceParam.builder().event(event).build());
 
-        return instances == null || instances.isEmpty() ? ACCEPT : VETO;
-    }
+    return instances == null || instances.isEmpty() ? ACCEPT : VETO;
+  }
 }

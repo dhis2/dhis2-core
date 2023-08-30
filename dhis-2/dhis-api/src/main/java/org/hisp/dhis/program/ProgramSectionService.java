@@ -30,13 +30,12 @@ package org.hisp.dhis.program;
 /**
  * @author David Mackessy
  */
-public interface ProgramSectionService
-{
+public interface ProgramSectionService {
 
-    /**
-     * Adds an {@link ProgramSection}
-     *
-     * @param programSection The ProgramSection to add.
-     */
-    void addProgramSection( ProgramSection programSection );
+  /**
+   * Adds an {@link ProgramSection}
+   *
+   * @param programSection The ProgramSection to add.
+   */
+  void addProgramSection(ProgramSection programSection);
 }

@@ -37,10 +37,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.CalendarService;
@@ -79,140 +79,116 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+@ExtendWith(MockitoExtension.class)
+class DataValueSetServiceTest extends DhisConvenienceTest {
 
-@ExtendWith( MockitoExtension.class )
-class DataValueSetServiceTest extends DhisConvenienceTest
-{
+  @Mock private IdentifiableObjectManager identifiableObjectManager;
 
-    @Mock
-    private IdentifiableObjectManager identifiableObjectManager;
+  @Mock private CategoryService categoryService;
 
-    @Mock
-    private CategoryService categoryService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  @Mock private PeriodService periodService;
 
-    @Mock
-    private PeriodService periodService;
+  @Mock private BatchHandlerFactory batchHandlerFactory;
 
-    @Mock
-    private BatchHandlerFactory batchHandlerFactory;
+  @Mock private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
-    @Mock
-    private CompleteDataSetRegistrationService completeDataSetRegistrationService;
+  @Mock private CurrentUserService currentUserService;
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private DataValueSetStore dataValueSetStore;
 
-    @Mock
-    private DataValueSetStore dataValueSetStore;
+  @Mock private SystemSettingManager systemSettingManager;
 
-    @Mock
-    private SystemSettingManager systemSettingManager;
+  @Mock private LockExceptionStore lockExceptionStore;
 
-    @Mock
-    private LockExceptionStore lockExceptionStore;
+  @Mock private I18nManager i18nManager;
 
-    @Mock
-    private I18nManager i18nManager;
+  @Mock private Notifier notifier;
 
-    @Mock
-    private Notifier notifier;
+  @Mock private InputUtils inputUtils;
 
-    @Mock
-    private InputUtils inputUtils;
+  @Mock private CalendarService calendarService;
 
-    @Mock
-    private CalendarService calendarService;
+  @Mock private DataValueService dataValueService;
 
-    @Mock
-    private DataValueService dataValueService;
+  @Mock private FileResourceService fileResourceService;
 
-    @Mock
-    private FileResourceService fileResourceService;
+  @Mock private AclService aclService;
 
-    @Mock
-    private AclService aclService;
+  @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
-    @Mock
-    private DhisConfigurationProvider dhisConfigurationProvider;
+  @Mock private ObjectMapper objectMapper;
 
-    @Mock
-    private ObjectMapper objectMapper;
+  @Mock private DataValueSetImportValidator dataValueSetImportValidator;
 
-    @Mock
-    private DataValueSetImportValidator dataValueSetImportValidator;
+  @Mock private SchemaService schemaService;
 
-    @Mock
-    private SchemaService schemaService;
+  @InjectMocks private DefaultDataValueSetService dataValueSetService;
 
-    @InjectMocks
-    private DefaultDataValueSetService dataValueSetService;
+  @Test
+  void testImportDataValuesUpdatedSkipNoChange() {
+    Calendar calendar = mock(Calendar.class);
+    when(calendarService.getSystemCalendar()).thenReturn(calendar);
 
-    @Test
-    void testImportDataValuesUpdatedSkipNoChange()
-    {
-        Calendar calendar = mock( Calendar.class );
-        when( calendarService.getSystemCalendar() ).thenReturn( calendar );
+    DataValueBatchHandler batchHandler = mock(DataValueBatchHandler.class);
+    when(batchHandler.init()).thenReturn(batchHandler);
+    when(batchHandlerFactory.createBatchHandler(DataValueBatchHandler.class))
+        .thenReturn(batchHandler);
 
-        DataValueBatchHandler batchHandler = mock( DataValueBatchHandler.class );
-        when( batchHandler.init() ).thenReturn( batchHandler );
-        when( batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ) ).thenReturn( batchHandler );
+    DataValueAuditBatchHandler auditBatchHandler = mock(DataValueAuditBatchHandler.class);
+    when(batchHandlerFactory.createBatchHandler(DataValueAuditBatchHandler.class))
+        .thenReturn(auditBatchHandler);
 
-        DataValueAuditBatchHandler auditBatchHandler = mock( DataValueAuditBatchHandler.class );
-        when( batchHandlerFactory.createBatchHandler( DataValueAuditBatchHandler.class ) )
-            .thenReturn( auditBatchHandler );
+    when(notifier.clear(any())).thenReturn(notifier);
+    when(notifier.notify(any(), any(), anyString())).thenReturn(notifier);
+    when(notifier.notify(any(), any(), anyString(), anyBoolean())).thenReturn(notifier);
 
-        when( notifier.clear( any() ) ).thenReturn( notifier );
-        when( notifier.notify( any(), any(), anyString() ) ).thenReturn( notifier );
-        when( notifier.notify( any(), any(), anyString(), anyBoolean() ) ).thenReturn( notifier );
+    DataSet dataSet = createDataSet('A', new MonthlyPeriodType());
+    dataSet.setUid("pBOMPrpg1QX");
+    when(identifiableObjectManager.getObject(DataSet.class, IdScheme.UID, "pBOMPrpg1QX"))
+        .thenReturn(dataSet);
+    DataElement dataElement = createDataElement('A');
+    dataElement.setUid("f7n9E0hX8qk");
+    when(identifiableObjectManager.getObject(DataElement.class, IdScheme.UID, "f7n9E0hX8qk"))
+        .thenReturn(dataElement);
 
-        DataSet dataSet = createDataSet( 'A', new MonthlyPeriodType() );
-        dataSet.setUid( "pBOMPrpg1QX" );
-        when( identifiableObjectManager.getObject( DataSet.class, IdScheme.UID, "pBOMPrpg1QX" ) ).thenReturn( dataSet );
-        DataElement dataElement = createDataElement( 'A' );
-        dataElement.setUid( "f7n9E0hX8qk" );
-        when( identifiableObjectManager.getObject( DataElement.class, IdScheme.UID, "f7n9E0hX8qk" ) )
-            .thenReturn( dataElement );
+    // simulate that the imported DataValue already exists and is identical
+    // (no changes)
+    when(batchHandler.findObject(any())).then(AdditionalAnswers.returnsFirstArg());
 
-        // simulate that the imported DataValue already exists and is identical
-        // (no changes)
-        when( batchHandler.findObject( any() ) ).then( AdditionalAnswers.returnsFirstArg() );
+    ImportSummary summary =
+        dataValueSetService.importDataValueSetXml(
+            readFile("datavalueset/dataValueSetA.xml"), new ImportOptions());
 
-        ImportSummary summary = dataValueSetService
-            .importDataValueSetXml( readFile( "datavalueset/dataValueSetA.xml" ), new ImportOptions() );
+    assertSuccessWithImportedUpdatedDeleted(0, 3, 0, summary);
+    verify(batchHandler, never()).updateObject(any());
+  }
 
-        assertSuccessWithImportedUpdatedDeleted( 0, 3, 0, summary );
-        verify( batchHandler, never() ).updateObject( any() );
+  private InputStream readFile(String filename) {
+    try {
+      return new ClassPathResource(filename).getInputStream();
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
+  }
 
-    private InputStream readFile( String filename )
-    {
-        try
-        {
-            return new ClassPathResource( filename ).getInputStream();
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
-    }
+  private static void assertSuccessWithImportedUpdatedDeleted(
+      int imported, int updated, int deleted, ImportSummary summary) {
+    assertAll(
+        () -> assertHasNoConflicts(summary),
+        () ->
+            assertEquals(
+                imported, summary.getImportCount().getImported(), "unexpected import count"),
+        () ->
+            assertEquals(updated, summary.getImportCount().getUpdated(), "unexpected update count"),
+        () ->
+            assertEquals(
+                deleted, summary.getImportCount().getDeleted(), "unexpected deleted count"),
+        () -> assertEquals(ImportStatus.SUCCESS, summary.getStatus(), summary.getDescription()));
+  }
 
-    private static void assertSuccessWithImportedUpdatedDeleted( int imported, int updated, int deleted,
-        ImportSummary summary )
-    {
-        assertAll(
-            () -> assertHasNoConflicts( summary ),
-            () -> assertEquals( imported, summary.getImportCount().getImported(), "unexpected import count" ),
-            () -> assertEquals( updated, summary.getImportCount().getUpdated(), "unexpected update count" ),
-            () -> assertEquals( deleted, summary.getImportCount().getDeleted(), "unexpected deleted count" ),
-            () -> assertEquals( ImportStatus.SUCCESS, summary.getStatus(), summary.getDescription() ) );
-    }
-
-    private static void assertHasNoConflicts( ImportConflicts summary )
-    {
-        assertEquals( 0, summary.getConflictCount(), summary.getConflictsDescription() );
-    }
+  private static void assertHasNoConflicts(ImportConflicts summary) {
+    assertEquals(0, summary.getConflictCount(), summary.getConflictsDescription());
+  }
 }

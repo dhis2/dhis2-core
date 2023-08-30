@@ -28,10 +28,8 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import javax.annotation.Nonnull;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
 
 /**
@@ -42,17 +40,12 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Getter
-public class CommitService
-{
-    @Nonnull
-    private TrackedEntityPersister trackerPersister;
+public class CommitService {
+  @Nonnull private TrackedEntityPersister trackerPersister;
 
-    @Nonnull
-    private EnrollmentPersister enrollmentPersister;
+  @Nonnull private EnrollmentPersister enrollmentPersister;
 
-    @Nonnull
-    private EventPersister eventPersister;
+  @Nonnull private EventPersister eventPersister;
 
-    @Nonnull
-    private RelationshipPersister relationshipPersister;
+  @Nonnull private RelationshipPersister relationshipPersister;
 }

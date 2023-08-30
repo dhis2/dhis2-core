@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi;
 
 import java.util.Collections;
-
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.config.ConfigProviderConfiguration;
@@ -50,60 +49,51 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Base class for convenient testing of the web API on basis of
- * {@link org.hisp.dhis.jsontree.JsonMixed} responses.
+ * Base class for convenient testing of the web API on basis of {@link
+ * org.hisp.dhis.jsontree.JsonMixed} responses.
  *
  * @author Jan Bernitt
  */
-@ExtendWith( SpringExtension.class )
+@ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-@ContextConfiguration( classes = { ConfigProviderConfiguration.class, MvcTestConfig.class,
-    WebTestConfiguration.class } )
-@ActiveProfiles( "test-h2" )
+@ContextConfiguration(
+    classes = {ConfigProviderConfiguration.class, MvcTestConfig.class, WebTestConfiguration.class})
+@ActiveProfiles("test-h2")
 @IntegrationH2Test
 @Transactional
-public abstract class DhisControllerConvenienceTest extends DhisControllerTestBase
-{
-    @Autowired
-    private WebApplicationContext webApplicationContext;
+public abstract class DhisControllerConvenienceTest extends DhisControllerTestBase {
+  @Autowired private WebApplicationContext webApplicationContext;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Autowired
-    protected CurrentUserService currentUserService;
+  @Autowired protected CurrentUserService currentUserService;
 
-    @Autowired
-    protected IdentifiableObjectManager manager;
+  @Autowired protected IdentifiableObjectManager manager;
 
-    @Autowired
-    protected DbmsManager dbmsManager;
+  @Autowired protected DbmsManager dbmsManager;
 
-    @BeforeEach
-    final void setup()
-        throws Exception
-    {
-        userService = _userService;
-        clearSecurityContext();
+  @BeforeEach
+  final void setup() throws Exception {
+    userService = _userService;
+    clearSecurityContext();
 
-        superUser = createAndAddAdminUser( "ALL" );
+    superUser = createAndAddAdminUser("ALL");
 
-        mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).build();
+    mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
-        switchContextToUser( superUser );
-        currentUser = superUser;
+    switchContextToUser(superUser);
+    currentUser = superUser;
 
-        TestUtils.executeStartupRoutines( webApplicationContext );
+    TestUtils.executeStartupRoutines(webApplicationContext);
 
-        dbmsManager.flushSession();
-        dbmsManager.clearSession();
-    }
+    dbmsManager.flushSession();
+    dbmsManager.clearSession();
+  }
 
-    protected void switchToUserWithOrgUnitDataView( String userName, String orgUnitId )
-    {
-        User user = makeUser( userName, Collections.singletonList( "ALL" ) );
-        user.getDataViewOrganisationUnits().add( manager.get( OrganisationUnit.class, orgUnitId ) );
-        userService.addUser( user );
-        switchContextToUser( user );
-    }
+  protected void switchToUserWithOrgUnitDataView(String userName, String orgUnitId) {
+    User user = makeUser(userName, Collections.singletonList("ALL"));
+    user.getDataViewOrganisationUnits().add(manager.get(OrganisationUnit.class, orgUnitId));
+    userService.addUser(user);
+    switchContextToUser(user);
+  }
 }

@@ -35,43 +35,43 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = {
-    DebugMapper.class,
-    TrackedEntityMapper.class,
-    OrganisationUnitMapper.class,
-    AttributeValueMapper.class
-} )
-public interface EnrollmentMapper extends PreheatMapper<Enrollment>
-{
-    EnrollmentMapper INSTANCE = Mappers.getMapper( EnrollmentMapper.class );
+@Mapper(
+    uses = {
+      DebugMapper.class,
+      TrackedEntityMapper.class,
+      OrganisationUnitMapper.class,
+      AttributeValueMapper.class
+    })
+public interface EnrollmentMapper extends PreheatMapper<Enrollment> {
+  EnrollmentMapper INSTANCE = Mappers.getMapper(EnrollmentMapper.class);
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "user" )
-    @Mapping( target = "program", qualifiedByName = "program" )
-    @Mapping( target = "trackedEntity" )
-    @Mapping( target = "organisationUnit" )
-    @Mapping( target = "created" )
-    @Mapping( target = "incidentDate" )
-    @Mapping( target = "enrollmentDate" )
-    @Mapping( target = "comments" )
-    @Mapping( target = "deleted" )
-    @Mapping( target = "createdByUserInfo" )
-    @Mapping( target = "lastUpdatedByUserInfo" )
-    Enrollment map( Enrollment enrollment );
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "code")
+  @Mapping(target = "user")
+  @Mapping(target = "program", qualifiedByName = "program")
+  @Mapping(target = "trackedEntity")
+  @Mapping(target = "organisationUnit")
+  @Mapping(target = "created")
+  @Mapping(target = "incidentDate")
+  @Mapping(target = "enrollmentDate")
+  @Mapping(target = "comments")
+  @Mapping(target = "deleted")
+  @Mapping(target = "createdByUserInfo")
+  @Mapping(target = "lastUpdatedByUserInfo")
+  Enrollment map(Enrollment enrollment);
 
-    @Named( "program" )
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "name" )
-    @Mapping( target = "attributeValues" )
-    @Mapping( target = "trackedEntityType" )
-    @Mapping( target = "programType" )
-    @Mapping( target = "sharing" )
-    @Mapping( target = "accessLevel" )
-    Program mapProgram( Program p );
+  @Named("program")
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "code")
+  @Mapping(target = "name")
+  @Mapping(target = "attributeValues")
+  @Mapping(target = "trackedEntityType")
+  @Mapping(target = "programType")
+  @Mapping(target = "sharing")
+  @Mapping(target = "accessLevel")
+  Program mapProgram(Program p);
 }

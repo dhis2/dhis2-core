@@ -35,7 +35,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
@@ -57,144 +56,149 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
-{
-    @Autowired
-    private DeduplicationService deduplicationService;
+class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
+  @Autowired private DeduplicationService deduplicationService;
 
-    @Autowired
-    private UserService userService;
+  @Autowired private UserService userService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private TrackedEntityTypeService trackedEntityTypeService;
+  @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
-    @Autowired
-    private EnrollmentService enrollmentService;
+  @Autowired private EnrollmentService enrollmentService;
 
-    @Autowired
-    private TrackedEntityService trackedEntityService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    @Override
-    public void setUpTest()
-    {
-        super.userService = this.userService;
-    }
+  @Override
+  public void setUpTest() {
+    super.userService = this.userService;
+  }
 
-    @Test
-    void shouldManualMergeWithAuthorityAll()
-        throws PotentialDuplicateConflictException,
-        PotentialDuplicateForbiddenException
-    {
-        OrganisationUnit ou = createOrganisationUnit( "OU_A" );
-        organisationUnitService.addOrganisationUnit( ou );
-        User user = createUser( new HashSet<>( Collections.singletonList( ou ) ), UserRole.AUTHORITY_ALL );
-        injectSecurityContext( user );
+  @Test
+  void shouldManualMergeWithAuthorityAll()
+      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
+    OrganisationUnit ou = createOrganisationUnit("OU_A");
+    organisationUnitService.addOrganisationUnit(ou);
+    User user = createUser(new HashSet<>(Collections.singletonList(ou)), UserRole.AUTHORITY_ALL);
+    injectSecurityContext(user);
 
-        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
-        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-        TrackedEntity original = createTrackedEntity( ou );
-        TrackedEntity duplicate = createTrackedEntity( ou );
-        original.setTrackedEntityType( trackedEntityType );
-        duplicate.setTrackedEntityType( trackedEntityType );
-        trackedEntityService.addTrackedEntity( original );
-        trackedEntityService.addTrackedEntity( duplicate );
-        Program program = createProgram( 'A' );
-        Program program1 = createProgram( 'B' );
-        programService.addProgram( program );
-        programService.addProgram( program1 );
-        Enrollment enrollment1 = createEnrollment( program, original, ou );
-        Enrollment enrollment2 = createEnrollment( program1, duplicate, ou );
-        enrollmentService.addEnrollment( enrollment1 );
-        enrollmentService.addEnrollment( enrollment2 );
-        original.getEnrollments().add( enrollment1 );
-        duplicate.getEnrollments().add( enrollment2 );
-        trackedEntityService.updateTrackedEntity( original );
-        trackedEntityService.updateTrackedEntity( duplicate );
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( original.getUid(), duplicate.getUid() );
-        deduplicationService.addPotentialDuplicate( potentialDuplicate );
-        DeduplicationMergeParams deduplicationMergeParams = DeduplicationMergeParams.builder()
-            .potentialDuplicate( potentialDuplicate ).original( original ).duplicate( duplicate ).build();
-        Date lastUpdatedOriginal = trackedEntityService.getTrackedEntity( original.getUid() )
-            .getLastUpdated();
-        deduplicationService.autoMerge( deduplicationMergeParams );
-        assertEquals( deduplicationService.getPotentialDuplicateByUid( potentialDuplicate.getUid() ).getStatus(),
-            DeduplicationStatus.MERGED );
-        assertTrue( trackedEntityService.getTrackedEntity( original.getUid() ).getLastUpdated()
-            .getTime() > lastUpdatedOriginal.getTime() );
-    }
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
+    TrackedEntity original = createTrackedEntity(ou);
+    TrackedEntity duplicate = createTrackedEntity(ou);
+    original.setTrackedEntityType(trackedEntityType);
+    duplicate.setTrackedEntityType(trackedEntityType);
+    trackedEntityService.addTrackedEntity(original);
+    trackedEntityService.addTrackedEntity(duplicate);
+    Program program = createProgram('A');
+    Program program1 = createProgram('B');
+    programService.addProgram(program);
+    programService.addProgram(program1);
+    Enrollment enrollment1 = createEnrollment(program, original, ou);
+    Enrollment enrollment2 = createEnrollment(program1, duplicate, ou);
+    enrollmentService.addEnrollment(enrollment1);
+    enrollmentService.addEnrollment(enrollment2);
+    original.getEnrollments().add(enrollment1);
+    duplicate.getEnrollments().add(enrollment2);
+    trackedEntityService.updateTrackedEntity(original);
+    trackedEntityService.updateTrackedEntity(duplicate);
+    PotentialDuplicate potentialDuplicate =
+        new PotentialDuplicate(original.getUid(), duplicate.getUid());
+    deduplicationService.addPotentialDuplicate(potentialDuplicate);
+    DeduplicationMergeParams deduplicationMergeParams =
+        DeduplicationMergeParams.builder()
+            .potentialDuplicate(potentialDuplicate)
+            .original(original)
+            .duplicate(duplicate)
+            .build();
+    Date lastUpdatedOriginal =
+        trackedEntityService.getTrackedEntity(original.getUid()).getLastUpdated();
+    deduplicationService.autoMerge(deduplicationMergeParams);
+    assertEquals(
+        deduplicationService.getPotentialDuplicateByUid(potentialDuplicate.getUid()).getStatus(),
+        DeduplicationStatus.MERGED);
+    assertTrue(
+        trackedEntityService.getTrackedEntity(original.getUid()).getLastUpdated().getTime()
+            > lastUpdatedOriginal.getTime());
+  }
 
-    @Test
-    void shouldManualMergeWithUserGroupOfProgram()
-        throws PotentialDuplicateConflictException,
-        PotentialDuplicateForbiddenException
-    {
-        OrganisationUnit ou = createOrganisationUnit( "OU_A" );
-        organisationUnitService.addOrganisationUnit( ou );
-        User user = createAndAddUser( true, "userB", ou, "F_TRACKED_ENTITY_MERGE" );
-        injectSecurityContext( user );
-        Sharing sharing = getUserSharing( user, AccessStringHelper.FULL );
-        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
-        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-        trackedEntityType.setSharing( sharing );
-        trackedEntityTypeService.updateTrackedEntityType( trackedEntityType );
-        TrackedEntity original = createTrackedEntity( ou );
-        TrackedEntity duplicate = createTrackedEntity( ou );
-        original.setTrackedEntityType( trackedEntityType );
-        duplicate.setTrackedEntityType( trackedEntityType );
-        trackedEntityService.addTrackedEntity( original );
-        trackedEntityService.addTrackedEntity( duplicate );
-        Program program = createProgram( 'A' );
-        Program program1 = createProgram( 'B' );
-        programService.addProgram( program );
-        programService.addProgram( program1 );
-        program.setSharing( sharing );
-        program1.setSharing( sharing );
-        Enrollment enrollment1 = createEnrollment( program, original, ou );
-        Enrollment enrollment2 = createEnrollment( program1, duplicate, ou );
-        enrollmentService.addEnrollment( enrollment1 );
-        enrollmentService.addEnrollment( enrollment2 );
-        enrollmentService.updateEnrollment( enrollment1 );
-        enrollmentService.updateEnrollment( enrollment2 );
-        original.getEnrollments().add( enrollment1 );
-        duplicate.getEnrollments().add( enrollment2 );
-        trackedEntityService.updateTrackedEntity( original );
-        trackedEntityService.updateTrackedEntity( duplicate );
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( original.getUid(), duplicate.getUid() );
-        deduplicationService.addPotentialDuplicate( potentialDuplicate );
-        DeduplicationMergeParams deduplicationMergeParams = DeduplicationMergeParams.builder()
-            .potentialDuplicate( potentialDuplicate ).original( original ).duplicate( duplicate ).build();
-        Date lastUpdatedOriginal = trackedEntityService.getTrackedEntity( original.getUid() )
-            .getLastUpdated();
-        deduplicationService.autoMerge( deduplicationMergeParams );
-        assertEquals( deduplicationService.getPotentialDuplicateByUid( potentialDuplicate.getUid() ).getStatus(),
-            DeduplicationStatus.MERGED );
-        assertTrue( trackedEntityService.getTrackedEntity( original.getUid() ).getLastUpdated()
-            .getTime() > lastUpdatedOriginal.getTime() );
-    }
+  @Test
+  void shouldManualMergeWithUserGroupOfProgram()
+      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
+    OrganisationUnit ou = createOrganisationUnit("OU_A");
+    organisationUnitService.addOrganisationUnit(ou);
+    User user = createAndAddUser(true, "userB", ou, "F_TRACKED_ENTITY_MERGE");
+    injectSecurityContext(user);
+    Sharing sharing = getUserSharing(user, AccessStringHelper.FULL);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
+    trackedEntityType.setSharing(sharing);
+    trackedEntityTypeService.updateTrackedEntityType(trackedEntityType);
+    TrackedEntity original = createTrackedEntity(ou);
+    TrackedEntity duplicate = createTrackedEntity(ou);
+    original.setTrackedEntityType(trackedEntityType);
+    duplicate.setTrackedEntityType(trackedEntityType);
+    trackedEntityService.addTrackedEntity(original);
+    trackedEntityService.addTrackedEntity(duplicate);
+    Program program = createProgram('A');
+    Program program1 = createProgram('B');
+    programService.addProgram(program);
+    programService.addProgram(program1);
+    program.setSharing(sharing);
+    program1.setSharing(sharing);
+    Enrollment enrollment1 = createEnrollment(program, original, ou);
+    Enrollment enrollment2 = createEnrollment(program1, duplicate, ou);
+    enrollmentService.addEnrollment(enrollment1);
+    enrollmentService.addEnrollment(enrollment2);
+    enrollmentService.updateEnrollment(enrollment1);
+    enrollmentService.updateEnrollment(enrollment2);
+    original.getEnrollments().add(enrollment1);
+    duplicate.getEnrollments().add(enrollment2);
+    trackedEntityService.updateTrackedEntity(original);
+    trackedEntityService.updateTrackedEntity(duplicate);
+    PotentialDuplicate potentialDuplicate =
+        new PotentialDuplicate(original.getUid(), duplicate.getUid());
+    deduplicationService.addPotentialDuplicate(potentialDuplicate);
+    DeduplicationMergeParams deduplicationMergeParams =
+        DeduplicationMergeParams.builder()
+            .potentialDuplicate(potentialDuplicate)
+            .original(original)
+            .duplicate(duplicate)
+            .build();
+    Date lastUpdatedOriginal =
+        trackedEntityService.getTrackedEntity(original.getUid()).getLastUpdated();
+    deduplicationService.autoMerge(deduplicationMergeParams);
+    assertEquals(
+        deduplicationService.getPotentialDuplicateByUid(potentialDuplicate.getUid()).getStatus(),
+        DeduplicationStatus.MERGED);
+    assertTrue(
+        trackedEntityService.getTrackedEntity(original.getUid()).getLastUpdated().getTime()
+            > lastUpdatedOriginal.getTime());
+  }
 
-    private Sharing getUserSharing( User user, String accessStringHelper )
-    {
-        UserGroup userGroup = new UserGroup();
-        userGroup.setName( "UserGroupA" );
-        user.getGroups().add( userGroup );
-        Map<String, org.hisp.dhis.user.sharing.UserAccess> userSharing = new HashMap<>();
-        userSharing.put( user.getUid(), new org.hisp.dhis.user.sharing.UserAccess( user, AccessStringHelper.DEFAULT ) );
-        Map<String, UserGroupAccess> userGroupSharing = new HashMap<>();
-        userGroupSharing.put( userGroup.getUid(), new UserGroupAccess( userGroup, accessStringHelper ) );
-        return Sharing.builder().external( false ).publicAccess( AccessStringHelper.DEFAULT ).owner( "testOwner" )
-            .userGroups( userGroupSharing ).users( userSharing ).build();
-    }
+  private Sharing getUserSharing(User user, String accessStringHelper) {
+    UserGroup userGroup = new UserGroup();
+    userGroup.setName("UserGroupA");
+    user.getGroups().add(userGroup);
+    Map<String, org.hisp.dhis.user.sharing.UserAccess> userSharing = new HashMap<>();
+    userSharing.put(
+        user.getUid(), new org.hisp.dhis.user.sharing.UserAccess(user, AccessStringHelper.DEFAULT));
+    Map<String, UserGroupAccess> userGroupSharing = new HashMap<>();
+    userGroupSharing.put(userGroup.getUid(), new UserGroupAccess(userGroup, accessStringHelper));
+    return Sharing.builder()
+        .external(false)
+        .publicAccess(AccessStringHelper.DEFAULT)
+        .owner("testOwner")
+        .userGroups(userGroupSharing)
+        .users(userSharing)
+        .build();
+  }
 
-    private User createUser( HashSet<OrganisationUnit> ou, String... authorities )
-    {
-        User user = createUserWithAuth( "testUser", authorities );
-        user.setOrganisationUnits( ou );
-        return user;
-    }
+  private User createUser(HashSet<OrganisationUnit> ou, String... authorities) {
+    User user = createUserWithAuth("testUser", authorities);
+    user.setOrganisationUnits(ou);
+    return user;
+  }
 }

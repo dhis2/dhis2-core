@@ -31,15 +31,12 @@ import org.hisp.dhis.actions.RestApiActions;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- * @deprecated this is a base test class for "old" (deprecated) tracker which
- *             will be removed with "old" tracker
+ * @deprecated this is a base test class for "old" (deprecated) tracker which will be removed with
+ *     "old" tracker
  */
-@Deprecated( since = "2.41" )
-public class TrackedEntityInstancesAction
-    extends RestApiActions
-{
-    public TrackedEntityInstancesAction()
-    {
-        super( "/trackedEntityInstances" );
-    }
+@Deprecated(since = "2.41")
+public class TrackedEntityInstancesAction extends RestApiActions {
+  public TrackedEntityInstancesAction() {
+    super("/trackedEntityInstances");
+  }
 }

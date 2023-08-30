@@ -27,42 +27,37 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
-import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
 @Service
-@Profile( { "!test-postgres", "!test", "!test-h2", "!cache-invalidation-test" } )
-@Conditional( value = CacheInvalidationEnabledConditionNotTestable.class )
-public class CacheInvalidationSubscriptionService
-{
-    @Autowired
-    private CacheInvalidationListener cacheInvalidationListener;
+@Profile({"!test-postgres", "!test", "!test-h2", "!cache-invalidation-test"})
+@Conditional(value = CacheInvalidationEnabledConditionNotTestable.class)
+public class CacheInvalidationSubscriptionService {
+  @Autowired private CacheInvalidationListener cacheInvalidationListener;
 
-    @Autowired
-    @Qualifier( "pubSubConnection" )
-    private StatefulRedisPubSubConnection<String, String> pubSubConnection;
+  @Autowired
+  @Qualifier("pubSubConnection")
+  private StatefulRedisPubSubConnection<String, String> pubSubConnection;
 
-    public void start()
-    {
-        log.info( "CacheInvalidationSubscriptionService starting..." );
+  public void start() {
+    log.info("CacheInvalidationSubscriptionService starting...");
 
-        pubSubConnection.addListener( cacheInvalidationListener );
+    pubSubConnection.addListener(cacheInvalidationListener);
 
-        RedisPubSubAsyncCommands<String, String> async = pubSubConnection.async();
-        async.subscribe( CacheInvalidationConfiguration.CHANNEL_NAME );
+    RedisPubSubAsyncCommands<String, String> async = pubSubConnection.async();
+    async.subscribe(CacheInvalidationConfiguration.CHANNEL_NAME);
 
-        log.debug( "Subscribed to channel: " + CacheInvalidationConfiguration.CHANNEL_NAME );
-    }
+    log.debug("Subscribed to channel: " + CacheInvalidationConfiguration.CHANNEL_NAME);
+  }
 }

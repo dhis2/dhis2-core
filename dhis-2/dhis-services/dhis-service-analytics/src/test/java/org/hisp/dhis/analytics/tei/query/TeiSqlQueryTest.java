@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
@@ -67,15 +66,14 @@ import org.junit.jupiter.api.Test;
  *
  * @author Dusan Bernat
  */
-class TeiSqlQueryTest extends DhisConvenienceTest
-{
-    private SqlQueryCreatorService sqlQueryCreatorService;
+class TeiSqlQueryTest extends DhisConvenienceTest {
+  private SqlQueryCreatorService sqlQueryCreatorService;
 
-    @BeforeEach
-    void setUp()
-    {
-        ProgramIndicatorService programIndicatorService = mock( ProgramIndicatorService.class );
-        List<SqlQueryBuilder> queryBuilders = List.of(
+  @BeforeEach
+  void setUp() {
+    ProgramIndicatorService programIndicatorService = mock(ProgramIndicatorService.class);
+    List<SqlQueryBuilder> queryBuilders =
+        List.of(
             new DataElementQueryBuilder(),
             new LimitOffsetQueryBuilder(),
             new MainTableQueryBuilder(),
@@ -83,76 +81,81 @@ class TeiSqlQueryTest extends DhisConvenienceTest
             new PeriodQueryBuilder(),
             new ProgramEnrolledQueryBuilder(),
             new TeiQueryBuilder(),
-            new ProgramIndicatorQueryBuilder( programIndicatorService ) );
-        sqlQueryCreatorService = new SqlQueryCreatorService( queryBuilders );
-    }
+            new ProgramIndicatorQueryBuilder(programIndicatorService));
+    sqlQueryCreatorService = new SqlQueryCreatorService(queryBuilders);
+  }
 
-    @Test
-    void testSqlQueryRenderingWithOrgUnitNameObject()
-    {
-        // given
-        TeiQueryParams teiQueryParams = TeiQueryParams.builder()
-            .trackedEntityType( createTrackedEntityType( 'A' ) )
-            .commonParams( stubSortingCommonParams( null, 1, "ouname" ) )
+  @Test
+  void testSqlQueryRenderingWithOrgUnitNameObject() {
+    // given
+    TeiQueryParams teiQueryParams =
+        TeiQueryParams.builder()
+            .trackedEntityType(createTrackedEntityType('A'))
+            .commonParams(stubSortingCommonParams(null, 1, "ouname"))
             .build();
 
-        // when
-        String sql = sqlQueryCreatorService.getSqlQueryCreator( teiQueryParams )
-            .createForSelect()
-            .getStatement();
+    // when
+    String sql =
+        sqlQueryCreatorService.getSqlQueryCreator(teiQueryParams).createForSelect().getStatement();
 
-        // then
-        assertTrue( sql.contains( "ouname" ) );
-        assertContains( "order by t_1.\"ouname\" desc", sql );
-    }
+    // then
+    assertTrue(sql.contains("ouname"));
+    assertContains("order by t_1.\"ouname\" desc", sql);
+  }
 
-    @Test
-    void testSqlQueryRenderingWithCommonDimensionalObject()
-    {
-        // when
-        DimensionalObject dimensionalObject = new BaseDimensionalObject( "abc" );
+  @Test
+  void testSqlQueryRenderingWithCommonDimensionalObject() {
+    // when
+    DimensionalObject dimensionalObject = new BaseDimensionalObject("abc");
 
-        TeiQueryParams teiQueryParams = TeiQueryParams.builder()
-            .trackedEntityType( createTrackedEntityType( 'A' ) )
-            .commonParams( stubSortingCommonParams( createProgram( 'A' ), 1, dimensionalObject ) )
+    TeiQueryParams teiQueryParams =
+        TeiQueryParams.builder()
+            .trackedEntityType(createTrackedEntityType('A'))
+            .commonParams(stubSortingCommonParams(createProgram('A'), 1, dimensionalObject))
             .build();
 
-        // when
-        String sql = sqlQueryCreatorService.getSqlQueryCreator( teiQueryParams ).createForSelect().getStatement();
+    // when
+    String sql =
+        sqlQueryCreatorService.getSqlQueryCreator(teiQueryParams).createForSelect().getStatement();
 
-        // then
-        assertTrue( sql.contains( " order by \"prabcdefghA[1].pgabcdefghS[1].abc\" desc nulls last" ) );
-        assertTrue( sql.contains(
-            "(\"prabcdefghA[1].pgabcdefghS[1]\".\"eventdatavalues\" -> 'abc' ->> 'value')::TEXT as \"prabcdefghA[1].pgabcdefghS[1].abc\"" ) );
-    }
+    // then
+    assertTrue(sql.contains(" order by \"prabcdefghA[1].pgabcdefghS[1].abc\" desc nulls last"));
+    assertTrue(
+        sql.contains(
+            "(\"prabcdefghA[1].pgabcdefghS[1]\".\"eventdatavalues\" -> 'abc' ->> 'value')::TEXT as \"prabcdefghA[1].pgabcdefghS[1].abc\""));
+  }
 
-    private CommonParams stubSortingCommonParams( Program program, int offset, Object dimensionalObject )
-    {
-        ElementWithOffset<Program> prg = program == null
+  private CommonParams stubSortingCommonParams(
+      Program program, int offset, Object dimensionalObject) {
+    ElementWithOffset<Program> prg =
+        program == null
             ? ElementWithOffset.emptyElementWithOffset()
-            : ElementWithOffset.of( program, offset );
+            : ElementWithOffset.of(program, offset);
 
-        ElementWithOffset<ProgramStage> programStage = program == null
+    ElementWithOffset<ProgramStage> programStage =
+        program == null
             ? ElementWithOffset.emptyElementWithOffset()
-            : ElementWithOffset.of( createProgramStage( 'S', program ), offset );
+            : ElementWithOffset.of(createProgramStage('S', program), offset);
 
-        DimensionIdentifier<DimensionParam> dimensionIdentifier = DimensionIdentifier.of( prg,
+    DimensionIdentifier<DimensionParam> dimensionIdentifier =
+        DimensionIdentifier.of(
+            prg,
             programStage,
-            DimensionParam.ofObject( dimensionalObject, DimensionParamType.SORTING, List.of( StringUtils.EMPTY ) ) );
+            DimensionParam.ofObject(
+                dimensionalObject, DimensionParamType.SORTING, List.of(StringUtils.EMPTY)));
 
-        AnalyticsSortingParams analyticsSortingParams = AnalyticsSortingParams.builder()
-            .sortDirection( SortDirection.DESC )
-            .orderBy( dimensionIdentifier )
+    AnalyticsSortingParams analyticsSortingParams =
+        AnalyticsSortingParams.builder()
+            .sortDirection(SortDirection.DESC)
+            .orderBy(dimensionIdentifier)
             .build();
 
-        AnalyticsPagingParams analyticsPagingParams = AnalyticsPagingParams.builder()
-            .pageSize( 10 )
-            .page( 1 )
-            .build();
+    AnalyticsPagingParams analyticsPagingParams =
+        AnalyticsPagingParams.builder().pageSize(10).page(1).build();
 
-        return CommonParams.builder()
-            .orderParams( List.of( analyticsSortingParams ) )
-            .pagingParams( analyticsPagingParams )
-            .build();
-    }
+    return CommonParams.builder()
+        .orderParams(List.of(analyticsSortingParams))
+        .pagingParams(analyticsPagingParams)
+        .build();
+  }
 }

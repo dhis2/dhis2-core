@@ -30,30 +30,28 @@ package org.hisp.dhis.schema.transformer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.UUID;
-
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class UserPropertyTransformerTest
-{
+class UserPropertyTransformerTest {
 
-    private static final UUID uuid = UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" );
+  private static final UUID uuid = UUID.fromString("6507f586-f154-4ec1-a25e-d7aa51de5216");
 
-    @Test
-    void testUserTransform()
-    {
-        User user = new User();
-        user.setUuid( uuid );
-        user.setCreatedBy( user );
-        user.setUsername( "test" );
-        user.setCreatedBy( user );
-        UserPropertyTransformer transformer = new UserPropertyTransformer();
-        UserPropertyTransformer.UserDto userDto = (UserPropertyTransformer.UserDto) transformer.transform( user );
-        // assertEquals( uuid.toString(), userDto.getId() );
-        assertEquals( user.getUid(), userDto.getId() );
-        assertEquals( "test", userDto.getUsername() );
-    }
+  @Test
+  void testUserTransform() {
+    User user = new User();
+    user.setUuid(uuid);
+    user.setCreatedBy(user);
+    user.setUsername("test");
+    user.setCreatedBy(user);
+    UserPropertyTransformer transformer = new UserPropertyTransformer();
+    UserPropertyTransformer.UserDto userDto =
+        (UserPropertyTransformer.UserDto) transformer.transform(user);
+    // assertEquals( uuid.toString(), userDto.getId() );
+    assertEquals(user.getUid(), userDto.getId());
+    assertEquals("test", userDto.getUsername());
+  }
 }

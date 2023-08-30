@@ -29,100 +29,87 @@ package org.hisp.dhis.security.apikey;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.base.Preconditions;
 import java.util.List;
-
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.base.Preconditions;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Service
 @Transactional
-public class ApiTokenServiceImpl implements ApiTokenService
-{
-    private final ApiTokenStore apiTokenStore;
+public class ApiTokenServiceImpl implements ApiTokenService {
+  private final ApiTokenStore apiTokenStore;
 
-    public ApiTokenServiceImpl( ApiTokenStore apiTokenStore )
-    {
-        checkNotNull( apiTokenStore );
+  public ApiTokenServiceImpl(ApiTokenStore apiTokenStore) {
+    checkNotNull(apiTokenStore);
 
-        this.apiTokenStore = apiTokenStore;
-    }
+    this.apiTokenStore = apiTokenStore;
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    @Nonnull
-    public List<ApiToken> getAll()
-    {
-        return this.apiTokenStore.getAll();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  @Nonnull
+  public List<ApiToken> getAll() {
+    return this.apiTokenStore.getAll();
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    @Nonnull
-    public List<ApiToken> getAllOwning( @Nonnull User user )
-    {
-        return apiTokenStore.getAllOwning( user );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  @Nonnull
+  public List<ApiToken> getAllOwning(@Nonnull User user) {
+    return apiTokenStore.getAllOwning(user);
+  }
 
-    @Override
-    @CheckForNull
-    public ApiToken getByUid( @Nonnull String uid )
-    {
-        return apiTokenStore.getByUid( uid );
-    }
+  @Override
+  @CheckForNull
+  public ApiToken getByUid(@Nonnull String uid) {
+    return apiTokenStore.getByUid(uid);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    @CheckForNull
-    public ApiToken getByKey( @Nonnull String key, @Nonnull User user )
-    {
-        return apiTokenStore.getByKey( key, user );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  @CheckForNull
+  public ApiToken getByKey(@Nonnull String key, @Nonnull User user) {
+    return apiTokenStore.getByKey(key, user);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    @CheckForNull
-    public ApiToken getByKey( @Nonnull String key )
-    {
-        return apiTokenStore.getByKey( key );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  @CheckForNull
+  public ApiToken getByKey(@Nonnull String key) {
+    return apiTokenStore.getByKey(key);
+  }
 
-    @Override
-    @Transactional
-    public void save( @Nonnull ApiToken apiToken )
-    {
-        throw new IllegalArgumentException(
-            "Tokens can not be saved, all tokens must be created with the createToken() method." );
+  @Override
+  @Transactional
+  public void save(@Nonnull ApiToken apiToken) {
+    throw new IllegalArgumentException(
+        "Tokens can not be saved, all tokens must be created with the createToken() method.");
+  }
 
-    }
+  @Override
+  @Transactional
+  public void update(@Nonnull ApiToken apiToken) {
+    checkNotNull(apiToken, "Token can not be null");
+    Preconditions.checkArgument(
+        StringUtils.isNotEmpty(apiToken.getKey()), "Token key can not be null");
+    checkNotNull(apiToken.getCreatedBy(), "Token must have an owner");
+    checkNotNull(apiToken.getExpire(), "Token must have an expire value");
+    checkNotNull(apiToken.getType(), "Token must have an type value");
+    checkNotNull(apiToken.getVersion(), "Token must have an version value");
 
-    @Override
-    @Transactional
-    public void update( @Nonnull ApiToken apiToken )
-    {
-        checkNotNull( apiToken, "Token can not be null" );
-        Preconditions.checkArgument( StringUtils.isNotEmpty( apiToken.getKey() ), "Token key can not be null" );
-        checkNotNull( apiToken.getCreatedBy(), "Token must have an owner" );
-        checkNotNull( apiToken.getExpire(), "Token must have an expire value" );
-        checkNotNull( apiToken.getType(), "Token must have an type value" );
-        checkNotNull( apiToken.getVersion(), "Token must have an version value" );
+    apiTokenStore.update(apiToken);
+  }
 
-        apiTokenStore.update( apiToken );
-    }
-
-    @Override
-    @Transactional
-    public void delete( @Nonnull ApiToken apiToken )
-    {
-        apiTokenStore.delete( apiToken );
-    }
+  @Override
+  @Transactional
+  public void delete(@Nonnull ApiToken apiToken) {
+    apiTokenStore.delete(apiToken);
+  }
 }

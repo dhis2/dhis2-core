@@ -37,26 +37,23 @@ import org.junit.jupiter.api.Test;
  *
  * @author Volker Schmidt
  */
-class SystemInfoTest
-{
+class SystemInfoTest {
 
-    private DatabaseInfo databaseInfo;
+  private DatabaseInfo databaseInfo;
 
-    private SystemInfo systemInfo;
+  private SystemInfo systemInfo;
 
-    @BeforeEach
-    void setUp()
-    {
-        databaseInfo = new DatabaseInfo();
-        systemInfo = new SystemInfo();
-        systemInfo.setDatabaseInfo( databaseInfo );
-    }
+  @BeforeEach
+  void setUp() {
+    databaseInfo = new DatabaseInfo();
+    systemInfo = new SystemInfo();
+    systemInfo.setDatabaseInfo(databaseInfo);
+  }
 
-    @Test
-    void instance()
-    {
-        final SystemInfo si = systemInfo.instance();
-        Assertions.assertNotSame( systemInfo, si );
-        Assertions.assertNotSame( systemInfo.getDatabaseInfo(), si.getDatabaseInfo() );
-    }
+  @Test
+  void instance() {
+    final SystemInfo si = systemInfo.instance();
+    Assertions.assertNotSame(systemInfo, si);
+    Assertions.assertNotSame(systemInfo.getDatabaseInfo(), si.getDatabaseInfo());
+  }
 }

@@ -28,19 +28,17 @@
 package org.hisp.dhis.system.filter;
 
 import java.util.Date;
-
 import org.hisp.dhis.commons.filter.Filter;
 import org.hisp.dhis.period.Period;
 
 /**
  * @author Lars Helge Overland
  */
-public class PastAndCurrentPeriodFilter
-    implements Filter<Period>
-{
-    @Override
-    public boolean retain( Period period )
-    {
-        return period != null && period.getStartDate() != null && period.getStartDate().compareTo( new Date() ) <= 0;
-    }
+public class PastAndCurrentPeriodFilter implements Filter<Period> {
+  @Override
+  public boolean retain(Period period) {
+    return period != null
+        && period.getStartDate() != null
+        && period.getStartDate().compareTo(new Date()) <= 0;
+  }
 }

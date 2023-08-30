@@ -28,20 +28,15 @@
 package org.hisp.dhis.analytics.common.params.dimension;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.UidObject;
 
-/**
- * Simply holds as value that has the format of an "uid".
- */
-@RequiredArgsConstructor( staticName = "of" )
-public class StringUid implements UidObject
-{
-    private final String value;
+/** Simply holds as value that has the format of an "uid". */
+@RequiredArgsConstructor(staticName = "of")
+public class StringUid implements UidObject {
+  private final String value;
 
-    @Override
-    public String getUid()
-    {
-        return value;
-    }
+  @Override
+  public String getUid() {
+    return value;
+  }
 }

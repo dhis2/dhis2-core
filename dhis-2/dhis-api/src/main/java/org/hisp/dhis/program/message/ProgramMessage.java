@@ -27,106 +27,87 @@
  */
 package org.hisp.dhis.program.message;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
-
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 @Getter
 @Setter
-@Builder( builderClassName = "ProgramMessageBuilder" )
+@Builder(builderClassName = "ProgramMessageBuilder")
 @NoArgsConstructor
 @AllArgsConstructor
-@JacksonXmlRootElement( localName = "programMessage", namespace = DxfNamespaces.DXF_2_0 )
-public class ProgramMessage
-    extends BaseIdentifiableObject
-    implements Serializable
-{
-    private static final long serialVersionUID = -5882823752156937730L;
+@JacksonXmlRootElement(localName = "programMessage", namespace = DxfNamespaces.DXF_2_0)
+public class ProgramMessage extends BaseIdentifiableObject implements Serializable {
+  private static final long serialVersionUID = -5882823752156937730L;
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    private Enrollment enrollment;
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  private Enrollment enrollment;
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    private Event event;
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  private Event event;
 
-    @JsonProperty
-    private ProgramMessageRecipients recipients;
+  @JsonProperty private ProgramMessageRecipients recipients;
 
-    @JsonProperty
-    private Set<DeliveryChannel> deliveryChannels = new HashSet<>();
+  @JsonProperty private Set<DeliveryChannel> deliveryChannels = new HashSet<>();
 
-    @JsonProperty
-    private ProgramMessageStatus messageStatus;
+  @JsonProperty private ProgramMessageStatus messageStatus;
 
-    @JsonProperty
-    private String notificationTemplate;
+  @JsonProperty private String notificationTemplate;
 
-    @JsonProperty
-    private String subject;
+  @JsonProperty private String subject;
 
-    @JsonProperty
-    private String text;
+  @JsonProperty private String text;
 
-    @JsonProperty
-    private Date processedDate;
+  @JsonProperty private Date processedDate;
 
-    @JsonProperty
-    private transient boolean storeCopy = true;
+  @JsonProperty private transient boolean storeCopy = true;
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    public boolean hasEnrollment()
-    {
-        return this.enrollment != null;
-    }
+  public boolean hasEnrollment() {
+    return this.enrollment != null;
+  }
 
-    public boolean hasEvent()
-    {
-        return this.event != null;
-    }
+  public boolean hasEvent() {
+    return this.event != null;
+  }
 
-    @JsonPOJOBuilder( withPrefix = "" )
-    public static final class ProgramMessageBuilder
-    {
-    }
+  @JsonPOJOBuilder(withPrefix = "")
+  public static final class ProgramMessageBuilder {}
 
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "uid", uid )
-            .add( "event", event )
-            .add( "enrollment", enrollment )
-            .add( "recipients", recipients )
-            .add( "delivery channels", deliveryChannels )
-            .add( "subject", subject )
-            .add( "text", text )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("uid", uid)
+        .add("event", event)
+        .add("enrollment", enrollment)
+        .add("recipients", recipients)
+        .add("delivery channels", deliveryChannels)
+        .add("subject", subject)
+        .add("text", text)
+        .toString();
+  }
 }

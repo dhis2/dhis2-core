@@ -29,9 +29,7 @@ package org.hisp.dhis.cacheinvalidation.redis;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.internal.SessionFactoryImpl;
@@ -42,30 +40,25 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-public class CacheInvalidationPreStartupRoutine extends AbstractStartupRoutine
-{
-    @PersistenceUnit
-    private EntityManagerFactory entityManagerFactory;
+public class CacheInvalidationPreStartupRoutine extends AbstractStartupRoutine {
+  @PersistenceUnit private EntityManagerFactory entityManagerFactory;
 
-    @Autowired
-    PostCacheEventPublisher postCacheEventPublisher;
+  @Autowired PostCacheEventPublisher postCacheEventPublisher;
 
-    @Autowired
-    PostCollectionCacheEventPublisher postCollectionCacheEventPublisher;
+  @Autowired PostCollectionCacheEventPublisher postCollectionCacheEventPublisher;
 
-    @Override
-    public void execute()
-        throws Exception
-    {
-        log.info( "Executing CacheInvalidationPreStartupRoutine" );
+  @Override
+  public void execute() throws Exception {
+    log.info("Executing CacheInvalidationPreStartupRoutine");
 
-        SessionFactoryImpl sessionFactory = entityManagerFactory.unwrap( SessionFactoryImpl.class );
-        EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
+    SessionFactoryImpl sessionFactory = entityManagerFactory.unwrap(SessionFactoryImpl.class);
+    EventListenerRegistry registry =
+        sessionFactory.getServiceRegistry().getService(EventListenerRegistry.class);
 
-        registry.appendListeners( EventType.POST_COMMIT_UPDATE, postCacheEventPublisher );
-        registry.appendListeners( EventType.POST_COMMIT_INSERT, postCacheEventPublisher );
-        registry.appendListeners( EventType.POST_COMMIT_DELETE, postCacheEventPublisher );
+    registry.appendListeners(EventType.POST_COMMIT_UPDATE, postCacheEventPublisher);
+    registry.appendListeners(EventType.POST_COMMIT_INSERT, postCacheEventPublisher);
+    registry.appendListeners(EventType.POST_COMMIT_DELETE, postCacheEventPublisher);
 
-        registry.appendListeners( EventType.PRE_COLLECTION_UPDATE, postCollectionCacheEventPublisher );
-    }
+    registry.appendListeners(EventType.PRE_COLLECTION_UPDATE, postCollectionCacheEventPublisher);
+  }
 }

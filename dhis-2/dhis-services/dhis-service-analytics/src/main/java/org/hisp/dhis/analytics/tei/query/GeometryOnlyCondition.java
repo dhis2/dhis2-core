@@ -33,16 +33,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.Field;
 
-/**
- * A condition that checks if the geometry is not null
- */
-public class GeometryOnlyCondition extends BaseRenderable
-{
-    public static final GeometryOnlyCondition INSTANCE = new GeometryOnlyCondition();
+/** A condition that checks if the geometry is not null */
+public class GeometryOnlyCondition extends BaseRenderable {
+  public static final GeometryOnlyCondition INSTANCE = new GeometryOnlyCondition();
 
-    @Override
-    public String render()
-    {
-        return IsNotNullCondition.of( Field.of( TEI_ALIAS, () -> "geometry", StringUtils.EMPTY ) ).render();
-    }
+  @Override
+  public String render() {
+    return IsNotNullCondition.of(Field.of(TEI_ALIAS, () -> "geometry", StringUtils.EMPTY)).render();
+  }
 }

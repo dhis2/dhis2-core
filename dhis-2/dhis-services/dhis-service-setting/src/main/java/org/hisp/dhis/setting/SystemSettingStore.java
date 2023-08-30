@@ -32,14 +32,12 @@ import org.hisp.dhis.common.GenericStore;
 /**
  * @author Lars Helge Overland
  */
-public interface SystemSettingStore
-    extends GenericStore<SystemSetting>
-{
-    /**
-     * Returns the {@link SystemSetting} with the given name.
-     *
-     * @param name the system setting name.
-     * @return a system setting.
-     */
-    SystemSetting getByName( String name );
+public interface SystemSettingStore extends GenericStore<SystemSetting> {
+  /**
+   * Returns the {@link SystemSetting} with the given name.
+   *
+   * @param name the system setting name.
+   * @return a system setting.
+   */
+  SystemSetting getByName(String name);
 }

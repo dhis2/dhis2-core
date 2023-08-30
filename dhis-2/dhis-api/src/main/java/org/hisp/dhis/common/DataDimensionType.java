@@ -30,33 +30,27 @@ package org.hisp.dhis.common;
 /**
  * @author Lars Helge Overland
  */
-public enum DataDimensionType
-{
-    DISAGGREGATION( "disaggregation" ),
-    ATTRIBUTE( "attribute" );
+public enum DataDimensionType {
+  DISAGGREGATION("disaggregation"),
+  ATTRIBUTE("attribute");
 
-    private final String value;
+  private final String value;
 
-    DataDimensionType( String value )
-    {
-        this.value = value;
+  DataDimensionType(String value) {
+    this.value = value;
+  }
+
+  public static DataDimensionType fromValue(String value) {
+    for (DataDimensionType type : DataDimensionType.values()) {
+      if (type.value.equalsIgnoreCase(value)) {
+        return type;
+      }
     }
 
-    public static DataDimensionType fromValue( String value )
-    {
-        for ( DataDimensionType type : DataDimensionType.values() )
-        {
-            if ( type.value.equalsIgnoreCase( value ) )
-            {
-                return type;
-            }
-        }
+    return null;
+  }
 
-        return null;
-    }
-
-    public String getValue()
-    {
-        return value;
-    }
+  public String getValue() {
+    return value;
+  }
 }

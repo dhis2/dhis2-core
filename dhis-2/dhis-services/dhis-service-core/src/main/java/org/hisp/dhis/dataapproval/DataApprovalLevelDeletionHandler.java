@@ -28,7 +28,6 @@
 package org.hisp.dhis.dataapproval;
 
 import java.util.Map;
-
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
@@ -38,24 +37,21 @@ import org.springframework.stereotype.Component;
  * @author Jim Grace
  */
 @Component
-public class DataApprovalLevelDeletionHandler extends IdObjectDeletionHandler<DataApprovalLevel>
-{
-    @Override
-    protected void registerHandler()
-    {
-        whenVetoing( CategoryOptionGroupSet.class, this::allowDeleteCategoryOptionGroupSet );
-        whenVetoing( DataApprovalWorkflow.class, this::allowDeleteDataApprovalWorkflow );
-    }
+public class DataApprovalLevelDeletionHandler extends IdObjectDeletionHandler<DataApprovalLevel> {
+  @Override
+  protected void registerHandler() {
+    whenVetoing(CategoryOptionGroupSet.class, this::allowDeleteCategoryOptionGroupSet);
+    whenVetoing(DataApprovalWorkflow.class, this::allowDeleteDataApprovalWorkflow);
+  }
 
-    public DeletionVeto allowDeleteCategoryOptionGroupSet( CategoryOptionGroupSet categoryOptionGroupSet )
-    {
-        String sql = "select 1 from dataapprovallevel where categoryoptiongroupsetid=:id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", categoryOptionGroupSet.getId() ) );
-    }
+  public DeletionVeto allowDeleteCategoryOptionGroupSet(
+      CategoryOptionGroupSet categoryOptionGroupSet) {
+    String sql = "select 1 from dataapprovallevel where categoryoptiongroupsetid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", categoryOptionGroupSet.getId()));
+  }
 
-    public DeletionVeto allowDeleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
-    {
-        String sql = "select 1 from dataapprovalworkflowlevels where workflowid=:id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", workflow.getId() ) );
-    }
+  public DeletionVeto allowDeleteDataApprovalWorkflow(DataApprovalWorkflow workflow) {
+    String sql = "select 1 from dataapprovalworkflowlevels where workflowid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", workflow.getId()));
+  }
 }

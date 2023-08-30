@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import java.util.Set;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -35,16 +36,17 @@ import org.hisp.dhis.program.Event;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface EventService
-{
-    Event getEvent( String uid, EventParams eventParams )
-        throws NotFoundException,
-        ForbiddenException;
+public interface EventService {
+  Event getEvent(String uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
 
-    Event getEvent( Event event, EventParams eventParams )
-        throws ForbiddenException;
+  Event getEvent(Event event, EventParams eventParams) throws ForbiddenException;
 
-    Events getEvents( EventOperationParams params )
-        throws BadRequestException,
-        ForbiddenException;
+  Events getEvents(EventOperationParams params) throws BadRequestException, ForbiddenException;
+
+  /**
+   * Fields the {@link #getEvents(EventOperationParams)} can order events by. Ordering by fields
+   * other than these is considered a programmer error. Validation of user provided field names
+   * should occur before calling {@link #getEvents(EventOperationParams)}.
+   */
+  Set<String> getOrderableFields();
 }

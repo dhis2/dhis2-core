@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.programstagefilter;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -35,102 +38,75 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.Translatable;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@JacksonXmlRootElement( localName = "eventFilter", namespace = DxfNamespaces.DXF_2_0 )
-public class EventFilter extends BaseIdentifiableObject
-    implements MetadataObject
-{
-    private static final long serialVersionUID = 1L;
+@JacksonXmlRootElement(localName = "eventFilter", namespace = DxfNamespaces.DXF_2_0)
+public class EventFilter extends BaseIdentifiableObject implements MetadataObject {
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * Property for filtering events by program
-     */
-    private String program;
+  /** Property for filtering events by program */
+  private String program;
 
-    /**
-     * Property for filtering events by programstage
-     */
-    private String programStage;
+  /** Property for filtering events by programstage */
+  private String programStage;
 
-    /**
-     * Description of the filter.
-     */
-    private String description;
+  /** Description of the filter. */
+  private String description;
 
-    /**
-     * Criteria object representing selected projections, filtering and sorting
-     * criteria in events
-     */
-    private EventQueryCriteria eventQueryCriteria;
+  /** Criteria object representing selected projections, filtering and sorting criteria in events */
+  private EventQueryCriteria eventQueryCriteria;
 
-    public EventFilter()
-    {
+  public EventFilter() {}
 
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(value = PropertyType.IDENTIFIER, required = Property.Value.TRUE)
+  @PropertyRange(min = 11, max = 11)
+  public String getProgram() {
+    return program;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.IDENTIFIER, required = Property.Value.TRUE )
-    @PropertyRange( min = 11, max = 11 )
-    public String getProgram()
-    {
-        return program;
-    }
+  public void setProgram(String program) {
+    this.program = program;
+  }
 
-    public void setProgram( String program )
-    {
-        this.program = program;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(value = PropertyType.IDENTIFIER, required = Property.Value.FALSE)
+  @PropertyRange(min = 11, max = 11)
+  public String getProgramStage() {
+    return programStage;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.IDENTIFIER, required = Property.Value.FALSE )
-    @PropertyRange( min = 11, max = 11 )
-    public String getProgramStage()
-    {
-        return programStage;
-    }
+  public void setProgramStage(String programStage) {
+    this.programStage = programStage;
+  }
 
-    public void setProgramStage( String programStage )
-    {
-        this.programStage = programStage;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDescription() {
+    return description;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDescription()
-    {
-        return description;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "description", key = "DESCRIPTION")
+  public String getDisplayDescription() {
+    return getTranslation("DESCRIPTION", getDescription());
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "description", key = "DESCRIPTION" )
-    public String getDisplayDescription()
-    {
-        return getTranslation( "DESCRIPTION", getDescription() );
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public EventQueryCriteria getEventQueryCriteria() {
+    return eventQueryCriteria;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public EventQueryCriteria getEventQueryCriteria()
-    {
-        return eventQueryCriteria;
-    }
-
-    public void setEventQueryCriteria( EventQueryCriteria eventQueryCriteria )
-    {
-        this.eventQueryCriteria = eventQueryCriteria;
-    }
+  public void setEventQueryCriteria(EventQueryCriteria eventQueryCriteria) {
+    this.eventQueryCriteria = eventQueryCriteria;
+  }
 }

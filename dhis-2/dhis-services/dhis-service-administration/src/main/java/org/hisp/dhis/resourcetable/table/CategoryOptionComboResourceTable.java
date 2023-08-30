@@ -27,72 +27,73 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
-public class CategoryOptionComboResourceTable
-    extends ResourceTable<CategoryOptionCombo>
-{
-    private final String tableType;
+public class CategoryOptionComboResourceTable extends ResourceTable<CategoryOptionCombo> {
+  private final String tableType;
 
-    public CategoryOptionComboResourceTable( List<CategoryOptionCombo> objects, String tableType )
-    {
-        super( objects );
-        this.tableType = tableType;
-    }
+  public CategoryOptionComboResourceTable(List<CategoryOptionCombo> objects, String tableType) {
+    super(objects);
+    this.tableType = tableType;
+  }
 
-    @Override
-    public ResourceTableType getTableType()
-    {
-        return ResourceTableType.DATA_ELEMENT_CATEGORY_OPTION_COMBO;
-    }
+  @Override
+  public ResourceTableType getTableType() {
+    return ResourceTableType.DATA_ELEMENT_CATEGORY_OPTION_COMBO;
+  }
 
-    @Override
-    public String getCreateTempTableStatement()
-    {
-        return "create " + tableType + " table " + getTempTableName() + " (" +
-            "dataelementid bigint not null, " +
-            "dataelementuid varchar(11) not null, " +
-            "categoryoptioncomboid bigint not null, " +
-            "categoryoptioncombouid varchar(11) not null)";
-    }
+  @Override
+  public String getCreateTempTableStatement() {
+    return "create "
+        + tableType
+        + " table "
+        + getTempTableName()
+        + " ("
+        + "dataelementid bigint not null, "
+        + "dataelementuid varchar(11) not null, "
+        + "categoryoptioncomboid bigint not null, "
+        + "categoryoptioncombouid varchar(11) not null)";
+  }
 
-    @Override
-    public Optional<String> getPopulateTempTableStatement()
-    {
-        String sql = "insert into " + getTempTableName() +
-            " (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) " +
-            "select de.dataelementid as dataelementid, de.uid as dataelementuid, " +
-            "coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid " +
-            "from dataelement de " +
-            "join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid " +
-            "join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid";
+  @Override
+  public Optional<String> getPopulateTempTableStatement() {
+    String sql =
+        "insert into "
+            + getTempTableName()
+            + " (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) "
+            + "select de.dataelementid as dataelementid, de.uid as dataelementuid, "
+            + "coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid "
+            + "from dataelement de "
+            + "join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid "
+            + "join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid";
 
-        return Optional.of( sql );
-    }
+    return Optional.of(sql);
+  }
 
-    @Override
-    public Optional<List<Object[]>> getPopulateTempTableContent()
-    {
-        return Optional.empty();
-    }
+  @Override
+  public Optional<List<Object[]>> getPopulateTempTableContent() {
+    return Optional.empty();
+  }
 
-    @Override
-    public List<String> getCreateIndexStatements()
-    {
-        String name = "in_dataelementcategoryoptioncombo_" + getRandomSuffix();
+  @Override
+  public List<String> getCreateIndexStatements() {
+    String name = "in_dataelementcategoryoptioncombo_" + getRandomSuffix();
 
-        String sql = "create index " + name + " on " + getTempTableName() + "(dataelementuid, categoryoptioncombouid)";
+    String sql =
+        "create index "
+            + name
+            + " on "
+            + getTempTableName()
+            + "(dataelementuid, categoryoptioncombouid)";
 
-        return Lists.newArrayList( sql );
-    }
+    return Lists.newArrayList(sql);
+  }
 }

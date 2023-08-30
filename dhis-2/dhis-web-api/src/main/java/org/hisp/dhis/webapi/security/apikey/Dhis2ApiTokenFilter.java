@@ -31,12 +31,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenAttribute;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
@@ -59,190 +57,169 @@ import org.springframework.web.filter.OncePerRequestFilter;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class Dhis2ApiTokenFilter extends OncePerRequestFilter
-{
-    private static final String HEADER_FORWARDED_FOR = "X-Forwarded-For";
+public class Dhis2ApiTokenFilter extends OncePerRequestFilter {
+  private static final String HEADER_FORWARDED_FOR = "X-Forwarded-For";
 
-    private final ApiTokenResolver apiTokenResolver = new ApiTokenResolver();
+  private final ApiTokenResolver apiTokenResolver = new ApiTokenResolver();
 
-    private final AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
+  private final AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource =
+      new WebAuthenticationDetailsSource();
 
-    private final ApiTokenAuthManager apiTokenAuthManager;
+  private final ApiTokenAuthManager apiTokenAuthManager;
 
-    private final AuthenticationFailureHandler authenticationFailureHandler;
+  private final AuthenticationFailureHandler authenticationFailureHandler;
 
-    private final AuthenticationEntryPoint authenticationEntryPoint;
+  private final AuthenticationEntryPoint authenticationEntryPoint;
 
-    private final AuthenticationEventPublisher eventPublisher;
+  private final AuthenticationEventPublisher eventPublisher;
 
-    public Dhis2ApiTokenFilter( ApiTokenAuthManager apiTokenAuthManager,
-        AuthenticationEntryPoint authenticationEntryPoint,
-        DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher )
-    {
-        this.authenticationEntryPoint = authenticationEntryPoint;
-        this.apiTokenAuthManager = apiTokenAuthManager;
-        this.authenticationFailureHandler = getAuthenticationFailureHandler( authenticationEntryPoint,
-            defaultAuthenticationEventPublisher );
+  public Dhis2ApiTokenFilter(
+      ApiTokenAuthManager apiTokenAuthManager,
+      AuthenticationEntryPoint authenticationEntryPoint,
+      DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher) {
+    this.authenticationEntryPoint = authenticationEntryPoint;
+    this.apiTokenAuthManager = apiTokenAuthManager;
+    this.authenticationFailureHandler =
+        getAuthenticationFailureHandler(
+            authenticationEntryPoint, defaultAuthenticationEventPublisher);
 
-        this.eventPublisher = defaultAuthenticationEventPublisher;
+    this.eventPublisher = defaultAuthenticationEventPublisher;
+  }
+
+  @Override
+  protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      throws ServletException, IOException {
+    String tokenHash;
+    try {
+      tokenHash = apiTokenResolver.resolve(request);
+    } catch (ApiTokenAuthenticationException e) {
+      logger.debug("Sending to authentication entry point since we failed to resolve API token", e);
+      authenticationEntryPoint.commence(request, response, e);
+      return;
     }
 
-    @Override
-    protected void doFilterInternal( HttpServletRequest request, HttpServletResponse response, FilterChain filterChain )
-        throws ServletException,
-        IOException
-    {
-        String tokenHash;
-        try
-        {
-            tokenHash = apiTokenResolver.resolve( request );
-        }
-        catch ( ApiTokenAuthenticationException e )
-        {
-            logger.debug( "Sending to authentication entry point since we failed to resolve API token", e );
-            authenticationEntryPoint.commence( request, response, e );
-            return;
-        }
-
-        if ( tokenHash == null )
-        {
-            logger.debug( "Did not process request since did not find API token in header or body" );
-            filterChain.doFilter( request, response );
-            return;
-        }
-
-        try
-        {
-            ApiTokenAuthenticationToken authenticationToken = (ApiTokenAuthenticationToken) apiTokenAuthManager
-                .authenticate( new ApiTokenAuthenticationToken( tokenHash ) );
-            authenticationToken.setDetails( new ApiTokenWebAuthenticationDetails( request ) );
-
-            setRequestDetails( request, authenticationToken );
-            validateRequestRules( request, authenticationToken.getToken() );
-
-            authenticationToken.setAuthenticated( true );
-            setSecurityContext( authenticationToken );
-
-            eventPublisher.publishAuthenticationSuccess( authenticationToken );
-
-            filterChain.doFilter( request, response );
-        }
-        catch ( AuthenticationException e )
-        {
-            SecurityContextHolder.clearContext();
-            logger.debug( "Failed to process authentication request", e );
-            authenticationFailureHandler.onAuthenticationFailure( request, response, e );
-        }
+    if (tokenHash == null) {
+      logger.debug("Did not process request since did not find API token in header or body");
+      filterChain.doFilter(request, response);
+      return;
     }
 
-    private void setRequestDetails( HttpServletRequest request, ApiTokenAuthenticationToken authenticationToken )
-    {
-        authenticationToken.setDetails( authenticationDetailsSource.buildDetails( request ) );
+    try {
+      ApiTokenAuthenticationToken authenticationToken =
+          (ApiTokenAuthenticationToken)
+              apiTokenAuthManager.authenticate(new ApiTokenAuthenticationToken(tokenHash));
+      authenticationToken.setDetails(new ApiTokenWebAuthenticationDetails(request));
+
+      setRequestDetails(request, authenticationToken);
+      validateRequestRules(request, authenticationToken.getToken());
+
+      authenticationToken.setAuthenticated(true);
+      setSecurityContext(authenticationToken);
+
+      eventPublisher.publishAuthenticationSuccess(authenticationToken);
+
+      filterChain.doFilter(request, response);
+    } catch (AuthenticationException e) {
+      SecurityContextHolder.clearContext();
+      logger.debug("Failed to process authentication request", e);
+      authenticationFailureHandler.onAuthenticationFailure(request, response, e);
+    }
+  }
+
+  private void setRequestDetails(
+      HttpServletRequest request, ApiTokenAuthenticationToken authenticationToken) {
+    authenticationToken.setDetails(authenticationDetailsSource.buildDetails(request));
+  }
+
+  private void setSecurityContext(ApiTokenAuthenticationToken authenticationToken) {
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authenticationToken);
+    SecurityContextHolder.setContext(context);
+  }
+
+  private void validateRequestRules(HttpServletRequest request, ApiToken token) {
+    final List<String> errors = new ArrayList<>();
+
+    for (ApiTokenAttribute attribute : token.getAttributes()) {
+      if (attribute instanceof IpAllowedList ipAllowedList) {
+        validateIp(request, errors, ipAllowedList);
+      }
+
+      if (attribute instanceof RefererAllowedList refererAllowedList) {
+        validateReferer(request, errors, refererAllowedList);
+      }
+
+      if (attribute instanceof MethodAllowedList methodAllowedList) {
+        validateMethod(request, errors, methodAllowedList);
+      }
     }
 
-    private void setSecurityContext( ApiTokenAuthenticationToken authenticationToken )
-    {
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication( authenticationToken );
-        SecurityContextHolder.setContext( context );
+    if (!errors.isEmpty()) {
+      throw new ApiTokenConstraintsValidationFailedException(errors.get(0));
     }
+  }
 
-    private void validateRequestRules( HttpServletRequest request, ApiToken token )
-    {
-        final List<String> errors = new ArrayList<>();
+  private void validateMethod(
+      HttpServletRequest request, List<String> errors, MethodAllowedList attribute) {
+    if (!attribute.getAllowedMethods().isEmpty()) {
+      String method = request.getMethod();
 
-        for ( ApiTokenAttribute attribute : token.getAttributes() )
-        {
-            if ( attribute instanceof IpAllowedList ipAllowedList )
-            {
-                validateIp( request, errors, ipAllowedList );
+      if (!attribute.getAllowedMethods().contains(method)) {
+        errors.add("Failed to authenticate API token, request http method is not allowed.");
+      }
+    }
+  }
+
+  private void validateReferer(
+      HttpServletRequest request, List<String> errors, RefererAllowedList attribute) {
+    if (!attribute.getAllowedReferrers().isEmpty()) {
+      String referrer = request.getHeader("referer");
+
+      if (referrer == null
+          || !attribute.getAllowedReferrers().contains(referrer.toLowerCase(Locale.ROOT))) {
+        errors.add(
+            "Failed to authenticate API token, request http referrer is missing or not allowed.");
+      }
+    }
+  }
+
+  private void validateIp(
+      HttpServletRequest request, List<String> errors, IpAllowedList attribute) {
+    if (!attribute.getAllowedIps().isEmpty()) {
+      String requestRemoteAddr =
+          ObjectUtils.firstNonNull(
+              request.getHeader(HEADER_FORWARDED_FOR), request.getRemoteAddr());
+
+      if (!attribute.getAllowedIps().contains(requestRemoteAddr)) {
+        errors.add("Failed to authenticate API token, request ip address is not allowed.");
+      }
+    }
+  }
+
+  /**
+   * Custom authentication failure handler needed for proper failure messaging with the
+   * AuthenticationLoggerListener
+   */
+  private AuthenticationFailureHandler getAuthenticationFailureHandler(
+      AuthenticationEntryPoint authenticationEntryPoint,
+      DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher) {
+    return (request, response, exception) -> {
+      defaultAuthenticationEventPublisher.publishAuthenticationFailure(
+          exception,
+          new AbstractAuthenticationToken(null) {
+            @Override
+            public Object getCredentials() {
+              return null;
             }
 
-            if ( attribute instanceof RefererAllowedList refererAllowedList )
-            {
-                validateReferer( request, errors, refererAllowedList );
+            @Override
+            public Object getPrincipal() {
+              return null;
             }
+          });
 
-            if ( attribute instanceof MethodAllowedList methodAllowedList )
-            {
-                validateMethod( request, errors, methodAllowedList );
-            }
-        }
-
-        if ( !errors.isEmpty() )
-        {
-            throw new ApiTokenConstraintsValidationFailedException( errors.get( 0 ) );
-        }
-    }
-
-    private void validateMethod( HttpServletRequest request, List<String> errors, MethodAllowedList attribute )
-    {
-        if ( !attribute.getAllowedMethods().isEmpty() )
-        {
-            String method = request.getMethod();
-
-            if ( !attribute.getAllowedMethods().contains( method ) )
-            {
-                errors.add( "Failed to authenticate API token, request http method is not allowed." );
-            }
-        }
-    }
-
-    private void validateReferer( HttpServletRequest request, List<String> errors, RefererAllowedList attribute )
-    {
-        if ( !attribute.getAllowedReferrers().isEmpty() )
-        {
-            String referrer = request.getHeader( "referer" );
-
-            if ( referrer == null || !attribute.getAllowedReferrers()
-                .contains( referrer.toLowerCase( Locale.ROOT ) ) )
-            {
-                errors.add(
-                    "Failed to authenticate API token, request http referrer is missing or not allowed." );
-            }
-        }
-    }
-
-    private void validateIp( HttpServletRequest request, List<String> errors, IpAllowedList attribute )
-    {
-        if ( !attribute.getAllowedIps().isEmpty() )
-        {
-            String requestRemoteAddr = ObjectUtils
-                .firstNonNull( request.getHeader( HEADER_FORWARDED_FOR ), request.getRemoteAddr() );
-
-            if ( !attribute.getAllowedIps().contains( requestRemoteAddr ) )
-            {
-                errors.add( "Failed to authenticate API token, request ip address is not allowed." );
-            }
-        }
-    }
-
-    /**
-     * Custom authentication failure handler needed for proper failure messaging
-     * with the AuthenticationLoggerListener
-     */
-    private AuthenticationFailureHandler getAuthenticationFailureHandler(
-        AuthenticationEntryPoint authenticationEntryPoint,
-        DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher )
-    {
-        return ( request, response, exception ) -> {
-            defaultAuthenticationEventPublisher.publishAuthenticationFailure( exception,
-                new AbstractAuthenticationToken( null )
-                {
-                    @Override
-                    public Object getCredentials()
-                    {
-                        return null;
-                    }
-
-                    @Override
-                    public Object getPrincipal()
-                    {
-                        return null;
-                    }
-                } );
-
-            authenticationEntryPoint.commence( request, response, exception );
-        };
-    }
+      authenticationEntryPoint.commence(request, response, exception);
+    };
+  }
 }

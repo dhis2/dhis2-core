@@ -28,7 +28,6 @@
 package org.hisp.dhis.category;
 
 import java.util.Map;
-
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
@@ -37,26 +36,22 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component
-public class CategoryDimensionDeletionHandler extends JdbcDeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( CategoryDimension.class );
+public class CategoryDimensionDeletionHandler extends JdbcDeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(CategoryDimension.class);
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( CategoryOption.class, this::allowDeleteCategoryOption );
-        whenVetoing( Category.class, this::allowDeleteCategory );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(CategoryOption.class, this::allowDeleteCategoryOption);
+    whenVetoing(Category.class, this::allowDeleteCategory);
+  }
 
-    private DeletionVeto allowDeleteCategoryOption( CategoryOption categoryOption )
-    {
-        String sql = "select 1 from categorydimension_items where categoryoptionid = :id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", categoryOption.getId() ) );
-    }
+  private DeletionVeto allowDeleteCategoryOption(CategoryOption categoryOption) {
+    String sql = "select 1 from categorydimension_items where categoryoptionid = :id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", categoryOption.getId()));
+  }
 
-    private DeletionVeto allowDeleteCategory( Category category )
-    {
-        String sql = "select 1 from categorydimension where categoryid = :id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", category.getId() ) );
-    }
+  private DeletionVeto allowDeleteCategory(Category category) {
+    String sql = "select 1 from categorydimension where categoryid = :id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", category.getId()));
+  }
 }

@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -42,6 +41,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.feedback.Status;
@@ -54,66 +54,58 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-class EventImportWithMetadataTest extends SingleSetupIntegrationTestBase
-{
-    @Autowired
-    private RenderService _renderService;
+class EventImportWithMetadataTest extends SingleSetupIntegrationTestBase {
+  @Autowired private RenderService _renderService;
 
-    @Autowired
-    private CsvEventService<Event> csvEventService;
+  @Autowired private CsvEventService<Event> csvEventService;
 
-    @Autowired
-    private EventService eventService;
+  @Autowired private EventService eventService;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Autowired
-    private MetadataImportService importService;
+  @Autowired private MetadataImportService importService;
 
-    private static final IdSchemes idSchemes = new IdSchemes();
+  private static final IdSchemes idSchemes = new IdSchemes();
 
-    private static List<Event> events;
+  private static List<Event> events;
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        renderService = _renderService;
-        userService = _userService;
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/import/create_program_stages.json" ).getInputStream(), RenderFormat.JSON );
-        MetadataImportParams params = new MetadataImportParams();
-        params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
-        params.setSkipSharing( true );
-        ImportReport report = importService.importMetadata( params );
-        assertEquals( Status.OK, report.getStatus() );
-        idSchemes.setDataElementIdScheme( "UID" );
-        idSchemes.setOrgUnitIdScheme( "CODE" );
-        idSchemes.setProgramStageInstanceIdScheme( "UID" );
-        events = csvEventService
-            .readEvents( new ClassPathResource( "dxf2/import/csv/events_import_code.csv" ).getInputStream(), true );
-    }
+  @Override
+  protected void setUpTest() throws Exception {
+    renderService = _renderService;
+    userService = _userService;
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(
+            new ClassPathResource("dxf2/import/create_program_stages.json").getInputStream(),
+            RenderFormat.JSON);
+    MetadataImportParams params = new MetadataImportParams();
+    params.setImportMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE);
+    params.setSkipSharing(true);
+    ImportReport report = importService.importMetadata(params, new MetadataObjects(metadata));
+    assertEquals(Status.OK, report.getStatus());
+    idSchemes.setDataElementIdScheme("UID");
+    idSchemes.setOrgUnitIdScheme("CODE");
+    idSchemes.setProgramStageInstanceIdScheme("UID");
+    events =
+        csvEventService.readEvents(
+            new ClassPathResource("dxf2/import/csv/events_import_code.csv").getInputStream(), true);
+  }
 
-    @Test
-    void shouldSuccessImportCsvLookUpByCode()
-    {
-        idSchemes.setIdScheme( "CODE" );
-        ImportOptions importOptions = new ImportOptions();
-        importOptions.setIdSchemes( idSchemes );
-        ImportSummaries importSummaries = eventService.addEvents( events, importOptions, null );
-        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
-    }
+  @Test
+  void shouldSuccessImportCsvLookUpByCode() {
+    idSchemes.setIdScheme("CODE");
+    ImportOptions importOptions = new ImportOptions();
+    importOptions.setIdSchemes(idSchemes);
+    ImportSummaries importSummaries = eventService.addEvents(events, importOptions, null);
+    assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus());
+  }
 
-    @Test
-    void shouldFailImportCsvLookUpByUid()
-    {
-        idSchemes.setIdScheme( "UID" );
-        ImportOptions importOptions = new ImportOptions();
-        importOptions.setIdSchemes( idSchemes );
-        ImportSummaries importSummaries = eventService.addEvents( events, importOptions, null );
-        assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
-    }
+  @Test
+  void shouldFailImportCsvLookUpByUid() {
+    idSchemes.setIdScheme("UID");
+    ImportOptions importOptions = new ImportOptions();
+    importOptions.setIdSchemes(idSchemes);
+    ImportSummaries importSummaries = eventService.addEvents(events, importOptions, null);
+    assertEquals(ImportStatus.ERROR, importSummaries.getStatus());
+  }
 }

@@ -38,12 +38,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -61,162 +59,108 @@ import org.hisp.dhis.program.Program;
  * @author Jim Grace
  */
 @Getter
-@ToString( onlyExplicitlyIncluded = true )
-@EqualsAndHashCode( onlyExplicitlyIncluded = true )
-@Builder( toBuilder = true )
-public class ExpressionParams
-{
-    public static final ExpressionParams DEFAULT_EXPRESSION_PARAMS;
+@ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Builder(toBuilder = true)
+public class ExpressionParams {
+  public static final ExpressionParams DEFAULT_EXPRESSION_PARAMS;
 
-    /**
-     * Dummy data for sample periods, so in the absence of real sampled data the
-     * parser will still traverse the contents of aggregation functions once for
-     * the purposes of such things as syntax checking and getting an expression
-     * description. The actual date doesn't matter; a date was chosen that is
-     * likely to not be confused with real data.
-     */
-    private static final List<Period> SAMPLE_PERIODS;
+  /**
+   * Dummy data for sample periods, so in the absence of real sampled data the parser will still
+   * traverse the contents of aggregation functions once for the purposes of such things as syntax
+   * checking and getting an expression description. The actual date doesn't matter; a date was
+   * chosen that is likely to not be confused with real data.
+   */
+  private static final List<Period> SAMPLE_PERIODS;
 
-    static
-    {
-        Date genTheFirst99 = Date
-            .from( LocalDate.of( 1999, Month.JANUARY, 1 ).atStartOfDay( ZoneId.systemDefault() ).toInstant() );
-        Period period = new Period();
-        period.setPeriodType( new DailyPeriodType() );
-        period.setStartDate( genTheFirst99 );
-        period.setEndDate( genTheFirst99 );
-        SAMPLE_PERIODS = Collections.singletonList( period );
-        DEFAULT_EXPRESSION_PARAMS = builder().build();
-    }
+  static {
+    Date genTheFirst99 =
+        Date.from(
+            LocalDate.of(1999, Month.JANUARY, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+    Period period = new Period();
+    period.setPeriodType(new DailyPeriodType());
+    period.setStartDate(genTheFirst99);
+    period.setEndDate(genTheFirst99);
+    SAMPLE_PERIODS = Collections.singletonList(period);
+    DEFAULT_EXPRESSION_PARAMS = builder().build();
+  }
 
-    /**
-     * The expression to parse
-     */
-    @ToString.Include
-    @EqualsAndHashCode.Include
-    private final String expression;
+  /** The expression to parse */
+  @ToString.Include @EqualsAndHashCode.Include private final String expression;
 
-    /**
-     * The type of expression to parse (Indicator, Predictor, etc.)
-     */
-    @ToString.Include
-    @EqualsAndHashCode.Include
-    private final ParseType parseType;
+  /** The type of expression to parse (Indicator, Predictor, etc.) */
+  @ToString.Include @EqualsAndHashCode.Include private final ParseType parseType;
 
-    /**
-     * The expected return data type (often but not always determined by the
-     * type of expression to parse).
-     */
-    @ToString.Include
-    @EqualsAndHashCode.Include
-    private final DataType dataType;
+  /**
+   * The expected return data type (often but not always determined by the type of expression to
+   * parse).
+   */
+  @ToString.Include @EqualsAndHashCode.Include private final DataType dataType;
 
-    /**
-     * A map from a parsed {@see DimensionalItemId} to its equivalent
-     * {@see DimensionalItemObject}
-     */
-    @Builder.Default
-    private final Map<DimensionalItemId, DimensionalItemObject> itemMap = new HashMap<>();
+  /** A map from a parsed {@see DimensionalItemId} to its equivalent {@see DimensionalItemObject} */
+  @Builder.Default
+  private final Map<DimensionalItemId, DimensionalItemObject> itemMap = new HashMap<>();
 
-    /**
-     * A map from a {@see DimensionalItemObject} to its value to use in
-     * evaluating the expression
-     */
-    @Builder.Default
-    private final Map<DimensionalItemObject, Object> valueMap = new HashMap<>();
+  /** A map from a {@see DimensionalItemObject} to its value to use in evaluating the expression */
+  @Builder.Default private final Map<DimensionalItemObject, Object> valueMap = new HashMap<>();
 
-    /**
-     * Map of organisation unit counts to use in evaluating the expression
-     */
-    @ToString.Include
-    @EqualsAndHashCode.Include
-    @Builder.Default
-    private final Map<String, Integer> orgUnitCountMap = new HashMap<>();
+  /** Map of organisation unit counts to use in evaluating the expression */
+  @ToString.Include @EqualsAndHashCode.Include @Builder.Default
+  private final Map<String, Integer> orgUnitCountMap = new HashMap<>();
 
-    /**
-     * Map of organisation unit groups to use in evaluating the expression
-     */
-    @Builder.Default
-    private final Map<String, OrganisationUnitGroup> orgUnitGroupMap = new HashMap<>();
+  /** Map of organisation unit groups to use in evaluating the expression */
+  @Builder.Default
+  private final Map<String, OrganisationUnitGroup> orgUnitGroupMap = new HashMap<>();
 
-    /**
-     * Map of data sets to use in evaluating the expression
-     */
-    @Builder.Default
-    private Map<String, DataSet> dataSetMap = new HashMap<>();
+  /** Map of data sets to use in evaluating the expression */
+  @Builder.Default private Map<String, DataSet> dataSetMap = new HashMap<>();
 
-    /**
-     * Map of programs to use in evaluating the expression
-     */
-    @Builder.Default
-    private Map<String, Program> programMap = new HashMap<>();
+  /** Map of programs to use in evaluating the expression */
+  @Builder.Default private Map<String, Program> programMap = new HashMap<>();
 
-    /**
-     * The periods (if any) for which the expression is evaluated.
-     */
-    @ToString.Include
-    @EqualsAndHashCode.Include
-    @Builder.Default
-    private final List<Period> periods = emptyList();
+  /** The periods (if any) for which the expression is evaluated. */
+  @ToString.Include @EqualsAndHashCode.Include @Builder.Default
+  private final List<Period> periods = emptyList();
 
-    /**
-     * The number of calendar days to be used in evaluating the expression.
-     * Defaults to zero for the purpose of expression syntax checking.
-     */
-    @ToString.Include
-    @EqualsAndHashCode.Include
-    @Builder.Default
-    private final Integer days = 0;
+  /**
+   * The number of calendar days to be used in evaluating the expression. Defaults to zero for the
+   * purpose of expression syntax checking.
+   */
+  @ToString.Include @EqualsAndHashCode.Include @Builder.Default private final Integer days = 0;
 
-    /**
-     * The missing value strategy (what to do if data values are missing)
-     */
-    @ToString.Include
-    @EqualsAndHashCode.Include
-    @Builder.Default
-    private final MissingValueStrategy missingValueStrategy = NEVER_SKIP;
+  /** The missing value strategy (what to do if data values are missing) */
+  @ToString.Include @EqualsAndHashCode.Include @Builder.Default
+  private final MissingValueStrategy missingValueStrategy = NEVER_SKIP;
 
-    /**
-     * The current organisation unit the expression is being evaluated for
-     */
-    @ToString.Include
-    @EqualsAndHashCode.Include
-    private final OrganisationUnit orgUnit;
+  /** The current organisation unit the expression is being evaluated for */
+  @ToString.Include @EqualsAndHashCode.Include private final OrganisationUnit orgUnit;
 
-    /**
-     * For predictors, a list of periods in which we will look for sampled data.
-     * Defaults to a single dummy period when we don't have an actual list of
-     * periods, so we can do syntax checking.
-     */
-    @ToString.Include
-    @EqualsAndHashCode.Include
-    @Builder.Default
-    private final List<Period> samplePeriods = SAMPLE_PERIODS;
+  /**
+   * For predictors, a list of periods in which we will look for sampled data. Defaults to a single
+   * dummy period when we don't have an actual list of periods, so we can do syntax checking.
+   */
+  @ToString.Include @EqualsAndHashCode.Include @Builder.Default
+  private final List<Period> samplePeriods = SAMPLE_PERIODS;
 
-    /**
-     * For predictors, a value map from item to value, for each of the periods
-     * in which data is present
-     */
-    @Builder.Default
-    private final MapMap<Period, DimensionalItemObject, Object> periodValueMap = new MapMap<>();
+  /**
+   * For predictors, a value map from item to value, for each of the periods in which data is
+   * present
+   */
+  @Builder.Default
+  private final MapMap<Period, DimensionalItemObject, Object> periodValueMap = new MapMap<>();
 
-    /**
-     * Initial {@see ExpressionInfo} to be added onto, if any. This allows
-     * successive calls to {@see ExpressionService#getExpressionInfo} to
-     * accumulate the information from multiple expressions into the same
-     * {@see ExpressionInfo} instance.
-     */
-    @Builder.Default
-    private final ExpressionInfo expressionInfo = new ExpressionInfo();
+  /**
+   * Initial {@see ExpressionInfo} to be added onto, if any. This allows successive calls to {@see
+   * ExpressionService#getExpressionInfo} to accumulate the information from multiple expressions
+   * into the same {@see ExpressionInfo} instance.
+   */
+  @Builder.Default private final ExpressionInfo expressionInfo = new ExpressionInfo();
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    public DataType getDataType()
-    {
-        return (dataType != null)
-            ? dataType
-            : parseType.getDataType();
-    }
+  public DataType getDataType() {
+    return (dataType != null) ? dataType : parseType.getDataType();
+  }
 }

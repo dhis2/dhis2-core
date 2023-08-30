@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.deprecated.tracker.importer.delete.validation;
 import static java.util.Collections.emptyList;
 
 import java.util.List;
-
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.validation.BaseEventAclCheck;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -41,17 +40,13 @@ import org.springframework.stereotype.Component;
  * @author maikel arabori
  */
 @Component
-public class DeleteProgramStageInstanceAclCheck extends BaseEventAclCheck
-{
-    @Override
-    public List<String> checkAcl( TrackerAccessManager trackerAccessManager, User user,
-        Event event )
-    {
-        if ( event != null )
-        {
-            return trackerAccessManager.canDelete( user, event, true );
-        }
-
-        return emptyList();
+public class DeleteProgramStageInstanceAclCheck extends BaseEventAclCheck {
+  @Override
+  public List<String> checkAcl(TrackerAccessManager trackerAccessManager, User user, Event event) {
+    if (event != null) {
+      return trackerAccessManager.canDelete(user, event, true);
     }
+
+    return emptyList();
+  }
 }

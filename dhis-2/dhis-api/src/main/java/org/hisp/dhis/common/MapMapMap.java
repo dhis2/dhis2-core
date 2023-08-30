@@ -33,51 +33,41 @@ import java.util.Map;
 /**
  * @author Jim Grace
  */
-public class MapMapMap<S, T, U, V>
-    extends HashMap<S, MapMap<T, U, V>>
-{
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = 4505153475282323148L;
+public class MapMapMap<S, T, U, V> extends HashMap<S, MapMap<T, U, V>> {
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = 4505153475282323148L;
 
-    public MapMap<T, U, V> putEntry( S key1, T key2, U key3, V value )
-    {
-        MapMap<T, U, V> map = this.computeIfAbsent( key1, k -> new MapMap<>() );
-        map.putEntry( key2, key3, value );
-        return map;
+  public MapMap<T, U, V> putEntry(S key1, T key2, U key3, V value) {
+    MapMap<T, U, V> map = this.computeIfAbsent(key1, k -> new MapMap<>());
+    map.putEntry(key2, key3, value);
+    return map;
+  }
+
+  public void putEntries(S key1, MapMap<T, U, V> m) {
+    MapMap<T, U, V> map = this.computeIfAbsent(key1, k -> new MapMap<>());
+    map.putMap(m);
+  }
+
+  public void putMap(MapMapMap<S, T, U, V> map) {
+    for (Entry<S, MapMap<T, U, V>> entry : map.entrySet()) {
+      this.putEntries(entry.getKey(), entry.getValue());
+    }
+  }
+
+  public V getValue(S key1, T key2, U key3) {
+    MapMap<T, U, V> map = this.get(key1);
+    return map == null ? null : map.getValue(key2, key3);
+  }
+
+  @SafeVarargs
+  public static <S, T, U, V> MapMapMap<S, T, U, V> ofEntries(
+      Map.Entry<S, MapMap<T, U, V>>... entries) {
+    MapMapMap<S, T, U, V> map = new MapMapMap<>();
+
+    for (Map.Entry<S, MapMap<T, U, V>> entry : entries) {
+      map.put(entry.getKey(), entry.getValue());
     }
 
-    public void putEntries( S key1, MapMap<T, U, V> m )
-    {
-        MapMap<T, U, V> map = this.computeIfAbsent( key1, k -> new MapMap<>() );
-        map.putMap( m );
-    }
-
-    public void putMap( MapMapMap<S, T, U, V> map )
-    {
-        for ( Entry<S, MapMap<T, U, V>> entry : map.entrySet() )
-        {
-            this.putEntries( entry.getKey(), entry.getValue() );
-        }
-    }
-
-    public V getValue( S key1, T key2, U key3 )
-    {
-        MapMap<T, U, V> map = this.get( key1 );
-        return map == null ? null : map.getValue( key2, key3 );
-    }
-
-    @SafeVarargs
-    public static <S, T, U, V> MapMapMap<S, T, U, V> ofEntries( Map.Entry<S, MapMap<T, U, V>>... entries )
-    {
-        MapMapMap<S, T, U, V> map = new MapMapMap<>();
-
-        for ( Map.Entry<S, MapMap<T, U, V>> entry : entries )
-        {
-            map.put( entry.getKey(), entry.getValue() );
-        }
-
-        return map;
-    }
+    return map;
+  }
 }

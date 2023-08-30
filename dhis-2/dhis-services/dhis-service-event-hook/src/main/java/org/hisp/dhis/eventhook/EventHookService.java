@@ -27,52 +27,43 @@
  */
 package org.hisp.dhis.eventhook;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.Nonnull;
-
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen
  */
 @Service
 @RequiredArgsConstructor
-public class EventHookService
-{
-    private final EventHookStore eventHookStore;
+public class EventHookService {
+  private final EventHookStore eventHookStore;
 
-    private final ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
 
-    private final EventHookSecretManager secretManager;
+  private final EventHookSecretManager secretManager;
 
-    @Nonnull
-    @Transactional( readOnly = true )
-    public List<EventHook> getAll()
-    {
-        List<EventHook> eventHooks = new ArrayList<>();
+  @Nonnull
+  @Transactional(readOnly = true)
+  public List<EventHook> getAll() {
+    List<EventHook> eventHooks = new ArrayList<>();
 
-        for ( EventHook eventHook : eventHookStore.getAll() )
-        {
-            try
-            {
-                EventHook eh = objectMapper.readValue( objectMapper.writeValueAsString( eventHook ), EventHook.class );
-                secretManager.decrypt( eh );
-                eventHooks.add( eh );
-            }
-            catch ( JsonProcessingException e )
-            {
-                throw new RuntimeException( e );
-            }
-        }
-
-        return eventHooks;
+    for (EventHook eventHook : eventHookStore.getAll()) {
+      try {
+        EventHook eh =
+            objectMapper.readValue(objectMapper.writeValueAsString(eventHook), EventHook.class);
+        secretManager.decrypt(eh);
+        eventHooks.add(eh);
+      } catch (JsonProcessingException e) {
+        throw new RuntimeException(e);
+      }
     }
+
+    return eventHooks;
+  }
 }

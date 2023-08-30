@@ -29,13 +29,12 @@ package org.hisp.dhis.query;
 
 import static java.util.Collections.singletonList;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -49,287 +48,230 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component( "org.hisp.dhis.query.InMemoryQueryEngine" )
+@Component("org.hisp.dhis.query.InMemoryQueryEngine")
 @AllArgsConstructor
-public class InMemoryQueryEngine<T extends IdentifiableObject>
-    implements QueryEngine<T>
-{
-    private final SchemaService schemaService;
+public class InMemoryQueryEngine<T extends IdentifiableObject> implements QueryEngine<T> {
+  private final SchemaService schemaService;
 
-    private final AclService aclService;
+  private final AclService aclService;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    @Override
-    public List<T> query( Query query )
-    {
-        validateQuery( query );
-        List<T> list = runQuery( query );
-        list = runSorter( query, list );
+  @Override
+  public List<T> query(Query query) {
+    validateQuery(query);
+    List<T> list = runQuery(query);
+    list = runSorter(query, list);
 
-        return query.isSkipPaging() ? list
-            : PagerUtils.pageCollection( list, query.getFirstResult(), query.getMaxResults() );
+    return query.isSkipPaging()
+        ? list
+        : PagerUtils.pageCollection(list, query.getFirstResult(), query.getMaxResults());
+  }
+
+  @Override
+  public long count(Query query) {
+    validateQuery(query);
+    List<T> list = runQuery(query);
+
+    return list.size();
+  }
+
+  private void validateQuery(Query query) {
+    if (query.getUser() == null) {
+      query.setUser(currentUserService.getCurrentUser());
     }
 
-    @Override
-    public long count( Query query )
-    {
-        validateQuery( query );
-        List<T> list = runQuery( query );
-
-        return list.size();
+    if (query.getSchema() == null) {
+      throw new QueryException("Invalid Query object, does not contain Schema");
     }
 
-    private void validateQuery( Query query )
-    {
-        if ( query.getUser() == null )
-        {
-            query.setUser( currentUserService.getCurrentUser() );
-        }
+    if (query.getObjects() == null) {
+      throw new QueryException("InMemoryQueryEngine requires an existing object list to work on.");
+    }
+  }
 
-        if ( query.getSchema() == null )
-        {
-            throw new QueryException( "Invalid Query object, does not contain Schema" );
-        }
+  @SuppressWarnings("unchecked")
+  private List<T> runQuery(Query query) {
+    return query.getObjects().stream()
+        .filter(object -> test(query, (T) object))
+        .map(object -> (T) object)
+        .collect(Collectors.toList());
+  }
 
-        if ( query.getObjects() == null )
-        {
-            throw new QueryException( "InMemoryQueryEngine requires an existing object list to work on." );
-        }
+  private List<T> runSorter(Query query, List<T> objects) {
+    List<T> sorted = new ArrayList<>(objects);
+
+    sorted.sort(
+        (o1, o2) -> {
+          for (Order order : query.getOrders()) {
+            int result = order.compare(o1, o2);
+            if (result != 0) return result;
+          }
+
+          return 0;
+        });
+
+    return sorted;
+  }
+
+  private boolean test(Query query, T object) {
+    List<Boolean> testResults = new ArrayList<>();
+
+    for (Criterion criterion : query.getCriterions()) {
+      boolean testResult = false;
+
+      // normal Restriction, just assume Conjunction
+      if (criterion instanceof Restriction) {
+        Restriction restriction = (Restriction) criterion;
+        testResult = testAnd(query, object, singletonList(restriction));
+      } else if (criterion instanceof Conjunction) {
+        Conjunction conjunction = (Conjunction) criterion;
+        testResult = testAnd(query, object, conjunction.getCriterions());
+      } else if (criterion instanceof Disjunction) {
+        Disjunction disjunction = (Disjunction) criterion;
+        testResult = testOr(query, object, disjunction.getCriterions());
+      }
+
+      testResults.add(testResult);
     }
 
-    @SuppressWarnings( "unchecked" )
-    private List<T> runQuery( Query query )
-    {
-        return query.getObjects().stream()
-            .filter( object -> test( query, (T) object ) )
-            .map( object -> (T) object )
-            .collect( Collectors.toList() );
+    if (query.getRootJunctionType() == Junction.Type.OR) {
+      return testResults.contains(Boolean.TRUE);
     }
 
-    private List<T> runSorter( Query query, List<T> objects )
-    {
-        List<T> sorted = new ArrayList<>( objects );
+    return !testResults.contains(Boolean.FALSE);
+  }
 
-        sorted.sort( ( o1, o2 ) -> {
-            for ( Order order : query.getOrders() )
-            {
-                int result = order.compare( o1, o2 );
-                if ( result != 0 )
-                    return result;
+  private boolean testAnd(Query query, T object, List<? extends Criterion> criterions) {
+    for (Criterion criterion : criterions) {
+      if (criterion instanceof Restriction) {
+        Restriction restriction = (Restriction) criterion;
+        Object value = getValue(query, object, restriction);
+
+        if (!(value instanceof Collection)) {
+          if (!restriction.getOperator().test(value)) {
+            return false;
+          }
+        } else {
+          Collection<?> collection = (Collection<?>) value;
+
+          for (Object item : collection) {
+            if (restriction.getOperator().test(item)) {
+              return true;
             }
+          }
 
-            return 0;
-        } );
-
-        return sorted;
+          return false;
+        }
+      }
     }
 
-    private boolean test( Query query, T object )
-    {
-        List<Boolean> testResults = new ArrayList<>();
+    return true;
+  }
 
-        for ( Criterion criterion : query.getCriterions() )
-        {
-            boolean testResult = false;
+  private boolean testOr(Query query, T object, List<? extends Criterion> criterions) {
+    for (Criterion criterion : criterions) {
+      if (criterion instanceof Restriction) {
+        Restriction restriction = (Restriction) criterion;
+        Object value = getValue(query, object, restriction);
 
-            // normal Restriction, just assume Conjunction
-            if ( criterion instanceof Restriction )
-            {
-                Restriction restriction = (Restriction) criterion;
-                testResult = testAnd( query, object, singletonList( restriction ) );
-            }
-            else if ( criterion instanceof Conjunction )
-            {
-                Conjunction conjunction = (Conjunction) criterion;
-                testResult = testAnd( query, object, conjunction.getCriterions() );
-            }
-            else if ( criterion instanceof Disjunction )
-            {
-                Disjunction disjunction = (Disjunction) criterion;
-                testResult = testOr( query, object, disjunction.getCriterions() );
-            }
+        if (!(value instanceof Collection)) {
+          if (restriction.getOperator().test(value)) {
+            return true;
+          }
+        } else {
+          Collection<?> collection = (Collection<?>) value;
 
-            testResults.add( testResult );
+          for (Object item : collection) {
+            if (restriction.getOperator().test(item)) {
+              return true;
+            }
+          }
         }
-
-        if ( query.getRootJunctionType() == Junction.Type.OR )
-        {
-            return testResults.contains( Boolean.TRUE );
-        }
-
-        return !testResults.contains( Boolean.FALSE );
+      }
     }
 
-    private boolean testAnd( Query query, T object, List<? extends Criterion> criterions )
-    {
-        for ( Criterion criterion : criterions )
-        {
-            if ( criterion instanceof Restriction )
-            {
-                Restriction restriction = (Restriction) criterion;
-                Object value = getValue( query, object, restriction );
+    return false;
+  }
 
-                if ( !(value instanceof Collection) )
-                {
-                    if ( !restriction.getOperator().test( value ) )
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    Collection<?> collection = (Collection<?>) value;
+  @SuppressWarnings("unchecked")
+  private Object getValue(Query query, Object object, Restriction filter) {
+    String path = filter.getPath();
+    String[] paths = path.split("\\.");
+    Schema currentSchema = query.getSchema();
 
-                    for ( Object item : collection )
-                    {
-                        if ( restriction.getOperator().test( item ) )
-                        {
-                            return true;
-                        }
-                    }
-
-                    return false;
-                }
-            }
-        }
-
-        return true;
+    if (path.contains("access") && query.getSchema().isIdentifiableObject()) {
+      ((BaseIdentifiableObject) object)
+          .setAccess(aclService.getAccess((T) object, query.getUser()));
     }
 
-    private boolean testOr( Query query, T object, List<? extends Criterion> criterions )
-    {
-        for ( Criterion criterion : criterions )
-        {
-            if ( criterion instanceof Restriction )
-            {
-                Restriction restriction = (Restriction) criterion;
-                Object value = getValue( query, object, restriction );
+    for (int i = 0; i < paths.length; i++) {
+      Property property = currentSchema.getProperty(paths[i]);
 
-                if ( !(value instanceof Collection) )
-                {
-                    if ( restriction.getOperator().test( value ) )
-                    {
-                        return true;
-                    }
-                }
-                else
-                {
-                    Collection<?> collection = (Collection<?>) value;
+      if (property == null) {
+        if (i == paths.length - 1 && filter.isAttribute()) {
+          AttributeValue attr = ((BaseIdentifiableObject) object).getAttributeValue(paths[i]);
+          return attr == null ? null : attr.getValue();
+        }
+        throw new QueryException("No property found for path " + path);
+      }
 
-                    for ( Object item : collection )
-                    {
-                        if ( restriction.getOperator().test( item ) )
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
+      if (property.isCollection()) {
+        currentSchema = schemaService.getDynamicSchema(property.getItemKlass());
+      } else {
+        currentSchema = schemaService.getDynamicSchema(property.getKlass());
+      }
+
+      object = collect(object, property);
+
+      if (path.contains("access") && property.isIdentifiableObject()) {
+        if (property.isCollection()) {
+          for (Object item : ((Collection<?>) object)) {
+            ((BaseIdentifiableObject) item)
+                .setAccess(aclService.getAccess((T) item, query.getUser()));
+          }
+        } else {
+          ((BaseIdentifiableObject) object)
+              .setAccess(aclService.getAccess((T) object, query.getUser()));
+        }
+      }
+
+      if (i == (paths.length - 1)) {
+        if (property.isCollection()) {
+          return Lists.newArrayList(object);
         }
 
-        return false;
+        return object;
+      }
     }
 
-    @SuppressWarnings( "unchecked" )
-    private Object getValue( Query query, Object object, Restriction filter )
-    {
-        String path = filter.getPath();
-        String[] paths = path.split( "\\." );
-        Schema currentSchema = query.getSchema();
+    throw new QueryException("No values found for path " + path);
+  }
 
-        if ( path.contains( "access" ) && query.getSchema().isIdentifiableObject() )
-        {
-            ((BaseIdentifiableObject) object).setAccess( aclService.getAccess( (T) object, query.getUser() ) );
+  @SuppressWarnings({"rawtypes"})
+  private Object collect(Object object, Property property) {
+    object = HibernateProxyUtils.unproxy(object);
+
+    if (object instanceof Collection) {
+      Collection<?> collection = (Collection<?>) object;
+      List<Object> items = new ArrayList<>();
+
+      for (Object item : collection) {
+        Object collect = collect(item, property);
+
+        if (collect instanceof Collection) {
+          items.addAll(((Collection) collect));
+        } else {
+          items.add(collect);
         }
+      }
 
-        for ( int i = 0; i < paths.length; i++ )
-        {
-            Property property = currentSchema.getProperty( paths[i] );
-
-            if ( property == null )
-            {
-                if ( i == paths.length - 1 && filter.isAttribute() )
-                {
-                    AttributeValue attr = ((BaseIdentifiableObject) object).getAttributeValue( paths[i] );
-                    return attr == null ? null : attr.getValue();
-                }
-                throw new QueryException( "No property found for path " + path );
-            }
-
-            if ( property.isCollection() )
-            {
-                currentSchema = schemaService.getDynamicSchema( property.getItemKlass() );
-            }
-            else
-            {
-                currentSchema = schemaService.getDynamicSchema( property.getKlass() );
-            }
-
-            object = collect( object, property );
-
-            if ( path.contains( "access" ) && property.isIdentifiableObject() )
-            {
-                if ( property.isCollection() )
-                {
-                    for ( Object item : ((Collection<?>) object) )
-                    {
-                        ((BaseIdentifiableObject) item).setAccess( aclService.getAccess( (T) item, query.getUser() ) );
-                    }
-                }
-                else
-                {
-                    ((BaseIdentifiableObject) object).setAccess( aclService.getAccess( (T) object, query.getUser() ) );
-                }
-            }
-
-            if ( i == (paths.length - 1) )
-            {
-                if ( property.isCollection() )
-                {
-                    return Lists.newArrayList( object );
-                }
-
-                return object;
-            }
-
-        }
-
-        throw new QueryException( "No values found for path " + path );
+      return items;
     }
 
-    @SuppressWarnings( { "rawtypes" } )
-    private Object collect( Object object, Property property )
-    {
-        object = HibernateProxyUtils.unproxy( object );
-
-        if ( object instanceof Collection )
-        {
-            Collection<?> collection = (Collection<?>) object;
-            List<Object> items = new ArrayList<>();
-
-            for ( Object item : collection )
-            {
-                Object collect = collect( item, property );
-
-                if ( collect instanceof Collection )
-                {
-                    items.addAll( ((Collection) collect) );
-                }
-                else
-                {
-                    items.add( collect );
-                }
-            }
-
-            return items;
-        }
-
-        return ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
-    }
+    return ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+  }
 }

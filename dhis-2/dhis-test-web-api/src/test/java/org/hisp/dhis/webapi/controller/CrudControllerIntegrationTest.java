@@ -36,37 +36,41 @@ import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.Test;
 
-class CrudControllerIntegrationTest extends DhisControllerIntegrationTest
-{
-    @Test
-    void testGetNonAccessibleObject()
-    {
-        User admin = getCurrentUser();
-        String id = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/",
+class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
+  @Test
+  void testGetNonAccessibleObject() {
+    User admin = getCurrentUser();
+    String id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
                 "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly', 'sharing':{'public':'--------','owner': '"
-                    + admin.getUid() + "'}}" ) );
+                    + admin.getUid()
+                    + "'}}"));
 
-        User testUser = createAndAddUser( "test" );
-        injectSecurityContext( testUser );
+    User testUser = createAndAddUser("test");
+    injectSecurityContext(testUser);
 
-        GET( "/dataSets/{id}", id ).content( HttpStatus.NOT_FOUND );
-    }
+    GET("/dataSets/{id}", id).content(HttpStatus.NOT_FOUND);
+  }
 
-    @Test
-    void testGetAccessibleObject()
-    {
-        User testUser = createAndAddUser( "test", null, "F_DATASET_PRIVATE_ADD" );
-        injectSecurityContext( testUser );
-        String id = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/",
+  @Test
+  void testGetAccessibleObject() {
+    User testUser = createAndAddUser("test", null, "F_DATASET_PRIVATE_ADD");
+    injectSecurityContext(testUser);
+    String id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
                 "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly', 'sharing':{'public':'--------','owner': '"
-                    + testUser.getUid() + "'}}" ) );
+                    + testUser.getUid()
+                    + "'}}"));
 
-        DataSet dataSet = manager.get( DataSet.class, id );
-        assertEquals( testUser.getUid(), dataSet.getSharing().getOwner() );
+    DataSet dataSet = manager.get(DataSet.class, id);
+    assertEquals(testUser.getUid(), dataSet.getSharing().getOwner());
 
-        GET( "/dataSets/{id}", id ).content( HttpStatus.OK );
-    }
-
+    GET("/dataSets/{id}", id).content(HttpStatus.OK);
+  }
 }

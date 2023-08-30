@@ -35,39 +35,34 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * The type of organisation unit field to use for an event (or enrollment)
- * analytics query.
+ * The type of organisation unit field to use for an event (or enrollment) analytics query.
  *
  * @author Jim Grace
  */
 @Getter
 @RequiredArgsConstructor
-public enum OrgUnitFieldType
-{
-    DEFAULT( DEFAULT_ORG_UNIT_COL, DEFAULT_ORG_UNIT_COL ),
-    ATTRIBUTE( null, null ),
-    REGISTRATION( REGISTRATION_OU_COL, REGISTRATION_OU_COL ),
-    ENROLLMENT( ENROLLMENT_OU_COL, DEFAULT_ORG_UNIT_COL ),
-    OWNER_AT_START( ENROLLMENT_OU_COL, DEFAULT_ORG_UNIT_COL ),
-    OWNER_AT_END( ENROLLMENT_OU_COL, DEFAULT_ORG_UNIT_COL );
+public enum OrgUnitFieldType {
+  DEFAULT(DEFAULT_ORG_UNIT_COL, DEFAULT_ORG_UNIT_COL),
+  ATTRIBUTE(null, null),
+  REGISTRATION(REGISTRATION_OU_COL, REGISTRATION_OU_COL),
+  ENROLLMENT(ENROLLMENT_OU_COL, DEFAULT_ORG_UNIT_COL),
+  OWNER_AT_START(ENROLLMENT_OU_COL, DEFAULT_ORG_UNIT_COL),
+  OWNER_AT_END(ENROLLMENT_OU_COL, DEFAULT_ORG_UNIT_COL);
 
-    /**
-     * The event analytics column name containing the organisation unit UID of
-     * interest (or the backup column name if an ownership type).
-     */
-    private final String eventColumn;
+  /**
+   * The event analytics column name containing the organisation unit UID of interest (or the backup
+   * column name if an ownership type).
+   */
+  private final String eventColumn;
 
-    /**
-     * The enrollment analytics column name containing the organisation unit UID
-     * of interest (or the backup column name if an ownership type).
-     */
-    private final String enrollmentColumn;
+  /**
+   * The enrollment analytics column name containing the organisation unit UID of interest (or the
+   * backup column name if an ownership type).
+   */
+  private final String enrollmentColumn;
 
-    /**
-     * Returns true if this is an ownership type.
-     */
-    public boolean isOwnership()
-    {
-        return this == OWNER_AT_START || this == OWNER_AT_END;
-    }
+  /** Returns true if this is an ownership type. */
+  public boolean isOwnership() {
+    return this == OWNER_AT_START || this == OWNER_AT_END;
+  }
 }

@@ -30,9 +30,7 @@ package org.hisp.dhis.eventhook;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
 import java.util.function.UnaryOperator;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.Auth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
@@ -49,85 +47,66 @@ import org.springframework.util.StringUtils;
  */
 @Service
 @RequiredArgsConstructor
-public class EventHookSecretManager
-{
-    @Qualifier( AES_128_STRING_ENCRYPTOR )
-    private final PBEStringCleanablePasswordEncryptor encryptor;
+public class EventHookSecretManager {
+  @Qualifier(AES_128_STRING_ENCRYPTOR)
+  private final PBEStringCleanablePasswordEncryptor encryptor;
 
-    public void encrypt( EventHook eventHook )
-    {
-        handleSecrets( eventHook, encryptor::encrypt );
+  public void encrypt(EventHook eventHook) {
+    handleSecrets(eventHook, encryptor::encrypt);
+  }
+
+  public void decrypt(EventHook eventHook) {
+    handleSecrets(eventHook, encryptor::decrypt);
+  }
+
+  private void handleSecrets(EventHook eventHook, UnaryOperator<String> callback) {
+    for (Target target : eventHook.getTargets()) {
+      if (target.getType().equals(WebhookTarget.TYPE)) {
+        handleWebhook((WebhookTarget) target, callback);
+      } else if (target.getType().equals(JmsTarget.TYPE)) {
+        handleJms((JmsTarget) target, callback);
+      } else if (target.getType().equals(KafkaTarget.TYPE)) {
+        handleKafka((KafkaTarget) target, callback);
+      }
+    }
+  }
+
+  private void handleWebhook(WebhookTarget target, UnaryOperator<String> callback) {
+    Auth auth = target.getAuth();
+
+    if (auth == null) {
+      return;
     }
 
-    public void decrypt( EventHook eventHook )
-    {
-        handleSecrets( eventHook, encryptor::decrypt );
-    }
+    switch (auth.getType()) {
+      case HttpBasicAuth.TYPE:
+        HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
 
-    private void handleSecrets( EventHook eventHook, UnaryOperator<String> callback )
-    {
-        for ( Target target : eventHook.getTargets() )
-        {
-            if ( target.getType().equals( WebhookTarget.TYPE ) )
-            {
-                handleWebhook( (WebhookTarget) target, callback );
-            }
-            else if ( target.getType().equals( JmsTarget.TYPE ) )
-            {
-                handleJms( (JmsTarget) target, callback );
-            }
-            else if ( target.getType().equals( KafkaTarget.TYPE ) )
-            {
-                handleKafka( (KafkaTarget) target, callback );
-            }
+        if (StringUtils.hasText(httpBasicAuth.getPassword())) {
+          httpBasicAuth.setPassword(callback.apply(httpBasicAuth.getPassword()));
         }
-    }
+        break;
+      case ApiTokenAuth.TYPE:
+        ApiTokenAuth apiTokenAuth = (ApiTokenAuth) auth;
 
-    private void handleWebhook( WebhookTarget target, UnaryOperator<String> callback )
-    {
-        Auth auth = target.getAuth();
-
-        if ( auth == null )
-        {
-            return;
+        if (StringUtils.hasText(apiTokenAuth.getToken())) {
+          apiTokenAuth.setToken(callback.apply(apiTokenAuth.getToken()));
         }
-
-        switch ( auth.getType() )
-        {
-        case HttpBasicAuth.TYPE:
-            HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
-
-            if ( StringUtils.hasText( httpBasicAuth.getPassword() ) )
-            {
-                httpBasicAuth.setPassword( callback.apply( httpBasicAuth.getPassword() ) );
-            }
-            break;
-        case ApiTokenAuth.TYPE:
-            ApiTokenAuth apiTokenAuth = (ApiTokenAuth) auth;
-
-            if ( StringUtils.hasText( apiTokenAuth.getToken() ) )
-            {
-                apiTokenAuth.setToken( callback.apply( apiTokenAuth.getToken() ) );
-            }
-            break;
-        default:
-            break;
-        }
+        break;
+      default:
+        break;
     }
+  }
 
-    private void handleJms( JmsTarget target, UnaryOperator<String> callback )
-    {
-        if ( StringUtils.hasText( target.getPassword() ) )
-        {
-            target.setPassword( callback.apply( target.getPassword() ) );
-        }
+  private void handleJms(JmsTarget target, UnaryOperator<String> callback) {
+    if (StringUtils.hasText(target.getPassword())) {
+      target.setPassword(callback.apply(target.getPassword()));
     }
+  }
 
-    private void handleKafka( KafkaTarget target, UnaryOperator<String> callback )
-    {
-        if ( StringUtils.hasText( target.getPassword() ) )
-        {
-            target.setPassword( callback.apply( target.getPassword() ) );
-        }
+  private void handleKafka(KafkaTarget target, UnaryOperator<String> callback) {
+    if (StringUtils.hasText(target.getPassword())) {
+      target.setPassword(callback.apply(target.getPassword()));
     }
+  }
 }

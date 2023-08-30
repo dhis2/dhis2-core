@@ -28,9 +28,7 @@
 package org.hisp.dhis.cacheinvalidation;
 
 import java.io.Serializable;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -43,65 +41,55 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
-public class BaseCacheEvictionService
-{
-    @Autowired
-    protected SessionFactory sessionFactory;
+public class BaseCacheEvictionService {
+  @Autowired protected SessionFactory sessionFactory;
 
-    @Autowired
-    protected PaginationCacheManager paginationCacheManager;
+  @Autowired protected PaginationCacheManager paginationCacheManager;
 
-    @Autowired
-    protected QueryCacheManager queryCacheManager;
+  @Autowired protected QueryCacheManager queryCacheManager;
 
-    @Autowired
-    protected IdentifiableObjectManager idObjectManager;
+  @Autowired protected IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    protected TrackedEntityAttributeService trackedEntityAttributeService;
+  @Autowired protected TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Autowired
-    protected TrackedEntityService trackedEntityService;
+  @Autowired protected TrackedEntityService trackedEntityService;
 
-    @Autowired
-    protected PeriodService periodService;
+  @Autowired protected PeriodService periodService;
 
-    public BaseCacheEvictionService( SessionFactory sessionFactory, PaginationCacheManager paginationCacheManager,
-        QueryCacheManager queryCacheManager, IdentifiableObjectManager idObjectManager,
-        TrackedEntityAttributeService trackedEntityAttributeService, TrackedEntityService trackedEntityService,
-        PeriodService periodService )
-    {
+  public BaseCacheEvictionService(
+      SessionFactory sessionFactory,
+      PaginationCacheManager paginationCacheManager,
+      QueryCacheManager queryCacheManager,
+      IdentifiableObjectManager idObjectManager,
+      TrackedEntityAttributeService trackedEntityAttributeService,
+      TrackedEntityService trackedEntityService,
+      PeriodService periodService) {
 
-        this.sessionFactory = sessionFactory;
-        this.paginationCacheManager = paginationCacheManager;
-        this.queryCacheManager = queryCacheManager;
-        this.idObjectManager = idObjectManager;
-        this.trackedEntityAttributeService = trackedEntityAttributeService;
-        this.trackedEntityService = trackedEntityService;
-        this.periodService = periodService;
+    this.sessionFactory = sessionFactory;
+    this.paginationCacheManager = paginationCacheManager;
+    this.queryCacheManager = queryCacheManager;
+    this.idObjectManager = idObjectManager;
+    this.trackedEntityAttributeService = trackedEntityAttributeService;
+    this.trackedEntityService = trackedEntityService;
+    this.periodService = periodService;
+  }
 
+  protected void tryFetchNewEntity(Serializable entityId, Class<?> entityClass) {
+    try (Session session = sessionFactory.openSession()) {
+      session.get(entityClass, entityId);
+    } catch (Exception e) {
+      log.warn(
+          String.format(
+              "Fetching new entity failed, failed to execute get query! entityId=%s, entityClass=%s",
+              entityId, entityClass),
+          e);
+      if (e instanceof HibernateException) {
+        log.debug("tryFetchNewEntity caused a Hibernate exception: " + e.getMessage());
+        // Ignore HibernateExceptions, as they are expected.
+        return;
+      }
+
+      throw e;
     }
-
-    protected void tryFetchNewEntity( Serializable entityId, Class<?> entityClass )
-    {
-        try ( Session session = sessionFactory.openSession() )
-        {
-            session.get( entityClass, entityId );
-        }
-        catch ( Exception e )
-        {
-            log.warn(
-                String.format( "Fetching new entity failed, failed to execute get query! entityId=%s, entityClass=%s",
-                    entityId, entityClass ),
-                e );
-            if ( e instanceof HibernateException )
-            {
-                log.debug( "tryFetchNewEntity caused a Hibernate exception: " + e.getMessage() );
-                // Ignore HibernateExceptions, as they are expected.
-                return;
-            }
-
-            throw e;
-        }
-    }
+  }
 }

@@ -57,124 +57,113 @@ import org.mockito.quality.Strictness;
 /**
  * @author Enrico Colasante
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class GeoValidatorTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class GeoValidatorTest {
 
-    private static final String PROGRAM_STAGE = "ProgramStage";
+  private static final String PROGRAM_STAGE = "ProgramStage";
 
-    private GeoValidator validator;
+  private GeoValidator validator;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    public void setUp()
-    {
-        validator = new GeoValidator();
+  @BeforeEach
+  public void setUp() {
+    validator = new GeoValidator();
 
-        bundle = TrackerBundle.builder()
-            .preheat( preheat )
-            .build();
+    bundle = TrackerBundle.builder().preheat(preheat).build();
 
-        ProgramStage programStage = new ProgramStage();
-        programStage.setFeatureType( FeatureType.POINT );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) ) )
-            .thenReturn( programStage );
+    ProgramStage programStage = new ProgramStage();
+    programStage.setFeatureType(FeatureType.POINT);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE))).thenReturn(programStage);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
-    }
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
+  }
 
-    @Test
-    void testGeometryIsValid()
-    {
-        // given
-        Event event = new Event();
-        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
-        event.setGeometry( new GeometryFactory().createPoint() );
+  @Test
+  void testGeometryIsValid() {
+    // given
+    Event event = new Event();
+    event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
+    event.setGeometry(new GeometryFactory().createPoint());
 
-        // when
-        validator.validate( reporter, bundle, event );
+    // when
+    validator.validate(reporter, bundle, event);
 
-        // then
-        assertIsEmpty( reporter.getErrors() );
-    }
+    // then
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void testEventWithNoProgramStageThrowsAnError()
-    {
-        // given
-        Event event = new Event();
-        event.setProgramStage( null );
-        event.setGeometry( new GeometryFactory().createPoint() );
+  @Test
+  void testEventWithNoProgramStageThrowsAnError() {
+    // given
+    Event event = new Event();
+    event.setProgramStage(null);
+    event.setGeometry(new GeometryFactory().createPoint());
 
-        when( preheat.getProgramStage( (MetadataIdentifier) null ) ).thenReturn( null );
+    when(preheat.getProgramStage((MetadataIdentifier) null)).thenReturn(null);
 
-        // when
-        assertThrows( NullPointerException.class, () -> validator.validate( reporter, bundle, event ) );
-    }
+    // when
+    assertThrows(NullPointerException.class, () -> validator.validate(reporter, bundle, event));
+  }
 
-    @Test
-    void testProgramStageWithNullFeatureTypeFailsGeometryValidation()
-    {
-        // given
-        Event event = new Event();
-        event.setEvent( CodeGenerator.generateUid() );
-        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
-        event.setGeometry( new GeometryFactory().createPoint() );
+  @Test
+  void testProgramStageWithNullFeatureTypeFailsGeometryValidation() {
+    // given
+    Event event = new Event();
+    event.setEvent(CodeGenerator.generateUid());
+    event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
+    event.setGeometry(new GeometryFactory().createPoint());
 
-        // when
-        when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( new ProgramStage() );
+    // when
+    when(preheat.getProgramStage(event.getProgramStage())).thenReturn(new ProgramStage());
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        // then
-        assertHasError( reporter, event, E1074 );
-    }
+    // then
+    assertHasError(reporter, event, E1074);
+  }
 
-    @Test
-    void testProgramStageWithFeatureTypeNoneFailsGeometryValidation()
-    {
-        // given
-        Event event = new Event();
-        event.setEvent( CodeGenerator.generateUid() );
-        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
-        event.setGeometry( new GeometryFactory().createPoint() );
+  @Test
+  void testProgramStageWithFeatureTypeNoneFailsGeometryValidation() {
+    // given
+    Event event = new Event();
+    event.setEvent(CodeGenerator.generateUid());
+    event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
+    event.setGeometry(new GeometryFactory().createPoint());
 
-        // when
-        ProgramStage programStage = new ProgramStage();
-        programStage.setFeatureType( NONE );
-        when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
+    // when
+    ProgramStage programStage = new ProgramStage();
+    programStage.setFeatureType(NONE);
+    when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        // then
-        assertHasError( reporter, event, E1012 );
-    }
+    // then
+    assertHasError(reporter, event, E1012);
+  }
 
-    @Test
-    void testProgramStageWithFeatureTypeDifferentFromGeometryFails()
-    {
-        // given
-        Event event = new Event();
-        event.setEvent( CodeGenerator.generateUid() );
-        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
-        event.setGeometry( new GeometryFactory().createPoint() );
+  @Test
+  void testProgramStageWithFeatureTypeDifferentFromGeometryFails() {
+    // given
+    Event event = new Event();
+    event.setEvent(CodeGenerator.generateUid());
+    event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
+    event.setGeometry(new GeometryFactory().createPoint());
 
-        // when
-        ProgramStage programStage = new ProgramStage();
-        programStage.setFeatureType( MULTI_POLYGON );
-        when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
+    // when
+    ProgramStage programStage = new ProgramStage();
+    programStage.setFeatureType(MULTI_POLYGON);
+    when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        // then
-        assertHasError( reporter, event, E1012 );
-    }
+    // then
+    assertHasError(reporter, event, E1012);
+  }
 }

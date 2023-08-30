@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,18 +29,20 @@ package org.hisp.dhis.webapi.controller.dimension;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.Nonnull;
-
+import javax.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.dimension.AnalyticsDimensionService;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionService;
@@ -52,9 +54,9 @@ import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeUtils;
@@ -64,10 +66,15 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.utils.PaginationUtils;
+import org.hisp.dhis.webapi.utils.PaginationUtils.PagedEntities;
+import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.webapi.webdomain.WebRequestData;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -76,190 +83,254 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags( "metadata" )
+@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping( value = DimensionController.RESOURCE_PATH )
-public class DimensionController
-    extends AbstractCrudController<DimensionalObject>
-{
-    public static final String RESOURCE_PATH = "/dimensions";
+@RequestMapping(value = DimensionController.RESOURCE_PATH)
+@RequiredArgsConstructor
+public class DimensionController extends AbstractCrudController<DimensionalObject> {
+  public static final String RESOURCE_PATH = "/dimensions";
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    @Autowired
-    private DimensionService dimensionService;
+  private final DimensionService dimensionService;
 
-    @Autowired
-    private AnalyticsDimensionService analyticsDimensionService;
+  private final AnalyticsDimensionService analyticsDimensionService;
 
-    @Autowired
-    private IdentifiableObjectManager identifiableObjectManager;
+  private final IdentifiableObjectManager identifiableObjectManager;
 
-    @Autowired
-    private DimensionItemPageHandler dimensionItemPageHandler;
+  private final DimensionItemPageHandler dimensionItemPageHandler;
 
-    // -------------------------------------------------------------------------
-    // Controller
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Controller
+  // -------------------------------------------------------------------------
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    protected @ResponseBody List<DimensionalObject> getEntityList( WebMetadata metadata, WebOptions options,
-        List<String> filters, List<Order> orders )
-        throws QueryParserException
-    {
-        List<DimensionalObject> dimensionalObjects;
-        Query query = queryService.getQueryFromUrl( DimensionalObject.class, filters, orders,
-            getPaginationData( options ), options.getRootJunction() );
-        query.setDefaultOrder();
-        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
-        query.setObjects( dimensionService.getAllDimensions() );
-        dimensionalObjects = (List<DimensionalObject>) queryService.query( query );
+  @Nonnull
+  @Override
+  protected DimensionalObject getEntity(String uid, WebOptions options) throws NotFoundException {
+    if (isNotBlank(uid) && isValidUid(uid)) {
+      return dimensionService.getDimensionalObjectCopy(uid, true);
+    }
+    throw new NotFoundException(format("No dimensional object with id `%s` exists", uid));
+  }
 
-        return dimensionalObjects;
+  /**
+   * This method is overridden as {@link DimensionalObject} requires different retrieval and paging
+   * considerations compared to the base generic method. There are many different types of {@link
+   * DimensionalObject} and there is no specific {@link InternalHibernateGenericStore} to retrieve
+   * them from.
+   *
+   * @param rpParameters request parameters
+   * @param orderParams order parameters
+   * @param response response
+   * @param currentUser current user
+   * @return response with Collection of {@link DimensionalObject}
+   */
+  @Override
+  @GetMapping
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<DimensionalObject>> getObjectList(
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      @CurrentUser User currentUser) {
+
+    WebRequestData requestData = applyRequestSetup(rpParameters, orderParams);
+    PagedEntities<DimensionalObject> pagedEntities = getPagedEntities(requestData);
+    linkService.generatePagerLinks(pagedEntities.pager(), RESOURCE_PATH);
+
+    return ResponseEntity.ok(
+        new StreamingJsonRoot<>(
+            pagedEntities.pager(),
+            getSchema().getCollectionName(),
+            org.hisp.dhis.fieldfiltering.FieldFilterParams.of(
+                pagedEntities.entities(), requestData.fields())));
+  }
+
+  @Override
+  @GetMapping(produces = {"text/csv", "application/text"})
+  public ResponseEntity<String> getObjectListCsv(
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      @CurrentUser User currentUser,
+      @RequestParam(defaultValue = ",") char separator,
+      @RequestParam(defaultValue = ";") String arraySeparator,
+      @RequestParam(defaultValue = "false") boolean skipHeader,
+      HttpServletResponse response)
+      throws IOException {
+
+    WebRequestData requestData = applyRequestSetup(rpParameters, orderParams);
+    PagedEntities<DimensionalObject> pagedEntities = getPagedEntities(requestData);
+    String csv =
+        applyCsvSteps(
+            requestData.fields(), pagedEntities.entities(), separator, arraySeparator, skipHeader);
+
+    return ResponseEntity.ok(csv);
+  }
+
+  @SuppressWarnings("unchecked")
+  @GetMapping("/{uid}/items")
+  public @ResponseBody RootNode getItems(
+      @PathVariable String uid,
+      @RequestParam Map<String, String> parameters,
+      OrderParams orderParams)
+      throws QueryParserException {
+    List<String> fields = newArrayList(contextService.getParameterValues("fields"));
+    List<String> filters = newArrayList(contextService.getParameterValues("filter"));
+    List<Order> orders = orderParams.getOrders(getSchema(DimensionalItemObject.class));
+    WebOptions options = new WebOptions(parameters);
+
+    if (fields.isEmpty()) {
+      fields.addAll(Preset.defaultPreset().getFields());
     }
 
-    @Nonnull
-    @Override
-    protected DimensionalObject getEntity( String uid, WebOptions options )
-        throws NotFoundException
-    {
-        if ( isNotBlank( uid ) && isValidUid( uid ) )
-        {
-            return dimensionService.getDimensionalObjectCopy( uid, true );
-        }
-        throw new NotFoundException( format( "No dimensional object with id `%s` exists", uid ) );
+    // This is the base list used in this flow. It contains only items
+    // allowed to the current user.
+    List<DimensionalItemObject> readableItems = dimensionService.getCanReadDimensionItems(uid);
+
+    // This is needed for two reasons:
+    // 1) We are doing in-memory paging;
+    // 2) We have to count all items respecting the filtering.
+    Query queryForCount =
+        queryService.getQueryFromUrl(DimensionalItemObject.class, filters, orders);
+    queryForCount.setObjects(readableItems);
+
+    List<DimensionalItemObject> forCountItems =
+        (List<DimensionalItemObject>) queryService.query(queryForCount);
+
+    Query query =
+        queryService.getQueryFromUrl(
+            DimensionalItemObject.class, filters, orders, getPaginationData(options));
+    query.setObjects(readableItems);
+    query.setDefaultOrder();
+
+    List<DimensionalItemObject> paginatedItems =
+        (List<DimensionalItemObject>) queryService.query(query);
+
+    RootNode rootNode = NodeUtils.createMetadata();
+
+    CollectionNode collectionNode =
+        rootNode.addChild(
+            oldFieldFilterService.toCollectionNode(
+                DimensionalItemObject.class, new FieldFilterParams(paginatedItems, fields)));
+    collectionNode.setName("items");
+
+    for (Node node : collectionNode.getChildren()) {
+      ((AbstractNode) node).setName("item");
     }
 
-    @SuppressWarnings( "unchecked" )
-    @GetMapping( "/{uid}/items" )
-    public @ResponseBody RootNode getItems( @PathVariable String uid, @RequestParam Map<String, String> parameters,
-        OrderParams orderParams )
-        throws QueryParserException
-    {
-        List<String> fields = newArrayList( contextService.getParameterValues( "fields" ) );
-        List<String> filters = newArrayList( contextService.getParameterValues( "filter" ) );
-        List<Order> orders = orderParams.getOrders( getSchema( DimensionalItemObject.class ) );
-        WebOptions options = new WebOptions( parameters );
+    // Adding pagination elements to the root node.
+    final int totalOfItems = isNotEmpty(forCountItems) ? forCountItems.size() : 0;
+    dimensionItemPageHandler.addPaginationToNodeIfEnabled(rootNode, options, uid, totalOfItems);
 
-        if ( fields.isEmpty() )
-        {
-            fields.addAll( Preset.defaultPreset().getFields() );
-        }
+    return rootNode;
+  }
 
-        // This is the base list used in this flow. It contains only items
-        // allowed to the current user.
-        List<DimensionalItemObject> readableItems = dimensionService.getCanReadDimensionItems( uid );
+  @GetMapping("/constraints")
+  public @ResponseBody ResponseEntity<JsonRoot> getDimensionConstraints(
+      @RequestParam(value = "links", defaultValue = "true", required = false) Boolean links,
+      @RequestParam(defaultValue = "*") List<FieldPath> fields) {
+    List<DimensionalObject> dimensionConstraints = dimensionService.getDimensionConstraints();
 
-        // This is needed for two reasons:
-        // 1) We are doing in-memory paging;
-        // 2) We have to count all items respecting the filtering.
-        Query queryForCount = queryService.getQueryFromUrl( DimensionalItemObject.class, filters, orders );
-        queryForCount.setObjects( readableItems );
-
-        List<DimensionalItemObject> forCountItems = (List<DimensionalItemObject>) queryService
-            .query( queryForCount );
-
-        Query query = queryService.getQueryFromUrl( DimensionalItemObject.class, filters, orders,
-            getPaginationData( options ) );
-        query.setObjects( readableItems );
-        query.setDefaultOrder();
-
-        List<DimensionalItemObject> paginatedItems = (List<DimensionalItemObject>) queryService.query( query );
-
-        RootNode rootNode = NodeUtils.createMetadata();
-
-        CollectionNode collectionNode = rootNode
-            .addChild( oldFieldFilterService.toCollectionNode( DimensionalItemObject.class,
-                new FieldFilterParams( paginatedItems, fields ) ) );
-        collectionNode.setName( "items" );
-
-        for ( Node node : collectionNode.getChildren() )
-        {
-            ((AbstractNode) node).setName( "item" );
-        }
-
-        // Adding pagination elements to the root node.
-        final int totalOfItems = isNotEmpty( forCountItems ) ? forCountItems.size() : 0;
-        dimensionItemPageHandler.addPaginationToNodeIfEnabled( rootNode, options, uid, totalOfItems );
-
-        return rootNode;
+    if (links) {
+      linkService.generateLinks(dimensionConstraints, false);
     }
 
-    @GetMapping( "/constraints" )
-    public @ResponseBody ResponseEntity<JsonRoot> getDimensionConstraints(
-        @RequestParam( value = "links", defaultValue = "true", required = false ) Boolean links,
-        @RequestParam( defaultValue = "*" ) List<FieldPath> fields )
-    {
-        List<DimensionalObject> dimensionConstraints = dimensionService.getDimensionConstraints();
+    List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(dimensionConstraints, fields);
 
-        if ( links )
-        {
-            linkService.generateLinks( dimensionConstraints, false );
-        }
+    return ResponseEntity.ok(new JsonRoot("dimensions", objectNodes));
+  }
 
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( dimensionConstraints, fields );
+  @GetMapping("/recommendations")
+  public ResponseEntity<JsonRoot> getRecommendedDimensions(
+      @RequestParam Set<String> dimension,
+      @RequestParam(defaultValue = "id,displayName") List<FieldPath> fields) {
+    DataQueryRequest request = DataQueryRequest.newBuilder().dimension(dimension).build();
 
-        return ResponseEntity.ok( new JsonRoot( "dimensions", objectNodes ) );
+    List<DimensionalObject> dimensions =
+        analyticsDimensionService.getRecommendedDimensions(request);
+    List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(dimensions, fields);
+
+    return ResponseEntity.ok(new JsonRoot("dimensions", objectNodes));
+  }
+
+  @GetMapping("/dataSet/{uid}")
+  public ResponseEntity<JsonRoot> getDimensionsForDataSet(
+      @PathVariable String uid,
+      @RequestParam(value = "links", defaultValue = "true", required = false) boolean links,
+      @RequestParam(defaultValue = "*") List<FieldPath> fields)
+      throws NotFoundException {
+    WebMetadata metadata = new WebMetadata();
+
+    DataSet dataSet = identifiableObjectManager.get(DataSet.class, uid);
+
+    if (dataSet == null) {
+      throw new NotFoundException(DataSet.class, uid);
     }
 
-    @GetMapping( "/recommendations" )
-    public ResponseEntity<JsonRoot> getRecommendedDimensions(
-        @RequestParam Set<String> dimension,
-        @RequestParam( defaultValue = "id,displayName" ) List<FieldPath> fields )
-    {
-        DataQueryRequest request = DataQueryRequest.newBuilder().dimension( dimension ).build();
+    List<DimensionalObject> dimensions = new ArrayList<>();
+    dimensions.addAll(
+        dataSet.getCategoryCombo().getCategories().stream().filter(ca -> !ca.isDefault()).toList());
+    dimensions.addAll(dataSet.getCategoryOptionGroupSets());
 
-        List<DimensionalObject> dimensions = analyticsDimensionService.getRecommendedDimensions( request );
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( dimensions, fields );
+    dimensions = dimensionService.getCanReadObjects(dimensions);
 
-        return ResponseEntity.ok( new JsonRoot( "dimensions", objectNodes ) );
+    ArrayList<DimensionalObject> copies = new ArrayList<>();
+    for (DimensionalObject dim : dimensions) {
+      copies.add(dimensionService.getDimensionalObjectCopy(dim.getUid(), true));
+    }
+    metadata.setDimensions(copies);
+
+    if (links) {
+      linkService.generateLinks(metadata, false);
     }
 
-    @GetMapping( "/dataSet/{uid}" )
-    public ResponseEntity<JsonRoot> getDimensionsForDataSet( @PathVariable String uid,
-        @RequestParam( value = "links", defaultValue = "true", required = false ) Boolean links,
-        @RequestParam( defaultValue = "*" ) List<FieldPath> fields )
-        throws NotFoundException
-    {
-        WebMetadata metadata = new WebMetadata();
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(metadata.getDimensions(), fields);
 
-        DataSet dataSet = identifiableObjectManager.get( DataSet.class, uid );
+    return ResponseEntity.ok(new JsonRoot("dimensions", objectNodes));
+  }
 
-        if ( dataSet == null )
-        {
-            throw new NotFoundException( DataSet.class, uid );
-        }
+  private PagedEntities<DimensionalObject> getPagedEntities(WebRequestData requestData) {
+    List<DimensionalObject> entities = dimensionService.getAllDimensions();
+    WebMetadata metadata = new WebMetadata();
 
-        List<DimensionalObject> dimensions = new ArrayList<>();
-        dimensions.addAll( dataSet.getCategoryCombo().getCategories().stream()
-            .filter( ca -> !ca.isDefault() )
-            .collect( toList() ) );
-        dimensions.addAll( dataSet.getCategoryOptionGroupSets() );
+    Query filteredQuery =
+        queryService.getQueryFromUrl(
+            DimensionalObject.class, requestData.filters(), requestData.orders());
+    filteredQuery.setObjects(entities);
 
-        dimensions = dimensionService.getCanReadObjects( dimensions );
+    List<DimensionalObject> filteredEntities =
+        (List<DimensionalObject>) queryService.query(filteredQuery);
+    return PaginationUtils.addPagingIfEnabled(metadata, requestData.options(), filteredEntities);
+  }
 
-        ArrayList<DimensionalObject> copies = new ArrayList<>();
-        for ( DimensionalObject dim : dimensions )
-        {
-            copies.add( dimensionService.getDimensionalObjectCopy( dim.getUid(), true ) );
-        }
-        metadata.setDimensions( copies );
+  /**
+   * This method performs some generic steps. It can be moved into the {@link
+   * org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController} so other Controllers can use it
+   * to avoid duplication.
+   *
+   * @param rpParameters request parameters
+   * @return {@link WebRequestData} record purely for data packaging purposes, containing {@link
+   *     WebOptions}, {@link List} of fields and {@link List} of filters
+   */
+  protected WebRequestData applyRequestSetup(
+      Map<String, String> rpParameters, OrderParams orderParams) {
 
-        if ( links )
-        {
-            linkService.generateLinks( metadata, false );
-        }
+    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+    List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
+    List<Order> orders = orderParams.getOrders(getSchema(DimensionalObject.class));
 
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( metadata.getDimensions(), fields );
-
-        return ResponseEntity.ok( new JsonRoot( "dimensions", objectNodes ) );
+    if (fields.isEmpty()) {
+      fields.addAll(Preset.defaultPreset().getFields());
     }
+
+    WebOptions options = new WebOptions(rpParameters);
+    forceFiltering(options, filters);
+
+    return new WebRequestData(options, fields, filters, orders);
+  }
 }

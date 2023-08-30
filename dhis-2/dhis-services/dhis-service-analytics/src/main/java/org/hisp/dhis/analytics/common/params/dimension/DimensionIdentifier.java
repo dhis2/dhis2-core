@@ -36,11 +36,9 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifie
 
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.With;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.IdentifiableKey;
 import org.hisp.dhis.common.UidObject;
@@ -48,122 +46,105 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
 /**
- * Class that identifies a dimension. A dimension can be composed by up to three
- * elements: Program, Program Stage and a Dimension (the dimension uid).
+ * Class that identifies a dimension. A dimension can be composed by up to three elements: Program,
+ * Program Stage and a Dimension (the dimension uid).
  */
 @Data
-@AllArgsConstructor( staticName = "of" )
-public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
-{
-    public static final DimensionIdentifier<DimensionParam> EMPTY = DimensionIdentifier.of( null, null, null );
+@AllArgsConstructor(staticName = "of")
+public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey {
+  public static final DimensionIdentifier<DimensionParam> EMPTY =
+      DimensionIdentifier.of(null, null, null);
 
-    private final ElementWithOffset<Program> program;
+  private final ElementWithOffset<Program> program;
 
-    private final ElementWithOffset<ProgramStage> programStage;
+  private final ElementWithOffset<ProgramStage> programStage;
 
-    private final D dimension;
+  private final D dimension;
 
-    @With
-    private final String groupId;
+  @With private final String groupId;
 
-    /**
-     * Creates a dimension identifier for a TEI dimension with empty groupId.
-     *
-     * @param program the {@link ElementWithOffset<Program>}.
-     * @param programStage the {@link ElementWithOffset<ProgramStage>}.
-     * @param ofObject the dimension.
-     * @return the dimension identifier.
-     */
-    public static <D extends UidObject> DimensionIdentifier<D> of( ElementWithOffset<Program> program,
-        ElementWithOffset<ProgramStage> programStage, D ofObject )
-    {
-        return DimensionIdentifier.of( program, programStage, ofObject, null );
+  /**
+   * Creates a dimension identifier for a TEI dimension with empty groupId.
+   *
+   * @param program the {@link ElementWithOffset<Program>}.
+   * @param programStage the {@link ElementWithOffset<ProgramStage>}.
+   * @param ofObject the dimension.
+   * @return the dimension identifier.
+   */
+  public static <D extends UidObject> DimensionIdentifier<D> of(
+      ElementWithOffset<Program> program,
+      ElementWithOffset<ProgramStage> programStage,
+      D ofObject) {
+    return DimensionIdentifier.of(program, programStage, ofObject, null);
+  }
+
+  public String getPrefix() {
+    if (isEnrollmentDimension()) {
+      return getProgram().toString();
+    }
+    if (isEventDimension()) {
+      return getProgram().toString() + DIMENSION_SEPARATOR + getProgramStage().toString();
+    }
+    return StringUtils.EMPTY;
+  }
+
+  public DimensionIdentifierType getDimensionIdentifierType() {
+    if (isEventDimension()) {
+      return EVENT;
+    }
+    if (isEnrollmentDimension()) {
+      return ENROLLMENT;
+    }
+    return TEI;
+  }
+
+  public boolean isEmpty() {
+    return isBlank(getKey());
+  }
+
+  public boolean isEnrollmentDimension() {
+    return hasProgram() && !hasProgramStage();
+  }
+
+  public boolean isEventDimension() {
+    return hasProgram() && hasProgramStage();
+  }
+
+  public boolean hasProgram() {
+    return program != null && program.isPresent();
+  }
+
+  public boolean hasProgramStage() {
+    return programStage != null && programStage.isPresent();
+  }
+
+  @Override
+  public String toString() {
+    return DimensionIdentifierHelper.asText(program, programStage, dimension);
+  }
+
+  public enum DimensionIdentifierType {
+    TEI,
+    ENROLLMENT,
+    EVENT
+  }
+
+  @Override
+  public String getKey() {
+    List<String> keys = new ArrayList<>();
+
+    if (program != null && program.isPresent()) {
+      keys.add(program.getElement().getUid());
     }
 
-    public String getPrefix()
-    {
-        if ( isEnrollmentDimension() )
-        {
-            return getProgram().toString();
-        }
-        if ( isEventDimension() )
-        {
-            return getProgram().toString() + DIMENSION_SEPARATOR + getProgramStage().toString();
-        }
-        return StringUtils.EMPTY;
+    if (programStage != null && programStage.isPresent()) {
+      keys.add(programStage.getElement().getUid());
     }
 
-    public DimensionIdentifierType getDimensionIdentifierType()
-    {
-        if ( isEventDimension() )
-        {
-            return EVENT;
-        }
-        if ( isEnrollmentDimension() )
-        {
-            return ENROLLMENT;
-        }
-        return TEI;
+    if (dimension != null) {
+      keys.add(dimension.getUid());
     }
 
-    public boolean isEmpty()
-    {
-        return isBlank( getKey() );
-    }
-
-    public boolean isEnrollmentDimension()
-    {
-        return hasProgram() && !hasProgramStage();
-    }
-
-    public boolean isEventDimension()
-    {
-        return hasProgram() && hasProgramStage();
-    }
-
-    public boolean hasProgram()
-    {
-        return program != null && program.isPresent();
-    }
-
-    public boolean hasProgramStage()
-    {
-        return programStage != null && programStage.isPresent();
-    }
-
-    @Override
-    public String toString()
-    {
-        return DimensionIdentifierHelper.asText( program, programStage, dimension );
-    }
-
-    public enum DimensionIdentifierType
-    {
-        TEI,
-        ENROLLMENT,
-        EVENT
-    }
-
-    @Override
-    public String getKey()
-    {
-        List<String> keys = new ArrayList<>();
-
-        if ( program != null && program.isPresent() )
-        {
-            keys.add( program.getElement().getUid() );
-        }
-
-        if ( programStage != null && programStage.isPresent() )
-        {
-            keys.add( programStage.getElement().getUid() );
-        }
-
-        if ( dimension != null )
-        {
-            keys.add( dimension.getUid() );
-        }
-
-        return keys.stream().collect( joining( "." ) );
-    }
+    return keys.stream().collect(joining("."));
+  }
 }

@@ -28,9 +28,7 @@
 package org.hisp.dhis.security.oidc;
 
 import java.util.Map;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -50,73 +48,62 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class DhisOidcUserService
-    extends OidcUserService
-{
-    @Autowired
-    public UserService userService;
+public class DhisOidcUserService extends OidcUserService {
+  @Autowired public UserService userService;
 
-    @Autowired
-    private DhisOidcProviderRepository clientRegistrationRepository;
+  @Autowired private DhisOidcProviderRepository clientRegistrationRepository;
 
-    @Override
-    public OidcUser loadUser( OidcUserRequest userRequest )
-        throws OAuth2AuthenticationException
-    {
-        OidcUser oidcUser = super.loadUser( userRequest );
+  @Override
+  public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
+    OidcUser oidcUser = super.loadUser(userRequest);
 
-        ClientRegistration clientRegistration = userRequest.getClientRegistration();
+    ClientRegistration clientRegistration = userRequest.getClientRegistration();
 
-        DhisOidcClientRegistration oidcClientRegistration = clientRegistrationRepository
-            .getDhisOidcClientRegistration( clientRegistration.getRegistrationId() );
+    DhisOidcClientRegistration oidcClientRegistration =
+        clientRegistrationRepository.getDhisOidcClientRegistration(
+            clientRegistration.getRegistrationId());
 
-        String mappingClaimKey = oidcClientRegistration.getMappingClaimKey();
-        Map<String, Object> attributes = oidcUser.getAttributes();
-        Object claimValue = attributes.get( mappingClaimKey );
-        OidcUserInfo userInfo = oidcUser.getUserInfo();
-        if ( claimValue == null && userInfo != null )
-        {
-            claimValue = userInfo.getClaim( mappingClaimKey );
-        }
-
-        if ( log.isDebugEnabled() )
-        {
-            log.debug( String
-                .format( "Trying to look up DHIS2 user with OidcUser mapping mappingClaimKey='%s', claim value='%s'",
-                    mappingClaimKey, claimValue ) );
-        }
-
-        if ( claimValue != null )
-        {
-            User user = userService.getUserByOpenId( (String) claimValue );
-            if ( user != null && user.isExternalAuth() )
-            {
-                if ( user.isDisabled() || !user.isAccountNonExpired() )
-                {
-                    throw new OAuth2AuthenticationException( new OAuth2Error( "user_disabled" ),
-                        "User is disabled" );
-                }
-
-                CurrentUserDetails userDetails = userService.createUserDetails( user );
-                return new DhisOidcUser( userDetails, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
-            }
-        }
-
-        String errorMessage = String
-            .format(
-                "Failed to look up DHIS2 user with OidcUser mapping mapping; mappingClaimKey='%s', claimValue='%s'",
-                mappingClaimKey, claimValue );
-
-        if ( log.isDebugEnabled() )
-        {
-            log.debug( errorMessage );
-        }
-
-        OAuth2Error oauth2Error = new OAuth2Error(
-            "could_not_map_oidc_user_to_dhis2_user",
-            errorMessage,
-            null );
-
-        throw new OAuth2AuthenticationException( oauth2Error, oauth2Error.toString() );
+    String mappingClaimKey = oidcClientRegistration.getMappingClaimKey();
+    Map<String, Object> attributes = oidcUser.getAttributes();
+    Object claimValue = attributes.get(mappingClaimKey);
+    OidcUserInfo userInfo = oidcUser.getUserInfo();
+    if (claimValue == null && userInfo != null) {
+      claimValue = userInfo.getClaim(mappingClaimKey);
     }
+
+    if (log.isDebugEnabled()) {
+      log.debug(
+          String.format(
+              "Trying to look up DHIS2 user with OidcUser mapping mappingClaimKey='%s', claim value='%s'",
+              mappingClaimKey, claimValue));
+    }
+
+    if (claimValue != null) {
+      User user = userService.getUserByOpenId((String) claimValue);
+      if (user != null && user.isExternalAuth()) {
+        if (user.isDisabled() || !user.isAccountNonExpired()) {
+          throw new OAuth2AuthenticationException(
+              new OAuth2Error("user_disabled"), "User is disabled");
+        }
+
+        CurrentUserDetails userDetails = userService.createUserDetails(user);
+        return new DhisOidcUser(
+            userDetails, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken());
+      }
+    }
+
+    String errorMessage =
+        String.format(
+            "Failed to look up DHIS2 user with OidcUser mapping mapping; mappingClaimKey='%s', claimValue='%s'",
+            mappingClaimKey, claimValue);
+
+    if (log.isDebugEnabled()) {
+      log.debug(errorMessage);
+    }
+
+    OAuth2Error oauth2Error =
+        new OAuth2Error("could_not_map_oidc_user_to_dhis2_user", errorMessage, null);
+
+    throw new OAuth2AuthenticationException(oauth2Error, oauth2Error.toString());
+  }
 }

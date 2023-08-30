@@ -27,126 +27,112 @@
  */
 package org.hisp.dhis.utils;
 
+import com.google.gson.JsonObject;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.apache.commons.collections4.MapUtils;
 
-import com.google.gson.JsonObject;
+/** Utility methods for creation and update Sharing object. */
+public class SharingUtils {
+  public static JsonObject createSharingObject(String publicAccess) {
+    return createSharingObject(null, publicAccess, Map.of(), Map.of());
+  }
 
-/**
- * Utility methods for creation and update Sharing object.
- */
-public class SharingUtils
-{
-    public static JsonObject createSharingObject( String publicAccess )
-    {
-        return createSharingObject( null, publicAccess, Map.of(), Map.of() );
+  public static JsonObject createSharingObject(
+      String owner,
+      String publicAccess,
+      Map<String, String> users,
+      Map<String, String> userGroups) {
+    JsonObject sharing = new JsonObject();
+
+    if (publicAccess != null) {
+      sharing.addProperty("public", publicAccess);
     }
 
-    public static JsonObject createSharingObject( String owner, String publicAccess, Map<String, String> users,
-        Map<String, String> userGroups )
-    {
-        JsonObject sharing = new JsonObject();
-
-        if ( publicAccess != null )
-        {
-            sharing.addProperty( "public", publicAccess );
-        }
-
-        if ( owner != null )
-        {
-            sharing.addProperty( "owner", owner );
-        }
-
-        sharing.addProperty( "external", false );
-
-        if ( !MapUtils.isEmpty( userGroups ) )
-        {
-            JsonObject userGroupObject = new JsonObject();
-            userGroups.keySet()
-                .forEach( uid -> userGroupObject.add( uid, createAccessObject( uid, userGroups.get( uid ) ) ) );
-            sharing.add( "userGroups", userGroupObject );
-        }
-
-        if ( !MapUtils.isEmpty( users ) )
-        {
-            JsonObject userObject = new JsonObject();
-            users.keySet().forEach( uid -> userObject.add( uid, createAccessObject( uid, users.get( uid ) ) ) );
-            sharing.add( "users", userObject );
-        }
-
-        return sharing;
+    if (owner != null) {
+      sharing.addProperty("owner", owner);
     }
 
-    public static JsonObject addUserGroupAccess( JsonObject sharingObject, String uid, String accessString )
-    {
-        JsonObject userGroupAccess = sharingObject.getAsJsonObject( "userGroups" );
+    sharing.addProperty("external", false);
 
-        if ( userGroupAccess == null )
-        {
-            userGroupAccess = new JsonObject();
-            sharingObject.add( "userGroups", userGroupAccess );
-        }
-
-        userGroupAccess.add( uid, createAccessObject( uid, accessString ) );
-        return sharingObject;
+    if (!MapUtils.isEmpty(userGroups)) {
+      JsonObject userGroupObject = new JsonObject();
+      userGroups
+          .keySet()
+          .forEach(uid -> userGroupObject.add(uid, createAccessObject(uid, userGroups.get(uid))));
+      sharing.add("userGroups", userGroupObject);
     }
 
-    public static JsonObject addUserAccess( JsonObject sharingObject, String uid, String accessString )
-    {
-        JsonObject userAccess = sharingObject.getAsJsonObject( "users" );
-
-        if ( userAccess == null )
-        {
-            sharingObject.add( "users", new JsonObject() );
-            userAccess = sharingObject.getAsJsonObject( "users" );
-        }
-
-        userAccess.add( uid, createAccessObject( uid, accessString ) );
-        return sharingObject;
+    if (!MapUtils.isEmpty(users)) {
+      JsonObject userObject = new JsonObject();
+      users.keySet().forEach(uid -> userObject.add(uid, createAccessObject(uid, users.get(uid))));
+      sharing.add("users", userObject);
     }
 
-    public static JsonObject createAccessObject( String uid, String accessString )
-    {
-        JsonObject access = new JsonObject();
-        access.addProperty( "id", uid );
-        access.addProperty( "access", accessString );
+    return sharing;
+  }
 
-        return access;
+  public static JsonObject addUserGroupAccess(
+      JsonObject sharingObject, String uid, String accessString) {
+    JsonObject userGroupAccess = sharingObject.getAsJsonObject("userGroups");
+
+    if (userGroupAccess == null) {
+      userGroupAccess = new JsonObject();
+      sharingObject.add("userGroups", userGroupAccess);
     }
 
-    public static String getSafe( JsonObject object, String key )
-    {
-        if ( !object.has( "sharing" ) )
-        {
-            return null;
-        }
+    userGroupAccess.add(uid, createAccessObject(uid, accessString));
+    return sharingObject;
+  }
 
-        JsonObject sharingObject = object.getAsJsonObject( "sharing" );
+  public static JsonObject addUserAccess(
+      JsonObject sharingObject, String uid, String accessString) {
+    JsonObject userAccess = sharingObject.getAsJsonObject("users");
 
-        return sharingObject.has( key ) ? sharingObject.get( key ).getAsString() : null;
+    if (userAccess == null) {
+      sharingObject.add("users", new JsonObject());
+      userAccess = sharingObject.getAsJsonObject("users");
     }
 
-    public static Map<String, String> getAccessObjects( JsonObject object, String key )
-    {
-        if ( !object.has( "sharing" ) )
-        {
-            return null;
-        }
+    userAccess.add(uid, createAccessObject(uid, accessString));
+    return sharingObject;
+  }
 
-        JsonObject sharingObject = object.getAsJsonObject( "sharing" );
+  public static JsonObject createAccessObject(String uid, String accessString) {
+    JsonObject access = new JsonObject();
+    access.addProperty("id", uid);
+    access.addProperty("access", accessString);
 
-        if ( !sharingObject.has( key ) )
-        {
-            return null;
-        }
+    return access;
+  }
 
-        JsonObject accessObject = sharingObject.getAsJsonObject( key );
-
-        return accessObject.entrySet().stream()
-            .collect( Collectors.toMap( Map.Entry::getKey,
-                e -> e.getValue().getAsJsonObject().get( "access" ).getAsString() ) );
-
+  public static String getSafe(JsonObject object, String key) {
+    if (!object.has("sharing")) {
+      return null;
     }
+
+    JsonObject sharingObject = object.getAsJsonObject("sharing");
+
+    return sharingObject.has(key) ? sharingObject.get(key).getAsString() : null;
+  }
+
+  public static Map<String, String> getAccessObjects(JsonObject object, String key) {
+    if (!object.has("sharing")) {
+      return null;
+    }
+
+    JsonObject sharingObject = object.getAsJsonObject("sharing");
+
+    if (!sharingObject.has(key)) {
+      return null;
+    }
+
+    JsonObject accessObject = sharingObject.getAsJsonObject(key);
+
+    return accessObject.entrySet().stream()
+        .collect(
+            Collectors.toMap(
+                Map.Entry::getKey,
+                e -> e.getValue().getAsJsonObject().get("access").getAsString()));
+  }
 }

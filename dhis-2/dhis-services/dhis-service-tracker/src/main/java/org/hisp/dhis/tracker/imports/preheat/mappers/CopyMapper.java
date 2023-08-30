@@ -30,11 +30,9 @@ package org.hisp.dhis.tracker.imports.preheat.mappers;
 /**
  * @author Luciano Fiandesio
  */
-public class CopyMapper implements PreheatMapper<Object>
-{
-    @Override
-    public Object map( Object obj )
-    {
-        return obj;
-    }
+public class CopyMapper implements PreheatMapper<Object> {
+  @Override
+  public Object map(Object obj) {
+    return obj;
+  }
 }

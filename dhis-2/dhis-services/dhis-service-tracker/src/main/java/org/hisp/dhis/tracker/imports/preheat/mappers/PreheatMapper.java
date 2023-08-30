@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.imports.preheat.mappers;
 /**
  * @author Luciano Fiandesio
  */
-public interface PreheatMapper<T>
-{
-    T map( T obj );
+public interface PreheatMapper<T> {
+  T map(T obj);
 }

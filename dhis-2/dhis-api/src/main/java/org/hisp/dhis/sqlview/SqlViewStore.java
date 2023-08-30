@@ -33,15 +33,14 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 /**
  * @author Dang Duy Hieu
  */
-public interface SqlViewStore extends IdentifiableObjectStore<SqlView>
-{
-    String ID = SqlViewStore.class.getName();
+public interface SqlViewStore extends IdentifiableObjectStore<SqlView> {
+  String ID = SqlViewStore.class.getName();
 
-    String createViewTable( SqlView sqlView );
+  String createViewTable(SqlView sqlView);
 
-    void dropViewTable( SqlView sqlView );
+  void dropViewTable(SqlView sqlView);
 
-    void populateSqlViewGrid( Grid grid, String sql );
+  void populateSqlViewGrid(Grid grid, String sql);
 
-    boolean refreshMaterializedView( SqlView sqlView );
+  boolean refreshMaterializedView(SqlView sqlView);
 }

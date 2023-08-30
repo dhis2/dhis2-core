@@ -29,58 +29,49 @@ package org.hisp.dhis.analytics.tei.query.context.sql;
 
 import java.util.List;
 import java.util.function.Predicate;
-
 import javax.annotation.Nonnull;
-
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 
-/**
- * Provides the required methods to build {@link RenderableSqlQuery} objects.
- */
-public interface SqlQueryBuilder
-{
-    @Nonnull
-    /**
-     * Builds a {@link RenderableSqlQuery} based on the given arguments.
-     *
-     * @param queryContext the {@link QueryContext}.
-     * @param dimensions the list of {@link DimensionIdentifier}.
-     * @param sortingParams the list of {@link AnalyticsSortingParams}.
-     */
-    RenderableSqlQuery buildSqlQuery( @Nonnull QueryContext queryContext,
-        @Nonnull List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
-        @Nonnull List<AnalyticsSortingParams> acceptedSortingParams );
+/** Provides the required methods to build {@link RenderableSqlQuery} objects. */
+public interface SqlQueryBuilder {
+  @Nonnull
+  /**
+   * Builds a {@link RenderableSqlQuery} based on the given arguments.
+   *
+   * @param queryContext the {@link QueryContext}.
+   * @param dimensions the list of {@link DimensionIdentifier}.
+   * @param sortingParams the list of {@link AnalyticsSortingParams}.
+   */
+  RenderableSqlQuery buildSqlQuery(
+      @Nonnull QueryContext queryContext,
+      @Nonnull List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
+      @Nonnull List<AnalyticsSortingParams> acceptedSortingParams);
 
-    /**
-     * Provides the list of {@link Predicate} functions for
-     * {@link DimensionIdentifier}. They act as filters and are used to build
-     * the final {@link RenderableSqlQuery} query.
-     *
-     * @return the list of filter dimensions or empty.
-     */
-    @Nonnull
-    default List<Predicate<DimensionIdentifier<DimensionParam>>> getDimensionFilters()
-    {
-        return List.of( unused -> false );
-    }
+  /**
+   * Provides the list of {@link Predicate} functions for {@link DimensionIdentifier}. They act as
+   * filters and are used to build the final {@link RenderableSqlQuery} query.
+   *
+   * @return the list of filter dimensions or empty.
+   */
+  @Nonnull
+  default List<Predicate<DimensionIdentifier<DimensionParam>>> getDimensionFilters() {
+    return List.of(unused -> false);
+  }
 
-    /**
-     * Provides the list of {@link Predicate} functions for
-     * {@link DimensionIdentifier}. They are used for sorting and are part of
-     * the final {@link RenderableSqlQuery} query.
-     *
-     * @return the list of sorting dimensions or empty.
-     */
-    @Nonnull
-    default List<Predicate<AnalyticsSortingParams>> getSortingFilters()
-    {
-        return List.of( unused -> false );
-    }
+  /**
+   * Provides the list of {@link Predicate} functions for {@link DimensionIdentifier}. They are used
+   * for sorting and are part of the final {@link RenderableSqlQuery} query.
+   *
+   * @return the list of sorting dimensions or empty.
+   */
+  @Nonnull
+  default List<Predicate<AnalyticsSortingParams>> getSortingFilters() {
+    return List.of(unused -> false);
+  }
 
-    default boolean alwaysRun()
-    {
-        return false;
-    }
+  default boolean alwaysRun() {
+    return false;
+  }
 }

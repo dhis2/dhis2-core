@@ -27,100 +27,81 @@
  */
 package org.hisp.dhis.apphub;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+/** Created by zubair@dhis2.org on 07.09.17. */
+public class Review {
+  private String id;
 
-/**
- * Created by zubair@dhis2.org on 07.09.17.
- */
-public class Review
-{
-    private String id;
+  private String userId;
 
-    private String userId;
+  private String reviewText;
 
-    private String reviewText;
+  private int rate;
 
-    private int rate;
+  private Date created;
 
-    private Date created;
+  private Date lastUpdated;
 
-    private Date lastUpdated;
+  public Review() {}
 
-    public Review()
-    {
-    }
+  public Review(String userId, String reviewText) {
+    this.userId = userId;
+    this.reviewText = reviewText;
+  }
 
-    public Review( String userId, String reviewText )
-    {
-        this.userId = userId;
-        this.reviewText = reviewText;
-    }
+  @JsonProperty
+  public String getUserId() {
+    return userId;
+  }
 
-    @JsonProperty
-    public String getUserId()
-    {
-        return userId;
-    }
+  public void setUserId(String userId) {
+    this.userId = userId;
+  }
 
-    public void setUserId( String userId )
-    {
-        this.userId = userId;
-    }
+  @JsonProperty
+  public String getReviewText() {
+    return reviewText;
+  }
 
-    @JsonProperty
-    public String getReviewText()
-    {
-        return reviewText;
-    }
+  public void setReviewText(String reviewText) {
+    this.reviewText = reviewText;
+  }
 
-    public void setReviewText( String reviewText )
-    {
-        this.reviewText = reviewText;
-    }
+  @JsonProperty
+  public int getRate() {
+    return rate;
+  }
 
-    @JsonProperty
-    public int getRate()
-    {
-        return rate;
-    }
+  public void setRate(int rate) {
+    this.rate = rate;
+  }
 
-    public void setRate( int rate )
-    {
-        this.rate = rate;
-    }
+  @JsonProperty
+  public Date getCreated() {
+    return created;
+  }
 
-    @JsonProperty
-    public Date getCreated()
-    {
-        return created;
-    }
+  public void setCreated(Date created) {
+    this.created = created;
+  }
 
-    public void setCreated( Date created )
-    {
-        this.created = created;
-    }
+  @JsonProperty
+  public String getId() {
+    return id;
+  }
 
-    @JsonProperty
-    public String getId()
-    {
-        return id;
-    }
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    public void setId( String id )
-    {
-        this.id = id;
-    }
+  @JsonProperty
+  public Date getLastUpdated() {
+    return lastUpdated;
+  }
 
-    @JsonProperty
-    public Date getLastUpdated()
-    {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated( Date lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
-    }
+  public void setLastUpdated(Date lastUpdated) {
+    this.lastUpdated = lastUpdated;
+  }
 }

@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.tracker.imports;
 
+import com.google.gson.JsonObject;
+import io.restassured.path.json.JsonPath;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.stream.Stream;
-
 import lombok.Getter;
 import lombok.Setter;
-
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.metadata.MetadataActions;
@@ -52,191 +52,182 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import com.google.gson.JsonObject;
-
-import io.restassured.path.json.JsonPath;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class IdSchemeTests
-    extends TrackerApiTest
-{
-    private final static String METADATA_FILE_PATH = "src/test/resources/tracker/idSchemesMetadata.json";
+public class IdSchemeTests extends TrackerApiTest {
+  private static final String METADATA_FILE_PATH =
+      "src/test/resources/tracker/idSchemesMetadata.json";
 
-    private final static String ATTRIBUTE_ID = "f3JrwRTeSSz";
+  private static final String ATTRIBUTE_ID = "f3JrwRTeSSz";
 
-    @BeforeAll
-    public void beforeAll()
-    {
-        new MetadataActions()
-            .importAndValidateMetadata( new File( METADATA_FILE_PATH ) );
-    }
+  @BeforeAll
+  public void beforeAll() {
+    new MetadataActions().importAndValidateMetadata(new File(METADATA_FILE_PATH));
+  }
 
-    @BeforeEach
-    public void beforeEach()
-    {
-        loginActions.loginAsAdmin();
-    }
+  @BeforeEach
+  public void beforeEach() {
+    loginActions.loginAsAdmin();
+  }
 
-    private static Stream<Arguments> provideIdSchemeArguments()
-    {
-        return Stream.of(
-            Arguments.arguments( "CODE" ),
-            Arguments.arguments( "NAME" ),
-            Arguments.arguments( "ATTRIBUTE:" + ATTRIBUTE_ID ) );
-    }
+  private static Stream<Arguments> provideIdSchemeArguments() {
+    return Stream.of(
+        Arguments.arguments("CODE"),
+        Arguments.arguments("NAME"),
+        Arguments.arguments("ATTRIBUTE:" + ATTRIBUTE_ID));
+  }
 
-    @MethodSource( "provideIdSchemeArguments" )
-    @ParameterizedTest( name = "POST to /tracker?idScheme={0}" )
-    public void shouldImportTrackerProgramDataByIdScheme( String idScheme )
-    {
-        String teiId = new IdGenerator().generateUniqueId();
+  @MethodSource("provideIdSchemeArguments")
+  @ParameterizedTest(name = "POST to /tracker?idScheme={0}")
+  public void shouldImportTrackerProgramDataByIdScheme(String idScheme) {
+    String teiId = new IdGenerator().generateUniqueId();
 
-        TestData data = new TestData( idScheme );
+    TestData data = new TestData(idScheme);
 
-        EventDataBuilder eventDataBuilder = new EventDataBuilder()
-            .setOu( data.getOrgUnit() )
-            .setProgramStage( data.getTrackerProgramStage() )
-            .addDataValue( data.getDataElement(), DataGenerator.randomString() )
-            .setAssignedUser( Constants.SUPER_USER_ID )
-            .setProgram( data.getTrackerProgram() );
+    EventDataBuilder eventDataBuilder =
+        new EventDataBuilder()
+            .setOu(data.getOrgUnit())
+            .setProgramStage(data.getTrackerProgramStage())
+            .addDataValue(data.getDataElement(), DataGenerator.randomString())
+            .setAssignedUser(Constants.SUPER_USER_ID)
+            .setProgram(data.getTrackerProgram());
 
-        EnrollmentDataBuilder enrollmentDataBuilder = new EnrollmentDataBuilder()
-            .setOu( data.getOrgUnit() )
-            .setProgram( data.getTrackerProgram() )
-            .addEvent( eventDataBuilder );
+    EnrollmentDataBuilder enrollmentDataBuilder =
+        new EnrollmentDataBuilder()
+            .setOu(data.getOrgUnit())
+            .setProgram(data.getTrackerProgram())
+            .addEvent(eventDataBuilder);
 
-        JsonObject payload = new TeiDataBuilder()
-            .setId( teiId )
-            .setTeiType( data.getTrackedEntityType() )
-            .setOu( data.getOrgUnit() )
-            .addAttribute( data.getTrackedEntityAttribute(), DataGenerator.randomString() )
-            .addEnrollment( enrollmentDataBuilder )
-            .addRelationship( new RelationshipDataBuilder()
-                .setRelationshipType( data.getRelationshipType() )
-                .setFromTrackedEntity( this.createTei() )
-                .setToTrackedEntity( teiId ) )
+    JsonObject payload =
+        new TeiDataBuilder()
+            .setId(teiId)
+            .setTeiType(data.getTrackedEntityType())
+            .setOu(data.getOrgUnit())
+            .addAttribute(data.getTrackedEntityAttribute(), DataGenerator.randomString())
+            .addEnrollment(enrollmentDataBuilder)
+            .addRelationship(
+                new RelationshipDataBuilder()
+                    .setRelationshipType(data.getRelationshipType())
+                    .setFromTrackedEntity(this.createTei())
+                    .setToTrackedEntity(teiId))
             .array();
 
-        trackerImportExportActions.postAndGetJobReport( payload,
+    trackerImportExportActions
+        .postAndGetJobReport(
+            payload, new QueryParamsBuilder().addAll("async=false", "idScheme=" + idScheme))
+        .validateSuccessfulImport();
+  }
+
+  @MethodSource("provideIdSchemeArguments")
+  @ParameterizedTest(name = "POST to /tracker?idScheme={0}")
+  public void shouldImportEventProgramDataByIdScheme(String idScheme) {
+    TestData data = new TestData(idScheme);
+
+    JsonObject object =
+        new EventDataBuilder()
+            .setOu(data.getOrgUnit())
+            .setProgramStage(data.getEventProgramStage())
+            .setProgram(data.getEventProgram())
+            .setAttributeCategoryOptions(Arrays.asList(data.getCategoryOption()))
+            .array();
+
+    trackerImportExportActions
+        .postAndGetJobReport(
+            object, new QueryParamsBuilder().addAll("async=false", "idScheme=" + idScheme))
+        .validateSuccessfulImport();
+  }
+
+  @Test
+  public void shouldImportEventsWithDifferentIdSchemes() {
+    String programIdScheme = "CODE";
+    String ouIdScheme = "NAME";
+    String programStageIdScheme = "ATTRIBUTE:" + ATTRIBUTE_ID;
+    TestData data = new TestData();
+
+    JsonObject event =
+        new EventDataBuilder()
+            .setProgram(new TestData(programIdScheme).getEventProgram())
+            .setProgramStage(new TestData(programStageIdScheme).getEventProgramStage())
+            .setOu(new TestData(ouIdScheme).getOrgUnit())
+            .setAttributeCategoryOptions(Arrays.asList(data.getCategoryOption()))
+            .array();
+
+    trackerImportExportActions
+        .postAndGetJobReport(
+            event,
             new QueryParamsBuilder()
-                .addAll( "async=false", "idScheme=" + idScheme ) )
-            .validateSuccessfulImport();
+                .add("programIdScheme", programIdScheme)
+                .add("orgUnitIdScheme", ouIdScheme)
+                .add("programStageIdScheme", programStageIdScheme))
+        .validateSuccessfulImport();
+  }
+
+  @Getter
+  @Setter
+  private static class TestData {
+    private JsonPath jsonPath;
+
+    private String trackedEntityType = "mthkj6qr5y9";
+
+    private String orgUnit = "yMXcwGmzIWY";
+
+    private String trackedEntityAttribute = "Kg6I0Cl3C7r";
+
+    private String trackerProgram = "iAI6kmFqoOc";
+
+    private String trackerProgramStage = "eTaBehVASzG";
+
+    private String dataElement = "VkoGQvbzHk2";
+
+    private String eventProgram = "jDnjGYZFkA4";
+
+    private String eventProgramStage = "fFNTQZPt2J4";
+
+    private String categoryOption = "fjvZIRlTBrp";
+
+    private String relationshipType = "XDaaLiqMYKy";
+
+    public TestData() {}
+
+    public TestData(String idScheme) {
+      jsonPath = JsonPath.from(new File(METADATA_FILE_PATH));
+      String propertyName;
+      if (idScheme.toLowerCase().contains("attribute")) {
+        propertyName = "attributeValues.value[0]";
+      } else {
+        propertyName = idScheme.toLowerCase(Locale.ROOT);
+      }
+
+      this.setOrgUnit(extractProperty("organisationUnits", orgUnit, propertyName));
+      this.setTrackedEntityType(
+          extractProperty("trackedEntityTypes", trackedEntityType, propertyName));
+      this.setTrackerProgram(extractProperty("programs", trackerProgram, propertyName));
+      this.setTrackerProgramStage(
+          extractProperty("programStages", trackerProgramStage, propertyName));
+      this.setTrackedEntityAttribute(
+          extractProperty("trackedEntityAttributes", trackedEntityAttribute, propertyName));
+      this.setDataElement(extractProperty("dataElements", dataElement, propertyName));
+      this.setEventProgram(extractProperty("programs", eventProgram, propertyName));
+      this.setEventProgramStage(extractProperty("programStages", eventProgramStage, propertyName));
+      this.setCategoryOption(extractProperty("categoryOptions", categoryOption, propertyName));
+      this.setRelationshipType(
+          extractProperty("relationshipTypes", relationshipType, propertyName));
     }
 
-    @MethodSource( "provideIdSchemeArguments" )
-    @ParameterizedTest( name = "POST to /tracker?idScheme={0}" )
-    public void shouldImportEventProgramDataByIdScheme( String idScheme )
-    {
-        TestData data = new TestData( idScheme );
-
-        JsonObject object = new EventDataBuilder()
-            .setOu( data.getOrgUnit() )
-            .setProgramStage( data.getEventProgramStage() )
-            .setProgram( data.getEventProgram() )
-            .setAttributeCategoryOptions( Arrays.asList( data.getCategoryOption() ) )
-            .array();
-
-        trackerImportExportActions
-            .postAndGetJobReport( object, new QueryParamsBuilder().addAll( "async=false", "idScheme=" + idScheme ) )
-            .validateSuccessfulImport();
+    private String extractProperty(String metadataCollection, String id, String propertyName) {
+      return jsonPath.getString(
+          String.format("%s.find{it.id=='%s'}.%s", metadataCollection, id, propertyName));
     }
+  }
 
-    @Test
-    public void shouldImportEventsWithDifferentIdSchemes()
-    {
-        String programIdScheme = "CODE";
-        String ouIdScheme = "NAME";
-        String programStageIdScheme = "ATTRIBUTE:" + ATTRIBUTE_ID;
-        TestData data = new TestData();
-
-        JsonObject event = new EventDataBuilder()
-            .setProgram( new TestData( programIdScheme ).getEventProgram() )
-            .setProgramStage( new TestData( programStageIdScheme ).getEventProgramStage() )
-            .setOu( new TestData( ouIdScheme ).getOrgUnit() )
-            .setAttributeCategoryOptions( Arrays.asList( data.getCategoryOption() ) )
-            .array();
-
-        trackerImportExportActions
-            .postAndGetJobReport( event, new QueryParamsBuilder()
-                .add( "programIdScheme", programIdScheme )
-                .add( "orgUnitIdScheme", ouIdScheme )
-                .add( "programStageIdScheme", programStageIdScheme ) )
-            .validateSuccessfulImport();
-    }
-
-    @Getter
-    @Setter
-    private static class TestData
-    {
-        private JsonPath jsonPath;
-
-        private String trackedEntityType = "mthkj6qr5y9";
-
-        private String orgUnit = "yMXcwGmzIWY";
-
-        private String trackedEntityAttribute = "Kg6I0Cl3C7r";
-
-        private String trackerProgram = "iAI6kmFqoOc";
-
-        private String trackerProgramStage = "eTaBehVASzG";
-
-        private String dataElement = "VkoGQvbzHk2";
-
-        private String eventProgram = "jDnjGYZFkA4";
-
-        private String eventProgramStage = "fFNTQZPt2J4";
-
-        private String categoryOption = "fjvZIRlTBrp";
-
-        private String relationshipType = "XDaaLiqMYKy";
-
-        public TestData()
-        {
-
-        }
-
-        public TestData( String idScheme )
-        {
-            jsonPath = JsonPath.from( new File( METADATA_FILE_PATH ) );
-            String propertyName;
-            if ( idScheme.toLowerCase().contains( "attribute" ) )
-            {
-                propertyName = "attributeValues.value[0]";
-            }
-            else
-            {
-                propertyName = idScheme.toLowerCase( Locale.ROOT );
-            }
-
-            this.setOrgUnit( extractProperty( "organisationUnits", orgUnit, propertyName ) );
-            this.setTrackedEntityType( extractProperty( "trackedEntityTypes", trackedEntityType, propertyName ) );
-            this.setTrackerProgram( extractProperty( "programs", trackerProgram, propertyName ) );
-            this.setTrackerProgramStage( extractProperty( "programStages", trackerProgramStage, propertyName ) );
-            this.setTrackedEntityAttribute(
-                extractProperty( "trackedEntityAttributes", trackedEntityAttribute, propertyName ) );
-            this.setDataElement( extractProperty( "dataElements", dataElement, propertyName ) );
-            this.setEventProgram( extractProperty( "programs", eventProgram, propertyName ) );
-            this.setEventProgramStage(
-                extractProperty( "programStages", eventProgramStage, propertyName ) );
-            this.setCategoryOption( extractProperty( "categoryOptions", categoryOption, propertyName ) );
-            this.setRelationshipType( extractProperty( "relationshipTypes", relationshipType, propertyName ) );
-        }
-
-        private String extractProperty( String metadataCollection, String id, String propertyName )
-        {
-            return jsonPath
-                .getString( String.format( "%s.find{it.id=='%s'}.%s", metadataCollection, id, propertyName ) );
-        }
-    }
-
-    private String createTei()
-    {
-        return trackerImportExportActions
-            .postAndGetJobReport(
-                new TeiDataBuilder().array( new TestData().getTrackedEntityType(), new TestData().getOrgUnit() ) )
-            .validateSuccessfulImport()
-            .extractImportedTeis().get( 0 );
-    }
+  private String createTei() {
+    return trackerImportExportActions
+        .postAndGetJobReport(
+            new TeiDataBuilder()
+                .array(new TestData().getTrackedEntityType(), new TestData().getOrgUnit()))
+        .validateSuccessfulImport()
+        .extractImportedTeis()
+        .get(0);
+  }
 }

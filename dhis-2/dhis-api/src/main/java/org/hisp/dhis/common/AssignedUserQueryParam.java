@@ -29,80 +29,66 @@ package org.hisp.dhis.common;
 
 import java.util.Collections;
 import java.util.Set;
-
 import lombok.Value;
-
 import org.hisp.dhis.user.User;
 
 /**
- * Query parameter to select events based on their assigned users. See
- * {@link AssignedUserSelectionMode} for the different selection modes.
+ * Query parameter to select events based on their assigned users. See {@link
+ * AssignedUserSelectionMode} for the different selection modes.
  */
 @Value
-public class AssignedUserQueryParam
-{
+public class AssignedUserQueryParam {
 
-    public static final AssignedUserQueryParam ALL = new AssignedUserQueryParam( AssignedUserSelectionMode.ALL, null,
-        Collections.emptySet() );
+  public static final AssignedUserQueryParam ALL =
+      new AssignedUserQueryParam(AssignedUserSelectionMode.ALL, null, Collections.emptySet());
 
-    private final AssignedUserSelectionMode mode;
+  private final AssignedUserSelectionMode mode;
 
-    private final Set<String> assignedUsers;
+  private final Set<String> assignedUsers;
 
-    /**
-     * Non-empty assigned users are only allowed with mode PROVIDED (or null).
-     *
-     * @param mode assigned user mode
-     * @param current current user with which query is made
-     * @param assignedUsers assigned user uids
-     */
-    public AssignedUserQueryParam( AssignedUserSelectionMode mode, User current,
-        Set<String> assignedUsers )
-    {
-        if ( mode == AssignedUserSelectionMode.CURRENT && current == null )
-        {
-            throw new IllegalQueryException(
-                "Current user must be specified if selectionMode is CURRENT" );
-        }
-        if ( mode == AssignedUserSelectionMode.PROVIDED && (assignedUsers == null || assignedUsers.isEmpty()) )
-        {
-            throw new IllegalQueryException(
-                "Assigned User uid(s) must be specified if selectionMode is PROVIDED" );
-        }
-        // we default the mode to PROVIDED in case mode is null but users are
-        // given
-        if ( mode != null && mode != AssignedUserSelectionMode.PROVIDED
-            && (assignedUsers != null && !assignedUsers.isEmpty()) )
-        {
-            throw new IllegalQueryException(
-                "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
-        }
-
-        if ( mode == AssignedUserSelectionMode.CURRENT )
-        {
-            this.mode = AssignedUserSelectionMode.PROVIDED;
-            this.assignedUsers = Collections.singleton( current.getUid() );
-        }
-        else if ( (mode == null || mode == AssignedUserSelectionMode.PROVIDED)
-            && (assignedUsers != null && !assignedUsers.isEmpty()) )
-        {
-            this.mode = AssignedUserSelectionMode.PROVIDED;
-            this.assignedUsers = assignedUsers;
-        }
-        else if ( mode == null )
-        {
-            this.mode = AssignedUserSelectionMode.ALL;
-            this.assignedUsers = Collections.emptySet();
-        }
-        else
-        {
-            this.mode = mode;
-            this.assignedUsers = Collections.emptySet();
-        }
+  /**
+   * Non-empty assigned users are only allowed with mode PROVIDED (or null).
+   *
+   * @param mode assigned user mode
+   * @param current current user with which query is made
+   * @param assignedUsers assigned user uids
+   */
+  public AssignedUserQueryParam(
+      AssignedUserSelectionMode mode, User current, Set<String> assignedUsers) {
+    if (mode == AssignedUserSelectionMode.CURRENT && current == null) {
+      throw new IllegalQueryException("Current user must be specified if selectionMode is CURRENT");
+    }
+    if (mode == AssignedUserSelectionMode.PROVIDED
+        && (assignedUsers == null || assignedUsers.isEmpty())) {
+      throw new IllegalQueryException(
+          "Assigned User uid(s) must be specified if selectionMode is PROVIDED");
+    }
+    // we default the mode to PROVIDED in case mode is null but users are
+    // given
+    if (mode != null
+        && mode != AssignedUserSelectionMode.PROVIDED
+        && (assignedUsers != null && !assignedUsers.isEmpty())) {
+      throw new IllegalQueryException(
+          "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED");
     }
 
-    public boolean hasAssignedUsers()
-    {
-        return !this.getAssignedUsers().isEmpty();
+    if (mode == AssignedUserSelectionMode.CURRENT) {
+      this.mode = AssignedUserSelectionMode.PROVIDED;
+      this.assignedUsers = Collections.singleton(current.getUid());
+    } else if ((mode == null || mode == AssignedUserSelectionMode.PROVIDED)
+        && (assignedUsers != null && !assignedUsers.isEmpty())) {
+      this.mode = AssignedUserSelectionMode.PROVIDED;
+      this.assignedUsers = assignedUsers;
+    } else if (mode == null) {
+      this.mode = AssignedUserSelectionMode.ALL;
+      this.assignedUsers = Collections.emptySet();
+    } else {
+      this.mode = mode;
+      this.assignedUsers = Collections.emptySet();
     }
+  }
+
+  public boolean hasAssignedUsers() {
+    return !this.getAssignedUsers().isEmpty();
+  }
 }

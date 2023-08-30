@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.metadata.programs;
 
+import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -37,48 +38,40 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ProgramsTest
-    extends AbstractOrgUnitAssociationTestSupport
-{
-    public static final String PROGRAM_UID = "Zd2rkv8FsWq";
+public class ProgramsTest extends AbstractOrgUnitAssociationTestSupport {
+  public static final String PROGRAM_UID = "Zd2rkv8FsWq";
 
-    private LoginActions loginActions;
+  private LoginActions loginActions;
 
-    private ProgramActions programActions;
+  private ProgramActions programActions;
 
-    @BeforeAll
-    public void beforeAll()
-    {
-        loginActions = new LoginActions();
-        programActions = new ProgramActions();
-    }
+  @BeforeAll
+  public void beforeAll() {
+    loginActions = new LoginActions();
+    programActions = new ProgramActions();
+  }
 
-    @BeforeEach
-    public void before()
-    {
-        loginActions.loginAsSuperUser();
-    }
+  @BeforeEach
+  public void before() {
+    loginActions.loginAsSuperUser();
+  }
 
-    @ParameterizedTest( name = "withType[{0}]" )
-    @ValueSource( strings = { "WITH_REGISTRATION", "WITHOUT_REGISTRATION" } )
-    public void shouldCreateProgram( String programType )
-    {
-        JsonObject object = programActions.buildProgram();
-        object.addProperty( "programType", programType );
+  @ParameterizedTest(name = "withType[{0}]")
+  @ValueSource(strings = {"WITH_REGISTRATION", "WITHOUT_REGISTRATION"})
+  public void shouldCreateProgram(String programType) {
+    JsonObject object = programActions.buildProgram();
+    object.addProperty("programType", programType);
 
-        ApiResponse response = programActions.post( object );
+    ApiResponse response = programActions.post(object);
 
-        ResponseValidationHelper.validateObjectCreation( response );
-    }
+    ResponseValidationHelper.validateObjectCreation(response);
+  }
 
-    @Test
-    public void testProgramOrgUnitsConnections()
-    {
-        super.testOrgUnitsConnections( programActions::getOrgUnitsAssociations, PROGRAM_UID );
-    }
+  @Test
+  public void testProgramOrgUnitsConnections() {
+    super.testOrgUnitsConnections(programActions::getOrgUnitsAssociations, PROGRAM_UID);
+  }
 }

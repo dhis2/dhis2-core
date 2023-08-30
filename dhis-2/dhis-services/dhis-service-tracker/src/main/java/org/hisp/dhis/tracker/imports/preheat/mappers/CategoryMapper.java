@@ -33,21 +33,16 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = {
-    DebugMapper.class,
-    AttributeValueMapper.class
-} )
-public interface CategoryMapper
-    extends PreheatMapper<Category>
-{
-    CategoryMapper INSTANCE = Mappers.getMapper( CategoryMapper.class );
+@Mapper(uses = {DebugMapper.class, AttributeValueMapper.class})
+public interface CategoryMapper extends PreheatMapper<Category> {
+  CategoryMapper INSTANCE = Mappers.getMapper(CategoryMapper.class);
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "name" )
-    @Mapping( target = "code" )
-    @Mapping( target = "attributeValues" )
-    @Mapping( target = "sharing" )
-    Category map( Category category );
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "name")
+  @Mapping(target = "code")
+  @Mapping(target = "attributeValues")
+  @Mapping(target = "sharing")
+  Category map(Category category);
 }

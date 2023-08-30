@@ -30,16 +30,10 @@ package org.hisp.dhis.tracker.imports;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum AtomicMode
-{
-    /**
-     * Import objects only if they all pass the validation phase (including
-     * references)
-     */
-    ALL,
+public enum AtomicMode {
+  /** Import objects only if they all pass the validation phase (including references) */
+  ALL,
 
-    /**
-     * Legacy mode. Allow non-valid references when importing.
-     */
-    OBJECT
+  /** Legacy mode. Allow non-valid references when importing. */
+  OBJECT
 }

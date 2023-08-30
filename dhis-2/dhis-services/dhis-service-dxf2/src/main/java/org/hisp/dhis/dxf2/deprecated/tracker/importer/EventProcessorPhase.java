@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.importer;
 
-public enum EventProcessorPhase
-{
-    INSERT_PRE,
-    INSERT_POST,
-    UPDATE_PRE,
-    UPDATE_POST,
-    DELETE_PRE,
-    DELETE_POST
+public enum EventProcessorPhase {
+  INSERT_PRE,
+  INSERT_POST,
+  UPDATE_PRE,
+  UPDATE_POST,
+  DELETE_PRE,
+  DELETE_POST
 }

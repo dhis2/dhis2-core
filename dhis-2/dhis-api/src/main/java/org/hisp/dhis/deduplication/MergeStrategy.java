@@ -27,12 +27,9 @@
  */
 package org.hisp.dhis.deduplication;
 
-public enum MergeStrategy
-{
-    MANUAL,
-    AUTO;
+public enum MergeStrategy {
+  MANUAL,
+  AUTO;
 
-    MergeStrategy()
-    {
-    }
+  MergeStrategy() {}
 }

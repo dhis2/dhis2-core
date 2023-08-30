@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.icon;
 
-public interface Icon
-{
-    String getKey();
+public interface Icon {
+  String getKey();
 
-    String getDescription();
+  String getDescription();
 
-    String[] getKeywords();
+  String[] getKeywords();
 }

@@ -37,29 +37,24 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class Iso8601Calendar extends ChronologyBasedCalendar
-{
-    private static final Calendar SELF = new Iso8601Calendar();
+public class Iso8601Calendar extends ChronologyBasedCalendar {
+  private static final Calendar SELF = new Iso8601Calendar();
 
-    public static Calendar getInstance()
-    {
-        return SELF;
-    }
+  public static Calendar getInstance() {
+    return SELF;
+  }
 
-    protected Iso8601Calendar()
-    {
-        super( ISOChronology.getInstance( DateTimeZone.getDefault() ) );
-    }
+  protected Iso8601Calendar() {
+    super(ISOChronology.getInstance(DateTimeZone.getDefault()));
+  }
 
-    @Override
-    public String name()
-    {
-        return "iso8601";
-    }
+  @Override
+  public String name() {
+    return "iso8601";
+  }
 
-    @Override
-    public boolean isIso8601()
-    {
-        return true;
-    }
+  @Override
+  public boolean isIso8601() {
+    return true;
+  }
 }

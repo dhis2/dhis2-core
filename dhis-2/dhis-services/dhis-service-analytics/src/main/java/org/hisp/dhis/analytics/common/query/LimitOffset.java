@@ -30,34 +30,27 @@ package org.hisp.dhis.analytics.common.query;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class LimitOffset extends BaseRenderable
-{
-    private final Integer limit;
+@RequiredArgsConstructor(staticName = "of")
+public class LimitOffset extends BaseRenderable {
+  private final Integer limit;
 
-    private final Integer offset;
+  private final Integer offset;
 
-    private final boolean unlimited;
+  private final boolean unlimited;
 
-    public static LimitOffset of( AnalyticsPagingParams pagingParams )
-    {
-        return LimitOffset.of(
-            pagingParams.getPageSizePlusOne(),
-            pagingParams.getOffset(),
-            pagingParams.isUnlimited() );
+  public static LimitOffset of(AnalyticsPagingParams pagingParams) {
+    return LimitOffset.of(
+        pagingParams.getPageSizePlusOne(), pagingParams.getOffset(), pagingParams.isUnlimited());
+  }
+
+  @Override
+  public String render() {
+    if (unlimited) {
+      return EMPTY;
     }
 
-    @Override
-    public String render()
-    {
-        if ( unlimited )
-        {
-            return EMPTY;
-        }
-
-        return "limit " + limit + " offset " + offset;
-    }
+    return "limit " + limit + " offset " + offset;
+  }
 }

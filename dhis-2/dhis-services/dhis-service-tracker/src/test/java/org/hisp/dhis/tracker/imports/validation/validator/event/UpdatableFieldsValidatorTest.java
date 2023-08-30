@@ -56,129 +56,118 @@ import org.mockito.quality.Strictness;
 /**
  * @author Enrico Colasante
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class UpdatableFieldsValidatorTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class UpdatableFieldsValidatorTest {
 
-    private final static String TRACKED_ENTITY_TYPE_ID = "TrackedEntityTypeId";
+  private static final String TRACKED_ENTITY_TYPE_ID = "TrackedEntityTypeId";
 
-    private final static String PROGRAM_ID = "ProgramId";
+  private static final String PROGRAM_ID = "ProgramId";
 
-    private final static String PROGRAM_STAGE_ID = "ProgramStageId";
+  private static final String PROGRAM_STAGE_ID = "ProgramStageId";
 
-    private final static String TRACKED_ENTITY_ID = "TrackedEntityId";
+  private static final String TRACKED_ENTITY_ID = "TrackedEntityId";
 
-    private final static String ENROLLMENT_ID = "EnrollmentId";
+  private static final String ENROLLMENT_ID = "EnrollmentId";
 
-    private final static String EVENT_ID = "EventId";
+  private static final String EVENT_ID = "EventId";
 
-    private UpdatableFieldsValidator validator;
+  private UpdatableFieldsValidator validator;
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    public void setUp()
-    {
-        validator = new UpdatableFieldsValidator();
+  @BeforeEach
+  public void setUp() {
+    validator = new UpdatableFieldsValidator();
 
-        when( bundle.getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+    when(bundle.getImportStrategy()).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.TrackedEntity.class ) ) )
-            .thenReturn( TrackerImportStrategy.UPDATE );
-        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Enrollment.class ) ) )
-            .thenReturn( TrackerImportStrategy.UPDATE );
-        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Event.class ) ) )
-            .thenReturn( TrackerImportStrategy.UPDATE );
+    when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.TrackedEntity.class)))
+        .thenReturn(TrackerImportStrategy.UPDATE);
+    when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.Enrollment.class)))
+        .thenReturn(TrackerImportStrategy.UPDATE);
+    when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.Event.class)))
+        .thenReturn(TrackerImportStrategy.UPDATE);
 
-        when( preheat.getTrackedEntity( TRACKED_ENTITY_ID ) ).thenReturn( trackedEntity() );
-        when( preheat.getEnrollment( ENROLLMENT_ID ) ).thenReturn( getEnrollment() );
-        when( preheat.getEvent( EVENT_ID ) ).thenReturn( event() );
+    when(preheat.getTrackedEntity(TRACKED_ENTITY_ID)).thenReturn(trackedEntity());
+    when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(getEnrollment());
+    when(preheat.getEvent(EVENT_ID)).thenReturn(event());
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
+    when(bundle.getPreheat()).thenReturn(preheat);
 
-        reporter = new Reporter( TrackerIdSchemeParams.builder().build() );
-    }
+    reporter = new Reporter(TrackerIdSchemeParams.builder().build());
+  }
 
-    @Test
-    void verifyEventValidationSuccess()
-    {
-        org.hisp.dhis.tracker.imports.domain.Event event = validEvent();
+  @Test
+  void verifyEventValidationSuccess() {
+    org.hisp.dhis.tracker.imports.domain.Event event = validEvent();
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyEventValidationFailsWhenUpdateProgramStage()
-    {
-        org.hisp.dhis.tracker.imports.domain.Event event = validEvent();
-        event.setProgramStage( MetadataIdentifier.ofUid( "NewProgramStageId" ) );
+  @Test
+  void verifyEventValidationFailsWhenUpdateProgramStage() {
+    org.hisp.dhis.tracker.imports.domain.Event event = validEvent();
+    event.setProgramStage(MetadataIdentifier.ofUid("NewProgramStageId"));
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertHasError( reporter, event, E1128, "programStage" );
-    }
+    assertHasError(reporter, event, E1128, "programStage");
+  }
 
-    @Test
-    void verifyEventValidationFailsWhenUpdateEnrollment()
-    {
-        org.hisp.dhis.tracker.imports.domain.Event event = validEvent();
-        event.setEnrollment( "NewEnrollmentId" );
+  @Test
+  void verifyEventValidationFailsWhenUpdateEnrollment() {
+    org.hisp.dhis.tracker.imports.domain.Event event = validEvent();
+    event.setEnrollment("NewEnrollmentId");
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertHasError( reporter, event, E1128, "enrollment" );
-    }
+    assertHasError(reporter, event, E1128, "enrollment");
+  }
 
-    private org.hisp.dhis.tracker.imports.domain.Event validEvent()
-    {
-        return org.hisp.dhis.tracker.imports.domain.Event.builder()
-            .event( EVENT_ID )
-            .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) )
-            .enrollment( ENROLLMENT_ID )
-            .build();
-    }
+  private org.hisp.dhis.tracker.imports.domain.Event validEvent() {
+    return org.hisp.dhis.tracker.imports.domain.Event.builder()
+        .event(EVENT_ID)
+        .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
+        .enrollment(ENROLLMENT_ID)
+        .build();
+  }
 
-    private TrackedEntity trackedEntity()
-    {
-        TrackedEntityType trackedEntityType = new TrackedEntityType();
-        trackedEntityType.setUid( TRACKED_ENTITY_TYPE_ID );
+  private TrackedEntity trackedEntity() {
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setUid(TRACKED_ENTITY_TYPE_ID);
 
-        TrackedEntity trackedEntity = new TrackedEntity();
-        trackedEntity.setUid( TRACKED_ENTITY_ID );
-        trackedEntity.setTrackedEntityType( trackedEntityType );
-        return trackedEntity;
-    }
+    TrackedEntity trackedEntity = new TrackedEntity();
+    trackedEntity.setUid(TRACKED_ENTITY_ID);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
+    return trackedEntity;
+  }
 
-    private Enrollment getEnrollment()
-    {
-        Program program = new Program();
-        program.setUid( PROGRAM_ID );
+  private Enrollment getEnrollment() {
+    Program program = new Program();
+    program.setUid(PROGRAM_ID);
 
-        Enrollment enrollment = new Enrollment();
-        enrollment.setUid( ENROLLMENT_ID );
-        enrollment.setProgram( program );
-        enrollment.setTrackedEntity( trackedEntity() );
-        return enrollment;
-    }
+    Enrollment enrollment = new Enrollment();
+    enrollment.setUid(ENROLLMENT_ID);
+    enrollment.setProgram(program);
+    enrollment.setTrackedEntity(trackedEntity());
+    return enrollment;
+  }
 
-    private Event event()
-    {
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( PROGRAM_STAGE_ID );
+  private Event event() {
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid(PROGRAM_STAGE_ID);
 
-        Event event = new Event();
-        event.setUid( EVENT_ID );
-        event.setEnrollment( getEnrollment() );
-        event.setProgramStage( programStage );
-        return event;
-    }
+    Event event = new Event();
+    event.setUid(EVENT_ID);
+    event.setEnrollment(getEnrollment());
+    event.setProgramStage(programStage);
+    return event;
+  }
 }

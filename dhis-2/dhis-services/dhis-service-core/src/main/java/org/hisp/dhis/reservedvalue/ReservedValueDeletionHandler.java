@@ -28,25 +28,21 @@
 package org.hisp.dhis.reservedvalue;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class ReservedValueDeletionHandler extends DeletionHandler
-{
-    private final ReservedValueService reservedValueService;
+public class ReservedValueDeletionHandler extends DeletionHandler {
+  private final ReservedValueService reservedValueService;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute);
+  }
 
-    private void deleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
-    {
-        reservedValueService.deleteReservedValueByUid( attribute.getUid() );
-    }
+  private void deleteTrackedEntityAttribute(TrackedEntityAttribute attribute) {
+    reservedValueService.deleteReservedValueByUid(attribute.getUid());
+  }
 }

@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.indicator;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -37,131 +41,105 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "indicatorGroup", namespace = DxfNamespaces.DXF_2_0 )
-public class IndicatorGroup
-    extends BaseIdentifiableObject
-    implements MetadataObject
-{
-    private String description;
+@JacksonXmlRootElement(localName = "indicatorGroup", namespace = DxfNamespaces.DXF_2_0)
+public class IndicatorGroup extends BaseIdentifiableObject implements MetadataObject {
+  private String description;
 
-    private Set<Indicator> members = new HashSet<>();
+  private Set<Indicator> members = new HashSet<>();
 
-    private Set<IndicatorGroupSet> groupSets = new HashSet<>();
+  private Set<IndicatorGroupSet> groupSets = new HashSet<>();
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public IndicatorGroup()
-    {
+  public IndicatorGroup() {}
+
+  public IndicatorGroup(String name) {
+    this.name = name;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  public void addIndicator(Indicator indicator) {
+    members.add(indicator);
+    indicator.getGroups().add(this);
+  }
+
+  public void removeIndicator(Indicator indicator) {
+    members.remove(indicator);
+    indicator.getGroups().remove(this);
+  }
+
+  public void updateIndicators(Set<Indicator> updates) {
+    for (Indicator indicator : new HashSet<>(members)) {
+      if (!updates.contains(indicator)) {
+        removeIndicator(indicator);
+      }
     }
 
-    public IndicatorGroup( String name )
-    {
-        this.name = name;
+    for (Indicator indicator : updates) {
+      addIndicator(indicator);
     }
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    public void addIndicator( Indicator indicator )
-    {
-        members.add( indicator );
-        indicator.getGroups().add( this );
-    }
+  public void removeAllIndicators() {
+    members.clear();
+  }
 
-    public void removeIndicator( Indicator indicator )
-    {
-        members.remove( indicator );
-        indicator.getGroups().remove( this );
-    }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    public void updateIndicators( Set<Indicator> updates )
-    {
-        for ( Indicator indicator : new HashSet<>( members ) )
-        {
-            if ( !updates.contains( indicator ) )
-            {
-                removeIndicator( indicator );
-            }
-        }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getDescription() {
+    return description;
+  }
 
-        for ( Indicator indicator : updates )
-        {
-            addIndicator( indicator );
-        }
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  @JsonProperty("indicators")
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "indicators", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "indicator", namespace = DxfNamespaces.DXF_2_0)
+  public Set<Indicator> getMembers() {
+    return members;
+  }
 
-    public void removeAllIndicators()
-    {
-        members.clear();
-    }
+  public void setMembers(Set<Indicator> members) {
+    this.members = members;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  @JsonProperty("indicatorGroupSet")
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(localName = "indicatorGroupSet", namespace = DxfNamespaces.DXF_2_0)
+  @Property(value = PropertyType.REFERENCE, required = Property.Value.FALSE)
+  public IndicatorGroupSet getGroupSet() {
+    return groupSets.isEmpty() ? null : groupSets.iterator().next();
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 2 )
-    public String getDescription()
-    {
-        return description;
-    }
+  @JsonProperty
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "groupSets", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "groupSet", namespace = DxfNamespaces.DXF_2_0)
+  public Set<IndicatorGroupSet> getGroupSets() {
+    return groupSets;
+  }
 
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
-
-    @JsonProperty( "indicators" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "indicators", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "indicator", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<Indicator> getMembers()
-    {
-        return members;
-    }
-
-    public void setMembers( Set<Indicator> members )
-    {
-        this.members = members;
-    }
-
-    @JsonProperty( "indicatorGroupSet" )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( localName = "indicatorGroupSet", namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.REFERENCE, required = Property.Value.FALSE )
-    public IndicatorGroupSet getGroupSet()
-    {
-        return groupSets.isEmpty() ? null : groupSets.iterator().next();
-    }
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "groupSets", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "groupSet", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<IndicatorGroupSet> getGroupSets()
-    {
-        return groupSets;
-    }
-
-    public void setGroupSets( Set<IndicatorGroupSet> groupSets )
-    {
-        this.groupSets = groupSets;
-    }
+  public void setGroupSets(Set<IndicatorGroupSet> groupSets) {
+    this.groupSets = groupSets;
+  }
 }

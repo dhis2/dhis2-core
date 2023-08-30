@@ -27,49 +27,41 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
 
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeiAttributeQuery.COLUMNS.ATTR_CODE;
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeiAttributeQuery.COLUMNS.ATTR_NAME;
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeiAttributeQuery.COLUMNS.ATTR_SKIP_SYNC;
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeiAttributeQuery.COLUMNS.ATTR_UID;
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeiAttributeQuery.COLUMNS.ATTR_VALUE_TYPE;
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeiAttributeQuery.COLUMNS.CREATED;
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeiAttributeQuery.COLUMNS.STOREDBY;
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeiAttributeQuery.COLUMNS.UPDATED;
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeiAttributeQuery.COLUMNS.VALUE;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery.COLUMNS.ATTR_CODE;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery.COLUMNS.ATTR_NAME;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery.COLUMNS.ATTR_SKIP_SYNC;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery.COLUMNS.ATTR_UID;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery.COLUMNS.ATTR_VALUE_TYPE;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery.COLUMNS.CREATED;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery.COLUMNS.STOREDBY;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery.COLUMNS.UPDATED;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery.COLUMNS.VALUE;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeiAttributeQuery;
+import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery;
 
-public interface AttributeMapper
-{
-    default TrackedEntityAttributeValue getAttribute( ResultSet rs )
-        throws SQLException
-    {
-        TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
+public interface AttributeMapper {
+  default TrackedEntityAttributeValue getAttribute(ResultSet rs) throws SQLException {
+    TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
 
-        attributeValue
-            .setCreated( rs.getTimestamp( TeiAttributeQuery.getColumnName( CREATED ) ) );
-        attributeValue
-            .setLastUpdated( rs.getTimestamp( TeiAttributeQuery.getColumnName( UPDATED ) ) );
-        attributeValue.setValue( rs.getString( TeiAttributeQuery.getColumnName( VALUE ) ) );
-        attributeValue
-            .setStoredBy( rs.getString( TeiAttributeQuery.getColumnName( STOREDBY ) ) );
+    attributeValue.setCreated(rs.getTimestamp(TeAttributeQuery.getColumnName(CREATED)));
+    attributeValue.setLastUpdated(rs.getTimestamp(TeAttributeQuery.getColumnName(UPDATED)));
+    attributeValue.setValue(rs.getString(TeAttributeQuery.getColumnName(VALUE)));
+    attributeValue.setStoredBy(rs.getString(TeAttributeQuery.getColumnName(STOREDBY)));
 
-        TrackedEntityAttribute attribute = new TrackedEntityAttribute();
-        attribute.setUid( rs.getString( TeiAttributeQuery.getColumnName( ATTR_UID ) ) );
-        attribute.setName( rs.getString( TeiAttributeQuery.getColumnName( ATTR_NAME ) ) );
-        attribute.setCode( rs.getString( TeiAttributeQuery.getColumnName( ATTR_CODE ) ) );
-        attribute.setValueType( ValueType.fromString(
-            rs.getString( TeiAttributeQuery.getColumnName( ATTR_VALUE_TYPE ) ) ) );
-        attribute.setSkipSynchronization(
-            rs.getBoolean( TeiAttributeQuery.getColumnName( ATTR_SKIP_SYNC ) ) );
-        attributeValue.setAttribute( attribute );
+    TrackedEntityAttribute attribute = new TrackedEntityAttribute();
+    attribute.setUid(rs.getString(TeAttributeQuery.getColumnName(ATTR_UID)));
+    attribute.setName(rs.getString(TeAttributeQuery.getColumnName(ATTR_NAME)));
+    attribute.setCode(rs.getString(TeAttributeQuery.getColumnName(ATTR_CODE)));
+    attribute.setValueType(
+        ValueType.fromString(rs.getString(TeAttributeQuery.getColumnName(ATTR_VALUE_TYPE))));
+    attribute.setSkipSynchronization(rs.getBoolean(TeAttributeQuery.getColumnName(ATTR_SKIP_SYNC)));
+    attributeValue.setAttribute(attribute);
 
-        return attributeValue;
-    }
+    return attributeValue;
+  }
 }

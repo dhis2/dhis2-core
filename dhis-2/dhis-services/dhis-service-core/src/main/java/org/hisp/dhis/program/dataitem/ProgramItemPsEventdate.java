@@ -42,34 +42,33 @@ import org.hisp.dhis.program.ProgramStage;
  *
  * @author Jim Grace
  */
-public class ProgramItemPsEventdate
-    extends ProgramExpressionItem
-{
-    @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        String programStageUid = ctx.uid0.getText();
+public class ProgramItemPsEventdate extends ProgramExpressionItem {
+  @Override
+  public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    String programStageUid = ctx.uid0.getText();
 
-        ProgramStage programStage = visitor.getProgramStageService().getProgramStage( programStageUid );
+    ProgramStage programStage = visitor.getProgramStageService().getProgramStage(programStageUid);
 
-        if ( programStage == null )
-        {
-            throw new ParserExceptionWithoutContext( "Program stage " + ctx.uid0.getText() + " not found" );
-        }
-
-        visitor.getItemDescriptions().put( programStageUid, programStage.getDisplayName() );
-
-        return DEFAULT_DATE_VALUE;
+    if (programStage == null) {
+      throw new ParserExceptionWithoutContext("Program stage " + ctx.uid0.getText() + " not found");
     }
 
-    @Override
-    public final Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        ProgramExpressionParams params = visitor.getProgParams();
+    visitor.getItemDescriptions().put(programStageUid, programStage.getDisplayName());
 
-        return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-            ctx.uid0.getText(), "executiondate",
-            params.getReportingStartDate(), params.getReportingEndDate(),
-            params.getProgramIndicator() );
-    }
+    return DEFAULT_DATE_VALUE;
+  }
+
+  @Override
+  public final Object getSql(ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor) {
+    ProgramExpressionParams params = visitor.getProgParams();
+
+    return visitor
+        .getStatementBuilder()
+        .getProgramIndicatorEventColumnSql(
+            ctx.uid0.getText(),
+            "executiondate",
+            params.getReportingStartDate(),
+            params.getReportingEndDate(),
+            params.getProgramIndicator());
+  }
 }

@@ -28,18 +28,15 @@
 package org.hisp.dhis.analytics.common.query;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class RenderableDimensionIdentifier extends BaseRenderable
-{
-    private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
+@RequiredArgsConstructor(staticName = "of")
+public class RenderableDimensionIdentifier extends BaseRenderable {
+  private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
-    @Override
-    public String render()
-    {
-        return dimensionIdentifier.toString();
-    }
+  @Override
+  public String render() {
+    return dimensionIdentifier.toString();
+  }
 }

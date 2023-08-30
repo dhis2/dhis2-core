@@ -30,7 +30,6 @@ package org.hisp.dhis.commons.action;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -40,67 +39,59 @@ import org.hisp.dhis.user.User;
 /**
  * @author mortenoh
  */
-public class GetDataElementGroupSetsAction
-    extends ActionPagingSupport<DataElementGroupSet>
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetDataElementGroupSetsAction extends ActionPagingSupport<DataElementGroupSet> {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private DataElementService dataElementService;
+  private DataElementService dataElementService;
 
-    public void setDataElementService( DataElementService dataElementService )
-    {
-        this.dataElementService = dataElementService;
+  public void setDataElementService(DataElementService dataElementService) {
+    this.dataElementService = dataElementService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Input & Output
+  // -------------------------------------------------------------------------
+
+  private String key;
+
+  public void setKey(String key) {
+    this.key = key;
+  }
+
+  private List<DataElementGroupSet> dataElementGroupSets;
+
+  public List<DataElementGroupSet> getDataElementGroupSets() {
+    return dataElementGroupSets;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() throws Exception {
+    canReadType(DataElementGroupSet.class);
+
+    dataElementGroupSets = new ArrayList<>(dataElementService.getAllDataElementGroupSets());
+
+    if (key != null) {
+      dataElementGroupSets =
+          IdentifiableObjectUtils.filterNameByKey(dataElementGroupSets, key, true);
     }
 
-    // -------------------------------------------------------------------------
-    // Input & Output
-    // -------------------------------------------------------------------------
+    User currentUser = currentUserService.getCurrentUser();
+    dataElementGroupSets.forEach(instance -> canReadInstance(instance, currentUser));
 
-    private String key;
+    Collections.sort(dataElementGroupSets);
 
-    public void setKey( String key )
-    {
-        this.key = key;
+    if (usePaging) {
+      this.paging = createPaging(dataElementGroupSets.size());
+
+      dataElementGroupSets = dataElementGroupSets.subList(paging.getStartPos(), paging.getEndPos());
     }
 
-    private List<DataElementGroupSet> dataElementGroupSets;
-
-    public List<DataElementGroupSet> getDataElementGroupSets()
-    {
-        return dataElementGroupSets;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-        throws Exception
-    {
-        canReadType( DataElementGroupSet.class );
-
-        dataElementGroupSets = new ArrayList<>( dataElementService.getAllDataElementGroupSets() );
-
-        if ( key != null )
-        {
-            dataElementGroupSets = IdentifiableObjectUtils.filterNameByKey( dataElementGroupSets, key, true );
-        }
-
-        User currentUser = currentUserService.getCurrentUser();
-        dataElementGroupSets.forEach( instance -> canReadInstance( instance, currentUser ) );
-
-        Collections.sort( dataElementGroupSets );
-
-        if ( usePaging )
-        {
-            this.paging = createPaging( dataElementGroupSets.size() );
-
-            dataElementGroupSets = dataElementGroupSets.subList( paging.getStartPos(), paging.getEndPos() );
-        }
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

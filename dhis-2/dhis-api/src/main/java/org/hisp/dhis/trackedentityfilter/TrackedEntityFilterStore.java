@@ -28,22 +28,18 @@
 package org.hisp.dhis.trackedentityfilter;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
-public interface TrackedEntityFilterStore
-    extends IdentifiableObjectStore<TrackedEntityFilter>
-{
-    /**
-     * Gets trackedEntityFilters
-     *
-     * @param program program of trackedEntityFilter to be fetched
-     * @return list of trackedEntityFilters
-     */
-    List<TrackedEntityFilter> get( Program program );
+public interface TrackedEntityFilterStore extends IdentifiableObjectStore<TrackedEntityFilter> {
+  /**
+   * Gets trackedEntityFilters
+   *
+   * @param program program of trackedEntityFilter to be fetched
+   * @return list of trackedEntityFilters
+   */
+  List<TrackedEntityFilter> get(Program program);
 }

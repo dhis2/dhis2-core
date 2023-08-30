@@ -31,8 +31,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.google.gson.JsonObject;
 import java.io.File;
-
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
@@ -47,105 +47,96 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class UserAssignmentTests
-    extends TrackerApiTest
-{
-    private static final String programStageId = "l8oDIfJJhtg";
+public class UserAssignmentTests extends TrackerApiTest {
+  private static final String programStageId = "l8oDIfJJhtg";
 
-    private static final String programId = "BJ42SUrAvHo";
+  private static final String programId = "BJ42SUrAvHo";
 
-    private ProgramActions programActions;
+  private ProgramActions programActions;
 
-    private MetadataActions metadataActions;
+  private MetadataActions metadataActions;
 
-    @BeforeAll
-    public void beforeAll()
-    {
-        programActions = new ProgramActions();
-        metadataActions = new MetadataActions();
+  @BeforeAll
+  public void beforeAll() {
+    programActions = new ProgramActions();
+    metadataActions = new MetadataActions();
 
-        loginActions.loginAsSuperUser();
-        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
+    loginActions.loginAsSuperUser();
+    metadataActions.importAndValidateMetadata(
+        new File("src/test/resources/tracker/eventProgram.json"));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"true", "false"})
+  public void shouldImportEventWithUserAssignment(String userAssignmentEnabled) throws Exception {
+    // arrange
+    String loggedInUser = loginActions.getLoggedInUserId();
+
+    programActions.programStageActions.enableUserAssignment(
+        programStageId, Boolean.parseBoolean(userAssignmentEnabled));
+
+    // act
+    String eventId =
+        createEvents(programId, programStageId, loggedInUser).extractImportedEvents().get(0);
+
+    ApiResponse response = trackerImportExportActions.getEvent(eventId);
+    if (!Boolean.parseBoolean(userAssignmentEnabled)) {
+      response.validate().body("assignedUser.username", nullValue());
+
+      return;
     }
 
-    @ParameterizedTest
-    @ValueSource( strings = { "true", "false" } )
-    public void shouldImportEventWithUserAssignment( String userAssignmentEnabled )
-        throws Exception
-    {
-        // arrange
-        String loggedInUser = loginActions.getLoggedInUserId();
+    response.validate().body("assignedUser.uid", equalTo(loggedInUser));
+  }
 
-        programActions.programStageActions.enableUserAssignment( programStageId,
-            Boolean.parseBoolean( userAssignmentEnabled ) );
+  @Test
+  public void shouldRemoveUserAssignment() throws Exception {
+    // arrange
+    String loggedInUser = loginActions.getLoggedInUserId();
 
-        // act
-        String eventId = createEvents( programId, programStageId, loggedInUser )
-            .extractImportedEvents().get( 0 );
+    programActions.programStageActions.enableUserAssignment(programStageId, true);
+    createEvents(programId, programStageId, loggedInUser);
 
-        ApiResponse response = trackerImportExportActions.getEvent( eventId );
-        if ( !Boolean.parseBoolean( userAssignmentEnabled ) )
-        {
-            response.validate()
-                .body( "assignedUser.username", nullValue() );
+    JsonObject eventBody =
+        trackerImportExportActions
+            .get("/events?program=" + programId + "&assignedUserMode=CURRENT&ouMode=ACCESSIBLE")
+            .validateStatus(200)
+            .extractJsonObject("instances[0]");
 
-            return;
-        }
+    assertNotNull(eventBody, "no events matching the query.");
+    String eventId = eventBody.get("event").getAsString();
 
-        response.validate()
-            .body( "assignedUser.uid", equalTo( loggedInUser ) );
-    }
+    // act
+    eventBody.add("assignedUser", null);
 
-    @Test
-    public void shouldRemoveUserAssignment()
-        throws Exception
-    {
-        // arrange
-        String loggedInUser = loginActions.getLoggedInUserId();
+    trackerImportExportActions
+        .postAndGetJobReport(
+            new JsonObjectBuilder(eventBody).wrapIntoArray("events"),
+            new QueryParamsBuilder().addAll("importStrategy=UPDATE"))
+        .validateSuccessfulImport();
 
-        programActions.programStageActions.enableUserAssignment( programStageId, true );
-        createEvents( programId, programStageId, loggedInUser );
+    // assert
 
-        JsonObject eventBody = trackerImportExportActions
-            .get( "/events?program=" + programId + "&assignedUserMode=CURRENT&ouMode=ACCESSIBLE" )
-            .validateStatus( 200 )
-            .extractJsonObject( "instances[0]" );
+    trackerImportExportActions
+        .getEvent(eventId)
+        .validate()
+        .body("assignedUser.username", nullValue());
+  }
 
-        assertNotNull( eventBody, "no events matching the query." );
-        String eventId = eventBody.get( "event" ).getAsString();
+  private TrackerApiResponse createEvents(
+      String programId, String programStageId, String assignedUserId) {
+    JsonObject jsonObject =
+        new EventDataBuilder()
+            .setAssignedUser(assignedUserId)
+            .array(Constants.ORG_UNIT_IDS[0], programId, programStageId);
 
-        // act
-        eventBody.add( "assignedUser", null );
+    TrackerApiResponse eventResponse = trackerImportExportActions.postAndGetJobReport(jsonObject);
 
-        trackerImportExportActions.postAndGetJobReport(
-            new JsonObjectBuilder( eventBody ).wrapIntoArray( "events" ),
-            new QueryParamsBuilder().addAll( "importStrategy=UPDATE" ) )
-            .validateSuccessfulImport();
+    eventResponse.validateSuccessfulImport();
 
-        // assert
-
-        trackerImportExportActions.getEvent( eventId )
-            .validate()
-            .body( "assignedUser.username", nullValue() );
-
-    }
-
-    private TrackerApiResponse createEvents( String programId, String programStageId, String assignedUserId )
-    {
-        JsonObject jsonObject = new EventDataBuilder()
-            .setAssignedUser( assignedUserId )
-            .array( Constants.ORG_UNIT_IDS[0], programId, programStageId );
-
-        TrackerApiResponse eventResponse = trackerImportExportActions.postAndGetJobReport( jsonObject );
-
-        eventResponse.validateSuccessfulImport();
-
-        return eventResponse;
-    }
-
+    return eventResponse;
+  }
 }

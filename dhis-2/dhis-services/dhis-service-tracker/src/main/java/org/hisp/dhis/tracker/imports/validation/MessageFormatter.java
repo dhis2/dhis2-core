@@ -33,7 +33,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -53,108 +52,73 @@ import org.hisp.dhis.util.ObjectUtils;
 /**
  * @author Luciano Fiandesio
  */
-class MessageFormatter
-{
+class MessageFormatter {
 
-    private MessageFormatter()
-    {
-        // not meant to be inherited from
+  private MessageFormatter() {
+    // not meant to be inherited from
+  }
+
+  /**
+   * Creates an interpolated string using given {@code messagePattern} ({@link MessageFormat}) and
+   * {@code arguments}. {@code arguments} are pre-processed to be rendered in a type specific
+   * manner. For example {@link Instant} are displayed in ISO 8601, without any TZ info. Identifiers
+   * for {@link IdentifiableObject} are displayed in the user chosen idScheme ({@code idSchemes}).
+   *
+   * @param idSchemes idSchemes to use when rendering identifiers
+   * @param messagePattern message format pattern
+   * @param arguments arguments representing format elements in the message pattern
+   * @return interpolated string of given message pattern and arguments
+   */
+  protected static String format(
+      TrackerIdSchemeParams idSchemes, String messagePattern, Object... arguments) {
+    List<String> args = formatArguments(idSchemes, arguments);
+    return MessageFormat.format(messagePattern, args.toArray(new Object[0]));
+  }
+
+  protected static List<String> formatArguments(
+      TrackerIdSchemeParams idSchemes, Object... arguments) {
+    List<String> args = new ArrayList<>();
+    for (Object arg : arguments) {
+      args.add(formatArgument(idSchemes, arg));
+    }
+    return args;
+  }
+
+  private static String formatArgument(TrackerIdSchemeParams idSchemes, Object argument) {
+    if (String.class.isAssignableFrom(ObjectUtils.firstNonNull(argument, "NULL").getClass())) {
+      return ObjectUtils.firstNonNull(argument, "NULL").toString();
+    } else if (MetadataIdentifier.class.isAssignableFrom(argument.getClass())) {
+      return ((MetadataIdentifier) argument).getIdentifierOrAttributeValue();
+    } else if (CategoryOptionCombo.class.isAssignableFrom(argument.getClass())) {
+      return getIdAndName(idSchemes.toMetadataIdentifier((CategoryOptionCombo) argument));
+    } else if (CategoryOption.class.isAssignableFrom(argument.getClass())) {
+      return getIdAndName(idSchemes.toMetadataIdentifier((CategoryOption) argument));
+    } else if (DataElement.class.isAssignableFrom(argument.getClass())) {
+      return getIdAndName(idSchemes.toMetadataIdentifier((DataElement) argument));
+    } else if (OrganisationUnit.class.isAssignableFrom(argument.getClass())) {
+      return getIdAndName(idSchemes.toMetadataIdentifier((OrganisationUnit) argument));
+    } else if (Program.class.isAssignableFrom(argument.getClass())) {
+      return getIdAndName(idSchemes.toMetadataIdentifier((Program) argument));
+    } else if (ProgramStage.class.isAssignableFrom(argument.getClass())) {
+      return getIdAndName(idSchemes.toMetadataIdentifier((ProgramStage) argument));
+    } else if (IdentifiableObject.class.isAssignableFrom(argument.getClass())) {
+      return getIdAndName(idSchemes.toMetadataIdentifier((IdentifiableObject) argument));
+    } else if (Date.class.isAssignableFrom(argument.getClass())) {
+      return (DateFormat.getInstance().format(argument));
+    } else if (Instant.class.isAssignableFrom(argument.getClass())) {
+      return DateUtils.getIso8601NoTz(DateUtils.fromInstant((Instant) argument));
+    } else if (Enrollment.class.isAssignableFrom(argument.getClass())) {
+      return ((Enrollment) argument).getEnrollment();
+    } else if (Event.class.isAssignableFrom(argument.getClass())) {
+      return ((Event) argument).getEvent();
+    } else if (TrackedEntity.class.isAssignableFrom(argument.getClass())) {
+      return ((TrackedEntity) argument).getTrackedEntity();
     }
 
-    /**
-     * Creates an interpolated string using given {@code messagePattern}
-     * ({@link MessageFormat}) and {@code arguments}. {@code arguments} are
-     * pre-processed to be rendered in a type specific manner. For example
-     * {@link Instant} are displayed in ISO 8601, without any TZ info.
-     * Identifiers for {@link IdentifiableObject} are displayed in the user
-     * chosen idScheme ({@code idSchemes}).
-     *
-     * @param idSchemes idSchemes to use when rendering identifiers
-     * @param messagePattern message format pattern
-     * @param arguments arguments representing format elements in the message
-     *        pattern
-     * @return interpolated string of given message pattern and arguments
-     */
-    protected static String format( TrackerIdSchemeParams idSchemes, String messagePattern, Object... arguments )
-    {
-        List<String> args = formatArguments( idSchemes, arguments );
-        return MessageFormat.format( messagePattern, args.toArray( new Object[0] ) );
-    }
+    return StringUtils.EMPTY;
+  }
 
-    protected static List<String> formatArguments( TrackerIdSchemeParams idSchemes, Object... arguments )
-    {
-        List<String> args = new ArrayList<>();
-        for ( Object arg : arguments )
-        {
-            args.add( formatArgument( idSchemes, arg ) );
-        }
-        return args;
-    }
-
-    private static String formatArgument( TrackerIdSchemeParams idSchemes, Object argument )
-    {
-        if ( String.class.isAssignableFrom( ObjectUtils.firstNonNull( argument, "NULL" ).getClass() ) )
-        {
-            return ObjectUtils.firstNonNull( argument, "NULL" ).toString();
-        }
-        else if ( MetadataIdentifier.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return ((MetadataIdentifier) argument).getIdentifierOrAttributeValue();
-        }
-        else if ( CategoryOptionCombo.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return getIdAndName( idSchemes.toMetadataIdentifier( (CategoryOptionCombo) argument ) );
-        }
-        else if ( CategoryOption.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return getIdAndName( idSchemes.toMetadataIdentifier( (CategoryOption) argument ) );
-        }
-        else if ( DataElement.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return getIdAndName( idSchemes.toMetadataIdentifier( (DataElement) argument ) );
-        }
-        else if ( OrganisationUnit.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return getIdAndName( idSchemes.toMetadataIdentifier( (OrganisationUnit) argument ) );
-        }
-        else if ( Program.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return getIdAndName( idSchemes.toMetadataIdentifier( (Program) argument ) );
-        }
-        else if ( ProgramStage.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return getIdAndName( idSchemes.toMetadataIdentifier( (ProgramStage) argument ) );
-        }
-        else if ( IdentifiableObject.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return getIdAndName( idSchemes.toMetadataIdentifier( (IdentifiableObject) argument ) );
-        }
-        else if ( Date.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return (DateFormat.getInstance().format( argument ));
-        }
-        else if ( Instant.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return DateUtils.getIso8601NoTz( DateUtils.fromInstant( (Instant) argument ) );
-        }
-        else if ( Enrollment.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return ((Enrollment) argument).getEnrollment();
-        }
-        else if ( Event.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return ((Event) argument).getEvent();
-        }
-        else if ( TrackedEntity.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return ((TrackedEntity) argument).getTrackedEntity();
-        }
-
-        return StringUtils.EMPTY;
-    }
-
-    private static String getIdAndName( MetadataIdentifier identifier )
-    {
-        return identifier.getIdentifierOrAttributeValue();
-    }
+  private static String getIdAndName(MetadataIdentifier identifier) {
+    return identifier.getIdentifierOrAttributeValue();
+  }
 }

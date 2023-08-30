@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
 import java.util.List;
-
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -39,31 +38,22 @@ import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
 import org.springframework.stereotype.Service;
 
-/**
- * This class is responsible for building the limit and offset part of the main
- * SQL.
- */
+/** This class is responsible for building the limit and offset part of the main SQL. */
 @Service
-public class LimitOffsetQueryBuilder implements SqlQueryBuilder
-{
-    @Override
-    public RenderableSqlQuery buildSqlQuery(
-        QueryContext queryContext,
-        List<DimensionIdentifier<DimensionParam>> unusedOne,
-        List<AnalyticsSortingParams> unusedTwo )
-    {
-        AnalyticsPagingParams pagingParams = queryContext.getTeiQueryParams()
-            .getCommonParams()
-            .getPagingParams();
+public class LimitOffsetQueryBuilder implements SqlQueryBuilder {
+  @Override
+  public RenderableSqlQuery buildSqlQuery(
+      QueryContext queryContext,
+      List<DimensionIdentifier<DimensionParam>> unusedOne,
+      List<AnalyticsSortingParams> unusedTwo) {
+    AnalyticsPagingParams pagingParams =
+        queryContext.getTeiQueryParams().getCommonParams().getPagingParams();
 
-        return RenderableSqlQuery.builder()
-            .limitOffset( LimitOffset.of( pagingParams ) )
-            .build();
-    }
+    return RenderableSqlQuery.builder().limitOffset(LimitOffset.of(pagingParams)).build();
+  }
 
-    @Override
-    public boolean alwaysRun()
-    {
-        return true;
-    }
+  @Override
+  public boolean alwaysRun() {
+    return true;
+  }
 }

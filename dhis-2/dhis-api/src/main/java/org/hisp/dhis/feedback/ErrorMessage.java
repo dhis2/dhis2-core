@@ -27,50 +27,44 @@
  */
 package org.hisp.dhis.feedback;
 
-import java.text.MessageFormat;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.text.MessageFormat;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ErrorMessage
-{
-    private final ErrorCode errorCode;
+public class ErrorMessage {
+  private final ErrorCode errorCode;
 
-    private final Object[] args;
+  private final Object[] args;
 
-    private final String message;
+  private final String message;
 
-    public ErrorMessage( ErrorCode errorCode, Object... args )
-    {
-        this.errorCode = errorCode;
-        this.args = args;
-        this.message = MessageFormat.format( errorCode.getMessage(), this.args );
-    }
+  public ErrorMessage(ErrorCode errorCode, Object... args) {
+    this.errorCode = errorCode;
+    this.args = args;
+    this.message = MessageFormat.format(errorCode.getMessage(), this.args);
+  }
 
-    @JsonCreator
-    public ErrorMessage( @JsonProperty( "message" ) String message, @JsonProperty( "errorCode" ) ErrorCode errorCode )
-    {
-        this.errorCode = errorCode;
-        this.args = null;
-        this.message = message;
-    }
+  @JsonCreator
+  public ErrorMessage(
+      @JsonProperty("message") String message, @JsonProperty("errorCode") ErrorCode errorCode) {
+    this.errorCode = errorCode;
+    this.args = null;
+    this.message = message;
+  }
 
-    public ErrorCode getErrorCode()
-    {
-        return errorCode;
-    }
+  public ErrorCode getErrorCode() {
+    return errorCode;
+  }
 
-    public String getMessage()
-    {
-        return message;
-    }
+  public String getMessage() {
+    return message;
+  }
 
-    @Override
-    public String toString()
-    {
-        return String.format( "[%s: '%s']", errorCode.name(), message );
-    }
+  @Override
+  public String toString() {
+    return String.format("[%s: '%s']", errorCode.name(), message);
+  }
 }

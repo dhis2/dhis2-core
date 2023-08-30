@@ -36,10 +36,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( "metadata" )
+@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping( value = DataEntryFormSchemaDescriptor.API_ENDPOINT )
-public class DataEntryFormController
-    extends AbstractCrudController<DataEntryForm>
-{
-}
+@RequestMapping(value = DataEntryFormSchemaDescriptor.API_ENDPOINT)
+public class DataEntryFormController extends AbstractCrudController<DataEntryForm> {}

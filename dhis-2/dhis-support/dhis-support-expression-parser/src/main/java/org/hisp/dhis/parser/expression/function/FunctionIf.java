@@ -57,44 +57,39 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class FunctionIf
-    implements ExpressionItem
-{
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        Boolean arg0 = visitor.castBooleanVisit( ctx.expr( 0 ) );
+public class FunctionIf implements ExpressionItem {
+  @Override
+  public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
+    Boolean arg0 = visitor.castBooleanVisit(ctx.expr(0));
 
-        if ( arg0 == null )
-        {
-            return null;
-        }
-
-        return (arg0)
-            ? visitor.visit( ctx.expr( 1 ) )
-            : visitor.visit( ctx.expr( 2 ) );
+    if (arg0 == null) {
+      return null;
     }
 
-    @Override
-    public Object evaluateAllPaths( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        Boolean arg0 = visitor.castBooleanVisit( ctx.expr( 0 ) );
-        Object arg1 = visitor.visit( ctx.expr( 1 ) );
-        Object arg2 = visitor.visit( ctx.expr( 2 ) );
+    return (arg0) ? visitor.visit(ctx.expr(1)) : visitor.visit(ctx.expr(2));
+  }
 
-        if ( arg1 != null )
-        {
-            castClass( arg1.getClass(), arg2 );
-        }
+  @Override
+  public Object evaluateAllPaths(ExprContext ctx, CommonExpressionVisitor visitor) {
+    Boolean arg0 = visitor.castBooleanVisit(ctx.expr(0));
+    Object arg1 = visitor.visit(ctx.expr(1));
+    Object arg2 = visitor.visit(ctx.expr(2));
 
-        return arg0 != null && arg0 ? arg1 : arg2;
+    if (arg1 != null) {
+      castClass(arg1.getClass(), arg2);
     }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return " case when " + visitor.sqlBooleanVisit( ctx.expr( 0 ) ) +
-            " then " + visitor.castStringVisit( ctx.expr( 1 ) ) +
-            " else " + visitor.castStringVisit( ctx.expr( 2 ) ) + " end";
-    }
+    return arg0 != null && arg0 ? arg1 : arg2;
+  }
+
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return " case when "
+        + visitor.sqlBooleanVisit(ctx.expr(0))
+        + " then "
+        + visitor.castStringVisit(ctx.expr(1))
+        + " else "
+        + visitor.castStringVisit(ctx.expr(2))
+        + " end";
+  }
 }

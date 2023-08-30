@@ -29,6 +29,7 @@ package org.hisp.dhis.metadata.programs;
 
 import static org.hamcrest.Matchers.*;
 
+import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
@@ -39,63 +40,62 @@ import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ProgramStagesTest
-    extends ApiTest
-{
-    private LoginActions loginActions;
+public class ProgramStagesTest extends ApiTest {
+  private LoginActions loginActions;
 
-    private ProgramActions programActions;
+  private ProgramActions programActions;
 
-    private RestApiActions programStageActions;
+  private RestApiActions programStageActions;
 
-    private String programId;
+  private String programId;
 
-    private String programStageId;
+  private String programStageId;
 
-    @BeforeAll
-    public void beforeAll()
-    {
-        loginActions = new LoginActions();
-        programActions = new ProgramActions();
-        programStageActions = programActions.programStageActions;
+  @BeforeAll
+  public void beforeAll() {
+    loginActions = new LoginActions();
+    programActions = new ProgramActions();
+    programStageActions = programActions.programStageActions;
 
-        loginActions.loginAsSuperUser();
-        programId = programActions.createTrackerProgram( null ).extractUid();
-        programStageId = programActions.createProgramStage( programId, "Tracker program stage 1" );
-    }
+    loginActions.loginAsSuperUser();
+    programId = programActions.createTrackerProgram(null).extractUid();
+    programStageId = programActions.createProgramStage(programId, "Tracker program stage 1");
+  }
 
-    @Test
-    public void shouldAddProgramStageToProgram()
-    {
-        // arrange
+  @Test
+  public void shouldAddProgramStageToProgram() {
+    // arrange
 
-        JsonObject programBody = programActions.get( programId ).getBodyAsJsonBuilder()
-            .addArray( "programStages", new JsonObjectBuilder()
-                .addProperty( "id", programStageId )
-                .build() )
+    JsonObject programBody =
+        programActions
+            .get(programId)
+            .getBodyAsJsonBuilder()
+            .addArray(
+                "programStages", new JsonObjectBuilder().addProperty("id", programStageId).build())
             .build();
 
-        // act
-        ApiResponse response = programActions.update( programId, programBody );
+    // act
+    ApiResponse response = programActions.update(programId, programBody);
 
-        // assert
-        ResponseValidationHelper.validateObjectUpdate( response, 200 );
+    // assert
+    ResponseValidationHelper.validateObjectUpdate(response, 200);
 
-        response = programActions.get( programId );
-        response.validate().statusCode( 200 )
-            .body( "programStages", not( emptyArray() ) )
-            .body( "programStages.id", not( emptyArray() ) )
-            .body( "programStages.id", hasItem( programStageId ) );
+    response = programActions.get(programId);
+    response
+        .validate()
+        .statusCode(200)
+        .body("programStages", not(emptyArray()))
+        .body("programStages.id", not(emptyArray()))
+        .body("programStages.id", hasItem(programStageId));
 
-        response = programStageActions.get( programStageId );
-        response.validate().statusCode( 200 )
-            .body( "program", notNullValue() )
-            .body( "program.id", equalTo( programId ) );
-
-    }
+    response = programStageActions.get(programStageId);
+    response
+        .validate()
+        .statusCode(200)
+        .body("program", notNullValue())
+        .body("program.id", equalTo(programId));
+  }
 }

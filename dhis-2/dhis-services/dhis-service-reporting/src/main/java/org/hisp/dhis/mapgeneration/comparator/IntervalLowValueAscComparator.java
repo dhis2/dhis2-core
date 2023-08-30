@@ -28,20 +28,16 @@
 package org.hisp.dhis.mapgeneration.comparator;
 
 import java.util.Comparator;
-
 import org.hisp.dhis.mapgeneration.Interval;
 
 /**
  * @author Lars Helge Overland
  */
-public class IntervalLowValueAscComparator
-    implements Comparator<Interval>
-{
-    public static final IntervalLowValueAscComparator INSTANCE = new IntervalLowValueAscComparator();
+public class IntervalLowValueAscComparator implements Comparator<Interval> {
+  public static final IntervalLowValueAscComparator INSTANCE = new IntervalLowValueAscComparator();
 
-    @Override
-    public int compare( Interval i1, Interval i2 )
-    {
-        return new Double( i1.getValueLow() ).compareTo( new Double( i2.getValueLow() ) );
-    }
+  @Override
+  public int compare(Interval i1, Interval i2) {
+    return new Double(i1.getValueLow()).compareTo(new Double(i2.getValueLow()));
+  }
 }

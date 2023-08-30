@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.validation;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
 import java.util.Optional;
-
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.Checker;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.ImmutableEvent;
@@ -44,22 +43,22 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class TrackedEntityInstanceCheck implements Checker
-{
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
-    {
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
-        final Optional<TrackedEntity> trackedEntityInstance = ctx.getTrackedEntityInstance( event.getUid() );
+public class TrackedEntityInstanceCheck implements Checker {
+  @Override
+  public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
+    Program program = ctx.getProgramsMap().get(event.getProgram());
+    final Optional<TrackedEntity> trackedEntityInstance =
+        ctx.getTrackedEntityInstance(event.getUid());
 
-        if ( program.isRegistration() && !trackedEntityInstance.isPresent() )
-        {
-            return new ImportSummary( ImportStatus.ERROR,
-                "Event.trackedEntityInstance does not point to a valid tracked entity instance: "
-                    + event.getTrackedEntityInstance() )
-                .setReference( event.getEvent() ).incrementIgnored();
-        }
-
-        return success();
+    if (program.isRegistration() && !trackedEntityInstance.isPresent()) {
+      return new ImportSummary(
+              ImportStatus.ERROR,
+              "Event.trackedEntityInstance does not point to a valid tracked entity instance: "
+                  + event.getTrackedEntityInstance())
+          .setReference(event.getEvent())
+          .incrementIgnored();
     }
+
+    return success();
+  }
 }

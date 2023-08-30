@@ -29,13 +29,11 @@ package org.hisp.dhis.webapi.controller.deduplication;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
 import java.util.Optional;
-
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -72,214 +70,195 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-@OpenApi.Tags( "tracker" )
+@OpenApi.Tags("tracker")
 @RestController
-@RequestMapping( value = "/potentialDuplicates" )
-@ApiVersion( include = { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )
+@RequestMapping(value = "/potentialDuplicates")
+@ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
 @RequiredArgsConstructor
-public class DeduplicationController
-{
-    private final DeduplicationService deduplicationService;
+public class DeduplicationController {
+  private final DeduplicationService deduplicationService;
 
-    private final TrackedEntityService trackedEntityService;
+  private final TrackedEntityService trackedEntityService;
 
-    private final TrackerAccessManager trackerAccessManager;
+  private final TrackerAccessManager trackerAccessManager;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    private final FieldFilterService fieldFilterService;
+  private final FieldFilterService fieldFilterService;
 
-    private static final String DEFAULT_FIELDS_PARAM = "created, lastUpdated, original, duplicate, status";
+  private static final String DEFAULT_FIELDS_PARAM =
+      "created, lastUpdated, original, duplicate, status";
 
-    @OpenApi.Response( PotentialDuplicate[].class )
-    @GetMapping
-    public PagingWrapper<ObjectNode> getPotentialDuplicates(
-        PotentialDuplicateCriteria potentialDuplicateCriteria,
-        HttpServletResponse response,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
-    {
-        PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>( "potentialDuplicates" );
+  @OpenApi.Response(PotentialDuplicate[].class)
+  @GetMapping
+  public PagingWrapper<ObjectNode> getPotentialDuplicates(
+      PotentialDuplicateCriteria potentialDuplicateCriteria,
+      HttpServletResponse response,
+      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields) {
+    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>("potentialDuplicates");
 
-        if ( potentialDuplicateCriteria.isPagingRequest() )
-        {
-            pagingWrapper = pagingWrapper.withPager(
-                PagingWrapper.Pager.builder()
-                    .page( potentialDuplicateCriteria.getPage() )
-                    .pageSize( potentialDuplicateCriteria.getPageSize() )
-                    .build() );
-        }
-
-        List<PotentialDuplicate> potentialDuplicates = deduplicationService
-            .getPotentialDuplicates( potentialDuplicateCriteria );
-
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( potentialDuplicates, fields );
-
-        setNoStore( response );
-
-        return pagingWrapper.withInstances( objectNodes );
+    if (potentialDuplicateCriteria.isPagingRequest()) {
+      pagingWrapper =
+          pagingWrapper.withPager(
+              PagingWrapper.Pager.builder()
+                  .page(potentialDuplicateCriteria.getPage())
+                  .pageSize(potentialDuplicateCriteria.getPageSize())
+                  .build());
     }
 
-    @GetMapping( value = "/{id}" )
-    public PotentialDuplicate getPotentialDuplicateById(
-        @PathVariable String id )
-        throws NotFoundException,
-        HttpStatusCodeException
-    {
-        return getPotentialDuplicateBy( id );
+    List<PotentialDuplicate> potentialDuplicates =
+        deduplicationService.getPotentialDuplicates(potentialDuplicateCriteria);
+
+    List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(potentialDuplicates, fields);
+
+    setNoStore(response);
+
+    return pagingWrapper.withInstances(objectNodes);
+  }
+
+  @GetMapping(value = "/{id}")
+  public PotentialDuplicate getPotentialDuplicateById(@PathVariable String id)
+      throws NotFoundException, HttpStatusCodeException {
+    return getPotentialDuplicateBy(id);
+  }
+
+  @PostMapping
+  @ResponseStatus(value = HttpStatus.OK)
+  public PotentialDuplicate postPotentialDuplicate(
+      @RequestBody PotentialDuplicate potentialDuplicate)
+      throws ForbiddenException,
+          ConflictException,
+          NotFoundException,
+          BadRequestException,
+          PotentialDuplicateConflictException {
+    validatePotentialDuplicate(potentialDuplicate);
+    deduplicationService.addPotentialDuplicate(potentialDuplicate);
+    return potentialDuplicate;
+  }
+
+  @PutMapping(value = "/{id}")
+  @ResponseStatus(value = HttpStatus.OK)
+  public void updatePotentialDuplicate(
+      @PathVariable String id, @RequestParam(value = "status") DeduplicationStatus status)
+      throws NotFoundException, BadRequestException {
+    PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy(id);
+
+    checkDbAndRequestStatus(potentialDuplicate, status);
+
+    potentialDuplicate.setStatus(status);
+    deduplicationService.updatePotentialDuplicate(potentialDuplicate);
+  }
+
+  @PostMapping(value = "/{id}/merge")
+  @ResponseStatus(value = HttpStatus.OK)
+  public void mergePotentialDuplicate(
+      @PathVariable String id,
+      @RequestParam(defaultValue = "AUTO") MergeStrategy mergeStrategy,
+      @RequestBody(required = false) MergeObject mergeObject)
+      throws NotFoundException,
+          PotentialDuplicateConflictException,
+          PotentialDuplicateForbiddenException {
+    PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy(id);
+
+    if (potentialDuplicate.getOriginal() == null || potentialDuplicate.getDuplicate() == null) {
+      throw new PotentialDuplicateConflictException(
+          "PotentialDuplicate is missing references and cannot be merged.");
     }
 
-    @PostMapping
-    @ResponseStatus( value = HttpStatus.OK )
-    public PotentialDuplicate postPotentialDuplicate(
-        @RequestBody PotentialDuplicate potentialDuplicate )
-        throws ForbiddenException,
-        ConflictException,
-        NotFoundException,
-        BadRequestException,
-        PotentialDuplicateConflictException
-    {
-        validatePotentialDuplicate( potentialDuplicate );
-        deduplicationService.addPotentialDuplicate( potentialDuplicate );
-        return potentialDuplicate;
+    TrackedEntity original = getTei(potentialDuplicate.getOriginal());
+    TrackedEntity duplicate = getTei(potentialDuplicate.getDuplicate());
+
+    if (mergeObject == null) {
+      mergeObject = new MergeObject();
     }
 
-    @PutMapping( value = "/{id}" )
-    @ResponseStatus( value = HttpStatus.OK )
-    public void updatePotentialDuplicate( @PathVariable String id,
-        @RequestParam( value = "status" ) DeduplicationStatus status )
-        throws NotFoundException,
-        BadRequestException
-    {
-        PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
-
-        checkDbAndRequestStatus( potentialDuplicate, status );
-
-        potentialDuplicate.setStatus( status );
-        deduplicationService.updatePotentialDuplicate( potentialDuplicate );
-    }
-
-    @PostMapping( value = "/{id}/merge" )
-    @ResponseStatus( value = HttpStatus.OK )
-    public void mergePotentialDuplicate(
-        @PathVariable String id,
-        @RequestParam( defaultValue = "AUTO" ) MergeStrategy mergeStrategy,
-        @RequestBody( required = false ) MergeObject mergeObject )
-        throws NotFoundException,
-        PotentialDuplicateConflictException,
-        PotentialDuplicateForbiddenException
-    {
-        PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
-
-        if ( potentialDuplicate.getOriginal() == null || potentialDuplicate.getDuplicate() == null )
-        {
-            throw new PotentialDuplicateConflictException(
-                "PotentialDuplicate is missing references and cannot be merged." );
-        }
-
-        TrackedEntity original = getTei( potentialDuplicate.getOriginal() );
-        TrackedEntity duplicate = getTei( potentialDuplicate.getDuplicate() );
-
-        if ( mergeObject == null )
-        {
-            mergeObject = new MergeObject();
-        }
-
-        DeduplicationMergeParams params = DeduplicationMergeParams.builder()
-            .potentialDuplicate( potentialDuplicate )
-            .mergeObject( mergeObject )
-            .original( original )
-            .duplicate( duplicate )
+    DeduplicationMergeParams params =
+        DeduplicationMergeParams.builder()
+            .potentialDuplicate(potentialDuplicate)
+            .mergeObject(mergeObject)
+            .original(original)
+            .duplicate(duplicate)
             .build();
 
-        if ( MergeStrategy.MANUAL.equals( mergeStrategy ) )
-        {
-            deduplicationService.manualMerge( params );
-        }
-        else
-        {
-            deduplicationService.autoMerge( params );
-        }
+    if (MergeStrategy.MANUAL.equals(mergeStrategy)) {
+      deduplicationService.manualMerge(params);
+    } else {
+      deduplicationService.autoMerge(params);
+    }
+  }
+
+  private void checkDbAndRequestStatus(
+      PotentialDuplicate potentialDuplicate, DeduplicationStatus deduplicationStatus)
+      throws BadRequestException {
+    if (deduplicationStatus == DeduplicationStatus.MERGED)
+      throw new BadRequestException(
+          "Can't update a potential duplicate to " + DeduplicationStatus.MERGED.name());
+    if (potentialDuplicate.getStatus() == DeduplicationStatus.MERGED)
+      throw new BadRequestException(
+          "Can't update a potential duplicate that is already "
+              + DeduplicationStatus.MERGED.name());
+  }
+
+  private PotentialDuplicate getPotentialDuplicateBy(String id) throws NotFoundException {
+    return Optional.ofNullable(deduplicationService.getPotentialDuplicateByUid(id))
+        .orElseThrow(
+            () ->
+                new NotFoundException("No potentialDuplicate records found with id '" + id + "'."));
+  }
+
+  private void validatePotentialDuplicate(PotentialDuplicate potentialDuplicate)
+      throws ForbiddenException,
+          ConflictException,
+          NotFoundException,
+          BadRequestException,
+          PotentialDuplicateConflictException {
+    checkValidTei(potentialDuplicate.getOriginal(), "original");
+
+    checkValidTei(potentialDuplicate.getDuplicate(), "duplicate");
+
+    canReadTei(getTei(potentialDuplicate.getOriginal()));
+
+    canReadTei(getTei(potentialDuplicate.getDuplicate()));
+
+    checkAlreadyExistingDuplicate(potentialDuplicate);
+  }
+
+  private void checkAlreadyExistingDuplicate(PotentialDuplicate potentialDuplicate)
+      throws ConflictException, PotentialDuplicateConflictException {
+    if (deduplicationService.exists(potentialDuplicate)) {
+      throw new ConflictException(
+          "'"
+              + potentialDuplicate.getOriginal()
+              + "' "
+              + "and '"
+              + potentialDuplicate.getDuplicate()
+              + " is already marked as a potential duplicate");
+    }
+  }
+
+  private void checkValidTei(String tei, String teiFieldName) throws BadRequestException {
+    if (tei == null) {
+      throw new BadRequestException("Missing required input property '" + teiFieldName + "'");
     }
 
-    private void checkDbAndRequestStatus( PotentialDuplicate potentialDuplicate,
-        DeduplicationStatus deduplicationStatus )
-        throws BadRequestException
-    {
-        if ( deduplicationStatus == DeduplicationStatus.MERGED )
-            throw new BadRequestException(
-                "Can't update a potential duplicate to " + DeduplicationStatus.MERGED.name() );
-        if ( potentialDuplicate.getStatus() == DeduplicationStatus.MERGED )
-            throw new BadRequestException( "Can't update a potential duplicate that is already "
-                + DeduplicationStatus.MERGED.name() );
+    if (!CodeGenerator.isValidUid(tei)) {
+      throw new BadRequestException(
+          "'" + tei + "' is not valid value for property '" + teiFieldName + "'");
     }
+  }
 
-    private PotentialDuplicate getPotentialDuplicateBy( String id )
-        throws NotFoundException
-    {
-        return Optional.ofNullable( deduplicationService.getPotentialDuplicateByUid( id ) ).orElseThrow(
-            () -> new NotFoundException( "No potentialDuplicate records found with id '" + id + "'." ) );
+  private TrackedEntity getTei(String tei) throws NotFoundException {
+    return Optional.ofNullable(trackedEntityService.getTrackedEntity(tei))
+        .orElseThrow(
+            () -> new NotFoundException("No tracked entity instance found with id '" + tei + "'."));
+  }
+
+  private void canReadTei(TrackedEntity trackedEntity) throws ForbiddenException {
+    if (!trackerAccessManager
+        .canRead(currentUserService.getCurrentUser(), trackedEntity)
+        .isEmpty()) {
+      throw new ForbiddenException(
+          "You don't have read access to '" + trackedEntity.getUid() + "'.");
     }
-
-    private void validatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
-        throws ForbiddenException,
-        ConflictException,
-        NotFoundException,
-        BadRequestException,
-        PotentialDuplicateConflictException
-    {
-        checkValidTei( potentialDuplicate.getOriginal(), "original" );
-
-        checkValidTei( potentialDuplicate.getDuplicate(), "duplicate" );
-
-        canReadTei( getTei( potentialDuplicate.getOriginal() ) );
-
-        canReadTei( getTei( potentialDuplicate.getDuplicate() ) );
-
-        checkAlreadyExistingDuplicate( potentialDuplicate );
-    }
-
-    private void checkAlreadyExistingDuplicate( PotentialDuplicate potentialDuplicate )
-        throws ConflictException,
-        PotentialDuplicateConflictException
-    {
-        if ( deduplicationService.exists( potentialDuplicate ) )
-        {
-            throw new ConflictException( "'" + potentialDuplicate.getOriginal() + "' " + "and '"
-                + potentialDuplicate.getDuplicate() + " is already marked as a potential duplicate" );
-        }
-    }
-
-    private void checkValidTei( String tei, String teiFieldName )
-        throws BadRequestException
-    {
-        if ( tei == null )
-        {
-            throw new BadRequestException( "Missing required input property '" + teiFieldName + "'" );
-        }
-
-        if ( !CodeGenerator.isValidUid( tei ) )
-        {
-            throw new BadRequestException( "'" + tei + "' is not valid value for property '" + teiFieldName + "'" );
-        }
-    }
-
-    private TrackedEntity getTei( String tei )
-        throws NotFoundException
-    {
-        return Optional.ofNullable( trackedEntityService
-            .getTrackedEntity( tei ) )
-            .orElseThrow( () -> new NotFoundException( "No tracked entity instance found with id '" + tei + "'." ) );
-    }
-
-    private void canReadTei( TrackedEntity trackedEntity )
-        throws ForbiddenException
-    {
-        if ( !trackerAccessManager.canRead( currentUserService.getCurrentUser(), trackedEntity ).isEmpty() )
-        {
-            throw new ForbiddenException(
-                "You don't have read access to '" + trackedEntity.getUid() + "'." );
-        }
-    }
+  }
 }

@@ -39,17 +39,11 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
  *
  * @author Jim Grace
  */
-public class DimItemProgramAttribute
-    extends DimensionalItem
-{
-    @Override
-    public DimensionalItemId getDimensionalItemId( ExprContext ctx,
-        CommonExpressionVisitor visitor )
-    {
-        assumeExpressionProgramAttribute( ctx );
+public class DimItemProgramAttribute extends DimensionalItem {
+  @Override
+  public DimensionalItemId getDimensionalItemId(ExprContext ctx, CommonExpressionVisitor visitor) {
+    assumeExpressionProgramAttribute(ctx);
 
-        return new DimensionalItemId( PROGRAM_ATTRIBUTE,
-            ctx.uid0.getText(),
-            ctx.uid1.getText() );
-    }
+    return new DimensionalItemId(PROGRAM_ATTRIBUTE, ctx.uid0.getText(), ctx.uid1.getText());
+  }
 }

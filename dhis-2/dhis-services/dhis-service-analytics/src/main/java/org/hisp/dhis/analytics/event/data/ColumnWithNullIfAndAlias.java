@@ -30,49 +30,42 @@ package org.hisp.dhis.analytics.event.data;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * The class responsibility is to generate sql statement with nullif function
- * like nullif(ax.\"w75KJ2mc4zz\",'') as \"w75KJ2mc4zz\"
+ * The class responsibility is to generate sql statement with nullif function like
+ * nullif(ax.\"w75KJ2mc4zz\",'') as \"w75KJ2mc4zz\"
  */
-final class ColumnWithNullIfAndAlias extends ColumnAndAlias
-{
-    /**
-     * private constructor
-     *
-     * @param column db table column name.
-     * @param alias db table column alias name.
-     */
-    private ColumnWithNullIfAndAlias( String column, String alias )
-    {
-        super( column, alias );
-    }
+final class ColumnWithNullIfAndAlias extends ColumnAndAlias {
+  /**
+   * private constructor
+   *
+   * @param column db table column name.
+   * @param alias db table column alias name.
+   */
+  private ColumnWithNullIfAndAlias(String column, String alias) {
+    super(column, alias);
+  }
 
-    /**
-     * Builder method to create an instance of this class.
-     *
-     * @param column db table column name.
-     * @param alias db table column alias name.
-     * @return ColumnWithNullIfAndAlias instance.
-     */
-    static ColumnWithNullIfAndAlias ofColumnWithNullIfAndAlias( String column, String alias )
-    {
-        return new ColumnWithNullIfAndAlias( column, alias );
-    }
+  /**
+   * Builder method to create an instance of this class.
+   *
+   * @param column db table column name.
+   * @param alias db table column alias name.
+   * @return ColumnWithNullIfAndAlias instance.
+   */
+  static ColumnWithNullIfAndAlias ofColumnWithNullIfAndAlias(String column, String alias) {
+    return new ColumnWithNullIfAndAlias(column, alias);
+  }
 
-    /**
-     * Generate sql snippet with nullif function.
-     *
-     * @return sql snippet with nullif.
-     */
-    @Override
-    public String asSql()
-    {
-        if ( StringUtils.isNotEmpty( alias ) )
-        {
-            return String.join( " as ", "nullif(" + column + ",'')", getQuotedAlias() );
-        }
-        else
-        {
-            return column;
-        }
+  /**
+   * Generate sql snippet with nullif function.
+   *
+   * @return sql snippet with nullif.
+   */
+  @Override
+  public String asSql() {
+    if (StringUtils.isNotEmpty(alias)) {
+      return String.join(" as ", "nullif(" + column + ",'')", getQuotedAlias());
+    } else {
+      return column;
     }
+  }
 }

@@ -32,16 +32,14 @@ import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class NotEqConditionRenderer extends BaseRenderable
-{
-    private final Renderable left;
+@RequiredArgsConstructor(staticName = "of")
+public class NotEqConditionRenderer extends BaseRenderable {
+  private final Renderable left;
 
-    private final Renderable right;
+  private final Renderable right;
 
-    @Override
-    public String render()
-    {
-        return left.render() + SPACE + NEQ.getValue() + SPACE + right.render();
-    }
+  @Override
+  public String render() {
+    return left.render() + SPACE + NEQ.getValue() + SPACE + right.render();
+  }
 }

@@ -28,33 +28,26 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import java.util.List;
-
 import lombok.Value;
-
 import org.hisp.dhis.common.OpenApi;
 
-/**
- * OpenAPI specifications used across tracker export endpoints.
- */
-public class OpenApiExport
-{
-    private OpenApiExport()
-    {
-        throw new IllegalStateException( "Utility class" );
-    }
+/** OpenAPI specifications used across tracker export endpoints. */
+public class OpenApiExport {
+  private OpenApiExport() {
+    throw new IllegalStateException("Utility class");
+  }
 
-    @Value
-    @OpenApi.Property
-    @OpenApi.Shared( value = false )
-    public static class ListResponse
-    {
-        Integer page = 1;
+  @Value
+  @OpenApi.Property
+  @OpenApi.Shared(value = false)
+  public static class ListResponse {
+    Integer page = 1;
 
-        Integer pageSize = org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
+    Integer pageSize = org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 
-        Long total;
+    Long total;
 
-        @OpenApi.Property( value = OpenApi.EntityType[].class )
-        List<Object> instances;
-    }
+    @OpenApi.Property(value = OpenApi.EntityType[].class)
+    List<Object> instances;
+  }
 }

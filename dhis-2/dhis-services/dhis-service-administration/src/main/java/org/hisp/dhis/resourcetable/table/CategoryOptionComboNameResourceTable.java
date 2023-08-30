@@ -29,88 +29,77 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
 @Slf4j
-public class CategoryOptionComboNameResourceTable
-    extends ResourceTable<CategoryCombo>
-{
-    private final String tableType;
+public class CategoryOptionComboNameResourceTable extends ResourceTable<CategoryCombo> {
+  private final String tableType;
 
-    public CategoryOptionComboNameResourceTable( List<CategoryCombo> objects, String tableType )
-    {
-        super( objects );
-        this.tableType = tableType;
+  public CategoryOptionComboNameResourceTable(List<CategoryCombo> objects, String tableType) {
+    super(objects);
+    this.tableType = tableType;
+  }
+
+  @Override
+  public ResourceTableType getTableType() {
+    return ResourceTableType.CATEGORY_OPTION_COMBO_NAME;
+  }
+
+  @Override
+  public String getCreateTempTableStatement() {
+    return "create "
+        + tableType
+        + " table "
+        + getTempTableName()
+        + " (categoryoptioncomboid bigint not null primary key, "
+        + "categoryoptioncomboname varchar(255), approvallevel integer, "
+        + "startdate date, enddate date)";
+  }
+
+  @Override
+  public Optional<String> getPopulateTempTableStatement() {
+    return Optional.empty();
+  }
+
+  @Override
+  public Optional<List<Object[]>> getPopulateTempTableContent() {
+    List<Object[]> batchArgs = new ArrayList<>();
+
+    for (CategoryCombo combo : objects) {
+      if (!combo.isValid()) {
+        log.warn("Ignoring category combo, not valid: " + combo);
+        continue;
+      }
+
+      for (CategoryOptionCombo coc : combo.getOptionCombos()) {
+        List<Object> values = new ArrayList<>();
+
+        values.add(coc.getId());
+        values.add(coc.getName());
+        values.add(coc.isIgnoreApproval() ? APPROVAL_LEVEL_HIGHEST : null);
+        values.add(coc.getLatestStartDate());
+        values.add(coc.getEarliestEndDate());
+
+        batchArgs.add(values.toArray());
+      }
     }
 
-    @Override
-    public ResourceTableType getTableType()
-    {
-        return ResourceTableType.CATEGORY_OPTION_COMBO_NAME;
-    }
+    return Optional.of(batchArgs);
+  }
 
-    @Override
-    public String getCreateTempTableStatement()
-    {
-        return "create " + tableType + " table " + getTempTableName() +
-            " (categoryoptioncomboid bigint not null primary key, " +
-            "categoryoptioncomboname varchar(255), approvallevel integer, " +
-            "startdate date, enddate date)";
-    }
-
-    @Override
-    public Optional<String> getPopulateTempTableStatement()
-    {
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<List<Object[]>> getPopulateTempTableContent()
-    {
-        List<Object[]> batchArgs = new ArrayList<>();
-
-        for ( CategoryCombo combo : objects )
-        {
-            if ( !combo.isValid() )
-            {
-                log.warn( "Ignoring category combo, not valid: " + combo );
-                continue;
-            }
-
-            for ( CategoryOptionCombo coc : combo.getOptionCombos() )
-            {
-                List<Object> values = new ArrayList<>();
-
-                values.add( coc.getId() );
-                values.add( coc.getName() );
-                values.add( coc.isIgnoreApproval() ? APPROVAL_LEVEL_HIGHEST : null );
-                values.add( coc.getLatestStartDate() );
-                values.add( coc.getEarliestEndDate() );
-
-                batchArgs.add( values.toArray() );
-            }
-        }
-
-        return Optional.of( batchArgs );
-    }
-
-    @Override
-    public List<String> getCreateIndexStatements()
-    {
-        return Lists.newArrayList();
-    }
+  @Override
+  public List<String> getCreateIndexStatements() {
+    return Lists.newArrayList();
+  }
 }

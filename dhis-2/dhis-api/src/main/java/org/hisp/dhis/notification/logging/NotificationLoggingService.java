@@ -29,57 +29,48 @@ package org.hisp.dhis.notification.logging;
 
 import java.util.List;
 
-/**
- * Created by zubair@dhis2.org on 10.01.18.
- */
-public interface NotificationLoggingService
-{
-    /***
-     *
-     * @param uid of the log entry
-     * @return log entry if exists otherwise null.
-     */
-    ExternalNotificationLogEntry get( String uid );
+/** Created by zubair@dhis2.org on 10.01.18. */
+public interface NotificationLoggingService {
+  /***
+   *
+   * @param uid of the log entry
+   * @return log entry if exists otherwise null.
+   */
+  ExternalNotificationLogEntry get(String uid);
 
-    /**
-     *
-     * @param templateUid is the uid for the notification template which this
-     *        log entry is associated to.
-     * @return log entry if exists otherwise null.
-     */
-    ExternalNotificationLogEntry getByTemplateUid( String templateUid );
+  /**
+   * @param templateUid is the uid for the notification template which this log entry is associated
+   *     to.
+   * @return log entry if exists otherwise null.
+   */
+  ExternalNotificationLogEntry getByTemplateUid(String templateUid);
 
-    /**
-     *
-     * @param id of the log entry
-     * @return log entry if exists otherwise null.
-     */
-    ExternalNotificationLogEntry get( int id );
+  /**
+   * @param id of the log entry
+   * @return log entry if exists otherwise null.
+   */
+  ExternalNotificationLogEntry get(int id);
 
-    /**
-     *
-     * @param key unique identifier for the log entry.
-     * @return log entry if exists otherwise null.
-     */
+  /**
+   * @param key unique identifier for the log entry.
+   * @return log entry if exists otherwise null.
+   */
+  ExternalNotificationLogEntry getByKey(String key);
 
-    ExternalNotificationLogEntry getByKey( String key );
+  /**
+   * Get all log entries.
+   *
+   * @return A list containing all notification log entries.
+   */
+  List<ExternalNotificationLogEntry> getAllLogEntries();
 
-    /**
-     * Get all log entries.
-     *
-     * @return A list containing all notification log entries.
-     */
-    List<ExternalNotificationLogEntry> getAllLogEntries();
+  /**
+   * @param entry to be saved.
+   */
+  void save(ExternalNotificationLogEntry entry);
 
-    /**
-     *
-     * @param entry to be saved.
-     */
-    void save( ExternalNotificationLogEntry entry );
-
-    /**
-     *
-     * @param entry to be updated.
-     */
-    void update( ExternalNotificationLogEntry entry );
+  /**
+   * @param entry to be updated.
+   */
+  void update(ExternalNotificationLogEntry entry);
 }

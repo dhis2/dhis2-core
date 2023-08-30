@@ -29,20 +29,17 @@ package org.hisp.dhis.notification.logging;
 
 import lombok.Builder;
 import lombok.Data;
-
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 
 /**
  * @author Zubair Asghar
  */
-
 @Data
 @Builder
-public class NotificationValidationResult
-{
-    ProgramNotificationTemplate template;
+public class NotificationValidationResult {
+  ProgramNotificationTemplate template;
 
-    ExternalNotificationLogEntry logEntry;
+  ExternalNotificationLogEntry logEntry;
 
-    boolean valid;
+  boolean valid;
 }

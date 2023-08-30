@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -56,282 +55,246 @@ import org.hisp.dhis.period.WeeklyAbstractPeriodType;
  * @author Luciano Fiandesio
  * @author Jim Grace
  */
-public class PeriodOffsetUtils
-{
-    private PeriodOffsetUtils()
-    {
-        throw new UnsupportedOperationException( "util" );
+public class PeriodOffsetUtils {
+  private PeriodOffsetUtils() {
+    throw new UnsupportedOperationException("util");
+  }
+
+  /**
+   * If the query parameters contain any dimensional item objects with a periodOffset, return query
+   * parameters with the extra periods added.
+   *
+   * <p>If any dimensional item objects have a yearToDate modifier, add any extra periods required
+   * from the start of the year.
+   *
+   * <p>If any dimensional item objects have both periodOffset and yearToDate, include all the
+   * year-to-date periods for the offset periods as well.
+   *
+   * <p>Any added periods are added to the end of the list of query periods, for the convenience of
+   * debugging, SQL query log reading, etc.
+   *
+   * @param params data query parameters
+   * @return params with extra shifted periods added, if any
+   */
+  public static DataQueryParams addShiftedPeriods(DataQueryParams params) {
+    DimensionalObject dimension = params.getDimension(DATA_X_DIM_ID);
+
+    if (dimension == null) {
+      return params;
     }
 
-    /**
-     * If the query parameters contain any dimensional item objects with a
-     * periodOffset, return query parameters with the extra periods added.
-     * <p>
-     * If any dimensional item objects have a yearToDate modifier, add any extra
-     * periods required from the start of the year.
-     * <p>
-     * If any dimensional item objects have both periodOffset and yearToDate,
-     * include all the year-to-date periods for the offset periods as well.
-     * <p>
-     * Any added periods are added to the end of the list of query periods, for
-     * the convenience of debugging, SQL query log reading, etc.
-     *
-     * @param params data query parameters
-     * @return params with extra shifted periods added, if any
-     */
-    public static DataQueryParams addShiftedPeriods( DataQueryParams params )
-    {
-        DimensionalObject dimension = params.getDimension( DATA_X_DIM_ID );
+    List<DimensionalItemObject> periods = new ArrayList<>(params.getPeriods());
 
-        if ( dimension == null )
-        {
-            return params;
+    for (DimensionalItemObject item : dimension.getItems()) {
+      QueryModifiers mods = item.getQueryMods();
+
+      if (mods != null) {
+        if (mods.getPeriodOffset() != 0) {
+          // Add periodOffsets only for parameter periods
+          addAllUnique(periods, shiftPeriods(params.getPeriods(), mods.getPeriodOffset()));
         }
 
-        List<DimensionalItemObject> periods = new ArrayList<>( params.getPeriods() );
-
-        for ( DimensionalItemObject item : dimension.getItems() )
-        {
-            QueryModifiers mods = item.getQueryMods();
-
-            if ( mods != null )
-            {
-                if ( mods.getPeriodOffset() != 0 )
-                {
-                    // Add periodOffsets only for parameter periods
-                    addAllUnique( periods, shiftPeriods( params.getPeriods(), mods.getPeriodOffset() ) );
-                }
-
-                if ( mods.isYearToDate() )
-                {
-                    // Add yearToDate for all periods including periodOffsets
-                    addAllUnique( periods, yearToDatePeriods( periods ) );
-                }
-            }
+        if (mods.isYearToDate()) {
+          // Add yearToDate for all periods including periodOffsets
+          addAllUnique(periods, yearToDatePeriods(periods));
         }
-
-        if ( periods.equals( params.getPeriods() ) )
-        {
-            return params;
-        }
-
-        return DataQueryParams.newBuilder( params )
-            .withPeriods( periods )
-            .build();
+      }
     }
 
-    /**
-     * Shifts the given Period in the past or future based on the offset value.
-     * <p>
-     * Examples:
-     * <p>
-     * Period: 202001, Offset: 1 -> Period: 202002
-     * <p>
-     * Period: 2020, Offset: -1 -> Period: 2019
-     *
-     * @param period a Period.
-     * @param periodOffset a positive or negative integer.
-     * @return A Period.
-     */
-    public static Period shiftPeriod( Period period, int periodOffset )
-    {
-        return period.getPeriodType().getShiftedPeriod( period, periodOffset );
+    if (periods.equals(params.getPeriods())) {
+      return params;
     }
 
-    /**
-     * Given an Analytics {@link Grid} row, adjust the date in the row according
-     * to the period offset.
-     *
-     * @param row the current grid row
-     * @param periodIndex the current grid row period index.
-     * @param offset an offset value
-     * @return a new row with adjusted date
-     */
-    public static List<Object> getPeriodOffsetRow( List<Object> row, int periodIndex, int offset )
-    {
-        String isoPeriod = (String) row.get( periodIndex );
-        Period shifted = shiftPeriod( PeriodType.getPeriodFromIsoString( isoPeriod ), -offset );
+    return DataQueryParams.newBuilder(params).withPeriods(periods).build();
+  }
 
-        List<Object> adjustedRow = new ArrayList<>( row );
-        adjustedRow.set( periodIndex, shifted.getIsoDate() );
+  /**
+   * Shifts the given Period in the past or future based on the offset value.
+   *
+   * <p>Examples:
+   *
+   * <p>Period: 202001, Offset: 1 -> Period: 202002
+   *
+   * <p>Period: 2020, Offset: -1 -> Period: 2019
+   *
+   * @param period a Period.
+   * @param periodOffset a positive or negative integer.
+   * @return A Period.
+   */
+  public static Period shiftPeriod(Period period, int periodOffset) {
+    return period.getPeriodType().getShiftedPeriod(period, periodOffset);
+  }
 
-        return adjustedRow;
+  /**
+   * Given an Analytics {@link Grid} row, adjust the date in the row according to the period offset.
+   *
+   * @param row the current grid row
+   * @param periodIndex the current grid row period index.
+   * @param offset an offset value
+   * @return a new row with adjusted date
+   */
+  public static List<Object> getPeriodOffsetRow(List<Object> row, int periodIndex, int offset) {
+    String isoPeriod = (String) row.get(periodIndex);
+    Period shifted = shiftPeriod(PeriodType.getPeriodFromIsoString(isoPeriod), -offset);
+
+    List<Object> adjustedRow = new ArrayList<>(row);
+    adjustedRow.set(periodIndex, shifted.getIsoDate());
+
+    return adjustedRow;
+  }
+
+  /**
+   * Does a {@link DimensionalItemObject} have the year to date property?
+   *
+   * @param dimensionalItem the {@link DimensionalItemObject}.
+   * @return true if year to date, otherwise false.
+   */
+  public static boolean isYearToDate(DimensionalItemObject dimensionalItem) {
+    return dimensionalItem.getQueryMods() != null && dimensionalItem.getQueryMods().isYearToDate();
+  }
+
+  /**
+   * Build a list of year-to-date rows. For each value that adds to a year-to-date result, save that
+   * value and add it to other such values.
+   *
+   * @param periodIndex the current grid row period index.
+   * @param valueIndex the current grid row value index.
+   * @param row the current grid row.
+   * @param yearToDateItems the yearToDate items this row contributes to.
+   * @param basePeriods the periods wanted by the user.
+   * @param yearToDateRows the year-to-date rows we are building.
+   */
+  public static void buildYearToDateRows(
+      int periodIndex,
+      int valueIndex,
+      List<Object> row,
+      List<DimensionalItemObject> yearToDateItems,
+      List<DimensionalItemObject> basePeriods,
+      Map<String, List<Object>> yearToDateRows) {
+    if (!hasPeriod(row, periodIndex)) {
+      return;
     }
 
-    /**
-     * Does a {@link DimensionalItemObject} have the year to date property?
-     *
-     * @param dimensionalItem the {@link DimensionalItemObject}.
-     * @return true if year to date, otherwise false.
-     */
-    public static boolean isYearToDate( DimensionalItemObject dimensionalItem )
-    {
-        return dimensionalItem.getQueryMods() != null && dimensionalItem.getQueryMods().isYearToDate();
+    List<Period> targetPeriods = getTargetPeriodsFromYearToDateItems(yearToDateItems, basePeriods);
+
+    String rowPeriod = (String) row.get(periodIndex);
+
+    for (Period targetPeriod : targetPeriods) {
+      Set<String> inputPeriods =
+          yearToDatePeriods(targetPeriod).stream()
+              .map(Period::getIsoDate)
+              .collect(toUnmodifiableSet());
+
+      if (inputPeriods.contains(rowPeriod)) {
+        addYearToDateRow(periodIndex, valueIndex, row, targetPeriod, yearToDateRows);
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * From a list of yearToDate items, create a list of target periods for which yearToDate totals
+   * are needed. If the items have periodOffset 0, then the target periods will be the same as the
+   * base periods (the periods supplied by the parameters). If the items have non-zero
+   * periodOffsets, the target periods may be different from the base periods.
+   *
+   * <p>Because these are yearToDate items, we know that they have queryMods.
+   */
+  private static List<Period> getTargetPeriodsFromYearToDateItems(
+      List<DimensionalItemObject> yearToDateItems, List<DimensionalItemObject> basePeriods) {
+    List<Period> targetPeriods = new ArrayList<>();
+
+    for (DimensionalItemObject item : yearToDateItems) {
+      addAllUnique(targetPeriods, shiftPeriods(basePeriods, item.getQueryMods().getPeriodOffset()));
     }
 
-    /**
-     * Build a list of year-to-date rows. For each value that adds to a
-     * year-to-date result, save that value and add it to other such values.
-     *
-     * @param periodIndex the current grid row period index.
-     * @param valueIndex the current grid row value index.
-     * @param row the current grid row.
-     * @param yearToDateItems the yearToDate items this row contributes to.
-     * @param basePeriods the periods wanted by the user.
-     * @param yearToDateRows the year-to-date rows we are building.
-     */
-    public static void buildYearToDateRows( int periodIndex, int valueIndex, List<Object> row,
-        List<DimensionalItemObject> yearToDateItems, List<DimensionalItemObject> basePeriods,
-        Map<String, List<Object>> yearToDateRows )
-    {
-        if ( !hasPeriod( row, periodIndex ) )
-        {
-            return;
-        }
+    return targetPeriods;
+  }
 
-        List<Period> targetPeriods = getTargetPeriodsFromYearToDateItems( yearToDateItems, basePeriods );
+  /** Shifts a list of periods according to a period offset. The list order is preserved. */
+  private static List<Period> shiftPeriods(List<DimensionalItemObject> periods, int periodOffset) {
+    List<Period> offsetPeriods = new ArrayList<>();
 
-        String rowPeriod = (String) row.get( periodIndex );
-
-        for ( Period targetPeriod : targetPeriods )
-        {
-            Set<String> inputPeriods = yearToDatePeriods( targetPeriod ).stream()
-                .map( Period::getIsoDate )
-                .collect( toUnmodifiableSet() );
-
-            if ( inputPeriods.contains( rowPeriod ) )
-            {
-                addYearToDateRow( periodIndex, valueIndex, row, targetPeriod, yearToDateRows );
-            }
-        }
+    for (DimensionalItemObject period : periods) {
+      addUnique(offsetPeriods, shiftPeriod((Period) period, periodOffset));
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+    return offsetPeriods;
+  }
 
-    /**
-     * From a list of yearToDate items, create a list of target periods for
-     * which yearToDate totals are needed. If the items have periodOffset 0,
-     * then the target periods will be the same as the base periods (the periods
-     * supplied by the parameters). If the items have non-zero periodOffsets,
-     * the target periods may be different from the base periods.
-     * <p>
-     * Because these are yearToDate items, we know that they have queryMods.
-     */
-    private static List<Period> getTargetPeriodsFromYearToDateItems( List<DimensionalItemObject> yearToDateItems,
-        List<DimensionalItemObject> basePeriods )
-    {
-        List<Period> targetPeriods = new ArrayList<>();
+  /** Finds all periods needed for a year-to-date period. Periods are added in list order. */
+  private static List<Period> yearToDatePeriods(List<DimensionalItemObject> periods) {
+    List<Period> ytdPeriods = new ArrayList<>();
 
-        for ( DimensionalItemObject item : yearToDateItems )
-        {
-            addAllUnique( targetPeriods, shiftPeriods( basePeriods, item.getQueryMods().getPeriodOffset() ) );
-        }
-
-        return targetPeriods;
+    for (DimensionalItemObject period : periods) {
+      addAllUnique(ytdPeriods, yearToDatePeriods((Period) period));
     }
 
-    /**
-     * Shifts a list of periods according to a period offset. The list order is
-     * preserved.
-     */
-    private static List<Period> shiftPeriods( List<DimensionalItemObject> periods, int periodOffset )
-    {
-        List<Period> offsetPeriods = new ArrayList<>();
+    return ytdPeriods;
+  }
 
-        for ( DimensionalItemObject period : periods )
-        {
-            addUnique( offsetPeriods, shiftPeriod( (Period) period, periodOffset ) );
-        }
+  /** Generates the periods needed for one year-to-date period. */
+  private static List<Period> yearToDatePeriods(Period period) {
+    int reportingYear = getReportingYear(period);
 
-        return offsetPeriods;
+    List<Period> periods = new ArrayList<>();
+
+    do {
+      periods.add(period);
+      period = period.getPeriodType().getPreviousPeriod(period);
+    } while (getReportingYear(period) == reportingYear);
+
+    return periods;
+  }
+
+  /** Adds or updates a year-to-date row we are building. */
+  private static void addYearToDateRow(
+      int periodIndex,
+      int valueIndex,
+      List<Object> row,
+      Period targetPeriod,
+      Map<String, List<Object>> yearToDateRows) {
+    List<Object> targetRow = new ArrayList<>(row);
+
+    targetRow.set(periodIndex, targetPeriod.getIsoDate());
+
+    String key = join(remove(targetRow.toArray(new Object[0]), valueIndex), DIMENSION_SEP);
+
+    List<Object> existingRow = yearToDateRows.get(key);
+
+    if (existingRow != null) {
+      double existingValue = ((Number) existingRow.get(valueIndex)).doubleValue();
+      double newValue = ((Number) targetRow.get(valueIndex)).doubleValue();
+      existingRow.set(valueIndex, existingValue + newValue);
+    } else {
+      yearToDateRows.put(key, targetRow);
     }
+  }
 
-    /**
-     * Finds all periods needed for a year-to-date period. Periods are added in
-     * list order.
-     */
-    private static List<Period> yearToDatePeriods( List<DimensionalItemObject> periods )
-    {
-        List<Period> ytdPeriods = new ArrayList<>();
+  /**
+   * Gets the analytics reporting year for a period.
+   *
+   * <p>A weekly or biweekly period starting on or after December 29 has three or fewer days in the
+   * current year, and so is considered to be the first week reported in the following year. (This
+   * doesn't make sense for biweekly periods, but it is how DHIS2 currently operates.)
+   *
+   * <p>A biweekly period starting on or after December 22 has
+   *
+   * <p>For all other periods, the period start year is returned.
+   */
+  private static int getReportingYear(Period period) {
+    DateTimeUnit periodStart = DateTimeUnit.fromJdkDate(period.getStartDate());
 
-        for ( DimensionalItemObject period : periods )
-        {
-            addAllUnique( ytdPeriods, yearToDatePeriods( (Period) period ) );
-        }
-
-        return ytdPeriods;
-    }
-
-    /**
-     * Generates the periods needed for one year-to-date period.
-     */
-    private static List<Period> yearToDatePeriods( Period period )
-    {
-        int reportingYear = getReportingYear( period );
-
-        List<Period> periods = new ArrayList<>();
-
-        do
-        {
-            periods.add( period );
-            period = period.getPeriodType().getPreviousPeriod( period );
-        }
-        while ( getReportingYear( period ) == reportingYear );
-
-        return periods;
-    }
-
-    /**
-     * Adds or updates a year-to-date row we are building.
-     */
-    private static void addYearToDateRow( int periodIndex, int valueIndex, List<Object> row, Period targetPeriod,
-        Map<String, List<Object>> yearToDateRows )
-    {
-        List<Object> targetRow = new ArrayList<>( row );
-
-        targetRow.set( periodIndex, targetPeriod.getIsoDate() );
-
-        String key = join( remove( targetRow.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP );
-
-        List<Object> existingRow = yearToDateRows.get( key );
-
-        if ( existingRow != null )
-        {
-            double existingValue = ((Number) existingRow.get( valueIndex )).doubleValue();
-            double newValue = ((Number) targetRow.get( valueIndex )).doubleValue();
-            existingRow.set( valueIndex, existingValue + newValue );
-        }
-        else
-        {
-            yearToDateRows.put( key, targetRow );
-        }
-    }
-
-    /**
-     * Gets the analytics reporting year for a period.
-     * <p>
-     * A weekly or biweekly period starting on or after December 29 has three or
-     * fewer days in the current year, and so is considered to be the first week
-     * reported in the following year. (This doesn't make sense for biweekly
-     * periods, but it is how DHIS2 currently operates.)
-     * <p>
-     * A biweekly period starting on or after December 22 has
-     * <p>
-     * For all other periods, the period start year is returned.
-     */
-    private static int getReportingYear( Period period )
-    {
-        DateTimeUnit periodStart = DateTimeUnit.fromJdkDate( period.getStartDate() );
-
-        if ( (period.getPeriodType() instanceof WeeklyAbstractPeriodType
+    if ((period.getPeriodType() instanceof WeeklyAbstractPeriodType
             || period.getPeriodType() instanceof BiWeeklyAbstractPeriodType)
-            && periodStart.getMonth() == 12 && periodStart.getDay() >= 29 )
-        {
-            return periodStart.getYear() + 1;
-        }
-
-        return periodStart.getYear();
+        && periodStart.getMonth() == 12
+        && periodStart.getDay() >= 29) {
+      return periodStart.getYear() + 1;
     }
+
+    return periodStart.getYear();
+  }
 }

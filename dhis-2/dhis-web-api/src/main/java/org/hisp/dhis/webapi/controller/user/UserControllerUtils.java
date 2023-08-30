@@ -32,8 +32,10 @@ import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE_LOWER_LEVELS;
 import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Set;
-
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -47,132 +49,124 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 /**
  * @author Jim Grace
  */
 @Component
-public class UserControllerUtils
-{
-    @Autowired
-    private DataApprovalService dataApprovalService;
+public class UserControllerUtils {
+  @Autowired private DataApprovalService dataApprovalService;
 
-    @Autowired
-    private DataApprovalLevelService dataApprovalLevelService;
+  @Autowired private DataApprovalLevelService dataApprovalLevelService;
 
-    @Autowired
-    private AclService aclService;
+  @Autowired private AclService aclService;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingManager systemSettingManager;
 
-    /**
-     * Gets the data approval workflows a user can see, including the workflow
-     * levels accessible to the user and the actions (if any) they can take at
-     * those levels to approve (and accept if configured) data.
+  /**
+   * Gets the data approval workflows a user can see, including the workflow levels accessible to
+   * the user and the actions (if any) they can take at those levels to approve (and accept if
+   * configured) data.
+   *
+   * @param user the user
+   */
+  public ObjectNode getUserDataApprovalWorkflows(User user) {
+    ObjectMapper objectMapper = JacksonObjectMapperConfig.staticJsonMapper();
+
+    ObjectNode objectNode = objectMapper.createObjectNode();
+    ArrayNode arrayNode = objectNode.putArray("dataApprovalWorkflows");
+
+    for (DataApprovalWorkflow workflow : dataApprovalService.getAllWorkflows()) {
+      if (!aclService.canRead(user, workflow)) {
+        continue;
+      }
+
+      ObjectNode node =
+          objectMapper
+              .createObjectNode()
+              .put("id", workflow.getUid())
+              .put("name", workflow.getName());
+
+      node.set("dataApprovalLevels", getWorkflowLevelNodes(user, workflow));
+
+      arrayNode.add(node);
+    }
+
+    /*
+     * collectionNode.getUnorderedChildren() .sort( Comparator.comparing( c
+     * -> (String) ((SimpleNode) c.getUnorderedChildren().get( 0
+     * )).getValue() ) );
      *
-     * @param user the user
+     * RootNode rootNode = NodeUtils.createRootNode( "dataApprovalWorkflows"
+     * ); rootNode.addChild( collectionNode );
      */
-    public ObjectNode getUserDataApprovalWorkflows( User user )
-    {
-        ObjectMapper objectMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-        ObjectNode objectNode = objectMapper.createObjectNode();
-        ArrayNode arrayNode = objectNode.putArray( "dataApprovalWorkflows" );
+    return objectNode;
+  }
 
-        for ( DataApprovalWorkflow workflow : dataApprovalService.getAllWorkflows() )
-        {
-            if ( !aclService.canRead( user, workflow ) )
-            {
-                continue;
-            }
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-            ObjectNode node = objectMapper.createObjectNode()
-                .put( "id", workflow.getUid() )
-                .put( "name", workflow.getName() );
+  /**
+   * For a user and workflow, returns a list of levels accessible to the user user and the actions
+   * (if any) they can take at those levels to approve (and accept if configured) data.
+   *
+   * @param user the user
+   * @param workflow the approval workflow for which to fetch the levels
+   * @return a node with the ordered list of data approval levels
+   */
+  private ArrayNode getWorkflowLevelNodes(User user, DataApprovalWorkflow workflow) {
+    Set<String> authorities = user.getAllAuthorities();
 
-            node.set( "dataApprovalLevels", getWorkflowLevelNodes( user, workflow ) );
+    boolean canApprove = authorities.contains(AUTHORITY_ALL) || authorities.contains(AUTH_APPROVE);
+    boolean canApproveLowerLevels =
+        authorities.contains(AUTHORITY_ALL) || authorities.contains(AUTH_APPROVE_LOWER_LEVELS);
+    boolean canAccept =
+        authorities.contains(AUTHORITY_ALL) || authorities.contains(AUTH_ACCEPT_LOWER_LEVELS);
 
-            arrayNode.add( node );
-        }
+    boolean acceptConfigured =
+        systemSettingManager.getBoolSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL);
 
-        /*
-         * collectionNode.getUnorderedChildren() .sort( Comparator.comparing( c
-         * -> (String) ((SimpleNode) c.getUnorderedChildren().get( 0
-         * )).getValue() ) );
-         *
-         * RootNode rootNode = NodeUtils.createRootNode( "dataApprovalWorkflows"
-         * ); rootNode.addChild( collectionNode );
-         */
+    int lowestUserOrgUnitLevel = getLowsetUserOrgUnitLevel(user);
 
-        return objectNode;
+    ArrayNode levelNodes = JacksonObjectMapperConfig.staticJsonMapper().createArrayNode();
+
+    boolean highestLevelInWorkflow = true;
+
+    for (DataApprovalLevel level :
+        dataApprovalLevelService.getUserDataApprovalLevels(user, workflow)) {
+      if (level.getOrgUnitLevel() < lowestUserOrgUnitLevel) {
+        continue;
+      }
+
+      ObjectNode levelNode =
+          levelNodes
+              .addObject()
+              .put("name", level.getName())
+              .put("id", level.getUid())
+              .put("level", level.getLevel())
+              .put("approve", (canApprove && highestLevelInWorkflow) || canApproveLowerLevels);
+
+      if (acceptConfigured) {
+        levelNode.put("accept", canAccept && !highestLevelInWorkflow);
+      }
+
+      levelNodes.add(levelNode);
+
+      highestLevelInWorkflow = false;
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+    return levelNodes;
+  }
 
-    /**
-     * For a user and workflow, returns a list of levels accessible to the user
-     * user and the actions (if any) they can take at those levels to approve
-     * (and accept if configured) data.
-     *
-     * @param user the user
-     * @param workflow the approval workflow for which to fetch the levels
-     * @return a node with the ordered list of data approval levels
-     */
-    private ArrayNode getWorkflowLevelNodes( User user, DataApprovalWorkflow workflow )
-    {
-        Set<String> authorities = user.getAllAuthorities();
+  private int getLowsetUserOrgUnitLevel(User user) {
+    Set<OrganisationUnit> userOrgUnits = user.getOrganisationUnits();
 
-        boolean canApprove = authorities.contains( AUTHORITY_ALL ) || authorities.contains( AUTH_APPROVE );
-        boolean canApproveLowerLevels = authorities.contains( AUTHORITY_ALL )
-            || authorities.contains( AUTH_APPROVE_LOWER_LEVELS );
-        boolean canAccept = authorities.contains( AUTHORITY_ALL ) || authorities.contains( AUTH_ACCEPT_LOWER_LEVELS );
-
-        boolean acceptConfigured = systemSettingManager
-            .getBoolSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
-
-        int lowestUserOrgUnitLevel = getLowsetUserOrgUnitLevel( user );
-
-        ArrayNode levelNodes = JacksonObjectMapperConfig.staticJsonMapper().createArrayNode();
-
-        boolean highestLevelInWorkflow = true;
-
-        for ( DataApprovalLevel level : dataApprovalLevelService.getUserDataApprovalLevels( user, workflow ) )
-        {
-            if ( level.getOrgUnitLevel() < lowestUserOrgUnitLevel )
-            {
-                continue;
-            }
-
-            ObjectNode levelNode = levelNodes.addObject()
-                .put( "name", level.getName() )
-                .put( "id", level.getUid() )
-                .put( "level", level.getLevel() )
-                .put( "approve", (canApprove && highestLevelInWorkflow) || canApproveLowerLevels );
-
-            if ( acceptConfigured )
-            {
-                levelNode.put( "accept", canAccept && !highestLevelInWorkflow );
-            }
-
-            levelNodes.add( levelNode );
-
-            highestLevelInWorkflow = false;
-        }
-
-        return levelNodes;
-    }
-
-    private int getLowsetUserOrgUnitLevel( User user )
-    {
-        Set<OrganisationUnit> userOrgUnits = user.getOrganisationUnits();
-
-        return userOrgUnits.isEmpty() ? 9999
-            : userOrgUnits.stream().map( OrganisationUnit::getHierarchyLevel ).min( Integer::compare ).get();
-    }
+    return userOrgUnits.isEmpty()
+        ? 9999
+        : userOrgUnits.stream()
+            .map(OrganisationUnit::getHierarchyLevel)
+            .min(Integer::compare)
+            .get();
+  }
 }

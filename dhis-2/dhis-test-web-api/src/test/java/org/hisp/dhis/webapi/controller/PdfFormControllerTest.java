@@ -36,13 +36,15 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class PdfFormControllerTest extends DhisControllerConvenienceTest
-{
+class PdfFormControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testSendFormPdfDataSet_Empty()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "An error occurred, please check import summary.",
-            POST( "/pdfForm/dataSet", "{}" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testSendFormPdfDataSet_Empty() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "An error occurred, please check import summary.",
+        POST("/pdfForm/dataSet", "{}").content(HttpStatus.CONFLICT));
+  }
 }

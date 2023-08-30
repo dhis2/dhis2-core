@@ -27,29 +27,25 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
-import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
-import org.hisp.dhis.feedback.ObjectReport;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
+import org.hisp.dhis.feedback.ObjectReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ApiTokenCreationResponse extends ObjectReportWebMessageResponse
-{
-    private final String key;
+public class ApiTokenCreationResponse extends ObjectReportWebMessageResponse {
+  private final String key;
 
-    public ApiTokenCreationResponse( ObjectReport objectReport, char[] token )
-    {
-        super( objectReport );
-        this.key = new String( token );
-    }
+  public ApiTokenCreationResponse(ObjectReport objectReport, char[] token) {
+    super(objectReport);
+    this.key = new String(token);
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getKey()
-    {
-        return key;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getKey() {
+    return key;
+  }
 }

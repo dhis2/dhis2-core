@@ -36,65 +36,68 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
 import java.util.Set;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.junit.jupiter.api.Test;
 
-class ProgramStageMapperTest
-{
+class ProgramStageMapperTest {
 
-    @Test
-    void testIdSchemeRelatedFieldsAreMapped()
-    {
+  @Test
+  void testIdSchemeRelatedFieldsAreMapped() {
 
-        Program program = setIdSchemeFields(
+    Program program =
+        setIdSchemeFields(
             new Program(),
             "WTTYiPQDqh1",
             "friendship",
             "red",
-            attributeValues( "m0GpPuMUfFW", "yellow" ) );
+            attributeValues("m0GpPuMUfFW", "yellow"));
 
-        DataElement dataElement = setIdSchemeFields(
+    DataElement dataElement =
+        setIdSchemeFields(
             new DataElement(),
             "khBzbxTLo8k",
             "clouds",
             "orange",
-            attributeValues( "m0GpPuMUfFW", "purple" ) );
-        ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
-        programStageDataElement.setDataElement( dataElement );
+            attributeValues("m0GpPuMUfFW", "purple"));
+    ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
+    programStageDataElement.setDataElement(dataElement);
 
-        ProgramStage programStage = setIdSchemeFields(
+    ProgramStage programStage =
+        setIdSchemeFields(
             new ProgramStage(),
             "HpSAvRWtdDR",
             "meet",
             "green",
-            attributeValues( "m0GpPuMUfFW", "purple" ) );
-        programStage.setProgram( program );
-        programStage.setProgramStageDataElements( Set.of( programStageDataElement ) );
+            attributeValues("m0GpPuMUfFW", "purple"));
+    programStage.setProgram(program);
+    programStage.setProgramStageDataElements(Set.of(programStageDataElement));
 
-        ProgramStage mapped = ProgramStageMapper.INSTANCE.map( programStage );
+    ProgramStage mapped = ProgramStageMapper.INSTANCE.map(programStage);
 
-        assertEquals( "HpSAvRWtdDR", mapped.getUid() );
-        assertEquals( "meet", mapped.getName() );
-        assertEquals( "green", mapped.getCode() );
-        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "purple" ) ), mapped.getAttributeValues() );
+    assertEquals("HpSAvRWtdDR", mapped.getUid());
+    assertEquals("meet", mapped.getName());
+    assertEquals("green", mapped.getCode());
+    assertContainsOnly(
+        Set.of(attributeValue("m0GpPuMUfFW", "purple")), mapped.getAttributeValues());
 
-        assertEquals( "WTTYiPQDqh1", mapped.getProgram().getUid() );
-        assertEquals( "friendship", mapped.getProgram().getName() );
-        assertEquals( "red", mapped.getProgram().getCode() );
-        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "yellow" ) ),
-            mapped.getProgram().getAttributeValues() );
+    assertEquals("WTTYiPQDqh1", mapped.getProgram().getUid());
+    assertEquals("friendship", mapped.getProgram().getName());
+    assertEquals("red", mapped.getProgram().getCode());
+    assertContainsOnly(
+        Set.of(attributeValue("m0GpPuMUfFW", "yellow")), mapped.getProgram().getAttributeValues());
 
-        Optional<ProgramStageDataElement> actual = mapped.getProgramStageDataElements().stream().findFirst();
-        assertTrue( actual.isPresent() );
-        ProgramStageDataElement value = actual.get();
-        assertEquals( "khBzbxTLo8k", value.getDataElement().getUid() );
-        assertEquals( "clouds", value.getDataElement().getName() );
-        assertEquals( "orange", value.getDataElement().getCode() );
-        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "purple" ) ),
-            value.getDataElement().getAttributeValues() );
-    }
+    Optional<ProgramStageDataElement> actual =
+        mapped.getProgramStageDataElements().stream().findFirst();
+    assertTrue(actual.isPresent());
+    ProgramStageDataElement value = actual.get();
+    assertEquals("khBzbxTLo8k", value.getDataElement().getUid());
+    assertEquals("clouds", value.getDataElement().getName());
+    assertEquals("orange", value.getDataElement().getCode());
+    assertContainsOnly(
+        Set.of(attributeValue("m0GpPuMUfFW", "purple")),
+        value.getDataElement().getAttributeValues());
+  }
 }
