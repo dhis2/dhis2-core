@@ -87,9 +87,7 @@ public enum JobType {
   MATERIALIZED_SQL_VIEW_UPDATE(SqlViewUpdateParameters.class),
   DISABLE_INACTIVE_USERS(DisableInactiveUsersJobParameters.class),
   TEST(TestJobParameters.class),
-  LOCK_EXCEPTION_CLEANUP(
-      LockExceptionCleanupJobParameters.class,
-      daily2am("OQ9KeLgqy20", "Remove lock exceptions older than 6 months")),
+  LOCK_EXCEPTION_CLEANUP(LockExceptionCleanupJobParameters.class),
 
   /*
   Programmatically used Jobs

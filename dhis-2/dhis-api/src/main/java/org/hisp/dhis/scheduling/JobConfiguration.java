@@ -212,7 +212,8 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   }
 
   public JobStatus getJobStatus() {
-    if (jobStatus != null) return jobStatus;
+    if (jobStatus != null)
+      return enabled && jobStatus == JobStatus.DISABLED ? JobStatus.SCHEDULED : jobStatus;
     if (getSchedulingType() == SchedulingType.ONCE_ASAP) return JobStatus.NOT_STARTED;
     return JobStatus.SCHEDULED;
   }
