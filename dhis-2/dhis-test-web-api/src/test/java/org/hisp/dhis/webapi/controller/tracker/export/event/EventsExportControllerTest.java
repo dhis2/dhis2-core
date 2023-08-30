@@ -44,7 +44,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.note.TrackedEntityComment;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -509,8 +509,8 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
     return r;
   }
 
-  private TrackedEntityComment note(String note, String value, String storedBy) {
-    TrackedEntityComment comment = new TrackedEntityComment(value, storedBy);
+  private Note note(String note, String value, String storedBy) {
+    Note comment = new Note(value, storedBy);
     comment.setUid(note);
     manager.save(comment, false);
     return comment;
