@@ -32,7 +32,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.datastore.MetadataDatastoreService.METADATA_STORE_NS;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.web.HttpStatus.Series.CLIENT_ERROR;
 import static org.hisp.dhis.web.WebClientUtils.assertSeries;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -516,9 +515,8 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
     switchToNewUser("someoneWithNoAccess", "cats-admin");
     assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/emu", "{\"name\":\"barry\"}"));
 
-    // switch back to user with permission and check that no value exists in the namespace
+    // switch back to user with permission and check that no entry exists in the namespace
     switchToSuperuser();
-    JsonWebMessage error = GET("/dataStore/pets/emu").error(CLIENT_ERROR).as(JsonWebMessage.class);
     assertEquals(
         "Key 'emu' not found in namespace 'pets'",
         GET("/dataStore/pets/emu").error(HttpStatus.NOT_FOUND).getMessage());
