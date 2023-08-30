@@ -152,10 +152,9 @@ public interface WebClient {
         HttpMethod.PATCH, url, ContentType("application/json-patch+json"), Body(body));
   }
 
-    default HttpResponse PUT( String url, Object... args )
-    {
-        return webRequest( HttpMethod.PUT, substitutePlaceholders( url, args ), requestComponentsIn( args ) );
-    }
+  default HttpResponse PUT(String url, Object... args) {
+    return webRequest(HttpMethod.PUT, substitutePlaceholders(url, args), requestComponentsIn(args));
+  }
 
   default HttpResponse PUT(String url, String body) {
     return webRequest(HttpMethod.PUT, url, new Body(body));

@@ -149,9 +149,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
   @Autowired protected EventHookPublisher eventHookPublisher;
 
-    // --------------------------------------------------------------------------
-    // PATCH
-    // --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // PATCH
+  // --------------------------------------------------------------------------
 
   /**
    * Adds support for HTTP Patch using JSON Patch (RFC 6902), updated object is run through normal
