@@ -144,7 +144,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
   }
 
   @Test
-  void testUpdateUserKeyJsonValue() {
+  void testPutExistingUserKeyJsonValue() {
     assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
 
     switchToSuperuser();
@@ -164,14 +164,14 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
   }
 
   @Test
-  void testUpdateUserKeyJsonValue_UnknownKey() {
+  void testPutNewUserKeyJsonValue() {
     switchToSuperuser();
     assertWebMessage(
-        "Not Found",
-        404,
-        "ERROR",
-        "Key 'unknown' not found in namespace 'test'",
-        PUT("/userDataStore/test/unknown?username=Paul", "false").content(HttpStatus.NOT_FOUND));
+        "Created",
+        201,
+        "OK",
+        "Key 'unknown' in namespace 'test' created.",
+        PUT("/userDataStore/test/unknown?username=Paul", "false").content(HttpStatus.CREATED));
   }
 
   @Test
