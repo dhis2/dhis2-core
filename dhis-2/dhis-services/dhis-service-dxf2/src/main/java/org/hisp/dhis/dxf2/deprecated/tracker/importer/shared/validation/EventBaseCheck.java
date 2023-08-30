@@ -103,7 +103,7 @@ public class EventBaseCheck implements Checker {
     } else if (COMPLETED.equals(enrollment.getStatus())) {
       if (importOptions == null
           || importOptions.getUser() == null
-          || importOptions.getUser().isAuthorized(F_EDIT_EXPIRED.getAuthority())) {
+          || importOptions.getUser().isAuthorized(F_EDIT_EXPIRED.name())) {
         return;
       }
 
