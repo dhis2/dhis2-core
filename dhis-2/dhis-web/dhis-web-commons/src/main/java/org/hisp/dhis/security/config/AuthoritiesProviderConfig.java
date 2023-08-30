@@ -34,6 +34,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.oust.manager.DefaultSelectionTreeManager;
 import org.hisp.dhis.ouwt.manager.DefaultOrganisationUnitSelectionManager;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.SpringSecurityActionAccessResolver;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
@@ -50,7 +51,6 @@ import org.hisp.dhis.security.authority.SimpleSystemAuthoritiesProvider;
 import org.hisp.dhis.security.intercept.LoginInterceptor;
 import org.hisp.dhis.security.intercept.XWorkSecurityInterceptor;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
-import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webportal.module.ModuleManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,7 +116,7 @@ public class AuthoritiesProviderConfig {
 
   private SystemAuthoritiesProvider simpleSystemAuthoritiesProvider() {
     SimpleSystemAuthoritiesProvider provider = new SimpleSystemAuthoritiesProvider();
-    provider.setAuthorities(DefaultAdminUserPopulator.ALL_AUTHORITIES);
+    provider.setAuthorities(Authorities.getAllAuthorities());
     return provider;
   }
 

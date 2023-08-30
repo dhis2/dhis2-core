@@ -105,7 +105,7 @@ class SecurityOwnershipValidator
       TrackedEntity te = bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
 
       if (te.getEnrollments().stream().anyMatch(e -> !e.isDeleted())
-          && !user.isAuthorized(Authorities.F_TEI_CASCADE_DELETE.getAuthority())) {
+          && !user.isAuthorized(Authorities.F_TEI_CASCADE_DELETE.name())) {
         reporter.addError(trackedEntity, E1100, user, te);
       }
     }
