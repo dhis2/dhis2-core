@@ -50,10 +50,6 @@ public class AnalyticsTeiActions extends RestApiActions {
     return new AnalyticsTeiActions("/query");
   }
 
-  public ApiResponse getDimensions(String trackedEntityType) {
-    return getDimensions(trackedEntityType, null);
-  }
-
   public ApiResponse getDimensions(String trackedEntityType, QueryParamsBuilder queryParams) {
     if (queryParams == null) {
       queryParams = new QueryParamsBuilder();

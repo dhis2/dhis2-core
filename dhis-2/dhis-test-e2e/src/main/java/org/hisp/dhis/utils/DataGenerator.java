@@ -48,7 +48,7 @@ import org.hisp.dhis.dto.schemas.SchemaProperty;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class DataGenerator {
-  private static Faker faker = new Faker();
+  private static final Faker faker = new Faker();
 
   public static String randomString() {
     return RandomStringUtils.randomAlphabetic(6);
@@ -62,54 +62,33 @@ public class DataGenerator {
     return "AutoTest entity " + randomString();
   }
 
-  /**
-   * Generates random data for simple type schema properties;
-   *
-   * @param property
-   * @return
-   */
+  /** Generates random data for simple type schema properties; */
   public static JsonElement generateRandomValueMatchingSchema(SchemaProperty property) {
     JsonElement jsonElement;
     switch (property.getPropertyType()) {
-      case STRING:
-        jsonElement =
-            new JsonPrimitive(
-                generateStringByFieldName(
-                    property.getName(),
-                    property.getMin().intValue(),
-                    property.getMax().intValue()));
-        break;
-
-      case DATE:
+      case STRING -> jsonElement =
+          new JsonPrimitive(
+              generateStringByFieldName(
+                  property.getName(), property.getMin().intValue(), property.getMax().intValue()));
+      case DATE -> {
         Date date = faker.date().past(1000, TimeUnit.DAYS);
         jsonElement =
             new JsonPrimitive(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").format(date));
-        break;
-
-      case BOOLEAN:
+      }
+      case BOOLEAN -> {
         if (property.getName().equalsIgnoreCase("external")) {
           jsonElement = new JsonPrimitive(true);
           break;
         }
-
         jsonElement = new JsonPrimitive(String.valueOf(faker.bool().bool()));
-        break;
-
-      case CONSTANT:
-        jsonElement = generateConstantValue(property);
-        break;
-
-      case NUMBER:
-        jsonElement =
-            new JsonPrimitive(
-                faker
-                    .number()
-                    .numberBetween(property.getMin().intValue(), property.getMax().intValue()));
-        break;
-
-      default:
-        jsonElement = new JsonPrimitive("Conversion not defined.");
-        break;
+      }
+      case CONSTANT -> jsonElement = generateConstantValue(property);
+      case NUMBER -> jsonElement =
+          new JsonPrimitive(
+              faker
+                  .number()
+                  .numberBetween(property.getMin().intValue(), property.getMax().intValue()));
+      default -> jsonElement = new JsonPrimitive("Conversion not defined.");
     }
 
     return jsonElement;
@@ -161,27 +140,26 @@ public class DataGenerator {
 
   private static String generateStringByFieldName(String name, int minLength, int maxLength) {
     switch (name) {
-      case "url":
+      case "url" -> {
         return "http://" + faker.internet().url();
-
-      case "cronExpression":
+      }
+      case "cronExpression" -> {
         return "* * * * * *";
-
-      case "periodType":
+      }
+      case "periodType" -> {
         List<String> periodTypes =
             new RestApiActions("/periodTypes").get().extractList("periodTypes.name");
         return periodTypes.get(faker.number().numberBetween(0, periodTypes.size() - 1));
-
-      default:
+      }
+      default -> {
         if (minLength < 1) {
           return faker.lorem().characters(6);
         }
-
         if (maxLength == minLength) {
           return faker.lorem().characters(maxLength);
         }
-
         return faker.lorem().characters(minLength, maxLength);
+      }
     }
   }
 

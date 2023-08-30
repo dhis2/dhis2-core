@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.actions;
+package org.hisp.dhis.utils;
 
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import javax.annotation.Nonnull;
 
-/**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- */
-public class IdGenerator extends RestApiActions {
-  public IdGenerator() {
-    super("/system");
+/** Utility class enabling easier testing of CSV endpoints */
+public class CsvUtils {
+
+  private CsvUtils() {
+    throw new IllegalStateException("Utility class");
   }
 
-  public String generateUniqueId() {
-    return get("id.json", new QueryParamsBuilder().add("limit=1"))
-        .validate()
-        .statusCode(200)
-        .extract()
-        .path("codes[0]");
+  public static String getValueFromCsv(int column, int row, @Nonnull String csv) {
+    return getValueFromCsv(column, row, "\n", ",", csv);
+  }
+
+  public static String getValueFromCsv(
+      int column,
+      int row,
+      @Nonnull String lineSeparator,
+      @Nonnull String valueSeparator,
+      @Nonnull String csv) {
+    String[] rows = csv.split(lineSeparator);
+    String selectedRow = rows[row];
+    String[] rowValues = selectedRow.split(valueSeparator);
+    return rowValues[column];
+  }
+
+  public static String getRowFromCsv(int row, @Nonnull String csv) {
+    String[] rows = csv.split("\n");
+    return rows[row];
+  }
+
+  public static int getRowCountFromCsv(@Nonnull String csv) {
+    return csv.split("\n").length;
   }
 }

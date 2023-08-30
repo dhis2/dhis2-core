@@ -43,7 +43,7 @@ public class MatchesJson extends TypeSafeDiagnosingMatcher<Object> {
 
   private final String expectedJSON;
 
-  private JSONCompareMode jsonCompareMode;
+  private final JSONCompareMode jsonCompareMode;
 
   private String mismatch;
 

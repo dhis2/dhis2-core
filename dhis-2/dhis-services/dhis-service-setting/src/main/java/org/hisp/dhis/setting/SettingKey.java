@@ -81,12 +81,7 @@ public enum SettingKey {
   EMAIL_SENDER("keyEmailSender", "", String.class),
   EMAIL_PASSWORD("keyEmailPassword", "", String.class, true, false),
   MIN_PASSWORD_LENGTH("minPasswordLength", 8, Integer.class),
-
-  /**
-   * The password max value is set to 60 to match the max value of the password column in the
-   * database, hence it can not be greater than 60.
-   */
-  MAX_PASSWORD_LENGTH("maxPasswordLength", 60, Integer.class),
+  MAX_PASSWORD_LENGTH("maxPasswordLength", 72, Integer.class),
   SMS_CONFIG("keySmsSetting", new SmsConfiguration(), SmsConfiguration.class),
   SMS_MAX_LENGTH("keySmsMaxLength", 1071, Integer.class),
   CACHE_STRATEGY("keyCacheStrategy", CacheStrategy.CACHE_1_MINUTE, CacheStrategy.class),
@@ -250,6 +245,13 @@ public enum SettingKey {
    * minutes after it is finished by the heartbeat job.
    */
   JOBS_CLEANUP_AFTER_MINUTES("jobsCleanupAfterMinutes", 24 * 60, Integer.class),
+
+  /**
+   * The maximum number of hours a CRON based job may trigger on the same day after it has missed
+   * its intended time of the day to trigger. If time has passed past this point the execution for
+   * that day is skipped, and it will trigger on the intended time the day after.
+   */
+  JOBS_MAX_CRON_DELAY_HOURS("jobsMaxCronDelayHours", 4, Integer.class),
 
   /**
    * Progressive caching factor for the analytics API. To enable, the {@link

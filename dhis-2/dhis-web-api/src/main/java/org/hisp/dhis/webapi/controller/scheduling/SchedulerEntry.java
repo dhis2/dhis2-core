@@ -31,6 +31,8 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import lombok.Value;
@@ -57,25 +59,26 @@ class SchedulerEntry {
 
   @JsonProperty List<SchedulerEntryJob> sequence;
 
-  static SchedulerEntry of(JobConfiguration config) {
+  static SchedulerEntry of(JobConfiguration config, Duration maxCronDelay) {
+    Instant nextExecutionTime = config.nextExecutionTime(Instant.now(), maxCronDelay);
     return new SchedulerEntry(
         config.getName(),
         config.getJobType().name(),
         config.getCronExpression(),
         config.getDelay(),
-        config.getNextExecutionTime(),
+        nextExecutionTime == null ? null : Date.from(nextExecutionTime),
         config.getJobStatus(),
         config.isEnabled(),
         config.getJobType().isUserDefined(),
         List.of(SchedulerEntryJob.of(config)));
   }
 
-  static SchedulerEntry of(List<JobConfiguration> jobs) {
+  static SchedulerEntry of(List<JobConfiguration> jobs, Duration maxCronDelay) {
     List<JobConfiguration> queue =
         jobs.stream().sorted(comparing(JobConfiguration::getQueuePosition)).collect(toList());
     JobConfiguration trigger = queue.get(0);
     if (!trigger.isUsedInQueue()) {
-      return of(trigger);
+      return of(trigger, maxCronDelay);
     }
     JobStatus queueStatus =
         queue.stream()
@@ -83,12 +86,13 @@ class SchedulerEntry {
             .filter(status -> status == JobStatus.RUNNING)
             .findAny()
             .orElse(trigger.getJobStatus());
+    Instant nextExecutionTime = trigger.nextExecutionTime(Instant.now(), maxCronDelay);
     return new SchedulerEntry(
         trigger.getQueueName(),
         "Sequence",
         trigger.getCronExpression(),
         trigger.getDelay(),
-        trigger.getNextExecutionTime(),
+        nextExecutionTime == null ? null : Date.from(nextExecutionTime),
         queueStatus,
         trigger.isEnabled(),
         true,
