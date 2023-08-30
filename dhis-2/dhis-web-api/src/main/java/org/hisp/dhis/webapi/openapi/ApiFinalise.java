@@ -32,6 +32,7 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
 import java.lang.reflect.Member;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -473,22 +475,104 @@ public class ApiFinalise {
   /*
    * 3. Group and merge endpoints by request path and method
    */
-
   private void groupAndMergeEndpoints() {
     groupEndpointsByAbsolutePath()
         .forEach(
             (path, endpoints) -> {
-              EnumMap<RequestMethod, Api.Endpoint> endpointByMethod =
+              EnumMap<RequestMethod, List<Api.Endpoint>> endpointByMethod =
                   new EnumMap<>(RequestMethod.class);
               endpoints.forEach(
                   e ->
                       e.getMethods()
                           .forEach(
                               method ->
-                                  endpointByMethod.compute(
-                                      method, (k, v) -> mergeEndpoints(v, e, method))));
-              api.getEndpoints().put(path, endpointByMethod);
+                                  endpointByMethod
+                                      .computeIfAbsent(
+                                          method, (Function) o -> new ArrayList<Api.Endpoint>())
+                                      .add(e)));
+
+              for (Map.Entry<RequestMethod, List<Api.Endpoint>> methodAndEndpoints :
+                  endpointByMethod.entrySet()) {
+                toPathsAndOperations(methodAndEndpoints, path);
+              }
             });
+  }
+
+  private void toPathsAndOperations(
+      Map.Entry<RequestMethod, List<Api.Endpoint>> methodAndEndpoints, String path) {
+    Api.Endpoint nonFragmentEndpoint = null;
+    if (methodAndEndpoints.getValue().size() > 1) {
+      for (int i = 0;
+          i < methodAndEndpoints.getValue().size() && nonFragmentEndpoint == null;
+          i++) {
+        if (consumesOrProducesJson(methodAndEndpoints.getValue().get(i))) {
+          nonFragmentEndpoint = methodAndEndpoints.getValue().get(i);
+        }
+      }
+
+      if (nonFragmentEndpoint == null) {
+        nonFragmentEndpoint = methodAndEndpoints.getValue().get(0);
+      }
+
+      for (int i = 0; i < methodAndEndpoints.getValue().size(); i++) {
+        if (!methodAndEndpoints.getValue().get(i).equals(nonFragmentEndpoint)) {
+          Api.Endpoint endpoint = methodAndEndpoints.getValue().get(i);
+          if (isMergeable(endpoint, nonFragmentEndpoint)) {
+            nonFragmentEndpoint =
+                mergeEndpoints(nonFragmentEndpoint, endpoint, methodAndEndpoints.getKey());
+          } else {
+            AbstractMap.SimpleEntry<String, EnumMap<RequestMethod, Api.Endpoint>>
+                fragmentPathAndOperation = fragmentise(methodAndEndpoints.getKey(), endpoint, path);
+            api.getEndpoints()
+                .put(fragmentPathAndOperation.getKey(), fragmentPathAndOperation.getValue());
+          }
+        }
+      }
+      api.getEndpoints()
+          .computeIfAbsent(path, s -> new EnumMap<>(RequestMethod.class))
+          .put(methodAndEndpoints.getKey(), nonFragmentEndpoint);
+    } else {
+      api.getEndpoints()
+          .computeIfAbsent(path, s -> new EnumMap<>(RequestMethod.class))
+          .put(methodAndEndpoints.getKey(), methodAndEndpoints.getValue().get(0));
+    }
+  }
+
+  private AbstractMap.SimpleEntry<String, EnumMap<RequestMethod, Api.Endpoint>> fragmentise(
+      RequestMethod requestMethod, Api.Endpoint endpoint, String path) {
+    EnumMap<RequestMethod, Api.Endpoint> requestMethodObjectEnumMap =
+        new EnumMap<>(RequestMethod.class);
+    requestMethodObjectEnumMap.put(requestMethod, endpoint);
+
+    return new AbstractMap.SimpleEntry<>(
+        path + "#" + endpoint.getName(), requestMethodObjectEnumMap);
+  }
+
+  private boolean isMergeable(Api.Endpoint anEndpoint, Api.Endpoint anotherEndpoint) {
+    return anEndpoint.getParameters().equals(anotherEndpoint.getParameters());
+  }
+
+  private boolean consumesOrProducesJson(Api.Endpoint endpoint) {
+    if (endpoint.getRequestBody().isPresent()) {
+      for (Map.Entry<MediaType, Api.Schema> mediaTypeSchemaEntry :
+          endpoint.getRequestBody().getValue().getConsumes().entrySet()) {
+        if (mediaTypeSchemaEntry.getKey().equals(MediaType.APPLICATION_JSON)) {
+          return true;
+        }
+      }
+    }
+
+    for (Map.Entry<HttpStatus, Api.Response> httpStatusResponseEntry :
+        endpoint.getResponses().entrySet()) {
+      for (Map.Entry<MediaType, Api.Schema> mediaTypeSchemaEntry :
+          httpStatusResponseEntry.getValue().getContent().entrySet()) {
+        if (mediaTypeSchemaEntry.getKey().equals(MediaType.APPLICATION_JSON)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   private Map<String, List<Api.Endpoint>> groupEndpointsByAbsolutePath() {
