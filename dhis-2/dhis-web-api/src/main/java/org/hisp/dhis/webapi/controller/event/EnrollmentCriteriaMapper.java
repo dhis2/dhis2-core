@@ -37,7 +37,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -48,7 +47,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -68,8 +66,6 @@ public class EnrollmentCriteriaMapper {
   private final TrackedEntityTypeService trackedEntityTypeService;
 
   private final TrackedEntityInstanceService trackedEntityInstanceService;
-
-  private final TrackerAccessManager trackerAccessManager;
 
   /**
    * Returns a ProgramInstanceQueryParams based on the given input.
@@ -110,8 +106,7 @@ public class EnrollmentCriteriaMapper {
       boolean totalPages,
       boolean skipPaging,
       boolean includeDeleted,
-      List<OrderCriteria> orderCriteria)
-      throws ForbiddenException {
+      List<OrderCriteria> orderCriteria) {
     ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
 
     User user = currentUserService.getCurrentUser();
@@ -130,9 +125,10 @@ public class EnrollmentCriteriaMapper {
           throw new IllegalQueryException("Organisation unit does not exist: " + orgUnit);
         }
 
-        if (!trackerAccessManager.canAccess(user, program, organisationUnit)) {
-          throw new ForbiddenException(
-              "User does not have access to organisation unit: " + organisationUnit.getUid());
+        if (!organisationUnitService.isInUserHierarchy(
+            organisationUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
+          throw new IllegalQueryException(
+              "Organisation unit is not part of the search scope: " + orgUnit);
         }
 
         params.getOrganisationUnits().add(organisationUnit);

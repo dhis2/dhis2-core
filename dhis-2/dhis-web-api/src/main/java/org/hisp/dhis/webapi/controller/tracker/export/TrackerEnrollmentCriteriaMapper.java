@@ -50,7 +50,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -75,8 +74,6 @@ public class TrackerEnrollmentCriteriaMapper {
 
   @Nonnull private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-  @Nonnull private final TrackerAccessManager trackerAccessManager;
-
   @Transactional(readOnly = true)
   public ProgramInstanceQueryParams map(TrackerEnrollmentCriteria criteria)
       throws BadRequestException, ForbiddenException {
@@ -95,7 +92,7 @@ public class TrackerEnrollmentCriteriaMapper {
 
     User user = currentUserService.getCurrentUser();
     Set<String> orgUnitIds = parseUids(criteria.getOrgUnit());
-    Set<OrganisationUnit> orgUnits = validateOrgUnits(user, orgUnitIds, program);
+    Set<OrganisationUnit> orgUnits = validateOrgUnits(user, orgUnitIds);
 
     ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
     params.setProgram(program);
@@ -142,7 +139,7 @@ public class TrackerEnrollmentCriteriaMapper {
     }
   }
 
-  private Set<OrganisationUnit> validateOrgUnits(User user, Set<String> orgUnitIds, Program program)
+  private Set<OrganisationUnit> validateOrgUnits(User user, Set<String> orgUnitIds)
       throws BadRequestException, ForbiddenException {
 
     Set<OrganisationUnit> orgUnits = new HashSet<>();
@@ -155,9 +152,10 @@ public class TrackerEnrollmentCriteriaMapper {
           throw new BadRequestException("Organisation unit does not exist: " + orgUnitId);
         }
 
-        if (!trackerAccessManager.canAccess(user, program, organisationUnit)) {
+        if (!organisationUnitService.isInUserHierarchy(
+            organisationUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
           throw new ForbiddenException(
-              "User does not have access to organisation unit: " + organisationUnit.getUid());
+              "Organisation unit is not part of the search scope: " + orgUnitId);
         }
 
         orgUnits.add(organisationUnit);
