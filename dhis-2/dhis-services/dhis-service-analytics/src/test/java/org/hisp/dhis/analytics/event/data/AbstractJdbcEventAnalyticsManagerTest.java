@@ -47,7 +47,11 @@ import static org.hisp.dhis.common.QueryOperator.NE;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
 import static org.hisp.dhis.common.QueryOperator.NILIKE;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.ValueType.*;
+import static org.hisp.dhis.period.RelativePeriodEnum.THIS_YEAR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -82,6 +86,7 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
@@ -90,6 +95,8 @@ import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -98,6 +105,8 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -116,6 +125,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Mock private ExecutionPlanStore executionPlanStore;
 
   private JdbcEventAnalyticsManager eventSubject;
+
+  private JdbcEnrollmentAnalyticsManager enrollmentSubject;
 
   private Program programA;
 
@@ -139,6 +150,15 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorSubqueryBuilder,
             new EventTimeFieldSqlRenderer(statementBuilder),
             executionPlanStore);
+
+    enrollmentSubject =
+            new JdbcEnrollmentAnalyticsManager(
+                    jdbcTemplate,
+                    programIndicatorService,
+                    programIndicatorSubqueryBuilder,
+                    new EnrollmentTimeFieldSqlRenderer(statementBuilder),
+                    executionPlanStore);
+
 
     programA = createProgram('A');
 
@@ -792,6 +812,40 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     eventSubject.addGridValue(grid, header, index, sqlRowSet, queryParams);
 
     assertTrue(grid.getColumn(0).contains(EMPTY), "Should contain empty value");
+  }
+
+  @Test
+  void testGetSelectClauseForAggregatedEnrollments(){
+    // Given
+    Period period = new Period(THIS_YEAR);
+    period.setPeriodType(new YearlyPeriodType());
+    EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram(createProgram('A'))
+            .withEndpointAction(AGGREGATE)
+            .withEndpointItem(ENROLLMENT)
+            .withPeriods(List.of(period), PeriodTypeEnum.YEARLY.getName())
+            .build();
+    // When
+    String select = enrollmentSubject.getSelectClause(params);
+    // Then
+    assertEquals("select pi,Yearly ", select);
+  }
+
+  @Test
+  void testGetSelectClauseForQueryEnrollments(){
+    // Given
+    Period period = new Period(THIS_YEAR);
+    period.setPeriodType(new YearlyPeriodType());
+    EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram(createProgram('A'))
+            .withEndpointAction(QUERY)
+            .withEndpointItem(ENROLLMENT)
+            .withPeriods(List.of(period), PeriodTypeEnum.YEARLY.getName())
+            .build();
+    // When
+    String select = enrollmentSubject.getSelectClause(params);
+    // Then
+    assertEquals("select pi,tei,enrollmentdate,incidentdate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"yearly\" ", select);
   }
 
   private QueryFilter buildQueryFilter(QueryOperator operator, String filter) {

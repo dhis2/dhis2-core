@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Collections;
@@ -114,6 +116,27 @@ public class EventDataQueryRequestTest {
         Set.of(
             Set.of(
                 "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:INCIDENT_DATE;2021:INCIDENT_DATE;TODAY:INCIDENT_DATE")));
+  }
+
+  @Test
+  void testAggregateEnrollmentMultiOptionsAreCorrectlyParsed() {
+    // Given
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    criteria.setIncidentDate("202111,2021;TODAY");
+    criteria.setEnrollmentDate("LAST_YEAR");
+    criteria.setDimension(new HashSet<>(Set.of("pe:LAST_MONTH")));
+
+    // When
+    EventDataQueryRequest eventDataQueryRequest =
+            EventDataQueryRequest.builder()
+                    .fromCriteria((EnrollmentAnalyticsQueryCriteria) criteria.withEndpointAction(AGGREGATE).withEndpointItem(ENROLLMENT))
+                    .build();
+    // Then
+    assertEquals(
+            eventDataQueryRequest.getDimension(),
+            Set.of(
+                    Set.of(
+                            "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:INCIDENT_DATE;2021:INCIDENT_DATE;TODAY:INCIDENT_DATE")));
   }
 
   @ParameterizedTest
