@@ -864,32 +864,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   // --------------------------------------------------------------------------
 
   /**
-   * Deserializes a payload from the request, handles JSON/XML payloads
-   *
-   * @param request HttpServletRequest from current session
-   * @return Parsed entity or null if invalid type
-   */
-  private T deserialize(HttpServletRequest request) throws IOException {
-    String type = request.getContentType();
-    type = !StringUtils.isEmpty(type) ? type : APPLICATION_JSON_VALUE;
-
-    // allow type to be overridden by path extension
-    if (request.getPathInfo().endsWith(".json")) {
-      type = APPLICATION_JSON_VALUE;
-    } else if (request.getPathInfo().endsWith(".xml")) {
-      type = APPLICATION_XML_VALUE;
-    }
-
-    if (isCompatibleWith(type, MediaType.APPLICATION_JSON)) {
-      return renderService.fromJson(request.getInputStream(), getEntityClass());
-    } else if (isCompatibleWith(type, MediaType.APPLICATION_XML)) {
-      return renderService.fromXml(request.getInputStream(), getEntityClass());
-    }
-
-    return null;
-  }
-
-  /**
    * Are we receiving JSON data?
    *
    * @param request HttpServletRequest from current session
