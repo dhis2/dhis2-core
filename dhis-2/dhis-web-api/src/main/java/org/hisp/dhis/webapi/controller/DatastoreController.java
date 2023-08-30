@@ -214,9 +214,9 @@ public class DatastoreController extends AbstractDatastoreController {
    * Create or update a key in the given namespace <br>
    * <br>
    *
-   * <p>If the key does not exist then a create will be attempted
+   * <p>If the key or namespace do not exist then a create will be attempted
    *
-   * <p>If the key exists then an update will be attempted
+   * <p>If the key and namespace exist then an update will be attempted
    */
   @OpenApi.Response(
       status = {Status.CREATED, Status.OK},
@@ -232,7 +232,6 @@ public class DatastoreController extends AbstractDatastoreController {
       @RequestBody String value,
       @RequestParam(defaultValue = "false") boolean encrypt)
       throws BadRequestException, ConflictException {
-
     DatastoreEntry dataEntry = service.getEntry(namespace, key);
 
     return dataEntry != null
@@ -265,7 +264,6 @@ public class DatastoreController extends AbstractDatastoreController {
   private WebMessage updateEntry(DatastoreEntry entry, String key, String value)
       throws BadRequestException {
     entry.setValue(value);
-
     service.updateEntry(entry);
 
     return ok(String.format("Key updated: '%s'", key));
