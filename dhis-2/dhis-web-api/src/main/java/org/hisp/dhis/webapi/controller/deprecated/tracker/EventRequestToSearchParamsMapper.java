@@ -472,9 +472,9 @@ class EventRequestToSearchParamsMapper {
 
     String violation =
         switch (selectedOuMode) {
-          case ALL -> userCanSearchOuModeALL(user)
-              ? null
-              : "Current user is not authorized to query across all organisation units";
+          case ALL -> orgUnit != null
+              ? "ouMode ALL cannot be used with orgUnits. Please remove the orgUnit parameter and try again."
+              : userCanSearchOuModeALL(user);
           case ACCESSIBLE -> orgUnit != null
               ? "ouMode ACCESSIBLE cannot be used with orgUnits. Please remove the orgUnit parameter and try again."
               : getAccessibleScopeValidation(user, program);
@@ -491,13 +491,18 @@ class EventRequestToSearchParamsMapper {
     }
   }
 
-  private boolean userCanSearchOuModeALL(User user) {
+  private String userCanSearchOuModeALL(User user) {
     if (user == null) {
-      return false;
+      return null;
     }
 
-    return user.isSuper()
-        || user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
+    if (!user.isSuper()
+        && !user.isAuthorized(
+            Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name())) {
+      return "Current user is not authorized to query across all organisation units";
+    }
+
+    return null;
   }
 
   private String getCaptureScopeValidation(User user) {

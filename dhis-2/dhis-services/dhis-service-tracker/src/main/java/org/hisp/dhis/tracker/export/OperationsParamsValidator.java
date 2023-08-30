@@ -64,45 +64,52 @@ public class OperationsParamsValidator {
   public static void validateOrgUnitMode(
       OrganisationUnitSelectionMode orgUnitMode, User user, Program program)
       throws BadRequestException {
-
     switch (orgUnitMode) {
       case ALL -> validateUserCanSearchOrgUnitModeALL(user);
-      case ACCESSIBLE, DESCENDANTS, CHILDREN -> validateAccessibleScope(user, program, orgUnitMode);
+      case SELECTED, ACCESSIBLE, DESCENDANTS, CHILDREN -> validateUserScope(
+          user, program, orgUnitMode);
       case CAPTURE -> validateCaptureScope(user);
     }
   }
 
   private static void validateUserCanSearchOrgUnitModeALL(User user) throws BadRequestException {
+    // TODO This user check should be done in a separate validation, so when it gets here we already
+    // know it's not null
     if (user == null
         || !(user.isSuper()
             || user.isAuthorized(
                 Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()))) {
       throw new BadRequestException(
           "Current user is not authorized to query across all organisation units");
+
+      // TODO Validate user scope if mode ALL needs to use user's search or capture scope
     }
   }
 
-  private static void validateAccessibleScope(
+  private static void validateUserScope(
       User user, Program program, OrganisationUnitSelectionMode orgUnitMode)
       throws BadRequestException {
 
+    // TODO This user check should be done in a separate validation, so when it gets here we already
+    // know it's not null
     if (user == null) {
       throw new BadRequestException("User is required for orgUnitMode: " + orgUnitMode);
     }
 
     if (program != null && (program.isClosed() || program.isProtected())) {
       if (user.getOrganisationUnits().isEmpty()) {
-        throw new BadRequestException("User needs to be assigned data capture orgunits");
+        throw new BadRequestException("User needs to be assigned data capture org units");
       }
 
     } else if (user.getTeiSearchOrganisationUnitsWithFallback().isEmpty()) {
       throw new BadRequestException(
-          "User needs to be assigned either TE search, data view or data capture org units");
+          "User needs to be assigned either search or data capture org units");
     }
   }
 
   private static void validateCaptureScope(User user) throws BadRequestException {
-
+    // TODO This user check should be done in a separate validation, so when it gets here we already
+    // know it's not null
     if (user == null) {
       throw new BadRequestException("User is required for orgUnitMode: " + CAPTURE);
     } else if (user.getOrganisationUnits().isEmpty()) {
