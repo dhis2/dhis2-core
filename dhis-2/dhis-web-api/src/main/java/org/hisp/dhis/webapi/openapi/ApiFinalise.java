@@ -500,19 +500,8 @@ public class ApiFinalise {
 
   private void toPathsAndOperations(
       Map.Entry<RequestMethod, List<Api.Endpoint>> methodAndEndpoints, String path) {
-    Api.Endpoint nonFragmentEndpoint = null;
     if (methodAndEndpoints.getValue().size() > 1) {
-      for (int i = 0;
-          i < methodAndEndpoints.getValue().size() && nonFragmentEndpoint == null;
-          i++) {
-        if (consumesOrProducesJson(methodAndEndpoints.getValue().get(i))) {
-          nonFragmentEndpoint = methodAndEndpoints.getValue().get(i);
-        }
-      }
-
-      if (nonFragmentEndpoint == null) {
-        nonFragmentEndpoint = methodAndEndpoints.getValue().get(0);
-      }
+      Api.Endpoint nonFragmentEndpoint = getPreferredEndpoint(methodAndEndpoints);
 
       for (int i = 0; i < methodAndEndpoints.getValue().size(); i++) {
         if (!methodAndEndpoints.getValue().get(i).equals(nonFragmentEndpoint)) {
@@ -536,6 +525,17 @@ public class ApiFinalise {
           .computeIfAbsent(path, s -> new EnumMap<>(RequestMethod.class))
           .put(methodAndEndpoints.getKey(), methodAndEndpoints.getValue().get(0));
     }
+  }
+
+  private Api.Endpoint getPreferredEndpoint(
+      Map.Entry<RequestMethod, List<Api.Endpoint>> methodAndEndpoints) {
+    for (int i = 0; i < methodAndEndpoints.getValue().size(); i++) {
+      if (consumesOrProducesJson(methodAndEndpoints.getValue().get(i))) {
+        return methodAndEndpoints.getValue().get(i);
+      }
+    }
+
+    return methodAndEndpoints.getValue().get(0);
   }
 
   private AbstractMap.SimpleEntry<String, EnumMap<RequestMethod, Api.Endpoint>> fragmentise(
