@@ -152,10 +152,6 @@ public interface WebClient {
         HttpMethod.PATCH, url, ContentType("application/json-patch+json"), Body(body));
   }
 
-  default HttpResponse PATCH_OLD(String url, String body) {
-    return webRequest(HttpMethod.PATCH, url, ContentType("application/json"), Body(body));
-  }
-
   default HttpResponse PUT(String url, Object... args) {
     return webRequest(HttpMethod.PUT, substitutePlaceholders(url, args), requestComponentsIn(args));
   }
