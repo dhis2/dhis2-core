@@ -487,9 +487,9 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testPutEntry_EntryAlreadyExistsAndIsUpdated() {
     assertStatus(HttpStatus.CREATED, PUT("/dataStore/pets/emu", "{\"name\":\"harry\"}"));
-    assertStatus(HttpStatus.OK, PUT("/dataStore/pets/emu", "{\"name\":\"barry\"}"));
+    assertStatus(HttpStatus.OK, PUT("/dataStore/pets/emu", "{\"name\":\"james\"}"));
     JsonDatastoreValue emu = GET("/dataStore/pets/emu").content().as(JsonDatastoreValue.class);
-    assertEquals("barry", emu.getString("name").string());
+    assertEquals("james", emu.getString("name").string());
   }
 
   @Test
@@ -499,7 +499,7 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
 
     // switch to user with no keyspace permission and try to update key
     switchToNewUser("someoneWithNoAccess", "cats-admin");
-    assertStatus(HttpStatus.CREATED, PUT("/dataStore/pets/emu", "{\"name\":\"barry\"}"));
+    assertStatus(HttpStatus.CREATED, PUT("/dataStore/pets/emu", "{\"name\":\"james\"}"));
 
     // switch back to user with permission and check that original value has not been changed
     switchToSuperuser();
@@ -513,7 +513,7 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
 
     // switch to user with no keyspace permission and try to update key
     switchToNewUser("someoneWithNoAccess", "cats-admin");
-    assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/emu", "{\"name\":\"barry\"}"));
+    assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/emu", "{\"name\":\"james\"}"));
 
     // switch back to user with permission and check that no entry exists in the namespace
     switchToSuperuser();
@@ -531,7 +531,7 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
     switchToNewUser("someoneWithNoAccess", "cats-admin");
     assertEquals(
         "Namespace 'pets' is protected, access denied",
-        PUT("/dataStore/pets/emu", "{\"name\":\"barry\"}")
+        PUT("/dataStore/pets/emu", "{\"name\":\"james\"}")
             .error(HttpStatus.FORBIDDEN)
             .getMessage());
   }
@@ -544,7 +544,7 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
     switchToNewUser("someoneWithNoAccess", "cats-admin");
     assertEquals(
         "Namespace 'pets' is protected, access denied",
-        PUT("/dataStore/pets/emu", "{\"name\":\"barry\"}")
+        PUT("/dataStore/pets/emu", "{\"name\":\"james\"}")
             .error(HttpStatus.FORBIDDEN)
             .getMessage());
   }
