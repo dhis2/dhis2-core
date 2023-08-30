@@ -63,7 +63,6 @@ public class LocalAppStorageService implements AppStorageService {
   private final ResourceLoader resourceLoader = new DefaultResourceLoader();
 
   private final Map<String, App> apps = new ConcurrentHashMap<>();
-  private final Map<String, App> reservedNamespaces = new ConcurrentHashMap<>();
 
   private final LocationManager locationManager;
 
@@ -139,12 +138,6 @@ public class LocalAppStorageService implements AppStorageService {
 
     appList.forEach(
         app -> {
-          String namespace = app.getActivities().getDhis().getNamespace();
-
-          if (namespace != null && !namespace.isEmpty()) {
-            reservedNamespaces.put(namespace, app);
-          }
-
           appMap.put(app.getUrlFriendlyName(), app);
           apps.put(app.getUrlFriendlyName(), app);
 
@@ -156,11 +149,6 @@ public class LocalAppStorageService implements AppStorageService {
     }
 
     return appMap;
-  }
-
-  @Override
-  public Map<String, App> getReservedNamespaces() {
-    return reservedNamespaces;
   }
 
   @Override

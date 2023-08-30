@@ -42,7 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -95,8 +94,6 @@ public class JCloudsAppStorageService implements AppStorageService {
 
   private static final long FIVE_MINUTES_IN_SECONDS =
       Minutes.minutes(5).toStandardDuration().getStandardSeconds();
-
-  private final Map<String, App> reservedNamespaces = new ConcurrentHashMap<>();
 
   private BlobStore blobStore;
 
@@ -196,15 +193,11 @@ public class JCloudsAppStorageService implements AppStorageService {
     blobStoreContext.close();
   }
 
-  @Override
-  public Map<String, App> discoverInstalledApps() {
-    Map<String, App> appMap = new HashMap<>();
-    List<App> appList = new ArrayList<>();
+  private void discoverInstalledApps(Consumer<App> handler) {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     log.info("Starting JClouds discovery");
-
     for (StorageMetadata resource :
         blobStore.list(config.container, prefix(APPS_DIR + "/").delimiter("/"))) {
       log.info("Found potential app: " + resource.getName());
@@ -225,35 +218,27 @@ public class JCloudsAppStorageService implements AppStorageService {
         app.setAppStorageSource(AppStorageSource.JCLOUDS);
         app.setFolderName(resource.getName());
 
-        appList.add(app);
+        handler.accept(app);
       } catch (IOException ex) {
         log.error("Could not read manifest file of " + resource.getName(), ex);
         log.error(DebugUtils.getStackTrace(ex));
       }
     }
-
-    appList.forEach(
-        app -> {
-          String namespace = app.getActivities().getDhis().getNamespace();
-
-          if (namespace != null && !namespace.isEmpty()) {
-            reservedNamespaces.put(namespace, app);
-          }
-
-          appMap.put(app.getUrlFriendlyName(), app);
-
-          log.info("Discovered app '" + app.getName() + "' from JClouds storage ");
-        });
-
-    if (appList.isEmpty()) {
-      log.info("No apps found during JClouds discovery.");
-    }
-    return appMap;
   }
 
   @Override
-  public Map<String, App> getReservedNamespaces() {
-    return reservedNamespaces;
+  public Map<String, App> discoverInstalledApps() {
+    Map<String, App> apps = new HashMap<>();
+    discoverInstalledApps(app -> apps.put(app.getUrlFriendlyName(), app));
+
+    if (apps.isEmpty()) {
+      log.info("No apps found during JClouds discovery.");
+    } else {
+      apps.values()
+          .forEach(app -> log.info("Discovered app '" + app.getName() + "' from JClouds storage "));
+    }
+
+    return apps;
   }
 
   private boolean validateApp(App app, Cache<App> appCache) {
@@ -277,17 +262,21 @@ public class JCloudsAppStorageService implements AppStorageService {
 
     String namespace = app.getActivities().getDhis().getNamespace();
 
-    if (namespace != null
-        && !namespace.isEmpty()
-        && reservedNamespaces.containsKey(namespace)
-        && !app.getKey().equals(reservedNamespaces.get(namespace).getKey())) {
-      log.error(
-          String.format(
-              "Failed to install app '%s': Namespace '%s' already taken.",
-              app.getName(), namespace));
+    if (namespace != null && !namespace.isEmpty()) {
+      Optional<App> other =
+          appCache
+              .getAll()
+              .filter(a -> namespace.equals(a.getActivities().getDhis().getNamespace()))
+              .findFirst();
+      if (other.isPresent() && !other.get().getKey().equals(app.getKey())) {
+        log.error(
+            String.format(
+                "Failed to install app '%s': Namespace '%s' already taken.",
+                app.getName(), namespace));
 
-      app.setAppState(AppStatus.NAMESPACE_TAKEN);
-      return false;
+        app.setAppState(AppStatus.NAMESPACE_TAKEN);
+        return false;
+      }
     }
 
     // -----------------------------------------------------------------
@@ -384,20 +373,18 @@ public class JCloudsAppStorageService implements AppStorageService {
                     }
                   });
 
-      // make sure only one version of an app is installed
-      // so if we successfully install this version the old version is removed
-      Optional<App> existingApp = appCache.getIfPresent(app.getKey());
-      if (existingApp.isPresent()) {
-        App before = existingApp.get();
-        if (before.getAppStorageSource() == AppStorageSource.JCLOUDS) {
-          deleteApp(before);
-        }
-      }
+      // make sure any other version of same app is removed
+      List<App> otherVersions = new ArrayList<>();
+      String key = app.getKey();
+      String version = app.getVersion();
+      discoverInstalledApps(
+          other -> {
+            if (key.equals(other.getKey()) && !version.equals(other.getVersion()))
+              otherVersions.add(other);
+          });
+      otherVersions.forEach(this::deleteApp);
 
       String namespace = app.getActivities().getDhis().getNamespace();
-      if (namespace != null && !namespace.isEmpty()) {
-        reservedNamespaces.put(namespace, app);
-      }
 
       log.info(
           String.format(
@@ -441,12 +428,6 @@ public class JCloudsAppStorageService implements AppStorageService {
 
       blobStore.removeBlob(config.container, resource.getName());
     }
-
-    String namespace = app.getActivities().getDhis().getNamespace();
-    if (namespace != null) {
-      reservedNamespaces.remove(namespace, app);
-    }
-
     log.info("Deleted app " + app.getName());
   }
 

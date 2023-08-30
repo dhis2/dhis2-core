@@ -35,10 +35,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -280,11 +278,13 @@ public class DefaultAppManager implements AppManager {
   public void deleteApp(App app, boolean deleteAppData) {
     if (app != null) {
       getAppStorageServiceByApp(app).deleteApp(app);
-      unregisterDatastoreProtection(app);
+      App otherVersionApp = getApp(app.getName());
+      if (otherVersionApp == null) {
+        unregisterDatastoreProtection(app);
+      }
       if (deleteAppData) {
         deleteAppData(app);
       }
-
       appCache.invalidate(app.getKey());
     }
   }
@@ -337,11 +337,6 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public App getAppByNamespace(String namespace) {
-    return getNamespaceMap().get(namespace);
-  }
-
-  @Override
   public Resource getAppResource(App app, String pageName) throws IOException {
     return getAppStorageServiceByApp(app).getAppResource(app, pageName);
   }
@@ -355,15 +350,6 @@ public class DefaultAppManager implements AppManager {
       return localAppStorageService;
     }
     return jCloudsAppStorageService;
-  }
-
-  private Map<String, App> getNamespaceMap() {
-    Map<String, App> apps = new HashMap<>();
-
-    apps.putAll(jCloudsAppStorageService.getReservedNamespaces());
-    apps.putAll(localAppStorageService.getReservedNamespaces());
-
-    return apps;
   }
 
   private void deleteAppData(App app) {
