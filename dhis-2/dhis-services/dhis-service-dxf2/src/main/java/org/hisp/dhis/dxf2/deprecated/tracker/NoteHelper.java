@@ -34,19 +34,18 @@ import java.util.stream.Collectors;
 import lombok.experimental.UtilityClass;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Note;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.util.DateUtils;
 
 @UtilityClass
 public class NoteHelper {
 
-  public Collection<Note> convertNotes(Collection<TrackedEntityComment> trackedEntityComments) {
+  public Collection<Note> convertNotes(Collection<org.hisp.dhis.note.Note> trackedEntityComments) {
     return Optional.ofNullable(trackedEntityComments).orElse(Collections.emptySet()).stream()
         .map(NoteHelper::toNote)
         .collect(Collectors.toSet());
   }
 
-  private Note toNote(TrackedEntityComment trackedEntityComment) {
+  private Note toNote(org.hisp.dhis.note.Note trackedEntityComment) {
     Note note = new Note();
 
     note.setNote(trackedEntityComment.getUid());

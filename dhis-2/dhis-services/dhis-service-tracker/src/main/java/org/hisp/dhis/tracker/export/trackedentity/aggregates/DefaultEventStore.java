@@ -34,10 +34,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.EventDataValueRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.EventRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.NoteRowCallbackHandler;
@@ -166,7 +166,7 @@ public class DefaultEventStore extends AbstractStore implements EventStore {
   }
 
   @Override
-  public Multimap<String, TrackedEntityComment> getNotes(List<Long> eventIds) {
+  public Multimap<String, Note> getNotes(List<Long> eventIds) {
     return fetch(GET_NOTES_SQL, new NoteRowCallbackHandler(), eventIds);
   }
 }

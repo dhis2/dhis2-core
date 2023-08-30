@@ -25,14 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment;
+package org.hisp.dhis.note;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author David Katuscak
  */
-public interface TrackedEntityCommentStore extends IdentifiableObjectStore<TrackedEntityComment> {
+public interface TrackedEntityCommentStore extends IdentifiableObjectStore<Note> {
   /**
    * Checks for the existence of a TrackedEntityComment by UID
    *

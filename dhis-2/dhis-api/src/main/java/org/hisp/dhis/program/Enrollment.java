@@ -46,10 +46,10 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.message.MessageConversation;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.util.ObjectUtils;
 import org.locationtech.jts.geom.Geometry;
 
@@ -89,7 +89,7 @@ public class Enrollment extends SoftDeletableObject {
 
   private Boolean followup = false;
 
-  private List<TrackedEntityComment> comments = new ArrayList<>();
+  private List<Note> comments = new ArrayList<>();
 
   private String completedBy;
 
@@ -333,11 +333,11 @@ public class Enrollment extends SoftDeletableObject {
   @JsonProperty("trackedEntityComments")
   @JacksonXmlElementWrapper(localName = "trackedEntityComments", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0)
-  public List<TrackedEntityComment> getComments() {
+  public List<Note> getComments() {
     return comments;
   }
 
-  public void setComments(List<TrackedEntityComment> comments) {
+  public void setComments(List<Note> comments) {
     this.comments = comments;
   }
 

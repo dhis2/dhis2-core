@@ -36,9 +36,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -68,25 +67,29 @@ class NotesConverterServiceTest extends DhisConvenienceTest {
 
   @Test
   void verifyConvertCommentToNote() {
-    Note note = rnd.nextObject(Note.class);
-    final TrackedEntityComment comment = notesConverterService.from(preheat, note);
+    org.hisp.dhis.tracker.imports.domain.Note note =
+        rnd.nextObject(org.hisp.dhis.tracker.imports.domain.Note.class);
+    final Note comment = notesConverterService.from(preheat, note);
     assertNoteValues(comment, note);
   }
 
   @Test
   void verifyConvertCommentToNoteWithNoStoredByDefined() {
-    Note note = rnd.nextObject(Note.class);
+    org.hisp.dhis.tracker.imports.domain.Note note =
+        rnd.nextObject(org.hisp.dhis.tracker.imports.domain.Note.class);
     note.setStoredBy(null);
-    final TrackedEntityComment comment = notesConverterService.from(preheat, note);
+    final Note comment = notesConverterService.from(preheat, note);
     assertNoteValues(comment, note);
   }
 
   @Test
   void verifyConvertCommentsToNotes() {
-    List<Note> notes = rnd.objects(Note.class, 10).collect(Collectors.toList());
-    final List<TrackedEntityComment> comments = notesConverterService.from(preheat, notes);
+    List<org.hisp.dhis.tracker.imports.domain.Note> notes =
+        rnd.objects(org.hisp.dhis.tracker.imports.domain.Note.class, 10)
+            .collect(Collectors.toList());
+    final List<Note> comments = notesConverterService.from(preheat, notes);
     assertThat(comments, hasSize(10));
-    for (Note note : notes) {
+    for (org.hisp.dhis.tracker.imports.domain.Note note : notes) {
       assertNoteValues(
           comments.stream().filter(c -> c.getUid().equals(note.getNote())).findFirst().get(), note);
     }
@@ -94,24 +97,24 @@ class NotesConverterServiceTest extends DhisConvenienceTest {
 
   @Test
   void verifyConvertNoteToComment() {
-    TrackedEntityComment comment = rnd.nextObject(TrackedEntityComment.class);
-    final Note note = notesConverterService.to(comment);
+    Note comment = rnd.nextObject(Note.class);
+    final org.hisp.dhis.tracker.imports.domain.Note note = notesConverterService.to(comment);
     assertCommentValues(note, comment);
   }
 
   @Test
   void verifyConvertNotesToComments() {
-    List<TrackedEntityComment> comments =
-        rnd.objects(TrackedEntityComment.class, 10).collect(Collectors.toList());
-    final List<Note> notes = notesConverterService.to(comments);
-    for (TrackedEntityComment comment : comments) {
+    List<Note> comments = rnd.objects(Note.class, 10).collect(Collectors.toList());
+    final List<org.hisp.dhis.tracker.imports.domain.Note> notes =
+        notesConverterService.to(comments);
+    for (Note comment : comments) {
       assertCommentValues(
           notes.stream().filter(n -> n.getNote().equals(comment.getUid())).findFirst().get(),
           comment);
     }
   }
 
-  private void assertNoteValues(TrackedEntityComment comment, Note note) {
+  private void assertNoteValues(Note comment, org.hisp.dhis.tracker.imports.domain.Note note) {
     assertThat(comment, is(notNullValue()));
     assertThat(comment.getUid(), is(note.getNote()));
     assertThat(comment.getCommentText(), is(note.getValue()));
@@ -119,7 +122,7 @@ class NotesConverterServiceTest extends DhisConvenienceTest {
     assertThat(comment.getLastUpdatedBy().getUsername(), is(CURRENT_USER));
   }
 
-  private void assertCommentValues(Note note, TrackedEntityComment comment) {
+  private void assertCommentValues(org.hisp.dhis.tracker.imports.domain.Note note, Note comment) {
     assertThat(note, is(notNullValue()));
     assertThat(note.getNote(), is(comment.getUid()));
     assertThat(note.getValue(), is(comment.getCommentText()));

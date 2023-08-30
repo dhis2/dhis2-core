@@ -66,6 +66,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
@@ -89,7 +90,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -146,7 +146,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private TrackedEntity trackedEntityB;
 
-  private TrackedEntityComment note1;
+  private Note note;
 
   private CategoryOptionCombo defaultCategoryOptionCombo;
 
@@ -271,11 +271,11 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     eventA.setCompletedDate(parseDate("2021-02-27T11:05:00.000"));
     eventA.setCompletedBy("herb");
     eventA.setAssignedUser(user);
-    note1 = new TrackedEntityComment("note1", "ant");
-    note1.setUid(CodeGenerator.generateUid());
-    note1.setCreated(new Date());
-    note1.setLastUpdated(new Date());
-    eventA.setComments(List.of(note1));
+    note = new Note("note1", "ant");
+    note.setUid(CodeGenerator.generateUid());
+    note.setCreated(new Date());
+    note.setLastUpdated(new Date());
+    eventA.setComments(List.of(note));
     manager.save(eventA, false);
     enrollmentA.setEvents(Set.of(eventA));
     enrollmentA.setFollowup(true);
@@ -928,7 +928,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .findFirst();
     Set<Event> events = enrollmentA.get().getEvents();
     assertContainsOnly(Set.of(eventA), events);
-    assertContainsOnly(Set.of(note1), events.stream().findFirst().get().getComments());
+    assertContainsOnly(Set.of(note), events.stream().findFirst().get().getComments());
   }
 
   @Test

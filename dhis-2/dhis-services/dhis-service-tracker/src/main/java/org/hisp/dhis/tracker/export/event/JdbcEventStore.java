@@ -77,6 +77,7 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -92,7 +93,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -117,7 +117,7 @@ class JdbcEventStore implements EventStore {
       " left join (select ri.eventid as ri_ev_id, json_agg(ri.relationshipid) as ev_rl FROM relationshipitem ri"
           + " GROUP by ri_ev_id)  as fgh on fgh.ri_ev_id=event.ev_id ";
 
-  private static final String EVENT_COMMENT_QUERY =
+  private static final String EVENT_NOTE_QUERY =
       "select evc.eventid as evc_id,"
           + " n.trackedentitycommentid as note_id,"
           + " n.commenttext            as note_value,"
@@ -378,7 +378,7 @@ class JdbcEventStore implements EventStore {
 
             if (resultSet.getString("note_value") != null
                 && !notes.contains(resultSet.getString("note_id"))) {
-              TrackedEntityComment note = new TrackedEntityComment();
+              Note note = new Note();
               note.setUid(resultSet.getString("note_uid"));
               note.setCommentText(resultSet.getString("note_value"));
               note.setCreated(resultSet.getDate("note_storeddate"));
@@ -534,7 +534,7 @@ class JdbcEventStore implements EventStore {
   }
 
   /**
-   * Query is based on three sub queries on event, data value and comment, which are joined using
+   * Query is based on three sub queries on event, data value and note, which are joined using
    * program stage instance id. The purpose of the separate queries is to be able to page properly
    * on events.
    */
@@ -556,7 +556,7 @@ class JdbcEventStore implements EventStore {
       sqlBuilder.append(") as att on event.te_id=att.pav_id left join (");
     }
 
-    sqlBuilder.append(EVENT_COMMENT_QUERY);
+    sqlBuilder.append(EVENT_NOTE_QUERY);
 
     sqlBuilder.append(") as cm on event.");
     sqlBuilder.append(COLUMN_EVENT_ID);

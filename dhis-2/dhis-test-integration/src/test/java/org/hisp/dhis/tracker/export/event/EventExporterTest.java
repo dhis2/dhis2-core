@@ -62,6 +62,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -71,7 +72,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
@@ -172,7 +172,7 @@ class EventExporterTest extends TrackerTest {
     List<Event> events = eventService.getEvents(params).getEvents();
 
     assertContainsOnly(List.of("pTzf9KYMk72"), uids(events));
-    List<TrackedEntityComment> notes = events.get(0).getComments();
+    List<Note> notes = events.get(0).getComments();
     assertContainsOnly(List.of("SGuCABkhpgn", "DRKO4xUVrpr"), uids(notes));
     assertAll(
         () -> assertNote(importUser, "comment value", notes.get(0)),
@@ -989,8 +989,7 @@ class EventExporterTest extends TrackerTest {
     assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
-  private void assertNote(
-      User expectedLastUpdatedBy, String expectedNote, TrackedEntityComment actual) {
+  private void assertNote(User expectedLastUpdatedBy, String expectedNote, Note actual) {
     assertEquals(expectedNote, actual.getCommentText());
     assertEquals(expectedLastUpdatedBy, actual.getLastUpdatedBy());
   }

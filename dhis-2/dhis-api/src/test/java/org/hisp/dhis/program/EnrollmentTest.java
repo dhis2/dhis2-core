@@ -39,9 +39,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.message.MessageConversation;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -115,7 +115,7 @@ class EnrollmentTest {
     Enrollment e = new Enrollment();
     Program program = getNewProgram();
     e.setAutoFields();
-    e.setComments(List.of(new TrackedEntityComment("comment1", "amin")));
+    e.setComments(List.of(new Note("comment1", "amin")));
     e.setCompletedBy("admin");
     e.setEndDate(new Date());
     e.setEnrollmentDate(new Date());

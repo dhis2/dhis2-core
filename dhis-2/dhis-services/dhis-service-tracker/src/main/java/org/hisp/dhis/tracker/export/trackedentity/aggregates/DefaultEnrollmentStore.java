@@ -31,9 +31,9 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import java.util.List;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.EnrollmentRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.NoteRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.ProgramAttributeRowCallbackHandler;
@@ -97,7 +97,7 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
   }
 
   @Override
-  public Multimap<String, TrackedEntityComment> getNotes(List<Long> ids) {
+  public Multimap<String, Note> getNotes(List<Long> ids) {
     return fetch(GET_NOTES_SQL, new NoteRowCallbackHandler(), ids);
   }
 

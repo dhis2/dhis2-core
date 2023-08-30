@@ -25,36 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment;
+package org.hisp.dhis.note;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ * @author Chau Thu Tran
  */
-@RequiredArgsConstructor
-public class TrackedEntityCommentDeletionHandler
-    extends IdObjectDeletionHandler<TrackedEntityComment> {
-  private final TrackedEntityCommentService commentService;
+@JacksonXmlRootElement(localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0)
+public class Note extends BaseIdentifiableObject {
+  private String commentText;
 
-  @Override
-  protected void registerHandler() {
-    whenDeleting(Enrollment.class, this::deleteEnrollment);
-    whenDeleting(Event.class, this::deleteEvent);
+  private String creator;
+
+  // -------------------------------------------------------------------------
+  // Constructor
+  // -------------------------------------------------------------------------
+
+  public Note() {}
+
+  public Note(String commentText, String creator) {
+    this.commentText = commentText;
+    this.creator = creator;
   }
 
-  private void deleteEnrollment(Enrollment enrollment) {
-    for (TrackedEntityComment comment : enrollment.getComments()) {
-      commentService.deleteTrackedEntityComment(comment);
-    }
+  // -------------------------------------------------------------------------
+  // Getters/Setters
+  // -------------------------------------------------------------------------
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getCommentText() {
+    return commentText;
   }
 
-  private void deleteEvent(Event event) {
-    for (TrackedEntityComment comment : event.getComments()) {
-      commentService.deleteTrackedEntityComment(comment);
-    }
+  public void setCommentText(String commentText) {
+    this.commentText = commentText;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getCreator() {
+    return creator;
+  }
+
+  public void setCreator(String creator) {
+    this.creator = creator;
   }
 }

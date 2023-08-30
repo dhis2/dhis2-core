@@ -31,12 +31,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Objects;
 import org.hibernate.Session;
+import org.hisp.dhis.note.Note;
+import org.hisp.dhis.note.TrackedEntityCommentService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
@@ -101,7 +101,7 @@ public class EnrollmentPersister
   @Override
   protected void persistComments(TrackerPreheat preheat, Enrollment enrollment) {
     if (!enrollment.getComments().isEmpty()) {
-      for (TrackedEntityComment comment : enrollment.getComments()) {
+      for (Note comment : enrollment.getComments()) {
         if (Objects.isNull(preheat.getNote(comment.getUid()))) {
           this.trackedEntityCommentService.addTrackedEntityComment(comment);
         }

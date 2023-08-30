@@ -76,6 +76,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.note.TrackedEntityCommentService;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -111,8 +112,6 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -1525,7 +1524,7 @@ public abstract class AbstractEnrollmentService
 
       if (!commentService.trackedEntityCommentExists(noteUid)
           && !StringUtils.isEmpty(note.getValue())) {
-        TrackedEntityComment comment = new TrackedEntityComment();
+        org.hisp.dhis.note.Note comment = new org.hisp.dhis.note.Note();
         comment.setUid(noteUid);
         comment.setCommentText(note.getValue());
         comment.setCreator(

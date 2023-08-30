@@ -25,49 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment;
+package org.hisp.dhis.note.hibernate;
+
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.note.Note;
+import org.hisp.dhis.note.TrackedEntityCommentStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
- * @author Chau Thu Tran
+ * @author David Katuscak
  */
-public interface TrackedEntityCommentService {
-  String ID = TrackedEntityCommentService.class.getName();
+@Repository("org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore")
+public class HibernateTrackedEntityCommentStore extends HibernateIdentifiableObjectStore<Note>
+    implements TrackedEntityCommentStore {
+  public HibernateTrackedEntityCommentStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory, jdbcTemplate, publisher, Note.class, currentUserService, aclService, false);
+  }
 
-  /**
-   * Adds an {@link TrackedEntityComment}
-   *
-   * @param comment The to TrackedEntityComment add.
-   * @return A generated unique id of the added {@link TrackedEntityComment}.
-   */
-  long addTrackedEntityComment(TrackedEntityComment comment);
-
-  /**
-   * Deletes a {@link TrackedEntityComment}.
-   *
-   * @param comment the TrackedEntityComment to delete.
-   */
-  void deleteTrackedEntityComment(TrackedEntityComment comment);
-
-  /**
-   * Checks for the existence of a TrackedEntityComment by UID.
-   *
-   * @param uid TrackedEntityComment UID to check for
-   * @return true/false depending on result
-   */
-  boolean trackedEntityCommentExists(String uid);
-
-  /**
-   * Updates an {@link TrackedEntityComment}.
-   *
-   * @param comment the TrackedEntityComment to update.
-   */
-  void updateTrackedEntityComment(TrackedEntityComment comment);
-
-  /**
-   * Returns a {@link TrackedEntityComment}.
-   *
-   * @param id the id of the TrackedEntityComment to return.
-   * @return the TrackedEntityComment with the given id
-   */
-  TrackedEntityComment getTrackedEntityComment(long id);
+  @Override
+  public boolean exists(String uid) {
+    return (boolean)
+        sessionFactory
+            .getCurrentSession()
+            .createNativeQuery("select exists(select 1 from note where uid=:uid)")
+            .setParameter("uid", uid)
+            .getSingleResult();
+  }
 }

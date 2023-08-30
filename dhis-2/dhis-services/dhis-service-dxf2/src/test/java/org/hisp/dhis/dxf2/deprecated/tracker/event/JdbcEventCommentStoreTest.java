@@ -37,8 +37,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.util.List;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -99,7 +99,7 @@ class JdbcEventCommentStoreTest {
     return List.of(event);
   }
 
-  private TrackedEntityComment getComment(String commentText) {
-    return new TrackedEntityComment(commentText, "Some author");
+  private Note getComment(String commentText) {
+    return new Note(commentText, "Some author");
   }
 }

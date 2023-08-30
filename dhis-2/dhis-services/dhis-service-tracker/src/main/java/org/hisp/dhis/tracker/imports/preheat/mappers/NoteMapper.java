@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.note.Note;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(uses = DebugMapper.class)
-public interface NoteMapper extends PreheatMapper<TrackedEntityComment> {
+public interface NoteMapper extends PreheatMapper<Note> {
   NoteMapper INSTANCE = Mappers.getMapper(NoteMapper.class);
 
-  TrackedEntityComment map(TrackedEntityComment trackedEntityComment);
+  Note map(Note trackedEntityComment);
 }

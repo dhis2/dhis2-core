@@ -109,6 +109,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.note.TrackedEntityCommentService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EnrollmentService;
@@ -129,8 +130,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -901,7 +900,7 @@ public abstract class AbstractEventService
 
       if (!commentService.trackedEntityCommentExists(noteUid)
           && !StringUtils.isEmpty(note.getValue())) {
-        TrackedEntityComment comment = new TrackedEntityComment();
+        org.hisp.dhis.note.Note comment = new org.hisp.dhis.note.Note();
         comment.setUid(noteUid);
         comment.setCommentText(note.getValue());
         comment.setCreator(getValidUsername(note.getStoredBy(), null, storedBy));

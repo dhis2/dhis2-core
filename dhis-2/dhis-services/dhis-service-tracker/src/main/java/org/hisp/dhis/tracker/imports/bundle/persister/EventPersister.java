@@ -46,11 +46,11 @@ import org.hibernate.Session;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.note.Note;
+import org.hisp.dhis.note.TrackedEntityCommentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.tracker.TrackerType;
@@ -95,7 +95,7 @@ public class EventPersister
   @Override
   protected void persistComments(TrackerPreheat preheat, Event event) {
     if (!event.getComments().isEmpty()) {
-      for (TrackedEntityComment comment : event.getComments()) {
+      for (Note comment : event.getComments()) {
         if (Objects.isNull(preheat.getNote(comment.getUid()))) {
           this.trackedEntityCommentService.addTrackedEntityComment(comment);
         }

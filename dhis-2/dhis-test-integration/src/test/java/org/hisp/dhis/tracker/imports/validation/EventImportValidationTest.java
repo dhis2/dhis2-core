@@ -50,10 +50,10 @@ import java.util.Map;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -311,7 +311,7 @@ class EventImportValidationTest extends TrackerTest {
     Stream.of("first note", "second note", "third note")
         .forEach(
             t -> {
-              TrackedEntityComment comment = getByComment(event.getComments(), t);
+              Note comment = getByComment(event.getComments(), t);
               assertTrue(CodeGenerator.isValidUid(comment.getUid()));
               assertTrue(comment.getCreated().getTime() > now.getTime());
               assertTrue(comment.getLastUpdated().getTime() > now.getTime());
@@ -335,7 +335,7 @@ class EventImportValidationTest extends TrackerTest {
     Stream.of("first note", "second note", "third note", "4th note", "5th note", "6th note")
         .forEach(
             t -> {
-              TrackedEntityComment comment = getByComment(event.getComments(), t);
+              Note comment = getByComment(event.getComments(), t);
               assertTrue(CodeGenerator.isValidUid(comment.getUid()));
               assertTrue(comment.getCreated().getTime() > now.getTime());
               assertTrue(comment.getLastUpdated().getTime() > now.getTime());
@@ -402,9 +402,8 @@ class EventImportValidationTest extends TrackerTest {
     return importReport;
   }
 
-  private TrackedEntityComment getByComment(
-      List<TrackedEntityComment> comments, String commentText) {
-    for (TrackedEntityComment comment : comments) {
+  private Note getByComment(List<Note> comments, String commentText) {
+    for (Note comment : comments) {
       if (comment.getCommentText().startsWith(commentText)
           || comment.getCommentText().endsWith(commentText)) {
         return comment;

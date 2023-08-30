@@ -47,9 +47,9 @@ import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageConversation;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.User;
 import org.locationtech.jts.geom.Geometry;
 
@@ -82,7 +82,7 @@ public class Event extends SoftDeletableObject {
 
   private List<MessageConversation> messageConversations = new ArrayList<>();
 
-  private List<TrackedEntityComment> comments = new ArrayList<>();
+  private List<Note> comments = new ArrayList<>();
 
   @AuditAttribute private Set<EventDataValue> eventDataValues = new HashSet<>();
 
@@ -287,11 +287,11 @@ public class Event extends SoftDeletableObject {
   @JsonProperty
   @JsonSerialize(contentAs = BaseIdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public List<TrackedEntityComment> getComments() {
+  public List<Note> getComments() {
     return comments;
   }
 
-  public void setComments(List<TrackedEntityComment> comments) {
+  public void setComments(List<Note> comments) {
     this.comments = comments;
   }
 

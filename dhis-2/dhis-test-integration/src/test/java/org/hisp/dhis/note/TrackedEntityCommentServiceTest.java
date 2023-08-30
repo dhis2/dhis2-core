@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment;
+package org.hisp.dhis.note;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -43,15 +43,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 class TrackedEntityCommentServiceTest extends IntegrationTestBase {
   @Autowired private TrackedEntityCommentService commentService;
 
-  private TrackedEntityComment commentA;
+  private Note commentA;
 
-  private TrackedEntityComment commentB;
+  private Note commentB;
 
   @Override
   public void setUpTest() {
-    commentA = new TrackedEntityComment("A", "Test");
+    commentA = new Note("A", "Test");
     commentA.setUid(CodeGenerator.generateUid());
-    commentB = new TrackedEntityComment("B", "Test");
+    commentB = new Note("B", "Test");
     commentB.setUid(CodeGenerator.generateUid());
   }
 

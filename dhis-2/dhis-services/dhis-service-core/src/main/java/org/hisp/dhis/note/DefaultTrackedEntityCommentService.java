@@ -25,48 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment.hibernate;
+package org.hisp.dhis.note;
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author David Katuscak
+ * @author Chau Thu Tran
  */
-@Repository("org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore")
-public class HibernateTrackedEntityCommentStore
-    extends HibernateIdentifiableObjectStore<TrackedEntityComment>
-    implements TrackedEntityCommentStore {
-  public HibernateTrackedEntityCommentStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
-      AclService aclService) {
-    super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        TrackedEntityComment.class,
-        currentUserService,
-        aclService,
-        false);
+@RequiredArgsConstructor
+@Service("org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService")
+public class DefaultTrackedEntityCommentService implements TrackedEntityCommentService {
+  private final TrackedEntityCommentStore commentStore;
+
+  // -------------------------------------------------------------------------
+  // Implementation methods
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional
+  public long addTrackedEntityComment(Note comment) {
+    commentStore.save(comment);
+
+    return comment.getId();
   }
 
   @Override
-  public boolean exists(String uid) {
-    return (boolean)
-        sessionFactory
-            .getCurrentSession()
-            .createNativeQuery("select exists(select 1 from note where uid=:uid)")
-            .setParameter("uid", uid)
-            .getSingleResult();
+  @Transactional
+  public void deleteTrackedEntityComment(Note comment) {
+    commentStore.delete(comment);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean trackedEntityCommentExists(String uid) {
+    return commentStore.exists(uid);
+  }
+
+  @Override
+  @Transactional
+  public void updateTrackedEntityComment(Note comment) {
+    commentStore.update(comment);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Note getTrackedEntityComment(long id) {
+    return commentStore.get(id);
   }
 }

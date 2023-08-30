@@ -35,8 +35,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -92,7 +92,7 @@ public class JdbcEventCommentStore implements EventCommentStore {
       for (Event psi : events) {
         Integer sortOrder = getInitialSortOrder(psi);
 
-        for (TrackedEntityComment comment : psi.getComments()) {
+        for (Note comment : psi.getComments()) {
           Long commentId = saveComment(comment);
           if (commentId != null && commentId != 0) {
             saveCommentToEvent(psi.getId(), commentId, sortOrder);
@@ -128,15 +128,15 @@ public class JdbcEventCommentStore implements EventCommentStore {
     return event;
   }
 
-  private List<TrackedEntityComment> getNonEmptyComments(Event event) {
+  private List<Note> getNonEmptyComments(Event event) {
     return event.getComments().stream().filter(this::hasCommentText).collect(toList());
   }
 
-  private boolean hasCommentText(TrackedEntityComment trackedEntityComment) {
+  private boolean hasCommentText(Note trackedEntityComment) {
     return StringUtils.isNotEmpty(trackedEntityComment.getCommentText());
   }
 
-  Long saveComment(TrackedEntityComment comment) {
+  Long saveComment(Note comment) {
     KeyHolder keyHolder = new GeneratedKeyHolder();
 
     try {

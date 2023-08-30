@@ -29,14 +29,14 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.note.Note;
 
 /**
  * @author Luciano Fiandesio
  */
-public class NoteRowCallbackHandler extends AbstractMapper<TrackedEntityComment> {
+public class NoteRowCallbackHandler extends AbstractMapper<Note> {
   @Override
-  TrackedEntityComment getItem(ResultSet rs) throws SQLException {
+  Note getItem(ResultSet rs) throws SQLException {
     return getNote(rs);
   }
 
@@ -45,8 +45,8 @@ public class NoteRowCallbackHandler extends AbstractMapper<TrackedEntityComment>
     return "key";
   }
 
-  private TrackedEntityComment getNote(ResultSet rs) throws SQLException {
-    TrackedEntityComment note = new TrackedEntityComment();
+  private Note getNote(ResultSet rs) throws SQLException {
+    Note note = new Note();
     note.setUid(rs.getString("uid"));
     note.setCommentText(rs.getString("commenttext"));
     note.setCreator(rs.getString("creator"));

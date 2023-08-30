@@ -25,55 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
+package org.hisp.dhis.note;
 
 /**
  * @author Chau Thu Tran
  */
-@JacksonXmlRootElement(localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0)
-public class TrackedEntityComment extends BaseIdentifiableObject {
-  private String commentText;
+public interface TrackedEntityCommentService {
+  String ID = TrackedEntityCommentService.class.getName();
 
-  private String creator;
+  /**
+   * Adds an {@link Note}
+   *
+   * @param comment The to TrackedEntityComment add.
+   * @return A generated unique id of the added {@link Note}.
+   */
+  long addTrackedEntityComment(Note comment);
 
-  // -------------------------------------------------------------------------
-  // Constructor
-  // -------------------------------------------------------------------------
+  /**
+   * Deletes a {@link Note}.
+   *
+   * @param comment the TrackedEntityComment to delete.
+   */
+  void deleteTrackedEntityComment(Note comment);
 
-  public TrackedEntityComment() {}
+  /**
+   * Checks for the existence of a TrackedEntityComment by UID.
+   *
+   * @param uid TrackedEntityComment UID to check for
+   * @return true/false depending on result
+   */
+  boolean trackedEntityCommentExists(String uid);
 
-  public TrackedEntityComment(String commentText, String creator) {
-    this.commentText = commentText;
-    this.creator = creator;
-  }
+  /**
+   * Updates an {@link Note}.
+   *
+   * @param comment the TrackedEntityComment to update.
+   */
+  void updateTrackedEntityComment(Note comment);
 
-  // -------------------------------------------------------------------------
-  // Getters/Setters
-  // -------------------------------------------------------------------------
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getCommentText() {
-    return commentText;
-  }
-
-  public void setCommentText(String commentText) {
-    this.commentText = commentText;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getCreator() {
-    return creator;
-  }
-
-  public void setCreator(String creator) {
-    this.creator = creator;
-  }
+  /**
+   * Returns a {@link Note}.
+   *
+   * @param id the id of the TrackedEntityComment to return.
+   * @return the TrackedEntityComment with the given id
+   */
+  Note getTrackedEntityComment(long id);
 }
