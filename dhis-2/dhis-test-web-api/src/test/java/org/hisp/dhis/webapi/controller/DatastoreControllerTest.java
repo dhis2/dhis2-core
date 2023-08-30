@@ -547,7 +547,7 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
         PUT("/dataStore/pets/emu", "{\"name\":\"james\"}")
             .error(HttpStatus.FORBIDDEN)
             .getMessage());
-
+    String test = "test";
   }
 
   private void setUpNamespaceProtection(
