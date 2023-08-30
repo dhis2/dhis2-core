@@ -34,12 +34,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(uses = {InstantMapper.class, UserMapper.class})
-public interface NoteMapper extends ViewMapper<Note, org.hisp.dhis.note.Note> {
+public interface NoteMapper extends ViewMapper<org.hisp.dhis.note.Note, Note> {
   @Mapping(target = "note", source = "uid")
   @Mapping(target = "storedAt", source = "created")
   @Mapping(target = "value", source = "commentText")
   @Mapping(target = "createdBy", source = "lastUpdatedBy")
   @Mapping(target = "storedBy", source = "creator")
   @Override
-  org.hisp.dhis.note.Note from(Note comment);
+  Note from(org.hisp.dhis.note.Note note);
 }
