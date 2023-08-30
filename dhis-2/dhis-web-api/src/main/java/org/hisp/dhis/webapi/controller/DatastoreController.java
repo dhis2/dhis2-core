@@ -210,22 +210,34 @@ public class DatastoreController extends AbstractDatastoreController {
     return created(String.format("Key created: '%s'", key));
   }
 
-  /** Update a key in the given namespace. */
-  @OpenApi.Response(status = Status.NOT_FOUND, value = WebMessage.class)
+  /**
+   * Create or update a key in the given namespace <br>
+   * <br>
+   *
+   * <p>If the key does not exist then a create will be attempted
+   *
+   * <p>If the key exists then an update will be attempted
+   */
+  @OpenApi.Response(
+      status = {Status.CREATED, Status.OK},
+      value = WebMessage.class)
   @ResponseBody
   @PutMapping(
       value = "/{namespace}/{key}",
       produces = APPLICATION_JSON_VALUE,
       consumes = APPLICATION_JSON_VALUE)
-  public WebMessage updateEntry(
-      @PathVariable String namespace, @PathVariable String key, @RequestBody String value)
-      throws BadRequestException, NotFoundException {
-    DatastoreEntry entry = getExistingEntry(namespace, key);
-    entry.setValue(value);
+  public WebMessage putEntry(
+      @PathVariable String namespace,
+      @PathVariable String key,
+      @RequestBody String value,
+      @RequestParam(defaultValue = "false") boolean encrypt)
+      throws BadRequestException, ConflictException {
 
-    service.updateEntry(entry);
+    DatastoreEntry dataEntry = service.getEntry(namespace, key);
 
-    return ok(String.format("Key updated: '%s'", key));
+    return dataEntry != null
+        ? updateEntry(dataEntry, key, value)
+        : addEntry(namespace, key, value, encrypt);
   }
 
   /** Delete a key from the given namespace. */
@@ -248,5 +260,14 @@ public class DatastoreController extends AbstractDatastoreController {
     }
 
     return entry;
+  }
+
+  private WebMessage updateEntry(DatastoreEntry entry, String key, String value)
+      throws BadRequestException {
+    entry.setValue(value);
+
+    service.updateEntry(entry);
+
+    return ok(String.format("Key updated: '%s'", key));
   }
 }

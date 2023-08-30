@@ -213,25 +213,36 @@ public class UserDatastoreController extends AbstractDatastoreController {
     return created("Key '" + key + "' in namespace '" + namespace + "' created.");
   }
 
-  /** Update a key. */
+  /**
+   * Create or update a key in the given namespace <br>
+   * <br>
+   *
+   * <p>If the key does not exist then a create will be attempted
+   *
+   * <p>If the key exists then an update will be attempted
+   */
+  @OpenApi.Response(
+      status = {Status.CREATED, Status.OK},
+      value = WebMessage.class)
   @PutMapping(
       value = "/{namespace}/{key}",
       produces = APPLICATION_JSON_VALUE,
       consumes = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public WebMessage updateUserValue(
+  public WebMessage putUserValue(
       @PathVariable String namespace,
       @PathVariable String key,
       @RequestParam(required = false) String username,
-      @RequestBody String value)
-      throws NotFoundException, BadRequestException {
+      @RequestBody String value,
+      @RequestParam(defaultValue = "false") boolean encrypt)
+      throws BadRequestException, ConflictException {
 
-    UserDatastoreEntry entry = getExistingEntry(username, namespace, key);
-    entry.setValue(value);
+    UserDatastoreEntry userEntry =
+        userDatastoreService.getUserEntry(getUser(username), namespace, key);
 
-    userDatastoreService.updateEntry(entry);
-
-    return ok(String.format("Key updated: '%s'", key));
+    return userEntry != null
+        ? updateEntry(userEntry, key, value)
+        : addEntry(namespace, key, username, value, encrypt);
   }
 
   /** Delete a key. */
@@ -273,5 +284,14 @@ public class UserDatastoreController extends AbstractDatastoreController {
       throw new IllegalQueryException("No user with username " + username + " exists.");
     }
     return user;
+  }
+
+  private WebMessage updateEntry(UserDatastoreEntry entry, String key, String value)
+      throws BadRequestException {
+    entry.setValue(value);
+
+    userDatastoreService.updateEntry(entry);
+
+    return ok(String.format("Key updated: '%s'", key));
   }
 }
