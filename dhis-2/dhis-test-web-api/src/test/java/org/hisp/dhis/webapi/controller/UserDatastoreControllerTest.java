@@ -28,9 +28,11 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonDatastoreValue;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 
@@ -104,13 +106,13 @@ class UserDatastoreControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testUpdateUserKeyJsonValue_UnknownKey() {
+  void testPutUserKeyJsonValue() {
     assertWebMessage(
-        "Not Found",
-        404,
-        "ERROR",
-        "Key 'unknown' not found in namespace 'test'",
-        PUT("/userDataStore/test/unknown", "false").content(HttpStatus.NOT_FOUND));
+        "Created",
+        201,
+        "OK",
+        "Key 'unknown' in namespace 'test' created.",
+        PUT("/userDataStore/test/unknown", "false").content(HttpStatus.CREATED));
   }
 
   @Test
@@ -145,5 +147,21 @@ class UserDatastoreControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Key 'key1' not found in namespace 'test'",
         DELETE("/userDataStore/test/key1").content(HttpStatus.NOT_FOUND));
+  }
+
+  @Test
+  void testPutEntry_EntryDoesNotExistAndIsCreated() {
+    assertStatus(HttpStatus.CREATED, PUT("/userDataStore/test/mykey", "{\"name\":\"harry\"}"));
+    JsonWebMessage myKey = GET("/userDataStore/test/mykey").content().as(JsonWebMessage.class);
+    assertEquals("harry", myKey.getString("name").string());
+  }
+
+  @Test
+  void testPutEntry_EntryAlreadyExistsAndIsUpdated() {
+    assertStatus(HttpStatus.CREATED, PUT("/userDataStore/test/mykey", "{\"name\":\"harry\"}"));
+    assertStatus(HttpStatus.OK, PUT("/userDataStore/test/mykey", "{\"name\":\"barry\"}"));
+    JsonDatastoreValue emu =
+        GET("/userDataStore/test/mykey").content().as(JsonDatastoreValue.class);
+    assertEquals("barry", emu.getString("name").string());
   }
 }

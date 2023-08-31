@@ -106,7 +106,9 @@ public class TranslationsCheck implements ObjectValidationCheck {
                     Translation.class,
                     ErrorCode.E1106,
                     translation.getProperty(),
-                    translation.getLocale())
+                    translation.getLocale(),
+                    klass.getSimpleName(),
+                    object.getUid())
                 .setErrorKlass(klass));
       } else {
         setPropertyLocales.add(key);
