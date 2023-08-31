@@ -465,6 +465,7 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
         POST("/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'r-------'}}"));
     // a user with required authority cannot delete (ACL fails)
     switchToNewUser("someone", "pets-admin");
+    switchToNewUser("someone", "pets-admin");
     assertEquals(
         "Access denied for key 'cat' in namespace 'pets'",
         DELETE("/dataStore/pets/cat").error(HttpStatus.FORBIDDEN).getMessage());
