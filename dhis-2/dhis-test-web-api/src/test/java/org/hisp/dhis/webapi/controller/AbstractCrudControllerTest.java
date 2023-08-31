@@ -244,7 +244,9 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
     JsonErrorReport error =
         message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1106);
     assertEquals(
-        "There are duplicate translation record for property `name` and locale `sv`",
+        String.format(
+            "There are duplicate translation records for property `name` and locale `sv` on DataSet `%s`",
+            id),
         error.getMessage());
     assertEquals("name", error.getErrorProperties().get(0));
   }
