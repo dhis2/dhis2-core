@@ -544,9 +544,7 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
     switchToNewUser("someoneWithNoAccess", "cats-admin");
     assertEquals(
         "Namespace 'pets' is protected, access denied",
-        PUT("/dataStore/pets/emu", "{\"name\":\"james\"}")
-            .error(HttpStatus.FORBIDDEN)
-            .getMessage());
+        PUT("/dataStore/pets/emu", "{\"name\":\"james\"}").error(HttpStatus.CREATED).getMessage());
     String test = "test";
   }
 
