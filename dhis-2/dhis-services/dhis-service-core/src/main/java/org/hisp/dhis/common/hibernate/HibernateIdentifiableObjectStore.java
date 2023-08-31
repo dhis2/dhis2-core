@@ -74,6 +74,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @Slf4j
 public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     extends SharingHibernateGenericStoreImpl<T> implements GenericDimensionalObjectStore<T> {
+  private static final Set<String> EXISTS_BY_USER_PROPERTIES = Set.of("createdBy", "lastUpdatedBy");
   @Autowired protected DbmsManager dbmsManager;
 
   protected boolean transientIdentifiableProperties = false;
@@ -901,6 +902,30 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         10000,
         partition ->
             newJpaParameters().addPredicate(root -> builder.equal(root.get("createdBy"), user)));
+  }
+
+  /**
+   * Look up objects which have property createdBy or lastUpdatedBy linked to given {@link User}
+   *
+   * @param user the {@link User} for filtering
+   * @return TRUE of objects found. FALSE otherwise.
+   */
+  @Override
+  public boolean existsByUser(@Nonnull User user, final Set<String> checkProperties) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+    CriteriaQuery<Integer> query = builder.createQuery(Integer.class);
+    Root<T> root = query.from(getClazz());
+    query.select(builder.literal(1));
+    List<Predicate> predicates =
+        checkProperties.stream()
+            .filter(EXISTS_BY_USER_PROPERTIES::contains)
+            .map(p -> builder.equal(root.get(p), user))
+            .collect(Collectors.toList());
+    if (predicates.isEmpty()) {
+      return false;
+    }
+    query.where(builder.or(predicates.toArray(new Predicate[0])));
+    return !getSession().createQuery(query).setMaxResults(1).getResultList().isEmpty();
   }
 
   /**
