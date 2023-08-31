@@ -105,14 +105,14 @@
 
     <!-- Spring -->
     <spring.version>5.3.29</spring.version>
-    <spring-data-redis.version>2.7.14</spring-data-redis.version>
+    <spring-data-redis.version>2.7.15</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.2</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
     <spring-retry.version>1.3.4</spring-retry.version>
     <spring-restdocs.version>2.0.7.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.1</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.2.5.RELEASE</lettuce.version>
+    <lettuce.version>6.2.6.RELEASE</lettuce.version>
 
     <!--DBMS -->
     <flyway-core.version>9.21.1</flyway-core.version>
@@ -157,7 +157,7 @@
     <itext.version>2.1.7</itext.version>
 
     <!-- GIS -->
-    <batik-transcoder.version>1.16</batik-transcoder.version>
+    <batik-transcoder.version>1.17</batik-transcoder.version>
     <fop.version>2.8</fop.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
     <geotools.version>29.2</geotools.version>
@@ -203,14 +203,14 @@
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
-    <micrometer.version>1.11.2</micrometer.version>
+    <micrometer.version>1.11.3</micrometer.version>
 
     <!-- Logging -->
     <log4j.version>2.20.0</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
-    <junit.version>5.9.3</junit.version>
+    <junit.version>5.10.0</junit.version>
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>

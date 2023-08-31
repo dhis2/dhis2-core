@@ -98,7 +98,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     if (strategy.isDelete()) {
       boolean hasNonDeletedEvents = enrollmentHasEvents(preheat, enrollment.getEnrollment());
       boolean hasNotCascadeDeleteAuthority =
-          !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority());
+          !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.name());
 
       if (hasNonDeletedEvents && hasNotCascadeDeleteAuthority) {
         reporter.addError(enrollment, E1103, user, enrollment.getEnrollment());

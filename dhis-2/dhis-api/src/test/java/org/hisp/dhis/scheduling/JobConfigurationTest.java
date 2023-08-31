@@ -156,4 +156,12 @@ class JobConfigurationTest {
         tomorrow8_40am.toInstant(),
         config.nextExecutionTime(today10_41am.toInstant(), maxCronDelay));
   }
+
+  @Test
+  void jobStatusIsScheduledWhenJobStatusIsDisabledButEnabled() {
+    JobConfiguration config = new JobConfiguration(JobType.DATA_INTEGRITY);
+    config.setJobStatus(JobStatus.DISABLED);
+
+    assertEquals(JobStatus.SCHEDULED, config.getJobStatus());
+  }
 }
