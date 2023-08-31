@@ -617,9 +617,13 @@ class EventQueryParamsTest extends DhisConvenienceTest {
 
   @ParameterizedTest
   @CsvSource({"AGGREGATE, ENROLLMENT, true", "QUERY, ENROLLMENT, false", "AGGREGATE, EVENT, false"})
-  void testIsAggregatedEnrollmentsShouldBeTrue(RequestTypeAware.EndpointAction endpointAction, RequestTypeAware.EndpointItem endpointItem, boolean expected){
+  void testIsAggregatedEnrollmentsShouldBeTrue(
+      RequestTypeAware.EndpointAction endpointAction,
+      RequestTypeAware.EndpointItem endpointItem,
+      boolean expected) {
     // Given
-    EventQueryParams params = new EventQueryParams.Builder()
+    EventQueryParams params =
+        new EventQueryParams.Builder()
             .withEndpointAction(endpointAction)
             .withEndpointItem(endpointItem)
             .build();

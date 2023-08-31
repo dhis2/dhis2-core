@@ -128,15 +128,17 @@ public class EventDataQueryRequestTest {
 
     // When
     EventDataQueryRequest eventDataQueryRequest =
-            EventDataQueryRequest.builder()
-                    .fromCriteria((EnrollmentAnalyticsQueryCriteria) criteria.withEndpointAction(AGGREGATE).withEndpointItem(ENROLLMENT))
-                    .build();
+        EventDataQueryRequest.builder()
+            .fromCriteria(
+                (EnrollmentAnalyticsQueryCriteria)
+                    criteria.withEndpointAction(AGGREGATE).withEndpointItem(ENROLLMENT))
+            .build();
     // Then
     assertEquals(
-            eventDataQueryRequest.getDimension(),
+        eventDataQueryRequest.getDimension(),
+        Set.of(
             Set.of(
-                    Set.of(
-                            "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:INCIDENT_DATE;2021:INCIDENT_DATE;TODAY:INCIDENT_DATE")));
+                "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:INCIDENT_DATE;2021:INCIDENT_DATE;TODAY:INCIDENT_DATE")));
   }
 
   @ParameterizedTest
