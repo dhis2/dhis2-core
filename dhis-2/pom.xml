@@ -1214,7 +1214,7 @@
       </dependency>
       <dependency>
         <groupId>org.apache.xmlgraphics</groupId>
-        <artifactId>fop</artifactId>
+        <artifactId>fop-core</artifactId>
         <version>${fop.version}</version>
         <exclusions>
           <exclusion>
