@@ -49,6 +49,8 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.icon.CustomIcon;
+import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.icon.IconService;
@@ -103,14 +105,16 @@ public class IconController {
     downloadDefaultIcon(iconKey, response);
   }
 
-  @GetMapping(value = "/{uid}/icon")
-  public void getCustomIconData(@PathVariable String uid, HttpServletResponse response)
+  @GetMapping(value = "/{key}/icon")
+  public void getCustomIconData(@PathVariable String key, HttpServletResponse response)
       throws NotFoundException, WebMessageException, IOException {
 
-    if (iconService.iconExists(uid)) {
-      downloadDefaultIcon(uid, response);
-    } else {
-      downloadCustomIcon(uid, response);
+    Icon icon = iconService.getIcon(key);
+
+    if (icon instanceof DefaultIcon) {
+      downloadDefaultIcon(icon.getKey(), response);
+    } else if (icon instanceof CustomIcon customIcon) {
+      downloadCustomIcon(customIcon.getFileResourceUid(), response);
     }
   }
 
@@ -162,9 +166,9 @@ public class IconController {
     return webMessage;
   }
 
-  private void downloadDefaultIcon(String defaultIcon, HttpServletResponse response)
+  private void downloadDefaultIcon(String key, HttpServletResponse response)
       throws IOException, NotFoundException {
-    Resource icon = iconService.getDefaultIconResource(defaultIcon);
+    Resource icon = iconService.getDefaultIconResource(key);
 
     response.setHeader("Cache-Control", CacheControl.maxAge(TTL, TimeUnit.DAYS).getHeaderValue());
     response.setContentType(MediaType.SVG_UTF_8.toString());
@@ -172,12 +176,12 @@ public class IconController {
     StreamUtils.copyThenCloseInputStream(icon.getInputStream(), response.getOutputStream());
   }
 
-  private void downloadCustomIcon(String customIcon, HttpServletResponse response)
+  private void downloadCustomIcon(String fileResourceUid, HttpServletResponse response)
       throws NotFoundException, WebMessageException {
-    FileResource fileResource = fileResourceService.getFileResource(customIcon);
+    FileResource fileResource = fileResourceService.getFileResource(fileResourceUid);
 
     if (fileResource == null) {
-      throw new NotFoundException(FileResource.class, customIcon);
+      throw new NotFoundException(FileResource.class, fileResourceUid);
     }
 
     response.setContentType(fileResource.getContentType());
