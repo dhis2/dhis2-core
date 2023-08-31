@@ -230,7 +230,7 @@ class MetadataIdentifierMapperTest {
         TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
 
     Set<MetadataIdentifier> ids =
-        MAPPER.fromAttributeCategoryOptions(" RiNIt1yJoge;AiNIt1yJoge  ; ", params);
+        MAPPER.fromAttributeCategoryOptions(" RiNIt1yJoge,AiNIt1yJoge  , ", params);
 
     assertContainsOnly(
         Set.of(MetadataIdentifier.ofUid("RiNIt1yJoge"), MetadataIdentifier.ofUid("AiNIt1yJoge")),
@@ -246,7 +246,7 @@ class MetadataIdentifierMapperTest {
             .categoryOptionIdScheme(TrackerIdSchemeParam.ofAttribute("RiNIt1yJoge"))
             .build();
 
-    Set<MetadataIdentifier> ids = MAPPER.fromAttributeCategoryOptions("clouds;fruits", params);
+    Set<MetadataIdentifier> ids = MAPPER.fromAttributeCategoryOptions("clouds,fruits", params);
 
     assertContainsOnly(
         Set.of(
