@@ -422,6 +422,14 @@ public class JCloudsAppStorageService implements AppStorageService {
     log.info("Deleting app " + app.getName());
 
     // Delete all files related to app
+    // fast but deprecated (works for local filestore):
+    blobStore.deleteDirectory(config.container, app.getFolderName());
+
+    // slower but works for S3:
+    // delete the manifest file first in case the system crashes during deletion
+    // and the manifest file is not deleted, resulting in an app that can't be installed
+    blobStore.removeBlob(config.container, app.getFolderName() + "/manifest.webapp");
+    // Delete all files related to app
     for (StorageMetadata resource :
         blobStore.list(config.container, prefix(app.getFolderName()).recursive())) {
       log.debug("Deleting app file: " + resource.getName());
