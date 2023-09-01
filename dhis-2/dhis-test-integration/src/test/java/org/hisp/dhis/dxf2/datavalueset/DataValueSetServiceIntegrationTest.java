@@ -279,7 +279,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
     periodService.addPeriod(peC);
     dataSetService.addDataSet(dsA);
 
-    user = createAndAddUser(false, "A", null, Authorities.F_SKIP_DATA_IMPORT_AUDIT.getAuthority());
+    user = createAndAddUser(false, "A", null, Authorities.F_SKIP_DATA_IMPORT_AUDIT.name());
     user.addOrganisationUnits(Sets.newHashSet(ouA, ouB));
     userService.updateUser(user);
 
