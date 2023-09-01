@@ -1270,7 +1270,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     if (trackedEntityAttribute.getValueType().isFile()) {
       FileResource fileResource = fileResourceService.getFileResource(attribute.getValue());
 
-      if (!fileResource.isAssigned() || fileResource.getFileResourceOwner() == null) {
+      if (fileResource != null
+          && (!fileResource.isAssigned() || fileResource.getFileResourceOwner() == null)) {
         fileResource.setAssigned(true);
         fileResource.setFileResourceOwner(fileResourceOwner);
         fileResourceService.updateFileResource(fileResource);
