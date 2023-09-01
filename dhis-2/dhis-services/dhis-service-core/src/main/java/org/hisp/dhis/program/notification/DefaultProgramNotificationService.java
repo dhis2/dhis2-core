@@ -445,9 +445,8 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
           "Either of the arguments [programInstance, programStageInstance] must be non-null");
     }
 
-    Set<User> recipients = Sets.newHashSet();
-
-    OrganisationUnit eventOrgUnit =
+    Set<User> userGroupMembers = Sets.newHashSet();
+    OrganisationUnit orgUnit =
         programInstance != null
             ? programInstance.getOrganisationUnit()
             : programStageInstance.getOrganisationUnit();
@@ -457,11 +456,11 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
     ProgramNotificationRecipient recipientType = template.getNotificationRecipient();
 
     if (recipientType == ProgramNotificationRecipient.USER_GROUP) {
-      recipients =
+      userGroupMembers =
           Optional.ofNullable(template)
               .map(ProgramNotificationTemplate::getRecipientUserGroup)
               .map(UserGroup::getMembers)
-              .orElse(recipients);
+              .orElse(userGroupMembers);
 
       final boolean limitToHierarchy =
           BooleanUtils.toBoolean(template.getNotifyUsersInHierarchyOnly());
@@ -470,29 +469,28 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
           BooleanUtils.toBoolean(template.getNotifyParentOrganisationUnitOnly());
 
       if (limitToHierarchy) {
-        orgUnitInHierarchy.add(eventOrgUnit);
-        orgUnitInHierarchy.addAll(eventOrgUnit.getAncestors());
+        orgUnitInHierarchy.add(orgUnit);
+        orgUnitInHierarchy.addAll(orgUnit.getAncestors());
 
-        recipients =
-            recipients.stream()
-                .filter(r -> orgUnitInHierarchy.contains(r.getOrganisationUnit()))
-                .collect(Collectors.toSet());
+        return userGroupMembers.stream()
+            .filter(r -> orgUnitInHierarchy.contains(r.getOrganisationUnit()))
+            .collect(Collectors.toSet());
 
-        return recipients;
       } else if (parentOrgUnitOnly) {
-        Set<User> parents = Sets.newHashSet();
 
-        recipients.forEach(r -> parents.addAll(r.getOrganisationUnit().getParent().getUsers()));
+        OrganisationUnit parentOrgUnit = orgUnit.getParent();
 
-        return parents;
+        return userGroupMembers.stream()
+            .filter(u -> u.getOrganisationUnit().equals(parentOrgUnit))
+            .collect(Collectors.toSet());
       }
 
-      recipients.addAll(template.getRecipientUserGroup().getMembers());
+      userGroupMembers.addAll(template.getRecipientUserGroup().getMembers());
     } else if (recipientType == ProgramNotificationRecipient.USERS_AT_ORGANISATION_UNIT) {
-      recipients.addAll(eventOrgUnit.getUsers());
+      userGroupMembers.addAll(orgUnit.getUsers());
     }
 
-    return recipients;
+    return userGroupMembers;
   }
 
   private ProgramMessageRecipients resolveProgramNotificationRecipients(

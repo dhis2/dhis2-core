@@ -765,7 +765,8 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
                 userLvlTwoLeftRight,
                 userRoot));
     userGroupBasedOnParent =
-        createUserGroup('H', Sets.newHashSet(userLvlTwoLeftLeft, userLvlTwoLeftRight));
+        createUserGroup(
+            'H', Sets.newHashSet(userLvlTwoLeftLeft, userLvlTwoLeftRight, userLvlOneLeft));
 
     // Program
     Program programA = createProgram('A');
