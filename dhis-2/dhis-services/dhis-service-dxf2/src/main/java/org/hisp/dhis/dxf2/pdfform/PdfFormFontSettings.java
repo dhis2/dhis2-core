@@ -49,6 +49,10 @@ public class PdfFormFontSettings {
 
   public static final int FONTTYPE_FOOTER = 4;
 
+  public static final String ARABIC_FONT_CODE = "ar";
+
+  public static final String ARABIC_FONT = "fonts/NotoNaskhArabic-Regular.ttf";
+
   private static final float FONTSIZE_BODY = 10;
 
   private static final float FONTSIZE_TITLE = 16;
@@ -60,10 +64,6 @@ public class PdfFormFontSettings {
   private static final float FONTSIZE_FOOTER = 8;
 
   private static final String FONTFAMILY = "HELVETICA";
-
-  private static final String ARABIC_FONT = "fonts/NotoNaskhArabic-Regular.ttf";
-
-  private static final String ARABIC_FONT_CODE = "ar";
 
   private final Map<Integer, Font> fontTypeMap = new HashMap<>();
 

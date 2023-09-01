@@ -32,9 +32,11 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 import static org.hisp.dhis.schema.descriptors.VisualizationSchemaDescriptor.API_ENDPOINT;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -105,6 +107,31 @@ public class VisualizationController extends AbstractCrudController<Visualizatio
               legendSetService.getLegendSet(
                   visualization.getLegendDefinitions().getLegendSet().getUid()));
     }
+  }
+
+  @Override
+  public void postProcessResponseEntities(
+      List<Visualization> entityList, WebOptions options, Map<String, String> parameters) {
+    if (CollectionUtils.isEmpty(entityList)) return;
+    Set<OrganisationUnit> organisationUnits =
+        currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
+    I18nFormat i18nFormat = i18nManager.getI18nFormat();
+    entityList.forEach(
+        visualization -> {
+          visualization.populateAnalyticalProperties();
+
+          for (OrganisationUnit organisationUnit : visualization.getOrganisationUnits()) {
+            visualization
+                .getParentGraphMap()
+                .put(organisationUnit.getUid(), organisationUnit.getParentGraph(organisationUnits));
+          }
+
+          if (isNotEmpty(visualization.getPeriods())) {
+            for (Period period : visualization.getPeriods()) {
+              period.setName(i18nFormat.formatPeriod(period));
+            }
+          }
+        });
   }
 
   @Override

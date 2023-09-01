@@ -148,10 +148,10 @@ public class PeriodResourceTable extends ResourceTable<Period> {
    * @return the year.
    */
   private int resolveYearFromPeriod(Period period) {
+    DateTime dateTime = new DateTime(period.getStartDate().getTime());
     if (WeeklyAbstractPeriodType.class.isAssignableFrom(period.getPeriodType().getClass())) {
-      return new DateTime(period.getStartDate().getTime()).plusDays(3).getYear();
-    } else {
-      return PeriodType.getCalendar().fromIso(period.getStartDate()).getYear();
+      return dateTime.plusDays(3).getYear();
     }
+    return dateTime.getYear();
   }
 }

@@ -27,21 +27,29 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.utils.CsvUtils.getRowCountFromCsv;
+import static org.hisp.dhis.utils.CsvUtils.getRowFromCsv;
+import static org.hisp.dhis.utils.CsvUtils.getValueFromCsv;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.webapi.controller.AbstractGistControllerTest.assertHasNoPager;
 import static org.hisp.dhis.webapi.controller.AbstractGistControllerTest.assertHasPager;
 import static org.hisp.dhis.webapi.controller.AbstractGistControllerTest.assertHasPagerLinks;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
@@ -56,6 +64,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class DimensionControllerTest extends DhisControllerConvenienceTest {
 
   @Autowired private CategoryService categoryService;
+  @Autowired private OrganisationUnitGroupService orgUnitGroupService;
 
   @Test
   void testGetDimensionsForDataSet() {
@@ -129,6 +138,26 @@ class DimensionControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  void testGetDimensionsFilteredByType() {
+    addCategoryCombos(105);
+    addOrganisationGroupSet(5);
+    JsonObject response =
+        GET("/dimensions?fields=id,dimensionType&filter=dimensionType:eq:ORGANISATION_UNIT_GROUP_SET")
+            .content();
+    JsonArray dimensions = response.getArray("dimensions");
+
+    assertNotNull(dimensions);
+    assertEquals(5, dimensions.size());
+
+    JsonObject dimension = dimensions.getObject(0);
+    String dimensionType = dimension.getString("dimensionType").string();
+    assertEquals("ORGANISATION_UNIT_GROUP_SET", dimensionType);
+
+    assertHasPager(response, 1, 50, 5);
+    assertHasPagerLinks(response, 1);
+  }
+
+  @Test
   void testGetDimensionsWithNoPaging() {
     addCategoryCombos(55);
     JsonObject response = GET("/dimensions?paging=false").content();
@@ -158,10 +187,109 @@ class DimensionControllerTest extends DhisControllerConvenienceTest {
     assertHasPagerLinks(response, 1);
   }
 
+  @Test
+  void testGetCsvDimensions() {
+    addCategoryCombos(55);
+    String response = GET("/dimensions.csv").content("text/csv");
+
+    assertNotNull(response);
+    String firstRow = getRowFromCsv(0, response);
+    String uid = getValueFromCsv(0, 1, response);
+    String displayName = getValueFromCsv(1, 2, response);
+
+    assertEquals("id,displayName", firstRow);
+    // confirms valid UID if created with no exception
+    CodeGenerator.isValidUid(uid);
+    assertEquals("Gender1", displayName);
+  }
+
+  @Test
+  void testGetCsvDimensionsSkipHeader() {
+    addCategoryCombos(55);
+    String response = GET("/dimensions.csv?skipHeader=true").content("text/csv");
+
+    assertNotNull(response);
+    String firstRow = getRowFromCsv(0, response);
+    assertNotNull(firstRow);
+    assertNotEquals("id,displayName", firstRow);
+    assertTrue(firstRow.contains("Gender0"));
+  }
+
+  @Test
+  void testGetCsvDimensionsWithFields() {
+    addCategoryCombos(55);
+    String response = GET("/dimensions.csv?fields=id,name,dimensionType").content("text/csv");
+
+    assertNotNull(response);
+    String firstRow = getRowFromCsv(0, response);
+    String secondRow = getRowFromCsv(1, response);
+    assertEquals("id,name,dimensionType", firstRow);
+    assertTrue(secondRow.contains("Gender0"));
+    assertTrue(secondRow.contains("CATEGORY"));
+  }
+
+  @Test
+  void testGetCsvDimensionsOrderAsc() {
+    addCategoryCombos(55);
+    String response = GET("/dimensions.csv?order=displayName:asc").content("text/csv");
+
+    assertNotNull(response);
+    String thirdRowDisplayNameValue = getValueFromCsv(1, 2, response);
+    assertEquals("Gender1", thirdRowDisplayNameValue);
+  }
+
+  @Test
+  void testGetCsvDimensionsOrderDesc() {
+    addCategoryCombos(55);
+    String response = GET("/dimensions.csv?order=displayName:desc").content("text/csv");
+
+    assertNotNull(response);
+    String thirdRowDisplayNameValue = getValueFromCsv(1, 2, response);
+    assertEquals("Gender8", thirdRowDisplayNameValue);
+  }
+
+  @Test
+  void testGetCsvDimensionsFilterByDisplayName() {
+    addCategoryCombos(55);
+    String response =
+        GET("/dimensions.csv?filter=displayName:eq:Gender0&skipHeader=true").content("text/csv");
+
+    assertNotNull(response);
+    String firstRowDisplayNameValue = getValueFromCsv(1, 0, response);
+    int rowCount = getRowCountFromCsv(response);
+    assertEquals("Gender0", firstRowDisplayNameValue);
+    assertEquals(1, rowCount);
+  }
+
+  @Test
+  void testGetCsvDimensionsWithPageSize() {
+    addCategoryCombos(55);
+    String response = GET("/dimensions.csv?pageSize=10&skipHeader=true").content("text/csv");
+
+    assertNotNull(response);
+    int rowCount = getRowCountFromCsv(response);
+    assertEquals(10, rowCount);
+  }
+
   private void addCategoryCombos(int counter) {
     for (int i = 0; i < counter; i++) {
       createCategoryCombo(i);
     }
+  }
+
+  private void addOrganisationGroupSet(int counter) {
+    for (int i = 0; i < counter; i++) {
+      createOrganisationUnitGroupSet(i);
+    }
+  }
+
+  private OrganisationUnitGroupSet createOrganisationUnitGroupSet(int postfix) {
+    OrganisationUnitGroupSet ogs = createOrganisationUnitGroupSet('a');
+    ogs.setName(ogs.getName() + postfix);
+    ogs.setShortName(ogs.getShortName() + postfix);
+    ogs.setCode(ogs.getCode() + postfix);
+    orgUnitGroupService.addOrganisationUnitGroupSet(ogs);
+    return ogs;
   }
 
   private CategoryCombo createCategoryCombo(int postfix) {
