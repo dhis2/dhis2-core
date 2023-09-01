@@ -35,7 +35,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.period.Cal;
@@ -55,7 +54,7 @@ public class DatePeriodResourceTable extends ResourceTable<Integer> {
    * Constructor method.
    *
    * @param years the list of years that periods will be generated for.
-   * @param tableType the table type. See {@link AnalyticsTableType}.
+   * @param tableType the table type.
    */
   public DatePeriodResourceTable(List<Integer> years, String tableType) {
     super(years);
