@@ -564,6 +564,7 @@ public class ApiFinalise {
         .anyMatch(response -> response.getContent().containsKey(MediaType.APPLICATION_JSON));
   }
 
+  @SuppressWarnings("java:S3776")
   private Map<String, List<Api.Endpoint>> groupEndpointsByAbsolutePath() {
     // OBS! We use a TreeMap to also get alphabetical order/grouping
     Map<String, List<Api.Endpoint>> endpointsByAbsolutePath = new TreeMap<>();
