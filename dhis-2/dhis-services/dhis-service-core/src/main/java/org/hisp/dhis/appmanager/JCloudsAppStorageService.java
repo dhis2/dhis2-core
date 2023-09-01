@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.appmanager;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -38,12 +37,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -51,6 +50,7 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.cache.Cache;
@@ -59,6 +59,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
+import org.hisp.dhis.util.ZipFileUtils;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobRequestSigner;
 import org.jclouds.blobstore.BlobStore;
@@ -86,6 +87,7 @@ import org.springframework.stereotype.Service;
  * @author Stian Sandvold
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service("org.hisp.dhis.appmanager.JCloudsAppStorageService")
 public class JCloudsAppStorageService implements AppStorageService {
   private static final Pattern CONTAINER_NAME_PATTERN =
@@ -94,7 +96,7 @@ public class JCloudsAppStorageService implements AppStorageService {
   private static final long FIVE_MINUTES_IN_SECONDS =
       Minutes.minutes(5).toStandardDuration().getStandardSeconds();
 
-  private Map<String, App> reservedNamespaces = new HashMap<>();
+  private final Map<String, App> reservedNamespaces = new ConcurrentHashMap<>();
 
   private BlobStore blobStore;
 
@@ -113,7 +115,7 @@ public class JCloudsAppStorageService implements AppStorageService {
   private static final String JCLOUDS_PROVIDER_KEY_TRANSIENT = "transient";
 
   private static final List<String> SUPPORTED_PROVIDERS =
-      Arrays.asList(
+      List.of(
           JCLOUDS_PROVIDER_KEY_FILESYSTEM,
           JCLOUDS_PROVIDER_KEY_AWS_S3,
           JCLOUDS_PROVIDER_KEY_TRANSIENT);
@@ -127,19 +129,6 @@ public class JCloudsAppStorageService implements AppStorageService {
   private final DhisConfigurationProvider configurationProvider;
 
   private final ObjectMapper jsonMapper;
-
-  public JCloudsAppStorageService(
-      LocationManager locationManager,
-      DhisConfigurationProvider configurationProvider,
-      ObjectMapper jsonMapper) {
-    checkNotNull(locationManager);
-    checkNotNull(configurationProvider);
-    checkNotNull(jsonMapper);
-
-    this.locationManager = locationManager;
-    this.configurationProvider = configurationProvider;
-    this.jsonMapper = jsonMapper;
-  }
 
   @PostConstruct
   public void init() {
@@ -283,13 +272,15 @@ public class JCloudsAppStorageService implements AppStorageService {
 
     // -----------------------------------------------------------------
     // Check for namespace and if it's already taken by another app
+    // Allow install if namespace was taken by another version of this app
     // -----------------------------------------------------------------
 
     String namespace = app.getActivities().getDhis().getNamespace();
 
     if (namespace != null
         && !namespace.isEmpty()
-        && app.equals(reservedNamespaces.get(namespace))) {
+        && reservedNamespaces.containsKey(namespace)
+        && !app.getKey().equals(reservedNamespaces.get(namespace).getKey())) {
       log.error(
           String.format(
               "Failed to install app '%s': Namespace '%s' already taken.",
@@ -330,10 +321,17 @@ public class JCloudsAppStorageService implements AppStorageService {
 
     try (ZipFile zip = new ZipFile(file)) {
       // -----------------------------------------------------------------
-      // Parse ZIP file and it's manifest.webapp file.
+      // Determine top-level directory name, if the zip file contains one
       // -----------------------------------------------------------------
 
-      ZipEntry entry = zip.getEntry(MANIFEST_FILENAME);
+      String prefix = ZipFileUtils.getTopLevelDirectory(zip.entries().asIterator());
+      log.debug("Detected top-level directory '" + prefix + "' in zip");
+
+      // -----------------------------------------------------------------
+      // Parse manifest.webapp file from ZIP archive.
+      // -----------------------------------------------------------------
+
+      ZipEntry entry = zip.getEntry(prefix + MANIFEST_FILENAME);
 
       if (entry == null) {
         log.error("Failed to install app: Missing manifest.webapp in zip");
@@ -354,8 +352,6 @@ public class JCloudsAppStorageService implements AppStorageService {
         return app;
       }
 
-      String namespace = app.getActivities().getDhis().getNamespace();
-
       // -----------------------------------------------------------------
       // Unzip the app
       // -----------------------------------------------------------------
@@ -367,13 +363,14 @@ public class JCloudsAppStorageService implements AppStorageService {
               (Consumer<ZipEntry>)
                   zipEntry -> {
                     log.debug("Uploading zipEntry: " + zipEntry);
+                    String name = zipEntry.getName().substring(prefix.length());
 
                     try {
                       InputStream input = zip.getInputStream(zipEntry);
 
                       Blob blob =
                           blobStore
-                              .blobBuilder(dest + File.separator + zipEntry.getName())
+                              .blobBuilder(dest + File.separator + name)
                               .payload(input)
                               .contentLength(zipEntry.getSize())
                               .build();
@@ -383,9 +380,24 @@ public class JCloudsAppStorageService implements AppStorageService {
                       input.close();
 
                     } catch (IOException e) {
-                      log.error("Unable to store app file '" + zipEntry.getName() + "'", e);
+                      log.error("Unable to store app file '" + name + "'", e);
                     }
                   });
+
+      // make sure only one version of an app is installed
+      // so if we successfully install this version the old version is removed
+      Optional<App> existingApp = appCache.getIfPresent(app.getKey());
+      if (existingApp.isPresent()) {
+        App before = existingApp.get();
+        if (before.getAppStorageSource() == AppStorageSource.JCLOUDS) {
+          deleteApp(before);
+        }
+      }
+
+      String namespace = app.getActivities().getDhis().getNamespace();
+      if (namespace != null && !namespace.isEmpty()) {
+        reservedNamespaces.put(namespace, app);
+      }
 
       log.info(
           String.format(
@@ -402,6 +414,7 @@ public class JCloudsAppStorageService implements AppStorageService {
       // -----------------------------------------------------------------
 
       app.setAppState(AppStatus.OK);
+
       return app;
     } catch (ZipException e) {
       log.error("Failed to install app: Invalid ZIP format", e);
@@ -429,7 +442,10 @@ public class JCloudsAppStorageService implements AppStorageService {
       blobStore.removeBlob(config.container, resource.getName());
     }
 
-    reservedNamespaces.remove(app.getActivities().getDhis().getNamespace(), app);
+    String namespace = app.getActivities().getDhis().getNamespace();
+    if (namespace != null) {
+      reservedNamespaces.remove(namespace, app);
+    }
 
     log.info("Deleted app " + app.getName());
   }
