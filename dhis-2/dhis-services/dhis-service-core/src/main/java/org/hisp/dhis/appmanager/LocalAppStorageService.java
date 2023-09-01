@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -61,9 +62,8 @@ import org.springframework.stereotype.Service;
 public class LocalAppStorageService implements AppStorageService {
   private final ResourceLoader resourceLoader = new DefaultResourceLoader();
 
-  private Map<String, App> apps = new HashMap<>();
-
-  private Map<String, App> reservedNamespaces = new HashMap<>();
+  private final Map<String, App> apps = new ConcurrentHashMap<>();
+  private final Map<String, App> reservedNamespaces = new ConcurrentHashMap<>();
 
   private final LocationManager locationManager;
 
