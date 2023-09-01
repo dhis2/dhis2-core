@@ -29,9 +29,12 @@ package org.hisp.dhis.analytics;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_PERIOD_YEARS_OFFSET;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,6 +47,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AnalyticsExportSettings {
   private final DhisConfigurationProvider dhisConfigurationProvider;
+
+  private final SystemSettingManager systemSettingManager;
 
   private static final String UNLOGGED = "unlogged";
 
@@ -59,5 +64,15 @@ public class AnalyticsExportSettings {
     }
 
     return EMPTY;
+  }
+
+  /**
+   * Returns the years' offset defined for the period generation. See {@link
+   * SettingKey.ANALYTICS_PERIOD_YEARS_OFFSET}.
+   *
+   * @return the offset defined in system settings.
+   */
+  public int getPeriodYearsOffset() {
+    return systemSettingManager.getIntSetting(ANALYTICS_PERIOD_YEARS_OFFSET);
   }
 }

@@ -264,6 +264,9 @@ public enum SettingKey {
   ANALYTICS_CACHE_TTL_MODE(
       "keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED, AnalyticsCacheTtlMode.class),
 
+  /** The offset of years used during period generation during the analytics export process. */
+  ANALYTICS_PERIOD_YEARS_OFFSET("keyAnalyticsPeriodYearsOffset", 22, Integer.class),
+
   /** Max trackedentityinstance records that can be retrieved from database. */
   TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityInstanceMaxLimit", 50000, Integer.class);
 
