@@ -53,8 +53,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Zubair Asghar
  */
-
-// TODO class has to be updated once we remove deprecated setting key.
 class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private OrganisationUnitService organisationUnitService;
