@@ -52,13 +52,6 @@ public interface AppStorageService {
   Map<String, App> discoverInstalledApps();
 
   /**
-   * Returns a map of namespaces and the apps resesrving them.
-   *
-   * @return a map of namespaces and the apps reserving them
-   */
-  Map<String, App> getReservedNamespaces();
-
-  /**
    * Installs an app using the AppServiceStore.
    *
    * @param file the zip file containing the app

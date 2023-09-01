@@ -38,7 +38,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,8 +93,6 @@ public class JCloudsAppStorageService implements AppStorageService {
   private static final long FIVE_MINUTES_IN_SECONDS =
       Minutes.minutes(5).toStandardDuration().getStandardSeconds();
 
-  private Map<String, App> reservedNamespaces = new HashMap<>();
-
   private BlobStore blobStore;
 
   private BlobStoreContext blobStoreContext;
@@ -113,7 +110,7 @@ public class JCloudsAppStorageService implements AppStorageService {
   private static final String JCLOUDS_PROVIDER_KEY_TRANSIENT = "transient";
 
   private static final List<String> SUPPORTED_PROVIDERS =
-      Arrays.asList(
+      List.of(
           JCLOUDS_PROVIDER_KEY_FILESYSTEM,
           JCLOUDS_PROVIDER_KEY_AWS_S3,
           JCLOUDS_PROVIDER_KEY_TRANSIENT);
@@ -207,15 +204,11 @@ public class JCloudsAppStorageService implements AppStorageService {
     blobStoreContext.close();
   }
 
-  @Override
-  public Map<String, App> discoverInstalledApps() {
-    Map<String, App> appMap = new HashMap<>();
-    List<App> appList = new ArrayList<>();
+  private void discoverInstalledApps(Consumer<App> handler) {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     log.info("Starting JClouds discovery");
-
     for (StorageMetadata resource :
         blobStore.list(config.container, prefix(APPS_DIR + "/").delimiter("/"))) {
       log.info("Found potential app: " + resource.getName());
@@ -236,35 +229,25 @@ public class JCloudsAppStorageService implements AppStorageService {
         app.setAppStorageSource(AppStorageSource.JCLOUDS);
         app.setFolderName(resource.getName());
 
-        appList.add(app);
+        handler.accept(app);
       } catch (IOException ex) {
         log.error("Could not read manifest file of " + resource.getName(), ex);
         log.error(DebugUtils.getStackTrace(ex));
       }
     }
-
-    appList.forEach(
-        app -> {
-          String namespace = app.getActivities().getDhis().getNamespace();
-
-          if (namespace != null && !namespace.isEmpty()) {
-            reservedNamespaces.put(namespace, app);
-          }
-
-          appMap.put(app.getUrlFriendlyName(), app);
-
-          log.info("Discovered app '" + app.getName() + "' from JClouds storage ");
-        });
-
-    if (appList.isEmpty()) {
-      log.info("No apps found during JClouds discovery.");
-    }
-    return appMap;
   }
 
   @Override
-  public Map<String, App> getReservedNamespaces() {
-    return reservedNamespaces;
+  public Map<String, App> discoverInstalledApps() {
+    Map<String, App> apps = new HashMap<>();
+    discoverInstalledApps(app -> apps.put(app.getUrlFriendlyName(), app));
+    if (apps.isEmpty()) {
+      log.info("No apps found during JClouds discovery.");
+    } else {
+      apps.values()
+          .forEach(app -> log.info("Discovered app '" + app.getName() + "' from JClouds storage "));
+    }
+    return apps;
   }
 
   private boolean validateApp(App app, Cache<App> appCache) {
@@ -287,16 +270,21 @@ public class JCloudsAppStorageService implements AppStorageService {
 
     String namespace = app.getActivities().getDhis().getNamespace();
 
-    if (namespace != null
-        && !namespace.isEmpty()
-        && app.equals(reservedNamespaces.get(namespace))) {
-      log.error(
-          String.format(
-              "Failed to install app '%s': Namespace '%s' already taken.",
-              app.getName(), namespace));
+    if (namespace != null && !namespace.isEmpty()) {
+      Optional<App> other =
+          appCache
+              .getAll()
+              .filter(a -> namespace.equals(a.getActivities().getDhis().getNamespace()))
+              .findFirst();
+      if (other.isPresent() && !other.get().getKey().equals(app.getKey())) {
+        log.error(
+            String.format(
+                "Failed to install app '%s': Namespace '%s' already taken.",
+                app.getName(), namespace));
 
-      app.setAppState(AppStatus.NAMESPACE_TAKEN);
-      return false;
+        app.setAppState(AppStatus.NAMESPACE_TAKEN);
+        return false;
+      }
     }
 
     // -----------------------------------------------------------------
@@ -387,6 +375,17 @@ public class JCloudsAppStorageService implements AppStorageService {
                     }
                   });
 
+      // make sure any other version of same app is removed
+      List<App> otherVersions = new ArrayList<>();
+      String key = app.getKey();
+      String version = app.getVersion();
+      discoverInstalledApps(
+          other -> {
+            if (key.equals(other.getKey()) && !version.equals(other.getVersion()))
+              otherVersions.add(other);
+          });
+      otherVersions.forEach(this::deleteApp);
+
       log.info(
           String.format(
               ""
@@ -402,6 +401,7 @@ public class JCloudsAppStorageService implements AppStorageService {
       // -----------------------------------------------------------------
 
       app.setAppState(AppStatus.OK);
+
       return app;
     } catch (ZipException e) {
       log.error("Failed to install app: Invalid ZIP format", e);
@@ -422,15 +422,21 @@ public class JCloudsAppStorageService implements AppStorageService {
     log.info("Deleting app " + app.getName());
 
     // Delete all files related to app
+    // fast but deprecated (works for local filestore):
+    blobStore.deleteDirectory(config.container, app.getFolderName());
+
+    // slower but works for S3:
+    // delete the manifest file first in case the system crashes during deletion
+    // and the manifest file is not deleted, resulting in an app that can't be installed
+    blobStore.removeBlob(config.container, app.getFolderName() + "/manifest.webapp");
+
+    // Delete all files related to app
     for (StorageMetadata resource :
         blobStore.list(config.container, prefix(app.getFolderName()).recursive())) {
       log.debug("Deleting app file: " + resource.getName());
 
       blobStore.removeBlob(config.container, resource.getName());
     }
-
-    reservedNamespaces.remove(app.getActivities().getDhis().getNamespace(), app);
-
     log.info("Deleted app " + app.getName());
   }
 
