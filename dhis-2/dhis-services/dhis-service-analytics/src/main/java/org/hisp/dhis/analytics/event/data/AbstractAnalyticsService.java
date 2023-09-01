@@ -73,7 +73,6 @@ import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
-import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
@@ -131,12 +130,7 @@ public abstract class AbstractAnalyticsService {
             .flatMap(dk -> dk.getKeywords().stream())
             .collect(toList());
 
-    List<DimensionalObject> periods =
-        params.isAggregatedEnrollments()
-            ? params.getDimensions().stream()
-                .filter(d -> d.getDimensionType() == DimensionType.PERIOD)
-                .toList()
-            : new ArrayList<>();
+    List<DimensionalObject> periods = getPeriods(params);
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
@@ -242,7 +236,7 @@ public abstract class AbstractAnalyticsService {
                 .withPeriods(periods.stream().flatMap(p -> p.getItems().stream()).toList(), EMPTY)
                 .build();
       }
-      count = addEventData(grid, params);
+      count = addData(grid, params);
     }
 
     // ---------------------------------------------------------------------
@@ -349,7 +343,7 @@ public abstract class AbstractAnalyticsService {
 
   protected abstract Grid createGridWithHeaders(EventQueryParams params);
 
-  protected abstract long addEventData(Grid grid, EventQueryParams params);
+  protected abstract long addData(Grid grid, EventQueryParams params);
 
   /**
    * Applies headers to the given if the given query specifies headers.
@@ -715,5 +709,15 @@ public abstract class AbstractAnalyticsService {
     }
 
     return dimensionUids;
+  }
+
+  /**
+   * retrieve all periods as list of dimensional objects
+   *
+   * @param params
+   * @return {@link EventQueryParams} object
+   */
+  protected List<DimensionalObject> getPeriods(EventQueryParams params) {
+    return List.of();
   }
 }

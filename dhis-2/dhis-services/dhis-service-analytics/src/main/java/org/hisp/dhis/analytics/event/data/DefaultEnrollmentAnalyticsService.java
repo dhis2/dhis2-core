@@ -43,6 +43,8 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.event.LabelMapper;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.RequestTypeAware;
@@ -163,7 +165,7 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
   }
 
   @Override
-  protected long addEventData(Grid grid, EventQueryParams params) {
+  protected long addData(Grid grid, EventQueryParams params) {
     Timer timer = new Timer().start().disablePrint();
 
     List<EventQueryParams> paramsList;
@@ -177,7 +179,7 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
     long count = 0;
     for (EventQueryParams queryParams : paramsList) {
       timer.getSplitTime("Planned event query, got partitions: " + queryParams.getPartitions());
-      if (queryParams.isTotalPages()) {
+      if (queryParams.isTotalPages() && !params.isAggregatedEnrollments()) {
         count += enrollmentAnalyticsManager.getEnrollmentCount(queryParams);
       }
 
@@ -187,5 +189,17 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
     }
 
     return count;
+  }
+
+  @Override
+  protected List<DimensionalObject> getPeriods(EventQueryParams params) {
+    // for aggregated enrollments only
+    if (!params.isAggregatedEnrollments()) {
+      return List.of();
+    }
+
+    return params.getDimensions().stream()
+        .filter(d -> d.getDimensionType() == DimensionType.PERIOD)
+        .toList();
   }
 }

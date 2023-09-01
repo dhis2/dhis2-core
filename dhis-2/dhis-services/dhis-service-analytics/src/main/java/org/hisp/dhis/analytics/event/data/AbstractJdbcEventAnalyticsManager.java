@@ -57,6 +57,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
@@ -140,8 +141,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected static final int LAST_VALUE_YEARS_OFFSET = -10;
 
   private static final String COL_VALUE = "value";
-
-  private static final String COL_PERIOD = "pe";
 
   private static final String COL_ORGANIZATION = "ou";
 
@@ -941,8 +940,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             .filter(
                 header ->
                     !header.getName().equalsIgnoreCase(COL_VALUE)
-                        && !header.getName().equalsIgnoreCase(COL_PERIOD)
-                        && !header.getName().equalsIgnoreCase(COL_ORGANIZATION))
+                        && !header.getName().equalsIgnoreCase(PERIOD_DIM_ID)
+                        && !header.getName().equalsIgnoreCase(ORGUNIT_DIM_ID))
             .map(
                 header -> {
                   String headerName = header.getName();
@@ -986,7 +985,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             .collect(joining(","));
 
     String columns =
-        (!isBlank(orgColumns) ? orgColumns : "," + COL_ORGANIZATION)
+        (!isBlank(orgColumns) ? orgColumns : "," + ORGUNIT_DIM_ID)
             + (!isBlank(periodColumns) ? "," + periodColumns : EMPTY)
             + (!isBlank(headerColumns) ? "," + headerColumns : EMPTY);
 

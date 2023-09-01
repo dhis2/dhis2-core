@@ -339,8 +339,7 @@ public class EventDataQueryRequest {
       }
 
       Set<String> dimensions;
-      if (criteria.isQueryEndpoint()
-          || (criteria.isAggregateEndpoint() && criteria.isEnrollmentEndpointItem())) {
+      if (criteria.isQueryEndpoint() || (criteria.isAggregatedEnrollments())) {
         /*
          * for each AnalyticsDateFilter whose enrollment extractor is
          * set, concatenates the timeField with the extracted value:
