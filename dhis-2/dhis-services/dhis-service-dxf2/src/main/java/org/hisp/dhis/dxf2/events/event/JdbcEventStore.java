@@ -443,18 +443,20 @@ public class JdbcEventStore implements EventStore {
 
               event.setStoredBy(resultSet.getString("psi_storedby"));
               event.setOrgUnitName(resultSet.getString("ou_name"));
-              event.setDueDate(DateUtils.getIso8601NoTz(resultSet.getDate("psi_duedate")));
-              event.setEventDate(DateUtils.getIso8601NoTz(resultSet.getDate("psi_executiondate")));
-              event.setCreated(DateUtils.getIso8601NoTz(resultSet.getDate("psi_created")));
+              event.setDueDate(DateUtils.getIso8601NoTz(resultSet.getTimestamp("psi_duedate")));
+              event.setEventDate(
+                  DateUtils.getIso8601NoTz(resultSet.getTimestamp("psi_executiondate")));
+              event.setCreated(DateUtils.getIso8601NoTz(resultSet.getTimestamp("psi_created")));
               event.setCreatedByUserInfo(
                   jsonToUserInfo(resultSet.getString("psi_createdbyuserinfo"), jsonMapper));
-              event.setLastUpdated(DateUtils.getIso8601NoTz(resultSet.getDate("psi_lastupdated")));
+              event.setLastUpdated(
+                  DateUtils.getIso8601NoTz(resultSet.getTimestamp("psi_lastupdated")));
               event.setLastUpdatedByUserInfo(
                   jsonToUserInfo(resultSet.getString("psi_lastupdatedbyuserinfo"), jsonMapper));
 
               event.setCompletedBy(resultSet.getString("psi_completedby"));
               event.setCompletedDate(
-                  DateUtils.getIso8601NoTz(resultSet.getDate("psi_completeddate")));
+                  DateUtils.getIso8601NoTz(resultSet.getTimestamp("psi_completeddate")));
 
               if (resultSet.getObject("psi_geometry") != null) {
                 try {

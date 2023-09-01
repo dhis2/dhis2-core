@@ -35,11 +35,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.function.Supplier;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.util.DateUtils;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.function.Executable;
 
 /**
@@ -58,6 +62,12 @@ import org.junit.jupiter.api.function.Executable;
  * module. We will have to live with the duplicated assertion code until we have a better solution.
  */
 public class Assertions {
+
+  private static final String DATE_WITH_TIMESTAMP_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+
+  private static final DateTimeFormatter DATE_WITH_TIMESTAMP =
+      DateTimeFormat.forPattern(DATE_WITH_TIMESTAMP_PATTERN).withZoneUTC();
+
   /**
    * assertHasErrors asserts the report contains only errors of given codes in any order.
    *
@@ -174,6 +184,29 @@ public class Assertions {
     assertNotNull(report);
     assertFalse(
         report.hasErrors(), errorMessage("Expected no validation errors, instead got:\n", report));
+  }
+
+  public static void assertHasTimeStamp(Date date) {
+    assertTrue(
+        hasTimeStamp(date),
+        String.format("Supported format is %s but found %s", DATE_WITH_TIMESTAMP_PATTERN, date));
+  }
+
+  public static void assertHasTimeStamp(String date) {
+    assertTrue(
+        hasTimeStamp(DateUtils.parseDate(date)),
+        String.format("Supported format is %s but found %s", DATE_WITH_TIMESTAMP_PATTERN, date));
+  }
+
+  private static boolean hasTimeStamp(Date date) {
+    try {
+
+      DATE_WITH_TIMESTAMP.parseDateTime(DateUtils.getLongGmtDateString(date));
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+
+    return true;
   }
 
   private static Supplier<String> errorMessage(String errorTitle, TrackerValidationReport report) {
