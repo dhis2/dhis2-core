@@ -1,7 +1,6 @@
 package org.hisp.dhis.resourcetable;
 
 import static java.time.temporal.ChronoUnit.YEARS;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_PERIOD_YEARS_OFFSET;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,11 +33,11 @@ class DefaultResourceTableServiceTest {
   void generateDatePeriodTableWhenYearIsOutOfRange() {
     // Given
     List<Integer> yearsToCheck = List.of(2000, 2001, 2002, 2003, 2004);
+    int defaultOffset = 22;
 
     // When
     when(periodDataProvider.getAvailableYears()).thenReturn(yearsToCheck);
-    when(analyticsExportSettings.getPeriodYearsOffset())
-        .thenReturn((Integer) ANALYTICS_PERIOD_YEARS_OFFSET.getDefaultValue());
+    when(analyticsExportSettings.getPeriodYearsOffset()).thenReturn(defaultOffset);
 
     // Then
     RuntimeException exception =
@@ -88,11 +87,11 @@ class DefaultResourceTableServiceTest {
     // Given
     List<Integer> yearsToCheck =
         List.of(Year.now().getValue(), Year.now().plus(1, YEARS).getValue());
+    int defaultOffset = 22;
 
     // When
     when(periodDataProvider.getAvailableYears()).thenReturn(yearsToCheck);
-    when(analyticsExportSettings.getPeriodYearsOffset())
-        .thenReturn((Integer) ANALYTICS_PERIOD_YEARS_OFFSET.getDefaultValue());
+    when(analyticsExportSettings.getPeriodYearsOffset()).thenReturn(defaultOffset);
     doNothing().when(resourceTableStore).generateResourceTable(any());
 
     // Then
