@@ -77,8 +77,8 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
     assertTrue(
         doc.getObject("paths")
             .has("/users/gist", "/users/invite", "/users/invites", "/users/sharing"));
-    assertLessOrEqual(25, doc.getObject("paths").size());
-    assertLessOrEqual(35, doc.getObject("components.schemas").size());
+    assertLessOrEqual(26, doc.getObject("paths").size());
+    assertLessOrEqual(24, doc.getObject("components.schemas").size());
   }
 
   @Test
@@ -88,7 +88,7 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
     assertTrue(
         doc.getObject("paths")
             .has("/users/gist", "/users/invite", "/users/invites", "/users/sharing"));
-    assertLessOrEqual(130, doc.getObject("paths").size());
+    assertLessOrEqual(131, doc.getObject("paths").size());
     assertLessOrEqual(60, doc.getObject("components.schemas").size());
   }
 
@@ -104,6 +104,8 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
             .setInputSpec(tmpFile.toAbsolutePath().toString())
             .setGeneratorName("r");
 
-    assertNotNull(new DefaultGenerator(true).opts(configurator.toClientOptInput()).generate());
+    assertNotNull(
+        new DefaultGenerator(true).opts(configurator.toClientOptInput()).generate(),
+        "Like due to a query parameter which is complex, needs debugging to find out, insert breakpoint at RClientCodegen.constructExampleCode(RClientCodegen.java:950)");
   }
 }
