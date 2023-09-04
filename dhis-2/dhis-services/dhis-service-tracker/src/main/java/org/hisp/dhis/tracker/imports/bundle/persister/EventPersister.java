@@ -47,7 +47,6 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.note.Note;
-import org.hisp.dhis.note.TrackedEntityCommentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
@@ -60,6 +59,7 @@ import org.hisp.dhis.tracker.imports.converter.TrackerSideEffectConverterService
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.note.NoteService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
@@ -72,7 +72,7 @@ public class EventPersister
   private final TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event>
       eventConverter;
 
-  private final TrackedEntityCommentService trackedEntityCommentService;
+  private final NoteService noteService;
 
   private final TrackerSideEffectConverterService sideEffectConverterService;
 
@@ -81,13 +81,13 @@ public class EventPersister
   public EventPersister(
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter,
-      TrackedEntityCommentService trackedEntityCommentService,
+      NoteService trackedEntityCommentService,
       TrackerSideEffectConverterService sideEffectConverterService,
       TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
       TrackedEntityDataValueAuditService trackedEntityDataValueAuditService) {
     super(reservedValueService, trackedEntityAttributeValueAuditService);
     this.eventConverter = eventConverter;
-    this.trackedEntityCommentService = trackedEntityCommentService;
+    this.noteService = trackedEntityCommentService;
     this.sideEffectConverterService = sideEffectConverterService;
     this.trackedEntityDataValueAuditService = trackedEntityDataValueAuditService;
   }
@@ -97,7 +97,7 @@ public class EventPersister
     if (!event.getComments().isEmpty()) {
       for (Note comment : event.getComments()) {
         if (Objects.isNull(preheat.getNote(comment.getUid()))) {
-          this.trackedEntityCommentService.addTrackedEntityComment(comment);
+          this.noteService.addTrackedEntityComment(comment);
         }
       }
     }

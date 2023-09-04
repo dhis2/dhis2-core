@@ -32,7 +32,6 @@ import java.util.HashMap;
 import java.util.Objects;
 import org.hibernate.Session;
 import org.hisp.dhis.note.Note;
-import org.hisp.dhis.note.TrackedEntityCommentService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
@@ -43,6 +42,7 @@ import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.converter.TrackerSideEffectConverterService;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.note.NoteService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,7 +54,7 @@ public class EnrollmentPersister
   private final TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment>
       enrollmentConverter;
 
-  private final TrackedEntityCommentService trackedEntityCommentService;
+  private final NoteService noteService;
 
   private final TrackerSideEffectConverterService sideEffectConverterService;
 
@@ -64,14 +64,14 @@ public class EnrollmentPersister
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment>
           enrollmentConverter,
-      TrackedEntityCommentService trackedEntityCommentService,
+      NoteService trackedEntityCommentService,
       TrackerSideEffectConverterService sideEffectConverterService,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
       TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService) {
     super(reservedValueService, trackedEntityAttributeValueAuditService);
 
     this.enrollmentConverter = enrollmentConverter;
-    this.trackedEntityCommentService = trackedEntityCommentService;
+    this.noteService = trackedEntityCommentService;
     this.sideEffectConverterService = sideEffectConverterService;
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
   }
@@ -103,7 +103,7 @@ public class EnrollmentPersister
     if (!enrollment.getComments().isEmpty()) {
       for (Note comment : enrollment.getComments()) {
         if (Objects.isNull(preheat.getNote(comment.getUid()))) {
-          this.trackedEntityCommentService.addTrackedEntityComment(comment);
+          this.noteService.addTrackedEntityComment(comment);
         }
       }
     }

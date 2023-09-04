@@ -25,20 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.note;
+package org.hisp.dhis.tracker.note;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.note.Note;
 
 /**
- * @author David Katuscak
+ * @author Luca Cambi
  */
-@Deprecated(since = "2.41")
-public interface TrackedEntityCommentStore extends IdentifiableObjectStore<Note> {
+public interface NoteService {
+  String ID = NoteService.class.getName();
+
   /**
-   * Checks for the existence of a TrackedEntityComment by UID
+   * Adds an {@link Note}
    *
-   * @param uid TrackedEntityComment UID to check for.
-   * @return true/false depending on result.
+   * @param comment The to TrackedEntityComment add.
+   * @return A generated unique id of the added {@link Note}.
    */
-  boolean exists(String uid);
+  long addTrackedEntityComment(Note comment);
+
+  /**
+   * Deletes a {@link Note}.
+   *
+   * @param comment the TrackedEntityComment to delete.
+   */
+  void deleteTrackedEntityComment(Note comment);
+
+  /**
+   * Checks for the existence of a TrackedEntityComment by UID.
+   *
+   * @param uid TrackedEntityComment UID to check for
+   * @return true/false depending on result
+   */
+  boolean trackedEntityCommentExists(String uid);
+
+  /**
+   * Updates an {@link Note}.
+   *
+   * @param comment the TrackedEntityComment to update.
+   */
+  void updateTrackedEntityComment(Note comment);
+
+  /**
+   * Returns a {@link Note}.
+   *
+   * @param id the id of the TrackedEntityComment to return.
+   * @return the TrackedEntityComment with the given id
+   */
+  Note getTrackedEntityComment(long id);
 }

@@ -31,11 +31,11 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.note.Note;
-import org.hisp.dhis.note.TrackedEntityCommentStore;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.NoteMapper;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
+import org.hisp.dhis.tracker.note.NoteStore;
 import org.springframework.stereotype.Component;
 
 /**
@@ -45,7 +45,7 @@ import org.springframework.stereotype.Component;
 @Component
 @StrategyFor(value = Note.class, mapper = NoteMapper.class)
 public class NoteStrategy implements ClassBasedSupplierStrategy {
-  @Nonnull private final TrackedEntityCommentStore trackedEntityCommentStore;
+  @Nonnull private final NoteStore trackedEntityCommentStore;
 
   @Override
   public void add(

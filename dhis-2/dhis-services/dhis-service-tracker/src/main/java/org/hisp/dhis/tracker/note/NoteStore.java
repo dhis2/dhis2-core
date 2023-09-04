@@ -25,20 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.note;
+package org.hisp.dhis.tracker.note;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.note.Note;
 
 /**
- * @author David Katuscak
+ * @author Luca Cambi
  */
-@Deprecated(since = "2.41")
-public interface TrackedEntityCommentStore extends IdentifiableObjectStore<Note> {
+public interface NoteStore extends IdentifiableObjectStore<Note> {
   /**
    * Checks for the existence of a TrackedEntityComment by UID
    *
    * @param uid TrackedEntityComment UID to check for.
-   * @return true/false depending on result.
+   * @return whether the note exists.
    */
   boolean exists(String uid);
 }

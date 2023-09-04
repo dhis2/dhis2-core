@@ -34,14 +34,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.tracker.note.NoteService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Chau Thu Tran
  */
-class TrackedEntityCommentServiceTest extends IntegrationTestBase {
-  @Autowired private TrackedEntityCommentService commentService;
+class NoteServiceTest extends IntegrationTestBase {
+  @Autowired private NoteService noteService;
 
   private Note commentA;
 
@@ -57,46 +58,46 @@ class TrackedEntityCommentServiceTest extends IntegrationTestBase {
 
   @Test
   void testSaveTrackedEntityComment() {
-    long idA = commentService.addTrackedEntityComment(commentA);
-    long idB = commentService.addTrackedEntityComment(commentB);
-    assertNotNull(commentService.getTrackedEntityComment(idA));
-    assertNotNull(commentService.getTrackedEntityComment(idB));
+    long idA = noteService.addTrackedEntityComment(commentA);
+    long idB = noteService.addTrackedEntityComment(commentB);
+    assertNotNull(noteService.getTrackedEntityComment(idA));
+    assertNotNull(noteService.getTrackedEntityComment(idB));
   }
 
   @Test
   void testDeleteTrackedEntityComment() {
-    long idA = commentService.addTrackedEntityComment(commentA);
-    long idB = commentService.addTrackedEntityComment(commentB);
-    assertNotNull(commentService.getTrackedEntityComment(idA));
-    assertNotNull(commentService.getTrackedEntityComment(idB));
-    commentService.deleteTrackedEntityComment(commentA);
-    assertNull(commentService.getTrackedEntityComment(idA));
-    assertNotNull(commentService.getTrackedEntityComment(idB));
-    commentService.deleteTrackedEntityComment(commentB);
-    assertNull(commentService.getTrackedEntityComment(idA));
-    assertNull(commentService.getTrackedEntityComment(idB));
+    long idA = noteService.addTrackedEntityComment(commentA);
+    long idB = noteService.addTrackedEntityComment(commentB);
+    assertNotNull(noteService.getTrackedEntityComment(idA));
+    assertNotNull(noteService.getTrackedEntityComment(idB));
+    noteService.deleteTrackedEntityComment(commentA);
+    assertNull(noteService.getTrackedEntityComment(idA));
+    assertNotNull(noteService.getTrackedEntityComment(idB));
+    noteService.deleteTrackedEntityComment(commentB);
+    assertNull(noteService.getTrackedEntityComment(idA));
+    assertNull(noteService.getTrackedEntityComment(idB));
   }
 
   @Test
   void testUpdateTrackedEntityComment() {
-    long idA = commentService.addTrackedEntityComment(commentA);
-    assertNotNull(commentService.getTrackedEntityComment(idA));
+    long idA = noteService.addTrackedEntityComment(commentA);
+    assertNotNull(noteService.getTrackedEntityComment(idA));
     commentA.setCommentText("B");
-    commentService.updateTrackedEntityComment(commentA);
-    assertEquals("B", commentService.getTrackedEntityComment(idA).getCommentText());
+    noteService.updateTrackedEntityComment(commentA);
+    assertEquals("B", noteService.getTrackedEntityComment(idA).getCommentText());
   }
 
   @Test
   void testGetTrackedEntityCommentById() {
-    long idA = commentService.addTrackedEntityComment(commentA);
-    long idB = commentService.addTrackedEntityComment(commentB);
-    assertEquals(commentA, commentService.getTrackedEntityComment(idA));
-    assertEquals(commentB, commentService.getTrackedEntityComment(idB));
+    long idA = noteService.addTrackedEntityComment(commentA);
+    long idB = noteService.addTrackedEntityComment(commentB);
+    assertEquals(commentA, noteService.getTrackedEntityComment(idA));
+    assertEquals(commentB, noteService.getTrackedEntityComment(idB));
   }
 
   @Test
   void testCommentExists() {
-    commentService.addTrackedEntityComment(commentA);
-    assertTrue(commentService.trackedEntityCommentExists(commentA.getUid()));
+    noteService.addTrackedEntityComment(commentA);
+    assertTrue(noteService.trackedEntityCommentExists(commentA.getUid()));
   }
 }

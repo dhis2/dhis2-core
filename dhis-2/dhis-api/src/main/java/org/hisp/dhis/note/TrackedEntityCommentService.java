@@ -30,6 +30,7 @@ package org.hisp.dhis.note;
 /**
  * @author Chau Thu Tran
  */
+@Deprecated(since = "2.41")
 public interface TrackedEntityCommentService {
   String ID = TrackedEntityCommentService.class.getName();
 
