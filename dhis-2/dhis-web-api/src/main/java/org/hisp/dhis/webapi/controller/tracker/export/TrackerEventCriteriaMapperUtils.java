@@ -28,149 +28,19 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
 
 public class TrackerEventCriteriaMapperUtils {
   private TrackerEventCriteriaMapperUtils() {
     throw new IllegalStateException("Utility class");
-  }
-
-  public static List<OrganisationUnit> validateAccessibleOrgUnits(
-      User user,
-      OrganisationUnit orgUnit,
-      OrganisationUnitSelectionMode orgUnitMode,
-      Program program,
-      Function<String, List<OrganisationUnit>> orgUnitDescendants,
-      TrackerAccessManager trackerAccessManager)
-      throws ForbiddenException {
-    List<OrganisationUnit> accessibleOrgUnits =
-        getUserAccessibleOrgUnits(
-            user, orgUnit, orgUnitMode, program, orgUnitDescendants, trackerAccessManager);
-
-    if (orgUnit != null && accessibleOrgUnits.isEmpty() && !shouldIgnoreOrgUnit(orgUnitMode)) {
-      throw new ForbiddenException("User does not have access to orgUnit: " + orgUnit.getUid());
-    }
-
-    return accessibleOrgUnits;
-  }
-
-  /**
-   * Returns a list of all the org units the user has access to
-   *
-   * @param user the user to check the access of
-   * @param orgUnit parent org unit to get descendants/children of
-   * @param orgUnitDescendants function to retrieve org units, in case ou mode is descendants
-   * @param program the program the user wants to access to
-   * @return a list containing the user accessible organisation units
-   */
-  private static List<OrganisationUnit> getUserAccessibleOrgUnits(
-      User user,
-      OrganisationUnit orgUnit,
-      OrganisationUnitSelectionMode orgUnitMode,
-      Program program,
-      Function<String, List<OrganisationUnit>> orgUnitDescendants,
-      TrackerAccessManager trackerAccessManager) {
-
-    switch (orgUnitMode) {
-      case DESCENDANTS:
-        return orgUnit != null
-            ? getAccessibleDescendants(user, program, orgUnitDescendants.apply(orgUnit.getUid()))
-            : Collections.emptyList();
-      case CHILDREN:
-        return orgUnit != null
-            ? getAccessibleDescendants(
-                user,
-                program,
-                Stream.concat(Stream.of(orgUnit), orgUnit.getChildren().stream())
-                    .collect(Collectors.toList()))
-            : Collections.emptyList();
-      case CAPTURE:
-        return new ArrayList<>(user.getOrganisationUnits());
-      case ACCESSIBLE:
-        return getAccessibleOrgUnits(user, program);
-      case SELECTED:
-        return getSelectedOrgUnits(user, program, orgUnit, trackerAccessManager);
-      default:
-        return Collections.emptyList();
-    }
-  }
-
-  private static List<OrganisationUnit> getSelectedOrgUnits(
-      User user,
-      Program program,
-      OrganisationUnit orgUnit,
-      TrackerAccessManager trackerAccessManager) {
-    return trackerAccessManager.canAccess(user, program, orgUnit)
-        ? List.of(orgUnit)
-        : Collections.emptyList();
-  }
-
-  private static List<OrganisationUnit> getAccessibleOrgUnits(User user, Program program) {
-    return isProgramAccessRestricted(program)
-        ? new ArrayList<>(user.getOrganisationUnits())
-        : new ArrayList<>(user.getTeiSearchOrganisationUnitsWithFallback());
-  }
-
-  /**
-   * Returns the org units whose path is contained in the user search or capture scope org unit. If
-   * there's a match, it means the user org unit is at the same level or above the supplied org
-   * unit.
-   *
-   * @param user the user to check the access of
-   * @param program the program the user wants to access to
-   * @param orgUnits the org units to check if the user has access to
-   * @return a list with the org units the user has access to
-   */
-  private static List<OrganisationUnit> getAccessibleDescendants(
-      User user, Program program, List<OrganisationUnit> orgUnits) {
-    if (orgUnits.isEmpty()) {
-      return Collections.emptyList();
-    }
-
-    if (isProgramAccessRestricted(program)) {
-      return orgUnits.stream()
-          .filter(
-              availableOrgUnit ->
-                  user.getOrganisationUnits().stream()
-                      .anyMatch(
-                          captureScopeOrgUnit ->
-                              availableOrgUnit.getPath().contains(captureScopeOrgUnit.getPath())))
-          .collect(Collectors.toList());
-    } else {
-      return orgUnits.stream()
-          .filter(
-              availableOrgUnit ->
-                  user.getTeiSearchOrganisationUnits().stream()
-                      .anyMatch(
-                          searchScopeOrgUnit ->
-                              availableOrgUnit.getPath().contains(searchScopeOrgUnit.getPath())))
-          .collect(Collectors.toList());
-    }
-  }
-
-  private static boolean isProgramAccessRestricted(Program program) {
-    return program != null && (program.isClosed() || program.isProtected());
-  }
-
-  private static boolean shouldIgnoreOrgUnit(OrganisationUnitSelectionMode orgUnitMode) {
-    return orgUnitMode == CAPTURE || orgUnitMode == ACCESSIBLE || orgUnitMode == ALL;
   }
 
   /**
@@ -190,40 +60,77 @@ public class TrackerEventCriteriaMapperUtils {
   }
 
   public static void validateOrgUnitMode(
-      OrganisationUnitSelectionMode selectedOuMode, OrganisationUnit orgUnit, User user) {
-
-    switch (selectedOuMode) {
+      OrganisationUnitSelectionMode orgUnitMode,
+      User user,
+      Program program,
+      OrganisationUnit requestedOrgUnit) {
+    switch (orgUnitMode) {
       case ALL:
-        if (!userCanSearchOuModeALL(user)) {
-          throw new IllegalQueryException(
-              "Current user is not authorized to query across all organisation units");
-        }
+        validateUserCanSearchOrgUnitModeALL(user);
         break;
-      case ACCESSIBLE:
-      case CAPTURE:
-        if (user == null) {
-          throw new IllegalQueryException("User is required for ouMode: " + selectedOuMode);
-        }
-        break;
-      case CHILDREN:
       case SELECTED:
+      case ACCESSIBLE:
       case DESCENDANTS:
-        if (orgUnit == null) {
-          throw new IllegalQueryException(
-              "Organisation unit is required for ouMode: " + selectedOuMode);
-        }
+      case CHILDREN:
+        validateUserScope(user, program, orgUnitMode, requestedOrgUnit);
         break;
-      default:
-        throw new IllegalQueryException("Invalid ouMode:  " + selectedOuMode);
+      case CAPTURE:
+        validateCaptureScope(user);
     }
   }
 
-  private static boolean userCanSearchOuModeALL(User user) {
+  private static void validateUserCanSearchOrgUnitModeALL(User user) {
+    // TODO(tracker) This user check is unnecessary for events, but needs to be here for
+    // trackedEntities. In that case, it should be done in a separate validation, so when it gets
+    // here we already know it's not null
+    if (user == null
+        || !(user.isSuper()
+            || user.isAuthorized(
+                Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()))) {
+      throw new IllegalQueryException(
+          "Current user is not authorized to query across all organisation units");
+
+      // TODO(tracker) Validate user scope if mode ALL needs to use user's search or capture scope
+    }
+  }
+
+  private static void validateUserScope(
+      User user,
+      Program program,
+      OrganisationUnitSelectionMode orgUnitMode,
+      OrganisationUnit requestedOrgUnit) {
+
+    // TODO(tracker) This user check is unnecessary for events, but needs to be here for
+    // trackedEntities. In that case, it should be done in a separate validation, so when it gets
+    // here we already know it's not null
     if (user == null) {
-      return false;
+      throw new IllegalQueryException("User is required for orgUnitMode: " + orgUnitMode);
     }
 
-    return user.isSuper()
-        || user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
+    if (program != null && (program.isClosed() || program.isProtected())) {
+      if (user.getOrganisationUnits().isEmpty()) {
+        throw new IllegalQueryException("User needs to be assigned data capture org units");
+      }
+
+    } else if (user.getTeiSearchOrganisationUnitsWithFallback().isEmpty()) {
+      throw new IllegalQueryException(
+          "User needs to be assigned either search or data capture org units");
+    }
+
+    if (orgUnitMode != ACCESSIBLE && requestedOrgUnit == null) {
+      throw new IllegalQueryException(
+          "Organisation unit is required for org unit mode: " + orgUnitMode);
+    }
+  }
+
+  private static void validateCaptureScope(User user) {
+    // TODO(tracker) This user check is unnecessary for events, but needs to be here for
+    // trackedEntities. In that case, it should be done in a separate validation, so when it gets
+    // here we already know it's not null
+    if (user == null) {
+      throw new IllegalQueryException("User is required for orgUnitMode: " + CAPTURE);
+    } else if (user.getOrganisationUnits().isEmpty()) {
+      throw new IllegalQueryException("User needs to be assigned data capture org units");
+    }
   }
 }

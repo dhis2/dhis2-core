@@ -31,9 +31,6 @@ import static org.hisp.dhis.common.AccessLevel.CLOSED;
 import static org.hisp.dhis.common.AccessLevel.OPEN;
 import static org.hisp.dhis.common.AccessLevel.PROTECTED;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
@@ -44,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -161,6 +159,8 @@ class TrackerEventCriteriaMapperTest {
   @BeforeEach
   public void setUp() {
     User user = new User();
+    OrganisationUnit ou = new OrganisationUnit();
+    user.setOrganisationUnits(Set.of(ou));
     when(currentUserService.getCurrentUser()).thenReturn(user);
 
     program = new Program();
@@ -262,21 +262,6 @@ class TrackerEventCriteriaMapperTest {
 
     Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(criteria));
     assertEquals("Program stage is specified but does not exist: unknown", exception.getMessage());
-  }
-
-  @Test
-  void shouldReturnOrgUnitWhenCorrectOrgUnitMapped()
-      throws BadRequestException, ForbiddenException {
-    TrackerEventCriteria criteria = new TrackerEventCriteria();
-    criteria.setOrgUnit(orgUnit.getUid());
-
-    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
-    when(trackerAccessManager.canAccess(currentUserService.getCurrentUser(), null, orgUnit))
-        .thenReturn(true);
-
-    EventQueryParams params = mapper.map(criteria);
-
-    assertContainsOnly(List.of(orgUnit), params.getAccessibleOrgUnits());
   }
 
   @Test
@@ -790,8 +775,11 @@ class TrackerEventCriteriaMapperTest {
         actualFilters);
   }
 
-  @Test
-  void shouldMapCaptureScopeOrgUnitWhenProgramProtectedAndOuModeDescendants()
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN", "ACCESSIBLE", "CAPTURE"})
+  void shouldMapRequestedOrgUnitWhenProgramProtected(OrganisationUnitSelectionMode orgUnitMode)
       throws ForbiddenException, BadRequestException {
     Program program = new Program();
     program.setAccessLevel(PROTECTED);
@@ -806,43 +794,57 @@ class TrackerEventCriteriaMapperTest {
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
     when(organisationUnitService.getOrganisationUnitWithChildren(orgUnitId))
         .thenReturn(orgUnitDescendants);
+    when(organisationUnitService.isInUserHierarchy(
+            orgUnitId, user.getTeiSearchOrganisationUnitsWithFallback()))
+        .thenReturn(true);
 
     TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
     eventCriteria.setProgram(program.getUid());
     eventCriteria.setOrgUnit(orgUnitId);
-    eventCriteria.setOuMode(DESCENDANTS);
+    eventCriteria.setOuMode(orgUnitMode);
 
     EventQueryParams searchParams = mapper.map(eventCriteria);
 
-    assertContainsOnly(List.of(captureScopeOrgUnit), searchParams.getAccessibleOrgUnits());
+    assertEquals(orgUnitId, searchParams.getOrgUnit().getUid());
   }
 
-  @Test
-  void shouldMapSearchScopeOrgUnitWhenProgramOpenAndOuModeDescendants()
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN", "ACCESSIBLE", "CAPTURE"})
+  void shouldMapSearchScopeOrgUnitWhenProgramOpen(OrganisationUnitSelectionMode orgUnitMode)
       throws ForbiddenException, BadRequestException {
     Program program = new Program();
     program.setAccessLevel(OPEN);
     OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
     User user = new User();
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
+    user.setOrganisationUnits(Set.of(searchScopeOrgUnit));
 
     when(currentUserService.getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
     when(organisationUnitService.getOrganisationUnitWithChildren(orgUnitId))
         .thenReturn(orgUnitDescendants);
+    when(organisationUnitService.isInUserHierarchy(
+            orgUnitId, user.getTeiSearchOrganisationUnitsWithFallback()))
+        .thenReturn(true);
 
     TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
     eventCriteria.setProgram(program.getUid());
     eventCriteria.setOrgUnit(orgUnit.getUid());
-    eventCriteria.setOuMode(DESCENDANTS);
+    eventCriteria.setOuMode(orgUnitMode);
 
     EventQueryParams searchParams = mapper.map(eventCriteria);
 
-    assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
+    assertEquals(orgUnitId, searchParams.getOrgUnit().getUid());
   }
 
-  @Test
-  void shouldFailWhenProgramProtectedAndOuModeDescendantsAndUserHasNoAccessToCaptureScopeOrgUnit() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN", "ACCESSIBLE", "CAPTURE"})
+  void shouldFailWhenProgramProtectedAndUserHasNoAccessToSearchScopeOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
     Program program = new Program();
     program.setUid(PROGRAM_UID);
     program.setAccessLevel(PROTECTED);
@@ -859,16 +861,21 @@ class TrackerEventCriteriaMapperTest {
     TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
     eventCriteria.setProgram(program.getUid());
     eventCriteria.setOrgUnit(orgUnit.getUid());
-    eventCriteria.setOuMode(DESCENDANTS);
+    eventCriteria.setOuMode(orgUnitMode);
 
     ForbiddenException exception =
         assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
     assertEquals(
-        "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
+        "Organisation unit is not part of the search scope: " + orgUnit.getUid(),
+        exception.getMessage());
   }
 
-  @Test
-  void shouldFailWhenProgramOpenAndOuModeDescendantsAndUserHasNoAccessToSearchScopeOrgUnit() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN", "ACCESSIBLE", "CAPTURE"})
+  void shouldFailWhenProgramOpenAndUserHasNoAccessToSearchScopeOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
     Program program = new Program();
     program.setAccessLevel(OPEN);
     OrganisationUnit searchScopeOrgUnit = createOrgUnit("made up org unit", "made up uid");
@@ -878,7 +885,7 @@ class TrackerEventCriteriaMapperTest {
     TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
     eventCriteria.setProgram(program.getUid());
     eventCriteria.setOrgUnit(orgUnit.getUid());
-    eventCriteria.setOuMode(DESCENDANTS);
+    eventCriteria.setOuMode(orgUnitMode);
 
     when(currentUserService.getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
@@ -888,168 +895,8 @@ class TrackerEventCriteriaMapperTest {
     ForbiddenException exception =
         assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
     assertEquals(
-        "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
-  }
-
-  @Test
-  void shouldMapCaptureScopeOrgUnitWhenProgramProtectedAndOuModeChildren()
-      throws ForbiddenException, BadRequestException {
-    Program program = new Program();
-    program.setUid(PROGRAM_UID);
-    program.setAccessLevel(PROTECTED);
-    OrganisationUnit captureScopeOrgUnit =
-        createOrgUnit("captureScopeChild", "captureScopeChildUid");
-    User user = new User();
-    user.setOrganisationUnits(Set.of(captureScopeOrgUnit));
-
-    TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-    eventCriteria.setProgram(program.getUid());
-    eventCriteria.setOrgUnit(orgUnit.getUid());
-    eventCriteria.setOuMode(CHILDREN);
-
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
-
-    EventQueryParams searchParams = mapper.map(eventCriteria);
-
-    assertContainsOnly(List.of(captureScopeOrgUnit), searchParams.getAccessibleOrgUnits());
-  }
-
-  @Test
-  void shouldMapSearchScopeOrgUnitWhenProgramOpenAndOuModeChildren()
-      throws ForbiddenException, BadRequestException {
-    Program program = new Program();
-    program.setAccessLevel(OPEN);
-    OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeChild", "searchScopeChildUid");
-    User user = new User();
-    user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
-
-    TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-    eventCriteria.setProgram(program.getUid());
-    eventCriteria.setOrgUnit(orgUnit.getUid());
-    eventCriteria.setOuMode(CHILDREN);
-
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
-
-    EventQueryParams searchParams = mapper.map(eventCriteria);
-
-    assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
-  }
-
-  @Test
-  void shouldFailWhenProgramProtectedAndOuModeChildrenAndUserHasNoAccessToCaptureScopeOrgUnit() {
-    Program program = new Program();
-    program.setUid(PROGRAM_UID);
-    program.setAccessLevel(PROTECTED);
-    OrganisationUnit captureScopeOrgUnit = createOrgUnit("made up org unit", "made up uid");
-    User user = new User();
-    user.setOrganisationUnits(Set.of(captureScopeOrgUnit));
-
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
-
-    TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-    eventCriteria.setProgram(program.getUid());
-    eventCriteria.setOrgUnit(orgUnit.getUid());
-    eventCriteria.setOuMode(CHILDREN);
-
-    ForbiddenException exception =
-        assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
-    assertEquals(
-        "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenProgramOpenAndOuModeChildrenAndUserHasNoAccessToSearchScopeOrgUnit() {
-    Program program = new Program();
-    program.setAccessLevel(OPEN);
-    OrganisationUnit searchScopeOrgUnit = createOrgUnit("made up org unit", "made up uid");
-    User user = new User();
-    user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
-
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
-
-    TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-    eventCriteria.setProgram(program.getUid());
-    eventCriteria.setOrgUnit(orgUnit.getUid());
-    eventCriteria.setOuMode(CHILDREN);
-
-    ForbiddenException exception =
-        assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
-    assertEquals(
-        "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
-  }
-
-  @Test
-  void shouldMapCaptureScopeOrgUnitWhenOuModeCapture()
-      throws ForbiddenException, BadRequestException {
-    Program program = new Program();
-    program.setAccessLevel(OPEN);
-    OrganisationUnit captureScopeOrgUnit = createOrgUnit("captureScopeOrgUnit", "uid4");
-    User user = new User();
-    user.setOrganisationUnits(Set.of(captureScopeOrgUnit));
-
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
-
-    TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-    eventCriteria.setProgram(program.getUid());
-    eventCriteria.setOuMode(CAPTURE);
-
-    EventQueryParams searchParams = mapper.map(eventCriteria);
-
-    assertContainsOnly(List.of(captureScopeOrgUnit), searchParams.getAccessibleOrgUnits());
-  }
-
-  @Test
-  void shouldMapSearchScopeOrgUnitWhenOuModeAccessible()
-      throws ForbiddenException, BadRequestException {
-    Program program = new Program();
-    program.setAccessLevel(OPEN);
-    OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
-    User user = new User();
-    user.setOrganisationUnits(Set.of(searchScopeOrgUnit));
-
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
-
-    TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-    eventCriteria.setProgram(program.getUid());
-    eventCriteria.setOuMode(ACCESSIBLE);
-
-    EventQueryParams searchParams = mapper.map(eventCriteria);
-
-    assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
-  }
-
-  @Test
-  void shouldMapRequestedOrgUnitWhenOuModeSelected()
-      throws ForbiddenException, BadRequestException {
-    Program program = new Program();
-    program.setUid(PROGRAM_UID);
-    OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
-    User user = new User();
-    user.setOrganisationUnits(Set.of(searchScopeOrgUnit));
-
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
-    when(trackerAccessManager.canAccess(user, program, orgUnit)).thenReturn(true);
-
-    TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-    eventCriteria.setProgram(program.getUid());
-    eventCriteria.setOrgUnit(orgUnit.getUid());
-    eventCriteria.setOuMode(SELECTED);
-
-    EventQueryParams searchParams = mapper.map(eventCriteria);
-
-    assertContainsOnly(List.of(orgUnit), searchParams.getAccessibleOrgUnits());
+        "Organisation unit is not part of the search scope: " + orgUnit.getUid(),
+        exception.getMessage());
   }
 
   @Test
@@ -1057,15 +904,17 @@ class TrackerEventCriteriaMapperTest {
       throws ForbiddenException, BadRequestException {
     Program program = new Program();
     program.setUid(PROGRAM_UID);
-    OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
     User user = new User();
-    user.setOrganisationUnits(Set.of(searchScopeOrgUnit));
+    user.setOrganisationUnits(Set.of(orgUnit));
 
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(currentUserService.getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
     when(trackerAccessManager.canAccess(user, program, orgUnit)).thenReturn(true);
+    when(organisationUnitService.isInUserHierarchy(
+            orgUnitId, user.getTeiSearchOrganisationUnitsWithFallback()))
+        .thenReturn(true);
 
     TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
     eventCriteria.setProgram(program.getUid());
@@ -1074,11 +923,11 @@ class TrackerEventCriteriaMapperTest {
     EventQueryParams searchParams = mapper.map(eventCriteria);
 
     assertEquals(SELECTED, searchParams.getOrgUnitSelectionMode());
-    assertContainsOnly(List.of(orgUnit), searchParams.getAccessibleOrgUnits());
+    assertEquals(orgUnit, searchParams.getOrgUnit());
   }
 
   @Test
-  void shouldMapRequestedOrgUnitAsAccessibleWhenNoOrgUnitProvidedAndNoOrgUnitModeProvided()
+  void shouldMapOrgUnitModeAccessibleWhenNoOrgUnitProvidedAndNoOrgUnitModeProvided()
       throws ForbiddenException, BadRequestException {
     Program program = new Program();
     program.setAccessLevel(OPEN);
@@ -1095,7 +944,7 @@ class TrackerEventCriteriaMapperTest {
     EventQueryParams searchParams = mapper.map(eventCriteria);
 
     assertEquals(ACCESSIBLE, searchParams.getOrgUnitSelectionMode());
-    assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
+    assertNull(searchParams.getOrgUnit());
   }
 
   @Test
@@ -1116,7 +965,8 @@ class TrackerEventCriteriaMapperTest {
     ForbiddenException exception =
         assertThrows(ForbiddenException.class, () -> mapper.map(eventCriteria));
     assertEquals(
-        "User does not have access to orgUnit: " + orgUnit.getUid(), exception.getMessage());
+        "Organisation unit is not part of the search scope: " + orgUnit.getUid(),
+        exception.getMessage());
   }
 
   @ParameterizedTest
@@ -1129,7 +979,8 @@ class TrackerEventCriteriaMapperTest {
 
     IllegalQueryException exception =
         assertThrows(IllegalQueryException.class, () -> mapper.map(eventCriteria));
-    assertEquals("Organisation unit is required for ouMode: " + mode, exception.getMessage());
+    assertEquals(
+        "Organisation unit is required for org unit mode: " + mode, exception.getMessage());
   }
 
   @ParameterizedTest
@@ -1158,6 +1009,7 @@ class TrackerEventCriteriaMapperTest {
     userRole.setAuthorities(
         Set.of(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
     user.setUserRoles(Set.of(userRole));
+    user.setOrganisationUnits(Set.of(orgUnit));
 
     return user;
   }

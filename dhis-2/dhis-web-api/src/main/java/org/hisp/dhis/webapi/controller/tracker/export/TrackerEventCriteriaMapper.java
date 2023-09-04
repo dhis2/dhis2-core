@@ -34,7 +34,6 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.p
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseDataElementQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
 import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.getOrgUnitMode;
-import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.validateAccessibleOrgUnits;
 import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.validateOrgUnitMode;
 
 import java.util.ArrayList;
@@ -150,22 +149,14 @@ class TrackerEventCriteriaMapper {
 
     OrganisationUnit requestedOrgUnit =
         applyIfNonEmpty(organisationUnitService::getOrganisationUnit, criteria.getOrgUnit());
-    validateOrgUnit(criteria.getOrgUnit(), requestedOrgUnit);
+    validateOrgUnit(criteria.getOrgUnit(), requestedOrgUnit, user);
 
     if (criteria.getOuMode() != null) {
-      validateOrgUnitMode(criteria.getOuMode(), requestedOrgUnit, user);
+      validateOrgUnitMode(criteria.getOuMode(), user, program, requestedOrgUnit);
     }
 
     OrganisationUnitSelectionMode orgUnitMode =
         getOrgUnitMode(requestedOrgUnit, criteria.getOuMode());
-    List<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            user,
-            requestedOrgUnit,
-            orgUnitMode,
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
 
     TrackedEntityInstance trackedEntityInstance =
         applyIfNonEmpty(
@@ -210,7 +201,7 @@ class TrackerEventCriteriaMapper {
     return params
         .setProgram(program)
         .setProgramStage(programStage)
-        .setAccessibleOrgUnits(accessibleOrgUnits)
+        .setOrgUnit(requestedOrgUnit)
         .setTrackedEntityInstance(trackedEntityInstance)
         .setProgramStatus(criteria.getProgramStatus())
         .setFollowUp(criteria.getFollowUp())
@@ -262,10 +253,16 @@ class TrackerEventCriteriaMapper {
     }
   }
 
-  private static void validateOrgUnit(String orgUnit, OrganisationUnit ou)
-      throws BadRequestException {
+  private void validateOrgUnit(String orgUnit, OrganisationUnit ou, User user)
+      throws BadRequestException, ForbiddenException {
     if (!StringUtils.isEmpty(orgUnit) && ou == null) {
       throw new BadRequestException("Org unit is specified but does not exist: " + orgUnit);
+    }
+
+    if (orgUnit != null
+        && !organisationUnitService.isInUserHierarchy(
+            orgUnit, user.getTeiSearchOrganisationUnitsWithFallback())) {
+      throw new ForbiddenException("Organisation unit is not part of the search scope: " + orgUnit);
     }
   }
 

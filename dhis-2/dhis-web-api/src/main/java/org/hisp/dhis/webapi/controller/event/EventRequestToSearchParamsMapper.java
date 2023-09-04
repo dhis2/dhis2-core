@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.getOrgUnitMode;
-import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.validateAccessibleOrgUnits;
 import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.validateOrgUnitMode;
 
 import java.util.Collections;
@@ -242,24 +241,17 @@ class EventRequestToSearchParamsMapper {
           "Program stage is specified but does not exist: " + programStage);
     }
 
-    OrganisationUnit ou = organisationUnitService.getOrganisationUnit(orgUnit);
-    if (!StringUtils.isEmpty(orgUnit) && ou == null) {
+    OrganisationUnit requestedOrgUnit = organisationUnitService.getOrganisationUnit(orgUnit);
+    if (!StringUtils.isEmpty(orgUnit) && requestedOrgUnit == null) {
       throw new IllegalQueryException("Org unit is specified but does not exist: " + orgUnit);
     }
 
     if (orgUnitSelectionMode != null) {
-      validateOrgUnitMode(orgUnitSelectionMode, ou, user);
+      validateOrgUnitMode(orgUnitSelectionMode, user, pr, requestedOrgUnit);
     }
 
-    OrganisationUnitSelectionMode orgUnitMode = getOrgUnitMode(ou, orgUnitSelectionMode);
-    List<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            user,
-            ou,
-            orgUnitMode,
-            pr,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
+    OrganisationUnitSelectionMode orgUnitMode =
+        getOrgUnitMode(requestedOrgUnit, orgUnitSelectionMode);
 
     if (pr != null && !user.isSuper() && !aclService.canDataRead(user, pr)) {
       throw new IllegalQueryException("User has no access to program: " + pr.getUid());
@@ -267,6 +259,13 @@ class EventRequestToSearchParamsMapper {
 
     if (ps != null && !user.isSuper() && !aclService.canDataRead(user, ps)) {
       throw new IllegalQueryException("User has no access to program stage: " + ps.getUid());
+    }
+
+    if (requestedOrgUnit != null
+        && !organisationUnitService.isInUserHierarchy(
+            requestedOrgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
+      throw new ForbiddenException(
+          "Organisation unit is not part of the search scope: " + requestedOrgUnit.getUid());
     }
 
     TrackedEntityInstance tei =
@@ -326,7 +325,7 @@ class EventRequestToSearchParamsMapper {
     return params
         .setProgram(pr)
         .setProgramStage(ps)
-        .setAccessibleOrgUnits(accessibleOrgUnits)
+        .setOrgUnit(requestedOrgUnit)
         .setTrackedEntityInstance(tei)
         .setProgramStatus(programStatus)
         .setFollowUp(followUp)
