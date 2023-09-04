@@ -626,18 +626,6 @@ public class DefaultUserService implements UserService {
       return errors;
     }
 
-    // Validate if the current user can create/modify users with the ALL authority
-    if (!currentUser.isSuper()) {
-      User userToChange = userStore.get(user.getId());
-      Set<UserRole> roles = userToChange.getUserRoles();
-      for (UserRole role : roles) {
-        Set<String> authorities = role.getAuthorities();
-        if (authorities.contains("ALL")) {
-          errors.add(new ErrorReport(UserRole.class, ErrorCode.E3041, currentUser.getUsername()));
-        }
-      }
-    }
-
     validateUserRoles(user, currentUser, errors);
     validateUserGroups(user, currentUser, errors);
 
