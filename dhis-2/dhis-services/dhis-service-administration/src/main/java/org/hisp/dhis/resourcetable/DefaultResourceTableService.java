@@ -33,7 +33,6 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import com.google.common.collect.Lists;
-
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
@@ -197,6 +196,10 @@ public class DefaultResourceTableService implements ResourceTableService {
    * settings. The constant where the offset is defined can be seen at {@link
    * SettingKey.ANALYTICS_PERIOD_YEARS_OFFSET}.
    *
+   * <p>Based on the current year YYYY and the defined offset X. This method allows a range of X
+   * years in the past and X years in the future. Including also the current year YYYY. So, for
+   * YYYY=2023 and offset=2, the valid range would be [2021,2022,2023,2024,2025].
+   *
    * @param yearsToCheck the list of years to be checked.
    */
   private void checkYearsOffset(List<Integer> yearsToCheck) {
@@ -213,12 +216,14 @@ public class DefaultResourceTableService implements ResourceTableService {
           "\n Range of years allowed (based on your system settings and existing data): "
               + yearsToCheck.stream()
                   .filter(year -> year >= minRangeAllowed && year <= maxRangeAllowed)
-                  .toList() + ".";
+                  .toList()
+              + ".";
       errorMessage +=
           "\n Years are out of range found: "
               + yearsToCheck.stream()
                   .filter(year -> year < minRangeAllowed || year > maxRangeAllowed)
-                  .toList() + ".";
+                  .toList()
+              + ".";
       throw new RuntimeException(errorMessage);
     }
   }

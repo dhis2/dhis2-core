@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.period.Cal;
@@ -104,8 +103,7 @@ public class DatePeriodResourceTable extends ResourceTable<Integer> {
     List<Period> dailyPeriods = new DailyPeriodType().generatePeriods(startDate, endDate);
 
     List<Date> days =
-        new UniqueArrayList<>(
-            dailyPeriods.stream().map(Period::getStartDate).collect(toList()));
+        new UniqueArrayList<>(dailyPeriods.stream().map(Period::getStartDate).collect(toList()));
 
     Calendar calendar = PeriodType.getCalendar();
 
