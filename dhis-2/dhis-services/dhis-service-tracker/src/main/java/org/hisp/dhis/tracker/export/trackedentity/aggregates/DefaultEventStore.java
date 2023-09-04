@@ -59,13 +59,13 @@ public class DefaultEventStore extends AbstractStore implements EventStore {
           + "where ev.eventid in (:ids)";
 
   private static final String GET_NOTES_SQL =
-      "select ev.uid as key, n.uid, n.commenttext, "
+      "select ev.uid as key, n.uid, n.notetext, "
           + "n.creator, n.created "
           + "from note n "
-          + "join eventcomments evc "
-          + "on n.trackedentitycommentid = evc.trackedentitycommentid "
-          + "join event ev on evc.eventid = ev.eventid "
-          + "where evc.eventid in (:ids)";
+          + "join eventnotes evn "
+          + "on n.noteid = evn.noteid "
+          + "join event ev on evn.eventid = ev.eventid "
+          + "where evn.eventid in (:ids)";
 
   private static final String ACL_FILTER_SQL =
       "CASE WHEN p.type = 'WITH_REGISTRATION' THEN "

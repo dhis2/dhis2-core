@@ -37,7 +37,7 @@ import org.mapstruct.Mapping;
 public interface NoteMapper extends ViewMapper<org.hisp.dhis.note.Note, Note> {
   @Mapping(target = "note", source = "uid")
   @Mapping(target = "storedAt", source = "created")
-  @Mapping(target = "value", source = "commentText")
+  @Mapping(target = "value", source = "noteText")
   @Mapping(target = "createdBy", source = "lastUpdatedBy")
   @Mapping(target = "storedBy", source = "creator")
   @Override

@@ -99,7 +99,7 @@ class JdbcEventCommentStoreTest {
     return List.of(event);
   }
 
-  private Note getComment(String commentText) {
-    return new Note(commentText, "Some author");
+  private Note getComment(String notetext) {
+    return new Note(notetext, "Some author");
   }
 }

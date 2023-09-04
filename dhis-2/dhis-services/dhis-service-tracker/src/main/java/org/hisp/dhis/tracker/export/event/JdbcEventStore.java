@@ -118,9 +118,9 @@ class JdbcEventStore implements EventStore {
           + " GROUP by ri_ev_id)  as fgh on fgh.ri_ev_id=event.ev_id ";
 
   private static final String EVENT_NOTE_QUERY =
-      "select evc.eventid as evc_id,"
-          + " n.trackedentitycommentid as note_id,"
-          + " n.commenttext            as note_value,"
+      "select evn.eventid as evn_id,"
+          + " n.noteid as note_id,"
+          + " n.notetext            as note_value,"
           + " n.created                as note_storeddate,"
           + " n.creator                as note_storedby,"
           + " n.uid                    as note_uid,"
@@ -131,9 +131,9 @@ class JdbcEventStore implements EventStore {
           + " userinfo.username              as note_user_username,"
           + " userinfo.firstname             as note_user_firstname,"
           + " userinfo.surname               as note_user_surname"
-          + " from eventcomments evc"
+          + " from eventnotes evn"
           + " inner join note n"
-          + " on evc.trackedentitycommentid = n.trackedentitycommentid"
+          + " on evn.noteid = n.noteid"
           + " left join userinfo on n.lastupdatedby = userinfo.userinfoid ";
 
   private static final String EVENT_STATUS_EQ = " ev.status = ";
@@ -380,7 +380,7 @@ class JdbcEventStore implements EventStore {
                 && !notes.contains(resultSet.getString("note_id"))) {
               Note note = new Note();
               note.setUid(resultSet.getString("note_uid"));
-              note.setCommentText(resultSet.getString("note_value"));
+              note.setNoteText(resultSet.getString("note_value"));
               note.setCreated(resultSet.getDate("note_storeddate"));
               note.setCreator(resultSet.getString("note_storedby"));
 
@@ -560,7 +560,7 @@ class JdbcEventStore implements EventStore {
 
     sqlBuilder.append(") as cm on event.");
     sqlBuilder.append(COLUMN_EVENT_ID);
-    sqlBuilder.append("=cm.evc_id ");
+    sqlBuilder.append("=cm.evn_id ");
 
     if (params.isIncludeRelationships()) {
       sqlBuilder.append(RELATIONSHIP_IDS_QUERY);

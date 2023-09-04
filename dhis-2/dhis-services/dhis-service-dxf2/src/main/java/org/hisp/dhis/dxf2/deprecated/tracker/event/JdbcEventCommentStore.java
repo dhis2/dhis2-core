@@ -54,11 +54,11 @@ public class JdbcEventCommentStore implements EventCommentStore {
   private final JdbcTemplate jdbcTemplate;
 
   private final String INSERT_EVENT_NOTE_SQL =
-      "INSERT INTO note (trackedentitycommentid, "
+      "INSERT INTO note (noteid, "
           + // 0
           "uid, "
           + // 1
-          "commenttext, "
+          "notetext, "
           + // 2
           "created, "
           + // 3
@@ -69,8 +69,7 @@ public class JdbcEventCommentStore implements EventCommentStore {
           ")  values ( nextval('hibernate_sequence'), ?, ?, ?, ?, ?)";
 
   private static final String INSERT_EVENT_COMMENT_LINK =
-      "INSERT INTO eventcomments (eventid, "
-          + "sort_order, trackedentitycommentid) values (?, ?, ?)";
+      "INSERT INTO eventnotes (eventid, " + "sort_order, noteid) values (?, ?, ?)";
 
   /**
    * Save all the comments ({@see TrackedEntityComment} for the list of {@see Event}
@@ -116,8 +115,7 @@ public class JdbcEventCommentStore implements EventCommentStore {
       // the
       // notes, to avoid conflicts
       return jdbcTemplate.queryForObject(
-          "select coalesce(max(sort_order) + 1, 1) from eventcomments where eventid = "
-              + psi.getId(),
+          "select coalesce(max(sort_order) + 1, 1) from eventnotes where eventid = " + psi.getId(),
           Integer.class);
     }
     return 1;
@@ -133,7 +131,7 @@ public class JdbcEventCommentStore implements EventCommentStore {
   }
 
   private boolean hasCommentText(Note trackedEntityComment) {
-    return StringUtils.isNotEmpty(trackedEntityComment.getCommentText());
+    return StringUtils.isNotEmpty(trackedEntityComment.getNoteText());
   }
 
   Long saveComment(Note comment) {
@@ -143,11 +141,10 @@ public class JdbcEventCommentStore implements EventCommentStore {
       jdbcTemplate.update(
           connection -> {
             PreparedStatement ps =
-                connection.prepareStatement(
-                    INSERT_EVENT_NOTE_SQL, new String[] {"trackedentitycommentid"});
+                connection.prepareStatement(INSERT_EVENT_NOTE_SQL, new String[] {"noteid"});
 
             ps.setString(1, comment.getUid());
-            ps.setString(2, comment.getCommentText());
+            ps.setString(2, comment.getNoteText());
             ps.setTimestamp(3, JdbcEventSupport.toTimestamp(comment.getCreated()));
             ps.setString(4, comment.getCreator());
             ps.setTimestamp(5, JdbcEventSupport.toTimestamp(comment.getLastUpdated()));

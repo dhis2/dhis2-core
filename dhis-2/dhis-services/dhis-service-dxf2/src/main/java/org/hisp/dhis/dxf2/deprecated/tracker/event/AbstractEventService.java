@@ -902,7 +902,7 @@ public abstract class AbstractEventService
           && !StringUtils.isEmpty(note.getValue())) {
         org.hisp.dhis.note.Note comment = new org.hisp.dhis.note.Note();
         comment.setUid(noteUid);
-        comment.setCommentText(note.getValue());
+        comment.setNoteText(note.getValue());
         comment.setCreator(getValidUsername(note.getStoredBy(), null, storedBy));
 
         Date created = DateUtils.parseDate(note.getStoredDate());

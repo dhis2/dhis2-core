@@ -117,8 +117,8 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + pmSelect,
           // delete related PSIs comments
-          "delete from eventcomments where eventid in " + eventSelect,
-          "delete from note where trackedentitycommentid not in (select trackedentitycommentid from eventcomments union all select trackedentitycommentid from enrollmentcomments)",
+          "delete from eventnotes where eventid in " + eventSelect,
+          "delete from note where noteid not in (select noteid from eventnotes union all select noteid from enrollmentnotes)",
           // delete other objects related to PSIs
           "delete from relationshipitem where eventid in " + eventSelect,
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
@@ -196,9 +196,9 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + pmSelect,
           // delete comments linked to both enrollments and PSIs
-          "delete from eventcomments where eventid in " + eventSelect,
-          "delete from enrollmentcomments where enrollmentid in " + enrollmentSelect,
-          "delete from note where trackedentitycommentid not in (select trackedentitycommentid from eventcomments union all select trackedentitycommentid from enrollmentcomments)",
+          "delete from eventnotes where eventid in " + eventSelect,
+          "delete from enrollmentnotes where enrollmentid in " + enrollmentSelect,
+          "delete from note where noteid not in (select noteid from eventnotes union all select noteid from enrollmentnotes)",
           // delete other entries linked to PSIs
           "delete from relationshipitem where eventid in " + eventSelect,
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
@@ -283,9 +283,9 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + eventPmSelect,
           // delete comments related to any obsolete enrollments or PSIs
-          "delete from eventcomments where eventid in " + eventSelect,
-          "delete from enrollmentcomments where enrollmentid in " + enrollmentSelect,
-          "delete from note where trackedentitycommentid not in (select trackedentitycommentid from eventcomments union all select trackedentitycommentid from enrollmentcomments)",
+          "delete from eventnotes where eventid in " + eventSelect,
+          "delete from enrollmentnotes where enrollmentid in " + enrollmentSelect,
+          "delete from note where noteid not in (select noteid from eventnotes union all select noteid from enrollmentnotes)",
           // delete other objects related to obsolete PSIs
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
           // delete other objects related to obsolete enrollments

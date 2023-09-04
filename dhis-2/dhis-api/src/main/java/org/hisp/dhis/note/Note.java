@@ -38,7 +38,7 @@ import org.hisp.dhis.common.DxfNamespaces;
  */
 @JacksonXmlRootElement(localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0)
 public class Note extends BaseIdentifiableObject {
-  private String commentText;
+  private String noteText;
 
   private String creator;
 
@@ -48,8 +48,8 @@ public class Note extends BaseIdentifiableObject {
 
   public Note() {}
 
-  public Note(String commentText, String creator) {
-    this.commentText = commentText;
+  public Note(String noteText, String creator) {
+    this.noteText = noteText;
     this.creator = creator;
   }
 
@@ -59,12 +59,12 @@ public class Note extends BaseIdentifiableObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getCommentText() {
-    return commentText;
+  public String getNoteText() {
+    return noteText;
   }
 
-  public void setCommentText(String commentText) {
-    this.commentText = commentText;
+  public void setNoteText(String noteText) {
+    this.noteText = noteText;
   }
 
   @JsonProperty

@@ -47,7 +47,7 @@ public class NotesConverterService
     org.hisp.dhis.tracker.imports.domain.Note note =
         new org.hisp.dhis.tracker.imports.domain.Note();
     note.setNote(trackedEntityComment.getUid());
-    note.setValue(trackedEntityComment.getCommentText());
+    note.setValue(trackedEntityComment.getNoteText());
     note.setStoredAt(DateUtils.instantFromDate(trackedEntityComment.getCreated()));
     note.setCreatedBy(
         User.builder()
@@ -70,7 +70,7 @@ public class NotesConverterService
     org.hisp.dhis.note.Note comment = new org.hisp.dhis.note.Note();
     comment.setUid(note.getNote());
     comment.setAutoFields();
-    comment.setCommentText(note.getValue());
+    comment.setNoteText(note.getValue());
 
     comment.setLastUpdatedBy(preheat.getUser());
     comment.setCreated(new Date());

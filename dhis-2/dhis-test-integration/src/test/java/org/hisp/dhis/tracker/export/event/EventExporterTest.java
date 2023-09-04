@@ -990,7 +990,7 @@ class EventExporterTest extends TrackerTest {
   }
 
   private void assertNote(User expectedLastUpdatedBy, String expectedNote, Note actual) {
-    assertEquals(expectedNote, actual.getCommentText());
+    assertEquals(expectedNote, actual.getNoteText());
     assertEquals(expectedLastUpdatedBy, actual.getLastUpdatedBy());
   }
 

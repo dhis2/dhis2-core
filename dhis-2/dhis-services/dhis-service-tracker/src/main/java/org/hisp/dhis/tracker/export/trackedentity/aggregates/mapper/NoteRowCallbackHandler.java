@@ -48,7 +48,7 @@ public class NoteRowCallbackHandler extends AbstractMapper<Note> {
   private Note getNote(ResultSet rs) throws SQLException {
     Note note = new Note();
     note.setUid(rs.getString("uid"));
-    note.setCommentText(rs.getString("commenttext"));
+    note.setNoteText(rs.getString("notetext"));
     note.setCreator(rs.getString("creator"));
     note.setCreated(rs.getDate("created"));
     return note;

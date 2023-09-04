@@ -49,7 +49,7 @@ public class NoteHelper {
     Note note = new Note();
 
     note.setNote(trackedEntityComment.getUid());
-    note.setValue(trackedEntityComment.getCommentText());
+    note.setValue(trackedEntityComment.getNoteText());
     note.setStoredBy(trackedEntityComment.getCreator());
     note.setStoredDate(DateUtils.getIso8601NoTz(trackedEntityComment.getCreated()));
 

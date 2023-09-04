@@ -47,7 +47,7 @@ public class ProgramStageInstanceNoteMapper
   public Note map(org.hisp.dhis.dxf2.deprecated.tracker.event.Note note) {
     final Note comment = new Note();
     comment.setUid(note.getNote());
-    comment.setCommentText(note.getValue());
+    comment.setNoteText(note.getValue());
     comment.setCreator(getValidUsername(note.getStoredBy(), workContext.getImportOptions()));
     comment.setCreated(note.getStoredDate() == null ? new Date() : parseDate(note.getStoredDate()));
     comment.setLastUpdated(new Date());

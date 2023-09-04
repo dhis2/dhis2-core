@@ -228,8 +228,8 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("programnotificationinstance");
     emptyTable("trackedentitydatavalueaudit");
     emptyTable("trackedentityprogramowner");
-    emptyTable("eventcomments");
-    emptyTable("enrollmentcomments");
+    emptyTable("eventnotes");
+    emptyTable("enrollmentnotes");
     emptyTable("event");
     emptyTable("enrollment");
     emptyTable("programnotificationtemplate");

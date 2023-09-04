@@ -1526,7 +1526,7 @@ public abstract class AbstractEnrollmentService
           && !StringUtils.isEmpty(note.getValue())) {
         org.hisp.dhis.note.Note comment = new org.hisp.dhis.note.Note();
         comment.setUid(noteUid);
-        comment.setCommentText(note.getValue());
+        comment.setNoteText(note.getValue());
         comment.setCreator(
             StringUtils.isEmpty(note.getStoredBy()) ? user.getUsername() : note.getStoredBy());
 

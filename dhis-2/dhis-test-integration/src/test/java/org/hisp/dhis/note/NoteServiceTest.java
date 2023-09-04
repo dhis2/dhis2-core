@@ -82,9 +82,9 @@ class NoteServiceTest extends IntegrationTestBase {
   void testUpdateTrackedEntityComment() {
     long idA = noteService.addTrackedEntityComment(commentA);
     assertNotNull(noteService.getTrackedEntityComment(idA));
-    commentA.setCommentText("B");
+    commentA.setNoteText("B");
     noteService.updateTrackedEntityComment(commentA);
-    assertEquals("B", noteService.getTrackedEntityComment(idA).getCommentText());
+    assertEquals("B", noteService.getTrackedEntityComment(idA).getNoteText());
   }
 
   @Test

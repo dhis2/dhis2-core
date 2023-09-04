@@ -156,8 +156,8 @@ public class JdbcEventStore implements EventStore {
 
   private static final String PSI_EVENT_COMMENT_QUERY =
       "select psic.eventid    as psic_id,"
-          + " psinote.trackedentitycommentid as psinote_id,"
-          + " psinote.commenttext            as psinote_value,"
+          + " psinote.noteid as psinote_id,"
+          + " psinote.notetext            as psinote_value,"
           + " psinote.created                as psinote_storeddate,"
           + " psinote.creator                as psinote_storedby,"
           + " psinote.uid                    as psinote_uid,"
@@ -168,9 +168,9 @@ public class JdbcEventStore implements EventStore {
           + " userinfo.username              as usernote_username,"
           + " userinfo.firstname             as userinfo_firstname,"
           + " userinfo.surname               as userinfo_surname"
-          + " from eventcomments psic"
+          + " from eventnotes psic"
           + " inner join note psinote"
-          + " on psic.trackedentitycommentid = psinote.trackedentitycommentid"
+          + " on psic.noteid = psinote.noteid"
           + " left join userinfo on psinote.lastupdatedby = userinfo.userinfoid ";
 
   private static final String PSI_STATUS = "psi_status";

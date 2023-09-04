@@ -402,14 +402,13 @@ class EventImportValidationTest extends TrackerTest {
     return importReport;
   }
 
-  private Note getByComment(List<Note> comments, String commentText) {
+  private Note getByComment(List<Note> comments, String notetext) {
     for (Note comment : comments) {
-      if (comment.getCommentText().startsWith(commentText)
-          || comment.getCommentText().endsWith(commentText)) {
+      if (comment.getNoteText().startsWith(notetext) || comment.getNoteText().endsWith(notetext)) {
         return comment;
       }
     }
-    fail("Can't find a comment starting or ending with " + commentText);
+    fail("Can't find a comment starting or ending with " + notetext);
     return null;
   }
 

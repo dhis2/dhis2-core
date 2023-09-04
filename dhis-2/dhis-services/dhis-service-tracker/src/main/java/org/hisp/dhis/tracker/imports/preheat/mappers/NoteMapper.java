@@ -35,5 +35,5 @@ import org.mapstruct.factory.Mappers;
 public interface NoteMapper extends PreheatMapper<Note> {
   NoteMapper INSTANCE = Mappers.getMapper(NoteMapper.class);
 
-  Note map(Note trackedEntityComment);
+  Note map(Note note);
 }

@@ -117,7 +117,7 @@ class NotesConverterServiceTest extends DhisConvenienceTest {
   private void assertNoteValues(Note comment, org.hisp.dhis.tracker.imports.domain.Note note) {
     assertThat(comment, is(notNullValue()));
     assertThat(comment.getUid(), is(note.getNote()));
-    assertThat(comment.getCommentText(), is(note.getValue()));
+    assertThat(comment.getNoteText(), is(note.getValue()));
     assertThat(comment.getCreator(), is(note.getStoredBy()));
     assertThat(comment.getLastUpdatedBy().getUsername(), is(CURRENT_USER));
   }
@@ -125,7 +125,7 @@ class NotesConverterServiceTest extends DhisConvenienceTest {
   private void assertCommentValues(org.hisp.dhis.tracker.imports.domain.Note note, Note comment) {
     assertThat(note, is(notNullValue()));
     assertThat(note.getNote(), is(comment.getUid()));
-    assertThat(note.getValue(), is(comment.getCommentText()));
+    assertThat(note.getValue(), is(comment.getNoteText()));
     assertThat(note.getStoredBy(), is(comment.getCreator()));
     assertEquals(note.getStoredAt(), DateUtils.instantFromDate(comment.getCreated()));
     assertThat(comment.getLastUpdatedBy().getUsername(), is(note.getCreatedBy().getUsername()));
