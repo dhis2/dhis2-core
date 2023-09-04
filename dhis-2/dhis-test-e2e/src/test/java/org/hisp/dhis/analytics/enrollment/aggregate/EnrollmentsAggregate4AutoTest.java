@@ -61,7 +61,8 @@ public class EnrollmentsAggregate4AutoTest extends AnalyticsApiTest {
             .add("pageSize=100")
             .add("page=1")
             .add(
-                "dimension=ou:lc3eMKXaEfw,A03MvHHogjR.a3kGcGDCuk6,lZGmxYbs97q,cejWyOfXge6:IN:Female");
+                "dimension=ou:lc3eMKXaEfw,A03MvHHogjR.a3kGcGDCuk6,lZGmxYbs97q,cejWyOfXge6:IN:Female")
+            .add("relativePeriodDate=2023-08-01");
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
@@ -143,7 +144,8 @@ public class EnrollmentsAggregate4AutoTest extends AnalyticsApiTest {
             .add("filter=pTo4uMt3xur.F3ogKBuviRA")
             .add("stage=pTo4uMt3xur")
             .add("displayProperty=NAME")
-            .add("dimension=ou:ImspTQPwCqd,pe:LAST_12_MONTHS");
+            .add("dimension=ou:ImspTQPwCqd,pe:LAST_12_MONTHS")
+            .add("relativePeriodDate=2023-08-01");
 
     // When
     ApiResponse response = actions.aggregate().get("VBqh0ynB2wv", JSON, JSON, params);

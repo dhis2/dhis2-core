@@ -56,7 +56,8 @@ public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
             .add("displayProperty=SHORTNAME")
             .add("totalPages=false")
             .add("outputType=ENROLLMENT")
-            .add("dimension=ou:DiszpKrYNg8,pe:THIS_YEAR,A03MvHHogjR.cejWyOfXge6");
+            .add("dimension=ou:DiszpKrYNg8,pe:THIS_YEAR,A03MvHHogjR.cejWyOfXge6")
+            .add("relativePeriodDate=2023-08-01");
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
@@ -98,7 +99,8 @@ public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
             .add("displayProperty=SHORTNAME")
             .add("totalPages=false")
             .add("outputType=ENROLLMENT")
-            .add("dimension=ou:DiszpKrYNg8,pe:THIS_YEAR,A03MvHHogjR.bx6fsa0t90x");
+            .add("dimension=ou:DiszpKrYNg8,pe:THIS_YEAR,A03MvHHogjR.bx6fsa0t90x")
+            .add("relativePeriodDate=2023-08-01");
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
@@ -149,7 +151,8 @@ public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
             .add("totalPages=false")
             .add("outputType=ENROLLMENT")
             .add(
-                "dimension=ou:DiszpKrYNg8,pe:THIS_YEAR,A03MvHHogjR.bx6fsa0t90x,A03MvHHogjR.cejWyOfXge6");
+                "dimension=ou:DiszpKrYNg8,pe:THIS_YEAR,A03MvHHogjR.bx6fsa0t90x,A03MvHHogjR.cejWyOfXge6")
+            .add("relativePeriodDate=2023-08-01");
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
@@ -204,7 +207,8 @@ public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
             .add("displayProperty=SHORTNAME")
             .add("totalPages=false")
             .add("outputType=ENROLLMENT")
-            .add("dimension=ou:DiszpKrYNg8,pe:LAST_12_MONTHS,A03MvHHogjR.cejWyOfXge6");
+            .add("dimension=ou:DiszpKrYNg8,pe:LAST_12_MONTHS,A03MvHHogjR.cejWyOfXge6")
+            .add("relativePeriodDate=2023-08-01");
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);

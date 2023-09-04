@@ -56,7 +56,8 @@ public class EnrollmentsAggregate5AutoTest extends AnalyticsApiTest {
             .add("displayProperty=NAME")
             .add("totalPages=false")
             .add("outputType=ENROLLMENT")
-            .add("dimension=ou:ImspTQPwCqd,pe:LAST_12_MONTHS");
+            .add("dimension=ou:ImspTQPwCqd,pe:LAST_12_MONTHS")
+            .add("relativePeriodDate=2023-08-01");
 
     // When
     ApiResponse response = actions.aggregate().get("WSGAb5XwJ3Y", JSON, JSON, params);
