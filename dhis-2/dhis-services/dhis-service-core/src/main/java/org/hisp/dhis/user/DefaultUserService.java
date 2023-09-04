@@ -644,8 +644,7 @@ public class DefaultUserService implements UserService {
     return errors;
   }
 
-  private void validateUserGroups(User user, User currentUser,
-      List<ErrorReport> errors) {
+  private void validateUserGroups(User user, User currentUser, List<ErrorReport> errors) {
 
     // Validate user group
     boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
@@ -670,8 +669,7 @@ public class DefaultUserService implements UserService {
             });
   }
 
-  private void validateUserRoles(User user, User currentUser,
-      List<ErrorReport> errors) {
+  private void validateUserRoles(User user, User currentUser, List<ErrorReport> errors) {
     Set<UserRole> userRoles = user.getUserRoles();
 
     boolean canGrantOwnUserRoles =

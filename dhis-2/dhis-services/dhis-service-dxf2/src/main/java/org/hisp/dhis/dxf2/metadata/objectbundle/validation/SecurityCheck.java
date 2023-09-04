@@ -129,8 +129,8 @@ public class SecurityCheck implements ObjectValidationCheck {
 
       if (object instanceof User) {
         User user = (User) object;
-        List<ErrorReport> errorReports = ctx.getUserService()
-            .validateUserCreateOrUpdate(user, bundle.getUser());
+        List<ErrorReport> errorReports =
+            ctx.getUserService().validateUserCreateOrUpdate(user, bundle.getUser());
 
         if (!errorReports.isEmpty()) {
           addReports.accept(createObjectReport(errorReports, object, bundle));
