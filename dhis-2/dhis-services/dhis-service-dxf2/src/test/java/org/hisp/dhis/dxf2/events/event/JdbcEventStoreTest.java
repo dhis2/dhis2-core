@@ -53,6 +53,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -116,6 +117,7 @@ class JdbcEventStoreTest {
   @Test
   void verifyEventDataValuesAreProcessedOnceForEachPSI() throws SQLException {
     EventQueryParams eventQueryParams = new EventQueryParams();
+    when(currentUserService.getCurrentUser()).thenReturn(new User());
 
     List<EventRow> rows = subject.getEventRows(eventQueryParams);
     assertThat(rows, hasSize(1));
@@ -125,6 +127,7 @@ class JdbcEventStoreTest {
   @Test
   void verifyNullOrganisationUnitsIsHandled() throws SQLException {
     EventQueryParams eventQueryParams = new EventQueryParams();
+    when(currentUserService.getCurrentUser()).thenReturn(new User());
 
     List<EventRow> rows = subject.getEventRows(eventQueryParams);
     assertThat(rows, hasSize(1));
