@@ -131,7 +131,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   @Override
   public void getEnrollments(EventQueryParams params, Grid grid, int maxLimit) {
-    String sql = getEventsOrEnrollmentsSql(params, maxLimit);
+    String sql =
+        params.isAggregatedEnrollments()
+            ? getAggregatedEnrollmentsSql(grid.getHeaders(), params)
+            : getAggregatedEnrollmentsSql(params, maxLimit);
 
     if (params.analyzeOnly()) {
       executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql);
@@ -440,7 +443,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   @Override
   protected String getSelectClause(EventQueryParams params) {
-    List<String> selectCols = ListUtils.distinctUnion(COLUMNS, getSelectColumns(params, false));
+    List<String> selectCols =
+        ListUtils.distinctUnion(
+            params.isAggregatedEnrollments() ? List.of("pi") : COLUMNS,
+            getSelectColumns(params, false));
 
     return "select " + StringUtils.join(selectCols, ",") + " ";
   }
