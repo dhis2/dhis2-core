@@ -305,15 +305,15 @@ public abstract class AbstractEventService implements EventService {
     List<Event> eventList = new ArrayList<>();
 
     if (params.isSkipPaging()) {
-      events.setEvents(eventStore.getEvents(params, params.getAccessibleOrgUnits(), emptyMap()));
+      events.setEvents(eventStore.getEvents(params, emptyMap()));
       return events;
     }
 
     Pager pager;
-    eventList.addAll(eventStore.getEvents(params, params.getAccessibleOrgUnits(), emptyMap()));
+    eventList.addAll(eventStore.getEvents(params, emptyMap()));
 
     if (params.isTotalPages()) {
-      int count = eventStore.getEventCount(params, params.getAccessibleOrgUnits());
+      int count = eventStore.getEventCount(params);
       pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
     } else {
       pager = handleLastPageFlag(params, eventList);
@@ -418,8 +418,7 @@ public abstract class AbstractEventService implements EventService {
       grid.addHeader(new GridHeader(item.getItem().getUid(), item.getItem().getName()));
     }
 
-    List<Map<String, String>> events =
-        eventStore.getEventsGrid(params, params.getAccessibleOrgUnits());
+    List<Map<String, String>> events = eventStore.getEventsGrid(params);
 
     // ---------------------------------------------------------------------
     // Grid rows
@@ -443,7 +442,7 @@ public abstract class AbstractEventService implements EventService {
       final Pager pager;
 
       if (params.isTotalPages()) {
-        int count = eventStore.getEventCount(params, params.getAccessibleOrgUnits());
+        int count = eventStore.getEventCount(params);
         pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
       } else {
         pager = handleLastPageFlag(params, grid);
@@ -498,7 +497,7 @@ public abstract class AbstractEventService implements EventService {
             .setSynchronizationQuery(true)
             .setSkipChangedBefore(skipChangedBefore);
 
-    return eventStore.getEventCount(params, null);
+    return eventStore.getEventCount(params);
   }
 
   @Override
@@ -517,7 +516,7 @@ public abstract class AbstractEventService implements EventService {
             .setSkipChangedBefore(skipChangedBefore);
 
     Events anonymousEvents = new Events();
-    List<Event> events = eventStore.getEvents(params, null, psdesWithSkipSyncTrue);
+    List<Event> events = eventStore.getEvents(params, psdesWithSkipSyncTrue);
     anonymousEvents.setEvents(events);
     return anonymousEvents;
   }
@@ -529,7 +528,7 @@ public abstract class AbstractEventService implements EventService {
 
     EventRows eventRows = new EventRows();
 
-    List<EventRow> eventRowList = eventStore.getEventRows(params, params.getAccessibleOrgUnits());
+    List<EventRow> eventRowList = eventStore.getEventRows(params);
 
     EventContext eventContext = eventServiceContextBuilder.build(eventRowList, user);
 

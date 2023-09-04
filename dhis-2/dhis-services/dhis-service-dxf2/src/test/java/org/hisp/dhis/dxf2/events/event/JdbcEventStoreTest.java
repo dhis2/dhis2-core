@@ -117,7 +117,7 @@ class JdbcEventStoreTest {
   void verifyEventDataValuesAreProcessedOnceForEachPSI() throws SQLException {
     EventQueryParams eventQueryParams = new EventQueryParams();
 
-    List<EventRow> rows = subject.getEventRows(eventQueryParams, new ArrayList<>());
+    List<EventRow> rows = subject.getEventRows(eventQueryParams);
     assertThat(rows, hasSize(1));
     verify(rowSet, times(4)).getString("psi_eventdatavalues");
   }
@@ -126,7 +126,7 @@ class JdbcEventStoreTest {
   void verifyNullOrganisationUnitsIsHandled() throws SQLException {
     EventQueryParams eventQueryParams = new EventQueryParams();
 
-    List<EventRow> rows = subject.getEventRows(eventQueryParams, null);
+    List<EventRow> rows = subject.getEventRows(eventQueryParams);
     assertThat(rows, hasSize(1));
     verify(rowSet, times(4)).getString("psi_eventdatavalues");
   }
