@@ -256,6 +256,7 @@ class EventRequestToSearchParamsMapper {
     }
 
     if (requestedOrgUnit != null
+        && !user.isSuper()
         && !organisationUnitService.isInUserHierarchy(
             requestedOrgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
       throw new IllegalQueryException(
