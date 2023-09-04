@@ -44,7 +44,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.apache.poi.ss.formula.functions.T;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;

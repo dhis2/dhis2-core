@@ -412,10 +412,12 @@ class EventRequestToSearchParamsMapperTest {
       names = {"SELECTED", "ACCESSIBLE", "DESCENDANTS", "CHILDREN"})
   void shouldFailWhenOuModeRequiresUserScopeOrgUnitAndUserHasNoOrgUnitsAssigned(
       OrganisationUnitSelectionMode orgUnitMode) {
+    User user = new User();
+    Program program = new Program();
     Exception exception =
         assertThrows(
             IllegalQueryException.class,
-            () -> validateOrgUnitMode(orgUnitMode, new User(), new Program(), null));
+            () -> validateOrgUnitMode(orgUnitMode, user, program, null));
 
     assertEquals(
         "User needs to be assigned either search or data capture org units",
