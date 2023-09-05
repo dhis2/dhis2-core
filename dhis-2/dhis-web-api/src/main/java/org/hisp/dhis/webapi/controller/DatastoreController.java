@@ -217,8 +217,7 @@ public class DatastoreController {
       @PathVariable String namespace,
       @PathVariable String key,
       @RequestBody String value,
-      @RequestParam(defaultValue = "false") boolean encrypt,
-      HttpServletRequest request) {
+      @RequestParam(defaultValue = "false") boolean encrypt) {
     DatastoreEntry entry = new DatastoreEntry();
     entry.setKey(key);
     entry.setNamespace(namespace);
@@ -230,21 +229,29 @@ public class DatastoreController {
     return created(String.format("Key created: '%s'", key));
   }
 
-  /** Update a key in the given namespace. */
+  /**
+   * Create or update a key in the given namespace <br>
+   * <br>
+   *
+   * <p>If the key or namespace do not exist then a create will be attempted
+   *
+   * <p>If the key and namespace exist then an update will be attempted
+   */
   @ResponseBody
   @PutMapping(
       value = "/{namespace}/{key}",
       produces = APPLICATION_JSON_VALUE,
       consumes = APPLICATION_JSON_VALUE)
-  public WebMessage updateKeyJsonValue(
-      @PathVariable String namespace, @PathVariable String key, @RequestBody String value)
-      throws Exception {
-    DatastoreEntry entry = getExistingEntry(namespace, key);
-    entry.setValue(value);
+  public WebMessage putEntry(
+      @PathVariable String namespace,
+      @PathVariable String key,
+      @RequestBody String value,
+      @RequestParam(defaultValue = "false") boolean encrypt) {
+    DatastoreEntry dataEntry = service.getEntry(namespace, key);
 
-    service.updateEntry(entry);
-
-    return ok(String.format("Key updated: '%s'", key));
+    return dataEntry != null
+        ? updateEntry(dataEntry, key, value)
+        : addKeyJsonValue(namespace, key, value, encrypt);
   }
 
   /** Delete a key from the given namespace. */
@@ -267,5 +274,12 @@ public class DatastoreController {
     }
 
     return entry;
+  }
+
+  private WebMessage updateEntry(DatastoreEntry entry, String key, String value) {
+    entry.setValue(value);
+    service.updateEntry(entry);
+
+    return ok(String.format("Key updated: '%s'", key));
   }
 }
