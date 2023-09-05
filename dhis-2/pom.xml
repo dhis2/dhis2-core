@@ -115,7 +115,7 @@
     <lettuce.version>6.2.6.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.21.1</flyway-core.version>
+    <flyway-core.version>9.22.0</flyway-core.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -157,7 +157,7 @@
     <itext.version>2.1.7</itext.version>
 
     <!-- GIS -->
-    <batik-transcoder.version>1.16</batik-transcoder.version>
+    <batik-transcoder.version>1.17</batik-transcoder.version>
     <fop.version>2.9</fop.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
     <geotools.version>29.2</geotools.version>
@@ -165,7 +165,7 @@
 
     <!-- Apache Artemis -->
     <artemis.version>2.30.0</artemis.version>
-    <netty-all.version>4.1.96.Final</netty-all.version>
+    <netty-all.version>4.1.97.Final</netty-all.version>
     <classgraph.version>4.8.162</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -175,10 +175,10 @@
     <jsmpp.version>3.0.0</jsmpp.version>
     <json-path.version>2.8.0</json-path.version>
     <jsoup.version>1.16.1</jsoup.version>
-    <jetty.version>10.0.15</jetty.version>
+    <jetty.version>10.0.16</jetty.version>
 
     <!-- Div. utils -->
-    <version.debezium>2.3.2.Final</version.debezium>
+    <version.debezium>2.3.3.Final</version.debezium>
     <guava.version>32.1.2-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
@@ -222,7 +222,7 @@
     <swagger.version>2.1.16</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
-    <h2.version>2.2.220</h2.version>
+    <h2.version>2.2.222</h2.version>
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
     <!-- Maven plugin versions -->
@@ -232,11 +232,11 @@
     <maven-failsafe-plugin.version>3.1.2</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
-    <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
+    <maven-enforcer-plugin.version>3.4.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.4.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.16.0</versions-maven-plugin.version>
-    <dependency-check-maven.version>8.3.1</dependency-check-maven.version>
+    <dependency-check-maven.version>8.4.0</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.7.3.5</spotbugs-maven-plugin.version>
     <spotless.version>2.38.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>

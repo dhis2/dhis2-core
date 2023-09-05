@@ -12,6 +12,6 @@ jQuery( document ).ready( function() {
 <h2>$i18n.getString( "dhis2_online" )&nbsp;</h2>
 
 <ul>
-	<li><a href="http://www.dhis2.org" target="_blank">$i18n.getString( "home_page" )&nbsp;</a></li>
+	<li><a href="https://www.dhis2.org" target="_blank">$i18n.getString( "home_page" )&nbsp;</a></li>
 	<li><a href="https://launchpad.net/dhis2" target="_blank">$i18n.getString( "launchpad_site" )&nbsp;</a></li>
 </ul>
