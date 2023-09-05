@@ -216,13 +216,13 @@ public class DefaultResourceTableService implements ResourceTableService {
           "\n Range of years allowed (based on your system settings and existing data): "
               + yearsToCheck.stream()
                   .filter(year -> year >= minRangeAllowed && year <= maxRangeAllowed)
-                  .toList()
+                  .collect(toList())
               + ".";
       errorMessage +=
           "\n Years are out of range found: "
               + yearsToCheck.stream()
                   .filter(year -> year < minRangeAllowed || year > maxRangeAllowed)
-                  .toList()
+                  .collect(toList())
               + ".";
       throw new RuntimeException(errorMessage);
     }
