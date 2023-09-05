@@ -83,7 +83,7 @@ public interface EnrollmentMapper
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
   @Mapping(target = "relationships", source = "relationshipItems")
   @Mapping(target = "attributes", source = "trackedEntity.trackedEntityAttributeValues")
-  @Mapping(target = "notes", source = "comments")
+  @Mapping(target = "notes", source = "notes")
   @Override
   org.hisp.dhis.webapi.controller.tracker.view.Enrollment from(Enrollment enrollment);
 }
