@@ -181,33 +181,36 @@ public class UserDatastoreController {
     return created("Key '" + key + "' in namespace '" + namespace + "' created.");
   }
 
-  /** Update a key. */
+  /**
+   * Create or update a key in the given namespace <br>
+   * <br>
+   *
+   * <p>If the key or namespace do not exist then a create will be attempted
+   *
+   * <p>If the key and namespace exist then an update will be attempted
+   */
   @PutMapping(
       value = "/{namespace}/{key}",
       produces = APPLICATION_JSON_VALUE,
       consumes = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public WebMessage updateUserValue(
+  public WebMessage putUserValue(
       @PathVariable String namespace,
       @PathVariable String key,
       @RequestParam(required = false) String username,
-      @RequestBody String body)
+      @RequestBody String value,
+      @RequestParam(defaultValue = "false") boolean encrypt)
       throws IOException {
-    UserDatastoreEntry entry = getEntry(username, namespace, key);
+    UserDatastoreEntry userEntry =
+        userDatastoreService.getUserEntry(getUser(username), namespace, key);
 
-    if (entry == null) {
-      return notFound("The key '" + key + "' was not found in the namespace '" + namespace + "'.");
-    }
-
-    if (!renderService.isValidJson(body)) {
+    if (!renderService.isValidJson(value)) {
       return badRequest("The data is not valid JSON.");
     }
 
-    entry.setValue(body);
-
-    userDatastoreService.updateUserEntry(entry);
-
-    return created("Key '" + key + "' in namespace '" + namespace + "' updated.");
+    return userEntry != null
+        ? updateEntry(userEntry, key, value)
+        : addUserValue(namespace, key, username, value, encrypt);
   }
 
   /** Delete a key. */
@@ -247,5 +250,12 @@ public class UserDatastoreController {
       throw new IllegalQueryException("No user with username " + username + " exists.");
     }
     return user;
+  }
+
+  private WebMessage updateEntry(UserDatastoreEntry entry, String key, String value) {
+    entry.setValue(value);
+    userDatastoreService.updateUserEntry(entry);
+
+    return ok(String.format("Key updated: '%s'", key));
   }
 }
