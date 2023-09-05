@@ -194,7 +194,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   /**
    * This method checks if any of the year in the given list is within the offset defined in system
    * settings. The constant where the offset is defined can be seen at {@link
-   * SettingKey.ANALYTICS_PERIOD_YEARS_OFFSET}.
+   * SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET}.
    *
    * <p>Based on the current year YYYY and the defined offset X. This method allows a range of X
    * years in the past and X years in the future. Including also the current year YYYY. So, for
@@ -203,9 +203,9 @@ public class DefaultResourceTableService implements ResourceTableService {
    * @param yearsToCheck the list of years to be checked.
    */
   private void checkYearsOffset(List<Integer> yearsToCheck) {
-    int yearsOffset = analyticsExportSettings.getPeriodYearsOffset();
-    int minRangeAllowed = Year.now().minus(yearsOffset, YEARS).getValue();
-    int maxRangeAllowed = Year.now().plus(yearsOffset, YEARS).getValue();
+    int maxYearsOffset = analyticsExportSettings.getMaxPeriodYearsOffset();
+    int minRangeAllowed = Year.now().minus(maxYearsOffset, YEARS).getValue();
+    int maxRangeAllowed = Year.now().plus(maxYearsOffset, YEARS).getValue();
 
     boolean yearsOutOfRange =
         yearsToCheck.stream().anyMatch(year -> year < minRangeAllowed || year > maxRangeAllowed);

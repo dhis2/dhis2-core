@@ -64,7 +64,7 @@ class DefaultResourceTableServiceTest {
 
     // When
     when(periodDataProvider.getAvailableYears()).thenReturn(yearsToCheck);
-    when(analyticsExportSettings.getPeriodYearsOffset()).thenReturn(defaultOffset);
+    when(analyticsExportSettings.getMaxPeriodYearsOffset()).thenReturn(defaultOffset);
 
     // Then
     RuntimeException exception =
@@ -83,7 +83,7 @@ class DefaultResourceTableServiceTest {
 
     // When
     when(periodDataProvider.getAvailableYears()).thenReturn(yearsToCheck);
-    when(analyticsExportSettings.getPeriodYearsOffset()).thenReturn(zeroOffset);
+    when(analyticsExportSettings.getMaxPeriodYearsOffset()).thenReturn(zeroOffset);
 
     // Then
     RuntimeException exception =
@@ -102,7 +102,7 @@ class DefaultResourceTableServiceTest {
 
     // When
     when(periodDataProvider.getAvailableYears()).thenReturn(yearsToCheck);
-    when(analyticsExportSettings.getPeriodYearsOffset()).thenReturn(zeroOffset);
+    when(analyticsExportSettings.getMaxPeriodYearsOffset()).thenReturn(zeroOffset);
     doNothing().when(resourceTableStore).generateResourceTable(any());
 
     // Then
@@ -121,7 +121,7 @@ class DefaultResourceTableServiceTest {
 
     // When
     when(periodDataProvider.getAvailableYears()).thenReturn(yearsToCheck);
-    when(analyticsExportSettings.getPeriodYearsOffset()).thenReturn(defaultOffset);
+    when(analyticsExportSettings.getMaxPeriodYearsOffset()).thenReturn(defaultOffset);
     doNothing().when(resourceTableStore).generateResourceTable(any());
 
     // Then
