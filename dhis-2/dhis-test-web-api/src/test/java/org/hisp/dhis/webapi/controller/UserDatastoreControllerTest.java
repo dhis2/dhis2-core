@@ -28,8 +28,10 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonDatastoreValue;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -89,21 +91,21 @@ class UserDatastoreControllerTest extends DhisControllerConvenienceTest {
   void testUpdateUserKeyJsonValue() {
     assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
     assertWebMessage(
-        "Created",
-        201,
         "OK",
-        "Key 'key1' in namespace 'test' updated.",
-        PUT("/userDataStore/test/key1", "false").content(HttpStatus.CREATED));
+        200,
+        "OK",
+        "Key updated: 'key1'",
+        PUT("/userDataStore/test/key1", "false").content(HttpStatus.OK));
   }
 
   @Test
-  void testUpdateUserKeyJsonValue_UnknownKey() {
+  void testPutUserKeyJsonValue() {
     assertWebMessage(
-        "Not Found",
-        404,
-        "ERROR",
-        "The key 'unknown' was not found in the namespace 'test'.",
-        PUT("/userDataStore/test/unknown", "false").content(HttpStatus.NOT_FOUND));
+        "Created",
+        201,
+        "OK",
+        "Key 'unknown' in namespace 'test' created.",
+        PUT("/userDataStore/test/unknown", "false").content(HttpStatus.CREATED));
   }
 
   @Test
@@ -138,5 +140,21 @@ class UserDatastoreControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "The key 'key1' was not found in the namespace 'test'.",
         DELETE("/userDataStore/test/key1").content(HttpStatus.NOT_FOUND));
+  }
+
+  @Test
+  void testPutEntry_EntryDoesNotExistAndIsCreated() {
+    assertStatus(HttpStatus.CREATED, PUT("/userDataStore/test/mykey", "{\"name\":\"harry\"}"));
+    JsonWebMessage myKey = GET("/userDataStore/test/mykey").content().as(JsonWebMessage.class);
+    assertEquals("harry", myKey.getString("name").string());
+  }
+
+  @Test
+  void testPutEntry_EntryAlreadyExistsAndIsUpdated() {
+    assertStatus(HttpStatus.CREATED, PUT("/userDataStore/test/mykey", "{\"name\":\"harry\"}"));
+    assertStatus(HttpStatus.OK, PUT("/userDataStore/test/mykey", "{\"name\":\"barry\"}"));
+    JsonDatastoreValue emu =
+        GET("/userDataStore/test/mykey").content().as(JsonDatastoreValue.class);
+    assertEquals("barry", emu.getString("name").string());
   }
 }

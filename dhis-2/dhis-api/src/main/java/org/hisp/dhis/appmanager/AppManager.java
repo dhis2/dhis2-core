@@ -228,14 +228,6 @@ public interface AppManager {
   boolean isAccessible(App app, User user);
 
   /**
-   * Returns the app associated with the namespace, or null if no app is associated.
-   *
-   * @param namespace the namespace to check
-   * @return App or null
-   */
-  App getAppByNamespace(String namespace);
-
-  /**
    * Looks up and returns the file associated with the app and pageName, if it exists
    *
    * @param app the app to look up files for
