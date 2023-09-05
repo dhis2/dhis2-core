@@ -206,6 +206,7 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnNoEventsWhenParamStartDueDateLaterThanEventDueDate() {
+    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnit(orgUnit);
     params.setDueDateStart(parseDate("2021-02-28T13:05:00.000"));
@@ -218,6 +219,7 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnEventsWhenParamStartDueDateEarlierThanEventsDueDate() {
+    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnit(orgUnit);
     params.setDueDateStart(parseDate("2018-02-28T13:05:00.000"));
