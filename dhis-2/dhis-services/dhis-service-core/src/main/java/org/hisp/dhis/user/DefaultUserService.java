@@ -71,6 +71,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
@@ -624,6 +625,18 @@ public class DefaultUserService implements UserService {
 
     if (currentUser == null || user == null) {
       return errors;
+    }
+
+    // Validate if the current user can create/modify users with the ALL authority
+    User userToChange = userStore.get(user.getId());
+    if (!currentUser.isSuper() && userToChange != null && userToChange.getUserRoles() != null) {
+      Set<UserRole> roles = userToChange.getUserRoles();
+      for (UserRole role : roles) {
+        Set<String> authorities = role.getAuthorities();
+        if (authorities.contains(Authorities.ALL.name())) {
+          errors.add(new ErrorReport(UserRole.class, ErrorCode.E3041, currentUser.getUsername()));
+        }
+      }
     }
 
     validateUserRoles(user, currentUser, errors);
