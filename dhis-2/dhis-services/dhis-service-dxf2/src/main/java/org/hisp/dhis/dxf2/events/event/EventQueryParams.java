@@ -113,9 +113,9 @@ public class EventQueryParams {
   // TODO Default set to DESCENDANTS to replicate master, but this will need to be fixed in
   // https://dhis2.atlassian.net/browse/TECH-1588
   private OrganisationUnitSelectionMode orgUnitSelectionMode =
-      OrganisationUnitSelectionMode.DESCENDANTS;
+      OrganisationUnitSelectionMode.ACCESSIBLE;
 
-  private List<OrganisationUnit> accessibleOrgUnits = new ArrayList<>();
+  private OrganisationUnit orgUnit;
 
   private AssignedUserSelectionMode assignedUserSelectionMode;
 
@@ -329,12 +329,12 @@ public class EventQueryParams {
     return this;
   }
 
-  public List<OrganisationUnit> getAccessibleOrgUnits() {
-    return accessibleOrgUnits;
+  public OrganisationUnit getOrgUnit() {
+    return orgUnit;
   }
 
-  public EventQueryParams setAccessibleOrgUnits(List<OrganisationUnit> accessibleOrgUnits) {
-    this.accessibleOrgUnits = accessibleOrgUnits;
+  public EventQueryParams setOrgUnit(OrganisationUnit orgUnit) {
+    this.orgUnit = orgUnit;
     return this;
   }
 
