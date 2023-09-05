@@ -34,10 +34,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -273,7 +271,7 @@ public class DefaultAppManager implements AppManager {
 
     if (app.getAppState().ok()) {
       appCache.put(app.getKey(), app);
-      registerKeyJsonValueProtection(app);
+      registerDatastoreProtection(app);
     }
 
     return app.getAppState();
@@ -288,29 +286,25 @@ public class DefaultAppManager implements AppManager {
   public void deleteApp(App app, boolean deleteAppData) {
     if (app != null) {
       getAppStorageServiceByApp(app).deleteApp(app);
-      unregisterKeyJsonValueProtection(app);
+      App otherVersionApp = getApp(app.getName());
+      if (otherVersionApp == null) {
+        unregisterDatastoreProtection(app);
+      }
       if (deleteAppData) {
         deleteAppData(app);
       }
-
       appCache.invalidate(app.getKey());
     }
   }
 
   @Override
   public boolean markAppToDelete(App app) {
-    boolean markedAppToDelete = false;
-
     Optional<App> appOpt = appCache.get(app.getKey());
-
-    if (appOpt.isPresent()) {
-      markedAppToDelete = true;
-      App appFromCache = appOpt.get();
-      appFromCache.setAppState(AppStatus.DELETION_IN_PROGRESS);
-      appCache.put(app.getKey(), appFromCache);
-    }
-
-    return markedAppToDelete;
+    if (appOpt.isEmpty()) return false;
+    App appFromCache = appOpt.get();
+    appFromCache.setAppState(AppStatus.DELETION_IN_PROGRESS);
+    appCache.put(app.getKey(), appFromCache);
+    return true;
   }
 
   @Override
@@ -336,14 +330,12 @@ public class DefaultAppManager implements AppManager {
         .filter(app -> !exists(app.getKey()))
         .forEach(this::installApp);
 
-    jCloudsAppStorageService.discoverInstalledApps().values().stream()
-        .filter(app -> !exists(app.getKey()))
-        .forEach(this::installApp);
+    jCloudsAppStorageService.discoverInstalledApps().values().forEach(this::installApp);
   }
 
   private void installApp(App app) {
     appCache.put(app.getKey(), app);
-    registerKeyJsonValueProtection(app);
+    registerDatastoreProtection(app);
   }
 
   @Override
@@ -365,11 +357,6 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public App getAppByNamespace(String namespace) {
-    return getNamespaceMap().get(namespace);
-  }
-
-  @Override
   public Resource getAppResource(App app, String pageName) throws IOException {
     return getAppStorageServiceByApp(app).getAppResource(app, pageName);
   }
@@ -379,20 +366,10 @@ public class DefaultAppManager implements AppManager {
   // -------------------------------------------------------------------------
 
   private AppStorageService getAppStorageServiceByApp(App app) {
-    if (app != null && app.getAppStorageSource().equals(AppStorageSource.LOCAL)) {
+    if (app != null && app.getAppStorageSource() == AppStorageSource.LOCAL) {
       return localAppStorageService;
-    } else {
-      return jCloudsAppStorageService;
     }
-  }
-
-  private Map<String, App> getNamespaceMap() {
-    Map<String, App> apps = new HashMap<>();
-
-    apps.putAll(jCloudsAppStorageService.getReservedNamespaces());
-    apps.putAll(localAppStorageService.getReservedNamespaces());
-
-    return apps;
+    return jCloudsAppStorageService;
   }
 
   private void deleteAppData(App app) {
@@ -403,7 +380,7 @@ public class DefaultAppManager implements AppManager {
     }
   }
 
-  private void registerKeyJsonValueProtection(App app) {
+  private void registerDatastoreProtection(App app) {
     String namespace = app.getActivities().getDhis().getNamespace();
     if (namespace != null && !namespace.isEmpty()) {
       String[] authorities =
@@ -416,7 +393,7 @@ public class DefaultAppManager implements AppManager {
     }
   }
 
-  private void unregisterKeyJsonValueProtection(App app) {
+  private void unregisterDatastoreProtection(App app) {
     String namespace = app.getActivities().getDhis().getNamespace();
     if (namespace != null && !namespace.isEmpty()) {
       datastoreService.removeProtection(namespace);
