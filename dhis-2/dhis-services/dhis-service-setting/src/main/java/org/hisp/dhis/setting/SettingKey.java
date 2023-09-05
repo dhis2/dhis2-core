@@ -240,7 +240,10 @@ public enum SettingKey {
 
   /** The cache time to live value for the analytics API. */
   ANALYTICS_CACHE_TTL_MODE(
-      "keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED, AnalyticsCacheTtlMode.class);
+      "keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED, AnalyticsCacheTtlMode.class),
+
+  /** The offset of years used during period generation during the analytics export process. */
+  ANALYTICS_MAX_PERIOD_YEARS_OFFSET("keyAnalyticsPeriodYearsOffset", 22, Integer.class);
 
   private final String name;
 
