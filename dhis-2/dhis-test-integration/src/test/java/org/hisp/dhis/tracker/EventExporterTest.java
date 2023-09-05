@@ -161,7 +161,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWithRelationships() {
     EventQueryParams params = new EventQueryParams();
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setEvents(Set.of("pTzf9KYMk72"));
     params.setIncludeRelationships(true);
 
@@ -178,7 +178,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWithNotes() {
     EventQueryParams params = new EventQueryParams();
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setEvents(Set.of("pTzf9KYMk72"));
     params.setIncludeRelationships(true);
 
@@ -197,7 +197,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnPaginatedEventsWithNotesGivenNonDefaultPageSize() {
     EventQueryParams params = new EventQueryParams();
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setEvents(Set.of("pTzf9KYMk72", "D9PbzJY8bJM"));
     params.addOrders(List.of(new OrderParam("occurredAt", SortDirection.DESC)));
 
@@ -231,7 +231,7 @@ class EventExporterTest extends TrackerTest {
   void testExportEvents(Function<EventQueryParams, List<String>> eventFunction) {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgramStage(programStage);
 
     List<String> events = eventFunction.apply(params);
@@ -244,7 +244,7 @@ class EventExporterTest extends TrackerTest {
   void testExportEventsWithTotalPages(Function<EventQueryParams, List<String>> eventFunction) {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setTotalPages(true);
     params.setProgramStage(programStage);
 
@@ -257,7 +257,7 @@ class EventExporterTest extends TrackerTest {
   void testExportEventsWhenFilteringByEnrollment() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setTrackedEntityInstance(trackedEntityInstance);
     params.setProgramInstances(Set.of("TvctPPhpD8z"));
 
@@ -272,7 +272,7 @@ class EventExporterTest extends TrackerTest {
       Function<EventQueryParams, List<String>> eventFunction) {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgramInstances(Set.of("TvctPPhpD8z"));
     params.setProgramStage(programStage);
 
@@ -291,7 +291,7 @@ class EventExporterTest extends TrackerTest {
       Function<EventQueryParams, List<String>> eventFunction) {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgramInstances(Set.of("TvctPPhpD8z"));
     params.setProgramStage(programStage);
 
@@ -307,7 +307,7 @@ class EventExporterTest extends TrackerTest {
   void testExportEventsWithLastUpdateDates(Function<EventQueryParams, List<String>> eventFunction) {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgramInstances(Set.of("TvctPPhpD8z"));
     params.setProgramStage(programStage);
 
@@ -332,7 +332,7 @@ class EventExporterTest extends TrackerTest {
       Function<EventQueryParams, List<String>> eventFunction) {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgramInstances(Set.of("nxP7UnKhomJ"));
     params.setProgramStage(programStage);
 
@@ -354,7 +354,7 @@ class EventExporterTest extends TrackerTest {
       Function<EventQueryParams, List<String>> eventFunction) {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgramInstances(Set.of("nxP7UnKhomJ"));
     params.setProgramStatus(ProgramStatus.ACTIVE);
     params.setProgramStage(programStage);
@@ -377,7 +377,7 @@ class EventExporterTest extends TrackerTest {
       Function<EventQueryParams, List<String>> eventFunction) {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgramInstances(Set.of("nxP7UnKhomJ"));
     params.setProgramType(ProgramType.WITH_REGISTRATION);
     params.setProgramStage(programStage);
@@ -400,7 +400,7 @@ class EventExporterTest extends TrackerTest {
       Function<EventQueryParams, List<String>> eventFunction) {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgramInstances(Set.of("nxP7UnKhomJ"));
     params.setProgramStage(programStage);
 
@@ -427,7 +427,7 @@ class EventExporterTest extends TrackerTest {
       Function<EventQueryParams, List<String>> eventFunction) {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgramInstances(Set.of("nxP7UnKhomJ", "TvctPPhpD8z"));
     params.setProgramStage(programStage);
 
@@ -452,7 +452,7 @@ class EventExporterTest extends TrackerTest {
   void testExportEventsWhenFilteringByDataElementsWithCategoryOptionSuperUser() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgramInstances(Set.of("nxP7UnKhomJ"));
     params.setProgramStage(programStage);
     params.setProgram(program);
@@ -483,7 +483,7 @@ class EventExporterTest extends TrackerTest {
     injectSecurityContext(userService.getUser("o1HMTIzBGo7"));
 
     EventQueryParams params = new EventQueryParams();
-    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
+    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
     params.setEvents(Set.of("lumVtWwwy0O", "cadc5eGj0j7"));
 
     Events events = eventService.getEvents(params);
@@ -514,7 +514,7 @@ class EventExporterTest extends TrackerTest {
     injectSecurityContext(userService.getUser("CYVgFNKCaUS"));
 
     EventQueryParams params = new EventQueryParams();
-    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
+    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
     params.setEvents(Set.of("lumVtWwwy0O", "cadc5eGj0j7"));
 
     List<String> events = eventsFunction.apply(params);
@@ -529,7 +529,7 @@ class EventExporterTest extends TrackerTest {
 
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgram(program);
 
     params.addOrders(List.of(new OrderParam("occurredAt", OrderParam.SortDirection.DESC)));
@@ -547,7 +547,7 @@ class EventExporterTest extends TrackerTest {
 
     params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgram(program);
 
     params.addOrders(List.of(new OrderParam("occurredAt", OrderParam.SortDirection.DESC)));
@@ -565,7 +565,7 @@ class EventExporterTest extends TrackerTest {
 
     params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgram(program);
 
     params.addOrders(List.of(new OrderParam("occurredAt", OrderParam.SortDirection.DESC)));
@@ -583,7 +583,7 @@ class EventExporterTest extends TrackerTest {
 
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgram(program);
 
     params.addOrders(List.of(new OrderParam("occurredAt", OrderParam.SortDirection.DESC)));
@@ -603,7 +603,7 @@ class EventExporterTest extends TrackerTest {
   void shouldReturnEventsGivenCategoryOptionCombo() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
+    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
     params.setCategoryOptionCombo(get(CategoryOptionCombo.class, "cr89ebDZrac"));
 
     Events events = eventService.getEvents(params);
@@ -636,7 +636,7 @@ class EventExporterTest extends TrackerTest {
   void shouldFailIfCategoryOptionComboOfGivenEventDoesNotHaveAValueForGivenIdScheme() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
+    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
     IdSchemes idSchemes = new IdSchemes();
     idSchemes.setCategoryOptionComboIdScheme("ATTRIBUTE:GOLswS44mh8");
     params.setIdSchemes(idSchemes);
@@ -652,7 +652,7 @@ class EventExporterTest extends TrackerTest {
   void shouldReturnEventsGivenIdSchemeCode() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
+    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
     params.setCategoryOptionCombo(get(CategoryOptionCombo.class, "cr89ebDZrac"));
     IdSchemes idSchemes = new IdSchemes();
     idSchemes.setProgramIdScheme("code");
@@ -694,7 +694,7 @@ class EventExporterTest extends TrackerTest {
   void shouldReturnEventsGivenIdSchemeAttribute() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(get(OrganisationUnit.class, "DiszpKrYNg8")));
+    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
     params.setCategoryOptionCombo(get(CategoryOptionCombo.class, "cr89ebDZrac"));
     IdSchemes idSchemes = new IdSchemes();
     idSchemes.setProgramIdScheme("ATTRIBUTE:j45AR9cBQKc");
@@ -743,7 +743,7 @@ class EventExporterTest extends TrackerTest {
 
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgramInstances(Set.of("TvctPPhpD8z"));
     params.setProgramStage(programStage);
     params.setProgram(program);
@@ -773,7 +773,7 @@ class EventExporterTest extends TrackerTest {
       Function<EventQueryParams, List<String>> eventFunction) {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgramInstances(Set.of("nxP7UnKhomJ"));
     params.setProgramStage(programStage);
 
@@ -800,7 +800,7 @@ class EventExporterTest extends TrackerTest {
       Function<EventQueryParams, List<String>> eventFunction) {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgramInstances(Set.of("nxP7UnKhomJ", "TvctPPhpD8z"));
     params.setProgramStage(programStage);
 
@@ -827,7 +827,7 @@ class EventExporterTest extends TrackerTest {
       Function<EventQueryParams, List<String>> eventFunction) {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgramInstances(Set.of("nxP7UnKhomJ"));
     params.setProgramStage(programStage);
 
@@ -854,7 +854,7 @@ class EventExporterTest extends TrackerTest {
       Function<EventQueryParams, List<String>> eventFunction) {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setProgramInstances(Set.of("nxP7UnKhomJ", "TvctPPhpD8z"));
     params.setProgramStage(programStage);
 
@@ -876,7 +876,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentEnrolledBeforeSetToBeforeFirstEnrolledAtDate() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setEnrollmentEnrolledBefore(parseDate("2021-02-27T12:05:00.000"));
 
     List<String> enrollments =
@@ -891,7 +891,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentEnrolledBeforeEqualToFirstEnrolledAtDate() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setEnrollmentEnrolledBefore(parseDate("2021-02-28T12:05:00.000"));
 
     List<String> enrollments =
@@ -906,7 +906,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentEnrolledBeforeSetToAfterFirstEnrolledAtDate() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setEnrollmentEnrolledBefore(parseDate("2021-02-28T13:05:00.000"));
 
     List<String> enrollments =
@@ -921,7 +921,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentEnrolledAfterSetToBeforeLastEnrolledAtDate() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setEnrollmentEnrolledAfter(parseDate("2021-03-27T12:05:00.000"));
 
     List<String> enrollments =
@@ -936,7 +936,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentEnrolledAfterEqualToLastEnrolledAtDate() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setEnrollmentEnrolledAfter(parseDate("2021-03-28T12:05:00.000"));
 
     List<String> enrollments =
@@ -951,7 +951,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentEnrolledAfterSetToAfterLastEnrolledAtDate() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setEnrollmentEnrolledAfter(parseDate("2021-03-28T13:05:00.000"));
 
     List<String> enrollments =
@@ -966,7 +966,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentOccurredBeforeSetToBeforeFirstOccurredAtDate() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setEnrollmentOccurredBefore(parseDate("2021-02-27T12:05:00.000"));
 
     List<String> enrollments =
@@ -981,7 +981,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentOccurredBeforeEqualToFirstOccurredAtDate() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setEnrollmentOccurredBefore(parseDate("2021-02-28T12:05:00.000"));
 
     List<String> enrollments =
@@ -996,7 +996,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentOccurredBeforeSetToAfterFirstOccurredAtDate() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setEnrollmentOccurredBefore(parseDate("2021-02-28T13:05:00.000"));
 
     List<String> enrollments =
@@ -1011,7 +1011,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentOccurredAfterSetToBeforeLastOccurredAtDate() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setEnrollmentOccurredAfter(parseDate("2021-03-27T12:05:00.000"));
 
     List<String> enrollments =
@@ -1026,7 +1026,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentOccurredAfterEqualToLastOccurredAtDate() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setEnrollmentOccurredAfter(parseDate("2021-03-28T12:05:00.000"));
 
     List<String> enrollments =
@@ -1041,7 +1041,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentFilterNumericAttributes() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
 
     QueryItem queryItem = numericQueryItem("numericAttr");
     QueryFilter lessThan = new QueryFilter(QueryOperator.LT, "77");
@@ -1062,7 +1062,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentFilterAttributes() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
 
     params.addFilterAttributes(queryItem("toUpdate000", QueryOperator.EQ, "summer day"));
 
@@ -1078,7 +1078,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentFilterAttributesWithMultipleFiltersOnDifferentAttributes() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
 
     params.addFilterAttributes(
         List.of(
@@ -1097,7 +1097,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentFilterAttributesWithMultipleFiltersOnTheSameAttribute() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
 
     QueryItem item = queryItem("toUpdate000", QueryOperator.LIKE, "day");
     item.addFilter(new QueryFilter(QueryOperator.LIKE, "in"));
@@ -1115,7 +1115,7 @@ class EventExporterTest extends TrackerTest {
   void testOrderEventsOnAttributeAsc() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.addFilterAttributes(queryItem("toUpdate000"));
     params.addAttributeOrders(List.of(new OrderParam("toUpdate000", OrderParam.SortDirection.ASC)));
     params.addOrders(params.getAttributeOrders());
@@ -1132,7 +1132,7 @@ class EventExporterTest extends TrackerTest {
   void testOrderEventsOnAttributeDesc() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.addFilterAttributes(queryItem("toUpdate000"));
     params.addAttributeOrders(
         List.of(new OrderParam("toUpdate000", OrderParam.SortDirection.DESC)));
@@ -1150,7 +1150,7 @@ class EventExporterTest extends TrackerTest {
   void testOrderEventsOnMultipleAttributesDesc() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.addFilterAttributes(List.of(queryItem("toUpdate000"), queryItem("toDelete000")));
     params.addAttributeOrders(
         List.of(
@@ -1170,7 +1170,7 @@ class EventExporterTest extends TrackerTest {
   void testOrderEventsOnMultipleAttributesAsc() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.addFilterAttributes(List.of(queryItem("toUpdate000"), queryItem("toDelete000")));
     params.addAttributeOrders(
         List.of(
@@ -1192,7 +1192,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldOrderEventsByMultipleAttributesAndPaginateWhenGivenNonDefaultPageSize() {
     EventQueryParams params = new EventQueryParams();
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.addFilterAttributes(List.of(queryItem("toUpdate000"), queryItem("toDelete000")));
     params.addAttributeOrders(
         List.of(
@@ -1230,7 +1230,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentOccurredAfterSetToAfterLastOccurredAtDate() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setEnrollmentOccurredAfter(parseDate("2021-03-28T13:05:00.000"));
 
     List<String> enrollments =
@@ -1245,7 +1245,7 @@ class EventExporterTest extends TrackerTest {
   void testOrderByEnrolledAtDesc() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.addOrders(List.of(new OrderParam("enrolledAt", SortDirection.DESC)));
 
     List<String> enrollments =
@@ -1260,7 +1260,7 @@ class EventExporterTest extends TrackerTest {
   void testOrderByEnrolledAtAsc() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.addOrders(List.of(new OrderParam("enrolledAt", SortDirection.ASC)));
 
     List<String> enrollments =
@@ -1275,7 +1275,7 @@ class EventExporterTest extends TrackerTest {
   void testOrderByOccurredAtDesc() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.addOrders(List.of(new OrderParam("occurredAt", SortDirection.DESC)));
 
     Events events = eventService.getEvents(params);
@@ -1287,7 +1287,7 @@ class EventExporterTest extends TrackerTest {
   void testOrderByOccurredAtAsc() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.addOrders(List.of(new OrderParam("occurredAt", SortDirection.ASC)));
 
     Events events = eventService.getEvents(params);
@@ -1299,7 +1299,7 @@ class EventExporterTest extends TrackerTest {
   void shouldReturnNoEventsWhenParamStartDueDateLaterThanEventDueDate() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setDueDateStart(parseDate("2021-02-28T13:05:00.000"));
 
     List<String> events = eventsFunction.apply(params);
@@ -1311,7 +1311,7 @@ class EventExporterTest extends TrackerTest {
   void shouldReturnEventsWhenParamStartDueDateEarlierThanEventsDueDate() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setDueDateStart(parseDate("2018-02-28T13:05:00.000"));
 
     List<String> events = eventsFunction.apply(params);
@@ -1323,7 +1323,7 @@ class EventExporterTest extends TrackerTest {
   void shouldReturnNoEventsWhenParamEndDueDateEarlierThanEventDueDate() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setDueDateEnd(parseDate("2018-02-28T13:05:00.000"));
 
     List<String> events = eventsFunction.apply(params);
@@ -1335,7 +1335,7 @@ class EventExporterTest extends TrackerTest {
   void shouldReturnEventsWhenParamEndDueDateLaterThanEventsDueDate() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.setDueDateEnd(parseDate("2021-02-28T13:05:00.000"));
 
     List<String> events = eventsFunction.apply(params);
@@ -1347,7 +1347,7 @@ class EventExporterTest extends TrackerTest {
   void shouldSortEntitiesRespectingOrderWhenAttributeOrderSuppliedBeforeOrderParam() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.addFilterAttributes(List.of(queryItem("toUpdate000")));
     params.addAttributeOrders(List.of(new OrderParam("toUpdate000", OrderParam.SortDirection.ASC)));
     params.addOrders(
@@ -1367,7 +1367,7 @@ class EventExporterTest extends TrackerTest {
   void shouldSortEntitiesRespectingOrderWhenOrderParamSuppliedBeforeAttributeOrder() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.addFilterAttributes(List.of(queryItem("toUpdate000")));
     params.addAttributeOrders(
         List.of(new OrderParam("toUpdate000", OrderParam.SortDirection.DESC)));
@@ -1388,7 +1388,7 @@ class EventExporterTest extends TrackerTest {
   void shouldSortEntitiesRespectingOrderWhenDataElementSuppliedBeforeOrderParam() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.addDataElements(List.of(queryItem("DATAEL00006")));
     params.addGridOrders(List.of(new OrderParam("DATAEL00006", OrderParam.SortDirection.DESC)));
     params.addOrders(
@@ -1409,7 +1409,7 @@ class EventExporterTest extends TrackerTest {
   void shouldSortEntitiesRespectingOrderWhenOrderParamSuppliedBeforeDataElement() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setAccessibleOrgUnits(List.of(orgUnit));
+    params.setOrgUnit(orgUnit);
     params.addDataElements(List.of(queryItem("DATAEL00006")));
     params.addGridOrders(List.of(new OrderParam("DATAEL00006", OrderParam.SortDirection.DESC)));
     params.addOrders(

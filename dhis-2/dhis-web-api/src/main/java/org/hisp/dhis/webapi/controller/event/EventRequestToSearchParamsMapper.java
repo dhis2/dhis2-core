@@ -29,9 +29,8 @@ package org.hisp.dhis.webapi.controller.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.getOrgUnitMode;
-import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.validateAccessibleOrgUnits;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.validateOrgUnitMode;
 
-import com.google.common.base.Strings;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -72,11 +71,9 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -108,8 +105,6 @@ class EventRequestToSearchParamsMapper {
   private final InputUtils inputUtils;
 
   private final SchemaService schemaService;
-
-  private final TrackerAccessManager trackerAccessManager;
 
   private Schema schema;
 
@@ -240,24 +235,17 @@ class EventRequestToSearchParamsMapper {
           "Program stage is specified but does not exist: " + programStage);
     }
 
-    OrganisationUnit ou = organisationUnitService.getOrganisationUnit(orgUnit);
-    if (!StringUtils.isEmpty(orgUnit) && ou == null) {
+    OrganisationUnit requestedOrgUnit = organisationUnitService.getOrganisationUnit(orgUnit);
+    if (!StringUtils.isEmpty(orgUnit) && requestedOrgUnit == null) {
       throw new IllegalQueryException("Org unit is specified but does not exist: " + orgUnit);
     }
 
     if (orgUnitSelectionMode != null) {
-      validateOrgUnitMode(orgUnitSelectionMode, orgUnit, user);
+      validateOrgUnitMode(orgUnitSelectionMode, user, pr, requestedOrgUnit);
     }
 
-    OrganisationUnitSelectionMode orgUnitMode = getOrgUnitMode(ou, orgUnitSelectionMode);
-    List<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            user,
-            ou,
-            orgUnitMode,
-            pr,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
+    OrganisationUnitSelectionMode orgUnitMode =
+        getOrgUnitMode(requestedOrgUnit, orgUnitSelectionMode);
 
     if (pr != null && !user.isSuper() && !aclService.canDataRead(user, pr)) {
       throw new IllegalQueryException("User has no access to program: " + pr.getUid());
@@ -265,6 +253,14 @@ class EventRequestToSearchParamsMapper {
 
     if (ps != null && !user.isSuper() && !aclService.canDataRead(user, ps)) {
       throw new IllegalQueryException("User has no access to program stage: " + ps.getUid());
+    }
+
+    if (requestedOrgUnit != null
+        && !user.isSuper()
+        && !organisationUnitService.isInUserHierarchy(
+            requestedOrgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
+      throw new IllegalQueryException(
+          "Organisation unit is not part of the search scope: " + requestedOrgUnit.getUid());
     }
 
     TrackedEntityInstance tei =
@@ -332,7 +328,7 @@ class EventRequestToSearchParamsMapper {
     return params
         .setProgram(pr)
         .setProgramStage(ps)
-        .setAccessibleOrgUnits(accessibleOrgUnits)
+        .setOrgUnit(requestedOrgUnit)
         .setTrackedEntityInstance(tei)
         .setProgramStatus(programStatus)
         .setFollowUp(followUp)
@@ -473,48 +469,5 @@ class EventRequestToSearchParamsMapper {
       }
     }
     return dataElements;
-  }
-
-  private void validateOrgUnitMode(
-      OrganisationUnitSelectionMode selectedOuMode, String orgUnit, User user) {
-
-    String violation = null;
-
-    switch (selectedOuMode) {
-      case ALL:
-        violation =
-            userCanSearchOuModeALL(user)
-                ? null
-                : "Current user is not authorized to query across all organisation units";
-        break;
-      case ACCESSIBLE:
-      case CAPTURE:
-        if (user == null) {
-          violation = "User is required for ouMode: " + selectedOuMode;
-        }
-        break;
-      case CHILDREN:
-      case SELECTED:
-      case DESCENDANTS:
-        violation =
-            orgUnit == null ? "Organisation unit is required for ouMode: " + selectedOuMode : null;
-        break;
-      default:
-        violation = "Invalid ouMode:  " + selectedOuMode;
-        break;
-    }
-
-    if (!Strings.isNullOrEmpty(violation)) {
-      throw new IllegalQueryException(violation);
-    }
-  }
-
-  private boolean userCanSearchOuModeALL(User user) {
-    if (user == null) {
-      return false;
-    }
-
-    return user.isSuper()
-        || user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
   }
 }
