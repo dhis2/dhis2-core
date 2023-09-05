@@ -309,7 +309,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   void getRelationshipsByEventWithNotes() {
     TrackedEntity to = trackedEntity();
     Event from = event(enrollment(to));
-    from.setComments(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
+    from.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
     relationship(from, to);
 
     JsonList<JsonRelationship> relationships =
@@ -407,7 +407,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   void getRelationshipsByEnrollmentWithNotes() {
     TrackedEntity to = trackedEntity();
     Enrollment from = enrollment(to);
-    from.setComments(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
+    from.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
     relationship(from, to);
 
     JsonList<JsonRelationship> relationships =

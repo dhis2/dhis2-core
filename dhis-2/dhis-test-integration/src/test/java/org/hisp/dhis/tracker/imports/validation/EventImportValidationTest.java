@@ -306,12 +306,12 @@ class EventImportValidationTest extends TrackerTest {
     // Then
     // Fetch the UID of the newly created event
     final Event event = getEventFromReport(importReport);
-    assertThat(event.getComments(), hasSize(3));
+    assertThat(event.getNotes(), hasSize(3));
     // Validate note content
     Stream.of("first note", "second note", "third note")
         .forEach(
             t -> {
-              Note comment = getByComment(event.getComments(), t);
+              Note comment = getByComment(event.getNotes(), t);
               assertTrue(CodeGenerator.isValidUid(comment.getUid()));
               assertTrue(comment.getCreated().getTime() > now.getTime());
               assertTrue(comment.getLastUpdated().getTime() > now.getTime());
@@ -330,12 +330,12 @@ class EventImportValidationTest extends TrackerTest {
         createEvent("tracker/validations/events-with-notes-update-data.json");
     // Then
     final Event event = getEventFromReport(importReport);
-    assertThat(event.getComments(), hasSize(6));
+    assertThat(event.getNotes(), hasSize(6));
     // validate note content
     Stream.of("first note", "second note", "third note", "4th note", "5th note", "6th note")
         .forEach(
             t -> {
-              Note comment = getByComment(event.getComments(), t);
+              Note comment = getByComment(event.getNotes(), t);
               assertTrue(CodeGenerator.isValidUid(comment.getUid()));
               assertTrue(comment.getCreated().getTime() > now.getTime());
               assertTrue(comment.getLastUpdated().getTime() > now.getTime());

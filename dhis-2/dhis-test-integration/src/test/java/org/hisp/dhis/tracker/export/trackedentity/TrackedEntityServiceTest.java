@@ -275,7 +275,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     note.setUid(CodeGenerator.generateUid());
     note.setCreated(new Date());
     note.setLastUpdated(new Date());
-    eventA.setComments(List.of(note));
+    eventA.setNotes(List.of(note));
     manager.save(eventA, false);
     enrollmentA.setEvents(Set.of(eventA));
     enrollmentA.setFollowup(true);
@@ -928,7 +928,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .findFirst();
     Set<Event> events = enrollmentA.get().getEvents();
     assertContainsOnly(Set.of(eventA), events);
-    assertContainsOnly(Set.of(note), events.stream().findFirst().get().getComments());
+    assertContainsOnly(Set.of(note), events.stream().findFirst().get().getNotes());
   }
 
   @Test

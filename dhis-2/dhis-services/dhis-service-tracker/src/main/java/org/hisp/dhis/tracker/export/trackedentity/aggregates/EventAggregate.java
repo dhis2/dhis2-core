@@ -114,7 +114,7 @@ public class EventAggregate implements Aggregate {
                 if (dataValuesForEvent != null && !dataValuesForEvent.isEmpty()) {
                   event.setEventDataValues(new HashSet<>(dataValues.get(event.getUid())));
                 }
-                event.setComments(new ArrayList<>(notes.get(event.getUid())));
+                event.setNotes(new ArrayList<>(notes.get(event.getUid())));
               }
 
               return events;

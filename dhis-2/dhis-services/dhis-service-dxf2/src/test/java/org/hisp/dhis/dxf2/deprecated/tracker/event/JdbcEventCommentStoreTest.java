@@ -94,7 +94,7 @@ class JdbcEventCommentStoreTest {
   private List<Event> getProgramStageList(boolean withComments, boolean emptyComment) {
     Event event = new Event();
     if (withComments) {
-      event.setComments(List.of(getComment(emptyComment ? "" : "Some comment")));
+      event.setNotes(List.of(getComment(emptyComment ? "" : "Some comment")));
     }
     return List.of(event);
   }

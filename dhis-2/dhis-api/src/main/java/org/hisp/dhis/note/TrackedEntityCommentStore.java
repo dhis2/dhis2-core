@@ -31,6 +31,7 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author David Katuscak
+ * @deprecated use {@link org.hisp.dhis.tracker.note} store instead
  */
 @Deprecated(since = "2.41")
 public interface TrackedEntityCommentStore extends IdentifiableObjectStore<Note> {

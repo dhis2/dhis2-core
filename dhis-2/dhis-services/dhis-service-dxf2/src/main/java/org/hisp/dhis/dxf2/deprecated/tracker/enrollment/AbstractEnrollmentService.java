@@ -327,7 +327,7 @@ public abstract class AbstractEnrollmentService
     enrollment.setLastUpdatedByUserInfo(programInstance.getLastUpdatedByUserInfo());
     enrollment.setDeleted(programInstance.isDeleted());
 
-    enrollment.getNotes().addAll(NoteHelper.convertNotes(programInstance.getComments()));
+    enrollment.getNotes().addAll(NoteHelper.convertNotes(programInstance.getNotes()));
 
     if (params.isIncludeEvents()) {
       for (Event event : programInstance.getEvents()) {
@@ -1543,7 +1543,7 @@ public abstract class AbstractEnrollmentService
 
         commentService.addTrackedEntityComment(comment);
 
-        programInstance.getComments().add(comment);
+        programInstance.getNotes().add(comment);
 
         enrollmentService.updateEnrollment(programInstance, user);
         teiService.updateTrackedEntity(programInstance.getTrackedEntity(), user);

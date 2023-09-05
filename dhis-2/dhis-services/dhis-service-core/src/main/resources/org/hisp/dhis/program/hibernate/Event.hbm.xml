@@ -64,7 +64,7 @@
 
     <property name="eventDataValues" type="jsbEventDataValues" />
 
-    <list name="comments" table="eventnotes" cascade="all-delete-orphan">
+    <list name="notes" table="eventnotes" cascade="all-delete-orphan">
       <key column="eventid" foreign-key="fk_programstageinstancecomments_programstageinstanceid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.note.Note" column="noteid"

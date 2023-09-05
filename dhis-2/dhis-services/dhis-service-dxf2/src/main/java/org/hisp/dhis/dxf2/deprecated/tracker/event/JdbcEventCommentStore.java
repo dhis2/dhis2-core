@@ -91,7 +91,7 @@ public class JdbcEventCommentStore implements EventCommentStore {
       for (Event psi : events) {
         Integer sortOrder = getInitialSortOrder(psi);
 
-        for (Note comment : psi.getComments()) {
+        for (Note comment : psi.getNotes()) {
           Long commentId = saveComment(comment);
           if (commentId != null && commentId != 0) {
             saveCommentToEvent(psi.getId(), commentId, sortOrder);
@@ -106,7 +106,7 @@ public class JdbcEventCommentStore implements EventCommentStore {
   }
 
   private boolean hasComments(Event event) {
-    return CollectionUtils.isNotEmpty(event.getComments());
+    return CollectionUtils.isNotEmpty(event.getNotes());
   }
 
   Integer getInitialSortOrder(Event psi) {
@@ -122,12 +122,12 @@ public class JdbcEventCommentStore implements EventCommentStore {
   }
 
   private Event withoutEmptyComments(Event event) {
-    event.setComments(getNonEmptyComments(event));
+    event.setNotes(getNonEmptyComments(event));
     return event;
   }
 
   private List<Note> getNonEmptyComments(Event event) {
-    return event.getComments().stream().filter(this::hasCommentText).collect(toList());
+    return event.getNotes().stream().filter(this::hasCommentText).collect(toList());
   }
 
   private boolean hasCommentText(Note trackedEntityComment) {

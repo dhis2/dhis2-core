@@ -94,8 +94,8 @@ public class EventPersister
 
   @Override
   protected void persistComments(TrackerPreheat preheat, Event event) {
-    if (!event.getComments().isEmpty()) {
-      for (Note comment : event.getComments()) {
+    if (!event.getNotes().isEmpty()) {
+      for (Note comment : event.getNotes()) {
         if (Objects.isNull(preheat.getNote(comment.getUid()))) {
           this.noteService.addTrackedEntityComment(comment);
         }

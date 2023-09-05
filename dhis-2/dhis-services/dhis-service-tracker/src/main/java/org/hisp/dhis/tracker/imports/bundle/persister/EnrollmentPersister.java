@@ -100,8 +100,8 @@ public class EnrollmentPersister
 
   @Override
   protected void persistComments(TrackerPreheat preheat, Enrollment enrollment) {
-    if (!enrollment.getComments().isEmpty()) {
-      for (Note comment : enrollment.getComments()) {
+    if (!enrollment.getNotes().isEmpty()) {
+      for (Note comment : enrollment.getNotes()) {
         if (Objects.isNull(preheat.getNote(comment.getUid()))) {
           this.noteService.addTrackedEntityComment(comment);
         }

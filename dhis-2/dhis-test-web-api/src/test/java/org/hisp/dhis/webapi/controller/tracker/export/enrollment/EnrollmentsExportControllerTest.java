@@ -175,7 +175,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void getEnrollmentByIdWithNotes() {
-    enrollment.setComments(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
+    enrollment.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
 
     JsonEnrollment enrollment =
         GET("/tracker/enrollments/{uid}?fields=notes", this.enrollment.getUid())

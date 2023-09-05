@@ -29,6 +29,7 @@ package org.hisp.dhis.note;
 
 /**
  * @author Chau Thu Tran
+ * @deprecated use {@link org.hisp.dhis.tracker.note} service instead
  */
 @Deprecated(since = "2.41")
 public interface TrackedEntityCommentService {

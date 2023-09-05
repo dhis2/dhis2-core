@@ -266,7 +266,7 @@ public class EventTrackerConverterService
     }
 
     if (isNotEmpty(event.getNotes())) {
-      result.getComments().addAll(notesConverterService.from(preheat, event.getNotes()));
+      result.getNotes().addAll(notesConverterService.from(preheat, event.getNotes()));
     }
 
     return result;

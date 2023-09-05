@@ -123,7 +123,7 @@ public class EnrollmentAggregate implements Aggregate {
                           new LinkedHashSet<>(attributes.get(enrollment.getUid())));
                 }
 
-                enrollment.setComments(new ArrayList<>(notes.get(enrollment.getUid())));
+                enrollment.setNotes(new ArrayList<>(notes.get(enrollment.getUid())));
               }
 
               return enrollments;

@@ -162,7 +162,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
   @Test
   void getEventByIdWithNotes() {
     Event event = event(enrollment(trackedEntity()));
-    event.setComments(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
+    event.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
     manager.update(event);
 
     JsonEvent jsonEvent =

@@ -397,7 +397,7 @@ class JdbcEventStore implements EventStore {
 
               note.setLastUpdated(resultSet.getDate("note_lastupdated"));
 
-              event.getComments().add(note);
+              event.getNotes().add(note);
               notes.add(resultSet.getString("note_id"));
             }
           }

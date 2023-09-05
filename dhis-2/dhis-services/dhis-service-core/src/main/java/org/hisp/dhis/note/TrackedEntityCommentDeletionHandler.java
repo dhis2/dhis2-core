@@ -46,13 +46,13 @@ public class TrackedEntityCommentDeletionHandler extends IdObjectDeletionHandler
   }
 
   private void deleteEnrollment(Enrollment enrollment) {
-    for (Note comment : enrollment.getComments()) {
+    for (Note comment : enrollment.getNotes()) {
       commentService.deleteTrackedEntityComment(comment);
     }
   }
 
   private void deleteEvent(Event event) {
-    for (Note comment : event.getComments()) {
+    for (Note comment : event.getNotes()) {
       commentService.deleteTrackedEntityComment(comment);
     }
   }

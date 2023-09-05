@@ -82,7 +82,7 @@ public class Event extends SoftDeletableObject {
 
   private List<MessageConversation> messageConversations = new ArrayList<>();
 
-  private List<Note> comments = new ArrayList<>();
+  private List<Note> notes = new ArrayList<>();
 
   @AuditAttribute private Set<EventDataValue> eventDataValues = new HashSet<>();
 
@@ -287,12 +287,12 @@ public class Event extends SoftDeletableObject {
   @JsonProperty
   @JsonSerialize(contentAs = BaseIdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public List<Note> getComments() {
-    return comments;
+  public List<Note> getNotes() {
+    return notes;
   }
 
-  public void setComments(List<Note> comments) {
-    this.comments = comments;
+  public void setNotes(List<Note> notes) {
+    this.notes = notes;
   }
 
   @JsonProperty

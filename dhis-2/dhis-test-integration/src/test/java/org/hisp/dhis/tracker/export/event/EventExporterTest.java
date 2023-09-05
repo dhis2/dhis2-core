@@ -172,7 +172,7 @@ class EventExporterTest extends TrackerTest {
     List<Event> events = eventService.getEvents(params).getEvents();
 
     assertContainsOnly(List.of("pTzf9KYMk72"), uids(events));
-    List<Note> notes = events.get(0).getComments();
+    List<Note> notes = events.get(0).getNotes();
     assertContainsOnly(List.of("SGuCABkhpgn", "DRKO4xUVrpr"), uids(notes));
     assertAll(
         () -> assertNote(importUser, "comment value", notes.get(0)),

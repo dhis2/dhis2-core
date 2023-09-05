@@ -89,7 +89,7 @@ public class Enrollment extends SoftDeletableObject {
 
   private Boolean followup = false;
 
-  private List<Note> comments = new ArrayList<>();
+  private List<Note> notes = new ArrayList<>();
 
   private String completedBy;
 
@@ -333,12 +333,12 @@ public class Enrollment extends SoftDeletableObject {
   @JsonProperty("trackedEntityComments")
   @JacksonXmlElementWrapper(localName = "trackedEntityComments", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0)
-  public List<Note> getComments() {
-    return comments;
+  public List<Note> getNotes() {
+    return notes;
   }
 
-  public void setComments(List<Note> comments) {
-    this.comments = comments;
+  public void setNotes(List<Note> notes) {
+    this.notes = notes;
   }
 
   @JsonProperty
@@ -430,7 +430,7 @@ public class Enrollment extends SoftDeletableObject {
 
   private static void setShallowCopyValues(
       Enrollment copy, Enrollment original, Program programCopy) {
-    copy.setComments(ObjectUtils.copyOf(original.getComments()));
+    copy.setNotes(ObjectUtils.copyOf(original.getNotes()));
     copy.setCompletedBy(original.getCompletedBy());
     copy.setCreatedAtClient(original.getCreatedAtClient());
     copy.setCreatedByUserInfo(original.getCreatedByUserInfo());

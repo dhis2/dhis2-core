@@ -687,7 +687,7 @@ public abstract class AbstractEventService
       }
     }
 
-    event.getNotes().addAll(NoteHelper.convertNotes(programStageInstance.getComments()));
+    event.getNotes().addAll(NoteHelper.convertNotes(programStageInstance.getNotes()));
 
     if (eventParams.isIncludeRelationships()) {
       event.setRelationships(
@@ -913,7 +913,7 @@ public abstract class AbstractEventService
 
         commentService.addTrackedEntityComment(comment);
 
-        programStageInstance.getComments().add(comment);
+        programStageInstance.getNotes().add(comment);
       }
     }
   }

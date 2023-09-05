@@ -112,7 +112,7 @@ public class ProgramStageInstanceMapper
 
     // Notes
     if (!event.getNotes().isEmpty()) {
-      psi.setComments(convertNotes(event, this.workContext));
+      psi.setNotes(convertNotes(event, this.workContext));
     }
 
     // Data Values
@@ -171,7 +171,7 @@ public class ProgramStageInstanceMapper
     psi.setGeometry(event.getGeometry());
 
     // Notes
-    psi.setComments(convertNotes(event, this.workContext));
+    psi.setNotes(convertNotes(event, this.workContext));
 
     // Data Values
     psi.setEventDataValues(workContext.getEventDataValueMap().get(event.getUid()));
