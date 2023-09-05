@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.hisp.dhis.cache.Cache;
@@ -60,9 +61,7 @@ import org.springframework.stereotype.Service;
 public class LocalAppStorageService implements AppStorageService {
   private final ResourceLoader resourceLoader = new DefaultResourceLoader();
 
-  private Map<String, App> apps = new HashMap<>();
-
-  private Map<String, App> reservedNamespaces = new HashMap<>();
+  private final Map<String, App> apps = new ConcurrentHashMap<>();
 
   private final LocationManager locationManager;
 
@@ -144,12 +143,6 @@ public class LocalAppStorageService implements AppStorageService {
 
     appList.forEach(
         app -> {
-          String namespace = app.getActivities().getDhis().getNamespace();
-
-          if (namespace != null && !namespace.isEmpty()) {
-            reservedNamespaces.put(namespace, app);
-          }
-
           appMap.put(app.getUrlFriendlyName(), app);
           apps.put(app.getUrlFriendlyName(), app);
 
@@ -161,11 +154,6 @@ public class LocalAppStorageService implements AppStorageService {
     }
 
     return appMap;
-  }
-
-  @Override
-  public Map<String, App> getReservedNamespaces() {
-    return reservedNamespaces;
   }
 
   @Override
