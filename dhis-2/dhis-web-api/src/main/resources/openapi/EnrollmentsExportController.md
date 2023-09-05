@@ -83,7 +83,7 @@ Get enrollments using given organisation unit selection mode.
 
 **DEPRECATED as of 2.41:** Use parameter `orgUnitMode` instead.
 
-Get enrollments using given organisation unit mode.
+See `orgUnitMode` for details.
 
 ### `*.parameter.EnrollmentRequestParams.program`
 
