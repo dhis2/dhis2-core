@@ -1306,11 +1306,18 @@ public class JdbcEventStore implements EventStore {
 
   private String createAccessibleSql(User user, EventQueryParams params) {
 
-    if (isProgramRestricted(params.getProgram())) {
+    if (isProgramRestricted(params.getProgram()) || isUserSearchScopeNotSet(user)) {
       return createCaptureSql(user);
     }
 
-    return "";
+    return " EXISTS(SELECT ss.organisationunitid "
+        + " FROM userteisearchorgunits ss "
+        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = ss.organisationunitid "
+        + " JOIN userinfo u ON u.userinfoid = ss.userinfoid "
+        + " WHERE u.uid = '"
+        + user.getUid()
+        + "'"
+        + " AND ou.path like CONCAT(orgunit.path, '%')) ";
   }
 
   private String createDescendantsSql(User user, EventQueryParams params) {
@@ -1370,6 +1377,10 @@ public class JdbcEventStore implements EventStore {
 
   private boolean isProgramRestricted(Program program) {
     return program != null && (program.isProtected() || program.isClosed());
+  }
+
+  private boolean isUserSearchScopeNotSet(User user) {
+    return user.getTeiSearchOrganisationUnits().isEmpty();
   }
 
   private String createCaptureScopeQuery(User user, String customClause) {

@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Set;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -117,7 +118,7 @@ class EventXmlImportTest extends TransactionalIntegrationTest {
     programA.getProgramStages().add(programStageA);
     manager.update(programStageA);
     manager.update(programA);
-    createUserAndInjectSecurityContext(true);
+    createUserAndInjectSecurityContext(Set.of(organisationUnitA), true);
   }
 
   @Test
