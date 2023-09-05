@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,55 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.analytics.generator.impl;
 
-import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
-import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.OTHER;
-import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
-
-import lombok.Getter;
+import org.hisp.dhis.analytics.generator.Generator;
 
 /**
- * Encapsulates some information about the current request and endpoint invoked. They are needed
- * because of some internal rules.
+ * Set of behaviour and settings required by the test generation of
+ * "/analytics/events/aggregate/{program}?" endpoint.
  */
-public class RequestTypeAware {
-
-  @Getter private EndpointAction endpointAction = OTHER;
-
-  @Getter private EndpointItem endpointItem;
-
-  public RequestTypeAware withEndpointAction(EndpointAction endpointAction) {
-    this.endpointAction = endpointAction;
-    return this;
+public class EnrollmentAggregatedGenerator implements Generator {
+  @Override
+  public int getMaxTestsPerClass() {
+    return 4;
   }
 
-  public RequestTypeAware withEndpointItem(EndpointItem endpointItem) {
-    this.endpointItem = endpointItem;
-    return this;
+  @Override
+  public String getAction() {
+    return "aggregate";
   }
 
-  public boolean isQueryEndpoint() {
-    return QUERY == endpointAction;
+  @Override
+  public String getClassNamePrefix() {
+    return "EnrollmentsAggregate";
   }
 
-  public boolean isAggregateEndpoint() {
-    return AGGREGATE == endpointAction;
+  @Override
+  public String getActionDeclaration() {
+    return "private final AnalyticsEnrollmentsActions actions = new AnalyticsEnrollmentsActions();";
   }
 
-  public boolean isEnrollmentEndpointItem() {
-    return EndpointItem.ENROLLMENT == endpointItem;
+  @Override
+  public String getPackage() {
+    return "org.hisp.dhis.analytics.enrollment.aggregate";
   }
 
-  public enum EndpointAction {
-    AGGREGATE,
-    QUERY,
-    OTHER
+  @Override
+  public String getTopClassComment() {
+    return "Groups e2e tests for \"/enrollments/aggregate\" endpoint.";
   }
 
-  public enum EndpointItem {
-    EVENT,
-    ENROLLMENT,
-    TRACKED_ENTITY_INSTANCE
+  @Override
+  public boolean assertMetaData() {
+    return true;
+  }
+
+  @Override
+  public boolean assertRowIndex() {
+    return false;
   }
 }

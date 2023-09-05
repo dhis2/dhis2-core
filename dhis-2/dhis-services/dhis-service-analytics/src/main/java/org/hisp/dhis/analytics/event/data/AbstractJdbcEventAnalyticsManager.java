@@ -36,9 +36,11 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
+import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
@@ -54,6 +56,8 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
@@ -98,6 +102,7 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.InQueryFilter;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
@@ -109,6 +114,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -135,6 +141,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected static final int LAST_VALUE_YEARS_OFFSET = -10;
 
   private static final String COL_VALUE = "value";
+
+  private static final String COL_ORGANIZATION = "ou";
+
+  private static final String OUTER_SQL_ALIAS = "t1";
 
   private static final String AND = " and ";
 
@@ -325,6 +335,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         .getDimensions()
         .forEach(
             dimension -> {
+              if (params.isAggregatedEnrollments()
+                  && dimension.getDimensionType() == DimensionType.PERIOD) {
+                dimension
+                    .getItems()
+                    .forEach(
+                        it ->
+                            columns.add(
+                                ((Period) it).getPeriodType().getPeriodTypeEnum().getName()));
+                return;
+              }
+
               if (isGroupByClause
                   && dimension.getDimensionType() == DimensionType.PERIOD
                   && params.hasNonDefaultBoundaries()) {
@@ -884,7 +905,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param maxLimit max number of records to return.
    * @return a SQL query.
    */
-  protected String getEventsOrEnrollmentsSql(EventQueryParams params, int maxLimit) {
+  protected String getAggregatedEnrollmentsSql(EventQueryParams params, int maxLimit) {
     String sql = getSelectClause(params);
 
     sql += getFromClause(params);
@@ -894,6 +915,93 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     sql += getSortClause(params);
 
     sql += getPagingClause(params, maxLimit);
+
+    return sql;
+  }
+
+  /**
+   * Template method that generates a SQL query for retrieving aggregated enrollments.
+   *
+   * @param params the {@link List<GridHeader>} to drive the query generation.
+   * @param params the {@link EventQueryParams} to drive the query generation.
+   * @return a SQL query.
+   */
+  protected String getAggregatedEnrollmentsSql(List<GridHeader> headers, EventQueryParams params) {
+    String sql = getSelectClause(params);
+
+    sql += getFromClause(params);
+
+    sql += getWhereClause(params);
+
+    final String tempSql = sql;
+
+    String headerColumns =
+        headers.stream()
+            .filter(
+                header ->
+                    !header.getName().equalsIgnoreCase(COL_VALUE)
+                        && !header.getName().equalsIgnoreCase(PERIOD_DIM_ID)
+                        && !header.getName().equalsIgnoreCase(ORGUNIT_DIM_ID))
+            .map(
+                header -> {
+                  String headerName = header.getName();
+                  if (tempSql.contains(headerName)) {
+                    return OUTER_SQL_ALIAS + "." + quote(headerName);
+                  }
+                  if (headerName.contains(".")) {
+                    headerName = headerName.split("\\.")[1];
+                  }
+
+                  return OUTER_SQL_ALIAS + "." + quote(headerName);
+                })
+            .collect(joining(","));
+
+    String orgColumns = EMPTY;
+
+    if (!params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)
+        && !params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
+
+      orgColumns =
+          params.getDimensionOrFilterItems(ORGUNIT_DIM_ID).stream()
+              .map(d -> LEVEL_PREFIX + ((OrganisationUnit) d).getLevel())
+              .distinct()
+              .collect(joining(","));
+    }
+
+    String periodColumns =
+        params.getDimensions().stream()
+            .filter(d -> d.getDimensionType() == DimensionType.PERIOD)
+            .flatMap(
+                d ->
+                    d.getItems().stream()
+                        .map(
+                            it ->
+                                OUTER_SQL_ALIAS
+                                    + "."
+                                    + ((Period) it).getPeriodType().getPeriodTypeEnum().getName())
+                        .toList()
+                        .stream()
+                        .distinct())
+            .collect(joining(","));
+
+    String columns =
+        (!isBlank(orgColumns) ? orgColumns : "," + ORGUNIT_DIM_ID)
+            + (!isBlank(periodColumns) ? "," + periodColumns : EMPTY)
+            + (!isBlank(headerColumns) ? "," + headerColumns : EMPTY);
+
+    sql =
+        "select count("
+            + OUTER_SQL_ALIAS
+            + ".pi) as "
+            + COL_VALUE
+            + ", "
+            + columns
+            + " from ("
+            + sql
+            + ") "
+            + OUTER_SQL_ALIAS
+            + " group by "
+            + columns;
 
     return sql;
   }

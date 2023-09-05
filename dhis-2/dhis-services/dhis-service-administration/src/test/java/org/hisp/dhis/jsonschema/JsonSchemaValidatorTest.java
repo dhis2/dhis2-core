@@ -36,14 +36,21 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.networknt.schema.ValidationMessage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 class JsonSchemaValidatorTest {
 
   private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+
+  @BeforeAll()
+  static void setup() {
+    Locale.setDefault(new Locale("en", "US"));
+  }
 
   @Test
   void validateCheck_ValidFile() {
