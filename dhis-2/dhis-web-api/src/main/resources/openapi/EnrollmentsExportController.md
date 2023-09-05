@@ -73,7 +73,11 @@ See `orgUnits` for details.
 
 ### `*.parameter.EnrollmentRequestParams.orgUnitMode`
 
-Get enrollments using given organisation unit mode.
+Get enrollments using given organisation unit selection mode.
+- When `ouMode=SELECTED`, `ouMode=CHILDREN` or `ouMode=DESCENDANTS`, the `orgUnit` parameter is required to specify which enrollments to return.
+- When `ouMode=ALL` enrollments will be downloaded irrespective of the organization unit they are owned by. To use this parameter, the user needs the `Search Tracked entity in all org units` authority.
+- When `ouMode=ACCESSIBLE` enrollments owned by any org unit in the users capture scope will be returned.
+- When `ouMode=CAPTURE` enrollments that has an enrollment org unit in the users capture scope will be returned.
 
 ### `*.parameter.EnrollmentRequestParams.ouMode`
 
