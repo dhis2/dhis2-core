@@ -92,7 +92,7 @@ public class DefaultCurrentUserService extends AbstractSpringSecurityCurrentUser
       throw new IllegalStateException("No current user");
     }
 
-    User user = userStore.getUserByUsername(username);
+    User user = userStore.getUserByUsername(username, false);
     if (user == null) {
       log.debug("User is NULL, this should only happen at startup!");
       return null;
@@ -104,7 +104,7 @@ public class DefaultCurrentUserService extends AbstractSpringSecurityCurrentUser
 
   @Override
   public Long getUserId(String username) {
-    User user = userStore.getUserByUsername(username);
+    User user = userStore.getUserByUsername(username, false);
 
     return user != null ? user.getId() : null;
   }
