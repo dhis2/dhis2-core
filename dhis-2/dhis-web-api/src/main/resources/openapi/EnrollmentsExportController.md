@@ -62,7 +62,7 @@ Get enrollments owned by given `orgUnits` relative to the `ouMode`.
 - When `ouMode=SELECTED` - or no `ouMode` is given (default) - the enrollments owned by the `orgUnits` are returned.
 - When `ouMode=CHILDREN` the enrollments owned by the `orgUnits` or by the `orgUnits` direct children is returned.
 - When `ouMode=DESCENDANTS` the enrollments owned by the `orgUnits` or any its descendants are returned.
-- When `ouMode=ALL`, `ouMode=CAPTURE` or `ouMode=ACCESSIBLE` the `orgUnits` parameter will be ignored.
+- When `ouMode=ALL`, `ouMode=CAPTURE` or `ouMode=ACCESSIBLE` the `orgUnits` parameter is not allowed.
 
 ### `*.parameter.EnrollmentRequestParams.orgUnit`
 
