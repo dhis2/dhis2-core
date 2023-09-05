@@ -137,7 +137,7 @@
 
     <!-- JAXB -->
     <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
-    <jaxb-impl.version>3.0.2</jaxb-impl.version>
+    <jaxb-impl.version>4.0.3</jaxb-impl.version>
     <jaxb-osgi.version>2.4.0-b180830.0438</jaxb-osgi.version>
     <jaxws-ri.version>2.3.2</jaxws-ri.version>
     <jakarta.xml.ws-api.version>3.0.1</jakarta.xml.ws-api.version>
