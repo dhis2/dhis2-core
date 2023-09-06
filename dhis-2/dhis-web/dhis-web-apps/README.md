@@ -11,6 +11,7 @@ The following shows the mapping of app repos to the DHIS2 versions that use the 
 |git@github.com:dhis2/capture-app.git|n/a|n/a|2.31|2.32|2.33|2.34|2.35|2.36|2.37|master|master|master|
 |git@github.com:dhis2/core-resource-app.git|master|master|2.31|2.32|master|DELETED|DELETED|DELETED|DELETED|DELETED|DELETED|DELETED|
 |git@github.com:dhis2/data-visualizer-app.git|n/a|n/a|v31|32.x|33.x|34.x|35.x|36.x|37.x|38.x|39.x|master|
+|git@github.com:dhis2/maps-app.git|2.29|2.30|2.31|2.32|2.33|2.34|2.35|2.36|2.37|2.38|2.39|master|
 |git@github.com:dhis2/messaging-app.git|master|master|master|master|master|master|master|master|master|master|master|master|
 |git@github.com:dhis2/reports-app.git|n/a|n/a|n/a|n/a|master|master|master|master|master|master|master|master|
 |git@github.com:dhis2/scheduler-app.git|2.29|2.30|2.31|2.32|2.33|2.34|2.35|100.x|100.x|100.x|100.x|master|

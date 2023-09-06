@@ -56,8 +56,6 @@
       "storedBy": "admin",
       "followup": false,
       "deleted": false,
-      "createdAt": "2019-08-19T13:58:26.964",
-      "updatedAt": "2019-08-19T13:59:13.694",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
@@ -66,7 +64,6 @@
       "dataValues": [
         {
           "createdAt": "2019-01-28T12:10:38.113",
-          "updatedAt": "2019-01-28T12:10:38.113",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
