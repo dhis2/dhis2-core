@@ -173,7 +173,8 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
     JsonList<JsonErrorReport> errorReports =
         response.getList("errorReports", JsonErrorReport.class);
-    assertEquals(errorReports.size(), 1);
+
+    assertEquals(1, errorReports.size());
 
     assertEquals(
         "User `someone` is not allowed to change a user having the ALL authority",
@@ -191,7 +192,8 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
     JsonList<JsonErrorReport> errorReports =
         response.getList("errorReports", JsonErrorReport.class);
-    assertEquals(errorReports.size(), 2);
+
+    assertEquals(2, errorReports.size());
 
     assertEquals(
         "User `someone` is not allowed to change a user having the ALL authority",
