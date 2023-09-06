@@ -264,8 +264,17 @@ public enum SettingKey {
   ANALYTICS_CACHE_TTL_MODE(
       "keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED, AnalyticsCacheTtlMode.class),
 
-  /** Max trackedentityinstance records that can be retrieved from database. */
-  TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityInstanceMaxLimit", 50000, Integer.class);
+  /** The offset of years used during period generation during the analytics export process. */
+  ANALYTICS_MAX_PERIOD_YEARS_OFFSET("keyAnalyticsPeriodYearsOffset", 22, Integer.class),
+
+  /**
+   * @deprecated use {@link #TRACKED_ENTITY_MAX_LIMIT} instead
+   */
+  @Deprecated(forRemoval = true, since = "2.41")
+  DEPRECATED_TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityInstanceMaxLimit", 50000, Integer.class),
+
+  /** Max tracked entity records that can be retrieved from database. */
+  TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityMaxLimit", 50000, Integer.class);
 
   private final String name;
 

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.converter;
 
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -72,8 +71,6 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
     comment.setCommentText(note.getValue());
 
     comment.setLastUpdatedBy(preheat.getUser());
-    comment.setCreated(new Date());
-    comment.setLastUpdated(new Date());
     comment.setCreator(note.getStoredBy());
     return comment;
   }
