@@ -116,7 +116,7 @@ public class DefaultMonitoringService implements MonitoringService {
     return new MonitoringTarget(
         config.getProperty(ConfigurationKey.SYSTEM_MONITORING_URL),
         config.getProperty(ConfigurationKey.SYSTEM_MONITORING_USERNAME),
-        config.getProperty(ConfigurationKey.SYSTEM_MONITORING_URL));
+        config.getProperty(ConfigurationKey.SYSTEM_MONITORING_PASSWORD));
   }
 
   /**
