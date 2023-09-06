@@ -71,7 +71,6 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
