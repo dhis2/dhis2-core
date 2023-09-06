@@ -54,8 +54,6 @@
       "storedBy": "admin",
       "followup": false,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
@@ -70,12 +68,10 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
+
       "dataValues": [
         {
           "createdAt": "2019-01-28T12:10:38.113",
-          "updatedAt": "2019-01-28T12:10:38.113",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -108,8 +104,6 @@
       "storedBy": "admin",
       "followup": false,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "XXXvX50cXC0"
@@ -120,12 +114,10 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
+
       "dataValues": [
         {
           "createdAt": "2019-01-28T12:10:38.115",
-          "updatedAt": "2019-01-28T12:10:38.115",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -158,8 +150,6 @@
       "storedBy": "admin",
       "followup": false,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
@@ -170,12 +160,10 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
+
       "dataValues": [
         {
           "createdAt": "2019-01-28T12:10:38.116",
-          "updatedAt": "2019-01-28T12:10:38.116",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -208,8 +196,6 @@
       "storedBy": "admin",
       "followup": false,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
@@ -220,12 +206,10 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
+
       "dataValues": [
         {
           "createdAt": "2019-01-28T12:10:38.116",
-          "updatedAt": "2019-01-28T12:10:38.116",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -258,8 +242,6 @@
       "storedBy": "admin",
       "followup": false,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
@@ -270,12 +252,10 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
+
       "dataValues": [
         {
           "createdAt": "2019-01-28T12:10:38.121",
-          "updatedAt": "2019-01-28T12:10:38.121",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -308,8 +288,6 @@
       "storedBy": "admin",
       "followup": false,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
@@ -320,12 +298,10 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
+
       "dataValues": [
         {
           "createdAt": "2019-01-28T12:10:38.122",
-          "updatedAt": "2019-01-28T12:10:38.122",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -336,7 +312,6 @@
         },
         {
           "createdAt": "2019-01-28T12:10:38.123",
-          "updatedAt": "2019-01-28T12:10:38.123",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -347,7 +322,6 @@
         },
         {
           "createdAt": "2019-01-28T12:10:38.122",
-          "updatedAt": "2019-01-28T12:10:38.122",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -358,7 +332,6 @@
         },
         {
           "createdAt": "2019-01-28T12:10:38.123",
-          "updatedAt": "2019-01-28T12:10:38.123",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -369,7 +342,6 @@
         },
         {
           "createdAt": "2019-01-28T12:10:38.122",
-          "updatedAt": "2019-01-28T12:10:38.122",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -402,8 +374,6 @@
       "storedBy": "admin",
       "followup": false,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
@@ -414,12 +384,11 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-      "completedBy": "admin",
+
       "completedAt": "2019-01-28T00:00:00.000",
       "dataValues": [
         {
           "createdAt": "2019-01-28T12:10:38.124",
-          "updatedAt": "2019-01-28T12:10:38.124",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -430,7 +399,6 @@
         },
         {
           "createdAt": "2019-01-28T12:10:38.124",
-          "updatedAt": "2019-01-28T12:10:38.124",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -441,7 +409,6 @@
         },
         {
           "createdAt": "2019-01-28T12:10:38.124",
-          "updatedAt": "2019-01-28T12:10:38.124",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -452,7 +419,6 @@
         },
         {
           "createdAt": "2019-01-28T12:10:38.124",
-          "updatedAt": "2019-01-28T12:10:38.124",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -463,7 +429,6 @@
         },
         {
           "createdAt": "2019-01-28T12:10:38.123",
-          "updatedAt": "2019-01-28T12:10:38.123",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -496,8 +461,6 @@
       "storedBy": "admin",
       "followup": false,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
@@ -508,12 +471,10 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
+
       "dataValues": [
         {
           "createdAt": "2019-01-28T12:10:38.136",
-          "updatedAt": "2019-01-28T12:10:38.136",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -524,7 +485,6 @@
         },
         {
           "createdAt": "2019-01-28T12:10:38.135",
-          "updatedAt": "2019-01-28T12:10:38.135",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -535,7 +495,6 @@
         },
         {
           "createdAt": "2019-01-28T12:10:38.136",
-          "updatedAt": "2019-01-28T12:10:38.136",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -546,7 +505,6 @@
         },
         {
           "createdAt": "2019-01-28T12:10:38.133",
-          "updatedAt": "2019-01-28T12:10:38.134",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
