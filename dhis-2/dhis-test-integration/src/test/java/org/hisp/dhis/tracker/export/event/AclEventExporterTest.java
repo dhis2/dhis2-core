@@ -204,7 +204,7 @@ class AclEventExporterTest extends TrackerTest {
     ForbiddenException exception =
         assertThrows(ForbiddenException.class, () -> eventService.getEvents(params));
     assertEquals(
-        "Organisation unit is not part of the search scope: DiszpKrYNg8", exception.getMessage());
+        "Organisation unit is not part of your search scope: DiszpKrYNg8", exception.getMessage());
   }
 
   @Test
@@ -220,7 +220,7 @@ class AclEventExporterTest extends TrackerTest {
     ForbiddenException exception =
         assertThrows(ForbiddenException.class, () -> eventService.getEvents(params));
     assertEquals(
-        "Organisation unit is not part of the search scope: DiszpKrYNg8", exception.getMessage());
+        "Organisation unit is not part of your search scope: DiszpKrYNg8", exception.getMessage());
   }
 
   @Test
@@ -427,7 +427,7 @@ class AclEventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnAllOrgUnitEventsWhenOrgUnitModeAllAndNoOrgUnitProvided()
+  void shouldReturnAllEventsWhenOrgUnitModeAllAndNoOrgUnitProvided()
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("lPaILkLkgOM"));
 
@@ -444,7 +444,7 @@ class AclEventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnAllOrgUnitEventsWhenOrgUnitModeAllAndOrgUnitProvided()
+  void shouldIgnoreRequestedOrgUnitAndReturnAllEventsWhenOrgUnitModeAllAndOrgUnitProvided()
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("lPaILkLkgOM"));
 
@@ -455,7 +455,7 @@ class AclEventExporterTest extends TrackerTest {
 
     assertFalse(
         events.isEmpty(),
-        "Expected to find events when ou mode ALL no program specified and no org unit provided");
+        "Expected to find events when ou mode ALL no program specified and org unit provided");
     assertContainsOnly(
         List.of("h4w96yEMlzO", "uoNW0E3xXUy", "DiszpKrYNg8", "tSsGrtfRzjY"),
         events.stream().map(e -> e.getOrganisationUnit().getUid()).collect(Collectors.toSet()));

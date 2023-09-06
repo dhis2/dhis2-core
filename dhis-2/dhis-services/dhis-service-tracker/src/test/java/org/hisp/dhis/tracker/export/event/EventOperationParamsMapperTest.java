@@ -570,7 +570,7 @@ class EventOperationParamsMapperTest {
     ForbiddenException exception =
         assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
     assertEquals(
-        "Organisation unit is not part of the search scope: " + orgUnit.getUid(),
+        "Organisation unit is not part of your search scope: " + orgUnit.getUid(),
         exception.getMessage());
   }
 
@@ -585,7 +585,7 @@ class EventOperationParamsMapperTest {
 
     Exception exception = assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
     assertEquals(
-        "Organisation unit is not part of the search scope: " + orgUnit.getUid(),
+        "Organisation unit is not part of your search scope: " + orgUnit.getUid(),
         exception.getMessage());
   }
 

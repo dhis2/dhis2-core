@@ -215,7 +215,7 @@ class EventOperationParamsMapper {
         && !organisationUnitService.isInUserHierarchy(
             requestedOrgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
       throw new ForbiddenException(
-          "Organisation unit is not part of the search scope: " + requestedOrgUnit.getUid());
+          "Organisation unit is not part of your search scope: " + requestedOrgUnit.getUid());
     }
   }
 

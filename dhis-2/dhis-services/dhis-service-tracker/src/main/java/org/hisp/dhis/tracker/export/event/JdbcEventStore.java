@@ -174,9 +174,9 @@ class JdbcEventStore implements EventStore {
   private static final String COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME = "user_assigned_name";
   private static final String COLUMN_USER_UID = "u_uid";
   private static final String COLUMN_ORG_UNIT_PATH = "ou_path";
-  private static final String PERCENTAGE_SIGN = ", '%' ";
-
   private static final String DEFAULT_ORDER = COLUMN_EVENT_ID + " desc";
+  private static final String ORG_UNIT_PATH_LIKE_MATCH_QUERY =
+      " ou.path like CONCAT(:" + COLUMN_ORG_UNIT_PATH + ", '%' ) ";
 
   /**
    * Events can be ordered by given fields which correspond to fields on {@link
@@ -208,10 +208,6 @@ class JdbcEventStore implements EventStore {
           entry("deleted", COLUMN_EVENT_DELETED),
           entry("assignedUser", COLUMN_EVENT_ASSIGNED_USER_USERNAME),
           entry("assignedUser.displayName", COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME));
-
-  private static final String PATH_LIKE = "path LIKE";
-
-  private static final String PATH_EQ = "path =";
 
   // -------------------------------------------------------------------------
   // Dependencies
@@ -1055,12 +1051,10 @@ class JdbcEventStore implements EventStore {
 
     if (isProgramRestricted(params.getProgram())) {
       return createCaptureScopeQuery(
-          user,
-          mapSqlParameterSource,
-          " AND ou.path like CONCAT(:" + COLUMN_ORG_UNIT_PATH + PERCENTAGE_SIGN + ")");
+          user, mapSqlParameterSource, AND + ORG_UNIT_PATH_LIKE_MATCH_QUERY);
     }
 
-    return " ou.path like CONCAT(:" + COLUMN_ORG_UNIT_PATH + PERCENTAGE_SIGN + ") ";
+    return ORG_UNIT_PATH_LIKE_MATCH_QUERY;
   }
 
   private String createChildrenSql(
@@ -1069,10 +1063,8 @@ class JdbcEventStore implements EventStore {
 
     if (isProgramRestricted(params.getProgram())) {
       String childrenSqlClause =
-          " AND ou.path like CONCAT(:"
-              + COLUMN_ORG_UNIT_PATH
-              + PERCENTAGE_SIGN
-              + ") "
+          AND
+              + ORG_UNIT_PATH_LIKE_MATCH_QUERY
               + " AND (ou.hierarchylevel = "
               + params.getOrgUnit().getHierarchyLevel()
               + " OR ou.hierarchylevel = "
@@ -1082,10 +1074,7 @@ class JdbcEventStore implements EventStore {
       return createCaptureScopeQuery(user, mapSqlParameterSource, childrenSqlClause);
     }
 
-    return " ou.path like CONCAT(:"
-        + COLUMN_ORG_UNIT_PATH
-        + PERCENTAGE_SIGN
-        + ") "
+    return ORG_UNIT_PATH_LIKE_MATCH_QUERY
         + " AND (ou.hierarchylevel = "
         + params.getOrgUnit().getHierarchyLevel()
         + " OR ou.hierarchylevel = "
@@ -1097,12 +1086,13 @@ class JdbcEventStore implements EventStore {
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
 
+    String orgUnitPathEqualsMatchQuery = " ou.path = :" + COLUMN_ORG_UNIT_PATH + " ";
     if (isProgramRestricted(params.getProgram())) {
-      String customSelectedClause = " AND ou.path = :" + COLUMN_ORG_UNIT_PATH + " ";
+      String customSelectedClause = AND + orgUnitPathEqualsMatchQuery;
       return createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
     }
 
-    return " ou.path = :" + COLUMN_ORG_UNIT_PATH + " ";
+    return orgUnitPathEqualsMatchQuery;
   }
 
   private boolean isProgramRestricted(Program program) {
