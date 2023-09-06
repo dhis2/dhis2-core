@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.dxf2.events.report.EventRow;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.user.User;
 
@@ -55,10 +54,7 @@ public interface EventStore {
    */
   List<ProgramStageInstance> updateEvents(List<ProgramStageInstance> programStageInstances);
 
-  List<Event> getEvents(
-      EventQueryParams params,
-      List<OrganisationUnit> organisationUnits,
-      Map<String, Set<String>> psdesWithSkipSyncTrue);
+  List<Event> getEvents(EventQueryParams params, Map<String, Set<String>> psdesWithSkipSyncTrue);
 
   List<Map<String, String>> getEventsGrid(EventQueryParams params);
 

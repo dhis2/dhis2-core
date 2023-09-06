@@ -306,12 +306,12 @@ public abstract class AbstractEventService implements EventService {
     List<Event> eventList = new ArrayList<>();
 
     if (params.isSkipPaging()) {
-      events.setEvents(eventStore.getEvents(params, params.getAccessibleOrgUnits(), emptyMap()));
+      events.setEvents(eventStore.getEvents(params, emptyMap()));
       return events;
     }
 
     Pager pager;
-    eventList.addAll(eventStore.getEvents(params, params.getAccessibleOrgUnits(), emptyMap()));
+    eventList.addAll(eventStore.getEvents(params, emptyMap()));
 
     if (params.isTotalPages()) {
       int count = eventStore.getEventCount(params);
@@ -517,7 +517,7 @@ public abstract class AbstractEventService implements EventService {
             .setSkipChangedBefore(skipChangedBefore);
 
     Events anonymousEvents = new Events();
-    List<Event> events = eventStore.getEvents(params, null, psdesWithSkipSyncTrue);
+    List<Event> events = eventStore.getEvents(params, psdesWithSkipSyncTrue);
     anonymousEvents.setEvents(events);
     return anonymousEvents;
   }
