@@ -427,7 +427,7 @@ public class MetadataItemsHandler {
   public void addOptionsSetIntoMap(
       Map<String, MetadataItem> metadataItemMap, Set<Option> itemOptions) {
     // Group all options set available.
-    Set<OptionSet> optionSets = itemOptions.stream().map(o -> o.getOptionSet()).collect(toSet());
+    Set<OptionSet> optionSets = itemOptions.stream().map(Option::getOptionSet).collect(toSet());
 
     // Add option set into the metadata.
     optionSets.forEach(
