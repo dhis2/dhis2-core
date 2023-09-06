@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.common.processing;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.common.processing.MetadataParamsHandler.getItemUid;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptions;
@@ -44,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import javax.annotation.CheckForNull;
 import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -60,6 +60,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -223,8 +224,8 @@ public class MetadataItemsHandler {
       Grid grid,
       List<DimensionalObject> dimensionsAndFilters,
       DisplayProperty displayProperty,
-      @CheckForNull List<Program> programs,
-      @CheckForNull Set<ProgramStage> programStages,
+      List<Program> programs,
+      Set<ProgramStage> programStages,
       boolean includeMetadataDetails) {
     Map<String, MetadataItem> dimensionItemMap = new HashMap<>();
 
@@ -398,7 +399,7 @@ public class MetadataItemsHandler {
    */
   private void putItemOptionsIntoMap(
       Map<String, MetadataItem> metadataItemMap,
-      @CheckForNull Set<Option> itemOptions,
+      Set<Option> itemOptions,
       DisplayProperty displayProperty,
       boolean includeMetadataDetails) {
     if (isNotEmpty(itemOptions)) {
@@ -410,7 +411,30 @@ public class MetadataItemsHandler {
                       option.getDisplayProperty(displayProperty),
                       returnSameOrNull(includeMetadataDetails, option.getUid()),
                       option.getCode())));
+
+      addOptionsSetIntoMap(metadataItemMap, itemOptions);
     }
+  }
+
+  /**
+   * Adds the {@link OptionSet} objects associated with each {@link Option} in the list of given
+   * "itemOptions". Internal rules ensure that only options in the give "itemOptions" will be
+   * present in its respective {@link OptionSet}.
+   *
+   * @param metadataItemMap the metadata item map.
+   * @param itemOptions the set of {@link Option} where to extract each {@link OptionSet}.
+   */
+  public void addOptionsSetIntoMap(
+      Map<String, MetadataItem> metadataItemMap, Set<Option> itemOptions) {
+    // Group all options set available.
+    Set<OptionSet> optionSets = itemOptions.stream().map(o -> o.getOptionSet()).collect(toSet());
+
+    // Add option set into the metadata.
+    optionSets.forEach(
+        optionSet ->
+            metadataItemMap.put(
+                optionSet.getUid(),
+                new MetadataItem(optionSet.getDisplayName(), optionSet, itemOptions)));
   }
 
   /**
