@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.monitoring;
 
 import java.util.Date;
 import javax.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -89,31 +90,51 @@ public class DefaultMonitoringService implements MonitoringService {
 
   @Override
   public void pushMonitoringInfo() {
-    final Date startTime = new Date();
-
-    String url = config.getProperty(ConfigurationKey.SYSTEM_MONITORING_URL);
-    String username = config.getProperty(ConfigurationKey.SYSTEM_MONITORING_USERNAME);
-    String password = config.getProperty(ConfigurationKey.SYSTEM_MONITORING_URL);
-
-    if (StringUtils.isBlank(url)) {
+    MonitoringTarget target = getMonitoringTarget();
+    if (StringUtils.isBlank(target.getUrl())) {
       log.debug("Monitoring service URL not configured, aborting monitoring request");
       return;
     }
 
     SystemInfo systemInfo = systemService.getSystemInfo();
+    systemInfo.clearSensitiveInfo();
 
-    if (systemInfo == null) {
-      log.warn("System info not available, aborting monitoring request");
+    if (StringUtils.isBlank(systemInfo.getSystemId())) {
+      log.warn("System ID not available, aborting monitoring request");
       return;
     }
 
-    systemInfo.clearSensitiveInfo();
+    pushSystemInfo(systemInfo, target);
+  }
+
+  /**
+   * Returns the monitoring target instance URL and credentials.
+   *
+   * @return the {@link MonitoringTarget}.
+   */
+  private MonitoringTarget getMonitoringTarget() {
+    return new MonitoringTarget(
+        config.getProperty(ConfigurationKey.SYSTEM_MONITORING_URL),
+        config.getProperty(ConfigurationKey.SYSTEM_MONITORING_USERNAME),
+        config.getProperty(ConfigurationKey.SYSTEM_MONITORING_PASSWORD));
+  }
+
+  /**
+   * Pushes system info to the monitoring target.
+   *
+   * @param systemInfo the {@link SystemInfo}.
+   * @param target the {@link MonitoringTarget}.
+   */
+  private void pushSystemInfo(SystemInfo systemInfo, MonitoringTarget target) {
 
     HttpHeadersBuilder headersBuilder = new HttpHeadersBuilder().withContentTypeJson();
 
-    if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
-      headersBuilder.withBasicAuth(username, password);
+    if (StringUtils.isNotBlank(target.getUsername())
+        && StringUtils.isNotBlank(target.getPassword())) {
+      headersBuilder.withBasicAuth(target.getUsername(), target.getPassword());
     }
+
+    Date startTime = new Date();
 
     HttpEntity<SystemInfo> requestEntity = new HttpEntity<>(systemInfo, headersBuilder.build());
 
@@ -121,7 +142,7 @@ public class DefaultMonitoringService implements MonitoringService {
     HttpStatus sc = null;
 
     try {
-      response = restTemplate.postForEntity(url, requestEntity, String.class);
+      response = restTemplate.postForEntity(target.getUrl(), requestEntity, String.class);
       sc = response.getStatusCode();
     } catch (HttpClientErrorException | HttpServerErrorException ex) {
       log.warn(String.format("Monitoring request failed, status code: %s", sc), ex);
@@ -135,9 +156,17 @@ public class DefaultMonitoringService implements MonitoringService {
       systemSettingManager.saveSystemSetting(
           SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH, startTime);
 
-      log.debug(String.format("Monitoring request successfully sent, url: %s", url));
+      log.debug(String.format("Monitoring request successfully sent, URL: %s", target.getUrl()));
     } else {
-      log.warn(String.format("Monitoring request was unsuccessful, status code: %s", sc));
+      log.warn(String.format("Monitoring request failed with status code: %s", sc));
     }
+  }
+
+  @Getter
+  @RequiredArgsConstructor
+  private static class MonitoringTarget {
+    private final String url;
+    private final String username;
+    private final String password;
   }
 }
