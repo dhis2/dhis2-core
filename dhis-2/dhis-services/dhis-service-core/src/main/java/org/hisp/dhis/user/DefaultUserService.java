@@ -647,7 +647,6 @@ public class DefaultUserService implements UserService {
 
   private void validateUserGroups(User user, User currentUser, List<ErrorReport> errors) {
 
-    // Validate user group
     boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
     if (canAdd) {
       return;
@@ -676,7 +675,6 @@ public class DefaultUserService implements UserService {
     boolean canGrantOwnUserRoles =
         systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
 
-    // Validate user roles
     if (userRoles != null) {
       List<UserRole> roles =
           userRoleStore.getByUid(

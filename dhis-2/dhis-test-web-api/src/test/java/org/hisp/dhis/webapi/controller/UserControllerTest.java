@@ -53,6 +53,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonBoolean;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.message.FakeMessageSender;
@@ -60,6 +61,8 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
@@ -86,6 +89,8 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   @Autowired private MessageSender messageSender;
 
   @Autowired private SecurityService securityService;
+
+  @Autowired private SystemSettingManager systemSettingManager;
 
   private User peter;
 
@@ -153,6 +158,76 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     User user = userService.getUser(peter.getUid());
     assertEquals("mapping value", user.getOpenId());
     assertEquals("mapping value", user.getUserCredentials().getOpenId());
+  }
+
+  /**
+   * Test that a user admin without the ALL authority can not update a user having the ALL
+   * authority.
+   */
+  @Test
+  void testUpdateRolesWithNoAllAndCanAssignRoles() {
+
+    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+
+    JsonImportSummary response = updateRolesNonAllAdmin();
+
+    JsonList<JsonErrorReport> errorReports =
+        response.getList("errorReports", JsonErrorReport.class);
+    assertEquals(errorReports.size(), 1);
+
+    assertEquals(
+        "User `someone` is not allowed to change a user having the ALL authority",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3041)
+            .getMessage());
+  }
+
+  @Test
+  void testUpdateRolesWithNoAllAndNoCanAssignRoles() {
+
+    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.FALSE);
+
+    JsonImportSummary response = updateRolesNonAllAdmin();
+
+    JsonList<JsonErrorReport> errorReports =
+        response.getList("errorReports", JsonErrorReport.class);
+    assertEquals(errorReports.size(), 2);
+
+    assertEquals(
+        "User `someone` is not allowed to change a user having the ALL authority",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3041)
+            .getMessage());
+
+    assertEquals(
+        "User `someone` is not allowed to change a user having the ALL authority",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3041)
+            .getMessage());
+  }
+
+  private JsonImportSummary updateRolesNonAllAdmin() {
+
+    UserRole roleB = createUserRole("ROLE_B", "NONE");
+    userService.addUserRole(roleB);
+
+    User user = createUserWithAuth("someone", "F_USER_ADD");
+    user.getUserRoles().add(roleB);
+    userService.updateUser(user);
+
+    switchContextToUser(user);
+
+    String roleBID = userService.getUserRoleByName("ROLE_B").getUid();
+
+    JsonImportSummary response =
+        PATCH(
+                "/users/" + superUser.getUid(),
+                "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleBID + "'}]}]")
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    return response;
   }
 
   @Test
