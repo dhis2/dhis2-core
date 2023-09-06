@@ -85,7 +85,7 @@ class DateValidator implements Validator<Event> {
     checkNotNull(event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL);
     checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
 
-    if (actingUser.isAuthorized(Authorities.F_EDIT_EXPIRED.getAuthority())) {
+    if (actingUser.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return;
     }
 

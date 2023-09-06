@@ -581,7 +581,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             .addDescSortItem(new QueryItem(piB))
             .addAscSortItem(new QueryItem(deA));
 
-    String sql = subject.getEventsOrEnrollmentsSql(eventQueryParamsBuilder.build(), 100);
+    String sql = subject.getAggregatedEnrollmentsSql(eventQueryParamsBuilder.build(), 100);
 
     assertThat(
         sql,

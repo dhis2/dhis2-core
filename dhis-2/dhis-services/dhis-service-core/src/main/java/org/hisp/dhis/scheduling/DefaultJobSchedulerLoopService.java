@@ -106,7 +106,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   @Override
   @Transactional(readOnly = true)
   public List<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds) {
-    return jobConfigurationService.getDueJobConfigurations(dueInNextSeconds);
+    return jobConfigurationService.getDueJobConfigurations(dueInNextSeconds, true, false);
   }
 
   @Override

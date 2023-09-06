@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.web.embeddedjetty;
 
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
-import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -48,7 +48,7 @@ public class SpringConfiguration {
   @Primary
   @Bean("org.hisp.dhis.security.SystemAuthoritiesProvider")
   public SystemAuthoritiesProvider systemAuthoritiesProvider() {
-    return () -> DefaultAdminUserPopulator.ALL_AUTHORITIES;
+    return Authorities::getAllAuthorities;
   }
 
   @Bean("org.hisp.dhis.web.embeddedjetty.StartupFinishedRoutine")

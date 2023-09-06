@@ -395,6 +395,6 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
   }
 
   private User deleteTeiAuthorisedUser() {
-    return makeUser("A", Lists.newArrayList(Authorities.F_TEI_CASCADE_DELETE.getAuthority()));
+    return makeUser("A", Lists.newArrayList(Authorities.F_TEI_CASCADE_DELETE.name()));
   }
 }

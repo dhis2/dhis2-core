@@ -28,107 +28,69 @@
 package org.hisp.dhis.userdatastore;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Stian Sandvold
  */
+@Getter
+@Setter
+@ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
+@NoArgsConstructor
 public class UserDatastoreEntry extends BaseIdentifiableObject {
-  /** A namespace is a collection of keys for a given user */
-  private String namespace;
+  /** A namespace represents a collection of keys */
+  @JsonProperty @ToString.Include @EqualsAndHashCode.Include private String namespace;
 
-  /** A key belongs to a namespace and user, and represent a value */
-  private String key;
+  /** A key belongs to a namespace, and represent a value */
+  @JsonProperty @ToString.Include @EqualsAndHashCode.Include private String key;
 
   /**
-   * A value referenced by a key, namespace and user, JSON-formatted data stored as a jsonb in db
+   * A value referenced by a key and namespace, JSON-formatted data stored as a string but in a
+   * jsonb column.
    */
   private String jbPlainValue;
 
-  /** The encrypted value of the object, if encrypted is true */
-  private String encryptedValue;
-
-  /** Indicates whether the value should be encrypted or not. */
+  /** Whether this KeyJsonValue is encrypted or not. Default is false. */
   private Boolean encrypted = false;
 
+  /** Encrypted value if encrypted is set to true */
+  private String encryptedValue;
+
   /**
-   * Temporary variable to hold any new values set during session. Will be made into the correct
+   * Transient variable to hold any new values set during session. Will be made into the correct
    * type when being persisted by the persistence layer (encrypted or plain).
    */
-  private String value;
+  private transient String value;
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+  public UserDatastoreEntry(String namespace, String key) {
+    this(namespace, key, null, false);
+  }
 
-  public UserDatastoreEntry() {}
-
-  public UserDatastoreEntry(
-      User user, String namespace, String key, String value, Boolean encrypted) {
+  public UserDatastoreEntry(String namespace, String key, String value, boolean encrypted) {
     this.namespace = namespace;
     this.key = key;
     this.value = value;
     this.encrypted = encrypted;
-    this.setCreatedBy(user);
-  }
-
-  // -------------------------------------------------------------------------
-  // Get and set methods
-  // -------------------------------------------------------------------------
-
-  @JsonProperty
-  public String getNamespace() {
-    return namespace;
-  }
-
-  public void setNamespace(String namespace) {
-    this.namespace = namespace;
   }
 
   @JsonProperty
-  public String getKey() {
-    return key;
-  }
-
-  public void setKey(String key) {
-    this.key = key;
-  }
-
-  @JsonProperty
+  @ToString.Include
+  @EqualsAndHashCode.Include
   public String getValue() {
-    return isEncrypted() ? getEncryptedValue() : getJbPlainValue();
-  }
-
-  public void setValue(String value) {
-    this.value = value;
+    return encrypted ? getEncryptedValue() : getJbPlainValue();
   }
 
   public String getJbPlainValue() {
-    return !isEncrypted() && value != null ? value : jbPlainValue;
-  }
-
-  public void setJbPlainValue(String jbPlainValue) {
-    this.jbPlainValue = jbPlainValue;
+    return !encrypted && value != null ? value : jbPlainValue;
   }
 
   public String getEncryptedValue() {
-    return isEncrypted() && value != null ? value : encryptedValue;
-  }
-
-  public void setEncryptedValue(String encryptedValue) {
-    this.encryptedValue = encryptedValue;
-  }
-
-  public boolean getEncrypted() {
-    return encrypted;
-  }
-
-  public void setEncrypted(boolean encrypted) {
-    this.encrypted = encrypted;
-  }
-
-  private boolean isEncrypted() {
-    return encrypted != null && encrypted;
+    return encrypted && value != null ? value : encryptedValue;
   }
 }

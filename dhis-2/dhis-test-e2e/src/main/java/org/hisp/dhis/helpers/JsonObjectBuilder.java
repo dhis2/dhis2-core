@@ -42,9 +42,9 @@ import org.hisp.dhis.utils.SharingUtils;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class JsonObjectBuilder {
-  private JsonObject jsonObject;
+  private final JsonObject jsonObject;
 
-  private Configuration jsonPathConfiguration =
+  private final Configuration jsonPathConfiguration =
       Configuration.builder()
           .jsonProvider(new GsonJsonProvider())
           .options(
@@ -80,8 +80,6 @@ public class JsonObjectBuilder {
    *
    * @param path eg "events[0]
    * @param propertyName eg "event"
-   * @param value
-   * @return
    */
   public JsonObjectBuilder addPropertyByJsonPath(String path, String propertyName, String value) {
     JsonPath.using(jsonPathConfiguration).parse(jsonObject).put(path, propertyName, value);
@@ -134,8 +132,8 @@ public class JsonObjectBuilder {
 
   public JsonObjectBuilder addArray(String property, JsonObject... objects) {
     JsonArray array = new JsonArray();
-    for (int i = 0; i < objects.length; i++) {
-      array.add(objects[i]);
+    for (JsonObject object : objects) {
+      array.add(object);
     }
 
     jsonObject.add(property, array);
@@ -171,8 +169,8 @@ public class JsonObjectBuilder {
 
   public JsonObjectBuilder addOrAppendToArray(String property, JsonObject... objects) {
     if (jsonObject.has(property)) {
-      for (int i = 0; i < objects.length; i++) {
-        jsonObject.getAsJsonArray(property).add(objects[i]);
+      for (JsonObject object : objects) {
+        jsonObject.getAsJsonArray(property).add(object);
       }
     } else {
       addArray(property, objects);

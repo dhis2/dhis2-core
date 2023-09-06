@@ -323,7 +323,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>fop</artifactId>
+      <artifactId>fop-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.xmlgraphics</groupId>

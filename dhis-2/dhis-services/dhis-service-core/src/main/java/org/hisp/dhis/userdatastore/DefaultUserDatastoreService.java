@@ -28,7 +28,15 @@
 package org.hisp.dhis.userdatastore;
 
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.datastore.DatastoreFields;
+import org.hisp.dhis.datastore.DatastoreQuery;
+import org.hisp.dhis.datastore.DatastoreQueryValidator;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,50 +47,86 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class DefaultUserDatastoreService implements UserDatastoreService {
-  private final UserDatastoreStore userDatastoreStore;
+
+  private final UserDatastoreStore store;
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean isUsedNamespace(User user, String namespace) {
+    return store.countKeysInNamespace(user, namespace) > 0;
+  }
 
   @Override
   @Transactional(readOnly = true)
   public UserDatastoreEntry getUserEntry(User user, String namespace, String key) {
-    return userDatastoreStore.getUserKeyJsonValue(user, namespace, key);
+    return store.getEntry(user, namespace, key);
   }
 
   @Override
   @Transactional
-  public long addUserEntry(UserDatastoreEntry entry) {
-    userDatastoreStore.save(entry);
+  public long addEntry(UserDatastoreEntry entry) throws ConflictException, BadRequestException {
+    if (getUserEntry(entry.getUser(), entry.getNamespace(), entry.getKey()) != null) {
+      throw new ConflictException(
+          String.format(
+              "Key '%s' already exists in namespace '%s'", entry.getKey(), entry.getNamespace()));
+    }
+    validateEntry(entry);
+    store.save(entry);
     return entry.getId();
   }
 
   @Override
   @Transactional
-  public void updateUserEntry(UserDatastoreEntry entry) {
-    userDatastoreStore.update(entry);
+  public void updateEntry(UserDatastoreEntry entry) throws BadRequestException {
+    validateEntry(entry);
+    store.update(entry);
   }
 
   @Override
   @Transactional
-  public void deleteUserEntry(UserDatastoreEntry entry) {
-    userDatastoreStore.delete(entry);
+  public void deleteEntry(UserDatastoreEntry entry) {
+    store.delete(entry);
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<String> getNamespacesByUser(User user) {
-    return userDatastoreStore.getNamespacesByUser(user);
+    return store.getNamespaces(user);
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<String> getKeysByUserAndNamespace(User user, String namespace) {
-    return userDatastoreStore.getKeysByUserAndNamespace(user, namespace);
+    return store.getKeysInNamespace(user, namespace);
   }
 
   @Override
   @Transactional
-  public void deleteNamespaceFromUser(User user, String namespace) {
-    userDatastoreStore
-        .getUserKeyJsonValueByUserAndNamespace(user, namespace)
-        .forEach(userDatastoreStore::delete);
+  public void deleteNamespace(User user, String namespace) {
+    store.getEntriesInNamespace(user, namespace).forEach(store::delete);
+  }
+
+  @Override
+  public DatastoreQuery plan(DatastoreQuery query) throws ConflictException {
+    DatastoreQueryValidator.validate(query);
+    return query;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public <T> T getEntries(
+      User user, DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform)
+      throws ConflictException {
+    DatastoreQueryValidator.validate(query);
+    return store.getEntries(user, query, transform);
+  }
+
+  private void validateEntry(UserDatastoreEntry entry) throws BadRequestException {
+    try {
+      JsonNode.of(entry.getValue()).visit(JsonNode::value);
+    } catch (RuntimeException e) {
+      throw new BadRequestException(
+          String.format("Invalid JSON value for key '%s'", entry.getKey()));
+    }
   }
 }

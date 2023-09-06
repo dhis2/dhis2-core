@@ -91,10 +91,10 @@
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.1</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
-    <dhis-json-tree.version>0.9.0</dhis-json-tree.version>
+    <dhis-json-tree.version>0.10.1</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.8.5</spring-security.version>
+    <spring-security.version>5.8.6</spring-security.version>
 
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
@@ -105,17 +105,17 @@
 
     <!-- Spring -->
     <spring.version>5.3.29</spring.version>
-    <spring-data-redis.version>2.7.14</spring-data-redis.version>
-    <spring-session-data-redis.version>2.7.2</spring-session-data-redis.version>
+    <spring-data-redis.version>2.7.15</spring-data-redis.version>
+    <spring-session-data-redis.version>2.7.3</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
     <spring-retry.version>1.3.4</spring-retry.version>
     <spring-restdocs.version>2.0.7.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.1</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.2.5.RELEASE</lettuce.version>
+    <lettuce.version>6.2.6.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.21.1</flyway-core.version>
+    <flyway-core.version>9.22.0</flyway-core.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -157,15 +157,15 @@
     <itext.version>2.1.7</itext.version>
 
     <!-- GIS -->
-    <batik-transcoder.version>1.16</batik-transcoder.version>
-    <fop.version>2.8</fop.version>
+    <batik-transcoder.version>1.17</batik-transcoder.version>
+    <fop.version>2.9</fop.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
     <geotools.version>29.2</geotools.version>
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
     <artemis.version>2.30.0</artemis.version>
-    <netty-all.version>4.1.96.Final</netty-all.version>
+    <netty-all.version>4.1.97.Final</netty-all.version>
     <classgraph.version>4.8.162</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -175,7 +175,7 @@
     <jsmpp.version>3.0.0</jsmpp.version>
     <json-path.version>2.8.0</json-path.version>
     <jsoup.version>1.16.1</jsoup.version>
-    <jetty.version>10.0.15</jetty.version>
+    <jetty.version>10.0.16</jetty.version>
 
     <!-- Div. utils -->
     <guava.version>32.1.2-jre</guava.version>
@@ -203,25 +203,25 @@
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
-    <micrometer.version>1.11.2</micrometer.version>
+    <micrometer.version>1.11.3</micrometer.version>
 
     <!-- Logging -->
     <log4j.version>2.20.0</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
-    <junit.version>5.9.3</junit.version>
+    <junit.version>5.10.0</junit.version>
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
-    <testcontainers.version>1.18.3</testcontainers.version>
+    <testcontainers.version>1.19.0</testcontainers.version>
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
     <swagger.version>2.1.16</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
-    <h2.version>2.2.220</h2.version>
+    <h2.version>2.2.222</h2.version>
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
     <!-- Maven plugin versions -->
@@ -231,13 +231,13 @@
     <maven-failsafe-plugin.version>3.1.2</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
-    <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
+    <maven-enforcer-plugin.version>3.4.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.4.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.16.0</versions-maven-plugin.version>
-    <dependency-check-maven.version>8.3.1</dependency-check-maven.version>
+    <dependency-check-maven.version>8.4.0</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.7.3.5</spotbugs-maven-plugin.version>
-    <spotless.version>2.38.0</spotless.version>
+    <spotless.version>2.39.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.34</dhis-antlr-expression-parser.version>
@@ -1204,7 +1204,7 @@
       </dependency>
       <dependency>
         <groupId>org.apache.xmlgraphics</groupId>
-        <artifactId>fop</artifactId>
+        <artifactId>fop-core</artifactId>
         <version>${fop.version}</version>
         <exclusions>
           <exclusion>

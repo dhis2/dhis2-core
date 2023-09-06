@@ -57,7 +57,7 @@ public class AnalyticsSetupExtension implements BeforeAllCallback {
   /** Max limit, in minutes, until the process is timed-out. */
   private static final long TIMEOUT = minutes(25);
 
-  private static AtomicBoolean run = new AtomicBoolean(false);
+  private static final AtomicBoolean run = new AtomicBoolean(false);
 
   @Override
   public void beforeAll(ExtensionContext context) {

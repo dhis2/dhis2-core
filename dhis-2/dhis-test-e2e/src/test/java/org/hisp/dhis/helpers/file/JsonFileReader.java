@@ -66,9 +66,6 @@ public class JsonFileReader implements FileReader {
 
   /***
    * Replaces all occurrences of a string with unique generated id
-   *
-   * @param strToReplace
-   * @return
    */
   public JsonFileReader replaceStringsWithIds(String... strToReplace) {
     String replacedJson = obj.toString();
