@@ -29,103 +29,86 @@ package org.hisp.dhis.dxf2.dataset.tasks;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
+import org.hisp.dhis.dxf2.importsummary.ImportCount;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.security.SecurityContextRunnable;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
-public class ImportCompleteDataSetRegistrationsTask extends SecurityContextRunnable {
-  public static final String FORMAT_JSON = "json", FORMAT_XML = "xml";
+@Component
+@RequiredArgsConstructor
+public class ImportCompleteDataSetRegistrationsTask implements Job {
 
-  private String format;
-
-  private InputStream input;
-
-  private Path tmpFile;
-
-  private ImportOptions importOptions;
-
-  private JobConfiguration id;
-
-  private SessionFactory sessionFactory;
-
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
-  private CompleteDataSetRegistrationExchangeService registrationService;
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public ImportCompleteDataSetRegistrationsTask(
-      CompleteDataSetRegistrationExchangeService registrationService,
-      SessionFactory sessionFactory,
-      InputStream input,
-      Path tmpFile,
-      ImportOptions importOptions,
-      String format,
-      JobConfiguration id) {
-    this.registrationService = registrationService;
-    this.sessionFactory = sessionFactory;
-    this.input = input;
-    this.tmpFile = tmpFile;
-    this.importOptions = importOptions;
-    this.format = format;
-    this.id = id;
-  }
-
-  // -------------------------------------------------------------------------
-  // SecurityContextRunnable implementation
-  // -------------------------------------------------------------------------
+  private final CompleteDataSetRegistrationExchangeService registrationService;
+  private final FileResourceService fileResourceService;
+  private final SessionFactory sessionFactory;
 
   @Override
-  public void call() {
-    try {
-      if (FORMAT_XML.equals(format)) {
-        registrationService.saveCompleteDataSetRegistrationsXml(input, importOptions, id);
-      } else if (FORMAT_JSON.equals(format)) {
-        registrationService.saveCompleteDataSetRegistrationsJson(input, importOptions, id);
-      }
-    } finally {
-      cleanUpTmpFile(tmpFile);
-    }
+  public JobType getJobType() {
+    return JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT;
   }
 
   @Override
-  public void before() {
+  public void execute(JobConfiguration jobConfig, JobProgress progress) {
+    //from security context runnable
     DbmsUtils.bindSessionToThread(sessionFactory);
-  }
 
-  @Override
-  public void after() {
-    DbmsUtils.unbindSessionFromThread(sessionFactory);
-  }
+    progress.startingProcess("Complete data set registration import");
+    ImportOptions options = (ImportOptions) jobConfig.getJobParameters();
 
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
+    progress.startingStage("Loading file resource");
+    FileResource data =
+        progress.runStage(() -> fileResourceService.getFileResource(jobConfig.getUid()));
 
-  private void cleanUpTmpFile(Path tmpFile) {
-    if (tmpFile == null) {
-      return;
-    }
-
-    try {
-      Files.deleteIfExists(tmpFile);
-    } catch (IOException ignored) {
-      // Intentionally ignored
-      log.warn("Deleting temporary file failed: " + tmpFile, ignored);
+    progress.startingStage("Loading file content");
+    try (InputStream input =
+        progress.runStage(() -> fileResourceService.getFileResourceContent(data))) {
+      String contentType = data.getContentType();
+      progress.startingStage("Importing data...");
+      ImportSummary summary =
+          switch (contentType) {
+            case "application/json" -> progress.runStage(
+                () -> registrationService.saveCompleteDataSetRegistrationsJson(input, options, jobConfig));
+            case "application/xml" -> progress.runStage(
+                () -> registrationService.saveCompleteDataSetRegistrationsXml(input, options, jobConfig));
+            default -> {
+              progress.failedStage("Unknown format: " + contentType);
+              yield null;
+            }
+          };
+      if (summary == null) {
+        progress.failedProcess("Import failed, no summary available");
+        return;
+      }
+      ImportCount count = summary.getImportCount();
+      progress.completedProcess(
+          "Import complete with status %s, %d created, %d updated, %d deleted, %d ignored"
+              .formatted(
+                  summary.getStatus(),
+                  count.getImported(),
+                  count.getUpdated(),
+                  count.getDeleted(),
+                  count.getIgnored()));
+    } catch (IOException ex) {
+      progress.failedProcess(ex);
+    } finally{
+      fileResourceService.deleteFileResource(data); //todo not sure if needed, do jobs auto clean up & remove file?
+      //from security context runnable
+      DbmsUtils.unbindSessionFromThread(sessionFactory);
     }
   }
 }

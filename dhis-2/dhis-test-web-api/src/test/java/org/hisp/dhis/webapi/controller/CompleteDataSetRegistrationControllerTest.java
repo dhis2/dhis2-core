@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -45,7 +45,7 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
-class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienceTest {
+class CompleteDataSetRegistrationControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void testPostCompleteRegistrationsJson() {
@@ -91,5 +91,26 @@ class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienc
     assertEquals(HttpStatus.OK, response.status());
     String content = response.content(MediaType.APPLICATION_XML.toString());
     assertTrue(content.startsWith("<importSummary "));
+  }
+
+  @Test
+  void testPostCompleteRegistrationsJsonAsync() {
+    HttpResponse response = POST("/completeDataSetRegistrations?async=true", "{}");
+    assertEquals(HttpStatus.OK, response.status());
+    assertTrue(
+        response.content().toString().contains("Initiated COMPLETE_DATA_SET_REGISTRATION_IMPORT"));
+  }
+
+  @Test
+  void testPostCompleteRegistrationsXmlAsync() {
+    HttpResponse response =
+        POST(
+            "/completeDataSetRegistrations?async=true",
+            Body("<completeDataSetRegistrations></completeDataSetRegistrations>"),
+            ContentType(CONTENT_TYPE_XML),
+            Accept(CONTENT_TYPE_XML));
+    assertEquals(HttpStatus.OK, response.status());
+    String content = response.content(MediaType.APPLICATION_XML.toString());
+    assertTrue(content.contains("Initiated COMPLETE_DATA_SET_REGISTRATION_IMPORT"));
   }
 }
