@@ -171,7 +171,6 @@ case-sensitive properties
 * `followup`
 * `occurredAt`
 * `orgUnit`
-* `orgUnitName`
 * `program`
 * `programStage`
 * `scheduledAt`

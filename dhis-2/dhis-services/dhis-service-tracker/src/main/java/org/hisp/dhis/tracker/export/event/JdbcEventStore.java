@@ -156,7 +156,6 @@ class JdbcEventStore implements EventStore {
   private static final String COLUMN_ENROLLMENT_STATUS = "en_status";
   private static final String COLUMN_ENROLLMENT_DATE = "en_enrollmentdate";
   private static final String COLUMN_ORG_UNIT_UID = "orgunit_uid";
-  private static final String COLUMN_ORG_UNIT_NAME = "orgunit_name";
   private static final String COLUMN_TRACKEDENTITY_UID = "te_uid";
   private static final String COLUMN_EVENT_EXECUTION_DATE = "ev_executiondate";
   private static final String COLUMN_ENROLLMENT_FOLLOWUP = "en_followup";
@@ -189,7 +188,6 @@ class JdbcEventStore implements EventStore {
           entry("enrollment.status", COLUMN_ENROLLMENT_STATUS),
           entry("enrollment.enrollmentDate", COLUMN_ENROLLMENT_DATE),
           entry("organisationUnit.uid", COLUMN_ORG_UNIT_UID),
-          entry("organisationUnit.name", COLUMN_ORG_UNIT_NAME),
           entry("enrollment.trackedEntity.uid", COLUMN_TRACKEDENTITY_UID),
           entry("executionDate", COLUMN_EVENT_EXECUTION_DATE),
           entry("enrollment.followup", COLUMN_ENROLLMENT_FOLLOWUP),
@@ -295,7 +293,6 @@ class JdbcEventStore implements EventStore {
               enrollment.setTrackedEntity(te);
               OrganisationUnit ou = new OrganisationUnit();
               ou.setUid(resultSet.getString(COLUMN_ORG_UNIT_UID));
-              ou.setName(resultSet.getString(COLUMN_ORG_UNIT_NAME));
               ProgramStage ps = new ProgramStage();
               ps.setUid(resultSet.getString("ps_identifier"));
               event.setDeleted(resultSet.getBoolean(COLUMN_EVENT_DELETED));
@@ -739,9 +736,7 @@ class JdbcEventStore implements EventStore {
                 + ", en.enrollmentdate as "
                 + COLUMN_ENROLLMENT_DATE
                 + ", en.incidentdate as en_incidentdate, ")
-        .append("p.type as p_type, ou.name as ")
-        .append(COLUMN_ORG_UNIT_NAME)
-        .append(", ")
+        .append("p.type as p_type, ")
         .append("te.trackedentityid as te_id, te.uid as ")
         .append(COLUMN_TRACKEDENTITY_UID)
         .append(
