@@ -179,6 +179,7 @@ public enum ErrorCode {
   E3026("Could not generate QR code"),
   E3027("No currentUser available"),
   E3028("User `{0}` does not have access to user role"),
+  E3041("User `{0}` is not allowed to change a user having the ALL authority"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),
