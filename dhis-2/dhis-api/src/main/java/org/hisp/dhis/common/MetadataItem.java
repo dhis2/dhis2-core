@@ -98,7 +98,7 @@ public class MetadataItem implements Serializable {
 
   @JsonProperty private ObjectStyle style;
 
-  @JsonProperty private List<Map<String, String>> options = new ArrayList<>();
+  @JsonProperty private List<Map<String, String>> options;
 
   private transient String serverBaseUrl;
 
@@ -180,6 +180,8 @@ public class MetadataItem implements Serializable {
   private void addOptions(OptionSet optionSet, Set<Option> withOptions) {
     List<Option> allOptions = optionSet.getOptions();
     if (isNotEmpty(withOptions) && isNotEmpty(allOptions)) {
+      this.options = new ArrayList<>();
+
       withOptions.forEach(
           option -> {
             if (option != null && allOptions.contains(option)) {

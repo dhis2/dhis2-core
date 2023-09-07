@@ -48,7 +48,7 @@ public class EnrollmentsAggregate3AutoTest extends AnalyticsApiTest {
   private final AnalyticsEnrollmentsActions actions = new AnalyticsEnrollmentsActions();
 
   @Test
-  public void queryAggregatedenrollmentsbirthgenderthisyearlast12monthslevel2twice()
+  public void queryAggregatedEnrollmentsBirthGenderThisYearLast12MonthsLevel2Twice()
       throws JSONException {
     // Given
     QueryParamsBuilder params =
@@ -88,6 +88,40 @@ public class EnrollmentsAggregate3AutoTest extends AnalyticsApiTest {
         response, 3, "A03MvHHogjR.cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
 
     // Assert rows.
+    validateRow(response, List.of("60", "kJq2mPyFEHo", "202208", "Female"));
+    validateRow(response, List.of("59", "kJq2mPyFEHo", "202208", "Male"));
+    validateRow(response, List.of("45", "kJq2mPyFEHo", "202209", "Female"));
+    validateRow(response, List.of("31", "kJq2mPyFEHo", "202209", "Male"));
+    validateRow(response, List.of("57", "kJq2mPyFEHo", "202210", "Female"));
+    validateRow(response, List.of("34", "kJq2mPyFEHo", "202210", "Male"));
+    validateRow(response, List.of("40", "kJq2mPyFEHo", "202211", "Female"));
+    validateRow(response, List.of("42", "kJq2mPyFEHo", "202211", "Male"));
+    validateRow(response, List.of("46", "kJq2mPyFEHo", "202212", "Female"));
+    validateRow(response, List.of("46", "kJq2mPyFEHo", "202212", "Male"));
+    validateRow(response, List.of("30", "kJq2mPyFEHo", "202301", "Female"));
+    validateRow(response, List.of("33", "kJq2mPyFEHo", "202301", "Male"));
+    validateRow(response, List.of("37", "kJq2mPyFEHo", "202302", "Female"));
+    validateRow(response, List.of("33", "kJq2mPyFEHo", "202302", "Male"));
+    validateRow(response, List.of("35", "kJq2mPyFEHo", "202303", "Female"));
+    validateRow(response, List.of("31", "kJq2mPyFEHo", "202303", "Male"));
+    validateRow(response, List.of("40", "kJq2mPyFEHo", "202304", "Female"));
+    validateRow(response, List.of("38", "kJq2mPyFEHo", "202304", "Male"));
+    validateRow(response, List.of("41", "kJq2mPyFEHo", "202305", "Female"));
+    validateRow(response, List.of("38", "kJq2mPyFEHo", "202305", "Male"));
+    validateRow(response, List.of("31", "kJq2mPyFEHo", "202306", "Female"));
+    validateRow(response, List.of("46", "kJq2mPyFEHo", "202306", "Male"));
+    validateRow(response, List.of("28", "kJq2mPyFEHo", "202307", "Female"));
+    validateRow(response, List.of("43", "kJq2mPyFEHo", "202307", "Male"));
+    validateRow(response, List.of("31", "kJq2mPyFEHo", "202308", "Female"));
+    validateRow(response, List.of("35", "kJq2mPyFEHo", "202308", "Male"));
+    validateRow(response, List.of("47", "kJq2mPyFEHo", "202309", "Female"));
+    validateRow(response, List.of("33", "kJq2mPyFEHo", "202309", "Male"));
+    validateRow(response, List.of("35", "kJq2mPyFEHo", "202310", "Female"));
+    validateRow(response, List.of("41", "kJq2mPyFEHo", "202310", "Male"));
+    validateRow(response, List.of("38", "kJq2mPyFEHo", "202311", "Female"));
+    validateRow(response, List.of("36", "kJq2mPyFEHo", "202311", "Male"));
+    validateRow(response, List.of("28", "kJq2mPyFEHo", "202312", "Female"));
+    validateRow(response, List.of("45", "kJq2mPyFEHo", "202312", "Male"));
     validateRow(response, List.of("53", "O6uvpzGd5pu", "202208", "Female"));
     validateRow(response, List.of("51", "O6uvpzGd5pu", "202208", "Male"));
     validateRow(response, List.of("1", "O6uvpzGd5pu", "202208", ""));
@@ -104,40 +138,6 @@ public class EnrollmentsAggregate3AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("45", "O6uvpzGd5pu", "202301", "Male"));
     validateRow(response, List.of("34", "O6uvpzGd5pu", "202302", "Female"));
     validateRow(response, List.of("32", "O6uvpzGd5pu", "202302", "Male"));
-    validateRow(response, List.of("31", "O6uvpzGd5pu", "202303", "Female"));
-    validateRow(response, List.of("46", "O6uvpzGd5pu", "202303", "Male"));
-    validateRow(response, List.of("38", "O6uvpzGd5pu", "202304", "Female"));
-    validateRow(response, List.of("35", "O6uvpzGd5pu", "202304", "Male"));
-    validateRow(response, List.of("37", "O6uvpzGd5pu", "202305", "Female"));
-    validateRow(response, List.of("29", "O6uvpzGd5pu", "202305", "Male"));
-    validateRow(response, List.of("33", "O6uvpzGd5pu", "202306", "Female"));
-    validateRow(response, List.of("39", "O6uvpzGd5pu", "202306", "Male"));
-    validateRow(response, List.of("35", "O6uvpzGd5pu", "202307", "Female"));
-    validateRow(response, List.of("37", "O6uvpzGd5pu", "202307", "Male"));
-    validateRow(response, List.of("37", "O6uvpzGd5pu", "202308", "Female"));
-    validateRow(response, List.of("34", "O6uvpzGd5pu", "202308", "Male"));
-    validateRow(response, List.of("26", "O6uvpzGd5pu", "202309", "Female"));
-    validateRow(response, List.of("36", "O6uvpzGd5pu", "202309", "Male"));
-    validateRow(response, List.of("31", "O6uvpzGd5pu", "202310", "Female"));
-    validateRow(response, List.of("32", "O6uvpzGd5pu", "202310", "Male"));
-    validateRow(response, List.of("33", "O6uvpzGd5pu", "202311", "Female"));
-    validateRow(response, List.of("37", "O6uvpzGd5pu", "202311", "Male"));
-    validateRow(response, List.of("46", "O6uvpzGd5pu", "202312", "Female"));
-    validateRow(response, List.of("39", "O6uvpzGd5pu", "202312", "Male"));
-    validateRow(response, List.of("60", "kJq2mPyFEHo", "202208", "Female"));
-    validateRow(response, List.of("59", "kJq2mPyFEHo", "202208", "Male"));
-    validateRow(response, List.of("45", "kJq2mPyFEHo", "202209", "Female"));
-    validateRow(response, List.of("31", "kJq2mPyFEHo", "202209", "Male"));
-    validateRow(response, List.of("57", "kJq2mPyFEHo", "202210", "Female"));
-    validateRow(response, List.of("34", "kJq2mPyFEHo", "202210", "Male"));
-    validateRow(response, List.of("40", "kJq2mPyFEHo", "202211", "Female"));
-    validateRow(response, List.of("42", "kJq2mPyFEHo", "202211", "Male"));
-    validateRow(response, List.of("46", "kJq2mPyFEHo", "202212", "Female"));
-    validateRow(response, List.of("46", "kJq2mPyFEHo", "202212", "Male"));
-    validateRow(response, List.of("30", "kJq2mPyFEHo", "202301", "Female"));
-    validateRow(response, List.of("33", "kJq2mPyFEHo", "202301", "Male"));
-    validateRow(response, List.of("37", "kJq2mPyFEHo", "202302", "Female"));
-    validateRow(response, List.of("33", "kJq2mPyFEHo", "202302", "Male"));
     validateRow(response, List.of("421", "O6uvpzGd5pu", "2023", "Female"));
     validateRow(response, List.of("452", "kJq2mPyFEHo", "2023", "Male"));
     validateRow(response, List.of("248", "kJq2mPyFEHo", "2022", "Female"));
