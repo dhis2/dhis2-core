@@ -626,7 +626,6 @@ public class DefaultUserService implements UserService {
       return errors;
     }
 
-    // Validate if the current user can create/modify users with the ALL authority
     User userToChange = userStore.get(user.getId());
     if (!currentUser.isSuper() && userToChange != null && userToChange.isSuper()) {
       errors.add(new ErrorReport(User.class, ErrorCode.E3041, currentUser.getUsername()));
@@ -646,7 +645,6 @@ public class DefaultUserService implements UserService {
     }
 
     boolean canAddInGroup = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD_IN_GROUP);
-
     if (!canAddInGroup) {
       errors.add(new ErrorReport(UserGroup.class, ErrorCode.E3004, currentUser));
       return;
@@ -697,6 +695,11 @@ public class DefaultUserService implements UserService {
     }
 
     if (!currentUser.isSuper() && role.isSuper()) {
+      errors.add(new ErrorReport(UserRole.class, ErrorCode.E3032, currentUser.getUsername()));
+    }
+
+    UserRole userRoleBefore = userRoleStore.get(role.getId());
+    if (!currentUser.isSuper() && userRoleBefore != null && userRoleBefore.isSuper()) {
       errors.add(new ErrorReport(UserRole.class, ErrorCode.E3032, currentUser.getUsername()));
     }
 
