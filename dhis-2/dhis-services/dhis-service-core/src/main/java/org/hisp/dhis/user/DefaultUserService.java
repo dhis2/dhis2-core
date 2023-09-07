@@ -676,6 +676,22 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  public List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole role, User currentUser) {
+
+    List<ErrorReport> errors = new ArrayList<>();
+
+    if (currentUser == null || role == null) {
+      return errors;
+    }
+
+    if (!currentUser.isSuper() && role.isSuper()) {
+      errors.add(new ErrorReport(UserRole.class, ErrorCode.E3032, currentUser.getUsername()));
+    }
+
+    return errors;
+  }
+
+  @Override
   public List<UserAccountExpiryInfo> getExpiringUserAccounts(int inDays) {
     return userStore.getExpiringUserAccounts(inDays);
   }
