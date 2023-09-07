@@ -114,4 +114,9 @@ public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
 
   /** flag to enable row context in grid response */
   private boolean rowContext;
+
+  /** Returns true when parameters are incoming from analytics enrollments/aggregate endpoint. */
+  public boolean isAggregatedEnrollments() {
+    return isAggregateEndpoint() && isEnrollmentEndpointItem();
+  }
 }
