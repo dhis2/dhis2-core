@@ -369,7 +369,14 @@ public interface UserService {
    */
   void canIssueFilter(Collection<UserRole> userRoles);
 
-  List<ErrorReport> validateUser(User user, User currentUser);
+  /**
+   * Validate that the current user are allowed to create or modify properties of the given user.
+   *
+   * @param user
+   * @param currentUser
+   * @return
+   */
+  List<ErrorReport> validateUserCreateOrUpdate(User user, User currentUser);
 
   /**
    * Returns list of active users who are expiring with in few days.
