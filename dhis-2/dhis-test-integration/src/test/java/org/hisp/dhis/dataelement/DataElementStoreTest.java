@@ -28,6 +28,7 @@
 package org.hisp.dhis.dataelement;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -47,6 +49,8 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -60,6 +64,13 @@ class DataElementStoreTest extends SingleSetupIntegrationTestBase {
   @Autowired private AttributeService attributeService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
+
+  @Autowired private UserService _userService;
+
+  @Override
+  public void setUpTest() {
+    userService = _userService;
+  }
 
   // -------------------------------------------------------------------------
   // Tests
@@ -367,5 +378,24 @@ class DataElementStoreTest extends SingleSetupIntegrationTestBase {
     assertEquals(0, dataElementStore.getCountGeCreated(new Date()));
     assertEquals(2, dataElementStore.getCountGeCreated(dataElementA.getCreated()));
     assertEquals(2, dataElementStore.getCountGeLastUpdated(dataElementA.getLastUpdated()));
+  }
+
+  @Test
+  void testExistsByUser() {
+    User userA = createAndAddUser("userA");
+    User userB = createAndAddAdminUser("ALL");
+    DataElement dataElementA = createDataElement('A');
+    dataElementA.setCreatedBy(userA);
+    dataElementStore.save(dataElementA);
+    assertTrue(dataElementStore.existsByUser(userA, Set.of("createdBy")));
+    assertFalse(dataElementStore.existsByUser(userB, Set.of("createdBy")));
+
+    dataElementA.setDescription("update");
+    dataElementStore.update(dataElementA, userB);
+    assertFalse(dataElementStore.existsByUser(userA, Set.of("lastUpdatedBy")));
+    assertTrue(dataElementStore.existsByUser(userB, Set.of("lastUpdatedBy")));
+
+    assertFalse(dataElementStore.existsByUser(userB, Set.of("name")));
+    assertTrue(dataElementStore.existsByUser(userB, Set.of("createdBy", "lastUpdatedBy")));
   }
 }
