@@ -388,6 +388,8 @@ public interface UserService {
    */
   List<ErrorReport> validateUserCreateOrUpdate(User user, User currentUser);
 
+  List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole user, User currentUser);
+
   /**
    * @param inDays number of days to include
    * @return list of those users that are about to expire in the provided number of days (or less)
