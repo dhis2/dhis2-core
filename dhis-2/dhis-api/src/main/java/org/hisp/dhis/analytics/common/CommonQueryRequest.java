@@ -43,6 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 
 /**
@@ -226,5 +227,10 @@ public class CommonQueryRequest {
    */
   public boolean hasEventStatus() {
     return emptyIfNull(eventStatus).stream().anyMatch(StringUtils::isNotBlank);
+  }
+
+  @OpenApi.Ignore
+  public DimensionalItemObject getValue() {
+    return value;
   }
 }

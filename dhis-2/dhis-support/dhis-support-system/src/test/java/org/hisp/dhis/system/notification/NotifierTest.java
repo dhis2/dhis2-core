@@ -67,23 +67,20 @@ class NotifierTest extends DhisConvenienceTest {
   private final JobConfiguration dataValueImportFourthConfig;
 
   public NotifierTest() {
-    dataValueImportJobConfig = new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid(), false);
+    dataValueImportJobConfig = new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid());
     dataValueImportJobConfig.setUid("dvi1");
-    analyticsTableJobConfig = new JobConfiguration(null, ANALYTICS_TABLE, user.getUid(), false);
+    analyticsTableJobConfig = new JobConfiguration(null, ANALYTICS_TABLE, user.getUid());
     analyticsTableJobConfig.setUid("at1");
-    metadataImportJobConfig = new JobConfiguration(null, METADATA_IMPORT, user.getUid(), false);
+    metadataImportJobConfig = new JobConfiguration(null, METADATA_IMPORT, user.getUid());
     metadataImportJobConfig.setUid("mdi1");
-    dataValueImportSecondJobConfig =
-        new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid(), false);
+    dataValueImportSecondJobConfig = new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid());
     dataValueImportSecondJobConfig.setUid("dvi2");
-    dataValueImportThirdJobConfig =
-        new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid(), false);
+    dataValueImportThirdJobConfig = new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid());
     dataValueImportThirdJobConfig.setUid("dvi3");
-    dataValueImportFourthConfig =
-        new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid(), false);
+    dataValueImportFourthConfig = new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid());
     dataValueImportFourthConfig.setUid("dvi4");
     JobConfiguration dataValueImportFifthConfig =
-        new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid(), false);
+        new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid());
     dataValueImportFifthConfig.setUid("dvi5");
   }
 
@@ -264,7 +261,7 @@ class NotifierTest extends DhisConvenienceTest {
   }
 
   private JobConfiguration createJobConfig(int i) {
-    JobConfiguration jobConfig = new JobConfiguration(null, METADATA_IMPORT, user.getUid(), false);
+    JobConfiguration jobConfig = new JobConfiguration(null, METADATA_IMPORT, user.getUid());
     jobConfig.setUid("jobId" + i);
     return jobConfig;
   }

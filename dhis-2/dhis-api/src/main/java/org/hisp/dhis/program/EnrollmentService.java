@@ -104,7 +104,7 @@ public interface EnrollmentService {
   /**
    * Returns a list of existing Enrollments from the provided UIDs
    *
-   * @param uids PSI UIDs to check
+   * @param uids Event UIDs to check
    * @return Enrollment list
    */
   List<Enrollment> getEnrollments(@Nonnull List<String> uids);
@@ -112,7 +112,7 @@ public interface EnrollmentService {
   /**
    * Checks for the existence of an enrollment by UID. Deleted values are not taken into account.
    *
-   * @param uid PSI UID to check for
+   * @param uid Event UID to check for
    * @return true/false depending on result
    */
   boolean enrollmentExists(String uid);
@@ -120,7 +120,7 @@ public interface EnrollmentService {
   /**
    * Checks for the existence of an enrollment by UID. Takes into account also the deleted values.
    *
-   * @param uid PSI UID to check for
+   * @param uid Event UID to check for
    * @return true/false depending on result
    */
   boolean enrollmentExistsIncludingDeleted(String uid);
@@ -128,7 +128,7 @@ public interface EnrollmentService {
   /**
    * Returns UIDs of existing Enrollments (including deleted) from the provided UIDs
    *
-   * @param uids PSI UIDs to check
+   * @param uids Event UIDs to check
    * @return Set containing UIDs of existing PSIs (including deleted)
    */
   List<String> getEnrollmentsUidsIncludingDeleted(List<String> uids);

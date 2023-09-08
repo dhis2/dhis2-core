@@ -165,13 +165,8 @@ class DefaultSchemaValidatorTest {
 
   @BeforeEach
   void setUpSchema() {
-    CredentialsInfo credentialsInfo = new CredentialsInfo("USERNAME", "tooShort", "", true);
-
     schema.setPropertyMap(introspectorService.getPropertiesMap(SimpleFields.class));
     when(schemaService.getDynamicSchema(SimpleFields.class)).thenReturn(schema);
-
-    //        when( passwordValidationService.isV( credentialsInfo ) ).thenReturn( new
-    // PasswordValidationResult( null ) );
   }
 
   @Test
@@ -248,7 +243,8 @@ class DefaultSchemaValidatorTest {
     assertError(
         ErrorCode.E4005,
         SimpleFields.builder().string("valid").password("tooShort").build(),
-        "Property `password` requires a valid password, was given `tooShort`");
+        "Property `password` requires a valid password, `Password must have at least %d, and at"
+            + " most %d characters`");
   }
 
   @Test

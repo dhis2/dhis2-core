@@ -59,8 +59,12 @@ public class JobTypeInfo {
   public JobTypeInfo(String name, JobType jobType, List<Property> jobParameters) {
     this.name = name;
     this.jobType = jobType;
-    this.schedulingType = jobType.getSchedulingType();
     this.jobParameters = jobParameters;
+    // like this for backwards compatibility
+    this.schedulingType =
+        jobType == JobType.CONTINUOUS_ANALYTICS_TABLE
+            ? SchedulingType.FIXED_DELAY
+            : SchedulingType.CRON;
   }
 
   @JsonProperty

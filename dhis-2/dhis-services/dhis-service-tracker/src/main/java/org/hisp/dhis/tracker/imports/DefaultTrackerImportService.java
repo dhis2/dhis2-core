@@ -47,6 +47,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
@@ -293,25 +294,19 @@ public class DefaultTrackerImportService implements TrackerImportService {
           params + " finished in " + importReport.getTimingsStats().get(TOTAL_OPS) + " Import:Done",
           true);
 
-      if (params.getJobConfiguration().isInMemoryJob()) {
-        notifier.addJobSummary(params.getJobConfiguration(), importReport, ImportReport.class);
-      }
+      notifier.addJobSummary(params.getJobConfiguration(), importReport, ImportReport.class);
     }
   }
 
   private void endImportWithError(
       TrackerImportParams params, ImportReport importReport, Exception e) {
-    if (null != params.getJobConfiguration() && params.getJobConfiguration().isInMemoryJob()) {
-      notifier.update(
-          params.getJobConfiguration(),
-          NotificationLevel.ERROR,
-          params + " failed with exception: " + e.getMessage() + " Import:Error",
-          true);
+    notifier.update(
+        params.getJobConfiguration(),
+        NotificationLevel.ERROR,
+        params + " failed with exception: " + e.getMessage() + " Import:Error",
+        true);
 
-      if (params.getJobConfiguration().isInMemoryJob()) {
-        notifier.addJobSummary(params.getJobConfiguration(), importReport, ImportReport.class);
-      }
-    }
+    notifier.addJobSummary(params.getJobConfiguration(), importReport, ImportReport.class);
   }
 
   /**

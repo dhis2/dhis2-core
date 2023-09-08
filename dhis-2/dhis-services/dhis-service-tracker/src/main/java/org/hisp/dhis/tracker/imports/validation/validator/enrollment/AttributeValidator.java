@@ -81,7 +81,7 @@ class AttributeValidator
     Program program = preheat.getProgram(enrollment.getProgram());
     checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
 
-    TrackedEntity tei = bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity());
+    TrackedEntity te = bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity());
 
     OrganisationUnit orgUnit =
         preheat.getOrganisationUnit(getOrgUnitUidFromTei(bundle, enrollment.getTrackedEntity()));
@@ -104,7 +104,7 @@ class AttributeValidator
         validateOptionSet(reporter, enrollment, teAttribute, attribute.getValue());
 
         validateAttributeUniqueness(
-            reporter, preheat, enrollment, attribute.getValue(), teAttribute, tei, orgUnit);
+            reporter, preheat, enrollment, attribute.getValue(), teAttribute, te, orgUnit);
       }
     }
 
@@ -150,17 +150,17 @@ class AttributeValidator
     // Build a data structures of attributes eligible for mandatory
     // validations:
     // 1 - attributes from enrollments whose value is not empty or null
-    // 2 - attributes already existing in TEI (from preheat)
+    // 2 - attributes already existing in TE (from preheat)
 
     // 1 - attributes from enrollment whose value is non-empty
 
-    // 2 - attributes from existing TEI (if any) from preheat
-    Set<MetadataIdentifier> teiAttributes =
+    // 2 - attributes from existing TE (if any) from preheat
+    Set<MetadataIdentifier> teAttributes =
         buildTeiAttributes(bundle, enrollment.getTrackedEntity());
 
     // merged ids of eligible attributes to validate
     Set<MetadataIdentifier> mergedAttributes =
-        Streams.concat(enrollmentNonEmptyAttributes.keySet().stream(), teiAttributes.stream())
+        Streams.concat(enrollmentNonEmptyAttributes.keySet().stream(), teAttributes.stream())
             .collect(Collectors.toSet());
 
     // Map having as key program attribute and mandatory flag as value
@@ -213,9 +213,9 @@ class AttributeValidator
         .collect(Collectors.toSet());
   }
 
-  private MetadataIdentifier getOrgUnitUidFromTei(TrackerBundle bundle, String teiUid) {
+  private MetadataIdentifier getOrgUnitUidFromTei(TrackerBundle bundle, String teUid) {
     return bundle
-        .findTrackedEntityByUid(teiUid)
+        .findTrackedEntityByUid(teUid)
         .map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getOrgUnit)
         .orElse(null);
   }

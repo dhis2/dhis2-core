@@ -27,19 +27,20 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 
 public interface TrackedEntityService {
+
   TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
   TrackedEntity getTrackedEntity(
       TrackedEntity trackedEntity, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException;
+      throws ForbiddenException;
 
   TrackedEntity getTrackedEntity(
       String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
@@ -52,12 +53,14 @@ public interface TrackedEntityService {
    *     parameters
    * @return {@see TrackedEntity}s
    */
-  List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
+  TrackedEntities getTrackedEntities(TrackedEntityOperationParams operationParams)
       throws ForbiddenException, NotFoundException, BadRequestException;
 
-  int getTrackedEntityCount(
-      TrackedEntityOperationParams operationParams,
-      boolean skipAccessValidation,
-      boolean skipSearchScopeValidation)
-      throws ForbiddenException, BadRequestException;
+  /**
+   * Fields the {@link #getTrackedEntities(TrackedEntityOperationParams)} can order tracked entities
+   * by. Ordering by fields other than these is considered a programmer error. Validation of user
+   * provided field names should occur before calling {@link
+   * #getTrackedEntities(TrackedEntityOperationParams)}.
+   */
+  Set<String> getOrderableFields();
 }

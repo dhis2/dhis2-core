@@ -36,7 +36,14 @@ import org.hisp.dhis.program.Event;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface EventStore {
-  List<Event> getEvents(EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue);
+  List<Event> getEvents(EventQueryParams params, Map<String, Set<String>> psdesWithSkipSyncTrue);
 
-  int getEventCount(EventSearchParams params);
+  /**
+   * Fields the {@link #getEvents(EventSearchParams, Map)} can order events by. Ordering by fields
+   * other than these is considered a programmer error. Validation of user provided field names
+   * should occur before calling {@link #getEvents(EventSearchParams, Map)}.
+   */
+  Set<String> getOrderableFields();
+
+  int getEventCount(EventQueryParams params);
 }

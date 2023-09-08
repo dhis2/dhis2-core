@@ -62,7 +62,7 @@ public class EnrollmentAggregate implements Aggregate {
   private final EventAggregate eventAggregate;
 
   /**
-   * Key: tei uid , value Enrollment
+   * Key: te uid , value Enrollment
    *
    * @param ids a List of {@see TrackedEntity} Primary Keys
    * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a List of {@see
@@ -96,7 +96,7 @@ public class EnrollmentAggregate implements Aggregate {
 
     final CompletableFuture<Multimap<String, TrackedEntityAttributeValue>> attributesAsync =
         conditionalAsyncFetch(
-            ctx.getParams().getTeiEnrollmentParams().isIncludeAttributes(),
+            ctx.getParams().getTeEnrollmentParams().isIncludeAttributes(),
             () -> enrollmentStore.getAttributes(enrollmentIds, ctx),
             getPool());
 
@@ -109,14 +109,14 @@ public class EnrollmentAggregate implements Aggregate {
               Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
 
               for (Enrollment enrollment : enrollments.values()) {
-                if (ctx.getParams().getTeiEnrollmentParams().isIncludeEvents()) {
+                if (ctx.getParams().getTeEnrollmentParams().isIncludeEvents()) {
                   enrollment.setEvents(new HashSet<>(events.get(enrollment.getUid())));
                 }
-                if (ctx.getParams().getTeiEnrollmentParams().isIncludeRelationships()) {
+                if (ctx.getParams().getTeEnrollmentParams().isIncludeRelationships()) {
                   enrollment.setRelationshipItems(
                       new HashSet<>(relationships.get(enrollment.getUid())));
                 }
-                if (ctx.getParams().getTeiEnrollmentParams().isIncludeAttributes()) {
+                if (ctx.getParams().getTeEnrollmentParams().isIncludeAttributes()) {
                   enrollment
                       .getTrackedEntity()
                       .setTrackedEntityAttributeValues(

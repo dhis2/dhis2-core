@@ -37,8 +37,6 @@
         "identifier": "nEenWmSyUEp"
       },
       "trackedEntity": "IOR1AXXl24H",
-      "createdAt": "2020-02-20T12:09:21.844",
-      "updatedAt": "2020-02-20T12:09:21.844",
       "clientCreatedAt": "2020-02-20T12:09:21.844",
       "clientUpdatedAt": "2020-02-20T12:09:21.844",
       "orgUnit": {
@@ -79,8 +77,6 @@
   "enrollments": [
     {
       "enrollment": "TvctPPhpD8u",
-      "created": "2020-02-20T12:09:21.844",
-      "lastUpdated": "2020-02-20T12:09:21.844",
       "createdAtClient": "2020-02-20T12:09:21.844",
       "trackedEntity": "IOR1AXXl24H",
       "program": {

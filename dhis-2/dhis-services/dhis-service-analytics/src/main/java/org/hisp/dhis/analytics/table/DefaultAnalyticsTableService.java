@@ -98,7 +98,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     String validState = tableManager.validState();
     progress.completedStage(validState);
 
-    if (validState != null || progress.isCancellationRequested()) {
+    if (validState != null || progress.isCancelled()) {
       return;
     }
 

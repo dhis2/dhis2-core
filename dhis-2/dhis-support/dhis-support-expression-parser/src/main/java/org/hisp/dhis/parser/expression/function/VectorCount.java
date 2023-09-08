@@ -29,17 +29,25 @@ package org.hisp.dhis.parser.expression.function;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
+import java.util.List;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 /**
  * Vector function: count
  *
+ * <p>Note: This class extends {@link VectorFunction<String>} because count should apply to data
+ * elements of any data type, and any data type cna be cast to {@link String} for syntax checking.
+ *
  * @author Jim Grace
  */
-public class VectorCount extends VectorFunctionDoubleArray {
+public class VectorCount extends VectorFunction<String> {
+  public VectorCount() {
+    super(String.class);
+  }
+
   @Override
-  public Object aggregate(double[] values) {
-    return Double.valueOf(values.length);
+  public final Object aggregate(List<String> values, List<String> args) {
+    return Double.valueOf(values.size());
   }
 
   @Override

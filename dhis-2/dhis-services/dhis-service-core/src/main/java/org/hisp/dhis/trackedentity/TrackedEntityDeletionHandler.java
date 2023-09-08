@@ -45,12 +45,12 @@ public class TrackedEntityDeletionHandler extends IdObjectDeletionHandler<Tracke
   }
 
   private DeletionVeto allowDeleteOrganisationUnit(OrganisationUnit unit) {
-    String sql = "select 1 from trackedentityinstance where organisationunitid = :id limit 1";
+    String sql = "select 1 from trackedentity where organisationunitid = :id limit 1";
     return vetoIfExists(VETO, sql, Map.of("id", unit.getId()));
   }
 
   private DeletionVeto allowDeleteTrackedEntityType(TrackedEntityType trackedEntityType) {
-    String sql = "select 1 from trackedentityinstance where trackedentitytypeid = :id limit 1";
+    String sql = "select 1 from trackedentity where trackedentitytypeid = :id limit 1";
     return vetoIfExists(VETO, sql, Map.of("id", trackedEntityType.getId()));
   }
 }

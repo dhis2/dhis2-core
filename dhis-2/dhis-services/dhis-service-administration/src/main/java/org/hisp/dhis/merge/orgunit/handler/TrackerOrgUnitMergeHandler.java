@@ -56,15 +56,15 @@ public class TrackerOrgUnitMergeHandler {
   @Transactional
   public void mergeEnrollments(OrgUnitMergeRequest request) {
     migrate(
-        "update Event psi "
-            + "set psi.organisationUnit = :target "
-            + "where psi.organisationUnit.id in (:sources)",
+        "update Event ev "
+            + "set ev.organisationUnit = :target "
+            + "where ev.organisationUnit.id in (:sources)",
         request);
 
     migrate(
-        "update Enrollment pi "
-            + "set pi.organisationUnit = :target "
-            + "where pi.organisationUnit.id in (:sources)",
+        "update Enrollment en "
+            + "set en.organisationUnit = :target "
+            + "where en.organisationUnit.id in (:sources)",
         request);
   }
 
@@ -83,9 +83,9 @@ public class TrackerOrgUnitMergeHandler {
         request);
 
     migrate(
-        "update TrackedEntity tei "
-            + "set tei.organisationUnit = :target "
-            + "where tei.organisationUnit.id in (:sources)",
+        "update TrackedEntity te "
+            + "set te.organisationUnit = :target "
+            + "where te.organisationUnit.id in (:sources)",
         request);
   }
 

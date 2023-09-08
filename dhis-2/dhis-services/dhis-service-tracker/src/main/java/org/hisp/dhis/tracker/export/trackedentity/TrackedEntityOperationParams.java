@@ -39,14 +39,16 @@ import lombok.Getter;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
+@Getter
 @Builder(toBuilder = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Getter
 public class TrackedEntityOperationParams {
   public static final int DEFAULT_PAGE = 1;
 
@@ -104,15 +106,12 @@ public class TrackedEntityOperationParams {
   /** Tracked entity type to fetch. */
   private String trackedEntityTypeUid;
 
-  /** Selection mode for the specified organisation units, default is ACCESSIBLE. */
-  @Builder.Default
-  private OrganisationUnitSelectionMode organisationUnitMode =
-      OrganisationUnitSelectionMode.DESCENDANTS;
+  private OrganisationUnitSelectionMode orgUnitMode;
 
   @Getter @Builder.Default
   private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
-  /** Set of tei uids to explicitly select. */
+  /** Set of te uids to explicitly select. */
   @Builder.Default private Set<String> trackedEntityUids = new HashSet<>();
 
   /** ProgramStage to be used in conjunction with eventstatus. */
@@ -142,13 +141,13 @@ public class TrackedEntityOperationParams {
   /** Indicates whether paging should be skipped. */
   private boolean skipPaging;
 
-  /** Indicates if there is a maximum tei retrieval limit. 0 no limit. */
+  /** Indicates if there is a maximum te retrieval limit. 0 no limit. */
   private int maxTeiLimit;
 
   /** Indicates whether to include soft-deleted elements. Default to false */
   @Builder.Default private boolean includeDeleted = false;
 
-  /** Indicates whether to include all TEI attributes */
+  /** Indicates whether to include all te attributes */
   private boolean includeAllAttributes;
 
   /**
@@ -164,13 +163,45 @@ public class TrackedEntityOperationParams {
   private Date skipChangedBefore;
 
   /**
-   * Potential Duplicate query parameter value. If null, we don't check whether a TEI is a
+   * Potential Duplicate query parameter value. If null, we don't check whether a TE is a
    * potentialDuplicate or not
    */
   private Boolean potentialDuplicate;
 
-  /** TEI order params */
-  @Builder.Default private List<OrderCriteria> orders = new ArrayList<>();
+  /**
+   * Tracked entities can be ordered by field names (given as {@link String}) and tracked entity
+   * attributes (given as {@link UID}). It is crucial for the order values to stay in one collection
+   * as their order needs to be kept as provided by the user. We cannot come up with a type-safe
+   * type that captures the above order features and that can be used in a generic collection such
+   * as a List (see typesafe heterogeneous container). We therefore provide {@link
+   * TrackedEntityOperationParamsBuilder#orderBy(String, SortDirection)} and {@link
+   * TrackedEntityOperationParamsBuilder#orderBy(UID, SortDirection)} to advocate the types that can
+   * be ordered by while storing the order in a single List of {@link Order}.
+   */
+  private List<Order> order;
 
   private User user;
+
+  public static class TrackedEntityOperationParamsBuilder {
+
+    private List<Order> order = new ArrayList<>();
+
+    // Do not remove this unused method. This hides the order field from the builder which Lombok
+    // does not support. The repeated order field and private order method prevent access to order
+    // via the builder.
+    // Order should be added via the orderBy builder methods.
+    private TrackedEntityOperationParamsBuilder order(List<Order> order) {
+      return this;
+    }
+
+    public TrackedEntityOperationParamsBuilder orderBy(String field, SortDirection direction) {
+      this.order.add(new Order(field, direction));
+      return this;
+    }
+
+    public TrackedEntityOperationParamsBuilder orderBy(UID uid, SortDirection direction) {
+      this.order.add(new Order(uid, direction));
+      return this;
+    }
+  }
 }

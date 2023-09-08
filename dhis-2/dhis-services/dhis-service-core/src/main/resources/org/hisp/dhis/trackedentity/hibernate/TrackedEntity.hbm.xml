@@ -5,9 +5,9 @@
   [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
   >
 <hibernate-mapping>
-  <class name="org.hisp.dhis.trackedentity.TrackedEntity" table="trackedentityinstance">
+  <class name="org.hisp.dhis.trackedentity.TrackedEntity" table="trackedentity">
 
-    <id name="id" column="trackedentityinstanceid">
+    <id name="id" column="trackedentityid">
       <generator class="sequence">
         <param name="sequence_name">trackedentityinstance_sequence</param>
       </generator>
@@ -35,22 +35,22 @@
     <property name="lastUpdatedByUserInfo" type="jbUserInfoSnapshot" column="lastupdatedbyuserinfo"/>
 
     <set name="trackedEntityAttributeValues" inverse="true">
-      <key column="trackedentityinstanceid"/>
+      <key column="trackedentityid"/>
       <one-to-many class="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue"/>
     </set>
 
     <set name="enrollments" inverse="true">
-      <key column="trackedentityinstanceid"/>
+      <key column="trackedentityid"/>
       <one-to-many class="org.hisp.dhis.program.Enrollment"/>
     </set>
 
       <set name="programOwners" inverse="true">
-      <key column="trackedentityinstanceid" />
+      <key column="trackedentityid" />
       <one-to-many class="org.hisp.dhis.trackedentity.TrackedEntityProgramOwner" />
     </set>
 
     <set name="relationshipItems" inverse="true">
-      <key column="trackedentityinstanceid" />
+      <key column="trackedentityid" />
       <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
     </set>
 
@@ -61,6 +61,6 @@
       column="trackedentitytypeid" foreign-key="fk_trackedentityinstance_trackedentitytypeid" lazy="false" />
   </class>
 
-  <sql-query name="updateTeisLastUpdated">update trackedentityinstance set lastUpdated = :lastUpdated WHERE uid in :trackedEntities</sql-query>
+  <sql-query name="updateTeisLastUpdated">update trackedentity set lastUpdated = :lastUpdated WHERE uid in :trackedEntities</sql-query>
 
 </hibernate-mapping>

@@ -16,7 +16,8 @@ Get an enrollment with given UID.
 
 ### `getEnrollmentByUid.parameter.fields`
 
-Get only the specified fields in the JSON response. This query parameter allows you to remove unnecessary fields from
+Get only the specified fields in the JSON response. This query parameter allows you to remove
+unnecessary fields from
 the response and in some cases decrease the response time. Refer to
 https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter
 for how to use it.
@@ -39,7 +40,8 @@ Get enrollments with given UID(s).
 
 ### `*.parameter.EnrollmentRequestParams.enrollment`
 
-**DEPRECATED as of 2.41:** Use parameter `enrollments` instead where UIDs have to be separated by comma!
+**DEPRECATED as of 2.41:** Use parameter `enrollments` instead where UIDs have to be separated by
+comma!
 
 `<enrollment1-uid>[;<enrollment2-uid>...]`
 
@@ -51,7 +53,8 @@ Get enrollments with given follow-up status of the instance for the given progra
 
 ### `*.parameter.EnrollmentRequestParams.includeDeleted`
 
-Get soft-deleted enrollments by specifying `includeDeleted=true`. Soft-deleted enrollments are excluded by default.
+Get soft-deleted enrollments by specifying `includeDeleted=true`. Soft-deleted enrollments are
+excluded by default.
 
 ### `*.parameter.EnrollmentRequestParams.orgUnits`
 
@@ -61,15 +64,22 @@ Get enrollments owned by given `orgUnit`.
 
 ### `*.parameter.EnrollmentRequestParams.orgUnit`
 
-**DEPRECATED as of 2.41:** Use parameter `orgUnits` instead where UIDs have to be separated by comma!
+**DEPRECATED as of 2.41:** Use parameter `orgUnits` instead where UIDs have to be separated by
+comma!
 
 `<orgUnit1-uid>[;<orgUnit2-uid>...]`
 
 Get enrollments owned by given `orgUnit`.
 
+### `*.parameter.EnrollmentRequestParams.orgUnitMode`
+
+Get enrollments using given organisation unit mode.
+
 ### `*.parameter.EnrollmentRequestParams.ouMode`
 
-Get enrollments using given organisation unit selection mode.
+**DEPRECATED as of 2.41:** Use parameter `orgUnitMode` instead.
+
+Get enrollments using given organisation unit mode.
 
 ### `*.parameter.EnrollmentRequestParams.program`
 
@@ -95,9 +105,30 @@ Get enrollments updated after given date.
 
 Get enrollments updated since given ISO-8601 duration.
 
+### `*.parameter.EnrollmentRequestParams.order`
+
+`<propertyName1:sortDirection>[,<propertyName2:sortDirection>...]`
+
+Get enrollments in given order. Enrollments can be ordered by the following case-sensitive
+properties
+
+* `completedAt`
+* `createdAt`
+* `createdAtClient`
+* `enrolledAt`
+* `updatedAt`
+* `updatedAtClient`
+
+Valid `sortDirection`s are `asc` and `desc`. `sortDirection` is case-insensitive. `sortDirection`
+defaults to `asc` for properties without explicit `sortDirection` as in `order=enrolledAt`.
+
+Enrollments are ordered by newest (internal id desc) by default meaning when no `order` parameter is
+provided.
+
 ### `*.parameter.EnrollmentRequestParams.fields`
 
-Get only the specified fields in the JSON response. This query parameter allows you to remove unnecessary fields from
+Get only the specified fields in the JSON response. This query parameter allows you to remove
+unnecessary fields from
 the JSON response and in some cases decrease the response time. Refer to
 https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter
 for how to use it.

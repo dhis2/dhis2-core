@@ -74,7 +74,7 @@ class OrgUnitValueTypeSupplierTest extends DhisConvenienceTest {
   }
 
   @Test
-  void testSupplierAddsOrgUnitReferencedByTEIAttributes() {
+  void testSupplierAddsOrgUnitReferencedByTeAttributes() {
     preheat.put(
         TrackerIdSchemeParam.UID, List.of(teaNumeric("numeric"), teaOrgUnit("hQKI6KcEu5t")));
 
@@ -96,7 +96,7 @@ class OrgUnitValueTypeSupplierTest extends DhisConvenienceTest {
   }
 
   @Test
-  void testSupplierDoesNotAddOrgUnitIfTEIAttributeValueIsEmpty() {
+  void testSupplierDoesNotAddOrgUnitIfTeAttributeValueIsEmpty() {
     preheat.put(TrackerIdSchemeParam.UID, List.of(teaOrgUnit("hQKI6KcEu5t")));
 
     TrackerImportParams params =

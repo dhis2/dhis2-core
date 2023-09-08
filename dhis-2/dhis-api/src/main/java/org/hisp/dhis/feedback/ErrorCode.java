@@ -47,7 +47,7 @@ public enum ErrorCode {
   E1103("Category option combo not found or not accessible: `{0}`"),
   E1104("Attribute option combo not found or not accessible: `{0}`"),
   E1105("Data set not found or not accessible: `{0}`"),
-  E1106("There are duplicate translation record for property `{0}` and locale `{1}`"),
+  E1106("There are duplicate translation records for property `{0}` and locale `{1}` on {2} `{3}`"),
   E1107("Object type `{0}` is not translatable"),
   E1108("Could not add item to collection: {0}"),
   E1109("Could not remove item from collection: {0}"),
@@ -188,6 +188,7 @@ public enum ErrorCode {
   E3031("Two factor authentication is not enabled"),
   E3032("User `{0}` does not have access to user role"),
   E3040("Could not resolve JwsAlgorithm from the JWK. Can not write a valid JWKSet"),
+  E3041("User `{0}` is not allowed to change a user having the ALL authority"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),
@@ -195,7 +196,7 @@ public enum ErrorCode {
   E4002("Allowed length range for property `{0}` is [{1} to {2}], but given length was {3}"),
   E4003("Property `{0}` requires a valid email address, was given `{1}`"),
   E4004("Property `{0}` requires a valid URL, was given `{1}`"),
-  E4005("Property `{0}` requires a valid password, was given `{1}`"),
+  E4005("Property `{0}` requires a valid password, `{1}`"),
   E4006("Property `{0}` requires a valid HEX color, was given `{1}`"),
   E4007("Allowed size range for collection property `{0}` is [{1} to {2}], but size given was {3}"),
   E4008("Allowed range for numeric property `{0}` is [{1} to {2}], but number given was {3}"),
@@ -272,6 +273,7 @@ public enum ErrorCode {
   E4067("Attribute UID is missing in filter"),
   E4068("No tracked entity attribute found for attribute: `{0}`"),
   E4069("DashboardItem `{0}` object reference `{1}` with id `{2}` not accessible"),
+  E4070("Dashboard `{0}` has a layout with more than 60 columns. `{1}` columns found"),
 
   /* SQL views */
   E4300("SQL query is null"),
@@ -420,6 +422,10 @@ public enum ErrorCode {
       "parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]"),
   E7141("parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]"),
   E7142("Program(s) `{0}` are not defined on Tracked Entity Type `{1}`"),
+  E7143("Organisation unit or organisation unit level is not valid"),
+  E7144(
+      "Query failed because a referenced table does not exist. Please ensure analytics job was run"),
+  E7145("Query failed because of a syntax error"),
 
   /* Event analytics */
   E7200(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
@@ -466,7 +472,7 @@ public enum ErrorCode {
   E7237("Sorting must have a valid dimension and a direction"),
   E7238("Sorting dimension ‘{0}’ is not a column"),
 
-  /* TEI analytics */
+  /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),
 
   /* Org unit analytics */

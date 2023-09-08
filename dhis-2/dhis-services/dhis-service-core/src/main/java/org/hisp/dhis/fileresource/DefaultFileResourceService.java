@@ -152,6 +152,7 @@ public class DefaultFileResourceService implements FileResourceService {
       case CUSTOM_ICON -> fileResourceStore.findCustomIconByFileResource(uid).stream()
           .map(key -> new FileResourceOwner(FileResourceDomain.CUSTOM_ICON, key))
           .toList();
+      case JOB_DATA -> List.of(new FileResourceOwner(FileResourceDomain.JOB_DATA, uid));
     };
   }
 

@@ -57,9 +57,9 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -363,9 +363,9 @@ class TrackerPreheatTest extends DhisConvenienceTest {
   void testExistsTrackedEntity() {
     assertFalse(preheat.exists(TrackerType.TRACKED_ENTITY, "uid"));
 
-    TrackedEntity tei = new TrackedEntity();
-    tei.setUid("uid");
-    preheat.putTrackedEntities(List.of(tei));
+    TrackedEntity te = new TrackedEntity();
+    te.setUid("uid");
+    preheat.putTrackedEntities(List.of(te));
 
     assertTrue(preheat.exists(TrackerType.TRACKED_ENTITY, "uid"));
     assertTrue(

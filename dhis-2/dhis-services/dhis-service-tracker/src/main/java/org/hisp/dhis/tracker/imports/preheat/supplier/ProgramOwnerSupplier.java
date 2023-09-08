@@ -56,23 +56,23 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier {
   public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
     final Map<String, TrackedEntity> preheatedTrackedEntities = preheat.getTrackedEntities();
     final Map<String, Enrollment> preheatedEnrollments = preheat.getEnrollments();
-    Set<Long> teiIds = new HashSet<>();
+    Set<Long> teIds = new HashSet<>();
     for (org.hisp.dhis.tracker.imports.domain.Enrollment en : params.getEnrollments()) {
-      TrackedEntity tei = preheatedTrackedEntities.get(en.getTrackedEntity());
-      if (tei != null) {
-        teiIds.add(tei.getId());
+      TrackedEntity te = preheatedTrackedEntities.get(en.getTrackedEntity());
+      if (te != null) {
+        teIds.add(te.getId());
       }
     }
 
     for (Event ev : params.getEvents()) {
       Enrollment enrollment = preheatedEnrollments.get(ev.getEnrollment());
       if (enrollment != null && enrollment.getTrackedEntity() != null) {
-        teiIds.add(enrollment.getTrackedEntity().getId());
+        teIds.add(enrollment.getTrackedEntity().getId());
       }
     }
 
     List<TrackedEntityProgramOwnerOrgUnit> tepos =
-        trackedEntityProgramOwnerStore.getTrackedEntityProgramOwnerOrgUnits(teiIds);
+        trackedEntityProgramOwnerStore.getTrackedEntityProgramOwnerOrgUnits(teIds);
 
     tepos =
         tepos.stream()

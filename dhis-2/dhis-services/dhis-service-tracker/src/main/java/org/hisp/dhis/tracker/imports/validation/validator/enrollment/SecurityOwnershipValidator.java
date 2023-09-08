@@ -98,7 +98,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     if (strategy.isDelete()) {
       boolean hasNonDeletedEvents = enrollmentHasEvents(preheat, enrollment.getEnrollment());
       boolean hasNotCascadeDeleteAuthority =
-          !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority());
+          !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.name());
 
       if (hasNonDeletedEvents && hasNotCascadeDeleteAuthority) {
         reporter.addError(enrollment, E1103, user, enrollment.getEnrollment());
@@ -109,9 +109,9 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   }
 
   private OrganisationUnit getOwnerOrganisationUnit(
-      TrackerPreheat preheat, String teiUid, Program program) {
+      TrackerPreheat preheat, String teUid, Program program) {
     Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner =
-        preheat.getProgramOwner().get(teiUid);
+        preheat.getProgramOwner().get(teUid);
     if (programOwner == null || programOwner.get(program.getUid()) == null) {
       return null;
     } else {

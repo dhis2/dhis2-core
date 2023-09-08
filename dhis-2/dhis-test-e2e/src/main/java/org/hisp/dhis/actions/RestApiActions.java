@@ -232,14 +232,7 @@ public class RestApiActions {
     return new ApiResponse(response);
   }
 
-  /**
-   * Sends PATCH request to specified resource
-   *
-   * @param resourceId
-   * @param object
-   * @param paramsBuilder
-   * @return
-   */
+  /** Sends PATCH request to specified resource */
   public ApiResponse patch(String resourceId, Object object, QueryParamsBuilder paramsBuilder) {
     Response response =
         this.given()
@@ -252,13 +245,7 @@ public class RestApiActions {
     return new ApiResponse(response);
   }
 
-  /**
-   * Sends PATCH request to specified resource. Uses importReportMode=ERRORS
-   *
-   * @param resourceId
-   * @param object
-   * @return
-   */
+  /** Sends PATCH request to specified resource. Uses importReportMode=ERRORS */
   public ApiResponse patch(String resourceId, Object object) {
     return this.patch(
         resourceId, object, new QueryParamsBuilder().add("importReportMode", "ERRORS"));

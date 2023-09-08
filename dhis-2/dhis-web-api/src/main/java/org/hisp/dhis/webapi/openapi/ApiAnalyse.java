@@ -116,7 +116,7 @@ final class ApiAnalyse {
 
   static {
     register(UID.class, SchemaGenerators.UID);
-    register(org.hisp.dhis.webapi.common.UID.class, SchemaGenerators.UID);
+    register(org.hisp.dhis.common.UID.class, SchemaGenerators.UID);
     register(Api.PropertyNames.class, SchemaGenerators.PROPERTY_NAMES);
   }
 
@@ -453,10 +453,10 @@ final class ApiAnalyse {
   private static Api.Parameter analyseParameter(Api.Endpoint endpoint, Property property) {
     AnnotatedElement member = (AnnotatedElement) property.getSource();
     Type type = property.getType();
+    OpenApi.Property annotated = member.getAnnotation(OpenApi.Property.class);
     Api.Schema schema =
-        type instanceof Class && isGeneratorType((Class<?>) type)
-            ? analyseGeneratorSchema(
-                endpoint, type, member.getAnnotation(OpenApi.Property.class).value())
+        type instanceof Class && isGeneratorType((Class<?>) type) && annotated != null
+            ? analyseGeneratorSchema(endpoint, type, annotated.value())
             : analyseInputSchema(endpoint, getSubstitutedType(endpoint, property, member));
     return new Api.Parameter(member, property.getName(), Api.Parameter.In.QUERY, false, schema);
   }
@@ -589,9 +589,9 @@ final class ApiAnalyse {
       return analyseSubTypeSchema(endpoint, member, resolving);
     }
     Type type = getSubstitutedType(endpoint, property, member);
-    if (type instanceof Class && isGeneratorType((Class<?>) type)) {
-      return analyseGeneratorSchema(
-          endpoint, type, member.getAnnotation(OpenApi.Property.class).value());
+    OpenApi.Property annotated = member.getAnnotation(OpenApi.Property.class);
+    if (type instanceof Class && isGeneratorType((Class<?>) type) && annotated != null) {
+      return analyseGeneratorSchema(endpoint, type, annotated.value());
     }
     return analyseTypeSchema(endpoint, type, type == property.getType(), resolving);
   }

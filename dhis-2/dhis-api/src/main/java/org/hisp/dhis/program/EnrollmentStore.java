@@ -89,7 +89,7 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    * Checks for the existence of an enrollment by UID, Deleted enrollments are not taken into
    * account.
    *
-   * @param uid PSI UID to check for
+   * @param uid Event UID to check for
    * @return true/false depending on result
    */
   boolean exists(String uid);
@@ -98,7 +98,7 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    * Checks for the existence of an enrollment by UID. Takes into account also the deleted
    * enrollments.
    *
-   * @param uid PSI UID to check for
+   * @param uid Event UID to check for
    * @return true/false depending on result
    */
   boolean existsIncludingDeleted(String uid);
@@ -162,18 +162,18 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    * <p>Resulting SQL query:
    *
    * <pre>{@code
-   * select programinstanceid, programid, trackedentityinstanceid
-   *     from programinstance
-   *     where (programid = 726 and trackedentityinstanceid = 19 and status = 'ACTIVE')
-   *        or (programid = 726 and trackedentityinstanceid = 18 and status = 'ACTIVE')
-   *        or (programid = 726 and trackedentityinstanceid = 17 and status = 'ACTIVE')
+   * select enrollmentid, programid, trackedentityid
+   *     from enrollment
+   *     where (programid = 726 and trackedentityid = 19 and status = 'ACTIVE')
+   *        or (programid = 726 and trackedentityid = 18 and status = 'ACTIVE')
+   *        or (programid = 726 and trackedentityid = 17 and status = 'ACTIVE')
    * }</pre>
    *
-   * @param programTeiPair a List of Pair, where the left side is a {@see Program} and the right
-   *     side is a {@see TrackedEntity}
+   * @param programTePair a List of Pair, where the left side is a {@see Program} and the right side
+   *     is a {@see TrackedEntity}
    * @param programStatus filter on the status of all the Program
    * @return a List of {@see Enrollment}
    */
   List<Enrollment> getByProgramAndTrackedEntity(
-      List<Pair<Program, TrackedEntity>> programTeiPair, ProgramStatus programStatus);
+      List<Pair<Program, TrackedEntity>> programTePair, ProgramStatus programStatus);
 }

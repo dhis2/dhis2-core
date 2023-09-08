@@ -40,7 +40,7 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class UserActions extends RestApiActions {
-  private IdGenerator idGenerator = new IdGenerator();
+  private final IdGenerator idGenerator = new IdGenerator();
 
   public UserActions() {
     super("/users");
@@ -153,20 +153,6 @@ public class UserActions extends RestApiActions {
     response.validate().statusCode(200).body("status", equalTo("OK"));
   }
 
-  public void grantUserDataViewAccessToOrgUnit(String userId, String orgUnitId) {
-    JsonObject object =
-        this.get(userId)
-            .getBodyAsJsonBuilder()
-            .addOrAppendToArray(
-                "dataViewOrganisationUnits",
-                new JsonObjectBuilder().addProperty("id", orgUnitId).build())
-            .build();
-
-    ApiResponse response = this.update(userId, object);
-
-    response.validate().statusCode(200).body("status", equalTo("OK"));
-  }
-
   public void grantUserCaptureAccessToOrgUnit(String userId, String orgUnitId) {
     JsonObject object =
         this.get(userId)
@@ -183,8 +169,6 @@ public class UserActions extends RestApiActions {
   /**
    * Grants user access to all org units imported before the tests.
    * /test/resources/setup/metadata.json
-   *
-   * @param userId
    */
   public void grantUserAccessToTAOrgUnits(String userId) {
     for (String orgUnitId : Constants.ORG_UNIT_IDS) {

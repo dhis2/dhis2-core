@@ -28,8 +28,9 @@
 package org.hisp.dhis.trackedentity;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
 import java.util.List;
@@ -72,14 +73,6 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
 
   private Program program;
 
-  private Enrollment enrollment1;
-
-  private Enrollment enrollment2;
-
-  private Enrollment enrollment3;
-
-  private Enrollment enrollment4;
-
   private TrackedEntity tei1;
 
   private TrackedEntity tei2;
@@ -88,12 +81,18 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
 
   private TrackedEntity tei4;
 
-  private TrackedEntityType teiType;
-
   private User user;
 
   @Override
   protected void setUpTest() throws Exception {
+
+    Enrollment enrollment1;
+    Enrollment enrollment2;
+    Enrollment enrollment3;
+    Enrollment enrollment4;
+
+    TrackedEntityType teiType;
+
     userService = _userService;
     user = createAndInjectAdminUser();
 
@@ -141,29 +140,55 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testConfiguredPositiveMaxTeiLimit() {
+  void testConfiguredDifferentPositiveMaxTeiLimit() {
+    systemSettingManager.saveSystemSetting(SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT, 4);
     systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, 3);
+
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setProgram(program);
-    params.setOrganisationUnits(Set.of(orgUnitA));
-    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
+    params.setOrgUnits(Set.of(orgUnitA));
+    params.setOrgUnitMode(OrganisationUnitSelectionMode.ALL);
+    params.setUserWithAssignedUsers(null, user, null);
+    params.setSkipPaging(true);
+
+    assertThrows(
+        IllegalStateException.class,
+        () -> trackedEntityService.getTrackedEntityIds(params, false, false),
+        String.format(
+            "Only one parameter of '%s' and '%s' must be specified. Prefer '%s' as '%s' will be removed.",
+            SettingKey.TRACKED_ENTITY_MAX_LIMIT.getName(),
+            SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT.getName(),
+            SettingKey.TRACKED_ENTITY_MAX_LIMIT.getName(),
+            SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT.getName()));
+  }
+
+  @Test
+  void testConfiguredSamePositiveMaxTeiLimit() {
+    systemSettingManager.saveSystemSetting(SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT, 2);
+    systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, 2);
+
+    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+    params.setProgram(program);
+    params.setOrgUnits(Set.of(orgUnitA));
+    params.setOrgUnitMode(OrganisationUnitSelectionMode.ALL);
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
     List<Long> teis = trackedEntityService.getTrackedEntityIds(params, false, false);
 
-    assertNotNull(teis);
-    assertEquals(3, teis.size(), "Size cannot be more than configured Tei max limit");
+    assertNotEmpty(teis);
+    assertEquals(2, teis.size());
   }
 
   @Test
   void testConfiguredNegativeMaxTeiLimit() {
+    systemSettingManager.saveSystemSetting(SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT, -1);
     systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, -1);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setProgram(program);
-    params.setOrganisationUnits(Set.of(orgUnitA));
-    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
+    params.setOrgUnits(Set.of(orgUnitA));
+    params.setOrgUnitMode(OrganisationUnitSelectionMode.ALL);
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
@@ -176,8 +201,8 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
   void testDefaultMaxTeiLimit() {
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setProgram(program);
-    params.setOrganisationUnits(Set.of(orgUnitA));
-    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
+    params.setOrgUnits(Set.of(orgUnitA));
+    params.setOrgUnitMode(OrganisationUnitSelectionMode.ALL);
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
@@ -188,17 +213,54 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testDisabledMaxTeiLimit() {
+    systemSettingManager.saveSystemSetting(SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT, 0);
     systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, 0);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setProgram(program);
-    params.setOrganisationUnits(Set.of(orgUnitA));
-    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
+    params.setOrgUnits(Set.of(orgUnitA));
+    params.setOrgUnitMode(OrganisationUnitSelectionMode.ALL);
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
     List<Long> teis = trackedEntityService.getTrackedEntityIds(params, false, false);
 
     assertContainsOnly(List.of(tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId()), teis);
+  }
+
+  @Test
+  void testConfiguredNewTeiMaxLimit() {
+    systemSettingManager.saveSystemSetting(SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT, -1);
+    systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, 2);
+
+    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+    params.setProgram(program);
+    params.setOrgUnits(Set.of(orgUnitA));
+    params.setOrgUnitMode(OrganisationUnitSelectionMode.ALL);
+    params.setUserWithAssignedUsers(null, user, null);
+    params.setSkipPaging(true);
+
+    List<Long> teis = trackedEntityService.getTrackedEntityIds(params, false, false);
+
+    assertNotEmpty(teis);
+    assertEquals(2, teis.size());
+  }
+
+  @Test
+  void testConfiguredDeprecatedTeiMaxLimit() {
+    systemSettingManager.saveSystemSetting(SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT, 2);
+    systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, -1);
+
+    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+    params.setProgram(program);
+    params.setOrgUnits(Set.of(orgUnitA));
+    params.setOrgUnitMode(OrganisationUnitSelectionMode.ALL);
+    params.setUserWithAssignedUsers(null, user, null);
+    params.setSkipPaging(true);
+
+    List<Long> teis = trackedEntityService.getTrackedEntityIds(params, false, false);
+
+    assertNotEmpty(teis);
+    assertEquals(2, teis.size());
   }
 }

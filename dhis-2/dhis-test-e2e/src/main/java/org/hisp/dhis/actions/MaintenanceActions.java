@@ -37,7 +37,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class MaintenanceActions extends RestApiActions {
-  private Logger logger = LogManager.getLogger(MaintenanceActions.class.getName());
+  private final Logger logger = LogManager.getLogger(MaintenanceActions.class.getName());
 
   public MaintenanceActions() {
     super("/maintenance");

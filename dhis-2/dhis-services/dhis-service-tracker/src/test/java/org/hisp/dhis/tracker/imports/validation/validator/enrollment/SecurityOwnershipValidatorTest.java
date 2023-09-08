@@ -75,9 +75,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
   private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
-  private static final String TEI_ID = "TEI_ID";
+  private static final String TE_ID = "TEI_ID";
 
-  private static final String TEI_TYPE_ID = "TEI_TYPE_ID";
+  private static final String TE_TYPE_ID = "TEI_TYPE_ID";
 
   private static final String PROGRAM_ID = "PROGRAM_ID";
 
@@ -116,7 +116,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     organisationUnit.setUid(ORG_UNIT_ID);
 
     trackedEntityType = createTrackedEntityType('A');
-    trackedEntityType.setUid(TEI_TYPE_ID);
+    trackedEntityType.setUid(TE_TYPE_ID);
     program = createProgram('A');
     program.setUid(PROGRAM_ID);
     program.setProgramType(ProgramType.WITH_REGISTRATION);
@@ -138,7 +138,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .enrollment(CodeGenerator.generateUid())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TEI_ID)
+            .trackedEntity(TE_ID)
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
@@ -171,7 +171,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .enrollment(CodeGenerator.generateUid())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TEI_ID)
+            .trackedEntity(TE_ID)
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
@@ -192,7 +192,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .enrollment(CodeGenerator.generateUid())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TEI_ID)
+            .trackedEntity(TE_ID)
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
@@ -217,7 +217,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .enrollment(enrollmentUid)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TEI_ID)
+            .trackedEntity(TE_ID)
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
@@ -242,7 +242,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .enrollment(enrollmentUid)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TEI_ID)
+            .trackedEntity(TE_ID)
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
@@ -265,7 +265,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .enrollment(CodeGenerator.generateUid())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TEI_ID)
+            .trackedEntity(TE_ID)
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
@@ -289,7 +289,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .enrollment(CodeGenerator.generateUid())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TEI_ID)
+            .trackedEntity(TE_ID)
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
@@ -316,7 +316,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .enrollment(CodeGenerator.generateUid())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TEI_ID)
+            .trackedEntity(TE_ID)
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
@@ -340,7 +340,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .enrollment(CodeGenerator.generateUid())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TEI_ID)
+            .trackedEntity(TE_ID)
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
@@ -366,7 +366,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .enrollment(enrollmentUid)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TEI_ID)
+            .trackedEntity(TE_ID)
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
@@ -390,7 +390,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .enrollment(enrollmentUid)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TEI_ID)
+            .trackedEntity(TE_ID)
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
@@ -407,9 +407,9 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     assertHasError(reporter, enrollment, E1104);
   }
 
-  private TrackedEntity getTEIWithNoEnrollments() {
+  private TrackedEntity teWithNoEnrollments() {
     TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
-    trackedEntity.setUid(TEI_ID);
+    trackedEntity.setUid(TE_ID);
     trackedEntity.setEnrollments(Sets.newHashSet());
     trackedEntity.setTrackedEntityType(trackedEntityType);
 
@@ -423,14 +423,13 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     Enrollment enrollment = new Enrollment();
     enrollment.setUid(enrollmentUid);
     enrollment.setOrganisationUnit(organisationUnit);
-    enrollment.setTrackedEntity(getTEIWithNoEnrollments());
+    enrollment.setTrackedEntity(teWithNoEnrollments());
     enrollment.setProgram(program);
     enrollment.setStatus(ProgramStatus.ACTIVE);
     return enrollment;
   }
 
   private User deleteEnrollmentAuthorisedUser() {
-    return makeUser(
-        "A", Lists.newArrayList(Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority()));
+    return makeUser("A", Lists.newArrayList(Authorities.F_ENROLLMENT_CASCADE_DELETE.name()));
   }
 }

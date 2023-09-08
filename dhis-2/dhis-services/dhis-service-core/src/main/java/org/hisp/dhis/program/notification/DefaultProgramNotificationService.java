@@ -448,9 +448,9 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
           "Either of the arguments [enrollment, event] must be non-null");
     }
 
-    Set<User> recipients = Sets.newHashSet();
+    Set<User> userGroupMembers = Sets.newHashSet();
 
-    OrganisationUnit eventOrgUnit =
+    OrganisationUnit orgUnit =
         enrollment != null ? enrollment.getOrganisationUnit() : event.getOrganisationUnit();
 
     Set<OrganisationUnit> orgUnitInHierarchy = Sets.newHashSet();
@@ -458,11 +458,11 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
     ProgramNotificationRecipient recipientType = template.getNotificationRecipient();
 
     if (recipientType == ProgramNotificationRecipient.USER_GROUP) {
-      recipients =
+      userGroupMembers =
           Optional.ofNullable(template)
               .map(ProgramNotificationTemplate::getRecipientUserGroup)
               .map(UserGroup::getMembers)
-              .orElse(recipients);
+              .orElse(userGroupMembers);
 
       final boolean limitToHierarchy =
           BooleanUtils.toBoolean(template.getNotifyUsersInHierarchyOnly());
@@ -471,29 +471,28 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
           BooleanUtils.toBoolean(template.getNotifyParentOrganisationUnitOnly());
 
       if (limitToHierarchy) {
-        orgUnitInHierarchy.add(eventOrgUnit);
-        orgUnitInHierarchy.addAll(eventOrgUnit.getAncestors());
+        orgUnitInHierarchy.add(orgUnit);
+        orgUnitInHierarchy.addAll(orgUnit.getAncestors());
 
-        recipients =
-            recipients.stream()
-                .filter(r -> orgUnitInHierarchy.contains(r.getOrganisationUnit()))
-                .collect(Collectors.toSet());
+        return userGroupMembers.stream()
+            .filter(r -> orgUnitInHierarchy.contains(r.getOrganisationUnit()))
+            .collect(Collectors.toSet());
 
-        return recipients;
       } else if (parentOrgUnitOnly) {
-        Set<User> parents = Sets.newHashSet();
 
-        recipients.forEach(r -> parents.addAll(r.getOrganisationUnit().getParent().getUsers()));
+        OrganisationUnit parentOrgUnit = orgUnit.getParent();
 
-        return parents;
+        return userGroupMembers.stream()
+            .filter(u -> u.getOrganisationUnit().equals(parentOrgUnit))
+            .collect(Collectors.toSet());
       }
 
-      recipients.addAll(template.getRecipientUserGroup().getMembers());
+      userGroupMembers.addAll(template.getRecipientUserGroup().getMembers());
     } else if (recipientType == ProgramNotificationRecipient.USERS_AT_ORGANISATION_UNIT) {
-      recipients.addAll(eventOrgUnit.getUsers());
+      userGroupMembers.addAll(orgUnit.getUsers());
     }
 
-    return recipients;
+    return userGroupMembers;
   }
 
   private ProgramMessageRecipients resolveProgramNotificationRecipients(
@@ -532,7 +531,7 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
   private ProgramMessageRecipients resolveRecipients(
       ProgramNotificationTemplate template,
       OrganisationUnit ou,
-      TrackedEntity tei,
+      TrackedEntity te,
       Enrollment enrollment) {
     ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
@@ -541,7 +540,7 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
     if (recipientType == ProgramNotificationRecipient.ORGANISATION_UNIT_CONTACT) {
       recipients.setOrganisationUnit(ou);
     } else if (recipientType == ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE) {
-      recipients.setTrackedEntity(tei);
+      recipients.setTrackedEntity(te);
     } else if (recipientType == ProgramNotificationRecipient.PROGRAM_ATTRIBUTE
         && template.getRecipientProgramAttribute() != null) {
       List<String> recipientList =

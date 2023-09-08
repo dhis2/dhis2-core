@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
-import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAccessibleOrgUnits;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -44,9 +43,9 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -56,12 +55,11 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -91,12 +89,19 @@ class TrackedEntityOperationParamsMapper {
         validateTrackedEntityType(operationParams.getTrackedEntityTypeUid());
 
     User user = operationParams.getUser();
-    Set<OrganisationUnit> orgUnits =
-        validateOrgUnits(
+    Set<OrganisationUnit> requestedOrgUnits =
+        validateRequestedOrgUnit(operationParams.getOrganisationUnits());
+
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
+
+    Set<OrganisationUnit> accessibleOrgUnits =
+        validateAccessibleOrgUnits(
             user,
-            operationParams.getOrganisationUnits(),
+            requestedOrgUnits,
+            operationParams.getOrgUnitMode(),
             program,
-            operationParams.getOrganisationUnitMode());
+            organisationUnitService::getOrganisationUnitWithChildren,
+            trackerAccessManager);
 
     QueryFilter queryFilter = operationParams.getQuery();
 
@@ -104,17 +109,18 @@ class TrackedEntityOperationParamsMapper {
         attributeService.getAllTrackedEntityAttributes().stream()
             .collect(Collectors.toMap(TrackedEntityAttribute::getUid, att -> att));
 
+    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+
     List<QueryItem> attributeItems =
         parseAttributeQueryItems(operationParams.getAttributes(), attributes);
+    params.setAttributes(attributeItems);
 
     List<QueryItem> filters = parseAttributeQueryItems(operationParams.getFilters(), attributes);
-
     validateDuplicatedAttributeFilters(filters);
+    params.setFilters(filters);
 
-    List<OrderParam> orderParams = toOrderParams(operationParams.getOrders());
-    validateOrderParams(orderParams, attributes);
+    mapOrderParam(params, operationParams.getOrder());
 
-    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params
         .setQuery(queryFilter)
         .setProgram(program)
@@ -129,25 +135,22 @@ class TrackedEntityOperationParamsMapper {
         .setProgramIncidentStartDate(operationParams.getProgramIncidentStartDate())
         .setProgramIncidentEndDate(operationParams.getProgramIncidentEndDate())
         .setTrackedEntityType(trackedEntityType)
-        .addOrganisationUnits(orgUnits)
-        .setOrganisationUnitMode(operationParams.getOrganisationUnitMode())
+        .setAccessibleOrgUnits(accessibleOrgUnits)
+        .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setEventStatus(operationParams.getEventStatus())
         .setEventStartDate(operationParams.getEventStartDate())
         .setEventEndDate(operationParams.getEventEndDate())
         .setAssignedUserQueryParam(operationParams.getAssignedUserQueryParam())
         .setUser(user)
         .setTrackedEntityUids(operationParams.getTrackedEntityUids())
-        .setAttributes(attributeItems)
-        .setFilters(filters)
         .setSkipMeta(operationParams.isSkipMeta())
         .setPage(operationParams.getPage())
         .setPageSize(operationParams.getPageSize())
         .setTotalPages(operationParams.isTotalPages())
-        .setSkipPaging(toBooleanDefaultIfNull(operationParams.isSkipPaging(), false))
+        .setSkipPaging(operationParams.isSkipPaging())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setIncludeAllAttributes(operationParams.isIncludeAllAttributes())
-        .setPotentialDuplicate(operationParams.getPotentialDuplicate())
-        .setOrders(orderParams);
+        .setPotentialDuplicate(operationParams.getPotentialDuplicate());
 
     return params;
   }
@@ -191,9 +194,8 @@ class TrackedEntityOperationParamsMapper {
         .collect(Collectors.toSet());
   }
 
-  private Set<OrganisationUnit> validateOrgUnits(
-      User user, Set<String> orgUnitIds, Program program, OrganisationUnitSelectionMode orgUnitMode)
-      throws BadRequestException, ForbiddenException {
+  private Set<OrganisationUnit> validateRequestedOrgUnit(Set<String> orgUnitIds)
+      throws BadRequestException {
     Set<OrganisationUnit> orgUnits = new HashSet<>();
     for (String orgUnitUid : orgUnitIds) {
       OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid);
@@ -202,16 +204,7 @@ class TrackedEntityOperationParamsMapper {
         throw new BadRequestException("Organisation unit does not exist: " + orgUnitUid);
       }
 
-      if (!trackerAccessManager.canAccess(user, program, orgUnit)) {
-        throw new ForbiddenException(
-            "User does not have access to organisation unit: " + orgUnitUid);
-      }
-
       orgUnits.add(orgUnit);
-    }
-
-    if (orgUnitMode == OrganisationUnitSelectionMode.CAPTURE && user != null) {
-      orgUnits.addAll(user.getOrganisationUnits());
     }
 
     return orgUnits;
@@ -269,15 +262,30 @@ class TrackedEntityOperationParamsMapper {
         .orElse(null);
   }
 
-  private void validateOrderParams(
-      List<OrderParam> orderParams, Map<String, TrackedEntityAttribute> attributes)
+  private void mapOrderParam(TrackedEntityQueryParams params, List<Order> orders)
       throws BadRequestException {
-    if (orderParams != null && !orderParams.isEmpty()) {
-      for (OrderParam orderParam : orderParams) {
-        if (findColumn(orderParam.getField()).isEmpty()
-            && !attributes.containsKey(orderParam.getField())) {
-          throw new BadRequestException("Invalid order property: " + orderParam.getField());
+    if (orders == null || orders.isEmpty()) {
+      return;
+    }
+
+    for (Order order : orders) {
+      if (order.getField() instanceof String field) {
+        params.orderBy(field, order.getDirection());
+      } else if (order.getField() instanceof UID uid) {
+        TrackedEntityAttribute tea = attributeService.getTrackedEntityAttribute(uid.getValue());
+        if (tea == null) {
+          throw new BadRequestException(
+              "Cannot order by '"
+                  + uid.getValue()
+                  + "' as its not a tracked entity attribute. Tracked entities can be ordered by fields and tracked entity attributes.");
         }
+
+        params.orderBy(tea, order.getDirection());
+      } else {
+        throw new IllegalArgumentException(
+            "Cannot order by '"
+                + order.getField()
+                + "'. Tracked entities can be ordered by fields and tracked entity attributes.");
       }
     }
   }

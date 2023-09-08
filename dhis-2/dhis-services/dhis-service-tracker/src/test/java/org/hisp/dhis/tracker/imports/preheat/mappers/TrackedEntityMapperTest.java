@@ -73,12 +73,12 @@ class TrackedEntityMapperTest {
     TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
     attributeValue.setAttribute(attribute);
 
-    TrackedEntity tei = new TrackedEntity();
-    tei.setTrackedEntityType(trackedEntityType);
-    tei.setOrganisationUnit(orgUnit);
-    tei.setTrackedEntityAttributeValues(Set.of(attributeValue));
+    TrackedEntity te = new TrackedEntity();
+    te.setTrackedEntityType(trackedEntityType);
+    te.setOrganisationUnit(orgUnit);
+    te.setTrackedEntityAttributeValues(Set.of(attributeValue));
 
-    TrackedEntity mapped = TrackedEntityMapper.INSTANCE.map(tei);
+    TrackedEntity mapped = TrackedEntityMapper.INSTANCE.map(te);
 
     assertEquals("WTTYiPQDqh1", mapped.getTrackedEntityType().getUid());
     assertEquals("friendship", mapped.getTrackedEntityType().getName());

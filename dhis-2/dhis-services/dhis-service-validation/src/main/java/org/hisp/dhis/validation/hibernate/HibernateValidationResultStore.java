@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
@@ -211,7 +212,7 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
   }
 
   @Override
-  public void save(ValidationResult validationResult) {
+  public void save(@Nonnull ValidationResult validationResult) {
     validationResult.setCreated(new Date());
     super.save(validationResult);
   }

@@ -184,10 +184,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
       params.setOrganisationUnits(organisationUnits);
     }
 
-    if (!params.isPaging() && !params.isSkipPaging()) {
-      params.setDefaultPaging();
-    }
-
     return enrollmentStore.getEnrollments(params);
   }
 
@@ -335,7 +331,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
     if (program.getTrackedEntityType() != null
         && !program.getTrackedEntityType().equals(trackedEntity.getTrackedEntityType())) {
       throw new IllegalQueryException(
-          "Tracked entity instance must have same tracked entity as program: " + program.getUid());
+          "Tracked entity must have same tracked entity as program: " + program.getUid());
     }
 
     Enrollment enrollment = new Enrollment();
@@ -417,7 +413,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
     eventPublisher.publishEvent(new EnrollmentEvaluationEvent(this, enrollment.getId()));
 
     // -----------------------------------------------------------------
-    // Update Enrollment and TEI
+    // Update Enrollment and TE
     // -----------------------------------------------------------------
 
     updateEnrollment(enrollment);
@@ -430,7 +426,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
   @Transactional
   public void completeEnrollmentStatus(Enrollment enrollment) {
     // -----------------------------------------------------------------
-    // Update program-instance
+    // Update enrollment
     // -----------------------------------------------------------------
 
     enrollment.setStatus(ProgramStatus.COMPLETED);
@@ -450,13 +446,13 @@ public class DefaultEnrollmentService implements EnrollmentService {
   @Transactional
   public void cancelEnrollmentStatus(Enrollment enrollment) {
     // ---------------------------------------------------------------------
-    // Set status of the program-instance
+    // Set status of the enrollment
     // ---------------------------------------------------------------------
     enrollment.setStatus(ProgramStatus.CANCELLED);
     updateEnrollment(enrollment);
 
     // ---------------------------------------------------------------------
-    // Set statuses of the program-stage-instances
+    // Set statuses of the event
     // ---------------------------------------------------------------------
 
     for (Event event : enrollment.getEvents()) {
@@ -480,9 +476,9 @@ public class DefaultEnrollmentService implements EnrollmentService {
   public void incompleteEnrollmentStatus(Enrollment enrollment) {
     Program program = enrollment.getProgram();
 
-    TrackedEntity tei = enrollment.getTrackedEntity();
+    TrackedEntity te = enrollment.getTrackedEntity();
 
-    if (getEnrollments(tei, program, ProgramStatus.ACTIVE).size() > 0) {
+    if (getEnrollments(te, program, ProgramStatus.ACTIVE).size() > 0) {
       log.warn("Program has another active enrollment going on. Not possible to incomplete");
 
       throw new IllegalQueryException(
@@ -490,7 +486,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
     }
 
     // -----------------------------------------------------------------
-    // Update program-instance
+    // Update enrollment
     // -----------------------------------------------------------------
 
     enrollment.setStatus(ProgramStatus.ACTIVE);

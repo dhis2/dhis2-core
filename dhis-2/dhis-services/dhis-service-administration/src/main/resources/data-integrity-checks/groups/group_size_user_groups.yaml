@@ -29,7 +29,6 @@ name: user_groups_scarce
 description: User groups should have at least two members.
 section: Group size
 section_order: 9
-summary_uid: UoQRMf3RMMW
 summary_sql: >-
   WITH group_size as (
   SELECT uid,name,  COALESCE(x.count,0) as count from
@@ -42,7 +41,6 @@ summary_sql: >-
   SELECT COUNT(*) as value,
   100*COUNT(*) / NULLIF( ( select COUNT(*) from usergroup), 0) as percent
   from group_size where count < 2;
-details_uid: me8PS8d2QSm
 details_sql: >-
   WITH group_size as (
   SELECT uid,name,  COALESCE(x.count,0) as count from

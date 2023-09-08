@@ -84,7 +84,7 @@ class ExistingEnrollmentValidator
       Program program) {
     checkNotNull(enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL);
 
-    TrackedEntity tei = getTrackedEntity(bundle, enrollment.getTrackedEntity());
+    TrackedEntity te = getTrackedEntity(bundle, enrollment.getTrackedEntity());
 
     Set<org.hisp.dhis.tracker.imports.domain.Enrollment> payloadEnrollment =
         bundle.getEnrollments().stream()
@@ -92,7 +92,7 @@ class ExistingEnrollmentValidator
             .filter(e -> e.getProgram().isEqualTo(program))
             .filter(
                 e ->
-                    e.getTrackedEntity().equals(tei.getUid())
+                    e.getTrackedEntity().equals(te.getUid())
                         && !e.getEnrollment().equals(enrollment.getEnrollment()))
             .filter(
                 e ->
@@ -139,12 +139,12 @@ class ExistingEnrollmentValidator
               .collect(Collectors.toSet());
 
       if (!activeOnly.isEmpty()) {
-        reporter.addError(enrollment, E1015, tei, program);
+        reporter.addError(enrollment, E1015, te, program);
       }
     }
 
     if (Boolean.TRUE.equals(program.getOnlyEnrollOnce()) && !mergedEnrollments.isEmpty()) {
-      reporter.addError(enrollment, E1016, tei, program);
+      reporter.addError(enrollment, E1016, te, program);
     }
   }
 
@@ -159,12 +159,12 @@ class ExistingEnrollmentValidator
   }
 
   private TrackedEntity getTrackedEntity(TrackerBundle bundle, String uid) {
-    TrackedEntity tei = bundle.getPreheat().getTrackedEntity(uid);
+    TrackedEntity te = bundle.getPreheat().getTrackedEntity(uid);
 
-    if (tei == null && bundle.findTrackedEntityByUid(uid).isPresent()) {
-      tei = new TrackedEntity();
-      tei.setUid(uid);
+    if (te == null && bundle.findTrackedEntityByUid(uid).isPresent()) {
+      te = new TrackedEntity();
+      te.setUid(uid);
     }
-    return tei;
+    return te;
   }
 }

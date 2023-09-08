@@ -68,6 +68,6 @@ public abstract class IdObjectDeletionHandler<T extends IdentifiableObject>
   protected abstract void registerHandler();
 
   private DeletionVeto allowDeleteUser(User user) {
-    return idObjectManager.findByUser(klass, user).isEmpty() ? DeletionVeto.ACCEPT : VETO;
+    return idObjectManager.existsByUser(klass, user) ? VETO : DeletionVeto.ACCEPT;
   }
 }

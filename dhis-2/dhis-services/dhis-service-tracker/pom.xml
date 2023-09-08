@@ -7,10 +7,10 @@
     <artifactId>dhis-services</artifactId>
     <version>2.41-SNAPSHOT</version>
   </parent>
-
   <artifactId>dhis-service-tracker</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Tracker services</name>
+
   <properties>
     <rootDir>../../</rootDir>
   </properties>
@@ -124,6 +124,10 @@
       <artifactId>hibernate-core</artifactId>
     </dependency>
     <dependency>
+      <groupId>javax.persistence</groupId>
+      <artifactId>javax.persistence-api</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
@@ -138,10 +142,6 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-xml</artifactId>
     </dependency>
     <dependency>
       <groupId>org.locationtech.jts</groupId>
@@ -243,7 +243,8 @@
                 <bannedDependencies>
                   <excludes>
                     <exclude>org.hisp.dhis:dhis-service-dxf2</exclude>
-                    <message>New tracker should not depend on old tracker code which will be removed. Parts of old tracker are located in dhis-service-dxf2.</message>
+                    <message>New tracker should not depend on old tracker code which will be
+                      removed. Parts of old tracker are located in dhis-service-dxf2.</message>
                   </excludes>
                 </bannedDependencies>
               </rules>
