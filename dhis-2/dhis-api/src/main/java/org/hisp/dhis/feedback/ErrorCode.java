@@ -152,6 +152,7 @@ public enum ErrorCode {
   E3018("Invalid user access string: `{0}`"),
   E3019("Sharing is not enabled for this object `{0}`"),
   E3028("User `{0}` does not have access to user role"),
+  E3032("User `{0}` does not have access to user role"),
   E3041("User `{0}` is not allowed to change a user having the ALL authority"),
 
   /* Metadata Validation */

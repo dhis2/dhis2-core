@@ -378,6 +378,8 @@ public interface UserService {
    */
   List<ErrorReport> validateUserCreateOrUpdate(User user, User currentUser);
 
+  List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole user, User currentUser);
+
   /**
    * Returns list of active users who are expiring with in few days.
    *
