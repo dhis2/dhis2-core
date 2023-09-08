@@ -686,6 +686,7 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole role, User currentUser) {
 
     List<ErrorReport> errors = new ArrayList<>();
