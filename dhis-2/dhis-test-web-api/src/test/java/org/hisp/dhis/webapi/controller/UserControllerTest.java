@@ -208,7 +208,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     UserRole roleB = createUserRole("ROLE_B", "NONE");
     userService.addUserRole(roleB);
 
-    User user = createUserWithAuth("someone", "F_USER_ADD");
+    User user = createUser("someone", "F_USER_ADD");
     user.getUserRoles().add(roleB);
     userService.updateUser(user);
 
@@ -218,7 +218,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
     JsonImportSummary response =
         PATCH(
-                "/users/" + superUser.getUid(),
+                "/users/" + getSuperuserUid(),
                 "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleBID + "'}]}]")
             .content(HttpStatus.CONFLICT)
             .get("response")
