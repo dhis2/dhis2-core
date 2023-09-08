@@ -106,7 +106,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
                   continue;
                 }
                 SortableObject sortableObject = (SortableObject) preheatedItem;
-                if (sortableObject.getSortOrder() == null) {
+                if (sortableObject.getSortOrder() == null || sortableObject.getSortOrder() != i) {
                   sortableObject.setSortOrder(i);
                   bundle.getPreheat().put(bundle.getPreheatIdentifier(), preheatedItem);
                 }
