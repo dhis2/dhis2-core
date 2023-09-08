@@ -39,6 +39,7 @@ import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 import org.springframework.stereotype.Component;
 
 /**
@@ -131,6 +132,17 @@ public class SecurityCheck implements ObjectValidationCheck {
         User user = (User) object;
         List<ErrorReport> errorReports =
             ctx.getUserService().validateUserCreateOrUpdate(user, bundle.getUser());
+
+        if (!errorReports.isEmpty()) {
+          addReports.accept(createObjectReport(errorReports, object, bundle));
+          ctx.markForRemoval(object);
+        }
+      }
+
+      if (object instanceof UserRole) {
+        UserRole userRole = (UserRole) object;
+        List<ErrorReport> errorReports =
+            ctx.getUserService().validateUserRoleCreateOrUpdate(userRole, bundle.getUser());
 
         if (!errorReports.isEmpty()) {
           addReports.accept(createObjectReport(errorReports, object, bundle));
