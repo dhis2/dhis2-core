@@ -36,6 +36,7 @@ import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -158,20 +159,7 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
       @CurrentUser User currentUser) {
 
     WebRequestData requestData = applyRequestSetup(rpParameters, orderParams);
-
-    WebMetadata metadata = new WebMetadata();
-    List<DimensionalObject> entities = dimensionService.getAllDimensions();
-
-    Query filteredQuery =
-        queryService.getQueryFromUrl(
-            DimensionalObject.class, requestData.getFilters(), requestData.getOrders());
-    filteredQuery.setObjects(entities);
-
-    List<DimensionalObject> filteredEntities =
-        (List<DimensionalObject>) queryService.query(filteredQuery);
-
-    PagedEntities<DimensionalObject> pagedEntities =
-        PaginationUtils.addPagingIfEnabled(metadata, requestData.getOptions(), filteredEntities);
+    PagedEntities<DimensionalObject> pagedEntities = getPagedEntities(requestData);
     linkService.generatePagerLinks(pagedEntities.getPager(), RESOURCE_PATH);
 
     return ResponseEntity.ok(
@@ -180,6 +168,31 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
             getSchema().getCollectionName(),
             org.hisp.dhis.fieldfiltering.FieldFilterParams.of(
                 pagedEntities.getEntities(), requestData.getFields())));
+  }
+
+  @Override
+  @GetMapping(produces = {"text/csv", "application/text"})
+  public ResponseEntity<String> getObjectListCsv(
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      @CurrentUser User currentUser,
+      @RequestParam(defaultValue = ",") char separator,
+      @RequestParam(defaultValue = ";") String arraySeparator,
+      @RequestParam(defaultValue = "false") boolean skipHeader,
+      HttpServletResponse response)
+      throws IOException {
+
+    WebRequestData requestData = applyRequestSetup(rpParameters, orderParams);
+    PagedEntities<DimensionalObject> pagedEntities = getPagedEntities(requestData);
+    String csv =
+        applyCsvSteps(
+            requestData.getFields(),
+            pagedEntities.getEntities(),
+            separator,
+            arraySeparator,
+            skipHeader);
+
+    return ResponseEntity.ok(csv);
   }
 
   @SuppressWarnings("unchecked")
@@ -304,6 +317,20 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
         fieldFilterService.toObjectNodes(metadata.getDimensions(), fields);
 
     return ResponseEntity.ok(new JsonRoot("dimensions", objectNodes));
+  }
+
+  private PagedEntities<DimensionalObject> getPagedEntities(WebRequestData requestData) {
+    List<DimensionalObject> entities = dimensionService.getAllDimensions();
+    WebMetadata metadata = new WebMetadata();
+
+    Query filteredQuery =
+        queryService.getQueryFromUrl(
+            DimensionalObject.class, requestData.getFilters(), requestData.getOrders());
+    filteredQuery.setObjects(entities);
+
+    List<DimensionalObject> filteredEntities =
+        (List<DimensionalObject>) queryService.query(filteredQuery);
+    return PaginationUtils.addPagingIfEnabled(metadata, requestData.getOptions(), filteredEntities);
   }
 
   /**

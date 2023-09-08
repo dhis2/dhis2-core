@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema.Builder;
 import com.fasterxml.jackson.dataformat.csv.CsvWriteException;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -255,37 +256,32 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     List<T> entities = getEntityList(metadata, options, filters, orders);
 
+    try {
+      String csv = applyCsvSteps(fields, entities, separator, arraySeparator, skipHeader);
+      return ResponseEntity.ok(csv);
+    } catch (CsvWriteException ex) {
+      response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+      throw new WebMessageException(
+          conflict(
+              "Invalid property selected. Make sure all properties are either simple or collections of refs / simple.",
+              ex.getMessage()));
+    }
+  }
+
+  protected String applyCsvSteps(
+      List<String> fields,
+      List<T> entities,
+      char separator,
+      String arraySeparator,
+      boolean skipHeader)
+      throws IOException {
+
     CsvSchema schema;
     CsvSchema.Builder schemaBuilder = CsvSchema.builder();
     Map<String, Function<T, Object>> obj2valueByProperty = new LinkedHashMap<>();
 
-    for (String field : fields) {
-      // We just split on ',' here, we do not try and deep dive into
-      // objects using [], if the client provides id,name,group[id]
-      // then the group[id] part is simply ignored.
-      for (String fieldName : field.split(",")) {
-        Property property = getSchema().getProperty(fieldName);
-
-        if (property == null) {
-          if (CodeGenerator.isValidUid(fieldName)) {
-            schemaBuilder.addColumn(fieldName);
-            obj2valueByProperty.put(fieldName, obj -> getAttributeValue(obj, fieldName));
-          }
-          continue;
-        }
-
-        if ((property.isCollection() && property.itemIs(PropertyType.REFERENCE))) {
-          schemaBuilder.addArrayColumn(property.getCollectionName());
-          obj2valueByProperty.put(
-              property.getCollectionName(), obj -> getCollectionValue(obj, property));
-        } else if (property.isSimple()) {
-          schemaBuilder.addColumn(property.getName());
-          obj2valueByProperty.put(
-              property.getName(),
-              obj -> ReflectionUtils.invokeMethod(obj, property.getGetterMethod()));
-        }
-      }
-    }
+    setupSchemaAndProperties(schemaBuilder, fields, obj2valueByProperty);
 
     schema =
         schemaBuilder
@@ -297,8 +293,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       schema = schema.withHeader();
     }
 
-    try (StringWriter strW = new StringWriter()) {
-      SequenceWriter seqW = csvMapper.writer(schema).writeValues(strW);
+    try (StringWriter strW = new StringWriter();
+        SequenceWriter seqW = csvMapper.writer(schema).writeValues(strW)) {
 
       Object[] row = new Object[obj2valueByProperty.size()];
 
@@ -319,17 +315,38 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         seqW.write(row);
       }
+      return strW.toString();
+    }
+  }
 
-      seqW.close();
-
-      return ResponseEntity.ok(strW.toString());
-    } catch (CsvWriteException ex) {
-      response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-
-      throw new WebMessageException(
-          conflict(
-              "Invalid property selected. Make sure all properties are either simple or collections of refs / simple.",
-              ex.getMessage()));
+  private void setupSchemaAndProperties(
+      Builder schemaBuilder,
+      List<String> fields,
+      Map<String, Function<T, Object>> obj2valueByProperty) {
+    for (String field : fields) {
+      // We just split on ',' here, we do not try and deep dive into
+      // objects using [], if the client provides id,name,group[id]
+      // then the group[id] part is simply ignored.
+      for (String fieldName : field.split(",")) {
+        Property property = getSchema().getProperty(fieldName);
+        if (property == null) {
+          if (CodeGenerator.isValidUid(fieldName)) {
+            schemaBuilder.addColumn(fieldName);
+            obj2valueByProperty.put(fieldName, obj -> getAttributeValue(obj, fieldName));
+          }
+          continue;
+        }
+        if ((property.isCollection() && property.itemIs(PropertyType.REFERENCE))) {
+          schemaBuilder.addArrayColumn(property.getCollectionName());
+          obj2valueByProperty.put(
+              property.getCollectionName(), obj -> getCollectionValue(obj, property));
+        } else if (property.isSimple()) {
+          schemaBuilder.addColumn(property.getName());
+          obj2valueByProperty.put(
+              property.getName(),
+              obj -> ReflectionUtils.invokeMethod(obj, property.getGetterMethod()));
+        }
+      }
     }
   }
 
