@@ -69,8 +69,8 @@ public class EnrollmentsAggregate3AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(4)))
-        .body("rows", hasSize(equalTo(59)))
-        .body("height", equalTo(59))
+        .body("rows", hasSize(equalTo(79)))
+        .body("height", equalTo(79))
         .body("width", equalTo(4))
         .body("headerWidth", equalTo(4));
 
