@@ -417,10 +417,10 @@ public enum ErrorCode {
   E7136("Program is not specified"),
   E7137("Expression is not parsable: `{0}`"),
   E7138("Invalid offset: `{0}`"),
-  E7139("programStatus and enrollmentStatus cannot be used together."),
+  E7139("Parameters programStatus and enrollmentStatus cannot be used together."),
   E7140(
-      "parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]"),
-  E7141("parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]"),
+      "Parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]"),
+  E7141("Parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]"),
   E7142("Program(s) `{0}` are not defined on Tracked Entity Type `{1}`"),
   E7143("Organisation unit or organisation unit level is not valid"),
   E7144(
@@ -478,6 +478,8 @@ public enum ErrorCode {
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
   E7301("At least one organisation unit group set must be specified"),
+  E7302(
+      "The organisation units specified `{0}` are not a valid data dimension. Please verify it and also ensure that the analytics job was run"),
 
   /* Debug analytics */
   E7400("Debug query must contain at least one data element, one period and one organisation unit"),
