@@ -29,9 +29,10 @@ package org.hisp.dhis.metadata.metadata_import;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.CompleteDataSetRegistrationActions;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.SystemActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeAll;
@@ -42,29 +43,95 @@ import org.junit.jupiter.api.Test;
  */
 class CompleteDataSetRegistrationsTest extends ApiTest {
   private CompleteDataSetRegistrationActions actions;
+  private LoginActions loginActions;
   private SystemActions systemActions;
+  private RestApiActions dataSetActions;
 
   @BeforeAll
   public void before() {
+    loginActions = new LoginActions();
     actions = new CompleteDataSetRegistrationActions();
     systemActions = new SystemActions();
+    dataSetActions = new RestApiActions("dataSets");
   }
 
   @Test
   void importAsync() {
-    String emptyBody = "{\"completeDataSetRegistrations\":[]}";
-    JsonObject response = actions.sendAsync(emptyBody).getBody();
-    assertEquals("OK",response.get("httpStatus").getAsString());
-    assertEquals(200,response.get("httpStatusCode").getAsInt());
-    assertTrue(response.get("message").getAsString().contains("Initiated COMPLETE_DATA_SET_REGISTRATION_IMPORT"));
+    loginActions.loginAsAdmin();
 
-    String taskId = response.getAsJsonObject("response").get("id").getAsString();
+    // create data set
+    String dataSet = dataSetWithOrgUnit("O6uvpzGd5pu");
+    ApiResponse dataSetResponse = dataSetActions.post(dataSet);
+
+    assertEquals(201, dataSetResponse.statusCode());
+    String dataSetId = dataSetResponse.extractUid();
+    assertEquals(11, dataSetId.length());
+
+    // get complete data sets to show none complete
+    ApiResponse completedResponse = actions.getCompleted(dataSetId, "O6uvpzGd5pu", "202301");
+    assertEquals("{}", completedResponse.getAsString());
+
+    String cds = completeDataSet(dataSetId, "202301", "O6uvpzGd5pu");
+    ApiResponse completeAsyncResponse = actions.sendAsync(cds);
+    assertEquals(200, completeAsyncResponse.statusCode());
+
+    assertTrue(
+        completeAsyncResponse
+            .getBody()
+            .get("message")
+            .getAsString()
+            .contains("Initiated COMPLETE_DATA_SET_REGISTRATION_IMPORT"));
+
+    String taskId =
+        completeAsyncResponse.getBody().getAsJsonObject("response").get("id").getAsString();
     assertEquals(11, taskId.length());
 
-    //wait for max 24 seconds for task to be completed (usually takes ~10 seconds)
-    ApiResponse taskStatus = systemActions.waitUntilTaskCompleted(
-        "COMPLETE_DATA_SET_REGISTRATION_IMPORT", taskId, 24);
+    // wait for max 24 seconds for task to be completed (usually takes ~10 seconds)
+    ApiResponse taskStatus =
+        systemActions.waitUntilTaskCompleted("COMPLETE_DATA_SET_REGISTRATION_IMPORT", taskId, 24);
 
-//    assertEquals("taskstatus", taskStatus.getAsString());
+    assertEquals("eq",taskStatus.getAsString());
+    assertTrue(taskStatus.getAsString().contains("\"completed\":true"));
+
+    // get complete data sets which should be 1 now
+//    ApiResponse completedResponse2 = actions.getCompleted(dataSetId, "O6uvpzGd5pu", "202301");
+//    ApiResponse completedResponse2 = actions.getCompleted(dataSetId, "O6uvpzGd5pu", "202301");
+//    ApiResponse completedResponse2 = actions.getCompletedWithinDates(dataSetId, "O6uvpzGd5pu", "1010-01-01", "2040-01-01");
+    ApiResponse completedResponse2 = actions.getCompletedLastUpdated(dataSetId, "O6uvpzGd5pu", "2023-01-01");
+    assertEquals("{}", completedResponse2.getAsString());
+  }
+
+  private String dataSetWithOrgUnit(String orgUnit) {
+    return "{\n"
+        + "    \"name\": \"test ds 1\",\n"
+        + "    \"shortName\": \"test ds 1\",\n"
+        + "    \"periodType\": \"Daily\",\n"
+        + "    \"organisationUnits\": [\n"
+        + "        {\n"
+        + "            \"id\": \""
+        + orgUnit
+        + "\"\n"
+        + "        }\n"
+        + "    ]\n"
+        + "}";
+  }
+
+  private String completeDataSet(String dataSet, String period, String orgUnit) {
+    return "{\n"
+        + "    \"completeDataSetRegistrations\": [\n"
+        + "        {\n"
+        + "            \"dataSet\": \""
+        + dataSet
+        + "\",\n"
+        + "            \"period\": \""
+        + period
+        + "\",\n"
+        + "            \"organisationUnit\": \""
+        + orgUnit
+        + "\",\n"
+        + "            \"completed\": \"true\""
+        + "        }\n"
+        + "    ]\n"
+        + "}";
   }
 }

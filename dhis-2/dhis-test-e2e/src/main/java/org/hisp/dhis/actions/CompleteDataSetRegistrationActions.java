@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.actions;
 
-
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
@@ -40,11 +39,36 @@ public class CompleteDataSetRegistrationActions extends RestApiActions {
     super("/completeDataSetRegistrations");
   }
 
-  public ApiResponse sendAsync(String body){
+  public ApiResponse sendAsync(String body) {
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
     queryParamsBuilder.addAll("async=true");
 
-    ApiResponse response = post("", body, queryParamsBuilder);
-    return response;
+    return post("", body, queryParamsBuilder);
+  }
+
+  public ApiResponse getCompleted(String dataSet, String orgUnit, String period) {
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.add("dataSet", dataSet);
+    queryParamsBuilder.add("orgUnit", orgUnit);
+    queryParamsBuilder.add("period", period);
+    return get(queryParamsBuilder);
+  }
+
+  public ApiResponse getCompletedWithinDates(
+      String dataSet, String orgUnit, String start, String end) {
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.add("dataSet", dataSet);
+    queryParamsBuilder.add("orgUnit", orgUnit);
+    queryParamsBuilder.add("startDate", start);
+    queryParamsBuilder.add("endDate", end);
+    return get(queryParamsBuilder);
+  }
+
+  public ApiResponse getCompletedLastUpdated(String dataSet, String orgUnit, String lastUpdated) {
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.add("dataSet", dataSet);
+    queryParamsBuilder.add("orgUnit", orgUnit);
+    queryParamsBuilder.add("lastUpdated", lastUpdated);
+    return get(queryParamsBuilder);
   }
 }
