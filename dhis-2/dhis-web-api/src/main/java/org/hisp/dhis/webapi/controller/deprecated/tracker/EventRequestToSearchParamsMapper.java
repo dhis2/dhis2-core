@@ -28,10 +28,11 @@
 package org.hisp.dhis.webapi.controller.deprecated.tracker;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.webapi.controller.deprecated.tracker.EventUtils.getOrgUnitMode;
-import static org.hisp.dhis.webapi.controller.deprecated.tracker.EventUtils.validateAccessibleOrgUnits;
 
-import com.google.common.base.Strings;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -73,7 +74,6 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
@@ -248,27 +248,12 @@ class EventRequestToSearchParamsMapper {
       throw new IllegalQueryException("Org unit is specified but does not exist: " + orgUnit);
     }
 
+    validateUser(user, pr, ps, requestedOrgUnit);
+
     OrganisationUnitSelectionMode orgUnitMode =
         getOrgUnitMode(requestedOrgUnit, orgUnitSelectionMode);
 
-    validateOrgUnitMode(orgUnitMode, orgUnit, user, pr);
-
-    List<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            user,
-            requestedOrgUnit,
-            orgUnitMode,
-            pr,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
-
-    if (pr != null && !user.isSuper() && !aclService.canDataRead(user, pr)) {
-      throw new IllegalQueryException("User has no access to program: " + pr.getUid());
-    }
-
-    if (ps != null && !user.isSuper() && !aclService.canDataRead(user, ps)) {
-      throw new IllegalQueryException("User has no access to program stage: " + ps.getUid());
-    }
+    validateOrgUnitMode(orgUnitMode, user, pr, requestedOrgUnit);
 
     TrackedEntity tei = entityInstanceService.getTrackedEntity(trackedEntityInstance);
 
@@ -326,7 +311,7 @@ class EventRequestToSearchParamsMapper {
     return params
         .setProgram(pr)
         .setProgramStage(ps)
-        .setAccessibleOrgUnits(accessibleOrgUnits)
+        .setOrgUnit(requestedOrgUnit)
         .setTrackedEntity(tei)
         .setProgramStatus(programStatus)
         .setFollowUp(followUp)
@@ -468,74 +453,97 @@ class EventRequestToSearchParamsMapper {
   }
 
   private void validateOrgUnitMode(
-      OrganisationUnitSelectionMode selectedOuMode, String orgUnit, User user, Program program) {
+      OrganisationUnitSelectionMode selectedOuMode,
+      User user,
+      Program program,
+      OrganisationUnit orgUnit) {
 
-    String violation =
-        switch (selectedOuMode) {
-          case ALL -> orgUnit != null
-              ? "ouMode ALL cannot be used with orgUnits. Please remove the orgUnit parameter and try again."
-              : userCanSearchOuModeALL(user);
-          case ACCESSIBLE -> orgUnit != null
-              ? "ouMode ACCESSIBLE cannot be used with orgUnits. Please remove the orgUnit parameter and try again."
-              : getAccessibleScopeValidation(user, program);
-          case CAPTURE -> orgUnit != null
-              ? "ouMode CAPTURE cannot be used with orgUnits. Please remove the orgUnit parameter and try again."
-              : getCaptureScopeValidation(user);
-          case CHILDREN, SELECTED, DESCENDANTS -> orgUnit == null
-              ? "Organisation unit is required for ouMode: " + selectedOuMode
-              : null;
-        };
-
-    if (!Strings.isNullOrEmpty(violation)) {
-      throw new IllegalQueryException(violation);
+    switch (selectedOuMode) {
+      case ALL -> validateUserCanSearchOrgUnitModeALL(user);
+      case SELECTED, ACCESSIBLE, DESCENDANTS, CHILDREN -> validateUserScope(
+          user, program, selectedOuMode, orgUnit);
+      case CAPTURE -> validateCaptureScope(user, orgUnit);
     }
   }
 
-  private String userCanSearchOuModeALL(User user) {
-    if (user == null) {
-      return null;
+  private void validateUser(
+      User user, Program program, ProgramStage programStage, OrganisationUnit requestedOrgUnit) {
+    if (user == null
+        || user.isSuper()
+        || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)) {
+      return;
     }
 
-    if (!user.isSuper()
-        && !user.isAuthorized(
-            Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name())) {
-      return "Current user is not authorized to query across all organisation units";
+    if (program != null && !user.isSuper() && !aclService.canDataRead(user, program)) {
+      throw new IllegalQueryException("User has no access to program: " + program.getUid());
     }
 
-    return null;
+    if (programStage != null && !user.isSuper() && !aclService.canDataRead(user, programStage)) {
+      throw new IllegalQueryException(
+          "User has no access to program stage: " + programStage.getUid());
+    }
+
+    if (requestedOrgUnit != null
+        && !organisationUnitService.isInUserHierarchy(
+            requestedOrgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
+      throw new IllegalQueryException(
+          "Organisation unit is not part of your search scope: " + requestedOrgUnit.getUid());
+    }
   }
 
-  private String getCaptureScopeValidation(User user) {
-    String violation = null;
-
-    if (user == null) {
-      violation = "User is required for ouMode: " + OrganisationUnitSelectionMode.CAPTURE;
-    } else if (user.getOrganisationUnits().isEmpty()) {
-      violation = "User needs to be assigned data capture orgunits";
+  private static void validateUserCanSearchOrgUnitModeALL(User user) {
+    if (user != null
+        && !(user.isSuper()
+            || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()))) {
+      throw new IllegalQueryException(
+          "Current user is not authorized to query across all organisation units");
     }
-
-    return violation;
   }
 
-  private String getAccessibleScopeValidation(User user, Program program) {
-    String violation = null;
+  private static void validateUserScope(
+      User user,
+      Program program,
+      OrganisationUnitSelectionMode orgUnitMode,
+      OrganisationUnit orgUnit) {
 
     if (user == null) {
-      return "User is required for ouMode: " + OrganisationUnitSelectionMode.ACCESSIBLE;
+      throw new IllegalQueryException("User is required for orgUnitMode: " + orgUnitMode);
     }
 
     if (program != null && (program.isClosed() || program.isProtected())) {
-      violation =
-          user.getOrganisationUnits().isEmpty()
-              ? "User needs to be assigned data capture orgunits"
-              : null;
-    } else {
-      violation =
-          user.getTeiSearchOrganisationUnitsWithFallback().isEmpty()
-              ? "User needs to be assigned either TEI search, data view or data capture org units"
-              : null;
+      if (user.getOrganisationUnits().isEmpty()) {
+        throw new IllegalQueryException("User needs to be assigned data capture org units");
+      }
+
+    } else if (user.getTeiSearchOrganisationUnitsWithFallback().isEmpty()) {
+      throw new IllegalQueryException(
+          "User needs to be assigned either search or data capture org units");
     }
 
-    return violation;
+    if (orgUnitMode == ACCESSIBLE) {
+      if (orgUnit != null) {
+        throw new IllegalQueryException(
+            "ouMode ACCESSIBLE cannot be used with orgUnits. Please remove the orgUnit parameter and try again.");
+      }
+    } else if (orgUnit == null) {
+      throw new IllegalQueryException(
+          String.format(
+              "At least one org unit is required for orgUnitMode: %s. Please add an orgUnit or use a different orgUnitMode.",
+              orgUnitMode));
+    }
+  }
+
+  private static void validateCaptureScope(User user, OrganisationUnit orgUnit) {
+    if (user == null) {
+      throw new IllegalQueryException("User is required for orgUnitMode: " + CAPTURE);
+
+    } else if (user.getOrganisationUnits().isEmpty()) {
+      throw new IllegalQueryException("User needs to be assigned data capture orgunits");
+    }
+
+    if (orgUnit != null) {
+      throw new IllegalQueryException(
+          "ouMode CAPTURE cannot be used with orgUnits. Please remove the orgUnit parameter and try again.");
+    }
   }
 }

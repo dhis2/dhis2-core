@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -44,7 +45,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
 
@@ -73,17 +73,11 @@ public class OperationsParamsValidator {
   }
 
   private static void validateUserCanSearchOrgUnitModeALL(User user) throws BadRequestException {
-    // TODO(tracker) This user check is unnecessary for events, but needs to be here for
-    // trackedEntities. In that case, it should be done in a separate validation, so when it gets
-    // here we already know it's not null
-    if (user == null
-        || !(user.isSuper()
-            || user.isAuthorized(
-                Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()))) {
+    if (user != null
+        && !(user.isSuper()
+            || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()))) {
       throw new BadRequestException(
           "Current user is not authorized to query across all organisation units");
-
-      // TODO(tracker) Validate user scope if mode ALL needs to use user's search or capture scope
     }
   }
 
@@ -91,9 +85,6 @@ public class OperationsParamsValidator {
       User user, Program program, OrganisationUnitSelectionMode orgUnitMode)
       throws BadRequestException {
 
-    // TODO(tracker) This user check is unnecessary for events, but needs to be here for
-    // trackedEntities. In that case, it should be done in a separate validation, so when it gets
-    // here we already know it's not null
     if (user == null) {
       throw new BadRequestException("User is required for orgUnitMode: " + orgUnitMode);
     }
@@ -110,9 +101,6 @@ public class OperationsParamsValidator {
   }
 
   private static void validateCaptureScope(User user) throws BadRequestException {
-    // TODO(tracker) This user check is unnecessary for events, but needs to be here for
-    // trackedEntities. In that case, it should be done in a separate validation, so when it gets
-    // here we already know it's not null
     if (user == null) {
       throw new BadRequestException("User is required for orgUnitMode: " + CAPTURE);
     } else if (user.getOrganisationUnits().isEmpty()) {

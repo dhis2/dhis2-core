@@ -48,6 +48,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -70,6 +71,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -86,6 +88,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -126,6 +130,8 @@ class EventOperationParamsMapperTest {
 
   private User user;
 
+  private final Map<String, User> userMap = new HashMap<>();
+
   private OrganisationUnit orgUnit;
 
   private final String orgUnitId = "orgUnitId";
@@ -148,6 +154,9 @@ class EventOperationParamsMapperTest {
     // By default set to ACCESSIBLE for tests that don't set an orgUnit. The orgUnitMode needs to be
     // set because its validation is in the EventRequestParamsMapper.
     eventBuilder = eventBuilder.orgUnitMode(ACCESSIBLE);
+
+    userMap.put("admin", createUserWithAuthority(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS));
+    userMap.put("superuser", createUserWithAuthority(Authorities.ALL));
   }
 
   @Test
@@ -536,26 +545,6 @@ class EventOperationParamsMapperTest {
     assertEquals(searchScopeChildOrgUnit, queryParams.getOrgUnit());
   }
 
-  @Test
-  void shouldNotMapOrgUnitWhenModeAllProgramProvidedAndNoOrgUnitProvided()
-      throws ForbiddenException, BadRequestException {
-    Program program = new Program();
-    program.setAccessLevel(OPEN);
-
-    User user = new User();
-    UserRole userRole = new UserRole();
-    userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
-    user.setUserRoles(Set.of(userRole));
-
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-
-    EventOperationParams operationParams =
-        EventOperationParams.builder().programUid(program.getUid()).orgUnitMode(ALL).build();
-
-    EventQueryParams queryParams = mapper.map(operationParams);
-    assertNull(queryParams.getOrgUnit());
-  }
-
   @ParameterizedTest
   @EnumSource(value = OrganisationUnitSelectionMode.class)
   void shouldFailWhenRequestedOrgUnitOutsideOfSearchScope(
@@ -574,29 +563,27 @@ class EventOperationParamsMapperTest {
         exception.getMessage());
   }
 
-  @Test
-  void shouldFailWhenOrgUnitProvidedIsNotInUsersSearchScope() {
-    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
-    when(organisationUnitService.isInUserHierarchy(
-            orgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
-        .thenReturn(false);
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(strings = {"admin", "superuser"})
+  void shouldMapOrgUnitAndModeWhenModeAllAndUserIsAuthorized(String userName)
+      throws ForbiddenException, BadRequestException {
+    when(currentUserService.getCurrentUser()).thenReturn(userMap.get(userName));
 
-    EventOperationParams operationParams = eventBuilder.orgUnitUid(orgUnit.getUid()).build();
+    EventOperationParams operationParams = eventBuilder.orgUnitMode(ALL).build();
 
-    Exception exception = assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
-    assertEquals(
-        "Organisation unit is not part of your search scope: " + orgUnit.getUid(),
-        exception.getMessage());
+    EventQueryParams params = mapper.map(operationParams);
+    assertNull(params.getOrgUnit());
+    assertEquals(ALL, params.getOrgUnitMode());
   }
 
-  @Test
-  void shouldFailWhenUserIsNull() {
-    when(currentUserService.getCurrentUser()).thenReturn(null);
+  private User createUserWithAuthority(Authorities authority) {
+    User user = new User();
+    UserRole userRole = new UserRole();
+    userRole.setAuthorities(Set.of(authority.name()));
+    user.setUserRoles(Set.of(userRole));
 
-    EventOperationParams operationParams = eventBuilder.build();
-
-    Exception exception = assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
-    assertEquals("You need to be logged in to perform this operation", exception.getMessage());
+    return user;
   }
 
   private OrganisationUnit createOrgUnit(String name, String uid) {
