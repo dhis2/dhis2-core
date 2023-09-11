@@ -56,6 +56,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
+import java.time.Year;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
@@ -324,6 +325,32 @@ class JdbcEventAnalyticsTableManagerTest {
         created.getAlias(),
         is(
             "CASE WHEN psi.createdatclient IS NOT NULL THEN psi.createdatclient ELSE psi.created END"));
+  }
+
+  @Test
+  void verifyAnalyticsEventTableHasDefaultPartition() {
+    Program program = createProgram('A');
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
+    when(periodDataProvider.getAvailableYears()).thenReturn(List.of(2021, 2022, 2023, 2024, 2025));
+
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+
+    when(jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear(program, true, availableDataYears), Integer.class))
+        .thenReturn(List.of());
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .withLastYears(2)
+            .withStartTime(START_TIME)
+            .withToday(today)
+            .build();
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertThat(tables, hasSize(1));
+
+    assertThat(tables.get(0).getTablePartitions().get(0).getYear(), equalTo(Year.now().getValue()));
   }
 
   private AnalyticsTableColumn getColumn(String column, AnalyticsTable analyticsTable) {
