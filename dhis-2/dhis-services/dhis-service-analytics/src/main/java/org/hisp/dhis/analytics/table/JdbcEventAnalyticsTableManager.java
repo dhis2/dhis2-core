@@ -848,7 +848,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @return list of partition key values
    */
   private List<Integer> getYearsForPartitionTable(List<Integer> dataYears) {
-
     return ListUtils.mutableCopy(!dataYears.isEmpty() ? dataYears : List.of(Year.now().getValue()));
   }
 }
