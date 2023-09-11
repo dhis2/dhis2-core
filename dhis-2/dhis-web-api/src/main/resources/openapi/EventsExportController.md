@@ -171,7 +171,6 @@ case-sensitive properties
 * `followup`
 * `occurredAt`
 * `orgUnit`
-* `orgUnitName`
 * `program`
 * `programStage`
 * `scheduledAt`
@@ -233,14 +232,15 @@ Valid operators are:
 
 `<filter1>[,<filter2>...]`
 
-Get events matching given filters on tracked entity attributes. A filter is a colon separated
-attribute UID with optional operator and value pairs. Example: `filter=H9IlTX2X6SL:sw:A` with
-operator starts with `sw` followed by a value. Special characters like `+` need to be
-percent-encoded so `%2B` instead of `+`. Multiple operator/value pairs for the same attribute
-as `filter=AuPLng5hLbE:gt:438901703:lt:448901704` are allowed. Operator and values are
-case-insensitive. A user needs metadata read access to the attribute and data read access to the
-program (if the program is without registration) or to the program stage (if the program is with
-registration).
+Get events matching given filters on tracked entity attributes. A filter is a colon separated 
+attribute UID with optional operator and value pairs. Example: `filter=H9IlTX2X6SL:sw:A` with 
+operator starts with `sw` followed by a value. Special characters like `+` need to be 
+percent-encoded so `%2B` instead of `+`. Characters such as `:` (colon) or `,` (comma), as part 
+of the filter value, need to be escaped by / (slash). Likewise, `/` needs to be escaped. 
+Multiple operator/value pairs for the same attribute as `filter=AuPLng5hLbE:gt:438901703:lt:448901704` 
+are allowed. Repeating the same attribute UID is not allowed. Operator and values are case-insensitive. 
+A user needs metadata read access to the attribute and data read access to the program 
+(if the program is without registration) or to the program stage (if the program is with registration).
 
 Valid operators are:
 

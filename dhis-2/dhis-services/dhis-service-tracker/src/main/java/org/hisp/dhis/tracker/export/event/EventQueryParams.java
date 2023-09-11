@@ -72,7 +72,7 @@ class EventQueryParams {
 
   private Boolean followUp;
 
-  private List<OrganisationUnit> accessibleOrgUnits = new ArrayList<>();
+  private OrganisationUnit orgUnit;
 
   private OrganisationUnitSelectionMode orgUnitMode;
 
@@ -282,12 +282,12 @@ class EventQueryParams {
     return this;
   }
 
-  public List<OrganisationUnit> getAccessibleOrgUnits() {
-    return accessibleOrgUnits;
+  public OrganisationUnit getOrgUnit() {
+    return orgUnit;
   }
 
-  public EventQueryParams setAccessibleOrgUnits(List<OrganisationUnit> accessibleOrgUnits) {
-    this.accessibleOrgUnits = accessibleOrgUnits;
+  public EventQueryParams setOrgUnit(OrganisationUnit orgUnit) {
+    this.orgUnit = orgUnit;
     return this;
   }
 

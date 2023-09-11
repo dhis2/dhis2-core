@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -44,7 +45,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
 
@@ -64,25 +64,24 @@ public class OperationsParamsValidator {
   public static void validateOrgUnitMode(
       OrganisationUnitSelectionMode orgUnitMode, User user, Program program)
       throws BadRequestException {
-
     switch (orgUnitMode) {
       case ALL -> validateUserCanSearchOrgUnitModeALL(user);
-      case ACCESSIBLE, DESCENDANTS, CHILDREN -> validateAccessibleScope(user, program, orgUnitMode);
+      case SELECTED, ACCESSIBLE, DESCENDANTS, CHILDREN -> validateUserScope(
+          user, program, orgUnitMode);
       case CAPTURE -> validateCaptureScope(user);
     }
   }
 
   private static void validateUserCanSearchOrgUnitModeALL(User user) throws BadRequestException {
-    if (user == null
-        || !(user.isSuper()
-            || user.isAuthorized(
-                Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()))) {
+    if (user != null
+        && !(user.isSuper()
+            || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()))) {
       throw new BadRequestException(
           "Current user is not authorized to query across all organisation units");
     }
   }
 
-  private static void validateAccessibleScope(
+  private static void validateUserScope(
       User user, Program program, OrganisationUnitSelectionMode orgUnitMode)
       throws BadRequestException {
 
@@ -92,17 +91,16 @@ public class OperationsParamsValidator {
 
     if (program != null && (program.isClosed() || program.isProtected())) {
       if (user.getOrganisationUnits().isEmpty()) {
-        throw new BadRequestException("User needs to be assigned data capture orgunits");
+        throw new BadRequestException("User needs to be assigned data capture org units");
       }
 
     } else if (user.getTeiSearchOrganisationUnitsWithFallback().isEmpty()) {
       throw new BadRequestException(
-          "User needs to be assigned either TE search, data view or data capture org units");
+          "User needs to be assigned either search or data capture org units");
     }
   }
 
   private static void validateCaptureScope(User user) throws BadRequestException {
-
     if (user == null) {
       throw new BadRequestException("User is required for orgUnitMode: " + CAPTURE);
     } else if (user.getOrganisationUnits().isEmpty()) {
