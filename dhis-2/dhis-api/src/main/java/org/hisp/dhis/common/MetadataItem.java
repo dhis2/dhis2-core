@@ -27,12 +27,18 @@
  */
 package org.hisp.dhis.common;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import org.hisp.dhis.analytics.AggregationType;
@@ -43,6 +49,8 @@ import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
@@ -90,6 +98,8 @@ public class MetadataItem implements Serializable {
 
   @JsonProperty private ObjectStyle style;
 
+  @JsonProperty private List<Map<String, String>> options;
+
   private transient String serverBaseUrl;
 
   // -------------------------------------------------------------------------
@@ -135,6 +145,15 @@ public class MetadataItem implements Serializable {
     this.description = program.getDescription();
   }
 
+  public MetadataItem(String name, OptionSet optionSet, Set<Option> withOptions) {
+    if (optionSet != null) {
+      this.name = name;
+      this.uid = optionSet.getUid();
+
+      addOptions(optionSet, withOptions);
+    }
+  }
+
   public MetadataItem(String name, ProgramStage programStage) {
     this.name = name;
 
@@ -150,6 +169,31 @@ public class MetadataItem implements Serializable {
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
+
+  /**
+   * Adds the options, from the given option set, that matches the "withOptions" collection. The
+   * options that match will become part of this metadata item object.
+   *
+   * @param optionSet the base {@link OptionSet}.
+   * @param withOptions the set of {@link Option} to be included.
+   */
+  private void addOptions(OptionSet optionSet, Set<Option> withOptions) {
+    List<Option> allOptions = optionSet.getOptions();
+    if (isNotEmpty(withOptions) && isNotEmpty(allOptions)) {
+      this.options = new ArrayList<>();
+
+      withOptions.forEach(
+          option -> {
+            if (option != null && allOptions.contains(option)) {
+              Map<String, String> attrs = new HashMap<>();
+              attrs.put("uid", option.getUid());
+              attrs.put("code", option.getCode());
+
+              this.options.add(attrs);
+            }
+          });
+    }
+  }
 
   private void setDataItem(DimensionalItemObject dimensionalItemObject) {
     if (dimensionalItemObject == null) {
