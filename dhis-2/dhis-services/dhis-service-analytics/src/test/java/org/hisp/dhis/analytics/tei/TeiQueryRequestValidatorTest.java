@@ -208,6 +208,6 @@ class TeiQueryRequestValidatorTest {
             IllegalQueryException.class, () -> new CommonQueryRequestValidator().validate(request));
 
     assertEquals(
-        "programStatus and enrollmentStatus cannot be used together.", exception.getMessage());
+        "Parameters programStatus and enrollmentStatus cannot be used together", exception.getMessage());
   }
 }

@@ -417,7 +417,7 @@ public enum ErrorCode {
   E7136("Program is not specified"),
   E7137("Expression is not parsable: `{0}`"),
   E7138("Invalid offset: `{0}`"),
-  E7139("Parameters programStatus and enrollmentStatus cannot be used together."),
+  E7139("Parameters programStatus and enrollmentStatus cannot be used together"),
   E7140(
       "Parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]"),
   E7141("Parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]"),
