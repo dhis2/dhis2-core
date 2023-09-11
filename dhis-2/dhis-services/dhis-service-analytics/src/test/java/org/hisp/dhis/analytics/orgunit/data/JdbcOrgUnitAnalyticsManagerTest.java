@@ -51,6 +51,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 /**
  * Unit tests for {@link JdbcOrgUnitAnalyticsManager}.
+ *
  * @author maikel arabori
  */
 @ExtendWith(MockitoExtension.class)
@@ -95,7 +96,7 @@ class JdbcOrgUnitAnalyticsManagerTest {
 
     // Then
     // Based on the mocked sqlRowSet.
-    assertEquals(data.get("OrgUnit-Abc123-Abc456"), 1);
+    assertEquals(1, data.get("OrgUnit-Abc123-Abc456"));
   }
 
   @Test

@@ -42,6 +42,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Unit tests for {@link TableInfoReader}.
+ *
  * @author maikel arabori
  */
 @ExtendWith(MockitoExtension.class)
