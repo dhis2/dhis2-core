@@ -48,7 +48,7 @@ public class EnrollmentsAggregate3AutoTest extends AnalyticsApiTest {
   private final AnalyticsEnrollmentsActions actions = new AnalyticsEnrollmentsActions();
 
   @Test
-  public void queryAggregatedenrollmentsbirthgenderthisyearlast12monthslevel2twice()
+  public void queryAggregatedEnrollmentsBirthGenderThisYearLast12MonthsLevel2Twice()
       throws JSONException {
     // Given
     QueryParamsBuilder params =
