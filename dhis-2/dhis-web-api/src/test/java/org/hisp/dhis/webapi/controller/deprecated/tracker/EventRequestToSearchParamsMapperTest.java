@@ -446,7 +446,6 @@ class EventRequestToSearchParamsMapperTest {
       OrganisationUnitSelectionMode orgUnitMode) {
     when(organisationUnitService.getOrganisationUnit(orgUnitId)).thenReturn(orgUnit);
 
-    String orgUnitId = orgUnit.getUid();
     IllegalQueryException exception =
         assertThrows(IllegalQueryException.class, () -> map(orgUnitId, orgUnitMode));
     assertEquals(
