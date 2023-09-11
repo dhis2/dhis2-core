@@ -70,6 +70,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collector;
@@ -1148,6 +1149,18 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           + getSqlFilter(filter, item)
           + ") ";
     }
+  }
+
+  /**
+   * Returns true if the given query is unlimited. This is the case when the page size is not set
+   * and unlimited paging is enabled.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param unlimitedPaging the analytics unlimited paging setting.
+   * @return true if the given query is unlimited.
+   */
+  protected boolean isUnlimitedQuery(EventQueryParams params, boolean unlimitedPaging) {
+    return unlimitedPaging && (Objects.isNull(params.getPageSize()) || params.getPageSize() == 0);
   }
 
   /**

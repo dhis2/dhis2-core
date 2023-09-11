@@ -123,6 +123,10 @@ abstract class EventAnalyticsTest {
     return _createRequestParams();
   }
 
+  protected EventQueryParams.Builder createRequestParamsBuilder() {
+    return new EventQueryParams.Builder(_createRequestParams());
+  }
+
   protected EventQueryParams createRequestParams(ValueType queryItemValueType) {
     return createRequestParams(null, queryItemValueType);
   }
@@ -185,9 +189,37 @@ abstract class EventAnalyticsTest {
     when(rowSet.next()).thenReturn(false);
   }
 
+  void mockGivenRowsRowSet(int rows) {
+    GivenRowsRowSet fiftyRowsRowSet = new GivenRowsRowSet(rows);
+    when(rowSet.next())
+        .thenAnswer(
+            invocationOnMock -> {
+              fiftyRowsRowSet.increaseRow();
+              return !fiftyRowsRowSet.isLastRow();
+            });
+  }
+
   String getTable(String uid) {
     return getTableName() + "_" + uid;
   }
 
   abstract String getTableName();
+
+  private static class GivenRowsRowSet {
+
+    private final int rows;
+    private int count = 0;
+
+    public GivenRowsRowSet(int rows) {
+      this.rows = rows;
+    }
+
+    void increaseRow() {
+      count++;
+    }
+
+    boolean isLastRow() {
+      return count > rows;
+    }
+  }
 }
