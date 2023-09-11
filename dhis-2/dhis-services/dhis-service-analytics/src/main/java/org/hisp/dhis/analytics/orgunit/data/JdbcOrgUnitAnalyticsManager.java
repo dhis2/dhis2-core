@@ -85,7 +85,7 @@ public class JdbcOrgUnitAnalyticsManager implements OrgUnitAnalyticsManager {
   /**
    * Checks if there is an org. unit dimension column, specified in the given params, not present in
    * the respective DB table ("_organisationunitgroupsetstructure"). If a dimension column (which in
-   * this case represents an org. unit group set ) is found to be missing in the table, it will not
+   * this case represents an org. unit group set) is found to be missing in the table, it will not
    * be possible to query for the missing org. unit group set. In such cases, the request cannot be
    * processed.
    *

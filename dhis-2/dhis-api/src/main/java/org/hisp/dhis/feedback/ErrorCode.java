@@ -479,7 +479,7 @@ public enum ErrorCode {
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
   E7301("At least one organisation unit group set must be specified"),
   E7302(
-      "The organisation units specified `{0}` are not a valid data dimension. Please verify it and also ensure that the analytics job was run"),
+      "Invalid organisation unit sets specified: `{0}`. Please verify it and also ensure that the analytics job was run"),
 
   /* Debug analytics */
   E7400("Debug query must contain at least one data element, one period and one organisation unit"),
