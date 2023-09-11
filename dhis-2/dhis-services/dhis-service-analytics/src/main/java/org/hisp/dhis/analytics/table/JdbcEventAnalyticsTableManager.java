@@ -46,6 +46,7 @@ import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -284,16 +285,17 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
 
     for (Program program : programs) {
-      List<Integer> dataYears =
-          ListUtils.mutableCopy(getDataYears(params, program, firstDataYear, latestDataYear));
 
-      Collections.sort(dataYears);
+      List<Integer> yearsForPartitionTables =
+          getYearsForPartitionTable(getDataYears(params, program, firstDataYear, latestDataYear));
+
+      Collections.sort(yearsForPartitionTables);
 
       AnalyticsTable table =
           new AnalyticsTable(
               getAnalyticsTableType(), getDimensionColumns(program), List.of(), program);
 
-      for (Integer year : dataYears) {
+      for (Integer year : yearsForPartitionTables) {
         table.addPartitionTable(
             year,
             PartitionUtils.getStartDate(calendar, year),
@@ -836,5 +838,17 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   private AnalyticsTableColumn toCharColumn(String name, String prefix, Date created) {
     return new AnalyticsTableColumn(name, CHARACTER_11, prefix + "." + name).withCreated(created);
+  }
+
+  /**
+   * Retrieve years for partition tables. Year will become a partition key. The default return value
+   * is the list with the recent year.
+   *
+   * @param dataYears list of years coming from inner join of event and enrollment tables
+   * @return list of partition key values
+   */
+  private List<Integer> getYearsForPartitionTable(List<Integer> dataYears) {
+
+    return ListUtils.mutableCopy(!dataYears.isEmpty() ? dataYears : List.of(Year.now().getValue()));
   }
 }
