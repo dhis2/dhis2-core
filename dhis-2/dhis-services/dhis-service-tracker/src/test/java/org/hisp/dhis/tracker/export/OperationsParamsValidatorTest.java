@@ -44,6 +44,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -55,6 +56,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -333,15 +336,6 @@ class OperationsParamsValidatorTest {
   }
 
   @Test
-  void shouldFailWhenOuModeCaptureAndUserNull() {
-    Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(CAPTURE, null, program));
-
-    assertEquals("User is required for orgUnitMode: CAPTURE", exception.getMessage());
-  }
-
-  @Test
   void shouldFailWhenOuModeCaptureAndUserHasNoOrgUnitsAssigned() {
     Exception exception =
         Assertions.assertThrows(
@@ -350,34 +344,18 @@ class OperationsParamsValidatorTest {
     assertEquals("User needs to be assigned data capture orgunits", exception.getMessage());
   }
 
-  @Test
-  void shouldFailWhenOuModeAccessibleAndUserNull() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "ACCESSIBLE", "DESCENDANTS", "CHILDREN"})
+  void shouldFailWhenOuModeRequiresUserScopeOrgUnitAndUserHasNoOrgUnitsAssigned(
+      OrganisationUnitSelectionMode orgUnitMode) {
     Exception exception =
         Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(ACCESSIBLE, null, program));
-
-    assertEquals("User is required for orgUnitMode: ACCESSIBLE", exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenOuModeAccessibleAndUserHasNoOrgUnitsAssigned() {
-    Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(ACCESSIBLE, new User(), program));
+            BadRequestException.class, () -> validateOrgUnitMode(orgUnitMode, new User(), program));
 
     assertEquals(
-        "User needs to be assigned either TE search, data view or data capture org units",
-        exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenOuModeAllAndUserNull() {
-    Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(ALL, null, program));
-
-    assertEquals(
-        "Current user is not authorized to query across all organisation units",
+        "User needs to be assigned either search or data capture org units",
         exception.getMessage());
   }
 
