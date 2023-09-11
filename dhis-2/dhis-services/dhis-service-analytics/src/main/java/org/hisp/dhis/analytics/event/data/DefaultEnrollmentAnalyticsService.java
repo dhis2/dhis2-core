@@ -183,7 +183,10 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
         count += enrollmentAnalyticsManager.getEnrollmentCount(queryParams);
       }
 
-      enrollmentAnalyticsManager.getEnrollments(queryParams, grid, queryValidator.getMaxLimit());
+      // maxLimit == 0 means unlimited paging
+      int maxLimit = params.isAggregatedEnrollments() ? 0 : queryValidator.getMaxLimit();
+
+      enrollmentAnalyticsManager.getEnrollments(queryParams, grid, maxLimit);
 
       timer.getTime("Got enrollments " + grid.getHeight());
     }
