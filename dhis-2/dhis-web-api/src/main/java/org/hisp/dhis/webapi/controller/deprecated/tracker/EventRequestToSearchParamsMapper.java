@@ -63,7 +63,6 @@ import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -149,8 +148,7 @@ class EventRequestToSearchParamsMapper {
       Set<String> filters,
       Set<String> dataElements,
       boolean includeAllDataElements,
-      boolean includeDeleted)
-      throws ForbiddenException {
+      boolean includeDeleted) {
     return map(
         program,
         programStage,
@@ -366,7 +364,7 @@ class EventRequestToSearchParamsMapper {
     return new QueryItem(de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet());
   }
 
-  public EventSearchParams map(EventCriteria eventCriteria) throws ForbiddenException {
+  public EventSearchParams map(EventCriteria eventCriteria) {
 
     CategoryOptionCombo attributeOptionCombo =
         inputUtils.getAttributeOptionCombo(
