@@ -161,7 +161,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     while (rowSet.next()) {
       if (++rowsRed > params.getPageSizeWithDefault()
           && !params.isTotalPages()
-          && !unlimitedPaging) {
+          && !isUnlimitedQuery(params, unlimitedPaging)) {
         grid.setLastDataRow(false);
 
         continue;

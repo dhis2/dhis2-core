@@ -166,6 +166,24 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyGetEventWithUnlimitedAnalyticsPageSizeAndPageSize50() {
+    mockGivenRowsRowSet(101);
+    EventQueryParams requestParams = createRequestParamsBuilder().withPageSize(100).build();
+    Grid events = subject.getEvents(requestParams, createGrid(), 0);
+    assertThat(events.getRows(), hasSize(100));
+    assertThat(events.hasLastDataRow(), is(false));
+  }
+
+  @Test
+  void verifyGetEventWithUnlimitedAnalyticsPageSizeAndNoPageSize() {
+    mockGivenRowsRowSet(101);
+    EventQueryParams requestParams = createRequestParamsBuilder().withPageSize(null).build();
+    Grid events = subject.getEvents(requestParams, createGrid(), 0);
+    assertThat(events.getRows(), hasSize(101));
+    assertThat(events.hasLastDataRow(), is(true));
+  }
+
+  @Test
   void verifyGetEventSqlWithOrgUnitTypeDataElement() {
     mockEmptyRowSet();
 
