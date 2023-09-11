@@ -530,9 +530,6 @@ class EventOperationParamsMapperTest {
     when(currentUserService.getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
         .thenReturn(searchScopeChildOrgUnit);
-    when(organisationUnitService.isInUserHierarchy(
-            searchScopeChildOrgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
-        .thenReturn(true);
 
     EventOperationParams operationParams =
         EventOperationParams.builder()

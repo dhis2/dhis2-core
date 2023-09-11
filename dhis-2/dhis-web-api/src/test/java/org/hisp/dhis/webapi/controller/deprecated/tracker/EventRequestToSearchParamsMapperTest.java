@@ -136,8 +136,7 @@ class EventRequestToSearchParamsMapperTest {
             entityInstanceService,
             dataElementService,
             inputUtils,
-            schemaService,
-            trackerAccessManager);
+            schemaService);
 
     Program program = new Program();
     User user = new User();
@@ -165,13 +164,11 @@ class EventRequestToSearchParamsMapperTest {
     userMap.put("superuser", createUserWithAuthority(Authorities.ALL));
   }
 
-  private EventSearchParams map(OrganisationUnitSelectionMode orgUnitMode)
-      throws ForbiddenException {
+  private EventSearchParams map(OrganisationUnitSelectionMode orgUnitMode) {
     return map(null, orgUnitMode);
   }
 
-  private EventSearchParams map(String orgUnitId, OrganisationUnitSelectionMode orgUnitMode)
-      throws ForbiddenException {
+  private EventSearchParams map(String orgUnitId, OrganisationUnitSelectionMode orgUnitMode) {
     return requestToSearchParamsMapper.map(
         "programuid",
         null,
@@ -317,8 +314,9 @@ class EventRequestToSearchParamsMapperTest {
             orgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
         .thenReturn(true);
 
+    String orgUnitId = orgUnit.getUid();
     Exception exception =
-        assertThrows(IllegalQueryException.class, () -> map(orgUnit.getUid(), orgUnitMode));
+        assertThrows(IllegalQueryException.class, () -> map(orgUnitId, orgUnitMode));
 
     assertStartsWith(
         "ouMode " + orgUnitMode + " cannot be used with orgUnits.", exception.getMessage());
@@ -338,8 +336,7 @@ class EventRequestToSearchParamsMapperTest {
   @ParameterizedTest
   @MethodSource
   void shouldMapOrgUnitWhenProgramProvidedAndRequestedOrgUnitInSearchScope(
-      OrganisationUnitSelectionMode orgUnitMode, AccessLevel accessLevel)
-      throws ForbiddenException {
+      OrganisationUnitSelectionMode orgUnitMode, AccessLevel accessLevel) {
     Program program = new Program();
     program.setAccessLevel(accessLevel);
 
@@ -374,8 +371,7 @@ class EventRequestToSearchParamsMapperTest {
   @ParameterizedTest
   @MethodSource
   void shouldMapOrgUnitWhenProgramProvidedAndNoOrgUnitProvided(
-      OrganisationUnitSelectionMode orgUnitMode, AccessLevel accessLevel)
-      throws ForbiddenException {
+      OrganisationUnitSelectionMode orgUnitMode, AccessLevel accessLevel) {
     Program program = new Program();
     program.setAccessLevel(accessLevel);
 
@@ -401,8 +397,7 @@ class EventRequestToSearchParamsMapperTest {
   }
 
   @Test
-  void shouldMapOrgUnitWhenModeAllProgramProvidedAndRequestedOrgUnitInSearchScope()
-      throws ForbiddenException {
+  void shouldMapOrgUnitWhenModeAllProgramProvidedAndRequestedOrgUnitInSearchScope() {
     Program program = new Program();
     program.setAccessLevel(OPEN);
 
@@ -430,8 +425,7 @@ class EventRequestToSearchParamsMapperTest {
   }
 
   @Test
-  void shouldNotMapOrgUnitWhenModeAllProgramProvidedAndNoOrgUnitProvided()
-      throws ForbiddenException {
+  void shouldNotMapOrgUnitWhenModeAllProgramProvidedAndNoOrgUnitProvided() {
     Program program = new Program();
     program.setAccessLevel(OPEN);
 
@@ -452,8 +446,9 @@ class EventRequestToSearchParamsMapperTest {
       OrganisationUnitSelectionMode orgUnitMode) {
     when(organisationUnitService.getOrganisationUnit(orgUnitId)).thenReturn(orgUnit);
 
+    String orgUnitId = orgUnit.getUid();
     IllegalQueryException exception =
-        assertThrows(IllegalQueryException.class, () -> map(orgUnit.getUid(), orgUnitMode));
+        assertThrows(IllegalQueryException.class, () -> map(orgUnitId, orgUnitMode));
     assertEquals(
         "Organisation unit is not part of your search scope: " + orgUnit.getUid(),
         exception.getMessage());
@@ -462,8 +457,7 @@ class EventRequestToSearchParamsMapperTest {
   @ParameterizedTest
   @NullSource
   @ValueSource(strings = {"admin", "superuser"})
-  void shouldMapOrgUnitAndModeWhenModeAllAndUserIsAuthorized(String userName)
-      throws ForbiddenException {
+  void shouldMapOrgUnitAndModeWhenModeAllAndUserIsAuthorized(String userName) {
     when(currentUserService.getCurrentUser()).thenReturn(userMap.get(userName));
 
     EventSearchParams eventSearchParams = map(ALL);

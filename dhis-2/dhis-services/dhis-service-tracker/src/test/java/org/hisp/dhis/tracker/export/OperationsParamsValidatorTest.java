@@ -360,17 +360,6 @@ class OperationsParamsValidatorTest {
   }
 
   @Test
-  void shouldFailWhenOuModeAllAndUserNull() {
-    Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(ALL, null, program));
-
-    assertEquals(
-        "Current user is not authorized to query across all organisation units",
-        exception.getMessage());
-  }
-
-  @Test
   void shouldFailWhenOuModeAllAndNotSuperuser() {
     Exception exception =
         Assertions.assertThrows(

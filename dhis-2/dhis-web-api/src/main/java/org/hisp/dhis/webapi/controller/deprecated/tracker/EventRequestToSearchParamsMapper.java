@@ -77,7 +77,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -108,8 +107,6 @@ class EventRequestToSearchParamsMapper {
   private final InputUtils inputUtils;
 
   private final SchemaService schemaService;
-
-  private final TrackerAccessManager trackerAccessManager;
 
   private Schema schema;
 
@@ -223,8 +220,7 @@ class EventRequestToSearchParamsMapper {
       Set<String> filters,
       Set<String> dataElements,
       boolean includeAllDataElements,
-      boolean includeDeleted)
-      throws ForbiddenException {
+      boolean includeDeleted) {
     User user = currentUserService.getCurrentUser();
 
     EventSearchParams params = new EventSearchParams();

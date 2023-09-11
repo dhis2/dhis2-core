@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -41,6 +42,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRow;
@@ -52,6 +54,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -107,11 +110,16 @@ class JdbcEventStoreTest {
             manager,
             eventStore,
             skipLockedProvider);
+
+    User user = new User();
+    user.setTeiSearchOrganisationUnits(Set.of(new OrganisationUnit()));
+    when(currentUserService.getCurrentUser()).thenReturn(user);
   }
 
   @Test
   void verifyEventDataValuesAreProcessedOnceForEachPSI() throws SQLException {
     EventSearchParams eventSearchParams = new EventSearchParams();
+    eventSearchParams.setOrgUnitSelectionMode(ACCESSIBLE);
 
     List<EventRow> rows = subject.getEventRows(eventSearchParams);
     assertThat(rows, hasSize(1));
@@ -121,6 +129,7 @@ class JdbcEventStoreTest {
   @Test
   void verifyNullOrganisationUnitsIsHandled() throws SQLException {
     EventSearchParams eventSearchParams = new EventSearchParams();
+    eventSearchParams.setOrgUnitSelectionMode(ACCESSIBLE);
 
     List<EventRow> rows = subject.getEventRows(eventSearchParams);
     assertThat(rows, hasSize(1));
