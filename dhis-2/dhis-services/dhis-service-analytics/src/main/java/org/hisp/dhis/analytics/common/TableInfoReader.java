@@ -93,7 +93,7 @@ public class TableInfoReader {
    */
   @Data
   @AllArgsConstructor
-  public class TableInfo {
+  public static class TableInfo {
     private String name;
     private Set<String> columns;
   }

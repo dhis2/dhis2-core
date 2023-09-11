@@ -48,6 +48,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @ExtendWith(MockitoExtension.class)
 class TableInfoReaderTest {
 
+  public static final String QUERY_TABLE_COLUMN_NAMES =
+      "select column_name"
+          + " from information_schema.columns"
+          + " where table_schema = 'public'"
+          + " and table_name = ?";
   @Mock private JdbcTemplate jdbcTemplate;
 
   private TableInfoReader tableInfoReader;
@@ -62,14 +67,10 @@ class TableInfoReaderTest {
     // Given
     String tableName = "tableName";
     List<String> columns = List.of("col1", "col2");
-    String sql =
-        "select column_name"
-            + " from information_schema.columns"
-            + " where table_schema = 'public'"
-            + " and table_name = ?";
 
     // When
-    when(jdbcTemplate.queryForList(sql, String.class, tableName)).thenReturn(columns);
+    when(jdbcTemplate.queryForList(QUERY_TABLE_COLUMN_NAMES, String.class, tableName))
+        .thenReturn(columns);
     Set<String> absentColumns =
         tableInfoReader.checkColumnsPresence(tableName, new HashSet<>(columns));
 
