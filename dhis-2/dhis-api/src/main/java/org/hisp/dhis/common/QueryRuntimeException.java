@@ -28,6 +28,7 @@
 package org.hisp.dhis.common;
 
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 
 public class QueryRuntimeException extends RuntimeException {
   private ErrorCode errorCode;
@@ -47,11 +48,30 @@ public class QueryRuntimeException extends RuntimeException {
   }
 
   /**
+   * Constructor. Sets the message and error code based on the error message.
+   *
+   * @param errorMessage the {@link ErrorMessage}.
+   */
+  public QueryRuntimeException(ErrorMessage errorMessage) {
+    super(errorMessage.getMessage());
+    this.errorCode = errorMessage.getErrorCode();
+  }
+
+  /**
    * Returns the {@link ErrorCode} of the exception.
    *
    * @return the {@link ErrorCode} of the exception.
    */
   public ErrorCode getErrorCode() {
     return errorCode;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param message the exception message.
+   */
+  public QueryRuntimeException(String message) {
+    super(message);
   }
 }
