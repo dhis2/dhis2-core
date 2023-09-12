@@ -76,7 +76,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.note.TrackedEntityCommentService;
+import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -153,7 +153,7 @@ public abstract class AbstractEnrollmentService
 
   protected CurrentUserService currentUserService;
 
-  protected TrackedEntityCommentService commentService;
+  protected NoteService commentService;
 
   protected IdentifiableObjectManager manager;
 

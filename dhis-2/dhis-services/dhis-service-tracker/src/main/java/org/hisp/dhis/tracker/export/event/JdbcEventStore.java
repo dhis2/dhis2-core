@@ -120,17 +120,17 @@ class JdbcEventStore implements EventStore {
   private static final String EVENT_NOTE_QUERY =
       "select evn.eventid as evn_id,"
           + " n.noteid as note_id,"
-          + " n.notetext            as note_value,"
-          + " n.created                as note_storeddate,"
-          + " n.creator                as note_storedby,"
-          + " n.uid                    as note_uid,"
-          + " n.lastupdated            as note_lastupdated,"
-          + " userinfo.userinfoid            as note_user_id,"
-          + " userinfo.code                  as note_user_code,"
-          + " userinfo.uid                   as note_user_uid,"
-          + " userinfo.username              as note_user_username,"
-          + " userinfo.firstname             as note_user_firstname,"
-          + " userinfo.surname               as note_user_surname"
+          + " n.notetext as note_text,"
+          + " n.created as note_created,"
+          + " n.creator as note_creator,"
+          + " n.uid as note_uid,"
+          + " n.lastupdated as note_lastupdated,"
+          + " userinfo.userinfoid as note_user_id,"
+          + " userinfo.code as note_user_code,"
+          + " userinfo.uid as note_user_uid,"
+          + " userinfo.username as note_user_username,"
+          + " userinfo.firstname as note_user_firstname,"
+          + " userinfo.surname as note_user_surname"
           + " from eventnotes evn"
           + " inner join note n"
           + " on evn.noteid = n.noteid"
@@ -376,13 +376,13 @@ class JdbcEventStore implements EventStore {
               events.add(event);
             }
 
-            if (resultSet.getString("note_value") != null
+            if (resultSet.getString("note_text") != null
                 && !notes.contains(resultSet.getString("note_id"))) {
               Note note = new Note();
               note.setUid(resultSet.getString("note_uid"));
-              note.setNoteText(resultSet.getString("note_value"));
-              note.setCreated(resultSet.getDate("note_storeddate"));
-              note.setCreator(resultSet.getString("note_storedby"));
+              note.setNoteText(resultSet.getString("note_text"));
+              note.setCreated(resultSet.getDate("note_created"));
+              note.setCreator(resultSet.getString("note_creator"));
 
               if (resultSet.getObject("note_user_id") != null) {
                 User noteLastUpdatedBy = new User();

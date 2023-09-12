@@ -30,7 +30,7 @@ package org.hisp.dhis.note.hibernate;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.note.Note;
-import org.hisp.dhis.note.TrackedEntityCommentStore;
+import org.hisp.dhis.note.NoteStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -40,10 +40,10 @@ import org.springframework.stereotype.Repository;
 /**
  * @author David Katuscak
  */
-@Repository("org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore")
-public class HibernateTrackedEntityCommentStore extends HibernateIdentifiableObjectStore<Note>
-    implements TrackedEntityCommentStore {
-  public HibernateTrackedEntityCommentStore(
+@Repository("org.hisp.dhis.trackedentitycomment.NoteStore")
+public class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note>
+    implements NoteStore {
+  public HibernateNoteStore(
       SessionFactory sessionFactory,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,

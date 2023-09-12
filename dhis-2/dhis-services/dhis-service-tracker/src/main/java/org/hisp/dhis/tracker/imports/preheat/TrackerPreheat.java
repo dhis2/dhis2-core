@@ -479,12 +479,12 @@ public class TrackerPreheat {
     events.put(uid, event);
   }
 
-  public void putNotes(List<Note> trackedEntityComments) {
-    trackedEntityComments.forEach(c -> putNote(c.getUid(), c));
+  public void putNotes(List<Note> notes) {
+    notes.forEach(c -> putNote(c.getUid(), c));
   }
 
-  public void putNote(String uid, Note comment) {
-    notes.put(uid, comment);
+  public void putNote(String uid, Note note) {
+    notes.put(uid, note);
   }
 
   public Optional<Note> getNote(String uid) {

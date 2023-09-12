@@ -49,7 +49,7 @@ import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContextLoader;
 import org.hisp.dhis.dxf2.deprecated.tracker.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.note.TrackedEntityCommentService;
+import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EventService;
@@ -98,7 +98,7 @@ public class JacksonEventService extends AbstractEventService {
       OrganisationUnitService organisationUnitService,
       CurrentUserService currentUserService,
       TrackedEntityService entityInstanceService,
-      TrackedEntityCommentService commentService,
+      NoteService commentService,
       EventStore eventStore,
       Notifier notifier,
       DbmsManager dbmsManager,

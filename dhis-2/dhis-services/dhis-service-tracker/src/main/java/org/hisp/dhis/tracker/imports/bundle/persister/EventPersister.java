@@ -59,7 +59,6 @@ import org.hisp.dhis.tracker.imports.converter.TrackerSideEffectConverterService
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.note.NoteService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
@@ -72,8 +71,6 @@ public class EventPersister
   private final TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event>
       eventConverter;
 
-  private final NoteService noteService;
-
   private final TrackerSideEffectConverterService sideEffectConverterService;
 
   private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
@@ -81,23 +78,21 @@ public class EventPersister
   public EventPersister(
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter,
-      NoteService trackedEntityCommentService,
       TrackerSideEffectConverterService sideEffectConverterService,
       TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
       TrackedEntityDataValueAuditService trackedEntityDataValueAuditService) {
     super(reservedValueService, trackedEntityAttributeValueAuditService);
     this.eventConverter = eventConverter;
-    this.noteService = trackedEntityCommentService;
     this.sideEffectConverterService = sideEffectConverterService;
     this.trackedEntityDataValueAuditService = trackedEntityDataValueAuditService;
   }
 
   @Override
-  protected void persistComments(TrackerPreheat preheat, Event event) {
+  protected void persistNotes(Session session, TrackerPreheat preheat, Event event) {
     if (!event.getNotes().isEmpty()) {
-      for (Note comment : event.getNotes()) {
-        if (Objects.isNull(preheat.getNote(comment.getUid()))) {
-          this.noteService.addTrackedEntityComment(comment);
+      for (Note note : event.getNotes()) {
+        if (Objects.isNull(preheat.getNote(note.getUid()))) {
+          session.save(note);
         }
       }
     }

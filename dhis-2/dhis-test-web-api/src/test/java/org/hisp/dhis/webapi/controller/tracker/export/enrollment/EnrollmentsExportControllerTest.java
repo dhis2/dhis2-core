@@ -365,10 +365,10 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
     return enrollment;
   }
 
-  private Note note(String note, String value, String storedBy) {
-    Note comment = new Note(value, storedBy);
-    comment.setUid(note);
-    manager.save(comment, false);
-    return comment;
+  private Note note(String uid, String value, String storedBy) {
+    Note note = new Note(value, storedBy);
+    note.setUid(uid);
+    manager.save(note, false);
+    return note;
   }
 }

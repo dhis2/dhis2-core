@@ -109,7 +109,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.note.TrackedEntityCommentService;
+import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EnrollmentService;
@@ -186,7 +186,7 @@ public abstract class AbstractEventService
 
   protected TrackedEntityService entityInstanceService;
 
-  protected TrackedEntityCommentService commentService;
+  protected NoteService commentService;
 
   protected EventStore eventStore;
 

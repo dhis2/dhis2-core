@@ -36,8 +36,8 @@ import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
 @RequiredArgsConstructor
-public class TrackedEntityCommentDeletionHandler extends IdObjectDeletionHandler<Note> {
-  private final TrackedEntityCommentService commentService;
+public class NoteDeletionHandler extends IdObjectDeletionHandler<Note> {
+  private final NoteService commentService;
 
   @Override
   protected void registerHandler() {
@@ -46,14 +46,14 @@ public class TrackedEntityCommentDeletionHandler extends IdObjectDeletionHandler
   }
 
   private void deleteEnrollment(Enrollment enrollment) {
-    for (Note comment : enrollment.getNotes()) {
-      commentService.deleteTrackedEntityComment(comment);
+    for (Note note : enrollment.getNotes()) {
+      commentService.deleteTrackedEntityComment(note);
     }
   }
 
   private void deleteEvent(Event event) {
-    for (Note comment : event.getNotes()) {
-      commentService.deleteTrackedEntityComment(comment);
+    for (Note note : event.getNotes()) {
+      commentService.deleteTrackedEntityComment(note);
     }
   }
 }

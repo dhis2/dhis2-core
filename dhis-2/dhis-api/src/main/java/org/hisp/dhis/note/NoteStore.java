@@ -25,41 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.note;
+package org.hisp.dhis.note;
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.note.Note;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
- * @author Luca Cambi
+ * @author David Katuscak
  */
-@Repository("org.hisp.dhis.tracker.NoteStore")
-public class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note>
-    implements NoteStore {
-
-  public HibernateNoteStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
-      AclService aclService) {
-    super(
-        sessionFactory, jdbcTemplate, publisher, Note.class, currentUserService, aclService, false);
-  }
-
-  @Override
-  public boolean exists(String uid) {
-    return (boolean)
-        sessionFactory
-            .getCurrentSession()
-            .createNativeQuery("select exists(select 1 from note where uid=:uid)")
-            .setParameter("uid", uid)
-            .getSingleResult();
-  }
+public interface NoteStore extends IdentifiableObjectStore<Note> {
+  /**
+   * Checks for the existence of a TrackedEntityComment by UID
+   *
+   * @param uid TrackedEntityComment UID to check for.
+   * @return true/false depending on result.
+   */
+  boolean exists(String uid);
 }

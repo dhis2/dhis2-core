@@ -115,7 +115,7 @@ class EnrollmentTest {
     Enrollment e = new Enrollment();
     Program program = getNewProgram();
     e.setAutoFields();
-    e.setNotes(List.of(new Note("comment1", "amin")));
+    e.setNotes(List.of(new Note("note", "amin")));
     e.setCompletedBy("admin");
     e.setEndDate(new Date());
     e.setEnrollmentDate(new Date());

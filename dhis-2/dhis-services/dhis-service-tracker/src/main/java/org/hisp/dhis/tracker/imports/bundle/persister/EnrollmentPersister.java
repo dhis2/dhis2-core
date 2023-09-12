@@ -42,7 +42,6 @@ import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.converter.TrackerSideEffectConverterService;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.note.NoteService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,8 +53,6 @@ public class EnrollmentPersister
   private final TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment>
       enrollmentConverter;
 
-  private final NoteService noteService;
-
   private final TrackerSideEffectConverterService sideEffectConverterService;
 
   private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
@@ -64,14 +61,12 @@ public class EnrollmentPersister
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment>
           enrollmentConverter,
-      NoteService trackedEntityCommentService,
       TrackerSideEffectConverterService sideEffectConverterService,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
       TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService) {
     super(reservedValueService, trackedEntityAttributeValueAuditService);
 
     this.enrollmentConverter = enrollmentConverter;
-    this.noteService = trackedEntityCommentService;
     this.sideEffectConverterService = sideEffectConverterService;
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
   }
@@ -99,11 +94,11 @@ public class EnrollmentPersister
   }
 
   @Override
-  protected void persistComments(TrackerPreheat preheat, Enrollment enrollment) {
+  protected void persistNotes(Session session, TrackerPreheat preheat, Enrollment enrollment) {
     if (!enrollment.getNotes().isEmpty()) {
-      for (Note comment : enrollment.getNotes()) {
-        if (Objects.isNull(preheat.getNote(comment.getUid()))) {
-          this.noteService.addTrackedEntityComment(comment);
+      for (Note note : enrollment.getNotes()) {
+        if (Objects.isNull(preheat.getNote(note.getUid()))) {
+          session.persist(note);
         }
       }
     }

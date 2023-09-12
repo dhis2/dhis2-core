@@ -311,12 +311,12 @@ class EventImportValidationTest extends TrackerTest {
     Stream.of("first note", "second note", "third note")
         .forEach(
             t -> {
-              Note comment = getByComment(event.getNotes(), t);
-              assertTrue(CodeGenerator.isValidUid(comment.getUid()));
-              assertTrue(comment.getCreated().getTime() > now.getTime());
-              assertTrue(comment.getLastUpdated().getTime() > now.getTime());
-              assertNull(comment.getCreator());
-              assertEquals(ADMIN_USER_UID, comment.getLastUpdatedBy().getUid());
+              Note note = getByNote(event.getNotes(), t);
+              assertTrue(CodeGenerator.isValidUid(note.getUid()));
+              assertTrue(note.getCreated().getTime() > now.getTime());
+              assertTrue(note.getLastUpdated().getTime() > now.getTime());
+              assertNull(note.getCreator());
+              assertEquals(ADMIN_USER_UID, note.getLastUpdatedBy().getUid());
             });
   }
 
@@ -335,12 +335,12 @@ class EventImportValidationTest extends TrackerTest {
     Stream.of("first note", "second note", "third note", "4th note", "5th note", "6th note")
         .forEach(
             t -> {
-              Note comment = getByComment(event.getNotes(), t);
-              assertTrue(CodeGenerator.isValidUid(comment.getUid()));
-              assertTrue(comment.getCreated().getTime() > now.getTime());
-              assertTrue(comment.getLastUpdated().getTime() > now.getTime());
-              assertNull(comment.getCreator());
-              assertEquals(ADMIN_USER_UID, comment.getLastUpdatedBy().getUid());
+              Note note = getByNote(event.getNotes(), t);
+              assertTrue(CodeGenerator.isValidUid(note.getUid()));
+              assertTrue(note.getCreated().getTime() > now.getTime());
+              assertTrue(note.getLastUpdated().getTime() > now.getTime());
+              assertNull(note.getCreator());
+              assertEquals(ADMIN_USER_UID, note.getLastUpdatedBy().getUid());
             });
   }
 
@@ -402,13 +402,13 @@ class EventImportValidationTest extends TrackerTest {
     return importReport;
   }
 
-  private Note getByComment(List<Note> comments, String notetext) {
-    for (Note comment : comments) {
-      if (comment.getNoteText().startsWith(notetext) || comment.getNoteText().endsWith(notetext)) {
-        return comment;
+  private Note getByNote(List<Note> notes, String noteText) {
+    for (Note note : notes) {
+      if (note.getNoteText().startsWith(noteText) || note.getNoteText().endsWith(noteText)) {
+        return note;
       }
     }
-    fail("Can't find a comment starting or ending with " + notetext);
+    fail("Can't find a note starting or ending with " + noteText);
     return null;
   }
 

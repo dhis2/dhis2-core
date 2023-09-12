@@ -48,7 +48,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.note.TrackedEntityCommentService;
+import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramService;
@@ -88,7 +88,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService {
       TrackedEntityAttributeService trackedEntityAttributeService,
       TrackedEntityAttributeValueService trackedEntityAttributeValueService,
       CurrentUserService currentUserService,
-      TrackedEntityCommentService commentService,
+      NoteService commentService,
       IdentifiableObjectManager manager,
       I18nManager i18nManager,
       UserService userService,

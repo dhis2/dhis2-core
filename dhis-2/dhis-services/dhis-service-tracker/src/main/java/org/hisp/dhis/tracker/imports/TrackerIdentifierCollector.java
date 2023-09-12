@@ -50,6 +50,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.springframework.stereotype.Component;
@@ -143,9 +144,7 @@ public class TrackerIdentifierCollector {
         });
   }
 
-  private void collectNotes(
-      Map<Class<?>, Set<String>> identifiers,
-      List<org.hisp.dhis.tracker.imports.domain.Note> notes) {
+  private void collectNotes(Map<Class<?>, Set<String>> identifiers, List<Note> notes) {
     notes.forEach(
         note -> {
           if (!StringUtils.isEmpty(note.getNote()) && !StringUtils.isEmpty(note.getValue())) {

@@ -25,51 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.note;
+package org.hisp.dhis.note;
 
-import org.hisp.dhis.note.Note;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Luca Cambi
+ * @author Chau Thu Tran
  */
-public interface NoteService {
-  String ID = NoteService.class.getName();
+@RequiredArgsConstructor
+@Service("org.hisp.dhis.trackedentitycomment.NoteService")
+public class DefaultNoteService implements NoteService {
+  private final NoteStore commentStore;
 
-  /**
-   * Adds an {@link Note}
-   *
-   * @param comment The to TrackedEntityComment add.
-   * @return A generated unique id of the added {@link Note}.
-   */
-  long addTrackedEntityComment(Note comment);
+  // -------------------------------------------------------------------------
+  // Implementation methods
+  // -------------------------------------------------------------------------
 
-  /**
-   * Deletes a {@link Note}.
-   *
-   * @param comment the TrackedEntityComment to delete.
-   */
-  void deleteTrackedEntityComment(Note comment);
+  @Override
+  @Transactional
+  public long addTrackedEntityComment(Note comment) {
+    commentStore.save(comment);
 
-  /**
-   * Checks for the existence of a TrackedEntityComment by UID.
-   *
-   * @param uid TrackedEntityComment UID to check for
-   * @return true/false depending on result
-   */
-  boolean trackedEntityCommentExists(String uid);
+    return comment.getId();
+  }
 
-  /**
-   * Updates an {@link Note}.
-   *
-   * @param comment the TrackedEntityComment to update.
-   */
-  void updateTrackedEntityComment(Note comment);
+  @Override
+  @Transactional
+  public void deleteTrackedEntityComment(Note comment) {
+    commentStore.delete(comment);
+  }
 
-  /**
-   * Returns a {@link Note}.
-   *
-   * @param id the id of the TrackedEntityComment to return.
-   * @return the TrackedEntityComment with the given id
-   */
-  Note getTrackedEntityComment(long id);
+  @Override
+  @Transactional(readOnly = true)
+  public boolean trackedEntityCommentExists(String uid) {
+    return commentStore.exists(uid);
+  }
+
+  @Override
+  @Transactional
+  public void updateTrackedEntityComment(Note comment) {
+    commentStore.update(comment);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Note getTrackedEntityComment(long id) {
+    return commentStore.get(id);
+  }
 }
