@@ -1152,6 +1152,23 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
+   * returns true if the amount of rows red is greater than the page size and the query is not
+   * unlimited.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param unlimitedPaging the analytics unlimited paging setting.
+   * @param rowsRed the amount of rows red.
+   * @return true if the amount of rows red is greater than the page size and the query is not
+   *     unlimited.
+   */
+  protected boolean isLastRowAfterPageSize(
+      EventQueryParams params, boolean unlimitedPaging, int rowsRed) {
+    return rowsRed > params.getPageSizeWithDefault()
+        && !params.isTotalPages()
+        && !isUnlimitedQuery(params, unlimitedPaging);
+  }
+
+  /**
    * Returns true if the given query is unlimited. This is the case when the page size is not set
    * and unlimited paging is enabled.
    *
