@@ -111,10 +111,6 @@ class TrackedEntityOperationParamsMapper {
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
-    List<QueryItem> attributeItems =
-        parseAttributeQueryItems(operationParams.getAttributes(), attributes);
-    params.setAttributes(attributeItems);
-
     List<QueryItem> filters = parseAttributeQueryItems(operationParams.getFilters(), attributes);
     validateDuplicatedAttributeFilters(filters);
     params.setFilters(filters);
@@ -148,7 +144,6 @@ class TrackedEntityOperationParamsMapper {
         .setTotalPages(operationParams.isTotalPages())
         .setSkipPaging(operationParams.isSkipPaging())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
-        .setIncludeAllAttributes(operationParams.isIncludeAllAttributes())
         .setPotentialDuplicate(operationParams.getPotentialDuplicate());
 
     return params;

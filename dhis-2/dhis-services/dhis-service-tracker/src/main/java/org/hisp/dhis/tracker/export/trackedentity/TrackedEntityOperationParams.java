@@ -59,9 +59,6 @@ public class TrackedEntityOperationParams {
   /** Query value, will apply to all relevant attributes. */
   private QueryFilter query;
 
-  /** Attributes to be included in the response. Can be used to filter response. */
-  private String attributes;
-
   /** Filters for the response. */
   private String filters;
 
@@ -143,9 +140,6 @@ public class TrackedEntityOperationParams {
 
   /** Indicates whether to include soft-deleted elements. Default to false */
   @Builder.Default private boolean includeDeleted = false;
-
-  /** Indicates whether to include all te attributes */
-  private boolean includeAllAttributes;
 
   /**
    * Indicates whether the search is internal triggered by the system. The system should trigger

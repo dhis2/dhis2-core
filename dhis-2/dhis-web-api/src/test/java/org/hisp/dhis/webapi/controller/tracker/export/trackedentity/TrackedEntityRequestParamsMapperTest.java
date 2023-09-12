@@ -110,7 +110,6 @@ class TrackedEntityRequestParamsMapperTest {
     requestParams.setTotalPages(false);
     requestParams.setSkipPaging(false);
     requestParams.setIncludeDeleted(true);
-    requestParams.setIncludeAllAttributes(true);
 
     final TrackedEntityOperationParams params = mapper.map(requestParams, user);
 
@@ -135,7 +134,6 @@ class TrackedEntityRequestParamsMapperTest {
     assertThat(
         params.getAssignedUserQueryParam().getMode(), is(AssignedUserSelectionMode.PROVIDED));
     assertThat(params.isIncludeDeleted(), is(true));
-    assertThat(params.isIncludeAllAttributes(), is(true));
   }
 
   @Test

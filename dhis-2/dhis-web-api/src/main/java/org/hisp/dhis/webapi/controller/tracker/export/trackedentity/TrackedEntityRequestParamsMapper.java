@@ -131,14 +131,12 @@ class TrackedEntityRequestParamsMapper {
                     requestParams.getAssignedUserMode(), user, UID.toValueSet(assignedUsers)))
             .user(user)
             .trackedEntityUids(UID.toValueSet(trackedEntities))
-            .attributes(requestParams.getAttribute())
             .filters(requestParams.getFilter())
             .page(Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE))
             .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
             .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))
             .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
             .includeDeleted(requestParams.isIncludeDeleted())
-            .includeAllAttributes(requestParams.isIncludeAllAttributes())
             .potentialDuplicate(requestParams.getPotentialDuplicate())
             .trackedEntityParams(fieldsParamMapper.map(fields));
 
