@@ -1352,6 +1352,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return ListUtils.distinctUnion(orderByAscColumns, orderByDescColumns);
   }
 
+  protected boolean isLastRowAfterPageSize(
+      EventQueryParams params, boolean unlimitedPaging, int rowsRed) {
+    return rowsRed > params.getPageSizeWithDefault()
+        && !params.isTotalPages()
+        && !isUnlimitedQuery(params, unlimitedPaging);
+  }
+
   /**
    * Returns true if the given query is unlimited. This is the case when the page size is not set
    * and unlimited paging is enabled.

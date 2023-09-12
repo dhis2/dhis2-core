@@ -154,12 +154,14 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     grid.setLastDataRow(true);
 
     while (rowSet.next()) {
-      if (++rowsRed > params.getPageSizeWithDefault()
-          && !params.isTotalPages()
-          && !isUnlimitedQuery(params, unlimitedPaging)) {
+      if (params.isComingFromQuery()) {
+        rowsRed++;
+        if (isLastRowAfterPageSize(params, unlimitedPaging, rowsRed)) {
+          grid.setLastDataRow(false);
+          continue; // skips the last row in n+1 query scenario
+        }
+      } else { // we don't want to skip rows after pagesize is reached for non-QUERY requests
         grid.setLastDataRow(false);
-
-        continue;
       }
 
       grid.addRow();
