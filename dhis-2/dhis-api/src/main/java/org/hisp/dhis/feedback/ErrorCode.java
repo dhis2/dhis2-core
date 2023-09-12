@@ -461,6 +461,8 @@ public enum ErrorCode {
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
   E7301("At least one organisation unit group set must be specified"),
+  E7302(
+      "Invalid organisation unit sets specified: `{0}`. Please verify it and also ensure that the analytics job was run"),
 
   /* Debug analytics */
   E7400("Debug query must contain at least one data element, one period and one organisation unit"),
