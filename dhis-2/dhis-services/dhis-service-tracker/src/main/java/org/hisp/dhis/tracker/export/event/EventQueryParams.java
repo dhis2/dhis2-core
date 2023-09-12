@@ -136,8 +136,6 @@ class EventQueryParams {
 
   private Set<String> events = new HashSet<>();
 
-  private Boolean skipEventId;
-
   /**
    * Each attribute will affect the final SQL query. Some attributes are filtered on, while
    * attributes added via {@link #orderBy(TrackedEntityAttribute, SortDirection)} will be ordered
@@ -230,11 +228,6 @@ class EventQueryParams {
    */
   public boolean hasDataElementFilter() {
     return this.hasDataElementFilter;
-  }
-
-  /** Null-safe check for skip event ID parameter. */
-  public boolean isSkipEventId() {
-    return skipEventId != null && skipEventId;
   }
 
   public Program getProgram() {
@@ -530,15 +523,6 @@ class EventQueryParams {
 
   public EventQueryParams setEvents(Set<String> events) {
     this.events = events;
-    return this;
-  }
-
-  public Boolean getSkipEventId() {
-    return skipEventId;
-  }
-
-  public EventQueryParams setSkipEventId(Boolean skipEventId) {
-    this.skipEventId = skipEventId;
     return this;
   }
 

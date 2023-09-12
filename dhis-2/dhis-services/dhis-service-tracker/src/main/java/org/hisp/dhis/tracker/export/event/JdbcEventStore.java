@@ -272,11 +272,8 @@ class JdbcEventStore implements EventStore {
               event = eventsByUid.get(eventUid);
             } else {
               event = new Event();
+              event.setUid(eventUid);
               eventsByUid.put(eventUid, event);
-
-              if (!params.isSkipEventId()) {
-                event.setUid(eventUid);
-              }
 
               TrackedEntity te = new TrackedEntity();
               te.setUid(resultSet.getString(COLUMN_TRACKEDENTITY_UID));
