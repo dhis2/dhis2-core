@@ -48,6 +48,16 @@ public class QueryRuntimeException extends RuntimeException {
   }
 
   /**
+   * Constructor. Sets the message and error code based on the error message.
+   *
+   * @param errorMessage the {@link ErrorMessage}.
+   */
+  public QueryRuntimeException(ErrorMessage errorMessage) {
+    super(errorMessage.getMessage());
+    this.errorCode = errorMessage.getErrorCode();
+  }
+
+  /**
    * Returns the {@link ErrorCode} of the exception.
    *
    * @return the {@link ErrorCode} of the exception.
@@ -63,24 +73,5 @@ public class QueryRuntimeException extends RuntimeException {
    */
   public QueryRuntimeException(String message) {
     super(message);
-  }
-
-  /**
-   * Constructor. Sets the message and error code based on the error message.
-   *
-   * @param errorMessage the {@link ErrorMessage}.
-   */
-  public QueryRuntimeException(ErrorMessage errorMessage) {
-    super(errorMessage);
-  }
-
-  /**
-   * Constructor. Sets the message based on the error code and arguments.
-   *
-   * @param errorCode the {@link ErrorCode}.
-   * @param args the message format arguments.
-   */
-  public QueryRuntimeException(ErrorCode errorCode, Object... args) {
-    super(errorCode, args);
   }
 }
