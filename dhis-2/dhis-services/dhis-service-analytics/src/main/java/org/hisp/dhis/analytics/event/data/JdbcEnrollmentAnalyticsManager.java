@@ -155,12 +155,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     grid.setLastDataRow(true);
 
     while (rowSet.next()) {
-      if (++rowsRed > params.getPageSizeWithDefault()
-          && !params.isTotalPages()
-          && !isUnlimitedQuery(params, unlimitedPaging)) {
-        grid.setLastDataRow(false);
-
-        continue;
+      if (params.isComingFromQuery()) {
+        rowsRed++;
+        if (isLastRowAfterPageSize(params, unlimitedPaging, rowsRed)) {
+          grid.setLastDataRow(false);
+          continue; // skips the last row in n+1 query scenario
+        }
       }
 
       grid.addRow();
