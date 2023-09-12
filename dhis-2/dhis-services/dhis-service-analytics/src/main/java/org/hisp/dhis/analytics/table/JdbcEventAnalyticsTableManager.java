@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
@@ -47,12 +48,12 @@ import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
@@ -221,6 +222,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * each year for which events exist.
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
+   * @param availableDataYears
    * @return a list of {@link AnalyticsTableUpdateParams}.
    */
   private List<AnalyticsTable> getRegularAnalyticsTables(
@@ -234,21 +236,23 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             ? idObjectManager.getAllNoAcl(Program.class)
             : idObjectManager.getAllNoAcl(Program.class).stream()
                 .filter(p -> !params.getSkipPrograms().contains(p.getUid()))
-                .collect(Collectors.toList());
+                .collect(toList());
 
     Integer firstDataYear = availableDataYears.get(0);
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
 
     for (Program program : programs) {
-      List<Integer> dataYears = getDataYears(params, program, firstDataYear, latestDataYear);
 
-      Collections.sort(dataYears);
+      List<Integer> yearsForPartitionTables =
+          getYearsForPartitionTable(getDataYears(params, program, firstDataYear, latestDataYear));
+
+      Collections.sort(yearsForPartitionTables);
 
       AnalyticsTable table =
           new AnalyticsTable(
-              getAnalyticsTableType(), getDimensionColumns(program), Lists.newArrayList(), program);
+              getAnalyticsTableType(), getDimensionColumns(program), List.of(), program);
 
-      for (Integer year : dataYears) {
+      for (Integer year : yearsForPartitionTables) {
         table.addPartitionTable(
             year,
             PartitionUtils.getStartDate(calendar, year),
@@ -292,7 +296,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         params.isSkipPrograms()
             ? idObjectManager.getAllNoAcl(Program.class).stream()
                 .filter(p -> !params.getSkipPrograms().contains(p.getUid()))
-                .collect(Collectors.toList())
+                .collect(toList())
             : idObjectManager.getAllNoAcl(Program.class);
 
     for (Program program : programs) {
@@ -467,20 +471,20 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     columns.addAll(
         categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
             .map(l -> toCharColumn(quote(l.getUid()), "acs", l.getCreated()))
-            .collect(Collectors.toList()));
+            .collect(toList()));
     columns.addAll(addPeriodTypeColumns("dps"));
 
     columns.addAll(
         program.getAnalyticsDataElements().stream()
             .map(de -> getColumnFromDataElement(de, false))
             .flatMap(Collection::stream)
-            .collect(Collectors.toList()));
+            .collect(toList()));
 
     columns.addAll(
         program.getAnalyticsDataElementsWithLegendSet().stream()
             .map(de -> getColumnFromDataElement(de, true))
             .flatMap(Collection::stream)
-            .collect(Collectors.toList()));
+            .collect(toList()));
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributes().stream()
@@ -489,7 +493,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     getColumnFromTrackedEntityAttribute(
                         tea, getNumericClause(), getDateClause(), false))
             .flatMap(Collection::stream)
-            .collect(Collectors.toList()));
+            .collect(toList()));
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
@@ -498,7 +502,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     getColumnFromTrackedEntityAttribute(
                         tea, getNumericClause(), getDateClause(), true))
             .flatMap(Collection::stream)
-            .collect(Collectors.toList()));
+            .collect(toList()));
 
     columns.addAll(getFixedColumns());
 
@@ -566,7 +570,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
               return new AnalyticsTableColumn(column, CHARACTER_11, sql);
             })
-        .collect(Collectors.toList());
+        .collect(toList());
   }
 
   private List<AnalyticsTableColumn> getColumnFromDataElement(
@@ -707,7 +711,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                       + column;
               return new AnalyticsTableColumn(column, CHARACTER_11, sql);
             })
-        .collect(Collectors.toList());
+        .collect(toList());
   }
 
   private String getDataClause(String uid, ValueType valueType) {
@@ -761,5 +765,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   private AnalyticsTableColumn toCharColumn(String name, String prefix, Date created) {
     return new AnalyticsTableColumn(name, CHARACTER_11, prefix + "." + name).withCreated(created);
+  }
+
+  /**
+   * Retrieve years for partition tables. Year will become a partition key. The default return value
+   * is the list with the recent year.
+   *
+   * @param dataYears list of years coming from inner join of event and enrollment tables
+   * @return list of partition key values
+   */
+  private List<Integer> getYearsForPartitionTable(List<Integer> dataYears) {
+    return new ArrayList<>(!dataYears.isEmpty() ? dataYears : List.of(Year.now().getValue()));
   }
 }
