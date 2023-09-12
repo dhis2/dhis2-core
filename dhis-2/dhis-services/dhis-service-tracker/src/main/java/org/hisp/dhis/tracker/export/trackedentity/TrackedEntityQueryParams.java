@@ -135,9 +135,6 @@ public class TrackedEntityQueryParams {
   /** End date for event for the given program. */
   private Date eventEndDate;
 
-  /** Indicates whether not to include metadata in the response. */
-  private boolean skipMeta;
-
   /** Page number. */
   private Integer page;
 
@@ -664,15 +661,6 @@ public class TrackedEntityQueryParams {
 
   public TrackedEntityQueryParams setEventEndDate(Date eventEndDate) {
     this.eventEndDate = eventEndDate;
-    return this;
-  }
-
-  public boolean isSkipMeta() {
-    return skipMeta;
-  }
-
-  public TrackedEntityQueryParams setSkipMeta(boolean skipMeta) {
-    this.skipMeta = skipMeta;
     return this;
   }
 

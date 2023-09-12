@@ -73,7 +73,6 @@ public interface EventMapper
           entry("followup", "enrollment.followup"),
           entry("occurredAt", "executionDate"),
           entry("orgUnit", "organisationUnit.uid"),
-          entry("orgUnitName", "organisationUnit.name"),
           entry("program", "enrollment.program.uid"),
           entry("programStage", "programStage.uid"),
           entry("scheduledAt", "dueDate"),
@@ -89,7 +88,6 @@ public interface EventMapper
   @Mapping(target = "enrollment", source = "enrollment.uid")
   @Mapping(target = "trackedEntity", source = "enrollment.trackedEntity.uid")
   @Mapping(target = "orgUnit", source = "organisationUnit.uid")
-  @Mapping(target = "orgUnitName", source = "organisationUnit.name")
   @Mapping(target = "occurredAt", source = "executionDate")
   @Mapping(target = "scheduledAt", source = "dueDate")
   @Mapping(target = "followup", source = "enrollment.followup")

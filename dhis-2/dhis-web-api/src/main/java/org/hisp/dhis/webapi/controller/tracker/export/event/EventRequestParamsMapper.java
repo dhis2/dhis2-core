@@ -142,7 +142,6 @@ class EventRequestParamsMapper {
             .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
             .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))
             .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
-            .skipEventId(requestParams.getSkipEventId())
             .includeAttributes(false)
             .includeAllDataElements(false)
             .dataElementFilters(dataElementFilters)

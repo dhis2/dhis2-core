@@ -30,6 +30,7 @@ package org.hisp.dhis.scheduling;
 import static java.lang.System.currentTimeMillis;
 import static java.util.stream.Collectors.groupingBy;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -43,6 +44,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
 /**
@@ -87,6 +90,7 @@ public class JobScheduler implements Runnable, JobRunner {
 
   private final JobService jobService;
   private final JobSchedulerLoopService service;
+  private final SystemSettingManager systemSettings;
   private final ExecutorService workers = Executors.newCachedThreadPool();
 
   public void start() {
@@ -126,7 +130,9 @@ public class JobScheduler implements Runnable, JobRunner {
   }
 
   private void runIfDue(Instant now, JobConfiguration config) {
-    Instant dueTime = config.nextExecutionTime(now);
+    Duration maxCronDelay =
+        Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
+    Instant dueTime = config.nextExecutionTime(now, maxCronDelay);
     if (dueTime != null && !dueTime.isAfter(now)) {
       workers.submit(() -> runDueJob(config, dueTime));
     }

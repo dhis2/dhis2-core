@@ -255,7 +255,6 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
     assertHasMember(event, "followup");
     assertEquals(program.getUid(), event.getProgram());
     assertEquals(orgUnit.getUid(), event.getOrgUnit());
-    assertEquals(orgUnit.getName(), event.getOrgUnitName());
     assertFalse(event.getDeleted());
   }
 
@@ -338,7 +337,6 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
     assertEquals(program.getUid(), enrollment.getProgram());
     assertEquals("COMPLETED", enrollment.getStatus());
     assertEquals(orgUnit.getUid(), enrollment.getOrgUnit());
-    assertEquals(orgUnit.getName(), enrollment.getOrgUnitName());
     assertTrue(enrollment.getBoolean("followUp").bool());
     assertFalse(enrollment.getBoolean("deleted").bool());
     assertHasMember(enrollment, "enrolledAt");

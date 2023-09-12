@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.converter;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import com.google.common.base.Objects;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -230,8 +229,8 @@ public class EventTrackerConverterService
 
     result.setStatus(event.getStatus());
 
-    if (!Objects.equal(previousStatus, result.getStatus()) && result.isCompleted()) {
-      result.setCompletedDate(new Date());
+    if (previousStatus != result.getStatus() && result.isCompleted()) {
+      result.setCompletedDate(now);
       result.setCompletedBy(preheat.getUsername());
     }
 
@@ -253,7 +252,7 @@ public class EventTrackerConverterService
       EventDataValue eventDataValue = new EventDataValue();
       eventDataValue.setValue(dataValue.getValue());
       eventDataValue.setCreated(DateUtils.fromInstant(dataValue.getCreatedAt()));
-      eventDataValue.setLastUpdated(new Date());
+      eventDataValue.setLastUpdated(now);
       eventDataValue.setProvidedElsewhere(dataValue.isProvidedElsewhere());
       // ensure dataElement is referred to by UID as multiple
       // dataElementIdSchemes are supported

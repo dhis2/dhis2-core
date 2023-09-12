@@ -170,9 +170,6 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
   /** End date for Event for the given Program. */
   private Date eventOccurredBefore;
 
-  /** Indicates whether not to include metadata in the response. */
-  private boolean skipMeta;
-
   /** Indicates whether to include soft-deleted elements */
   private boolean includeDeleted;
 

@@ -1306,8 +1306,7 @@ public abstract class AbstractEnrollmentService
 
   private boolean doValidationOfMandatoryAttributes(User user) {
     return user == null
-        || !user.isAuthorized(
-            Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority());
+        || !user.isAuthorized(Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.name());
   }
 
   private void checkAttributes(
@@ -1631,13 +1630,13 @@ public abstract class AbstractEnrollmentService
         pi.getEvents().stream().filter(psi -> !psi.isDeleted()).collect(Collectors.toSet());
 
     if (!notDeletedEvents.isEmpty()
-        && !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority())) {
+        && !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.name())) {
       importConflicts.addConflict(
           pi.getUid(),
           "Enrollment "
               + pi.getUid()
               + " cannot be deleted as it has associated events and user does not have authority: "
-              + Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority());
+              + Authorities.F_ENROLLMENT_CASCADE_DELETE.name());
     }
 
     List<String> errors = trackerAccessManager.canDelete(user, pi, false);

@@ -528,7 +528,6 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
     assertEquals(programStage.getUid(), json.getString("programStage").string());
     assertEquals(event.getEnrollment().getUid(), json.getString("enrollment").string());
     assertEquals(orgUnit.getUid(), json.getString("orgUnit").string());
-    assertEquals(orgUnit.getName(), json.getString("orgUnitName").string());
     assertFalse(json.getBoolean("followup").booleanValue());
     assertFalse(json.getBoolean("deleted").booleanValue());
     assertHasMember(json, "createdAt");

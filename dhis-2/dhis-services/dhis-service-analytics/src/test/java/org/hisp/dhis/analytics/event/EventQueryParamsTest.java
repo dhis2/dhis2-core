@@ -48,6 +48,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.Legend;
@@ -67,6 +68,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * @author Lars Helge Overland
@@ -610,5 +613,22 @@ class EventQueryParamsTest extends DhisConvenienceTest {
             .addItemProgramIndicator(programIndicatorA)
             .build();
     assertTrue(params.orgUnitFieldIsValid());
+  }
+
+  @ParameterizedTest
+  @CsvSource({"AGGREGATE, ENROLLMENT, true", "QUERY, ENROLLMENT, false", "AGGREGATE, EVENT, false"})
+  void testIsAggregatedEnrollmentsShouldBeTrue(
+      RequestTypeAware.EndpointAction endpointAction,
+      RequestTypeAware.EndpointItem endpointItem,
+      boolean expected) {
+    // Given
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withEndpointAction(endpointAction)
+            .withEndpointItem(endpointItem)
+            .build();
+    // When
+    // Then
+    assertEquals(expected, params.isAggregatedEnrollments());
   }
 }

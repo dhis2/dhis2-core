@@ -445,7 +445,7 @@ public class DataSet extends BaseDimensionalItemObject
    */
   public boolean isLocked(User user, Period period, Date now) {
     if (expiryDays == DataSet.NO_EXPIRY
-        || user != null && user.isAuthorized(Authorities.F_EDIT_EXPIRED.getAuthority())) {
+        || user != null && user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return false;
     }
     Date date = now != null ? now : new Date();

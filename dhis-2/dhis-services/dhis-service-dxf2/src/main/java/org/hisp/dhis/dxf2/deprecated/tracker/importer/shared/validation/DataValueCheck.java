@@ -298,8 +298,7 @@ public class DataValueCheck implements Checker {
 
   private boolean doValidationOfMandatoryAttributes(User user) {
     return user == null
-        || !user.isAuthorized(
-            Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority());
+        || !user.isAuthorized(Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.name());
   }
 
   private ValidationStrategy getValidationStrategy(WorkContext ctx, ImmutableEvent event) {

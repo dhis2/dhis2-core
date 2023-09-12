@@ -634,7 +634,6 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     assertEquals(program.getUid(), jsonEnrollment.getProgram());
     assertEquals("ACTIVE", jsonEnrollment.getStatus());
     assertEquals(orgUnit.getUid(), jsonEnrollment.getOrgUnit());
-    assertEquals(orgUnit.getName(), jsonEnrollment.getOrgUnitName());
     assertFalse(jsonEnrollment.getBoolean("deleted").booleanValue());
     assertHasMember(jsonEnrollment, "enrolledAt");
     assertHasMember(jsonEnrollment, "occurredAt");
@@ -659,7 +658,6 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     assertEquals(program.getUid(), jsonEvent.getProgram());
     assertEquals("ACTIVE", jsonEvent.getStatus());
     assertEquals(orgUnit.getUid(), jsonEvent.getOrgUnit());
-    assertEquals(orgUnit.getName(), jsonEvent.getOrgUnitName());
     assertFalse(jsonEvent.getDeleted());
     assertHasMember(jsonEvent, "createdAt");
     assertHasMember(jsonEvent, "occurredAt");

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.converter;
 
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.note.Note;
@@ -73,8 +72,6 @@ public class NotesConverterService
     trackerNote.setNoteText(note.getValue());
 
     trackerNote.setLastUpdatedBy(preheat.getUser());
-    trackerNote.setCreated(new Date());
-    trackerNote.setLastUpdated(new Date());
     trackerNote.setCreator(note.getStoredBy());
     return trackerNote;
   }

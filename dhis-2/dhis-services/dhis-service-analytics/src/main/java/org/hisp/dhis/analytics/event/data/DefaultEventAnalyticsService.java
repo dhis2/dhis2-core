@@ -776,7 +776,7 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
    * @return the count of events.
    */
   @Override
-  protected long addEventData(Grid grid, EventQueryParams params) {
+  protected long addData(Grid grid, EventQueryParams params) {
     Timer timer = new Timer().start().disablePrint();
 
     params = queryPlanner.planEventQuery(params);

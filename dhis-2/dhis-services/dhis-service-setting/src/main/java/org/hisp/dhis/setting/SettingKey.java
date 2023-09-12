@@ -247,6 +247,13 @@ public enum SettingKey {
   JOBS_CLEANUP_AFTER_MINUTES("jobsCleanupAfterMinutes", 24 * 60, Integer.class),
 
   /**
+   * The maximum number of hours a CRON based job may trigger on the same day after it has missed
+   * its intended time of the day to trigger. If time has passed past this point the execution for
+   * that day is skipped, and it will trigger on the intended time the day after.
+   */
+  JOBS_MAX_CRON_DELAY_HOURS("jobsMaxCronDelayHours", 4, Integer.class),
+
+  /**
    * Progressive caching factor for the analytics API. To enable, the {@link
    * #ANALYTICS_CACHE_TTL_MODE} must be set to PROGRESSIVE.
    */
@@ -257,8 +264,17 @@ public enum SettingKey {
   ANALYTICS_CACHE_TTL_MODE(
       "keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED, AnalyticsCacheTtlMode.class),
 
-  /** Max trackedentityinstance records that can be retrieved from database. */
-  TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityInstanceMaxLimit", 50000, Integer.class);
+  /** The offset of years used during period generation during the analytics export process. */
+  ANALYTICS_MAX_PERIOD_YEARS_OFFSET("keyAnalyticsPeriodYearsOffset", 22, Integer.class),
+
+  /**
+   * @deprecated use {@link #TRACKED_ENTITY_MAX_LIMIT} instead
+   */
+  @Deprecated(forRemoval = true, since = "2.41")
+  DEPRECATED_TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityInstanceMaxLimit", 50000, Integer.class),
+
+  /** Max tracked entity records that can be retrieved from database. */
+  TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityMaxLimit", 50000, Integer.class);
 
   private final String name;
 

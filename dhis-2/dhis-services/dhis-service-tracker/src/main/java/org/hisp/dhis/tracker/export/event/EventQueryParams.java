@@ -72,7 +72,7 @@ class EventQueryParams {
 
   private Boolean followUp;
 
-  private List<OrganisationUnit> accessibleOrgUnits = new ArrayList<>();
+  private OrganisationUnit orgUnit;
 
   private OrganisationUnitSelectionMode orgUnitMode;
 
@@ -135,8 +135,6 @@ class EventQueryParams {
   private boolean includeAllDataElements;
 
   private Set<String> events = new HashSet<>();
-
-  private Boolean skipEventId;
 
   /**
    * Each attribute will affect the final SQL query. Some attributes are filtered on, while
@@ -232,11 +230,6 @@ class EventQueryParams {
     return this.hasDataElementFilter;
   }
 
-  /** Null-safe check for skip event ID parameter. */
-  public boolean isSkipEventId() {
-    return skipEventId != null && skipEventId;
-  }
-
   public Program getProgram() {
     return program;
   }
@@ -282,12 +275,12 @@ class EventQueryParams {
     return this;
   }
 
-  public List<OrganisationUnit> getAccessibleOrgUnits() {
-    return accessibleOrgUnits;
+  public OrganisationUnit getOrgUnit() {
+    return orgUnit;
   }
 
-  public EventQueryParams setAccessibleOrgUnits(List<OrganisationUnit> accessibleOrgUnits) {
-    this.accessibleOrgUnits = accessibleOrgUnits;
+  public EventQueryParams setOrgUnit(OrganisationUnit orgUnit) {
+    this.orgUnit = orgUnit;
     return this;
   }
 
@@ -530,15 +523,6 @@ class EventQueryParams {
 
   public EventQueryParams setEvents(Set<String> events) {
     this.events = events;
-    return this;
-  }
-
-  public Boolean getSkipEventId() {
-    return skipEventId;
-  }
-
-  public EventQueryParams setSkipEventId(Boolean skipEventId) {
-    this.skipEventId = skipEventId;
     return this;
   }
 
