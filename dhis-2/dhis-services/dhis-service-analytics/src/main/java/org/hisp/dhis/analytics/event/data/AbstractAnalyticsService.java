@@ -32,6 +32,7 @@ import static java.util.Optional.empty;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
@@ -84,6 +85,7 @@ import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
@@ -578,6 +580,29 @@ public abstract class AbstractAnalyticsService {
                     option.getDisplayProperty(params.getDisplayProperty()),
                     includeDetails ? option.getUid() : null,
                     option.getCode())));
+
+    addOptionsSetIntoMap(metadataItemMap, itemOptions);
+  }
+
+  /**
+   * Adds the {@link OptionSet} objects associated with each {@link Option} in the list of given
+   * "itemOptions". Internal rules ensure that only options in the give "itemOptions" will be
+   * present in its respective {@link OptionSet}.
+   *
+   * @param metadataItemMap the metadata item map.
+   * @param itemOptions the set of {@link Option} where to extract each {@link OptionSet}.
+   */
+  private void addOptionsSetIntoMap(
+      Map<String, MetadataItem> metadataItemMap, Set<Option> itemOptions) {
+    // Group all options set available.
+    Set<OptionSet> optionSets = itemOptions.stream().map(Option::getOptionSet).collect(toSet());
+
+    // Add option set into the metadata.
+    optionSets.forEach(
+        optionSet ->
+            metadataItemMap.put(
+                optionSet.getUid(),
+                new MetadataItem(optionSet.getDisplayName(), optionSet, itemOptions)));
   }
 
   /**
