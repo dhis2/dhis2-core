@@ -171,8 +171,11 @@ public class GridUtils {
 
   private static final String DECIMAL_DIGITS_MASK = "#.##########";
 
+  private static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
+
   /** Writes a PDF representation of the given Grid to the given OutputStream. */
   public static void toPdf(Locale locale, Grid grid, OutputStream out) {
+    locale = locale != null ? locale : DEFAULT_LOCALE;
     if (isNonEmptyGrid(grid)) {
       Document document = openDocument(out);
 
@@ -186,6 +189,7 @@ public class GridUtils {
 
   /** Writes a PDF representation of the given list of Grids to the given OutputStream. */
   public static void toPdf(Locale locale, List<Grid> grids, OutputStream out) {
+    locale = locale != null ? locale : DEFAULT_LOCALE;
     if (hasNonEmptyGrid(grids)) {
       Document document = openDocument(out);
 
