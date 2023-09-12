@@ -145,8 +145,6 @@ Get events with given UID(s).
 
 Get events with given UID(s).
 
-### `*.parameter.EventRequestParams.skipEventId`
-
 ### `*.parameter.EventRequestParams.order`
 
 `<propertyName1:sortDirection>[,<propertyName2:sortDirection>...]`

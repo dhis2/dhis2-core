@@ -147,7 +147,6 @@ class EventOperationParamsMapper {
         .setPageSize(operationParams.getPageSize())
         .setTotalPages(operationParams.isTotalPages())
         .setSkipPaging(operationParams.isSkipPaging())
-        .setSkipEventId(operationParams.getSkipEventId())
         .setIncludeAttributes(false)
         .setIncludeAllDataElements(false)
         .setEvents(operationParams.getEvents())

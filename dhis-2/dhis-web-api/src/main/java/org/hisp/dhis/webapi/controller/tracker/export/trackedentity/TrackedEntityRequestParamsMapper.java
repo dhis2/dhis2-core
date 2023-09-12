@@ -133,7 +133,6 @@ class TrackedEntityRequestParamsMapper {
             .trackedEntityUids(UID.toValueSet(trackedEntities))
             .attributes(requestParams.getAttribute())
             .filters(requestParams.getFilter())
-            .skipMeta(requestParams.isSkipMeta())
             .page(Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE))
             .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
             .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))

@@ -123,8 +123,6 @@ if `assignedUserMode` is either `PROVIDED` or not specified.
 
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredBefore`
 
-### `*.parameter.TrackedEntityRequestParams.skipMeta`
-
 ### `*.parameter.TrackedEntityRequestParams.includeDeleted`
 
 ### `*.parameter.TrackedEntityRequestParams.includeAllAttributes`

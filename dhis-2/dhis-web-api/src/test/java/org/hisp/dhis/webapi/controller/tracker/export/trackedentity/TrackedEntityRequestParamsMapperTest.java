@@ -105,7 +105,6 @@ class TrackedEntityRequestParamsMapperTest {
     requestParams.setEventStatus(EventStatus.COMPLETED);
     requestParams.setEventOccurredAfter(getDate(2019, 7, 7));
     requestParams.setEventOccurredBefore(getDate(2020, 7, 7));
-    requestParams.setSkipMeta(true);
     requestParams.setPage(1);
     requestParams.setPageSize(50);
     requestParams.setTotalPages(false);

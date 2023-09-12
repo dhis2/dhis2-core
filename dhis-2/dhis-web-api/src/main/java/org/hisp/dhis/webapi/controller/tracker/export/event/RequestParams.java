@@ -150,8 +150,6 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
   @OpenApi.Property({UID[].class, CategoryOption.class})
   private Set<UID> attributeCategoryOptions = new HashSet<>();
 
-  private boolean skipMeta;
-
   private boolean includeDeleted;
 
   /**
@@ -165,8 +163,6 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
 
   @OpenApi.Property({UID[].class, Event.class})
   private Set<UID> events = new HashSet<>();
-
-  private Boolean skipEventId;
 
   /** Comma separated list of data element filters */
   private String filter;
