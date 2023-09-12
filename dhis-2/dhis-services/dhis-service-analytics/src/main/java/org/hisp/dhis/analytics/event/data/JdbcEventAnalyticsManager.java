@@ -160,8 +160,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
           grid.setLastDataRow(false);
           continue; // skips the last row in n+1 query scenario
         }
-      } else { // we don't want to skip rows after pagesize is reached for non-QUERY requests
-        grid.setLastDataRow(false);
       }
 
       grid.addRow();
