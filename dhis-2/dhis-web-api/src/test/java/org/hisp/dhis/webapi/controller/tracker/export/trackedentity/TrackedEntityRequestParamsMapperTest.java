@@ -46,7 +46,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
