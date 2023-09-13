@@ -234,7 +234,6 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void updateUserHasAccessToUpdateGroups() {
-
     systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
 
     UserRole roleB = createUserRole("ROLE_B", "F_USER_ADD", "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS");
@@ -249,7 +248,9 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
     switchContextToUser(user);
 
-    PUT(
+    assertStatus(
+        HttpStatus.OK,
+        PUT(
             "/users/" + user.getUid(),
             " {"
                 + "'name': 'test',"
@@ -267,10 +268,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
                 + userGroupA.getUid()
                 + "'"
                 + "}]"
-                + "}")
-        .content(HttpStatus.OK)
-        .get("response")
-        .as(JsonImportSummary.class);
+                + "}"));
   }
 
   @Test

@@ -179,6 +179,7 @@ public class DefaultUserGroupService implements UserGroupService {
 
     for (UserGroup userGroup : new HashSet<>(user.getGroups())) {
       if (!updates.contains(userGroup) && canAddOrRemoveMember(userGroup.getUid(), currentUser)) {
+        before.put(userGroup, userGroup.getMembers().size());
         userGroup.removeUser(user);
       }
     }
@@ -190,11 +191,10 @@ public class DefaultUserGroupService implements UserGroupService {
     }
 
     // Update user group if members have changed
-    updates.forEach(
-        userGroup -> {
-          int after = userGroup.getMembers().size();
-          if (before.get(userGroup) != after) {
-            userGroup.setLastUpdatedBy(user);
+    before.forEach(
+        (userGroup, beforeSize) -> {
+          if (beforeSize != userGroup.getMembers().size()) {
+            userGroup.setLastUpdatedBy(currentUser);
             userGroupStore.updateNoAcl(userGroup);
           }
         });
