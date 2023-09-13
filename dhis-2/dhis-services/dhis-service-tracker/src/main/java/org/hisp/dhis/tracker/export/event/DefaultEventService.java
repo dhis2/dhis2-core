@@ -29,9 +29,6 @@ package org.hisp.dhis.tracker.export.event;
 
 import static java.util.Collections.emptyMap;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
-import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -52,6 +49,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -169,33 +168,33 @@ class DefaultEventService implements EventService {
   }
 
   @Override
-  public Events getEvents(EventOperationParams operationParams)
+  public List<Event> getEvents(EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams);
 
-    if (!operationParams.isPaging() && !operationParams.isSkipPaging()) {
-      operationParams.setDefaultPaging();
-    }
+    return eventStore.getEvents(queryParams, emptyMap());
+  }
 
-    if (operationParams.isSkipPaging()) {
-      return Events.withoutPagination(eventStore.getEvents(queryParams, emptyMap()));
-    }
+  @Override
+  public Page<Event> getEvents(EventOperationParams operationParams, PageParams pageParams)
+      throws BadRequestException, ForbiddenException {
+    EventQueryParams queryParams = paramsMapper.map(operationParams);
+    queryParams.setPage(pageParams.getPage());
+    queryParams.setPageSize(pageParams.getPageSize());
+    queryParams.setTotalPages(pageParams.isPageTotal());
+    queryParams.setSkipPaging(false);
+
+    List<Event> events = new ArrayList<>(eventStore.getEvents(queryParams, emptyMap()));
 
     Pager pager;
-    List<Event> eventList = new ArrayList<>(eventStore.getEvents(queryParams, emptyMap()));
-
-    if (operationParams.isTotalPages()) {
+    if (pageParams.isPageTotal()) {
       int count = eventStore.getEventCount(queryParams);
-      pager =
-          new Pager(
-              operationParams.getPageWithDefault(),
-              count,
-              operationParams.getPageSizeWithDefault());
+      pager = new Pager(pageParams.getPage(), count, pageParams.getPageSize());
     } else {
-      pager = handleLastPageFlag(operationParams, eventList);
+      pager = handleLastPageFlag(pageParams, events);
     }
 
-    return Events.of(eventList, pager);
+    return Page.of(events, pager);
   }
 
   @Override
@@ -213,24 +212,22 @@ class DefaultEventService implements EventService {
    * returning the respective Pager object.
    *
    * @param params the request params
-   * @param eventList the reference to the list of Event
+   * @param events the reference to the list of Event
    * @return the populated SlimPager instance
    */
-  private Pager handleLastPageFlag(EventOperationParams params, List<Event> eventList) {
-    Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
-    Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
+  private Pager handleLastPageFlag(PageParams params, List<Event> events) {
     boolean isLastPage = false;
 
-    if (isNotEmpty(eventList)) {
-      isLastPage = eventList.size() <= originalPageSize;
+    if (isNotEmpty(events)) {
+      isLastPage = events.size() <= params.getPageSize();
       if (!isLastPage) {
         // Get the same number of elements of the pageSize, forcing
         // the removal of the last additional element added at querying
         // time.
-        eventList.retainAll(eventList.subList(0, originalPageSize));
+        events.retainAll(events.subList(0, params.getPageSize()));
       }
     }
 
-    return new SlimPager(originalPage, originalPageSize, isLastPage);
+    return new SlimPager(params.getPage(), params.getPageSize(), isLastPage);
   }
 }
