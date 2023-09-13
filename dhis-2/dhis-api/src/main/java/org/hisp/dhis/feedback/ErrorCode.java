@@ -427,6 +427,9 @@ public enum ErrorCode {
   E7230("Header param `{0}` does not exist"),
   E7231("Legacy `{0}` can be updated only through event visualizations"),
   E7234("Query filter: `{0}` not valid for query item value type: `{1}`"),
+  E7237("Sorting must have a valid dimension and a direction"),
+  E7238("Sorting dimension ‘{0}’ is not a column"),
+
   /* Org unit analytics */
   E7300("At least one organisation unit must be specified"),
   E7301("At least one organisation unit group set must be specified"),
