@@ -65,9 +65,6 @@ public class TrackedEntityQueryParams {
   /** Query value, will apply to all relevant attributes. */
   private QueryFilter query;
 
-  /** Attributes to be included in the response. Can be used to filter response. */
-  private List<QueryItem> attributes = new ArrayList<>();
-
   /** Filters for the response. */
   private List<QueryItem> filters = new ArrayList<>();
 
@@ -153,9 +150,6 @@ public class TrackedEntityQueryParams {
   /** Indicates whether to include soft-deleted elements. Default to false */
   private boolean includeDeleted = false;
 
-  /** Indicates whether to include all TE attributes */
-  private boolean includeAllAttributes;
-
   /**
    * Potential Duplicate query parameter value. If null, we don't check whether a TE is a
    * potentialDuplicate or not
@@ -208,25 +202,9 @@ public class TrackedEntityQueryParams {
     return CollectionUtils.isNotEmpty(this.trackedEntityUids);
   }
 
-  public TrackedEntityQueryParams addAttributes(List<QueryItem> attrs) {
-    attributes.addAll(attrs);
-    return this;
-  }
-
   public boolean hasFilterForEvents() {
     return this.getAssignedUserQueryParam().getMode() != AssignedUserSelectionMode.ALL
         || hasEventStatus();
-  }
-
-  /** Add the given attributes to this params if they are not already present. */
-  public TrackedEntityQueryParams addAttributesIfNotExist(List<QueryItem> attrs) {
-    for (QueryItem attr : attrs) {
-      if (attributes != null && !attributes.contains(attr)) {
-        attributes.add(attr);
-      }
-    }
-
-    return this;
   }
 
   /** Adds the given filters to these parameters if they are not already present. */
@@ -256,30 +234,8 @@ public class TrackedEntityQueryParams {
   }
 
   /** Returns a list of attributes and filters combined. */
-  public List<QueryItem> getAttributesAndFilters() {
-    List<QueryItem> items = new ArrayList<>();
-    items.addAll(attributes);
-    items.addAll(filters);
-    return items;
-  }
-
-  /** Returns a list of attributes and filters combined. */
-  public Set<String> getAttributeAndFilterIds() {
-    return getAttributesAndFilters().stream().map(QueryItem::getItemId).collect(Collectors.toSet());
-  }
-
-  /** Returns a list of attributes which appear more than once. */
-  public List<QueryItem> getDuplicateAttributes() {
-    Set<QueryItem> items = new HashSet<>();
-    List<QueryItem> duplicates = new ArrayList<>();
-
-    for (QueryItem item : getAttributes()) {
-      if (!items.add(item)) {
-        duplicates.add(item);
-      }
-    }
-
-    return duplicates;
+  public Set<String> getFilterIds() {
+    return getFilters().stream().map(QueryItem::getItemId).collect(Collectors.toSet());
   }
 
   /** Returns a list of attributes which appear more than once. */
@@ -294,16 +250,6 @@ public class TrackedEntityQueryParams {
     }
 
     return duplicates;
-  }
-
-  /** Indicates whether these parameters specify any attributes and/or filters. */
-  public boolean hasAttributesOrFilters() {
-    return hasAttributes() || hasFilters();
-  }
-
-  /** Indicates whether these parameters specify any attributes. */
-  public boolean hasAttributes() {
-    return attributes != null && !attributes.isEmpty();
   }
 
   /** Indicates whether these parameters specify any filters. */
@@ -417,18 +363,12 @@ public class TrackedEntityQueryParams {
    * @return true if there is at least one unique filter in filters/attributes, false otherwise.
    */
   public boolean hasUniqueFilter() {
-    if (!hasFilters() && !hasAttributes()) {
+    if (!hasFilters()) {
       return false;
     }
 
     for (QueryItem filter : filters) {
       if (filter.isUnique()) {
-        return true;
-      }
-    }
-
-    for (QueryItem attribute : attributes) {
-      if (attribute.isUnique() && attribute.hasFilter()) {
         return true;
       }
     }
@@ -462,15 +402,6 @@ public class TrackedEntityQueryParams {
 
   public TrackedEntityQueryParams setQuery(QueryFilter query) {
     this.query = query;
-    return this;
-  }
-
-  public List<QueryItem> getAttributes() {
-    return attributes;
-  }
-
-  public TrackedEntityQueryParams setAttributes(List<QueryItem> attributes) {
-    this.attributes = attributes;
     return this;
   }
 
@@ -718,15 +649,6 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public boolean isIncludeAllAttributes() {
-    return includeAllAttributes;
-  }
-
-  public TrackedEntityQueryParams setIncludeAllAttributes(boolean includeAllAttributes) {
-    this.includeAllAttributes = includeAllAttributes;
-    return this;
-  }
-
   public User getUser() {
     return user;
   }
@@ -744,7 +666,7 @@ public class TrackedEntityQueryParams {
    */
   public TrackedEntityQueryParams orderBy(TrackedEntityAttribute tea, SortDirection direction) {
     this.order.add(new Order(tea, direction));
-    this.addAttributesIfNotExist(
+    this.addFiltersIfNotExist(
         QueryItem.getQueryItems(List.of(tea)).stream()
             .filter(sAtt -> !this.getFilters().contains(sAtt))
             .toList());

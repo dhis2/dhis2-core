@@ -218,7 +218,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   /**
    * Generates SQL based on "params". The purpose of the SQL is to retrieve a list of tracked entity
-   * instances, and additionally any requested attributes (If defined in params).
+   * instances.
    *
    * <p>The params are validated before we generate the SQL, so the only access-related SQL is the
    * inner join o organisation units.
@@ -271,7 +271,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * @return SQL string
    */
   private String getQuery(TrackedEntityQueryParams params) {
-    if (params.isOrQuery() && params.getAttributesAndFilters().isEmpty()) {
+    if (params.isOrQuery() && params.getFilters().isEmpty()) {
       throw new IllegalArgumentException(
           "A query parameter is used in the request but there aren't filterable attributes");
     }
@@ -456,7 +456,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .filter(o -> o.getField() instanceof TrackedEntityAttribute)
             .map(o -> ((TrackedEntityAttribute) o.getField()).getUid())
             .toList();
-    return params.getAttributesAndFilters().stream()
+    return params.getFilters().stream()
         .filter(queryItem -> ordersIdentifier.contains(queryItem.getItemId()))
         .collect(Collectors.toSet());
   }
@@ -565,7 +565,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     SqlHelper orHlp = new SqlHelper(true);
 
     List<Long> itemIds =
-        params.getAttributesAndFilters().stream()
+        params.getFilters().stream()
             .map(QueryItem::getItem)
             .map(DimensionalItemObject::getId)
             .collect(Collectors.toList());
@@ -602,7 +602,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     StringBuilder attributes = new StringBuilder();
 
     List<QueryItem> filterItems =
-        params.getAttributesAndFilters().stream().filter(QueryItem::hasFilter).toList();
+        params.getFilters().stream().filter(QueryItem::hasFilter).toList();
 
     for (QueryItem queryItem : filterItems) {
       String col = statementBuilder.columnQuote(queryItem.getItemId());
@@ -978,25 +978,22 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    *     from.
    */
   private String getQueryRelatedTables(TrackedEntityQueryParams params) {
-    List<QueryItem> attributes = params.getAttributes();
+    List<QueryItem> filters = params.getFilters();
     StringBuilder relatedTables = new StringBuilder();
 
     relatedTables.append(
         "LEFT JOIN trackedentitytype TET ON TET.trackedentitytypeid = TE.trackedentitytypeid ");
 
-    if (!attributes.isEmpty()) {
-      String attributeString =
+    if (!filters.isEmpty()) {
+      String filterString =
           getCommaDelimitedString(
-              attributes.stream()
-                  .map(QueryItem::getItem)
-                  .map(IdentifiableObject::getId)
-                  .collect(Collectors.toList()));
+              filters.stream().map(QueryItem::getItem).map(IdentifiableObject::getId).toList());
 
       relatedTables
           .append("LEFT JOIN trackedentityattributevalue TEAV ")
           .append("ON TEAV.trackedentityid = TE.trackedentityid ")
           .append("AND TEAV.trackedentityattributeid IN (")
-          .append(attributeString)
+          .append(filterString)
           .append(") ");
 
       relatedTables
@@ -1052,8 +1049,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       return "ORDER BY " + StringUtils.join(orderFields, ',') + SPACE;
     }
 
-    if (params.getAttributesAndFilters().stream()
-        .noneMatch(qi -> qi.hasFilter() && qi.isUnique())) {
+    if (params.getFilters().stream().noneMatch(qi -> qi.hasFilter() && qi.isUnique())) {
       return "ORDER BY " + DEFAULT_ORDER + " ";
     }
 
