@@ -62,7 +62,12 @@
       },
       "attributeCategoryOptions": [],
       "dataValues": [],
-      "notes": []
+      "notes": [
+        {
+          "value": "note",
+          "note": "ZwwuwNp6gVd"
+        }
+      ]
     }
   ],
   "relationships": [],

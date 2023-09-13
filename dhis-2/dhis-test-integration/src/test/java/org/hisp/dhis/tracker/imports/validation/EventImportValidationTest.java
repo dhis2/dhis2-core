@@ -389,6 +389,9 @@ class EventImportValidationTest extends TrackerTest {
     ImportReport importReportDelete = trackerImportService.importTracker(paramsDelete);
     assertNoErrors(importReportDelete);
     assertEquals(1, importReportDelete.getStats().getDeleted());
+
+    assertNull(manager.get(Event.class, "ZwwuwNp6gVd"));
+    assertNotNull(manager.get(TrackedEntityComment.class, "ZwwuwNp6gVd"));
   }
 
   private ImportReport createEvent(String jsonPayload) throws IOException {

@@ -52,7 +52,12 @@
       "events": [],
       "relationships": [],
       "attributes": [],
-      "notes": []
+      "notes": [
+        {
+          "value": "note",
+          "note": "KNWZ6hnuhSw"
+        }
+      ]
     },
     {
       "enrollment": "KNWZ6hnuhSw",
