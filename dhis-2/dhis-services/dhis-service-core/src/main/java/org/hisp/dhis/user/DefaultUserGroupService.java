@@ -186,14 +186,13 @@ public class DefaultUserGroupService implements UserGroupService {
     for (UserGroup userGroup : new HashSet<>(user.getGroups())) {
       if (!updates.contains(userGroup) && canAddOrRemoveMember(userGroup.getUid(), currentUser)) {
         userGroup.removeUser(user);
-        userGroupStore.update(userGroup, currentUser);
       }
     }
 
     for (UserGroup userGroup : updates) {
       if (canAddOrRemoveMember(userGroup.getUid(), currentUser)) {
         userGroup.addUser(user);
-        userGroupStore.update(userGroup, currentUser);
+        userGroupStore.updateNoAcl(userGroup);
       }
     }
   }
