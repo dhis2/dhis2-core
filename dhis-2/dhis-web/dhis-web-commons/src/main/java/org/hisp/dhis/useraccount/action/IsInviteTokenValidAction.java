@@ -86,6 +86,22 @@ public class IsInviteTokenValidAction implements Action {
     return username;
   }
 
+  private String firstName;
+  private String surname;
+  private String phoneNumber;
+
+  public String getFirstName() {
+    return firstName;
+  }
+
+  public String getSurname() {
+    return surname;
+  }
+
+  public String getPhoneNumber() {
+    return phoneNumber;
+  }
+
   private String cspNonce = "";
 
   public void setCspNonce(String cspNonce) {
@@ -125,6 +141,9 @@ public class IsInviteTokenValidAction implements Action {
 
     email = user.getEmail();
     username = user.getUsername();
+    firstName = user.getFirstName();
+    surname = user.getSurname();
+    phoneNumber = user.getPhoneNumber();
 
     RestoreOptions restoreOptions = securityService.getRestoreOptions(restoreToken);
 
