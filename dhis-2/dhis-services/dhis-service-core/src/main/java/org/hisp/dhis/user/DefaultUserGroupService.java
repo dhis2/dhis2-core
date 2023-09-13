@@ -30,12 +30,15 @@ package org.hisp.dhis.user;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.HibernateCacheManager;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -137,15 +140,9 @@ public class DefaultUserGroupService implements UserGroupService {
 
     boolean canUpdate = aclService.canUpdate(currentUser, userGroup);
     boolean canAddMember =
-        currentUser.isAuthorized(UserGroup.AUTH_ADD_MEMBERS_TO_READ_ONLY_USER_GROUPS);
+        currentUser.isAuthorized(Authorities.F_USER_GROUPS_READ_ONLY_ADD_MEMBERS);
 
     return canUpdate || canAddMember;
-  }
-
-  @Override
-  @Transactional
-  public void addUserToGroups(User user, Collection<String> uids) {
-    addUserToGroups(user, uids, currentUserService.getCurrentUser());
   }
 
   @Override
@@ -174,14 +171,11 @@ public class DefaultUserGroupService implements UserGroupService {
 
   @Override
   @Transactional
-  public void updateUserGroups(User user, Collection<String> uids) {
-    updateUserGroups(user, uids, currentUserService.getCurrentUser());
-  }
-
-  @Override
-  @Transactional
   public void updateUserGroups(User user, @Nonnull Collection<String> uids, User currentUser) {
     Collection<UserGroup> updates = getUserGroupsByUid(uids);
+
+    Map<UserGroup, Integer> before = new HashMap<>();
+    updates.forEach(userGroup -> before.put(userGroup, userGroup.getMembers().size()));
 
     for (UserGroup userGroup : new HashSet<>(user.getGroups())) {
       if (!updates.contains(userGroup) && canAddOrRemoveMember(userGroup.getUid(), currentUser)) {
@@ -192,9 +186,18 @@ public class DefaultUserGroupService implements UserGroupService {
     for (UserGroup userGroup : updates) {
       if (canAddOrRemoveMember(userGroup.getUid(), currentUser)) {
         userGroup.addUser(user);
-        userGroupStore.updateNoAcl(userGroup);
       }
     }
+
+    // Update user group if members have changed
+    updates.forEach(
+        userGroup -> {
+          int after = userGroup.getMembers().size();
+          if (before.get(userGroup) != after) {
+            userGroup.setLastUpdatedBy(user);
+            userGroupStore.updateNoAcl(userGroup);
+          }
+        });
   }
 
   private Collection<UserGroup> getUserGroupsByUid(@Nonnull Collection<String> uids) {
@@ -205,18 +208,6 @@ public class DefaultUserGroupService implements UserGroupService {
   @Transactional(readOnly = true)
   public List<UserGroup> getUserGroupByName(String name) {
     return userGroupStore.getAllEqName(name);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int getUserGroupCount() {
-    return userGroupStore.getCount();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int getUserGroupCountByName(String name) {
-    return userGroupStore.getCountLikeName(name);
   }
 
   @Override
