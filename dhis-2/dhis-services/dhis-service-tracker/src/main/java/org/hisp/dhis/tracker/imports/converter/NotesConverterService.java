@@ -42,21 +42,21 @@ import org.springframework.stereotype.Service;
 public class NotesConverterService
     implements TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Note, Note> {
   @Override
-  public org.hisp.dhis.tracker.imports.domain.Note to(Note noteToConvert) {
-    org.hisp.dhis.tracker.imports.domain.Note note =
+  public org.hisp.dhis.tracker.imports.domain.Note to(Note note) {
+    org.hisp.dhis.tracker.imports.domain.Note trackerNote =
         new org.hisp.dhis.tracker.imports.domain.Note();
-    note.setNote(noteToConvert.getUid());
-    note.setValue(noteToConvert.getNoteText());
-    note.setStoredAt(DateUtils.instantFromDate(noteToConvert.getCreated()));
-    note.setCreatedBy(
+    trackerNote.setNote(note.getUid());
+    trackerNote.setValue(note.getNoteText());
+    trackerNote.setStoredAt(DateUtils.instantFromDate(note.getCreated()));
+    trackerNote.setCreatedBy(
         User.builder()
-            .username(noteToConvert.getLastUpdatedBy().getUsername())
-            .uid(noteToConvert.getLastUpdatedBy().getUid())
-            .firstName(noteToConvert.getLastUpdatedBy().getFirstName())
-            .surname(noteToConvert.getLastUpdatedBy().getSurname())
+            .username(note.getLastUpdatedBy().getUsername())
+            .uid(note.getLastUpdatedBy().getUid())
+            .firstName(note.getLastUpdatedBy().getFirstName())
+            .surname(note.getLastUpdatedBy().getSurname())
             .build());
-    note.setStoredBy(noteToConvert.getCreator());
-    return note;
+    trackerNote.setStoredBy(note.getCreator());
+    return trackerNote;
   }
 
   @Override
