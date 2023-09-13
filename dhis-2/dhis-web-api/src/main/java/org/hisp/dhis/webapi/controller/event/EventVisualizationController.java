@@ -34,6 +34,8 @@ import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE_LIST;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABLE;
+import static org.hisp.dhis.feedback.ErrorCode.E7237;
+import static org.hisp.dhis.feedback.ErrorCode.E7238;
 import static org.hisp.dhis.schema.descriptors.EventVisualizationSchemaDescriptor.API_ENDPOINT;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PNG;
@@ -47,9 +49,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -59,6 +63,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.ChartService;
 import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.exception.ConflictException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -181,6 +186,8 @@ public class EventVisualizationController extends AbstractCrudController<EventVi
      * become a non-legacy EventVisualization.
      */
     forceNonLegacy(newEventVisualization);
+
+    validateSorting(newEventVisualization);
   }
 
   @Override
@@ -191,6 +198,31 @@ public class EventVisualizationController extends AbstractCrudController<EventVi
      * become a non-legacy EventVisualization.
      */
     forceNonLegacy(newEventVisualization);
+
+    validateSorting(newEventVisualization);
+  }
+
+  @Override
+  protected void prePatchEntity(
+      EventVisualization eventVisualization, EventVisualization newEventVisualization) {
+    validateSorting(newEventVisualization);
+  }
+
+  /**
+   * Simply validates the state of the {@link Sorting} attribute in the given {@link
+   * EventVisualization} object.
+   *
+   * @param eventVisualization the {@link EventVisualization}.
+   * @throws ConflictException if the {@link Sorting} attribute is not valid.
+   */
+  private void validateSorting(EventVisualization eventVisualization) {
+    try {
+      eventVisualization.validateSortingState();
+    } catch (IllegalArgumentException e) {
+      throw new IllegalQueryException(new ErrorMessage(E7237));
+    } catch (IllegalStateException e) {
+      throw new IllegalQueryException(new ErrorMessage(E7238, e.getMessage()));
+    }
   }
 
   private void forceNonLegacy(final EventVisualization eventVisualization) {
