@@ -140,8 +140,6 @@ public class EventOperationParams {
 
   @Builder.Default private Set<String> events = new HashSet<>();
 
-  private Boolean skipEventId;
-
   /** Data element filters per data element UID. */
   @Builder.Default private Map<String, List<QueryFilter>> dataElementFilters = new HashMap<>();
 

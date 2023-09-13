@@ -143,7 +143,6 @@ class TrackedEntityOperationParamsMapper {
         .setAssignedUserQueryParam(operationParams.getAssignedUserQueryParam())
         .setUser(user)
         .setTrackedEntityUids(operationParams.getTrackedEntityUids())
-        .setSkipMeta(operationParams.isSkipMeta())
         .setPage(operationParams.getPage())
         .setPageSize(operationParams.getPageSize())
         .setTotalPages(operationParams.isTotalPages())

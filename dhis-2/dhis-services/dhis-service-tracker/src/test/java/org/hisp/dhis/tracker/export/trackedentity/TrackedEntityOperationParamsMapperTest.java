@@ -201,7 +201,6 @@ class TrackedEntityOperationParamsMapperTest {
             .eventStatus(EventStatus.COMPLETED)
             .eventStartDate(getDate(2019, 7, 7))
             .eventEndDate(getDate(2020, 7, 7))
-            .skipMeta(true)
             .page(1)
             .pageSize(50)
             .totalPages(false)

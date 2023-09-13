@@ -126,9 +126,6 @@ public class TrackedEntityOperationParams {
   /** End date for event for the given program. */
   private Date eventEndDate;
 
-  /** Indicates whether not to include meta data in the response. */
-  private boolean skipMeta;
-
   /** Page number. */
   private Integer page;
 

@@ -115,7 +115,7 @@
     <lettuce.version>6.2.6.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.22.0</flyway-core.version>
+    <flyway-core.version>9.22.1</flyway-core.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -149,7 +149,7 @@
     <jclouds.version>2.5.0</jclouds.version>
 
     <!-- Reporting -->
-    <jasperreports.version>6.20.5</jasperreports.version>
+    <jasperreports.version>6.20.6</jasperreports.version>
     <jfreechart.version>1.5.4</jfreechart.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
@@ -203,7 +203,7 @@
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
-    <micrometer.version>1.11.3</micrometer.version>
+    <micrometer.version>1.11.4</micrometer.version>
 
     <!-- Logging -->
     <log4j.version>2.20.0</log4j.version>
@@ -231,7 +231,7 @@
     <maven-failsafe-plugin.version>3.1.2</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
-    <maven-enforcer-plugin.version>3.4.0</maven-enforcer-plugin.version>
+    <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.4.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.16.0</versions-maven-plugin.version>
