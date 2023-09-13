@@ -90,7 +90,6 @@ class TrackedEntityRequestParamsMapperTest {
 
   @Test
   void testMapping() throws BadRequestException {
-    requestParams.setQuery("query-test");
     requestParams.setOuMode(CAPTURE);
     requestParams.setProgramStatus(ProgramStatus.ACTIVE);
     requestParams.setProgram(UID.of(PROGRAM_UID));
@@ -113,8 +112,6 @@ class TrackedEntityRequestParamsMapperTest {
 
     final TrackedEntityOperationParams params = mapper.map(requestParams, user);
 
-    assertThat(params.getQuery().getFilter(), is("query-test"));
-    assertThat(params.getQuery().getOperator(), is(QueryOperator.EQ));
     assertThat(params.getProgramUid(), is(PROGRAM_UID));
     assertThat(params.getProgramStageUid(), is(PROGRAM_STAGE_UID));
     assertThat(params.getTrackedEntityTypeUid(), is(TRACKED_ENTITY_TYPE_UID));
@@ -185,18 +182,6 @@ class TrackedEntityRequestParamsMapperTest {
     TrackedEntityOperationParams params = mapper.map(requestParams, user);
 
     assertEquals(date, params.getProgramEnrollmentStartDate());
-  }
-
-  @Test
-  void shouldFailWithBadExceptionWhenBadFormattedQueryProvided() {
-    String queryWithBadFormat = "wrong-query:";
-
-    requestParams.setQuery(queryWithBadFormat);
-
-    BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
-
-    assertEquals("Query item or filter is invalid: " + queryWithBadFormat, e.getMessage());
   }
 
   @Test

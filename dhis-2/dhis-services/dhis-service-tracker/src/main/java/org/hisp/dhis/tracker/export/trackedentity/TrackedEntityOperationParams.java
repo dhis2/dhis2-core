@@ -56,9 +56,6 @@ public class TrackedEntityOperationParams {
 
   @Builder.Default private TrackedEntityParams trackedEntityParams = TrackedEntityParams.FALSE;
 
-  /** Query value, will apply to all relevant attributes. */
-  private QueryFilter query;
-
   /** Filters for the response. */
   private String filters;
 

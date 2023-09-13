@@ -27,23 +27,9 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
-import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAccessibleOrgUnits;
-import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
-
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -62,6 +48,20 @@ import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Nonnull;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAccessibleOrgUnits;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
 /**
  * Maps {@link TrackedEntityOperationParams} to {@link TrackedEntityQueryParams} which is used to
@@ -103,8 +103,6 @@ class TrackedEntityOperationParamsMapper {
             organisationUnitService::getOrganisationUnitWithChildren,
             trackerAccessManager);
 
-    QueryFilter queryFilter = operationParams.getQuery();
-
     Map<String, TrackedEntityAttribute> attributes =
         attributeService.getAllTrackedEntityAttributes().stream()
             .collect(Collectors.toMap(TrackedEntityAttribute::getUid, att -> att));
@@ -118,7 +116,6 @@ class TrackedEntityOperationParamsMapper {
     mapOrderParam(params, operationParams.getOrder());
 
     params
-        .setQuery(queryFilter)
         .setProgram(program)
         .setProgramStage(programStage)
         .setProgramStatus(operationParams.getProgramStatus())

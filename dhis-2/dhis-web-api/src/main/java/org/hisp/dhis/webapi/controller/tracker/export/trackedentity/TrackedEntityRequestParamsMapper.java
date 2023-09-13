@@ -27,22 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
-import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryFilter;
-import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
-import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitMode;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -51,6 +38,18 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.T
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
+import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitMode;
 
 /**
  * Maps operation parameters from {@link TrackedEntitiesExportController} stored in {@link
@@ -89,8 +88,6 @@ class TrackedEntityRequestParamsMapper {
 
     orgUnitMode = validateOrgUnitMode(orgUnitUids, orgUnitMode);
 
-    QueryFilter queryFilter = parseQueryFilter(requestParams.getQuery());
-
     Set<UID> trackedEntities =
         validateDeprecatedUidsParameter(
             "trackedEntity",
@@ -101,7 +98,6 @@ class TrackedEntityRequestParamsMapper {
 
     TrackedEntityOperationParamsBuilder builder =
         TrackedEntityOperationParams.builder()
-            .query(queryFilter)
             .programUid(
                 requestParams.getProgram() == null ? null : requestParams.getProgram().getValue())
             .programStageUid(
