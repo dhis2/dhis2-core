@@ -70,6 +70,8 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.SecurityService;
@@ -114,6 +116,8 @@ public class DefaultUserService implements UserService {
 
   private final AclService aclService;
 
+  private final OrganisationUnitService organisationUnitService;
+
   public DefaultUserService(
       UserStore userStore,
       UserGroupService userGroupService,
@@ -124,7 +128,8 @@ public class DefaultUserService implements UserService {
       @Lazy PasswordManager passwordManager,
       @Lazy SessionRegistry sessionRegistry,
       @Lazy SecurityService securityService,
-      AclService aclService) {
+      AclService aclService,
+      @Lazy OrganisationUnitService organisationUnitService) {
     checkNotNull(userStore);
     checkNotNull(userGroupService);
     checkNotNull(userRoleStore);
@@ -133,6 +138,7 @@ public class DefaultUserService implements UserService {
     checkNotNull(sessionRegistry);
     checkNotNull(securityService);
     checkNotNull(aclService);
+    checkNotNull(organisationUnitService);
 
     this.userStore = userStore;
     this.userGroupService = userGroupService;
@@ -144,6 +150,7 @@ public class DefaultUserService implements UserService {
     this.securityService = securityService;
     this.userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
     this.aclService = aclService;
+    this.organisationUnitService = organisationUnitService;
   }
 
   @Override
@@ -618,23 +625,42 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ErrorReport> validateUserCreateOrUpdate(User user, User currentUser) {
+  public List<ErrorReport> validateUserCreateOrUpdateAccess(User user, User currentUser) {
 
     List<ErrorReport> errors = new ArrayList<>();
 
-    if (currentUser == null || user == null) {
+    if (currentUser == null || user == null || currentUser.isSuper()) {
       return errors;
     }
 
     User userToChange = userStore.get(user.getId());
-    if (!currentUser.isSuper() && userToChange != null && userToChange.isSuper()) {
+    if (userToChange != null && userToChange.isSuper()) {
       errors.add(new ErrorReport(User.class, ErrorCode.E3041, currentUser.getUsername()));
     }
 
     validateUserRoles(user, currentUser, errors);
     validateUserGroups(user, currentUser, errors);
 
+    validateOrgUnit(user.getOrganisationUnits(), currentUser, errors);
+    validateOrgUnit(user.getDataViewOrganisationUnits(), currentUser, errors);
+    validateOrgUnit(user.getTeiSearchOrganisationUnits(), currentUser, errors);
+
     return errors;
+  }
+
+  private void validateOrgUnit(
+      Set<OrganisationUnit> organisationUnits, User currentUser, List<ErrorReport> errors) {
+    for (OrganisationUnit orgUnit : organisationUnits) {
+      boolean inUserHierarchy = organisationUnitService.isInUserHierarchy(currentUser, orgUnit);
+      if (!inUserHierarchy) {
+        errors.add(
+            new ErrorReport(
+                OrganisationUnit.class,
+                ErrorCode.E7617,
+                orgUnit.getUid(),
+                currentUser.getUsername()));
+      }
+    }
   }
 
   private void validateUserGroups(User user, User currentUser, List<ErrorReport> errors) {
