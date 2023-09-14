@@ -135,7 +135,7 @@ public class MetadataHandler {
 
       if (params.isShowHierarchy()) {
         Map<Object, List<?>> ancestorMap =
-            activeOrgUnits.stream()
+            organisationUnits.stream()
                 .collect(toMap(OrganisationUnit::getUid, ou -> ou.getAncestorNames(roots, true)));
 
         internalMetaData.put(ORG_UNIT_ANCESTORS.getKey(), ancestorMap);
