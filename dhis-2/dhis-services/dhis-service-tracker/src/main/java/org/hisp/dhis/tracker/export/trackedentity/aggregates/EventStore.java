@@ -31,9 +31,9 @@ import com.google.common.collect.Multimap;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 
 /**
  * @author Luciano Fiandesio
@@ -68,5 +68,5 @@ public interface EventStore {
    */
   Multimap<String, RelationshipItem> getRelationships(List<Long> ids, Context ctx);
 
-  Multimap<String, TrackedEntityComment> getNotes(List<Long> eventIds);
+  Multimap<String, Note> getNotes(List<Long> eventIds);
 }

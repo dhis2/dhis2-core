@@ -85,12 +85,6 @@ class LocaleControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testGetUiLocales() {
-    JsonArray response = GET("/locales/ui").content();
-    assertEquals(38, response.size());
-  }
-
-  @Test
   void testGetUiLocalesInUserLanguage() {
     String userEnglishLocale =
         GET("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID)

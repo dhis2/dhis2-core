@@ -25,55 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment;
+package org.hisp.dhis.note;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
  */
-@JacksonXmlRootElement(localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0)
-public class TrackedEntityComment extends BaseIdentifiableObject {
-  private String commentText;
-
-  private String creator;
-
-  // -------------------------------------------------------------------------
-  // Constructor
-  // -------------------------------------------------------------------------
-
-  public TrackedEntityComment() {}
-
-  public TrackedEntityComment(String commentText, String creator) {
-    this.commentText = commentText;
-    this.creator = creator;
-  }
+@RequiredArgsConstructor
+@Service("org.hisp.dhis.trackedentitycomment.NoteService")
+public class DefaultNoteService implements NoteService {
+  private final NoteStore commentStore;
 
   // -------------------------------------------------------------------------
-  // Getters/Setters
+  // Implementation methods
   // -------------------------------------------------------------------------
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getCommentText() {
-    return commentText;
+  @Override
+  @Transactional
+  public long addTrackedEntityComment(Note comment) {
+    commentStore.save(comment);
+
+    return comment.getId();
   }
 
-  public void setCommentText(String commentText) {
-    this.commentText = commentText;
+  @Override
+  @Transactional
+  public void deleteTrackedEntityComment(Note comment) {
+    commentStore.delete(comment);
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getCreator() {
-    return creator;
+  @Override
+  @Transactional(readOnly = true)
+  public boolean trackedEntityCommentExists(String uid) {
+    return commentStore.exists(uid);
   }
 
-  public void setCreator(String creator) {
-    this.creator = creator;
+  @Override
+  @Transactional
+  public void updateTrackedEntityComment(Note comment) {
+    commentStore.update(comment);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Note getTrackedEntityComment(long id) {
+    return commentStore.get(id);
   }
 }

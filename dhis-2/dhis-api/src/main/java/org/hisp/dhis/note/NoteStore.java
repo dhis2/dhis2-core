@@ -25,53 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment;
+package org.hisp.dhis.note;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
- * @author Chau Thu Tran
+ * @author David Katuscak
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService")
-public class DefaultTrackedEntityCommentService implements TrackedEntityCommentService {
-  private final TrackedEntityCommentStore commentStore;
-
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
-
-  @Override
-  @Transactional
-  public long addTrackedEntityComment(TrackedEntityComment comment) {
-    commentStore.save(comment);
-
-    return comment.getId();
-  }
-
-  @Override
-  @Transactional
-  public void deleteTrackedEntityComment(TrackedEntityComment comment) {
-    commentStore.delete(comment);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean trackedEntityCommentExists(String uid) {
-    return commentStore.exists(uid);
-  }
-
-  @Override
-  @Transactional
-  public void updateTrackedEntityComment(TrackedEntityComment comment) {
-    commentStore.update(comment);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public TrackedEntityComment getTrackedEntityComment(long id) {
-    return commentStore.get(id);
-  }
+public interface NoteStore extends IdentifiableObjectStore<Note> {
+  /**
+   * Checks for the existence of a TrackedEntityComment by UID
+   *
+   * @param uid TrackedEntityComment UID to check for.
+   * @return true/false depending on result.
+   */
+  boolean exists(String uid);
 }
