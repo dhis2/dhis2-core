@@ -302,14 +302,6 @@ class RequestParamsValidatorTest {
     assertEquals("Query item or filter is invalid: " + TEA_1_UID + ":lt:", exception.getMessage());
   }
 
-  @Test
-  void shouldCreateQueryFiltersWhenQueryHasOperatorAndValueWithDelimiter()
-      throws BadRequestException {
-    assertEquals(
-        new QueryFilter(QueryOperator.LIKE, "project:x"),
-        OperationParamUtils.parseQueryFilter("like:project/:x"));
-  }
-
   private TrackedEntityAttribute trackedEntityAttribute(String uid) {
     TrackedEntityAttribute tea = new TrackedEntityAttribute();
     tea.setUid(uid);

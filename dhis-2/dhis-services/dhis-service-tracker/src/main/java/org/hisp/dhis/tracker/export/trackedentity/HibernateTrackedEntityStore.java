@@ -32,7 +32,6 @@ import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.getTokens;
 import static org.hisp.dhis.util.DateUtils.addDays;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
@@ -52,13 +51,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -271,11 +268,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * @return SQL string
    */
   private String getQuery(TrackedEntityQueryParams params) {
-    if (params.isOrQuery() && params.getFilters().isEmpty()) {
-      throw new IllegalArgumentException(
-          "A query parameter is used in the request but there aren't filterable attributes");
-    }
-
     StringBuilder stringBuilder = new StringBuilder(getQuerySelect(params));
     return stringBuilder
         .append("FROM ")
@@ -370,7 +362,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(" FROM trackedentity " + MAIN_QUERY_ALIAS + " ")
 
             // INNER JOIN on constraints
-            .append(getFromSubQueryJoinAttributeConditions(params))
+            .append(joinAttributeValue(params))
             .append(getFromSubQueryJoinProgramOwnerConditions(params))
             .append(getFromSubQueryJoinOrgUnitConditions(params))
             .append(getFromSubQueryJoinEnrollmentConditions(params))
@@ -532,73 +524,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /**
-   * Generates SQL for INNER JOINing attribute values. One INNER JOIN for each attribute to search
-   * for.
-   *
-   * @return a series of 1 or more SQL INNER JOINs, or empty string if no query or attribute filters
-   *     exists.
-   */
-  private String getFromSubQueryJoinAttributeConditions(TrackedEntityQueryParams params) {
-    if (!params.isOrQuery()) {
-      return joinAttributeValueWithoutQueryParameter(params);
-    } else {
-      return joinAttributeValueWithQueryParameter(params);
-    }
-  }
-
-  /**
-   * Generates a single INNER JOIN for searching for an attribute by query strings. Searches are
-   * done using lower() expression, since attribute values are case-insensitive. The query search is
-   * extremely slow compared to alternatives. A query string (Can be multiple) has to match at least
-   * 1 attribute value for each attribute we have access to. We use Regex to search, allowing both
-   * exact match and with wildcards (EQ or LIKE).
-   */
-  private String joinAttributeValueWithQueryParameter(TrackedEntityQueryParams params) {
-    StringBuilder attributes = new StringBuilder();
-
-    final String regexp = statementBuilder.getRegexpMatch();
-    final String wordStart = statementBuilder.getRegexpWordStart();
-    final String wordEnd = statementBuilder.getRegexpWordEnd();
-    final String anyChar = "\\.*?";
-    final String start = params.getQuery().isOperator(QueryOperator.LIKE) ? anyChar : wordStart;
-    final String end = params.getQuery().isOperator(QueryOperator.LIKE) ? anyChar : wordEnd;
-    SqlHelper orHlp = new SqlHelper(true);
-
-    List<Long> itemIds =
-        params.getFilters().stream()
-            .map(QueryItem::getItem)
-            .map(DimensionalItemObject::getId)
-            .collect(Collectors.toList());
-
-    attributes
-        .append("INNER JOIN trackedentityattributevalue Q ")
-        .append("ON Q.trackedentityid = TE.trackedentityid ")
-        .append("AND Q.trackedentityattributeid IN (")
-        .append(getCommaDelimitedString(itemIds))
-        .append(") AND (");
-
-    for (String queryToken : getTokens(params.getQuery().getFilter())) {
-      final String query = statementBuilder.encode(queryToken, false);
-
-      attributes
-          .append(orHlp.or())
-          .append("lower(Q.value) ")
-          .append(regexp)
-          .append(" '")
-          .append(start)
-          .append(StringUtils.lowerCase(query))
-          .append(end)
-          .append(SINGLE_QUOTE);
-    }
-
-    return attributes.append(")").toString();
-  }
-
-  /**
    * Generates a single INNER JOIN for each attribute we are searching on. We can search by a range
    * of operators. All searching is using lower() since attribute values are case-insensitive.
    */
-  private String joinAttributeValueWithoutQueryParameter(TrackedEntityQueryParams params) {
+  private String joinAttributeValue(TrackedEntityQueryParams params) {
     StringBuilder attributes = new StringBuilder();
 
     List<QueryItem> filterItems =

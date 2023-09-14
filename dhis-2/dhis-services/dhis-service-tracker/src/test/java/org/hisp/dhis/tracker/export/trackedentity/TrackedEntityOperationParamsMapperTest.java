@@ -188,7 +188,6 @@ class TrackedEntityOperationParamsMapperTest {
             .user(user)
             .assignedUserQueryParam(
                 new AssignedUserQueryParam(AssignedUserSelectionMode.CURRENT, user, null))
-            .query(new QueryFilter(QueryOperator.EQ, "query-test"))
             .orgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)
             .programStatus(ProgramStatus.ACTIVE)
             .followUp(true)
@@ -210,8 +209,6 @@ class TrackedEntityOperationParamsMapperTest {
 
     final TrackedEntityQueryParams params = mapper.map(operationParams);
 
-    assertThat(params.getQuery().getFilter(), is("query-test"));
-    assertThat(params.getQuery().getOperator(), is(QueryOperator.EQ));
     assertThat(params.getTrackedEntityType(), is(trackedEntityType));
     assertThat(params.getPageSize(), is(50));
     assertThat(params.getPage(), is(1));

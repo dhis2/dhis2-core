@@ -42,7 +42,6 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -61,9 +60,6 @@ public class TrackedEntityQueryParams {
   public static final int DEFAULT_PAGE = 1;
 
   public static final int DEFAULT_PAGE_SIZE = 50;
-
-  /** Query value, will apply to all relevant attributes. */
-  private QueryFilter query;
 
   /** Filters for the response. */
   private List<QueryItem> filters = new ArrayList<>();
@@ -216,21 +212,6 @@ public class TrackedEntityQueryParams {
     }
 
     return this;
-  }
-
-  /**
-   * Indicates whether this is a logical OR query, meaning that a query string is specified and
-   * instances which matches this query on one or more attributes should be included in the
-   * response. The opposite is an item-specific query, where the instances which matches the
-   * specific attributes should be included.
-   */
-  public boolean isOrQuery() {
-    return hasQuery();
-  }
-
-  /** Indicates whether these parameters specify a query. */
-  public boolean hasQuery() {
-    return query != null && query.isFilter();
   }
 
   /** Returns a list of attributes and filters combined. */
@@ -394,15 +375,6 @@ public class TrackedEntityQueryParams {
   /** Returns the offset based on the page number and page size. */
   public int getOffset() {
     return (getPageWithDefault() - 1) * getPageSizeWithDefault();
-  }
-
-  public QueryFilter getQuery() {
-    return query;
-  }
-
-  public TrackedEntityQueryParams setQuery(QueryFilter query) {
-    this.query = query;
-    return this;
   }
 
   public List<QueryItem> getFilters() {

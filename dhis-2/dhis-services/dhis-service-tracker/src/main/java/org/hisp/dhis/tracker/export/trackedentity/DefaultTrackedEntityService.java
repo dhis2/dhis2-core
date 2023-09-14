@@ -345,7 +345,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       TrackedEntityQueryParams params,
       boolean skipAccessValidation,
       boolean skipSearchScopeValidation) {
-    if (params.isOrQuery() && !params.hasProgram()) {
+    if (!params.hasProgram()) {
       Collection<TrackedEntityAttribute> attributes =
           trackedEntityAttributeService.getTrackedEntityAttributesDisplayInListNoProgram();
       params.addFiltersIfNotExist(QueryItem.getQueryItems(attributes));
@@ -446,10 +446,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       violation = "Event start and end date must be specified when event status is specified";
     }
 
-    if (params.isOrQuery() && params.hasFilters()) {
-      violation = "Query cannot be specified together with filters";
-    }
-
     if (!params.getDuplicateFilters().isEmpty()) {
       violation = "Filters cannot be specified more than once: " + params.getDuplicateFilters();
     }
@@ -507,10 +503,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     if (!isLocalSearch(params, user)) {
       int maxTeiLimit = 0; // no limit
-
-      if (params.hasQuery()) {
-        throw new IllegalQueryException("Query cannot be used during global search");
-      }
 
       if (params.hasProgram() && params.hasTrackedEntityType()) {
         throw new IllegalQueryException(

@@ -43,7 +43,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -103,8 +102,6 @@ class TrackedEntityOperationParamsMapper {
             organisationUnitService::getOrganisationUnitWithChildren,
             trackerAccessManager);
 
-    QueryFilter queryFilter = operationParams.getQuery();
-
     Map<String, TrackedEntityAttribute> attributes =
         attributeService.getAllTrackedEntityAttributes().stream()
             .collect(Collectors.toMap(TrackedEntityAttribute::getUid, att -> att));
@@ -118,7 +115,6 @@ class TrackedEntityOperationParamsMapper {
     mapOrderParam(params, operationParams.getOrder());
 
     params
-        .setQuery(queryFilter)
         .setProgram(program)
         .setProgramStage(programStage)
         .setProgramStatus(operationParams.getProgramStatus())

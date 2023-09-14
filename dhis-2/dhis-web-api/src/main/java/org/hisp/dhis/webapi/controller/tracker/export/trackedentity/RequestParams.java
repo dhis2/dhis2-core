@@ -61,9 +61,6 @@ import org.hisp.dhis.webapi.controller.tracker.view.User;
 class RequestParams extends PagingAndSortingCriteriaAdapter {
   static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!enrollments,!events,!programOwners";
 
-  /** Query filter for attributes */
-  private String query;
-
   /** Comma separated list of attribute filters */
   private String filter;
 
