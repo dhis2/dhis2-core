@@ -188,7 +188,6 @@ class TrackedEntityOperationParamsMapperTest {
             .user(user)
             .assignedUserQueryParam(
                 new AssignedUserQueryParam(AssignedUserSelectionMode.CURRENT, user, null))
-            .query(new QueryFilter(QueryOperator.EQ, "query-test"))
             .orgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)
             .programStatus(ProgramStatus.ACTIVE)
             .followUp(true)
@@ -206,13 +205,10 @@ class TrackedEntityOperationParamsMapperTest {
             .totalPages(false)
             .skipPaging(false)
             .includeDeleted(true)
-            .includeAllAttributes(true)
             .build();
 
     final TrackedEntityQueryParams params = mapper.map(operationParams);
 
-    assertThat(params.getQuery().getFilter(), is("query-test"));
-    assertThat(params.getQuery().getOperator(), is(QueryOperator.EQ));
     assertThat(params.getTrackedEntityType(), is(trackedEntityType));
     assertThat(params.getPageSize(), is(50));
     assertThat(params.getPage(), is(1));
@@ -233,7 +229,6 @@ class TrackedEntityOperationParamsMapperTest {
     assertThat(
         params.getAssignedUserQueryParam().getMode(), is(AssignedUserSelectionMode.PROVIDED));
     assertThat(params.isIncludeDeleted(), is(true));
-    assertThat(params.isIncludeAllAttributes(), is(true));
   }
 
   @Test
@@ -400,54 +395,6 @@ class TrackedEntityOperationParamsMapperTest {
     assertThat(
         e.getMessage(),
         anyOf(containsString(TEA_2_UID + ":GT:30"), containsString(TEA_2_UID + ":LT:40")));
-  }
-
-  @Test
-  void testAttributes() throws BadRequestException, ForbiddenException {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .user(user)
-            .attributes(TEA_1_UID + "," + TEA_2_UID)
-            .build();
-
-    TrackedEntityQueryParams params = mapper.map(operationParams);
-
-    List<QueryItem> items = params.getAttributes();
-    assertNotNull(items);
-    // mapping to UIDs as the error message by just relying on QueryItem
-    // equals() is not helpful
-    assertContainsOnly(
-        List.of(TEA_1_UID, TEA_2_UID),
-        items.stream().map(i -> i.getItem().getUid()).collect(Collectors.toList()));
-  }
-
-  @Test
-  void testMappingAttributeWhenAttributeDoesNotExist() {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .user(user)
-            .attributes(TEA_1_UID + "," + "unknown")
-            .build();
-
-    BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
-    assertEquals("Attribute does not exist: unknown", e.getMessage());
-  }
-
-  @Test
-  void testMappingFailsOnMissingAttribute() {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .user(user)
-            .attributes(TEA_1_UID + "," + "unknown")
-            .build();
-
-    BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
-    assertEquals("Attribute does not exist: unknown", e.getMessage());
   }
 
   @Test

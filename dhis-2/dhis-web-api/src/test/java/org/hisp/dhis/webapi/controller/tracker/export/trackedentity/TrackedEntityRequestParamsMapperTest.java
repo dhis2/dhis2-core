@@ -46,7 +46,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -90,7 +89,6 @@ class TrackedEntityRequestParamsMapperTest {
 
   @Test
   void testMapping() throws BadRequestException {
-    requestParams.setQuery("query-test");
     requestParams.setOuMode(CAPTURE);
     requestParams.setProgramStatus(ProgramStatus.ACTIVE);
     requestParams.setProgram(UID.of(PROGRAM_UID));
@@ -110,12 +108,9 @@ class TrackedEntityRequestParamsMapperTest {
     requestParams.setTotalPages(false);
     requestParams.setSkipPaging(false);
     requestParams.setIncludeDeleted(true);
-    requestParams.setIncludeAllAttributes(true);
 
     final TrackedEntityOperationParams params = mapper.map(requestParams, user);
 
-    assertThat(params.getQuery().getFilter(), is("query-test"));
-    assertThat(params.getQuery().getOperator(), is(QueryOperator.EQ));
     assertThat(params.getProgramUid(), is(PROGRAM_UID));
     assertThat(params.getProgramStageUid(), is(PROGRAM_STAGE_UID));
     assertThat(params.getTrackedEntityTypeUid(), is(TRACKED_ENTITY_TYPE_UID));
@@ -135,7 +130,6 @@ class TrackedEntityRequestParamsMapperTest {
     assertThat(
         params.getAssignedUserQueryParam().getMode(), is(AssignedUserSelectionMode.PROVIDED));
     assertThat(params.isIncludeDeleted(), is(true));
-    assertThat(params.isIncludeAllAttributes(), is(true));
   }
 
   @Test
@@ -187,18 +181,6 @@ class TrackedEntityRequestParamsMapperTest {
     TrackedEntityOperationParams params = mapper.map(requestParams, user);
 
     assertEquals(date, params.getProgramEnrollmentStartDate());
-  }
-
-  @Test
-  void shouldFailWithBadExceptionWhenBadFormattedQueryProvided() {
-    String queryWithBadFormat = "wrong-query:";
-
-    requestParams.setQuery(queryWithBadFormat);
-
-    BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
-
-    assertEquals("Query item or filter is invalid: " + queryWithBadFormat, e.getMessage());
   }
 
   @Test

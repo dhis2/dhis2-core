@@ -38,7 +38,6 @@ import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
@@ -55,12 +54,6 @@ public class TrackedEntityOperationParams {
   public static final int DEFAULT_PAGE_SIZE = 50;
 
   @Builder.Default private TrackedEntityParams trackedEntityParams = TrackedEntityParams.FALSE;
-
-  /** Query value, will apply to all relevant attributes. */
-  private QueryFilter query;
-
-  /** Attributes to be included in the response. Can be used to filter response. */
-  private String attributes;
 
   /** Filters for the response. */
   private String filters;
@@ -143,9 +136,6 @@ public class TrackedEntityOperationParams {
 
   /** Indicates whether to include soft-deleted elements. Default to false */
   @Builder.Default private boolean includeDeleted = false;
-
-  /** Indicates whether to include all te attributes */
-  private boolean includeAllAttributes;
 
   /**
    * Indicates whether the search is internal triggered by the system. The system should trigger

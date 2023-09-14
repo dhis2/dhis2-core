@@ -99,7 +99,7 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.31</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.32</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.2</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.2</com.google.zxing.javase.version>
 
@@ -129,7 +129,7 @@
     <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
 
     <!-- Struts -->
-    <struts.version>2.5.31</struts.version>
+    <struts.version>2.5.32</struts.version>
     <velocity.version>1.7</velocity.version>
     <velocity-tools.version>2.0</velocity-tools.version>
 
