@@ -105,13 +105,13 @@ public class SchemaIdResponseMapper {
     if (params.hasProgramStage()) {
       map.put(
           params.getProgramStage().getUid(),
-          params.getProgramStage().getPropertyValue(params.getOutputIdScheme()));
+          params.getProgramStage().getDisplayPropertyValue(params.getOutputIdScheme()));
     }
 
     if (params.hasProgram()) {
       map.put(
           params.getProgram().getUid(),
-          params.getProgram().getPropertyValue(params.getOutputIdScheme()));
+          params.getProgram().getDisplayPropertyValue(params.getOutputIdScheme()));
     }
 
     if (params instanceof EventQueryParams
@@ -119,7 +119,7 @@ public class SchemaIdResponseMapper {
       Set<Option> options = ((EventQueryParams) params).getItemOptions();
 
       for (Option option : options) {
-        map.put(option.getCode(), option.getPropertyValue(params.getOutputIdScheme()));
+        map.put(option.getCode(), option.getDisplayPropertyValue(params.getOutputIdScheme()));
       }
     }
   }
