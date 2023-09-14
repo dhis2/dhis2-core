@@ -599,10 +599,10 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   /**
-   * Returns the value of the property referred to by the given IdScheme.
+   * Returns the value of the property referred to by the given {@link IdScheme}.
    *
-   * @param idScheme the IdScheme.
-   * @return the value of the property referred to by the IdScheme.
+   * @param idScheme the {@link IdScheme}.
+   * @return the value of the property referred to by the {@link IdScheme}.
    */
   @Override
   public String getPropertyValue(IdScheme idScheme) {
@@ -623,6 +623,22 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
     }
 
     return null;
+  }
+
+  /**
+   * Returns the value of the property referred to by the given {@link IdScheme}. If this happens to
+   * refer to NAME, it returns the translatable/display version.
+   *
+   * @param idScheme the {@link IdScheme}.
+   * @return the value of the property referred to by the {@link IdScheme}.
+   */
+  @Override
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getDisplayName();
+    } else {
+      return getPropertyValue(idScheme);
+    }
   }
 
   /**
