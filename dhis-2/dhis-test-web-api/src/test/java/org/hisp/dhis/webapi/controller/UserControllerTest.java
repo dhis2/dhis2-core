@@ -61,6 +61,8 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
@@ -87,6 +89,8 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   @Autowired private MessageSender messageSender;
 
   @Autowired private SecurityService securityService;
+
+  @Autowired private SystemSettingManager systemSettingManager;
 
   private User peter;
 
@@ -154,6 +158,45 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     User user = userService.getUser(peter.getUid());
     assertEquals("mapping value", user.getOpenId());
     assertEquals("mapping value", user.getUserCredentials().getOpenId());
+  }
+
+  @Test
+  void updateUserHasAccessToUpdateGroups() {
+    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+
+    UserRole roleB = createUserRole("ROLE_B", "F_USER_ADD", "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS");
+    userService.addUserRole(roleB);
+
+    UserGroup userGroupA = createUserGroup('A', emptySet());
+    manager.save(userGroupA);
+
+    User user = createUserWithAuth("someone", "NONE");
+    user.getUserRoles().add(roleB);
+    userService.updateUser(user);
+
+    switchContextToUser(user);
+
+    assertStatus(
+        HttpStatus.OK,
+        PUT(
+            "/users/" + user.getUid(),
+            " {"
+                + "'name': 'test',"
+                + "'username':'someone',"
+                + "'userRoles': ["
+                + "{"
+                + "'id':'"
+                + roleB.getUid()
+                + "'"
+                + "}"
+                + "],"
+                + "'userGroups': ["
+                + "{"
+                + "'id':'"
+                + userGroupA.getUid()
+                + "'"
+                + "}]"
+                + "}"));
   }
 
   @Test
