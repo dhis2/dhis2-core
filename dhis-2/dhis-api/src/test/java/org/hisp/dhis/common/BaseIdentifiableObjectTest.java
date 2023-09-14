@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.IdScheme.CODE;
+import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Program;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -52,5 +55,27 @@ class BaseIdentifiableObjectTest {
     assertEquals("CodeA", deA.getPropertyValue(idSchemeCode));
     assertEquals("NameA", deA.getPropertyValue(idSchemeName));
     assertNull(deB.getPropertyValue(idSchemeCode));
+  }
+
+  @Test
+  void testGetDisplayPropertyValueName() {
+    IdScheme idSchemeName = NAME;
+    Program p = new Program("Any program");
+    p.setCode("AnyCode");
+
+    String value = p.getDisplayPropertyValue(idSchemeName);
+
+    assertEquals("Any program", value);
+  }
+
+  @Test
+  void testGetDisplayPropertyValueCode() {
+    IdScheme idSchemeCode = CODE;
+    Program p = new Program("Any program");
+    p.setCode("AnyCode");
+
+    String value = p.getDisplayPropertyValue(idSchemeCode);
+
+    assertEquals("AnyCode", value);
   }
 }
