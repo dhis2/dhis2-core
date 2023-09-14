@@ -370,8 +370,33 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       boolean isGroupByClause,
       boolean isAggregated) {
     for (QueryItem queryItem : params.getItems()) {
-      columns.add(getColumnAndAlias(queryItem, params, isGroupByClause, isAggregated).asSql());
+      ColumnAndAlias columnAndAlias =
+          getColumnAndAlias(queryItem, params, isGroupByClause, isAggregated);
+
+      columns.add(columnAndAlias.asSql());
+
+      // asked for row context if allowed and needed
+      if (rowContextAllowedAndNeeded(params, queryItem)) {
+        String column = " exists (" + columnAndAlias.column + ")";
+        String alias = columnAndAlias.alias + ".exists";
+        columns.add((new ColumnAndAlias(column, alias)).asSql());
+      }
     }
+  }
+
+  /**
+   * Eligibility of enrollment request for grid row context
+   *
+   * @param params
+   * @param queryItem
+   * @return true when eligible for row context
+   */
+  private boolean rowContextAllowedAndNeeded(EventQueryParams params, QueryItem queryItem) {
+    return params.getEndpointItem() == ENROLLMENT
+        && params.isRowContext()
+        && queryItem.hasProgramStage()
+        && queryItem.getProgramStage().getRepeatable()
+        && queryItem.hasRepeatableStageParams();
   }
 
   private ColumnAndAlias getColumnAndAlias(

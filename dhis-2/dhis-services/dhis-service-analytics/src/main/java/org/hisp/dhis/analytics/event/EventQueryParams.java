@@ -216,6 +216,9 @@ public class EventQueryParams extends DataQueryParams {
    */
   protected IdScheme dataIdScheme;
 
+  /** flag to enable row context in grid response */
+  private boolean rowContext = false;
+
   /**
    * A map that holds time fields({@link TimeField}) and their respective range of dates({@link
    * DateRange}).
@@ -296,6 +299,7 @@ public class EventQueryParams extends DataQueryParams {
     params.enhancedCondition = this.enhancedCondition;
     params.endpointItem = this.endpointItem;
     params.endpointAction = this.endpointAction;
+    params.rowContext = this.rowContext;
     return params;
   }
 
@@ -981,6 +985,10 @@ public class EventQueryParams extends DataQueryParams {
     return dataIdScheme;
   }
 
+  public boolean isRowContext() {
+    return rowContext;
+  }
+
   // -------------------------------------------------------------------------
   // Builder of immutable instances
   // -------------------------------------------------------------------------
@@ -1324,6 +1332,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withEndpointAction(EndpointAction endpointAction) {
       this.params.endpointAction = endpointAction;
+      return this;
+    }
+
+    public Builder withRowContext(boolean rowContext) {
+      this.params.rowContext = rowContext;
       return this;
     }
   }
