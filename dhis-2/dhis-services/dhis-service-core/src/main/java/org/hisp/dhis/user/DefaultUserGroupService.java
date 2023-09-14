@@ -139,8 +139,7 @@ public class DefaultUserGroupService implements UserGroupService {
     }
 
     boolean canUpdate = aclService.canUpdate(currentUser, userGroup);
-    boolean canAddMember =
-        currentUser.isAuthorized(AUTH_ADD_MEMBERS_TO_READ_ONLY_USER_GROUPS);
+    boolean canAddMember = currentUser.isAuthorized(AUTH_ADD_MEMBERS_TO_READ_ONLY_USER_GROUPS);
 
     return canUpdate || canAddMember;
   }

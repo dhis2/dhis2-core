@@ -61,6 +61,8 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
@@ -87,6 +89,8 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   @Autowired private MessageSender messageSender;
 
   @Autowired private SecurityService securityService;
+
+  @Autowired private SystemSettingManager systemSettingManager;
 
   private User peter;
 
