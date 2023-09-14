@@ -63,7 +63,7 @@ public class SchemaIdResponseMapper {
    * @return a map of UID and mapping value.
    */
   public Map<String, String> getSchemeIdResponseMap(DataQueryParams params) {
-    final Map<String, String> responseMap =
+    Map<String, String> responseMap =
         getDimensionItemIdSchemeMap(params.getAllDimensionItems(), params.getOutputIdScheme());
 
     if (params.isGeneralOutputIdSchemeSet()) {
@@ -105,21 +105,21 @@ public class SchemaIdResponseMapper {
     if (params.hasProgramStage()) {
       map.put(
           params.getProgramStage().getUid(),
-          params.getProgramStage().getPropertyValue(params.getOutputIdScheme()));
+          params.getProgramStage().getDisplayPropertyValue(params.getOutputIdScheme()));
     }
 
     if (params.hasProgram()) {
       map.put(
           params.getProgram().getUid(),
-          params.getProgram().getPropertyValue(params.getOutputIdScheme()));
+          params.getProgram().getDisplayPropertyValue(params.getOutputIdScheme()));
     }
 
     if (params instanceof EventQueryParams
         && CollectionUtils.isNotEmpty(((EventQueryParams) params).getItemOptions())) {
       Set<Option> options = ((EventQueryParams) params).getItemOptions();
 
-      for (final Option option : options) {
-        map.put(option.getCode(), option.getPropertyValue(params.getOutputIdScheme()));
+      for (Option option : options) {
+        map.put(option.getCode(), option.getDisplayPropertyValue(params.getOutputIdScheme()));
       }
     }
   }

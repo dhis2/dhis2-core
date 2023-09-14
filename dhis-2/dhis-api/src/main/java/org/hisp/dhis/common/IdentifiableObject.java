@@ -121,4 +121,7 @@ public interface IdentifiableObject
 
   @JsonIgnore
   String getPropertyValue(IdScheme idScheme);
+
+  @JsonIgnore
+  String getDisplayPropertyValue(IdScheme idScheme);
 }
