@@ -80,11 +80,11 @@ public abstract class ResourceTable<T> {
   }
 
   public final String getDropTableStatement() {
-    return "drop table " + getTableName() + ";";
+    return "drop table if exists " + getTableName() + " cascade;";
   }
 
   public final String getDropTempTableStatement() {
-    return "drop table " + getTempTableName() + ";";
+    return "drop table if exists " + getTempTableName() + ";";
   }
 
   public final String getRenameTempTableStatement() {
