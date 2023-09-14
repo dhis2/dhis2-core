@@ -288,12 +288,10 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
     validateRowContext(response, 1, 3, "ND");
 
     validateRow(
-        response,
-        0,
-        List.of("VFF7f43dJv4", "Sierra Leone / Kambia / Mambolo / Tombo Wallah CHP", "19.0", ""));
+        response, 0, List.of("Ioxjc2KBjWd", "Sierra Leone / Bo / Kakua / Fengehun MCHP", "", ""));
     validateRow(
         response,
         1,
-        List.of("fdsRQbuuAuh", "Sierra Leone / Port Loko / Masimera / Nonkoba CHP", "10.0", ""));
+        List.of("JKhjdiwoQZu", "Sierra Leone / Koinadugu / Diang / Foria CHP", "15.0", ""));
   }
 }
