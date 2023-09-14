@@ -117,8 +117,8 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + pmSelect,
           // delete related events comments
-          "delete from eventnotes where eventid in " + eventSelect,
-          "delete from note where noteid not in (select noteid from eventnotes union all select noteid from enrollmentnotes)",
+          "delete from event_notes where eventid in " + eventSelect,
+          "delete from note where noteid not in (select noteid from event_notes union all select noteid from enrollment_notes)",
           // delete other objects related to events
           "delete from relationshipitem where eventid in " + eventSelect,
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
@@ -196,9 +196,9 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + pmSelect,
           // delete comments linked to both enrollments and events
-          "delete from eventnotes where eventid in " + eventSelect,
-          "delete from enrollmentnotes where enrollmentid in " + enrollmentSelect,
-          "delete from note where noteid not in (select noteid from eventnotes union all select noteid from enrollmentnotes)",
+          "delete from event_notes where eventid in " + eventSelect,
+          "delete from enrollment_notes where enrollmentid in " + enrollmentSelect,
+          "delete from note where noteid not in (select noteid from event_notes union all select noteid from enrollment_notes)",
           // delete other entries linked to events
           "delete from relationshipitem where eventid in " + eventSelect,
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
@@ -283,9 +283,9 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + eventPmSelect,
           // delete comments related to any obsolete enrollments or events
-          "delete from eventnotes where eventid in " + eventSelect,
-          "delete from enrollmentnotes where enrollmentid in " + enrollmentSelect,
-          "delete from note where noteid not in (select noteid from eventnotes union all select noteid from enrollmentnotes)",
+          "delete from event_notes where eventid in " + eventSelect,
+          "delete from enrollment_notes where enrollmentid in " + enrollmentSelect,
+          "delete from note where noteid not in (select noteid from event_notes union all select noteid from enrollment_notes)",
           // delete other objects related to obsolete events
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
           // delete other objects related to obsolete enrollments

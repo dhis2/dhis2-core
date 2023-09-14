@@ -62,7 +62,7 @@ public class DefaultEventStore extends AbstractStore implements EventStore {
       "select ev.uid as key, n.uid, n.notetext, "
           + "n.creator, n.created "
           + "from note n "
-          + "join eventnotes evn "
+          + "join event_notes evn "
           + "on n.noteid = evn.noteid "
           + "join event ev on evn.eventid = ev.eventid "
           + "where evn.eventid in (:ids)";

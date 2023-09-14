@@ -69,7 +69,7 @@
       <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
     </set>
 
-    <list name="notes" table="enrollmentnotes" cascade="all-delete-orphan">
+    <list name="notes" table="enrollment_notes" cascade="all-delete-orphan">
       <key column="enrollmentid" foreign-key="fk_programinstancecomments_programinstanceid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.note.Note" column="noteid"

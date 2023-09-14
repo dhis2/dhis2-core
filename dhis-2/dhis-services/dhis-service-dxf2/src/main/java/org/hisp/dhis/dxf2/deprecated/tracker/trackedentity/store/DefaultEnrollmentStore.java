@@ -56,7 +56,7 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
   private static final String GET_NOTES_SQL =
       "select pi.uid as key, tec.uid, tec.notetext, "
           + "tec.creator, tec.created "
-          + "from note tec join enrollmentnotes enn "
+          + "from note tec join enrollment_notes enn "
           + "on tec.noteid = enn.noteid "
           + "join enrollment pi on enn.enrollmentid = pi.enrollmentid "
           + "where enn.enrollmentid in (:ids)";

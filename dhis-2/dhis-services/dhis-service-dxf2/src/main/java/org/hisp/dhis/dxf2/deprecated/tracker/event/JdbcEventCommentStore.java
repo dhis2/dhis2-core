@@ -69,7 +69,7 @@ public class JdbcEventCommentStore implements EventCommentStore {
           ")  values ( nextval('hibernate_sequence'), ?, ?, ?, ?, ?)";
 
   private static final String INSERT_EVENT_COMMENT_LINK =
-      "INSERT INTO eventnotes (eventid, " + "sort_order, noteid) values (?, ?, ?)";
+      "INSERT INTO event_notes (eventid, " + "sort_order, noteid) values (?, ?, ?)";
 
   /**
    * Save all the comments ({@see TrackedEntityComment} for the list of {@see Event}
@@ -115,7 +115,7 @@ public class JdbcEventCommentStore implements EventCommentStore {
       // the
       // notes, to avoid conflicts
       return jdbcTemplate.queryForObject(
-          "select coalesce(max(sort_order) + 1, 1) from eventnotes where eventid = " + psi.getId(),
+          "select coalesce(max(sort_order) + 1, 1) from event_notes where eventid = " + psi.getId(),
           Integer.class);
     }
     return 1;
