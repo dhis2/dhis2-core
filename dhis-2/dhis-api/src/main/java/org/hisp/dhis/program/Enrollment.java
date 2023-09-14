@@ -46,10 +46,10 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.message.MessageConversation;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.util.ObjectUtils;
 import org.locationtech.jts.geom.Geometry;
 
@@ -89,7 +89,7 @@ public class Enrollment extends SoftDeletableObject {
 
   private Boolean followup = false;
 
-  private List<TrackedEntityComment> comments = new ArrayList<>();
+  private List<Note> notes = new ArrayList<>();
 
   private String completedBy;
 
@@ -333,12 +333,12 @@ public class Enrollment extends SoftDeletableObject {
   @JsonProperty("trackedEntityComments")
   @JacksonXmlElementWrapper(localName = "trackedEntityComments", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0)
-  public List<TrackedEntityComment> getComments() {
-    return comments;
+  public List<Note> getNotes() {
+    return notes;
   }
 
-  public void setComments(List<TrackedEntityComment> comments) {
-    this.comments = comments;
+  public void setNotes(List<Note> notes) {
+    this.notes = notes;
   }
 
   @JsonProperty
@@ -430,7 +430,7 @@ public class Enrollment extends SoftDeletableObject {
 
   private static void setShallowCopyValues(
       Enrollment copy, Enrollment original, Program programCopy) {
-    copy.setComments(ObjectUtils.copyOf(original.getComments()));
+    copy.setNotes(ObjectUtils.copyOf(original.getNotes()));
     copy.setCompletedBy(original.getCompletedBy());
     copy.setCreatedAtClient(original.getCreatedAtClient());
     copy.setCreatedByUserInfo(original.getCreatedByUserInfo());

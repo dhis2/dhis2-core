@@ -87,7 +87,7 @@ interface RelationshipItemMapper
   @Mapping(target = "createdBy", source = "createdByUserInfo")
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
   @Mapping(target = "attributes", source = "trackedEntity.trackedEntityAttributeValues")
-  @Mapping(target = "notes", source = "comments")
+  @Mapping(target = "notes", source = "notes")
   RelationshipItem.Enrollment from(Enrollment enrollment);
 
   default EnrollmentStatus from(ProgramStatus programStatus) {
@@ -112,7 +112,7 @@ interface RelationshipItemMapper
   @Mapping(target = "createdBy", source = "createdByUserInfo")
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
   @Mapping(target = "dataValues", source = "eventDataValues")
-  @Mapping(target = "notes", source = "comments")
+  @Mapping(target = "notes", source = "notes")
   RelationshipItem.Event from(Event event);
 
   @Mapping(target = "displayName", source = "name")

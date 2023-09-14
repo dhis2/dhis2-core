@@ -76,6 +76,7 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -91,7 +92,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -116,24 +116,24 @@ class JdbcEventStore implements EventStore {
       " left join (select ri.eventid as ri_ev_id, json_agg(ri.relationshipid) as ev_rl FROM relationshipitem ri"
           + " GROUP by ri_ev_id)  as fgh on fgh.ri_ev_id=event.ev_id ";
 
-  private static final String EVENT_COMMENT_QUERY =
-      "select evc.eventid as evc_id,"
-          + " evnote.trackedentitycommentid as evnote_id,"
-          + " evnote.commenttext            as evnote_value,"
-          + " evnote.created                as evnote_storeddate,"
-          + " evnote.creator                as evnote_storedby,"
-          + " evnote.uid                    as evnote_uid,"
-          + " evnote.lastupdated            as evnote_lastupdated,"
-          + " userinfo.userinfoid            as evnote_user_id,"
-          + " userinfo.code                  as evnote_user_code,"
-          + " userinfo.uid                   as evnote_user_uid,"
-          + " userinfo.username              as evnote_user_username,"
-          + " userinfo.firstname             as evnote_user_firstname,"
-          + " userinfo.surname               as evnote_user_surname"
-          + " from eventcomments evc"
-          + " inner join trackedentitycomment evnote"
-          + " on evc.trackedentitycommentid = evnote.trackedentitycommentid"
-          + " left join userinfo on evnote.lastupdatedby = userinfo.userinfoid ";
+  private static final String EVENT_NOTE_QUERY =
+      "select evn.eventid as evn_id,"
+          + " n.noteid as note_id,"
+          + " n.notetext as note_text,"
+          + " n.created as note_created,"
+          + " n.creator as note_creator,"
+          + " n.uid as note_uid,"
+          + " n.lastupdated as note_lastupdated,"
+          + " userinfo.userinfoid as note_user_id,"
+          + " userinfo.code as note_user_code,"
+          + " userinfo.uid as note_user_uid,"
+          + " userinfo.username as note_user_username,"
+          + " userinfo.firstname as note_user_firstname,"
+          + " userinfo.surname as note_user_surname"
+          + " from event_notes evn"
+          + " inner join note n"
+          + " on evn.noteid = n.noteid"
+          + " left join userinfo on n.lastupdatedby = userinfo.userinfoid ";
 
   private static final String EVENT_STATUS_EQ = " ev.status = ";
 
@@ -368,29 +368,29 @@ class JdbcEventStore implements EventStore {
               events.add(event);
             }
 
-            if (resultSet.getString("evnote_value") != null
-                && !notes.contains(resultSet.getString("evnote_id"))) {
-              TrackedEntityComment note = new TrackedEntityComment();
-              note.setUid(resultSet.getString("evnote_uid"));
-              note.setCommentText(resultSet.getString("evnote_value"));
-              note.setCreated(resultSet.getDate("evnote_storeddate"));
-              note.setCreator(resultSet.getString("evnote_storedby"));
+            if (resultSet.getString("note_text") != null
+                && !notes.contains(resultSet.getString("note_id"))) {
+              Note note = new Note();
+              note.setUid(resultSet.getString("note_uid"));
+              note.setNoteText(resultSet.getString("note_text"));
+              note.setCreated(resultSet.getDate("note_created"));
+              note.setCreator(resultSet.getString("note_creator"));
 
-              if (resultSet.getObject("evnote_user_id") != null) {
+              if (resultSet.getObject("note_user_id") != null) {
                 User noteLastUpdatedBy = new User();
-                noteLastUpdatedBy.setId(resultSet.getLong("evnote_user_id"));
-                noteLastUpdatedBy.setCode(resultSet.getString("evnote_user_code"));
-                noteLastUpdatedBy.setUid(resultSet.getString("evnote_user_uid"));
-                noteLastUpdatedBy.setUsername(resultSet.getString("evnote_user_username"));
-                noteLastUpdatedBy.setFirstName(resultSet.getString("evnote_user_firstname"));
-                noteLastUpdatedBy.setSurname(resultSet.getString("evnote_user_surname"));
+                noteLastUpdatedBy.setId(resultSet.getLong("note_user_id"));
+                noteLastUpdatedBy.setCode(resultSet.getString("note_user_code"));
+                noteLastUpdatedBy.setUid(resultSet.getString("note_user_uid"));
+                noteLastUpdatedBy.setUsername(resultSet.getString("note_user_username"));
+                noteLastUpdatedBy.setFirstName(resultSet.getString("note_user_firstname"));
+                noteLastUpdatedBy.setSurname(resultSet.getString("note_user_surname"));
                 note.setLastUpdatedBy(noteLastUpdatedBy);
               }
 
-              note.setLastUpdated(resultSet.getDate("evnote_lastupdated"));
+              note.setLastUpdated(resultSet.getDate("note_lastupdated"));
 
-              event.getComments().add(note);
-              notes.add(resultSet.getString("evnote_id"));
+              event.getNotes().add(note);
+              notes.add(resultSet.getString("note_id"));
             }
           }
 
@@ -526,7 +526,7 @@ class JdbcEventStore implements EventStore {
   }
 
   /**
-   * Query is based on three sub queries on event, data value and comment, which are joined using
+   * Query is based on three sub queries on event, data value and note, which are joined using
    * program stage instance id. The purpose of the separate queries is to be able to page properly
    * on events.
    */
@@ -548,11 +548,11 @@ class JdbcEventStore implements EventStore {
       sqlBuilder.append(") as att on event.te_id=att.pav_id left join (");
     }
 
-    sqlBuilder.append(EVENT_COMMENT_QUERY);
+    sqlBuilder.append(EVENT_NOTE_QUERY);
 
     sqlBuilder.append(") as cm on event.");
     sqlBuilder.append(COLUMN_EVENT_ID);
-    sqlBuilder.append("=cm.evc_id ");
+    sqlBuilder.append("=cm.evn_id ");
 
     if (params.isIncludeRelationships()) {
       sqlBuilder.append(RELATIONSHIP_IDS_QUERY);

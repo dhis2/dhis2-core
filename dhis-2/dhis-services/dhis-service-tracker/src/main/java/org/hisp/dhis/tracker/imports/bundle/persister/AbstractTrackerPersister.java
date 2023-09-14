@@ -112,9 +112,9 @@ public abstract class AbstractTrackerPersister<
         V convertedDto = convert(bundle, trackerDto);
 
         //
-        // Handle comments persistence, if required
+        // Handle notes persistence, if required
         //
-        persistComments(bundle.getPreheat(), convertedDto);
+        persistNotes(session, bundle.getPreheat(), convertedDto);
 
         //
         // Handle ownership records, if required
@@ -199,8 +199,8 @@ public abstract class AbstractTrackerPersister<
    */
   protected abstract V convert(TrackerBundle bundle, T trackerDto);
 
-  /** Persists the comments for the given entity, if the entity has comments */
-  protected abstract void persistComments(TrackerPreheat preheat, V entity);
+  /** Persists the notes for the given entity, if the entity has notes */
+  protected abstract void persistNotes(Session session, TrackerPreheat preheat, V entity);
 
   /** Persists ownership records for the given entity */
   protected abstract void persistOwnership(TrackerPreheat preheat, V entity);

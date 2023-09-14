@@ -25,48 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment.hibernate;
+package org.hisp.dhis.note;
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 
 /**
- * @author David Katuscak
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
-@Repository("org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore")
-public class HibernateTrackedEntityCommentStore
-    extends HibernateIdentifiableObjectStore<TrackedEntityComment>
-    implements TrackedEntityCommentStore {
-  public HibernateTrackedEntityCommentStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
-      AclService aclService) {
-    super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        TrackedEntityComment.class,
-        currentUserService,
-        aclService,
-        false);
-  }
+@RequiredArgsConstructor
+public class NoteDeletionHandler extends IdObjectDeletionHandler<Note> {
+  private final NoteService commentService;
 
   @Override
-  public boolean exists(String uid) {
-    return (boolean)
-        sessionFactory
-            .getCurrentSession()
-            .createNativeQuery("select exists(select 1 from trackedentitycomment where uid=:uid)")
-            .setParameter("uid", uid)
-            .getSingleResult();
+  protected void registerHandler() {
+    whenDeleting(Enrollment.class, this::deleteEnrollment);
+    whenDeleting(Event.class, this::deleteEvent);
+  }
+
+  private void deleteEnrollment(Enrollment enrollment) {
+    for (Note note : enrollment.getNotes()) {
+      commentService.deleteTrackedEntityComment(note);
+    }
+  }
+
+  private void deleteEvent(Event event) {
+    for (Note note : event.getNotes()) {
+      commentService.deleteTrackedEntityComment(note);
+    }
   }
 }

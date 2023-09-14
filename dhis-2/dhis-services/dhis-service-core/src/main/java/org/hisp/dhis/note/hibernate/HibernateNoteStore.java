@@ -25,36 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment;
+package org.hisp.dhis.note.hibernate;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.note.Note;
+import org.hisp.dhis.note.NoteStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ * @author David Katuscak
  */
-@RequiredArgsConstructor
-public class TrackedEntityCommentDeletionHandler
-    extends IdObjectDeletionHandler<TrackedEntityComment> {
-  private final TrackedEntityCommentService commentService;
+@Repository("org.hisp.dhis.trackedentitycomment.NoteStore")
+public class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note>
+    implements NoteStore {
+  public HibernateNoteStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory, jdbcTemplate, publisher, Note.class, currentUserService, aclService, false);
+  }
 
   @Override
-  protected void registerHandler() {
-    whenDeleting(Enrollment.class, this::deleteEnrollment);
-    whenDeleting(Event.class, this::deleteEvent);
-  }
-
-  private void deleteEnrollment(Enrollment enrollment) {
-    for (TrackedEntityComment comment : enrollment.getComments()) {
-      commentService.deleteTrackedEntityComment(comment);
-    }
-  }
-
-  private void deleteEvent(Event event) {
-    for (TrackedEntityComment comment : event.getComments()) {
-      commentService.deleteTrackedEntityComment(comment);
-    }
+  public boolean exists(String uid) {
+    return (boolean)
+        sessionFactory
+            .getCurrentSession()
+            .createNativeQuery("select exists(select 1 from note where uid=:uid)")
+            .setParameter("uid", uid)
+            .getSingleResult();
   }
 }

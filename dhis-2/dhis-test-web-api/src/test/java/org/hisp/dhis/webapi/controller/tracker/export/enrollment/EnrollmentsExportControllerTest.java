@@ -44,6 +44,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -59,7 +60,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -175,7 +175,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void getEnrollmentByIdWithNotes() {
-    enrollment.setComments(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
+    enrollment.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
 
     JsonEnrollment enrollment =
         GET("/tracker/enrollments/{uid}?fields=notes", this.enrollment.getUid())
@@ -363,10 +363,10 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
     return enrollment;
   }
 
-  private TrackedEntityComment note(String note, String value, String storedBy) {
-    TrackedEntityComment comment = new TrackedEntityComment(value, storedBy);
-    comment.setUid(note);
-    manager.save(comment, false);
-    return comment;
+  private Note note(String uid, String value, String storedBy) {
+    Note note = new Note(value, storedBy);
+    note.setUid(uid);
+    manager.save(note, false);
+    return note;
   }
 }

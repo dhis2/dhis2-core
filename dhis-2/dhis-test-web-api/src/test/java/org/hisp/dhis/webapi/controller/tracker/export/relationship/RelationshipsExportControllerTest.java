@@ -48,6 +48,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -65,7 +66,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
@@ -309,7 +309,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   void getRelationshipsByEventWithNotes() {
     TrackedEntity to = trackedEntity();
     Event from = event(enrollment(to));
-    from.setComments(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
+    from.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
     relationship(from, to);
 
     JsonList<JsonRelationship> relationships =
@@ -407,7 +407,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   void getRelationshipsByEnrollmentWithNotes() {
     TrackedEntity to = trackedEntity();
     Enrollment from = enrollment(to);
-    from.setComments(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
+    from.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
     relationship(from, to);
 
     JsonList<JsonRelationship> relationships =
@@ -850,10 +850,10 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     return new TrackedEntityAttributeValue(tea, te, value);
   }
 
-  private TrackedEntityComment note(String note, String value, String storedBy) {
-    TrackedEntityComment comment = new TrackedEntityComment(value, storedBy);
-    comment.setUid(note);
-    manager.save(comment, false);
-    return comment;
+  private Note note(String uid, String value, String storedBy) {
+    Note note = new Note(value, storedBy);
+    note.setUid(uid);
+    manager.save(note, false);
+    return note;
   }
 }
