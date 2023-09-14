@@ -35,8 +35,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -54,11 +54,11 @@ public class JdbcEventCommentStore implements EventCommentStore {
   private final JdbcTemplate jdbcTemplate;
 
   private final String INSERT_EVENT_NOTE_SQL =
-      "INSERT INTO TRACKEDENTITYCOMMENT (trackedentitycommentid, "
+      "INSERT INTO note (noteid, "
           + // 0
           "uid, "
           + // 1
-          "commenttext, "
+          "notetext, "
           + // 2
           "created, "
           + // 3
@@ -69,8 +69,7 @@ public class JdbcEventCommentStore implements EventCommentStore {
           ")  values ( nextval('hibernate_sequence'), ?, ?, ?, ?, ?)";
 
   private static final String INSERT_EVENT_COMMENT_LINK =
-      "INSERT INTO eventcomments (eventid, "
-          + "sort_order, trackedentitycommentid) values (?, ?, ?)";
+      "INSERT INTO event_notes (eventid, " + "sort_order, noteid) values (?, ?, ?)";
 
   /**
    * Save all the comments ({@see TrackedEntityComment} for the list of {@see Event}
@@ -92,7 +91,7 @@ public class JdbcEventCommentStore implements EventCommentStore {
       for (Event psi : events) {
         Integer sortOrder = getInitialSortOrder(psi);
 
-        for (TrackedEntityComment comment : psi.getComments()) {
+        for (Note comment : psi.getNotes()) {
           Long commentId = saveComment(comment);
           if (commentId != null && commentId != 0) {
             saveCommentToEvent(psi.getId(), commentId, sortOrder);
@@ -107,7 +106,7 @@ public class JdbcEventCommentStore implements EventCommentStore {
   }
 
   private boolean hasComments(Event event) {
-    return CollectionUtils.isNotEmpty(event.getComments());
+    return CollectionUtils.isNotEmpty(event.getNotes());
   }
 
   Integer getInitialSortOrder(Event psi) {
@@ -116,38 +115,36 @@ public class JdbcEventCommentStore implements EventCommentStore {
       // the
       // notes, to avoid conflicts
       return jdbcTemplate.queryForObject(
-          "select coalesce(max(sort_order) + 1, 1) from eventcomments where eventid = "
-              + psi.getId(),
+          "select coalesce(max(sort_order) + 1, 1) from event_notes where eventid = " + psi.getId(),
           Integer.class);
     }
     return 1;
   }
 
   private Event withoutEmptyComments(Event event) {
-    event.setComments(getNonEmptyComments(event));
+    event.setNotes(getNonEmptyComments(event));
     return event;
   }
 
-  private List<TrackedEntityComment> getNonEmptyComments(Event event) {
-    return event.getComments().stream().filter(this::hasCommentText).collect(toList());
+  private List<Note> getNonEmptyComments(Event event) {
+    return event.getNotes().stream().filter(this::hasCommentText).collect(toList());
   }
 
-  private boolean hasCommentText(TrackedEntityComment trackedEntityComment) {
-    return StringUtils.isNotEmpty(trackedEntityComment.getCommentText());
+  private boolean hasCommentText(Note trackedEntityComment) {
+    return StringUtils.isNotEmpty(trackedEntityComment.getNoteText());
   }
 
-  Long saveComment(TrackedEntityComment comment) {
+  Long saveComment(Note comment) {
     KeyHolder keyHolder = new GeneratedKeyHolder();
 
     try {
       jdbcTemplate.update(
           connection -> {
             PreparedStatement ps =
-                connection.prepareStatement(
-                    INSERT_EVENT_NOTE_SQL, new String[] {"trackedentitycommentid"});
+                connection.prepareStatement(INSERT_EVENT_NOTE_SQL, new String[] {"noteid"});
 
             ps.setString(1, comment.getUid());
-            ps.setString(2, comment.getCommentText());
+            ps.setString(2, comment.getNoteText());
             ps.setTimestamp(3, JdbcEventSupport.toTimestamp(comment.getCreated()));
             ps.setString(4, comment.getCreator());
             ps.setTimestamp(5, JdbcEventSupport.toTimestamp(comment.getLastUpdated()));

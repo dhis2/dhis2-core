@@ -80,8 +80,9 @@ public class TrackedEntityPersister
   }
 
   @Override
-  protected void persistComments(TrackerPreheat preheat, TrackedEntity trackedEntity) {
-    // DO NOTHING - TE HAVE NO COMMENTS
+  protected void persistNotes(
+      Session session, TrackerPreheat preheat, TrackedEntity trackedEntity) {
+    // DO NOTHING - TE HAVE NO NOTES
   }
 
   @Override

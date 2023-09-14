@@ -41,9 +41,9 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -89,7 +89,7 @@ public class EventAggregate implements Aggregate {
     /*
      * Async fetch Notes for the given Event ids
      */
-    final CompletableFuture<Multimap<String, TrackedEntityComment>> notesAsync =
+    final CompletableFuture<Multimap<String, Note>> notesAsync =
         asyncFetch(() -> eventStore.getNotes(eventIds), getPool());
 
     /*
@@ -102,7 +102,7 @@ public class EventAggregate implements Aggregate {
         .thenApplyAsync(
             fn -> {
               Map<String, List<EventDataValue>> dataValues = dataValuesAsync.join();
-              Multimap<String, TrackedEntityComment> notes = notesAsync.join();
+              Multimap<String, Note> notes = notesAsync.join();
               Multimap<String, RelationshipItem> relationships = relationshipAsync.join();
 
               for (Event event : events.values()) {
@@ -114,7 +114,7 @@ public class EventAggregate implements Aggregate {
                 if (dataValuesForEvent != null && !dataValuesForEvent.isEmpty()) {
                   event.setEventDataValues(new HashSet<>(dataValues.get(event.getUid())));
                 }
-                event.setComments(new ArrayList<>(notes.get(event.getUid())));
+                event.setNotes(new ArrayList<>(notes.get(event.getUid())));
               }
 
               return events;

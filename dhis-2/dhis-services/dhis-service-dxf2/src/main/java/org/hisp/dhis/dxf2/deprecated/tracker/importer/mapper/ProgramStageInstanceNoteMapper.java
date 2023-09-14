@@ -31,23 +31,23 @@ import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventUtils.getValidUse
 import static org.hisp.dhis.util.DateUtils.parseDate;
 
 import java.util.Date;
-import org.hisp.dhis.dxf2.deprecated.tracker.event.Note;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.note.Note;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramStageInstanceNoteMapper extends AbstractMapper<Note, TrackedEntityComment> {
+public class ProgramStageInstanceNoteMapper
+    extends AbstractMapper<org.hisp.dhis.dxf2.deprecated.tracker.event.Note, Note> {
   public ProgramStageInstanceNoteMapper(WorkContext ctx) {
     super(ctx);
   }
 
   @Override
-  public TrackedEntityComment map(Note note) {
-    final TrackedEntityComment comment = new TrackedEntityComment();
+  public Note map(org.hisp.dhis.dxf2.deprecated.tracker.event.Note note) {
+    final Note comment = new Note();
     comment.setUid(note.getNote());
-    comment.setCommentText(note.getValue());
+    comment.setNoteText(note.getValue());
     comment.setCreator(getValidUsername(note.getStoredBy(), workContext.getImportOptions()));
     comment.setCreated(note.getStoredDate() == null ? new Date() : parseDate(note.getStoredDate()));
     comment.setLastUpdated(new Date());

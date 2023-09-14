@@ -37,8 +37,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.util.List;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -94,12 +94,12 @@ class JdbcEventCommentStoreTest {
   private List<Event> getProgramStageList(boolean withComments, boolean emptyComment) {
     Event event = new Event();
     if (withComments) {
-      event.setComments(List.of(getComment(emptyComment ? "" : "Some comment")));
+      event.setNotes(List.of(getComment(emptyComment ? "" : "Some comment")));
     }
     return List.of(event);
   }
 
-  private TrackedEntityComment getComment(String commentText) {
-    return new TrackedEntityComment(commentText, "Some author");
+  private Note getComment(String notetext) {
+    return new Note(notetext, "Some author");
   }
 }

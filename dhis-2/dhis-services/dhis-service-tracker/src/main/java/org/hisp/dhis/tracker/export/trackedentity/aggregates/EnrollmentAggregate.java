@@ -39,11 +39,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -91,7 +91,7 @@ public class EnrollmentAggregate implements Aggregate {
             () -> enrollmentStore.getRelationships(enrollmentIds, ctx),
             getPool());
 
-    final CompletableFuture<Multimap<String, TrackedEntityComment>> notesAsync =
+    final CompletableFuture<Multimap<String, Note>> notesAsync =
         asyncFetch(() -> enrollmentStore.getNotes(enrollmentIds), getPool());
 
     final CompletableFuture<Multimap<String, TrackedEntityAttributeValue>> attributesAsync =
@@ -104,7 +104,7 @@ public class EnrollmentAggregate implements Aggregate {
         .thenApplyAsync(
             fn -> {
               Multimap<String, Event> events = eventAsync.join();
-              Multimap<String, TrackedEntityComment> notes = notesAsync.join();
+              Multimap<String, Note> notes = notesAsync.join();
               Multimap<String, RelationshipItem> relationships = relationshipAsync.join();
               Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
 
@@ -123,7 +123,7 @@ public class EnrollmentAggregate implements Aggregate {
                           new LinkedHashSet<>(attributes.get(enrollment.getUid())));
                 }
 
-                enrollment.setComments(new ArrayList<>(notes.get(enrollment.getUid())));
+                enrollment.setNotes(new ArrayList<>(notes.get(enrollment.getUid())));
               }
 
               return enrollments;

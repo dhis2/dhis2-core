@@ -102,6 +102,6 @@ public interface EventMapper
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
   @Mapping(target = "dataValues", source = "eventDataValues")
   @Mapping(target = "relationships", source = "relationshipItems")
-  @Mapping(target = "notes", source = "comments")
+  @Mapping(target = "notes", source = "notes")
   org.hisp.dhis.webapi.controller.tracker.view.Event from(Event event);
 }
