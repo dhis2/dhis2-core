@@ -255,7 +255,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
 
     assertEquals(2, response.getObject("options").size());
     assertEquals(0, response.getNumber("options[0].sortOrder").intValue());
-    assertEquals(5, response.getNumber("options[1].sortOrder").intValue());
+    assertEquals(1, response.getNumber("options[1].sortOrder").intValue());
     assertEquals("Uh4HvjK6zg3", response.getString("options[0].id").string());
     assertEquals("BQMei56UBl6", response.getString("options[1].id").string());
   }
@@ -286,7 +286,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"BQMei56UBl6\"},{\"id\": \"Uh4HvjK6zg3\"}]}],\n"
                 + "\"options\":\n"
                 + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
                 + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
@@ -296,8 +296,24 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
         GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
 
     assertEquals(2, response.getObject("options").size());
-    assertNotNull(response.get("options[0].sortOrder"));
+    assertEquals(0, response.getNumber("options[0].sortOrder").intValue());
+    assertEquals("BQMei56UBl6", response.getString("options[0].id").string());
     assertNotNull(response.get("options[1].sortOrder"));
+    assertEquals("Uh4HvjK6zg3", response.getString("options[1].id").string());
+    assertEquals(1, response.getNumber("options[1].sortOrder").intValue());
+
+    POST(
+            "/metadata",
+            "{\"optionSets\":\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
+                + "\"options\":\n"
+                + "    [{\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+                + "    {\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
+        .content(HttpStatus.OK);
+
+    response = GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
+    assertEquals("Uh4HvjK6zg3", response.getString("options[0].id").string());
+    assertEquals("BQMei56UBl6", response.getString("options[1].id").string());
   }
 
   /** Import OptionSet with two Options, both have same sortOrder */
