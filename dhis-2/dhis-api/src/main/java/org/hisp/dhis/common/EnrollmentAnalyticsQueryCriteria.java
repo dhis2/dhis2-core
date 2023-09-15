@@ -104,4 +104,7 @@ public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
   private String coordinateField;
 
   private SortOrder sortOrder;
+
+  /** flag to enable row context in grid response */
+  private boolean rowContext;
 }

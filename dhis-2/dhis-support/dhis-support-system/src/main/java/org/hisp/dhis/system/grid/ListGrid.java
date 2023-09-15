@@ -47,6 +47,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
@@ -112,6 +113,12 @@ public class ListGrid implements Grid, Serializable {
   /** Represents a mapping between column names and the index of the column in the grid. */
   private Map<String, Integer> columnIndexMap = new HashMap<>();
 
+  /**
+   * Transformed collection of the value meta information for better javascript handling. Describe
+   * origin of the repeatable stage value.
+   */
+  private Map<Integer, Map<String, Object>> rowContext;
+
   private boolean lastDataRow;
 
   /** Default constructor. */
@@ -119,6 +126,7 @@ public class ListGrid implements Grid, Serializable {
     this.headers = new ArrayList<>();
     this.metaData = new HashMap<>();
     this.internalMetaData = new HashMap<>();
+    this.rowContext = new TreeMap<>();
     this.grid = new ArrayList<>();
   }
 
@@ -130,6 +138,7 @@ public class ListGrid implements Grid, Serializable {
     this.headers = new ArrayList<>();
     this.metaData = metaData;
     this.internalMetaData = internalMetaData;
+    this.rowContext = new TreeMap<>();
     this.grid = new ArrayList<>();
   }
 
@@ -306,6 +315,13 @@ public class ListGrid implements Grid, Serializable {
   }
 
   @Override
+  public Grid setRowContext(Map<Integer, Map<String, Object>> rowContext) {
+    this.rowContext = rowContext;
+
+    return this;
+  }
+
+  @Override
   @JsonProperty
   public PerformanceMetrics getPerformanceMetrics() {
     return performanceMetrics;
@@ -316,6 +332,12 @@ public class ListGrid implements Grid, Serializable {
     verifyGridState();
 
     return grid != null && grid.size() > 0 ? getVisibleRows().get(0).size() : 0;
+  }
+
+  @Override
+  @JsonProperty
+  public Map<Integer, Map<String, Object>> getRowContext() {
+    return rowContext;
   }
 
   @Override

@@ -242,4 +242,7 @@ public class EventsAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
    * attributes. ( options: UID | CODE | ATTRIBUTE:<ID> )
    */
   private IdScheme outputIdScheme;
+
+  /** flag to enable row context in grid response */
+  private boolean rowContext;
 }

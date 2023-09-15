@@ -61,6 +61,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
@@ -81,6 +82,7 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.SlimPager;
+import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
@@ -236,7 +238,38 @@ public abstract class AbstractAnalyticsService {
 
     maybeApplyHeaders(params, grid);
 
+    // ---------------------------------------------------------------------
+    // RowContext
+    // ---------------------------------------------------------------------
+
+    setRowContextColumns(grid);
+
     return grid;
+  }
+
+  /**
+   * Add information about row context. The row context is based on origin of repeatable stage
+   * value. Please see the {@link ValueStatus}
+   *
+   * @param grid the {@link Grid}.
+   */
+  private void setRowContextColumns(Grid grid) {
+    Map<Integer, Map<String, Object>> oldRowContext = grid.getRowContext();
+    Map<Integer, Map<String, Object>> newRowContext = new TreeMap<>();
+    oldRowContext
+        .keySet()
+        .forEach(
+            rowKey -> {
+              Map<String, Object> newCols = new HashMap<>();
+              Map<String, Object> cols = oldRowContext.get(rowKey);
+              cols.keySet()
+                  .forEach(
+                      colKey ->
+                          newCols.put(
+                              Integer.toString(grid.getIndexOfHeader(colKey)), cols.get(colKey)));
+              newRowContext.put(rowKey, newCols);
+            });
+    grid.setRowContext(newRowContext);
   }
 
   /**
@@ -514,7 +547,7 @@ public abstract class AbstractAnalyticsService {
   /**
    * Indicates whether any keywords exist.
    *
-   * @param keywords the list of {@link Keyword}.
+   * @param keywords the list of {@link DimensionItemKeywords.Keyword}.
    */
   private boolean hasPeriodKeywords(List<DimensionItemKeywords.Keyword> keywords) {
     return keywords != null && !keywords.isEmpty();
