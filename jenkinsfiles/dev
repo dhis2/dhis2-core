@@ -192,8 +192,8 @@ pipeline {
             environment {
                 HTTP = "http --check-status"
                 IM_REPO_URL = "https://github.com/dhis2-sre/im-manager"
-                IM_HOST = "https://api.im.prod.test.c.dhis2.org"
-                INSTANCE_URL = "https://play.im.prod.test.c.dhis2.org/dev"
+                IM_HOST = "https://api.im.dhis2.org"
+                INSTANCE_URL = "https://play.im.dhis2.org/dev"
                 IMAGE_REPOSITORY = "core-dev"
                 IMAGE_TAG = "latest"
                 IMAGE_PULL_POLICY = "Always"
