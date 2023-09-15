@@ -27,13 +27,11 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import static java.util.Collections.emptyMap;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -173,7 +171,7 @@ class DefaultEventService implements EventService {
     EventQueryParams queryParams = paramsMapper.map(operationParams);
     queryParams.setSkipPaging(true);
 
-    return eventStore.getEvents(queryParams, emptyMap());
+    return eventStore.getEvents(queryParams);
   }
 
   @Override
@@ -185,7 +183,7 @@ class DefaultEventService implements EventService {
     queryParams.setTotalPages(pageParams.isPageTotal());
     queryParams.setSkipPaging(false);
 
-    List<Event> events = new ArrayList<>(eventStore.getEvents(queryParams, emptyMap()));
+    List<Event> events = new ArrayList<>(eventStore.getEvents(queryParams));
 
     Pager pager;
     if (pageParams.isPageTotal()) {
@@ -205,8 +203,7 @@ class DefaultEventService implements EventService {
 
   /**
    * This method will apply the logic related to the parameter 'totalPages=false'. This works in
-   * conjunction with the method: {@link EventStore#getEvents(EventQueryParams,
-   * Map<String,Set<String>>)}
+   * conjunction with the method: {@link EventStore#getEvents(EventQueryParams) <String,Set<String>>)}
    *
    * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
    * allow us to evaluate if we are in the last page or not. And this is what his method does,

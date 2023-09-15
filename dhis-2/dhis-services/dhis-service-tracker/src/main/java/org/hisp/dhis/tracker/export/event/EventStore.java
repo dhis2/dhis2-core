@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.export.event;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.program.Event;
 
@@ -36,12 +35,12 @@ import org.hisp.dhis.program.Event;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface EventStore {
-  List<Event> getEvents(EventQueryParams params, Map<String, Set<String>> psdesWithSkipSyncTrue);
+  List<Event> getEvents(EventQueryParams params);
 
   /**
-   * Fields the {@link #getEvents(EventSearchParams, Map)} can order events by. Ordering by fields
+   * Fields the {@link #getEvents(EventQueryParams)} can order events by. Ordering by fields
    * other than these is considered a programmer error. Validation of user provided field names
-   * should occur before calling {@link #getEvents(EventSearchParams, Map)}.
+   * should occur before calling {@link #getEvents(EventQueryParams)}.
    */
   Set<String> getOrderableFields();
 

@@ -207,10 +207,6 @@ class JdbcEventStore implements EventStore {
           entry("assignedUser", COLUMN_EVENT_ASSIGNED_USER_USERNAME),
           entry("assignedUser.displayName", COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME));
 
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
   // Cannot use DefaultRenderService mapper. Does not work properly -
   // DHIS2-6102
   private static final ObjectReader eventDataValueJsonReader =
@@ -229,13 +225,8 @@ class JdbcEventStore implements EventStore {
 
   private final RelationshipStore relationshipStore;
 
-  // -------------------------------------------------------------------------
-  // EventStore implementation
-  // -------------------------------------------------------------------------
-
   @Override
-  public List<Event> getEvents(
-      EventQueryParams params, Map<String, Set<String>> psdesWithSkipSyncTrue) {
+  public List<Event> getEvents( EventQueryParams params) {
     User user = currentUserService.getCurrentUser();
 
     setAccessiblePrograms(user, params);
