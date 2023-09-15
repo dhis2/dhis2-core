@@ -74,6 +74,9 @@ public interface Grid extends JRDataSource, Serializable {
   /** Returns a map of internal meta-data. */
   Map<String, Object> getInternalMetaData();
 
+  /** Returns a map of row contextual data. */
+  Map<Integer, Map<String, Object>> getRowContext();
+
   /** Returns performance metrics. */
   PerformanceMetrics getPerformanceMetrics();
 
@@ -448,6 +451,15 @@ public interface Grid extends JRDataSource, Serializable {
    * @param plans the list of execution plans.
    */
   Grid addPerformanceMetrics(List<ExecutionPlan> plans);
+
+  /**
+   * Set Row Context, the contextual information describing origin of values (columns) inside the
+   * row
+   *
+   * @param rowContext
+   * @return Grid instance
+   */
+  Grid setRowContext(Map<Integer, Map<String, Object>> rowContext);
 
   /**
    * Adds a reference.

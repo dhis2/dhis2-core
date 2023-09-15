@@ -147,6 +147,9 @@ public class EventDataQueryRequest {
 
   private boolean enhancedConditions;
 
+  /** flag to enable row context in grid response */
+  private boolean rowContext;
+
   /**
    * Copies all properties of this request onto the given request.
    *
@@ -197,6 +200,7 @@ public class EventDataQueryRequest {
     queryRequest.endpointAction = this.endpointAction;
     queryRequest.enhancedConditions = this.enhancedConditions;
     queryRequest.outputIdScheme = outputIdScheme;
+    queryRequest.rowContext = rowContext;
     return request;
   }
 
@@ -255,7 +259,8 @@ public class EventDataQueryRequest {
               .endpointItem(criteria.getEndpointItem())
               .endpointAction(criteria.getEndpointAction())
               .coordinateOuFallback(criteria.isCoordinateOuFallback())
-              .enhancedConditions(criteria.isEnhancedConditions());
+              .enhancedConditions(criteria.isEnhancedConditions())
+              .rowContext(criteria.isRowContext());
 
       if (criteria.getDimension() == null) {
         criteria.setDimension(new HashSet<>());
@@ -359,7 +364,8 @@ public class EventDataQueryRequest {
               .totalPages(criteria.isTotalPages())
               .endpointItem(criteria.getEndpointItem())
               .endpointAction(criteria.getEndpointAction())
-              .enhancedConditions(criteria.isEnhancedConditions());
+              .enhancedConditions(criteria.isEnhancedConditions())
+              .rowContext(criteria.isRowContext());
 
       if (criteria.getDimension() == null) {
         criteria.setDimension(new HashSet<>());
