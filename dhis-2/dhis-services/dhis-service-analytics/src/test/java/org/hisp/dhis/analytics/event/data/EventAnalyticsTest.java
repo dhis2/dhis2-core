@@ -47,6 +47,8 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.RepeatableStageParams;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -67,7 +69,7 @@ abstract class EventAnalyticsTest {
 
   protected ProgramStage programStage;
 
-  protected ProgramStage programStageWithRepeatableParams;
+  protected ProgramStage repeatableProgramStage;
 
   protected Program programA;
 
@@ -80,8 +82,8 @@ abstract class EventAnalyticsTest {
     programA = createProgram('A');
     programB = createProgram('B');
     programStage = createProgramStage('B', programA);
-    programStageWithRepeatableParams = createProgramStage('C', programB);
-    programStageWithRepeatableParams.setRepeatable(true);
+    repeatableProgramStage = createProgramStage('A', programA);
+    repeatableProgramStage.setRepeatable(true);
     dataElementA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     dataElementA.setUid("fWIAEtYVEGk");
   }
@@ -149,6 +151,8 @@ abstract class EventAnalyticsTest {
     params.withOrganisationUnits(getList(ouA));
     params.withTableName(getTableName() + "_" + programA.getUid());
     params.withProgram(programA);
+    params.withRowContext(true);
+    params.withEndpointItem(RequestTypeAware.EndpointItem.ENROLLMENT);
     return params.build();
   }
 
@@ -184,12 +188,20 @@ abstract class EventAnalyticsTest {
     DimensionalItemObject dio = new BaseDimensionalItemObject(dataElementA.getUid());
     params.withProgram(programA);
     if (withProgramStage != null) {
-      params.withProgramStage(programStage);
+      params.withProgramStage(withProgramStage);
     }
     if (withQueryItemValueType != null) {
       QueryItem queryItem = new QueryItem(dio);
       if (withProgramStage != null) {
-        queryItem.setProgramStage(programStage);
+        queryItem.setProgramStage(withProgramStage);
+        if (withProgramStage.getRepeatable()) {
+          RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
+          repeatableStageParams.setDimension(
+              withProgramStage.getUid() + "[-1]." + dataElementA.getUid());
+          repeatableStageParams.setStartIndex(-1);
+          repeatableStageParams.setCount(1);
+          queryItem.setRepeatableStageParams(repeatableStageParams);
+        }
       }
       queryItem.setProgram(programA);
       queryItem.setValueType(withQueryItemValueType);

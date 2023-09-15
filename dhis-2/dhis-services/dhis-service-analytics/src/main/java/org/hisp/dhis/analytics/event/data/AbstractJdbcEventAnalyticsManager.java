@@ -44,6 +44,7 @@ import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
+import static org.hisp.dhis.analytics.event.data.ColumnAndAlias.ofColumnAndAlias;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
@@ -400,8 +401,33 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       boolean isGroupByClause,
       boolean isAggregated) {
     for (QueryItem queryItem : params.getItems()) {
-      columns.add(getColumnAndAlias(queryItem, params, isGroupByClause, isAggregated).asSql());
+      ColumnAndAlias columnAndAlias =
+          getColumnAndAlias(queryItem, params, isGroupByClause, isAggregated);
+
+      columns.add(columnAndAlias.asSql());
+
+      // asked for row context if allowed and needed
+      if (rowContextAllowedAndNeeded(params, queryItem)) {
+        String column = " exists (" + columnAndAlias.getColumn() + ")";
+        String alias = columnAndAlias.getAlias() + ".exists";
+        columns.add((ofColumnAndAlias(column, alias)).asSql());
+      }
     }
+  }
+
+  /**
+   * Eligibility of enrollment request for grid row context
+   *
+   * @param params
+   * @param queryItem
+   * @return true when eligible for row context
+   */
+  private boolean rowContextAllowedAndNeeded(EventQueryParams params, QueryItem queryItem) {
+    return params.getEndpointItem() == ENROLLMENT
+        && params.isRowContext()
+        && queryItem.hasProgramStage()
+        && queryItem.getProgramStage().getRepeatable()
+        && queryItem.hasRepeatableStageParams();
   }
 
   private ColumnAndAlias getColumnAndAlias(
@@ -426,7 +452,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                 in, getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate());
       }
 
-      return ColumnAndAlias.ofColumnAndAlias(programIndicatorSubquery, asClause);
+      return ofColumnAndAlias(programIndicatorSubquery, asClause);
     } else if (ValueType.COORDINATE == queryItem.getValueType()) {
       return getCoordinateColumn(queryItem);
     } else if (ValueType.ORGANISATION_UNIT == queryItem.getValueType()) {
@@ -439,7 +465,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       ColumnAndAlias columnAndAlias =
           getColumnAndAlias(queryItem, isAggregated, queryItem.getItemName());
 
-      return ColumnAndAlias.ofColumnAndAlias(
+      return ofColumnAndAlias(
           columnAndAlias.getColumn(),
           defaultIfNull(columnAndAlias.getAlias(), queryItem.getItemName()));
     } else {
@@ -452,7 +478,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String column = getColumn(queryItem);
 
     if (!isGroupByClause) {
-      return ColumnAndAlias.ofColumnAndAlias(column, getAlias(queryItem).orElse(aliasIfMissing));
+      return ofColumnAndAlias(column, getAlias(queryItem).orElse(aliasIfMissing));
     }
 
     return ColumnAndAlias.ofColumn(column);
@@ -704,7 +730,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected ColumnAndAlias getCoordinateColumn(final QueryItem item) {
     final String colName = item.getItemName();
 
-    return ColumnAndAlias.ofColumnAndAlias(
+    return ofColumnAndAlias(
         "'[' || round(ST_X("
             + quote(colName)
             + ")::numeric, 6) || ',' || round(ST_Y("
@@ -730,7 +756,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       stCentroidFunction = "ST_Centroid";
     }
 
-    return ColumnAndAlias.ofColumnAndAlias(
+    return ofColumnAndAlias(
         "'[' || round(ST_X("
             + stCentroidFunction
             + "("
