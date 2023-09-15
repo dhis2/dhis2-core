@@ -43,6 +43,7 @@ import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -216,6 +217,72 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + "' limit 101";
 
     assertSql(sql.getValue(), expected);
+  }
+
+  @Test
+  void verifyWithRepeatableProgramStageAndNumericDataElement() {
+    verifyWithRepeatableProgramStageAndDataElement(ValueType.NUMBER);
+  }
+
+  @Test
+  void verifyWithRepeatableProgramStageAndTextDataElement() {
+    verifyWithRepeatableProgramStageAndDataElement(ValueType.TEXT);
+  }
+
+  private void verifyWithRepeatableProgramStageAndDataElement(ValueType valueType) {
+    EventQueryParams params = createRequestParams(repeatableProgramStage, valueType);
+
+    subject.getEnrollments(params, new ListGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String programUid = repeatableProgramStage.getProgram().getUid();
+
+    String programStageUid = repeatableProgramStage.getUid();
+
+    String dataElementUid = dataElementA.getUid();
+
+    String expected =
+        "select pi,tei,enrollmentdate,incidentdate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,"
+            + "ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"monthly\",ax.\"ou\","
+            + "(select \""
+            + dataElementUid
+            + "\" from analytics_event_"
+            + programUid
+            + " "
+            + "where analytics_event_"
+            + programUid
+            + ".pi = ax.pi and ps = '"
+            + repeatableProgramStage.getUid()
+            + "' order by executiondate desc offset 1 limit 1 ) "
+            + "as \""
+            + programStageUid
+            + "[-1]."
+            + dataElementUid
+            + "\", exists ((select \""
+            + dataElementUid
+            + "\" "
+            + "from analytics_event_"
+            + programUid
+            + " "
+            + "where analytics_event_"
+            + programUid
+            + ".pi = ax.pi and ps = '"
+            + programStageUid
+            + "' order by executiondate desc offset 1 limit 1 )) "
+            + "as \""
+            + programStageUid
+            + "[-1]."
+            + dataElementUid
+            + ".exists\"  "
+            + "from analytics_enrollment_"
+            + programUid
+            + " as ax where (ax.\"monthly\" in ('2000Q1') )and (ax.\"uidlevel1\" = 'ouabcdefghA' ) "
+            + "and ps = '"
+            + programStageUid
+            + "' limit 101";
+
+    assertEquals(expected, sql.getValue());
   }
 
   @Test
@@ -634,7 +701,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
     QueryItem item = new QueryItem(dio);
     item.setValueType(ValueType.COORDINATE);
-    item.setProgramStage(programStageWithRepeatableParams);
+    item.setProgramStage(repeatableProgramStage);
     item.setProgram(programB);
     RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
 
@@ -656,7 +723,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
                 + " where analytics_event_"
                 + programB.getUid()
                 + ".pi = ax.pi and ps = '"
-                + programStageWithRepeatableParams.getUid()
+                + repeatableProgramStage.getUid()
                 + "' and executiondate >= '2022-01-01'  and executiondate <= '2022-01-31' order by executiondate desc LIMIT 100 ) as t1)"));
   }
 
@@ -666,7 +733,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
     QueryItem item = new QueryItem(dio);
     item.setValueType(ValueType.COORDINATE);
-    item.setProgramStage(programStageWithRepeatableParams);
+    item.setProgramStage(repeatableProgramStage);
     item.setProgram(programB);
     RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
 
@@ -686,7 +753,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
                 + " where analytics_event_"
                 + programB.getUid()
                 + ".pi = ax.pi and ps = '"
-                + programStageWithRepeatableParams.getUid()
+                + repeatableProgramStage.getUid()
                 + "' order by executiondate desc limit 1 )"));
   }
 
